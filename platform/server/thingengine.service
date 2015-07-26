@@ -1,0 +1,12 @@
+# This file is part of ThingEngine
+#
+# Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
+#
+# See COPYING for details
+
+[Unit]
+Name=thingengine.service
+Description=ThingEngine personal IoT service
+
+[Service]
+ExecStart=/usr/bin/node /opt/thingengine/platform/server/main.js
