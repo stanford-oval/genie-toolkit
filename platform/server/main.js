@@ -6,7 +6,7 @@
 //
 // See COPYING for details
 
-var Engine = require('../../engine/engine.js');
+var Engine = require('./engine/engine.js');
 var Frontend = require('./frontend.js');
 
 function main() {

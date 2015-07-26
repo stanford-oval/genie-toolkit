@@ -9,4 +9,4 @@ Name=thingengine.service
 Description=ThingEngine personal IoT service
 
 [Service]
-ExecStart=/usr/bin/node /opt/thingengine/platform/server/main.js
+ExecStart=/usr/bin/node /opt/thingengine/main.js

@@ -1,0 +1,3 @@
+[submodule "platform/cordova/io.jxcore.node"]
+	path = platform/cordova/io.jxcore.node
+	url = https://github.com/jxcore/jxcore-cordova
