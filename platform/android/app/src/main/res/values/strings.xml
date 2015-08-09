@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">ThingEngine</string>
+    <string name="title_activity_engine_test">EngineTestActivity</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
 </resources>

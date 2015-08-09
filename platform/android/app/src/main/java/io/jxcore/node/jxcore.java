@@ -63,6 +63,8 @@ public class jxcore {
 
   public native int loop();
 
+  public native void quitLoop();
+
   public native void startEngine();
 
   public native void prepareEngine(String home, String fileTree);
@@ -191,9 +193,9 @@ public class jxcore {
               first_entry = false;
             else
               assets.append(",");
-            int size = FileManager.approxFileSize(context.getAssets(), name.substring(7));
+            int size = FileManager.approxFileSize(context.getAssets(), name.substring("assets/".length()));
             assets.append("\"");
-            assets.append(name.substring(18));
+            assets.append(name.substring("assets/jxcore/".length()));
             assets.append("\":");
             assets.append(size);
           }

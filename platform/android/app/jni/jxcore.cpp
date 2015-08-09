@@ -566,6 +566,11 @@ Java_io_jxcore_node_jxcore_loop(JNIEnv *env, jobject thiz) {
 }
 
 JNIEXPORT void JNICALL
+Java_io_jxcore_node_jxcore_quitLoop(JNIEnv *env, jobject thiz) {
+  JX_QuitLoop();
+}
+
+JNIEXPORT void JNICALL
 Java_io_jxcore_node_jxcore_stopEngine(JNIEnv *env, jobject thiz) {
   JX_ClearPersistent(&eventCB);
   JX_Free(&eventCB);

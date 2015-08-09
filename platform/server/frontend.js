@@ -41,7 +41,7 @@ Frontend.prototype._init = function _init() {
 
 var server = null;
 
-Frontend.prototype.start = function() {
+Frontend.prototype.open = function() {
     server = http.createServer(this._app);
     return Q.ninvoke(server, 'listen', this._app.get('port'))
         .then(function() {
@@ -49,7 +49,7 @@ Frontend.prototype.start = function() {
         }.bind(this));
 }
 
-Frontend.prototype.stop = function() {
+Frontend.prototype.close = function() {
     return Q.ninvoke(server, 'close').then(function() {
         console.log('Express server stopped');
     }).catch(function(error) {

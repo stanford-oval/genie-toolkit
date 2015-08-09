@@ -14,12 +14,24 @@ var Frontend = require('./frontend');
 function main() {
     global.platform = require('./platform');
 
-    var engine = new Engine();
-    var frontend = new Frontend();
-    Q.all([engine.start(), frontend.start()]).then(function() {
-        return engine.run().finally(function() {
-            return Q.all([engine.stop(), frontend.stop()]);
+    platform.init().then(function() {
+        var engine = new Engine();
+        var frontend = new Frontend();
+
+        process.on('SIGINT', function() {
+            engine.stop();
         });
+
+        return Q.all([engine.open(), frontend.open()]).then(function() {
+            return engine.run().finally(function() {
+                return Q.all([engine.close(), frontend.close()]);
+            });
+        });
+    }).catch(function(error) {
+        console.log('Uncaught exception: ' + error);
+    }).finally(function () {
+        console.log('Cleaning up');
+        platform.exit();
     }).done();
 }
 

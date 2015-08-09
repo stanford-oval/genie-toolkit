@@ -27,5 +27,5 @@ fi
 
 ndk-build
 
-rm -rf jxcore-binaries/
-rm -rf obj/
+#rm -rf jxcore-binaries/
+#rm -rf obj/

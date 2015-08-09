@@ -111,6 +111,10 @@ JXMobile.GetConnectionStatus = function(callback) {
   });
 };
 
+JXMobile.Exit = function() {
+    JXMobile('Exit').callNative(function(res) { });
+};
+
 console.warn("Platform", process.platform);
 console.warn("Process ARCH", process.arch);
 
@@ -313,4 +317,4 @@ process.on('uncaughtException', function (e) {
 console.log("JXcore Android bridge is ready!");
 
 // now load the main file and let it run!
-require('./app');
+require(path.join(process.cwd(), 'app.js'));
