@@ -1,0 +1,14 @@
+{
+    "name": "thingengine",
+    "version": "1.0.0",
+    "description": "An engine for controlling IoT devices",
+    "author": "Stanford IoT lab",
+    "contributors": [{
+        "name": "Giovanni Campagna",
+        "email": "gcampagn@cs.stanford.edu"
+    }],
+    "main": "engine.js",
+    "dependencies": {
+        "q": "~1.4.0"
+    }
+}

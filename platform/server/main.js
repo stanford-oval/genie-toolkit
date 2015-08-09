@@ -6,20 +6,21 @@
 //
 // See COPYING for details
 
-var Engine = require('./engine/engine.js');
-var Frontend = require('./frontend.js');
+var Q = require('q');
+
+var Engine = require('./engine');
+var Frontend = require('./frontend');
 
 function main() {
+    global.platform = require('./platform');
+
     var engine = new Engine();
-    engine.start();
-
     var frontend = new Frontend();
-    frontend.start();
-
-    engine.run();
-
-    engine.stop();
-    frontend.stop();
+    Q.all([engine.start(), frontend.start()]).then(function() {
+        return engine.run().finally(function() {
+            return Q.all([engine.stop(), frontend.stop()]);
+        });
+    }).done();
 }
 
 main();

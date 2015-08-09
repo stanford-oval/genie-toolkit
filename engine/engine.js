@@ -6,24 +6,45 @@
 //
 // See COPYING for details
 
-function Engine() {
-    this._init.apply(this, arguments);
-}
+const Q = require('q');
+const lang = require('lang');
 
-Engine.prototype._init = function _init() {
-    // constructor
-}
+const channel = require('./channel');
+const db = require('./db');
 
-Engine.prototype.start = function start() {
-    console.log('Engine started');
-}
+const Engine = new lang.Class({
+    Name: 'Engine',
 
-Engine.prototype.run = function run() {
-    console.log('Engine running');
-}
+    _init: function() {
+        // constructor
+    },
 
-Engine.prototype.stop = function stop() {
-    console.log('Engine stopped');
-}
+    start: function() {
+        return platform.init()
+            .then(function() {
+                return (new channel.ChannelFactory()).load();
+            })
+            .then(function() {
+                return (new db.DeviceDatabase()).load();
+            })
+            .then(function() {
+                return (new db.RuleDatabase()).load();
+            })
+            .then(function() {
+                console.log('Engine started');
+            });
+    },
+
+    run: function() {
+        console.log('Engine running');
+        // and immediately dying
+        return Q(true);
+    },
+
+    stop: function() {
+        console.log('Engine stopped');
+        return Q(true);
+    }
+});
 
 module.exports = Engine;

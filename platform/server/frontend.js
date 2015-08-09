@@ -3,6 +3,8 @@
  * Module dependencies.
  */
 
+var Q = require('q');
+
 var express = require('express');
 var routes = require('./routes');
 var user = require('./routes/user');
@@ -37,14 +39,23 @@ Frontend.prototype._init = function _init() {
     this._app.get('/users', user.list);
 }
 
+var server = null;
+
 Frontend.prototype.start = function() {
-    http.createServer(this._app).listen(this._app.get('port'), (function() {
-        console.log('Express server listening on port ' + this._app.get('port'));
-    }).bind(this));
+    server = http.createServer(this._app);
+    return Q.ninvoke(server, 'listen', this._app.get('port'))
+        .then(function() {
+            console.log('Express server listening on port ' + this._app.get('port'));
+        }.bind(this));
 }
 
 Frontend.prototype.stop = function() {
-    // FIXME find a way to stop
+    return Q.ninvoke(server, 'close').then(function() {
+        console.log('Express server stopped');
+    }).catch(function(error) {
+        console.log('Error stopping Express server: ' + error);
+        console.log(error.stack);
+    });
 }
 
 module.exports = Frontend;

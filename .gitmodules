@@ -1,3 +1,3 @@
-[submodule "platform/cordova/io.jxcore.node"]
-	path = platform/cordova/io.jxcore.node
-	url = https://github.com/jxcore/jxcore-cordova
+[submodule "platform/android/jxcore"]
+	path = platform/android/jxcore
+	url = https://github.com/jxcore/jxcore
