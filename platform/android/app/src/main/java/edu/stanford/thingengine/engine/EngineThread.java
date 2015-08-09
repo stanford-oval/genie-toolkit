@@ -1,4 +1,4 @@
-package edu.stanford.thingpedia.thingengine;
+package edu.stanford.thingengine.engine;
 
 import android.content.Context;
 

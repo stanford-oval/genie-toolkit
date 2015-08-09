@@ -5,7 +5,7 @@ android {
     buildToolsVersion "22.0.1"
 
     defaultConfig {
-        applicationId "edu.stanford.thingpedia.thingengine"
+        applicationId "edu.stanford.thingengine.engine"
         minSdkVersion 19
         targetSdkVersion 22
         versionCode 1
