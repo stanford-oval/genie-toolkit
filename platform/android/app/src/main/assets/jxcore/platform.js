@@ -12,6 +12,7 @@ const Q = require('q');
 const fs = require('fs');
 
 var filesDir = null;
+var encoding = null;
 
 module.exports = {
     // Initialize the platform code
@@ -25,6 +26,10 @@ module.exports = {
                 if (e.code != 'EEXIST')
                     throw e;
             }
+
+            return Q.nfcall(JXMobile.GetEncoding);
+        }).then(function(value) {
+            encoding = value;
         });
     },
 
@@ -54,5 +59,9 @@ module.exports = {
     // code, after stopping the engine
     exit: function() {
         return JXMobile.Exit();
+    },
+
+    get encoding() {
+        return encoding;
     }
 };

@@ -111,6 +111,10 @@ JXMobile.GetConnectionStatus = function(callback) {
   });
 };
 
+JXMobile.GetEncoding = function(callback) {
+    callback(null, 'utf16le');
+};
+
 JXMobile.Exit = function() {
     JXMobile('Exit').callNative(function(res) { });
 };

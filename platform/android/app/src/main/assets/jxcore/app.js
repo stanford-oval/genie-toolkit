@@ -6,12 +6,15 @@
 //
 // See COPYING for details
 
+console.log('ThingEngine-Android starting up...');
+
 const Q = require('q');
 const fs = require('fs');
 
+const control = require('./control');
 const Engine = require('./engine');
 
-function runEngine(eventfd) {
+function runEngine() {
     global.platform = require('./platform');
 
     platform.init().then(function() {
@@ -20,25 +23,36 @@ function runEngine(eventfd) {
 
         var engine = new Engine();
 
-        var flagPipe = fs.createReadStream('', {fd: eventfd, flag:'r',
-                                                autoClose: false});
-        flagPipe.on('readable', function() {
-            engine.stop();
-        });
+        var controlChannel = new control.ControlChannel({
+            // handle control methods here...
 
-        return engine.open().then(function() {
+            foo: function(int) {
+                console.log('Foo called on control channel with value ' + int);
+                return int;
+            },
+
+            stop: function() {
+                engine.stop();
+                controlChannel.close();
+            }
+        });
+        return controlChannel.open().then(function() {
+            return engine.open();
+        }).then(function() {
+            JXMobile('controlReady').callNative();
             return engine.run().finally(function() {
                 return engine.close();
             });
         });
     }).catch(function(error) {
-        console.log('Uncaught exception: ' + error);
+        console.log('Uncaught exception: ' + error.message);
+        console.log(error.stack);
     }).finally(function() {
         console.log('Cleaning up');
         platform.exit();
     }).done();
 }
 
+console.log('Registering to JXMobile');
 JXMobile('runEngine').registerToNative(runEngine);
-
 

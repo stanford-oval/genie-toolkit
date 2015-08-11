@@ -6,8 +6,10 @@ build-engine:
 build-server: build-engine
 	cd platform/server; npm install
 
-build-android: build-engine
+build-android-js: build-engine
 	cd platform/android/app/src/main/assets/jxcore; npm install
+
+build-android: build-android-js
 	cd platform/android; ./gradlew build
 
 install-android-debug: build-android
@@ -15,3 +17,6 @@ install-android-debug: build-android
 
 logcat:
 	adb logcat *:S JX:V thingengine.Service:V jxcore-log:V
+
+run-android-mock: build-android-js
+	node platform/android/app/src/main/assets/jxcore_mock.js

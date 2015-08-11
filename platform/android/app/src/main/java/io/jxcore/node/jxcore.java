@@ -94,7 +94,7 @@ public class jxcore {
   public native long callCBArray(String event_name, Object[] arr, int size);
 
   public static String LOGTAG = "JX";
-  public static final jxcore instance = new jxcore();
+  private static final jxcore instance = new jxcore();
 
   static Map<String, JXcoreCallback> java_callbacks;
   public static Handler handler = null;
@@ -119,6 +119,22 @@ public class jxcore {
     JXMobile.Initialize(context);
     initializePath(context);
     startEngine();
+  }
+
+  public static void Initialize(Context context) {
+    instance.initialize(context);
+  }
+
+  public static void Loop() {
+    instance.loop();
+  }
+
+  public static void StopEngine() {
+    instance.stopEngine();
+  }
+
+  public static void QuitLoop() {
+    instance.quitLoop();
   }
 
   public static void javaCall(ArrayList<Object> params) {

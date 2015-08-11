@@ -62,7 +62,7 @@ public class JXMobile {
     jxcore.RegisterMethod("Exit", new JXcoreCallback() {
       @Override
       public void Receiver(ArrayList<Object> params, String callbackId) {
-        jxcore.instance.quitLoop();
+        jxcore.QuitLoop();
       }
     });
   }
