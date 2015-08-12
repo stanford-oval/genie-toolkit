@@ -10,10 +10,6 @@ android {
         targetSdkVersion 22
         versionCode 1
         versionName "1.0"
-
-        ndk {
-            moduleName "thingengine-native"
-        }
     }
     buildTypes {
         release {
