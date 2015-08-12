@@ -12,6 +12,7 @@ const Q = require('q');
 const fs = require('fs');
 
 const control = require('./control');
+var db = require('./engine/db');
 const Engine = require('./engine');
 
 function runEngine() {
@@ -21,8 +22,12 @@ function runEngine() {
         console.log('Android platform initialized');
         console.log('Creating engine...');
 
-        var engine = new Engine();
+        var apps = new db.FileAppDatabase(platform.getWritableDir() + '/apps.db');
+        var devices = new db.FileDeviceDatabase(platform.getWritableDir() + '/devices.db');
+        var engine = new Engine(apps, devices);
 
+        var engineRunning = false;
+        var earlyStop = false;
         var controlChannel = new control.ControlChannel({
             // handle control methods here...
 
@@ -32,14 +37,22 @@ function runEngine() {
             },
 
             stop: function() {
-                engine.stop();
+                if (engineRunning)
+                    engine.stop();
+                else
+                    earlyStop = true;
                 controlChannel.close();
             }
         });
         return controlChannel.open().then(function() {
+            // signal early to stop the engine
+            JXMobile('controlReady').callNative();
+
             return engine.open();
         }).then(function() {
-            JXMobile('controlReady').callNative();
+            engineRunning = true;
+            if (earlyStop)
+                return engine.close();
             return engine.run().finally(function() {
                 return engine.close();
             });

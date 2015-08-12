@@ -14,23 +14,40 @@ const fs = require('fs');
 var filesDir = null;
 var encoding = null;
 
+function safeMkdirSync(dir) {
+    try {
+        fs.mkdirSync(dir);
+    } catch(e) {
+        if (e.code != 'EEXIST')
+            throw e;
+    }
+}
+
 module.exports = {
     // Initialize the platform code
     // Will be called before instantiating the engine
     init: function() {
         return Q.nfcall(JXMobile.GetDocumentsPath).then(function(dir) {
             filesDir = dir;
-            try {
-                fs.mkdirSync(filesDir + '/tmp');
-            } catch(e) {
-                if (e.code != 'EEXIST')
-                    throw e;
-            }
-
+            safeMkdirSync(filesDir + '/tmp');
+            safeMkdirSync(filesDir + '/cache');
             return Q.nfcall(JXMobile.GetEncoding);
         }).then(function(value) {
             encoding = value;
         });
+    },
+
+    // If downloading code from the thingpedia server is allowed on
+    // this platform
+    canDownloadCode: true,
+
+    // Check if this platform has the required capability
+    // (eg. long running, big storage, reliable connectivity, server
+    // connectivity, stable IP, local device discovery, bluetooth, etc.)
+    //
+    // Which capabilities are available affects which apps are allowed to run
+    hasCapability: function(cap) {
+        return false;
     },
 
     // Get the root of the application
@@ -51,6 +68,12 @@ module.exports = {
     // (ie, it could be periodically cleaned by the system)
     getTmpDir: function() {
         return filesDir + '/tmp';
+    },
+
+    // Get a directory good for long term caching of code
+    // and metadata
+    getCacheDir: function() {
+        return filesDir + '/cache';
     },
 
     // Stop the main loop and exit

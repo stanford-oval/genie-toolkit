@@ -18,5 +18,16 @@ install-android-debug: build-android
 logcat:
 	adb logcat *:S JX:V thingengine.Service:V jxcore-log:V
 
+test-data:
+	-mkdir home-server/
+	echo '[{"kind":"test"}]' > home-server/apps.db
+	-mkdir home-android/
+	echo '[{"kind":"test"}]' > home-android/apps.db
+
+run-server: build-server
+	-mkdir home-server/
+	cd home-server/ ; node ../platform/server/main.js
+
 run-android-mock: build-android-js
-	node platform/android/app/src/main/assets/jxcore_mock.js
+	-mkdir home-android/
+	cd home-android/ ; node ../platform/android/app/src/main/assets/jxcore_mock.js

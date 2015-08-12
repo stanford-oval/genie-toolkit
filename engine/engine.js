@@ -9,33 +9,44 @@
 const Q = require('q');
 const lang = require('lang');
 
-const channel = require('./channel');
-const db = require('./db');
-const event = require('./event');
+const AppFactory = require('./app_factory');
+const ChannelFactory = require('./channel_factory');
+const DeviceFactory = require('./device_factory');
 
 const Engine = new lang.Class({
     Name: 'Engine',
 
-    _init: function() {
+    _init: function(apps, devices) {
         // constructor
 
-        this._channels = new channel.ChannelFactory();
-        this._devices = new db.DeviceDatabase();
-        this._rules = new db.RuleDatabase();
-
+        this._channelFactory = new ChannelFactory(this);
+        this._deviceDB = devices;
+        devices.setFactory(new DeviceFactory(this));
+        this._appDB = apps;
+        apps.setFactory(new AppFactory(this));
         this._running = false;
-        this._stopFlag = new event.FlagEventSource();
     },
 
-    // Run any sequential initialization before starting with
-    // the rule loop
+    get channelFactory() {
+        return this._channels;
+    },
+
+    get deviceDB() {
+        return this._devices;
+    },
+
+    get appDB() {
+        return this._apps;
+    },
+
+    // Run sequential DB initialization (downloading any app code if needed)
     open: function() {
-        return this._channels.load()
+        return this._channelFactory.load()
             .then(function() {
-                return this._devices.load();
+                return this._deviceDB.load();
             }.bind(this))
             .then(function() {
-                return this._rules.load();
+                return this._appDB.load();
             }.bind(this))
             .then(function() {
                 console.log('Engine started');
@@ -59,29 +70,48 @@ const Engine = new lang.Class({
     run: function() {
         console.log('Engine running');
 
-        var sources = this._collectEventSources();
-        // For debugging only
-        sources.push(new event.TimeoutEventSource(5000));
-        var stopFlag = this._stopFlag;
-        var queue = new event.EventQueue(sources);
-
-        function loop() {
-            return queue.getNext().then(function(event) {
-                if (!stopFlag.flagged) {
-                    // FINISHME: Run the next iteration of the engine loop!
-                    console.log('Engine awaken, running one rule');
-                    return loop();
-                } else {
-                    console.log('Engine stop requested, terminating loop');
-                    return Q(true);
+        this._running = true;
+        var apps = this._appDB.getSupportedApps();
+        return Q.all(apps.map(function(a) {
+            return a.start().then(function() {
+                if (!a.isRunning) {
+                    console.error('App started but is not running!');
+                    return;
                 }
+            }).catch(function(e) {
+                console.error('App failed to start: ' + e);
             });
-        }
+        })).then(function() {
+            if (!this._running)
+                return;
 
-        return queue.enable().then(function() {
-            return loop();
-        }).then(function() {
-            return queue.disable();
+            return Q.Promise(function(callback, errback) {
+                if (!this._running) {
+                    return callback();
+                }
+
+                this._stopCallback = callback;
+                apps.forEach(function(a) {
+                    if (!a.isRunning)
+                        return;
+
+                    a.on('fatal', function(e) {
+                        console.error('Fatal error ' + e + ' from app, dying gracefully');
+                        errback(e);
+                    });
+                });
+            }.bind(this));
+        }.bind(this)).then(function() {
+            return Q.all(apps.map(function(a) {
+                return a.stop().then(function() {
+                    if (a.isRunning) {
+                        console.error('App stopped but is still running!');
+                        return;
+                    }
+                }).catch(function(e) {
+                    console.error('App failed to stop: ' + e);
+                });
+            }));
         });
     },
 
@@ -89,7 +119,9 @@ const Engine = new lang.Class({
     // This will cause the run() promise to be fulfilled
     stop: function() {
         console.log('Engine stopped');
-        this._stopFlag.signal();
+        this._running = false;
+        if (this._stopCallback)
+            this._stopCallback();
     },
 
     // Run any sequential closing operation on the engine
@@ -99,8 +131,13 @@ const Engine = new lang.Class({
     // It can be called multiple times, in which case it has
     // no effect
     close: function() {
-        console.log('Engine closed');
-        return Q(true);
+        return this._deviceDB.save()
+            .then(function() {
+                return this._appDB.save();
+            }.bind(this))
+            .then(function() {
+                console.log('Engine closed');
+            });
     }
 });
 
