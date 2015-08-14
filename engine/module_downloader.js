@@ -23,7 +23,8 @@ module.exports = new lang.Class({
         this._url = Config.THINGPEDIA_URL + '/' + kind;
         this._cacheDir = platform.getCacheDir() + '/' + kind;
 
-        this._cachedModules = {}
+        this._cachedModules = {};
+        this._moduleRequests = {};
     },
 
     _createModuleFromBuiltin: function(id) {
@@ -45,6 +46,31 @@ module.exports = new lang.Class({
         } catch(e) {
             return null;
         }
+    },
+
+    _getModuleRequest: function(id) {
+        if (id in this._moduleRequests)
+            return this._moduleRequests[id];
+
+        return this._moduleRequests[id] = Q.Promise(function(callback, errback) {
+            http.get(this._url + '/' + id + '.zip', function(response) {
+                if (response.statusCode == 404)
+                    throw new Error('No such ' + this._kind);
+                if (response.statusCode != 200)
+                    throw new Error('Unexpected HTTP error ' + response.statusCode + ' downloading channel ' + id);
+
+                var stream = fs.createWriteStream(zipPath, { flags: 'wx', mode: 0600 });
+
+                response.pipe(stream);
+                response.on('end', function() {
+                    callback();
+                });
+            }.bind(this)).on('error', function(error) {
+                errback(error);
+            });
+        }.bind(this)).then(function() {
+            return Q.nfcall(child_process.execFile, 'unzip', [zipPath, this._cachePath + '/' + id]);
+        }.bind(this));
     },
 
     _createModule: function(id) {
@@ -69,23 +95,7 @@ module.exports = new lang.Class({
                 throw e;
         }
 
-        return Q.Promise(function(callback, errback) {
-            http.get(this._url + '/' + id + '.zip', function(response) {
-                if (response.statusCode != 200)
-                    throw new Error('Unexpected HTTP error ' + response.statusCode + ' downloading channel ' + id);
-
-                var stream = fs.createWriteStream(zipPath, { flags: 'wx', mode: 0600 });
-
-                response.pipe(stream);
-                response.on('end', function() {
-                    callback();
-                });
-            }).on('error', function(error) {
-                errback(error);
-            });
-        }.bind(this)).then(function() {
-            return Q.nfcall(child_process.execFile, 'unzip', [zipPath, this._cachePath + '/' + id]);
-        }.bind(this)).then(function() {
+        return this._getModuleRequest(id).then(function() {
             return this._createModuleFromCache(id);
         }.bind(this));
     },

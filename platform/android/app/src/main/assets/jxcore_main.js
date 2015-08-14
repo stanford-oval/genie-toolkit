@@ -119,6 +119,10 @@ JXMobile.Exit = function() {
     JXMobile('Exit').callNative(function(res) { });
 };
 
+JXMobile.GetSharedPreferences = function(callback) {
+    callback(new Error('FIXME!!!'), null);
+};
+
 console.warn("Platform", process.platform);
 console.warn("Process ARCH", process.arch);
 

@@ -6,9 +6,10 @@
 //
 // See COPYING for details
 
+const Q = require('q');
 const fs = require('fs');
 const lang = require('lang');
-const Q = require('q');
+const uuid = require('node-uuid');
 
 const AppDatabase = new lang.Class({
     Name: 'AppDatabase',
@@ -16,6 +17,7 @@ const AppDatabase = new lang.Class({
     _init: function(root) {
         this._factory = null;
         this._apps = [];
+        this._sharedApps = {};
     },
 
     setFactory: function(factory) {
@@ -48,6 +50,11 @@ const AppDatabase = new lang.Class({
 
     addApp: function(app) {
         this._apps.push(app);
+        if (app.sharedId !== undefined) {
+            if (app.sharedId in this._sharedApps)
+                throw new Error('Multiple instances of shared app ' + app.sharedId);
+            this._sharedApps[app.sharedId] = app;
+        }
     },
 
     getAllApps: function() {
@@ -59,6 +66,12 @@ const AppDatabase = new lang.Class({
             return a.isSupported;
         });
     },
+
+    getSharedApp: function(id) {
+        if (!(id in this._sharedApps))
+            throw new Error(id + ' is not a shared app');
+        return this._sharedApps[id];
+    }
 });
 
 const FileAppDatabase = new lang.Class({
@@ -106,7 +119,7 @@ const DeviceDatabase = new lang.Class({
         return Q.try(function() {
             return this._factory.createDevice(serializedDevice.kind, serializedDevice);
         }).then(function(device) {
-            this.addDevice(device);
+            this._addDeviceInternal(device, serializedDevice);
         }).catch(function(e) {
             console.error('Failed to load one device: ' + e);
         });
@@ -135,15 +148,29 @@ const DeviceDatabase = new lang.Class({
         });
     },
 
-    addDevice: function(device) {
-        this._devices[device.id] = device;
+    _addDeviceInternal: function(device, serializedDevice) {
+        if (device.uniqueId === undefined) {
+            if (serializedDevice === undefined)
+                device.uniqueId = 'uuid-' + uuid.v4();
+            else
+                device.uniqueId = serializedDevice.uniqueId;
+        } else {
+            if (device.uniqueId !== serializedDevice.uniqueId)
+                throw new Error('Device unique id is different from stored value');
+        }
+
+        this._devices[device.uniqueId] = device;
     },
 
-    getDevice: function(id) {
-        if (id in this._devices)
-            return this._devices[id];
+    addDevice: function(device) {
+        this._addDeviceInternal(device);
+    },
+
+    getDevice: function(uniqueId) {
+        if (uniqueId in this._devices)
+            return this._devices[uniqueId];
         else
-            throw new Error('Unknown device ' + id);
+            throw new Error('Unknown device ' + uniqueId);
     }
 });
 

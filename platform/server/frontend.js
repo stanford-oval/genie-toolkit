@@ -6,10 +6,11 @@
 var Q = require('q');
 
 var express = require('express');
-var routes = require('./routes');
-var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
+var expressWs = require('express-ws');
+var routes = require('./routes');
+var user = require('./routes/user');
 
 function Frontend() {
     this._init.apply(this, arguments);
@@ -29,6 +30,7 @@ Frontend.prototype._init = function _init() {
     this._app.use(express.methodOverride());
     this._app.use(this._app.router);
     this._app.use(express.static(path.join(__dirname, 'public')));
+    expressWs(this._app);
 
     // development only
     if ('development' == this._app.get('env')) {
@@ -56,6 +58,10 @@ Frontend.prototype.close = function() {
         console.log('Error stopping Express server: ' + error);
         console.log(error.stack);
     });
+}
+
+Frontend.prototype.getApp = function() {
+    return this._app;
 }
 
 module.exports = Frontend;

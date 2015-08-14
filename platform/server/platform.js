@@ -12,6 +12,11 @@ const Q = require('q');
 const fs = require('fs');
 const os = require('os');
 
+var prefs = require('./engine/prefs');
+
+var _frontend = null;
+var _prefs = null;
+
 module.exports = {
     // Initialize the platform code
     // Will be called before instantiating the engine
@@ -22,8 +27,12 @@ module.exports = {
             if (e.code != 'EEXIST')
                 throw e;
         }
+
+        _prefs = new prefs.FilePreferences(process.cwd() + '/prefs.db');
         return Q(true);
     },
+
+    type: 'server',
 
     // If downloading code from the thingpedia server is allowed on
     // this platform
@@ -36,6 +45,15 @@ module.exports = {
     // Which capabilities are available affects which apps are allowed to run
     hasCapability: function(cap) {
         return false;
+    },
+
+    // Obtain a shared preference store
+    // Preferences are simple key/value store which is shared across all apps
+    // but private to this instance (tier) of the platform
+    // Preferences should be normally used only by the engine code, and a persistent
+    // shared store such as DataVault should be used by regular apps
+    getSharedPreferences: function() {
+        return _prefs;
     },
 
     // Get the root of the application
@@ -70,5 +88,20 @@ module.exports = {
     // code, after stopping the engine
     exit: function() {
         return process.exit();
-    }
+    },
+
+    // For internal use only
+    _setFrontend: function(frotend) {
+        _frontend = frontend;
+    },
+
+    _getPrivateFeature: function(name) {
+        switch(name) {
+        case 'frontend-express':
+            return _frontend.getApp();
+        default:
+            throw new Error('Invalid private feature name (what are you trying to do?)');
+        }
+    },
+
 };

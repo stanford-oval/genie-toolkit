@@ -9,6 +9,8 @@
     }],
     "main": "engine.js",
     "dependencies": {
-        "q": "~1.4.0"
+        "q": "~1.4.0",
+        "ws": "~0.7.0",
+        "node-uuid": "~1.4.0"
     }
 }

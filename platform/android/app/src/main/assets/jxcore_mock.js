@@ -8,6 +8,8 @@
 
 // Set up a mock jxcore and run the app
 
+const prefs = require('./jxcore/engine/prefs');
+
 global.JXMobile = function(name) {
     if (!(this instanceof JXMobile)) return new JXMobile(name);
 
@@ -31,6 +33,10 @@ JXMobile.GetEncoding = function(callback) {
 
 JXMobile.GetDocumentsPath = function(callback) {
     callback(null, process.cwd());
+};
+
+JXMobile.GetSharedPreferences = function(callback) {
+    callback(null, new prefs.FilePreferences(process.cwd() + '/prefs.db'));
 };
 
 JXMobile.Exit = function() {

@@ -23,6 +23,8 @@ function safeMkdirSync(dir) {
     }
 }
 
+var _prefs = null;
+
 module.exports = {
     // Initialize the platform code
     // Will be called before instantiating the engine
@@ -34,8 +36,13 @@ module.exports = {
             return Q.nfcall(JXMobile.GetEncoding);
         }).then(function(value) {
             encoding = value;
+            return Q.nfcall(JXMobile.GetSharedPreferences);
+        }).then(function(prefs) {
+            _prefs = prefs;
         });
     },
+
+    type: 'android',
 
     // If downloading code from the thingpedia server is allowed on
     // this platform
@@ -48,6 +55,15 @@ module.exports = {
     // Which capabilities are available affects which apps are allowed to run
     hasCapability: function(cap) {
         return false;
+    },
+
+    // Obtain a shared preference store
+    // Preferences are simple key/value store which is shared across all apps
+    // but private to this instance (tier) of the platform
+    // Preferences should be normally used only by the engine code, and a persistent
+    // shared store such as DataVault should be used by regular apps
+    getSharedPreferences: function() {
+        return _prefs;
     },
 
     // Get the root of the application
@@ -86,5 +102,10 @@ module.exports = {
 
     get encoding() {
         return encoding;
-    }
+    },
+
+    // For internal use only
+    _getPrivateFeature: function() {
+        throw new Error('No private features on Android (yet)');
+    },
 };

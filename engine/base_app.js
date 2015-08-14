@@ -10,8 +10,11 @@ const events = require('events');
 const lang = require('lang');
 const Q = require('q');
 
+const Tier = require('./tier_manager').Tier;
+
 module.exports = new lang.Class({
     Name: 'BaseApp',
+    Abstract: true,
     Extends: events.EventEmitter,
 
     _init: function() {
@@ -20,12 +23,28 @@ module.exports = new lang.Class({
         events.EventEmitter.call(this);
 
         this.isRunning = false;
+        this._isSupported = undefined;
+
+        // Set this to anything but undefined and your app will
+        // be accessible to other apps using 'engine.appDB.getSharedApp()
+        this.sharedId = undefined;
     },
 
     get isSupported() {
-        return this.requiredCapabilities.every(function(cap) {
+        if (this._isSupported !== undefined)
+            return this._isSupported;
+
+        this._isSupported = this.requiredCapabilities.every(function(cap) {
             return platform.hasCapability(cap);
         });
+        return
+    },
+
+    // default implementation runs on all tiers
+    // you should rarely need to override this, require a specific capability
+    // instead
+    get allowedTiers() {
+        return [Tier.PHONE, Tier.SERVER, Tier.CLOUD];
     },
 
     // default implementation requires no capabilities

@@ -96,15 +96,42 @@ module.exports = new lang.Class({
             throw new Error('Invalid channel id ' + id);
     },
 
-    createChannel: function(id) {
-        if (id in this._cachedChannels)
-            return this._cachedChannels[id];
+    _createChannelInternal: function(id) {
+        var args = Array.prototype.slice.call(arguments, 0);
+
+        var fullId = args.map(function(arg) {
+            if (typeof arg === 'string')
+                return arg;
+            else if (arg.uniqueId !== undefined)
+                return arg.uniqueId;
+            else
+                return arg;
+        }).join('-');
+        if (fullId in this._cachedChannels)
+            return Q(this._cachedChannels[fullId]);
 
         return this._downloader.getModule(id).then(function(factory) {
-            return factory.createChannel(this._engine, id);
-        }.bind(this));
+            var channel = factory.createChannel.apply(factory, [this._engine].concat(args));
+            channel.uniqueId = fullId;
 
-        throw new Error('Invalid channel id ' + id);
+            if (!channel.isSupported) // uh oh, need a ProxyChannel instead!
+                throw new Error('ProxyChannel not yet implemented...');
+
+            return this._cachedChannels[fullId] = channel;
+        }.bind(this)).catch(function(e) {
+            // channel download or creation failed!
+            // try with a proxychannel
+            throw new Error('ProxyChannel not yet implemented...');
+        });
+    },
+
+    createChannel: function(id) {
+        return this._createChannelInternal(id).then(function(channel) {
+            return this._cachedChannels[id] = channel;
+        });
+    },
+
+    createDeviceChannel: function(id, device) {
+        return this._createChannelInternal(id, device);
     }
-
 });

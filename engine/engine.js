@@ -12,6 +12,7 @@ const lang = require('lang');
 const AppFactory = require('./app_factory');
 const ChannelFactory = require('./channel_factory');
 const DeviceFactory = require('./device_factory');
+const TierManager = require('./tier_manager');
 
 const Engine = new lang.Class({
     Name: 'Engine',
@@ -24,6 +25,7 @@ const Engine = new lang.Class({
         devices.setFactory(new DeviceFactory(this));
         this._appDB = apps;
         apps.setFactory(new AppFactory(this));
+        this._tiers = new TierManager();
         this._running = false;
     },
 
@@ -41,7 +43,10 @@ const Engine = new lang.Class({
 
     // Run sequential DB initialization (downloading any app code if needed)
     open: function() {
-        return this._channelFactory.load()
+        return this._tiers.open()
+            .then(function() {
+                this._channelFactory.load()
+            }.bind(this))
             .then(function() {
                 return this._deviceDB.load();
             }.bind(this))
@@ -131,7 +136,10 @@ const Engine = new lang.Class({
     // It can be called multiple times, in which case it has
     // no effect
     close: function() {
-        return this._deviceDB.save()
+        return this._tiers.close()
+            .then(function() {
+                return this._deviceDB.save()
+            }.bind(this))
             .then(function() {
                 return this._appDB.save();
             }.bind(this))
