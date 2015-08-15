@@ -1,0 +1,15 @@
+Source: thingengine-server
+Section: unknown
+Priority: optional
+Maintainer: Giovanni Campagna <gcampagn@cs.stanford.edu>
+Build-Depends: debhelper (>= 9), nodejs-dev, npm
+Standards-Version: 3.9.5
+Homepage: http://thingpedia.stanford.edu
+Vcs-Git: git://github.com/Stanford-IoT-Lab/ThingEngine.git
+Vcs-Browser: https://github.com/Stanford-IoT-Lab/ThingEngine
+
+Package: thingengine-server
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: An Engine to run IoT apps and interact with devices, based on node.js 
+ <insert long description, indented with spaces>

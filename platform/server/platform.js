@@ -12,23 +12,49 @@ const Q = require('q');
 const fs = require('fs');
 const os = require('os');
 
-var prefs = require('./engine/prefs');
+var Config;
+try {
+Config = require('./platform_config');
+} catch(e) {
+Config = {};
+}
+const prefs = require('./engine/prefs');
 
+var _writabledir = null;
 var _frontend = null;
 var _prefs = null;
+
+function dropCaps() {
+    process.initgroups('thingengine', 'thingengine');
+    process.setgid('thingengine');
+    process.setuid('thingengine');
+}
+
+function checkLocalStateDir() {
+    fs.mkdirSync(_writabledir);
+    fs.chownSync(_writabledir, 'thingengine', 'thingengine');
+    fs.chmodSync(_writabledir, 0700);
+}
 
 module.exports = {
     // Initialize the platform code
     // Will be called before instantiating the engine
-    init: function() {
+    init: function(test) {
+        if (test) {
+            _writabledir = process.cwd();
+        } else {
+            _writabledir = Config.LOCALSTATEDIR;
+            checkLocalStateDir();
+            dropCaps();
+        }
         try {
-            fs.mkdirSync(process.cwd() + '/cache');
+            fs.mkdirSync(_writabledir + '/cache');
         } catch(e) {
             if (e.code != 'EEXIST')
                 throw e;
         }
 
-        _prefs = new prefs.FilePreferences(process.cwd() + '/prefs.db');
+        _prefs = new prefs.FilePreferences(_writabledir + '/prefs.db');
         return Q(true);
     },
 
@@ -63,15 +89,15 @@ module.exports = {
     },
 
     // Get a directory that is guaranteed to be writable
-    // (in the private data space for Android)
+    // (in the private data space for Android, in /var/lib for server)
     getWritableDir: function() {
-        return process.cwd();
+        return _writabledir;
     },
 
     // Get a directory good for long term caching of code
     // and metadata
     getCacheDir: function() {
-        return process.cwd() + '/cache';
+        return _writabledir + '/cache';
     },
 
     // Get a temporary directory

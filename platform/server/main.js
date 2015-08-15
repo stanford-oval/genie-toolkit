@@ -15,7 +15,8 @@ var Frontend = require('./frontend');
 function main() {
     global.platform = require('./platform');
 
-    platform.init().then(function() {
+    var test = process.argv.indexOf('--test') >= 0;
+    platform.init(test).then(function() {
         var apps = new db.FileAppDatabase(platform.getWritableDir() + '/apps.db');
         var devices = new db.FileDeviceDatabase(platform.getWritableDir() + '/devices.db');
         var engine = new Engine(apps, devices);
@@ -23,12 +24,14 @@ function main() {
 
         var earlyStop = false;
         var engineRunning = false;
-        process.on('SIGINT', function() {
+        function handleSignal() {
             if (engineRunning)
                 engine.stop();
             else
                 earlyStop = true;
-        });
+        }
+        process.on('SIGINT', handleSignal);
+        process.on('SIGTERM', handleSignal);
 
         return Q.all([engine.open(), frontend.open()]).then(function() {
             engineRunning = true;

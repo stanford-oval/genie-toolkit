@@ -35,7 +35,7 @@ module.exports = new lang.Class({
         this._isSupported = this.requiredCapabilities.every(function(cap) {
             return platform.hasCapability(cap);
         });
-        return
+        return this._isSupported;
     },
 
     // default implementation runs on all tiers

@@ -11,8 +11,8 @@ const Q = require('q');
 
 const BaseApp = require('../base_app');
 
-// 'deploy' is an app whose sole purpose is to deploy ThingEngine
-// across all three tiers
+// 'config-server' is an app whose sole purpose is to deploy ThingEngine
+// on a private server, given th
 const DeployApp = new lang.Class({
     Name: 'TestApp',
     Extends: BaseApp,
