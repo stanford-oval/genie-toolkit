@@ -10,12 +10,14 @@ const events = require('events');
 const lang = require('lang');
 const Q = require('q');
 
+const Tier = require('./tier_manager').Tier;
+
 module.exports = new lang.Class({
     Name: 'BaseChannel',
     Abstract: true,
     Extends: events.EventEmitter,
 
-    _init: function(engine) {
+    _init: function() {
         // EventEmitter is a node.js class not a lang class,
         // can't chain up normally
         events.EventEmitter.call(this);
@@ -53,12 +55,12 @@ module.exports = new lang.Class({
     // Open any resources or connections that this channel might
     // require
     _doOpen: function() {
-        return Q(true);
+        return Q();
     },
 
     // Close all resources that were opened in open()
     _doClose: function() {
-        return Q(true);
+        return Q();
     },
 
     // public API handles ref counts for you, so that multiple apps can open your
@@ -79,7 +81,7 @@ module.exports = new lang.Class({
         } else if (this._openPromise) { // opening
             return this._openPromise;
         } else { // opened
-            return Q(undefined);
+            return Q();
         }
     },
 
@@ -99,7 +101,7 @@ module.exports = new lang.Class({
         } else if (this._closePromise) { // opening
             return this._closePromise;
         } else { // opened
-            return Q(undefined);
+            return Q();
         }
     },
 

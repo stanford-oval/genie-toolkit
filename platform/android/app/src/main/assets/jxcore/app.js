@@ -42,6 +42,12 @@ function runEngine() {
                 else
                     earlyStop = true;
                 controlChannel.close();
+            },
+
+            // For testing only!
+            injectDevice: function(device) {
+                console.log('Injecting device ' + JSON.stringify(device, 1));
+                return engine.devices._loadOneDevice(device);
             }
         });
         return controlChannel.open().then(function() {

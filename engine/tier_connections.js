@@ -23,14 +23,15 @@ const ClientConnection = new lang.Class({
     Name: 'ClientConnection',
     Extends: events.EventEmitter,
 
-    _init: function(serverAddress, authToken) {
+    _init: function(serverAddress, identity, authToken) {
         events.EventEmitter.call(this);
         this._serverAddress = serverAddress;
+        this._identity = identity;
         this._authToken = authToken;
         this._closeOk = false;
 
         this._outgoingBuffer = [];
-        this._backoffTimer = null;
+        this._ratelimitTimer = null;
         this._retryAttempts = 3;
     },
 
@@ -39,7 +40,6 @@ const ClientConnection = new lang.Class({
             return;
 
         console.log('Lost connection to the server');
-        this._socket.end();
         this._socket = null;
 
         // if the connection lasted less than 60 seconds, consider it
@@ -48,23 +48,24 @@ const ClientConnection = new lang.Class({
 
         var now = new Date;
         var retry;
-        if (now.getTime() - this._backoffTimer.getTime() > 60000) {
+        if (now.getTime() - this._ratelimitTimer.getTime() < 60000) {
             if (this._retryAttempts > 0) {
-                this._retryAttempts--;
                 retry = true;
             } else {
                 retry = false;
             }
         } else {
             retry = true;
+            console.log('Resetting retry limit');
+            this._retryAttempts = 3;
         }
 
         if (retry) {
             this.open().catch(function(error) {
-                this.emit('failed');
+                this.emit('failed', this._outgoingBuffer);
             }.bind(this));
         } else {
-            this.emit('failed');
+            this.emit('failed', this._outgoingBuffer);
         }
     },
 
@@ -73,15 +74,20 @@ const ClientConnection = new lang.Class({
 
         console.log('Successfully connected to server');
 
-        if (this._authToken != null)
-            socket.send(JSON.stringify({control:'auth', token: this._authToken}));
+        if (this._authToken !== undefined) {
+            socket.send(JSON.stringify({control:'auth',
+                                        identity: this._identity,
+                                        token: this._authToken}));
+        }
 
         this._outgoingBuffer.forEach(function(msg) {
+            if (msg.control === undefined)
+                msg.control = 'data';
             socket.send(msg);
         });
         this._outgoingBuffer = [];
-        this._backoffTimer = new Date;
-        this._retryAttempts = 3;
+
+        this._ratelimitTimer = new Date;
 
         this._socket.on('close', function() {
             if (socket != this._socket)
@@ -101,23 +107,40 @@ const ClientConnection = new lang.Class({
                 return;
             }
 
-            if (data.control == 'close') {
-                console.log('Server requested connection shutdown');
-                this.close();
-                this.emit('failed');
+            // The control messages we expect to receive
+            if (['auth-token-ok', 'data', 'close'].indexOf(msg.control) < 0) {
+                console.error('Invalid control message ' + msg.control);
+                // ignore the message, don't die (back/forward compatibility)
                 return;
             }
 
+            if (msg.control === 'close') {
+                console.log('Server requested connection shutdown');
+                this.close();
+                this.emit('failed', this._outgoingBuffer);
+                return;
+            }
+
+            if (msg.control === 'data')
+                delete msg.control;
+
             this.emit('message', msg);
         }.bind(this));
+
+        return Q(true);
     },
 
     open: function() {
+        this._retryAttempts--;
+        console.log('Attempting connection to the server, try ' + (3 - this._retryAttempts) + ' of 3');
         return Q.Promise(function(callback, errback) {
             try {
                 var socket = new WebSocket(this._serverAddress);
                 socket.on('open', function() {
                     callback(socket);
+                });
+                socket.on('error', function(error) {
+                    errback(error);
                 });
             } catch(e) {
                 errback(e);
@@ -130,10 +153,10 @@ const ClientConnection = new lang.Class({
             .catch(function(error) {
                 console.error('Failed to connect to server: ' + error);
                 if (this._retryAttempts > 0) {
-                    this._retryAttempts--;
-                    this.open();
+                    return this.open();
                 } else {
-                    throw e;
+                    this.emit('failed', this._outgoingBuffer);
+                    return Q(false);
                 }
             }.bind(this));
     },
@@ -142,15 +165,22 @@ const ClientConnection = new lang.Class({
         this._socket.close();
         this._closeOk = true;
         this._socket = null;
-        return Q(true);
+        return Q();
     },
 
     send: function(msg) {
-        if (this._socket)
+        if (this._socket) {
+            if (msg.control === undefined)
+                msg.control = 'data';
             this._socket.send(JSON.stringify(msg));
-        else
+        } else {
             this._outgoingBuffer.push(msg);
-    }
+        }
+    },
+
+    sendMany: function(buffer) {
+        buffer.forEach(function(msg) { this.send(msg) }.bind(this));
+    },
 });
 
 //    phone <-> server, from the POV of a server
@@ -161,17 +191,24 @@ const ServerConnection = new lang.Class({
     Name: 'ServerConnection',
     Extends: events.EventEmitter,
 
-    _init: function(endpoint, authToken) {
+    _init: function(endpoint, authToken, expected) {
         events.EventEmitter.call(this);
 
         this._authToken = authToken;
-        this._connections = [];
+        this._endpoint = endpoint;
+        this._connections = {};
+
+        expected.forEach(function(from) {
+            this._connections[from] = { socket: null, dataOk: false, closeOk: false,
+                                        closeCallback: null, outgoingBuffer: [] };
+        }.bind(this));
     },
 
     _findConnection: function(socket) {
-        return this._connections.find(function(c) {
-            return c.socket === socket;
-        });
+        for (var id in this._connections) {
+            if (this._connections[id].socket === socket)
+                return this._connections[id];
+        }
     },
 
     _handleConnection: function(socket) {
@@ -181,15 +218,12 @@ const ServerConnection = new lang.Class({
             dataOk: false,
             closeOk: false,
             closeCallback: null,
+            outgoingBuffer: [],
         };
 
         console.log('New connection from client');
 
         socket.on('message', function(data) {
-            var connection = this._findConnection(socket);
-            if (connection === undefined) // robustness
-                return;
-
             var msg;
             try {
                 msg = JSON.parse(data);
@@ -199,33 +233,71 @@ const ServerConnection = new lang.Class({
             }
 
             if (!connection.dataOk) {
-                if (data.control !== 'auth' || data.auth !== this._authToken) {
-                    console.error('Invalid authentication message');
-                    socket.terminate();
+                if (this._authToken === undefined) {
+                    // initial setup mode
+                    if (msg.control !== 'set-auth-token' || !msg.token) {
+                        console.error('Invalid initial setup message');
+                        socket.terminate();
+                        return;
+                    }
+
+                    this._authToken = String(msg.token);
+                    platform.getSharedPreferences().set('auth-token', this._authToken);
+                    console.log('Received auth token from client');
+                    socket.send(JSON.stringify({control:'auth-token-ok'}));
+                    connection.socket = null;
+                    connection.closeOk = true;
+                    connection.dataOk = false;
+                    connection.closeCallback = null;
                 } else {
-                    console.log('Client successfully authenticated');
-                    connection.dataOk = true;
+                    if (msg.control !== 'auth' || typeof msg.identity != 'string' ||
+                        msg.token !== this._authToken) {
+                        console.error('Invalid authentication message');
+                        socket.terminate();
+                    } else {
+                        console.log('Client successfully authenticated');
+                        connection.dataOk = true;
+
+                        connection.identity = msg.identity;
+                        var oldConnection = this._connections[connection.identity];
+                        if (oldConnection && oldConnection.socket)
+                            oldConnection.socket.terminate();
+                        this._connections[connection.identity] = connection;
+
+                        if (oldConnection.outgoingBuffer)
+                            this.sendMany(oldConnection.outgoingBuffer, connection.identity);
+                    }
                 }
                 return;
+            } else {
+                if (this._findConnection(socket) === undefined) // robustness
+                    return;
+
+                if (msg.control !== 'data') {
+                    console.error('Invalid control message ' + msg.control);
+                    // ignore the message, don't die (back/forward compatibility)
+                    return;
+                }
+
+                delete msg.control;
             }
 
             this.emit('message', msg);
         }.bind(this));
 
-        this._connections.push(connection);
-        this.socket.on('close', function() {
+        socket.on('close', function() {
             var connection = this._findConnection(socket);
             if (connection === undefined)
                 return;
 
-            this._connections.splice(this._connections.indexOf(connection), 1);
             if (connection.closeOk) {
-                connection.closeCallback();
+                if (connection.closeCallback)
+                    connection.closeCallback();
                 return;
             }
 
-            console.error('Lost connection from the client');
-            connection.socket.end();
+            console.error('Lost connection from client with identity ' + connection.identity);
+
             connection.socket = null;
             connection.closeOk = false;
             connection.dataOk = false;
@@ -233,13 +305,17 @@ const ServerConnection = new lang.Class({
     },
 
     open: function() {
-        platform._getPrivateFeature('frontend-express').ws(endpoint, this._handleConnection.bind(this));
-        return Q(true);
+        console.log('Adding express handler for websocket...');
+        platform._getPrivateFeature('frontend-express').ws(this._endpoint, this._handleConnection.bind(this));
+        return Q();
     },
 
     close: function() {
-        return Q.all(this._connections.map(function(connection) {
-            return Q.Promise(function(callback, errback) {
+        var promises = [];
+        for (var id in this._connections) {
+            var connection = this._connections[id];
+
+            var p = Q.Promise(function(callback, errback) {
                 connection.socket.send(JSON.stringify({control:'close'}));
                 connection.closeOk = true;
                 connection.closeCallback = callback;
@@ -253,18 +329,41 @@ const ServerConnection = new lang.Class({
                 if (connection.socket) // robustness
                     connection.socket.terminate();
             });
-        }));
+            promises.push(p);
+        }
+        return Q.all(promises);
     },
 
-    send: function(msg) {
-        return Q.all(this._connections.map(function(connection) {
-            if (connection.socket && connection.dataOk)
-                connection.socket.send(JSON.stringify(msg));
-            // else
-            // eat the message
-            // unfortunately we don't know who will connect and when, so we can't buffer
-            // forever
-            // client apps should resync themselves upon new connections
-        }));
-    }
+    _sendTo: function(msg, to) {
+        var connection = this._connections[to];
+        if (connection === undefined)
+            throw new Error('Invalid destination for server message');
+
+        if (connection.socket && connection.dataOk) {
+            if (msg.control === undefined)
+                msg.control = 'data';
+            connection.socket.send(JSON.stringify(msg));
+        } else {
+            connection.outgoingBuffer.push(msg);
+        }
+    },
+
+    send: function(msg, to) {
+        if (to !== undefined) {
+            this._sendTo(msg, to);
+            return;
+        }
+
+        for (var id in this._connections)
+            this._sendTo(msg, id);
+    },
+
+    sendMany: function(buffer, to) {
+        buffer.forEach(function(msg) { this.send(msg, to) }.bind(this));
+    },
 });
+
+module.exports = {
+    ClientConnection: ClientConnection,
+    ServerConnection: ServerConnection
+};

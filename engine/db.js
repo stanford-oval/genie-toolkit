@@ -7,6 +7,7 @@
 // See COPYING for details
 
 const Q = require('q');
+const events = require('events');
 const fs = require('fs');
 const lang = require('lang');
 const uuid = require('node-uuid');
@@ -104,8 +105,11 @@ const FileAppDatabase = new lang.Class({
 
 const DeviceDatabase = new lang.Class({
     Name: 'DeviceDatabase',
+    Extends: events.EventEmitter,
 
     _init: function() {
+        events.EventEmitter.call(this);
+
         // FIXME: use Map when node supports it
         this._devices = {};
         this._factory = null;
@@ -118,9 +122,9 @@ const DeviceDatabase = new lang.Class({
     _loadOneDevice: function(serializedDevice) {
         return Q.try(function() {
             return this._factory.createDevice(serializedDevice.kind, serializedDevice);
-        }).then(function(device) {
+        }.bind(this)).then(function(device) {
             this._addDeviceInternal(device, serializedDevice);
-        }).catch(function(e) {
+        }.bind(this)).catch(function(e) {
             console.error('Failed to load one device: ' + e);
         });
     },
@@ -155,11 +159,13 @@ const DeviceDatabase = new lang.Class({
             else
                 device.uniqueId = serializedDevice.uniqueId;
         } else {
-            if (device.uniqueId !== serializedDevice.uniqueId)
+            if (serializedDevice.uniqueId !== undefined &&
+                device.uniqueId !== serializedDevice.uniqueId)
                 throw new Error('Device unique id is different from stored value');
         }
 
         this._devices[device.uniqueId] = device;
+        this.emit('device-added', device);
     },
 
     addDevice: function(device) {

@@ -17,17 +17,22 @@ module.exports = new lang.Class({
     Abstract: true,
     Extends: events.EventEmitter,
 
-    _init: function() {
+    _init: function(engine) {
         // EventEmitter is a node.js class not a lang class,
         // can't chain up normally
         events.EventEmitter.call(this);
 
+        this._engine = engine;
         this.isRunning = false;
         this._isSupported = undefined;
 
         // Set this to anything but undefined and your app will
-        // be accessible to other apps using 'engine.appDB.getSharedApp()
+        // be accessible to other apps using 'engine.apps.getSharedApp()
         this.sharedId = undefined;
+    },
+
+    get engine() {
+        return this._engine;
     },
 
     get isSupported() {

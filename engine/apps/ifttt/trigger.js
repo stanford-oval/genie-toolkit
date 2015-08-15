@@ -16,7 +16,7 @@ const Trigger = new lang.Class({
     Name: 'Trigger',
 
     _init: function(engine, channel, getChannel, event, params) {
-        var channelMeta = engine.channelFactory.createIFTTTChannel(channel);
+        var channelMeta = engine.channels.createIFTTTChannel(channel);
         if (!channelMeta.objectId)
             throw new Error('Channels that don\'t have a predefined URI are not supported');
         this._channelState = getChannel(channelMeta.objectId);

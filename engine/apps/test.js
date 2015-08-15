@@ -15,37 +15,47 @@ const TestApp = new lang.Class({
     Name: 'TestApp',
     Extends: BaseApp,
 
-    _init: function() {
-        this.parent();
+    _init: function(engine) {
+        this.parent(engine);
         this._interval = -1;
+
+        this._testChannel = null;
     },
 
     serialize: function() {
         return { kind: 'test' };
     },
 
-    _onEvent: function() {
-        console.log('Test App waking up');
+    _onEvent: function(event) {
+        console.log('Test App received an event on Test Channel: ' + event);
+
+        if (platform.type === 'server') // send it back to the phone
+            this._testChannel.sendEvent(event * 2);
     },
 
     start: function() {
         console.log('Test App starting');
-        this._interval = setInterval(this._onEvent.bind(this), 5000);
-        this.isRunning = true;
-        return Q(true);
+
+        return this.engine.channels.getChannel('test').then(function(channel) {
+            this._testChannel = channel;
+            channel.on('event', this._onEvent.bind(this));
+            return channel.open().then(function() {
+                console.log('Test App obtained a Test Channel');
+            });
+        }.bind(this));
     },
 
     stop: function() {
         console.log('Test App stopping');
-        clearInterval(this._interval);
-        this._interval = -1;
-        this.isRunning = false;
-        return Q(true);
+        if (this._testChannel != null)
+            return this._testChannel.close();
+        else
+            return Q();
     }
 });
 
 function createApp(engine, serializedApp) {
-    return new TestApp();
+    return new TestApp(engine);
 }
 
 module.exports.createApp = createApp;

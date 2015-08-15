@@ -28,12 +28,12 @@ exports.EventSource = new lang.Class({
 
     // Run any pre-mainloop code
     enable: function() {
-        return Q(true);
+        return Q();
     },
 
     // Run any post-mainloop code
     disable: function() {
-        return Q(true);
+        return Q();
     },
 
     emitEvent: function(event) {

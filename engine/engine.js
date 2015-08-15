@@ -6,6 +6,8 @@
 //
 // See COPYING for details
 
+require('./polyfill');
+
 const Q = require('q');
 const lang = require('lang');
 
@@ -20,24 +22,24 @@ const Engine = new lang.Class({
     _init: function(apps, devices) {
         // constructor
 
-        this._channelFactory = new ChannelFactory(this);
-        this._deviceDB = devices;
-        devices.setFactory(new DeviceFactory(this));
-        this._appDB = apps;
-        apps.setFactory(new AppFactory(this));
         this._tiers = new TierManager();
+        this._devices = devices;
+        devices.setFactory(new DeviceFactory(this));
+        this._channels = new ChannelFactory(this, this._tiers);
+        this._apps = apps;
+        apps.setFactory(new AppFactory(this));
         this._running = false;
     },
 
-    get channelFactory() {
+    get channels() {
         return this._channels;
     },
 
-    get deviceDB() {
+    get devices() {
         return this._devices;
     },
 
-    get appDB() {
+    get apps() {
         return this._apps;
     },
 
@@ -45,13 +47,13 @@ const Engine = new lang.Class({
     open: function() {
         return this._tiers.open()
             .then(function() {
-                this._channelFactory.load()
+                this._channels.load()
             }.bind(this))
             .then(function() {
-                return this._deviceDB.load();
+                return this._devices.load();
             }.bind(this))
             .then(function() {
-                return this._appDB.load();
+                return this._apps.load();
             }.bind(this))
             .then(function() {
                 console.log('Engine started');
@@ -76,14 +78,11 @@ const Engine = new lang.Class({
         console.log('Engine running');
 
         this._running = true;
-        var apps = this._appDB.getSupportedApps();
+        var apps = this._apps.getSupportedApps();
         return Q.all(apps.map(function(a) {
             return a.start().then(function() {
-                if (!a.isRunning) {
-                    console.error('App started but is not running!');
-                    return;
-                }
-            }).catch(function(e) {
+                a.isRunning = true;
+            }).timeout(30000, 'Timed out').catch(function(e) {
                 console.error('App failed to start: ' + e);
             });
         })).then(function() {
@@ -109,11 +108,8 @@ const Engine = new lang.Class({
         }.bind(this)).then(function() {
             return Q.all(apps.map(function(a) {
                 return a.stop().then(function() {
-                    if (a.isRunning) {
-                        console.error('App stopped but is still running!');
-                        return;
-                    }
-                }).catch(function(e) {
+                    a.isRunning = false;
+                }).timeout(30000, 'Timed out').catch(function(e) {
                     console.error('App failed to stop: ' + e);
                 });
             }));
@@ -138,10 +134,10 @@ const Engine = new lang.Class({
     close: function() {
         return this._tiers.close()
             .then(function() {
-                return this._deviceDB.save()
+                return this._devices.save()
             }.bind(this))
             .then(function() {
-                return this._appDB.save();
+                return this._apps.save();
             }.bind(this))
             .then(function() {
                 console.log('Engine closed');

@@ -37,6 +37,10 @@ module.exports = new lang.Class({
         this.uniqueId = undefined;
     },
 
+    get engine() {
+        return this._engine;
+    },
+
     // Note: unlike Channel and App there is no isSupported
     // because it is possible to instantiate a Device on any platform
     // return null from queryInterface() or throw exceptions from methods
@@ -82,7 +86,7 @@ module.exports = new lang.Class({
         if (id in this._channels)
             return Q(this._channels[id]);
 
-        return this._engine.channelFactory.createDeviceChannel(id, device).then(function(channel) {
+        return this._engine.channels.createDeviceChannel(id, device).then(function(channel) {
             return this._channels[id] = channel;
         });
     },

@@ -14,16 +14,20 @@ const lang = require('lang');
 const Q = require('q');
 
 const ModuleDownloader = require('./module_downloader');
+const ProxyManager = require('./proxy');
+const Tier = require('./tier_manager').Tier;
 
 module.exports = new lang.Class({
     Name: 'ChannelFactory',
 
-    _init: function(engine) {
+    _init: function(engine, tiers) {
         this._engine = engine;
         this._channelMetas = {};
         this._cachedChannels = {};
 
         this._downloader = new ModuleDownloader('channels');
+        this._tierManager = tiers;
+        this._proxyManager = new ProxyManager(tiers, this, engine.devices);
     },
 
     _loadFromData: function(data) {
@@ -96,8 +100,21 @@ module.exports = new lang.Class({
             throw new Error('Invalid channel id ' + id);
     },
 
-    _createChannelInternal: function(id) {
-        var args = Array.prototype.slice.call(arguments, 0);
+    _getProxyChannel: function(forChannel, args) {
+        // FINISHME!! Be smarter in choosing where to run this channel
+        // (and factor CLOUD in the decision)
+
+        var targetTier;
+        if (this._tierManager.ownTier == Tier.PHONE)
+            targetTier = Tier.SERVER;
+        else
+            targetTier = Tier.PHONE;
+
+        return this._proxyManager.getProxyChannel(forChannel, targetTier, args);
+    },
+
+    _getChannelInternal: function(useProxy, id) {
+        var args = Array.prototype.slice.call(arguments, 1);
 
         var fullId = args.map(function(arg) {
             if (typeof arg === 'string')
@@ -107,6 +124,7 @@ module.exports = new lang.Class({
             else
                 return arg;
         }).join('-');
+
         if (fullId in this._cachedChannels)
             return Q(this._cachedChannels[fullId]);
 
@@ -114,24 +132,25 @@ module.exports = new lang.Class({
             var channel = factory.createChannel.apply(factory, [this._engine].concat(args));
             channel.uniqueId = fullId;
 
-            if (!channel.isSupported) // uh oh, need a ProxyChannel instead!
-                throw new Error('ProxyChannel not yet implemented...');
+            if (!channel.isSupported || channel.allowedTiers.indexOf(this._tierManager.ownTier) < 0) {
+                // uh oh! channel does not work, try with a proxy channel
+                if (useProxy) {
+                    return this._cachedChannels[fullId] =
+                        this._getProxyChannel(channel, args);
+                } else {
+                    throw new Error('Channel is not supported but proxy channel is not allowed');
+                }
+            }
 
             return this._cachedChannels[fullId] = channel;
-        }.bind(this)).catch(function(e) {
-            // channel download or creation failed!
-            // try with a proxychannel
-            throw new Error('ProxyChannel not yet implemented...');
-        });
+        }.bind(this));
     },
 
-    createChannel: function(id) {
-        return this._createChannelInternal(id).then(function(channel) {
-            return this._cachedChannels[id] = channel;
-        });
+    getChannel: function(id) {
+        return this._getChannelInternal(true, id);
     },
 
-    createDeviceChannel: function(id, device) {
-        return this._createChannelInternal(id, device);
+    getDeviceChannel: function(id, device) {
+        return this._getChannelInternal(true, id, device);
     }
 });

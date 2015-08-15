@@ -21,22 +21,24 @@ logcat:
 test-data:
 	test -d home-server || mkdir home-server/
 	echo '[{"kind":"test"}]' > home-server/apps.db
-	echo '[]' > home-server/device.db
+	echo '[]' > home-server/devices.db
 	echo '{}' > home-android/prefs.db
 	test -d home-android || mkdir home-android/
-	echo '[{"kind":"test"}]' > home-android/apps.db
-	echo '[]' > home-android/device.db
+	echo '[{"kind":"config_server"},{"kind":"test"}]' > home-android/apps.db
+	echo '[]' > home-android/devices.db
 	echo '{}' > home-android/prefs.db
 
 run-server: build-server
-	-mkdir home-server/
+	test -d home-server || mkdir home-server/
 	cd home-server/ ; node ../platform/server/main.js --test
 
 run-android-mock: build-android-js
-	-mkdir home-android/
+	test -d home-android || mkdir home-android/
 	cd home-android/ ; node ../platform/android/app/src/main/assets/jxcore_mock.js
 
 clean:
 	make -C engine clean
 	make -C platform/server clean
 	make -C platform/android clean
+	rm -fr home-android
+	rm -fr home-server

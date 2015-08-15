@@ -55,7 +55,7 @@ module.exports = {
         }
 
         _prefs = new prefs.FilePreferences(_writabledir + '/prefs.db');
-        return Q(true);
+        return Q();
     },
 
     type: 'server',
@@ -117,7 +117,7 @@ module.exports = {
     },
 
     // For internal use only
-    _setFrontend: function(frotend) {
+    _setFrontend: function(frontend) {
         _frontend = frontend;
     },
 

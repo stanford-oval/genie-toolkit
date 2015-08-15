@@ -18,7 +18,7 @@ const Action = new lang.Class({
     Name: 'Action',
 
     _init: function(engine, channel, getChannel, method, params) {
-        var channelMeta = engine.channelFactory.createIFTTTChannel(channel);
+        var channelMeta = engine.channels.createIFTTTChannel(channel);
         if (!channelMeta.objectId)
             throw new Error('Channels that don\'t have a predefined URI are not supported');
         this._channelState = getChannel(channelMeta.objectId);

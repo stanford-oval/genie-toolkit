@@ -8,6 +8,13 @@ var Q = require('q');
 var express = require('express');
 var http = require('http');
 var path = require('path');
+var logger = require('morgan');
+var favicon = require('serve-favicon');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+var session = require('express-session');
+var csurf = require('csurf');
+var errorHandler = require('errorhandler');
 var expressWs = require('express-ws');
 var routes = require('./routes');
 var user = require('./routes/user');
@@ -23,18 +30,21 @@ Frontend.prototype._init = function _init() {
     this._app.set('port', process.env.PORT || 3000);
     this._app.set('views', path.join(__dirname, 'views'));
     this._app.set('view engine', 'jade');
-    this._app.use(express.favicon());
-    this._app.use(express.logger('dev'));
-    this._app.use(express.json());
-    this._app.use(express.urlencoded());
-    this._app.use(express.methodOverride());
-    this._app.use(this._app.router);
+    //this._app.use(favicon());
+    this._app.use(logger('dev'));
+    this._app.use(bodyParser.json());
+    this._app.use(bodyParser.urlencoded({ extended: true }));
+    this._app.use(cookieParser());
+    /*app.use(session({ resave: false,
+                        saveUninitialized: false,
+                        secret: secretKey.getSecretKey(app) }));*/
+    //this._app.use(csurf({ cookie: false }));
     this._app.use(express.static(path.join(__dirname, 'public')));
     expressWs(this._app);
 
     // development only
     if ('development' == this._app.get('env')) {
-        this._app.use(express.errorHandler());
+        this._app.use(errorHandler());
     }
 
     this._app.get('/', routes.index);
@@ -44,8 +54,7 @@ Frontend.prototype._init = function _init() {
 var server = null;
 
 Frontend.prototype.open = function() {
-    server = http.createServer(this._app);
-    return Q.ninvoke(server, 'listen', this._app.get('port'))
+    return Q.ninvoke(this._app, 'listen', this._app.get('port'))
         .then(function() {
             console.log('Express server listening on port ' + this._app.get('port'));
         }.bind(this));

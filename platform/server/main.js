@@ -21,6 +21,7 @@ function main() {
         var devices = new db.FileDeviceDatabase(platform.getWritableDir() + '/devices.db');
         var engine = new Engine(apps, devices);
         var frontend = new Frontend();
+        platform._setFrontend(frontend);
 
         var earlyStop = false;
         var engineRunning = false;
@@ -30,8 +31,8 @@ function main() {
             else
                 earlyStop = true;
         }
-        process.on('SIGINT', handleSignal);
-        process.on('SIGTERM', handleSignal);
+        //process.on('SIGINT', handleSignal);
+        //process.on('SIGTERM', handleSignal);
 
         return Q.all([engine.open(), frontend.open()]).then(function() {
             engineRunning = true;
