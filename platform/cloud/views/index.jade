@@ -1,5 +1,9 @@
 extends layout
 
+block scripts
+  if loggedIn
+    script(src='/javascripts/index.js')
+
 block content
   div.jumbotron.text-center
     h1 ThingEngine
@@ -7,8 +11,8 @@ block content
     p bla bla bla
 
     if loggedIn
-      p Your Cloud ID is <samp>#{cloudId}</samp>.
-      p Your Auth Token is <samp>#{authToken}</samp>.
+      p Your Cloud ID is <samp id='cloud-id'>#{cloudId}</samp>.
+      p Your Auth Token is <samp id='auth-token'>#{authToken}</samp>.
     else
       a.btn.btn-lg.btn-primary(href='/user/register') Register now!
       span= " "
