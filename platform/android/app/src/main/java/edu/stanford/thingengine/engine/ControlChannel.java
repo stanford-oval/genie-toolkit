@@ -39,7 +39,7 @@ public class ControlChannel implements AutoCloseable, Closeable {
         partialMsg = new StringBuilder();
     }
 
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         controlReader.close();
         controlWriter.close();
     }
@@ -89,7 +89,7 @@ public class ControlChannel implements AutoCloseable, Closeable {
         }
     }
 
-    public int sendFoo(int value) throws IOException {
+    public synchronized int sendFoo(int value) throws IOException {
         try {
             sendCall("foo", value);
             return (Integer) expectReply();
@@ -101,7 +101,19 @@ public class ControlChannel implements AutoCloseable, Closeable {
         }
     }
 
-    public void sendStop() throws IOException {
+    public synchronized void sendStop() throws IOException {
         sendCall("stop");
+    }
+
+    public synchronized boolean sendSetCloudId(String cloudId, String authToken) throws IOException {
+        try {
+            sendCall("setCloudId", cloudId, authToken);
+            return (Boolean)expectReply();
+        } catch(IOException e) {
+            throw e;
+        } catch(Exception e) {
+            Log.e(EngineService.LOG_TAG, "Unexpected exception in 'setCloudId' command", e);
+            return false;
+        }
     }
 }

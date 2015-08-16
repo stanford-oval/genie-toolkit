@@ -1,7 +1,12 @@
 package edu.stanford.thingengine.engine;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONTokener;
 
 import java.util.ArrayList;
 import java.util.concurrent.locks.Condition;
@@ -37,6 +42,22 @@ public class EngineThread extends Thread {
         return broken;
     }
 
+    private String readSharedPref(String name) {
+        return context.getSharedPreferences("thingengine", Context.MODE_PRIVATE).getString(name, null);
+    }
+
+    private void writeSharedPref(String writes) throws JSONException {
+        SharedPreferences.Editor editor = context.getSharedPreferences("thingengine", Context.MODE_PRIVATE).edit();
+        JSONArray parsedWrites = (JSONArray) new JSONTokener(writes).nextValue();
+        for (int i = 0; i < parsedWrites.length(); i++) {
+            JSONArray write = parsedWrites.getJSONArray(i);
+            String name = write.getString(0);
+            String value = write.getString(1);
+            editor.putString(name, value);
+        }
+        editor.apply();
+    }
+
     @Override
     public void run() {
         jxcore.Initialize(context.getApplicationContext());
@@ -51,6 +72,28 @@ public class EngineThread extends Thread {
                     initCondition.signalAll();
                     initLock.unlock();
                     isLocked = false;
+                }
+            });
+            jxcore.RegisterMethod("readSharedPref", new jxcore.JXcoreCallback() {
+                @Override
+                public void Receiver(ArrayList<Object> params, String callbackId) {
+                    try {
+                        String value = readSharedPref((String) params.get(0));
+                        jxcore.CallJSMethod(callbackId, new Object[]{null, value});
+                    } catch(Exception e) {
+                        jxcore.CallJSMethod(callbackId, new Object[]{e.getMessage(), null});
+                    }
+                }
+            });
+            jxcore.RegisterMethod("writeSharedPref", new jxcore.JXcoreCallback() {
+                @Override
+                public void Receiver(ArrayList<Object> params, String callbackId) {
+                    try {
+                        writeSharedPref((String) params.get(0));
+                        jxcore.CallJSMethod(callbackId, new Object[]{null});
+                    } catch(Exception e) {
+                        jxcore.CallJSMethod(callbackId, new Object[]{e.getMessage()});
+                    }
                 }
             });
             jxcore.CallJSMethod("runEngine", new Object[]{});

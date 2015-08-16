@@ -119,8 +119,59 @@ JXMobile.Exit = function() {
     JXMobile('Exit').callNative(function(res) { });
 };
 
+function AndroidSharedPreferences() {
+    this._writes = [];
+
+    this._scheduledWrite = false;
+}
+
+AndroidSharedPreferences.prototype._flushWrites = function() {
+    if (this._writes.length == 0)
+        return;
+
+    var writes = this._writes;
+    this._writes = [];
+    // can't pass complex objects to Java, so go through JSON
+    JXMobile('writeSharedPref').callNative(JSON.stringify(writes), function(error) {
+        if (error)
+            console.error('Failed to flush shared preferences to disk');
+    });
+};
+
+AndroidSharedPreferences.prototype.get = function(name) {
+    this._flushWrites();
+
+    var _value;
+    var _error;
+    JXMobile('readSharedPref').callNative(name, function(error, res) {
+        if (error)
+            _error = error;
+        else
+            _value = res;
+    });
+    if (_error !== undefined)
+        throw new Error(_error);
+    if (_value === null)
+        return undefined;
+    else
+        return JSON.parse(_value);
+};
+
+AndroidSharedPreferences.prototype.set = function(name, value) {
+    this._writes.push([name, JSON.stringify(value)]);
+
+    if (this._scheduledWrite)
+        return;
+
+    this._scheduledWrite = true;
+    setTimeout(function() {
+        this._flushWrites();
+        this._scheduledWrite = false;
+    }.bind(this), 30000);
+};
+
 JXMobile.GetSharedPreferences = function(callback) {
-    callback(new Error('FIXME!!!'), null);
+    callback(null, new AndroidSharedPreferences());
 };
 
 console.warn("Platform", process.platform);
@@ -260,7 +311,11 @@ if (isAndroid) {
     };
 
     var readfilesync = function (pathname) {
-      if (!existssync(pathname)) throw new Error(pathname + " does not exist");
+        if (!existssync(pathname)) {
+            var error = new Error(pathname + " does not exist");
+            error.code = 'ENOENT';
+            throw error;
+        }
 
       var n = pathname.indexOf(root);
       if (n === 0) {

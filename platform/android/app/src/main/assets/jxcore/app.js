@@ -14,6 +14,7 @@ const fs = require('fs');
 const control = require('./control');
 var db = require('./engine/db');
 const Engine = require('./engine');
+const Tier = require('./engine/tier_manager').Tier;
 
 function runEngine() {
     global.platform = require('./platform');
@@ -46,8 +47,18 @@ function runEngine() {
 
             setCloudId: function(cloudId, authToken) {
                 var prefs = platform.getSharedPreferences();
+                var oldCloudId = prefs.get('cloud-id');
+                if (oldCloudId !== undefined && cloudId !== oldCloudId)
+                    return false;
+                var oldAuthToken = prefs.get('auth-token');
+                if (oldAuthToken !== undefined && authToken !== oldAuthToken)
+                    return false;
+                if (oldCloudId === cloudId && authToken === oldAuthToken)
+                    return true;
                 prefs.set('cloud-id', cloudId);
                 prefs.set('auth-token', authToken);
+                engine._tiers._reopenOne(Tier.CLOUD);
+                return true;
             },
 
             // For testing only!
@@ -56,6 +67,7 @@ function runEngine() {
                 return engine.devices._loadOneDevice(device);
             }
         });
+
         return controlChannel.open().then(function() {
             // signal early to stop the engine
             JXMobile('controlReady').callNative();

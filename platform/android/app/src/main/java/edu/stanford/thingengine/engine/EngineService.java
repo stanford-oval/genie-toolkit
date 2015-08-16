@@ -28,7 +28,7 @@ public class EngineService extends Service {
                 try {
                     int returned = control.sendFoo(42);
                     Log.i(LOG_TAG, "Control channel foo returned " + returned);
-                } catch(IOException e) {
+                } catch (IOException e) {
                     Log.e(LOG_TAG, "Failed to send foo to control channel", e);
                 }
             }
@@ -36,8 +36,7 @@ public class EngineService extends Service {
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId)
-    {
+    public int onStartCommand(Intent intent, int flags, int startId) {
         if (engineThread != null)
             return START_STICKY;
 
@@ -73,8 +72,7 @@ public class EngineService extends Service {
     }
 
     @Override
-    public void onDestroy()
-    {
+    public void onDestroy() {
         Log.i(LOG_TAG, "Destroying service");
         try {
             if (engineThread != null) {
@@ -97,7 +95,6 @@ public class EngineService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+        return new ControlBinder(control);
     }
 }
