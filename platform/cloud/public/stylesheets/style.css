@@ -1,0 +1,25 @@
+body {
+    padding: 50px;
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+.placeholder {
+    font-style: italic;
+}
+
+#placeholder-interviewers {
+    display: block;
+    padding: 0;
+}
+
+#placeholder-interviewers > li {
+    display: block;
+}
+
+.form-inline .form-control {
+    margin-left: 6px;
+}
+
+.form-inline .form-block {
+    margin-bottom: 15px;
+}

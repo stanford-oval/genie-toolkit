@@ -1,0 +1,15 @@
+extends layout
+
+block content
+  div.jumbotron.text-center
+    h1 ThingEngine
+    p Welcome to ThingEngine
+    p bla bla bla
+
+    if loggedIn
+      p Your Cloud ID is <samp>#{cloudId}</samp>.
+      p Your Auth Token is <samp>#{authToken}</samp>.
+    else
+      a.btn.btn-lg.btn-primary(href='/user/register') Register now!
+      span= " "
+      a.btn.btn-lg.btn-default(href='/user/login') Sign in

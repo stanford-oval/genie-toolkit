@@ -8,6 +8,7 @@
 
 const Q = require('q');
 const events = require('events');
+const http = require('http');
 const lang = require('lang');
 const net = require('net');
 const WebSocket = require('ws');
@@ -186,17 +187,18 @@ const ClientConnection = new lang.Class({
 //    phone <-> server, from the POV of a server
 // or phone <-> cloud, from the POV of the cloud
 // or server <-> cloud, from the POV of the cloud
-// websockets endpoint, plugging in the express frontend
+// on server: websockets endpoint, plugging in the express frontend
+// on cloud: websockets server on Unix domain socket (proxied from frontend)
 const ServerConnection = new lang.Class({
     Name: 'ServerConnection',
     Extends: events.EventEmitter,
 
-    _init: function(endpoint, authToken, expected) {
+    _init: function(authToken, expected) {
         events.EventEmitter.call(this);
 
         this._authToken = authToken;
-        this._endpoint = endpoint;
         this._connections = {};
+        this._wsServer = null;
 
         expected.forEach(function(from) {
             this._connections[from] = { socket: null, dataOk: false, closeOk: false,
@@ -305,9 +307,23 @@ const ServerConnection = new lang.Class({
     },
 
     open: function() {
-        console.log('Adding express handler for websocket...');
-        platform._getPrivateFeature('frontend-express').ws(this._endpoint, this._handleConnection.bind(this));
-        return Q();
+        if (platform.type === 'server') {
+            console.log('Adding express handler for websocket...');
+            platform._getPrivateFeature('frontend-express').ws('/websocket', this._handleConnection.bind(this));
+            return Q();
+        } else if (platform.type === 'cloud') {
+            this._wsServer = new WebSocket.Server({ noServer: true });
+            process.on('message', function(message, socket) {
+                if (message.type !== 'websocket')
+                    return;
+
+                this._wsServer.handleUpgrade(message.request, socket,
+                                             message.upgradeHead,
+                                             this._handleConnection.bind(this));
+            }.bind(this));
+            console.log('Added process message handler from monitor');
+            return Q();
+        }
     },
 
     close: function() {
@@ -316,9 +332,15 @@ const ServerConnection = new lang.Class({
             var connection = this._connections[id];
 
             var p = Q.Promise(function(callback, errback) {
-                connection.socket.send(JSON.stringify({control:'close'}));
-                connection.closeOk = true;
-                connection.closeCallback = callback;
+                if (connection.socket !== null) {
+                    connection.socket.send(JSON.stringify({control:'close'}));
+                    connection.closeOk = true;
+                    connection.closeCallback = callback;
+                } else {
+                    connection.closeOk = false;
+                    connection.closeCallback = null;
+                    callback();
+                }
             }).timeout(10000, 'ETIMEOUT').catch(function(e) {
                 if (e.message != 'ETIMEOUT')
                     throw e;
@@ -331,7 +353,11 @@ const ServerConnection = new lang.Class({
             });
             promises.push(p);
         }
-        return Q.all(promises);
+        return Q.all(promises).then(function() {
+            if (this._wsServer)
+                this._wsServer.close();
+            this._wsServer = null;
+        }.bind(this));
     },
 
     _sendTo: function(msg, to) {

@@ -1,0 +1,34 @@
+doctype html
+html
+  head
+    title= page_title
+    script(src="//code.jquery.com/jquery-1.11.2.min.js")
+    link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css')
+    link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css')
+    link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css')
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    script(src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js")
+    script(src='/javascripts/validator.min.js')
+    script(src='/javascripts/shared.js')
+    block scripts
+
+  body
+    header(class="navbar navbar-inverse navbar-fixed-top", role="banner")
+      div.navbar-header
+        button(class="navbar-toggle collapsed", data-toggle="collapse", data-target=".bs-navbar-collapse")
+          span.sr-only Toggle navigation
+          span.icon-bar
+          span.icon-bar
+          span.icon-bar
+        a(class="navbar-brand scroller", href="/") ThingEngine
+      nav(class="navbar-collapse bs-navbar-collapse collapse", role="navigation")
+        ul.nav.navbar-nav
+          li
+            a(class="scroller", href="/something") Something
+          li
+            a(class="scroller", href="/something") Something
+          li
+            a(class="scroller", href="/dark-side") Dark side
+
+    br
+    block content

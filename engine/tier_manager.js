@@ -181,7 +181,7 @@ module.exports = new lang.Class({
 
         var toPhone = function() {
             var authToken = prefs.get('auth-token');
-            return new tc.ServerConnection('/websocket', authToken,
+            return new tc.ServerConnection(authToken,
                                            [tierToString(Tier.PHONE)]);
         }
         var toServer = null;
@@ -206,10 +206,8 @@ module.exports = new lang.Class({
 
         var authToken = prefs.get('auth-token');
         if (authToken === undefined) {
-            // FIXME: need to figure out a design to populate this one...
-
-            console.log('Not yet paired with any other tier, bailing...');
-            return this._openNone();
+            // Crash
+            throw new Error('Cloud platform without a valid auth token!');
         }
 
         var cloudId = prefs.get('cloud-id');
@@ -221,8 +219,7 @@ module.exports = new lang.Class({
         var toPhone = function() {
             var authToken = prefs.get('auth-token');
             var cloudId = prefs.get('cloud-id');
-            new tc.ServerConnection(Config.THINGPEDIA_URL + '/ws/' + cloudId,
-                                    authToken, [tierToString(Tier.PHONE), tierToString(Tier.SERVER)]);
+            return new tc.ServerConnection(authToken, [tierToString(Tier.PHONE), tierToString(Tier.SERVER)]);
         }
         var toServer = null;
         var toCloud = null;
@@ -243,6 +240,13 @@ module.exports = new lang.Class({
         }
     },
 
+    _closeOne: function(tier) {
+        if (this._tierSockets[tier] != null)
+            return this._tierSockets[tier].close();
+        else
+            return Q();
+    },
+
     close: function() {
         return Q.all(this._tierSockets.filter(function(s) {
             return s !== null;
@@ -252,9 +256,9 @@ module.exports = new lang.Class({
     },
 
     // Semi private API used by the config-* apps
-    _reopen: function() {
-        return this.close().then(function() {
-            return this.open();
+    _reopenOne: function(tier) {
+        return this._closeOne(tier).then(function() {
+            return this._tryOpenOne(tier);
         }.bind(this));
     },
 

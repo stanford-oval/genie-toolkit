@@ -6,22 +6,16 @@
 //
 // See COPYING for details
 
-var Q = require('q');
+const db = require('./engine/db');
+const Engine = require('./engine');
 
-var db = require('./engine/db');
-var Engine = require('./engine');
-var Frontend = require('./frontend');
-
-function main() {
+function runEngine() {
     global.platform = require('./platform');
 
-    var test = process.argv.indexOf('--test') >= 0;
-    platform.init(test).then(function() {
+    platform.init().then(function() {
         var apps = new db.FileAppDatabase(platform.getWritableDir() + '/apps.db');
         var devices = new db.FileDeviceDatabase(platform.getWritableDir() + '/devices.db');
         var engine = new Engine(apps, devices);
-        var frontend = new Frontend();
-        platform._setFrontend(frontend);
 
         var earlyStop = false;
         var engineRunning = false;
@@ -31,15 +25,15 @@ function main() {
             else
                 earlyStop = true;
         }
-        //process.on('SIGINT', handleSignal);
-        //process.on('SIGTERM', handleSignal);
+        process.on('SIGINT', handleSignal);
+        process.on('SIGTERM', handleSignal);
 
-        return Q.all([engine.open(), frontend.open()]).then(function() {
+        return engine.open().then(function() {
             engineRunning = true;
             if (earlyStop)
                 return;
             return engine.run().finally(function() {
-                return Q.all([engine.close(), frontend.close()]);
+                return engine.close();
             });
         });
     }).then(function () {
@@ -48,4 +42,4 @@ function main() {
     }).done();
 }
 
-main();
+runEngine();

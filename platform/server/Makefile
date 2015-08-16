@@ -4,12 +4,12 @@ libdir ?= $(prefix)/lib
 pkglibdir ?= $(libdir)/thingengine-server
 localstatedir ?= /var/lib/thingengine-server
 
-all: config.js
+all: platform_config.js
 	cd engine ; npm install
 	cd frontend ; npm install
 	npm install
 
-config.js:
+platform_config.js:
 	echo "exports.PKGLIBDIR = '$(prefix)'; exports.LOCALSTATEDIR = '$(localstatedir)';" > platform_config.js
 
 SUBDIRS = engine frontend

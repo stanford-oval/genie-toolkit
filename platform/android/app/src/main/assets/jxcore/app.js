@@ -44,6 +44,12 @@ function runEngine() {
                 controlChannel.close();
             },
 
+            setCloudId: function(cloudId, authToken) {
+                var prefs = platform.getSharedPreferences();
+                prefs.set('cloud-id', cloudId);
+                prefs.set('auth-token', authToken);
+            },
+
             // For testing only!
             injectDevice: function(device) {
                 console.log('Injecting device ' + JSON.stringify(device, 1));

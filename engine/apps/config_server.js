@@ -77,7 +77,7 @@ const ConfigServerApp = new lang.Class({
                 prefs.set('server-address', serverAddress);
 
                 // NOTE: private API usage!
-                engine._tiers._reopen();
+                engine._tiers._reopen(Tier.SERVER);
             });
         });
 
