@@ -1,5 +1,4 @@
 var express = require('express');
-var pg = require('pg');
 var model = require('../model/user');
 var router = express.Router();
 var user = require('../util/user');

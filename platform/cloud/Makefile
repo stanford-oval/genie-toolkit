@@ -3,8 +3,6 @@ prefix ?= /opt/thingengine-cloud
 localstatedir ?= /var/opt/thingengine-cloud
 
 all: platform_config.js
-	cd engine ; npm install
-	cd frontend ; npm install
 	npm install
 
 platform_config.js:

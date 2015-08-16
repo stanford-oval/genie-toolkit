@@ -14,3 +14,4 @@ node_modules/morgan/
 node_modules/serve-favicon/
 node_modules/url/
 node_modules/pg/
+node_modules/mysql/

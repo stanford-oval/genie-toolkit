@@ -6,13 +6,13 @@
 //
 // See COPYING for details
 
-const pg = require('pg');
+const mysql = require('mysql');
 const Q = require('q');
 
-function getDBUrl() {
+function getDB() {
     var url = process.env.DATABASE_URL;
     if (url === undefined)
-        return "postgres://thingengine:thingengine@localhost/thingengine";
+        return "mysql://thingengine:thingengine@localhost/thingengine?charset=utf8mb4_bin";
     else
         return url;
 }
@@ -38,23 +38,38 @@ function commit(client, result, done) {
     });
 }
 
-function selectOne(client, string, args) {
-    return query(client, string, args).then(function(result) {
-        if (result.rows.length != 1)
-            throw new Error("Wrong number of rows returned, expected 1, got " + result.rows.length);
-
-        return result.rows[0];
-    });
-}
-
 function selectAll(client, string, args) {
     return query(client, string, args).then(function(result) {
-        return result.rows;
+        var rows = result[0];
+        var fields = result[1];
+        return rows;
     });
 }
 
+function selectOne(client, string, args) {
+    return selectAll(client, string, args).then(function(rows) {
+        if (rows.length != 1)
+            throw new Error("Wrong number of rows returned, expected 1, got " + rows.length);
+
+        return rows[0];
+    });
+}
+
+var _pool;
 function connect() {
-    return Q.ninvoke(pg, 'connect', getDBUrl());
+    if (_pool === undefined) {
+        _pool = mysql.createPool(getDB());
+    }
+
+    return Q.ninvoke(_pool, 'getConnection').then(function(connection) {
+        function done(error) {
+            if (error !== undefined)
+                connection.destroy();
+            else
+                connection.release();
+        }
+        return [connection, done];
+    });
 }
 
 module.exports = {
@@ -93,12 +108,12 @@ module.exports = {
         });
     },
 
-    insertOne: function(client, query, args) {
-        return selectOne(client, query, args).then(function(row) {
-            if (!row.id)
+    insertOne: function(client, string, args) {
+        return query(client, string, args).spread(function(result, fields) {
+            if (result.insertId === undefined)
                 throw new Error("Row does not have ID");
 
-            return row.id;
+            return result.insertId;
         });
     },
 

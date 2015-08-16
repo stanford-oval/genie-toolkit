@@ -11,16 +11,16 @@ const Q = require('q');
 
 module.exports = {
     get: function(client, id) {
-        return db.selectOne(client, "select * from users where id = $1", [id]);
+        return db.selectOne(client, "select * from users where id = ?", [id]);
     },
 
     getByName: function(client, username) {
-        return db.selectAll(client, "select * from users where username = $1", [username]);
+        return db.selectAll(client, "select * from users where username = ?", [username]);
     },
 
     create: function(client, username, salt, password, cloudId, authToken) {
         return db.insertOne(client, "insert into users(username, salt, password, cloud_id, auth_token) "
-                            + "values ($1, $2, $3, $4, $5) returning id",
+                            + "values (?, ?, ?, ?, ?)",
                             [username, salt, password, cloudId, authToken]);
     },
 
