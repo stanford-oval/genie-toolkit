@@ -21,7 +21,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="thingengine-server"
 NAME=thingengine-server
 DAEMON=/usr/bin/nodejs
-DAEMON_ARGS="/usr/lib/thingengine-server/app.js"
+DAEMON_ARGS="/usr/lib/thingengine-server/main.js"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 

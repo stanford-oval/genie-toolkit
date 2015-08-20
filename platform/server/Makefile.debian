@@ -23,17 +23,6 @@ install: all
 	install -m 0644 $(install_sources) $(DESTDIR)$(pkglibdir)
 
 clean:
-	make -C ../../engine clean
+	make -C engine clean
 	make -C frontend clean
 	rm -f platform_config.js
-
-# Note the / after engine, forces symlink resolution
-build-debian-src: clean
-	rm -fr tmp/
-	mkdir tmp/
-	cp -pr debian/ tmp/
-	for d in $(SUBDIRS) ; do cp -pr $$d/ tmp/ ; done
-	cp -pr Makefile.debian tmp/Makefile
-	cp -pr $(dist_sources) tmp/
-	cd tmp ; debuild -S
-	rm -fr tmp/
