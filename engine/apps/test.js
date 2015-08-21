@@ -20,37 +20,39 @@ const TestApp = new lang.Class({
         this._interval = -1;
 
         this._testChannel = null;
+        this._pipe = null;
     },
 
     serialize: function() {
         return { kind: 'test' };
     },
 
-    _onEvent: function(event) {
+    _onChannelEvent: function(event) {
         console.log('Test App received an event on Test Channel: ' + event);
 
         if (platform.type === 'server') // send it back to the phone
             this._testChannel.sendEvent(event * 2);
+
+        this._pipe.sendEvent(event * 3);
     },
 
     start: function() {
         console.log('Test App starting');
 
-        return this.engine.channels.getChannel('test').then(function(channel) {
-            this._testChannel = channel;
-            channel.on('event', this._onEvent.bind(this));
-            return channel.open().then(function() {
-                console.log('Test App obtained a Test Channel');
-            });
-        }.bind(this));
+        return Q.all([this.engine.channels.getChannel('test'),
+                      this.engine.channels.getNamedPipe('test-pipe', 'w')])
+            .spread(function(channel, pipe) {
+                this._testChannel = channel;
+                this._pipe = pipe;
+                channel.on('event', this._onChannelEvent.bind(this));
+                console.log('Test App obtained a Test Channel and a Test Pipe');
+            }.bind(this));
     },
 
     stop: function() {
         console.log('Test App stopping');
-        if (this._testChannel != null)
-            return this._testChannel.close();
-        else
-            return Q();
+        return Q.all([this._testChannel != null ? this._testChannel.close() : Q(),
+                      this._pipe != null ? this._pipe.close() : Q()]);
     }
 });
 

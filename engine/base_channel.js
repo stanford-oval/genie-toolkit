@@ -115,11 +115,16 @@ module.exports = new lang.Class({
 
     // for subclasses
     emitEvent: function(object) {
+        if (!this.isSource)
+            throw new Error('Cannot emit event on a sink channel - did you mean sendEvent?');
         this.emit('event', object);
     },
 
     // public API
     sendEvent: function(object) {
-        throw new Error('sendEvent is not support by this channel');
+        if (this.isSink)
+            throw new Error('sendEvent is not implemented by this channel (channel bug)');
+        else
+            throw new Error('Cannot send event on a source channel - did you mean emitEvent?');
     },
 });

@@ -15,6 +15,7 @@ const Q = require('q');
 
 const ModuleDownloader = require('./module_downloader');
 const ProxyManager = require('./proxy');
+const PipeManager = require('./pipes');
 const Tier = require('./tier_manager').Tier;
 
 module.exports = new lang.Class({
@@ -28,6 +29,7 @@ module.exports = new lang.Class({
         this._downloader = new ModuleDownloader('channels');
         this._tierManager = tiers;
         this._proxyManager = new ProxyManager(tiers, this, engine.devices);
+        this._pipeManager = new PipeManager(tiers, this._proxyManager);
     },
 
     _loadFromData: function(data) {
@@ -116,6 +118,14 @@ module.exports = new lang.Class({
     _getChannelInternal: function(useProxy, id) {
         var args = Array.prototype.slice.call(arguments, 1);
 
+        // Named pipes are special in that we need some coordination
+        // to ensure that we always have all proxies across all the tiers
+        // So ask our trusty pipe manager for it
+        //
+        // (Note: we only follow this path for a request from ProxyManager)
+        if (id === 'pipe')
+            return this._pipeManager.getProxyNamedPipe(args[1]);
+
         var fullId = args.map(function(arg) {
             if (typeof arg === 'string')
                 return arg;
@@ -146,11 +156,36 @@ module.exports = new lang.Class({
         }.bind(this));
     },
 
+    _getOpenedChannel: function(promise) {
+        return promise.then(function(channel) {
+            return channel.open().then(function() {
+                return channel;
+            });
+        });
+    },
+
     getChannel: function(id) {
-        return this._getChannelInternal(true, id);
+        return this._getOpenedChannel(this._getChannelInternal(true, id));
     },
 
     getDeviceChannel: function(id, device) {
-        return this._getChannelInternal(true, id, device);
-    }
+        return this._getOpenedChannel(this._getChannelInternal(true, id, device));
+    },
+
+    // A named pipe is a PipeChannel with the given name
+    // It can be useful to communicate between different apps, potentially
+    // running on different tiers
+    //
+    // The returned channel will be a source if the second parameter is 'r',
+    // and a sink it is 'w'
+    getNamedPipe: function(name, mode) {
+        if (mode !== 'r' && mode !== 'w')
+            throw new Error('Invalid mode ' + mode);
+        var source = mode === 'r';
+
+        if (source)
+            return this._getOpenedChannel(this._pipeManager.getLocalSourceNamedPipe(name));
+        else
+            return this._getOpenedChannel(this._pipeManager.getLocalSinkNamedPipe(name));
+    },
 });

@@ -281,8 +281,20 @@ module.exports = new lang.Class({
         }
     },
 
+    getOtherTiers: function() {
+        var tiers = [];
+        for (var i = 0; i < 3; i++) {
+            if (this._tierSockets === null)
+                continue;
+            if (i === this._ownTier)
+                continue;
+            tiers.push(i);
+        }
+        return tiers;
+    },
+
     sendTo: function(tier, msg) {
-        if (this._tierSockets[tier] != null)
+        if (this._tierSockets[tier] !== null)
             this._tierSockets[tier].send(msg);
         else
             this._tierOutgoingBuffers[tier].push(msg);

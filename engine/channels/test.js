@@ -39,7 +39,9 @@ const TestChannel = new lang.Class({
 
     _doOpen: function() {
         // emit a blob every 60 s
-        this.emitEvent(42);
+        setTimeout(function() {
+            this.emitEvent(42);
+        }.bind(this), 0);
         this._timeout = setInterval(function() {
             this.emitEvent(42);
         }.bind(this), 60000);
