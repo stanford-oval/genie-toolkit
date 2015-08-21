@@ -136,23 +136,22 @@ module.exports = new lang.Class({
         }).join('-');
 
         if (fullId in this._cachedChannels)
-            return Q(this._cachedChannels[fullId]);
+            return this._cachedChannels[fullId];
 
-        return this._downloader.getModule(id).then(function(factory) {
+        return this._cachedChannels[fullId] = this._downloader.getModule(id).then(function(factory) {
             var channel = factory.createChannel.apply(factory, [this._engine].concat(args));
             channel.uniqueId = fullId;
 
             if (!channel.isSupported || channel.allowedTiers.indexOf(this._tierManager.ownTier) < 0) {
                 // uh oh! channel does not work, try with a proxy channel
                 if (useProxy) {
-                    return this._cachedChannels[fullId] =
-                        this._getProxyChannel(channel, args);
+                    return this._getProxyChannel(channel, args);
                 } else {
                     throw new Error('Channel is not supported but proxy channel is not allowed');
                 }
             }
 
-            return this._cachedChannels[fullId] = channel;
+            return channel;
         }.bind(this));
     },
 

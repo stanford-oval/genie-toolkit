@@ -1,0 +1,18 @@
+[
+{"kind": "config_server"},
+{"kind": "test"},
+{"kind": "brannigan",
+ "name": "brannigan test 1",
+ "trigger": {"channel": {"id": "test"},
+             "filter": [["number",">",63]]},
+ "action": {"channel": {"id": "test"},
+            "output": [["number","number","7*{{number}}"], ["text","const","Large"]]}
+},
+{"kind": "brannigan",
+ "name": "brannigan test 2",
+ "trigger": {"channel": {"id": "test"},
+             "filter": [["number","==",42]]},
+ "action": {"channel": {"id": "test"},
+            "output": [["text","string","{{number}} is my lucky number"]]}
+}
+]

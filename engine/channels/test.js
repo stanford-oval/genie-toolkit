@@ -11,12 +11,17 @@ const Q = require('q');
 
 const BaseChannel = require('../base_channel');
 
+var cnt = 0;
+
 const TestChannel = new lang.Class({
     Name: 'TestChannel',
     Extends: BaseChannel,
 
     _init: function() {
         this.parent();
+
+        cnt++;
+        console.log('Created Test channel #' + cnt);
 
         this._timeout = -1;
     },
@@ -34,17 +39,18 @@ const TestChannel = new lang.Class({
     },
 
     sendEvent: function(event) {
-        console.log('Writing data on test channel: ' + event);
+        console.log('Writing data on test channel: ' + JSON.stringify(event));
     },
 
     _doOpen: function() {
-        // emit a blob every 60 s
+        // emit a blob every 5 s
         setTimeout(function() {
-            this.emitEvent(42);
+            this.emitEvent({number:42});
         }.bind(this), 0);
         this._timeout = setInterval(function() {
-            this.emitEvent(42);
-        }.bind(this), 60000);
+            var event = {number:42 + Math.floor(Math.random() * 42)};
+            this.emitEvent(event);
+        }.bind(this), 5000);
         return Q();
     },
 

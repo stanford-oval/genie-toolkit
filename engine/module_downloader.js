@@ -102,7 +102,7 @@ module.exports = new lang.Class({
 
     getModule: function(id) {
         if (id in this._cachedModules)
-            return this._cachedModules[id];
+            return Q(this._cachedModules[id]);
         else
             return this._createModule(id);
     }

@@ -28,12 +28,12 @@ const TestApp = new lang.Class({
     },
 
     _onChannelEvent: function(event) {
-        console.log('Test App received an event on Test Channel: ' + event);
+        console.log('Test App received an event on Test Channel: ' + JSON.stringify(event));
 
         if (platform.type === 'server') // send it back to the phone
-            this._testChannel.sendEvent(event * 2);
+            this._testChannel.sendEvent({number:event.number * 2});
 
-        this._pipe.sendEvent(event * 3);
+        this._pipe.sendEvent({number:event.number * 3});
     },
 
     start: function() {

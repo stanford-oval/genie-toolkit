@@ -27,7 +27,7 @@ test-data:
 	echo '[]' > home-server/devices.db
 	echo '{}' > home-server/prefs.db
 	test -d home-android || mkdir home-android/
-	echo '[{"kind":"config_server"},{"kind":"test"}]' > home-android/apps.db
+	cp test/android-apps.db home-android/apps.db
 	echo '[]' > home-android/devices.db
 	echo '{}' > home-android/prefs.db
 
