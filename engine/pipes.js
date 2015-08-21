@@ -201,9 +201,12 @@ module.exports = new lang.Class({
         var args = ['pipe', name];
         var proxies = this._tierManager.getOtherTiers().map(function(tier) {
             return this._proxyManager.getProxyChannel(forChannel, tier, args);
-        });
+        }.bind(this));
         var sourcePipe = new PipeLocalSourceChannel(name, this, proxies);
         this._pipeLocalSources[name] = sourcePipe;
+
+        if (name in this._pipeSinks)
+            this._pipeSinks[name].addSource(sourcePipe);
 
         return Q(sourcePipe);
     },

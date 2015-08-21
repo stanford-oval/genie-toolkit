@@ -14,5 +14,19 @@
              "filter": [["number","==",42]]},
  "action": {"channel": {"id": "test"},
             "output": [["text","string","{{number}} is my lucky number"]]}
+},
+{"kind": "brannigan",
+ "name": "brannigan pipe source test",
+ "trigger": {"channel": {"id": "test"},
+             "filter": [["number",">=",63]]},
+ "action": {"channel": {"id": "pipe-mypipe"},
+            "output": [["something","number","{{number}}-42"]]}
+},
+{"kind": "brannigan",
+ "name": "brannigan pipe sink test",
+ "trigger": {"channel": {"id": "pipe-mypipe"},
+             "filter": [["something","!!"]]},
+ "action": {"channel": {"id": "test"},
+            "output": [["text","string","{{something}} was piped through!"]]}
 }
 ]
