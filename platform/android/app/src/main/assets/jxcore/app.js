@@ -12,7 +12,8 @@ const Q = require('q');
 const fs = require('fs');
 
 const control = require('./control');
-var db = require('./engine/db');
+const appdb = require('./engine/db/apps');
+const SQLDatabase = require('./engine/db/sqldb');
 const Engine = require('./engine');
 const Tier = require('./engine/tier_manager').Tier;
 
@@ -23,9 +24,10 @@ function runEngine() {
         console.log('Android platform initialized');
         console.log('Creating engine...');
 
-        var apps = new db.FileAppDatabase(platform.getWritableDir() + '/apps.db');
-        var devices = new db.FileDeviceDatabase(platform.getWritableDir() + '/devices.db');
-        var engine = new Engine(apps, devices);
+        var apps = new appdb.FileAppDatabase(platform.getWritableDir() + '/apps.db');
+        var devicesql = new SQLDatabase(platform.getWritableDir() + '/sqlite.db',
+                                        'device');
+        var engine = new Engine(apps, devicesql);
 
         var engineRunning = false;
         var earlyStop = false;
@@ -64,7 +66,7 @@ function runEngine() {
             // For testing only!
             injectDevice: function(device) {
                 console.log('Injecting device ' + JSON.stringify(device, 1));
-                return engine.devices._loadOneDevice(device);
+                engine.devices._loadOneDevice(device, true).done();
             }
         });
 

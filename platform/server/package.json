@@ -6,6 +6,7 @@
     "start": "node main.js"
   },
   "dependencies": {
-      "q": "~1.4.0"
+    "q": "~1.4.0",
+    "sqlite3": "~3.0.10"
   }
 }

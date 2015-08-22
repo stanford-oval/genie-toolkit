@@ -34,6 +34,9 @@ const ClientConnection = new lang.Class({
         this._outgoingBuffer = [];
         this._ratelimitTimer = null;
         this._retryAttempts = 3;
+
+        this.isClient = true;
+        this.isServer = false;
     },
 
     _onConnectionLost: function() {
@@ -204,6 +207,9 @@ const ServerConnection = new lang.Class({
             this._connections[from] = { socket: null, dataOk: false, closeOk: false,
                                         closeCallback: null, outgoingBuffer: [] };
         }.bind(this));
+
+        this.isClient = true;
+        this.isServer = false;
     },
 
     _findConnection: function(socket) {

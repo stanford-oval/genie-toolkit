@@ -37,6 +37,10 @@ module.exports = new lang.Class({
         this.uniqueId = undefined;
     },
 
+    updateState: function(state) {
+        // nothing to do here by default
+    },
+
     get engine() {
         return this._engine;
     },

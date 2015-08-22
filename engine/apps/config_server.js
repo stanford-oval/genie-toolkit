@@ -35,7 +35,6 @@ const ConfigServerApp = new lang.Class({
     _init: function(engine, state) {
         this.parent(engine, state);
 
-        this._engine = engine;
         this._listener = null;
     },
 
@@ -54,7 +53,7 @@ const ConfigServerApp = new lang.Class({
                     + ' port ' + device.port);
         console.log('Autoconfiguring...');
 
-        var engine = this._engine;
+        var engine = this.engine;
         var serverAddress = 'http://' + device.host + ':' + device.port + '/websocket';
 
         // Open a temporary connection with the server to set up the auth token
@@ -90,13 +89,13 @@ const ConfigServerApp = new lang.Class({
 
         // Start watching for changes to the device database
         this._listener = this._onDeviceAdded.bind(this);
-        this._engine.devices.on('device-added', this._listener);
+        this.engine.devices.on('device-added', this._listener);
         return Q();
     },
 
     stop: function() {
         if (this._listener != null)
-            this._engine.devices.removeListener('device-added', this._listener);
+            this.engine.devices.removeListener('device-added', this._listener);
         this._listener = null;
         return Q();
     }

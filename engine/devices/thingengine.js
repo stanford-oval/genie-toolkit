@@ -30,6 +30,10 @@ const ThingEngineDevice = new lang.Class({
         this.uniqueId = 'thingengine-server-' + host + '-' + port;
     },
 
+    serialize: function() {
+        return {kind:'thingengine', host: this.host, port: this.port};
+    },
+
     checkAvailable: function() {
         // FIXME: ping the server!
         return this.parent();

@@ -8,6 +8,7 @@
 
 const Config = require('./config');
 
+const events = require('events');
 const Q = require('q');
 const lang = require('lang');
 
@@ -40,8 +41,11 @@ function tierToString(tier) {
 
 module.exports = new lang.Class({
     Name: 'TierManager',
+    Extends: events.EventEmitter,
 
     _init: function() {
+        events.EventEmitter.call(this);
+
         this.ownTier = -1;
 
         if (platform.type == 'android' || platform.type == 'ios')
@@ -92,6 +96,8 @@ module.exports = new lang.Class({
             this._tierOutgoingBuffers[tier] = lostMessages.concat(this._tierOutgoingBuffers[tier]);
             this._tierSockets[tier] = null;
 
+            this.emit('disconnected', tier);
+
             // Try again at some point in the future
             var timer = this._backoffTimer(tier);
             console.log('Trying again in ' + Math.floor(timer/60000) + ' minutes');
@@ -112,6 +118,8 @@ module.exports = new lang.Class({
                 var buffer = this._tierOutgoingBuffers[tier];
                 this._tierOutgoingBuffers[tier] = [];
                 socket.sendMany(buffer);
+
+                this.emit('connected', tier);
             }
         }.bind(this));
     },
@@ -281,10 +289,46 @@ module.exports = new lang.Class({
         }
     },
 
+    isClientTier: function(tier) {
+        return this._tierSockets[tier].isClient;
+    },
+
+    isServerTier: function(tier) {
+        return this._tierSockets[tier].isServer;
+    },
+
+    getClientTiers: function() {
+        var tiers = [];
+        for (var i = 0; i < 3; i++) {
+            if (this._tierSockets[i] === null)
+                continue;
+            if (!this._tierSockets[i].isClient)
+                continue;
+            if (i === this._ownTier)
+                continue;
+            tiers.push(i);
+        }
+        return tiers;
+    },
+
+    getServerTiers: function() {
+        var tiers = [];
+        for (var i = 0; i < 3; i++) {
+            if (this._tierSockets[i] === null)
+                continue;
+            if (!this._tierSockets[i].isServer)
+                continue;
+            if (i === this._ownTier)
+                continue;
+            tiers.push(i);
+        }
+        return tiers;
+    },
+
     getOtherTiers: function() {
         var tiers = [];
         for (var i = 0; i < 3; i++) {
-            if (this._tierSockets === null)
+            if (this._tierSockets[i] === null)
                 continue;
             if (i === this.ownTier)
                 continue;
@@ -300,9 +344,10 @@ module.exports = new lang.Class({
             this._tierOutgoingBuffers[tier].push(msg);
     },
 
-    sendToAll: function() {
+    sendToAll: function(msg) {
         this._tierSockets.forEach(function(s) {
-            s.send(msg);
+            if (s !== null)
+                s.send(msg);
         });
     },
 });

@@ -14,17 +14,18 @@ const lang = require('lang');
 const AppFactory = require('./app_factory');
 const ChannelFactory = require('./channel_factory');
 const DeviceFactory = require('./device_factory');
+const DeviceDatabase = require('./db/devices');
 const TierManager = require('./tier_manager');
 
 const Engine = new lang.Class({
     Name: 'Engine',
 
-    _init: function(apps, devices) {
+    _init: function(apps, devicesql) {
         // constructor
 
         this._tiers = new TierManager();
-        this._devices = devices;
-        devices.setFactory(new DeviceFactory(this));
+        this._devices = new DeviceDatabase(devicesql, this._tiers,
+                                           new DeviceFactory(this));
         this._channels = new ChannelFactory(this, this._tiers);
         this._apps = apps;
         apps.setFactory(new AppFactory(this));

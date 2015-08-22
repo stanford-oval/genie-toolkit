@@ -6,20 +6,22 @@
 //
 // See COPYING for details
 
-var Q = require('q');
+const Q = require('q');
 
-var db = require('./engine/db');
-var Engine = require('./engine');
-var Frontend = require('./frontend');
+const appdb = require('./engine/db/apps');
+const SQLDatabase = require('./engine/db/sqldb');
+const Engine = require('./engine');
+const Frontend = require('./frontend');
 
 function main() {
     global.platform = require('./platform');
 
     var test = process.argv.indexOf('--test') >= 0;
     platform.init(test).then(function() {
-        var apps = new db.FileAppDatabase(platform.getWritableDir() + '/apps.db');
-        var devices = new db.FileDeviceDatabase(platform.getWritableDir() + '/devices.db');
-        var engine = new Engine(apps, devices);
+        var apps = new appdb.FileAppDatabase(platform.getWritableDir() + '/apps.db');
+        var devicesql = new SQLDatabase(platform.getWritableDir() + '/sqlite.db',
+                                        'device');
+        var engine = new Engine(apps, devicesql);
         var frontend = new Frontend();
         platform._setFrontend(frontend);
         frontend.setEngine(engine);

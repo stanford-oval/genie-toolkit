@@ -24,7 +24,6 @@ function renderApp(appId, jadeView, locals, res, next) {
     // pretend the file is in views/appId/something.jade
     // this allows the app to resolve extends from our UI
     var fakePath = path.join(res.app.get('views'), appId, path.basename(jadeView));
-    console.log(fakePath);
     jadeOptions.cache = true;
     jadeOptions.filename = fakePath;
     fs.readFile(jadeView, function(err, file) {

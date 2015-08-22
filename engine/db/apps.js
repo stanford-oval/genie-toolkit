@@ -15,7 +15,7 @@ const uuid = require('node-uuid');
 const AppDatabase = new lang.Class({
     Name: 'AppDatabase',
 
-    _init: function(root) {
+    _init: function() {
         this._factory = null;
         this._apps = [];
         this._appMap = {};
@@ -119,119 +119,17 @@ const FileAppDatabase = new lang.Class({
     },
 
     save: function() {
-        var data = JSON.stringify(this.getAllApps().map(function(a) { return a.serialize(); }));
-        return Q.nfcall(fs.writeFile, this._file, data);
-    },
-});
-
-const DeviceDatabase = new lang.Class({
-    Name: 'DeviceDatabase',
-    Extends: events.EventEmitter,
-
-    _init: function() {
-        events.EventEmitter.call(this);
-
-        // FIXME: use Map when node supports it
-        this._devices = {};
-        this._factory = null;
-    },
-
-    setFactory: function(factory) {
-        this._factory = factory;
-    },
-
-    _loadOneDevice: function(serializedDevice) {
-        return Q.try(function() {
-            return this._factory.createDevice(serializedDevice.kind, serializedDevice);
-        }.bind(this)).then(function(device) {
-            this._addDeviceInternal(device, serializedDevice);
-        }.bind(this)).catch(function(e) {
-            console.error('Failed to load one device: ' + e);
-        });
-    },
-
-    load: function() {
-        // load the device db from... somewhere
-        throw new Error('Not implemented');
-    },
-
-    save: function() {
-        // save the device db... somewhere
-        throw new Error('Not implemented');
-    },
-
-    getAllDevices: function() {
-        var devices = [];
-        for (var id in this._devices)
-            devices.push(this._devices[id]);
-        return devices;
-    },
-
-    getAllDevicesOfKind: function(kind) {
-        return this.getAllDevices().filter(function(device) {
-            return device.hasKind(kind);
-        });
-    },
-
-    _addDeviceInternal: function(device, serializedDevice) {
-        if (device.uniqueId === undefined) {
-            if (serializedDevice === undefined)
-                device.uniqueId = 'uuid-' + uuid.v4();
-            else
-                device.uniqueId = serializedDevice.uniqueId;
-        } else {
-            if (serializedDevice.uniqueId !== undefined &&
-                device.uniqueId !== serializedDevice.uniqueId)
-                throw new Error('Device unique id is different from stored value');
-        }
-
-        this._devices[device.uniqueId] = device;
-        this.emit('device-added', device);
-    },
-
-    addDevice: function(device) {
-        this._addDeviceInternal(device);
-    },
-
-    getDevice: function(uniqueId) {
-        if (uniqueId in this._devices)
-            return this._devices[uniqueId];
-        else
-            throw new Error('Unknown device ' + uniqueId);
-    }
-});
-
-const FileDeviceDatabase = new lang.Class({
-    Name: 'FileDeviceDatabase',
-    Extends: DeviceDatabase,
-
-    _init: function(file) {
-        this.parent();
-        this._file = file;
-    },
-
-    load: function() {
-        return Q.nfcall(fs.readFile, this._file)
-            .then(function(data) {
-                return Q.all(JSON.parse(data).map(function(serializedDevice) {
-                    return this._loadOneDevice(serializedDevice);
-                }.bind(this)));
-            }.bind(this))
-            .catch(function(e) {
-                if (e.code != 'ENOENT')
-                    throw e;
-            });
-    },
-
-    save: function() {
-        var data = JSON.stringify(this.getAllDevices().map(function(d) { return d.serialize(); }));
+        var data = JSON.stringify(this.getAllApps().map(function(a) {
+            var state = a.serialize();
+            if (state.uniqueId === undefined)
+                state.uniqueId = a.uniqueId;
+            return state;
+        }));
         return Q.nfcall(fs.writeFile, this._file, data);
     },
 });
 
 module.exports = {
     AppDatabase: AppDatabase,
-    FileAppDatabase: FileAppDatabase,
-    DeviceDatabase: DeviceDatabase,
-    FileDeviceDatabase: FileDeviceDatabase,
-};
+    FileAppDatabase: FileAppDatabase
+}
