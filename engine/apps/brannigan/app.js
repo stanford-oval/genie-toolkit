@@ -110,6 +110,8 @@ const App = new lang.Class({
         //             output: [['to','const','555-555-5555'], ['text', 'string', '{{user}} tweeted'],
         //                      ['something','number','1 + {{input}}']] }
         // }
+
+        this.filename = module.filename;
     },
 
     _triggerMatches: function(event) {
@@ -173,7 +175,7 @@ const App = new lang.Class({
     },
 
     showUI: function(command) {
-        if (command == 'show') {
+        if (command === undefined) {
             return [path.dirname(module.filename) + '/show.jade',
                     { title: "ThingEngine - " + this.state.name,
                       name: this.state.name, trigger: this.state.trigger,

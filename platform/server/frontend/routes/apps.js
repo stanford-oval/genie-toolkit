@@ -55,16 +55,22 @@ function uiCommand(req, res, next, call, command) {
         renderApp(req.params.id, output[0], output[1], res, next);
 }
 
-router.get('/:id', function(req, res, next) {
-    uiCommand(req, res, next, 'showUI', 'show');
-});
-
-router.get('/:id/:command', function(req, res, next) {
+router.get('/:id/:command?', function(req, res, next) {
     uiCommand(req, res, next, 'showUI', req.params.command);
 });
 
 router.post('/:id/:command', function(req, res, next) {
     uiCommand(req, res, next, 'postUI', req.params.command);
 });
+
+router.initAppRouter = function(engine) {
+    engine.apps.getAllApps().forEach(function(app) {
+        if (app.filename) {
+            var root = path.join(path.dirname(app.filename), 'static');
+            console.log(typeof root);
+            this.use('/' + app.uniqueId + '/static', express.static(root));
+        }
+    }, this);
+};
 
 module.exports = router;

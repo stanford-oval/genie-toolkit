@@ -79,4 +79,8 @@ Frontend.prototype.setEngine = function(engine) {
     this._app.engine = engine;
 };
 
+Frontend.prototype.engineLoaded = function() {
+    apps.initAppRouter(this._app.engine);
+};
+
 module.exports = Frontend;

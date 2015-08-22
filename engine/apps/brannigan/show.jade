@@ -1,13 +1,16 @@
 extends ../base_app
 
+block styles
+  link(rel='stylesheet', href='static/style.css')
+
 block app_content
-  h2 Trigger on #{trigger.channel.id}
+  h2.trigger Trigger on #{trigger.channel.id}
   p Filters on
   ul
     for filter in trigger.filter
       li #{filter[0]} #{filter[1]} #{filter[2]}
 
-  h2 Action to #{action.channel.id}
+  h2.action Action to #{action.channel.id}
   p Emits
   ul
     for output in action.output
