@@ -22,6 +22,7 @@ function main() {
         var engine = new Engine(apps, devices);
         var frontend = new Frontend();
         platform._setFrontend(frontend);
+        frontend.setEngine(engine);
 
         var earlyStop = false;
         var engineRunning = false;

@@ -1,0 +1,6 @@
+block content
+  h1 Installed apps
+  ul
+    for app in apps
+      li
+        a(href="/apps/#{app.uniqueId}")= app.name

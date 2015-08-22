@@ -18,6 +18,7 @@ const AppDatabase = new lang.Class({
     _init: function(root) {
         this._factory = null;
         this._apps = [];
+        this._appMap = {};
         this._sharedApps = {};
     },
 
@@ -32,7 +33,7 @@ const AppDatabase = new lang.Class({
             else // legacy Rulepedia support
                 return this._factory.createApp('ifttt', serializedApp);
         }.bind(this)).then(function(app) {
-            this.addApp(app);
+            this._addAppInternal(app, serializedApp);
         }.bind(this)).catch(function(e) {
             console.error('Failed to load one app: ' + e);
             console.error(e.stack);
@@ -49,13 +50,29 @@ const AppDatabase = new lang.Class({
         throw new Error('Not implemented');
     },
 
-    addApp: function(app) {
+    _addAppInternal: function(app, serializedApp) {
+        if (app.uniqueId === undefined) {
+            if (serializedApp === undefined || serializedApp.uniqueId === undefined)
+                app.uniqueId = 'uuid-' + uuid.v4();
+            else
+                app.uniqueId = serializedApp.uniqueId;
+        } else {
+            if (serializedApp.uniqueId !== undefined &&
+                app.uniqueId !== serializedApp.uniqueId)
+                throw new Error('App unique id is different from stored value');
+        }
+
+        this._appMap[app.uniqueId] = app;
         this._apps.push(app);
         if (app.sharedId !== undefined) {
             if (app.sharedId in this._sharedApps)
                 throw new Error('Multiple instances of shared app ' + app.sharedId);
             this._sharedApps[app.sharedId] = app;
         }
+    },
+
+    addApp: function(app) {
+        this._addAppInternal(app);
     },
 
     getAllApps: function() {
@@ -66,6 +83,10 @@ const AppDatabase = new lang.Class({
         return this._apps.filter(function(a) {
             return a.isSupported;
         });
+    },
+
+    getApp: function(id) {
+        return this._appMap[id];
     },
 
     getSharedApp: function(id) {

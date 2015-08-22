@@ -9,22 +9,18 @@
 const lang = require('lang');
 const Q = require('q');
 
-const BaseApp = require('../base_app');
+const BaseApp = require('../../base_app');
 
 const TestApp = new lang.Class({
     Name: 'TestApp',
     Extends: BaseApp,
 
-    _init: function(engine) {
-        this.parent(engine);
+    _init: function(engine, state) {
+        this.parent(engine, state);
         this._interval = -1;
 
         this._testChannel = null;
         this._pipe = null;
-    },
-
-    serialize: function() {
-        return { kind: 'test' };
     },
 
     _onChannelEvent: function(event) {
@@ -57,7 +53,7 @@ const TestApp = new lang.Class({
 });
 
 function createApp(engine, serializedApp) {
-    return new TestApp(engine);
+    return new TestApp(engine, serializedApp);
 }
 
 module.exports.createApp = createApp;

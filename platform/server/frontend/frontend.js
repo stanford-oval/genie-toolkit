@@ -18,6 +18,7 @@ var errorHandler = require('errorhandler');
 var expressWs = require('express-ws');
 var routes = require('./routes');
 var user = require('./routes/user');
+var apps = require('./routes/apps');
 
 function Frontend() {
     this._init.apply(this, arguments);
@@ -49,6 +50,7 @@ Frontend.prototype._init = function _init() {
 
     this._app.get('/', routes.index);
     this._app.get('/users', user.list);
+    this._app.use('/apps', apps);
 }
 
 var server = null;
@@ -58,7 +60,7 @@ Frontend.prototype.open = function() {
         .then(function() {
             console.log('Express server listening on port ' + this._app.get('port'));
         }.bind(this));
-}
+};
 
 Frontend.prototype.close = function() {
     return Q.ninvoke(server, 'close').then(function() {
@@ -67,10 +69,14 @@ Frontend.prototype.close = function() {
         console.log('Error stopping Express server: ' + error);
         console.log(error.stack);
     });
-}
+};
 
 Frontend.prototype.getApp = function() {
     return this._app;
-}
+};
+
+Frontend.prototype.setEngine = function(engine) {
+    this._app.engine = engine;
+};
 
 module.exports = Frontend;

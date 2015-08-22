@@ -23,7 +23,7 @@ logcat:
 
 test-data:
 	test -d home-server || mkdir home-server/
-	echo '[{"kind":"test"}]' > home-server/apps.db
+	cp test/server-apps.db home-server/apps.db
 	echo '[]' > home-server/devices.db
 	echo '{}' > home-server/prefs.db
 	test -d home-android || mkdir home-android/

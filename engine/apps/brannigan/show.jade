@@ -1,0 +1,17 @@
+extends ../base_app
+
+block app_content
+  h2 Trigger on #{trigger.channel.id}
+  p Filters on
+  ul
+    for filter in trigger.filter
+      li #{filter[0]} #{filter[1]} #{filter[2]}
+
+  h2 Action to #{action.channel.id}
+  p Emits
+  ul
+    for output in action.output
+      if output[1] === 'number'
+        li #{output[0]} = #{output[2]} as number
+      else
+        li #{output[0]} = #{output[2]}

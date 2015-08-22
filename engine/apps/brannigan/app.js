@@ -7,9 +7,10 @@
 // See COPYING for details
 
 const lang = require('lang');
+const path = require('path');
 const Q = require('q');
 
-const BaseApp = require('../base_app');
+const BaseApp = require('../../base_app');
 
 const FilterOps = {
     '!!': function(a) {
@@ -82,7 +83,7 @@ const App = new lang.Class({
     Extends: BaseApp,
 
     _init: function(engine, serialized) {
-        this.parent(engine);
+        this.parent(engine, serialized);
 
         this._triggerChannel = null;
         this._actionChannel = null;
@@ -109,16 +110,10 @@ const App = new lang.Class({
         //             output: [['to','const','555-555-5555'], ['text', 'string', '{{user}} tweeted'],
         //                      ['something','number','1 + {{input}}']] }
         // }
-
-        this._serialized = serialized;
-    },
-
-    serialize: function() {
-        return this._serialized;
     },
 
     _triggerMatches: function(event) {
-        var trigger = this._serialized.trigger;
+        var trigger = this.state.trigger;
 
         return trigger.filter.every(function(filter) {
             return filterMatches(event, filter);
@@ -126,7 +121,7 @@ const App = new lang.Class({
     },
 
     _executeAction: function(event) {
-        var action = this._serialized.action;
+        var action = this.state.action;
 
         var output = {};
         action.output.forEach(function(item) {
@@ -156,10 +151,10 @@ const App = new lang.Class({
     },
 
     start: function() {
-        if (this._serialized.name)
-            console.log(this._serialized.name + ' starting');
+        if (this.state.name)
+            console.log(this.state.name + ' starting');
 
-        var serialized = this._serialized;
+        var serialized = this.state;
         return Q.all([this._deserializeChannel(serialized.trigger.channel, 'r'),
                       this._deserializeChannel(serialized.action.channel, 'w')])
             .spread(function(triggerChannel, actionChannel) {
@@ -176,6 +171,17 @@ const App = new lang.Class({
 
         return Q.all([this._triggerChannel.close(), this._actionChannel.close()]);
     },
+
+    showUI: function(command) {
+        if (command == 'show') {
+            return [path.dirname(module.filename) + '/show.jade',
+                    { title: "ThingEngine - " + this.state.name,
+                      name: this.state.name, trigger: this.state.trigger,
+                      action: this.state.action }];
+        } else {
+            return this.parent(command);
+        }
+    }
 });
 
 function createApp(engine, serializedApp) {
