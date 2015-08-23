@@ -36,6 +36,7 @@ const PipeSinkChannel = new lang.Class({
         this._pipeManager = pipeManager;
 
         this._sources = [];
+        this.uniqueId = 'pipe-' + name;
     },
 
     get isSource() {
@@ -88,6 +89,7 @@ const PipeProxySourceChannel = new lang.Class({
         this.parent();
         this._name = name;
         this._pipeManager = pipeManager;
+        this.uniqueId = 'pipe-' + name;
     },
 
     get isSource() {

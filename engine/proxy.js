@@ -143,19 +143,21 @@ module.exports = new lang.Class({
 
     getProxyChannel: function(forChannel, targetTier, args) {
         var targetChannelId = forChannel.uniqueId;
+        var fullId = targetChannelId + '-' + targetTier;
 
-        if (targetChannelId in this._proxies)
-            return this._proxies[targetChannelId];
+        if (fullId in this._proxies)
+            return this._proxies[fullId];
 
         var proxy = new ProxyChannel(this, targetTier, targetChannelId, args,
                                      forChannel.isSource, forChannel.isSink);
-        console.log('Created proxy channel ' + targetChannelId);
-        this._proxies[targetChannelId] = proxy;
+        console.log('Created proxy channel ' + targetChannelId + ' targeting ' + targetTier);
+        this._proxies[fullId] = proxy;
         return proxy;
     },
 
     requestProxyChannel: function(proxyChannel, cachedArgs) {
-        this._requests[proxyChannel.uniqueId] = Q.defer();
+        var fullId = proxyChannel.uniqueId + '-' + proxyChannel.targetTier;
+        this._requests[fullId] = Q.defer();
 
         // marshal args into something that we can send on the wire
         var marshalledArgs = cachedArgs.map(function(arg) {
@@ -175,7 +177,7 @@ module.exports = new lang.Class({
                           {op:'request-channel', channelId:proxyChannel.uniqueId,
                            args: marshalledArgs});
 
-        return this._requests[proxyChannel.uniqueId].promise;
+        return this._requests[fullId].promise;
     },
 
     releaseProxyChannel: function(proxyChannel) {
@@ -186,7 +188,8 @@ module.exports = new lang.Class({
     },
 
     _replyChannel: function(targetTier, targetChannelId, result) {
-        this._sendMessage({op:'channel-request-complete',
+        this._sendMessage(targetTier,
+                          {op:'channel-request-complete',
                            channelId:targetChannelId,
                            result:result});
     },
@@ -241,13 +244,15 @@ module.exports = new lang.Class({
     },
 
     _channelReady: function(fromTier, targetChannelId, result) {
-        if (!(targetChannelId in this._requests)) {
+        var fullId = targetChannelId + '-' + fromTier;
+
+        if (!(fullId in this._requests)) {
             console.error('Invalid channel reply for ' + targetChannelId);
             return;
         }
 
-        var defer = this._requests[targetChannelId];
-        delete this._requests[targetChannelId];
+        var defer = this._requests[fullId];
+        delete this._requests[fullId];
         if (result === 'ok')
             defer.resolve();
         else
@@ -255,14 +260,16 @@ module.exports = new lang.Class({
     },
 
     _channelSourceData: function(fromTier, targetChannelId, data) {
-        if (!(targetChannelId in this._proxies)) {
+        var fullId = targetChannelId + '-' + fromTier;
+
+        if (!(fullId in this._proxies)) {
             console.error('Invalid data message from ' + targetChannelId);
             return;
         }
 
-        var proxy = this._proxies[targetChannelId];
+        var proxy = this._proxies[fullId];
         if (proxy.targetTier !== fromTier) {
-            console.error('Message sender tier does not match expected for ' + targetChannelId);
+            console.error('Message sender tier does not match expected for ' + proxy.uniqueId);
             return;
         }
 

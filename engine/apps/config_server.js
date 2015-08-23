@@ -32,8 +32,8 @@ const ConfigServerApp = new lang.Class({
     Extends: BaseApp,
 
     // no cached state, this app manipulates the engine settings
-    _init: function(engine) {
-        this.parent();
+    _init: function(engine, state) {
+        this.parent(engine, state);
 
         this._engine = engine;
         this._listener = null;
@@ -103,7 +103,7 @@ const ConfigServerApp = new lang.Class({
 });
 
 function createApp(engine, state) {
-    return new ConfigServerApp(engine);
+    return new ConfigServerApp(engine, state);
 }
 
 module.exports.createApp = createApp;
