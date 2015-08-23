@@ -67,8 +67,16 @@ const EngineManager = new lang.Class({
                 runningProcesses[userId] = child;
 
                 frontend.registerWebSocketEndpoint('/ws/' + cloudId, function(req, socket, head) {
-                    child.send({type:'websocket', request:req,
-                                upgradeHead: head}, socket);
+                    var saneReq = {
+                        httpVersion: req.httpVersion,
+                        url: req.url,
+                        headers: req.headers,
+                        rawHeaders: req.rawHeaders,
+                        method: req.method,
+                    };
+                    var encodedReq = new Buffer(JSON.stringify(saneReq)).toString('base64');
+                    child.send({type:'websocket', request: encodedReq,
+                                upgradeHead: head.toString('base64')}, socket);
                 });
             });
     },

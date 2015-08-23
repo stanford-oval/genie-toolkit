@@ -312,13 +312,17 @@ const ServerConnection = new lang.Class({
             platform._getPrivateFeature('frontend-express').ws('/websocket', this._handleConnection.bind(this));
             return Q();
         } else if (platform.type === 'cloud') {
-            this._wsServer = new WebSocket.Server({ noServer: true });
+            this._wsServer = new WebSocket.Server({ noServer: true, disableHixie: true });
             process.on('message', function(message, socket) {
                 if (message.type !== 'websocket')
                     return;
 
-                this._wsServer.handleUpgrade(message.request, socket,
-                                             message.upgradeHead,
+                var encodedReq = message.request;
+                var req = JSON.parse((new Buffer(encodedReq, 'base64')).toString());
+                req.socket = socket;
+                req.connection = socket;
+                this._wsServer.handleUpgrade(req, socket,
+                                             new Buffer(message.upgradeHead, 'base64'),
                                              this._handleConnection.bind(this));
             }.bind(this));
             console.log('Added process message handler from monitor');

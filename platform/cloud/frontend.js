@@ -62,13 +62,15 @@ Frontend.prototype.open = function() {
         var parsed = url.parse(req.url);
         var endpoint = this._websocketEndpoints[parsed.pathname];
         if (endpoint === undefined) {
-            req.statusCode = 404;
-            req.write('Invalid cloud ID');
+            socket.write('HTTP/1.1 404 Not Found\r\n');
+            socket.write('Content-type: text/plain;charset=utf8;\r\n');
+            socket.write('\r\n\r\n');
+            socket.end('Invalid cloud ID');
             return;
         }
 
         endpoint(req, socket, head);
-    });
+    }.bind(this));
     this.server = server;
 
     return Q.ninvoke(server, 'listen', this._app.get('port'))

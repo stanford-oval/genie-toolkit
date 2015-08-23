@@ -67,7 +67,6 @@ router.initAppRouter = function(engine) {
     engine.apps.getAllApps().forEach(function(app) {
         if (app.filename) {
             var root = path.join(path.dirname(app.filename), 'static');
-            console.log(typeof root);
             this.use('/' + app.uniqueId + '/static', express.static(root));
         }
     }, this);
