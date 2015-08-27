@@ -28,7 +28,7 @@ module.exports = new lang.Class({
         // Set this to anything but undefined and your app will
         // be accessible to other apps using 'engine.apps.getSharedApp()
         this.sharedId = undefined;
-
+        console.log("state.name is " + state.name);
         this.state = state;
         this.name = state.name;
 

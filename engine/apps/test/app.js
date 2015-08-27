@@ -25,18 +25,13 @@ const TestApp = new lang.Class({
 
     _onChannelEvent: function(event) {
         console.log('Test App received an event on Test Channel: ' + JSON.stringify(event));
-
-        if (platform.type === 'server') // send it back to the phone
-            this._testChannel.sendEvent({number:event.number * 2});
-
-        this._pipe.sendEvent({number:event.number * 3});
     },
 
     start: function() {
         console.log('Test App starting');
 
         return Q.all([this.engine.channels.getChannel('test'),
-                      this.engine.channels.getNamedPipe('test-pipe', 'w')])
+                      this.engine.channels.getNamedPipe('test-pipe', 'r')])
             .spread(function(channel, pipe) {
                 this._testChannel = channel;
                 this._pipe = pipe;

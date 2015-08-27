@@ -8,11 +8,14 @@
 
 const lang = require('lang');
 const Q = require('q');
+const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 
 const BaseChannel = require('../base_channel');
 
-var cnt = 0;
 
+var parseString = require('xml2js').parseString;
+var cnt = 0;
+var url = 'http://api.yr.no/weatherapi/locationforecast/1.9/?lat=37.25;lon=122.8';
 const TestChannel = new lang.Class({
     Name: 'TestChannel',
     Extends: BaseChannel,
@@ -30,7 +33,7 @@ const TestChannel = new lang.Class({
         return true;
     },
     get isSink() {
-        return true;
+        return false;
     },
 
     // For testing only
@@ -38,19 +41,30 @@ const TestChannel = new lang.Class({
         return platform.type === 'android';
     },
 
-    sendEvent: function(event) {
-        console.log('Writing data on test channel: ' + JSON.stringify(event));
-    },
 
     _doOpen: function() {
-        // emit a blob every 5 s
+    // emit weather
+        //weather API not found yet
         setTimeout(function() {
-            this.emitEvent({number:42});
-        }.bind(this), 0);
+            this.emitEvent({weather:"Not provided"});
+        }.bind(this), 0);       
+
+        var channelInstance = this;
         this._timeout = setInterval(function() {
-            var event = {number:42 + Math.floor(Math.random() * 42)};
-            this.emitEvent(event);
-        }.bind(this), 5000);
+            httpGetAsync(url , function(response) {
+                parseString(response, function( err, result) {
+                //console.log(JSON.stringify(result.weatherdata['product'][0].time[0], null, 1));
+                var temp = result.weatherdata['product'][0].time[0];
+                 
+                var event = {weather:temp};
+                channelInstance.emitEvent(event);
+                });
+
+                
+                
+            });
+           
+        }.bind(this), 60000);
         return Q();
     },
 
@@ -63,6 +77,17 @@ const TestChannel = new lang.Class({
 
 function createChannel() {
     return new TestChannel();
+}
+
+function httpGetAsync(theUrl, callback)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(xmlHttp.responseText);
+    }
+    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+    xmlHttp.send(null);
 }
 
 module.exports.createChannel = createChannel;

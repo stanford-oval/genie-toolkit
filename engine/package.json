@@ -1,20 +1,20 @@
 {
-  "name": "thingengine",
-  "version": "1.0.0",
-  "description": "An engine for controlling IoT devices",
-  "author": "Stanford IoT lab",
-  "contributors": [
-    {
-      "name": "Giovanni Campagna",
-      "email": "gcampagn@cs.stanford.edu"
+    "name": "thingengine",
+    "version": "1.0.0",
+    "description": "An engine for controlling IoT devices",
+    "author": "Stanford IoT lab",
+    "contributors": [{
+        "name": "Giovanni Campagna",
+        "email": "gcampagn@cs.stanford.edu"
+    }],
+    "main": "engine.js",
+    "dependencies": {
+        "q": "~1.4.0",
+        "ws": "~0.7.0",
+        "node-uuid": "~1.4.0",
+        "xmlhttprequest": "~1.7.0",
+        "xml2js":"~0.4.4",
+        "deep-equal": "~1.0.1",
+        "ip": "~1.0.0"
     }
-  ],
-  "main": "engine.js",
-  "dependencies": {
-    "q": "~1.4.0",
-    "ws": "~0.7.0",
-    "node-uuid": "~1.4.0",
-    "deep-equal": "~1.0.1",
-    "ip": "~1.0.0"
-  }
 }

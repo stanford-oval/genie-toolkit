@@ -1,6 +1,5 @@
 [
 {"kind": "config_server"},
-{"kind": "test"},
 {"kind": "brannigan",
  "name": "brannigan pipe source test",
  "trigger": {"channel": {"id": "test"},
