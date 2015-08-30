@@ -11,6 +11,8 @@
 const Q = require('q');
 const fs = require('fs');
 
+const sql = require('./engine/db/sql');
+
 var filesDir = null;
 var encoding = null;
 
@@ -39,6 +41,9 @@ module.exports = {
             return Q.nfcall(JXMobile.GetSharedPreferences);
         }).then(function(prefs) {
             _prefs = prefs;
+
+            return sql.ensureSchema(filesDir + '/sqlite.db',
+                                    'schema.sql');
         });
     },
 

@@ -6,16 +6,18 @@
 //
 // See COPYING for details
 
-const db = require('./engine/db');
+const appdb = require('./engine/db/apps');
+const SQLDatabase = require('./engine/db/sqldb');
 const Engine = require('./engine');
 
 function runEngine() {
     global.platform = require('./platform');
 
     platform.init().then(function() {
-        var apps = new db.FileAppDatabase(platform.getWritableDir() + '/apps.db');
-        var devices = new db.FileDeviceDatabase(platform.getWritableDir() + '/devices.db');
-        var engine = new Engine(apps, devices);
+        var apps = new appdb.FileAppDatabase(platform.getWritableDir() + '/apps.db');
+        var devicesql = new SQLDatabase(platform.getWritableDir() + '/sqlite.db',
+                                        'device');
+        var engine = new Engine(apps, devicesql);
 
         var earlyStop = false;
         var engineRunning = false;

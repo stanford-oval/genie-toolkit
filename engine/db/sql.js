@@ -7,6 +7,8 @@
 // See COPYING for details
 
 const sqlite3 = require('sqlite3');
+const fs = require('fs');
+const path = require('path');
 const Q = require('q');
 
 var connectionPool = {};
@@ -18,7 +20,7 @@ function acquireConnection(filename, callback) {
     }
 
     connectionPool[filename] = [];
-    var db = new sqlite3.Database(filename, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, function(err) {
+    var db = new sqlite3.Database(filename, sqlite3.OPEN_READWRITE, function(err) {
         if (err) {
             callback(err);
         } else {
@@ -123,6 +125,31 @@ function withTransaction(filename, transaction) {
 
 module.exports = {
     connect: connect,
+
+    ensureSchema: function(filename, schemaFile) {
+        if (!fs.existsSync(filename)) {
+            var fullSchemaFile = path.join(path.dirname(module.filename),
+                                           schemaFile);
+            var schema = fs.readFileSync(fullSchemaFile, 'utf8');
+            var db = new sqlite3.Database(filename, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE);
+            var defer = Q.defer();
+            db.on('error', function(err) {
+                console.error('Failed to initialize DB schema', err);
+                defer.reject(err);
+            });
+            db.serialize(function() {
+                db.exec(schema);
+            });
+            db.close(function(err) {
+                if (!err)
+                    defer.resolve();
+            });
+
+            return defer.promise;
+        } else {
+            return Q();
+        }
+    },
 
     db: function(filename) {
         return {

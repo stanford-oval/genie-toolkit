@@ -41,7 +41,7 @@ module.exports = new lang.Class({
         if (connected.length == 0) {
             console.log('No tier is connected, not syncing ' + this._sqldb.tablename)
         } else {
-            for (var i = 0; i < connected; i++) {
+            for (var i = 0; i < connected.length; i++) {
                 this.sync(connected[i]);
             }
         }

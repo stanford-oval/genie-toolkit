@@ -12,6 +12,8 @@ const Q = require('q');
 const fs = require('fs');
 const os = require('os');
 
+const sql = require('./engine/db/sql');
+
 var Config;
 try {
 Config = require('../platform_config');
@@ -52,7 +54,8 @@ module.exports = {
         if (_prefs.get('auth-token') === undefined)
             _prefs.set('auth-token', authToken);
 
-        return Q();
+        return sql.ensureSchema(_writabledir + '/sqlite.db',
+                                'schema.sql');
     },
 
     type: 'cloud',

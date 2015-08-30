@@ -12,6 +12,8 @@ const Q = require('q');
 const fs = require('fs');
 const os = require('os');
 
+const sql = require('./engine/db/sql');
+
 var Config;
 try {
 Config = require('./platform_config');
@@ -55,7 +57,9 @@ module.exports = {
         }
 
         _prefs = new prefs.FilePreferences(_writabledir + '/prefs.db');
-        return Q();
+
+        return sql.ensureSchema(_writabledir + '/sqlite.db',
+                                'schema.sql');
     },
 
     type: 'server',
