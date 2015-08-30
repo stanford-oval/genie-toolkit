@@ -32,6 +32,17 @@ function tierToString(tier) {
     }
 }
 
+function stringToTier(string) {
+    switch (string) {
+    case 'phone':
+        return Tier.PHONE;
+    case 'server':
+        return Tier.SERVER;
+    case 'cloud':
+        return Tier.CLOUD;
+    }
+}
+
 // Note: this should be the only module (togheter with
 // tier_connections) in the engine to have intimate knowledge of what
 // a platform is, and host platform specific code; other code
@@ -119,7 +130,13 @@ module.exports = new lang.Class({
                 this._tierOutgoingBuffers[tier] = [];
                 socket.sendMany(buffer);
 
-                this.emit('connected', tier);
+                if (socket.isClient) {
+                    this.emit('connected', tier);
+                } else {
+                    socket.on('connected', function(remote) {
+                        this.emit('connected', stringToTier(remote));
+                    }.bind(this));
+                }
             }
         }.bind(this));
     },
@@ -295,6 +312,12 @@ module.exports = new lang.Class({
 
     isServerTier: function(tier) {
         return this._tierSockets[tier].isServer;
+    },
+
+    isConnected: function(tier) {
+        return this._tierSockets[tier] !== null &&
+            (this._tierSockets[tier].isClient ||
+             this._tierSockets[tier].isConnected(tierToString(tier)));
     },
 
     getClientTiers: function() {

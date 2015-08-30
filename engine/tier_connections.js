@@ -208,8 +208,13 @@ const ServerConnection = new lang.Class({
                                         closeCallback: null, outgoingBuffer: [] };
         }.bind(this));
 
-        this.isClient = true;
-        this.isServer = false;
+        this.isClient = false;
+        this.isServer = true;
+    },
+
+    isConnected: function(remote) {
+        return this._connections[remote] !== undefined &&
+            this._connections[remote].socket !== null;
     },
 
     _findConnection: function(socket) {
@@ -274,6 +279,8 @@ const ServerConnection = new lang.Class({
 
                         if (oldConnection.outgoingBuffer)
                             this.sendMany(oldConnection.outgoingBuffer, connection.identity);
+
+                        this.emit('connected', msg.identity);
                     }
                 }
                 return;
@@ -316,7 +323,7 @@ const ServerConnection = new lang.Class({
         if (platform.type === 'server') {
             console.log('Adding express handler for websocket...');
             platform._getPrivateFeature('frontend-express').ws('/websocket', this._handleConnection.bind(this));
-            return Q();
+            return Q(true);
         } else if (platform.type === 'cloud') {
             this._wsServer = new WebSocket.Server({ noServer: true, disableHixie: true });
             process.on('message', function(message, socket) {
@@ -332,7 +339,7 @@ const ServerConnection = new lang.Class({
                                              this._handleConnection.bind(this));
             }.bind(this));
             console.log('Added process message handler from monitor');
-            return Q();
+            return Q(true);
         }
     },
 

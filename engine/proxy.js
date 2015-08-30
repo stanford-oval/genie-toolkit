@@ -103,6 +103,16 @@ module.exports = new lang.Class({
         this._stubs = {};
 
         this._tierManager.registerHandler('proxy', this._handleMessage.bind(this));
+        this._tierManager.on('connected', this._onConnected.bind(this));
+    },
+
+    // if we reestablish a connection, send all subscription requests we have
+    _onConnected: function(tier) {
+        console.log(tier + ' is back online, flushing proxy channel requests');
+        for (var fullId in this._requests) {
+            if (this._requests[fullId].targetTier === tier)
+                this._sendChannelRequest(this._requests[fullId]);
+        }
     },
 
     _handleMessage: function(fromTier, msg) {
@@ -157,7 +167,6 @@ module.exports = new lang.Class({
 
     requestProxyChannel: function(proxyChannel, cachedArgs) {
         var fullId = proxyChannel.uniqueId + '-' + proxyChannel.targetTier;
-        this._requests[fullId] = Q.defer();
 
         // marshal args into something that we can send on the wire
         var marshalledArgs = cachedArgs.map(function(arg) {
@@ -173,14 +182,40 @@ module.exports = new lang.Class({
             throw new Error('Cannot marshal object ' + arg);
         });
 
-        this._sendMessage(proxyChannel.targetTier,
-                          {op:'request-channel', channelId:proxyChannel.uniqueId,
-                           args: marshalledArgs});
+        var request = {
+            defer: Q.defer(),
+            args: marshalledArgs,
+            targetChannelId: proxyChannel.uniqueId,
+            targetTier: proxyChannel.targetTier,
+        };
+        this._requests[fullId] = request;
 
-        return this._requests[fullId].promise;
+        if (this._tierManager.isConnected(request.targetTier)) {
+            console.log(request.targetTier + ' is connected, sending proxy'
+                        + ' channel request now');
+            this._sendChannelRequest(request);
+        } else {
+            console.log('Delaying proxy channel request until ' + request.targetTier
+                        + ' is connected');
+        }
+
+        return this._requests[fullId].defer.promise;
+    },
+
+    _sendChannelRequest: function(request) {
+        this._sendMessage(request.targetTier,
+                          {op:'request-channel', channelId: request.targetChannelId,
+                           args: request.args});
     },
 
     releaseProxyChannel: function(proxyChannel) {
+        var fullId = proxyChannel.uniqueId + '-' + proxyChannel.targetTier;
+        if (!(fullId in this._requests)) {
+            console.error('Cannot release a channel that was not requested');
+            return;
+        }
+        delete this._requests[fullId];
+
         this._sendMessage(proxyChannel.targetTier,
                           {op:'release-channel', channelId:
                            proxyChannel.uniqueId});
@@ -198,11 +233,19 @@ module.exports = new lang.Class({
         var fullId = targetChannelId + '-' + fromTier;
 
         if (fullId in this._stubs) {
-            this._replyChannel(fromTier, targetChannelId, 'Duplicate channel request');
+            // No-op but no error
+            // (can happen if the connection is flaky and one peer keeps
+            // rerequesting channels)
+            console.log('Duplicate channel request from ' + fromTier + ' for '
+                       + targetChannelId);
+            this._replyChannel(fromTier, targetChannelId, 'ok');
             return;
         }
 
         console.log('New remote channel request for ' + targetChannelId);
+
+        var defer = Q.defer();
+        this._stubs[fullId] = defer.promise;
 
         try {
             // marshal args into something that we can send on the wire
@@ -219,8 +262,9 @@ module.exports = new lang.Class({
 
             this._channels._getChannelInternal.apply(this._channels, args).then(function(channel) {
                 var stub = new ChannelStub(this, fromTier, channel);
-                this._stubs[fullId] = stub;
-                return stub.open();
+                return stub.open().then(function() {
+                    defer.resolve(stub);
+                });
             }.bind(this)).then(function() {
                 this._replyChannel(fromTier, targetChannelId, 'ok');
             }, function(e) {
@@ -239,7 +283,9 @@ module.exports = new lang.Class({
             return;
         }
 
-        this._stubs[fullId].close();
+        this._stubs[fullId].then(function(stub) {
+            stub.close();
+        });
         delete this._stubs[fullId];
     },
 
@@ -251,8 +297,8 @@ module.exports = new lang.Class({
             return;
         }
 
-        var defer = this._requests[fullId];
-        delete this._requests[fullId];
+        var request = this._requests[fullId];
+        var defer = request.defer;
         if (result === 'ok')
             defer.resolve();
         else
@@ -284,7 +330,9 @@ module.exports = new lang.Class({
             return;
         }
 
-        this._stubs[fullId].sendEvent(data);
+        this._stubs[fullId].then(function(stub) {
+            stub.sendEvent(data);
+        });
     }
 });
 

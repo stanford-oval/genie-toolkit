@@ -52,6 +52,9 @@ module.exports = new lang.Class({
     },
 
     _onConnected: function(tier) {
+        if (!this._tierManager.isClientTier(tier))
+            return;
+
         this.sync(tier);
     },
 
