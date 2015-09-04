@@ -55,15 +55,17 @@ function main() {
 }
 
 var portNumber = 27;
-var advertisedName = "org.alljoyn.bus.samples.chat"; //"edu.stanford.thingengine.bus.chat";
-var busName = "chat";
+var advertisedName = "edu.stanford.thingengine.bus.discover"; //"edu.stanford.thingengine.bus.chat";
+var busName = "discover";
+var busObjectName = "/discoverService"
+var discoverMessage = "Hello"
 
 
 function initAllJoynBus(allJoynState) {
     console.log('initiaing AllJoyn Bus', alljoyn);
     
     console.log("CreateInterface "+allJoynState.bus.createInterface(advertisedName, allJoynState.interface));
-    console.log("AddSignal "+allJoynState.interface.addSignal("Chat", "s",  "msg"));
+    console.log("AddSignal "+allJoynState.interface.addSignal(discoverMessage, "s",  "msg"));
     allJoynState.bus.registerBusListener(allJoynState.busListener);
 
     console.log("Start "+allJoynState.bus.start());
@@ -78,6 +80,7 @@ function connectToAllJoynBus(allJoynState)
 function initAllJoynClient() {
     var allJoynState = new Object;
     var sessionId = 0;
+    var discoverObject = alljoyn.BusObject(busObjectName);
 
     allJoynState.bus = alljoyn.BusAttachment(busName);
     allJoynState.interface = alljoyn.InterfaceDescription();
@@ -87,7 +90,7 @@ function initAllJoynClient() {
         sessionId = allJoynState.bus.joinSession(name, portNumber, 0);
         console.log("JoinSession "+ sessionId);
         setTimeout(function(){
-          chatObject.signal(null, sessionId, allJoynState.interface, "Chat", "Hello, I am the client!");
+          discoverObject.signal(null, sessionId, allJoynState.interface, discoverMessage, "Hello, I am the client!");
         }, 1000);
       },
       function(name){
@@ -109,19 +112,18 @@ function initAllJoynClient() {
     );
 
     initAllJoynBus(allJoynState);
-
-
-    var chatObject = alljoyn.BusObject("/chatService");
-    console.log("chat.AddInterface "+chatObject.addInterface(allJoynState.interface));
-    console.log("RegisterSignalHandler "+allJoynState.bus.registerSignalHandler(chatObject, function(msg, info){
-      // console.log("Signal received: ", msg, info);
+    
+    console.log("discoverObject.AddInterface "+discoverObject.addInterface(allJoynState.interface));
+    console.log("RegisterSignalHandler "+allJoynState.bus.registerSignalHandler(discoverObject, function(msg, info){
+      console.log("Signal received: ", msg, info);
       console.log(msg["0"]);
-    }, allJoynState.interface, "Chat"));
-    console.log("RegisterBusObject "+allJoynState.bus.registerBusObject(chatObject));
+    }, allJoynState.interface, discoverMessage));
+
+    console.log("RegisterBusObject "+allJoynState.bus.registerBusObject(discoverObject));
   
     connectToAllJoynBus(allJoynState);
 
-
+    /*
     // Added Chat to example
     var stdin = process.stdin;
 
@@ -144,8 +146,9 @@ function initAllJoynClient() {
       // write the key to stdout all normal like
       process.stdout.write( key + '\n' );
       // chatObject.signal(null, sessionId, inter, 'hello' );
-      chatObject.signal(null, sessionId, allJoynState.interface, "Chat", key);
+      discoverObject.signal(null, sessionId, allJoynState.interface, discoverMessage, key);
     });
+    */
 }
 
 
