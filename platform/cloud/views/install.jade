@@ -1,0 +1,34 @@
+block scripts
+    script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js")
+    script(src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/3.0.3/handlebars.js")
+
+    link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css')
+    link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css')
+    link(rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.5/paper/bootstrap.min.css")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic")
+
+    link(href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css", rel="stylesheet")
+    script(src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js")
+
+    script(src="/javascripts/install.js")
+
+// TODO: Use jade template to simplify the code; implement generic blocks and handlebars
+block content
+    br
+    br
+    br
+    h1(style="text-align:center") ThingEngine
+    div(class="container")
+      div(class="jumbotron" style="background-color:#f0f0f0")
+        h3 Do you want to install
+        h4 #{name}
+        h5 From: #{url}
+        br
+        p
+            a(class="btn btn-lg btn-success" id="install" href="" role="button") Agree to Install
+
+        if downloaded
+          h5 Download Successful
+          h5 Code:
+          p #{code}

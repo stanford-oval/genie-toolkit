@@ -7,16 +7,20 @@ router.get('/', function(req, res, next) {
     if (user.isLoggedIn(req)) {
         db.withClient(function(client) {
             return user.withLogin(req, res, client, function(user) {
-                res.render('index',
-                           { page_title: 'ThingEngine - run your things!',
-                             loggedIn: true,
-                             cloudId: user.cloud_id,
-                             authToken: user.auth_token });
+                res.render('index',{ 
+                    page_title: 'ThingEngine - run your things!',
+                    loggedIn: true,
+                    cloudId: user.cloud_id,
+                    authToken: user.auth_token 
+                });
             });
         }).done();
+
     } else {
-        res.render('index', { page_title: 'ThingEngine - run your things!',
-                              loggedIn: false });
+        res.render('index', { 
+            page_title: 'ThingEngine - run your things!',
+            loggedIn: false 
+        });
     }
 });
 
