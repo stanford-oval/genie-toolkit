@@ -11,7 +11,9 @@ const crypto = require('crypto');
 const model = require('../model/user');
 
 function requireLogin(res) {
-    res.render('login_required', { page_title: "ThingEngine - Login required" });
+    res.render('login_required', {
+        page_title: "ThingEngine - Login required" 
+    });
 }
 
 function loggedIn(req, userId) {
@@ -42,11 +44,6 @@ module.exports = {
             });
     },
 
-    loggedIn: loggedIn,
-    isLoggedIn: function(req) {
-        return req.session.user_id !== undefined;
-    },
-
     register: function(req, res, dbClient, username, password) {
         return model.getByName(dbClient, username).then(function(rows) {
             if (rows.length > 0)
@@ -57,7 +54,7 @@ module.exports = {
             var authToken = makeRandom();
             return model.create(dbClient, username, salt, hashPassword(salt, password), cloudId, authToken)
                 .then(function(userId) {
-                    loggedIn(req, userId);
+                    ededIn(req, userId);
                     return [userId, cloudId, authToken];
                 });
         });
@@ -78,5 +75,25 @@ module.exports = {
 
     logout: function(req) {
         delete req.session.user_id;
+    },
+
+    redirectBackTo: function(url) {
+        req.session.redirect_to = req.originalUrl;
+    },
+
+    isLoggedIn: function(req, res, next) {
+        return req.session.user_id !== undefined;
+    },
+
+    /* Middleware to insert user log in page
+     * After logging in, the user will be redirected to the original page
+     */
+    redirectLogIn: function(req, res, next) {
+        if (!req.session.user_id) {
+            req.session.redirect_to = req.originalUrl;
+            res.redirect('/user/login');
+        } else {
+            next();
+        };
     }
 };

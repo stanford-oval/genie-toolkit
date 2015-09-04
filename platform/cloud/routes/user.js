@@ -10,24 +10,42 @@ var EngineManager = require('../enginemanager');
 
 router.get('/login', function(req, res, next) {
     user.logout(req);
-    res.render('login', { csrfToken: req.csrfToken(), page_title: "ThingEngine - Login" });
-});
-
-router.post('/login', function(req, res, next) {
-    db.withClient(function(client) {
-        return user.login(req, res, client, req.body['username'], req.body['password']).then(function() {
-            res.redirect(303, '/');
-        });
-    }).catch(function(error) {
-        res.render('login', { csrfToken: req.csrfToken(), page_title: "ThingEngine - Login",
-                              error: error.message,
-                              username: req.body['username'], password: req.body['password'] });
+    res.render('login', {
+        csrfToken: req.csrfToken(), 
+        page_title: "ThingEngine - Login" 
     });
 });
 
-router.get('/register', function(req, res, next) {
-    res.render('register', { csrfToken: req.csrfToken(), page_title: "ThingEngine - Register" });
+
+router.post('/login', function(req, res, next) {
+    db.withClient(function(client) {
+        return user.login(req, res, client, req.body['username'], req.body['password'])
+        .then(function() {
+            // Redirection back to the original page
+            var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
+            delete req.session.redirect_to;
+
+            res.redirect(redirect_to);
+        });
+    }).catch(function(error) {
+        res.render('login', { 
+            csrfToken: req.csrfToken(), 
+            page_title: "ThingEngine - Login",
+            error: error.message,
+            username: req.body['username'], 
+            password: req.body['password'] 
+        });
+    });
 });
+
+
+router.get('/register', function(req, res, next) {
+    res.render('register', { 
+        csrfToken: req.csrfToken(), 
+        page_title: "ThingEngine - Register" 
+    });
+});
+
 
 router.post('/register', function(req, res, next) {
     var username, password;
@@ -43,28 +61,36 @@ router.post('/register', function(req, res, next) {
             req.body['password'].length > 255)
             throw new Error("You must specifiy a valid password (of at least 8 characters)");
 
-        if (req.body['confirm-password'] !== req.body['password'])
-            throw new Error("The password and the confirmation do not match");
-        password = req.body['password'];
-    } catch(e) {
-        res.render('register', { csrfToken: req.csrfToken(), page_title: "ThingEngine - Register",
-                                 error: e.message });
-        return;
-    }
+        if (req.body['confirm-password'] !== req.body['password'])             
+            throw new Error("The password and the confirmation do not match");         
+            password = req.body['password'];     
+
+        } catch(e) {         
+            res.render('register', {
+                csrfToken: req.csrfToken(), 
+                page_title: "ThingEngine - Register",
+                error: e.message 
+            });
+            return;     
+        }
 
     db.withTransaction(function(client) {
         return user.register(req, res, client, username, password).spread(function(userId, cloudId, authToken) {
             return EngineManager.get().startUser(userId, cloudId, authToken)
                 .then(function() {
-                    res.render('register_success', { page_title: "ThingEngine - Registration Successful",
-                                                     username: username,
-                                                     cloudId: cloudId,
-                                                     authToken: authToken });
+                    res.render('register_success', { 
+                        page_title: "ThingEngine - Registration Successful",
+                        username: username,
+                        cloudId: cloudId,
+                        authToken: authToken });
                 });
         });
+
     }).catch(function(error) {
-        res.render('register', { csrfToken: req.csrfToken(), page_title: "ThingEngine - Register",
-                                 error: error.message });
+        res.render('register', { 
+            csrfToken: req.csrfToken(), 
+            page_title: "ThingEngine - Register",
+            error: error.message });
     });
 });
 
