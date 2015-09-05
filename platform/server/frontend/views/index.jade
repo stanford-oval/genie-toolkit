@@ -21,3 +21,12 @@ block content
       p.text-danger
         | The server is in initial setup mode and thus open to
         |  all external access. Pair your phone soon!
+
+    if !user.configured
+      p.text-danger
+        | You should configure a username and a password to access your
+        | ThingEngine, or everyone will be able to use it!
+        br
+        | You can do it from the 
+        a(href='/config') configuration page
+        | .

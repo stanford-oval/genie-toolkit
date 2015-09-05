@@ -16,9 +16,13 @@ var session = require('express-session');
 var csurf = require('csurf');
 var errorHandler = require('errorhandler');
 var expressWs = require('express-ws');
+
 var index = require('./routes/index');
 var apps = require('./routes/apps');
 var config = require('./routes/config');
+var user = require('./routes/user');
+
+var secretKey = require('./util/secret_key');
 
 function Frontend() {
     this._init.apply(this, arguments);
@@ -36,10 +40,10 @@ Frontend.prototype._init = function _init() {
     this._app.use(bodyParser.json());
     this._app.use(bodyParser.urlencoded({ extended: true }));
     this._app.use(cookieParser());
-    /*app.use(session({ resave: false,
-                        saveUninitialized: false,
-                        secret: secretKey.getSecretKey(app) }));*/
-    //this._app.use(csurf({ cookie: false }));
+    this._app.use(session({ resave: false,
+                            saveUninitialized: false,
+                            secret: secretKey.getSecretKey() }));
+    this._app.use(csurf({ cookie: false }));
     this._app.use(express.static(path.join(__dirname, 'public')));
     expressWs(this._app);
 
@@ -51,6 +55,7 @@ Frontend.prototype._init = function _init() {
 
     this._app.use('/', index);
     this._app.use('/apps', apps);
+    this._app.use('/user', user);
     this._app.use('/config', config);
 }
 

@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  h1 Login to ThingEngine
+  h1 Login to your ThingEngine
   if error
     div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
       button(type='button', data-dismiss='alert', aria-label="Close").close
@@ -18,7 +18,3 @@ block content
       input(type='password',name='password',value=password).form-control#password
     div.form-group
       button(type='submit').btn.btn-primary Log in
-
-  p Don't have a username and password yet?
-    span= " "
-    a(href='/user/register') Sign up now!

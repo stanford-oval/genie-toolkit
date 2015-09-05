@@ -6,7 +6,9 @@ var jade = require('jade');
 var express = require('express');
 var router = express.Router();
 
-function config(req, res, next, cloud) {
+var user = require('../util/user');
+
+function config(req, res, next, userData, cloudData) {
     var host = req.hostname;
     var port = res.app.get('port');
     var serverAddress = 'http://' + host + ':' + port + '/config';
@@ -19,18 +21,58 @@ function config(req, res, next, cloud) {
         + port + '/' + authToken;
 
     res.render('config', { page_title: "ThingEngine - run your things!",
+                           csrfToken: req.csrfToken(),
                            server: { name: host, port: port,
                                      address: serverAddress,
                                      initialSetup: authToken === undefined },
+                           user: { configured: user.isConfigured(),
+                                   loggedIn: user.isLoggedIn(req),
+                                   username: userData.username,
+                                   password: userData.password,
+                                   error: userData.error },
                            cloud: { configured: cloudId !== undefined,
-                                    error: cloud.error,
-                                    username: cloud.username,
+                                    error: cloudData.error,
+                                    username: cloudData.username,
                                     id: cloudId },
                            qrcodeTarget: qrcodeTarget });
 }
 
-router.get('/', function(req, res, next) {
-    config(req, res, next, {});
+router.get('/', user.redirectLogin, function(req, res, next) {
+    config(req, res, next, {}, {});
+});
+
+router.post('/set-server-password', user.requireLogin, function(req, res, next) {
+    var username, password;
+    try {
+        if (typeof req.body['username'] !== 'string' ||
+            req.body['username'].length == 0 ||
+            req.body['username'].length > 255)
+            throw new Error("You must specify a valid username");
+        username = req.body['username'];
+
+        if (typeof req.body['password'] !== 'string' ||
+            req.body['password'].length < 8 ||
+            req.body['password'].length > 255)
+            throw new Error("You must specifiy a valid password (of at least 8 characters)");
+
+        if (req.body['confirm-password'] !== req.body['password'])
+            throw new Error("The password and the confirmation do not match");
+        password = req.body['password'];
+
+    } catch(e) {
+        config(req, res, next, { username: username,
+                                 password: '',
+                                 error: e.message }, {});
+        return;
+    }
+
+    user.register(req, res, username, password).then(function() {
+        res.redirect('/config');
+    }).catch(function(error) {
+        config(req, res, next, { username: username,
+                                 password: '',
+                                 error: error.message }, {});
+    });
 });
 
 function setCloudId(engine, cloudId, authToken) {
@@ -49,7 +91,7 @@ function setCloudId(engine, cloudId, authToken) {
     return true;
 }
 
-router.post('/cloud-setup', function(req, res, next) {
+router.post('/cloud-setup', user.requireLogin, function(req, res, next) {
     try {
         var username = req.body.username;
         if (!username)
@@ -71,14 +113,14 @@ router.post('/cloud-setup', function(req, res, next) {
         var ajax = http.request(request);
 
         ajax.on('error', function(e) {
-            config(req, res, next, { error: e.message,
-                                     username: username });
+            config(req, res, next, {}, { error: e.message,
+                                         username: username });
         });
         ajax.on('response', function(response) {
             if (response.statusCode != 200) {
                 ajax.abort();
-                config(req, res, next, { error: http.STATUS_CODES[response.statusCode],
-                                         username: username });
+                config(req, res, next, {}, { error: http.STATUS_CODES[response.statusCode],
+                                             username: username });
                 return;
             }
 
@@ -93,19 +135,19 @@ router.post('/cloud-setup', function(req, res, next) {
                         setCloudId(res.app.engine, json.cloudId, json.authToken);
                         res.redirect('/config');
                     } else {
-                        config(req, res, next, { error: json.error,
-                                                 username: username });
+                        config(req, res, next, {}, { error: json.error,
+                                                     username: username });
                     }
                 } catch(e) {
-                    config(req, res, next, { error: e.message,
-                                             username: username });
+                    config(req, res, next, {}, { error: e.message,
+                                                 username: username });
                 }
             });
         });
         ajax.end(postData);
     } catch(e) {
-        config(req, res, next, { error: e.message,
-                                 username: username });
+        config(req, res, next, {}, { error: e.message,
+                                     username: username });
     }
 });
 

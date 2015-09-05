@@ -1,22 +1,10 @@
 body {
+    font-size: 14px;
     padding: 50px;
 }
 
 .placeholder {
     font-style: italic;
-}
-
-.installed-app {
-    border: 1px solid darkgray;
-    border-radius: 10px;
-    padding-left: 20px;
-    padding-right: 20px;
-    margin-top: 1em;
-    margin-bottom: 1em;
-}
-
-.installed-app > h2 {
-    font-size: 140%;
 }
 
 .form-inline .form-control {
@@ -26,24 +14,6 @@ body {
 
 .form-inline .form-block {
     margin-bottom: 15px;
-}
-
-.config-unit {
-    border: 1px solid darkgray;
-    border-radius: 10px;
-    padding-left: 20px;
-    padding-right: 20px;
-    margin-top: 1em;
-    margin-bottom: 1em;
-    font-size: 120%;
-}
-
-.config-unit p {
-    margin-bottom: 0.5em;
-}
-
-.config-unit > h2 {
-    font-size: 120%;
 }
 
 #qrcode-placeholder > img {
@@ -69,4 +39,8 @@ body {
 
 .app-content h2 {
     font-size: 110%;
+}
+
+.form-delete-app {
+    display:inline;
 }

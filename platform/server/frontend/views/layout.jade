@@ -11,6 +11,8 @@ html
     script(src="//code.jquery.com/jquery-1.11.2.min.js")
     script(src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js")
     script(src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/3.0.3/handlebars.js")
+    script(src='/javascripts/validator.min.js')
+    script(src='/javascripts/shared.js')
     block scripts
 
   body
@@ -30,6 +32,9 @@ html
             a(class="scroller", href="/apps") Installed Apps
           li
             a(class="scroller", href="/apps/create") Create New App
+          if user.loggedIn
+            li
+              a(class="scroller", href="/user/logout") Log out
 
     div(style="margin-top: 4em")
       block content
