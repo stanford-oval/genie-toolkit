@@ -1,0 +1,20 @@
+block styles
+  style
+    | label { display: block }
+
+block content
+  h1 Create new app
+  form(action="/apps/create", method="post")
+    label(for="json-blob")
+    textarea#json-blob(name="json-blob")
+      | Paste here JSON rule
+
+    label
+      | Run in: 
+      select#tier(name="tier")
+        option(value="phone") Phone
+        option(value="server") Server
+        option(value="cloud") Cloud
+
+    p
+      button(type="submit") Create
