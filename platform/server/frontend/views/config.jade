@@ -13,6 +13,9 @@ block content
     div.panel-body
       p The server is up and running at #{server.name}, port #{server.port}.
 
+      if server.extraAddresses.length > 0
+        p The server is also reachable at: #{server.extraAddresses.join(', ')}.
+
       if server.initialSetup
         p.text-danger The server is in initial setup mode and thus open to
           |  all external access. Pair your phone now!

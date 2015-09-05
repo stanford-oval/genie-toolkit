@@ -6,39 +6,45 @@ var jade = require('jade');
 var express = require('express');
 var router = express.Router();
 
+var ipAddress = require('../util/ip_address');
 var user = require('../util/user');
 
 function config(req, res, next, userData, cloudData) {
-    var host = req.hostname;
-    var port = res.app.get('port');
-    var serverAddress = 'http://' + host + ':' + port + '/config';
+    return ipAddress.getServerName().then(function(host) {
+        var port = res.app.get('port');
+        var serverAddress = 'http://' +
+            (host.indexOf(':' >= 0) ? '[' + host + ']' : host)
+            + ':' + port + '/config';
 
-    var prefs = platform.getSharedPreferences();
-    var cloudId = prefs.get('cloud-id');
-    var authToken = prefs.get('auth-token');
+        var prefs = platform.getSharedPreferences();
+        var cloudId = prefs.get('cloud-id');
+        var authToken = prefs.get('auth-token');
 
-    var qrcodeTarget = 'http://thingpedia.stanford.edu/qrcode/' + host + '/'
-        + port + '/' + authToken;
+        var qrcodeTarget = 'http://thingpedia.stanford.edu/qrcode/' + host + '/'
+            + port + '/' + authToken;
 
-    res.render('config', { page_title: "ThingEngine - run your things!",
-                           csrfToken: req.csrfToken(),
-                           server: { name: host, port: port,
-                                     address: serverAddress,
-                                     initialSetup: authToken === undefined },
-                           user: { configured: user.isConfigured(),
-                                   loggedIn: user.isLoggedIn(req),
-                                   username: userData.username,
-                                   password: userData.password,
-                                   error: userData.error },
-                           cloud: { configured: cloudId !== undefined,
-                                    error: cloudData.error,
-                                    username: cloudData.username,
-                                    id: cloudId },
-                           qrcodeTarget: qrcodeTarget });
+        var ipAddresses = ipAddress.getServerAddresses(host);
+        res.render('config', { page_title: "ThingEngine - run your things!",
+                               csrfToken: req.csrfToken(),
+                               server: { name: host, port: port,
+                                         address: serverAddress,
+                                         extraAddresses: ipAddresses,
+                                         initialSetup: authToken === undefined },
+                               user: { configured: user.isConfigured(),
+                                       loggedIn: user.isLoggedIn(req),
+                                       username: userData.username,
+                                       password: userData.password,
+                                       error: userData.error },
+                               cloud: { configured: cloudId !== undefined,
+                                        error: cloudData.error,
+                                        username: cloudData.username,
+                                        id: cloudId },
+                               qrcodeTarget: qrcodeTarget });
+    });
 }
 
 router.get('/', user.redirectLogin, function(req, res, next) {
-    config(req, res, next, {}, {});
+    config(req, res, next, {}, {}).done();
 });
 
 router.post('/set-server-password', user.requireLogin, function(req, res, next) {
@@ -62,16 +68,16 @@ router.post('/set-server-password', user.requireLogin, function(req, res, next) 
     } catch(e) {
         config(req, res, next, { username: username,
                                  password: '',
-                                 error: e.message }, {});
+                                 error: e.message }, {}).done();
         return;
     }
 
     user.register(req, res, username, password).then(function() {
         res.redirect('/config');
     }).catch(function(error) {
-        config(req, res, next, { username: username,
-                                 password: '',
-                                 error: error.message }, {});
+        return config(req, res, next, { username: username,
+                                        password: '',
+                                        error: error.message }, {});
     });
 });
 
@@ -120,7 +126,7 @@ router.post('/cloud-setup', user.requireLogin, function(req, res, next) {
             if (response.statusCode != 200) {
                 ajax.abort();
                 config(req, res, next, {}, { error: http.STATUS_CODES[response.statusCode],
-                                             username: username });
+                                             username: username }).done();
                 return;
             }
 
@@ -136,18 +142,18 @@ router.post('/cloud-setup', user.requireLogin, function(req, res, next) {
                         res.redirect('/config');
                     } else {
                         config(req, res, next, {}, { error: json.error,
-                                                     username: username });
+                                                     username: username }).done();
                     }
                 } catch(e) {
                     config(req, res, next, {}, { error: e.message,
-                                                 username: username });
+                                                 username: username }).done();
                 }
             });
         });
         ajax.end(postData);
     } catch(e) {
         config(req, res, next, {}, { error: e.message,
-                                     username: username });
+                                     username: username }).done();
     }
 });
 

@@ -62,7 +62,9 @@ Frontend.prototype._init = function _init() {
 var server = null;
 
 Frontend.prototype.open = function() {
-    return Q.ninvoke(this._app, 'listen', this._app.get('port'))
+    // '::' means the same as 0.0.0.0 but for IPv6
+    // without it, node.js will only listen on IPv4
+    return Q.ninvoke(this._app, 'listen', this._app.get('port'), '::')
         .then(function() {
             console.log('Express server listening on port ' + this._app.get('port'));
         }.bind(this));
