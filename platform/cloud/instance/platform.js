@@ -108,6 +108,11 @@ module.exports = {
         return os.tmpdir() + '/thingengine/' + _cloudId;
     },
 
+    // Get the filename of the sqlite database
+    getSqliteDB: function() {
+        return _writabledir + '/sqlite.db';
+    },
+
     // Stop the main loop and exit
     // (In Android, this only stops the node.js thread)
     // This function should be called by the platform integration

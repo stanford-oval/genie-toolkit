@@ -13,7 +13,6 @@ const fs = require('fs');
 
 const control = require('./control');
 const appdb = require('./engine/db/apps');
-const SQLDatabase = require('./engine/db/sqldb');
 const Engine = require('./engine');
 const Tier = require('./engine/tier_manager').Tier;
 
@@ -25,9 +24,7 @@ function runEngine() {
         console.log('Creating engine...');
 
         var apps = new appdb.FileAppDatabase(platform.getWritableDir() + '/apps.db');
-        var devicesql = new SQLDatabase(platform.getWritableDir() + '/sqlite.db',
-                                        'device');
-        var engine = new Engine(apps, devicesql);
+        var engine = new Engine(apps);
 
         var engineRunning = false;
         var earlyStop = false;

@@ -14,10 +14,12 @@ const sql = require('./sql');
 module.exports = new lang.Class({
     Name: 'SQLDatabase',
 
-    _init: function(filename, tablename) {
-        this.tablename = tablename;
+    _init: function(filename, tablename, fields) {
         this._journalCleanupTimeout = null;
 
+        this.tablename = tablename;
+        this.fields = fields;
+        this._discriminator = fields[0];
         this._db = sql.db(filename);
     },
 
@@ -48,61 +50,49 @@ module.exports = new lang.Class({
                 if (rows.length == 0 || rows[0].maxLastModified == null) {
                     return (new Date).getTime();
                 } else {
-                    return rows.maxLastModified;
+                    return rows[0].maxLastModified;
                 }
             });
     },
 
     getAll: function() {
         return this._db.withClient(function(client) {
-return sql.selectAll(client, 'select uniqueId,state from ' + this.tablename, [])
-                .then(function(rows) {
-                    return rows.map(function(row) {
-                        var state = JSON.parse(row.state);
-                        state.uniqueId = row.uniqueId;
-                        return state;
-                    });
-                });
+            return sql.selectAll(client, 'select uniqueId,' + this.fields.join(',')
+                                 + ' from ' + this.tablename, []);
         }.bind(this));
     },
 
     getOne: function(uniqueId) {
         return this._db.withClient(function(client) {
-            return sql.selectOne(client, 'select state from ' + this.tablename
-                                 + ' where uniqueId = ?', [uniqueId])
-                .then(function(row) {
-                    var state = JSON.parse(row.state);
-                    state.uniqueId = row.uniqueId;
-                    return state;
-                });
+            return sql.selectOne(client, 'select uniqueId,' + this.fields.join(',')
+                                 + ' from ' + this.tablename
+                                 + ' where uniqueId = ?', [uniqueId]);
         }.bind(this));
     },
 
     getRaw: function() {
         return this._db.withClient(function(client) {
-            return sql.selectAll(client, 'select uniqueId,lastModified,state from ' + this.tablename, [])
-                .then(function(values) {
-                    return this._getLastModifiedInternal(client)
-                        .then(function(lastModified) {
-                            return [lastModified, values];
-                        });
-                }.bind(this));
+            return sql.selectAll(client, 'select tj.uniqueId,tj.lastModified,' + ((this.fields.map(function(f) { return 't.' + f; })).join(','))
+                                 + ' from ' + this.tablename + '_journal as tj left outer join '
+                                 + this.tablename + ' as t on tj.uniqueId = t.uniqueId where '
+                                 + 'tj.lastModified >= ?', [lastModified]);
         }.bind(this));
     },
 
     getChangesAfter: function(lastModified) {
         return this._db.withClient(function(client) {
-            return sql.selectAll(client, 'select uniqueId,lastModified,state '
-                                 + 'from ' + this.tablename + '_journal where '
-                                 + 'lastModified >= ?', [lastModified]);
+            return sql.selectAll(client, 'select tj.uniqueId,tj.lastModified,' + ((this.fields.map(function(f) { return 't.' + f; })).join(','))
+                                 + ' from ' + this.tablename + '_journal as tj left outer join '
+                                 + this.tablename + ' as t on tj.uniqueId = t.uniqueId where '
+                                 + 'tj.lastModified >= ?', [lastModified]);
         }.bind(this));
     },
 
     _handleChangesInternal: function(client, changes) {
         return Q.all(changes.map(function(change) {
-            if (change.state !== undefined)
+            if (change[this._discriminator] !== undefined)
                 return this._insertIfRecentInternal(client, change.uniqueId,
-                                                    change.lastModified, change.state);
+                                                    change.lastModified, change);
             else
                 return this._deleteIfRecentInternal(client, change.uniqueId,
                                                     change.lastModified);
@@ -118,9 +108,10 @@ return sql.selectAll(client, 'select uniqueId,state from ' + this.tablename, [])
 
     syncAt: function(lastModified, pushedChanges) {
         return this._db.withTransaction(function(client) {
-            return sql.selectAll(client, 'select uniqueId,lastModified,state '
-                                 + 'from ' + this.tablename + '_journal where '
-                                 + 'lastModified >= ?', [lastModified])
+            return sql.selectAll(client, 'select tj.uniqueId,tj.lastModified,' + ((this.fields.map(function(f) { return 't.' + f; })).join(','))
+                                 + ' from ' + this.tablename + '_journal as tj left outer join '
+                                 + this.tablename + ' as t on tj.uniqueId = t.uniqueId where '
+                                 + 'tj.lastModified >= ?', [lastModified])
                 .then(function(ourChanges) {
                     return this._getLastModifiedInternal(client)
                         .then(function(lastModified) {
@@ -133,14 +124,15 @@ return sql.selectAll(client, 'select uniqueId,state from ' + this.tablename, [])
         }.bind(this));
     },
 
-    _insertInternal: function(client, uniqueId, lastModified, state) {
+    _insertInternal: function(client, uniqueId, lastModified, row) {
         return sql.insertOne(client, 'insert or replace into ' + this.tablename +
-                             ' (uniqueId, lastModified, state) ' +
-                             ' values(?, ?, ?)', [uniqueId, lastModified, state])
+                             ' (uniqueId,' + (this.fields.join(',')) + ') ' +
+                             ' values(?, ' + ((this.fields.map(function(f) { return '?' })).join(',')) + ')',
+                             [uniqueId].concat(this.fields.map(function(f) { return row[f]; })))
             .then(function() {
                 return sql.insertOne(client, 'insert or replace into ' + this.tablename + '_journal'
-                                     + ' (uniqueId, lastModified, state) ' +
-                                     'values(?, ?, ?)', [uniqueId, lastModified, state]);
+                                     + ' (uniqueId, lastModified) ' +
+                                     'values(?, ?)', [uniqueId, lastModified]);
             }.bind(this))
             .then(function() {
                 return this._scheduleJournalCleanup();
@@ -161,18 +153,17 @@ return sql.selectAll(client, 'select uniqueId,state from ' + this.tablename, [])
                     return sql.query(client, 'delete from ' + self.tablename + '_journal');
                 })
                 .then(function() {
-                    return Q.all(data.map(function(d) {
-                        var uniqueId = d.uniqueId;
-                        var lastModified = d.lastModified;
-                        var state = d.state;
+                    return Q.all(data.map(function(row) {
+                        var uniqueId = row.uniqueId;
+                        var lastModified = row.lastModified;
 
-                        return self._insertInternal(client, uniqueId, lastModified, state);
+                        return self._insertInternal(client, uniqueId, lastModified, row);
                     }));
                 });
         });
     },
 
-    _insertIfRecentInternal: function(client, uniqueId, lastModified, state) {
+    _insertIfRecentInternal: function(client, uniqueId, lastModified, row) {
         return sql.selectAll(client, 'select lastModified from '
                              + this.tablename + '_journal where uniqueId = ?',
                              [uniqueId])
@@ -180,29 +171,25 @@ return sql.selectAll(client, 'select uniqueId,state from ' + this.tablename, [])
                 if (rows.length > 0 && rows[0].lastModified > lastModified)
                     return false;
 
-                return this._insertInternal(client, uniqueId, lastModified, state).then(function() {
+                return this._insertInternal(client, uniqueId, lastModified, row).then(function() {
                     return true;
                 });
             }.bind(this));
     },
 
-    insertIfRecent: function(uniqueId, lastModified, state) {
+    insertIfRecent: function(uniqueId, lastModified, row) {
         var self = this;
         return this._db.withTransaction(function(client) {
-            return this._insertIfRecentInternal(client, uniqueId, lastModified, state);
+            return this._insertIfRecentInternal(client, uniqueId, lastModified, row);
         }.bind(this));
     },
 
-    insertOne: function(state) {
+    insertOne: function(uniqueId, row) {
         var self = this;
 
         return this._db.withTransaction(function(client) {
-            var uniqueId = state.uniqueId;
-            delete state.uniqueId;
             var now = new Date;
-            var strState = JSON.stringify(state);
-
-            return self._insertInternal(client, uniqueId, now, strState);
+            return self._insertInternal(client, uniqueId, now, row);
         });
     },
 
@@ -211,8 +198,8 @@ return sql.selectAll(client, 'select uniqueId,state from ' + this.tablename, [])
                              ' where uniqueId = ? ', [uniqueId])
             .then(function() {
                 return sql.insertOne(client, 'insert or replace into ' + this.tablename + '_journal'
-                                     + ' (uniqueId, lastModified, state) ' +
-                                     'values(?, ?, ?)', [uniqueId, lastModified, null]);
+                                     + ' (uniqueId, lastModified) ' +
+                                     'values(?, ?)', [uniqueId, lastModified]);
             }.bind(this))
             .then(function() {
                 return this._scheduleJournalCleanup();

@@ -7,7 +7,6 @@
 // See COPYING for details
 
 const appdb = require('./engine/db/apps');
-const SQLDatabase = require('./engine/db/sqldb');
 const Engine = require('./engine');
 
 function runEngine() {
@@ -15,9 +14,7 @@ function runEngine() {
 
     platform.init().then(function() {
         var apps = new appdb.FileAppDatabase(platform.getWritableDir() + '/apps.db');
-        var devicesql = new SQLDatabase(platform.getWritableDir() + '/sqlite.db',
-                                        'device');
-        var engine = new Engine(apps, devicesql);
+        var engine = new Engine(apps);
 
         var earlyStop = false;
         var engineRunning = false;

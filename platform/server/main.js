@@ -9,7 +9,6 @@
 const Q = require('q');
 
 const appdb = require('./engine/db/apps');
-const SQLDatabase = require('./engine/db/sqldb');
 const Engine = require('./engine');
 const Frontend = require('./frontend');
 
@@ -21,9 +20,7 @@ function main() {
     var test = process.argv.indexOf('--test') >= 0;
     platform.init(test).then(function() {
         var apps = new appdb.FileAppDatabase(platform.getWritableDir() + '/apps.db');
-        var devicesql = new SQLDatabase(platform.getWritableDir() + '/sqlite.db',
-                                        'device');
-        var engine = new Engine(apps, devicesql);
+        var engine = new Engine(apps);
         var frontend = new Frontend();
         platform._setFrontend(frontend);
         frontend.setEngine(engine);

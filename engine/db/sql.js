@@ -170,7 +170,9 @@ module.exports = {
 
     insertOne: function(client, string, args) {
         return Q.Promise(function(callback, errback) {
-            client.run(string, args, function() {
+            client.run(string, args, function(err) {
+                if (err)
+                    return errback(err);
                 if (this.lastID === undefined)
                     errback(new Error("Row does not have ID"));
                 else

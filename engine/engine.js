@@ -20,11 +20,11 @@ const TierManager = require('./tier_manager');
 const Engine = new lang.Class({
     Name: 'Engine',
 
-    _init: function(apps, devicesql) {
+    _init: function(apps) {
         // constructor
 
         this._tiers = new TierManager();
-        this._devices = new DeviceDatabase(devicesql, this._tiers,
+        this._devices = new DeviceDatabase(this._tiers,
                                            new DeviceFactory(this));
         this._channels = new ChannelFactory(this, this._tiers);
         this._apps = apps;

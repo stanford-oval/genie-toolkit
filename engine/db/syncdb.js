@@ -10,6 +10,7 @@ const events = require('events');
 const Q = require('q');
 const lang = require('lang');
 
+const SQLDatabase = require('./sqldb');
 const Tier = require('../tier_manager').Tier;
 
 // SyncDatabase is a database that automatically syncs its changes across
@@ -18,12 +19,12 @@ module.exports = new lang.Class({
     Name: 'SyncDatabase',
     Extends: events.EventEmitter,
 
-    _init: function(sqldb, tierManager) {
-        this._sqldb = sqldb;
+    _init: function(tablename, fields, tierManager) {
         this._tierManager = tierManager;
 
-        this._tablename = sqldb.tablename;
-        this._tierManager.registerHandler('syncdb-' + sqldb.tablename,
+        this._sqldb = new SQLDatabase(platform.getSqliteDB(),
+                                      tablename, fields);
+        this._tierManager.registerHandler('syncdb-' + tablename,
                                           this._handleMessage.bind(this));
 
         this._syncing = false;
@@ -74,7 +75,7 @@ module.exports = new lang.Class({
     _handleMessage: function(fromTier, msg) {
         switch(msg.op) {
         case 'change':
-            this._handleChange(fromTier, msg.uniqueId, msg.lastModified, msg.state);
+            this._handleChange(fromTier, msg.uniqueId, msg.lastModified, msg.row);
             break;
         case 'sync-request':
             this._handleSyncRequest(fromTier, msg.lastSyncTime, msg.values);
@@ -95,13 +96,14 @@ module.exports = new lang.Class({
     },
 
     _sendMessage: function(targetTier, msg) {
+        //console.log('Sending one message ' + JSON.stringify(msg));
         // target the syncb of the remote tier
         msg.target = 'syncdb-' + this._sqldb.tablename;
         this._tierManager.sendTo(targetTier, msg);
     },
 
     _sendMessageToAll: function(msg) {
-        console.log('Sending one broadcast ' + JSON.stringify(msg));
+        //console.log('Sending one broadcast ' + JSON.stringify(msg));
         // target the syncb of the remote tier
         msg.target = 'syncdb-' + this._sqldb.tablename;
         this._tierManager.sendToAll(msg);
@@ -145,13 +147,17 @@ module.exports = new lang.Class({
             this._sendMessage(withTier, {op:'do-force-sync'});
     },
 
-    insertOne: function(state) {
-        var uniqueId = state.uniqueId;
-        console.log('Inserting one object in DB: ' + JSON.stringify(state));
-        return this._sqldb.insertOne(state).then(function(lastModified) {
-            var strState = JSON.stringify(state);
-            this._sendMessageToAll({op:'change', uniqueId: uniqueId,
-                                    state: strState, lastModified: lastModified });
+    getAll: function() {
+        return this._sqldb.getAll();
+    },
+
+    insertOne: function(uniqueId, row) {
+        console.log('Inserting one object in DB: ' + JSON.stringify(row));
+        return this._sqldb.insertOne(uniqueId, row)
+            .then(function(lastModified) {
+                this._sendMessageToAll({op:'change', uniqueId: uniqueId,
+                                        row: row,
+                                        lastModified: lastModified });
         }.bind(this));
     },
 
@@ -159,11 +165,11 @@ module.exports = new lang.Class({
         console.log('Deleting one object from DB: ' + uniqueId);
         return this._sqldb.deleteOne(uniqueId).then(function(lastModified) {
             this._sendMessageToAll({op:'change', uniqueId: uniqueId,
-                                    state: undefined, lastModified: lastModified });
+                                    row: undefined, lastModified: lastModified });
         }.bind(this));
     },
 
-    _reportChange: function(fromTier, uniqueId, lastModified, state, done) {
+    _reportChange: function(fromTier, uniqueId, lastModified, row, done) {
         if (!done) {
             // stale change
             console.log('Change for ' + uniqueId + ' in syncdb for ' + this._sqldb.tablename
@@ -171,35 +177,46 @@ module.exports = new lang.Class({
             return;
         }
 
-        if (state !== undefined) {
-            var obj = JSON.parse(state);
-            obj.uniqueId = uniqueId;
-            this.emit('object-added', obj);
+        if (row !== undefined) {
+            try {
+                this.emit('object-added', uniqueId, row);
+            } catch(e) {
+                console.log('Failed to report syncdb change');
+            }
         } else {
             this.emit('object-deleted', uniqueId);
         }
     },
 
+    _makeRow: function(change) {
+        var row = {};
+        this._sqldb.fields.forEach(function(f) {
+            row[f] = change[f];
+        });
+        return row;
+    },
+
     _reportChanges: function(fromTier, changes, done) {
-        for (var i = 0; i < changes; i++) {
+        for (var i = 0; i < changes.length; i++) {
             this._reportChange(fromTier, changes[i].uniqueId,
-                               changes[i].lastModified, changes[i].state,
+                               changes[i].lastModified, this._makeRow(changes[i]),
                                done[i]);
         }
     },
 
-    _handleChange: function(fromTier, uniqueId, lastModified, state) {
+    _handleChange: function(fromTier, uniqueId, lastModified, row) {
         console.log('Received syncdb change for ' + this._sqldb.tablename  + ': '
-                    + (state !== undefined ? ' added ' : ' deleted ') + uniqueId);
+                    + (row !== undefined ? ' added ' : ' deleted ') + uniqueId);
 
         Q.try(function() {
-            if (state !== undefined) {
-                return this._sqldb.insertIfRecent(uniqueId, lastModified, state);
+            if (row !== undefined) {
+                return this._sqldb.insertIfRecent(uniqueId, lastModified,
+                                                  row);
             } else {
                 return this._sqldb.deleteIfRecent(uniqueId, lastModified);
             }
         }.bind(this)).then(function(done) {
-            this._reportChange(fromTier, uniqueId, lastModified, state, done);
+            this._reportChange(fromTier, uniqueId, lastModified, row, done);
         }.bind(this)).catch(function(e) {
             console.log('Processing syncdb change for ' + this._sqldb.tablename  + ': '
                         +  ' failed', e);
@@ -250,7 +267,7 @@ module.exports = new lang.Class({
     },
 
     _handleForceSync: function(fromTier) {
-        this._sqldb.getRow()
+        this._sqldb.getRaw()
             .then(function(data) {
                 this._sendMessage(fromTier,
                                   {op:'force-sync-data', data: data});
