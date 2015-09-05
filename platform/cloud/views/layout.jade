@@ -2,12 +2,15 @@ doctype html
 html
   head
     title= page_title
-    script(src="//code.jquery.com/jquery-1.11.2.min.js")
-    link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css')
-    link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css')
+    link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css')
+    link(rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.5/paper/bootstrap.min.css")
     link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css')
+    link(rel="stylesheet", href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic")
     link(rel='stylesheet', href='/stylesheets/style.css')
-    script(src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js")
+    block styles
+    script(src="//code.jquery.com/jquery-1.11.2.min.js")
+    script(src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/3.0.3/handlebars.js")
     script(src='/javascripts/validator.min.js')
     script(src='/javascripts/shared.js')
     block scripts
@@ -30,5 +33,5 @@ html
           li
             a(class="scroller", href="/dark-side") Dark side
 
-    br
-    block content
+    div(style="margin-top: 4em")
+      block content
