@@ -297,7 +297,7 @@ const ServerConnection = new lang.Class({
                 delete msg.control;
             }
 
-            this.emit('message', msg);
+            this.emit('message', msg, connection.identity);
         }.bind(this));
 
         socket.on('close', function() {

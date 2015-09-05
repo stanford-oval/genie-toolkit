@@ -106,11 +106,14 @@ module.exports = new lang.Class({
             }.bind(this), timer);
         }.bind(this));
 
-        socket.on('message', function(msg) {
+        socket.on('message', function(msg, from) {
             if (this._tierSockets[tier] !== socket) // robustness
                 return;
 
-            this._routeMessage(tier, msg);
+            if (from !== undefined)
+                this._routeMessage(from, msg);
+            else
+                this._routeMessage(tier, msg);
         }.bind(this));
 
         return socket.open().then(function(success) {
@@ -358,10 +361,18 @@ module.exports = new lang.Class({
     },
 
     sendTo: function(tier, msg) {
-        if (this._tierSockets[tier] !== null)
-            this._tierSockets[tier].send(msg);
-        else
+        // HACK:
+        if (this.ownTier === Tier.CLOUD) {
+            this._tierSockets[Tier.PHONE].send(msg, tier);
+        } else if (this._tierSockets[tier] !== null) {
+            var s = this._tierSockets[tier];
+            if (s.isServer)
+                s.send(msg, tier);
+            else
+                s.send(msg);
+        } else {
             this._tierOutgoingBuffers[tier].push(msg);
+        }
     },
 
     sendToAll: function(msg) {
