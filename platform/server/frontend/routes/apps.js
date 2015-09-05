@@ -33,14 +33,12 @@ router.post('/create', function(req, res, next) {
         engine.apps.loadOneApp(parsed, tier, true).then(function() {
             res.redirect('/apps');
         }).catch(function(e) {
-            res.status(e).send('<!DOCTYPE html><title>ThingEngine</title>'
-                               +'<p>' + e.message + '</p>');
+            res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                              message: e.message });
         }).done();
     } catch(e) {
-        // XSS!
-        // lol
-        res.status(e).send('<!DOCTYPE html><title>ThingEngine</title>'
-                           +'<p>' + e.message + '</p>');
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
         return;
     }
 });
@@ -51,22 +49,20 @@ router.get('/delete/:id', function(req, res, next) {
 
         var app = engine.apps.getApp(req.params.id);
         if (app === undefined) {
-            res.status(404).send('<!DOCTYPE html><title>ThingEngine</title>'
-                                 +'<p>Not found.</p>');
+            res.status(404).render('error', { page_title: "ThingEngine - Error",
+                                              message: "Not found." });
             return;
         }
 
         engine.apps.removeApp(app).then(function() {
             res.redirect('/apps');
         }).catch(function(e) {
-            res.status(400).send('<!DOCTYPE html><title>ThingEngine</title>'
-                               +'<p>' + e.message + '</p>');
+            res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                              message: e.message });
         }).done();
     } catch(e) {
-        // XSS!
-        // lol
-        res.status(400).send('<!DOCTYPE html><title>ThingEngine</title>'
-                           +'<p>' + e.message + '</p>');
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
         return;
     }
 });
@@ -97,8 +93,8 @@ function uiCommand(req, res, next, call, command) {
 
     var app = engine.apps.getApp(req.params.id);
     if (app === undefined) {
-        res.status(404).send('<!DOCTYPE html><title>ThingEngine</title>'
-                             +'<p>Not found.</p>');
+        res.status(404).render('error', { page_title: "ThingEngine - Error",
+                                          message: "Not found." });
         return;
     }
 

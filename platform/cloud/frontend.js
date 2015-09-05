@@ -18,6 +18,7 @@ var errorHandler = require('errorhandler');
 var url = require('url');
 
 var index = require('./routes/index');
+var serverAPI = require('./routes/server');
 var user = require('./routes/user');
 var secretKey = require('./util/secret_key');
 
@@ -40,7 +41,6 @@ Frontend.prototype._init = function _init() {
     this._app.use(session({ resave: false,
                             saveUninitialized: false,
                             secret: secretKey.getSecretKey(this._app) }));
-    this._app.use(csurf({ cookie: false }));
     this._app.use(express.static(path.join(__dirname, 'public')));
 
     // development only
@@ -48,6 +48,10 @@ Frontend.prototype._init = function _init() {
         this._app.use(errorHandler());
     }
 
+    // mount /server (API calls for server platform) before CSRF
+    // as we don't need CSRF protection for that
+    this._app.use('/server', serverAPI);
+    this._app.use(csurf({ cookie: false }));
     this._app.use('/', index);
     this._app.use('/user', user);
     require('./routes/install')(this._app);

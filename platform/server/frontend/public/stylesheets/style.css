@@ -1,8 +1,72 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    padding: 50px;
 }
 
-a {
-  color: #00B7FF;
+.placeholder {
+    font-style: italic;
+}
+
+.installed-app {
+    border: 1px solid darkgray;
+    border-radius: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.installed-app > h2 {
+    font-size: 140%;
+}
+
+.form-inline .form-control {
+    margin-left: 6px;
+    margin-right: 12px;
+}
+
+.form-inline .form-block {
+    margin-bottom: 15px;
+}
+
+.config-unit {
+    border: 1px solid darkgray;
+    border-radius: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    font-size: 120%;
+}
+
+.config-unit p {
+    margin-bottom: 0.5em;
+}
+
+.config-unit > h2 {
+    font-size: 120%;
+}
+
+#qrcode-placeholder > img {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#qrcode-target {
+    display:none;
+}
+
+#config-phone-mobile-browser {
+    display:none;
+}
+
+.app-content {
+    font-size: 120%;
+}
+
+.app-content h1 {
+    font-size: 200%;
+}
+
+.app-content h2 {
+    font-size: 110%;
 }

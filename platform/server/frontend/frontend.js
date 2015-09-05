@@ -16,9 +16,9 @@ var session = require('express-session');
 var csurf = require('csurf');
 var errorHandler = require('errorhandler');
 var expressWs = require('express-ws');
-var routes = require('./routes');
-var user = require('./routes/user');
+var index = require('./routes/index');
 var apps = require('./routes/apps');
+var config = require('./routes/config');
 
 function Frontend() {
     this._init.apply(this, arguments);
@@ -45,12 +45,13 @@ Frontend.prototype._init = function _init() {
 
     // development only
     if ('development' == this._app.get('env')) {
+        console.log('Frontend initialized in development mode');
         this._app.use(errorHandler());
     }
 
-    this._app.get('/', routes.index);
-    this._app.get('/users', user.list);
+    this._app.use('/', index);
     this._app.use('/apps', apps);
+    this._app.use('/config', config);
 }
 
 var server = null;

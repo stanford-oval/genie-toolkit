@@ -1,22 +1,23 @@
+extends layout
+
 block content
   h1 Installed apps
-  ul
-    for app in apps
-      li
-        a(href="/apps/#{app.uniqueId}/")= app.name
-        |  - is running?
-        if app.running
-          |  yes
-        else
-          |  no
-        |  - is enabled?
+  for app in apps
+    div.installed-app
+      h2= app.name
+      if app.running
+        p This app is running
+      else
         if app.enabled
-          |  yes
+          p This app is enabled but not running
         else
-          |  no
+          p This app is disabled
+
+      p
+        a(href="/apps/#{app.uniqueId}").btn.btn-primary Show
         | 
         a(href="/apps/delete/#{app.uniqueId}",
-          onclick="return confirm('Are you sure?')") Delete
+          onclick="return confirm('Are you sure?')").btn.btn-danger Delete
 
   p
-    a(href="/apps/create/") Create new app
+    a(href="/apps/create/").btn.btn-primary Create new app
