@@ -299,11 +299,13 @@ module.exports = new lang.Class({
     },
 
     isClientTier: function(tier) {
-        return this._tierSockets[tier].isClient;
+        return this._tierSockets[tier] !== null &&
+            this._tierSockets[tier].isClient;
     },
 
     isServerTier: function(tier) {
-        return this._tierSockets[tier].isServer;
+        return this._tierSockets[tier] !== null &&
+            this._tierSockets[tier].isServer;
     },
 
     isConnected: function(tier) {

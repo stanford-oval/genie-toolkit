@@ -192,7 +192,7 @@ module.exports = new lang.Class({
     },
 
     removeApp: function(app) {
-        this._removeAppInternal(app);
+        this._removeAppInternal(app.uniqueId);
         return this._syncdb.deleteOne(app.uniqueId);
     },
 
@@ -201,6 +201,10 @@ module.exports = new lang.Class({
         for (var id in this._apps)
             apps.push(this._apps[id]);
         return apps;
+    },
+
+    getApp: function(id) {
+        return this._apps[id];
     },
 
     getSharedApp: function(id) {

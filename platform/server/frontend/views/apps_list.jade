@@ -4,3 +4,19 @@ block content
     for app in apps
       li
         a(href="/apps/#{app.uniqueId}/")= app.name
+        |  - is running?
+        if app.running
+          |  yes
+        else
+          |  no
+        |  - is enabled?
+        if app.enabled
+          |  yes
+        else
+          |  no
+        | 
+        a(href="/apps/delete/#{app.uniqueId}",
+          onclick="return confirm('Are you sure?')") Delete
+
+  p
+    a(href="/apps/create/") Create new app

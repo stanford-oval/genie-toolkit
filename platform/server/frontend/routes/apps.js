@@ -9,11 +9,66 @@ router.get('/', function(req, res, next) {
 
     var apps = engine.apps.getAllApps();
     var info = apps.map(function(a) {
-        return { uniqueId: a.uniqueId, name: a.name || "Some app" };
+        return { uniqueId: a.uniqueId, name: a.name || "Some app",
+                 running: a.isRunning, enabled: a.isEnabled };
     });
 
     res.render('apps_list', { page_title: 'ThingEngine - installed apps',
                               apps: info });
+});
+
+router.get('/create', function(req, res, next) {
+    res.render('apps_create', { page_title: 'ThingEngine - create app' });
+});
+
+router.post('/create', function(req, res, next) {
+    try {
+        var parsed = JSON.parse(req.body['json-blob']);
+        var tier = req.body.tier;
+        if (tier !== 'server' && tier !== 'cloud' && tier !== 'phone')
+            throw new Error('No such tier ' + tier);
+
+        var engine = req.app.engine;
+
+        engine.apps.loadOneApp(parsed, tier, true).then(function() {
+            res.redirect('/apps');
+        }).catch(function(e) {
+            res.status(e).send('<!DOCTYPE html><title>ThingEngine</title>'
+                               +'<p>' + e.message + '</p>');
+        }).done();
+    } catch(e) {
+        // XSS!
+        // lol
+        res.status(e).send('<!DOCTYPE html><title>ThingEngine</title>'
+                           +'<p>' + e.message + '</p>');
+        return;
+    }
+});
+
+router.get('/delete/:id', function(req, res, next) {
+    try {
+        var engine = req.app.engine;
+
+        var app = engine.apps.getApp(req.params.id);
+        if (app === undefined) {
+            res.status(404).send('<!DOCTYPE html><title>ThingEngine</title>'
+                                 +'<p>Not found.</p>');
+            return;
+        }
+
+        engine.apps.removeApp(app).then(function() {
+            res.redirect('/apps');
+        }).catch(function(e) {
+            res.status(400).send('<!DOCTYPE html><title>ThingEngine</title>'
+                               +'<p>' + e.message + '</p>');
+        }).done();
+    } catch(e) {
+        // XSS!
+        // lol
+        res.status(400).send('<!DOCTYPE html><title>ThingEngine</title>'
+                           +'<p>' + e.message + '</p>');
+        return;
+    }
 });
 
 function renderApp(appId, jadeView, locals, res, next) {
