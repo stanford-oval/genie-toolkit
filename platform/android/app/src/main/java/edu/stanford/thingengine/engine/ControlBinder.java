@@ -17,4 +17,8 @@ public class ControlBinder extends Binder {
     public boolean setCloudId(String cloudId, String authToken) throws IOException {
         return channel.sendSetCloudId(cloudId, authToken);
     }
+
+    public boolean setServerAddress(String host, int port, String authToken) throws IOException {
+        return channel.sendSetServerAddress(host, port, authToken);
+    }
 }

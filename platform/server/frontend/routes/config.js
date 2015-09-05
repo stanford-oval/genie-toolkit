@@ -9,7 +9,7 @@ var router = express.Router();
 function config(req, res, next, cloud) {
     var host = req.hostname;
     var port = res.app.get('port');
-    var serverAddress = 'http://' + host + ':' + port + '/';
+    var serverAddress = 'http://' + host + ':' + port + '/config';
 
     var prefs = platform.getSharedPreferences();
     var cloudId = prefs.get('cloud-id');

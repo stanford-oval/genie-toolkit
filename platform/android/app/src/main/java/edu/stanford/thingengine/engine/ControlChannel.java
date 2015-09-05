@@ -116,4 +116,16 @@ public class ControlChannel implements AutoCloseable, Closeable {
             return false;
         }
     }
+
+    public synchronized boolean sendSetServerAddress(String host, int port, String authToken) throws IOException {
+        try {
+            sendCall("setServerAddress", host, port, authToken);
+            return (Boolean)expectReply();
+        } catch(IOException e) {
+            throw e;
+        } catch(Exception e) {
+            Log.e(EngineService.LOG_TAG, "Unexpected exception in 'setServerAddress' command", e);
+            return false;
+        }
+    }
 }

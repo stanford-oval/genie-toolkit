@@ -58,6 +58,23 @@ function runEngine() {
                 return true;
             },
 
+            setServerAddress: function(serverHost, serverPort, authToken) {
+                var prefs = platform.getSharedPreferences();
+                var oldAuthToken = prefs.get('auth-token');
+                if (oldAuthToken !== undefined && authToken !== oldAuthToken)
+                    return false;
+                var serverAddress = 'http://' + serverHost + ':' + serverPort + '/websocket';
+                var oldServerAddress = prefs.get('server-address');
+                if (oldServerAddress !== undefined && serverAddress !== oldServerAddress)
+                    return false;
+                if (oldServerAddress === serverAddress && oldAuthToken === authToken)
+                    return true;
+                prefs.set('server-address', serverAddress);
+                prefs.set('auth-token', authToken);
+                engine._tiers._reopenOne(Tier.SERVER);
+                return true;
+            },
+
             addApp: function(serializedApp, tier) {
                 engine.apps.loadOneApp(serializedApp, tier, true);
             },
