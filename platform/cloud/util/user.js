@@ -24,10 +24,21 @@ function makeRandom() {
     return crypto.randomBytes(32).toString('hex');
 }
 
-function hashPassword(salt, password) {
+// Yes, I should fail CS255 for using raw SHA256 instead of PBKDF2
+// to salt passwords. I'm fixing it now but I don't want people
+// to register again, so the old hash will work for now
+
+function hashPasswordOld(salt, password) {
     var hash = crypto.createHash('sha256');
     hash.update('$' + salt + '$' + password + '$');
     return hash.digest('hex');
+}
+
+function hashPasswordNew(salt, password) {
+    return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32)
+        .then(function(buffer) {
+            return buffer.toString('hex');
+        });
 }
 
 module.exports = {
@@ -52,9 +63,12 @@ module.exports = {
             var salt = makeRandom();
             var cloudId = makeRandom();
             var authToken = makeRandom();
-            return model.create(dbClient, username, salt, hashPassword(salt, password), cloudId, authToken)
+            return hashPasswordNew(salt, password)
+                .then(function(hash) {
+                    return model.create(dbClient, username, salt, hash, cloudId, authToken);
+                })
                 .then(function(userId) {
-                    ededIn(req, userId);
+                    loggedIn(req, userId);
                     return [userId, cloudId, authToken];
                 });
         });
@@ -65,11 +79,15 @@ module.exports = {
             if (rows.length < 1)
                 throw new Error("An user with this username does not exist");
 
-            if (hashPassword(rows[0].salt, password) !== rows[0].password)
-                throw new Error("Invalid username or password");
+            return hashPasswordNew(rows[0].salt, password)
+                .then(function(hash) {
+                    if (hash !== rows[0].password &&
+                        hashPasswordOld(rows[0].salt, password) !== rows[0].password)
+                        throw new Error("Invalid username or password");
 
-            loggedIn(req, rows[0].id);
-            return rows[0];
+                    loggedIn(req, rows[0].id);
+                    return rows[0];
+                });
         });
     },
 
