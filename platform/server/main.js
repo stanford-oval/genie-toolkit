@@ -8,7 +8,6 @@
 
 const Q = require('q');
 
-const appdb = require('./engine/db/apps');
 const Engine = require('./engine');
 const Frontend = require('./frontend');
 
@@ -19,8 +18,7 @@ function main() {
 
     var test = process.argv.indexOf('--test') >= 0;
     platform.init(test).then(function() {
-        var apps = new appdb.FileAppDatabase(platform.getWritableDir() + '/apps.db');
-        var engine = new Engine(apps);
+        var engine = new Engine();
         var frontend = new Frontend();
         platform._setFrontend(frontend);
         frontend.setEngine(engine);

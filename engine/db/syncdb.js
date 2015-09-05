@@ -181,7 +181,7 @@ module.exports = new lang.Class({
             try {
                 this.emit('object-added', uniqueId, row);
             } catch(e) {
-                console.log('Failed to report syncdb change');
+                console.log('Failed to report syncdb change: ' + e);
             }
         } else {
             this.emit('object-deleted', uniqueId);
@@ -189,6 +189,10 @@ module.exports = new lang.Class({
     },
 
     _makeRow: function(change) {
+        // deletion
+        if (change[this._sqldb.fields[0]] === null)
+            return undefined;
+
         var row = {};
         this._sqldb.fields.forEach(function(f) {
             row[f] = change[f];

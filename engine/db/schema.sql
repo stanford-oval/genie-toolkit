@@ -3,7 +3,7 @@ drop table if exists app_journal ;
 
 create table app (
        uniqueId varchar(255) primary key,
-       location text not null,
+       tier text not null,
        state text not null
 );
 
@@ -32,3 +32,13 @@ create table device_journal (
 drop index if exists device_lastModified;
 
 create index device_lastModified on device_journal(lastModified) ;
+
+insert into app (uniqueId, tier, state) values (
+       'config-server-65f9bc0f-98e1-450a-9677-64160e200dd5',
+       'phone',
+       '{"kind":"config_server"}'
+);
+insert into app_journal (uniqueId, lastModified) values (
+       'config-server-65f9bc0f-98e1-450a-9677-64160e200dd5',
+       0
+);

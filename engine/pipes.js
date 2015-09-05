@@ -215,7 +215,7 @@ module.exports = new lang.Class({
 
     getLocalSinkNamedPipe: function(name) {
         if (name in this._pipeSinks)
-            return Q(this._pipeSinks);
+            return Q(this._pipeSinks[name]);
 
         var sinkPipe = new PipeSinkChannel(name, this);
         if (name in this._pipeLocalSources)

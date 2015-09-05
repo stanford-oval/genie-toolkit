@@ -41,6 +41,10 @@ module.exports = new lang.Class({
         // nothing to do here by default
     },
 
+    serialize: function() {
+        throw new Error('Not implemented');
+    },
+
     get engine() {
         return this._engine;
     },

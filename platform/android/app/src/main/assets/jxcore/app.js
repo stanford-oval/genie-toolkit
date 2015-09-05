@@ -12,7 +12,6 @@ const Q = require('q');
 const fs = require('fs');
 
 const control = require('./control');
-const appdb = require('./engine/db/apps');
 const Engine = require('./engine');
 const Tier = require('./engine/tier_manager').Tier;
 
@@ -23,8 +22,7 @@ function runEngine() {
         console.log('Android platform initialized');
         console.log('Creating engine...');
 
-        var apps = new appdb.FileAppDatabase(platform.getWritableDir() + '/apps.db');
-        var engine = new Engine(apps);
+        var engine = new Engine();
 
         var engineRunning = false;
         var earlyStop = false;
@@ -60,10 +58,14 @@ function runEngine() {
                 return true;
             },
 
+            addApp: function(serializedApp, tier) {
+                engine.apps.loadOneApp(serializedApp, tier, true);
+            },
+
             // For testing only!
             injectDevice: function(device) {
                 console.log('Injecting device ' + JSON.stringify(device, 1));
-                engine.devices._loadOneDevice(device, true).done();
+                engine.devices.loadOneDevice(device, true).done();
             }
         });
 

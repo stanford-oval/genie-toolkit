@@ -75,7 +75,7 @@ module.exports = new lang.Class({
             return sql.selectAll(client, 'select tj.uniqueId,tj.lastModified,' + ((this.fields.map(function(f) { return 't.' + f; })).join(','))
                                  + ' from ' + this.tablename + '_journal as tj left outer join '
                                  + this.tablename + ' as t on tj.uniqueId = t.uniqueId where '
-                                 + 'tj.lastModified >= ?', [lastModified]);
+                                 + 'tj.lastModified > ?', [lastModified]);
         }.bind(this));
     },
 
@@ -84,13 +84,13 @@ module.exports = new lang.Class({
             return sql.selectAll(client, 'select tj.uniqueId,tj.lastModified,' + ((this.fields.map(function(f) { return 't.' + f; })).join(','))
                                  + ' from ' + this.tablename + '_journal as tj left outer join '
                                  + this.tablename + ' as t on tj.uniqueId = t.uniqueId where '
-                                 + 'tj.lastModified >= ?', [lastModified]);
+                                 + 'tj.lastModified > ?', [lastModified]);
         }.bind(this));
     },
 
     _handleChangesInternal: function(client, changes) {
         return Q.all(changes.map(function(change) {
-            if (change[this._discriminator] !== undefined)
+            if (change[this._discriminator] !== null)
                 return this._insertIfRecentInternal(client, change.uniqueId,
                                                     change.lastModified, change);
             else
@@ -111,7 +111,7 @@ module.exports = new lang.Class({
             return sql.selectAll(client, 'select tj.uniqueId,tj.lastModified,' + ((this.fields.map(function(f) { return 't.' + f; })).join(','))
                                  + ' from ' + this.tablename + '_journal as tj left outer join '
                                  + this.tablename + ' as t on tj.uniqueId = t.uniqueId where '
-                                 + 'tj.lastModified >= ?', [lastModified])
+                                 + 'tj.lastModified > ?', [lastModified])
                 .then(function(ourChanges) {
                     return this._getLastModifiedInternal(client)
                         .then(function(lastModified) {
@@ -125,10 +125,11 @@ module.exports = new lang.Class({
     },
 
     _insertInternal: function(client, uniqueId, lastModified, row) {
-        return sql.insertOne(client, 'insert or replace into ' + this.tablename +
-                             ' (uniqueId,' + (this.fields.join(',')) + ') ' +
-                             ' values(?, ' + ((this.fields.map(function(f) { return '?' })).join(',')) + ')',
-                             [uniqueId].concat(this.fields.map(function(f) { return row[f]; })))
+        var insertSql = 'insert or replace into ' + this.tablename +
+            ' (uniqueId,' + (this.fields.join(',')) + ') ' +
+            ' values(?,' + ((this.fields.map(function(f) { return '?' })).join(',')) + ')';
+        var param = [uniqueId].concat(this.fields.map(function(f) { return row[f]; }));
+        return sql.insertOne(client, insertSql, param)
             .then(function() {
                 return sql.insertOne(client, 'insert or replace into ' + this.tablename + '_journal'
                                      + ' (uniqueId, lastModified) ' +
@@ -168,7 +169,7 @@ module.exports = new lang.Class({
                              + this.tablename + '_journal where uniqueId = ?',
                              [uniqueId])
             .then(function(rows) {
-                if (rows.length > 0 && rows[0].lastModified > lastModified)
+                if (rows.length > 0 && rows[0].lastModified >= lastModified)
                     return false;
 
                 return this._insertInternal(client, uniqueId, lastModified, row).then(function() {
@@ -217,7 +218,7 @@ module.exports = new lang.Class({
                              + this.tablename + '_journal where uniqueId = ?',
                              [uniqueId])
             .then(function(rows) {
-                if (rows.length > 0 && rows[0].lastModified > lastModified)
+                if (rows.length > 0 && rows[0].lastModified >= lastModified)
                     return false;
 
                 return this._deleteInternal(client, uniqueId, lastModified)

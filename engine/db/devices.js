@@ -28,7 +28,7 @@ module.exports = new lang.Class({
         this._syncdb = new SyncDatabase('device', ['state'], tierManager);
     },
 
-    _loadOneDevice: function(serializedDevice, addToDB) {
+    loadOneDevice: function(serializedDevice, addToDB) {
         return Q.try(function() {
             return this._factory.createDevice(serializedDevice.kind, serializedDevice);
         }.bind(this)).then(function(device) {
@@ -45,16 +45,16 @@ module.exports = new lang.Class({
         this._syncdb.on('object-added', this._objectAddedHandler);
         this._syncdb.on('object-deleted', this._objectDeletedHandler);
         this._syncdb.open();
-        return this._syncdb.getAll(function(rows) {
+        return this._syncdb.getAll().then(function(rows) {
             return Q.all(rows.map(function(row) {
                 try {
                     var serializedDevice = JSON.parse(row.state);
-                    serializedDevice.uniqueId = uniqueId;
-                    return this._loadOneDevice(uniqueId, serializedDevice);
+                    serializedDevice.uniqueId = row.uniqueId;
+                    return this.loadOneDevice(serializedDevice, false);
                 } catch(e) {
                     console.log('Failed to load one device: ' + e);
                 }
-            }));
+            }.bind(this)));
         }.bind(this));
     },
 
@@ -64,12 +64,15 @@ module.exports = new lang.Class({
             this._devices[uniqueId].updateState(serializedDevice);
         } else {
             serializedDevice.uniqueId = uniqueId;
-            this._loadOneDevice(serializedDevice).done();
+            this.loadOneDevice(serializedDevice, false).done();
         }
     },
 
     _onObjectDeleted: function(uniqueId) {
+        var device = this._devices[uniqueId];
         delete this._devices[uniqueId];
+        if (device !== undefined)
+            this.emit('device-removed', device);
     },
 
     save: function() {
@@ -105,25 +108,27 @@ module.exports = new lang.Class({
         this._devices[device.uniqueId] = device;
         if (addToDB) {
             var state = device.serialize();
-            if (state.uniqueId === undefined)
-                state.uniqueId = device.uniqueId;
-            var uniqueId = state.uniqueId;
-            delete state.uniqueId;
-            return this._syncdb.insertOne(uniqueId, {state: JSON.stringify(state) }).then(function() {
-                this.emit('device-added', device);
-            }.bind(this));
+            var uniqueId = device.uniqueId;
+            return this._syncdb.insertOne(uniqueId,
+                                          { state: JSON.stringify(state) })
+                .then(function() {
+                    this.emit('device-added', device);
+                }.bind(this));
         } else {
             this.emit('device-added', device);
+            return Q();
         }
     },
 
     addDevice: function(device) {
-        return this._addDeviceInternal(device);
+        return this._addDeviceInternal(device, undefined, true);
     },
 
     removeDevice: function(device) {
         delete this._devices[device.uniqueId];
-        return this._syncdb.deleteOne(device.uniqueId);
+        return this._syncdb.deleteOne(device.uniqueId).then(function() {
+            this.emit('device-removed', device);
+        }.bind(this));
     },
 
     getDevice: function(uniqueId) {

@@ -70,11 +70,13 @@ module.exports = new lang.Class({
         if (this._closePromise) {
             return this._closePromise.then(function() {
                 return this.open();
-            });
+            }.bind(this));
         }
 
         this._useCount++;
         if (this._useCount == 1) { // first open
+            if (this._openPromise)
+                throw new Error('bookkeeping error');
             return this._openPromise = this._doOpen().finally(function() {
                 this._openPromise = null;
             }.bind(this));
@@ -90,11 +92,13 @@ module.exports = new lang.Class({
         if (this._openPromise) {
             return this._openPromise.then(function() {
                 return this.close();
-            });
+            }.bind(this));
         }
 
         this._useCount++;
         if (this._useCount == 0) { // last close
+            if (this._closePromise)
+                throw new Error('bookkeeping error');
             return this._closePromise = this._doOpen().finally(function() {
                 this._closePromise = null;
             }.bind(this));

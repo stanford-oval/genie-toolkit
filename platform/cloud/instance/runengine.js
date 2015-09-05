@@ -13,8 +13,7 @@ function runEngine() {
     global.platform = require('./platform');
 
     platform.init().then(function() {
-        var apps = new appdb.FileAppDatabase(platform.getWritableDir() + '/apps.db');
-        var engine = new Engine(apps);
+        var engine = new Engine();
 
         var earlyStop = false;
         var engineRunning = false;

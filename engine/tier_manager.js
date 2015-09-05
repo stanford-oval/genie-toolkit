@@ -262,11 +262,14 @@ module.exports = new lang.Class({
     },
 
     close: function() {
-        return Q.all(this._tierSockets.filter(function(s) {
-            return s !== null;
-        }).map(function(s) {
-            return s.close();
-        }));
+        var promises = [];
+        ALL_TIERS.forEach(function(t) {
+            var s = this._tierSockets[t];
+            if (s !== null)
+                promises.push(s.close());
+        }, this);
+
+        return Q.all(promises);
     },
 
     // Semi private API used by the config-* apps
@@ -326,7 +329,7 @@ module.exports = new lang.Class({
 
     getServerTiers: function() {
         var tiers = [];
-        for (var i = 0; i < ALL_TIERS; i++) {
+        for (var i = 0; i < ALL_TIERS.length; i++) {
             var tier = ALL_TIERS[i];
             if (this._tierSockets[tier] === null)
                 continue;
@@ -341,7 +344,7 @@ module.exports = new lang.Class({
 
     getOtherTiers: function() {
         var tiers = [];
-        for (var i = 0; i < ALL_TIERS; i++) {
+        for (var i = 0; i < ALL_TIERS.length; i++) {
             var tier = ALL_TIERS[i];
             if (this._tierSockets[tier] === null)
                 continue;
@@ -360,10 +363,11 @@ module.exports = new lang.Class({
     },
 
     sendToAll: function(msg) {
-        this._tierSockets.forEach(function(s) {
+        ALL_TIERS.forEach(function(t) {
+            var s = this._tierSockets[t];
             if (s !== null)
                 s.send(msg);
-        });
+        }, this);
     },
 });
 

@@ -25,13 +25,13 @@ test-data:
 	test -d home-server || mkdir home-server/
 	cp test/server-apps.db home-server/apps.db
 	sqlite3 home-server/sqlite.db < engine/db/schema.sql
-	echo '[]' > home-server/devices.db
-	echo '{}' > home-server/prefs.db
+	sqlite3 home-server/sqlite.db < test/test.sql
+	#echo '{}' > home-server/prefs.db
 	test -d home-android || mkdir home-android/
 	cp test/android-apps.db home-android/apps.db
 	sqlite3 home-android/sqlite.db < engine/db/schema.sql
-	echo '[]' > home-android/devices.db
-	echo '{}' > home-android/prefs.db
+	sqlite3 home-android/sqlite.db < test/test.sql
+	#echo '{}' > home-android/prefs.db
 
 run-server: build-server
 	test -d home-server || mkdir home-server/
