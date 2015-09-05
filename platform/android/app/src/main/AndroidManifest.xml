@@ -46,7 +46,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:host="thingpedia.stanford.edu"
+                    android:host="thingengine.stanford.edu"
                     android:pathPrefix="/qrcode/"
                     android:scheme="http" />
             </intent-filter>

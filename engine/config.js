@@ -7,4 +7,7 @@
 // See COPYING for details
 
 module.exports.THINGPEDIA_ACCESS_MODULE = 'http';
-module.exports.THINGPEDIA_URL = 'http://thingpedia.stanford.edu:8080';
+module.exports.THINGPEDIA_URL = 'http://thingpedia.stanford.edu';
+
+module.exports.THINGENGINE_ACCESS_MODULE = 'http';
+module.exports.THINGENGINE_URL = 'http://thingengine.stanford.edu:8080';

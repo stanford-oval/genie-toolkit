@@ -8,7 +8,6 @@
 
 const Config = require('./config');
 
-const http = require(Config.THINGPEDIA_ACCESS_MODULE);
 const fs = require('fs');
 const lang = require('lang');
 const Q = require('q');

@@ -1,4 +1,6 @@
-var http = require('http');
+var Config = require('../../engine/config');
+
+var http = require(Config.THINGENGINE_ACCESS_MODULE);
 var url = require('url');
 var fs = require('fs');
 var path = require('path');
@@ -20,7 +22,7 @@ function config(req, res, next, userData, cloudData) {
         var cloudId = prefs.get('cloud-id');
         var authToken = prefs.get('auth-token');
 
-        var qrcodeTarget = 'http://thingpedia.stanford.edu/qrcode/' + host + '/'
+        var qrcodeTarget = 'http://thingengine.stanford.edu/qrcode/' + host + '/'
             + port + '/' + authToken;
 
         var ipAddresses = ipAddress.getServerAddresses(host);
@@ -110,7 +112,7 @@ router.post('/cloud-setup', user.requireLogin, function(req, res, next) {
         var postData = 'username=' + encodeURIComponent(username)
             + '&password=' + encodeURIComponent(password);
 
-        var request = url.parse('http://thingpedia.stanford.edu:8080/server/login');
+        var request = url.parse(Config.THINGENGINE_URL + '/server/login');
         request.method = 'POST';
         request.headers = {
             'Content-Type': 'application/x-www-form-urlencoded',

@@ -9,8 +9,7 @@
 const Config = require('./config');
 
 const child_process = require('child_process');
-const http = require('http');
-const https = require('https');
+const http = require(Config.THINGPEDIA_ACCESS_MODULE);
 const fs = require('fs');
 const lang = require('lang');
 const Q = require('q');

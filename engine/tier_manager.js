@@ -173,7 +173,7 @@ module.exports = new lang.Class({
             var authToken = prefs.get('auth-token');
             var cloudId = prefs.get('cloud-id');
             if (cloudId !== undefined)
-                return new tc.ClientConnection(Config.THINGPEDIA_URL + '/ws/' + cloudId,
+                return new tc.ClientConnection(Config.THINGENGINE_URL + '/ws/' + cloudId,
                                                Tier.PHONE, authToken);
             else
                 return null;
@@ -206,7 +206,7 @@ module.exports = new lang.Class({
             var authToken = prefs.get('auth-token');
             var cloudId = prefs.get('cloud-id');
             if (cloudId !== undefined && authToken !== undefined)
-                return new tc.ClientConnection(Config.THINGPEDIA_URL + '/ws/' + cloudId,
+                return new tc.ClientConnection(Config.THINGENGINE_URL + '/ws/' + cloudId,
                                                Tier.SERVER, authToken);
             else
                 return null;

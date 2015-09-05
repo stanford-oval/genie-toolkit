@@ -37,11 +37,11 @@ public class WebUIActivity extends Activity {
         WebView view = (WebView)findViewById(R.id.webView);
         view.addJavascriptInterface(this, "Android");
         view.getSettings().setJavaScriptEnabled(true);
-        view.loadUrl("http://thingpedia.stanford.edu:8080/");
+        view.loadUrl("http://thingengine.stanford.edu:8080/");
         view.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (Uri.parse(url).getAuthority().equals("thingpedia.stanford.edu:8080"))
+                if (Uri.parse(url).getAuthority().equals("thingengine.stanford.edu:8080"))
                     return false;
 
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
@@ -153,7 +153,7 @@ public class WebUIActivity extends Activity {
     }
 
     private void doActionView(Uri data) {
-        if (!data.getScheme().equals("http") || !data.getHost().equals("thingpedia.stanford.edu")) {
+        if (!data.getScheme().equals("http") || !data.getHost().equals("thingengine.stanford.edu")) {
             Log.w(LOG_TAG, "Received spurious intent view " + data);
             return;
         }
