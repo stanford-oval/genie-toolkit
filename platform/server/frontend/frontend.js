@@ -43,7 +43,10 @@ Frontend.prototype._init = function _init() {
     this._app.use(session({ resave: false,
                             saveUninitialized: false,
                             secret: secretKey.getSecretKey() }));
-    this._app.use(csurf({ cookie: false }));
+    this._app.use(csurf({ cookie: false,
+                          ignoreMethods: ['GET','HEAD','OPTIONS',
+                                          'UPGRADE','CONNECT']
+                        }));
     this._app.use(express.static(path.join(__dirname, 'public')));
     expressWs(this._app);
 
