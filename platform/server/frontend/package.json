@@ -21,7 +21,6 @@
     "express": "~4.13.3",
     "q": "~1.4.1",
     "express-ws": "git://github.com/HenningM/express-ws#v1.0.0-rc.1",
-    "errorhandler": "~1.4.2",
-    "ip": "~1.0.0"
+    "errorhandler": "~1.4.2"
   }
 }

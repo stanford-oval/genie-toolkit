@@ -34,11 +34,11 @@ drop index if exists device_lastModified;
 create index device_lastModified on device_journal(lastModified) ;
 
 insert into app (uniqueId, tier, state) values (
-       'config-server-65f9bc0f-98e1-450a-9677-64160e200dd5',
-       'phone',
-       '{"kind":"config_server"}'
+       'config-pairing-65f9bc0f-98e1-450a-9677-64160e200dd5',
+       'all',
+       '{"kind":"config_pairing"}'
 );
 insert into app_journal (uniqueId, lastModified) values (
-       'config-server-65f9bc0f-98e1-450a-9677-64160e200dd5',
+       'config-pairing-65f9bc0f-98e1-450a-9677-64160e200dd5',
        0
 );

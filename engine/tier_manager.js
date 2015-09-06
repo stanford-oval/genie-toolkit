@@ -61,11 +61,15 @@ module.exports = new lang.Class({
         var tierOutgoingBuffers = {};
         this._tierOutgoingBuffers = tierOutgoingBuffers;
 
+        var tierConfigured = {};
+        this._tierConfigured = tierConfigured;
+
         ALL_TIERS.forEach(function(t) {
             tierOpens[t] = null;
             tierSockets[t] = null;
             tierBackoffs[t] = 262144;
             tierOutgoingBuffers[t] = [];
+            tierConfigured[t] = false;
         });
 
         this._handlers = {};
@@ -86,9 +90,12 @@ module.exports = new lang.Class({
         if (f === null)
             return null;
         var socket = f();
-        if (socket === null)
+        if (socket === null) {
+            this._tierConfigured[tier] = false;
             return null;
+        }
 
+        this._tierConfigured[tier] = true;
         this._tierSockets[tier] = socket;
         socket.on('failed', function(lostMessages) {
             console.log('Tier connection to ' + tier + ' failed');
@@ -153,12 +160,6 @@ module.exports = new lang.Class({
     _openPhone: function() {
         var prefs = platform.getSharedPreferences();
 
-        var authToken = prefs.get('auth-token');
-        if (authToken === undefined) {
-            console.log('Not yet paired with any other tier, bailing...');
-            return this._openNone();
-        }
-
         var toPhone = null;
         var toServer = function() {
             var authToken = prefs.get('auth-token');
@@ -197,9 +198,7 @@ module.exports = new lang.Class({
         }
 
         var toPhone = function() {
-            var authToken = prefs.get('auth-token');
-            return new tc.ServerConnection(authToken,
-                                           [Tier.PHONE]);
+            return new tc.ServerConnection([Tier.PHONE]);
         }
         var toServer = null;
         var toCloud = function() {
@@ -234,9 +233,8 @@ module.exports = new lang.Class({
         }
 
         var toPhone = function() {
-            var authToken = prefs.get('auth-token');
             var cloudId = prefs.get('cloud-id');
-            return new tc.ServerConnection(authToken, [Tier.PHONE, Tier.SERVER]);
+            return new tc.ServerConnection([Tier.PHONE, Tier.SERVER]);
         }
         var toServer = null;
         var toCloud = null;
@@ -257,9 +255,11 @@ module.exports = new lang.Class({
         }
     },
 
-    _closeOne: function(tier) {
+    closeOne: function(tier) {
         if (this._tierSockets[tier] !== null)
-            return this._tierSockets[tier].close();
+            return this._tierSockets[tier].close().then(function() {
+                this._tierSockets[tier] = null;
+            }.bind(this));
         else
             return Q();
     },
@@ -275,9 +275,8 @@ module.exports = new lang.Class({
         return Q.all(promises);
     },
 
-    // Semi private API used by the config-* apps
-    _reopenOne: function(tier) {
-        return this._closeOne(tier).then(function() {
+    reopenOne: function(tier) {
+        return this.closeOne(tier).then(function() {
             return this._tryOpenOne(tier);
         }.bind(this));
     },
@@ -315,6 +314,10 @@ module.exports = new lang.Class({
         return this._tierSockets[tier] !== null &&
             (this._tierSockets[tier].isClient ||
              this._tierSockets[tier].isConnected(tier));
+    },
+
+    isConfigured: function(tier) {
+        return this._tierConfigured[tier];
     },
 
     getClientTiers: function() {

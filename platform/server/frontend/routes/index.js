@@ -5,7 +5,7 @@ var jade = require('jade');
 var express = require('express');
 var router = express.Router();
 
-var ipAddress = require('../util/ip_address');
+var ipAddress = require('../../engine/util/ip_address');
 var user = require('../util/user');
 
 router.get('/', user.redirectLogin, function(req, res, next) {

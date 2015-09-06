@@ -8,7 +8,7 @@ var jade = require('jade');
 var express = require('express');
 var router = express.Router();
 
-var ipAddress = require('../util/ip_address');
+var ipAddress = require('../../engine/util/ip_address');
 var user = require('../util/user');
 
 function config(req, res, next, userData, cloudData) {
@@ -84,18 +84,15 @@ router.post('/set-server-password', user.requireLogin, function(req, res, next) 
 });
 
 function setCloudId(engine, cloudId, authToken) {
-    var prefs = platform.getSharedPreferences();
-    var oldCloudId = prefs.get('cloud-id');
-    if (oldCloudId !== undefined && cloudId !== oldCloudId)
+    if (engine.devices.hasDevice('thingengine-own-cloud'))
         return false;
-    var oldAuthToken = prefs.get('auth-token');
-    if (oldAuthToken !== undefined && authToken !== oldAuthToken)
+    if (!platform.setAuthToken(authToken))
         return false;
-    if (oldCloudId === cloudId && authToken === oldAuthToken)
-        return true;
-    prefs.set('cloud-id', cloudId);
-    prefs.set('auth-token', authToken);
-    engine._tiers._reopenOne('cloud');
+
+    engine.devices.loadOneDevice({ kind: 'thingengine',
+                                   tier: 'cloud',
+                                   cloudId: cloudId,
+                                   own: true }, true).done();
     return true;
 }
 

@@ -110,6 +110,17 @@ module.exports = {
         return JXMobile.Exit();
     },
 
+    // Change the auth token
+    // Returns true if a change actually occurred, false if the change
+    // was rejected
+    setAuthToken: function(authToken) {
+        var oldAuthToken = _prefs.get('auth-token');
+        if (oldAuthToken !== undefined && authToken !== oldAuthToken)
+            return false;
+        _prefs.set('auth-token', authToken);
+        return true;
+    },
+
     get encoding() {
         return encoding;
     },

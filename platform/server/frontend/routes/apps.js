@@ -88,10 +88,10 @@ router.post('/delete', user.requireLogin, function(req, res, next) {
 
 function renderApp(appId, jadeView, locals, req, res, next) {
     var jadeOptions = {};
-    for (var local in locals)
-        jadeOptions[local] = locals[local];
     locals.user = { loggedIn: user.isLoggedIn(req) };
     locals.csrfToken = req.csrfToken();
+    for (var local in locals)
+        jadeOptions[local] = locals[local];
 
     // pretend the file is in views/appId/something.jade
     // this allows the app to resolve extends from our UI

@@ -43,35 +43,29 @@ function runEngine() {
             },
 
             setCloudId: function(cloudId, authToken) {
-                var prefs = platform.getSharedPreferences();
-                var oldCloudId = prefs.get('cloud-id');
-                if (oldCloudId !== undefined && cloudId !== oldCloudId)
+                if (engine.devices.hasDevice('thingengine-own-cloud'))
                     return false;
-                var oldAuthToken = prefs.get('auth-token');
-                if (oldAuthToken !== undefined && authToken !== oldAuthToken)
+                if (!platform.setAuthToken(authToken))
                     return false;
-                if (oldCloudId === cloudId && authToken === oldAuthToken)
-                    return true;
-                prefs.set('cloud-id', cloudId);
-                prefs.set('auth-token', authToken);
-                engine._tiers._reopenOne(Tier.CLOUD);
+
+                engine.devices.loadOneDevice({ kind: 'thingengine',
+                                               tier: Tier.CLOUD,
+                                               cloudId: cloudId,
+                                               own: true }, true).done();
                 return true;
             },
 
             setServerAddress: function(serverHost, serverPort, authToken) {
-                var prefs = platform.getSharedPreferences();
-                var oldAuthToken = prefs.get('auth-token');
-                if (oldAuthToken !== undefined && authToken !== oldAuthToken)
+                if (engine.devices.hasDevice('thingengine-own-server'))
                     return false;
-                var serverAddress = 'http://' + serverHost + ':' + serverPort + '/websocket';
-                var oldServerAddress = prefs.get('server-address');
-                if (oldServerAddress !== undefined && serverAddress !== oldServerAddress)
+                if (!platform.setAuthToken(authToken))
                     return false;
-                if (oldServerAddress === serverAddress && oldAuthToken === authToken)
-                    return true;
-                prefs.set('server-address', serverAddress);
-                prefs.set('auth-token', authToken);
-                engine._tiers._reopenOne(Tier.SERVER);
+
+                engine.devices.loadOneDevice({ kind: 'thingengine',
+                                               tier: Tier.SERVER,
+                                               host: serverHost,
+                                               port: serverPort,
+                                               own: true }, true).done();
                 return true;
             },
 

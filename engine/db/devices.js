@@ -131,6 +131,10 @@ module.exports = new lang.Class({
         }.bind(this));
     },
 
+    hasDevice: function(uniqueId) {
+        return uniqueId in this._devices;
+    },
+
     getDevice: function(uniqueId) {
         if (uniqueId in this._devices)
             return this._devices[uniqueId];

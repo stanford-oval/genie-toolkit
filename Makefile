@@ -19,19 +19,19 @@ install-android-debug: build-android
 	adb install -r platform/android/app/build/outputs/apk/app-debug.apk
 
 logcat:
-	adb logcat *:S JX:V thingengine.Service:V jxcore-log:V
+	adb logcat *:S JX:V thingengine.Service:V thingengine.UI:V jxcore-log:V
 
 test-data:
 	test -d home-server || mkdir home-server/
 	cp test/server-apps.db home-server/apps.db
 	sqlite3 home-server/sqlite.db < engine/db/schema.sql
-	sqlite3 home-server/sqlite.db < test/test.sql
-	#echo '{}' > home-server/prefs.db
+	#sqlite3 home-server/sqlite.db < test/test.sql
+	echo '{}' > home-server/prefs.db
 	test -d home-android || mkdir home-android/
 	cp test/android-apps.db home-android/apps.db
 	sqlite3 home-android/sqlite.db < engine/db/schema.sql
-	sqlite3 home-android/sqlite.db < test/test.sql
-	#echo '{}' > home-android/prefs.db
+	#sqlite3 home-android/sqlite.db < test/test.sql
+	echo '{}' > home-android/prefs.db
 
 run-server: build-server
 	test -d home-server || mkdir home-server/

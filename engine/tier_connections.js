@@ -112,7 +112,8 @@ const ClientConnection = new lang.Class({
             }
 
             // The control messages we expect to receive
-            if (['auth-token-ok', 'data', 'close'].indexOf(msg.control) < 0) {
+            if (['auth-token-ok', 'auth-token-error',
+                 'data', 'close'].indexOf(msg.control) < 0) {
                 console.error('Invalid control message ' + msg.control);
                 // ignore the message, don't die (back/forward compatibility)
                 return;
@@ -196,10 +197,9 @@ const ServerConnection = new lang.Class({
     Name: 'ServerConnection',
     Extends: events.EventEmitter,
 
-    _init: function(authToken, expected) {
+    _init: function(expected) {
         events.EventEmitter.call(this);
 
-        this._authToken = authToken;
         this._connections = {};
         this._wsServer = null;
 
@@ -210,6 +210,15 @@ const ServerConnection = new lang.Class({
 
         this.isClient = false;
         this.isServer = true;
+    },
+
+    _getAuthToken: function() {
+        var prefs = platform.getSharedPreferences();
+        return prefs.get('auth-token');
+    },
+
+    _setAuthToken: function(authToken) {
+        return 
     },
 
     isConnected: function(remote) {
@@ -246,42 +255,47 @@ const ServerConnection = new lang.Class({
             }
 
             if (!connection.dataOk) {
-                if (this._authToken === undefined) {
+                if (msg.control === 'set-auth-token') {
                     // initial setup mode
-                    if (msg.control !== 'set-auth-token' || !msg.token) {
-                        console.error('Invalid initial setup message');
-                        socket.terminate();
-                        return;
-                    }
+                    if (msg.token
+                        && platform.setAuthToken(String(msg.token))) {
+                        // note: we accept a set-auth-token command even
+                        // if we have a token already configured, this
+                        // simplifies the pairing logic on the phone side
 
-                    this._authToken = String(msg.token);
-                    platform.getSharedPreferences().set('auth-token', this._authToken);
-                    console.log('Received auth token from client');
-                    socket.send(JSON.stringify({control:'auth-token-ok'}));
-                    connection.socket = null;
-                    connection.closeOk = true;
-                    connection.dataOk = false;
-                    connection.closeCallback = null;
-                } else {
-                    if (msg.control !== 'auth' || typeof msg.identity != 'string' ||
-                        msg.token !== this._authToken) {
-                        console.error('Invalid authentication message');
-                        socket.terminate();
+                        console.log('Received auth token from client');
+                        socket.send(JSON.stringify({control:'auth-token-ok'}));
+                        connection.socket = null;
+                        connection.closeOk = true;
+                        connection.dataOk = false;
+                        connection.closeCallback = null;
                     } else {
-                        console.log('Client successfully authenticated');
-                        connection.dataOk = true;
-
-                        connection.identity = msg.identity;
-                        var oldConnection = this._connections[connection.identity];
-                        if (oldConnection && oldConnection.socket)
-                            oldConnection.socket.terminate();
-                        this._connections[connection.identity] = connection;
-
-                        if (oldConnection.outgoingBuffer)
-                            this.sendMany(oldConnection.outgoingBuffer, connection.identity);
-
-                        this.emit('connected', msg.identity);
+                        console.error('Invalid initial setup message');
+                        socket.send(JSON.stringify({control:'auth-token-error'}));
+                        connection.socket = null;
+                        connection.closeOk = true;
+                        connection.dataOk = false;
+                        connection.closeCallback = null;
                     }
+                } else if (msg.control !== 'auth' || typeof msg.identity != 'string' ||
+                           msg.token === undefined || // this covers the case of _getAuthToken returning undefined
+                           msg.token !== this._getAuthToken()) {
+                    console.error('Invalid authentication message');
+                    socket.terminate();
+                } else {
+                    console.log('Client successfully authenticated');
+                    connection.dataOk = true;
+
+                    connection.identity = msg.identity;
+                    var oldConnection = this._connections[connection.identity];
+                    if (oldConnection && oldConnection.socket)
+                        oldConnection.socket.terminate();
+                    this._connections[connection.identity] = connection;
+
+                    if (oldConnection.outgoingBuffer)
+                        this.sendMany(oldConnection.outgoingBuffer, connection.identity);
+
+                    this.emit('connected', msg.identity);
                 }
                 return;
             } else {

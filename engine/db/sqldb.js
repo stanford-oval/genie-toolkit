@@ -15,32 +15,10 @@ module.exports = new lang.Class({
     Name: 'SQLDatabase',
 
     _init: function(filename, tablename, fields) {
-        this._journalCleanupTimeout = null;
-
         this.tablename = tablename;
         this.fields = fields;
         this._discriminator = fields[0];
         this._db = sql.db(filename);
-    },
-
-    _scheduleJournalCleanup: function() {
-        if (this._journalCleanupTimeout)
-            return;
-
-        // in 5 minutes, cleanup the journal after some modifications
-        this._journalCleanupTimeout = setTimeout(function() {
-            this._journalCleanupTimeout = null;
-            this._cleanupJournal();
-        }.bind(this), 300000);
-    },
-
-    _cleanupJournal: function() {
-        this._db.withTransaction(function(client) {
-            var now = new Date();
-            var oneWeekAgo = (new Date()).setTime(now.getTime() - 7 * 24 * 3600 * 1000);
-            return sql.query(client, 'delete from ' + this.tablename + '_journal' +
-                             ' where lastModified < ?', [oneWeekAgo]);
-        }.bind(this)).done();
     },
 
     _getLastModifiedInternal: function(client) {
@@ -48,7 +26,7 @@ module.exports = new lang.Class({
                              + ' from ' + this.tablename + '_journal')
             .then(function(rows) {
                 if (rows.length == 0 || rows[0].maxLastModified == null) {
-                    return (new Date).getTime();
+                    return 0;
                 } else {
                     return rows[0].maxLastModified;
                 }
@@ -74,8 +52,7 @@ module.exports = new lang.Class({
         return this._db.withClient(function(client) {
             return sql.selectAll(client, 'select tj.uniqueId,tj.lastModified,' + ((this.fields.map(function(f) { return 't.' + f; })).join(','))
                                  + ' from ' + this.tablename + '_journal as tj left outer join '
-                                 + this.tablename + ' as t on tj.uniqueId = t.uniqueId where '
-                                 + 'tj.lastModified > ?', [lastModified]);
+                                 + this.tablename + ' as t on tj.uniqueId = t.uniqueId');
         }.bind(this));
     },
 
@@ -134,9 +111,6 @@ module.exports = new lang.Class({
                 return sql.insertOne(client, 'insert or replace into ' + this.tablename + '_journal'
                                      + ' (uniqueId, lastModified) ' +
                                      'values(?, ?)', [uniqueId, lastModified]);
-            }.bind(this))
-            .then(function() {
-                return this._scheduleJournalCleanup();
             }.bind(this))
             .then(function() {
                 if (typeof lastModified == 'object')
@@ -201,9 +175,6 @@ module.exports = new lang.Class({
                 return sql.insertOne(client, 'insert or replace into ' + this.tablename + '_journal'
                                      + ' (uniqueId, lastModified) ' +
                                      'values(?, ?)', [uniqueId, lastModified]);
-            }.bind(this))
-            .then(function() {
-                return this._scheduleJournalCleanup();
             }.bind(this))
             .then(function() {
                 if (typeof lastModified == 'object')

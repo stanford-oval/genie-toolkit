@@ -91,7 +91,8 @@ module.exports = new lang.Class({
     },
 
     _tryEnableApp: function(app) {
-        app.isEnabled = app.currentTier === this._tierManager.ownTier;
+        app.isEnabled = (app.currentTier === this._tierManager.ownTier ||
+                         app.currentTier === 'all');
         if (app.isEnabled && !app.isSupported) {
             this._appTierManager.appMoveFailed(app);
             app.isEnabled = false;
