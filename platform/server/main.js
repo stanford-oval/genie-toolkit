@@ -49,7 +49,7 @@ function main() {
     }).done();
 }
 
-var portNumber = 27;
+var portNumber = 2727;
 var busInterfaceName = "edu.stanford.thingengine.bus"
 var advertisedName = "edu.stanford.thingengine.bus.discover"; //"edu.stanford.thingengine.bus.chat";
 var busName = "discover";
@@ -69,8 +69,14 @@ function initAllJoynBus(allJoynState) {
 
 function connectToAllJoynBus(allJoynState)
 {
-    console.log("Connect"+allJoynState.bus.connect());
-    
+    // we use the regular dbus session bus if one is available
+    // this allows easy debugging with d-feet and similar tools
+    var dbusAddress = process.env.DBUS_SESSION_BUS_ADDRESS;
+    if (dbusAddress)
+        console.log("Connect"+allJoynState.bus.connect(dbusAddress));
+    else
+        console.log("Connect"+allJoynState.bus.connect());
+
     if(allJoynState.host){
       console.log("RequestName "+allJoynState.bus.requestName(advertisedName));
       console.log("BindSessionPort "+allJoynState.bus.bindSessionPort(portNumber, allJoynState.sessionPortListener));

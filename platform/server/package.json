@@ -8,6 +8,6 @@
   "dependencies": {
     "q": "~1.4.0",
     "sqlite3": "~3.0.10",
-    "alljoyn": "~1.0.0"
+    "alljoyn": "gcampax/alljoyn"
   }
 }
