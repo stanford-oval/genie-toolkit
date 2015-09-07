@@ -217,10 +217,6 @@ const ServerConnection = new lang.Class({
         return prefs.get('auth-token');
     },
 
-    _setAuthToken: function(authToken) {
-        return 
-    },
-
     isConnected: function(remote) {
         return this._connections[remote] !== undefined &&
             this._connections[remote].socket !== null;
