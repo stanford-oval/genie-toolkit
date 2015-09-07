@@ -166,7 +166,7 @@ module.exports = new lang.Class({
             var serverAddress = prefs.get('server-address');
             if (serverAddress !== undefined)
                 return new tc.ClientConnection(serverAddress, Tier.PHONE,
-                                               authToken);
+                                               Tier.SERVER, authToken);
             else
                 return null;
         };
@@ -175,7 +175,7 @@ module.exports = new lang.Class({
             var cloudId = prefs.get('cloud-id');
             if (cloudId !== undefined)
                 return new tc.ClientConnection(Config.THINGENGINE_URL + '/ws/' + cloudId,
-                                               Tier.PHONE, authToken);
+                                               Tier.PHONE, Tier.CLOUD, authToken);
             else
                 return null;
         };
@@ -206,7 +206,7 @@ module.exports = new lang.Class({
             var cloudId = prefs.get('cloud-id');
             if (cloudId !== undefined && authToken !== undefined)
                 return new tc.ClientConnection(Config.THINGENGINE_URL + '/ws/' + cloudId,
-                                               Tier.SERVER, authToken);
+                                               Tier.SERVER, Tier.CLOUD, authToken);
             else
                 return null;
         }

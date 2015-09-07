@@ -8,13 +8,31 @@
 
 const Q = require('q');
 const events = require('events');
-const http = require('http');
+const https = require('https');
 const lang = require('lang');
 const net = require('net');
+const fs = require('fs');
+const path = require('path');
 const WebSocket = require('ws');
 
 const JsonDatagramSocket = require('./json_datagram_socket');
 const Tier = require('./tier_manager').Tier;
+
+var _serverAgent = null;
+function getServerAgent() {
+    return undefined; // FINISHME
+}
+var _cloudAgent = null;
+function getCloudAgent() {
+    if (_cloudAgent === null) {
+        var caFile = path.join(path.dirname(module.filename), './data/cloud.cert');
+        _cloudAgent = new https.Agent({ keepAlive: false,
+                                        maxSockets: 10,
+                                        ca: fs.readFileSync(caFile) });
+    }
+
+    return _cloudAgent;
+}
 
 //    phone <-> server, from the POV of a phone
 // or phone <-> cloud, from the POV of the phone
@@ -24,10 +42,11 @@ const ClientConnection = new lang.Class({
     Name: 'ClientConnection',
     Extends: events.EventEmitter,
 
-    _init: function(serverAddress, identity, authToken) {
+    _init: function(serverAddress, identity, targetIdentity, authToken) {
         events.EventEmitter.call(this);
         this._serverAddress = serverAddress;
         this._identity = identity;
+        this._targetIdentity = targetIdentity;
         this._authToken = authToken;
         this._closeOk = false;
 
@@ -77,6 +96,11 @@ const ClientConnection = new lang.Class({
         this._socket = socket;
 
         console.log('Successfully connected to server');
+
+        // setup keep-alives
+        socket.on('ping', function() {
+            socket.pong();
+        });
 
         if (this._authToken !== undefined) {
             socket.send(JSON.stringify({control:'auth',
@@ -140,7 +164,10 @@ const ClientConnection = new lang.Class({
         console.log('Attempting connection to the server, try ' + (3 - this._retryAttempts) + ' of 3');
         return Q.Promise(function(callback, errback) {
             try {
-                var socket = new WebSocket(this._serverAddress);
+                var agent = this._targetIdentity === 'cloud' ?
+                    getCloudAgent() : getServerAgent();
+                var socket = new WebSocket(this._serverAddress,
+                                           { agent: getCloudAgent() });
                 socket.on('open', function() {
                     callback(socket);
                 });
@@ -236,10 +263,16 @@ const ServerConnection = new lang.Class({
             dataOk: false,
             closeOk: false,
             closeCallback: null,
+            pingTimeout: -1,
             outgoingBuffer: [],
         };
 
         console.log('New connection from client');
+
+        // setup keep-alives
+        socket.on('ping', function() {
+            socket.pong();
+        });
 
         socket.on('message', function(data) {
             var msg;
@@ -284,9 +317,21 @@ const ServerConnection = new lang.Class({
 
                     connection.identity = msg.identity;
                     var oldConnection = this._connections[connection.identity];
-                    if (oldConnection && oldConnection.socket)
-                        oldConnection.socket.terminate();
+                    if (oldConnection) {
+                        if (oldConnection.socket)
+                            oldConnection.socket.terminate();
+                        if (oldConnection.pingTimeout != -1)
+                            clearInterval(oldConnection.pingTimeout);
+                    }
                     this._connections[connection.identity] = connection;
+
+                    // Send a ping every 30m
+                    // ngnix frontend is configured to timeout the connection
+                    // after 1h, so this should keep it alive forever, without
+                    // a noticeable performance impact
+                    connection.pingTimeout = setInterval(function() {
+                        connection.socket.ping();
+                    }, 1800 * 1000);
 
                     if (oldConnection.outgoingBuffer)
                         this.sendMany(oldConnection.outgoingBuffer, connection.identity);

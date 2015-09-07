@@ -30,7 +30,7 @@ Frontend.prototype._init = function _init() {
     // all environments
     this._app = express();
 
-    this._app.set('port', process.env.PORT || 3000);
+    this._app.set('port', process.env.PORT || 8080);
     this._app.set('views', path.join(__dirname, 'views'));
     this._app.set('view engine', 'jade');
     //this._app.use(favicon());
