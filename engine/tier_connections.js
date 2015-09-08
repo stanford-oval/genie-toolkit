@@ -330,7 +330,8 @@ const ServerConnection = new lang.Class({
                     // after 1h, so this should keep it alive forever, without
                     // a noticeable performance impact
                     connection.pingTimeout = setInterval(function() {
-                        connection.socket.ping();
+                        if (connection.socket)
+                            connection.socket.ping();
                     }, 1800 * 1000);
 
                     if (oldConnection.outgoingBuffer)
@@ -359,6 +360,9 @@ const ServerConnection = new lang.Class({
             var connection = this._findConnection(socket);
             if (connection === undefined)
                 return;
+
+            if (connection.pingTimeout != -1)
+                clearInterval(connection.pingTimeout);
 
             if (connection.closeOk) {
                 if (connection.closeCallback)
