@@ -15,33 +15,11 @@ const lang = require('lang');
 const tc = require('./tier_connections');
 
 const Tier = {
-    PHONE: 0,
-    SERVER: 1,
-    CLOUD: 2
+    PHONE: 'phone',
+    SERVER: 'server',
+    CLOUD: 'cloud',
 };
-const TIER_LAST = 3;
-
-function tierToString(tier) {
-    switch (tier) {
-    case Tier.PHONE:
-        return 'phone';
-    case Tier.SERVER:
-        return 'server';
-    case Tier.CLOUD:
-        return 'cloud';
-    }
-}
-
-function stringToTier(string) {
-    switch (string) {
-    case 'phone':
-        return Tier.PHONE;
-    case 'server':
-        return Tier.SERVER;
-    case 'cloud':
-        return Tier.CLOUD;
-    }
-}
+const ALL_TIERS = [Tier.PHONE, Tier.SERVER, Tier.CLOUD];
 
 // Note: this should be the only module (togheter with
 // tier_connections) in the engine to have intimate knowledge of what
@@ -57,7 +35,7 @@ module.exports = new lang.Class({
     _init: function() {
         events.EventEmitter.call(this);
 
-        this.ownTier = -1;
+        this.ownTier = null;
 
         if (platform.type == 'android' || platform.type == 'ios')
             this.ownTier = Tier.PHONE;
@@ -68,15 +46,31 @@ module.exports = new lang.Class({
         else
             throw new Error('Unable to determine currently running tier');
 
-        console.log('Tier manager initialized for ' + tierToString(this.ownTier));
+        console.log('Tier manager initialized for ' + this.ownTier);
 
-        this._tierOpens = [null,null,null];
-        this._tierSockets = [null,null,null];
+        var tierOpens = {};
+        this._tierOpens = tierOpens;
+        var tierSockets = {};
+        this._tierSockets = tierSockets;
+
         // initial timer is approx 4 minutes (2**18 ms), grows
         // exponentially times 1.5 up to approx 1 day
-        this._tierBackoffs = [262144,262144,262144];
+        var tierBackoffs = {};
+        this._tierBackoffs = tierBackoffs;
 
-        this._tierOutgoingBuffers = [[],[],[]];
+        var tierOutgoingBuffers = {};
+        this._tierOutgoingBuffers = tierOutgoingBuffers;
+
+        var tierConfigured = {};
+        this._tierConfigured = tierConfigured;
+
+        ALL_TIERS.forEach(function(t) {
+            tierOpens[t] = null;
+            tierSockets[t] = null;
+            tierBackoffs[t] = 262144;
+            tierOutgoingBuffers[t] = [];
+            tierConfigured[t] = false;
+        });
 
         this._handlers = {};
     },
@@ -96,13 +90,15 @@ module.exports = new lang.Class({
         if (f === null)
             return null;
         var socket = f();
-        if (socket === null)
+        if (socket === null) {
+            this._tierConfigured[tier] = false;
             return null;
+        }
 
+        this._tierConfigured[tier] = true;
         this._tierSockets[tier] = socket;
         socket.on('failed', function(lostMessages) {
-            console.log('Tier connection to ' + tierToString(tier)
-                        + ' failed');
+            console.log('Tier connection to ' + tier + ' failed');
             // adopt the outgoing messages that the socket did not write
             this._tierOutgoingBuffers[tier] = lostMessages.concat(this._tierOutgoingBuffers[tier]);
             this._tierSockets[tier] = null;
@@ -117,11 +113,14 @@ module.exports = new lang.Class({
             }.bind(this), timer);
         }.bind(this));
 
-        socket.on('message', function(msg) {
+        socket.on('message', function(msg, from) {
             if (this._tierSockets[tier] !== socket) // robustness
                 return;
 
-            this._routeMessage(tier, msg);
+            if (from !== undefined)
+                this._routeMessage(from, msg);
+            else
+                this._routeMessage(tier, msg);
         }.bind(this));
 
         return socket.open().then(function(success) {
@@ -134,7 +133,7 @@ module.exports = new lang.Class({
                     this.emit('connected', tier);
                 } else {
                     socket.on('connected', function(remote) {
-                        this.emit('connected', stringToTier(remote));
+                        this.emit('connected', remote);
                     }.bind(this));
                 }
             }
@@ -143,8 +142,8 @@ module.exports = new lang.Class({
 
     _openAll: function() {
         var promises = [];
-        for (var i = 0; i < TIER_LAST; i++) {
-            var p = this._tryOpenOne(i);
+        for (var i = 0; i < ALL_TIERS.length; i++) {
+            var p = this._tryOpenOne(ALL_TIERS[i]);
             if (p !== null)
                 promises.push(p);
         }
@@ -153,27 +152,21 @@ module.exports = new lang.Class({
     },
 
     _openNone: function() {
-        this._tierSockets[Tier.PHONE] = null;
-        this._tierSockets[Tier.SERVER] = null;
-        this._tierSockets[Tier.CLOUD] = null;
+        for (var i = 0; i < ALL_TIERS.length; i++)
+            this._tierSockets[ALL_TIERS[i]] = null;
         return Q();
     },
 
     _openPhone: function() {
         var prefs = platform.getSharedPreferences();
 
-        var authToken = prefs.get('auth-token');
-        if (authToken === undefined) {
-            console.log('Not yet paired with any other tier, bailing...');
-            return this._openNone();
-        }
-
         var toPhone = null;
         var toServer = function() {
             var authToken = prefs.get('auth-token');
             var serverAddress = prefs.get('server-address');
             if (serverAddress !== undefined)
-                return new tc.ClientConnection(serverAddress, tierToString(Tier.PHONE), authToken);
+                return new tc.ClientConnection(serverAddress, Tier.PHONE,
+                                               Tier.SERVER, authToken);
             else
                 return null;
         };
@@ -181,8 +174,8 @@ module.exports = new lang.Class({
             var authToken = prefs.get('auth-token');
             var cloudId = prefs.get('cloud-id');
             if (cloudId !== undefined)
-                return new tc.ClientConnection(Config.THINGPEDIA_URL + '/ws/' + cloudId,
-                                               tierToString(Tier.PHONE), authToken);
+                return new tc.ClientConnection(Config.THINGENGINE_URL + '/ws/' + cloudId,
+                                               Tier.PHONE, Tier.CLOUD, authToken);
             else
                 return null;
         };
@@ -205,17 +198,15 @@ module.exports = new lang.Class({
         }
 
         var toPhone = function() {
-            var authToken = prefs.get('auth-token');
-            return new tc.ServerConnection(authToken,
-                                           [tierToString(Tier.PHONE)]);
+            return new tc.ServerConnection([Tier.PHONE]);
         }
         var toServer = null;
         var toCloud = function() {
             var authToken = prefs.get('auth-token');
             var cloudId = prefs.get('cloud-id');
             if (cloudId !== undefined && authToken !== undefined)
-                return new tc.ClientConnection(Config.THINGPEDIA_URL + '/ws/' + cloudId,
-                                               tierToString(Tier.SERVER), authToken);
+                return new tc.ClientConnection(Config.THINGENGINE_URL + '/ws/' + cloudId,
+                                               Tier.SERVER, Tier.CLOUD, authToken);
             else
                 return null;
         }
@@ -242,9 +233,8 @@ module.exports = new lang.Class({
         }
 
         var toPhone = function() {
-            var authToken = prefs.get('auth-token');
             var cloudId = prefs.get('cloud-id');
-            return new tc.ServerConnection(authToken, [tierToString(Tier.PHONE), tierToString(Tier.SERVER)]);
+            return new tc.ServerConnection([Tier.PHONE, Tier.SERVER]);
         }
         var toServer = null;
         var toCloud = null;
@@ -265,24 +255,28 @@ module.exports = new lang.Class({
         }
     },
 
-    _closeOne: function(tier) {
-        if (this._tierSockets[tier] != null)
-            return this._tierSockets[tier].close();
+    closeOne: function(tier) {
+        if (this._tierSockets[tier] !== null)
+            return this._tierSockets[tier].close().then(function() {
+                this._tierSockets[tier] = null;
+            }.bind(this));
         else
             return Q();
     },
 
     close: function() {
-        return Q.all(this._tierSockets.filter(function(s) {
-            return s !== null;
-        }).map(function(s) {
-            return s.close();
-        }));
+        var promises = [];
+        ALL_TIERS.forEach(function(t) {
+            var s = this._tierSockets[t];
+            if (s !== null)
+                promises.push(s.close());
+        }, this);
+
+        return Q.all(promises);
     },
 
-    // Semi private API used by the config-* apps
-    _reopenOne: function(tier) {
-        return this._closeOne(tier).then(function() {
+    reopenOne: function(tier) {
+        return this.closeOne(tier).then(function() {
             return this._tryOpenOne(tier);
         }.bind(this));
     },
@@ -307,71 +301,89 @@ module.exports = new lang.Class({
     },
 
     isClientTier: function(tier) {
-        return this._tierSockets[tier].isClient;
+        return this._tierSockets[tier] !== null &&
+            this._tierSockets[tier].isClient;
     },
 
     isServerTier: function(tier) {
-        return this._tierSockets[tier].isServer;
+        return this._tierSockets[tier] !== null &&
+            this._tierSockets[tier].isServer;
     },
 
     isConnected: function(tier) {
         return this._tierSockets[tier] !== null &&
             (this._tierSockets[tier].isClient ||
-             this._tierSockets[tier].isConnected(tierToString(tier)));
+             this._tierSockets[tier].isConnected(tier));
+    },
+
+    isConfigured: function(tier) {
+        return this._tierConfigured[tier];
     },
 
     getClientTiers: function() {
         var tiers = [];
-        for (var i = 0; i < 3; i++) {
-            if (this._tierSockets[i] === null)
+        for (var i = 0; i < ALL_TIERS.length; i++) {
+            var tier = ALL_TIERS[i];
+            if (this._tierSockets[tier] === null)
                 continue;
-            if (!this._tierSockets[i].isClient)
+            if (!this._tierSockets[tier].isClient)
                 continue;
-            if (i === this._ownTier)
+            if (tier === this._ownTier)
                 continue;
-            tiers.push(i);
+            tiers.push(tier);
         }
         return tiers;
     },
 
     getServerTiers: function() {
         var tiers = [];
-        for (var i = 0; i < 3; i++) {
-            if (this._tierSockets[i] === null)
+        for (var i = 0; i < ALL_TIERS.length; i++) {
+            var tier = ALL_TIERS[i];
+            if (this._tierSockets[tier] === null)
                 continue;
-            if (!this._tierSockets[i].isServer)
+            if (!this._tierSockets[tier].isServer)
                 continue;
-            if (i === this._ownTier)
+            if (tier === this._ownTier)
                 continue;
-            tiers.push(i);
+            tiers.push(tier);
         }
         return tiers;
     },
 
     getOtherTiers: function() {
         var tiers = [];
-        for (var i = 0; i < 3; i++) {
-            if (this._tierSockets[i] === null)
+        for (var i = 0; i < ALL_TIERS.length; i++) {
+            var tier = ALL_TIERS[i];
+            if (this._tierSockets[tier] === null)
                 continue;
-            if (i === this.ownTier)
+            if (tier === this.ownTier)
                 continue;
-            tiers.push(i);
+            tiers.push(tier);
         }
         return tiers;
     },
 
     sendTo: function(tier, msg) {
-        if (this._tierSockets[tier] !== null)
-            this._tierSockets[tier].send(msg);
-        else
+        // HACK:
+        if (this.ownTier === Tier.CLOUD) {
+            this._tierSockets[Tier.PHONE].send(msg, tier);
+        } else if (this._tierSockets[tier] !== null) {
+            var s = this._tierSockets[tier];
+            if (s.isServer)
+                s.send(msg, tier);
+            else
+                s.send(msg);
+        } else {
             this._tierOutgoingBuffers[tier].push(msg);
+        }
     },
 
     sendToAll: function(msg) {
-        this._tierSockets.forEach(function(s) {
+        ALL_TIERS.forEach(function(t) {
+            var s = this._tierSockets[t];
             if (s !== null)
                 s.send(msg);
-        });
+        }, this);
     },
 });
 

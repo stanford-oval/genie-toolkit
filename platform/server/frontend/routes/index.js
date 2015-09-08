@@ -1,8 +1,31 @@
+var os = require('os');
+var fs = require('fs');
+var path = require('path');
+var jade = require('jade');
+var express = require('express');
+var router = express.Router();
 
-/*
- * GET home page.
- */
+var ipAddress = require('../../engine/util/ip_address');
+var user = require('../util/user');
 
-exports.index = function(req, res){
-  res.render('index', { title: 'Express' });
-};
+router.get('/', user.redirectLogin, function(req, res, next) {
+    ipAddress.getServerName().then(function(host) {
+        var port = res.app.get('port');
+
+        var prefs = platform.getSharedPreferences();
+        var cloudId = prefs.get('cloud-id');
+        var authToken = prefs.get('auth-token');
+
+        if (host !== os.hostname())
+            var name = os.hostname() + " (" + host + ")";
+        res.render('index', { page_title: "ThingEngine - run your things!",
+                              server: { name: name,
+                                        port: port,
+                                        initialSetup: authToken === undefined },
+                              cloud: { configured: cloudId !== undefined },
+                              user: { configured: user.isConfigured(),
+                                      loggedIn: user.isLoggedIn(req) } });
+    }).done();
+});
+
+module.exports = router;

@@ -1,8 +1,46 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    padding: 50px;
 }
 
-a {
-  color: #00B7FF;
+.placeholder {
+    font-style: italic;
+}
+
+.form-inline .form-control {
+    margin-left: 6px;
+    margin-right: 12px;
+}
+
+.form-inline .form-block {
+    margin-bottom: 15px;
+}
+
+#qrcode-placeholder > img {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#qrcode-target {
+    display:none;
+}
+
+#config-phone-mobile-browser {
+    display:none;
+}
+
+.app-content {
+    font-size: 120%;
+}
+
+.app-content h1 {
+    font-size: 200%;
+}
+
+.app-content h2 {
+    font-size: 110%;
+}
+
+.form-delete-app {
+    display:inline;
 }

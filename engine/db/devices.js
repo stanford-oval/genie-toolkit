@@ -18,22 +18,17 @@ module.exports = new lang.Class({
     Name: 'DeviceDatabase',
     Extends: events.EventEmitter,
 
-    _init: function(sqldb, tierManager, deviceFactory) {
+    _init: function(tierManager, deviceFactory) {
         events.EventEmitter.call(this);
 
         // FIXME: use Map when node supports it
         this._devices = {};
         this._factory = deviceFactory;
 
-        this._sqldb = sqldb;
-        this._syncdb = new SyncDatabase(sqldb, tierManager);
+        this._syncdb = new SyncDatabase('device', ['state'], tierManager);
     },
 
-    setFactory: function(factory) {
-        this._factory = factory;
-    },
-
-    _loadOneDevice: function(serializedDevice, addToDB) {
+    loadOneDevice: function(serializedDevice, addToDB) {
         return Q.try(function() {
             return this._factory.createDevice(serializedDevice.kind, serializedDevice);
         }.bind(this)).then(function(device) {
@@ -50,20 +45,34 @@ module.exports = new lang.Class({
         this._syncdb.on('object-added', this._objectAddedHandler);
         this._syncdb.on('object-deleted', this._objectDeletedHandler);
         this._syncdb.open();
-        return this._sqldb.getAll(function(serializedDevices) {
-            return Q.all(serializedDevices.map(this._loadOneDevice.bind(this)));
+        return this._syncdb.getAll().then(function(rows) {
+            return Q.all(rows.map(function(row) {
+                try {
+                    var serializedDevice = JSON.parse(row.state);
+                    serializedDevice.uniqueId = row.uniqueId;
+                    return this.loadOneDevice(serializedDevice, false);
+                } catch(e) {
+                    console.log('Failed to load one device: ' + e);
+                }
+            }.bind(this)));
         }.bind(this));
     },
 
-    _onObjectAdded: function(serializedDevice) {
-        if (serializedDevice.uniqueId in this._devices)
-            this._devices[serializedDevice.uniqueId].updateState(serializedDevice);
-        else
-            this._loadOneDevice(serializedDevice).done();
+    _onObjectAdded: function(uniqueId, row) {
+        var serializedDevice = JSON.parse(row.state);
+        if (uniqueId in this._devices) {
+            this._devices[uniqueId].updateState(serializedDevice);
+        } else {
+            serializedDevice.uniqueId = uniqueId;
+            this.loadOneDevice(serializedDevice, false).done();
+        }
     },
 
     _onObjectDeleted: function(uniqueId) {
+        var device = this._devices[uniqueId];
         delete this._devices[uniqueId];
+        if (device !== undefined)
+            this.emit('device-removed', device);
     },
 
     save: function() {
@@ -99,23 +108,31 @@ module.exports = new lang.Class({
         this._devices[device.uniqueId] = device;
         if (addToDB) {
             var state = device.serialize();
-            if (state.uniqueId === undefined)
-                state.uniqueId = device.uniqueId;
-            return this._syncdb.insertOne(state).then(function() {
-                this.emit('device-added', device);
-            }.bind(this));
+            var uniqueId = device.uniqueId;
+            return this._syncdb.insertOne(uniqueId,
+                                          { state: JSON.stringify(state) })
+                .then(function() {
+                    this.emit('device-added', device);
+                }.bind(this));
         } else {
             this.emit('device-added', device);
+            return Q();
         }
     },
 
     addDevice: function(device) {
-        return this._addDeviceInternal(device);
+        return this._addDeviceInternal(device, undefined, true);
     },
 
     removeDevice: function(device) {
         delete this._devices[device.uniqueId];
-        return this._syncdb.deleteOne(device.uniqueId);
+        return this._syncdb.deleteOne(device.uniqueId).then(function() {
+            this.emit('device-removed', device);
+        }.bind(this));
+    },
+
+    hasDevice: function(uniqueId) {
+        return uniqueId in this._devices;
     },
 
     getDevice: function(uniqueId) {

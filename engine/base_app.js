@@ -23,7 +23,6 @@ module.exports = new lang.Class({
         events.EventEmitter.call(this);
 
         this._engine = engine;
-        this.isRunning = false;
         this._isSupported = undefined;
 
         // Set this to anything but undefined and your app will
@@ -32,12 +31,17 @@ module.exports = new lang.Class({
 
         this.state = state;
         this.name = state.name;
+
+        // don't set these, they are set automatically by the engine
+        this.uniqueId = undefined;
+        this.currentTier = undefined;
+        this.isRunning = false;
+        this.isEnabled = false;
     },
 
-    serialize: function(state) {
+    serialize: function() {
         if (!this.state)
             throw new Error('Application lost state, cannot serialize');
-        this.state.uniqueId = this.uniqueId;
         return this.state;
     },
 

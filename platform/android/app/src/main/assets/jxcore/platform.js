@@ -97,12 +97,28 @@ module.exports = {
         return filesDir + '/cache';
     },
 
+    // Get the filename of the sqlite database
+    getSqliteDB: function() {
+        return filesDir + '/sqlite.db';
+    },
+
     // Stop the main loop and exit
     // (In Android, this only stops the node.js thread)
     // This function should be called by the platform integration
     // code, after stopping the engine
     exit: function() {
         return JXMobile.Exit();
+    },
+
+    // Change the auth token
+    // Returns true if a change actually occurred, false if the change
+    // was rejected
+    setAuthToken: function(authToken) {
+        var oldAuthToken = _prefs.get('auth-token');
+        if (oldAuthToken !== undefined && authToken !== oldAuthToken)
+            return false;
+        _prefs.set('auth-token', authToken);
+        return true;
     },
 
     get encoding() {

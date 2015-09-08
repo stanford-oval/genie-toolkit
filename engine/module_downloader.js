@@ -9,11 +9,23 @@
 const Config = require('./config');
 
 const child_process = require('child_process');
-const http = require('http');
 const https = require('https');
 const fs = require('fs');
+const url = require('url');
 const lang = require('lang');
 const Q = require('q');
+
+var _agent = null;
+function getAgent() {
+    if (_agent === null) {
+        var caFile = path.join(path.dirname(module.filename), './data/thingpedia.cert');
+        _agent = new https.Agent({ keepAlive: false,
+                                   maxSockets: 10,
+                                   ca: fs.readFileSync(caFile) });
+    }
+
+    return _agent;
+}
 
 module.exports = new lang.Class({
     Name: 'ModuleDownloader',
@@ -53,7 +65,9 @@ module.exports = new lang.Class({
             return this._moduleRequests[id];
 
         return this._moduleRequests[id] = Q.Promise(function(callback, errback) {
-            http.get(this._url + '/' + id + '.zip', function(response) {
+            var parsed = url.parse(this._url + '/' + id + '.zip');
+            parsed.agent = getAgent();
+            https.get(parsed.agent, function(response) {
                 if (response.statusCode == 404)
                     throw new Error('No such ' + this._kind);
                 if (response.statusCode != 200)

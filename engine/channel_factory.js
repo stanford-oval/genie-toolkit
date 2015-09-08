@@ -8,7 +8,6 @@
 
 const Config = require('./config');
 
-const http = require(Config.THINGPEDIA_ACCESS_MODULE);
 const fs = require('fs');
 const lang = require('lang');
 const Q = require('q');
@@ -96,10 +95,19 @@ module.exports = new lang.Class({
         });
     },
 
+    // Get a channel that is identified with the given ID
+    // The channel accepts no other parameters
     getChannel: function(id) {
         return this._getOpenedChannel(this._getChannelInternal(true, id));
     },
 
+    // Get a channel that is identified with the given ID
+    // The channel is instantiated for the given device
+    //
+    // How the device is used depends on the channel: it could be
+    // the channel is connecting to the device, or it could be
+    // the channel is connecting from the device (in which case
+    // the device is probably a thingengine)
     getDeviceChannel: function(id, device) {
         return this._getOpenedChannel(this._getChannelInternal(true, id, device));
     },

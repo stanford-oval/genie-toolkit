@@ -16,9 +16,13 @@ var session = require('express-session');
 var csurf = require('csurf');
 var errorHandler = require('errorhandler');
 var expressWs = require('express-ws');
-var routes = require('./routes');
-var user = require('./routes/user');
+
+var index = require('./routes/index');
 var apps = require('./routes/apps');
+var config = require('./routes/config');
+var user = require('./routes/user');
+
+var secretKey = require('./util/secret_key');
 
 function Frontend() {
     this._init.apply(this, arguments);
@@ -36,27 +40,34 @@ Frontend.prototype._init = function _init() {
     this._app.use(bodyParser.json());
     this._app.use(bodyParser.urlencoded({ extended: true }));
     this._app.use(cookieParser());
-    /*app.use(session({ resave: false,
-                        saveUninitialized: false,
-                        secret: secretKey.getSecretKey(app) }));*/
-    //this._app.use(csurf({ cookie: false }));
+    this._app.use(session({ resave: false,
+                            saveUninitialized: false,
+                            secret: secretKey.getSecretKey() }));
+    this._app.use(csurf({ cookie: false,
+                          ignoreMethods: ['GET','HEAD','OPTIONS',
+                                          'UPGRADE','CONNECT']
+                        }));
     this._app.use(express.static(path.join(__dirname, 'public')));
     expressWs(this._app);
 
     // development only
     if ('development' == this._app.get('env')) {
+        console.log('Frontend initialized in development mode');
         this._app.use(errorHandler());
     }
 
-    this._app.get('/', routes.index);
-    this._app.get('/users', user.list);
+    this._app.use('/', index);
     this._app.use('/apps', apps);
+    this._app.use('/user', user);
+    this._app.use('/config', config);
 }
 
 var server = null;
 
 Frontend.prototype.open = function() {
-    return Q.ninvoke(this._app, 'listen', this._app.get('port'))
+    // '::' means the same as 0.0.0.0 but for IPv6
+    // without it, node.js will only listen on IPv4
+    return Q.ninvoke(this._app, 'listen', this._app.get('port'), '::')
         .then(function() {
             console.log('Express server listening on port ' + this._app.get('port'));
         }.bind(this));

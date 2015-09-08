@@ -8,13 +8,31 @@
 
 const Q = require('q');
 const events = require('events');
-const http = require('http');
+const https = require('https');
 const lang = require('lang');
 const net = require('net');
+const fs = require('fs');
+const path = require('path');
 const WebSocket = require('ws');
 
 const JsonDatagramSocket = require('./json_datagram_socket');
 const Tier = require('./tier_manager').Tier;
+
+var _serverAgent = null;
+function getServerAgent() {
+    return undefined; // FINISHME
+}
+var _cloudAgent = null;
+function getCloudAgent() {
+    if (_cloudAgent === null) {
+        var caFile = path.join(path.dirname(module.filename), './data/cloud.cert');
+        _cloudAgent = new https.Agent({ keepAlive: false,
+                                        maxSockets: 10,
+                                        ca: fs.readFileSync(caFile) });
+    }
+
+    return _cloudAgent;
+}
 
 //    phone <-> server, from the POV of a phone
 // or phone <-> cloud, from the POV of the phone
@@ -24,10 +42,11 @@ const ClientConnection = new lang.Class({
     Name: 'ClientConnection',
     Extends: events.EventEmitter,
 
-    _init: function(serverAddress, identity, authToken) {
+    _init: function(serverAddress, identity, targetIdentity, authToken) {
         events.EventEmitter.call(this);
         this._serverAddress = serverAddress;
         this._identity = identity;
+        this._targetIdentity = targetIdentity;
         this._authToken = authToken;
         this._closeOk = false;
 
@@ -78,6 +97,11 @@ const ClientConnection = new lang.Class({
 
         console.log('Successfully connected to server');
 
+        // setup keep-alives
+        socket.on('ping', function() {
+            socket.pong();
+        });
+
         if (this._authToken !== undefined) {
             socket.send(JSON.stringify({control:'auth',
                                         identity: this._identity,
@@ -112,7 +136,8 @@ const ClientConnection = new lang.Class({
             }
 
             // The control messages we expect to receive
-            if (['auth-token-ok', 'data', 'close'].indexOf(msg.control) < 0) {
+            if (['auth-token-ok', 'auth-token-error',
+                 'data', 'close'].indexOf(msg.control) < 0) {
                 console.error('Invalid control message ' + msg.control);
                 // ignore the message, don't die (back/forward compatibility)
                 return;
@@ -139,7 +164,10 @@ const ClientConnection = new lang.Class({
         console.log('Attempting connection to the server, try ' + (3 - this._retryAttempts) + ' of 3');
         return Q.Promise(function(callback, errback) {
             try {
-                var socket = new WebSocket(this._serverAddress);
+                var agent = this._targetIdentity === 'cloud' ?
+                    getCloudAgent() : getServerAgent();
+                var socket = new WebSocket(this._serverAddress,
+                                           { agent: getCloudAgent() });
                 socket.on('open', function() {
                     callback(socket);
                 });
@@ -196,10 +224,9 @@ const ServerConnection = new lang.Class({
     Name: 'ServerConnection',
     Extends: events.EventEmitter,
 
-    _init: function(authToken, expected) {
+    _init: function(expected) {
         events.EventEmitter.call(this);
 
-        this._authToken = authToken;
         this._connections = {};
         this._wsServer = null;
 
@@ -210,6 +237,11 @@ const ServerConnection = new lang.Class({
 
         this.isClient = false;
         this.isServer = true;
+    },
+
+    _getAuthToken: function() {
+        var prefs = platform.getSharedPreferences();
+        return prefs.get('auth-token');
     },
 
     isConnected: function(remote) {
@@ -231,10 +263,16 @@ const ServerConnection = new lang.Class({
             dataOk: false,
             closeOk: false,
             closeCallback: null,
+            pingTimeout: -1,
             outgoingBuffer: [],
         };
 
         console.log('New connection from client');
+
+        // setup keep-alives
+        socket.on('ping', function() {
+            socket.pong();
+        });
 
         socket.on('message', function(data) {
             var msg;
@@ -246,42 +284,60 @@ const ServerConnection = new lang.Class({
             }
 
             if (!connection.dataOk) {
-                if (this._authToken === undefined) {
+                if (msg.control === 'set-auth-token') {
                     // initial setup mode
-                    if (msg.control !== 'set-auth-token' || !msg.token) {
-                        console.error('Invalid initial setup message');
-                        socket.terminate();
-                        return;
-                    }
+                    if (msg.token
+                        && platform.setAuthToken(String(msg.token))) {
+                        // note: we accept a set-auth-token command even
+                        // if we have a token already configured, this
+                        // simplifies the pairing logic on the phone side
 
-                    this._authToken = String(msg.token);
-                    platform.getSharedPreferences().set('auth-token', this._authToken);
-                    console.log('Received auth token from client');
-                    socket.send(JSON.stringify({control:'auth-token-ok'}));
-                    connection.socket = null;
-                    connection.closeOk = true;
-                    connection.dataOk = false;
-                    connection.closeCallback = null;
-                } else {
-                    if (msg.control !== 'auth' || typeof msg.identity != 'string' ||
-                        msg.token !== this._authToken) {
-                        console.error('Invalid authentication message');
-                        socket.terminate();
+                        console.log('Received auth token from client');
+                        socket.send(JSON.stringify({control:'auth-token-ok'}));
+                        connection.socket = null;
+                        connection.closeOk = true;
+                        connection.dataOk = false;
+                        connection.closeCallback = null;
                     } else {
-                        console.log('Client successfully authenticated');
-                        connection.dataOk = true;
-
-                        connection.identity = msg.identity;
-                        var oldConnection = this._connections[connection.identity];
-                        if (oldConnection && oldConnection.socket)
-                            oldConnection.socket.terminate();
-                        this._connections[connection.identity] = connection;
-
-                        if (oldConnection.outgoingBuffer)
-                            this.sendMany(oldConnection.outgoingBuffer, connection.identity);
-
-                        this.emit('connected', msg.identity);
+                        console.error('Invalid initial setup message');
+                        socket.send(JSON.stringify({control:'auth-token-error'}));
+                        connection.socket = null;
+                        connection.closeOk = true;
+                        connection.dataOk = false;
+                        connection.closeCallback = null;
                     }
+                } else if (msg.control !== 'auth' || typeof msg.identity != 'string' ||
+                           msg.token === undefined || // this covers the case of _getAuthToken returning undefined
+                           msg.token !== this._getAuthToken()) {
+                    console.error('Invalid authentication message');
+                    socket.terminate();
+                } else {
+                    console.log('Client successfully authenticated');
+                    connection.dataOk = true;
+
+                    connection.identity = msg.identity;
+                    var oldConnection = this._connections[connection.identity];
+                    if (oldConnection) {
+                        if (oldConnection.socket)
+                            oldConnection.socket.terminate();
+                        if (oldConnection.pingTimeout != -1)
+                            clearInterval(oldConnection.pingTimeout);
+                    }
+                    this._connections[connection.identity] = connection;
+
+                    // Send a ping every 30m
+                    // ngnix frontend is configured to timeout the connection
+                    // after 1h, so this should keep it alive forever, without
+                    // a noticeable performance impact
+                    connection.pingTimeout = setInterval(function() {
+                        if (connection.socket)
+                            connection.socket.ping();
+                    }, 1800 * 1000);
+
+                    if (oldConnection.outgoingBuffer)
+                        this.sendMany(oldConnection.outgoingBuffer, connection.identity);
+
+                    this.emit('connected', msg.identity);
                 }
                 return;
             } else {
@@ -297,13 +353,16 @@ const ServerConnection = new lang.Class({
                 delete msg.control;
             }
 
-            this.emit('message', msg);
+            this.emit('message', msg, connection.identity);
         }.bind(this));
 
         socket.on('close', function() {
             var connection = this._findConnection(socket);
             if (connection === undefined)
                 return;
+
+            if (connection.pingTimeout != -1)
+                clearInterval(connection.pingTimeout);
 
             if (connection.closeOk) {
                 if (connection.closeCallback)

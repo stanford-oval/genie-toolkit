@@ -12,6 +12,7 @@ const Q = require('q');
 const lang = require('lang');
 
 const AppFactory = require('./app_factory');
+const AppDatabase = require('./db/apps');
 const ChannelFactory = require('./channel_factory');
 const DeviceFactory = require('./device_factory');
 const DeviceDatabase = require('./db/devices');
@@ -20,16 +21,19 @@ const TierManager = require('./tier_manager');
 const Engine = new lang.Class({
     Name: 'Engine',
 
-    _init: function(apps, devicesql) {
+    _init: function() {
         // constructor
 
         this._tiers = new TierManager();
-        this._devices = new DeviceDatabase(devicesql, this._tiers,
+        this._devices = new DeviceDatabase(this._tiers,
                                            new DeviceFactory(this));
         this._channels = new ChannelFactory(this, this._tiers);
-        this._apps = apps;
-        apps.setFactory(new AppFactory(this));
+        this._apps = new AppDatabase(this._tiers,
+                                     new AppFactory(this));
+
         this._running = false;
+        this._stopCallback = null;
+        this._fatalCallback = null;
     },
 
     get channels() {
@@ -72,6 +76,50 @@ const Engine = new lang.Class({
         return sources;
     },
 
+    _startOneApp: function(a) {
+        if (!a.isEnabled) {
+            console.log('App ' + a.uniqueId  + ' is not enabled');
+            return Q();
+        }
+
+        return a.start().then(function() {
+            a.isRunning = true;
+            console.log('App ' + a.uniqueId  + ' started');
+        }.bind(this)).timeout(30000, 'Timed out').catch(function(e) {
+            console.error('App failed to start: ' + e);
+            console.error(e.stack);
+        });
+    },
+
+    _stopOneApp: function(a) {
+        if (!a.isRunning)
+            return;
+
+        return a.stop().then(function() {
+            a.isRunning = false;
+            console.log('App ' + a.uniqueId  + ' stopped');
+        }).timeout(30000, 'Timed out').catch(function(e) {
+            console.error('App failed to stop: ' + e);
+        });
+    },
+
+    _onAppChanged: function(a) {
+        if (a.isRunning && !a.isEnabled)
+            this._stopOneApp(a);
+        else if (a.isEnabled && !a.isRunning)
+            this._startOneApp(a);
+    },
+
+    _startAllApps: function() {
+        var apps = this._apps.getAllApps();
+        return Q.all(apps.map(this._startOneApp.bind(this)));
+    },
+
+    _stopAllApps: function() {
+        var apps = this._apps.getAllApps();
+        return Q.all(apps.map(this._stopOneApp.bind(this)));
+    },
+
     // Kick start the engine by returning a promise that will
     // run each rule in sequence, forever, without ever being
     // fulfilled until engine.stop() is called
@@ -79,42 +127,27 @@ const Engine = new lang.Class({
         console.log('Engine running');
 
         this._running = true;
-        var apps = this._apps.getSupportedApps();
-        return Q.all(apps.map(function(a) {
-            return a.start().then(function() {
-                a.isRunning = true;
-            }).timeout(30000, 'Timed out').catch(function(e) {
-                console.error('App failed to start: ' + e);
-            });
-        })).then(function() {
-            if (!this._running)
-                return;
 
-            return Q.Promise(function(callback, errback) {
-                if (!this._running) {
-                    return callback();
-                }
+        return this._startAllApps()
+            .then(function() {
+                if (!this._running)
+                    return;
 
-                this._stopCallback = callback;
-                apps.forEach(function(a) {
-                    if (!a.isRunning)
-                        return;
+                this.apps.on('app-added', this._startOneApp.bind(this));
+                this.apps.on('app-removed', this._stopOneApp.bind(this));
+                this.apps.on('app-changed', this._onAppChanged.bind(this));
 
-                    a.on('fatal', function(e) {
-                        console.error('Fatal error ' + e + ' from app, dying gracefully');
-                        errback(e);
-                    });
-                });
+                return Q.Promise(function(callback, errback) {
+                    if (!this._running) {
+                        return callback();
+                    }
+
+                    this._stopCallback = callback;
+                }.bind(this));
+            }.bind(this))
+            .then(function() {
+                return this._stopAllApps();
             }.bind(this));
-        }.bind(this)).then(function() {
-            return Q.all(apps.map(function(a) {
-                return a.stop().then(function() {
-                    a.isRunning = false;
-                }).timeout(30000, 'Timed out').catch(function(e) {
-                    console.error('App failed to stop: ' + e);
-                });
-            }));
-        });
     },
 
     // Stop any rule execution at the next available moment

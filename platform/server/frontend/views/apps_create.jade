@@ -1,0 +1,19 @@
+extends layout
+
+block content
+  h1 Create new app
+  form(action="/apps/create", method="post")
+    input(type='hidden',name='_csrf',value=csrfToken)
+    div.form-group
+      label(for="json-blob").control-label Rule
+      textarea#json-blob(name="json-blob", placeholder="Paste here JSON rule").form-control
+
+    p.form-group
+      label.control-label(for="tier") Run in: 
+      select#tier(name="tier").form-control
+        option(value="phone") Phone
+        option(value="server") Server
+        option(value="cloud") Cloud
+
+    p.from-group
+      button(type="submit").btn.btn-success Create

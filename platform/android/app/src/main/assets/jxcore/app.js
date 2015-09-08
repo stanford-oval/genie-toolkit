@@ -12,8 +12,6 @@ const Q = require('q');
 const fs = require('fs');
 
 const control = require('./control');
-const appdb = require('./engine/db/apps');
-const SQLDatabase = require('./engine/db/sqldb');
 const Engine = require('./engine');
 const Tier = require('./engine/tier_manager').Tier;
 
@@ -24,10 +22,7 @@ function runEngine() {
         console.log('Android platform initialized');
         console.log('Creating engine...');
 
-        var apps = new appdb.FileAppDatabase(platform.getWritableDir() + '/apps.db');
-        var devicesql = new SQLDatabase(platform.getWritableDir() + '/sqlite.db',
-                                        'device');
-        var engine = new Engine(apps, devicesql);
+        var engine = new Engine();
 
         var engineRunning = false;
         var earlyStop = false;
@@ -48,25 +43,40 @@ function runEngine() {
             },
 
             setCloudId: function(cloudId, authToken) {
-                var prefs = platform.getSharedPreferences();
-                var oldCloudId = prefs.get('cloud-id');
-                if (oldCloudId !== undefined && cloudId !== oldCloudId)
+                if (engine.devices.hasDevice('thingengine-own-cloud'))
                     return false;
-                var oldAuthToken = prefs.get('auth-token');
-                if (oldAuthToken !== undefined && authToken !== oldAuthToken)
+                if (!platform.setAuthToken(authToken))
                     return false;
-                if (oldCloudId === cloudId && authToken === oldAuthToken)
-                    return true;
-                prefs.set('cloud-id', cloudId);
-                prefs.set('auth-token', authToken);
-                engine._tiers._reopenOne(Tier.CLOUD);
+
+                engine.devices.loadOneDevice({ kind: 'thingengine',
+                                               tier: Tier.CLOUD,
+                                               cloudId: cloudId,
+                                               own: true }, true).done();
                 return true;
+            },
+
+            setServerAddress: function(serverHost, serverPort, authToken) {
+                if (engine.devices.hasDevice('thingengine-own-server'))
+                    return false;
+                if (!platform.setAuthToken(authToken))
+                    return false;
+
+                engine.devices.loadOneDevice({ kind: 'thingengine',
+                                               tier: Tier.SERVER,
+                                               host: serverHost,
+                                               port: serverPort,
+                                               own: true }, true).done();
+                return true;
+            },
+
+            addApp: function(serializedApp, tier) {
+                engine.apps.loadOneApp(serializedApp, tier, true);
             },
 
             // For testing only!
             injectDevice: function(device) {
                 console.log('Injecting device ' + JSON.stringify(device, 1));
-                engine.devices._loadOneDevice(device, true).done();
+                engine.devices.loadOneDevice(device, true).done();
             }
         });
 

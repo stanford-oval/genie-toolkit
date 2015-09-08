@@ -18,6 +18,7 @@ var errorHandler = require('errorhandler');
 var url = require('url');
 
 var index = require('./routes/index');
+var serverAPI = require('./routes/server');
 var user = require('./routes/user');
 var secretKey = require('./util/secret_key');
 
@@ -29,7 +30,7 @@ Frontend.prototype._init = function _init() {
     // all environments
     this._app = express();
 
-    this._app.set('port', process.env.PORT || 3000);
+    this._app.set('port', process.env.PORT || 8080);
     this._app.set('views', path.join(__dirname, 'views'));
     this._app.set('view engine', 'jade');
     //this._app.use(favicon());
@@ -40,14 +41,12 @@ Frontend.prototype._init = function _init() {
     this._app.use(session({ resave: false,
                             saveUninitialized: false,
                             secret: secretKey.getSecretKey(this._app) }));
-    this._app.use(csurf({ cookie: false }));
     this._app.use(express.static(path.join(__dirname, 'public')));
 
     // development only
     if ('development' == this._app.get('env')) {
         this._app.use(errorHandler());
     }
-
 
     // TODO: Fix the files
     this._app.use(function(req, res, next){
@@ -60,6 +59,12 @@ Frontend.prototype._init = function _init() {
       }
       next();
     });
+
+
+    // mount /server (API calls for server platform) before CSRF
+    // as we don't need CSRF protection for that
+    this._app.use('/server', serverAPI);
+    this._app.use(csurf({ cookie: false }));
 
     this._app.use('/', index);
     this._app.use('/user', user);
@@ -87,7 +92,9 @@ Frontend.prototype.open = function() {
     }.bind(this));
     this.server = server;
 
-    return Q.ninvoke(server, 'listen', this._app.get('port'))
+    // '::' means the same as 0.0.0.0 but for IPv6
+    // without it, node.js will only listen on IPv4
+    return Q.ninvoke(server, 'listen', this._app.get('port'), '::')
         .then(function() {
             console.log('Express server listening on port ' + this._app.get('port'));
         }.bind(this));

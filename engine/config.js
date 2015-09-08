@@ -6,5 +6,8 @@
 //
 // See COPYING for details
 
-module.exports.THINGPEDIA_ACCESS_MODULE = 'http';
-module.exports.THINGPEDIA_URL = 'http://thingpedia.stanford.edu:8080';
+module.exports.THINGPEDIA_ACCESS_MODULE = 'https';
+module.exports.THINGPEDIA_URL = 'https://thingpedia.stanford.edu';
+
+module.exports.THINGENGINE_ACCESS_MODULE = 'https';
+module.exports.THINGENGINE_URL = 'https://thingengine.stanford.edu';
