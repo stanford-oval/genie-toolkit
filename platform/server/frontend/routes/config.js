@@ -22,7 +22,7 @@ function config(req, res, next, userData, cloudData) {
         var cloudId = prefs.get('cloud-id');
         var authToken = prefs.get('auth-token');
 
-        var qrcodeTarget = 'http://thingengine.stanford.edu/qrcode/' + host + '/'
+        var qrcodeTarget = 'https://thingengine.stanford.edu/qrcode/' + host + '/'
             + port + '/' + authToken;
 
         var ipAddresses = ipAddress.getServerAddresses(host);

@@ -26,7 +26,7 @@ module.exports = function(app){
 			res.render('install', {name: "Sorry: null pointer error"});
 		};
 
-		http.get("http://thingpedia.stanford.edu:5000/rules/" + app.install.id, function(response) {
+		http.get("https://thingpedia.stanford.edu/rules/" + app.install.id, function(response) {
 		    //another chunk of data has been recieved, so append it to `str`
 		  	var code = '';
 			response.on('data', function (chunk) {
@@ -40,7 +40,7 @@ module.exports = function(app){
 
 			/*
 			var options = {
-			  	host: 'http://thingpedia.stanford.edu:3000/rules' + app.install.url,
+			  	host: 'https://thingpedia.stanford.edu/rules' + app.install.url,
 			  	method: 'GET'
 			};
 

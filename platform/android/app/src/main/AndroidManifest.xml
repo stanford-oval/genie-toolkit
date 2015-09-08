@@ -48,7 +48,7 @@
                 <data
                     android:host="thingengine.stanford.edu"
                     android:pathPrefix="/qrcode/"
-                    android:scheme="http" />
+                    android:scheme="https" />
             </intent-filter>
         </activity>
     </application>
