@@ -48,6 +48,19 @@ Frontend.prototype._init = function _init() {
         this._app.use(errorHandler());
     }
 
+
+    // TODO: Fix the files
+    this._app.use(function(req, res, next){
+      if (req.session.user_id){
+        res.locals.authenticated = true;
+        console.log("Authenticated: true");
+      } else {
+        res.locals.authenticated = false;
+        console.log("Authenticated: false");
+      }
+      next();
+    });
+
     this._app.use('/', index);
     this._app.use('/user', user);
     require('./routes/install')(this._app);

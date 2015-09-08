@@ -7,6 +7,7 @@ html
     link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css')
     link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css')
     link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/stylesheets/layout.css')
     script(src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js")
     script(src='/javascripts/validator.min.js')
     script(src='/javascripts/shared.js')
@@ -29,6 +30,14 @@ html
             a(class="scroller", href="/something") Something
           li
             a(class="scroller", href="/dark-side") Dark side
+
+        ul.nav.navbar-nav.navbar-right
+          li
+            if authenticated
+              - var name = username
+            else
+              - var name = "Log In"
+            a.navbar-login#navbar-login-button(style="margin-right:30px") #{name}
 
     br
     block content

@@ -69,6 +69,7 @@ module.exports = {
                 throw new Error("Invalid username or password");
 
             loggedIn(req, rows[0].id);
+            req.session.username = username;
             return rows[0];
         });
     },
