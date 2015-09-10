@@ -72,7 +72,7 @@ function connectToAllJoynBus(allJoynState)
     // we use the regular dbus session bus if one is available
     // this allows easy debugging with d-feet and similar tools
     var dbusAddress = process.env.DBUS_SESSION_BUS_ADDRESS;
-    dbusAddress = null;
+
     if (dbusAddress)
         console.log("Connect"+allJoynState.bus.connect(dbusAddress));
     else
