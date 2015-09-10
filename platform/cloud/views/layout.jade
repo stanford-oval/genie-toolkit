@@ -36,10 +36,9 @@ html
         ul.nav.navbar-nav.navbar-right
           li
             if authenticated
-              - var name = username
+              a.navbar-login#navbar-login-button(href='/user/logout') Log Out
             else
-              - var name = "Log In"
-            a.navbar-login#navbar-login-button(style="margin-right:30px") #{name}
+              a.navbar-login#navbar-login-button(href='/user/login') Log In
 
     div(style="margin-top: 4em")
       block content

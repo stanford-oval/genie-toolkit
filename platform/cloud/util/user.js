@@ -8,54 +8,138 @@
 
 const Q = require('q');
 const crypto = require('crypto');
+const db = require('./db');
 const model = require('../model/user');
 
-function requireLogin(res) {
-    res.render('login_required', {
-        page_title: "ThingEngine - Login required" 
-    });
-}
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const GoogleOAuthStrategy = require('passport-google-oauth').OAuth2Strategy;
+const FacebookStrategy = require('passport-facebook').Strategy;
 
-function loggedIn(req, userId) {
-    req.session.user_id = userId;
-}
+var EngineManager = require('../enginemanager');
 
-function makeRandom() {
-    return crypto.randomBytes(32).toString('hex');
-}
+var GOOGLE_CLIENT_ID = '739906609557-o52ck15e1ge7deb8l0e80q92mpua1p55.apps.googleusercontent.com';
+var FACEBOOK_APP_ID = '979879085397010';
 
-// Yes, I should fail CS255 for using raw SHA256 instead of PBKDF2
-// to salt passwords. I'm fixing it now but I don't want people
-// to register again, so the old hash will work for now
+// The OAuth 2.0 client secret has nothing to do with security
+// and everything to do with billing
+// (ie, if you steal someone's client secret you can't steal his
+// users but you can steal his API quota)
+// We don't care about billing, so here is my client secret, right here
+// in a public git repository
+// Bite me
+var GOOGLE_CLIENT_SECRET = 'qeNdAMaIF_9wUy6XORABCIKE';
+var FACEBOOK_APP_SECRET = '770b8df05b487cb44261e7701a46c549';
 
-function hashPasswordOld(salt, password) {
-    var hash = crypto.createHash('sha256');
-    hash.update('$' + salt + '$' + password + '$');
-    return hash.digest('hex');
-}
+// XOR these comments for testing
+//var THINGENGINE_ORIGIN = 'http://127.0.0.1:8080';
+var THINGENGINE_ORIGIN = 'https://thingengine.stanford.edu';
 
-function hashPasswordNew(salt, password) {
+function hashPassword(salt, password) {
     return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32)
         .then(function(buffer) {
             return buffer.toString('hex');
         });
 }
 
-module.exports = {
-    withLogin: function(req, res, dbClient, handler) {
-        var user_id = req.session.user_id;
+function makeRandom() {
+    return crypto.randomBytes(32).toString('hex');
+}
 
-        if (user_id === undefined)
-            return requireLogin(res);
-        else
-            return model.get(dbClient, user_id)
-            .then(handler)
-            .catch(function(error) {
-                requireLogin(res);
+function initializePassport() {
+    passport.serializeUser(function(user, done) {
+        done(null, user.id);
+    });
+
+    passport.deserializeUser(function(id, done) {
+        db.withClient(function(client) {
+            return model.get(client, id);
+        }).nodeify(done);
+    });
+
+    passport.use(new LocalStrategy(function(username, password, done) {
+        db.withClient(function(dbClient) {
+            return model.getByName(dbClient, username).then(function(rows) {
+                if (rows.length < 1)
+                    return [false, "An user with this username does not exist"];
+
+                return hashPassword(rows[0].salt, password)
+                    .then(function(hash) {
+                        if (hash !== rows[0].password)
+                            return [false, "Invalid username or password"];
+
+            	        return [rows[0], null];
+		    });
             });
-    },
+        }).then(function(result) {
+            done(null, result[0], { message: result[1] });
+        }, function(err) {
+            done(err);
+        }).done();
+    }));
 
-    register: function(req, res, dbClient, username, password) {
+    passport.use(new GoogleOAuthStrategy({
+        clientID: GOOGLE_CLIENT_ID,
+        clientSecret: GOOGLE_CLIENT_SECRET,
+        callbackURL: THINGENGINE_ORIGIN + '/user/oauth2/google/callback'
+    }, function(accessToken, refreshToken, profile, done) {
+        // we're not using accessToken for now
+
+        db.withTransaction(function(dbClient) {
+            return model.getByGoogleAccount(dbClient, profile.id).then(function(rows) {
+                if (rows.length > 0)
+                    return rows[0];
+
+                var username = profile.username || profile.emails[0].value;
+                return model.create(dbClient, { username: username,
+                                                google_id: profile.id,
+                                                human_name: profile.displayName,
+                                                cloud_id: makeRandom(),
+                                                auth_token: makeRandom() })
+                    .then(function(user) {
+                        return EngineManager.get().startUser(user.id, user.cloud_id, user.auth_token).then(function() {
+                            return user;
+                        });
+                    });
+            });
+        }).nodeify(done);
+    }));
+
+    passport.use(new FacebookStrategy({
+        clientID: FACEBOOK_APP_ID,
+        clientSecret: FACEBOOK_APP_SECRET,
+        callbackURL: THINGENGINE_ORIGIN + '/user/oauth2/facebook/callback',
+        enableProof: true,
+        profileFields: ['id', 'displayName', 'emails']
+    }, function(accessToken, refreshToken, profile, done) {
+        // we're not using accessToken for now
+
+        db.withTransaction(function(dbClient) {
+            return model.getByFacebookAccount(dbClient, profile.id).then(function(rows) {
+                if (rows.length > 0)
+                    return rows[0];
+
+                var username = profile.username || profile.emails[0].value;
+                return model.create(dbClient, { username: username,
+                                                facebook_id: profile.id,
+                                                human_name: profile.displayName,
+                                                cloud_id: makeRandom(),
+                                                auth_token: makeRandom() })
+                    .then(function(user) {
+                        return EngineManager.get().startUser(user.id, user.cloud_id, user.auth_token).then(function() {
+                            return user;
+                        });
+                    });
+            });
+        }).nodeify(done);
+    }));
+}
+
+
+module.exports = {
+    initializePassport: initializePassport,
+
+    register: function(dbClient, username, password) {
         return model.getByName(dbClient, username).then(function(rows) {
             if (rows.length > 0)
                 throw new Error("An user with this name already exists");
@@ -63,50 +147,21 @@ module.exports = {
             var salt = makeRandom();
             var cloudId = makeRandom();
             var authToken = makeRandom();
-            return hashPasswordNew(salt, password)
+            return hashPassword(salt, password)
                 .then(function(hash) {
-                    return model.create(dbClient, username, salt, hash, cloudId, authToken);
-                })
-                .then(function(userId) {
-                    loggedIn(req, userId);
-                    return [userId, cloudId, authToken];
+                    return model.create(dbClient, {
+                        username: username,
+                        password: hash,
+                        salt: salt,
+                        cloud_id: cloudId,
+                        auth_token: authToken
+                    });
                 });
         });
     },
 
-    login: function(req, res, dbClient, username, password) {
-        return model.getByName(dbClient, username).then(function(rows) {
-            if (rows.length < 1)
-                throw new Error("An user with this username does not exist");
-
-            return hashPasswordNew(rows[0].salt, password)
-                .then(function(hash) {
-                    if (hash !== rows[0].password &&
-                        hashPasswordOld(rows[0].salt, password) !== rows[0].password)
-                        throw new Error("Invalid username or password");
-        	    loggedIn(req, rows[0].id);
-           	    req.session.username = username;
-            	    return rows[0];
-		});
-    },
-
-    logout: function(req) {
-        delete req.session.user_id;
-    },
-
-    redirectBackTo: function(url) {
-        req.session.redirect_to = req.originalUrl;
-    },
-
-    isLoggedIn: function(req, res, next) {
-        return req.session.user_id !== undefined;
-    },
-
-    /* Middleware to insert user log in page
-     * After logging in, the user will be redirected to the original page
-     */
     redirectLogIn: function(req, res, next) {
-        if (!req.session.user_id) {
+        if (!req.user) {
             req.session.redirect_to = req.originalUrl;
             res.redirect('/user/login');
         } else {

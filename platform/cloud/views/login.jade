@@ -2,7 +2,7 @@ extends layout
 
 block content
   h1 Login to ThingEngine
-  if error
+  each error in errors
     div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
       button(type='button', data-dismiss='alert', aria-label="Close").close
         span(aria-hidden='true') ×
@@ -19,6 +19,9 @@ block content
     div.form-group
       button(type='submit').btn.btn-primary Log in
 
-  p Don't have a username and password yet?
-    span= " "
+  p Don't have a username and password yet? 
     a(href='/user/register') Sign up now!
+  p
+    a.btn.btn-primary(href='/user/oauth2/google') Log In with Google
+    | 
+    a.btn.btn-primary(href='/user/oauth2/facebook') Log In with Facebook

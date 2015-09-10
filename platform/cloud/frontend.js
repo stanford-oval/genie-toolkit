@@ -1,3 +1,10 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingEngine
+//
+// Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
 
 /**
  * Module dependencies.
@@ -16,10 +23,10 @@ var session = require('express-session');
 var csurf = require('csurf');
 var errorHandler = require('errorhandler');
 var url = require('url');
+var passport = require('passport');
+var connect_flash = require('connect-flash');
 
-var index = require('./routes/index');
-var serverAPI = require('./routes/server');
-var user = require('./routes/user');
+var user = require('./util/user');
 var secretKey = require('./util/secret_key');
 
 function Frontend() {
@@ -41,6 +48,7 @@ Frontend.prototype._init = function _init() {
     this._app.use(session({ resave: false,
                             saveUninitialized: false,
                             secret: secretKey.getSecretKey(this._app) }));
+    this._app.use(connect_flash());
     this._app.use(express.static(path.join(__dirname, 'public')));
 
     // development only
@@ -48,26 +56,26 @@ Frontend.prototype._init = function _init() {
         this._app.use(errorHandler());
     }
 
-    // TODO: Fix the files
-    this._app.use(function(req, res, next){
-      if (req.session.user_id){
-        res.locals.authenticated = true;
-        console.log("Authenticated: true");
-      } else {
-        res.locals.authenticated = false;
-        console.log("Authenticated: false");
-      }
-      next();
+    this._app.use(passport.initialize());
+    this._app.use(passport.session());
+    user.initializePassport();
+    this._app.use(function(req, res, next) {
+        if (req.user) {
+            res.locals.authenticated = true;
+            res.locals.user = req.user;
+        } else {
+            res.locals.authenticated = false;
+        }
+        next();
     });
-
 
     // mount /server (API calls for server platform) before CSRF
     // as we don't need CSRF protection for that
-    this._app.use('/server', serverAPI);
+    this._app.use('/server', require('./routes/server'));
     this._app.use(csurf({ cookie: false }));
 
-    this._app.use('/', index);
-    this._app.use('/user', user);
+    this._app.use('/', require('./routes/index'));
+    this._app.use('/user', require('./routes/user'));
     require('./routes/install')(this._app);
 
     this._websocketEndpoints = {};

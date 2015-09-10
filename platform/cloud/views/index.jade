@@ -1,7 +1,7 @@
 extends layout
 
 block scripts
-  if loggedIn
+  if authenticated
     script(src='/javascripts/index.js')
 
 block content
@@ -10,9 +10,9 @@ block content
     p Welcome to ThingEngine
     p bla bla bla
 
-    if loggedIn
-      p Your Cloud ID is <samp id='cloud-id'>#{cloudId}</samp>.
-      p Your Auth Token is <samp id='auth-token'>#{authToken}</samp>.
+    if authenticated
+      p Your Cloud ID is <samp id='cloud-id'>#{user.cloud_id}</samp>.
+      p Your Auth Token is <samp id='auth-token'>#{user.auth_token}</samp>.
     else
       a.btn.btn-lg.btn-primary(href='/user/register') Register now!
       span= " "

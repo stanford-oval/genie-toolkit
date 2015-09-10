@@ -26,6 +26,11 @@
     "errorhandler": "~1.4.2",
     "url": "~0.10.3",
     "mysql": "~2.8.0",
-    "sqlite3": "~3.0.10"
+    "sqlite3": "~3.0.10",
+    "passport": "~0.3.0",
+    "passport-local": "~1.0.0",
+    "passport-google-oauth": "~0.2.0",
+    "connect-flash": "~0.1.1",
+    "passport-facebook": "~2.0.0"
   }
 }

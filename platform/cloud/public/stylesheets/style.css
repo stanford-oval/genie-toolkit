@@ -23,3 +23,7 @@ body {
 .form-inline .form-block {
     margin-bottom: 15px;
 }
+
+#navbar-login-button {
+    margin-right: 30px;
+}

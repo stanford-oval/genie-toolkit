@@ -15,3 +15,9 @@ node_modules/serve-favicon/
 node_modules/url/
 node_modules/pg/
 node_modules/mysql/
+node_modules/connect-flash/
+node_modules/passport-facebook/
+node_modules/passport-google-oauth/
+node_modules/passport-local/
+node_modules/passport/
+

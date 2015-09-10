@@ -1,25 +1,26 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingEngine
+//
+// Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
 var express = require('express');
+var passport = require('passport');
+
 var model = require('../model/user');
-var router = express.Router();
 var user = require('../util/user');
 var db = require('../util/db');
 
-router.post('/login', function(req, res, next) {
-  db.withClient(function(client) {
-    return user.login(req, res, client, req.body['username'], req.body['password'])
-      .then(function(user) {
-        res.json({ 
-          success: true,
-          cloudId: user.cloud_id,
-          authToken: user.auth_token 
-        });
-      });
-  }).catch(function(error) {
-    res.json({ 
-      success: false,
-      error: error.message 
+var router = express.Router();
+
+router.post('/login', passport.authenticate('local'), function(req, res, next) {
+    res.json({
+        success: true,
+        cloudId: user.cloud_id,
+        authToken: user.auth_token
     });
-  });
 });
 
 
