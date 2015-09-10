@@ -50,7 +50,7 @@ function main() {
 }
 
 var portNumber = 2727;
-var busInterfaceName = "edu.stanford.thingengine.bus"
+var busInterfaceName = "edu.stanford.thingengine.bus.discover"
 var advertisedName = "edu.stanford.thingengine.bus.discover"; //"edu.stanford.thingengine.bus.chat";
 var busName = "discover";
 var busObjectName = "/discoverService"
@@ -72,6 +72,7 @@ function connectToAllJoynBus(allJoynState)
     // we use the regular dbus session bus if one is available
     // this allows easy debugging with d-feet and similar tools
     var dbusAddress = process.env.DBUS_SESSION_BUS_ADDRESS;
+    dbusAddress = null;
     if (dbusAddress)
         console.log("Connect"+allJoynState.bus.connect(dbusAddress));
     else
@@ -92,8 +93,8 @@ function connectToAllJoynBus(allJoynState)
 
 function initAllJoynClient() {
     var allJoynState = new Object;
+    allJoynState.sessionMap = {};
     var discoverObject = alljoyn.BusObject(busObjectName);
-    var device = new Object;
 
     allJoynState.host = false;
     allJoynState.bus = alljoyn.BusAttachment(busName);
@@ -101,11 +102,12 @@ function initAllJoynClient() {
     allJoynState.busListener = alljoyn.BusListener(
       function(name){
         console.log("FoundAdvertisedName", name);
-        device.sessionId = allJoynState.bus.joinSession(name, portNumber, 0);
-        console.log("JoinSession "+ device.sessionId);
+        var sessionID = allJoynState.bus.joinSession(name, portNumber, 0);
+        allJoynState.sessionMap[sessionID] = sessionID;
+        console.log("!!!!!!!!!!!!!!!!!!!!!!!! JoinSession "+ sessionID);
         setTimeout(function(){
-          console.log("trying to send in session " + device.sessionId);
-          discoverObject.signal(null, device.sessionId, allJoynState.interface, discoverMessage, "Hello from client!");
+          console.log("trying to send in session " + sessionID);
+          discoverObject.signal(null, sessionID, allJoynState.interface, discoverMessage, "Hello from client!");
         }, 1);
       },
       function(name){
@@ -121,8 +123,8 @@ function initAllJoynClient() {
           console.log("AcceptSessionJoiner", port, joiner);
           return true;
       },
-      function(port, sessionId, joiner){
-        console.log("SessionJoined", port, sessionId, joiner);
+      function(port, sessionID, joiner){
+        console.log("SessionJoined", port, sessionID, joiner);
       }
     );
 
@@ -138,7 +140,7 @@ function initAllJoynClient() {
   
     connectToAllJoynBus(allJoynState);
 
-
+    /*
     // Added Chat to example
     var stdin = process.stdin;
 
@@ -160,18 +162,22 @@ function initAllJoynClient() {
       }
       // write the key to stdout all normal like
       process.stdout.write( key + '\n' );
-      // chatObject.signal(null, sessionId, inter, 'hello' );
-      console.log("device.sessionId " + device.sessionId);
+      // chatObject.signal(null, sessionID, inter, 'hello' );
       console.log("allJoynState.interface " + allJoynState.interface);
-      discoverObject.signal(null, device.sessionId, allJoynState.interface, discoverMessage, key);
+
+      for(var sessionID in allJoynState.sessionMap){
+        console.log("sessionID " + allJoynState.sessionMap[sessionID]);
+        discoverObject.signal(null, allJoynState.sessionMap[sessionID], allJoynState.interface, discoverMessage, key);
+      }
     });
+    */
 }
 
 
 function initAllJoynHost() {
   var allJoynState = new Object;
+  allJoynState.sessionMap = {};
   var discoverObject = alljoyn.BusObject(busObjectName);
-  var device = new Object;
 
   allJoynState.host = true;
   allJoynState.bus = alljoyn.BusAttachment(busName);
@@ -179,8 +185,9 @@ function initAllJoynHost() {
   allJoynState.busListener = alljoyn.BusListener(
     function(name){
       console.log("FoundAdvertisedName", name);
-      device.sessionId = allJoynState.bus.joinSession(name, portNumber, 0);
-      console.log("JoinSession "+ device.sessionId);
+      var sessionID = allJoynState.bus.joinSession(name, portNumber, 0);
+      allJoynState.sessionMap[sessionID] = sessionID;
+      console.log("!!!!!!!!!!!!!!!!!!!!!! JoinSession "+ sessionID);
     },
     function(name){
       console.log("LostAdvertisedName", name);
@@ -192,14 +199,14 @@ function initAllJoynHost() {
 
   allJoynState.sessionPortListener = alljoyn.SessionPortListener(
     function(port, joiner){
-        console.log("AcceptSessionJoiner", port, joiner);
+        console.log("##################### AcceptSessionJoiner", port, joiner);
         return port == portNumber;
     },
-    function(port, sessionId, joiner){
-      console.log("SessionJoined", port, sessionId, joiner);
-      device.sessionId = sessionId;
+    function(port, sessionID, joiner){
+      console.log("@@@@@@@@@@@@@@@@@@@@@@@ SessionJoined", port, sessionID, joiner);
+      allJoynState.sessionMap[sessionID] = sessionID;
       setTimeout(function(){
-        discoverObject.signal(null, device.sessionId, allJoynState.interface, discoverMessage, "Hello from host!");
+        discoverObject.signal(null, sessionID, allJoynState.interface, discoverMessage, "Hello from host!");
       }, 1000);
     }
   );
@@ -216,6 +223,7 @@ function initAllJoynHost() {
 
   connectToAllJoynBus(allJoynState);
 
+  /*
   // Added Chat to example
   var stdin = process.stdin;
 
@@ -237,11 +245,16 @@ function initAllJoynHost() {
     }
     // write the key to stdout all normal like
     process.stdout.write( key + '\n' );
-    // chatObject.signal(null, sessionId, inter, 'hello' );
-    console.log("device.sessionId " + device.sessionId);
+    // chatObject.signal(null, sessionID, inter, 'hello' );
+    
     console.log("allJoynState.interface " + allJoynState.interface);
-    discoverObject.signal(null, device.sessionId, allJoynState.interface, discoverMessage, key);
+    
+    for(var sessionID in allJoynState.sessionMap){
+      console.log("sessionID " + allJoynState.sessionMap[sessionID]);
+      discoverObject.signal(null, allJoynState.sessionMap[sessionID], allJoynState.interface, discoverMessage, key);
+    }
   });
+  */
 }
 
 initAllJoynClient();
