@@ -6,5 +6,12 @@
              "filter": [["number",">=",63]]},
  "action": {"channel": {"id": "pipe-mypipe"},
             "output": [["something","number","{{number}}-42"]]}
+},
+{"kind": "brannigan",
+ "name": "weather channel test",
+ "trigger": {"channel": {"id": "weather"},
+             "filter": []},
+ "action": {"channel": {"id": "logger"},
+            "output": [["something","string","{{weather}}"]]}
 }
 ]
