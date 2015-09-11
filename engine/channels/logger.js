@@ -22,20 +22,13 @@ const LoggingChannel = new lang.Class({
 
         cnt++;
         console.log('Created LoggingChannel #' + cnt);
-
-        this._timeout = -1;
     },
 
     get isSource() {
-        return true;
+        return false;
     },
     get isSink() {
         return true;
-    },
-
-    // For testing only
-    get isSupported() {
-        return platform.type === 'android';
     },
 
     sendEvent: function(event) {

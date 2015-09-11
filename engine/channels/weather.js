@@ -36,11 +36,6 @@ const WeatherChannel = new lang.Class({
         return false;
     },
 
-    // For testing only
-    get isSupported() {
-        return platform.type === 'android';
-    },
-
     _doOpen: function() {
         var channelInstance = this;
         this._timeout = setInterval(function() {
