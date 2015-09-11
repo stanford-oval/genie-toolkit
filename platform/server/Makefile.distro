@@ -14,6 +14,7 @@ all: $(built_sources)
 	make -C engine all
 	make -C frontend all
 	npm install
+	npm dedupe
 	find -name obj.target -exec rm -fr '{}' +
 	find -name .deps -exec rm -fr '{}' +
 
@@ -23,6 +24,7 @@ all-fedora: $(built_sources)
 	mkdir node_modules
 	ln -s /usr/lib/node_modules/sqlite3 node_modules/sqlite3
 	npm install
+	npm dedupe
 	find -name obj.target -exec rm -fr '{}' +
 	find -name .deps -exec rm -fr '{}' +
 

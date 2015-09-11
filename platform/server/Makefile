@@ -7,8 +7,9 @@ pwd := $(shell pwd)
 # Builds for local testing only
 # To build for packaging, see Makefile.distro
 all: platform_config.js
-	cd frontend ; npm install
+	make -C frontend all
 	npm install
+	npm dedupe
 
 platform_config.js:
 	echo "exports.PKGLIBDIR = '$(pwd)'; exports.LOCALSTATEDIR = '.';" > platform_config.js

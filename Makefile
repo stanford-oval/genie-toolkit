@@ -10,7 +10,7 @@ build-cloud: build-engine
 	make -C platform/cloud all
 
 build-android-js: build-engine
-	cd platform/android/app/src/main/assets/jxcore; npm install
+	cd platform/android/app/src/main/assets/jxcore; npm install 
 
 build-android: build-android-js
 	cd platform/android; ./gradlew build

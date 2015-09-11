@@ -4,6 +4,7 @@ localstatedir ?= /var/opt/thingengine-cloud
 
 all: platform_config.js
 	npm install
+	npm dedupe
 
 platform_config.js:
 	echo "exports.PKGLIBDIR = '$(prefix)'; exports.LOCALSTATEDIR = '$(localstatedir)';" > platform_config.js

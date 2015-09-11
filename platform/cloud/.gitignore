@@ -1,23 +1,2 @@
 platform_config.js
-node_modules/q/
-node_modules/sjcl/
-node_modules/.bin/
-node_modules/body-parser/
-node_modules/cookie-parser/
-node_modules/csurf/
-node_modules/errorhandler/
-node_modules/express-session/
-node_modules/express-ws/
-node_modules/express/
-node_modules/jade/
-node_modules/morgan/
-node_modules/serve-favicon/
-node_modules/url/
-node_modules/pg/
-node_modules/mysql/
-node_modules/connect-flash/
-node_modules/passport-facebook/
-node_modules/passport-google-oauth/
-node_modules/passport-local/
-node_modules/passport/
 
