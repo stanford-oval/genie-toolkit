@@ -7,7 +7,8 @@
   },
   "dependencies": {
     "q": "~1.4.0",
-    "sqlite3": "~3.0.10",
-    "alljoyn": "gcampax/alljoyn"
+    "sqlite3": "^3.0.8",
+    "alljoyn": "gcampax/alljoyn",
+    "posix": "~2.0.1"
   }
 }

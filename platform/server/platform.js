@@ -11,6 +11,8 @@
 const Q = require('q');
 const fs = require('fs');
 const os = require('os');
+const path = require('path');
+const posix = require('posix');
 
 const sql = require('./engine/db/sql');
 
@@ -32,20 +34,33 @@ function dropCaps() {
     process.setuid('thingengine');
 }
 
+function mkdirWithParentsSync(dir) {
+    var parent = path.dirname(dir);
+    if (!fs.existsSync(parent))
+        mkdirWithParentsSync(parent);
+
+    try {
+        fs.mkdirSync(dir);
+    } catch(e) {
+        if (e.code != 'EEXIST')
+            throw e;
+    }
+}
+
+
 function checkLocalStateDir() {
-    fs.mkdirSync(_writabledir);
-    fs.chownSync(_writabledir, 'thingengine', 'thingengine');
+    mkdirWithParentsSync(_writabledir);
+    var pw = posix.getpwnam('thingengine');
+    fs.chownSync(_writabledir, pw.uid, pw.gid);
     fs.chmodSync(_writabledir, 0700);
 }
 
 module.exports = {
     // Initialize the platform code
     // Will be called before instantiating the engine
-    init: function(test) {
-        if (test) {
-            _writabledir = process.cwd();
-        } else {
-            _writabledir = Config.LOCALSTATEDIR;
+    init: function() {
+        _writabledir = Config.LOCALSTATEDIR;
+        if (process.getuid() == 0) {
             checkLocalStateDir();
             dropCaps();
         }

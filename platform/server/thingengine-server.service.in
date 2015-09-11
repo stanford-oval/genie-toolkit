@@ -5,8 +5,10 @@
 # See COPYING for details
 
 [Unit]
-Name=thingengine.service
 Description=ThingEngine personal IoT service
 
 [Service]
-ExecStart=/usr/bin/node /opt/thingengine/main.js
+ExecStart=/usr/bin/node @pkglibdir@/main.js
+
+[Install]
+WantedBy=multi-user.target

@@ -1,39 +1,51 @@
 
-prefix ?= /usr
-libdir ?= $(prefix)/lib
-pkglibdir ?= $(libdir)/thingengine-server
-localstatedir ?= /var/lib/thingengine-server
+SUBDIRS = engine frontend
+dist_sources = package.json main.js platform.js thingengine-server.service.in
+version = 1.0.0
+pwd := $(shell pwd)
 
+# Builds for local testing only
+# To build for packaging, see Makefile.distro
 all: platform_config.js
-	cd engine ; npm install
 	cd frontend ; npm install
 	npm install
 
 platform_config.js:
-	echo "exports.PKGLIBDIR = '$(prefix)'; exports.LOCALSTATEDIR = '$(localstatedir)';" > platform_config.js
-
-SUBDIRS = engine frontend
-dist_sources = main.js platform.js
-install_sources = $(dist_sources) platform_config.js
-
-# Note the / after engine, forces symlink resolution
-install: all
-	install -m 0755 -d $(DESTDIR)$(pkglibdir)
-	for d in $(SUBDIRS) ; do cp -pr $$d/ $(DESTDIR)$(pkglibdir) ; done
-	install -m 0644 $(install_sources) $(DESTDIR)$(pkglibdir)
+	echo "exports.PKGLIBDIR = '$(pwd)'; exports.LOCALSTATEDIR = '.';" > platform_config.js
 
 clean:
-	make -C ../../engine clean
+	make -C engine clean
 	make -C frontend clean
+	#rm -fr node_modules/
 	rm -f platform_config.js
 
+# Note the / after $$d, forces symlink resolution
+dist: clean
+	rm -fr thingengine-server-$(version)/
+	mkdir thingengine-server-$(version)/
+	cp -pr debian/ thingengine-server-$(version)/
+	for d in $(SUBDIRS) ; do cp -pr $$d/ thingengine-server-$(version)/ ; done
+	cp -pr Makefile.distro thingengine-server-$(version)/Makefile
+	cp -pr $(dist_sources) thingengine-server-$(version)/
+	tar czf thingengine-server-$(version).tar.gz thingengine-server-$(version)/
+	rm -fr thingengine-server-$(version)/
+
 # Note the / after engine, forces symlink resolution
-build-debian-src: clean
-	rm -fr tmp/
-	mkdir tmp/
-	cp -pr debian/ tmp/
-	for d in $(SUBDIRS) ; do cp -pr $$d/ tmp/ ; done
-	cp -pr Makefile.debian tmp/Makefile
-	cp -pr $(dist_sources) tmp/
-	cd tmp ; debuild -S
-	rm -fr tmp/
+build-debian-src: dist
+	tar xf thingengine-server-$(version).tar.gz
+	cd thingengine-server-$(version)/ ; debuild -S
+	rm -fr thingengine-server-$(version)/
+
+rpmdefines = \
+	--define "_version $(version)" \
+	--define "_sourcedir $(pwd)" \
+	--define "_specdir $(pwd)/fedora" \
+	--define "_builddir $(pwd)/fedora" \
+	--define "_srcrpmdir $(pwd)/fedora" \
+	--define "_rpmdir $(pwd)/fedora"
+
+build-fedora-src: dist
+	rpmbuild $(rpmdefines) -bs fedora/thingengine-server.spec
+
+build-fedora: dist
+	rpmbuild $(rpmdefines) -ba fedora/thingengine-server.spec
