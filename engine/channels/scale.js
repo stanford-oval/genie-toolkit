@@ -2,9 +2,8 @@
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015 Jiaqi Xue <jiaqixue@stanford.edu>
 //
-// See COPYING for details
 
 const lang = require('lang');
 const Q = require('q');
