@@ -14,7 +14,7 @@ const BaseChannel = require('../base_channel');
 var cnt = 0;
 
 const TestChannel = new lang.Class({
-    Name: 'TestChannelch1',
+    Name: 'TestChannel',
     Extends: BaseChannel,
 
     _init: function() {
@@ -43,7 +43,6 @@ const TestChannel = new lang.Class({
     },
 
     _doOpen: function() {
-       
         setTimeout(function() {
             this.emitEvent({"number":42});
         }.bind(this), 0);
