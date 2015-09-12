@@ -76,6 +76,7 @@ Frontend.prototype._init = function _init() {
 
     this._app.use('/', require('./routes/index'));
     this._app.use('/user', require('./routes/user'));
+    this._app.use('/apps', require('./routes/apps'));
     require('./routes/install')(this._app);
 
     this._websocketEndpoints = {};

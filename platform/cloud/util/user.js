@@ -160,6 +160,15 @@ module.exports = {
         });
     },
 
+    requireLogIn: function(req, res, next) {
+        if (!req.user) {
+            res.status(401).render('login_required',
+                                   { page_title: "ThingEngine - Error" });
+        } else {
+            next();
+        }
+    },
+
     redirectLogIn: function(req, res, next) {
         if (!req.user) {
             req.session.redirect_to = req.originalUrl;

@@ -27,3 +27,7 @@ body {
 #navbar-login-button {
     margin-right: 30px;
 }
+
+.form-delete-app {
+    display:inline;
+}
