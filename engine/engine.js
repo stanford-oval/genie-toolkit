@@ -20,6 +20,7 @@ const TierManager = require('./tier_manager');
 
 const Engine = new lang.Class({
     Name: 'Engine',
+    $rpcMethods: ['get channels', 'get devices', 'get apps'],
 
     _init: function() {
         // constructor

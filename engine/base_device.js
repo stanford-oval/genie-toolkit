@@ -19,6 +19,8 @@ const DeviceAvailability = {
 module.exports = new lang.Class({
     Name: 'BaseDevice',
     Extends: events.EventEmitter,
+    $rpcMethods: ['get name', 'get uniqueId', 'get availability',
+                  'checkAvailable', 'hasKind'],
 
     _init: function(engine) {
         // EventEmitter is a node.js class not a lang class,

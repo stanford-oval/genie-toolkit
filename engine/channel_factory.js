@@ -19,6 +19,7 @@ const Tier = require('./tier_manager').Tier;
 
 module.exports = new lang.Class({
     Name: 'ChannelFactory',
+    $rpcMethods: [],
 
     _init: function(engine, tiers) {
         this._engine = engine;
