@@ -62,4 +62,100 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
     }).done();
 });
 
+function renderApp(appId, jadeView, locals, req, res, next) {
+    var jadeOptions = {};
+    for (var local in res.locals)
+        jadeOptions[local] = res.locals[local];
+    jadeOptions.user.loggedIn = true;
+    for (var local in locals)
+        jadeOptions[local] = locals[local];
+    jadeOptions.csrfToken = req.csrfToken();
+
+    // pretend the file is in views/appId/something.jade
+    // this allows the app to resolve extends from our UI
+    var fakePath = path.join(res.app.get('views'), appId, path.basename(jadeView));
+    jadeOptions.cache = true;
+    jadeOptions.filename = fakePath;
+    fs.readFile(jadeView, function(err, file) {
+        if (err)
+            return next(err);
+        try {
+            res.send(jade.render(file, jadeOptions));
+        } catch(e) {
+            return next(e);
+        }
+    });
+}
+
+function uiCommand(req, res, next, call, command) {
+    EngineManager.get().getEngine(req.user.id).then(function(engine) {
+        return engine.apps.getApp(req.params.id);
+    }).then(function(app) {
+        if (app === undefined) {
+            res.status(404).render('error', { page_title: "ThingEngine - Error",
+                                              message: "Not found." });
+            return;
+        }
+
+        return app[call](command);
+    }).then(function(output) {
+        if (output === undefined)
+            return;
+
+        if (typeof output === 'string')
+            res.send(output);
+        else
+            renderApp(req.params.id, output[0], output[1], req, res, next);
+    }).catch(function(e) {
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }).done();
+}
+
+router.get('/:id/:command', user.redirectLogIn, function(req, res, next) {
+    uiCommand(req, res, next, 'showUI', req.params.command);
+});
+
+router.post('/:id/:command', user.requireLogIn, function(req, res, next) {
+    uiCommand(req, res, next, 'postUI', req.params.command);
+});
+
+var staticCache = {};
+
+router.use('/:id/static', user.requireLogIn, function(req, res, next) {
+    var appId = req.params.id;
+
+    if (staticCache[req.user] === undefined)
+        staticCache[req.user] = {};
+
+    if (staticCache[req.user][appId] === undefined) {
+        var promise = EngineManager.get().getEngine(req.user.id).then(function(engine) {
+            return engine.apps.getApp(appId);
+        }).then(function(app) {
+            if (app !== undefined) {
+                return app.filename;
+            } else {
+                return undefined;
+            }
+        }).then(function(filename) {
+            if (filename !== undefined) {
+                var root = path.join(path.dirname(filename), 'static');
+                return express.static(root);
+            } else {
+                return null;
+            }
+        });
+        staticCache[req.user][appId] = promise;
+    }
+
+    staticCache[req.user][appId].then(function(middleware) {
+        if (middleware !== null)
+            middleware(req, res, next);
+        else
+            res.status(404).render('error', { page_title: "ThingEngine - Error",
+                                              message: "Not found." });
+    }).done();
+});
+
+
 module.exports = router;

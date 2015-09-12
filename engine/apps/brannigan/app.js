@@ -175,9 +175,9 @@ const App = new lang.Class({
     },
 
     showUI: function(command) {
-        if (command === undefined) {
+        if (command === 'show') {
             return [path.dirname(module.filename) + '/show.jade',
-                    { title: "ThingEngine - " + this.state.name,
+                    { page_title: "ThingEngine - " + this.state.name,
                       name: this.state.name, trigger: this.state.trigger,
                       action: this.state.action }];
         } else {

@@ -35,7 +35,6 @@ function main() {
         //process.on('SIGTERM', handleSignal);
 
         return Q.all([engine.open(), frontend.open()]).then(function() {
-            frontend.engineLoaded();
             engineRunning = true;
             if (earlyStop)
                 return;

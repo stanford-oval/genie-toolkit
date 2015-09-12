@@ -16,7 +16,7 @@ module.exports = new lang.Class({
     Name: 'BaseApp',
     Abstract: true,
     Extends: events.EventEmitter,
-    $rpcMethods: ['get name', 'get uniqueId', 'get currentTier',
+    $rpcMethods: ['get name', 'get filename', 'get uniqueId', 'get currentTier',
                   'get isRunning', 'get isEnabled',
                   'get isSupported', 'get allowedTiers',
                   'get requiredCapabilities', 'showUI', 'postUI'],

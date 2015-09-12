@@ -127,21 +127,37 @@ function uiCommand(req, res, next, call, command) {
         renderApp(req.params.id, output[0], output[1], req, res, next);
 }
 
-router.get('/show/:id/:command?', user.redirectLogin, function(req, res, next) {
+router.get('/:id/:command', user.redirectLogin, function(req, res, next) {
     uiCommand(req, res, next, 'showUI', req.params.command);
 });
 
-router.post('/show/:id/:command', user.requireLogin, function(req, res, next) {
+router.post('/:id/:command', user.requireLogin, function(req, res, next) {
     uiCommand(req, res, next, 'postUI', req.params.command);
 });
 
-router.initAppRouter = function(engine) {
-    engine.apps.getAllApps().forEach(function(app) {
-        if (app.filename) {
+var staticCache = {};
+
+router.use('/:id/static', user.requireLogin, function(req, res, next) {
+    var appId = req.params.id;
+
+    if (staticCache[appId] === undefined) {
+        var app = req.app.engine.apps.getApp(appId);
+
+        if (app !== undefined && app.filename) {
             var root = path.join(path.dirname(app.filename), 'static');
-            this.use('/' + app.uniqueId + '/static', express.static(root));
+            staticCache[appId] = express.static(root);
+        } else {
+            staticCache[appId] = null;
         }
-    }, this);
-};
+    }
+
+    var middleware = staticCache[appId];
+    if (middleware !== null)
+        middleware(req, res, next);
+    else
+        res.status(404).render('error', { page_title: "ThingEngine - Error",
+                                          message: "Not found." });
+});
+
 
 module.exports = router;

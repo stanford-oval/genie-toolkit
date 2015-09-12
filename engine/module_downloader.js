@@ -11,6 +11,7 @@ const Config = require('./config');
 const child_process = require('child_process');
 const https = require('https');
 const fs = require('fs');
+const path = require('path');
 const url = require('url');
 const lang = require('lang');
 const Q = require('q');

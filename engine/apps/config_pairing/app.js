@@ -6,14 +6,15 @@
 //
 // See COPYING for details
 
+const path = require('path');
 const crypto = require('crypto');
 const lang = require('lang');
 const Q = require('q');
 
-const BaseApp = require('../base_app');
-const Tier = require('../tier_manager').Tier;
-const tc = require('../tier_connections');
-const IpAddress = require('../util/ip_address');
+const BaseApp = require('../../base_app');
+const Tier = require('../../tier_manager').Tier;
+const tc = require('../../tier_connections');
+const IpAddress = require('../../util/ip_address');
 
 function getAuthToken() {
     var prefs = platform.getSharedPreferences();
@@ -45,6 +46,7 @@ const ConfigPairingApp = new lang.Class({
         this._listener = null;
 
         this.name = "Engine Configuration (system app)";
+        this.filename = module.filename;
     },
 
     _onDeviceAdded: function(device) {
@@ -252,6 +254,16 @@ const ConfigPairingApp = new lang.Class({
             this.engine.devices.removeListener('device-added', this._listener);
         this._listener = null;
         return Q();
+    },
+
+    showUI: function(command) {
+        if (command === 'show') {
+            return [path.dirname(module.filename) + '/show.jade',
+                    { page_title: "ThingEngine - " + this.name,
+                      name: this.name }];
+        } else {
+            return this.parent(command);
+        }
     }
 });
 

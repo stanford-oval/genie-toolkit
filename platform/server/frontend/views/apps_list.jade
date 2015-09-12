@@ -27,7 +27,7 @@ block content
             p This app is enabled for #{app.currentTier}.
 
         div
-          a(href="/apps/show/#{app.uniqueId}").btn.btn-primary Show
+          a(href="/apps/#{app.uniqueId}/show").btn.btn-primary Show
           | 
           form.form-inline(action="/apps/delete",method="post").form-delete-app
             input(type='hidden',name='id',value=app.uniqueId)
@@ -35,4 +35,4 @@ block content
             button(type='submit').btn.btn-danger Delete
 
   p
-    a(href="/apps/create/", role="button").btn.btn-primary Create new app
+    a(href="/apps/create", role="button").btn.btn-primary Create new app
