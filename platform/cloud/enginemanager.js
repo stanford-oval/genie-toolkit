@@ -11,11 +11,46 @@ const lang = require('lang');
 const child_process = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const net = require('net');
+const events = require('events');
+const rpc = require('transparent-rpc');
 
 const user = require('./model/user');
 const db = require('./util/db');
 
 var _instance = null;
+
+const ChildProcessSocket = new lang.Class({
+    Name: 'ChildProcessSocket',
+    Extends: events.EventEmitter,
+
+    _init: function(child) {
+        events.EventEmitter.call(this);
+
+        this._child = child;
+
+        child.on('message', function(message) {
+            if (message.type !== 'rpc')
+                return;
+
+            this.emit('data', message.data);
+        }.bind(this));
+    },
+
+    setEncoding: function() {},
+
+    end: function() {
+        this.emit('end');
+    },
+
+    close: function() {
+        this.emit('close', false);
+    },
+
+    write: function(data, encoding, callback) {
+        this._child.send({type: 'rpc', data: data }, null, callback);
+    }
+});
 
 const EngineManager = new lang.Class({
     Name: 'EngineManager',
@@ -36,11 +71,7 @@ const EngineManager = new lang.Class({
                 if (e.code !== 'EEXIST')
                     throw e;
             })
-                .then(function() {
-                    return Q.all([Q.nfcall(fs.open, './' + cloudId + '/out.log', 'a'),
-                                  Q.nfcall(fs.open, './' + cloudId + '/err.log', 'a')])
-                })
-            .spread(function(stdout, stderr) {
+            .then(function() {
                 var env = {};
                 for (var name in process.env)
                     env[name] = process.env[name];
@@ -50,10 +81,21 @@ const EngineManager = new lang.Class({
                 var child = child_process.fork(path.dirname(module.filename)
                                                + '/instance/runengine', [],
                                                { cwd: './' + cloudId,
-                                                 stdio: ['ignore',stdout,stderr],
+                                                 silent: true,
                                                  env: env });
-                fs.close(stdout);
-                fs.close(stderr);
+                child.stdin.end();
+                function output(where) {
+                    return (function(data) {
+                        var str = data.toString('utf8');
+                        str.split('\n').forEach(function(line) {
+                            var trimmed = line.trim();
+                            if (trimmed.length > 0)
+                                where('Child ' + userId + ': ' + trimmed);
+                        });
+                    });
+                }
+                child.stdout.on('data', output(console.log));
+                child.stderr.on('data', output(console.error));
 
                 child.on('error', function(error) {
                     console.error('Child with ID ' + userId + ' reported an error: ' + error);
@@ -64,7 +106,35 @@ const EngineManager = new lang.Class({
 
                     delete runningProcesses[userId];
                 });
-                runningProcesses[userId] = child;
+
+                var engineProxy = Q.defer();
+                runningProcesses[userId] = { child: child,
+                                             engine: engineProxy.promise };
+
+                // wrap child into something that looks like a Stream
+                // (readable + writable), at least as far as JsonDatagramSocket
+                // is concerned
+                var socket = new ChildProcessSocket(child);
+                var rpcSocket = new rpc.Socket(socket);
+                var rpcStub = {
+                    $rpcMethods: ['setEngine'],
+
+                    setEngine: function(engine) {
+                        console.log('Received engine from child ' + userId);
+
+                        // precache .apps, .devices, .channels instead of querying the
+                        // engine all the time, to reduce IPC latency
+                        Q.all([engine.apps, engine.devices, engine.channels]).spread(function(apps, devices, channels) {
+                            engineProxy.resolve({ apps: apps,
+                                                  devices: devices,
+                                                  channels: channels });
+                        }, function(err) {
+                            engineProxy.reject(err);
+                        });
+                    }
+                };
+                var rpcId = rpcSocket.addStub(rpcStub);
+                child.send({ type:'rpc-ready', id: rpcId });
 
                 frontend.registerWebSocketEndpoint('/ws/' + cloudId, function(req, socket, head) {
                     var saneReq = {
@@ -79,6 +149,14 @@ const EngineManager = new lang.Class({
                                 upgradeHead: head.toString('base64')}, socket);
                 });
             });
+    },
+
+    getEngine: function(userId) {
+        var process = this._runningProcesses[userId];
+        if (process === undefined)
+            throw new Error(userId + ' is not running');
+
+        return process.engine;
     },
 
     start: function() {
@@ -99,7 +177,7 @@ const EngineManager = new lang.Class({
 
     stop: function() {
         for (var userId in this._runningProcesses) {
-            var child = this._runningProcesses[userId];
+            var child = this._runningProcesses[userId].child;
             child.kill();
         }
     },

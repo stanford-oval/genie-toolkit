@@ -15,7 +15,6 @@ const fs = require('fs');
 const path = require('path');
 const WebSocket = require('ws');
 
-const JsonDatagramSocket = require('./json_datagram_socket');
 const Tier = require('./tier_manager').Tier;
 
 var _serverAgent = null;
@@ -385,10 +384,7 @@ const ServerConnection = new lang.Class({
             return Q(true);
         } else if (platform.type === 'cloud') {
             this._wsServer = new WebSocket.Server({ noServer: true, disableHixie: true });
-            process.on('message', function(message, socket) {
-                if (message.type !== 'websocket')
-                    return;
-
+            platform._getPrivateFeature('websocket-handler').set(function(message, socket) {
                 var encodedReq = message.request;
                 var req = JSON.parse((new Buffer(encodedReq, 'base64')).toString());
                 req.socket = socket;

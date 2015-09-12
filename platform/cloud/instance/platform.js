@@ -31,6 +31,8 @@ function checkLocalStateDir() {
     fs.mkdirSync(_writabledir);
 }
 
+var _websocketHandler;
+
 module.exports = {
     // Initialize the platform code
     // Will be called before instantiating the engine
@@ -53,6 +55,18 @@ module.exports = {
             _prefs.set('cloud-id', _cloudId);
         if (_prefs.get('auth-token') === undefined)
             _prefs.set('auth-token', authToken);
+
+        _websocketHandler = {
+            set: function(handler) {
+                this._handler = handler;
+            },
+            handle: function(message, socket) {
+                if (this._handler)
+                    this._handler(message, socket);
+                else
+                    socket.destroy();
+            }
+        };
 
         return sql.ensureSchema(_writabledir + '/sqlite.db',
                                 'schema.sql');
@@ -134,7 +148,12 @@ module.exports = {
 
     // For internal use only
     _getPrivateFeature: function(name) {
-        throw new Error('Invalid private feature name (what are you trying to do?)');
+        switch(name) {
+        case 'websocket-handler':
+            return _websocketHandler;
+        default:
+            throw new Error('Invalid private feature name (what are you trying to do?)');
+        }
     },
 
 };
