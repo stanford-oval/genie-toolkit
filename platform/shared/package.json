@@ -1,0 +1,16 @@
+{
+  "name": "thingengine-shared",
+  "version": "1.0.0",
+  "description": "Shared code between ThingEngine Server and Cloud",
+  "author": "Stanford IoT lab",
+  "contributors": [
+    {
+      "name": "Giovanni Campagna",
+      "email": "gcampagn@cs.stanford.edu"
+    }
+  ],
+  "dependencies": {
+    "q": "~1.4.0",
+    "jade": "~1.11.0"
+  }
+}

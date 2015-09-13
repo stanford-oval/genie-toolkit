@@ -1,3 +1,11 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingEngine
+//
+// Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
 var fs = require('fs');
 var path = require('path');
 var jade = require('jade');
@@ -5,6 +13,7 @@ var express = require('express');
 var router = express.Router();
 
 var user = require('../util/user');
+var appui = require('../../shared/util/appui');
 
 function appsList(req, res, next, message) {
     var engine = req.app.engine;
@@ -19,22 +28,20 @@ function appsList(req, res, next, message) {
     res.render('apps_list', { page_title: 'ThingEngine - installed apps',
                               message: message,
                               csrfToken: req.csrfToken(),
-                              user: { loggedIn: user.isLoggedIn(req) },
                               apps: info });
 }
 
-router.get('/', user.redirectLogin, function(req, res, next) {
+router.get('/', user.redirectLogIn, function(req, res, next) {
     appsList(req, res, next, '');
 });
 
-router.get('/create', user.redirectLogin, function(req, res, next) {
+router.get('/create', user.redirectLogIn, function(req, res, next) {
     res.render('apps_create', { page_title: 'ThingEngine - create app',
                                 csrfToken: req.csrfToken(),
-                                user: { loggedIn: user.isLoggedIn(req) }
                               });
 });
 
-router.post('/create', user.requireLogin, function(req, res, next) {
+router.post('/create', user.requireLogIn, function(req, res, next) {
     try {
         var parsed = JSON.parse(req.body['json-blob']);
         var tier = req.body.tier;
@@ -47,18 +54,16 @@ router.post('/create', user.requireLogin, function(req, res, next) {
             appsList(req, res, next, "Application successfully created");
         }).catch(function(e) {
             res.status(400).render('error', { page_title: "ThingEngine - Error",
-                                              user: { loggedIn: user.isLoggedIn(req) },
                                               message: e.message });
         }).done();
     } catch(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
-                                          user: { loggedIn: user.isLoggedIn(req) },
                                           message: e.message });
         return;
     }
 });
 
-router.post('/delete', user.requireLogin, function(req, res, next) {
+router.post('/delete', user.requireLogIn, function(req, res, next) {
     try {
         var engine = req.app.engine;
 
@@ -66,7 +71,6 @@ router.post('/delete', user.requireLogin, function(req, res, next) {
         var app = engine.apps.getApp(id);
         if (app === undefined) {
             res.status(404).render('error', { page_title: "ThingEngine - Error",
-                                              user: { loggedIn: user.isLoggedIn(req) },
                                               message: "Not found." });
             return;
         }
@@ -75,39 +79,14 @@ router.post('/delete', user.requireLogin, function(req, res, next) {
             appsList(req, res, next, "Application successfully deleted");
         }).catch(function(e) {
             res.status(400).render('error', { page_title: "ThingEngine - Error",
-                                              user: { loggedIn: user.isLoggedIn(req) },
                                               message: e.message });
         }).done();
     } catch(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
-                                          user: { loggedIn: user.isLoggedIn(req) },
                                           message: e.message });
         return;
     }
 });
-
-function renderApp(appId, jadeView, locals, req, res, next) {
-    var jadeOptions = {};
-    locals.user = { loggedIn: user.isLoggedIn(req) };
-    locals.csrfToken = req.csrfToken();
-    for (var local in locals)
-        jadeOptions[local] = locals[local];
-
-    // pretend the file is in views/appId/something.jade
-    // this allows the app to resolve extends from our UI
-    var fakePath = path.join(res.app.get('views'), appId, path.basename(jadeView));
-    jadeOptions.cache = true;
-    jadeOptions.filename = fakePath;
-    fs.readFile(jadeView, function(err, file) {
-        if (err)
-            return next(err);
-        try {
-            res.send(jade.render(file, jadeOptions));
-        } catch(e) {
-            return next(e);
-        }
-    });
-}
 
 function uiCommand(req, res, next, call, command) {
     var engine = req.app.engine;
@@ -124,20 +103,20 @@ function uiCommand(req, res, next, call, command) {
     if (typeof output === 'string')
         res.send(output);
     else
-        renderApp(req.params.id, output[0], output[1], req, res, next);
+        appui.renderApp(req.params.id, output[0], output[1], req, res, next);
 }
 
-router.get('/:id/:command', user.redirectLogin, function(req, res, next) {
+router.get('/:id/:command', user.redirectLogIn, function(req, res, next) {
     uiCommand(req, res, next, 'showUI', req.params.command);
 });
 
-router.post('/:id/:command', user.requireLogin, function(req, res, next) {
+router.post('/:id/:command', user.requireLogIn, function(req, res, next) {
     uiCommand(req, res, next, 'postUI', req.params.command);
 });
 
 var staticCache = {};
 
-router.use('/:id/static', user.requireLogin, function(req, res, next) {
+router.use('/:id/static', user.requireLogIn, function(req, res, next) {
     var appId = req.params.id;
 
     if (staticCache[appId] === undefined) {

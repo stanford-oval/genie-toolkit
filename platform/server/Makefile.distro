@@ -6,13 +6,14 @@ pkglibdir ?= $(libdir)/thingengine-server
 localstatedir ?= /var/lib/thingengine-server
 systemdsystemunitdir ?= $(prefix)/lib/systemd/system
 
-SUBDIRS = engine frontend node_modules
+SUBDIRS = engine shared frontend node_modules
 install_sources = package.json main.js platform.js platform_config.js
 built_sources = platform_config.js thingengine-server.service
 
 all: $(built_sources)
 	make -C engine all
 	make -C frontend all
+        make -C shared all
 	npm install
 	npm dedupe
 	find -name obj.target -exec rm -fr '{}' +

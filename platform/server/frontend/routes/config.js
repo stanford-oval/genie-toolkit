@@ -1,5 +1,14 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingEngine
+//
+// Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
 var Config = require('../../engine/config');
 
+var Q = require('q');
 var http = require(Config.THINGENGINE_ACCESS_MODULE);
 var url = require('url');
 var fs = require('fs');
@@ -32,12 +41,11 @@ function config(req, res, next, userData, cloudData) {
                                          address: serverAddress,
                                          extraAddresses: ipAddresses,
                                          initialSetup: authToken === undefined },
-                               user: { configured: user.isConfigured(),
-                                       loggedIn: user.isLoggedIn(req),
-                                       username: userData.username,
+                               user: { isConfigured: user.isConfigured(),
+                                       username: userData.username || req.user,
                                        password: userData.password,
                                        error: userData.error },
-                               cloud: { configured: cloudId !== undefined,
+                               cloud: { isConfigured: cloudId !== undefined,
                                         error: cloudData.error,
                                         username: cloudData.username,
                                         id: cloudId },
@@ -45,11 +53,11 @@ function config(req, res, next, userData, cloudData) {
     });
 }
 
-router.get('/', user.redirectLogin, function(req, res, next) {
+router.get('/', user.redirectLogIn, function(req, res, next) {
     config(req, res, next, {}, {}).done();
 });
 
-router.post('/set-server-password', user.requireLogin, function(req, res, next) {
+router.post('/set-server-password', user.requireLogIn, function(req, res, next) {
     var username, password;
     try {
         if (typeof req.body['username'] !== 'string' ||
@@ -74,7 +82,9 @@ router.post('/set-server-password', user.requireLogin, function(req, res, next) 
         return;
     }
 
-    user.register(req, res, username, password).then(function() {
+    user.register(username, password).then(function(user) {
+        return Q.ninvoke(req, 'login', user);
+    }).then(function() {
         res.redirect('/config');
     }).catch(function(error) {
         return config(req, res, next, { username: username,
@@ -96,7 +106,7 @@ function setCloudId(engine, cloudId, authToken) {
     return true;
 }
 
-router.post('/cloud-setup', user.requireLogin, function(req, res, next) {
+router.post('/cloud-setup', user.requireLogIn, function(req, res, next) {
     try {
         var username = req.body.username;
         if (!username)

@@ -34,15 +34,8 @@ const model = {
     }
 };
 
-function requireLogin(res) {
-    res.render('login_required', {
-        page_title: "ThingEngine - Login required" 
-    });
-}
-
-function loggedIn(req, username) {
-    req.session.username = username;
-}
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
 
 function makeRandom() {
     return crypto.randomBytes(32).toString('hex');
@@ -55,72 +48,63 @@ function hashPassword(salt, password) {
         });
 }
 
-function isLoggedIn(req) {
-    return req.session.username !== undefined;
+function initializePassport() {
+    passport.serializeUser(function(user, done) {
+        done(null, user);
+    });
+
+    passport.deserializeUser(function(user, done) {
+        done(null, user);
+    });
+
+    passport.use(new LocalStrategy(function(username, password, done) {
+        Q.try(function() {
+            try {
+                var user = model.get();
+
+                return hashPassword(user.salt, password)
+                    .then(function(hash) {
+                        if (hash !== user.password)
+                            return [false, "Invalid username or password"];
+
+            	        return [user.username, null];
+		    });
+            } catch(e) {
+                return [false, e.message];
+            }
+        }).then(function(result) {
+            done(null, result[0], { message: result[1] });
+        }, function(err) {
+            done(err);
+        }).done();
+    }));
 }
 
 module.exports = {
-    withLogin: function(req, res, handler) {
-        if (!model.isConfigured())
-            return handler(undefined);
-
-        var username = req.session.username;
-
-        if (username === undefined)
-            return requireLogin(res);
-        else
-            return handler(model.get())
-            .catch(function(error) {
-                requireLogin(res);
-            });
-    },
+    initializePassport: initializePassport,
 
     isConfigured: function() {
         return model.isConfigured();
     },
 
-    register: function(req, res, username, password) {
+    register: function(username, password) {
         var salt = makeRandom();
         return hashPassword(salt, password)
             .then(function(hash) {
                 model.set(username, salt, hash);
-                loggedIn(req, username);
                 return username;
             });
     },
-
-    login: function(req, res, username, password) {
-        return Q.try(function() {
-            return model.get();
-        }).then(function(user) {
-            if (user.username !== username)
-                throw new Error("Invalid username or password");
-
-            return hashPassword(user.salt, password)
-                .then(function(hash) {
-                    if (hash !== user.password)
-                        throw new Error("Invalid username or password");
-
-                    loggedIn(req, username);
-                    return username;
-                });
-        });
-    },
-
-    logout: function(req) {
-        delete req.session.username;
-    },
-
-    isLoggedIn: isLoggedIn,
 
     /* Middleware to check if the user is logged in before performing an
      * action. If not, the user will be redirected to an error page.
      *
      * To be used for POST actions, where redirectLogin would not work.
      */
-    requireLogin: function(req, res, next) {
-        if (model.isConfigured() && !isLoggedIn(req, res, next)) {
-            requireLogin(res);
+    requireLogIn: function(req, res, next) {
+        if (model.isConfigured() && !req.user) {
+            res.status(401).render('login_required',
+                                   { page_title: "ThingEngine - Error" });
         } else {
             next();
         }
@@ -129,8 +113,8 @@ module.exports = {
     /* Middleware to insert user log in page
      * After logging in, the user will be redirected to the original page
      */
-    redirectLogin: function(req, res, next) {
-        if (model.isConfigured() && !isLoggedIn(req, res, next)) {
+    redirectLogIn: function(req, res, next) {
+        if (model.isConfigured() && !req.user) {
             req.session.redirect_to = req.originalUrl;
             res.redirect('/user/login');
         } else {

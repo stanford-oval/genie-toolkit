@@ -13,6 +13,7 @@ var jade = require('jade');
 var express = require('express');
 
 var user = require('../util/user');
+var appui = require('../../shared/util/appui');
 var EngineManager = require('../enginemanager');
 
 var router = express.Router();
@@ -62,31 +63,6 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
     }).done();
 });
 
-function renderApp(appId, jadeView, locals, req, res, next) {
-    var jadeOptions = {};
-    for (var local in res.locals)
-        jadeOptions[local] = res.locals[local];
-    jadeOptions.user.loggedIn = true;
-    for (var local in locals)
-        jadeOptions[local] = locals[local];
-    jadeOptions.csrfToken = req.csrfToken();
-
-    // pretend the file is in views/appId/something.jade
-    // this allows the app to resolve extends from our UI
-    var fakePath = path.join(res.app.get('views'), appId, path.basename(jadeView));
-    jadeOptions.cache = true;
-    jadeOptions.filename = fakePath;
-    fs.readFile(jadeView, function(err, file) {
-        if (err)
-            return next(err);
-        try {
-            res.send(jade.render(file, jadeOptions));
-        } catch(e) {
-            return next(e);
-        }
-    });
-}
-
 function uiCommand(req, res, next, call, command) {
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         return engine.apps.getApp(req.params.id);
@@ -105,7 +81,7 @@ function uiCommand(req, res, next, call, command) {
         if (typeof output === 'string')
             res.send(output);
         else
-            renderApp(req.params.id, output[0], output[1], req, res, next);
+            appui.renderApp(req.params.id, output[0], output[1], req, res, next);
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });

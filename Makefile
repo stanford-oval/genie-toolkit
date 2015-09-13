@@ -3,10 +3,13 @@ build-all: build-server build-android
 build-engine:
 	make -C engine all
 
-build-server: build-engine
+build-shared:
+	make -C platform/shared all
+
+build-server: build-engine build-shared
 	make -C platform/server all
 
-build-cloud: build-engine
+build-cloud: build-engine build-shared
 	make -C platform/cloud all
 
 build-android-js: build-engine

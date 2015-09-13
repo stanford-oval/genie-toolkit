@@ -8,8 +8,8 @@
 
 var Q = require('q');
 var express = require('express');
-
 var passport = require('passport');
+
 var user = require('../util/user');
 var db = require('../util/db');
 
@@ -124,5 +124,6 @@ router.get('/logout', function(req, res, next) {
     req.logout();
     res.redirect('/');
 });
+
 
 module.exports = router;

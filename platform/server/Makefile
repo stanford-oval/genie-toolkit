@@ -1,5 +1,5 @@
 
-SUBDIRS = engine frontend
+SUBDIRS = engine shared frontend
 dist_sources = package.json main.js platform.js thingengine-server.service.in
 version = 1.0.0
 pwd := $(shell pwd)

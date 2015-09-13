@@ -8,7 +8,7 @@ var router = express.Router();
 var ipAddress = require('../../engine/util/ip_address');
 var user = require('../util/user');
 
-router.get('/', user.redirectLogin, function(req, res, next) {
+router.get('/', user.redirectLogIn, function(req, res, next) {
     ipAddress.getServerName().then(function(host) {
         var port = res.app.get('port');
 
@@ -22,9 +22,7 @@ router.get('/', user.redirectLogin, function(req, res, next) {
                               server: { name: name,
                                         port: port,
                                         initialSetup: authToken === undefined },
-                              cloud: { configured: cloudId !== undefined },
-                              user: { configured: user.isConfigured(),
-                                      loggedIn: user.isLoggedIn(req) } });
+                              cloud: { isConfigured: cloudId !== undefined } });
     }).done();
 });
 

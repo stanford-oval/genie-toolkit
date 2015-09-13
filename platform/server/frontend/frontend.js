@@ -16,12 +16,10 @@ var session = require('express-session');
 var csurf = require('csurf');
 var errorHandler = require('errorhandler');
 var expressWs = require('express-ws');
+var passport = require('passport');
+var connect_flash = require('connect-flash');
 
-var index = require('./routes/index');
-var apps = require('./routes/apps');
-var config = require('./routes/config');
-var user = require('./routes/user');
-
+var user = require('./util/user');
 var secretKey = require('./util/secret_key');
 
 function Frontend() {
@@ -47,6 +45,7 @@ Frontend.prototype._init = function _init() {
                           ignoreMethods: ['GET','HEAD','OPTIONS',
                                           'UPGRADE','CONNECT']
                         }));
+    this._app.use(connect_flash());
     this._app.use(express.static(path.join(__dirname, 'public')));
     expressWs(this._app);
 
@@ -56,10 +55,24 @@ Frontend.prototype._init = function _init() {
         this._app.use(errorHandler());
     }
 
-    this._app.use('/', index);
-    this._app.use('/apps', apps);
-    this._app.use('/user', user);
-    this._app.use('/config', config);
+    this._app.use(passport.initialize());
+    this._app.use(passport.session());
+    user.initializePassport();
+    this._app.use(function(req, res, next) {
+        if (req.user) {
+            res.locals.authenticated = true;
+            res.locals.user = { username: req.user, isConfigured: true };
+        } else {
+            res.locals.authenticated = false;
+            res.locals.user = { isConfigured: user.isConfigured() };
+        }
+        next();
+    });
+
+    this._app.use('/', require('./routes/index'));
+    this._app.use('/apps', require('./routes/apps'));
+    this._app.use('/user', require('./routes/user'));
+    this._app.use('/config', require('./routes/config'));
 }
 
 var server = null;

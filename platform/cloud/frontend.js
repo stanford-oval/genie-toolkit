@@ -65,6 +65,7 @@ Frontend.prototype._init = function _init() {
             res.locals.user = req.user;
         } else {
             res.locals.authenticated = false;
+            res.locals.user = { isConfigured: true };
         }
         next();
     });

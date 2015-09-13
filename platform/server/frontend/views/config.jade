@@ -20,7 +20,7 @@ block content
         p.text-danger The server is in initial setup mode and thus open to
           |  all external access. Pair your phone now!
 
-      if user.configured
+      if user.isConfigured
         p Access to this server requires a username and a password.
         p
           a.btn.btn-primary(role='button',data-toggle='collapse',href='#change-server-password',aria-expanded=(user.error != null))
@@ -87,7 +87,7 @@ block content
     div.panel-heading
       h2.panel-title Cloud
     div.panel-body
-      if cloud.configured
+      if cloud.isConfigured
         p You successfully logged in with your cloud account.
         p Your cloud ID is <samp>#{cloud.id}</samp>
       else

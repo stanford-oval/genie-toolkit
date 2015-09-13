@@ -1,0 +1,10 @@
+ul.nav.navbar-nav
+  li
+    a(class="scroller", href="/apps") Installed Apps
+
+ul.nav.navbar-nav.navbar-right
+  li
+    if authenticated
+      a.navbar-login#navbar-login-button(href='/user/logout') Log Out
+    else
+      a.navbar-login#navbar-login-button(href='/user/login') Log In
