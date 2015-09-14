@@ -49,17 +49,25 @@ module.exports = {
 
     type: 'android',
 
-    // If downloading code from the thingpedia server is allowed on
-    // this platform
-    canDownloadCode: true,
-
     // Check if this platform has the required capability
     // (eg. long running, big storage, reliable connectivity, server
     // connectivity, stable IP, local device discovery, bluetooth, etc.)
     //
     // Which capabilities are available affects which apps are allowed to run
     hasCapability: function(cap) {
-        return false;
+        switch(cap) {
+        case 'code-download':
+            // If downloading code from the thingpedia server is allowed on
+            // this platform
+            return true;
+
+        case 'android-api':
+            // We can use the Android APIs if we need to
+            return true;
+
+        default:
+            return false;
+        }
     },
 
     // Obtain a shared preference store

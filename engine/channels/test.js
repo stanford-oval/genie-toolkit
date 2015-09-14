@@ -33,11 +33,6 @@ const TestChannel = new lang.Class({
         return true;
     },
 
-    // For testing only
-    get isSupported() {
-        return platform.type === 'android';
-    },
-
     sendEvent: function(event) {
         console.log('Writing data on test channel: ' + JSON.stringify(event));
     },
@@ -48,7 +43,7 @@ const TestChannel = new lang.Class({
         }.bind(this), 0);
         this._timeout = setInterval(function() {
             var event = {"number":42 + Math.floor(Math.random() * 42)};
-            this.emitEvent(event);	
+            this.emitEvent(event);
         }.bind(this), 5000);
         return Q();
     },

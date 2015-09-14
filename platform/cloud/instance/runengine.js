@@ -51,42 +51,44 @@ function runEngine() {
     var rpcSocket;
     var earlyStop = false;
     var engineRunning = false;
+    var rpcReady = Q.defer();
+
+    function handleSignal() {
+        if (engineRunning)
+            engine.stop();
+        else
+            earlyStop = true;
+    }
+    process.on('SIGINT', handleSignal);
+    process.on('SIGTERM', handleSignal);
+
+    var socket = new ParentProcessSocket();
+    rpcSocket = new rpc.Socket(socket);
+    process.on('message', function(message, socket) {
+        switch(message.type) {
+        case 'rpc-ready':
+            rpcReady.resolve(message.id);
+            break;
+
+        case 'websocket':
+            platform._getPrivateFeature('websocket-handler')
+                .handle(message, socket);
+            break;
+
+        default:
+            break;
+        }
+    });
 
     platform.init().then(function() {
         engine = new Engine();
 
-        function handleSignal() {
-            if (engineRunning)
-                engine.stop();
-            else
-                earlyStop = true;
-        }
-        process.on('SIGINT', handleSignal);
-        process.on('SIGTERM', handleSignal);
-
-        var socket = new ParentProcessSocket();
-        rpcSocket = new rpc.Socket(socket);
-        var rpcReady = Q.defer();
-        process.on('message', function(message, socket) {
-            switch(message.type) {
-            case 'rpc-ready':
-                rpcReady.resolve(message.id);
-                break;
-
-            case 'websocket':
-                platform._getPrivateFeature('websocket-handler')
-                    .handle(message, socket);
-                break;
-
-            default:
-                break;
-            }
-        });
-        return rpcReady.promise;
-    }).then(function(rpcId) {
         return engine.open().then(function() {
             engineRunning = true;
-            rpcSocket.call(rpcId, 'setEngine', [engine]).done();
+            rpcReady.promise.then(function(rpcId) {
+                console.log('RPC channel ready');
+                rpcSocket.call(rpcId, 'setEngine', [engine]).done();
+            });
 
             if (earlyStop)
                 return;

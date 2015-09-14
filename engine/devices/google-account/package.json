@@ -1,0 +1,15 @@
+{
+  "name": "thingengine-device-google-account",
+  "version": "1.0.0",
+  "description": "Google Account support in ThingEngine",
+  "author": "Stanford IoT lab",
+  "contributors": [
+    {
+      "name": "Giovanni Campagna",
+      "email": "gcampagn@cs.stanford.edu"
+    }
+  ],
+  "main": "device.js",
+  "dependencies": {
+  }
+}

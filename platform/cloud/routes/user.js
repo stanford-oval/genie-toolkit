@@ -20,7 +20,11 @@ var EngineManager = require('../enginemanager');
 var router = express.Router();
 
 router.get('/oauth2/google', passport.authenticate('google', {
-    scope: 'openid profile email'
+    scope: (['openid','profile','email',
+             'https://www.googleapis.com/auth/fitness.activity.read',
+             'https://www.googleapis.com/auth/fitness.location.read',
+             'https://www.googleapis.com/auth/fitness.body.read']
+            .join(' '))
 }));
 router.get('/oauth2/google/callback', passport.authenticate('google'),
            function(req, res, next) {

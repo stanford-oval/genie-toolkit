@@ -17,8 +17,7 @@ module.exports = new lang.Class({
     Abstract: true,
     Extends: events.EventEmitter,
     $rpcMethods: ['get name', 'get filename', 'get uniqueId', 'get currentTier',
-                  'get isRunning', 'get isEnabled',
-                  'get isSupported', 'get allowedTiers',
+                  'get isRunning', 'get isEnabled', 'get isSupported',
                   'get requiredCapabilities', 'showUI', 'postUI'],
 
     _init: function(engine, state) {
@@ -34,7 +33,6 @@ module.exports = new lang.Class({
         this.sharedId = undefined;
         console.log("state.name is " + state.name);
         this.state = state;
-        this.name = state.name;
 
         // don't set these, they are set automatically by the engine
         this.uniqueId = undefined;
@@ -53,6 +51,14 @@ module.exports = new lang.Class({
         return this._engine;
     },
 
+    get name() {
+        return this.state.name;
+    },
+
+    get kind() {
+        return this.state.kind;
+    },
+
     get isSupported() {
         if (this._isSupported !== undefined)
             return this._isSupported;
@@ -61,13 +67,6 @@ module.exports = new lang.Class({
             return platform.hasCapability(cap);
         });
         return this._isSupported;
-    },
-
-    // default implementation runs on all tiers
-    // you should rarely need to override this, require a specific capability
-    // instead
-    get allowedTiers() {
-        return [Tier.PHONE, Tier.SERVER, Tier.CLOUD];
     },
 
     // default implementation requires no capabilities

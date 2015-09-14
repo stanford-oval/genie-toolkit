@@ -29,9 +29,8 @@ const ThingEngineDevice = new lang.Class({
     Extends: BaseDevice,
 
     _init: function(engine, state) {
-        this.parent(engine);
+        this.parent(engine, state);
 
-        this.state = state;
         this.tier = state.tier;
         // own is true if this thingengine belongs to the same user
         // as the one running the code
@@ -69,10 +68,6 @@ const ThingEngineDevice = new lang.Class({
             throw new Error('Foreign phones are not supported'); // cause we can't identify them
     },
 
-    serialize: function() {
-        return this.state;
-    },
-
     checkAvailable: function() {
         if (this.own && this.tier === this._tierManager.ownTier)
             return true;
@@ -84,8 +79,6 @@ const ThingEngineDevice = new lang.Class({
 
     hasKind: function(kind) {
         switch (kind) {
-        case 'thingengine':
-            return true;
         case 'thingengine-own':
             return this.own;
         case 'thingengine-server':
@@ -95,7 +88,7 @@ const ThingEngineDevice = new lang.Class({
         case 'thingengine-cloud':
             return this.tier === Tier.CLOUD;
         default:
-            return false;
+            return this.parent(kind);
         }
     },
 });

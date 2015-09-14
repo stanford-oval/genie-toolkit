@@ -10,7 +10,7 @@ const events = require('events');
 const lang = require('lang');
 const Q = require('q');
 
-const DeviceAvailability = {
+const Availability = {
     UNAVAILABLE: 0,
     AVAILABLE: 1,
     UNKNOWN: -1
@@ -19,32 +19,37 @@ const DeviceAvailability = {
 module.exports = new lang.Class({
     Name: 'BaseDevice',
     Extends: events.EventEmitter,
-    $rpcMethods: ['get name', 'get uniqueId', 'get availability',
+    // no $rpc for queryInterface, extension interfaces are not exported
+    $rpcMethods: ['get name', 'get uniqueId',
                   'checkAvailable', 'hasKind'],
 
-    _init: function(engine) {
+    _init: function(engine, state) {
         // EventEmitter is a node.js class not a lang class,
         // can't chain up normally
         events.EventEmitter.call(this);
 
         this._engine = engine;
-        this.availability = DeviceAvailability.UNKNOWN;
-
-        this._channels = {};
 
         // Set this to a device specific ID plus something unique
         // (eg "bluetooth-aa-bb-cc-dd-ee-ff") so that no other device
         // can possibly have the same ID
         // If you leave it undefined, DeviceDatabase will pick for you
         this.uniqueId = undefined;
+
+        this.state = state;
     },
 
     updateState: function(state) {
-        // nothing to do here by default
+        // nothing to do here by default, except for updating the state
+        // pointer
+        // subclasses can override if they need to do anything about it
+        this.state;
     },
 
     serialize: function() {
-        throw new Error('Not implemented');
+        if (!this.state)
+            throw new Error('Device lost state, cannot serialize');
+        return this.state;
     },
 
     get engine() {
@@ -60,7 +65,7 @@ module.exports = new lang.Class({
     // (ie, on, working, reachable on the local network, etc.)
     // Returns a promise of the device availability
     checkAvailable: function() {
-        return Q(DeviceAvailability.UNKNOWN);
+        return Q(Availability.UNKNOWN);
     },
 
     // Check if this device corresponds to the abstract kind "kind",
@@ -72,7 +77,10 @@ module.exports = new lang.Class({
     // the kind without the interface if instantiated in the wrong
     // platform
     hasKind: function(kind) {
-        return false;
+        if (this.state)
+            return kind === this.state.kind;
+        else
+            return false;
     },
 
     // Request an extension interface for this device
@@ -89,17 +97,7 @@ module.exports = new lang.Class({
     queryInterface: function() {
         // no extension interfaces for this device class
         return null;
-    },
-
-    // Asynchronously get a channel for the device with the given id
-    getChannel: function(id) {
-        if (id in this._channels)
-            return Q(this._channels[id]);
-
-        return this._engine.channels.createDeviceChannel(id, device).then(function(channel) {
-            return this._channels[id] = channel;
-        });
-    },
+    }
 });
 
-module.exports.DeviceAvailability = DeviceAvailability;
+module.exports.Availability = Availability;

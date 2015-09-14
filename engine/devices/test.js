@@ -17,37 +17,30 @@ const TestDevice = new lang.Class({
     Name: 'TestDevice',
     Extends: BaseDevice,
 
-    _init: function(engine, hwAddress, host, port) {
-        if (isNaN(port))
-            throw new TypeError('Invalid port number ' + port);
+    _init: function(engine, state) {
+        this.parent(engine, state);
 
-        this.parent(engine);
+        this.host = state.host;
+        this.port = state.port;
 
-        this.host = host;
-        this.port = port;
-        this.hwAddress = hwAddress;
+        if (typeof state.port != 'number' || isNaN(state.port))
+            throw new TypeError('Invalid port number ' + state.port);
+
+        this.hwAddress = state.hwAddress;
 
         this.uniqueId = 'test-device-' + hwAddress.replace(/:/g,'-');
-    },
-
-    serialize: function() {
-        return {kind:'test', host: this.host, port: this.port,
-                hwAddress: this.hwAddress};
     },
 
     // we live on the public Internet!
     // ...or not
     // doesn't really matter
     checkAvailable: function() {
-        return true;
+        return Q(BaseDevice.Availability.AVAILABLE);
     },
 });
 
-function createDevice(engine, serializedDevice) {
-    return new TestDevice(engine,
-                          serializedDevice.hwAddress,
-                          serializedDevice.host,
-                          parseInt(serializedDevice.port));
+function createDevice(engine, state) {
+    return new TestDevice(engine, state);
 }
 
 module.exports.createDevice = createDevice;

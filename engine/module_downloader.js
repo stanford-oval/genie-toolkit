@@ -97,7 +97,7 @@ module.exports = new lang.Class({
         module = this._createModuleFromCache(id);
         if (module)
             return Q(module);
-        if (!platform.canDownloadCode)
+        if (!platform.hasCapability('code-download'))
             throw new Error('Code download is not allowed on this platform');
 
         var cachePath = platform.getCacheDir() + '/channels/';

@@ -86,7 +86,7 @@ const Engine = new lang.Class({
         return a.start().then(function() {
             a.isRunning = true;
             console.log('App ' + a.uniqueId  + ' started');
-        }.bind(this)).timeout(30000, 'Timed out').catch(function(e) {
+        }).timeout(30000, 'Timed out').catch(function(e) {
             console.error('App failed to start: ' + e);
             console.error(e.stack);
         });
@@ -106,9 +106,9 @@ const Engine = new lang.Class({
 
     _onAppChanged: function(a) {
         if (a.isRunning && !a.isEnabled)
-            this._stopOneApp(a);
+            this._stopOneApp(a).done();
         else if (a.isEnabled && !a.isRunning)
-            this._startOneApp(a);
+            this._startOneApp(a).done();
     },
 
     _startAllApps: function() {

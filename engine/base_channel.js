@@ -40,13 +40,6 @@ module.exports = new lang.Class({
         return this._isSupported;
     },
 
-    // default implementation runs on all tiers
-    // you should rarely need to override this, require a specific capability
-    // instead
-    get allowedTiers() {
-        return [Tier.PHONE, Tier.SERVER, Tier.CLOUD];
-    },
-
     // default implementation requires no capabilities
     get requiredCapabilities() {
         return [];

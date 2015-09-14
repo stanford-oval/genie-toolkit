@@ -75,7 +75,7 @@ module.exports = new lang.Class({
             var channel = factory.createChannel.apply(factory, [this._engine].concat(args));
             channel.uniqueId = fullId;
 
-            if (!channel.isSupported || channel.allowedTiers.indexOf(this._tierManager.ownTier) < 0) {
+            if (!channel.isSupported) {
                 // uh oh! channel does not work, try with a proxy channel
                 if (useProxy) {
                     return this._getProxyChannel(channel, args);

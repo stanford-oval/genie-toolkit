@@ -98,6 +98,13 @@ function initializePassport() {
                                                 auth_token: makeRandom() })
                     .then(function(user) {
                         return EngineManager.get().startUser(user.id, user.cloud_id, user.auth_token).then(function() {
+                            // asynchronously inject google-account device
+                            EngineManager.get().getEngine(user.id).then(function(engine) {
+                                return engine.devices.loadOneDevice({ kind: 'google-account',
+                                                                      profileId: profile.id,
+                                                                      accessToken: accessToken }, true);
+                            }).done();
+
                             return user;
                         });
                     });

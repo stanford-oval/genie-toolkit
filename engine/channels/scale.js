@@ -36,11 +36,6 @@ const ScaleChannel = new lang.Class({
         return false;
     },
 
-    // For testing only
-    get isSupported() {
-        return platform.type === 'android';
-    },
-
     _doOpen: function() {
         var channelInstance = this;
         this._timeout = setInterval(function() {
@@ -54,7 +49,7 @@ const ScaleChannel = new lang.Class({
                 var event =  {measurement: "time measured: " + date + ", weight: " + weight + " Kg"};
                 channelInstance.emitEvent(event);
             });
-           
+
         }.bind(this), 5000);
         return Q();
     },
