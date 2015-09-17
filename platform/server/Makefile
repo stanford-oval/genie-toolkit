@@ -1,6 +1,6 @@
 
 SUBDIRS = engine shared frontend
-dist_sources = package.json main.js platform.js thingengine-server.service.in
+dist_sources = package.json main.js platform.js thingengine-server.service.in device_discovery.js
 version = 1.0.0
 pwd := $(shell pwd)
 
