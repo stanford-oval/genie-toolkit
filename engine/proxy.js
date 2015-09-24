@@ -67,8 +67,8 @@ const ChannelStub = new lang.Class({
 
     // called when the inner channel produced some data, we want to send it
     // back to whoever asked for us
-    _handleEvent: function(data) {
-        this._proxyManager.sendSourceEvent(this._targetTier, this._innerChannel.uniqueId, data);
+    _handleEvent: function(data, edge) {
+        this._proxyManager.sendSourceEvent(this._targetTier, this._innerChannel.uniqueId, data, edge);
     },
 
     // called when whoever asked for us is requesting to push some data into
@@ -79,13 +79,13 @@ const ChannelStub = new lang.Class({
 
     open: function() {
         this._listener = this._handleEvent.bind(this);
-        this._innerChannel.on('event', this._listener);
+        this._innerChannel.on('data', this._listener);
 
         return this._innerChannel.open();
     },
 
     close: function() {
-        this._innerChannel.removeListener('event', this._listener);
+        this._innerChannel.removeListener('data', this._listener);
         return this._innerChannel.close();
     },
 });
@@ -127,7 +127,7 @@ module.exports = new lang.Class({
             this._channelReady(fromTier, msg.channelId, msg.result);
             return;
         case 'channel-source-data':
-            this._channelSourceData(fromTier, msg.channelId, msg.data);
+            this._channelSourceData(fromTier, msg.channelId, msg.data, msg.edge);
             return;
         case 'channel-sink-data':
             this._channelSinkData(fromTier, msg.channelId, msg.data);
@@ -143,8 +143,8 @@ module.exports = new lang.Class({
         this._tierManager.sendTo(targetTier, msg);
     },
 
-    sendSourceEvent: function(targetTier, targetChannelId, data) {
-        this._sendMessage(targetTier, {op:'channel-source-data', channelId: targetChannelId,data:data});
+    sendSourceEvent: function(targetTier, targetChannelId, data, edge) {
+        this._sendMessage(targetTier, {op:'channel-source-data', channelId: targetChannelId,data:data,edge:edge});
     },
 
     sendSinkEvent: function(targetTier, targetChannelId, data) {
@@ -250,7 +250,7 @@ module.exports = new lang.Class({
         try {
             // marshal args into something that we can send on the wire
             var devices = this._devices;
-            var args = [false].concat(marshalledArgs.map(function(arg) {
+            var args = marshalledArgs.map(function(arg) {
                 if (typeof arg !== 'object')
                     return arg;
                 if (arg === null)
@@ -258,9 +258,9 @@ module.exports = new lang.Class({
                 if (arg.class === 'device')
                     return devices.getDevice(arg.uniqueId);
                 throw new Error('Cannot unmarshal object of class ' + arg.class);
-            }));
+            });
 
-            this._channels._getChannelInternal.apply(this._channels, args).then(function(channel) {
+            this._channels._getChannelInternal(false, args).then(function(channel) {
                 var stub = new ChannelStub(this, fromTier, channel);
                 return stub.open().then(function() {
                     defer.resolve(stub);
@@ -305,7 +305,7 @@ module.exports = new lang.Class({
             defer.reject(new Error(result));
     },
 
-    _channelSourceData: function(fromTier, targetChannelId, data) {
+    _channelSourceData: function(fromTier, targetChannelId, data, edge) {
         var fullId = targetChannelId + '-' + fromTier;
 
         if (!(fullId in this._proxies)) {
@@ -319,7 +319,7 @@ module.exports = new lang.Class({
             return;
         }
 
-        proxy.emitEvent(data);
+        proxy.emitEvent(data, edge);
     },
 
     _channelSinkData: function(fromTier, targetChannelId, data) {

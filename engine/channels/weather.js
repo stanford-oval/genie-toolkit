@@ -42,20 +42,19 @@ const WeatherChannel = new lang.Class({
             httpGetAsync(url , function(response) {
                 parseString(response, function( err, result) {
                 //console.log(JSON.stringify(result.weatherdata['product'][0].time[0], null, 1));
-                var temp = result.weatherdata['product'][0].time[0];
-                var temperature = temp.location[0].temperature[0].$.value;
-                var humidity = temp.location[0].humidity[0].$.value;
-                var event =  {weather: "temerature: " + temperature + ", humidity: " + humidity};
-                /*
-                {temperature: "",
-                 humidity: "",
-                 overall:"sunny/rainy/cloudy"}
-                 */
-                console.log("temp: " , event);
-                channelInstance.emitEvent(event);
+                    var temp = result.weatherdata['product'][0].time[0];
+                    var temperature = temp.location[0].temperature[0].$.value;
+                    var humidity = temp.location[0].humidity[0].$.value;
+                    var event = {temperature: temperature, humidity: humidity};
+                    /*
+                      {temperature: "",
+                      humidity: "",
+                      overall:"sunny/rainy/cloudy"}
+                    */
+                    channelInstance.emitEvent(event, false);
                 });
             });
-           
+
         }.bind(this), 5000);
         return Q();
     },

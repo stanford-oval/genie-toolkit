@@ -48,3 +48,7 @@ body {
 .form-delete-app {
     display:inline;
 }
+
+#code {
+    height: 20em;
+}

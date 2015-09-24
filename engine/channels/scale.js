@@ -47,7 +47,7 @@ const ScaleChannel = new lang.Class({
                 var date = new Date(0); // The 0 there is the key, which sets the date to the epoch
                 date.setUTCSeconds(utcSeconds);
                 var event =  {measurement: "time measured: " + date + ", weight: " + weight + " Kg"};
-                channelInstance.emitEvent(event);
+                channelInstance.emitEvent(event, false);
             });
 
         }.bind(this), 5000);

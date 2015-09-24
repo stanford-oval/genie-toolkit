@@ -6,14 +6,11 @@
 //
 // See COPYING for details
 
-var fs = require('fs');
-var path = require('path');
-var jade = require('jade');
 var express = require('express');
 var router = express.Router();
 
 var user = require('../util/user');
-var appui = require('../../shared/util/appui');
+var AppGrammar = require('../../engine/app_grammar');
 
 function appsList(req, res, next, message) {
     var engine = req.app.engine;
@@ -43,14 +40,15 @@ router.get('/create', user.redirectLogIn, function(req, res, next) {
 
 router.post('/create', user.requireLogIn, function(req, res, next) {
     try {
-        var parsed = JSON.parse(req.body['json-blob']);
+        var code = req.body['code'];
+        var parsed = AppGrammar.parse(code);
         var tier = req.body.tier;
         if (tier !== 'server' && tier !== 'cloud' && tier !== 'phone')
             throw new Error('No such tier ' + tier);
 
         var engine = req.app.engine;
 
-        engine.apps.loadOneApp(parsed, tier, true).then(function() {
+        engine.apps.loadOneApp(code, {}, undefined, tier, true).then(function() {
             appsList(req, res, next, "Application successfully created");
         }).catch(function(e) {
             res.status(400).render('error', { page_title: "ThingEngine - Error",
@@ -79,64 +77,47 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
             appsList(req, res, next, "Application successfully deleted");
         }).catch(function(e) {
             res.status(400).render('error', { page_title: "ThingEngine - Error",
-                                              message: e.message });
+                                              message: e.message + '\n' + e.stack });
         }).done();
     } catch(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
-                                          message: e.message });
+                                          message: e.message + '\n' + e.stack });
         return;
     }
 });
 
-function uiCommand(req, res, next, call, command) {
+router.get('/:id/show', user.redirectLogIn, function(req, res, next) {
     var engine = req.app.engine;
 
     var app = engine.apps.getApp(req.params.id);
     if (app === undefined) {
         res.status(404).render('error', { page_title: "ThingEngine - Error",
-                                          user: { loggedIn: user.isLoggedIn(req) },
                                           message: "Not found." });
         return;
     }
 
-    var output = app[call](command);
-    if (typeof output === 'string')
-        res.send(output);
-    else
-        appui.renderApp(req.params.id, output[0], output[1], req, res, next);
-}
-
-router.get('/:id/:command', user.redirectLogIn, function(req, res, next) {
-    uiCommand(req, res, next, 'showUI', req.params.command);
+    return res.render('show_app', { page_title: "ThingEngine App",
+                                    name: app.name || "Some app",
+                                    description: app.description || '',
+                                    csrfToken: req.csrfToken(),
+                                    code: app.code,
+                                    settings: app.settings,
+                                    state: app.state });
 });
 
-router.post('/:id/:command', user.requireLogIn, function(req, res, next) {
-    uiCommand(req, res, next, 'postUI', req.params.command);
-});
+router.post('/:id/update', user.requireLogIn, function(req, res, next) {
+    var engine = req.app.engine;
 
-var staticCache = {};
-
-router.use('/:id/static', user.requireLogIn, function(req, res, next) {
-    var appId = req.params.id;
-
-    if (staticCache[appId] === undefined) {
-        var app = req.app.engine.apps.getApp(appId);
-
-        if (app !== undefined && app.filename) {
-            var root = path.join(path.dirname(app.filename), 'static');
-            staticCache[appId] = express.static(root);
-        } else {
-            staticCache[appId] = null;
-        }
-    }
-
-    var middleware = staticCache[appId];
-    if (middleware !== null)
-        middleware(req, res, next);
-    else
+    var app = engine.apps.getApp(req.params.id);
+    if (app === undefined) {
         res.status(404).render('error', { page_title: "ThingEngine - Error",
                                           message: "Not found." });
-});
+        return;
+    }
 
+    // do something
+    res.status(500).render('error', { page_title: "ThingEngine - Error",
+                                      message: "Broken." });
+});
 
 module.exports = router;

@@ -13,16 +13,18 @@ const BaseChannel = require('../base_channel');
 
 var cnt = 0;
 
-const TestChannel = new lang.Class({
-    Name: 'TestChannel',
+const TimerChannel = new lang.Class({
+    Name: 'TimerChannel',
     Extends: BaseChannel,
 
-    _init: function() {
+    _init: function(interval) {
         this.parent();
 
         cnt++;
         console.log('Created Test channel #' + cnt);
 
+        // convert from s to ms
+        this._interval = interval * 1000;
         this._timeout = -1;
     },
 
@@ -30,21 +32,14 @@ const TestChannel = new lang.Class({
         return true;
     },
     get isSink() {
-        return true;
-    },
-
-    sendEvent: function(event) {
-        console.log('Writing data on test channel: ' + JSON.stringify(event));
+        return false;
     },
 
     _doOpen: function() {
-        setTimeout(function() {
-            this.emitEvent({"number":42}, true);
-        }.bind(this), 0);
         this._timeout = setInterval(function() {
-            var event = {"number":42 + Math.floor(Math.random() * 42)};
+            var event = {"now": new Date};
             this.emitEvent(event, true);
-        }.bind(this), 5000);
+        }.bind(this), this._interval);
         return Q();
     },
 
@@ -55,8 +50,8 @@ const TestChannel = new lang.Class({
     }
 });
 
-function createChannel() {
-    return new TestChannel();
+function createChannel(engine, timeout) {
+    return new TimerChannel(timeout);
 }
 
 module.exports.createChannel = createChannel;

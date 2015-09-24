@@ -40,7 +40,7 @@ module.exports = new lang.Class({
         });
     },
 
-    load: function() {
+    start: function() {
         this._objectAddedHandler = this._onObjectAdded.bind(this);
         this._objectDeletedHandler = this._onObjectDeleted.bind(this);
 
@@ -77,8 +77,7 @@ module.exports = new lang.Class({
             this.emit('device-removed', device);
     },
 
-    save: function() {
-        // database is always saved, nothing to do here
+    stop: function() {
         this._syncdb.close();
     },
 

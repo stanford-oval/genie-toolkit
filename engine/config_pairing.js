@@ -11,10 +11,9 @@ const crypto = require('crypto');
 const lang = require('lang');
 const Q = require('q');
 
-const BaseApp = require('../../base_app');
-const Tier = require('../../tier_manager').Tier;
-const tc = require('../../tier_connections');
-const IpAddress = require('../../util/ip_address');
+const Tier = require('./tier_manager').Tier;
+const tc = require('./tier_connections');
+const IpAddress = require('./util/ip_address');
 
 function getAuthToken() {
     var prefs = platform.getSharedPreferences();
@@ -27,26 +26,14 @@ function getAuthToken() {
     return authToken;
 }
 
-// 'config-pairing' is an app whose purpose is to do peridic maintenance
-// of the device database, making sure that a thingengine-own-* device
-// exists for every tier, and a tier connection exists for all thingengine-own-*
-// devices
-const ConfigPairingApp = new lang.Class({
-    Name: 'ConfigPairingApp',
-    Extends: BaseApp,
+module.exports = new lang.Class({
+    Name: 'ConfigPairingModule',
 
-    // no cached state, this app manipulates the engine settings
-    _init: function(engine, state) {
-        this.parent(engine, state);
-
-        // This is a built-in app so we're allowed some
-        // "friendly" API access
-        this._tierManager = engine._tiers;
+    _init: function(engine, tierManager) {
+        this._engine = engine;
+        this._tierManager = tierManager;
 
         this._listener = null;
-
-        this.name = "Engine Configuration (system app)";
-        this.filename = module.filename;
     },
 
     _onDeviceAdded: function(device) {
@@ -205,14 +192,14 @@ const ConfigPairingApp = new lang.Class({
     },
 
     _addPhoneToDB: function() {
-        return this.engine.devices.loadOneDevice({ kind: 'thingengine',
+        return this._engine.devices.loadOneDevice({ kind: 'thingengine',
                                                    tier: Tier.PHONE,
                                                    own: true }, true);
     },
 
     _addServerToDB: function() {
         return IpAddress.getServerName().then(function(host) {
-            return this.engine.devices.loadOneDevice({ kind: 'thingengine',
+            return this._engine.devices.loadOneDevice({ kind: 'thingengine',
                                                        tier: Tier.SERVER,
                                                        host: host,
                                                        port: 3000, // FIXME: hardcoded
@@ -222,7 +209,7 @@ const ConfigPairingApp = new lang.Class({
 
     _addCloudToDB: function() {
         var prefs = platform.getSharedPreferences();
-        return this.engine.devices.loadOneDevice({ kind: 'thingengine',
+        return this._engine.devices.loadOneDevice({ kind: 'thingengine',
                                                    tier: Tier.CLOUD,
                                                    cloudId: prefs.get('cloud-id'),
                                                    own: true }, true);
@@ -240,10 +227,10 @@ const ConfigPairingApp = new lang.Class({
     start: function() {
         // Start watching for changes to the device database
         this._listener = this._onDeviceAdded.bind(this);
-        this.engine.devices.on('device-added', this._listener);
+        this._engine.devices.on('device-added', this._listener);
 
         // Make sure that whatever we're running on is in the db
-        if (!this.engine.devices.hasDevice('thingengine-own-' + this._tierManager.ownTier))
+        if (!this._engine.devices.hasDevice('thingengine-own-' + this._tierManager.ownTier))
             return this._addSelfToDB();
         else
             return Q();
@@ -251,24 +238,9 @@ const ConfigPairingApp = new lang.Class({
 
     stop: function() {
         if (this._listener != null)
-            this.engine.devices.removeListener('device-added', this._listener);
+            this._engine.devices.removeListener('device-added', this._listener);
         this._listener = null;
         return Q();
     },
-
-    showUI: function(command) {
-        if (command === 'show') {
-            return [path.dirname(module.filename) + '/show.jade',
-                    { page_title: "ThingEngine - " + this.name,
-                      name: this.name }];
-        } else {
-            return this.parent(command);
-        }
-    }
 });
 
-function createApp(engine, state) {
-    return new ConfigPairingApp(engine, state);
-}
-
-module.exports.createApp = createApp;

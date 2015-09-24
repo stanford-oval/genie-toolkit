@@ -11,12 +11,12 @@ require('./polyfill');
 const Q = require('q');
 const lang = require('lang');
 
-const AppFactory = require('./app_factory');
 const AppDatabase = require('./db/apps');
 const ChannelFactory = require('./channel_factory');
 const DeviceFactory = require('./device_factory');
 const DeviceDatabase = require('./db/devices');
 const TierManager = require('./tier_manager');
+const ConfigPairingModule = require('./config_pairing');
 
 const Engine = new lang.Class({
     Name: 'Engine',
@@ -29,8 +29,14 @@ const Engine = new lang.Class({
         this._devices = new DeviceDatabase(this._tiers,
                                            new DeviceFactory(this));
         this._channels = new ChannelFactory(this, this._tiers);
-        this._apps = new AppDatabase(this._tiers,
-                                     new AppFactory(this));
+        this._apps = new AppDatabase(this, this._tiers);
+
+        // in loading order
+        this._modules = [this._tiers,
+                         this._devices,
+                         this._channels,
+                         this._apps,
+                         new ConfigPairingModule(this, this._tiers)];
 
         this._running = false;
         this._stopCallback = null;
@@ -49,32 +55,41 @@ const Engine = new lang.Class({
         return this._apps;
     },
 
-    // Run sequential DB initialization (downloading any app code if needed)
+    // Run sequential initialization
     open: function() {
-        return this._tiers.open()
-            .then(function() {
-                this._channels.load()
-            }.bind(this))
-            .then(function() {
-                return this._devices.load();
-            }.bind(this))
-            .then(function() {
-                return this._apps.load();
-            }.bind(this))
-            .then(function() {
-                console.log('Engine started');
+        function open(modules, i) {
+            if (i == modules.length)
+                return;
+
+            return modules[i].start().then(function() {
+                return open(modules, i+1);
             });
+        }
+
+        return open(this._modules, 0).then(function() {
+            console.log('Engine started');
+        });
     },
 
-    _collectEventSources: function() {
-        var sources = [];
+    // Run any sequential closing operation on the engine
+    // (such as saving databases)
+    // Will not be called if start() fails
+    //
+    // It can be called multiple times, in which case it has
+    // no effect
+    close: function() {
+        function close(modules, i) {
+            if (i < 0);
+                return;
 
-        this._rules.getAllRules().forEach(function(rule) {
-            sources.concat(rule.getEventSources());
+            return modules[i].stop().then(function() {
+                return close(modules, i-1);
+            });
+        }
+
+        return close(this._modules, this._modules.length-1).then(function() {
+            console.log('Engine closed');
         });
-
-        sources.push(this._stopFlag);
-        return sources;
     },
 
     _startOneApp: function(a) {
@@ -159,25 +174,6 @@ const Engine = new lang.Class({
         if (this._stopCallback)
             this._stopCallback();
     },
-
-    // Run any sequential closing operation on the engine
-    // (such as saving databases)
-    // Will not be called if start() fails
-    //
-    // It can be called multiple times, in which case it has
-    // no effect
-    close: function() {
-        return this._tiers.close()
-            .then(function() {
-                return this._devices.save()
-            }.bind(this))
-            .then(function() {
-                return this._apps.save();
-            }.bind(this))
-            .then(function() {
-                console.log('Engine closed');
-            });
-    }
 });
 
 module.exports = Engine;

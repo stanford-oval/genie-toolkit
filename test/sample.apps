@@ -1,0 +1,156 @@
+/* -*- mode: css -*- */
+/* This should not run directly, but it gives an idea of the syntax */
+/* They should all at least parse successfully. */
+
+@name "Test";
+@description "A test application";
+
+:test as test {}
+=>
+:logger {
+    message: "Test App received an event on Test Channel";
+}
+
+====
+
+@name "Weather";
+@description "Observe weather predictions and log them";
+
+:weather as weather {}
+=>
+:logger {
+    message: "Weather forecast. Temperature " weather.temperature ", "
+             "humidity " weather.humidity ;
+}
+
+====
+
+@name "SmartThings example";
+@description "When everyone leaves, turn the lights off. This is the example in the SmartThings documentation.";
+
+all .person.location {
+    distance(location, #home.location) > 50m;
+}
+=>
+.light.livingroom {
+    power: off;
+}
+
+====
+
+/* A bunch of examples from the ThingPedia website */
+
+@name "Remind me to take pills";
+
+:timer(1day) {}
+=>
+:notify {
+    message: "Did you take your pills?";
+}
+
+====
+
+@name "Call Doctor if Blood Pressure over 139/89mmHg";
+
+.blood-pressure {
+    high-pressure > 139mmHg;
+    low-pressure > 89mmHg;
+}
+=>
+:call {
+    number: "555-DOCTOR";
+}
+
+====
+
+@name "Call a Taxi if there is a storm";
+
+:weather {
+    forecast ~= "storm";
+}
+=>
+:call {
+    number: "555-TAXI";
+}
+
+====
+
+@name "Turn on Lights at Dusk";
+
+:calendar-time("6pm") { }
+=>
+.light {
+    power: on;
+}
+
+====
+
+@name "Send a Tweet if the Weather's Good";
+
+:weather {
+    forecast ~= "sun";
+}
+=>
+/* NOTE: twitter is an account, aka a device, so .twitter, not :twitter!
+ This sends the tweet through all accounts, if one needs a specific account
+ it can be specified with #twitter-XXXXXX where XXXXX is the account ID.
+ */
+.twitter {
+    tweet: "It's always sunny in Philadelphia";
+}
+
+====
+
+@name "Send me a Text when my Credit Card gets charged";
+
+.credit-card:charged as charge {
+    amount > 25usd;
+}
+=>
+:sms {
+    to: "555-MY-NUMBER";
+    message: "You just paid " charge.amount " $ to someone";
+}
+
+====
+
+@name "Send me a notification when my stock goes up";
+
+.stock {
+    /* < -1% would say when it goes down */
+    delta-increase > 1%;
+}
+=>
+:notify {
+    message: "You're making money";
+}
+
+====
+
+@name "Share my activity when I work out";
+
+/* Like the twitter case, this watches all configured google accounts */
+.google-account:new-fit-activity { }
+=>
+.instagram {
+    post: selfie(#camera-front1);
+}
+
+====
+
+@name "Call My number when Fido is lost";
+
+/* 'fido' is a custom tag applied to Fido's tracker. One can't really
+   use #something (unless generating the rule automatically) because
+   likely that would be #uuid-random-garbage.
+   Technically, this means that if one has two dogs, both tagged as Fido,
+   both would trigger the action. I'm not sure that's necessarily wrong
+   though.
+*/
+.dog.fido:location {
+    distance(location, #home.location) > 5km;
+}
+=>
+:call {
+    number: "555-MY-NUMBER";
+}

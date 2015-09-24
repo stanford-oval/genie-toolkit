@@ -5,8 +5,8 @@ block content
   form(action="/apps/create", method="post")
     input(type='hidden',name='_csrf',value=csrfToken)
     div.form-group
-      label(for="json-blob").control-label Rule
-      textarea#json-blob(name="json-blob", placeholder="Paste here JSON rule").form-control
+      label(for="code").control-label Code
+      textarea#code(name="code", placeholder="Paste code here").form-control
 
     p.form-group
       label.control-label(for="tier") Run in: 

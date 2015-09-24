@@ -31,11 +31,15 @@ module.exports = new lang.Class({
         this._pipeManager = new PipeManager(tiers, this._proxyManager);
     },
 
-    load: function() {
+    start: function() {
         return Q();
     },
 
-    _getProxyChannel: function(forChannel, args) {
+    stop: function() {
+        return Q();
+    },
+
+    _getProxyChannel: function(forChannel, kind, args) {
         // FINISHME!! Be smarter in choosing where to run this channel
         // (and factor CLOUD in the decision)
 
@@ -45,40 +49,41 @@ module.exports = new lang.Class({
         else
             targetTier = Tier.PHONE;
 
-        return this._proxyManager.getProxyChannel(forChannel, targetTier, args);
+        return this._proxyManager.getProxyChannel(forChannel, targetTier, [kind].concat(args));
     },
 
-    _getChannelInternal: function(useProxy, id) {
-        var args = Array.prototype.slice.call(arguments, 1);
+    _getChannelInternal: function(useProxy, args) {
+        var kind = args[0];
+        args = Array.prototype.slice.call(args, 1);
 
         // Named pipes are special in that we need some coordination
         // to ensure that we always have all proxies across all the tiers
         // So ask our trusty pipe manager for it
         //
         // (Note: we only follow this path for a request from ProxyManager)
-        if (id === 'pipe')
-            return this._pipeManager.getProxyNamedPipe(args[1]);
+        if (kind === 'pipe')
+            return this._pipeManager.getProxyNamedPipe(args[0]);
 
-        var fullId = args.map(function(arg) {
+        var fullId = kind + '-' + args.map(function(arg) {
             if (typeof arg === 'string')
                 return arg;
             else if (arg.uniqueId !== undefined)
                 return arg.uniqueId;
             else
-                return arg;
+                return String(arg);
         }).join('-');
 
         if (fullId in this._cachedChannels)
             return this._cachedChannels[fullId];
 
-        return this._cachedChannels[fullId] = this._downloader.getModule(id).then(function(factory) {
+        return this._cachedChannels[fullId] = this._downloader.getModule(kind).then(function(factory) {
             var channel = factory.createChannel.apply(factory, [this._engine].concat(args));
             channel.uniqueId = fullId;
 
             if (!channel.isSupported) {
                 // uh oh! channel does not work, try with a proxy channel
                 if (useProxy) {
-                    return this._getProxyChannel(channel, args);
+                    return this._getProxyChannel(channel, kind, args);
                 } else {
                     throw new Error('Channel is not supported but proxy channel is not allowed');
                 }
@@ -98,19 +103,8 @@ module.exports = new lang.Class({
 
     // Get a channel that is identified with the given ID
     // The channel accepts no other parameters
-    getChannel: function(id) {
-        return this._getOpenedChannel(this._getChannelInternal(true, id));
-    },
-
-    // Get a channel that is identified with the given ID
-    // The channel is instantiated for the given device
-    //
-    // How the device is used depends on the channel: it could be
-    // the channel is connecting to the device, or it could be
-    // the channel is connecting from the device (in which case
-    // the device is probably a thingengine)
-    getDeviceChannel: function(id, device) {
-        return this._getOpenedChannel(this._getChannelInternal(true, id, device));
+    getChannel: function() {
+        return this._getOpenedChannel(this._getChannelInternal(true, arguments));
     },
 
     // A named pipe is a PipeChannel with the given name
@@ -118,7 +112,7 @@ module.exports = new lang.Class({
     // running on different tiers
     //
     // The returned channel will be a source if the second parameter is 'r',
-    // and a sink it is 'w'
+    // and a sink if it is 'w'
     getNamedPipe: function(name, mode) {
         if (mode !== 'r' && mode !== 'w')
             throw new Error('Invalid mode ' + mode);

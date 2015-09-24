@@ -14,6 +14,7 @@ const uuid = require('node-uuid');
 const deepEqual = require('deep-equal');
 
 const SyncDatabase = require('./syncdb');
+const AppExecutor = require('../app_executor');
 
 const AppTierManager = new lang.Class({
     Name: 'AppTierManager',
@@ -35,35 +36,32 @@ const AppTierManager = new lang.Class({
 module.exports = new lang.Class({
     Name: 'AppDatabase',
     Extends: events.EventEmitter,
-    $rpcMethods: ['loadOneApp', 'removeApp', 'getAllApps', 'getApp',
-                  'getSharedApp'],
+    $rpcMethods: ['loadOneApp', 'removeApp', 'getAllApps', 'getApp'],
 
-    _init: function(tierManager, appFactory) {
+    _init: function(engine, tierManager) {
         // EventEmitter is a node.js class not a lang class,
         // can't chain up normally
         events.EventEmitter.call(this);
 
         this._apps = {};
-        this._sharedApps = {};
 
-        this._factory = appFactory;
+        this._engine = engine;
         this._tierManager = tierManager;
         this._appTierManager = new AppTierManager(tierManager);
-        this._syncdb = new SyncDatabase('app', ['state', 'tier'], tierManager);
+        this._syncdb = new SyncDatabase('app', ['code', 'state', 'tier'], tierManager);
     },
 
-    loadOneApp: function(serializedApp, tier, addToDB) {
+    loadOneApp: function(code, state, uniqueId, tier, addToDB) {
         return Q.try(function() {
-            return this._factory.createApp(serializedApp.kind, serializedApp);
-        }.bind(this)).then(function(app) {
-            this._addAppInternal(app, tier, serializedApp, addToDB);
+            var app = new AppExecutor(this._engine, code, state);
+            return this._addAppInternal(app, uniqueId, tier, addToDB);
         }.bind(this)).catch(function(e) {
             console.error('Failed to load one app: ' + e);
             console.error(e.stack);
         });
     },
 
-    load: function() {
+    start: function() {
         this._objectAddedHandler = this._onObjectAdded.bind(this);
         this._objectDeletedHandler = this._onObjectDeleted.bind(this);
 
@@ -73,9 +71,9 @@ module.exports = new lang.Class({
         return this._syncdb.getAll().then(function(rows) {
             return Q.all(rows.map(function(row) {
                 try {
-                    var serializedApp = JSON.parse(row.state);
-                    serializedApp.uniqueId = row.uniqueId;
-                    return this.loadOneApp(serializedApp, row.tier, false);
+                    var code = row.code;
+                    var state = JSON.parse(row.state);
+                    return this.loadOneApp(code, state, row.uniqueId, row.tier, false);
                 } catch(e) {
                     console.log('Failed to load one app: ' + e);
                 }
@@ -83,22 +81,17 @@ module.exports = new lang.Class({
         }.bind(this));
     },
 
-    _appChanged: function(app, newState, newTier) {
+    _appChanged: function(app, newCode, newState, newTier) {
         // FIXME: in the future we might have state changes in apps
         // for now, just remove the old instance and add a new one
         var uniqueId = app.uniqueId;
         this._removeAppInternal(uniqueId);
-        newState.uniqueId = uniqueId;
-        this.loadOneApp(newState, newTier, false).done();
+        this.loadOneApp(newCode, newState, uniqueId, newTier, false).done();
     },
 
     _tryEnableApp: function(app) {
         app.isEnabled = (app.currentTier === this._tierManager.ownTier ||
                          app.currentTier === 'all');
-        if (app.isEnabled && !app.isSupported) {
-            this._appTierManager.appMoveFailed(app);
-            app.isEnabled = false;
-        }
     },
 
     _appMoved: function(app, newTier) {
@@ -112,20 +105,20 @@ module.exports = new lang.Class({
     },
 
     _onObjectAdded: function(uniqueId, row) {
-        var serializedApp = JSON.parse(row.state);
+        var state = JSON.parse(row.state);
         if (uniqueId in this._apps) {
             var currentApp = this._apps[uniqueId];
 
-            if (deepEqual(serializedApp, currentApp.serialize(), {strict: true})) {
+            if (row.code === currentApp.code &&
+                deepEqual(state, currentApp.state, {strict: true})) {
                 if (currentApp.currentTier !== row.tier) {
                     this._appMoved(currentApp, row.tier);
                 }
             } else {
-                this._appChanged(currentApp, serializedApp, row.tier);
+                this._appChanged(currentApp, row.code, state, row.tier);
             }
         } else {
-            serializedApp.uniqueId = uniqueId;
-            this.loadOneApp(serializedApp, row.tier, false).done();
+            this.loadOneApp(row.code, state, uniqueId, row.tier, false).done();
         }
     },
 
@@ -133,8 +126,7 @@ module.exports = new lang.Class({
         this._removeAppInternal(uniqueId);
     },
 
-    save: function() {
-        // database is always saved, nothing to do here
+    stop: function() {
         this._syncdb.close();
     },
 
@@ -142,22 +134,19 @@ module.exports = new lang.Class({
         var app = this._apps[uniqueId];
         delete this._apps[uniqueId];
 
-        if (app !== undefined) {
-            if (app.sharedId !== undefined)
-                delete this._sharedApps[app.sharedId];
+        if (app !== undefined)
             this.emit('app-removed', app);
-        }
     },
 
-    _addAppInternal: function(app, tier, serializedApp, addToDB) {
+    _addAppInternal: function(app, uniqueId, tier, addToDB) {
         if (app.uniqueId === undefined) {
-            if (serializedApp === undefined || serializedApp.uniqueId === undefined)
+            if (uniqueId === undefined)
                 app.uniqueId = 'uuid-' + uuid.v4();
             else
-                app.uniqueId = serializedApp.uniqueId;
+                app.uniqueId = uniqueId;
         } else {
-            if (serializedApp.uniqueId !== undefined &&
-                app.uniqueId !== serializedApp.uniqueId)
+            if (uniqueId !== undefined &&
+                app.uniqueId !== uniqueId)
                 throw new Error('App unique id is different from stored value');
         }
 
@@ -167,19 +156,14 @@ module.exports = new lang.Class({
         app.currentTier = tier;
 
         this._apps[app.uniqueId] = app;
-        if (app.sharedId !== undefined) {
-            if (app.sharedId in this._sharedApps)
-                throw new Error('Multiple instances of shared app ' + app.sharedId);
-            this._sharedApps[app.sharedId] = app;
-        }
-
         this._tryEnableApp(app);
 
         if (addToDB) {
-            var state = app.serialize();
+            var state = app.state;
             var uniqueId = app.uniqueId;
             return this._syncdb.insertOne(uniqueId,
                                           { state: JSON.stringify(state),
+                                            code: app.code,
                                             tier: tier })
                 .then(function() {
                     this.emit('app-added', app);
@@ -188,10 +172,6 @@ module.exports = new lang.Class({
             this.emit('app-added', app);
             return Q();
         }
-    },
-
-    addApp: function(app) {
-        this._addAppInternal(app, undefined, undefined, true);
     },
 
     removeApp: function(app) {
@@ -208,11 +188,5 @@ module.exports = new lang.Class({
 
     getApp: function(id) {
         return this._apps[id];
-    },
-
-    getSharedApp: function(id) {
-        if (!(id in this._sharedApps))
-            throw new Error(id + ' is not a shared app');
-        return this._sharedApps[id];
     }
 });

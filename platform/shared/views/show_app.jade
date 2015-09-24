@@ -1,0 +1,27 @@
+extends layout
+
+block content
+  div.app-content
+    h1=name
+    if description
+      p=description
+
+    form(action='./update', method='post')
+      input(type='hidden',name='_csrf',value=csrfToken)
+      h2
+        label(for='code') Code
+      div.form-group
+        textarea.form-control#code= code
+
+      h2 Settings
+      - var anySetting = false
+      each setting, key in settings
+        - anySetting = true
+        div.form-group.form-inline
+          label(for='setting-' + key).control-label= setting.name
+          input(type='text',name='setting['+key+']',value=(state[key]||''),id='setting-'+key).form-control
+      if !anySetting
+        p This app has no configuration parameters.
+
+      div.form-group
+        button(type='submit').btn.btn-primary Update

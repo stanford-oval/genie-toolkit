@@ -37,6 +37,7 @@ module.exports = new lang.Class({
         this.uniqueId = undefined;
 
         this.state = state;
+        this.kind = state.kind;
     },
 
     updateState: function(state) {
@@ -77,8 +78,15 @@ module.exports = new lang.Class({
     // the kind without the interface if instantiated in the wrong
     // platform
     hasKind: function(kind) {
-        if (this.state)
-            return kind === this.state.kind;
+        return kind === this.kind;
+    },
+
+    // Check if this device was given the tag @tag by the user
+    // Tag can be an arbitrary identifier, ie, livingroom or home or
+    // work, and devices can have multiple tags.
+    hasTag: function(tag) {
+        if (this.state && Array.isArray(this.state.tags))
+            return this.state.tags.indexOf(tag) >= 0;
         else
             return false;
     },
@@ -97,6 +105,22 @@ module.exports = new lang.Class({
     queryInterface: function() {
         // no extension interfaces for this device class
         return null;
+    },
+
+    // Get a channel that is identified with the given ID
+    // The channel is instantiated for the given device
+    //
+    // How the device is used depends on the channel: it could be
+    // the channel is connecting to the device, or it could be
+    // the channel is connecting from the device (in which case
+    // the device is probably a thingengine)
+    getChannel: function() {
+        // first argument is the id, the rest are optional arguments
+        // which if present are after the device in the createChannel call
+        var id = arguments[0];
+        var rest = Array.prototype.slice.call(arguments, 1);
+        var args = [this.kind + '-' + id, this].concat(rest);
+        return this.engine.channels.getChannel.apply(this.engine.channels, args);
     }
 });
 

@@ -59,7 +59,8 @@ const PipeSinkChannel = new lang.Class({
     sendEvent: function(event) {
         setTimeout(function() {
             this._sources.forEach(function(source) {
-                source.emitEvent(event);
+                // pipe messages are always edge triggered
+                source.emitEvent(event, true);
             });
         }.bind(this), 0);
     },
@@ -127,8 +128,8 @@ const PipeLocalSourceChannel = new lang.Class({
 
         this._proxies = proxies;
         proxies.forEach(function(p) {
-            p.on('event', function(event) {
-                this.emitEvent(event);
+            p.on('data', function(event, edge) {
+                this.emitEvent(event, edge);
             }.bind(this));
         }, this);
     },

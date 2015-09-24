@@ -244,7 +244,7 @@ module.exports = new lang.Class({
         return this._openAll();
     },
 
-    open: function() {
+    start: function() {
         switch(this.ownTier) {
         case Tier.PHONE:
             return this._openPhone();
@@ -264,7 +264,7 @@ module.exports = new lang.Class({
             return Q();
     },
 
-    close: function() {
+    stop: function() {
         var promises = [];
         ALL_TIERS.forEach(function(t) {
             var s = this._tierSockets[t];

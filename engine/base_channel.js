@@ -25,6 +25,7 @@ module.exports = new lang.Class({
         this._useCount = 0;
         this._openPromise = null;
         this._closePromise = null;
+        this._event = null;
 
         // don't set this, it is set automatically by ChannelFactory
         this.uniqueId = undefined;
@@ -110,11 +111,27 @@ module.exports = new lang.Class({
         return false;
     },
 
+    get event() {
+        return this._event;
+    },
+
     // for subclasses
-    emitEvent: function(object) {
+    emitEvent: function(object, edge) {
         if (!this.isSource)
             throw new Error('Cannot emit event on a sink channel - did you mean sendEvent?');
-        this.emit('event', object);
+        if (edge) {
+            // emit an "edge triggered" event, ie, an event that exists now
+            // but will stop existing (and revert to null) after we finish this
+            // call
+            this._event = object;
+            this.emit('data', object, true);
+            this._event = null;
+        } else {
+            // emit a "level triggered" event, ie, an event that will persist
+            // after the end of this call until replaced with a new event
+            this._event = object;
+            this.emit('data', object, false);
+        }
     },
 
     // public API
