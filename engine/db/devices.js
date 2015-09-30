@@ -102,7 +102,7 @@ module.exports = new lang.Class({
             else
                 device.uniqueId = serializedDevice.uniqueId;
         } else {
-            if (serializedDevice.uniqueId !== undefined &&
+            if ( serializedDevice !== undefined && serializedDevice.uniqueId !== undefined &&
                 device.uniqueId !== serializedDevice.uniqueId)
                 throw new Error('Device unique id is different from stored value');
         }
