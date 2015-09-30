@@ -1,0 +1,29 @@
+extends layout
+
+block content
+  h1 Configured devices
+
+  if message
+    div.alert.alert-success.alert-dismissible.fade.in(role='alert')
+      button(type='button', data-dismiss='alert', aria-label="Close").close
+        span(aria-hidden='true') ×
+
+      p= message
+
+  for dev in devices
+    div.panel.panel-default
+      div.panel-heading
+        h2.panel-title= dev.name
+      div.panel-body
+        p= dev.description
+
+        if dev.available == 0
+          p The device is not available. It might be powered off or disconnected.
+        else if dev.available == 1
+          p The device is available and working.
+        else
+          p It was not possible to verify if the device is available.
+            | Please check it is powered on and correctly configured.
+
+  p
+    a(href='/devices/create', role='button').btn.btn-primary Configure new device
