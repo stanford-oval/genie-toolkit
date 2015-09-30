@@ -23,16 +23,17 @@ module.exports = new lang.Class({
     _init: function(tierManager, deviceFactory) {
         events.EventEmitter.call(this);
 
+        this.factory = deviceFactory;
+
         // FIXME: use Map when node supports it
         this._devices = {};
-        this._factory = deviceFactory;
 
         this._syncdb = new SyncDatabase('device', ['state'], tierManager);
     },
 
     loadOneDevice: function(serializedDevice, addToDB) {
         return Q.try(function() {
-            return this._factory.createDevice(serializedDevice.kind, serializedDevice);
+            return this.factory.createDevice(serializedDevice.kind, serializedDevice);
         }.bind(this)).then(function(device) {
             return this._addDeviceInternal(device, serializedDevice, addToDB);
         }.bind(this)).catch(function(e) {

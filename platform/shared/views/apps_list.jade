@@ -7,11 +7,11 @@ block content
   h1 Installed apps
 
   if message
-      div.alert.alert-success.alert-dismissible.fade.in(role='alert')
-        button(type='button', data-dismiss='alert', aria-label="Close").close
-          span(aria-hidden='true') ×
+    div.alert.alert-success.alert-dismissible.fade.in(role='alert')
+      button(type='button', data-dismiss='alert', aria-label="Close").close
+        span(aria-hidden='true') ×
 
-        p= message
+      p= message
 
   for app in apps
     div.panel.panel-default.installed-app

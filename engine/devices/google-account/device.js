@@ -19,6 +19,8 @@ const GoogleAccountDevice = new lang.Class({
         this.parent(engine, state);
 
         this.uniqueId = 'google-account-' + this.profileId;
+        this.name = "Google Account %s".format(this.profileId);
+        this.description = "This is your Google Account. You can use it to access Google Fit data, emails, calendars and more.";
     },
 
     get profileId() {
@@ -30,7 +32,7 @@ const GoogleAccountDevice = new lang.Class({
     },
 
     checkAvailable: function() {
-        return Q(BaseDevice.Availability.AVAILABLE);
+        return BaseDevice.Availability.AVAILABLE;
     },
 
     hasKind: function(kind) {
@@ -82,4 +84,10 @@ function createDevice(engine, state) {
     return new GoogleAccountDevice(engine, state);
 }
 
+function getConfigUI() {
+    return { type: 'link', href: '/devices/oauth2/google-account',
+              text: "Click here to associate a Google Account with your ThingEngine" };
+}
+
 module.exports.createDevice = createDevice;
+module.exports.getConfigUI = getConfigUI;

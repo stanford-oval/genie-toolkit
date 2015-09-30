@@ -66,7 +66,7 @@ module.exports = new lang.Class({
     // (ie, on, working, reachable on the local network, etc.)
     // Returns a promise of the device availability
     checkAvailable: function() {
-        return Q(Availability.UNKNOWN);
+        return Availability.UNKNOWN;
     },
 
     // Check if this device corresponds to the abstract kind "kind",

@@ -58,23 +58,32 @@ const ThingEngineDevice = new lang.Class({
         // "friendly" API access
         this._tierManager = engine._tiers;
 
-        if (this.own)
+        if (this.own) {
             this.uniqueId = 'thingengine-own-' + this.tier;
-        else if (this.tier === Tier.CLOUD)
+            this.name = "ThingEngine %s".format(this.tier);
+            this.description = "This is your own ThingEngine.";
+        } else if (this.tier === Tier.CLOUD) {
             this.uniqueId = 'thingengine-foreign-cloud-' + this.cloudId;
-        else if (this.tier === Tier.SERVER)
-            this.uniqueId = 'thingengine-foreign-host-' + this.host + '-' + this.po
-        else
+            this.name = "Foreign ThingEngine Cloud";
+            this.description = "This is the ThingEngine of some other user.";
+        } else if (this.tier === Tier.SERVER) {
+            this.uniqueId = 'thingengine-foreign-host-' + this.host + '-' + this.port;
+            this.name = "Foreign ThingEngine Server";
+            this.description = "This is the ThingEngine of some other user, running at %s, on port %d."
+                .format(this.host, this.port);
+        } else
             throw new Error('Foreign phones are not supported'); // cause we can't identify them
     },
 
     checkAvailable: function() {
         if (this.own && this.tier === this._tierManager.ownTier)
-            return true;
+            return BaseDevice.Availability.AVAILABLE;
         else if (this.own)
-            return this._tierManager.isConnected(this.tier);
+            return (this._tierManager.isConnected(this.tier) ?
+                    BaseDevice.Availability.AVAILABLE :
+                    BaseDevice.Availability.UNAVAILABLE);
         else
-            return false;
+            return BaseDevice.Availability.UNAVAILABLE;
     },
 
     hasKind: function(kind) {
@@ -97,4 +106,10 @@ function createDevice(engine, state) {
     return new ThingEngineDevice(engine, state);
 }
 
+function getConfigUI() {
+    return { type: 'message',
+             text: "ThingEngines cannot be paired from here. Use the Configuration page instead." };
+}
+
 module.exports.createDevice = createDevice;
+module.exports.getConfigUI = getConfigUI;

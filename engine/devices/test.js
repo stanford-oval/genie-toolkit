@@ -29,13 +29,17 @@ const TestDevice = new lang.Class({
         this.hwAddress = state.hwAddress;
 
         this.uniqueId = 'test-device-' + hwAddress.replace(/:/g,'-');
+
+        this.name = "ThingEngine™ Test Device %s".format(this.hwAddress);
+        this.description = "This is a ThingEngine Test Device running at %s, port %d. It does nothing."
+            .format(this.host, this.port);
     },
 
     // we live on the public Internet!
     // ...or not
     // doesn't really matter
     checkAvailable: function() {
-        return Q(BaseDevice.Availability.AVAILABLE);
+        return BaseDevice.Availability.AVAILABLE;
     },
 });
 
@@ -43,4 +47,14 @@ function createDevice(engine, state) {
     return new TestDevice(engine, state);
 }
 
+function getConfigUI() {
+    return { type: 'form',
+             fields: [
+                 { type: 'text', name: 'hw-address', label: "Hardware Address" },
+                 { type: 'text', name: 'ip-address', label: "Network Address" },
+                 { type: 'text', name: 'port', label: "Port" },
+             ] };
+}
+
 module.exports.createDevice = createDevice;
+module.exports.getConfigUI = getConfigUI;
