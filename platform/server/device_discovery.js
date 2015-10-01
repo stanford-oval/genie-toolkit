@@ -9,33 +9,57 @@
 const lang = require('lang');
 const alljoyn = require('alljoyn');
 
-var portNumber = 2727;
-var busInterfaceName = "edu.stanford.thingengine.bus.discover"
-var advertisedName = "edu.stanford.thingengine.bus.discover"; //"edu.stanford.thingengine.bus.chat";
-var busName = "discover";
-var busObjectName = "/discoverService"
-var discoverMessage = "Hello"
+// let alljoyn (or the kernel, really) pick the port number, we don't
+// really care and alljoyn will make sure the router knows where to talk
+const SESSION_PORT_ANY = 0;
 
+// the interface we're exporting
+var busInterfaceName = "edu.stanford.thingengine.DeviceDiscovery";
+
+// this the well-known name in alljoyn and d-bus terminology
+var advertisedName = "edu.stanford.thingengine.bus.DeviceDiscovery";
+
+// this is alljoyn specific, no equivalent in d-bus (and I'm not sure how it's used)
+var applicationName = "edu.stanford.thingengine";
+
+// this is the object path in d-bus terminology
+var busObjectName = "/edu/stanford/thingengine/DiscoverService";
+
+// this is the method/signal name we're using
+var discoverMessage = "Hello";
+
+function check(ok) {
+    if (ok != 0)
+        throw new Error('Alljoyn Call failed with error ' + ok);
+}
 
 module.exports = new lang.Class({
     Name: 'DeviceDiscovery',
 
     _init: function(engine) {
-        //console.log("DeviceDiscovery - init " + engine);
         this._engine = engine;
-        this._allJoynState = {};
-        this._allJoynState.sessionMap = {};
-        this._discoverObject = alljoyn.BusObject(busObjectName);
+        this._sessionMap = {};
     },
 
-    _initAllJoynBus: function(allJoynState) {
-        console.log('Initiaing AllJoyn Bus', alljoyn);
+    _initAllJoynBus: function() {
+        console.log('Initiating AllJoyn Bus');
 
-        console.log("CreateInterface "+allJoynState.bus.createInterface(busInterfaceName, allJoynState.interface));
-        console.log("AddSignal "+allJoynState.interface.addSignal(discoverMessage, "s",  "msg"));
-        allJoynState.bus.registerBusListener(allJoynState.busListener);
+        this._bus = alljoyn.BusAttachment(applicationName);
+        this._bus.registerBusListener(this._busListener);
 
-        console.log("Start "+allJoynState.bus.start());
+        check(this._bus.start());
+    },
+
+    _initAllJoynExportedObjects: function() {
+        this._discoveryInterface = alljoyn.InterfaceDescription();
+        check(this._bus.createInterface(busInterfaceName, this._discoveryInterface));
+
+        check(this._discoveryInterface.addSignal(discoverMessage, 's', 'msg'));
+
+        this._discoveryObject = alljoyn.BusObject(busObjectName);
+        check(this._discoveryObject.addInterface(this._discoveryInterface));
+
+        check(this._bus.registerBusObject(this._discoveryObject));
     },
 
     _connectToAllJoynBus: function(allJoynState) {
@@ -44,192 +68,82 @@ module.exports = new lang.Class({
         var dbusAddress = process.env.DBUS_SESSION_BUS_ADDRESS;
 
         if (dbusAddress)
-            console.log("Connect"+allJoynState.bus.connect(dbusAddress));
+            check(this._bus.connect(dbusAddress));
         else
-            console.log("Connect"+allJoynState.bus.connect());
+            check(this._bus.connect());
 
-        if (allJoynState.host) {
-            console.log("RequestName "+allJoynState.bus.requestName(advertisedName));
-            console.log("BindSessionPort "+allJoynState.bus.bindSessionPort(portNumber, allJoynState.sessionPortListener));
-            console.log("AdvertiseName "+allJoynState.bus.advertiseName(advertisedName));
+        // bind a TCP port for 1-to-1 communication
+        // (if we didn't do this, all communication would go through the bus)
+        try {
+            check(this._bus.bindSessionPort(SESSION_PORT_ANY, this._sessionPortListener));
+        } catch(e) {
+            // eat the error: it likely means that we're running of regular
+            // d-bus instead of alloyn d-bus, and we don't have an alljoyn
+            // router that knows about session ports
+            // not too bad, stuff will be sessionless
         }
-        else
-        {
-            console.log("FindAdvertisedName "+allJoynState.bus.findAdvertisedName(advertisedName));
+
+        // ask the bus to own the well-known name
+        check(this._bus.requestName(advertisedName));
+        try {
+            // and start advertising it over the local network
+            check(this._bus.advertiseName(advertisedName));
+        } catch(e) {
+            // eat the error: it likely means that we're running of regular
+            // d-bus instead of alloyn d-bus, and we don't have an alljoyn
+            // router that knows about session advertisements
         }
     },
 
-    _initAllJoynClient: function (allJoynState, discoverObject, deviceDB) {
-        allJoynState.host = false;
-        allJoynState.bus = alljoyn.BusAttachment(busName);
-        allJoynState.interface = alljoyn.InterfaceDescription();
-        allJoynState.busListener = alljoyn.BusListener(
-        function(name){
-            console.log("FoundAdvertisedName", name);
-            var sessionID = allJoynState.bus.joinSession(name, portNumber, 0);
-            allJoynState.sessionMap[sessionID] = sessionID;
-            console.log("!!!!!!!!!!!!!!!!!!!!!!!! JoinSession "+ sessionID);
-            setTimeout(function(){
-                console.log("trying to send in session " + sessionID);
-                discoverObject.signal(null, sessionID, allJoynState.interface, discoverMessage, "Hello from client!");
-            }, 1);
+    start: function() {
+        console.log("Initializing DeviceDiscovery module");
+
+        this._busListener = alljoyn.BusListener(
+        function(name) {
+            console.log("Found AdvertisedName: " + name);
+
+            // here we would join a session (1-to-1 communication)
+            // with the advertised name owner with some predefined
+            // well known session port
+            // but we don't do that, because we're not using any
+            // useful protocol yet
+        }.bind(this),
+        function(name) {
+            console.log("Lost AdvertisedName: " + name);
         },
-        function(name){
-            console.log("LostAdvertisedName", name);
-        },
-        function(name){
-            console.log("NameOwnerChanged", name);
+        function(name) {
+            console.log("NameOwnerChanged: " + name);
         }
         );
 
-        allJoynState.sessionPortListener = alljoyn.SessionPortListener(
-            function(port, joiner){
-                console.log("AcceptSessionJoiner", port, joiner);
-                return true;
-            },
-            function(port, sessionID, joiner){
-                console.log("SessionJoined", port, sessionID, joiner);
-            }
-        );
-
-        this._initAllJoynBus(allJoynState);
-
-        console.log("discoverObject.AddInterface "+discoverObject.addInterface(allJoynState.interface));
-        console.log("RegisterSignalHandler "+allJoynState.bus.registerSignalHandler(discoverObject, function(msg, info){
-            console.log("Signal received: ", msg, info);
-            console.log(msg["0"]);
-            var deviceID = info.sender;
-
-            if(!deviceDB.hasDevice(deviceID)) {
-                var newDevice = {};
-                newDevice.uniqueId = deviceID;
-                newDevice.serialize = function() {
-                    var serializedObject = {};
-                    serializedObject.id = deviceID;
-                    serializedObject.member_name = info.member_name;
-                    serializedObject.object_path = info.object_path;
-                    serializedObject.signature = info.signature;
-                    return serializedObject;
-                };
-                deviceDB.addDevice(newDevice);
-            }
-
-        }, allJoynState.interface, discoverMessage));
-
-        console.log("RegisterBusObject "+allJoynState.bus.registerBusObject(discoverObject));
-
-        this._connectToAllJoynBus(allJoynState);
-
-        // Added Chat to example
-        var stdin = process.stdin;
-
-        // without this, we would only get streams once enter is pressed
-        stdin.setRawMode( true );
-
-        // resume stdin in the parent process (node app won't quit all by itself
-        // unless an error or process.exit() happens)
-        stdin.resume();
-
-        // i don't want binary, do you?
-        stdin.setEncoding( 'utf8' );
-
-        // on any data into stdin
-        stdin.on( 'data', function( key ){
-            // ctrl-c ( end of text )
-            if ( key === '\u0003' ) {
-                process.exit();
-            }
-            // write the key to stdout all normal like
-            process.stdout.write( key + '\n' );
-            // chatObject.signal(null, sessionID, inter, 'hello' );
-            console.log("allJoynState.interface " + allJoynState.interface);
-
-            for(var sessionID in allJoynState.sessionMap){
-                console.log("sessionID " + allJoynState.sessionMap[sessionID]);
-                discoverObject.signal(null, allJoynState.sessionMap[sessionID], allJoynState.interface, discoverMessage, key);
-            }
-        });
-    },
-
-    _initAllJoynHost: function (allJoynState, discoverObject, deviceDB) {
-        allJoynState.host = true;
-        allJoynState.bus = alljoyn.BusAttachment(busName);
-        allJoynState.interface = alljoyn.InterfaceDescription();
-        allJoynState.busListener = alljoyn.BusListener(
-        function(name){
-            console.log("FoundAdvertisedName", name);
-            var sessionID = allJoynState.bus.joinSession(name, portNumber, 0);
-            allJoynState.sessionMap[sessionID] = sessionID;
-            console.log("!!!!!!!!!!!!!!!!!!!!!! JoinSession "+ sessionID);
-        },
-        function(name){
-            console.log("LostAdvertisedName", name);
-        },
-        function(name){
-            console.log("NameOwnerChanged", name);
-        }
-        );
-
-        allJoynState.sessionPortListener = alljoyn.SessionPortListener(
+        this._sessionPortListener = alljoyn.SessionPortListener(
         function(port, joiner){
-            console.log("##################### AcceptSessionJoiner", port, joiner);
-            return port == portNumber;
+            console.log('Received incoming session request');
+            // accept all session requests for now
+            return true;
         },
         function(port, sessionID, joiner){
-            console.log("@@@@@@@@@@@@@@@@@@@@@@@ SessionJoined", port, sessionID, joiner);
-            allJoynState.sessionMap[sessionID] = sessionID;
-            setTimeout(function(){
-                discoverObject.signal(null, sessionID, allJoynState.interface, discoverMessage, "Hello from host!");
-            }, 1000);
-        }
+            console.log('Joined session ' + sessionID);
+
+            this._sessionMap[sessionID] = sessionID;
+        }.bind(this)
         );
 
-        this._initAllJoynBus(allJoynState);
+        this._initAllJoynBus();
+        this._initAllJoynExportedObjects();
 
-        console.log("discoverObject.AddInterface "+discoverObject.addInterface(allJoynState.interface));
-        console.log("RegisterSignalHandler "+allJoynState.bus.registerSignalHandler(discoverObject, function(msg, info){
-            console.log("Signal received: ", msg, info);
-            console.log(msg["0"]);
-        }, allJoynState.interface, discoverMessage));
+        /*
+        This is the code to connect to a signal on our object, and act on it.
+        Because we're the ones owning the object and emitting stuff from it,
+        we don't actually have this code. It's for illustration purposes only.
 
-        console.log("RegisterBusObject "+allJoynState.bus.registerBusObject(discoverObject));
+        check(this._bus.registerSignalHandler(this._discoveryObject, function(args, sender) {
+            console.log('AllJoyn signal received from ', sender);
+            // args is an array of signal arguments (dbus serializable values)
+            console.log(args);
+        }, this._discoveryInterface, discoverMessage));
+        */
 
-        this._connectToAllJoynBus(allJoynState);
-
-        // Added Chat to example
-        var stdin = process.stdin;
-
-        // without this, we would only get streams once enter is pressed
-        stdin.setRawMode( true );
-
-        // resume stdin in the parent process (node app won't quit all by itself
-        // unless an error or process.exit() happens)
-        stdin.resume();
-
-        // i don't want binary, do you?
-        stdin.setEncoding( 'utf8' );
-
-        // on any data into stdin
-        stdin.on( 'data', function( key ){
-            // ctrl-c ( end of text )
-            if ( key === '\u0003' ) {
-                process.exit();
-            }
-            // write the key to stdout all normal like
-            process.stdout.write( key + '\n' );
-            // chatObject.signal(null, sessionID, inter, 'hello' );
-
-            console.log("allJoynState.interface " + allJoynState.interface);
-
-            for(var sessionID in allJoynState.sessionMap){
-                console.log("sessionID " + allJoynState.sessionMap[sessionID]);
-                discoverObject.signal(null, allJoynState.sessionMap[sessionID], allJoynState.interface, discoverMessage, key);
-            }
-        });
-    },
-
-    start: function(){
-        console.log("DeviceDiscovery - run " + this._engine);
-        this._initAllJoynClient(this._allJoynState, this._discoverObject, this._engine.devices);
+        this._connectToAllJoynBus();
     }
 });

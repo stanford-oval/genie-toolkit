@@ -21,7 +21,6 @@ function main() {
         var engine = new Engine();
         var frontend = new Frontend();
         var deviceDiscovery = new DeviceDiscovery(engine);
-        deviceDiscovery.start();
         platform._setFrontend(frontend);
         frontend.setEngine(engine);
 
@@ -37,6 +36,8 @@ function main() {
         //process.on('SIGTERM', handleSignal);
 
         return Q.all([engine.open(), frontend.open()]).then(function() {
+            deviceDiscovery.start();
+
             engineRunning = true;
             if (earlyStop)
                 return;
