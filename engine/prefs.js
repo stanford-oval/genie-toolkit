@@ -27,7 +27,7 @@ const Preferences = new lang.Class({
     // properties)
     set: function(name, value) {
         throw new Error('Abstract method');
-    }
+    },
 });
 
 // Simple implementation of Preferences that uses a single file
@@ -54,6 +54,10 @@ const FilePreferences = new lang.Class({
 
     set: function(name, value) {
         this._prefs[name] = value;
+        this._scheduleWrite();
+    },
+
+    changed: function() {
         this._scheduleWrite();
     },
 

@@ -24,13 +24,6 @@ const LoggingChannel = new lang.Class({
         console.log('Created LoggingChannel #' + cnt);
     },
 
-    get isSource() {
-        return false;
-    },
-    get isSink() {
-        return true;
-    },
-
     sendEvent: function(event) {
         console.log("LoggingChannel: ", event.message);
     }
@@ -42,3 +35,4 @@ function createChannel() {
 }
 
 module.exports.createChannel = createChannel;
+module.exports.requiredCapabilities = [];

@@ -21,7 +21,6 @@ module.exports = new lang.Class({
         // EventEmitter is a node.js class not a lang class,
         // can't chain up normally
         events.EventEmitter.call(this);
-        this._isSupported = undefined;
         this._useCount = 0;
         this._openPromise = null;
         this._closePromise = null;
@@ -29,21 +28,6 @@ module.exports = new lang.Class({
 
         // don't set this, it is set automatically by ChannelFactory
         this.uniqueId = undefined;
-    },
-
-    get isSupported() {
-        if (this._isSupported !== undefined)
-            return this._isSupported;
-
-        this._isSupported = this.requiredCapabilities.every(function(cap) {
-            return platform.hasCapability(cap);
-        });
-        return this._isSupported;
-    },
-
-    // default implementation requires no capabilities
-    get requiredCapabilities() {
-        return [];
     },
 
     // Open any resources or connections that this channel might
@@ -103,22 +87,12 @@ module.exports = new lang.Class({
         }
     },
 
-    // Override these in your class
-    get isSource() {
-        return false;
-    },
-    get isSink() {
-        return false;
-    },
-
     get event() {
         return this._event;
     },
 
     // for subclasses
     emitEvent: function(object, edge) {
-        if (!this.isSource)
-            throw new Error('Cannot emit event on a sink channel - did you mean sendEvent?');
         if (edge) {
             // emit an "edge triggered" event, ie, an event that exists now
             // but will stop existing (and revert to null) after we finish this
@@ -136,9 +110,6 @@ module.exports = new lang.Class({
 
     // public API
     sendEvent: function(object) {
-        if (this.isSink)
-            throw new Error('sendEvent is not implemented by this channel (channel bug)');
-        else
-            throw new Error('Cannot send event on a source channel - did you mean emitEvent?');
+        throw new Error('sendEvent is not implemented by this channel');
     },
 });

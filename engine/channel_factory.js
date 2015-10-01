@@ -12,10 +12,33 @@ const fs = require('fs');
 const lang = require('lang');
 const Q = require('q');
 
+const prefs = require('./prefs');
 const ModuleDownloader = require('./module_downloader');
 const ProxyManager = require('./proxy');
 const PipeManager = require('./pipes');
 const Tier = require('./tier_manager').Tier;
+
+const ChannelStateBinder = new lang.Class({
+    Name: 'ChannelStateBinder',
+
+    _init: function(name, prefs) {
+        this._cached = prefs.get(name);
+        if (this._cached === undefined) {
+            this._cached = {};
+            prefs.set(name, this._cached);
+        }
+        this._prefs = prefs;
+    },
+
+    get: function(name) {
+        return this._cached[name];
+    },
+
+    set: function(name, value) {
+        this._cached[name] = value;
+        this._prefs.changed();
+    },
+});
 
 module.exports = new lang.Class({
     Name: 'ChannelFactory',
@@ -29,6 +52,11 @@ module.exports = new lang.Class({
         this._tierManager = tiers;
         this._proxyManager = new ProxyManager(tiers, this, engine.devices);
         this._pipeManager = new PipeManager(tiers, this._proxyManager);
+
+        if (this._tierManager.ownTier === Tier.SERVER)
+            this._prefs = new prefs.FilePreferences(platform.getWritableDir() + '/channels.db');
+        else
+            this._prefs = null;
     },
 
     start: function() {
@@ -39,7 +67,7 @@ module.exports = new lang.Class({
         return Q();
     },
 
-    _getProxyChannel: function(forChannel, kind, args) {
+    _getProxyChannel: function(targetChannelId, kind, args) {
         // FINISHME!! Be smarter in choosing where to run this channel
         // (and factor CLOUD in the decision)
 
@@ -49,7 +77,16 @@ module.exports = new lang.Class({
         else
             targetTier = Tier.PHONE;
 
-        return this._proxyManager.getProxyChannel(forChannel, targetTier, [kind].concat(args));
+        return this._proxyManager.getProxyChannel(targetChannelId, targetTier, [kind].concat(args));
+    },
+
+    _checkFactoryCaps: function(caps) {
+        return caps.every(function(c) {
+            if (c === 'channel-state')
+                return this._tierManager.ownTier === Tier.SERVER;
+            else
+                return platform.hasCapability(c);
+        }.bind(this));
     },
 
     _getChannelInternal: function(useProxy, args) {
@@ -77,19 +114,25 @@ module.exports = new lang.Class({
             return this._cachedChannels[fullId];
 
         return this._cachedChannels[fullId] = this._downloader.getModule(kind).then(function(factory) {
-            var channel = factory.createChannel.apply(factory, [this._engine].concat(args));
-            channel.uniqueId = fullId;
-
-            if (!channel.isSupported) {
+            var caps = factory.requiredCapabilities || [];
+            if (!this._checkFactoryCaps(caps)) {
                 // uh oh! channel does not work, try with a proxy channel
+
                 if (useProxy) {
-                    return this._getProxyChannel(channel, kind, args);
+                    return this._getProxyChannel(fullId, kind, args);
                 } else {
                     throw new Error('Channel is not supported but proxy channel is not allowed');
                 }
+            } else {
+                var hasState = caps.indexOf('channel-state') >= 0;
+                var channel;
+                if (hasState)
+                    channel = factory.createChannel.apply(factory, [this._engine, new ChannelStateBinder(fullId, this._prefs)].concat(args));
+                else
+                    channel = factory.createChannel.apply(factory, [this._engine].concat(args));
+                channel.uniqueId = fullId;
+                return channel;
             }
-
-            return channel;
         }.bind(this));
     },
 

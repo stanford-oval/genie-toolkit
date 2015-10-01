@@ -13,6 +13,7 @@ const Url = require('url');
 const BaseChannel = require('../base_channel');
 
 const URL_TEMPLATE = 'https://us.data.bodytrace.com/1/device/%s/datavalues?names=batteryVoltage,signalStrength,values/weight,values/unit';
+const POLL_INTERVAL = 30000; // 30s
 
 var cnt = 0;
 
@@ -20,7 +21,7 @@ const ScaleChannel = new lang.Class({
     Name: 'ScaleChannel',
     Extends: BaseChannel,
 
-    _init: function(engine, device) {
+    _init: function(engine, state, device) {
         this.parent();
 
         cnt++;
@@ -29,13 +30,7 @@ const ScaleChannel = new lang.Class({
         this._url = URL_TEMPLATE.format(device.serial);
         this._auth = "Basic " + (new Buffer(device.username + ':' + device.password)).toString('base64');
         this._timeout = -1;
-    },
-
-    get isSource() {
-        return true;
-    },
-    get isSink() {
-        return false;
+        this._state = state;
     },
 
     _doOpen: function() {
@@ -43,6 +38,7 @@ const ScaleChannel = new lang.Class({
 
         var url = this._url;
         var auth = this._auth;
+        var state = this._state;
 
         this._timeout = setInterval(function() {
             httpGetAsync(url, auth, function(error, response) {
@@ -55,6 +51,13 @@ const ScaleChannel = new lang.Class({
                     var weight = JSON.parse(response);
                     var utcSeconds = Object.keys(weight)[0];
 
+                    var lastRead = state.get('last-read');
+                    if (lastRead === undefined)
+                        lastRead = 0;
+                    if (utcSeconds <= lastRead)
+                        return;
+                    state.set('last-read', utcSeconds);
+
                     // weight is in grams, convert to kg, which the base unit
                     // AppExecutor wants
                     var weight = (weight[utcSeconds].values.weight)/1000;
@@ -65,12 +68,14 @@ const ScaleChannel = new lang.Class({
                     var event = { ts: date, weight: weight };
                     channelInstance.emitEvent(event, false);
                 } catch(e) {
-                    console.log('Error parsing BodyTrace server response: ' + error.message);
+                    console.log('Error parsing BodyTrace server response: ' + e.message);
+                    console.log('Full response was');
+                    console.log(response);
                     return;
                 }
             });
 
-        }.bind(this), 5000);
+        }.bind(this), POLL_INTERVAL);
         return Q();
     },
 
@@ -81,8 +86,8 @@ const ScaleChannel = new lang.Class({
     }
 });
 
-function createChannel(engine, device) {
-    return new ScaleChannel(engine, device);
+function createChannel(engine, state, device) {
+    return new ScaleChannel(engine, state, device);
 }
 
 function httpGetAsync(url, auth, callback) {
@@ -106,3 +111,4 @@ function httpGetAsync(url, auth, callback) {
 }
 
 module.exports.createChannel = createChannel;
+module.exports.requiredCapabilities = ['channel-state'];

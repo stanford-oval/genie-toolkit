@@ -26,13 +26,6 @@ const TestChannel = new lang.Class({
         this._timeout = -1;
     },
 
-    get isSource() {
-        return true;
-    },
-    get isSink() {
-        return true;
-    },
-
     sendEvent: function(event) {
         console.log('Writing data on test channel: ' + JSON.stringify(event));
     },
@@ -60,3 +53,4 @@ function createChannel() {
 }
 
 module.exports.createChannel = createChannel;
+module.exports.requiredCapabilities = [];

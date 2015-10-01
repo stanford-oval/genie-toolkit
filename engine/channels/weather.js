@@ -29,13 +29,6 @@ const WeatherChannel = new lang.Class({
         this._timeout = -1;
     },
 
-    get isSource() {
-        return true;
-    },
-    get isSink() {
-        return false;
-    },
-
     _doOpen: function() {
         var channelInstance = this;
         this._timeout = setInterval(function() {
@@ -82,3 +75,4 @@ function httpGetAsync(theUrl, callback)
 }
 
 module.exports.createChannel = createChannel;
+module.exports.requiredCapabilities = [];

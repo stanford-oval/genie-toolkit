@@ -20,23 +20,13 @@ const ProxyChannel = new lang.Class({
     Name: 'ProxyChannel',
     Extends: BaseChannel,
 
-    _init: function(proxyManager, targetTier, targetChannelId, cachedArgs, isSource, isSink) {
+    _init: function(proxyManager, targetTier, targetChannelId, cachedArgs) {
         this.parent();
         this.uniqueId = targetChannelId;
         this.targetTier = targetTier;
         this._cachedArgs = cachedArgs;
 
         this._proxyManager = proxyManager;
-        this._isSource = isSource;
-        this._isSink = isSink;
-    },
-
-    get isSource() {
-        return this._isSource;
-    },
-
-    get isSink() {
-        return this._isSink;
     },
 
     _doOpen: function() {
@@ -151,15 +141,13 @@ module.exports = new lang.Class({
         this._sendMessage(targetTier, {op:'channel-sink-data', channelId: targetChannelId,data:data});
     },
 
-    getProxyChannel: function(forChannel, targetTier, args) {
-        var targetChannelId = forChannel.uniqueId;
+    getProxyChannel: function(targetChannelId, targetTier, args) {
         var fullId = targetChannelId + '-' + targetTier;
 
         if (fullId in this._proxies)
             return this._proxies[fullId];
 
-        var proxy = new ProxyChannel(this, targetTier, targetChannelId, args,
-                                     forChannel.isSource, forChannel.isSink);
+        var proxy = new ProxyChannel(this, targetTier, targetChannelId, args);
         console.log('Created proxy channel ' + targetChannelId + ' targeting ' + targetTier);
         this._proxies[fullId] = proxy;
         return proxy;

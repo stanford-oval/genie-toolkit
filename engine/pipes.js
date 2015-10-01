@@ -39,13 +39,6 @@ const PipeSinkChannel = new lang.Class({
         this.uniqueId = 'pipe-' + name;
     },
 
-    get isSource() {
-        return false;
-    },
-    get isSink() {
-        return true;
-    },
-
     addSource: function(source) {
         this._sources.push(source);
     },
@@ -93,13 +86,6 @@ const PipeProxySourceChannel = new lang.Class({
         this.uniqueId = 'pipe-' + name;
     },
 
-    get isSource() {
-        return true;
-    },
-    get isSink() {
-        return false;
-    },
-
     // Opening a PipeProxySourceChannel does nothing, the bulk of
     // networking is done by ChannelStub/ProxyManager
     _doOpen: function() {
@@ -132,13 +118,6 @@ const PipeLocalSourceChannel = new lang.Class({
                 this.emitEvent(event, edge);
             }.bind(this));
         }, this);
-    },
-
-    get isSource() {
-        return true;
-    },
-    get isSink() {
-        return false;
     },
 
     _doOpen: function() {
@@ -198,12 +177,9 @@ module.exports = new lang.Class({
         if (name in this._pipeLocalSources)
             return Q(this._pipeLocalSources[name]);
 
-        var forChannel = { uniqueId: 'pipe-' + name,
-                           isSource: true,
-                           isSink: false };
         var args = ['pipe', name];
         var proxies = this._tierManager.getOtherTiers().map(function(tier) {
-            return this._proxyManager.getProxyChannel(forChannel, tier, args);
+            return this._proxyManager.getProxyChannel('pipe-' + name, tier, args);
         }.bind(this));
         var sourcePipe = new PipeLocalSourceChannel(name, this, proxies);
         this._pipeLocalSources[name] = sourcePipe;

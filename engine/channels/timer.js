@@ -28,13 +28,6 @@ const TimerChannel = new lang.Class({
         this._timeout = -1;
     },
 
-    get isSource() {
-        return true;
-    },
-    get isSink() {
-        return false;
-    },
-
     _doOpen: function() {
         this._timeout = setInterval(function() {
             var event = {"now": new Date};
@@ -55,3 +48,4 @@ function createChannel(engine, timeout) {
 }
 
 module.exports.createChannel = createChannel;
+module.exports.requiredCapabilities = [];
