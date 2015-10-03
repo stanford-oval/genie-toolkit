@@ -49,21 +49,21 @@ const ScaleChannel = new lang.Class({
 
                 try {
                     var weight = JSON.parse(response);
-                    var utcSeconds = Object.keys(weight)[0];
+                    var utcMilliSeconds = Object.keys(weight)[0];
 
                     var lastRead = state.get('last-read');
                     if (lastRead === undefined)
                         lastRead = 0;
-                    if (utcSeconds <= lastRead)
+                    if (utcMilliSeconds <= lastRead)
                         return;
-                    state.set('last-read', utcSeconds);
+                    state.set('last-read', utcMilliSeconds);
 
                     // weight is in grams, convert to kg, which the base unit
                     // AppExecutor wants
-                    var weight = (weight[utcSeconds].values.weight)/1000;
+                    var weight = (weight[utcMilliSeconds].values.weight)/1000;
 
                     var date = new Date(0); // The 0 there is the key, which sets the date to the epoch
-                    date.setUTCSeconds(utcSeconds);
+                    date.setUTCSeconds(utcMilliSeconds/1000);
 
                     var event = { ts: date, weight: weight };
                     channelInstance.emitEvent(event, false);

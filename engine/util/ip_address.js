@@ -22,6 +22,8 @@ function getPublicIP() {
     var ipv6 = ip.address('public', 'ipv6');
     if (!ip.isPrivate(ipv6))
         return ipv6;
+
+    return ip.address('private', 'ipv4');
 }
 
 module.exports = {

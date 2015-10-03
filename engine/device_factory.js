@@ -14,8 +14,7 @@ module.exports = new lang.Class({
     Name: 'DeviceFactory',
 
     // hardcoded for now, we'll see about that at some point in the future
-    SupportedKinds: [{ kind: 'thingengine', desc: "ThingEngine Server" },
-                     { kind: 'test', desc: "ThingEngine™ Test Device" },
+    SupportedKinds: [{ kind: 'test', desc: "ThingEngine™ Test Device" },
                      { kind: 'google-account', desc: "Google Account" },
                      { kind: 'bodytrace-scale', desc: "BodyTrace Scale" }],
 
