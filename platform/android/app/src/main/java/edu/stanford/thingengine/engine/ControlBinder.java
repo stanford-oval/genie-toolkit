@@ -1,24 +1,26 @@
 package edu.stanford.thingengine.engine;
 
-import android.os.Binder;
-
-import java.io.IOException;
-
 /**
  * Created by gcampagn on 8/16/15.
  */
-public class ControlBinder extends Binder {
+public class ControlBinder extends IThingEngine.Stub {
     private final ControlChannel channel;
 
     public ControlBinder(ControlChannel channel) {
         this.channel = channel;
     }
 
-    public boolean setCloudId(String cloudId, String authToken) throws IOException {
-        return channel.sendSetCloudId(cloudId, authToken);
+    public int foo(int value) {
+        return channel.sendFoo(value);
     }
 
-    public boolean setServerAddress(String host, int port, String authToken) throws IOException {
+    public void runDeviceDiscovery() {}
+
+    public boolean setCloudId(CloudAuthInfo authInfo) {
+        return channel.sendSetCloudId(authInfo);
+    }
+
+    public boolean setServerAddress(String host, int port, String authToken) {
         return channel.sendSetServerAddress(host, port, authToken);
     }
 }

@@ -25,12 +25,8 @@ public class EngineService extends Service {
         new Handler().post(new Runnable() {
             @Override
             public void run() {
-                try {
-                    int returned = control.sendFoo(42);
-                    Log.i(LOG_TAG, "Control channel foo returned " + returned);
-                } catch (IOException e) {
-                    Log.e(LOG_TAG, "Failed to send foo to control channel", e);
-                }
+                int returned = control.sendFoo(42);
+                Log.i(LOG_TAG, "Control channel foo returned " + returned);
             }
         });
     }

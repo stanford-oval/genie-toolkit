@@ -89,12 +89,10 @@ public class ControlChannel implements AutoCloseable, Closeable {
         }
     }
 
-    public synchronized int sendFoo(int value) throws IOException {
+    public synchronized int sendFoo(int value) {
         try {
             sendCall("foo", value);
             return (Integer) expectReply();
-        } catch(IOException e) {
-            throw e;
         } catch(Exception e) {
             Log.e(EngineService.LOG_TAG, "Unexpected exception in 'foo' command", e);
             throw new RuntimeException(e);
@@ -105,24 +103,20 @@ public class ControlChannel implements AutoCloseable, Closeable {
         sendCall("stop");
     }
 
-    public synchronized boolean sendSetCloudId(String cloudId, String authToken) throws IOException {
+    public synchronized boolean sendSetCloudId(CloudAuthInfo authInfo) {
         try {
-            sendCall("setCloudId", cloudId, authToken);
+            sendCall("setCloudId", authInfo.getCloudId(), authInfo.getAuthToken());
             return (Boolean)expectReply();
-        } catch(IOException e) {
-            throw e;
         } catch(Exception e) {
             Log.e(EngineService.LOG_TAG, "Unexpected exception in 'setCloudId' command", e);
             return false;
         }
     }
 
-    public synchronized boolean sendSetServerAddress(String host, int port, String authToken) throws IOException {
+    public synchronized boolean sendSetServerAddress(String host, int port, String authToken) {
         try {
             sendCall("setServerAddress", host, port, authToken);
             return (Boolean)expectReply();
-        } catch(IOException e) {
-            throw e;
         } catch(Exception e) {
             Log.e(EngineService.LOG_TAG, "Unexpected exception in 'setServerAddress' command", e);
             return false;
