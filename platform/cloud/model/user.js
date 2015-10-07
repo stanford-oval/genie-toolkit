@@ -44,6 +44,10 @@ module.exports = {
         return db.selectAll(client, "select * from users where facebook_id = ?", [facebookId]);
     },
 
+    getByCloudId: function(client, cloudId) {
+        return db.selectAll(client, "select * from users where cloud_id = ?", [cloudId]);
+    },
+
     getByAccessToken: function(client, accessToken) {
         return db.selectAll(client, "select u.* from users u, oauth2_access_tokens oat where oat.user_id = u.id and oat.token = ?",
                             [accessToken]);

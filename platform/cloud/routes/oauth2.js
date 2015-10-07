@@ -12,8 +12,8 @@ const express = require('express');
 const passport = require('passport');
 const oauth2orize = require('oauth2orize');
 
-var BasicStrategy = require('passport-http').BasicStrategy
-var ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy
+var BasicStrategy = require('passport-http').BasicStrategy;
+var ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy;
 
 // create OAuth 2.0 server
 var server = oauth2orize.createServer();
@@ -41,7 +41,7 @@ function authOAuth2Client(clientId, clientSecret, done) {
     }).nodeify(done);
 }
 
-passport.use(new BasicStrategy(authOAuth2Client));
+passport.use('oauth2-client-basic', new BasicStrategy(authOAuth2Client));
 passport.use(new ClientPasswordStrategy(authOAuth2Client));
 
 server.serializeClient(function(client, done) {
@@ -143,7 +143,7 @@ router.post('/authorize', user.requireLogIn,
             server.decision());
 
 router.post('/token',
-            passport.authenticate(['basic', 'oauth2-client-password'], { session: false }),
+            passport.authenticate(['oauth2-client-basic', 'oauth2-client-password'], { session: false }),
             server.token(), server.errorHandler());
 
 module.exports = router;

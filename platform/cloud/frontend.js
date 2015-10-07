@@ -59,6 +59,19 @@ Frontend.prototype._init = function _init() {
     this._app.use(passport.initialize());
     this._app.use(passport.session());
     user.initializePassport();
+
+    var basicAuth = passport.authenticate('basic', { failWithError: true });
+    this._app.use(function(req, res, next) {
+        if (req.query.auth == 'app') {
+            basicAuth(req, res, function(err) {
+                if (err)
+                    res.status(401);
+                // eat the error
+                next();
+            });
+        } else
+            next();
+    });
     this._app.use(function(req, res, next) {
         if (req.user) {
             res.locals.authenticated = true;
