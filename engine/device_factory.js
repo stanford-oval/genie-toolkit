@@ -12,11 +12,12 @@ const ModuleDownloader = require('./module_downloader');
 
 module.exports = new lang.Class({
     Name: 'DeviceFactory',
+    $rpcMethods: ['get SupportedKinds', 'getConfigUI'],
 
     // hardcoded for now, we'll see about that at some point in the future
-    SupportedKinds: [{ kind: 'test', desc: "ThingEngine™ Test Device" },
-                     { kind: 'google-account', desc: "Google Account" },
-                     { kind: 'bodytrace-scale', desc: "BodyTrace Scale" }],
+    SupportedKinds: [{ kind: 'test', desc: "ThingEngine™ Test Device", online: false },
+                     { kind: 'google-account', desc: "Google Account", online: true },
+                     { kind: 'bodytrace-scale', desc: "BodyTrace Scale", online: false }],
 
     _init: function(engine) {
         this._engine = engine;

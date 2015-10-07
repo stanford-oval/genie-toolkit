@@ -18,7 +18,7 @@ module.exports = new lang.Class({
     Name: 'DeviceDatabase',
     Extends: events.EventEmitter,
     $rpcMethods: ['loadOneDevice', 'getAllDevices', 'getAllDevicesOfKind',
-                  'hasDevice', 'getDevice'],
+                  'hasDevice', 'getDevice', 'get factory'],
 
     _init: function(tierManager, deviceFactory) {
         events.EventEmitter.call(this);

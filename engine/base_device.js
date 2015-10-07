@@ -20,7 +20,7 @@ module.exports = new lang.Class({
     Name: 'BaseDevice',
     Extends: events.EventEmitter,
     // no $rpc for queryInterface, extension interfaces are not exported
-    $rpcMethods: ['get name', 'get uniqueId',
+    $rpcMethods: ['get name', 'get uniqueId', 'get description',
                   'checkAvailable', 'hasKind'],
 
     _init: function(engine, state) {
