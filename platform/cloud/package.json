@@ -32,6 +32,10 @@
     "passport-google-oauth": "~0.2.0",
     "connect-flash": "~0.1.1",
     "passport-facebook": "~2.0.0",
-    "transparent-rpc": "0.0.1"
+    "transparent-rpc": "0.0.1",
+    "oauth2orize": "~1.0.1",
+    "passport-http-bearer": "~1.0.1",
+    "passport-http": "~0.3.0",
+    "passport-oauth2-client-password": "~0.1.2"
   }
 }

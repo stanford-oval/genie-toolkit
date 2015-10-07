@@ -6,22 +6,19 @@
 //
 // See COPYING for details
 
-var express = require('express');
-var passport = require('passport');
-
-var model = require('../model/user');
-var user = require('../util/user');
-var db = require('../util/db');
+const express = require('express');
+const passport = require('passport');
 
 var router = express.Router();
 
-router.post('/login', passport.authenticate('local'), function(req, res, next) {
+router.post('/login', passport.authenticate('local', { session: false }), function(req, res, next) {
     res.json({
         success: true,
-        cloudId: user.cloud_id,
-        authToken: user.auth_token
+        cloudId: req.user.cloud_id,
+        authToken: req.user.auth_token
     });
 });
 
+router.use('/oauth2', require('./oauth2'));
 
 module.exports = router;

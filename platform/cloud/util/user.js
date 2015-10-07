@@ -10,11 +10,13 @@ const Q = require('q');
 const crypto = require('crypto');
 const db = require('./db');
 const model = require('../model/user');
+const oauth2 = require('../model/oauth2');
 
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const GoogleOAuthStrategy = require('passport-google-oauth').OAuth2Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
+const BearerStrategy = require('passport-http-bearer').Strategy;
 
 var EngineManager = require('../enginemanager');
 
@@ -56,6 +58,21 @@ function initializePassport() {
             return model.get(client, id);
         }).nodeify(done);
     });
+
+    passport.use(new BearerStrategy(function(accessToken, done) {
+        db.withClient(function(dbClient) {
+            return model.getByAccessToken(dbClient, accessToken).then(function(rows) {
+                if (rows.length < 1)
+                    return [false, null];
+
+                return [rows[0], { scope: '*' }];
+            });
+        }).then(function(result) {
+            done(null, result[0], result[1]);
+        }, function(err) {
+            done(err);
+        }).done();
+    }));
 
     passport.use(new LocalStrategy(function(username, password, done) {
         db.withClient(function(dbClient) {

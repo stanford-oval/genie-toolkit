@@ -70,9 +70,9 @@ Frontend.prototype._init = function _init() {
         next();
     });
 
-    // mount /server (API calls for server platform) before CSRF
+    // mount /api before CSRF
     // as we don't need CSRF protection for that
-    this._app.use('/server', require('./routes/server'));
+    this._app.use('/api', require('./routes/server'));
     this._app.use(csurf({ cookie: false }));
 
     this._app.use('/', require('./routes/index'));

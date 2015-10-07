@@ -119,7 +119,7 @@ router.post('/cloud-setup', user.requireLogIn, function(req, res, next) {
         var postData = 'username=' + encodeURIComponent(username)
             + '&password=' + encodeURIComponent(password);
 
-        var request = url.parse(Config.THINGENGINE_URL + '/server/login');
+        var request = url.parse(Config.THINGENGINE_URL + '/api/login');
         request.method = 'POST';
         request.headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
