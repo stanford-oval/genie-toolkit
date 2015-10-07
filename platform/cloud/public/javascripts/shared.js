@@ -16,3 +16,9 @@
         });
     }
 })();
+
+$(function() {
+    if (window.Android) {
+        $('#navbar-login-button').hide();
+    }
+});
