@@ -48,6 +48,72 @@ function makeRandom() {
     return crypto.randomBytes(32).toString('hex');
 }
 
+function authenticateGoogle(accessToken, refreshToken, profile, done) {
+    db.withTransaction(function(dbClient) {
+        return model.getByGoogleAccount(dbClient, profile.id).then(function(rows) {
+            if (rows.length > 0)
+                return rows[0];
+
+            var username = profile.username || profile.emails[0].value;
+            return model.create(dbClient, { username: username,
+                                            google_id: profile.id,
+                                            human_name: profile.displayName,
+                                            cloud_id: makeRandom(),
+                                            auth_token: makeRandom() })
+                .then(function(user) {
+                    return EngineManager.get().startUser(user.id, user.cloud_id, user.auth_token).then(function() {
+                        // asynchronously inject google-account device
+                        EngineManager.get().getEngine(user.id).then(function(engine) {
+                            return engine.devices.loadOneDevice({ kind: 'google-account',
+                                                                  profileId: profile.id,
+                                                                  accessToken: accessToken }, true);
+                        }).done();
+
+                        return user;
+                    });
+                });
+        });
+    }).nodeify(done);
+}
+
+function associateGoogle(user, accessToken, refreshToken, profile, done) {
+    db.withTransaction(function(dbClient) {
+        return model.update(dbClient, user.id, { google_id: profile.id,
+                                                 human_name: profile.displayName })
+            .then(function() {
+                // asynchronously inject google-account device
+                EngineManager.get().getEngine(user.id).then(function(engine) {
+                    return engine.devices.loadOneDevice({ kind: 'google-account',
+                                                          profileId: profile.id,
+                                                          accessToken: accessToken }, true);
+                }).done();
+
+                return user;
+            });
+    }).nodeify(done);
+}
+
+function authenticateFacebook(accessToken, refreshToken, profile, done) {
+    db.withTransaction(function(dbClient) {
+        return model.getByFacebookAccount(dbClient, profile.id).then(function(rows) {
+            if (rows.length > 0)
+                return rows[0];
+
+            var username = profile.username || profile.emails[0].value;
+            return model.create(dbClient, { username: username,
+                                            facebook_id: profile.id,
+                                            human_name: profile.displayName,
+                                            cloud_id: makeRandom(),
+                                            auth_token: makeRandom() })
+                .then(function(user) {
+                    return EngineManager.get().startUser(user.id, user.cloud_id, user.auth_token).then(function() {
+                        return user;
+                    });
+                });
+        });
+    }).nodeify(done);
+}
+
 function initializePassport() {
     passport.serializeUser(function(user, done) {
         done(null, user.id);
@@ -98,35 +164,15 @@ function initializePassport() {
     passport.use(new GoogleOAuthStrategy({
         clientID: GOOGLE_CLIENT_ID,
         clientSecret: GOOGLE_CLIENT_SECRET,
-        callbackURL: THINGENGINE_ORIGIN + '/user/oauth2/google/callback'
-    }, function(accessToken, refreshToken, profile, done) {
-        // we're not using accessToken for now
-
-        db.withTransaction(function(dbClient) {
-            return model.getByGoogleAccount(dbClient, profile.id).then(function(rows) {
-                if (rows.length > 0)
-                    return rows[0];
-
-                var username = profile.username || profile.emails[0].value;
-                return model.create(dbClient, { username: username,
-                                                google_id: profile.id,
-                                                human_name: profile.displayName,
-                                                cloud_id: makeRandom(),
-                                                auth_token: makeRandom() })
-                    .then(function(user) {
-                        return EngineManager.get().startUser(user.id, user.cloud_id, user.auth_token).then(function() {
-                            // asynchronously inject google-account device
-                            EngineManager.get().getEngine(user.id).then(function(engine) {
-                                return engine.devices.loadOneDevice({ kind: 'google-account',
-                                                                      profileId: profile.id,
-                                                                      accessToken: accessToken }, true);
-                            }).done();
-
-                            return user;
-                        });
-                    });
-            });
-        }).nodeify(done);
+        callbackURL: THINGENGINE_ORIGIN + '/user/oauth2/google/callback',
+        passReqToCallback: true,
+    }, function(req, accessToken, refreshToken, profile, done) {
+        if (!req.user) {
+            // authenticate the user
+            authenticateGoogle(accessToken, refreshToken, profile, done);
+        } else {
+            associateGoogle(req.user, accessToken, refreshToken, profile, done);
+        }
     }));
 
     passport.use(new FacebookStrategy({
@@ -136,26 +182,7 @@ function initializePassport() {
         enableProof: true,
         profileFields: ['id', 'displayName', 'emails']
     }, function(accessToken, refreshToken, profile, done) {
-        // we're not using accessToken for now
-
-        db.withTransaction(function(dbClient) {
-            return model.getByFacebookAccount(dbClient, profile.id).then(function(rows) {
-                if (rows.length > 0)
-                    return rows[0];
-
-                var username = profile.username || profile.emails[0].value;
-                return model.create(dbClient, { username: username,
-                                                facebook_id: profile.id,
-                                                human_name: profile.displayName,
-                                                cloud_id: makeRandom(),
-                                                auth_token: makeRandom() })
-                    .then(function(user) {
-                        return EngineManager.get().startUser(user.id, user.cloud_id, user.auth_token).then(function() {
-                            return user;
-                        });
-                    });
-            });
-        }).nodeify(done);
+        authenticateFacebook(accessToken, refreshToken, profile, done);
     }));
 }
 

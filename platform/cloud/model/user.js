@@ -51,6 +51,10 @@ module.exports = {
 
     create: create,
 
+    update: function(client, id, user) {
+        return db.query(client, "update users set ? where id = ?", [user, id]);
+    },
+
     getAll: function(client) {
         return db.selectAll(client, "select * from users");
     },

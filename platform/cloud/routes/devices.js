@@ -6,8 +6,9 @@
 //
 // See COPYING for details
 
-var Q = require('q');
-var express = require('express');
+const Q = require('q');
+const express = require('express');
+const passport = require('passport');
 
 var user = require('../util/user');
 var EngineManager = require('../enginemanager');
@@ -119,6 +120,32 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
         return devices.loadOneDevice(req.body, true);
     }).then(function() {
         res.redirect('/devices?class=' + (req.query.class || 'physical'));
+    }).catch(function(e) {
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }).done();
+});
+
+// special case google because we have login with google
+router.get('/oauth2/google-account', user.redirectLogIn, passport.authorize('google', {
+    scope: (['openid','profile','email',
+             'https://www.googleapis.com/auth/fitness.activity.read',
+             'https://www.googleapis.com/auth/fitness.location.read',
+             'https://www.googleapis.com/auth/fitness.body.read']
+            .join(' ')),
+    failureRedirect: '/devices?class=online',
+    successRedirect: '/devices?class=online'
+}));
+
+router.get('/oauth2/:kind', user.redirectLogIn, function(req, res, next) {
+    var kind = req.params.kind;
+
+    EngineManager.get().getEngine(req.user.id).then(function(engine) {
+        return engine.devices.factory;
+    }).then(function(devFactory) {
+        return devFactory.runOAuth2();
+    }).then(function() {
+        res.redirect('/devices?class=online');
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });

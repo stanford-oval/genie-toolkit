@@ -37,6 +37,8 @@ const GoogleAccountDevice = new lang.Class({
 
     hasKind: function(kind) {
         switch (kind) {
+        case 'online-account':
+            return true;
         case 'google-account':
             return true;
         default:

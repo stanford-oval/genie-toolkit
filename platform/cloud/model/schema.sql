@@ -21,7 +21,7 @@ create table users (
 create table oauth2_clients (
     id char(64) primary key,
     secret char(64) not null,
-    magic_power boolean not null default false,
+    magic_power boolean not null default false
 ) collate = utf8_bin ;
 
 create table oauth2_access_tokens (

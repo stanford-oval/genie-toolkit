@@ -12,7 +12,7 @@ const ModuleDownloader = require('./module_downloader');
 
 module.exports = new lang.Class({
     Name: 'DeviceFactory',
-    $rpcMethods: ['get SupportedKinds', 'getConfigUI'],
+    $rpcMethods: ['get SupportedKinds', 'getConfigUI', 'runOAuth2'],
 
     // hardcoded for now, we'll see about that at some point in the future
     SupportedKinds: [{ kind: 'test', desc: "ThingEngine™ Test Device", online: false },
@@ -32,6 +32,10 @@ module.exports = new lang.Class({
         return this.getFactory(kind).then(function(factory) {
             return factory.getConfigUI();
         });
+    },
+
+    runOAuth2: function(redirectURI) {
+        throw new Error('Not implemented (yet)');
     },
 
     createDevice: function(kind, serializedDevice) {
