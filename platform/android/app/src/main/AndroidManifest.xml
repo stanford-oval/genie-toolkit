@@ -50,6 +50,10 @@
                     android:pathPrefix="/qrcode/"
                     android:scheme="https" />
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="edu.stanford.thingengine.engine.ADD_ONLINE_ACCOUNT"/>
+            </intent-filter>
         </activity>
     </application>
 

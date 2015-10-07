@@ -4,16 +4,17 @@ block scripts
   if authenticated
     script(src='/javascripts/index.js')
 
+block page_name
+  | ThingEngine
+
 block content
+  if authenticated
+    div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
   div.jumbotron.text-center
-    h1 ThingEngine
     p Welcome to ThingEngine
     p bla bla bla
 
-    if authenticated
-      p Your Cloud ID is <samp id='cloud-id'>#{user.cloud_id}</samp>.
-      p Your Auth Token is <samp id='auth-token'>#{user.auth_token}</samp>.
-    else
+    if !authenticated
       a.btn.btn-lg.btn-primary(href='/user/register') Register now!
       span= " "
       a.btn.btn-lg.btn-default(href='/user/login') Sign in

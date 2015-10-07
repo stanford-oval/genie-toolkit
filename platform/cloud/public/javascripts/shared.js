@@ -10,8 +10,9 @@
 
     ThingEngine.setCloudIdWhenReady = function() {
         $(function() {
-            ThingEngine.setCloudId($('#cloud-id').text(),
-                                   $('#auth-token').text());
+            var holder = $('#cloud-id-holder');
+            ThingEngine.setCloudId(holder.attr('data-cloud-id'),
+                                   holder.attr('data-auth-token'));
         });
     }
 })();

@@ -3,8 +3,10 @@ extends layout
 block scripts
   script(src='/javascripts/register.js')
 
+block page_name
+  | Register
+
 block content
-  h1 Register to ThingEngine
   if error
     div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
       button(type='button', data-dismiss='alert', aria-label="Close").close

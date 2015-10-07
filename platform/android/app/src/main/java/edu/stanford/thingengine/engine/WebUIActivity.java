@@ -29,6 +29,8 @@ import java.util.List;
 public class WebUIActivity extends Activity {
     public static final String LOG_TAG = "thingengine.UI";
 
+    public static final String ADD_ONLINE_ACCOUNT = "edu.stanford.thingengine.engine.ADD_ONLINE_ACCOUNT";
+
     private final EngineServiceConnection engine;
     private volatile CloudAuthInfo authInfo;
 
@@ -215,6 +217,14 @@ public class WebUIActivity extends Activity {
         }
     }
 
+    private void doAddOnlineAccount(String kind) {
+        if (kind == null || kind.isEmpty())
+            return;
+
+        WebView view = (WebView)findViewById(R.id.webView);
+        view.loadUrl("https://thingengine.stanford.edu/devices/oauth2/" + kind);
+    }
+
     @Override
     public void onStart() {
         super.onStart();
@@ -228,6 +238,9 @@ public class WebUIActivity extends Activity {
                 doActionView(startIntent.getData());
                 break;
             case Intent.ACTION_MAIN:
+                break;
+            case ADD_ONLINE_ACCOUNT:
+                doAddOnlineAccount(startIntent.getStringExtra("edu.stanford.thingengine.engine.ONLINE_ACCOUNT_KIND"));
                 break;
             default:
                 Log.w(LOG_TAG, "Received spurious intent " + startIntent.getAction());

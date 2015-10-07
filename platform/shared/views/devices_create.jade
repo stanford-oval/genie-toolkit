@@ -3,18 +3,20 @@ extends layout
 block scripts
   script(src='/javascripts/devices-create.js')
 
+block page_name
+  if onlineAccounts
+    | New online account
+  else
+    | New device
+
 block content
   if onlineAccounts
-    h1 Add new online account
-
     p What account do you want to set up?
 
     div.form-group
       for k in kinds
         a(data-kind=k.kind).btn.btn-default.online-account-choice= k.desc
   else
-    h1 Configure new device
-
     form(action="/devices/create?class=" + (onlineAccounts ? 'online' : 'physical'), method="post")
       input(type='hidden',name='_csrf',value=csrfToken)
 

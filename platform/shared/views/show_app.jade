@@ -1,8 +1,10 @@
 extends layout
 
+block page_name
+  |= name
+
 block content
   div.app-content
-    h1=name
     if description
       p=description
 

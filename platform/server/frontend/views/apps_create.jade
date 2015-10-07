@@ -1,7 +1,9 @@
 extends layout
 
+block page_name
+  | New App
+
 block content
-  h1 Create new app
   form(action="/apps/create", method="post")
     input(type='hidden',name='_csrf',value=csrfToken)
     div.form-group

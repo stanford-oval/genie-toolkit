@@ -1,6 +1,9 @@
 extends layout
 
+block page_name
+  | Error
+
 block content
-  h1 Sorry that did not work
+  p Sorry that did not work
   p= message
   a(href='javascript:history.back()').btn.btn-primary Go back

@@ -1,7 +1,9 @@
 extends layout
 
+block page_name
+  | Login
+
 block content
-  h1 Login to your ThingEngine
   each error in errors
     div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
       button(type='button', data-dismiss='alert', aria-label="Close").close
