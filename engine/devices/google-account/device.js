@@ -86,10 +86,4 @@ function createDevice(engine, state) {
     return new GoogleAccountDevice(engine, state);
 }
 
-function getConfigUI() {
-    return { type: 'link', href: '/devices/oauth2/google-account',
-              text: "Click here to associate a Google Account with your ThingEngine" };
-}
-
 module.exports.createDevice = createDevice;
-module.exports.getConfigUI = getConfigUI;

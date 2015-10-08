@@ -13,18 +13,17 @@ block content
   if onlineAccounts
     p What account do you want to set up?
 
-    div.form-group
-      for k in kinds
-        a(data-kind=k.kind).btn.btn-default.online-account-choice= k.desc
+    form(action="/devices/create?class=online", method="post")
+      input(type='hidden',name='_csrf',value=csrfToken)
+
+      div#online-account-selector.container
   else
-    form(action="/devices/create?class=" + (onlineAccounts ? 'online' : 'physical'), method="post")
+    form(action="/devices/create?class=physical", method="post")
       input(type='hidden',name='_csrf',value=csrfToken)
 
     div.form-group
       label(for="device-kind").control-label What kind of device are you trying to configure?
       select#device-kind(name="kind").form-control
         option(value='',selected=true) Select one device...
-        for k in kinds
-          option(value=k.kind)= k.desc
 
     div.well#device-placeholder

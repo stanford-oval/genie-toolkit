@@ -106,10 +106,4 @@ function createDevice(engine, state) {
     return new ThingEngineDevice(engine, state);
 }
 
-function getConfigUI() {
-    return { type: 'message',
-             text: "ThingEngines cannot be paired from here. Use the Configuration page instead." };
-}
-
 module.exports.createDevice = createDevice;
-module.exports.getConfigUI = getConfigUI;

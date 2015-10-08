@@ -48,14 +48,4 @@ function createDevice(engine, state) {
     return new BodyTraceScaleDevice(engine, state);
 }
 
-function getConfigUI() {
-    return { type: 'form',
-             fields: [
-                 { type: 'text', name: 'serial', label: "Serial Number" },
-                 { type: 'text', name: 'username', label: "Username" },
-                 { type: 'password', name: 'password', label: "Password" },
-             ] };
-}
-
 module.exports.createDevice = createDevice;
-module.exports.getConfigUI = getConfigUI;

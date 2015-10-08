@@ -50,19 +50,6 @@ router.get('/', user.redirectLogIn, function(req, res, next) {
     }).done();
 });
 
-router.get('/factory/:kind', user.requireLogIn, function(req, res, next) {
-    var engine = req.app.engine;
-    var devFactory = engine.devices.factory;
-
-    devFactory.getConfigUI(req.params.kind).then(function(ui) {
-        return res.json(ui);
-    }).catch(function(e) {
-        console.log('Failed to get config UI: ' + e.message);
-        console.log(e.stack);
-        return res.status(404).json("Not found");
-    }).done();
-});
-
 router.get('/create', user.redirectLogIn, function(req, res, next) {
     if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
         res.status(404).render('error', { page_title: "ThingEngine - Error",
@@ -72,16 +59,8 @@ router.get('/create', user.redirectLogIn, function(req, res, next) {
 
     var online = req.query.class === 'online';
 
-    var engine = req.app.engine;
-    var devFactory = engine.devices.factory;
-
-    var kinds = devFactory.SupportedKinds.filter(function(k) {
-        return k.online === online;
-    });
-
     res.render('devices_create', { page_title: 'ThingEngine - configure device',
                                    csrfToken: req.csrfToken(),
-                                   kinds: devFactory.SupportedKinds,
                                    onlineAccounts: online,
                                  });
 });

@@ -33,7 +33,7 @@ module.exports = new lang.Class({
 
     _init: function(kind) {
         this._kind = kind;
-        this._url = Config.THINGPEDIA_URL + '/' + kind;
+        this._url = Config.THINGPEDIA_URL + '/download/' + kind;
         this._cacheDir = platform.getCacheDir() + '/' + kind;
 
         this._cachedModules = {};
@@ -65,6 +65,8 @@ module.exports = new lang.Class({
         if (id in this._moduleRequests)
             return this._moduleRequests[id];
 
+        var zipPath = platform.getTmpDir() + '/' + id + '.zip';
+
         return this._moduleRequests[id] = Q.Promise(function(callback, errback) {
             var parsed = url.parse(this._url + '/' + id + '.zip');
             parsed.agent = getAgent();
@@ -84,7 +86,7 @@ module.exports = new lang.Class({
                 errback(error);
             });
         }.bind(this)).then(function() {
-            return Q.nfcall(child_process.execFile, 'unzip', [zipPath, this._cachePath + '/' + id]);
+            return Q.nfcall(child_process.execFile, 'unzip', [zipPath, this._cacheDir + '/' + id]);
         }.bind(this));
     },
 
@@ -100,11 +102,8 @@ module.exports = new lang.Class({
         if (!platform.hasCapability('code-download'))
             throw new Error('Code download is not allowed on this platform');
 
-        var cachePath = platform.getCacheDir() + '/channels/';
-        var zipPath = platform.getTmpDir() + '/' + id + '.zip';
-
         try {
-            fs.mkdirSync(cachePath);
+            fs.mkdirSync(this._cacheDir);
         } catch(e) {
             if (e.code != 'EEXIST')
                 throw e;

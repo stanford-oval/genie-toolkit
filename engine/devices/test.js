@@ -47,14 +47,4 @@ function createDevice(engine, state) {
     return new TestDevice(engine, state);
 }
 
-function getConfigUI() {
-    return { type: 'form',
-             fields: [
-                 { type: 'text', name: 'hw-address', label: "Hardware Address" },
-                 { type: 'text', name: 'ip-address', label: "Network Address" },
-                 { type: 'text', name: 'port', label: "Port" },
-             ] };
-}
-
 module.exports.createDevice = createDevice;
-module.exports.getConfigUI = getConfigUI;

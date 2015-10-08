@@ -12,12 +12,7 @@ const ModuleDownloader = require('./module_downloader');
 
 module.exports = new lang.Class({
     Name: 'DeviceFactory',
-    $rpcMethods: ['get SupportedKinds', 'getConfigUI', 'runOAuth2'],
-
-    // hardcoded for now, we'll see about that at some point in the future
-    SupportedKinds: [{ kind: 'test', desc: "ThingEngine™ Test Device", online: false },
-                     { kind: 'google-account', desc: "Google Account", online: true },
-                     { kind: 'bodytrace-scale', desc: "BodyTrace Scale", online: false }],
+    $rpcMethods: ['runOAuth2'],
 
     _init: function(engine) {
         this._engine = engine;
@@ -26,12 +21,6 @@ module.exports = new lang.Class({
 
     getFactory: function(kind) {
         return this._downloader.getModule(kind);
-    },
-
-    getConfigUI: function(kind) {
-        return this.getFactory(kind).then(function(factory) {
-            return factory.getConfigUI();
-        });
     },
 
     runOAuth2: function(redirectURI) {

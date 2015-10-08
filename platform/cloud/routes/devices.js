@@ -59,20 +59,6 @@ router.get('/', user.redirectLogIn, function(req, res, next) {
     }).done();
 });
 
-router.get('/factory/:kind', user.requireLogIn, function(req, res, next) {
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return engine.devices.factory;
-    }).then(function(devFactory) {
-        return devFactory.getConfigUI(req.params.kind);
-    }).then(function(ui) {
-        return res.json(ui);
-    }).catch(function(e) {
-        console.log('Failed to get config UI: ' + e.message);
-        console.log(e.stack);
-        return res.status(404).json("Not found");
-    }).done();
-});
-
 router.get('/create', user.redirectLogIn, function(req, res, next) {
     if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
         res.status(404).render('error', { page_title: "ThingEngine - Error",
@@ -82,24 +68,10 @@ router.get('/create', user.redirectLogIn, function(req, res, next) {
 
     var online = req.query.class === 'online';
 
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return engine.devices.factory;
-    }).then(function(devFactory) {
-        return devFactory.SupportedKinds;
-    }).then(function(kinds) {
-        kinds = kinds.filter(function(k) {
-            return k.online === online;
-        });
-
-        res.render('devices_create', { page_title: 'ThingEngine - configure device',
-                                       csrfToken: req.csrfToken(),
-                                       kinds: kinds,
-                                       onlineAccounts: online,
-                                     });
-    }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingEngine - Error",
-                                          message: e.message });
-    }).done();
+    res.render('devices_create', { page_title: 'ThingEngine - configure device',
+                                   csrfToken: req.csrfToken(),
+                                   onlineAccounts: online,
+                                 });
 });
 
 router.post('/create', user.requireLogIn, function(req, res, next) {

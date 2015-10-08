@@ -52,3 +52,12 @@ body {
 #code {
     height: 20em;
 }
+
+.online-account-choice {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.online-account-expander {
+    padding-top: 1em;
+}
