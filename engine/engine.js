@@ -18,10 +18,11 @@ const DeviceDatabase = require('./db/devices');
 const TierManager = require('./tier_manager');
 const ConfigPairingModule = require('./config_pairing');
 const ManualQueryRunner = require('./rpc_query_runner');
+const UIEventManager = require('./ui_event_manager');
 
 const Engine = new lang.Class({
     Name: 'Engine',
-    $rpcMethods: ['get channels', 'get devices', 'get apps', 'getQueryRunner'],
+    $rpcMethods: ['get channels', 'get devices', 'get apps', 'get ui', 'getQueryRunner'],
 
     _init: function() {
         // constructor
@@ -32,11 +33,14 @@ const Engine = new lang.Class({
         this._channels = new ChannelFactory(this, this._tiers);
         this._apps = new AppDatabase(this, this._tiers);
 
+        this._ui = new UIEventManager(this);
+
         // in loading order
         this._modules = [this._tiers,
                          this._devices,
                          this._channels,
                          this._apps,
+                         this._ui,
                          new ConfigPairingModule(this, this._tiers)];
 
         this._running = false;
@@ -54,6 +58,10 @@ const Engine = new lang.Class({
 
     get apps() {
         return this._apps;
+    },
+
+    get ui() {
+        return this._ui;
     },
 
     getQueryRunner: function() {

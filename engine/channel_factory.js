@@ -67,12 +67,14 @@ module.exports = new lang.Class({
         return Q();
     },
 
-    _getProxyChannel: function(targetChannelId, kind, args) {
+    _getProxyChannel: function(targetChannelId, kind, caps, args) {
         // FINISHME!! Be smarter in choosing where to run this channel
         // (and factor CLOUD in the decision)
 
         var targetTier;
-        if (this._tierManager.ownTier == Tier.PHONE)
+        if (c.indexOf('ui-manager') >= 0)
+            targetTier = Tier.CLOUD;
+        else if (this._tierManager.ownTier == Tier.PHONE)
             targetTier = Tier.SERVER;
         else
             targetTier = Tier.PHONE;
@@ -84,6 +86,8 @@ module.exports = new lang.Class({
         return caps.every(function(c) {
             if (c === 'channel-state')
                 return this._tierManager.ownTier === Tier.SERVER;
+            else if (c === 'ui-manager')
+                return this._tierManager.ownTier === Tier.CLOUD;
             else
                 return platform.hasCapability(c);
         }.bind(this));
@@ -119,7 +123,7 @@ module.exports = new lang.Class({
                 // uh oh! channel does not work, try with a proxy channel
 
                 if (useProxy) {
-                    return this._getProxyChannel(fullId, kind, args);
+                    return this._getProxyChannel(fullId, kind, caps, args);
                 } else {
                     throw new Error('Channel is not supported but proxy channel is not allowed');
                 }
