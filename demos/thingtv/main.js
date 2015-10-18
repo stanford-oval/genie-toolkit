@@ -27,11 +27,24 @@ var connect_flash = require('connect-flash');
 var expressWs = require('express-ws');
 
 var secretKey = require('./util/secret_key');
+var mdns = require('mdns');
+
+var PORT_NUMBER = 4444;
 
 function main() {
+    // advertise a http server on port 4444
+    var service = mdns.createAdvertisement(mdns.tcp('_http'), PORT_NUMBER, {
+        name:'ThingEngine-TV',
+        txt:{
+            txtvers:'1'
+        }
+    });
+    service.start();
+
+
     app = expressWs(express()).app;
 
-    app.set('port', process.env.PORT || 4444);
+    app.set('port', process.env.PORT || PORT_NUMBER);
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'jade');
     //app.use(favicon());

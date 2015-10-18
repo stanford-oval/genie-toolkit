@@ -25,6 +25,7 @@
     "express-ws": "git://github.com/HenningM/express-ws#v1.0.0-rc.1",
     "errorhandler": "~1.4.2",
     "url": "~0.10.3",
-    "connect-flash": "~0.1.1"
+    "connect-flash": "~0.1.1",
+    "mdns": "~2.2.10"
   }
 }
