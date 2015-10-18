@@ -18,9 +18,9 @@ module.exports = new lang.Class({
     Extends: events.EventEmitter,
 
     _init: function() {
-        // EventEmitter is a node.js class not a lang class,
-        // can't chain up normally
         events.EventEmitter.call(this);
+        this.setMaxListeners(0);
+
         this._useCount = 0;
         this._openPromise = null;
         this._closePromise = null;

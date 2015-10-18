@@ -22,6 +22,7 @@ module.exports = new lang.Class({
 
     _init: function(tierManager, deviceFactory) {
         events.EventEmitter.call(this);
+        this.setMaxListeners(0);
 
         this.factory = deviceFactory;
 
