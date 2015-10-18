@@ -17,10 +17,11 @@ const DeviceFactory = require('./device_factory');
 const DeviceDatabase = require('./db/devices');
 const TierManager = require('./tier_manager');
 const ConfigPairingModule = require('./config_pairing');
+const ManualQueryRunner = require('./rpc_query_runner');
 
 const Engine = new lang.Class({
     Name: 'Engine',
-    $rpcMethods: ['get channels', 'get devices', 'get apps'],
+    $rpcMethods: ['get channels', 'get devices', 'get apps', 'getQueryRunner'],
 
     _init: function() {
         // constructor
@@ -53,6 +54,10 @@ const Engine = new lang.Class({
 
     get apps() {
         return this._apps;
+    },
+
+    getQueryRunner: function() {
+        return new ManualQueryRunner(this);
     },
 
     // Run sequential initialization

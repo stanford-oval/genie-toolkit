@@ -12,8 +12,6 @@ var passport = require('passport');
 
 var user = require('../util/user');
 
-var TITLE = "ThingEngine";
-
 var router = express.Router();
 
 router.get('/login', function(req, res, next) {

@@ -93,6 +93,9 @@
 program = _ at_rules: (at_rule _)* inputs: (input_channel _)+ '=>' _ outputs: (output_channel _)+ _ {
     return ({ 'at-rules': take(at_rules, 0), inputs: take(inputs, 0), outputs: take(outputs, 0) });
 }
+query = inputs: (input_channel _)+ {
+    return take(inputs, 0);
+}
 
 at_rule = at_setting / at_name / at_description
 at_setting = '@setting' _ name:ident _ '{' _ props:(output_property _)* '}' { return AtRule.Setting(name, take(props, 0)); }
