@@ -69,7 +69,7 @@ $(function() {
 
     $('#online-account-selector').each(function() {
         var selector = $(this);
-        $.get('https://thingpedia.stanford.edu/api/devices', function(factoryList) {
+        $.get('https://thingpedia.stanford.edu/api/devices?class=online', function(factoryList) {
             for (var i = 0; i < factoryList.length; i += 3) {
                 var row = $('<div>').addClass('row');
                 selector.append(row);
@@ -86,7 +86,7 @@ $(function() {
         var selector = $(this);
         var deviceFactories = {};
 
-        $.get('https://thingpedia.stanford.edu/api/devices', function(factoryList) {
+        $.get('https://thingpedia.stanford.edu/api/devices?class=physical', function(factoryList) {
             factoryList.forEach(function(f) {
                 deviceFactories[f.primary_kind] = f.factory;
 
