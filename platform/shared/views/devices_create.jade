@@ -21,9 +21,9 @@ block content
     form(action="/devices/create?class=physical", method="post")
       input(type='hidden',name='_csrf',value=csrfToken)
 
-    div.form-group
-      label(for="device-kind").control-label What kind of device are you trying to configure?
-      select#device-kind(name="kind").form-control
-        option(value='',selected=true) Select one device...
+      div.form-group
+        label(for="device-kind").control-label What kind of device are you trying to configure?
+        select#device-kind(name="kind").form-control
+          option(value='',selected=true) Select one device...
 
-    div.well#device-placeholder
+      div.well#device-placeholder

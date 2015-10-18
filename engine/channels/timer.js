@@ -21,7 +21,7 @@ const TimerChannel = new lang.Class({
         this.parent();
 
         cnt++;
-        console.log('Created Test channel #' + cnt);
+        console.log('Created Timer channel #' + cnt);
 
         // convert from s to ms
         this._interval = interval * 1000;
