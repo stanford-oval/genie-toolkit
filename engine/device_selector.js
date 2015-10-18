@@ -39,14 +39,19 @@ module.exports = new lang.Class({
         var channel = device.getChannel.apply(device, args);
         this.channels.push(channel);
         channel.then(function(ch) {
+            this.block.channels.push(ch);
             this.emit('channel-added', ch);
         }.bind(this)).done();
     },
 
     _onDeviceRemoved: function(device) {
         this.channels.forEach(function(channel) {
-            channel.then(function(ch) {
+            Q(channel).then(function(ch) {
                 if (ch.uniqueId.indexOf('-' + device.uniqueId) >= 0) {
+                    var i = this.block.channels.indexOf(ch);
+                    if (i >= 0)
+                        this.block.channels.splice(i, 1);
+
                     this.emit('channel-removed', ch);
                     return ch.close().then(function() { return true; });
                 } else {
@@ -80,6 +85,7 @@ module.exports = new lang.Class({
         }
 
         return Q.all(this.channels).then(function(channels) {
+            this.block.channels = channels;
             channels.forEach(function(channel) {
                 this.emit('channel-added', channel);
             }, this);

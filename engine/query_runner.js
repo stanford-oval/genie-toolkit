@@ -19,12 +19,17 @@ const DeviceSelector = require('./device_selector');
 module.exports = new lang.Class({
     Name: 'QueryRunner',
     Extends: events.EventEmitter,
+    $rpcMethods: ['start', 'stop'],
 
-    _init: function(engine) {
+    _init: function(engine, state, inputBlocks) {
         this.engine = engine;
-        this._running = true;
-        this._inputs = null;
-        this._state = null;
+        this._running = false;
+
+        this._state = state;
+        this._blocks = inputBlocks;
+        this._inputs = inputBlocks.map(function(input) {
+            return new DeviceSelector(this.engine, 'r', input);
+        }.bind(this));
     },
 
     _onData: function(data) {
@@ -53,23 +58,12 @@ module.exports = new lang.Class({
             throw new Error('QueryRunner is not running');
 
         return Q.all(this._inputs.map(function(input) {
+            input.block.channels.forEach(function(ch) {
+                this._channelRemoved(ch);
+            }, this);
+
             return input.stop();
-        }));
-    },
-
-    runQuery: function(state) {
-        var compiler = new AppCompiler();
-        var ast = AppGrammar.parse(code, { startRule: 'query' });
-
-        return this.runCompiled(state, compiler.compileInputs(ast));
-    },
-
-    runCompiled: function(state, inputBlocks) {
-        this._state = state;
-        this._blocks = inputBlocks;
-        this._inputs = inputBlocks.map(function(input) {
-            return new DeviceSelector(this.engine, 'r', input);
-        }.bind(this));
+        }.bind(this)));
     },
 
     start: function() {

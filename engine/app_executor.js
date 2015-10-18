@@ -46,9 +46,8 @@ module.exports = new lang.Class({
         this.description = compiler.description;
         this.settings = compiler.settings;
 
-        this.input = new QueryRunner(engine);
+        this.input = new QueryRunner(engine, this.state, compiler.compileInputs(ast.inputs));
         this.input.on('triggered', this._onTriggered.bind(this));
-        this.input.runCompiled(this.state, compiler.compileInputs(ast.inputs));
 
         this.outputs = compiler.compileOutputs(ast.outputs).map(function(output) {
             return new DeviceSelector(engine, 'w', output);
@@ -60,11 +59,9 @@ module.exports = new lang.Class({
             env.beginOutput();
             output.block.action(env);
             var out = env.finishOutput();
-            output.getChannels().then(function(channels) {
-                channels.forEach(function(channel) {
-                    channel.sendEvent(out);
-                });
-            }).done();
+            output.block.channels.forEach(function(channel) {
+                channel.sendEvent(out);
+            });
         });
     },
 
