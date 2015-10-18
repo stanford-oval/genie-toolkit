@@ -7,7 +7,7 @@ var uriFormatters = {
     },
 
     yt: function(video) {
-        return 'https://www.youtube.com/embed/' + video + '?autoplay=1';
+        return 'https://www.youtube.com/embed/' + video + '?autoplay=1&origin=http://127.0.0.1:4444';
     }
 };
 
@@ -21,9 +21,13 @@ router.post('/switch-to/:kind/:url', function(req, res, next) {
     var url = formatter(req.params.url);
     req.app.thingtv.clients.forEach(function(client) {
         console.log('Sending command to client');
-        client.send(JSON.stringify({ command: 'switch', url: url }));
+        client.send(JSON.stringify({ command: 'switch', url: url, youtube: req.params.kind === 'yt' }));
     });
     res.json({ result: 'ok' });
+});
+
+router.post('/set-state/:state', function(req, res, next) {
+    client.send(JSON.stringify({ command: 'set-state', state: req.params.state }));
 });
 
 module.exports = router;
