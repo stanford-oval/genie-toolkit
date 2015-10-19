@@ -1,8 +1,10 @@
 module.exports = function(app) {
     app.get('/', function(req, res, next) {
-        res.render('index', {
-            page_title: 'ThingEngine - run your things!',
-        });
+        res.render('index');
+    });
+
+    app.get('/placeholder', function(req, res, next) {
+        res.render('placeholder');
     });
 
     app.ws('/client', function(ws, req) {

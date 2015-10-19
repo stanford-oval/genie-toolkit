@@ -124,10 +124,12 @@ const EngineManager = new lang.Class({
 
                         // precache .apps, .devices, .channels instead of querying the
                         // engine all the time, to reduce IPC latency
-                        Q.all([engine.apps, engine.devices, engine.channels]).spread(function(apps, devices, channels) {
+                        Q.all([engine.apps, engine.devices, engine.channels, engine.ui]).spread(function(apps, devices, channels, ui) {
                             engineProxy.resolve({ apps: apps,
                                                   devices: devices,
-                                                  channels: channels });
+                                                  channels: channels,
+                                                  ui: ui
+                                                });
                         }, function(err) {
                             engineProxy.reject(err);
                         });
