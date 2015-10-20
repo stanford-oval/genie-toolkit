@@ -22,10 +22,10 @@
         },
     });
     var Selector = adt.data({
-        Hash: {
+        Tag: {
             name: adt.only(String),
         },
-        Dot: {
+        Id: {
             name: adt.only(String),
         },
     });
@@ -128,8 +128,8 @@ channel_descriptor = selector:selector+ pseudo:channel_spec? {
     return ({ selector: selector, pseudo: pseudo }); } /
     pseudo:channel_spec { return ({ selector: [], pseudo: pseudo }); }
 selector = hash_selector / dot_selector
-hash_selector = '#' name:ident { return Selector.Hash(name); }
-dot_selector = '.' name:ident { return Selector.Dot(name); }
+hash_selector = '#' name:ident { return Selector.Id(name); }
+dot_selector = '.' name:ident { return Selector.Tag(name); }
 
 input_property = lhs:expression _ comp:comparator _ rhs:expression _ ';' {
     return ({ lhs: lhs, comparator: comp, rhs: rhs });

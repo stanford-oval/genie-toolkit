@@ -97,10 +97,10 @@ module.exports = (function() {
         peg$c41 = function(pseudo) { return ({ selector: [], pseudo: pseudo }); },
         peg$c42 = "#",
         peg$c43 = { type: "literal", value: "#", description: "\"#\"" },
-        peg$c44 = function(name) { return Selector.Hash(name); },
+        peg$c44 = function(name) { return Selector.Id(name); },
         peg$c45 = ".",
         peg$c46 = { type: "literal", value: ".", description: "\".\"" },
-        peg$c47 = function(name) { return Selector.Dot(name); },
+        peg$c47 = function(name) { return Selector.Tag(name); },
         peg$c48 = function(lhs, comp, rhs) {
             return ({ lhs: lhs, comparator: comp, rhs: rhs });
         },
@@ -3019,10 +3019,10 @@ module.exports = (function() {
             },
         });
         var Selector = adt.data({
-            Hash: {
+            Tag: {
                 name: adt.only(String),
             },
-            Dot: {
+            Id: {
                 name: adt.only(String),
             },
         });

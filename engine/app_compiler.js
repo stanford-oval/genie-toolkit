@@ -374,23 +374,23 @@ function compileAssignment(ast) {
     }
 }
 
-function compileHashSelector(ast) {
+function compileIdSelector(ast) {
     return function(device) {
         return device.uniqueId === ast.name;
     }
 }
 
-function compileDotSelector(ast) {
+function compileTagSelector(ast) {
     return function(device) {
         return device.hasKind(ast.name) || device.hasTag(ast.name);
     }
 }
 
 function compileSimpleSelector(ast) {
-    if (ast.isHash)
-        return compileHashSelector(ast);
-    else if (ast.isDot)
-        return compileDotSelector(ast);
+    if (ast.isId)
+        return compileIdSelector(ast);
+    else if (ast.isTag)
+        return compileTagSelector(ast);
 }
 
 function compileSelector(ast) {
