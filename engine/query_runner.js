@@ -30,13 +30,15 @@ module.exports = new lang.Class({
         this._inputs = inputBlocks.map(function(input) {
             return new DeviceSelector(this.engine, 'r', input);
         }.bind(this));
+
+        this._env = new ExecEnvironment(this.engine.devices, this._state);
     },
 
-    _onData: function(data) {
+    _onData: function(from, data) {
         try {
-            var env = new ExecEnvironment(this.engine.devices, this._state);
-
-            this._blocks[0].update(this._blocks, 0, env, function() {
+            this._env.reset();
+            this._env.handling = from;
+            this._blocks[0].update(this._blocks, 0, this._env, function() {
                 this.emit('triggered', env);
             }.bind(this));
         } catch(e) {
@@ -68,7 +70,11 @@ module.exports = new lang.Class({
 
     start: function() {
         this._running = true;
-        this._dataListener = this._onData.bind(this);
+        var self = this;
+        this._dataListener = function(data) {
+            var from = this;
+            this._onData.call(self, from, data);
+        };
 
         this._inputs.forEach(function(input) {
             input.on('channel-added', this._channelAdded.bind(this));

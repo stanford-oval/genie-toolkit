@@ -68,19 +68,38 @@
             },
             UnaryArithOp: {
                 arg: adt.only(this),
+                opcode: adt.only(String),
                 op: adt.only(Function),
             },
             BinaryArithOp: {
                 lhs: adt.only(this),
                 rhs: adt.only(this),
+                opcode: adt.only(String),
                 op: adt.only(Function)
             },
             BinaryStringOp: {
                 lhs: adt.only(this),
                 rhs: adt.only(this),
+                opcode: adt.only(String),
                 op: adt.only(Function)
             }
         });
+    });
+    var InputRule = adt.data({
+        Threshold: {
+            lhs: adt.only(Expression),
+            comparator: adt.only(String),
+            rhs: adt.only(Expression)
+        },
+        Change: {
+            expr: adt.only(Expression),
+            amount: function(val) {
+                if (val === null)
+                    return val;
+                else
+                    return adt.only(Expression).apply(this, arguments);
+            }
+        }
     });
 
     function take(array, idx) {
@@ -102,7 +121,7 @@ at_setting = '@setting' _ name:ident _ '{' _ props:(output_property _)* '}' { re
 at_name = '@name' _ name:literal_string _ ';' { return AtRule.Name(name); }
 at_description = '@description' _ desc:literal_string _ ';' { return AtRule.Description(desc); }
 
-input_channel = quantifier:(('all' / 'some') _)? channel:channel_descriptor _ alias:('as' _ ident _)? '{' _ filters:(input_property _)* '}' {
+input_channel = quantifier:(('all' / 'some') __)? channel:channel_descriptor _ '{' _ filters:(input_property _)* '}' alias:('as' __ ident _)? {
     return ({ quantifier: quantifier !== null ? quantifier[0] : 'some',
               alias: alias !== null ? alias[2] : null,
               channelName: channel.pseudo !== null ? channel.pseudo.name : 'source',
@@ -124,15 +143,21 @@ channel_paramlist = first:channel_param _ rest:(',' _ channel_param _)* {
 channel_spec = ':' name:ident args:('(' channel_paramlist ')')? {
     return { name: name, args: args !== null ? args[1] : [] };
 }
-channel_descriptor = selector:selector+ pseudo:channel_spec? {
-    return ({ selector: selector, pseudo: pseudo }); } /
+channel_descriptor = selector:(selector _)+ pseudo:channel_spec? {
+    return ({ selector: take(selector, 0), pseudo: pseudo }); } /
     pseudo:channel_spec { return ({ selector: [], pseudo: pseudo }); }
-selector = hash_selector / dot_selector
-hash_selector = '#' name:ident { return Selector.Id(name); }
-dot_selector = '.' name:ident { return Selector.Tag(name); }
+selector = id_selector / tag_selector
+id_selector = '.' name:ident { return Selector.Id(name); }
+tag_selector = '#' name:ident { return Selector.Tag(name); }
 
-input_property = lhs:expression _ comp:comparator _ rhs:expression _ ';' {
-    return ({ lhs: lhs, comparator: comp, rhs: rhs });
+input_property = rule:(change_expression / input_filter) _ ';' {
+    return rule;
+}
+input_filter = lhs:expression _ comp:comparator _ rhs:expression {
+    return InputRule.Threshold(lhs, comp, rhs);
+}
+change_expression = 'change' __ lhs:expression by:('>' __ amount:expression) {
+    return InputRule.Change(lhs, by !== null ? by[2] : null);
 }
 output_property = name:ident _ ( ':' / '=' ) _ rhs:expression _ ';' {
     return ({ name: name, rhs: rhs });
@@ -142,14 +167,14 @@ comparator "comparator" = '>=' / '<=' / '>' / '<' / '=' / ':' / '!=' / '~='
 // expression language
 
 expression =
-    '-' _ arg:mult_expression { return Expression.UnaryArithOp(arg, function(x) { return -x; }); } /
-    lhs:mult_expression _ '+' _ rhs:expression { return Expression.BinaryArithOp(lhs, rhs, function(x, y) { return x + y; }); } /
-    lhs:mult_expression _ '-' _ rhs:expression { return Expression.BinaryArithOp(lhs, rhs, function(x, y) { return x - y; }); } /
-    lhs:mult_expression _ rhs:expression { return Expression.BinaryStringOp(lhs, rhs, function(x, y) { return x + y; }); } /
+    '-' _ arg:mult_expression { return Expression.UnaryArithOp(arg, '-', function(x) { return -x; }); } /
+    lhs:mult_expression _ '+' _ rhs:expression { return Expression.BinaryArithOp(lhs, rhs, '+', function(x, y) { return x + y; }); } /
+    lhs:mult_expression _ '-' _ rhs:expression { return Expression.BinaryArithOp(lhs, rhs, '-', function(x, y) { return x - y; }); } /
+    lhs:mult_expression _ rhs:expression { return Expression.BinaryStringOp(lhs, rhs, '+', function(x, y) { return x + y; }); } /
     mult_expression
 mult_expression =
-    lhs:member_expression _ '*' _ rhs:mult_expression { return Expression.BinaryArithOp(lhs, rhs, function(x, y) { return x * y; }); } /
-    lhs:member_expression _ '/' _ rhs:mult_expression { return Expression.BinaryArithOp(lhs, rhs, function(x, y) { return x / y; }); } /
+    lhs:member_expression _ '*' _ rhs:mult_expression { return Expression.BinaryArithOp(lhs, rhs, '*', function(x, y) { return x * y; }); } /
+    lhs:member_expression _ '/' _ rhs:mult_expression { return Expression.BinaryArithOp(lhs, rhs, '/', function(x, y) { return x / y; }); } /
     member_expression
 member_expression =
     lhs:primary_expression '.' name:ident { return Expression.MemberRef(lhs, name); } /
@@ -192,6 +217,7 @@ identchar = [A-Za-z\-0-9_]
 ident "ident" = $(identstart identchar*)
 
 _ = (whitespace / comment)*
+__ = whitespace _
 whitespace "whitespace" = [ \r\n\t\v]
 comment "comment" = '/*' ([^*] / '*'[^/])* '*/'
 

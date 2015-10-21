@@ -24,6 +24,7 @@ module.exports = new lang.Class({
         this._useCount = 0;
         this._openPromise = null;
         this._closePromise = null;
+        this._previousEvent = null;
         this._event = null;
 
         // don't set this, it is set automatically by ChannelFactory
@@ -91,21 +92,39 @@ module.exports = new lang.Class({
         return this._event;
     },
 
+    get previousEvent() {
+        return this._previousEvent;
+    },
+
     // for subclasses
-    emitEvent: function(object, edge) {
-        if (edge) {
-            // emit an "edge triggered" event, ie, an event that exists now
-            // but will stop existing (and revert to null) after we finish this
-            // call
-            this._event = object;
-            this.emit('data', object, true);
-            this._event = null;
-        } else {
-            // emit a "level triggered" event, ie, an event that will persist
-            // after the end of this call until replaced with a new event
-            this._event = object;
-            this.emit('data', object, false);
-        }
+    setPreviousEvent: function(object) {
+        this._previousEvent = object;
+    },
+
+    setCurrentEvent: function(object) {
+        this._event = object;
+    },
+
+    // report a change in current event value
+    emitEvent: function(object) {
+        // don't call nextTick() here, we don't want to emit a signal or we confuse ChannelStubs
+        this._previousEvent = this._event;
+
+        this._event = object;
+        this.emit('data', object);
+    },
+
+    // report no change in current event value
+    // we could emit an event, then let the app executor change code
+    // filter it out
+    // but it is probably the case that not emitting the event is equivalent,
+    // because threshold rules are necessarily disabled and change rules
+    // would not see a difference
+    // ... i mean provably, not probably ;)
+    nextTick: function() {
+        this._previousEvent = this._event;
+        // don't use this event, it exists only for proxies
+        this.emit('next-tick');
     },
 
     // public API

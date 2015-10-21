@@ -8,48 +8,52 @@
 
 const lang = require('lang');
 const Q = require('q');
-const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+const http = require('http');
 
 const BaseChannel = require('../base_channel');
-
 
 var parseString = require('xml2js').parseString;
 var cnt = 0;
 var url = 'http://api.yr.no/weatherapi/locationforecast/1.9/?lat=37.25;lon=122.8';
+
 const WeatherChannel = new lang.Class({
     Name: 'WeatherChannel',
     Extends: BaseChannel,
 
-    _init: function() {
+    _init: function(engine, state, device) {
         this.parent();
 
         cnt++;
         console.log('Created Weather channel #' + cnt);
 
         this._timeout = -1;
+        this._state = state;
+    },
+
+    _onTick: function() {
+        return Q.nfcall(httpGetAsync, url).then(function(response) {
+            return Q.nfcall(parseString, response);
+        }).then(function(result) {
+            //console.log(JSON.stringify(result.weatherdata['product'][0].time[0], null, 1));
+
+            var temp = result.weatherdata['product'][0].time[0];
+            var time = new Date(temp.$.to);
+            var temperature = temp.location[0].temperature[0].$.value;
+            var humidity = temp.location[0].humidity[0].$.value;
+            var event = { ts: time, temperature: temperature, humidity: humidity };
+
+            channelInstance.emitEvent(event);
+        }, function(error) {
+            console.log('Error reading from yr.no server: ' + error.message);
+        });
     },
 
     _doOpen: function() {
         var channelInstance = this;
         this._timeout = setInterval(function() {
-            httpGetAsync(url , function(response) {
-                parseString(response, function( err, result) {
-                //console.log(JSON.stringify(result.weatherdata['product'][0].time[0], null, 1));
-                    var temp = result.weatherdata['product'][0].time[0];
-                    var temperature = temp.location[0].temperature[0].$.value;
-                    var humidity = temp.location[0].humidity[0].$.value;
-                    var event = {temperature: temperature, humidity: humidity};
-                    /*
-                      {temperature: "",
-                      humidity: "",
-                      overall:"sunny/rainy/cloudy"}
-                    */
-                    channelInstance.emitEvent(event, false);
-                });
-            });
-
+            this._onTick().done();
         }.bind(this), 5000);
-        return Q();
+        return this._onTick();
     },
 
     _doClose: function() {
@@ -63,16 +67,22 @@ function createChannel() {
     return new WeatherChannel();
 }
 
-function httpGetAsync(theUrl, callback)
-{
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-            callback(xmlHttp.responseText);
-    }
-    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
-    xmlHttp.send(null);
+function httpGetAsync(url, auth, callback) {
+    var options = Url.parse(url);
+    var req = http.get(options, function(res) {
+        var data = '';
+        res.setEncoding('utf8');
+        res.on('data', function(chunk) {
+            data += chunk;
+        });
+        res.on('end', function() {
+            callback(null, data);
+        });
+    });
+    req.on('error', function(err) {
+        callback(err);
+    });
 }
 
 module.exports.createChannel = createChannel;
-module.exports.requiredCapabilities = [];
+module.exports.requiredCapabilities = ['channel-state'];

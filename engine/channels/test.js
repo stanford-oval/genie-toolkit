@@ -32,11 +32,11 @@ const TestChannel = new lang.Class({
 
     _doOpen: function() {
         setTimeout(function() {
-            this.emitEvent({"number":42}, true);
+            this.emitEvent({"number":42});
         }.bind(this), 0);
         this._timeout = setInterval(function() {
             var event = {"number":42 + Math.floor(Math.random() * 42)};
-            this.emitEvent(event, true);
+            this.emitEvent(event);
         }.bind(this), 5000);
         return Q();
     },
