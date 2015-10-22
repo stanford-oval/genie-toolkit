@@ -7,41 +7,40 @@ var movieDBPath = './db/movies.json';
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    res.render('add', { title: '' });
+    res.render('getNext', { title: '' });
 });
 
 router.post('/', function(req, res) {
   console.log(req.body);
 
   try {    
-    var movieEntry = req.body;
     var movies = loadMoviesFromDB();
-    console.log('movies ' + movies);
 
-    if(movies[movieEntry.url])
+    if(Object.keys(movies).length)
     {
-      console.log('Movie entry already exist');
-      res.status(409);
-      res.end();
+      var movieEntry = pickRandomProperty(movies);
+      res.status(200);
+      res.end(JSON.stringify(movieEntry, null, 4));
     }
     else
-    {   
-        movies[movieEntry.url] = {
-          likeCount: 0,
-          dislikeCount: 0,
-          url: movieEntry.url,
-        }
-        saveMoviesToDB(movies);
-        res.status(200);
-        res.end();
+    {
+      console.log('Empty movie entries');
+      res.status(404);
+      res.end();
     }
 
   } catch (e) {
-    console.log('Error saving movie');
+    console.log('Error getting next movie ' + e);
     res.status(500);
     res.end();
   }
 });
+
+
+function pickRandomProperty(obj) {
+  var keys = Object.keys(obj)
+  return obj[keys[ keys.length * Math.random() >>> 0]];
+}
 
 
 

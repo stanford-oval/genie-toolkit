@@ -7,7 +7,7 @@ var movieDBPath = './db/movies.json';
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    res.render('add', { title: '' });
+    res.render('like', { title: '' });
 });
 
 router.post('/', function(req, res) {
@@ -16,28 +16,31 @@ router.post('/', function(req, res) {
   try {    
     var movieEntry = req.body;
     var movies = loadMoviesFromDB();
-    console.log('movies ' + movies);
 
     if(movies[movieEntry.url])
     {
-      console.log('Movie entry already exist');
-      res.status(409);
+      if(movieEntry.like)
+      {
+        movies[movieEntry.url].likeCount += movieEntry.cnt;
+      }
+      else
+      {
+        movies[movieEntry.url].dislikeCount += movieEntry.cnt;
+      }
+
+      saveMoviesToDB(movies);
+      res.status(200);
       res.end();
     }
     else
-    {   
-        movies[movieEntry.url] = {
-          likeCount: 0,
-          dislikeCount: 0,
-          url: movieEntry.url,
-        }
-        saveMoviesToDB(movies);
-        res.status(200);
-        res.end();
+    {
+      console.log('Cannot find movie entry');
+      res.status(404);
+      res.end();
     }
 
   } catch (e) {
-    console.log('Error saving movie');
+    console.log('Error liking movie');
     res.status(500);
     res.end();
   }

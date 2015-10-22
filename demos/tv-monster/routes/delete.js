@@ -7,7 +7,7 @@ var movieDBPath = './db/movies.json';
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    res.render('add', { title: '' });
+    res.render('delete', { title: '' });
 });
 
 router.post('/', function(req, res) {
@@ -18,26 +18,13 @@ router.post('/', function(req, res) {
     var movies = loadMoviesFromDB();
     console.log('movies ' + movies);
 
-    if(movies[movieEntry.url])
-    {
-      console.log('Movie entry already exist');
-      res.status(409);
-      res.end();
-    }
-    else
-    {   
-        movies[movieEntry.url] = {
-          likeCount: 0,
-          dislikeCount: 0,
-          url: movieEntry.url,
-        }
-        saveMoviesToDB(movies);
-        res.status(200);
-        res.end();
-    }
+    delete movies[movieEntry.url];
+    saveMoviesToDB(movies);
+    res.status(200);
+    res.end();
 
   } catch (e) {
-    console.log('Error saving movie');
+    console.log('Error deleting movie');
     res.status(500);
     res.end();
   }

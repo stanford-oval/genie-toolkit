@@ -4,7 +4,7 @@
 
 
         //add("http://google.com");
-        add("http://google.com");
+        del("http://google.com");
     });
 
 

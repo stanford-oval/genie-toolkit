@@ -11,11 +11,9 @@ var users = require('./routes/users');
 var app = express();
 
 var add = require('./routes/add');
-/*
-var remove = require('./routes/remove');
+var del = require('./routes/delete');
 var like = require('./routes/like');
-var get = require('./routes/get');
-*/
+var getNext = require('./routes/getNext');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -32,11 +30,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', routes);
 app.use('/users', users);
 app.use('/add', add);
-/*
-app.use('/remove', remove);
+app.use('/delete', del);
 app.use('/like', like);
-app.use('/get', get);
-*/
+app.use('/getNext', getNext);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

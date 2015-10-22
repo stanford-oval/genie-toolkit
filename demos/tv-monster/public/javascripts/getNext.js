@@ -4,9 +4,32 @@
 
 
         //add("http://google.com");
-        add("http://google.com");
+        getNext();
+
+        
     });
 
+
+    function getNext() {
+        $.ajax({
+            type: "POST",
+            contentType: 'application/json',
+            dataType: "text",
+            url: '/getNext',
+            processData: false,
+            //data: JSON.stringify(movie),
+            success: function (data) {
+              //console.log("success " + data);
+              var movie = JSON.parse(data);
+              var displayString = "next url is " + movie.url + " with " + movie.likeCount + " likes and " + movie.dislikeCount + " dislikes";
+              console.log(displayString);
+              $('#display').text(displayString);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log("ajax error", textStatus, errorThrown);
+            }
+        }); 
+    }
 
     function del(url) {
         var movie = {
@@ -14,20 +37,19 @@
         }
 
         $.ajax({
-            type: "POST",
+            type: "Get",
             contentType: 'application/json',
             dataType: "text",
             url: '/delete',
             processData: false,
             data: JSON.stringify(movie),
             success: function (data) {
-              console.log("success " + data);
+              console.log("success " + data)
             },
             error: function(jqXHR, textStatus, errorThrown) {
               console.log("ajax error", textStatus, errorThrown);
             }
         }); 
-
     }
 
     function add(url) {
@@ -45,7 +67,7 @@
             processData: false,
             data: JSON.stringify(movie),
             success: function (data) {
-              console.log("success " + data);
+              console.log("success " + data)
             },
             error: function(jqXHR, textStatus, errorThrown) {
               console.log("ajax error", textStatus, errorThrown);
