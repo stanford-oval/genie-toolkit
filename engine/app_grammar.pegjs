@@ -109,8 +109,8 @@
 
 // global grammar
 
-program = _ at_rules: (at_rule _)* inputs: (input_channel _)+ '=>' _ outputs: (output_channel _)+ _ {
-    return ({ 'at-rules': take(at_rules, 0), inputs: take(inputs, 0), outputs: take(outputs, 0) });
+program = _ at_rules: (at_rule _)* inputs:input_channel_list '=>' _ outputs:output_channel_list _ {
+    return ({ 'at-rules': take(at_rules, 0), inputs: inputs, outputs: outputs });
 }
 query = inputs: (input_channel _)+ {
     return take(inputs, 0);
@@ -121,13 +121,19 @@ at_setting = '@setting' _ name:ident _ '{' _ props:(output_property _)* '}' { re
 at_name = '@name' _ name:literal_string _ ';' { return AtRule.Name(name); }
 at_description = '@description' _ desc:literal_string _ ';' { return AtRule.Description(desc); }
 
-input_channel = quantifier:(('all' / 'some') __)? channel:channel_descriptor _ '{' _ filters:(input_property _)* '}' alias:('as' __ ident _)? {
+input_channel_list = first:input_channel _ rest:(',' _ input_channel _)* {
+    return [first].concat(take(rest, 2));
+}
+input_channel = quantifier:(('all' / 'some') __)? channel:channel_descriptor _ '{' _ filters:(input_property _)* '}' _ alias:('as' __ ident _)? {
     return ({ quantifier: quantifier !== null ? quantifier[0] : 'some',
               alias: alias !== null ? alias[2] : null,
               channelName: channel.pseudo !== null ? channel.pseudo.name : 'source',
               channelArgs: channel.pseudo !== null ? channel.pseudo.args : [],
               selector: channel.selector,
               filters: take(filters, 0) });
+}
+output_channel_list = first:output_channel _ rest:(',' _ output_channel _)* {
+    return [first].concat(take(rest, 2));
 }
 output_channel = channel:channel_descriptor _ '{' _ outputs: (output_property _)* '}' {
     return ({ selector: channel.selector,

@@ -11,6 +11,7 @@
   ],
   "main": "device.js",
   "dependencies": {
-    "twitter-node-client": "0.0.6"
+    "twitter-node-client": "0.0.6",
+    "querystring": "~0.2.0"
   }
 }

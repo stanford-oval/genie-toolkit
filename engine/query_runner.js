@@ -39,7 +39,7 @@ module.exports = new lang.Class({
             this._env.reset();
             this._env.handling = from;
             this._blocks[0].update(this._blocks, 0, this._env, function() {
-                this.emit('triggered', env);
+                this.emit('triggered', this._env);
             }.bind(this));
         } catch(e) {
             console.log('Error during query run: ' + e.message);
@@ -73,7 +73,7 @@ module.exports = new lang.Class({
         var self = this;
         this._dataListener = function(data) {
             var from = this;
-            this._onData.call(self, from, data);
+            self._onData(from, data);
         };
 
         this._inputs.forEach(function(input) {

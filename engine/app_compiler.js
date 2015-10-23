@@ -422,7 +422,7 @@ module.exports = new lang.Class({
     },
 
     compileMemberRef: function(objectast, name) {
-        var objectexp = this._compileExpression(objectast);
+        var objectexp = this.compileExpression(objectast);
         typeUnify(objectexp[0], Type.Object);
 
         var objectop = objectexp[1];
@@ -446,7 +446,7 @@ module.exports = new lang.Class({
         if (argsast.length !== func.argtypes.length)
             throw new TypeError("Function " + func + " does not accept " +
                                 argsast.length + " arguments");
-        var argsexp = argsast.map(this._compileExpression.bind(this));
+        var argsexp = argsast.map(this.compileExpression.bind(this));
         argsexp.forEach(function(exp, idx) {
             typeUnify(exp[0], func.argtypes[idx]);
         });
