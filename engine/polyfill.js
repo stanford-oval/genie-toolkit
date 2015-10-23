@@ -23,6 +23,12 @@ if (!Array.prototype.find) {
   };
 }
 
+if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function(x) {
+        return this.substr(0, x.length) == x;
+    }
+}
+
 // The following is from the gjs project.
 // Copyright 2014 Jasper St. Pierre, Florian Mullner, Dan Winship, et al.
 //

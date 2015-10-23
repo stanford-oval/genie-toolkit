@@ -117,7 +117,24 @@ module.exports = new lang.Class({
         if (fullId in this._cachedChannels)
             return this._cachedChannels[fullId];
 
-        return this._cachedChannels[fullId] = this._downloader.getModule(kind).then(function(factory) {
+        var subkind;
+        if (args[0] && args[0].kind !== undefined && kind.startsWith(args[0].kind)) {
+            subkind = kind.substr(args[0].kind.length + 1);
+            kind = args[0].kind;
+        } else {
+            subkind = null;
+        }
+
+        return this._cachedChannels[fullId] = Q.try(function() {
+            if (subkind != null) {
+                return this._engine.devices.factory.getSubmodule(kind, subkind)
+                    .catch(function(e) {
+                        return this._downloader.getModule(kind + '-' + subkind);
+                    }.bind(this));
+            } else {
+                return this._downloader.getModule(kind);
+            }
+        }.bind(this)).then(function(factory) {
             var caps = factory.requiredCapabilities || [];
             if (!this._checkFactoryCaps(caps)) {
                 // uh oh! channel does not work, try with a proxy channel

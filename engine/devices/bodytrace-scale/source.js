@@ -10,7 +10,7 @@ const Q = require('q');
 const https = require('https');
 const Url = require('url');
 
-const BaseChannel = require('../base_channel');
+const BaseChannel = require('../../base_channel');
 
 const URL_TEMPLATE = 'https://us.data.bodytrace.com/1/device/%s/datavalues?names=batteryVoltage,signalStrength,values/weight,values/unit';
 const POLL_INTERVAL = 30000; // 30s

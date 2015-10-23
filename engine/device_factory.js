@@ -19,6 +19,10 @@ module.exports = new lang.Class({
         this._downloader = new ModuleDownloader('devices');
     },
 
+    getSubmodule: function(kind, subkind) {
+        return this._downloader.getSubmodule(kind, subkind);
+    },
+
     getFactory: function(kind) {
         return this._downloader.getModule(kind);
     },

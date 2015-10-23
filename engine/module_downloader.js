@@ -40,22 +40,43 @@ module.exports = new lang.Class({
         this._moduleRequests = {};
     },
 
-    _createModuleFromBuiltin: function(id) {
+    _getModuleFull: function(id, subId) {
+        var fullId;
+        if (subId)
+            fullId = id + '/' + subId;
+        else
+            fullId = id;
+
+        if (fullId in this._cachedModules)
+            return Q(this._cachedModules[fullId]);
+        else
+            return this._createModule(fullId, id);
+    },
+
+    getModule: function(id) {
+        return this._getModuleFull(id);
+    },
+
+    getSubmodule: function(id, subId) {
+        return this._getModuleFull(id, subId);
+    },
+
+    _createModuleFromBuiltin: function(fullId) {
         try {
-            this._cachedModules[id] = require('./' + this._kind + '/' + id);
-            console.log(this._kind + ' module ' + id + ' loaded as builtin');
-            return this._cachedModules[id];
+            this._cachedModules[fullId] = require('./' + this._kind + '/' + fullId);
+            console.log(this._kind + ' module ' + fullId + ' loaded as builtin');
+            return this._cachedModules[fullId];
         } catch(e) {
             console.log('Foo ' + e);
             return null;
         }
     },
 
-    _createModuleFromCache: function(id) {
+    _createModuleFromCache: function(fullId) {
         try {
-            this._cachedModules[id] = require(this._cacheDir + '/' + id);
-            console.log(this._kind + ' module ' + id + ' loaded as cached');
-            return this._cachedModules[id];
+            this._cachedModules[fullId] = require(this._cacheDir + '/' + fullId);
+            console.log(this._kind + ' module ' + fullId + ' loaded as cached');
+            return this._cachedModules[fullId];
         } catch(e) {
             return null;
         }
@@ -90,13 +111,13 @@ module.exports = new lang.Class({
         }.bind(this));
     },
 
-    _createModule: function(id) {
-        console.log('Loading ' + this._kind + ' module ' + id);
+    _createModule: function(fullId, id) {
+        console.log('Loading ' + this._kind + ' module ' + fullId);
 
-        var module = this._createModuleFromBuiltin(id);
+        var module = this._createModuleFromBuiltin(fullId);
         if (module)
             return Q(module);
-        module = this._createModuleFromCache(id);
+        module = this._createModuleFromCache(fullId);
         if (module)
             return Q(module);
         if (!platform.hasCapability('code-download'))
@@ -110,14 +131,7 @@ module.exports = new lang.Class({
         }
 
         return this._getModuleRequest(id).then(function() {
-            return this._createModuleFromCache(id);
+            return this._createModuleFromCache(fullId);
         }.bind(this));
     },
-
-    getModule: function(id) {
-        if (id in this._cachedModules)
-            return Q(this._cachedModules[id]);
-        else
-            return this._createModule(id);
-    }
 });
