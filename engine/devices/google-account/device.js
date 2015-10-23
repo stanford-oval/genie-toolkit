@@ -61,7 +61,7 @@ const GoogleAccountDevice = new lang.Class({
 
     queryInterface: function(iface) {
         switch (iface) {
-        case 'oauth':
+        case 'oauth2':
             return this;
         case 'google-docs':
             return this._getGoogleApi().googleDocs;
