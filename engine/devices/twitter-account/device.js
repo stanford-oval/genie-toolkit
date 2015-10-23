@@ -143,7 +143,6 @@ function runOAuthStep2(engine, req) {
         });
     }).then(function(result) {
         result = JSON.parse(result);
-        console.log(result);
         return engine.devices.loadOneDevice({ kind: 'twitter-account',
                                               accessToken: twitter.accessToken,
                                               accessTokenSecret: twitter.accessTokenSecret,

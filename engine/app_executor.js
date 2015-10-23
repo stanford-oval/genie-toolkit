@@ -76,7 +76,7 @@ module.exports = new lang.Class({
     },
 
     stop: function() {
-        return this.runner.stop().then(function() {
+        return this.input.stop().then(function() {
             return Q.all(this.outputs.map(function(output) {
                 return output.stop();
             }));

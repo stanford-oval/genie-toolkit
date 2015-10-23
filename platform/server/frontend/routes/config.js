@@ -10,6 +10,7 @@ var Config = require('../../engine/config');
 
 var Q = require('q');
 var http = require(Config.THINGENGINE_ACCESS_MODULE);
+var httpStatusCodes = require('http').STATUS_CODES;
 var url = require('url');
 var fs = require('fs');
 var path = require('path');
@@ -142,7 +143,7 @@ router.post('/cloud-setup', user.requireLogIn, function(req, res, next) {
         ajax.on('response', function(response) {
             if (response.statusCode != 200) {
                 ajax.abort();
-                config(req, res, next, {}, { error: http.STATUS_CODES[response.statusCode],
+                config(req, res, next, {}, { error: httpStatusCodes[response.statusCode],
                                              username: username }).done();
                 return;
             }
