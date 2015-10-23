@@ -9,7 +9,7 @@
 const lang = require('lang');
 const Q = require('q');
 
-const BaseDevice = require('../base_device');
+const BaseDevice = require('../../base_device');
 
 const ThingTVDevice = new lang.Class({
     Name: 'ThingTVDevice',

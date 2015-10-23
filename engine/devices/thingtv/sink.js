@@ -10,7 +10,7 @@ const Q = require('q');
 const http = require('http');
 const Url = require('url');
 
-const BaseChannel = require('../base_channel');
+const BaseChannel = require('../../base_channel');
 
 const ThingTVChannel = new lang.Class({
     Name: 'ThingTVChannel',
