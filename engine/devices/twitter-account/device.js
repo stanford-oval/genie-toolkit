@@ -32,8 +32,8 @@ const CONSUMER_KEY = process.env['TWITTER_CONSUMER_KEY'] || 'VZRViA2T4qy7CBZjU5j
 const CONSUMER_SECRET = process.env['TWITTER_CONSUMER_SECRET'] || rot13('hsTCqM6neIt3hqum6zvnDCIqQkUuyWtSjKBoqZFONvzVXfb7OJ');
 
 // XOR these comments for testing
-var THINGENGINE_ORIGIN = 'http://127.0.0.1:8080';
-//var THINGENGINE_ORIGIN = 'https://thingengine.stanford.edu';
+//var THINGENGINE_ORIGIN = 'http://127.0.0.1:8080';
+var THINGENGINE_ORIGIN = 'https://thingengine.stanford.edu';
 
 function makeTwitterApi(accessToken, accessTokenSecret) {
     return new Twitter({
