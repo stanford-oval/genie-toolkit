@@ -18,8 +18,28 @@ module.exports = new lang.Class({
         this._devices = devicedb;
         this._state = appstate;
 
+        this._enabledFlags = {};
+        this.handling = null;
+
+        this.reset();
+    },
+
+    setInputBlockEnabled: function(name, enabled) {
+        this._enabledFlags[name] = enabled;
+    },
+
+    getInputBlockEnabled: function(name) {
+        if (this._enabledFlags[name] === undefined)
+            return true;
+        else
+            return !!this._enabledFlags[name];
+    },
+
+    reset: function() {
         this._aliases = {};
+        this._previousThis = null;
         this._this = null;
+        this._useCurrent = true;
         this._output = null;
     },
 
@@ -31,13 +51,26 @@ module.exports = new lang.Class({
         this._aliases[alias] = value;
     },
 
+    setPreviousThis: function(obj) {
+        this._previousThis = obj;
+    },
+
     setThis: function(obj) {
         this._this = obj;
     },
 
+    get hasPrevious() {
+        return this._previousThis !== null;
+    },
+
+    setUseCurrent: function(flag) {
+        this._useCurrent = flag;
+    },
+
     readVar: function(name) {
-        if (this._this !== null && this._this[name] !== undefined)
-            return this._this[name];
+        var thisobj = this._useCurrent ? this._this : this._previousThis;
+        if (thisobj !== null && thisobj[name] !== undefined)
+            return thisobj[name];
         if (this._output !== null && this._output[name] !== undefined)
             return this._output[name];
         if (this._aliases[name] !== undefined)

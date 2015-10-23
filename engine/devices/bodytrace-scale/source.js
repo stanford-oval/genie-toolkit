@@ -33,50 +33,74 @@ const ScaleChannel = new lang.Class({
         this._state = state;
     },
 
-    _doOpen: function() {
+    _onTick: function() {
         var channelInstance = this;
-
         var url = this._url;
         var auth = this._auth;
         var state = this._state;
 
+        return Q.nfcall(httpGetAsync, url, auth).then(function(response) {
+            function makeEvent(time, data) {
+                var date = new Date(0); // The 0 there is the key, which sets the date to the epoch
+                date.setUTCSeconds(time/1000);
+
+                // weight is in grams, convert to kg, which the base unit
+                // AppExecutor wants
+                var weight = (data[time].values.weight)/1000;
+                var event = { ts: date, weight: weight };
+                return event;
+            }
+
+            var weight, keys, utcMilliSeconds;
+            try {
+                weight = JSON.parse(response);
+                keys = Object.keys(weight)[0];
+                utcMilliSeconds = keys[0];
+            } catch(e) {
+                console.log('Error parsing BodyTrace server response: ' + e.message);
+                console.log('Full response was');
+                console.log(response);
+                return;
+            }
+
+            var lastRead = state.get('last-read');
+            if (lastRead === undefined)
+                lastRead = 0;
+            if (utcMilliSeconds <= lastRead) {
+                if (channelInstance.event === null) {
+                    // cold plug channel, but don't emit an event
+                    channelInstance.setCurrentEvent(makeEvent(utcMilliSeconds, weight));
+                    channelInstance.nextTick();
+                } else {
+                    channelInstance.nextTick();
+                }
+            } else {
+                state.set('last-read', utcMilliSeconds);
+
+                // find the last reading that we knew about
+                for (var i = 0; i < keys.length; i++) {
+                    if (keys[i] <= lastRead) {
+                        if (channelInstance.event === null)
+                            channelInstance.setCurrentEvent(makeEvent(keys[i], weight));
+                        break;
+                    }
+                }
+
+                // then emit an event for each new data point
+                // (note we reuse i from the previous loop!)
+                for (; i >= 0; i--)
+                    channelInstance.emitEvent(makeEvent(keys[i], weight));
+            }
+        }, function(error) {
+            console.log('Error reading from BodyTrace server: ' + error.message);
+        });
+    },
+
+    _doOpen: function() {
         this._timeout = setInterval(function() {
-            httpGetAsync(url, auth, function(error, response) {
-                if (error) {
-                    console.log('Error reading from BodyTrace server: ' + error.message);
-                    return;
-                }
-
-                try {
-                    var weight = JSON.parse(response);
-                    var utcMilliSeconds = Object.keys(weight)[0];
-
-                    var lastRead = state.get('last-read');
-                    if (lastRead === undefined)
-                        lastRead = 0;
-                    if (utcMilliSeconds <= lastRead)
-                        return;
-                    state.set('last-read', utcMilliSeconds);
-
-                    // weight is in grams, convert to kg, which the base unit
-                    // AppExecutor wants
-                    var weight = (weight[utcMilliSeconds].values.weight)/1000;
-
-                    var date = new Date(0); // The 0 there is the key, which sets the date to the epoch
-                    date.setUTCSeconds(utcMilliSeconds/1000);
-
-                    var event = { ts: date, weight: weight };
-                    channelInstance.emitEvent(event, false);
-                } catch(e) {
-                    console.log('Error parsing BodyTrace server response: ' + e.message);
-                    console.log('Full response was');
-                    console.log(response);
-                    return;
-                }
-            });
-
+            this._onTick().done();
         }.bind(this), POLL_INTERVAL);
-        return Q();
+        return this._onTick();
     },
 
     _doClose: function() {

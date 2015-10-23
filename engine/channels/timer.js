@@ -30,8 +30,8 @@ const TimerChannel = new lang.Class({
 
     _doOpen: function() {
         this._timeout = setInterval(function() {
-            var event = {"now": new Date};
-            this.emitEvent(event, true);
+            var event = { ts: new Date };
+            this.emitEvent(event);
         }.bind(this), this._interval);
         return Q();
     },
