@@ -10,16 +10,16 @@ const Q = require('q');
 const http = require('http');
 const Url = require('url');
 
-const BaseChannel = require('../base_channel');
+const BaseChannel = require('../../base_channel');
 
-const ThingTVChannel = new lang.Class({
-    Name: 'ThingTVChannel',
+const TVMonsterSinkChannel = new lang.Class({
+    Name: 'TVMonsterSinkChannel',
     Extends: BaseChannel,
 
     _init: function(engine, device) {
         this.parent();
 
-        this._url = 'http://' + device.host + ':' + device.port + '/api/switch-to';
+        this._url = 'http://seo-demo.stanford.edu:3033/add';
     },
 
     _doOpen: function() {
@@ -32,12 +32,9 @@ const ThingTVChannel = new lang.Class({
 
     sendEvent: function(event) {
         if (event.url) {
-            if (event.url.startsWith('http://www.youtube.com/v/'))
-                httpPostAsync(this._url + '/yt/' + encodeURIComponent(event.url.substr('http://www.youtube.com/v/'.length)), function() {});
-            else
-                httpPostAsync(this._url + '/raw/' + encodeURIComponent(event.url), function() {});
+            httpPostAsync(this._url, JSON.stringify({ url: event.url }), function() {});
         } else if (event.youtube) {
-            httpPostAsync(this._url + '/yt/' + encodeURIComponent(event.youtube), function() {});
+            httpPostAsync(this._url, JSON.stringify({ url: 'http://www.youtube.com/v/' + event.youtube }), function() {});
         } else {
             throw new Error("Event must have url or youtube");
         }
@@ -45,12 +42,15 @@ const ThingTVChannel = new lang.Class({
 });
 
 function createChannel(engine, device) {
-    return new ThingTVChannel(engine, device);
+    return new TVMonsterSinkChannel(engine, device);
 }
 
-function httpPostAsync(url, callback) {
+function httpPostAsync(url, data, callback) {
     var options = Url.parse(url);
     options.method = 'POST';
+    options.headers = {
+        'Content-Type': 'application/json'
+    };
     var req = http.request(options, function(res) {
         var data = '';
         res.setEncoding('utf8');
@@ -64,7 +64,7 @@ function httpPostAsync(url, callback) {
     req.on('error', function(err) {
         callback(err);
     });
-    req.end();
+    req.end(data);
 }
 
 module.exports.createChannel = createChannel;

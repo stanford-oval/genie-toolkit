@@ -115,7 +115,34 @@ router.get('/oauth2/:kind', user.redirectLogIn, function(req, res, next) {
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         return engine.devices.factory;
     }).then(function(devFactory) {
-        return devFactory.runOAuth2();
+        return devFactory.runOAuth2(kind, null);
+    }).then(function(redirect) {
+        if (redirect !== null)
+            res.redirect(redirect);
+        else
+            res.redirect('/devices?class=online');
+    }).catch(function(e) {
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }).done();
+});
+
+router.get('/oauth2/callback/:kind', user.redirectLogIn, function(req, res, next) {
+    var kind = req.params.kind;
+
+    EngineManager.get().getEngine(req.user.id).then(function(engine) {
+        return engine.devices.factory;
+    }).then(function(devFactory) {
+        var saneReq = {
+            httpVersion: req.httpVersion,
+            url: req.url,
+            headers: req.headers,
+            rawHeaders: req.rawHeaders,
+            method: req.method,
+            query: req.query,
+            body: req.body,
+        };
+        return devFactory.runOAuth2(kind, saneReq);
     }).then(function() {
         res.redirect('/devices?class=online');
     }).catch(function(e) {

@@ -24,7 +24,7 @@ const ThingTVDevice = new lang.Class({
         if (isNaN(this.port))
             throw new TypeError('Invalid port number ' + state.port);
 
-        this.uniqueId = 'thingtv-' + this.host.replace(/./g,'-') + '-' + state.port;
+        this.uniqueId = 'thingtv-' + this.host.replace(/\./g,'-') + '-' + state.port;
 
         this.name = "ThingTV™ at %s:%d".format(this.host, this.port);
         this.description = "This is a ThingTV. It shows stuff from the Internets.";

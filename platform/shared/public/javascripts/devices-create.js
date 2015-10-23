@@ -27,6 +27,7 @@ $(function() {
     }
 
     function handleOnlineAccountFactory(json, kind, name) {
+        console.log('Handling online account ' + kind);
         var self = $('<div>');
         self.addClass('online-account-choice col-md-4');
 
@@ -74,7 +75,7 @@ $(function() {
                 var row = $('<div>').addClass('row');
                 selector.append(row);
 
-                for (var j = 0; j < 3; j++) {
+                for (var j = 0; j < Math.min(3, factoryList.length - i); j++) {
                     var f = factoryList[i + j];
                     row.append(handleOnlineAccountFactory(f.factory, f.primary_kind, f.name));
                 }

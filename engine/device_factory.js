@@ -27,8 +27,10 @@ module.exports = new lang.Class({
         return this._downloader.getModule(kind);
     },
 
-    runOAuth2: function(redirectURI) {
-        throw new Error('Not implemented (yet)');
+    runOAuth2: function(kind, req) {
+        return this.getFactory(kind).then(function(factory) {
+            return factory.runOAuth2(this._engine, req);
+        }.bind(this));
     },
 
     createDevice: function(kind, serializedDevice) {
