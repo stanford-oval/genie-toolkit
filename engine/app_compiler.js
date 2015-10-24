@@ -282,6 +282,8 @@ module.exports = new lang.Class({
         this._settings = {};
         this._name = undefined;
         this._description = undefined;
+        this._auth = undefined;
+        this._kinds = [];
 
         this._nextInputBlockId = 0;
 
@@ -304,14 +306,24 @@ module.exports = new lang.Class({
         return this._warnings;
     },
 
+    get auth() {
+        return this._auth;
+    },
+
+    get kinds() {
+        return this._kinds;
+    },
+
     _warn: function(msg) {
         this._warnings.push(msg);
     },
 
-    compileAtRules: function(ast) {
+    compileAtRules: function(ast, allowAtAuth) {
         var name = undefined;
         var description = undefined;
         var settings = {};
+        var auth = undefined;
+        var kinds = [];
 
         function compileSetting(props) {
             var name, description, type;
@@ -350,6 +362,21 @@ module.exports = new lang.Class({
                       description: description,
                       type: type });
         }
+        function compileAuth(props) {
+            var auth = {};
+
+            props.forEach(function(assignment) {
+                if (!assignment.rhs.isConstant && !assignment.rhs.isVarRef)
+                    throw new TypeError("Invalid @auth." + assignment.name);
+
+                if (assignment.rhs.isConstant)
+                    auth[assignment.name] = assignment.rhs.value.value;
+                else if (assignment.rhs.isVarRef)
+                    auth[assignment.name] = assignment.rhs.name;
+            });
+
+            return auth;
+        }
 
         ast.forEach(function(rule) {
             if (rule.isName) {
@@ -364,12 +391,20 @@ module.exports = new lang.Class({
                 if (settings[rule.name] !== undefined)
                     this._warn("Duplicate @setting declaration for " + rule.name);
                 settings[rule.name] = compileSetting.call(this, rule.props);
+            } else if (rule.isAuth && allowAtAuth) {
+                if (auth !== undefined)
+                    this._warng("Duplicate @auth declaration");
+                auth = compileAuth.call(this);
+            } else if (rule.isKind && allowAtAuth) {
+                kinds.push(rule.kind.name);
             }
         }, this);
 
         this._name = name;
         this._description = description;
         this._settings = settings;
+        this._auth = auth;
+        this._kinds = kinds;
     },
 
     compileConstant: function(value) {
@@ -874,6 +909,20 @@ module.exports = new lang.Class({
             };
 
             return outputBlock;
+        }.bind(this));
+    },
+
+    compileChannelDescriptions: function(ast) {
+        return ast.map(function(channel) {
+            if (!channel.selector.isTag)
+                throw new TypeError('Invalid channel selector');
+
+            var channelBlock = {
+                kind: channel.selector.name,
+                properties: channel.props.map(this.compileAssignment.bind(this))
+            };
+
+            return channelBlock;
         }.bind(this));
     },
 });

@@ -1,0 +1,18 @@
+/* -*- mode: css -*- */
+
+@name "TV Monster™ belonging to John Doe";
+@description "This is a TV Monster. It collects stuff from the Internets.";
+
+@auth {
+    type: none;
+}
+
+#source {
+    url: 'http://seo-demo.stanford.edu:3033/getNext';
+    method: 'POST';
+    poll-interval: 30s;
+}
+
+#sink {
+    url: 'http://seo-demo.stanford.edu:3033/add';
+}

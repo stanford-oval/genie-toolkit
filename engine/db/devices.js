@@ -39,6 +39,7 @@ module.exports = new lang.Class({
             return this._addDeviceInternal(device, serializedDevice, addToDB);
         }.bind(this)).catch(function(e) {
             console.error('Failed to load one device: ' + e);
+            console.error(e.stack);
         });
     },
 

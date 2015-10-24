@@ -11,29 +11,47 @@ router.get('/', function(req, res, next) {
 });
 
 router.post('/', function(req, res) {
-  console.log(req.body);
+    console.log(req.body);
 
-  try {    
-    var movieEntry = req.body;
-    var movies = loadMoviesFromDB();
-    console.log('movies ' + movies);
+    try {
+        var movieEntry = req.body;
+        var movies = loadMoviesFromDB();
+        console.log('movies ' + movies);
 
-    if(movies[movieEntry.url])
-    {
-      console.log('Movie entry already exist');
-      res.status(409);
-      res.end();
-    }
-    else
-    {   
-        movies[movieEntry.url] = {
-          likeCount: 0,
-          dislikeCount: 0,
-          url: movieEntry.url,
+        var any = false;
+        function addOne(url) {
+            if (url === undefined)
+                throw new Error('Invalid URL');
+
+            if(movies[url])
+            {
+                console.log('Movie entry ' + url + ' already exist');
+            }
+            else
+            {
+                movies[url] = {
+                    likeCount: 0,
+                    dislikeCount: 0,
+                    url: url,
+                };
+                any = true;
+            }
         }
-        saveMoviesToDB(movies);
-        res.status(200);
-        res.end();
+        if (movieEntry.urls)
+            movieEntry.urls.forEach(addOne);
+        else if (movieEntry.youtube)
+            addOne('http://www.youtube.com/v/' + movieEntry.youtube);
+        else
+            addOne(movieEntry.url);
+
+        if (any) {
+            saveMoviesToDB(movies);
+            res.status(200);
+            res.end();
+        } else {
+            res.status(409);
+            res.end();
+        }
     }
 
   } catch (e) {
@@ -42,13 +60,6 @@ router.post('/', function(req, res) {
     res.end();
   }
 });
-
-
-
-
-
-
-
 
 function saveMoviesToDB(movies) {
   var data = JSON.stringify(movies, null, 4);

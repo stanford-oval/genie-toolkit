@@ -9,6 +9,14 @@
 {
     var adt = require('adt');
 
+    var Selector = adt.data({
+        Tag: {
+            name: adt.only(String),
+        },
+        Id: {
+            name: adt.only(String),
+        },
+    });
     var AtRule = adt.data({
         Setting: {
             name: adt.only(String),
@@ -20,13 +28,11 @@
         Description: {
             value: adt.only(String),
         },
-    });
-    var Selector = adt.data({
-        Tag: {
-            name: adt.only(String),
+        Auth: {
+            params: adt.only(Array),
         },
-        Id: {
-            name: adt.only(String),
+        Kind: {
+            kind: adt.only(Selector),
         },
     });
     var Value = adt.data({
@@ -103,17 +109,25 @@
 
 // global grammar
 
-program = _ at_rules: (at_rule _)* inputs:input_channel_list '=>' _ outputs:output_channel_list _ {
+program = _ at_rules: (at_app_rule _)* inputs:input_channel_list '=>' _ outputs:output_channel_list _ {
     return ({ 'at-rules': take(at_rules, 0), inputs: inputs, outputs: outputs });
 }
-query = inputs: (input_channel _)+ {
+query =  _ inputs: (input_channel _)+ {
     return take(inputs, 0);
 }
+device_description = _ at_rules: (at_device_rule _)* _ channels:channel_meta_list _ {
+    return ({ 'at-rules': take(at_rules, 0), channels: channels });
+}
 
-at_rule = at_setting / at_name / at_description
+at_app_rule = at_setting / at_name / at_description
+at_device_rule = at_setting / at_name / at_description / at_auth / at_kind
 at_setting = '@setting' _ name:ident _ '{' _ props:(output_property _)* '}' { return AtRule.Setting(name, take(props, 0)); }
 at_name = '@name' _ name:literal_string _ ';' { return AtRule.Name(name); }
 at_description = '@description' _ desc:literal_string _ ';' { return AtRule.Description(desc); }
+at_auth = '@auth' _ '{' _ props:(output_property _)* '}' { return AtRule.Auth(take(props, 0)); }
+at_kind = '@kind' _ kind:tag_selector _ ';' {
+    return AtRule.Kind(kind);
+}
 
 input_channel_list = first:input_channel _ rest:(',' _ input_channel _)* {
     return [first].concat(take(rest, 2));
@@ -134,6 +148,13 @@ output_channel = channel:channel_descriptor _ '{' _ outputs: (output_property _)
               channelName: channel.pseudo !== null ? channel.pseudo.name : 'sink',
               channelArgs: channel.pseudo !== null ? channel.pseudo.args : [],
               outputs: take(outputs, 0) });
+}
+channel_meta_list = channels:(channel_meta _)+ {
+    return take(channels, 0);
+}
+channel_meta = tag:tag_selector _ '{' _ props:(output_property _)* '}' {
+    return ({ selector: tag,
+              props: take(props, 0) });
 }
 
 channel_param = literal / setting_ref
