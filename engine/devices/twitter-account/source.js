@@ -65,8 +65,14 @@ const TwitterSourceChannel = new lang.Class({
             hashtags.push(tweet.entities.hashtags[i].text);
         }
 
+        var urls = [];
+        for (var i = 0; i < tweet.entities.urls.length; i++) {
+            urls.push(tweet.entities.urls[i].expanded_url);
+        }
+
         var event = { status: tweet.text,
                       hashtags: hashtags,
+                      urls: urls,
                       inReplyTo: tweet.in_reply_to_screen_name,
                       from: tweet.user.screen_name };
         this.emitEvent(event);

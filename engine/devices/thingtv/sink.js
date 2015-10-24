@@ -30,14 +30,24 @@ const ThingTVChannel = new lang.Class({
         return Q();
     },
 
+    _sendYT: function(yt) {
+        httpPostAsync(this._url + '/yt/' + encodeURIComponent(yt), function() {});
+    },
+
+    _sendRaw: function(raw) {
+        httpPostAsync(this._url + '/raw/' + encodeURIComponent(raw), function() {});
+    },
+
     sendEvent: function(event) {
         if (event.url) {
             if (event.url.startsWith('http://www.youtube.com/v/'))
-                httpPostAsync(this._url + '/yt/' + encodeURIComponent(event.url.substr('http://www.youtube.com/v/'.length)), function() {});
+                this._sendYT(event.url.substr('http://www.youtube.com/v/'.length));
+            else if (event.url.startsWith('http://www.youtube.com/watch?v='))
+                this._sendYT(event.url.substr('http://www.youtube.com/watch?v='.length));
             else
-                httpPostAsync(this._url + '/raw/' + encodeURIComponent(event.url), function() {});
+                this._sendRaw(event.url);
         } else if (event.youtube) {
-            httpPostAsync(this._url + '/yt/' + encodeURIComponent(event.youtube), function() {});
+            this._sendYT(event.youtube);
         } else {
             throw new Error("Event must have url or youtube");
         }

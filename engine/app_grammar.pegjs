@@ -66,18 +66,12 @@
                 name: adt.only(String),
                 args: adt.only(Array), // array of Expression
             },
-            UnaryArithOp: {
+            UnaryOp: {
                 arg: adt.only(this),
                 opcode: adt.only(String),
                 op: adt.only(Function),
             },
-            BinaryArithOp: {
-                lhs: adt.only(this),
-                rhs: adt.only(this),
-                opcode: adt.only(String),
-                op: adt.only(Function)
-            },
-            BinaryStringOp: {
+            BinaryOp: {
                 lhs: adt.only(this),
                 rhs: adt.only(this),
                 opcode: adt.only(String),
@@ -162,25 +156,24 @@ input_property = rule:(change_expression / input_filter) _ ';' {
 input_filter = lhs:expression _ comp:comparator _ rhs:expression {
     return InputRule.Threshold(lhs, comp, rhs);
 }
-change_expression = 'change' __ lhs:expression by:('>' __ amount:expression) {
+change_expression = 'change' __ lhs:expression by:('>' __ amount:expression)? {
     return InputRule.Change(lhs, by !== null ? by[2] : null);
 }
 output_property = name:ident _ ( ':' / '=' ) _ rhs:expression _ ';' {
     return ({ name: name, rhs: rhs });
 }
-comparator "comparator" = '>=' / '<=' / '>' / '<' / '=' / ':' / '!=' / '~='
+comparator "comparator" = '>=' / '<=' / '>' / '<' / '=~' / 'has~' / 'has' / '=' / ':' / '!='
 
 // expression language
 
 expression =
-    '-' _ arg:mult_expression { return Expression.UnaryArithOp(arg, '-', function(x) { return -x; }); } /
-    lhs:mult_expression _ '+' _ rhs:expression { return Expression.BinaryArithOp(lhs, rhs, '+', function(x, y) { return x + y; }); } /
-    lhs:mult_expression _ '-' _ rhs:expression { return Expression.BinaryArithOp(lhs, rhs, '-', function(x, y) { return x - y; }); } /
-    lhs:mult_expression _ rhs:expression { return Expression.BinaryStringOp(lhs, rhs, '+', function(x, y) { return x + y; }); } /
+    '-' _ arg:mult_expression { return Expression.UnaryOp(arg, '-', function(x) { return -x; }); } /
+    lhs:mult_expression _ '+' _ rhs:expression { return Expression.BinaryOp(lhs, rhs, '+', function(x, y) { return x + y; }); } /
+    lhs:mult_expression _ '-' _ rhs:expression { return Expression.BinaryOp(lhs, rhs, '-', function(x, y) { return x - y; }); } /
     mult_expression
 mult_expression =
-    lhs:member_expression _ '*' _ rhs:mult_expression { return Expression.BinaryArithOp(lhs, rhs, '*', function(x, y) { return x * y; }); } /
-    lhs:member_expression _ '/' _ rhs:mult_expression { return Expression.BinaryArithOp(lhs, rhs, '/', function(x, y) { return x / y; }); } /
+    lhs:member_expression _ '*' _ rhs:mult_expression { return Expression.BinaryOp(lhs, rhs, '*', function(x, y) { return x * y; }); } /
+    lhs:member_expression _ '/' _ rhs:mult_expression { return Expression.BinaryOp(lhs, rhs, '/', function(x, y) { return x / y; }); } /
     member_expression
 member_expression =
     lhs:primary_expression '.' name:ident { return Expression.MemberRef(lhs, name); } /

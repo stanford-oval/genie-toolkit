@@ -30,13 +30,20 @@ const TVMonsterSinkChannel = new lang.Class({
         return Q();
     },
 
+    _sendOneUrl: function(url) {
+        httpPostAsync(this._url, JSON.stringify({ url: url }), function() {});
+    },
+
     sendEvent: function(event) {
-        if (event.url) {
-            httpPostAsync(this._url, JSON.stringify({ url: event.url }), function() {});
+        if (event.urls) {
+            for (var i = 0; i < event.urls.length; i++)
+                this._sendOneUrl(event.urls[0]);
+        } else if (event.url) {
+            this._sendOneUrl(event.url);
         } else if (event.youtube) {
-            httpPostAsync(this._url, JSON.stringify({ url: 'http://www.youtube.com/v/' + event.youtube }), function() {});
+            this._sendOneUrl('http://www.youtube.com/v/' + event.youtube);
         } else {
-            throw new Error("Event must have url or youtube");
+            throw new Error("Event must have url(s) or youtube");
         }
     },
 });

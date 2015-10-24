@@ -121,7 +121,7 @@ const Type = adt.data(function() {
             unit: adt.only(String)
         },
         Array: {
-            elem: this
+            elem: adt.only(this)
         },
         Date: null,
         Location: null,
@@ -207,6 +207,10 @@ function equalityTest(a, b) {
     return true;
 }
 
+function likeTest(a, b) {
+    return a.indexOf(b) >= 0;
+}
+
 const Comparators = {
     '>': {
         types: [Type.String, Type.Measure(''), Type.Number, Type.Date],
@@ -236,15 +240,23 @@ const Comparators = {
         types: [Type.Any],
         op: function(a, b) { return !(equalityTest(a,b)); },
     },
-    '~=': {
+    '=~': {
         types: [Type.String],
-        op: function(a, b) { return a.indexOf(b) >= 0; },
+        op: likeTest,
     },
+    'has': {
+        types: [Type.Array(Type.Any), Type.Any],
+        op: function(a, b) { return a.some(function(x) { return equalityTest(x, b); }); },
+    },
+    'has~': {
+        types: [Type.Array(Type.String), Type.Any],
+        op: function(a, b) { return a.some(function(x) { return likeTest(x, b); }); },
+    }
 };
 
 const Builtins = {
     'join': {
-        argtypes: [Type.Array, Type.String],
+        argtypes: [Type.Array(Type.Any), Type.String],
         rettype: Type.String,
         op: function(array, joiner) {
             if (!Array.isArray(array))
@@ -408,6 +420,10 @@ module.exports = new lang.Class({
             type = Type.Boolean;
         else if (name == 'url')
             type = Type.String;
+        else if (name == 'hashtags' || name == 'urls')
+            type = Type.Array(Type.String);
+        else if (name == 'status' || name == 'from')
+            type = Type.String;
         else
             type = Type.Any;
         return [type, function(env) { return env.readVar(name); }];
@@ -459,23 +475,36 @@ module.exports = new lang.Class({
         }];
     },
 
-    compileUnaryArithOp: function(argast, opcode, op) {
+    compileUnaryOp: function(argast, opcode, op) {
         var argexp = this.compileExpression(argast);
         var type = typeMakeArithmetic(argexp[0]);
         var argop = argexp[1];
         return [type, function(env) { return op(argop(env)); }];
     },
 
-    compileBinaryArithOp: function(lhsast, rhsast, opcode, op) {
+    compileBinaryOp: function(lhsast, rhsast, opcode, op) {
         var lhsexp = this.compileExpression(lhsast);
         var rhsexp = this.compileExpression(rhsast);
 
+        // FIXME: make generic
         var unifiedtype = typeUnify(lhsexp[0], rhsexp[0]);
         var type;
         try {
             type = typeMakeArithmetic(unifiedtype);
         } catch(e) {
-            if (opcode == '-') {
+            if (opcode == '+') {
+                try {
+                    typeUnify(unifiedtype, Type.String);
+                    type = Type.String;
+
+                    var lhsop = lhsexp[1];
+                    var rhsop = rhsexp[1];
+                    return [type, function(env) { return op(objectToString(lhsop(env)),
+                                                            objectToString(rhsop(env))); }];
+                } catch(e2) {
+                    throw e;
+                }
+            } else if (opcode == '-') {
                 try {
                     typeUnify(unifiedtype, Type.Date);
                     type = Type.Measure('ms');
@@ -486,21 +515,10 @@ module.exports = new lang.Class({
                 throw e;
             }
         }
+
         var lhsop = lhsexp[1];
         var rhsop = rhsexp[1];
         return [type, function(env) { return op(+lhsop(env), +rhsop(env)); }];
-    },
-
-    compileBinaryStringOp: function(lhsast, rhsast, opcode, op) {
-        var lhsexp = this.compileExpression(lhsast);
-        var rhsexp = this.compileExpression(rhsast);
-        var lhsop = lhsexp[1];
-        var rhsop = rhsexp[1];
-
-        return [Type.String, function(env) {
-            return op(objectToString(lhsop(env)),
-                      objectToString(rhsop(env)));
-        }];
     },
 
     compileExpression: function(ast) {
@@ -517,30 +535,20 @@ module.exports = new lang.Class({
         else if (ast.isFunctionCall)
             return this.compileFunctionCall(ast.name, ast.args);
         else if (ast.isUnaryArithOp)
-            return this.compileUnaryArithOp(ast.arg, ast.opcode, ast.op);
+            return this.compileUnaryOp(ast.arg, ast.opcode, ast.op);
         else if (ast.isBinaryArithOp)
-            return this.compileBinaryArithOp(ast.lhs, ast.rhs, ast.opcode, ast.op);
+            return this.compileBinaryOp(ast.lhs, ast.rhs, ast.opcode, ast.op);
         else if (ast.isBinaryStringOp)
-            return this.compileBinaryStringOp(ast.lhs, ast.rhs, ast.opcode, ast.op);
+            return this.compileBinaryOp(ast.lhs, ast.rhs, ast.opcode, ast.op);
     },
 
     compileThreshold: function(ast) {
         var lhs = this.compileExpression(ast.lhs);
         var rhs = this.compileExpression(ast.rhs);
-        var type = typeUnify(lhs[0], rhs[0]);
         var comp = Comparators[ast.comparator];
 
-        function acceptableType(t) {
-            try {
-                typeUnify(t, type);
-                return true;
-            } catch(e) {
-                return false;
-            }
-        }
-        if (!comp.types.some(acceptableType))
-            throw new TypeError('Comparator ' + ast.comparator +
-                                ' does not accept type ' + type);
+        typeUnify(lhs[0], comp.types[0]);
+        typeUnify(rhs[0], comp.types[1]);
 
         var lhsop = lhs[1];
         var rhsop = rhs[1];
@@ -567,6 +575,7 @@ module.exports = new lang.Class({
                 this._warn("Ignored change amount for discrete type " + exprtype);
 
             compop = function(env, previousValue, currentValue) {
+                console.log('Applying change operator to', previousValue, currentValue);
                 return (previousValue !== currentValue);
             }
         } else if (type.isDate) {
