@@ -35,7 +35,8 @@ module.exports = new lang.Class({
 
     _init: function(kind) {
         this._kind = kind;
-        this._url = Config.THINGPEDIA_URL + '/download/' + kind;
+        this._zipUrl = Config.THINGPEDIA_URL + '/download/' + kind;
+        this._codeUrl = Config.THINGPEDIA_URL + '/api/code/' + kind;
         this._cacheDir = platform.getCacheDir() + '/' + kind;
 
         this._cachedModules = {};
@@ -133,7 +134,7 @@ module.exports = new lang.Class({
             if (this._kind !== 'devices')
                 throw new Error('Cannot use generic code for non-devices');
 
-            var parsed = url.parse(this._url + '/code/' + id);
+            var parsed = url.parse(this._codeUrl + '/' + id);
             parsed.agent = getAgent();
             https.get(parsed, function(response) {
                 if (response.statusCode == 404)
@@ -156,7 +157,7 @@ module.exports = new lang.Class({
             return this._createModuleFromCachedCode(id);
         }).catch(function(e) {
             return Q.Promise(function(callback, errback) {
-                var parsed = url.parse(this._url + '/' + id + '.zip');
+                var parsed = url.parse(this._zipUrl + '/' + id + '.zip');
                 parsed.agent = getAgent();
                 https.get(parsed, function(response) {
                     if (response.statusCode == 404)

@@ -134,6 +134,7 @@ function stringToType(s) {
     case 'bool':
         return Type.Boolean;
     case 'string':
+    case 'password':
         return Type.String;
     case 'number':
         return Type.Number;
@@ -323,7 +324,7 @@ module.exports = new lang.Class({
         this._warnings.push(msg);
     },
 
-    compileAtRules: function(ast, allowAtAuth) {
+    compileAtRules: function(ast) {
         var name = undefined;
         var description = undefined;
         var settings = {};
@@ -331,7 +332,7 @@ module.exports = new lang.Class({
         var kinds = [];
 
         function compileSetting(props) {
-            var name, description, type;
+            var name, description, rawType, type;
 
             props.forEach(function(assignment) {
                 switch(assignment.name) {
@@ -354,6 +355,7 @@ module.exports = new lang.Class({
                         this._warn("Duplicate @setting.type declaration");
                     if (!assignment.rhs.isVarRef)
                         throw new TypeError("Invalid @setting.type");
+                    rawType = assignment.rhs.name;
                     type = stringToType(assignment.rhs.name);
                     return;
                 default:
@@ -365,6 +367,7 @@ module.exports = new lang.Class({
                 throw new Error("Missing @setting.type");
             return ({ name: name,
                       description: description,
+                      rawType: rawType,
                       type: type });
         }
         function compileAuth(props) {
@@ -396,11 +399,11 @@ module.exports = new lang.Class({
                 if (settings[rule.name] !== undefined)
                     this._warn("Duplicate @setting declaration for " + rule.name);
                 settings[rule.name] = compileSetting.call(this, rule.props);
-            } else if (rule.isAuth && allowAtAuth) {
+            } else if (rule.isAuth) {
                 if (auth !== undefined)
                     this._warng("Duplicate @auth declaration");
-                auth = compileAuth.call(this);
-            } else if (rule.isKind && allowAtAuth) {
+                auth = compileAuth.call(this, rule.params);
+            } else if (rule.isKind) {
                 kinds.push(rule.kind.name);
             }
         }, this);

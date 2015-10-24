@@ -149,7 +149,7 @@ output_channel = channel:channel_descriptor _ '{' _ outputs: (output_property _)
               channelArgs: channel.pseudo !== null ? channel.pseudo.args : [],
               outputs: take(outputs, 0) });
 }
-channel_meta_list = channels:(channel_meta _)+ {
+channel_meta_list = channels:(channel_meta _)* {
     return take(channels, 0);
 }
 channel_meta = tag:tag_selector _ '{' _ props:(output_property _)* '}' {

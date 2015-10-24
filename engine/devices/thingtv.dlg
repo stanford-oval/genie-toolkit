@@ -3,6 +3,8 @@
 @name "ThingTV™ at %s:%d";
 @description "This is a ThingTV. It shows stuff from the Internets.";
 
+@kind #tv;
+
 @setting ip-address {
     type: string;
 }

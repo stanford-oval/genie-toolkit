@@ -2,6 +2,7 @@
 
 @name "TV Monster™ belonging to John Doe";
 @description "This is a TV Monster. It collects stuff from the Internets.";
+@kind #online-account;
 
 @auth {
     type: none;

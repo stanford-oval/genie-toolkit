@@ -1,0 +1,5 @@
+/* -*- mode: css -*- */
+
+@auth {
+    type: oauth2;
+}

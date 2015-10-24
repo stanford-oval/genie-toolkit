@@ -1,0 +1,14 @@
+/* -*- mode: css -*- */
+
+@setting serial {
+    type: string;
+    name: 'Serial Number';
+}
+@setting username {
+    type: string;
+    name: 'Username';
+}
+@setting password {
+    type: string;
+    name: 'Password';
+}

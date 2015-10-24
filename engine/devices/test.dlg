@@ -1,0 +1,10 @@
+/* -*- mode: css -*- */
+
+@setting hwAddress {
+    type: string;
+    name: 'Hardware Address';
+}
+@setting host {
+    type: string;
+    name: 'Network Address';
+}
