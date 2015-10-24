@@ -66,8 +66,10 @@ module.exports = function(kind, code) {
             this.uniqueId = undefined; // let DeviceDatabase pick something
 
             var stateProps = Object.keys(compiler.settings).map(function(k) { return state[k]; });
-            this.name = String.prototype.format.apply(compiler.name, stateProps);
-            this.description = String.prototype.format.apply(compiler.description, stateProps);
+            if (compiler.name !== undefined)
+                this.name = String.prototype.format.apply(compiler.name, stateProps);
+            if (compiler.description !== undefined)
+                this.description = String.prototype.format.apply(compiler.description, stateProps);
 
             if (auth.type == 'oauth2')
                 this._isOAuth2 = true;
@@ -133,7 +135,7 @@ module.exports = function(kind, code) {
                 }
             }
             if (channelBlock === null)
-                throw new Error('Invalid channel ' + kind);
+                throw new Error('Invalid channel ' + kind + ' in ' + code);
 
             var env = new ExecEnvironment(engine.devices, device.state);
             env.beginOutput();

@@ -90,8 +90,6 @@ module.exports = new lang.Class({
             else
                 return this._cachedModules[id].getSubmodule(fullId.substr(id.length + 1));
         } catch(e) {
-            console.log('Foo ' + e);
-            console.log(e.stack);
             return null;
         }
     },
@@ -138,14 +136,14 @@ module.exports = new lang.Class({
             parsed.agent = getAgent();
             https.get(parsed, function(response) {
                 if (response.statusCode == 404)
-                    throw new Error('No such ' + this._kind);
+                    return errback(new Error('No such ' + this._kind));
                 if (response.statusCode != 200)
-                    throw new Error('Unexpected HTTP error ' + response.statusCode + ' downloading channel ' + id);
+                    return errback(new Error('Unexpected HTTP error ' + response.statusCode + ' downloading channel ' + id));
 
                 var stream = fs.createWriteStream(codeTmpPath, { flags: 'wx', mode: 0600 });
 
                 response.pipe(stream);
-                response.on('end', function() {
+                stream.on('finish', function() {
                     callback();
                 });
             }.bind(this)).on('error', function(error) {
@@ -154,21 +152,22 @@ module.exports = new lang.Class({
         }.bind(this)).then(function() {
             fs.renameSync(codeTmpPath, codePath);
 
-            return this._createModuleFromCachedCode(id);
-        }).catch(function(e) {
+            return this._createModuleFromCachedCode(fullId, id);
+        }.bind(this)).catch(function(e) {
+            console.log(e.stack);
             return Q.Promise(function(callback, errback) {
                 var parsed = url.parse(this._zipUrl + '/' + id + '.zip');
                 parsed.agent = getAgent();
                 https.get(parsed, function(response) {
                     if (response.statusCode == 404)
-                        throw new Error('No such ' + this._kind);
+                        return errback(new Error('No such ' + this._kind));
                     if (response.statusCode != 200)
-                        throw new Error('Unexpected HTTP error ' + response.statusCode + ' downloading channel ' + id);
+                        return errback(new Error('Unexpected HTTP error ' + response.statusCode + ' downloading channel ' + id));
 
                     var stream = fs.createWriteStream(zipPath, { flags: 'wx', mode: 0600 });
 
                     response.pipe(stream);
-                    response.on('end', function() {
+                    stream.on('finish', function() {
                         callback();
                     });
                 }.bind(this)).on('error', function(error) {
