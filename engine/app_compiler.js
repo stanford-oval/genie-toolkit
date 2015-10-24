@@ -270,6 +270,11 @@ const Builtins = {
         op: function(a, b) {
             return Math.sqrt((a.x - b.x)*(a.x - b.x) + (a.y - b.y)*(a.y - b.y));
         }
+    },
+    'string': {
+        argtypes: [Type.Any],
+        rettype: Type.String,
+        op: objectToString,
     }
 };
 
@@ -569,11 +574,9 @@ module.exports = new lang.Class({
             return this.compileObjectRef(ast.name);
         else if (ast.isFunctionCall)
             return this.compileFunctionCall(ast.name, ast.args);
-        else if (ast.isUnaryArithOp)
+        else if (ast.isUnaryOp)
             return this.compileUnaryOp(ast.arg, ast.opcode, ast.op);
-        else if (ast.isBinaryArithOp)
-            return this.compileBinaryOp(ast.lhs, ast.rhs, ast.opcode, ast.op);
-        else if (ast.isBinaryStringOp)
+        else if (ast.isBinaryOp)
             return this.compileBinaryOp(ast.lhs, ast.rhs, ast.opcode, ast.op);
     },
 

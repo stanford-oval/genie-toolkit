@@ -65,12 +65,14 @@ module.exports = function(kind, code) {
 
             this.uniqueId = undefined; // let DeviceDatabase pick something
 
-            var stateProps = Object.keys(state).map(function(k) { return state[k]; });
+            var stateProps = Object.keys(compiler.settings).map(function(k) { return state[k]; });
             this.name = String.prototype.format.apply(compiler.name, stateProps);
             this.description = String.prototype.format.apply(compiler.description, stateProps);
 
             if (auth.type == 'oauth2')
                 this._isOAuth2 = true;
+
+            console.log('Generic device ' + this.name + ' initialized');
         },
 
         get accessToken() {

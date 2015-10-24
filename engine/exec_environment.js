@@ -81,13 +81,13 @@ module.exports = new lang.Class({
     readSetting: function(type, name) {
         if (this._state[name] !== undefined)
             return this._state[name];
-        if (type === Type.Boolean)
+        if (type.isBoolean)
             return false;
-        if (type === Type.Number)
+        if (type.isNumber || type.isMeasure)
             return 0;
-        if (type === Type.String)
+        if (type.isString)
             return '';
-        if (type === Type.Location)
+        if (type.isLocation)
             return {x:0, y:0};
     },
 
