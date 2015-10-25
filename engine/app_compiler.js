@@ -619,7 +619,7 @@ module.exports = new lang.Class({
                 console.log('Applying change operator to', previousValue, currentValue);
                 return (previousValue !== currentValue);
             }
-        } else if (type.isDate) {
+        } else if (exprtype.isDate) {
             if (amount !== null) {
                 var amounttype = typeUnify(amount[1], Type.Measure('ms'));
                 var amountop = amount[0];
@@ -633,7 +633,7 @@ module.exports = new lang.Class({
                 var amount = amountop(env);
                 return +currentValue - +previousValue >= amount;
             }
-        } else if (type.isLocation) {
+        } else if (exprtype.isLocation) {
             if (amount !== null) {
                 var amounttype = typeUnify(amount[1], Type.Measure('m'));
                 var amountop = amount[0];
@@ -647,7 +647,7 @@ module.exports = new lang.Class({
                 var amount = amountop(env);
                 return Builtins.distance(currentValue, previousValue) >= amount;
             }
-        } else if (type.isMeasure || type.isNumber) {
+        } else if (exprtype.isMeasure || exprtype.isNumber) {
             if (amount !== null && amount[1].isMeasure && amount[1].unit == '%') {
                 var amountop = amount[0];
 
@@ -665,7 +665,7 @@ module.exports = new lang.Class({
                 }
             } else {
                 if (amount !== null) {
-                    var amounttype = typeUnify(amount[1], type);
+                    var amounttype = typeUnify(amount[1], exprtype);
                     var amountop = amount[0];
 
                     compop = function(env, previousValue, currentValue) {
@@ -683,8 +683,8 @@ module.exports = new lang.Class({
                     }
                 } else {
                     var amount;
-                    if (type.isMeasure) {
-                        var baseUnit = type.unit;
+                    if (exprtype.isMeasure) {
+                        var baseUnit = exprtype.unit;
                         if (baseUnit == '') // FIXME: assume length...
                             baseUnit = 'm';
                         amount = BaseUnitDefaultChange[baseUnit];

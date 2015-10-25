@@ -54,7 +54,7 @@ const ScaleChannel = new lang.Class({
             var weight, keys, utcMilliSeconds;
             try {
                 weight = JSON.parse(response);
-                keys = Object.keys(weight)[0];
+                keys = Object.keys(weight);
                 utcMilliSeconds = keys[0];
             } catch(e) {
                 console.log('Error parsing BodyTrace server response: ' + e.message);
