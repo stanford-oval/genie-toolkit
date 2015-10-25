@@ -15,6 +15,7 @@ const path = require('path');
 const url = require('url');
 const lang = require('lang');
 const Q = require('q');
+const tmp = require('tmp');
 
 const GenericDeviceFactory = require('./generic_device');
 
@@ -41,6 +42,15 @@ module.exports = new lang.Class({
 
         this._cachedModules = {};
         this._moduleRequests = {};
+
+        try {
+            fs.mkdirSync(this._cacheDir);
+            fs.symlinkSync(require.resolve('./base_device'), this._cacheDir + '/base_device.js');
+            fs.symlinkSync(require.resolve('./base_channel'), this._cacheDir + '/base_channel.js');
+        } catch(e) {
+            if (e.code != 'EEXIST')
+                throw e;
+        }
     },
 
     _getModuleFull: function(id, subId) {
@@ -96,7 +106,9 @@ module.exports = new lang.Class({
 
     _createModuleFromCache: function(fullId) {
         try {
-            this._cachedModules[fullId] = require(this._cacheDir + '/' + fullId);
+            var module = path.join(process.cwd(), this._cacheDir + '/' + fullId);
+            console.log('module', module);
+            this._cachedModules[fullId] = require(module);
             console.log(this._kind + ' module ' + fullId + ' loaded as cached');
             return this._cachedModules[fullId];
         } catch(e) {
@@ -124,7 +136,6 @@ module.exports = new lang.Class({
         if (id in this._moduleRequests)
             return this._moduleRequests[id];
 
-        var zipPath = platform.getTmpDir() + '/' + id + '.zip';
         var codeTmpPath = this._cacheDir + '/' + id + '.dlg.tmp';
         var codePath = this._cacheDir + '/' + id + '.dlg';
 
@@ -146,6 +157,9 @@ module.exports = new lang.Class({
                 stream.on('finish', function() {
                     callback();
                 });
+                stream.on('error', function(error) {
+                    errback(error);
+                });
             }.bind(this)).on('error', function(error) {
                 errback(error);
             });
@@ -154,7 +168,6 @@ module.exports = new lang.Class({
 
             return this._createModuleFromCachedCode(fullId, id);
         }.bind(this)).catch(function(e) {
-            console.log(e.stack);
             return Q.Promise(function(callback, errback) {
                 var parsed = url.parse(this._zipUrl + '/' + id + '.zip');
                 parsed.agent = getAgent();
@@ -164,20 +177,46 @@ module.exports = new lang.Class({
                     if (response.statusCode != 200)
                         return errback(new Error('Unexpected HTTP error ' + response.statusCode + ' downloading channel ' + id));
 
-                    var stream = fs.createWriteStream(zipPath, { flags: 'wx', mode: 0600 });
+                    return Q.nfcall(tmp.file, { mode: 0600,
+                                                keep: true,
+                                                dir: platform.getTmpDir(),
+                                                prefix: 'thingengine-' + id + '-',
+                                                postfix: '.zip' })
+                        .then(function(result) {
+                            var stream = fs.createWriteStream('', { fd: result[1], flags: 'w' });
 
-                    response.pipe(stream);
-                    stream.on('finish', function() {
-                        callback();
-                    });
+                            response.pipe(stream);
+                            stream.on('finish', function() {
+                                callback(result[0]);
+                            });
+                            stream.on('error', function(error) {
+                                errback(error);
+                            });
+                        });
                 }.bind(this)).on('error', function(error) {
                     errback(error);
                 });
-            }.bind(this)).then(function() {
-                return Q.nfcall(child_process.execFile, 'unzip', [zipPath, this._cacheDir + '/' + id]);
+            }.bind(this)).then(function(zipPath) {
+                var dir = this._cacheDir + '/' + id;
+                try {
+                    fs.mkdirSync(dir);
+                } catch(e) {
+                    if (e.code != 'EEXIST')
+                        throw e;
+                }
+
+                var args = ['-uo', zipPath, '-d', dir];
+                console.log('unzip', args);
+                return Q.nfcall(child_process.execFile, '/usr/bin/unzip', args).then(function(zipResult) {
+                    var stdout = zipResult[0];
+                    var stderr = zipResult[1];
+                    console.log('stdout', stdout);
+                    console.log('stderr', stderr);
+                    fs.unlinkSync(zipPath);
+                });
             }.bind(this)).then(function() {
                 return this._createModuleFromCache(fullId);
-            });
+            }.bind(this));
         }.bind(this));
     },
 
@@ -198,13 +237,6 @@ module.exports = new lang.Class({
             return Q(module);
         if (!platform.hasCapability('code-download'))
             throw new Error('Code download is not allowed on this platform');
-
-        try {
-            fs.mkdirSync(this._cacheDir);
-        } catch(e) {
-            if (e.code != 'EEXIST')
-                throw e;
-        }
 
         return this._getModuleRequest(fullId, id);
     },

@@ -123,7 +123,7 @@ module.exports = {
     // to persist across reboots or for long times
     // (ie, it could be periodically cleaned by the system)
     getTmpDir: function() {
-        return os.tmpdir() + '/thingengine/' + _cloudId;
+        return os.tmpdir();
     },
 
     // Get the filename of the sqlite database
