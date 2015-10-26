@@ -8,99 +8,14 @@
 
 {
     var adt = require('adt');
+    var AppCompiler = require('./app_compiler');
 
-    var Selector = adt.data({
-        Tag: {
-            name: adt.only(String),
-        },
-        Id: {
-            name: adt.only(String),
-        },
-    });
-    var AtRule = adt.data({
-        Setting: {
-            name: adt.only(String),
-            props: adt.only(Array),
-        },
-        Name: {
-            value: adt.only(String),
-        },
-        Description: {
-            value: adt.only(String),
-        },
-        Auth: {
-            params: adt.only(Array),
-        },
-        Kind: {
-            kind: adt.only(Selector),
-        },
-    });
-    var Value = adt.data({
-        Boolean: {
-            value: adt.only(Boolean),
-        },
-        String: {
-            value: adt.only(String)
-        },
-        Measure: {
-            value: adt.only(Number),
-            unit: adt.only(String)
-        },
-        Number: {
-            value: adt.only(Number)
-        }
-    });
-    var Expression = adt.data(function() {
-        return ({
-            Constant: {
-                value: adt.only(Value)
-            },
-            VarRef: {
-                name: adt.only(String)
-            },
-            SettingRef: {
-                name: adt.only(String)
-            },
-            MemberRef: {
-                object: adt.only(this),
-                name: adt.only(String),
-            },
-            ObjectRef: {
-                name: adt.only(String),
-            },
-            FunctionCall: {
-                name: adt.only(String),
-                args: adt.only(Array), // array of Expression
-            },
-            UnaryOp: {
-                arg: adt.only(this),
-                opcode: adt.only(String),
-                op: adt.only(Function),
-            },
-            BinaryOp: {
-                lhs: adt.only(this),
-                rhs: adt.only(this),
-                opcode: adt.only(String),
-                op: adt.only(Function)
-            }
-        });
-    });
-    var InputRule = adt.data({
-        Threshold: {
-            lhs: adt.only(Expression),
-            comparator: adt.only(String),
-            rhs: adt.only(Expression)
-        },
-        Change: {
-            expr: adt.only(Expression),
-            amount: function(val) {
-                if (val === null)
-                    return val;
-                else
-                    return adt.only(Expression).apply(this, arguments);
-            }
-        }
-    });
+    var Selector = AppCompiler.Selector;
+    var AtRule = AppCompiler.AtRule;
+    var Value = AppCompiler.Value;
+    var Expression = AppCompiler.Expression;
+    var InputRule = AppCompiler.InputRule;
+    var OutputRule = AppCompiler.OutputRule;
 
     function take(array, idx) {
         return array.map(function(v) { return v[idx]; });
@@ -132,21 +47,17 @@ at_kind = '@kind' _ kind:tag_selector _ ';' {
 input_channel_list = first:input_channel _ rest:(',' _ input_channel _)* {
     return [first].concat(take(rest, 2));
 }
-input_channel = quantifier:(('all' / 'some') __)? channel:channel_descriptor _ '{' _ filters:(input_property _)* '}' _ alias:('as' __ ident _)? {
+input_channel = quantifier:(('all' / 'some') __)? selector:(selector _)+ _ '{' _ filters:(input_property _)* '}' _ alias:('as' __ ident _)? {
     return ({ quantifier: quantifier !== null ? quantifier[0] : 'some',
               alias: alias !== null ? alias[2] : null,
-              channelName: channel.pseudo !== null ? channel.pseudo.name : 'source',
-              channelArgs: channel.pseudo !== null ? channel.pseudo.args : [],
-              selector: channel.selector,
+              selectors: take(selector, 0),
               filters: take(filters, 0) });
 }
 output_channel_list = first:output_channel _ rest:(',' _ output_channel _)* {
     return [first].concat(take(rest, 2));
 }
-output_channel = channel:channel_descriptor _ '{' _ outputs: (output_property _)* '}' {
-    return ({ selector: channel.selector,
-              channelName: channel.pseudo !== null ? channel.pseudo.name : 'sink',
-              channelArgs: channel.pseudo !== null ? channel.pseudo.args : [],
+output_channel = selector:(selector _)+ _ '{' _ outputs: (output_property _)* '}' {
+    return ({ selectors: take(selector, 0),
               outputs: take(outputs, 0) });
 }
 channel_meta_list = channels:(channel_meta _)* {
@@ -157,16 +68,6 @@ channel_meta = tag:tag_selector _ '{' _ props:(output_property _)* '}' {
               props: take(props, 0) });
 }
 
-channel_param = literal / setting_ref
-channel_paramlist = first:channel_param _ rest:(',' _ channel_param _)* {
-    return [first].concat(take(rest, 2))
-}
-channel_spec = ':' name:ident args:('(' channel_paramlist ')')? {
-    return { name: name, args: args !== null ? args[1] : [] };
-}
-channel_descriptor = selector:(selector _)+ pseudo:channel_spec? {
-    return ({ selector: take(selector, 0), pseudo: pseudo }); } /
-    pseudo:channel_spec { return ({ selector: [], pseudo: pseudo }); }
 selector = id_selector / tag_selector
 id_selector = '.' name:ident { return Selector.Id(name); }
 tag_selector = '#' name:ident { return Selector.Tag(name); }
@@ -177,11 +78,11 @@ input_property = rule:(change_expression / input_filter) _ ';' {
 input_filter = lhs:expression _ comp:comparator _ rhs:expression {
     return InputRule.Threshold(lhs, comp, rhs);
 }
-change_expression = 'change' __ lhs:expression by:('>' __ amount:expression)? {
+change_expression = 'change' __ lhs:expression _ by:('by' __ amount:expression)? {
     return InputRule.Change(lhs, by !== null ? by[2] : null);
 }
 output_property = name:ident _ ( ':' / '=' ) _ rhs:expression _ ';' {
-    return ({ name: name, rhs: rhs });
+    return OutputRule.Assignment(name, rhs);
 }
 comparator "comparator" = '>=' / '<=' / '>' / '<' / '=~' / 'has~' / 'has' / '=' / ':' / '!='
 

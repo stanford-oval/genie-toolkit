@@ -17,14 +17,35 @@ const TimerChannel = new lang.Class({
     Name: 'TimerChannel',
     Extends: BaseChannel,
 
-    _init: function(interval) {
+    _init: function(engine, device, filters) {
         this.parent();
 
         cnt++;
         console.log('Created Timer channel #' + cnt);
 
-        // convert from s to ms
-        this._interval = interval * 1000;
+        // figure out the interval
+        var interval = 0;
+        for (var i = 0; i < filters.length; i++) {
+            if (filters[i].isChange) {
+                if (filters[i].expr.name !== 'ts')
+                    throw new Error('Unknown property ' + filters[i].expr.name);
+
+                var amount;
+                if (filters[i].amount !== null)
+                    amount = filters[i].amount.value.value;
+                else
+                    amount = 1000;
+                interval = Math.max(interval, amount);
+            } else {
+                // FIXME
+                throw new Error('Threshold filters are not yet implemented for #timer');
+            }
+        }
+        if (interval <= 0)
+            throw new Error('Must specify a time change for #timer');
+
+        this._interval = interval;
+        this.filterString = 'interval-' + this._interval;
         this._timeout = -1;
     },
 
@@ -43,8 +64,8 @@ const TimerChannel = new lang.Class({
     }
 });
 
-function createChannel(engine, timeout) {
-    return new TimerChannel(timeout);
+function createChannel(engine, device, filters) {
+    return new TimerChannel(engine, device, filters);
 }
 
 module.exports.createChannel = createChannel;

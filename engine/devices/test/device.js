@@ -9,7 +9,7 @@
 const lang = require('lang');
 const Q = require('q');
 
-const BaseDevice = require('../base_device');
+const BaseDevice = require('../../base_device');
 
 // A... "something", that lives off some IP and port address
 // using some unknown protocol

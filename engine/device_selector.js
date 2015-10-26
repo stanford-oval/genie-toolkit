@@ -22,6 +22,7 @@ module.exports = new lang.Class({
         this._mode = mode;
         this.block = block;
         this.channels = [];
+        this.filters = block.filters || [];
 
         this._deviceAddedListener = null;
         this._deviceRemovedListener = null;
@@ -31,23 +32,88 @@ module.exports = new lang.Class({
         return Q.all(this.channels);
     },
 
-    _onDeviceAdded: function(device) {
-        if (this.block.selector === null || !this.block.selector(device))
-            return;
+    _deviceMatchSelector: function(device, selector) {
+        if (selector.isTag)
+            return device.hasKind(selector.name) || device.hasTag(selector.name);
+        else
+            return device.uniqueId === selector.name;
+    },
 
-        var args = [this.block.channelName].concat(input.channelArgs);
-        var channel = device.getChannel.apply(device, args);
-        this.channels.push(channel);
-        channel.then(function(ch) {
-            this.block.channels.push(ch);
-            this.emit('channel-added', ch);
-        }.bind(this)).done();
+    _deviceGetChannels: function(device, selectors) {
+        var i;
+
+        // thingengine-system is the special device that
+        // contains the standard channels like #logger, #timer and #pipe
+        // we special case it so that it does not eat useful tags
+        if (!device.hasKind('thingengine-system')) {
+            // tag matching is greedy, and it goes in order
+            // device -> contact -> channel
+            for (i = 0; i < selectors.length; i++) {
+                if (!this._deviceMatchSelector(device, selectors[i]))
+                    break;
+            }
+
+            // if none of the selectors match, then we reject the device
+            if (i === 0)
+                return [];
+        }
+
+        // if all selectors match, we pick the default channel names
+        if (i === selectors.length) {
+            if (this._mode == 'r')
+                return [device.getChannel('source', this.filters)];
+            else
+                return [device.getChannel('sink', this.filters)];
+        }
+
+        // one or more of the selectors were not matched - they could be
+        // contacts or named channels
+        // (pipes are handled like contacts, SystemDevice implements
+        // object-store)
+
+        var objectStore = device.queryInterface('object-store');
+        if (objectStore !== null) {
+            var channels = device.getObjectChannels(selectors.slice(i), this._mode, this.filters);
+            if (Array.isArray(channels))
+                return channels;
+            else
+                // FINISHME handle the case of returning some dynamic view
+                throw new Error('Cannot (yet) handle dynamic view of device objects');
+        }
+
+        // if exactly one selector is missing, and it is a tag selector,
+        // try a named channel
+        if (i === selectors.length - 1 && selectors[i].isTag)
+            return device.getChannel(selectors[i].name, this.filters);
+
+        // reject the device
+        return [];
+    },
+
+    _deviceOpenChannels: function(device) {
+        var channels = this._deviceGetChannels(device, this.block.selectors);
+
+        channels = channels.map(function(promise) {
+            return Q(promise).then(function(ch) {
+                this.block.channels.push(ch);
+                this.emit('channel-added', ch);
+            }.bind(this)).catch(function(e) {
+                // eat the error silently
+            });
+        }, this);
+
+        this.channels = this.channels.concat(channels);
+        return channels;
+    },
+
+    _onDeviceAdded: function(device) {
+        Q.all(this._deviceOpenChannels(device)).done();
     },
 
     _onDeviceRemoved: function(device) {
         this.channels.forEach(function(channel) {
             Q(channel).then(function(ch) {
-                if (ch.uniqueId.indexOf('-' + device.uniqueId) >= 0) {
+                if (ch.uniqueId.startsWith(device.uniqueId + '-')) {
                     var i = this.block.channels.indexOf(ch);
                     if (i >= 0)
                         this.block.channels.splice(i, 1);
@@ -69,27 +135,11 @@ module.exports = new lang.Class({
 
     _openChannels: function() {
         var devices = this.engine.devices.getAllDevices();
-        var channels = this.engine.channels;
-        var args = [this.block.channelName].concat(this.block.channelArgs);
-
-        if (this.block.selector !== null) {
-            this.channels = devices.filter(this.block.selector).map(function(device) {
-                return device.getChannel.apply(device, args);
-            }.bind(this));
-        } else {
-            // naked channel
-            if (this.block.channelName.substr(0,5) === 'pipe-')
-                this.channels = [channels.getNamedPipe(this.block.channelName.substr(5), mode)];
-            else
-                this.channels = [channels.getChannel.apply(channels, args)];
-        }
-
-        return Q.all(this.channels).then(function(channels) {
-            this.block.channels = channels;
-            channels.forEach(function(channel) {
-                this.emit('channel-added', channel);
-            }, this);
+        var promises = devices.map(function(device) {
+            return Q.all(this._deviceOpenChannels(device));
         }.bind(this));
+
+        return Q.all(promises);
     },
 
     _closeChannels: function() {

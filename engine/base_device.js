@@ -114,13 +114,8 @@ module.exports = new lang.Class({
     // the channel is connecting to the device, or it could be
     // the channel is connecting from the device (in which case
     // the device is probably a thingengine)
-    getChannel: function() {
-        // first argument is the id, the rest are optional arguments
-        // which if present are after the device in the createChannel call
-        var id = arguments[0];
-        var rest = Array.prototype.slice.call(arguments, 1);
-        var args = [this.kind + '-' + id, this].concat(rest);
-        return this.engine.channels.getChannel.apply(this.engine.channels, args);
+    getChannel: function(id, filters) {
+        return this.engine.channels.getChannel(this, id, filters);
     }
 });
 

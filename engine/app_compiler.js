@@ -216,42 +216,52 @@ const Comparators = {
     '>': {
         types: [Type.String, Type.Measure(''), Type.Number, Type.Date],
         op: function(a, b) { return a > b; },
+        reverse: '>',
     },
     '<': {
         types: [Type.String, Type.Measure(''), Type.Number, Type.Date],
         op: function(a, b) { return a < b; },
+        reverse: '<',
     },
     '>=': {
         types: [Type.String, Type.Measure(''), Type.Number, Type.Date],
         op: function(a, b) { return a >= b; },
+        reverse: '<=',
     },
     '<=': {
         types: [Type.String, Type.Measure(''), Type.Number, Type.Date],
         op: function(a, b) { return a <= b; },
+        reverse: '>=',
     },
     '=': {
         types: [Type.Any],
         op: equalityTest,
+        reverse: '=',
     },
     ':': {
         types: [Type.Any],
         op: equalityTest,
+        reverse: '=',
     },
     '!=': {
         types: [Type.Any],
         op: function(a, b) { return !(equalityTest(a,b)); },
+        reverse: '=',
     },
     '=~': {
         types: [Type.String],
         op: likeTest,
+        reverse: null,
     },
     'has': {
         types: [Type.Array(Type.Any), Type.Any],
         op: function(a, b) { return a.some(function(x) { return equalityTest(x, b); }); },
+        reverse: null,
     },
     'has~': {
         types: [Type.Array(Type.String), Type.Any],
         op: function(a, b) { return a.some(function(x) { return likeTest(x, b); }); },
+        reverse: null,
     }
 };
 
@@ -621,8 +631,8 @@ module.exports = new lang.Class({
             }
         } else if (exprtype.isDate) {
             if (amount !== null) {
-                var amounttype = typeUnify(amount[1], Type.Measure('ms'));
-                var amountop = amount[0];
+                var amounttype = typeUnify(amount[0], Type.Measure('ms'));
+                var amountop = amount[1];
             } else {
                 var amountop = function() {
                     return BaseUnitDefaultChange['ms'];
@@ -719,6 +729,89 @@ module.exports = new lang.Class({
             return this.compileChange(ast);
     },
 
+    constantFoldExpression: function(ast, state) {
+        var env = new ExecEnvironment(null, {});
+
+        try {
+            var exp = this.compileExpression(ast);
+            var value = exp[1](env);
+            var type = exp[0];
+            var boxed;
+            if (type.isBoolean)
+                boxed = Value.Boolean(value);
+            else if (type.isString)
+                boxed = Value.String(value);
+            else if (type.isNumber)
+                boxed = Value.Number(value);
+            else if (type.isMeasure)
+                boxed = Value.Measure(value, type.unit);
+            else if (type.isArray)
+                boxed = Value.Array(value);
+            else if (type.isDate)
+                boxed = Value.Date(value);
+            else if (type.isLocation)
+                boxed = Value.Location(value.x, value.y);
+            else if (type.isObject)
+                boxed = Value.Object(value);
+
+            return Expression.Constant(boxed);
+        } catch(e) {
+            return null;
+        }
+    },
+
+    simplifyThreshold: function(ast, state) {
+        var lhsval = this.constantFoldExpression(ast.lhs, state);
+        if (lhsval !== null) {
+            var rhsval = this.constantFoldExpression(ast.rhs, state);
+            if (rhsval !== null) {
+                return InputRule.Threshold(lhsval, ast.comparator, rhsval);
+            } else if (ast.rhs.isVarRef) {
+                var reverse = Comparators[ast.comparator].reverse;
+                if (reverse !== null)
+                    return InputRule.Threshold(ast.rhs, reverse, lhsval);
+                else
+                    return null;
+            } else {
+                return null;
+            }
+        } else if (ast.lhs.isVarRef) {
+            var rhsval = this.constantFoldExpression(ast.rhs, state);
+            if (rhsval !== null)
+                return InputRule.Threshold(ast.lhs, ast.comparator, rhsval);
+            else
+                return null;
+        } else {
+            return null;
+        }
+    },
+
+    simplifyChange: function(ast, state) {
+        if (!ast.expr.isVarRef) {
+            console.log('Can\'t simplify ' + ast + ': lhs is not VarRef');
+            return null;
+        }
+
+        if (ast.amount !== null) {
+            var amountval = this.constantFoldExpression(ast.amount, state);
+            if (amountval !== null)
+                return InputRule.Change(ast.expr, amountval);
+            else {
+                console.log('Can\'t simplify ' + ast + ': rhs is not Constant');
+                return null;
+            }
+        } else {
+            return ast;
+        }
+    },
+
+    simplifyFilter: function(ast, state) {
+        if (ast.isThreshold)
+            return this.simplifyThreshold(ast);
+        else if (ast.isChange)
+            return this.simplifyChange(ast);
+    },
+
     anyThresholdFilter: function(ast) {
         return ast.some(function(ast) { return ast.isThreshold; });
     },
@@ -734,50 +827,6 @@ module.exports = new lang.Class({
         return function(env) {
             env.writeValue(name, op(env));
         }
-    },
-
-    compileIdSelector: function(ast) {
-        return function(device) {
-            return device.uniqueId === ast.name;
-        }
-    },
-
-    compileTagSelector: function(ast) {
-        return function(device) {
-            return device.hasKind(ast.name) || device.hasTag(ast.name);
-        }
-    },
-
-    compileSimpleSelector: function(ast) {
-        if (ast.isId)
-            return this.compileIdSelector(ast);
-        else if (ast.isTag)
-            return this.compileTagSelector(ast);
-    },
-
-    compileSelector: function(ast) {
-        if (ast.length === 0)
-            return null;
-
-        var simplearray = ast.map(this.compileSimpleSelector.bind(this));
-        return function(device) {
-            return simplearray.every(function(simple) {
-                return simple(device);
-            });
-        }
-    },
-
-    compileChannelArgs: function(args) {
-        var env = new ExecEnvironment(null, {});
-
-        return args.map(function(ast) {
-            // this should be enforced by the grammar
-            if (!ast.isConstant && !ast.isSettingRef)
-                throw new TypeError("Only constants are allowed as channel arguments");
-
-            var exp = this.compileExpression(ast);
-            return exp[1](env);
-        }.bind(this));
     },
 
     compileUpdateSome: function(filters, anyThreshold, anyChange, alias, continueUpdate) {
@@ -889,15 +938,14 @@ module.exports = new lang.Class({
     compileInputs: function(ast) {
         return ast.map(function(input) {
             var inputBlock = {
-                selector: this.compileSelector(input.selector),
-                channelName: input.channelName,
-                channelArgs: this.compileChannelArgs(input.channelArgs),
+                selectors: input.selectors,
                 channels: [],
                 update: this.compileUpdate(input.quantifier,
                                            input.filters.map(this.compileFilter.bind(this)),
                                            this.anyThresholdFilter(input.filters),
                                            this.anyChangeFilter(input.filters),
                                            input.alias),
+                filters: input.filters.map(this.simplifyFilter.bind(this)).filter(function(f) { return f !== null; })
             };
 
             return inputBlock;
@@ -907,9 +955,7 @@ module.exports = new lang.Class({
     compileOutputs: function(ast) {
         return ast.map(function(output) {
             var outputBlock = {
-                selector: this.compileSelector(output.selector),
-                channelName: output.channelName,
-                channelArgs: this.compileChannelArgs(output.channelArgs),
+                selectors: output.selectors,
                 channels: [],
                 action: this.compileAction(output.outputs.map(this.compileAssignment.bind(this))),
             };
@@ -933,3 +979,120 @@ module.exports = new lang.Class({
     },
 });
 
+var Selector = adt.data({
+    Tag: {
+        name: adt.only(String),
+    },
+    Id: {
+        name: adt.only(String),
+    },
+});
+module.exports.Selector = Selector;
+var AtRule = adt.data({
+    Setting: {
+        name: adt.only(String),
+        props: adt.only(Array),
+    },
+    Name: {
+        value: adt.only(String),
+    },
+    Description: {
+        value: adt.only(String),
+    },
+    Auth: {
+        params: adt.only(Array),
+    },
+    Kind: {
+        kind: adt.only(Selector),
+    },
+});
+module.exports.AtRule = AtRule;
+var Value = adt.data({
+    Boolean: {
+        value: adt.only(Boolean),
+    },
+    String: {
+        value: adt.only(String)
+    },
+    Measure: {
+        value: adt.only(Number),
+        unit: adt.only(String)
+    },
+    Number: {
+        value: adt.only(Number)
+    },
+    Location: {
+        x: adt.only(Number),
+        y: adt.only(Number),
+    },
+    Date: {
+        value: adt.only(Date)
+    },
+    Object: {
+        value: adt.only(Object)
+    },
+    Array: {
+        value: adt.only(Array)
+    },
+});
+module.exports.Value = Value;
+var Expression = adt.data(function() {
+    return ({
+        Constant: {
+            value: adt.only(Value)
+        },
+        VarRef: {
+            name: adt.only(String)
+        },
+        SettingRef: {
+            name: adt.only(String)
+        },
+        MemberRef: {
+            object: adt.only(this),
+            name: adt.only(String),
+        },
+        ObjectRef: {
+            name: adt.only(String),
+        },
+        FunctionCall: {
+            name: adt.only(String),
+            args: adt.only(Array), // array of Expression
+        },
+        UnaryOp: {
+            arg: adt.only(this),
+            opcode: adt.only(String),
+            op: adt.only(Function),
+        },
+        BinaryOp: {
+            lhs: adt.only(this),
+            rhs: adt.only(this),
+            opcode: adt.only(String),
+            op: adt.only(Function)
+        }
+    });
+});
+module.exports.Expression = Expression;
+var InputRule = adt.data({
+    Threshold: {
+        lhs: adt.only(Expression),
+        comparator: adt.only(String),
+        rhs: adt.only(Expression)
+    },
+    Change: {
+        expr: adt.only(Expression),
+        amount: function(val) {
+            if (val === null)
+                return val;
+            else
+                return adt.only(Expression).apply(this, arguments);
+        }
+    }
+});
+module.exports.InputRule = InputRule;
+var OutputRule = adt.data({
+    Assignment: {
+        name: adt.only(String),
+        rhs: adt.only(Expression)
+    }
+});
+module.exports.OutputRule = OutputRule;

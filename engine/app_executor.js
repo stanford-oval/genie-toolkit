@@ -37,21 +37,32 @@ module.exports = new lang.Class({
         this.isRunning = false;
         this.isEnabled = false;
 
-        var compiler = new AppCompiler();
-        var ast = AppGrammar.parse(code);
+        try {
+            var compiler = new AppCompiler();
+            var ast = AppGrammar.parse(code);
 
-        compiler.compileAtRules(ast['at-rules']);
+            compiler.compileAtRules(ast['at-rules']);
 
-        this.name = compiler.name;
-        this.description = compiler.description;
-        this.settings = compiler.settings;
+            this.name = compiler.name;
+            this.description = compiler.description;
+            this.settings = compiler.settings;
 
-        this.input = new QueryRunner(engine, this.state, compiler.compileInputs(ast.inputs));
-        this.input.on('triggered', this._onTriggered.bind(this));
+            this.input = new QueryRunner(engine, this.state, compiler.compileInputs(ast.inputs, state));
+            this.input.on('triggered', this._onTriggered.bind(this));
 
-        this.outputs = compiler.compileOutputs(ast.outputs).map(function(output) {
-            return new DeviceSelector(engine, 'w', output);
-        });
+            this.outputs = compiler.compileOutputs(ast.outputs).map(function(output) {
+                return new DeviceSelector(engine, 'w', output);
+            });
+
+            this.isBroken = false;
+        } catch(e) {
+            console.log('App is broken: ' + e.message);
+            console.log(e.stack);
+            this.isBroken = true;
+            this.name = 'Broken App';
+            this.description = 'This app is broken';
+            this.settings = {};
+        }
     },
 
     _onTriggered: function(env) {

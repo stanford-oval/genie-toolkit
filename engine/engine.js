@@ -28,9 +28,9 @@ const Engine = new lang.Class({
         // constructor
 
         this._tiers = new TierManager();
-        this._devices = new DeviceDatabase(this._tiers,
-                                           new DeviceFactory(this));
-        this._channels = new ChannelFactory(this, this._tiers);
+        this._deviceFactory = new DeviceFactory(this);
+        this._devices = new DeviceDatabase(this._tiers, this._deviceFactory);
+        this._channels = new ChannelFactory(this, this._tiers, this._deviceFactory);
         this._apps = new AppDatabase(this, this._tiers);
 
         this._ui = new UIEventManager(this);

@@ -34,11 +34,10 @@ function getAgent() {
 module.exports = new lang.Class({
     Name: 'ModuleDownloader',
 
-    _init: function(kind) {
-        this._kind = kind;
-        this._zipUrl = Config.THINGPEDIA_URL + '/download/' + kind;
-        this._codeUrl = Config.THINGPEDIA_URL + '/api/code/' + kind;
-        this._cacheDir = platform.getCacheDir() + '/' + kind;
+    _init: function() {
+        this._zipUrl = Config.THINGPEDIA_URL + '/download/devices';
+        this._codeUrl = Config.THINGPEDIA_URL + '/api/code/devices';
+        this._cacheDir = platform.getCacheDir() + '/devices';
 
         this._cachedModules = {};
         this._moduleRequests = {};
@@ -78,22 +77,21 @@ module.exports = new lang.Class({
 
     _createModuleFromBuiltin: function(fullId) {
         try {
-            this._cachedModules[fullId] = require('./' + this._kind + '/' + fullId);
-            console.log(this._kind + ' module ' + fullId + ' loaded as builtin');
+            this._cachedModules[fullId] = require('./devices/' + fullId);
+            console.log('Module ' + fullId + ' loaded as builtin');
             return this._cachedModules[fullId];
         } catch(e) {
+            console.log(e.stack);
             return null;
         }
     },
 
     _createModuleFromBuiltinCode: function(fullId, id) {
-        if (this._kind !== 'devices')
-            return null;
         try {
             var fullPath = path.join(path.dirname(module.filename),
-                                     './' + this._kind + '/' + id + '.dlg');
+                                     './devices/' + id + '.dlg');
             var code = fs.readFileSync(fullPath).toString('utf8');
-            console.log(this._kind + ' module ' + fullId + ' loaded as builtin code');
+            console.log('Module ' + fullId + ' loaded as builtin code');
             this._cachedModules[id] = GenericDeviceFactory(id, code);
             if (fullId === id)
                 return this._cachedModules[id];
@@ -107,9 +105,8 @@ module.exports = new lang.Class({
     _createModuleFromCache: function(fullId) {
         try {
             var module = path.join(process.cwd(), this._cacheDir + '/' + fullId);
-            console.log('module', module);
             this._cachedModules[fullId] = require(module);
-            console.log(this._kind + ' module ' + fullId + ' loaded as cached');
+            console.log('Module ' + fullId + ' loaded as cached');
             return this._cachedModules[fullId];
         } catch(e) {
             return null;
@@ -117,11 +114,9 @@ module.exports = new lang.Class({
     },
 
     _createModuleFromCachedCode: function(fullId, id) {
-        if (this._kind !== 'devices')
-            return null;
         try {
             var code = fs.readFileSync(this._cacheDir + '/' + id + '.dlg').toString('utf8');
-            console.log(this._kind + ' module ' + fullId + ' loaded as cached code');
+            console.log('Module ' + fullId + ' loaded as cached code');
             this._cachedModules[id] = GenericDeviceFactory(id, code);
             if (fullId === id)
                 return this._cachedModules[id];
@@ -140,14 +135,11 @@ module.exports = new lang.Class({
         var codePath = this._cacheDir + '/' + id + '.dlg';
 
         return this._moduleRequests[id] = Q.Promise(function(callback, errback) {
-            if (this._kind !== 'devices')
-                throw new Error('Cannot use generic code for non-devices');
-
             var parsed = url.parse(this._codeUrl + '/' + id);
             parsed.agent = getAgent();
             https.get(parsed, function(response) {
                 if (response.statusCode == 404)
-                    return errback(new Error('No such ' + this._kind));
+                    return errback(new Error('No such device code ' + id));
                 if (response.statusCode != 200)
                     return errback(new Error('Unexpected HTTP error ' + response.statusCode + ' downloading channel ' + id));
 
@@ -173,7 +165,7 @@ module.exports = new lang.Class({
                 parsed.agent = getAgent();
                 https.get(parsed, function(response) {
                     if (response.statusCode == 404)
-                        return errback(new Error('No such ' + this._kind));
+                        return errback(new Error('No such device ' + id));
                     if (response.statusCode != 200)
                         return errback(new Error('Unexpected HTTP error ' + response.statusCode + ' downloading channel ' + id));
 
@@ -221,7 +213,7 @@ module.exports = new lang.Class({
     },
 
     _createModule: function(fullId, id) {
-        console.log('Loading ' + this._kind + ' module ' + fullId);
+        console.log('Loading device module ' + fullId);
 
         var module = this._createModuleFromBuiltin(fullId);
         if (module)

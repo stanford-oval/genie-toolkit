@@ -8,12 +8,12 @@
 
 const Config = require('./config');
 
+const assert = require('assert');
 const fs = require('fs');
 const lang = require('lang');
 const Q = require('q');
 
 const prefs = require('./prefs');
-const ModuleDownloader = require('./module_downloader');
 const ProxyManager = require('./proxy');
 const PipeManager = require('./pipes');
 const Tier = require('./tier_manager').Tier;
@@ -21,13 +21,16 @@ const Tier = require('./tier_manager').Tier;
 const ChannelStateBinder = new lang.Class({
     Name: 'ChannelStateBinder',
 
-    _init: function(name, prefs) {
-        this._cached = prefs.get(name);
+    _init: function(prefs) {
+        this._prefs = prefs;
+    },
+
+    init: function(name) {
+        this._cached = this._prefs.get(name);
         if (this._cached === undefined) {
             this._cached = {};
-            prefs.set(name, this._cached);
+            this._prefs.set(name, this._cached);
         }
-        this._prefs = prefs;
     },
 
     get: function(name) {
@@ -44,11 +47,11 @@ module.exports = new lang.Class({
     Name: 'ChannelFactory',
     $rpcMethods: [],
 
-    _init: function(engine, tiers) {
+    _init: function(engine, tiers, deviceFactory) {
         this._engine = engine;
         this._cachedChannels = {};
 
-        this._downloader = new ModuleDownloader('channels');
+        this._deviceFactory = deviceFactory;
         this._tierManager = tiers;
         this._proxyManager = new ProxyManager(tiers, this, engine.devices);
         this._pipeManager = new PipeManager(tiers, this._proxyManager);
@@ -67,7 +70,7 @@ module.exports = new lang.Class({
         return Q();
     },
 
-    _getProxyChannel: function(targetChannelId, kind, caps, args) {
+    _getProxyChannel: function(targetChannelId, caps, args) {
         // FINISHME!! Be smarter in choosing where to run this channel
         // (and factor CLOUD in the decision)
 
@@ -79,7 +82,7 @@ module.exports = new lang.Class({
         else
             targetTier = Tier.PHONE;
 
-        return this._proxyManager.getProxyChannel(targetChannelId, targetTier, [kind].concat(args));
+        return this._proxyManager.getProxyChannel(targetChannelId, targetTier, args);
     },
 
     _checkFactoryCaps: function(caps) {
@@ -93,82 +96,69 @@ module.exports = new lang.Class({
         }.bind(this));
     },
 
-    _getChannelInternal: function(useProxy, args) {
-        var kind = args[0];
-        args = Array.prototype.slice.call(args, 1);
-
+    _getChannelInternal: function(useProxy, device, kind, filters) {
         // Named pipes are special in that we need some coordination
         // to ensure that we always have all proxies across all the tiers
         // So ask our trusty pipe manager for it
         //
         // (Note: we only follow this path for a request from ProxyManager)
-        if (kind === 'pipe')
-            return this._pipeManager.getProxyNamedPipe(args[0]);
+        if (device.kind === 'thingengine-system' && kind === 'pipe')
+            return this._pipeManager.getProxyNamedPipe(kind);
 
-        var fullId = kind + '-' + args.map(function(arg) {
-            if (typeof arg === 'string')
-                return arg;
-            else if (arg.uniqueId !== undefined)
-                return arg.uniqueId;
-            else
-                return String(arg);
-        }).join('-');
-
-        if (fullId in this._cachedChannels)
-            return this._cachedChannels[fullId];
-
-        var subkind;
-        if (args[0] && args[0].kind !== undefined && kind.startsWith(args[0].kind)) {
-            subkind = kind.substr(args[0].kind.length + 1);
-            kind = args[0].kind;
-        } else {
-            subkind = null;
-        }
-
-        return this._cachedChannels[fullId] = Q.try(function() {
-            if (subkind != null) {
-                return this._engine.devices.factory.getSubmodule(kind, subkind)
-                    .catch(function(e) {
-                        return this._downloader.getModule(kind + '-' + subkind);
-                    }.bind(this));
-            } else {
-                return this._downloader.getModule(kind);
-            }
+        return Q.try(function() {
+            return this._deviceFactory.getSubmodule(device.kind, kind);
         }.bind(this)).then(function(factory) {
             var caps = factory.requiredCapabilities || [];
             if (!this._checkFactoryCaps(caps)) {
                 // uh oh! channel does not work, try with a proxy channel
 
                 if (useProxy) {
-                    return this._getProxyChannel(fullId, kind, caps, args);
+                    return this._getProxyChannel(fullId, caps, [device, kind, filters]);
                 } else {
                     throw new Error('Channel is not supported but proxy channel is not allowed');
                 }
             } else {
                 var hasState = caps.indexOf('channel-state') >= 0;
                 var channel;
-                if (hasState)
-                    channel = factory.createChannel.apply(factory, [this._engine, new ChannelStateBinder(fullId, this._prefs)].concat(args));
+                var state;
+                if (hasState) {
+                    state = new ChannelStateBinder(this._prefs);
+                    channel = factory.createChannel(this._engine, state, device, filters);
+                } else {
+                    state = null;
+                    channel = factory.createChannel(this._engine, device, filters);
+                }
+
+                if (channel.filterString !== undefined)
+                    channel.uniqueId = device.kind + '-' + kind + '-' + channel.filterString;
                 else
-                    channel = factory.createChannel.apply(factory, [this._engine].concat(args));
-                channel.uniqueId = fullId;
-                return channel;
+                    channel.uniqueId = device.kind + '-' + kind;
+
+                // deduplicate the channel now that we have the uniqueId
+                if (channel.uniqueId in this._cachedChannels) {
+                    return this._cachedChannels[channel.uniqueId];
+                } else {
+                    if (state)
+                        state.init(channel.uniqueId);
+                    return this._cachedChannels[channel.uniqueId] = channel;
+                }
             }
         }.bind(this));
     },
 
     _getOpenedChannel: function(promise) {
-        return promise.then(function(channel) {
-            return channel.open().then(function() {
-                return channel;
-            });
+        return Q(promise).tap(function(channel) {
+            console.log('Obtained channel ' + channel.uniqueId);
+            return channel.open();
         });
     },
 
-    // Get a channel that is identified with the given ID
-    // The channel accepts no other parameters
-    getChannel: function() {
-        return this._getOpenedChannel(this._getChannelInternal(true, arguments));
+    // The following functions are "public" to BaseDevice and SystemDevice
+    // but nothing should be ever calling them
+    // Use Device.getChannel() instead
+
+    getChannel: function(device, id, filters) {
+        return this._getOpenedChannel(this._getChannelInternal(true, device, id, filters));
     },
 
     // A named pipe is a PipeChannel with the given name

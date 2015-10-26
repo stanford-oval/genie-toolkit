@@ -9,7 +9,7 @@
 const lang = require('lang');
 const Q = require('q');
 
-const BaseChannel = require('../base_channel');
+const BaseChannel = require('../../base_channel');
 
 var cnt = 0;
 
@@ -37,7 +37,7 @@ const TestChannel = new lang.Class({
         this._timeout = setInterval(function() {
             var event = {"number":42 + Math.floor(Math.random() * 42)};
             this.emitEvent(event);
-        }.bind(this), 5000);
+        }.bind(this), 1000);
         return Q();
     },
 

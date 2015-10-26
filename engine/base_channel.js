@@ -27,6 +27,11 @@ module.exports = new lang.Class({
         this._previousEvent = null;
         this._event = null;
 
+        // you must set this to something other than undefined if you're
+        // doing something server-side with the filters, and it must
+        // be a unique string for all channels of the given type
+        this.filterString = undefined;
+
         // don't set this, it is set automatically by ChannelFactory
         this.uniqueId = undefined;
     },

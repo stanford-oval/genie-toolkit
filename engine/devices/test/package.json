@@ -1,0 +1,15 @@
+{
+  "name": "thingengine-device-test",
+  "version": "1.0.0",
+  "description": "Test device for ThingEngine",
+  "author": "Stanford IoT lab",
+  "contributors": [
+    {
+      "name": "Giovanni Campagna",
+      "email": "gcampagn@cs.stanford.edu"
+    }
+  ],
+  "main": "device.js",
+  "dependencies": {
+  }
+}

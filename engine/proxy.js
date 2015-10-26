@@ -272,7 +272,8 @@ module.exports = new lang.Class({
                     return arg;
                 if (arg.class === 'device')
                     return devices.getDevice(arg.uniqueId);
-                throw new Error('Cannot unmarshal object of class ' + arg.class);
+                else
+                    return arg;
             });
         } catch(e) {
             this._replyChannel(fromTier, targetChannelId, e.message);

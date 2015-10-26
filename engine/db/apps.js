@@ -90,8 +90,9 @@ module.exports = new lang.Class({
     },
 
     _tryEnableApp: function(app) {
-        app.isEnabled = (app.currentTier === this._tierManager.ownTier ||
-                         app.currentTier === 'all');
+        app.isEnabled = (!app.isBroken &&
+                         (app.currentTier === this._tierManager.ownTier ||
+                          app.currentTier === 'all'));
     },
 
     _appMoved: function(app, newTier) {

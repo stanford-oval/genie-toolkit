@@ -30,6 +30,11 @@ module.exports = new lang.Class({
         this._devices = {};
 
         this._syncdb = new SyncDatabase('device', ['state'], tierManager);
+
+        // Create a SystemDevice and put it in the map
+        // SystemDevice is never stored in the database
+        this._addDeviceInternal(deviceFactory.createDevice('thingengine-system'),
+                                {}, false);
     },
 
     loadOneDevice: function(serializedDevice, addToDB) {
