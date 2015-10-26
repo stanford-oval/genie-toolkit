@@ -12,6 +12,7 @@ const Q = require('q');
 const fs = require('fs');
 
 const sql = require('./engine/db/sql');
+const OmletMessaging = require('./omlet_messaging');
 
 var filesDir = null;
 var encoding = null;
@@ -26,6 +27,13 @@ function safeMkdirSync(dir) {
 }
 
 var _prefs = null;
+
+var _messaging = null;
+function getMessagingImpl() {
+    if (!_messaging)
+        _messaging = new OmletMessaging();
+    return _messaging;
+}
 
 module.exports = {
     // Initialize the platform code
@@ -61,6 +69,10 @@ module.exports = {
             // this platform
             return true;
 
+        case 'messaging':
+            // We have messaging through the Omlet SDK
+            return true;
+
         case 'android-api':
             // We can use the Android APIs if we need to
             return true;
@@ -69,6 +81,20 @@ module.exports = {
             return false;
         }
     },
+
+    // Retrieve an interface to an optional functionality provided by the
+    // platform
+    //
+    // This will return null if hasCapability(cap) is false
+    getCapability: function(cap) {
+        switch(cap) {
+        case 'messaging':
+            return getMessagingImpl();
+
+        default:
+            return null;
+    },
+
 
     // Obtain a shared preference store
     // Preferences are simple key/value store which is shared across all apps

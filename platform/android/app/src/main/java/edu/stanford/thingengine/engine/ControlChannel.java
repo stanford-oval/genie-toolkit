@@ -103,6 +103,10 @@ public class ControlChannel implements AutoCloseable, Closeable {
         sendCall("stop");
     }
 
+    public synchronized void sendInvokeCallback(String callback, String error, Object value) throws IOException {
+        sendCall("invokeCallback", callback, error, value);
+    }
+
     public synchronized boolean sendSetCloudId(CloudAuthInfo authInfo) {
         try {
             sendCall("setCloudId", authInfo.getCloudId(), authInfo.getAuthToken());

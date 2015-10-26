@@ -8,24 +8,26 @@ global.JXMobile = function JXMobile(x) {
   this.name = x;
 }
 
-function callJXcoreNative(name, args) {
-  var params = Array.prototype.slice.call(args, 0);
+function callJXcoreNative(name, sync, args) {
+    var params = Array.prototype.slice.call(args, 0);
 
-  var cb = "";
-
-  if (params.length && typeof params[params.length - 1] == "function") {
-    cb = "$$jxcore_callback_" + JXMobile.eventId;
+    var cb = "$$jxcore_callback_" + JXMobile.eventId;
     JXMobile.eventId++;
     JXMobile.eventId %= 1e5;
-    JXMobile.on(cb, new WrapFunction(cb, params[params.length - 1]));
-    params.pop();
-  }
 
-  var fnc = [name];
-  var arr = fnc.concat(params);
-  arr.push(cb);
+    if (sync) {
+        if (params.length && typeof params[params.length - 1] == "function")
+            JXMobile.on(cb, new WrapFunction(cb, params[params.length - 1]));
+        params.pop();
+    }
 
-  process.natives.callJXcoreNative.apply(null, arr);
+    var fnc = [name];
+    var arr = fnc.concat(params);
+    arr.push(cb);
+
+    process.natives.callJXcoreNative.apply(null, arr);
+
+    return cb;
 }
 
 function WrapFunction(cb, fnc) {
@@ -46,8 +48,12 @@ JXMobile.on = function (name, target) {
 };
 
 JXMobile.prototype.callNative = function () {
-  callJXcoreNative(this.name, arguments);
-  return this;
+    callJXcoreNative(this.name, true, arguments);
+    return this;
+};
+
+JXMobile.prototype.callAsyncNative = function () {
+    return callJXcoreNative(this.name, false, arguments);
 };
 
 var isAndroid = process.platform == "android";
@@ -132,7 +138,7 @@ AndroidSharedPreferences.prototype._flushWrites = function() {
     var writes = this._writes;
     this._writes = [];
     // can't pass complex objects to Java, so go through JSON
-    JXMobile('writeSharedPref').callNative(JSON.stringify(writes), function(error) {
+    JXMobile('SharedPreferences_writeSharedPref').callNative(JSON.stringify(writes), function(error) {
         if (error)
             console.error('Failed to flush shared preferences to disk');
     });
@@ -143,7 +149,7 @@ AndroidSharedPreferences.prototype.get = function(name) {
 
     var _value;
     var _error;
-    JXMobile('readSharedPref').callNative(name, function(error, res) {
+    JXMobile('SharedPreferences_readSharedPref').callNative(name, function(error, res) {
         if (error)
             _error = error;
         else

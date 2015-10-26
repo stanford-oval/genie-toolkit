@@ -15,6 +15,8 @@ const control = require('./control');
 const Engine = require('./engine');
 const Tier = require('./engine/tier_manager').Tier;
 
+const JavaAPI = require('./java_api');
+
 function runEngine() {
     global.platform = require('./platform');
 
@@ -32,6 +34,10 @@ function runEngine() {
             foo: function(int) {
                 console.log('Foo called on control channel with value ' + int);
                 return int;
+            },
+
+            invokeCallback: function(callbackId, error, value) {
+                JavaAPI.invokeCallback(callbackId, error, value);
             },
 
             stop: function() {

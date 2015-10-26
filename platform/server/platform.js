@@ -96,6 +96,14 @@ module.exports = {
         }
     },
 
+    // Retrieve an interface to an optional functionality provided by the
+    // platform
+    //
+    // This will return null if hasCapability(cap) is false
+    getCapability: function(cap) {
+        return null;
+    },
+
     // Obtain a shared preference store
     // Preferences are simple key/value store which is shared across all apps
     // but private to this instance (tier) of the platform

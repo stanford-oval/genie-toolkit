@@ -38,8 +38,9 @@ public class EngineService extends Service {
         Log.i(LOG_TAG, "Starting service");
         try {
             startThread();
-            control = new ControlChannel(getBaseContext());
-            fooTransaction();
+            control = engineThread.getControlChannel();
+            if (control != null)
+                fooTransaction();
 
             Log.i(LOG_TAG, "Started service");
             return START_STICKY;

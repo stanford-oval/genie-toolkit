@@ -840,31 +840,59 @@ module.exports = new lang.Class({
                 if (channel.event === null)
                     return false;
 
-                env.setPreviousThis(channel.previousEvent);
-                env.setThis(channel.event);
-                var ok = filters.every(function(filter) {
-                    return filter(env);
-                });
-                env.setPreviousThis(null);
-                env.setThis(null);
+                function processOneTuple(previous, current, matchId) {
+                    env.setPreviousThis(previous);
+                    env.setThis(current);
+                    var ok = filters.every(function(filter) {
+                        return filter(env);
+                    });
+                    env.setPreviousThis(null);
+                    env.setThis(null);
 
-                var run = false;
-                if (ok) {
-                    if (env.getInputBlockEnabled(thresholdName + channel.uniqueId)) {
-                        if (alias !== null)
-                            env.setAlias(alias, channel.event);
+                    var fullThresholdName = thresholdName + channel.uniqueId;
+                    if (matchId)
+                        fullThresholdName += '-' + matchId;
+                    var run = false;
+                    if (ok) {
+                        if (env.getInputBlockEnabled(fullThresholdName)) {
+                            if (alias !== null)
+                                env.setAlias(alias, current);
 
-                        run = continueUpdate(inputs, i, env, cont);
+                            run = continueUpdate(inputs, i, env, cont);
 
-                        if (anyThreshold && run)
-                            env.setInputBlockEnabled(thresholdName + channel.uniqueId, false);
+                            if (anyThreshold && run)
+                                env.setInputBlockEnabled(fullThresholdName, false);
+                        }
+                    } else {
+                        if (anyThreshold)
+                            env.setInputBlockEnabled(fullThresholdName, true);
                     }
-                } else {
-                    if (anyThreshold)
-                        env.setInputBlockEnabled(thresholdName + channel.uniqueId, true);
+
+                    return run;
                 }
 
-                return run;
+                if (Array.isArray(channel.event)) {
+                    var retval = false;
+                    // don't use .some() here, we want to run side-effects
+                    channel.event.forEach(function(event) {
+                        var previous = null;
+                        if (channel.previousEvent !== null) {
+                            // FIXME: be smarter and avoid quadratic search
+                            for (var i = 0; i < channel.previousEvent.length; i++) {
+                                if (event._key === channel.previousEvent[i]._key) {
+                                    previous = channel.previousEvent[i];
+                                    break;
+                                }
+                            }
+                        }
+
+                        var run = processOneTuple(previous, event, event._key);
+                        retval = run || retval;
+                    });
+                    return retval;
+                } else {
+                    return processOneTuple(channel.previousEvent, channel.event);
+                }
             });
         };
     },
@@ -880,21 +908,47 @@ module.exports = new lang.Class({
                 if (channel.event === null)
                     return false;
 
-                env.setPreviousThis(channel.previousEvent);
-                env.setThis(channel.event);
-                return filters.every(function(filter) {
-                    return filter(env);
-                });
-                env.setPreviousThis(null);
-                env.setThis(null);
+                function filterOneTuple(previous, current) {
+                    env.setPreviousThis(previous);
+                    env.setThis(current);
+                    return filters.every(function(filter) {
+                        return filter(env);
+                    });
+                    env.setPreviousThis(null);
+                    env.setThis(null);
+                }
+
+                if (Array.isArray(channel.event)) {
+                    return channel.event.every(function(event) {
+                        var previous = null;
+                        if (channel.previousEvent !== null) {
+                            // FIXME: be smarter and avoid quadratic search
+                            for (var i = 0; i < channel.previousEvent.length; i++) {
+                                if (event._key === channel.previousEvent[i]._key) {
+                                    previous = channel.previousEvent[i];
+                                    break;
+                                }
+                            }
+                        }
+
+                        return filterOneTuple(previous, current);
+                    });
+                } else {
+                    return filterOneTuple(channel.previousEvent, channel.event);
+                }
             });
             var run = false;
             if (ok) {
                 if (env.getInputBlockEnabled(thresholdName + 'all')) {
                     if (alias !== null) {
-                        env.setAlias(alias, this.channels.map(function(c) {
-                            return c.event;
-                        }));
+                        var aliasValue = [];
+                        this.channels.forEach(function(c) {
+                            if (Array.isArray(c.event))
+                                aliasValue = aliasValue.concat(c.event);
+                            else
+                                aliasValue.push(c.event);
+                        });
+                        env.setAlias(alias, aliasValue);
                     }
 
                     run = continueUpdate(inputs, i, env, cont);
