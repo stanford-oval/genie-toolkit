@@ -35,7 +35,7 @@ const OmletFeedCursor = new lang.Class({
     Extends: FeedCursor,
 
     _init: function(feed, cursorId) {
-        super(feed);
+        this.parent(feed);
         this._cursorId = cursorId;
     },
 
@@ -132,12 +132,14 @@ module.exports = new lang.Class({
     },
 
     createFeed: function() {
+        console.log('OmletMessaging.createFeed');
         return OmletAPI.createControlFeed().then(function(uri) {
             if (!uri.startsWith('content://mobisocial.osm/feeds/'))
                 throw new Error('Invalid Omlet Feed URI ' + uri);
 
-            return new OmletFeed(uri.substr('content://mobisocial.osm/feeds/'.length));
-        });
+            console.log('Created Omlet feed at ' + uri);
+            return new OmletFeed(this, uri.substr('content://mobisocial.osm/feeds/'.length));
+        }.bind(this));
     },
 
     getOwnId: function() {
@@ -145,6 +147,6 @@ module.exports = new lang.Class({
     },
 
     getFeed: function(feedId) {
-        return new OmletFeed(feedId);
+        return new OmletFeed(this, feedId);
     }
 });

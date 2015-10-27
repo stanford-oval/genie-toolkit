@@ -81,6 +81,7 @@ module.exports = new lang.Class({
             console.log('Module ' + fullId + ' loaded as builtin');
             return this._cachedModules[fullId];
         } catch(e) {
+            console.log(e.stack);
             return null;
         }
     },

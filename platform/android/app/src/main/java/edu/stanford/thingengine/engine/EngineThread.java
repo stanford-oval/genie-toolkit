@@ -21,6 +21,7 @@ public class EngineThread extends Thread {
     private boolean controlReady;
     private boolean isLocked;
     private boolean broken;
+    private OmletAPI omlet;
     private volatile ControlChannel control;
 
     public EngineThread(Context context, Lock initLock, Condition initCondition) {
@@ -48,8 +49,6 @@ public class EngineThread extends Thread {
     public void run() {
         jxcore.Initialize(context.getApplicationContext());
 
-        OmletAPI omlet = null;
-
         try {
             initLock.lock();
             isLocked = true;
@@ -59,6 +58,8 @@ public class EngineThread extends Thread {
                     controlReady = true;
                     try {
                         control = new ControlChannel(context);
+
+                        omlet = new OmletAPI(context, control);
                     } catch(IOException e) {
                         Log.e(EngineService.LOG_TAG, "Failed to acquire control channel!");
                     }
@@ -68,9 +69,9 @@ public class EngineThread extends Thread {
                 }
             });
 
-            new JSSharedPreferences(context, control);
-            omlet = new OmletAPI(context, control);
-
+            // shared preferences need to be initialized early, but luckily they don't have
+            // async methods so they don't need the control channel
+            new JSSharedPreferences(context, null);
             jxcore.CallJSMethod("runEngine", new Object[]{});
             jxcore.Loop();
 

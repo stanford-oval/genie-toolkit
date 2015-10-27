@@ -91,6 +91,10 @@ public class EngineService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
+        if (control == null)
+            onStartCommand(null, 0, 0);
+        if (control == null)
+            return null;
         return new ControlBinder(control);
     }
 }

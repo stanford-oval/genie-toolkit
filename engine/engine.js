@@ -92,8 +92,8 @@ const Engine = new lang.Class({
     // no effect
     close: function() {
         function close(modules, i) {
-            if (i < 0);
-                return;
+            if (i < 0)
+                return Q();
 
             return modules[i].stop().then(function() {
                 return close(modules, i-1);

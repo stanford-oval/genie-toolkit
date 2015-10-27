@@ -25,6 +25,10 @@ const DistributedDatabaseDevice = new lang.Class({
 
     _init: function(engine, state) {
         this.parent(engine, state);
+
+        this.name = "Distributed Database %s".format(this.feedId);
+        this.description = "This is a Distributed Database using your phone's messaging platform. "
+            + "You can use it to share your data with your friends!";
     },
 
     // The opaque token used by the messaging platform to identify
@@ -61,3 +65,9 @@ const DistributedDatabaseDevice = new lang.Class({
     delete: function(tuple) {
     },
 });
+
+function createDevice(engine, state) {
+    return new DistributedDatabaseDevice(engine, state);
+}
+
+module.exports.createDevice = createDevice;

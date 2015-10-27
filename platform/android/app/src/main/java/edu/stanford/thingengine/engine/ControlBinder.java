@@ -23,4 +23,8 @@ public class ControlBinder extends IThingEngine.Stub {
     public boolean setServerAddress(String host, int port, String authToken) {
         return channel.sendSetServerAddress(host, port, authToken);
     }
+
+    public String createOmletFeed() {
+        return channel.createOmletFeed();
+    }
 }

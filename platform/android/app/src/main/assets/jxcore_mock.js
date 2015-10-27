@@ -18,7 +18,17 @@ global.JXMobile = function(name) {
 
 JXMobile.prototype.callNative = function() {
     console.log('JXMobile-Mock: native function ' + this.name + ' called');
+    var callback = arguments[arguments.length-1];
+    if (callback)
+        callback(null, null);
 };
+
+JXMobile.prototype.callAsyncNative = function(callback) {
+    console.log('JXMobile-Mock: async native function ' + this.name + ' called');
+    var callback = arguments[arguments.length-1];
+    if (callback)
+        callback(null, null);
+}
 
 var natives = {}
 

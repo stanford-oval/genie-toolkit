@@ -79,11 +79,11 @@ ControlChannel.prototype._handleMessage = function(msg) {
     }
 
     Q.mapply(this._delegate, msg.method, msg.args).then(function(result) {
-        if (this._socket)
-            return Q.ninvoke(this._socket, 'write', {reply:result});
+        if (this._socket && msg.replyId)
+            return Q.ninvoke(this._socket, 'write', {id:msg.replyId, reply:result});
     }.bind(this), function(error) {
         if (this._socket)
-            return Q.ninvoke(this._socket, 'write', {error:error.message});
+            return Q.ninvoke(this._socket, 'write', {id:msg.replyId, error:error.message});
     }.bind(this)).done();
 };
 

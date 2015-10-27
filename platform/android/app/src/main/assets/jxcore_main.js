@@ -379,8 +379,9 @@ if (isAndroid) {
 }
 
 process.on('uncaughtException', function (e) {
-  Error.captureStackTrace(e);
-  JXMobile('OnError').callNative(e.message, JSON.stringify(e.stack));
+    Error.captureStackTrace(e);
+    console.error(e.stack);
+    JXMobile('OnError').callNative(e.message, JSON.stringify(e.stack));
 });
 
 console.log("JXcore Android bridge is ready!");

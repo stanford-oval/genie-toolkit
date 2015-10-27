@@ -157,7 +157,7 @@ public class WebUIActivity extends Activity {
         final ControlBinder control = engine.getControl();
         if (control == null)
             return;
-        AsyncTask.execute(new Runnable() {
+        AsyncTask.THREAD_POOL_EXECUTOR.execute(new Runnable() {
             @Override
             public void run() {
                 final boolean ok = control.setServerAddress(host, port, authToken);

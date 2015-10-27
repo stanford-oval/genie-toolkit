@@ -129,6 +129,7 @@ module.exports = new lang.Class({
 
     stop: function() {
         this._syncdb.close();
+        return Q();
     },
 
     _removeAppInternal: function(uniqueId) {

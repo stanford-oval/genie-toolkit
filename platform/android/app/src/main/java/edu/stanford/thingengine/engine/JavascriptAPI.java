@@ -1,9 +1,7 @@
 package edu.stanford.thingengine.engine;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import io.jxcore.node.jxcore;
@@ -25,11 +23,7 @@ public abstract class JavascriptAPI {
     }
 
     private void sendCallback(String callback, String error, Object value) {
-        try {
-            control.sendInvokeCallback(callback, error, value);
-        } catch(IOException e) {
-            Log.e(EngineService.LOG_TAG, "Failed to send invokeCallback", e);
-        }
+        control.sendInvokeCallback(callback, error, value);
     }
 
     public void invokeAsync(String callback, String error, Object value) {
@@ -40,7 +34,7 @@ public abstract class JavascriptAPI {
         jxcore.RegisterMethod(name + "_" + callback, new jxcore.JXcoreCallback() {
             @Override
             public void Receiver(final ArrayList<Object> params, final String callbackId) {
-                AsyncTask.execute(new Runnable() {
+                AsyncTask.THREAD_POOL_EXECUTOR.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {

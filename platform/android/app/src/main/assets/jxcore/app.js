@@ -83,11 +83,21 @@ function runEngine() {
             injectDevice: function(device) {
                 console.log('Injecting device ' + JSON.stringify(device, 1));
                 engine.devices.loadOneDevice(device, true).done();
-            }
+            },
+
+            createOmletFeed: function() {
+                var messaging = platform.getCapability('messaging');
+
+                return messaging.createFeed().tap(function(feed) {
+                    return engine.devices.loadOneDevice({ kind: 'distdb', feedId: feed.feedId }, true);
+                });
+            },
         });
 
         return controlChannel.open().then(function() {
             // signal early to stop the engine
+            // we don't need to async-wait for the result here, the call is sync
+            // and execute on our thread
             JXMobile('controlReady').callNative();
 
             return engine.open();

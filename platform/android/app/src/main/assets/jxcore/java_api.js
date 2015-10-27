@@ -26,8 +26,9 @@ module.exports.makeJavaAPI = function makeJavaAPI(klass, asyncMethods, syncMetho
         obj[method] = function() {
             var call = JXMobile(klass + '_' + method);
             var cb = call.callAsyncNative.apply(call, arguments);
-            asyncCallbacks[cb] = Q.defer();
-            return Q.promise;
+            var defer = Q.defer();
+            asyncCallbacks[cb] = defer;
+            return defer.promise;
         }
     });
     syncMethods.forEach(function(method) {
@@ -50,8 +51,8 @@ module.exports.invokeCallback = function(callbackId, error, value) {
     }
 
     if (error)
-        asyncCallbacks[cb].reject(new Error(error));
+        asyncCallbacks[callbackId].reject(new Error(error));
     else
-        asyncCallbacks[cb].resolve(value);
-    delete asyncCallbacks[cb];
+        asyncCallbacks[callbackId].resolve(value);
+    delete asyncCallbacks[callbackId];
 };

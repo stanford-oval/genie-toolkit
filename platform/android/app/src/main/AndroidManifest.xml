@@ -38,7 +38,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -50,10 +49,21 @@
                     android:pathPrefix="/qrcode/"
                     android:scheme="https" />
             </intent-filter>
-
             <intent-filter>
-                <action android:name="edu.stanford.thingengine.engine.ADD_ONLINE_ACCOUNT"/>
+                <action android:name="edu.stanford.thingengine.engine.ADD_ONLINE_ACCOUNT" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".TestActivity"
+            android:label="@string/title_activity_test"
+            android:theme="@style/Theme.AppCompat"
+            android:parentActivityName=".WebUIActivity" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="edu.stanford.thingengine.engine.WebUIActivity" />
         </activity>
     </application>
 
