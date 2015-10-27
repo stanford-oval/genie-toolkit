@@ -12,12 +12,8 @@ const Q = require('q');
 var asyncCallbacks = {};
 var eventCallbacks = {};
 
-module.exports.makeJavaAPI = function makeJavaAPI(klass, methods) {
-    var classObj = {
-        Name: klass + '_Proxy',
-
-        _init: function() {},
-
+module.exports.makeJavaAPI = function makeJavaAPI(klass, asyncMethods, syncMethods) {
+    var obj = {
         registerCallback: function(callbackName, callback) {
             eventCallbacks[klass + '_' + callbackName] = callback;
         },
@@ -26,16 +22,22 @@ module.exports.makeJavaAPI = function makeJavaAPI(klass, methods) {
             delete eventCallbacks[klass + '_' + callbackName];
         },
     };
-    methods.forEach(function(method) {
-        classObj[method] = function() {
+    asyncMethods.forEach(function(method) {
+        obj[method] = function() {
             var call = JXMobile(klass + '_' + method);
             var cb = call.callAsyncNative.apply(call, arguments);
             asyncCallbacks[cb] = Q.defer();
             return Q.promise;
         }
     });
+    syncMethods.forEach(function(method) {
+        obj[method] = function() {
+            var call = JXMobile(klass + '_' + method);
+            return Q.npost(call, 'callNative', arguments);
+        }
+    });
 
-    return new lang.Class(classObj);
+    return obj;
 }
 
 module.exports.invokeCallback = function(callbackId, error, value) {

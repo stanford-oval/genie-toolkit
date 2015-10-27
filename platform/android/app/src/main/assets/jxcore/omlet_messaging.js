@@ -16,30 +16,120 @@ const FeedCursor = Messaging.FeedCursor;
 const JavaAPI = require('./java_api');
 
 const OmletAPI = JavaAPI.makeJavaAPI('OmletAPI',
-                                     ['createControlFeed',
-                                      'openFeed',
-                                      'closeFeed',
+                                     ['getOwnId',
+                                      'createControlFeed',
                                       'getFeedCursor',
-                                      'destroyCursor',
                                       'getCursorValue',
                                       'hasNextCursor',
                                       'nextCursor',
-                                      'getMembers',
+                                      'getFeedMembers',
+                                      'sendItemOnFeed'],
+                                     ['openFeed',
+                                      'closeFeed',
+                                      'destroyCursor',
                                       'startWatchFeed',
-                                      'stopWatchFeed',
-                                      'sendItemOnFeed']);
+                                      'stopWatchFeed']);
+
+const OmletFeedCursor = new lang.Class({
+    Name: 'OmletFeedCursor',
+    Extends: FeedCursor,
+
+    _init: function(feed, cursorId) {
+        super(feed);
+        this._cursorId = cursorId;
+    },
+
+    getValue: function() {
+        return OmletAPI.getCursorValue(this._cursorId);
+    },
+
+    hasNext: function() {
+        return OmletAPI.hasNextCursor(this._cursorId);
+    },
+
+    next: function() {
+        return OmletAPI.nextCursor(this._cursorId);
+    },
+
+    destroy: function() {
+        return OmletAPI.destroyCursor(this._cursorId);
+    },
+});
 
 const OmletFeed = new lang.Class({
     Name: 'OmletFeed',
     Extends: Feed,
 
-    _init: function(feedId) {
+    _init: function(messaging, feedId) {
         this.parent(feedId);
-    }
+        this._messaging = messaging;
+    },
+
+    open: function() {
+        return OmletAPI.openFeed(this.feedId);
+    },
+
+    close: function() {
+        return OmletAPI.closeFeed(this.feedId);
+    },
+
+    getCursor: function() {
+        return OmletAPI.getFeedCursor(this.feedId).then(function(cursorId) {
+            return new OmletFeedCursor(this, cursorId);
+        }.bind(this));
+    },
+
+    getMembers: function() {
+        return OmletAPI.getFeedMembers(this.feedId);
+    },
+
+    startWatch: function() {
+        this._messaging._registerWatch(this.feedId, this);
+        return OmletAPI.startWatchFeed(this.feedId);
+    },
+
+    stopWatch: function() {
+        this._messaging._unregisterWatch(this.feedId, this);
+        return OmletAPI.stopWatchFeed(this.feedId);
+    },
+
+    sendItem: function(item) {
+        return OmletAPI.sendItemOnFeed(this.feedId, item);
+    },
 });
 
 module.exports = new lang.Class({
     Name: 'OmletMessaging',
+
+    _init: function() {
+        OmletAPI.registerCallback('onChange', this._onFeedChange.bind(this));
+
+        this._feedWatches = {};
+    },
+
+    _onFeedChange: function(error, uri) {
+        if (error)
+            throw error;
+
+        if (!uri.startsWith('content://mobisocial.osm/feeds/'))
+            throw new Error('Invalid Omlet Feed URI ' + uri);
+
+        var id = uri.substr('content://mobisocial.osm/feeds/'.length);
+        if (!(id in this._feedWatches))
+            return;
+
+        this._feedWatches[id]._onChange();
+    },
+
+    _registerWatch: function(feedId, feed) {
+        this._feedWatches[feedId] = feed;
+    },
+
+    _unregisterWatch: function(feedId, feed) {
+        if (this._feedWatches[feedId] !== feed)
+            return;
+        delete this._feedWatches[feedId];
+    },
 
     createFeed: function() {
         return OmletAPI.createControlFeed().then(function(uri) {
@@ -48,6 +138,10 @@ module.exports = new lang.Class({
 
             return new OmletFeed(uri.substr('content://mobisocial.osm/feeds/'.length));
         });
+    },
+
+    getOwnId: function() {
+        return OmletAPI.getOwnId();
     },
 
     getFeed: function(feedId) {

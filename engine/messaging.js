@@ -79,6 +79,10 @@ module.exports = new lang.Class({
     _init: function() {
     },
 
+    getOwnId: function() {
+        throw new Error('Not Implemented');
+    },
+
     getFeed: function(feedId) {
         throw new Error('Not Implemented');
     },
