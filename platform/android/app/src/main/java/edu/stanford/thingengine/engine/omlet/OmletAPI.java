@@ -17,6 +17,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,13 +85,16 @@ public class OmletAPI extends JavascriptAPI {
 
         public List<Long> getMembers() {
             String[] projection = new String[] { "Id" };
-            Cursor cursor = context.getContentResolver().query(getMembersUri(), projection, null, null, null);
-            List<Long> list = new ArrayList<>();
-            while (!cursor.isAfterLast()) {
-                cursor.moveToNext();
-                list.add(cursor.getLong(0));
+            try (Cursor cursor = context.getContentResolver().query(getMembersUri(), projection, null, null, null)) {
+                if (cursor == null)
+                    return (List<Long>) Collections.EMPTY_LIST;
+                List<Long> list = new ArrayList<>();
+                while (!cursor.isAfterLast()) {
+                    cursor.moveToNext();
+                    list.add(cursor.getLong(0));
+                }
+                return list;
             }
-            return list;
         }
     }
 
@@ -270,6 +274,8 @@ public class OmletAPI extends JavascriptAPI {
         synchronized (context) {
             Cursor cursor = context.getContentResolver().
                     query(Uri.parse("content://mobisocial.osm/identities"), projection, selection, null, null);
+            if (cursor == null)
+                return null;
             if (!cursor.moveToFirst())
                 return null;
             return cursor.getString(0);
@@ -284,6 +290,8 @@ public class OmletAPI extends JavascriptAPI {
         String id = "cursor_" + count.getAndAdd(1);
         synchronized (context) {
             Cursor cursor = feed.getCursor();
+            if (cursor == null)
+                return null;
             openedCursors.put(id, cursor);
         }
         return id;

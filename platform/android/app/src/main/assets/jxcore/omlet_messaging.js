@@ -75,12 +75,21 @@ const OmletFeed = new lang.Class({
 
     getCursor: function() {
         return OmletAPI.getFeedCursor(this.feedId).then(function(cursorId) {
+            // this usually happens if sqlite rejects the query (ie, wrong column
+            // names or bad syntax in the selection clause), but can happen in
+            // other cases, mostly at random
+            if (cursorId === null)
+                throw new Error('Failed to construct Omlet cursor');
             return new OmletFeedCursor(this, cursorId);
         }.bind(this));
     },
 
     getMembers: function() {
         return OmletAPI.getFeedMembers(this.feedId);
+    },
+
+    _onChange: function() {
+        this.emit('changed');
     },
 
     startWatch: function() {
@@ -143,7 +152,11 @@ module.exports = new lang.Class({
     },
 
     getOwnId: function() {
-        return OmletAPI.getOwnId();
+        return OmletAPI.getOwnId().then(function(ownId) {
+            if (ownId === null)
+                throw new Error('Failed to obtain own Omlet ID');
+            return ownId;
+        });
     },
 
     getFeed: function(feedId) {
