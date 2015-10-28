@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
-import edu.stanford.thingengine.engine.omlet.OmletAPI;
 import io.jxcore.node.jxcore;
 
 /**
@@ -21,7 +20,6 @@ public class EngineThread extends Thread {
     private boolean controlReady;
     private boolean isLocked;
     private boolean broken;
-    private OmletAPI omlet;
     private volatile ControlChannel control;
 
     public EngineThread(Context context, Lock initLock, Condition initCondition) {
@@ -58,8 +56,6 @@ public class EngineThread extends Thread {
                     controlReady = true;
                     try {
                         control = new ControlChannel(context);
-
-                        omlet = new OmletAPI(context, control);
                     } catch(IOException e) {
                         Log.e(EngineService.LOG_TAG, "Failed to acquire control channel!");
                     }
@@ -84,9 +80,6 @@ public class EngineThread extends Thread {
         } finally {
             if (isLocked)
                 initLock.unlock();
-
-            if (omlet != null)
-                omlet.stop();
         }
         jxcore.StopEngine();
     }

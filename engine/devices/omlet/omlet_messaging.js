@@ -9,26 +9,11 @@
 const lang = require('lang');
 const Q = require('q');
 
-const Messaging = require('./engine/messaging');
+const Messaging = require('../../messaging');
 const Feed = Messaging.Feed;
 const FeedCursor = Messaging.FeedCursor;
 
-const JavaAPI = require('./java_api');
-
-const OmletAPI = JavaAPI.makeJavaAPI('OmletAPI',
-                                     ['getOwnId',
-                                      'createControlFeed',
-                                      'getFeedCursor',
-                                      'getCursorValue',
-                                      'hasNextCursor',
-                                      'nextCursor',
-                                      'getFeedMembers',
-                                      'sendItemOnFeed'],
-                                     ['openFeed',
-                                      'closeFeed',
-                                      'destroyCursor',
-                                      'startWatchFeed',
-                                      'stopWatchFeed']);
+var OmletAPI = { /* FILLME */ };
 
 const OmletFeedCursor = new lang.Class({
     Name: 'OmletFeedCursor',

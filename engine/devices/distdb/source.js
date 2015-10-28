@@ -18,6 +18,7 @@ const DistributedDatabaseSourceChannel = new lang.Class({
     _init: function(engine, device) {
         this.parent();
 
+        this._device = device;
         this._feedId = device.feedId;
         this._feed = null;
         this._members = null;
@@ -81,9 +82,12 @@ const DistributedDatabaseSourceChannel = new lang.Class({
     },
 
     _doOpen: function() {
-        var messaging = platform.getCapability('messaging');
+        var messagingDevice = this._device.getMessagingDevice();
+        if (messagingDevice === undefined)
+            throw new Error('Messaging account must be configured before using distdb');
+        var messaging = messagingDevice.queryInterface('messaging')
         if (messaging === null)
-            throw new Error('Required capability messaging is missing');
+            throw new Error('Messaging account lacks messaging interface?');
 
         this._feed = messaging.getFeed(this._feedId);
         return feed.open().then(function() {
@@ -119,4 +123,4 @@ function createChannel() {
 }
 
 module.exports.createChannel = createChannel;
-module.exports.requiredCapabilities = ['messaging'];
+module.exports.requiredCapabilities = [];

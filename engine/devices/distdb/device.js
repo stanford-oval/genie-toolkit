@@ -37,32 +37,26 @@ const DistributedDatabaseDevice = new lang.Class({
         return this.state.feedId;
     },
 
+    get messagingDeviceId() {
+        return this.state.messagingDeviceId;
+    },
+
+    getMessagingDevice: function() {
+        var messagingDevices = this.engine.devices.getAllDevicesOfKind('messaging');
+        var id = this.messagingDeviceId;
+        if (id !== undefined)
+            return messagingDevices.filter(function(d) { return d.uniqueId === id; })[0];
+        else
+            return messagingDevices[0];
+    },
+
     checkAvailable: function() {
-        if (platform.hasCapability('messaging'))
+        var messagingDevices = this.engine.devices.getAllDevicesOfKind('messaging');
+
+        if (messagingDevices.length > 0)
             return BaseDevice.Availability.AVAILABLE;
         else
             return BaseDevice.Availability.UNAVAILABLE;
-    },
-
-    open: function() {
-    },
-
-    close: function() {
-    },
-
-    selectCurrent: function(filters) {
-    },
-
-    startWatch: function(filters) {
-    },
-
-    stopWatch: function(filters) {
-    },
-
-    replace: function(tuple) {
-    },
-
-    delete: function(tuple) {
     },
 });
 

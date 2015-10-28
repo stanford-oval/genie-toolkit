@@ -86,10 +86,14 @@ function runEngine() {
             },
 
             createOmletFeed: function() {
-                var messaging = platform.getCapability('messaging');
+                var omletDevice = engine.devices.getAllDevicesOfKind('omlet')[0];
+                if (omletDevice === undefined)
+                    throw new Error('Omlet device is not configured');
 
-                return messaging.createFeed().tap(function(feed) {
-                    return engine.devices.loadOneDevice({ kind: 'distdb', feedId: feed.feedId }, true);
+                return omletDevice.queryInterface('messaging').createFeed().tap(function(feed) {
+                    return engine.devices.loadOneDevice({ kind: 'distdb', feedId: feed.feedId,
+                                                          messagingDeviceId: omletDevice.uniqueId,
+                                                        }, true);
                 });
             },
         });
