@@ -1,0 +1,59 @@
+<html>
+<head>
+<script src="../omclient.js"></script>
+
+
+<body>
+
+<script>
+om = require('omclient');
+
+var config = {
+	sync: false,
+	keys: new om.proto.LDPublicKeys({
+		"ClusterEndpoints": {
+			"ONE": ["http://127.0.0.1:3829"]
+		},
+		"ClusterKeys": {
+			"ONE": "80Qd+N2ml/Iahcd5kFfzLdT+3Kel7wS/2AwCybtGblA="
+		},
+		"DefaultCluster": "ONE",
+		"IdpEndpoints": ["http://127.0.0.1:4001"],
+		"IdpKey": "A2kW+bIHpCz0Xv2t7SVGPDjqXQbHPsBkFNtIhR3ruzk="
+	}),
+	apiKey: {
+		"Id": "0010c15d2300086b021473c60a6674884f8d00057feb02fffc",
+		"Secret": "fc0513016fd2e2fd8ddaff719ed115193ea25a9f2a940104d11d8826ba161699"
+	}
+};
+
+var client = new om.client.Client(config);
+client.enable();
+
+var req = new om.proto.LDGetAppSigninLinkRequest();
+req.RedirectPage = 'http://127.0.0.1:4001/signin'; //'file://' + __dirname + '/index.html';
+req.Scopes = [ "OmletChat" ];
+//req.LoginKey = '';
+//req.LoginServiceType = 'google';
+
+client.idpCall(req, function(e, resp) {
+	if (e) {
+		if (e.error === 'RedirectURIMismatch') {
+			alert('Please check if your oauth redirect uri matches to your apps\' setting ');
+		}
+		return;
+	}
+	
+	//console.log(resp.Link);
+	var link = document.getElementById('link');
+	console.log(link);
+	link.href = resp.Link;
+	link.innerText = resp.Link;
+	
+}.bind(this));
+
+</script>
+<a id="link" href=""></a>
+
+</body>
+</html>
