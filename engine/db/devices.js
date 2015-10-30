@@ -85,6 +85,13 @@ module.exports = new lang.Class({
             this.emit('device-removed', device);
     },
 
+    _onDeviceStateChanged: function(device) {
+        var state = device.serialize();
+        var uniqueId = device.uniqueId;
+        this._syncdb.insertOne(uniqueId,
+                               { state: JSON.stringify(state) }).done();
+    },
+
     stop: function() {
         this._syncdb.close();
         return Q();
@@ -114,6 +121,10 @@ module.exports = new lang.Class({
                 device.uniqueId !== serializedDevice.uniqueId)
                 throw new Error('Device unique id is different from stored value');
         }
+
+        device.on('state-changed', function() {
+            this._onDeviceStateChanged(device);
+        }.bind(this));
 
         this._devices[device.uniqueId] = device;
         if (addToDB) {

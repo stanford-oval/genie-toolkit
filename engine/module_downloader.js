@@ -22,7 +22,7 @@ const GenericDeviceFactory = require('./generic_device');
 var _agent = null;
 function getAgent() {
     if (_agent === null) {
-        var caFile = path.join(path.dirname(module.filename), './data/thingpedia.cert');
+        var caFile = path.resolve(path.dirname(module.filename), './data/thingpedia.cert');
         _agent = new https.Agent({ keepAlive: false,
                                    maxSockets: 10,
                                    ca: fs.readFileSync(caFile) });
@@ -81,15 +81,14 @@ module.exports = new lang.Class({
             console.log('Module ' + fullId + ' loaded as builtin');
             return this._cachedModules[fullId];
         } catch(e) {
-            console.log(e.stack);
             return null;
         }
     },
 
     _createModuleFromBuiltinCode: function(fullId, id) {
         try {
-            var fullPath = path.join(path.dirname(module.filename),
-                                     './devices/' + id + '.dlg');
+            var fullPath = path.resolve(path.dirname(module.filename),
+                                        './devices/' + id + '.dlg');
             var code = fs.readFileSync(fullPath).toString('utf8');
             console.log('Module ' + fullId + ' loaded as builtin code');
             this._cachedModules[id] = GenericDeviceFactory(id, code);
@@ -104,7 +103,7 @@ module.exports = new lang.Class({
 
     _createModuleFromCache: function(fullId) {
         try {
-            var module = path.join(process.cwd(), this._cacheDir + '/' + fullId);
+            var module = path.resolve(process.cwd(), this._cacheDir + '/' + fullId);
             this._cachedModules[fullId] = require(module);
             console.log('Module ' + fullId + ' loaded as cached');
             return this._cachedModules[fullId];

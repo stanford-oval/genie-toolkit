@@ -40,11 +40,15 @@ module.exports = new lang.Class({
         this.kind = state.kind;
     },
 
+    stateChanged: function() {
+        this.emit('state-changed');
+    },
+
     updateState: function(state) {
         // nothing to do here by default, except for updating the state
         // pointer
         // subclasses can override if they need to do anything about it
-        this.state;
+        this.state = state;
     },
 
     serialize: function() {

@@ -27,44 +27,36 @@ const DistributedDatabaseSourceChannel = new lang.Class({
 
     _readCurrent: function(feed, members) {
         return feed.getCursor().then(function(cursor) {
-            console.log('Obtained Messaging cursor');
-            var memberToValueMap = [];
-            var nmembers = members.length;
+            return Q.try(function() {
+                console.log('Obtained Messaging cursor');
+                var memberToValueMap = [];
+                var nmembers = members.length;
 
-            function loop() {
-                return cursor.hasNext().then(function(hasNext) {
-                    console.log('Cursor has next value: ' + hasNext);
-                    if (!hasNext)
-                        return memberToValueMap;
-                    else
-                        return cursor.next().then(function(obj) {
-                            console.log('Cursor next value is a ' + typeof obj);
-                            console.log('Cursor next value: ' + JSON.stringify(obj));
-                            var sender = obj.sender;
-                            var payload = obj.payload;
-                            if (!(sender in memberToValueMap)) {
-                                console.log('Found new value for ' + sender);
-                                try {
-                                    var parsed = JSON.parse(payload);
-                                    parsed.sender = sender;
-                                    memberToValueMap[sender] = parsed;
-                                } catch(e) {
-                                    console.log('Failed to parse payload: ' + e.message);
-                                    memberToValueMap[sender] = null;
-                                }
-                                nmembers--;
-                                if (nmembers == 0) {
-                                    console.log('Found a value for all members, done');
-                                    return memberToValueMap;
-                                }
-                            }
+                while (cursor.hasNext()) {
+                    var obj = cursor.next();
 
-                            return loop();
-                        });
-                });
-            }
-
-            return loop().finally(function() {
+                    console.log('Cursor next value is a ' + typeof obj);
+                    console.log('Cursor next value: ' + JSON.stringify(obj));
+                    var sender = obj.sender;
+                    var payload = obj.payload;
+                    if (!(sender in memberToValueMap)) {
+                        console.log('Found new value for ' + sender);
+                        try {
+                            var parsed = JSON.parse(payload);
+                            parsed.sender = sender;
+                            memberToValueMap[sender] = parsed;
+                        } catch(e) {
+                            console.log('Failed to parse payload: ' + e.message);
+                            memberToValueMap[sender] = null;
+                        }
+                        nmembers--;
+                        if (nmembers == 0) {
+                            console.log('Found a value for all members, done');
+                            return memberToValueMap;
+                        }
+                    }
+                }
+            }).finally(function() {
                 console.log('Done using cursor');
                 return cursor.destroy();
             });
@@ -85,7 +77,7 @@ const DistributedDatabaseSourceChannel = new lang.Class({
         var messagingDevice = this._device.getMessagingDevice();
         if (messagingDevice === undefined)
             throw new Error('Messaging account must be configured before using distdb');
-        var messaging = messagingDevice.queryInterface('messaging')
+        var messaging = messagingDevice.queryInterface('messaging');
         if (messaging === null)
             throw new Error('Messaging account lacks messaging interface?');
 
@@ -100,7 +92,7 @@ const DistributedDatabaseSourceChannel = new lang.Class({
         }.bind(this)).then(function() {
             this._listener = this._onChange.bind(this);
             this._feed.on('change', this._listener);
-            return this._feed.startWatch();
+            this._feed.startWatch();
         });
     },
 
@@ -109,12 +101,10 @@ const DistributedDatabaseSourceChannel = new lang.Class({
             this._feed.removeListener('change', this._listener);
             this._listener = null;
 
-            return this._feed.stopWatch().then(function() {
-                return this._feed.close();
-            });
-        } else {
-            return this._feed.close();
+            this._feed.stopWatch();
         }
+
+        return this._feed.close();
     }
 });
 

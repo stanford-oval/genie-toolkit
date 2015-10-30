@@ -29,6 +29,8 @@ const DistributedDatabaseDevice = new lang.Class({
         this.name = "Distributed Database %s".format(this.feedId);
         this.description = "This is a Distributed Database using your phone's messaging platform. "
             + "You can use it to share your data with your friends!";
+
+        this.uniqueId = 'distdb-' + this.feedId;
     },
 
     // The opaque token used by the messaging platform to identify

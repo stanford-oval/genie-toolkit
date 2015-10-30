@@ -79,6 +79,14 @@ module.exports = new lang.Class({
     _init: function() {
     },
 
+    startSync: function() {
+        throw new Error('Not Implemented');
+    },
+
+    stopSync: function() {
+        throw new Error('Not Implemented');
+    },
+
     getOwnId: function() {
         throw new Error('Not Implemented');
     },

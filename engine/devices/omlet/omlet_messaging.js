@@ -13,31 +13,34 @@ const Messaging = require('../../messaging');
 const Feed = Messaging.Feed;
 const FeedCursor = Messaging.FeedCursor;
 
-var OmletAPI = { /* FILLME */ };
-
 const OmletFeedCursor = new lang.Class({
     Name: 'OmletFeedCursor',
     Extends: FeedCursor,
 
-    _init: function(feed, cursorId) {
+    _init: function(feed, db) {
         this.parent(feed);
-        this._cursorId = cursorId;
+
+        this._db = db;
+        this._data = db._data.find();
+        this._idx = 0;
+        this._client = this.feed._device.refOmletClient();
     },
 
     getValue: function() {
-        return OmletAPI.getCursorValue(this._cursorId);
+        return this._data[this._idx];
     },
 
     hasNext: function() {
-        return OmletAPI.hasNextCursor(this._cursorId);
+        return this._idx < this._data.length;
     },
 
     next: function() {
-        return OmletAPI.nextCursor(this._cursorId);
+        return this._data[this._idx++];
     },
 
     destroy: function() {
-        return OmletAPI.destroyCursor(this._cursorId);
+        this.feed._device.unrefOmletClient();
+        this._client = null;
     },
 });
 
@@ -48,29 +51,45 @@ const OmletFeed = new lang.Class({
     _init: function(messaging, feedId) {
         this.parent(feedId);
         this._messaging = messaging;
+        this._device = messaging._device;
+        this._client = null;
+        this._watch = null;
+        this._feed = null;
     },
 
     open: function() {
-        return OmletAPI.openFeed(this.feedId);
+        this._client = this._device.refOmletClient();
+        return Q();
     },
 
     close: function() {
-        return OmletAPI.closeFeed(this.feedId);
+        this._device.unrefOmletClient();
+        this._client = null;
+        return Q();
     },
 
     getCursor: function() {
-        return OmletAPI.getFeedCursor(this.feedId).then(function(cursorId) {
-            // this usually happens if sqlite rejects the query (ie, wrong column
-            // names or bad syntax in the selection clause), but can happen in
-            // other cases, mostly at random
-            if (cursorId === null)
-                throw new Error('Failed to construct Omlet cursor');
-            return new OmletFeedCursor(this, cursorId);
+        return Q.ninvoke(this._client, 'getFeedObjects', this.feedId).then(function(db) {
+            return new OmletFeedCursor(this, db);
         }.bind(this));
     },
 
+    _getFeed: function() {
+        if (this._feed !== null)
+            return Q(this._feed);
+        else
+            return Q.ninvoke(this._client, 'getFeeds').then(function(db) {
+                return Q.ninvoke(db, 'getObjectById', this.feedId);
+            }.bind(this)).then(function(o) {
+                this._feed = o;
+                return o;
+            }.bind(this));
+    },
+
     getMembers: function() {
-        return OmletAPI.getFeedMembers(this.feedId);
+        return this._getFeed().then(function(o) {
+            return o.members;
+        });
     },
 
     _onChange: function() {
@@ -78,70 +97,49 @@ const OmletFeed = new lang.Class({
     },
 
     startWatch: function() {
-        this._messaging._registerWatch(this.feedId, this);
-        return OmletAPI.startWatchFeed(this.feedId);
+        this._watch = this._client.events.register(this._client.events.FEEDS, this._onChange.bind(this));
     },
 
     stopWatch: function() {
-        this._messaging._unregisterWatch(this.feedId, this);
-        return OmletAPI.stopWatchFeed(this.feedId);
+        this._watch();
+        this._watch = null;
     },
 
     sendItem: function(item) {
-        return OmletAPI.sendItemOnFeed(this.feedId, item);
+        return this._getFeed().then(function(feed) {
+            return Q.ninvoke(this._client.messaging, '_sendObjToFeed', feed, 'text', JSON.stringify(item));
+        });
     },
 });
 
 module.exports = new lang.Class({
     Name: 'OmletMessaging',
 
-    _init: function() {
-        OmletAPI.registerCallback('onChange', this._onFeedChange.bind(this));
-
+    _init: function(device) {
+        this._device = device;
         this._feedWatches = {};
+
+        this._syncclient = null;
     },
 
-    _onFeedChange: function(error, uri) {
-        if (error)
-            throw error;
-
-        if (!uri.startsWith('content://mobisocial.osm/feeds/'))
-            throw new Error('Invalid Omlet Feed URI ' + uri);
-
-        var id = uri.substr('content://mobisocial.osm/feeds/'.length);
-        if (!(id in this._feedWatches))
-            return;
-
-        this._feedWatches[id]._onChange();
+    startSync: function() {
+        this._syncclient = this._device.refOmletClient();
     },
 
-    _registerWatch: function(feedId, feed) {
-        this._feedWatches[feedId] = feed;
-    },
-
-    _unregisterWatch: function(feedId, feed) {
-        if (this._feedWatches[feedId] !== feed)
-            return;
-        delete this._feedWatches[feedId];
+    stopSync: function() {
+        this._device.unrefOmletClient();
+        this._syncclient = null;
     },
 
     createFeed: function() {
         console.log('OmletMessaging.createFeed');
-        return OmletAPI.createControlFeed().then(function(uri) {
-            if (!uri.startsWith('content://mobisocial.osm/feeds/'))
-                throw new Error('Invalid Omlet Feed URI ' + uri);
 
-            console.log('Created Omlet feed at ' + uri);
-            return new OmletFeed(this, uri.substr('content://mobisocial.osm/feeds/'.length));
+        var client = this._device.refOmletClient();
+        return Q.ninvoke(client.feed, 'createFeed').then(function(feed) {
+            return new OmletFeed(this, client.store.getObjectId(feed));
+        }.bind(this)).finally(function() {
+            this._device.unrefOmletClient();
         }.bind(this));
-    },
-
-    getOwnId: function() {
-        return OmletAPI.getOwnId().then(function(ownId) {
-            if (ownId === null)
-                throw new Error('Failed to obtain own Omlet ID');
-            return ownId;
-        });
     },
 
     getFeed: function(feedId) {
