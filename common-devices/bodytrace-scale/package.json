@@ -1,0 +1,16 @@
+{
+  "name": "thingengine-device-bodytrace-scale",
+  "version": "1.0.0",
+  "description": "BodyTrace Scale support in ThingEngine",
+  "author": "Stanford IoT lab",
+  "contributors": [
+    {
+      "name": "Giovanni Campagna",
+      "email": "gcampagn@cs.stanford.edu"
+    }
+  ],
+  "main": "device.js",
+  "dependencies": {
+    "q": "~1.4.1"
+  }
+}
