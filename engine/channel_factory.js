@@ -76,7 +76,7 @@ module.exports = new lang.Class({
         // filter representation
         var args = [device, kind, []];
 
-        return this._proxyManager.getProxyChannel(targetChannelId, targetTier, args);
+        return this._getOpenedChannel(this._proxyManager.getProxyChannel(targetChannelId, targetTier, args));
     },
 
     _checkFactoryCaps: function(caps) {
@@ -116,9 +116,9 @@ module.exports = new lang.Class({
             }
 
             if (channel.filterString !== undefined)
-                channel.uniqueId = device.kind + '-' + kind + '-' + channel.filterString;
+                channel.uniqueId = device.uniqueId + '-' + kind + '-' + channel.filterString;
             else
-                channel.uniqueId = device.kind + '-' + kind;
+                channel.uniqueId = device.uniqueId + '-' + kind;
 
             // deduplicate the channel now that we have the uniqueId
             if (channel.uniqueId in this._cachedChannels) {

@@ -11,7 +11,6 @@ const events = require('events');
 const lang = require('lang');
 
 const BaseChannel = require('./base_channel');
-const BaseDevice = require('./base_device');
 
 // naming: proxy is the side that requested the channel, stub is the
 // side that has the implementation and is forwarding the data
@@ -187,10 +186,9 @@ module.exports = new lang.Class({
                 return arg;
             if (arg === null)
                 return arg;
-            if (arg instanceof BaseDevice)
+            if (arg.uniqueId !== undefined)
                 return {class:'device',uniqueId:arg.uniqueId};
-
-            throw new Error('Cannot marshal object ' + arg);
+            return {class:'json',arg:arg};
         });
 
         var request = {
@@ -272,8 +270,10 @@ module.exports = new lang.Class({
                     return arg;
                 if (arg.class === 'device')
                     return devices.getDevice(arg.uniqueId);
+                else if (arg.class === 'json')
+                    return arg.arg;
                 else
-                    return arg;
+                    throw new Error('Cannot unmarshal ' + JSON.stringify(arg));
             });
         } catch(e) {
             this._replyChannel(fromTier, targetChannelId, e.message);
