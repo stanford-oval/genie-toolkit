@@ -9,7 +9,7 @@
 const lang = require('lang');
 const Q = require('q');
 
-const BaseChannel = require('../base_channel');
+const BaseChannel = require('../../base_channel');
 
 var cnt = 0;
 

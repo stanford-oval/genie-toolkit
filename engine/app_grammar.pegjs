@@ -47,17 +47,17 @@ at_kind = '@kind' _ kind:tag_selector _ ';' {
 input_channel_list = first:input_channel _ rest:(',' _ input_channel _)* {
     return [first].concat(take(rest, 2));
 }
-input_channel = quantifier:(('all' / 'some') __)? selector:(selector _)+ _ '{' _ filters:(input_property _)* '}' _ alias:('as' __ ident _)? {
+input_channel = quantifier:(('all' / 'some') __)? selector:selector_list _ '{' _ filters:(input_property _)* '}' _ alias:('as' __ ident _)? {
     return ({ quantifier: quantifier !== null ? quantifier[0] : 'some',
               alias: alias !== null ? alias[2] : null,
-              selectors: take(selector, 0),
+              selectors: selector,
               filters: take(filters, 0) });
 }
 output_channel_list = first:output_channel _ rest:(',' _ output_channel _)* {
     return [first].concat(take(rest, 2));
 }
-output_channel = selector:(selector _)+ _ '{' _ outputs: (output_property _)* '}' {
-    return ({ selectors: take(selector, 0),
+output_channel = selector:selector_list _ '{' _ outputs: (output_property _)* '}' {
+    return ({ selectors: selector,
               outputs: take(outputs, 0) });
 }
 channel_meta_list = channels:(channel_meta _)* {
@@ -68,6 +68,18 @@ channel_meta = tag:tag_selector _ '{' _ props:(output_property _)* '}' {
               props: take(props, 0) });
 }
 
+selector_list = first:simple_selector _ rest:('->' _ simple_selector _)* {
+    return [first].concat(take(rest, 2));
+}
+simple_selector = selector:at_selector { return [selector]; } /
+    selector:(selector _)+ { return take(selector, 0); }
+at_selector = '@pipe' _ id:id_selector { return Selector.AtPipe(id.name); } /
+    '@me' { return Selector.AtContext('me'); } /
+    '@phone' { return Selector.AtContext('phone'); } /
+    '@home' { return Selector.AtContext('home'); } /
+    '@cloud' { return Selector.AtContext('cloud'); } /
+    '@global' { return Selector.AtContext('global'); } /
+    '@' name:ident { return Selector.AtSetting(name); }
 selector = id_selector / tag_selector
 id_selector = '.' name:ident { return Selector.Id(name); }
 tag_selector = '#' name:ident { return Selector.Tag(name); }

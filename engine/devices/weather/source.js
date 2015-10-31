@@ -10,7 +10,7 @@ const lang = require('lang');
 const Q = require('q');
 const http = require('http');
 
-const BaseChannel = require('../base_channel');
+const BaseChannel = require('../../base_channel');
 
 var parseString = require('xml2js').parseString;
 var cnt = 0;

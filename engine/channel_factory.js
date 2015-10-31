@@ -56,10 +56,7 @@ module.exports = new lang.Class({
         this._proxyManager = new ProxyManager(tiers, this, engine.devices);
         this._pipeManager = new PipeManager(tiers, this._proxyManager);
 
-        if (this._tierManager.ownTier === Tier.SERVER)
-            this._prefs = new prefs.FilePreferences(platform.getWritableDir() + '/channels.db');
-        else
-            this._prefs = null;
+        this._prefs = new prefs.FilePreferences(platform.getWritableDir() + '/channels.db');
     },
 
     start: function() {
@@ -70,17 +67,14 @@ module.exports = new lang.Class({
         return Q();
     },
 
-    _getProxyChannel: function(targetChannelId, caps, args) {
-        // FINISHME!! Be smarter in choosing where to run this channel
-        // (and factor CLOUD in the decision)
-
-        var targetTier;
-        if (c.indexOf('ui-manager') >= 0)
-            targetTier = Tier.CLOUD;
-        else if (this._tierManager.ownTier == Tier.PHONE)
-            targetTier = Tier.SERVER;
-        else
-            targetTier = Tier.PHONE;
+    getProxyChannel: function(targetTier, device, kind, filters) {
+        var targetChannelId = device.uniqueId + '-' + kind;
+        // FIXME: we remove filters, otherwise we can't deduplicate
+        // This means that some devices that absolutely require filters
+        // (such as '@global -> #timer') won't work across the proxy
+        // We should find a way to support that, maybe by finding a unique
+        // filter representation
+        var args = [device, kind, []];
 
         return this._proxyManager.getProxyChannel(targetChannelId, targetTier, args);
     },
@@ -88,15 +82,13 @@ module.exports = new lang.Class({
     _checkFactoryCaps: function(caps) {
         return caps.every(function(c) {
             if (c === 'channel-state')
-                return this._tierManager.ownTier === Tier.SERVER;
-            else if (c === 'ui-manager')
-                return this._tierManager.ownTier === Tier.CLOUD;
+                return true;
             else
                 return platform.hasCapability(c);
         }.bind(this));
     },
 
-    _getChannelInternal: function(useProxy, device, kind, filters) {
+    getChannel: function(device, kind, filters) {
         // Named pipes are special in that we need some coordination
         // to ensure that we always have all proxies across all the tiers
         // So ask our trusty pipe manager for it
@@ -109,39 +101,32 @@ module.exports = new lang.Class({
             return this._deviceFactory.getSubmodule(device.kind, kind);
         }.bind(this)).then(function(factory) {
             var caps = factory.requiredCapabilities || [];
-            if (!this._checkFactoryCaps(caps)) {
-                // uh oh! channel does not work, try with a proxy channel
+            if (!this._checkFactoryCaps(caps))
+                throw new Error('Channel is not supported');
 
-                if (useProxy) {
-                    return this._getProxyChannel(fullId, caps, [device, kind, filters]);
-                } else {
-                    throw new Error('Channel is not supported but proxy channel is not allowed');
-                }
+            var hasState = caps.indexOf('channel-state') >= 0;
+            var channel;
+            var state;
+            if (hasState) {
+                state = new ChannelStateBinder(this._prefs);
+                channel = factory.createChannel(this._engine, state, device, filters);
             } else {
-                var hasState = caps.indexOf('channel-state') >= 0;
-                var channel;
-                var state;
-                if (hasState) {
-                    state = new ChannelStateBinder(this._prefs);
-                    channel = factory.createChannel(this._engine, state, device, filters);
-                } else {
-                    state = null;
-                    channel = factory.createChannel(this._engine, device, filters);
-                }
+                state = null;
+                channel = factory.createChannel(this._engine, device, filters);
+            }
 
-                if (channel.filterString !== undefined)
-                    channel.uniqueId = device.kind + '-' + kind + '-' + channel.filterString;
-                else
-                    channel.uniqueId = device.kind + '-' + kind;
+            if (channel.filterString !== undefined)
+                channel.uniqueId = device.kind + '-' + kind + '-' + channel.filterString;
+            else
+                channel.uniqueId = device.kind + '-' + kind;
 
-                // deduplicate the channel now that we have the uniqueId
-                if (channel.uniqueId in this._cachedChannels) {
-                    return this._cachedChannels[channel.uniqueId];
-                } else {
-                    if (state)
-                        state.init(channel.uniqueId);
-                    return this._cachedChannels[channel.uniqueId] = channel;
-                }
+            // deduplicate the channel now that we have the uniqueId
+            if (channel.uniqueId in this._cachedChannels) {
+                return this._cachedChannels[channel.uniqueId];
+            } else {
+                if (state)
+                    state.init(channel.uniqueId);
+                return this._cachedChannels[channel.uniqueId] = channel;
             }
         }.bind(this));
     },
@@ -153,12 +138,12 @@ module.exports = new lang.Class({
         });
     },
 
-    // The following functions are "public" to BaseDevice and SystemDevice
+    // The following functions are "public" to BaseDevice
     // but nothing should be ever calling them
-    // Use Device.getChannel() instead
+    // Use BaseDevice.getChannel() instead
 
-    getChannel: function(device, id, filters) {
-        return this._getOpenedChannel(this._getChannelInternal(true, device, id, filters));
+    getOpenedChannel: function(device, kind, filters) {
+        return this._getOpenedChannel(this.getChannel(device, kind, filters));
     },
 
     // A named pipe is a PipeChannel with the given name
@@ -167,6 +152,10 @@ module.exports = new lang.Class({
     //
     // The returned channel will be a source if the second parameter is 'r',
     // and a sink if it is 'w'
+    //
+    // Like getOpenedChannel, this is "public" to DeviceSelector (because pipes
+    // are special-special-special), but *nothing* should ever call this outside
+    // of core code
     getNamedPipe: function(name, mode) {
         if (mode !== 'r' && mode !== 'w')
             throw new Error('Invalid mode ' + mode);

@@ -27,7 +27,7 @@ module.exports = new lang.Class({
         var compiler = new AppCompiler();
         var ast = AppGrammar.parse(code, { startRule: 'query' });
 
-        var runner = new QueryRunner(this.engine, state, compiler.compileInputs(ast));
+        var runner = new QueryRunner(this.engine, state, compiler, compiler.compileInputs(ast));
 
         runner.on('triggered', function(env) {
             handler.triggered(env.getAllAliases());

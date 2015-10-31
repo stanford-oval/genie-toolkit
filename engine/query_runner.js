@@ -21,14 +21,14 @@ module.exports = new lang.Class({
     Extends: events.EventEmitter,
     $rpcMethods: ['start', 'stop'],
 
-    _init: function(engine, state, inputBlocks) {
+    _init: function(engine, state, compiler, inputBlocks) {
         this.engine = engine;
         this._running = false;
 
         this._state = state;
         this._blocks = inputBlocks;
         this._inputs = inputBlocks.map(function(input) {
-            return new DeviceSelector(this.engine, 'r', input);
+            return new DeviceSelector(this.engine, 'r', input, compiler, state);
         }.bind(this));
 
         this._env = new ExecEnvironment(this.engine.devices, this._state);
@@ -38,6 +38,12 @@ module.exports = new lang.Class({
         try {
             this._env.reset();
             this._env.handling = from;
+
+            // "sample" the current list of channels based on the devices we
+            // see now
+            for (var i = 0; i < this._blocks.length; i++)
+                this._blocks[i].channels = this._inputs[i].getChannels();
+
             this._blocks[0].update(this._blocks, 0, this._env, function() {
                 this.emit('triggered', this._env);
             }.bind(this));
@@ -48,6 +54,7 @@ module.exports = new lang.Class({
     },
 
     _channelAdded: function(ch) {
+        console.log('Connecting to data event on ' + ch.uniqueId);
         ch.on('data', this._dataListener);
     },
 
@@ -60,10 +67,6 @@ module.exports = new lang.Class({
             throw new Error('QueryRunner is not running');
 
         return Q.all(this._inputs.map(function(input) {
-            input.block.channels.forEach(function(ch) {
-                this._channelRemoved(ch);
-            }, this);
-
             return input.stop();
         }.bind(this)));
     },

@@ -29,7 +29,7 @@ router.get('/', user.redirectLogIn, function(req, res, next) {
     }).then(function(devices) {
         return Q.all(devices.map(function(d) {
             return Q.all([d.uniqueId, d.name, d.description, d.checkAvailable(),
-                          d.hasKind('online-account'), d.hasKind('thingengine')])
+                          d.hasKind('online-account'), d.hasKind('thingengine-system')])
                 .spread(function(uniqueId, name, description, available, isOnlineAccount, isThingEngine) {
                     return { uniqueId: uniqueId, name: name || "Unknown device",
                              description: description || "Description not available",

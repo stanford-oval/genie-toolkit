@@ -13,6 +13,105 @@ const lang = require('lang');
 const uuid = require('node-uuid');
 
 const SyncDatabase = require('./syncdb');
+const ObjectSet = require('../object_set');
+const TierManager = require('../tier_manager').Tier;
+
+// An implementation of ObjectSet for global (built-in, always available)
+// devices, such as #timer - well mostly just #timer really, and maybe a few
+// others like #google or other stuff that requires no authentication
+const GlobalDeviceSet = new lang.Class({
+    Name: 'GlobalDeviceSet',
+    Extends: ObjectSet.Simple,
+
+    _init: function(factory) {
+        this.parent(false);
+
+        this._factory = factory;
+    },
+
+    open: function() {
+        // FINISHME: de-hardcode this
+        this.addOne(this._factory.createDevice('timer', { kind: 'timer' }));
+        this.freeze();
+        return this.promise();
+    },
+
+    close: function() {
+        return Q();
+    },
+});
+
+
+// An implementation of ObjectSet for all devices known to (this) system, which is
+// @me
+const AllDeviceSet = new lang.Class({
+    Name: 'AllDeviceSet',
+    Extends: ObjectSet.Base,
+
+    _init: function(db) {
+        this._db = db;
+    },
+
+    maybeAddObject: function(o) {
+        this.objectAdded(o);
+    },
+
+    maybeRemoveObject: function(o) {
+        this.objectRemoved(o);
+    },
+
+    promise: function() {
+        // devicedb is always loaded before everything else, so this is always ready
+        return Q();
+    },
+
+    keys: function() {
+        return this._db.values().map(function(d) { return d.uniqueId; });
+    },
+
+    values: function() {
+        return this._db.getAllDevices();
+    },
+});
+
+
+// An implementation of ObjectSet for devices that are available in a specific tier
+// tier - reflects the content of DeviceDatabase, filtered by tier
+const SpecificTierDeviceSet = new lang.Class({
+    Name: 'CurrentTierDeviceSet',
+    Extends: ObjectSet.Base,
+
+    _init: function(tier, db) {
+        this._tier = tier;
+        this._db = db;
+    },
+
+    maybeAddObject: function(o) {
+        if (o.ownerTier === this._tier)
+            this.objectAdded(o);
+    },
+
+    maybeRemoveObject: function(o) {
+        if (o.ownerTier === this._tier)
+            this.objectAdded(o);
+    },
+
+    promise: function() {
+        // devicedb is always loaded before everything else, so this is always ready
+        return Q();
+    },
+
+    keys: function() {
+        return this._db.values().map(function(d) { return d.uniqueId; });
+    },
+
+    values: function() {
+        return this._db.getAllDevices().filter(function(d) {
+            return d.ownerTier === this._tier;
+        }, this);
+    },
+});
+
 
 module.exports = new lang.Class({
     Name: 'DeviceDatabase',
@@ -31,17 +130,44 @@ module.exports = new lang.Class({
 
         this._syncdb = new SyncDatabase('device', ['state'], tierManager);
 
-        // Create a SystemDevice and put it in the map
-        // SystemDevice is never stored in the database
-        this._addDeviceInternal(deviceFactory.createDevice('thingengine-system'),
-                                {}, false);
+        this._contexts = {};
+        this._global = new GlobalDeviceSet(deviceFactory);
+    },
+
+    getContext: function(key) {
+        if (key === 'global')
+            return this._global;
+
+        if (key in this._contexts)
+            return this._contexts[key];
+
+        switch(key) {
+        case 'me':
+            this._contexts[key] = new AllDeviceSet(this);
+            break;
+        case 'home':
+            this._contexts[key] = new SpecificTierDeviceSet(Tier.SERVER, this);
+            break;
+        case 'phone':
+            this._contexts[key] = new SpecificTierDeviceSet(Tier.PHONE, this);
+            break;
+        case 'cloud':
+            this._contexts[key] = new SpecificTierDeviceSet(Tier.CLOUD, this);
+            break;
+        default:
+            throw new Error('Invalid context ' + key);
+        }
+
+        return this._contexts[key];
     },
 
     loadOneDevice: function(serializedDevice, addToDB) {
+        var uniqueId = serializedDevice.uniqueId;
+        delete serializedDevice.uniqueId;
         return Q.try(function() {
             return this.factory.createDevice(serializedDevice.kind, serializedDevice);
         }.bind(this)).then(function(device) {
-            return this._addDeviceInternal(device, serializedDevice, addToDB);
+            return this._addDeviceInternal(device, uniqueId, addToDB);
         }.bind(this)).catch(function(e) {
             console.error('Failed to load one device: ' + e);
             console.error(e.stack);
@@ -65,6 +191,8 @@ module.exports = new lang.Class({
                     console.log('Failed to load one device: ' + e);
                 }
             }.bind(this)));
+        }.bind(this)).then(function() {
+            return this._global.open();
         }.bind(this));
     },
 
@@ -94,7 +222,7 @@ module.exports = new lang.Class({
 
     stop: function() {
         this._syncdb.close();
-        return Q();
+        return this._global.close();
     },
 
     getAllDevices: function() {
@@ -110,15 +238,29 @@ module.exports = new lang.Class({
         });
     },
 
-    _addDeviceInternal: function(device, serializedDevice, addToDB) {
+    _notifyDeviceAdded: function(device) {
+        this.emit('device-added', device);
+
+        for (var key in this._contexts)
+            this._contexts[key].maybeAddObject(device);
+    },
+
+    _notifyDeviceRemoved: function(device) {
+        this.emit('device-removed', device);
+
+        for (var key in this._contexts)
+            this._contexts[key].maybeRemoveObject(device);
+    },
+
+    _addDeviceInternal: function(device, uniqueId, addToDB) {
         if (device.uniqueId === undefined) {
-            if (serializedDevice === undefined)
+            if (uniqueId === undefined)
                 device.uniqueId = 'uuid-' + uuid.v4();
             else
-                device.uniqueId = serializedDevice.uniqueId;
+                device.uniqueId = uniqueId;
         } else {
-            if ( serializedDevice !== undefined && serializedDevice.uniqueId !== undefined &&
-                device.uniqueId !== serializedDevice.uniqueId)
+            if (uniqueId !== undefined &&
+                device.uniqueId !== uniqueId)
                 throw new Error('Device unique id is different from stored value');
         }
 
@@ -133,10 +275,10 @@ module.exports = new lang.Class({
             return this._syncdb.insertOne(uniqueId,
                                           { state: JSON.stringify(state) })
                 .then(function() {
-                    this.emit('device-added', device);
+                    this._notifyDeviceAdded(device);
                 }.bind(this));
         } else {
-            this.emit('device-added', device);
+            this._notifyDeviceAdded(device);
             return Q();
         }
     },
@@ -148,7 +290,7 @@ module.exports = new lang.Class({
     removeDevice: function(device) {
         delete this._devices[device.uniqueId];
         return this._syncdb.deleteOne(device.uniqueId).then(function() {
-            this.emit('device-removed', device);
+            this._notifyDeviceRemoved(device);
         }.bind(this));
     },
 

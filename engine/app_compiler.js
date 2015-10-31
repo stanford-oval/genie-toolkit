@@ -1034,6 +1034,15 @@ module.exports = new lang.Class({
 });
 
 var Selector = adt.data({
+    AtPipe: {
+        name: adt.only(String),
+    },
+    AtContext: {
+        name: adt.only(String),
+    },
+    AtSetting: {
+        name: adt.only(String),
+    },
     Tag: {
         name: adt.only(String),
     },

@@ -191,28 +191,43 @@ module.exports = new lang.Class({
         return Q();
     },
 
+    _addPhoneDevs: function() {
+        return Q.all([this._engine.devices.loadOneDevice({ kind: 'ui' }, true),
+                      this._engine.devices.loadOneDevice({ kind: 'weather' }, true)]);
+    },
+
+    _addServerDevs: function() {
+        return Q.all([this._engine.devices.loadOneDevice({ kind: 'logger' }, true)]);
+    },
+
     _addPhoneToDB: function() {
         return this._engine.devices.loadOneDevice({ kind: 'thingengine',
-                                                   tier: Tier.PHONE,
-                                                   own: true }, true);
+                                                    tier: Tier.PHONE,
+                                                    own: true }, true)
+            .then(function() {
+                return this._addPhoneDevs();
+            }.bind(this));
     },
 
     _addServerToDB: function() {
         return IpAddress.getServerName().then(function(host) {
             return this._engine.devices.loadOneDevice({ kind: 'thingengine',
-                                                       tier: Tier.SERVER,
-                                                       host: host,
-                                                       port: 3000, // FIXME: hardcoded
-                                                       own: true }, true);
+                                                        tier: Tier.SERVER,
+                                                        host: host,
+                                                        port: 3000, // FIXME: hardcoded
+                                                        own: true }, true)
+                .then(function() {
+                    return this._addServerDevs();
+                }.bind(this));
         }.bind(this));
     },
 
     _addCloudToDB: function() {
         var prefs = platform.getSharedPreferences();
         return this._engine.devices.loadOneDevice({ kind: 'thingengine',
-                                                   tier: Tier.CLOUD,
-                                                   cloudId: prefs.get('cloud-id'),
-                                                   own: true }, true);
+                                                    tier: Tier.CLOUD,
+                                                    cloudId: prefs.get('cloud-id'),
+                                                    own: true }, true);
     },
 
     _addSelfToDB: function() {

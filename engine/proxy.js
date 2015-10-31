@@ -283,7 +283,10 @@ module.exports = new lang.Class({
         var defer = Q.defer();
         this._stubs[fullId] = defer.promise;
 
-        this._channels._getChannelInternal(false, args).then(function(channel) {
+        var device = args[0];
+        var kind = args[1];
+        var filters = args[2];
+        this._channels.getChannel(device, kind, filters).then(function(channel) {
             var stub = new ChannelStub(this, fromTier, channel);
             return stub.open().then(function() {
                 defer.resolve(stub);

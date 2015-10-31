@@ -47,11 +47,14 @@ module.exports = new lang.Class({
             this.description = compiler.description;
             this.settings = compiler.settings;
 
-            this.input = new QueryRunner(engine, this.state, compiler.compileInputs(ast.inputs, state));
+            this.input = new QueryRunner(engine, this.state, compiler, compiler.compileInputs(ast.inputs, state));
             this.input.on('triggered', this._onTriggered.bind(this));
 
             this.outputs = compiler.compileOutputs(ast.outputs).map(function(output) {
-                return new DeviceSelector(engine, 'w', output);
+                return {
+                    block: output,
+                    selector: new DeviceSelector(engine, 'w', output, compiler, state)
+                };
             });
 
             this.isBroken = false;
@@ -70,7 +73,7 @@ module.exports = new lang.Class({
             env.beginOutput();
             output.block.action(env);
             var out = env.finishOutput();
-            output.block.channels.forEach(function(channel) {
+            output.selector.getChannels().forEach(function(channel) {
                 channel.sendEvent(out);
             });
         });
@@ -80,7 +83,7 @@ module.exports = new lang.Class({
         this.input.start();
 
         Q.all(this.outputs.map(function(output) {
-            return output.start();
+            return output.selector.start();
         })).done();
 
         return Q();
@@ -89,7 +92,7 @@ module.exports = new lang.Class({
     stop: function() {
         return this.input.stop().then(function() {
             return Q.all(this.outputs.map(function(output) {
-                return output.stop();
+                return output.selector.stop();
             }));
         }.bind(this));
     },

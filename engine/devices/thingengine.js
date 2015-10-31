@@ -12,8 +12,23 @@ const Q = require('q');
 const BaseDevice = require('../base_device');
 const Tier = require('../tier_manager').Tier;
 
+const MessagingChannelProxy = new lang.Class({
+    Name: 'MessagingChannelProxy',
+
+    _init: function(thingengine) {
+        this._device = thingengine;
+    },
+
+    open: function(selector, mode, filters) {
+        // FINISHME implement me!
+
+        throw new Error('Not implemented');
+    }
+});
+
 // An instance of a ThingEngine running remotely, as discovered
 // by bluetooth, mdns or whatever
+// (Or more likely as created on the fly from an Omlet channel)
 // Could be a server, phone or cloud instance
 // Could be own or belonging to another user
 //
@@ -88,6 +103,7 @@ const ThingEngineDevice = new lang.Class({
 
     hasKind: function(kind) {
         switch (kind) {
+        case 'thingengine-system':
         case 'thingengine-own':
             return this.own;
         case 'thingengine-server':
@@ -98,6 +114,36 @@ const ThingEngineDevice = new lang.Class({
             return this.tier === Tier.CLOUD;
         default:
             return this.parent(kind);
+        }
+    },
+
+    _getContext: function() {
+        if (this.tier === Tier.PHONE)
+            return 'phone';
+        else if (this.tier === Tier.SERVER)
+            return 'home';
+        else if (this.tier === Tier.CLOUD)
+            return 'cloud';
+        else
+            throw new Error('Unexpected tier ' + this.tier);
+    },
+
+    queryInterface: function(iface) {
+        switch(iface) {
+        case 'device-group':
+            if (this.own)
+                return this.engine.devices.getContext(this._getContext());
+            else
+                return null;
+
+        case 'device-channel-proxy':
+            if (this.own)
+                return null;
+            else
+                return new MessagingChannelProxy(this);
+
+        default:
+            return null;
         }
     },
 });

@@ -12,6 +12,7 @@ const Q = require('q');
 
 const MessagingFeedCursor = new lang.Class({
     Name: 'MessagingFeedCursor',
+    Abstract: true,
 
     _init: function(feed) {
         this.feed = feed;
@@ -37,6 +38,7 @@ const MessagingFeedCursor = new lang.Class({
 const MessagingFeed = new lang.Class({
     Name: 'MessagingFeed',
     Extends: events.EventEmitter,
+    Abstract: true,
 
     _init: function(feedId) {
         events.EventEmitter.call(this);
@@ -75,6 +77,7 @@ const MessagingFeed = new lang.Class({
 
 module.exports = new lang.Class({
     Name: 'Messaging',
+    Abstract: true,
 
     _init: function() {
     },

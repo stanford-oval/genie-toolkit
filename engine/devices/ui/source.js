@@ -9,7 +9,7 @@
 const lang = require('lang');
 const Q = require('q');
 
-const BaseChannel = require('../base_channel');
+const BaseChannel = require('../../base_channel');
 
 const UIChannel = new lang.Class({
     Name: 'UIChannel',
@@ -23,6 +23,7 @@ const UIChannel = new lang.Class({
     },
 
     _onUIEvent: function(event) {
+        this.emitEvent(event);
     },
 
     _doOpen: function() {
@@ -45,4 +46,4 @@ function createChannel() {
 }
 
 module.exports.createChannel = createChannel;
-module.exports.requiredCapabilities = ['ui-manager'];
+module.exports.requiredCapabilities = [];

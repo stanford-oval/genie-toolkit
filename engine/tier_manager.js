@@ -15,6 +15,7 @@ const lang = require('lang');
 const tc = require('./tier_connections');
 
 const Tier = {
+    GLOBAL: 'global', // a non-tier, represents devices in the @global namespace - for *internal* use only!
     PHONE: 'phone',
     SERVER: 'server',
     CLOUD: 'cloud',

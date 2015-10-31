@@ -9,6 +9,9 @@
 const events = require('events');
 const lang = require('lang');
 const Q = require('q');
+const ip = require('ip');
+
+const Tier = require('./tier_manager').Tier;
 
 const Availability = {
     UNAVAILABLE: 0,
@@ -21,6 +24,7 @@ module.exports = new lang.Class({
     Extends: events.EventEmitter,
     // no $rpc for queryInterface, extension interfaces are not exported
     $rpcMethods: ['get name', 'get uniqueId', 'get description',
+                  'get ownerTier',
                   'checkAvailable', 'hasKind'],
 
     _init: function(engine, state) {
@@ -38,6 +42,8 @@ module.exports = new lang.Class({
 
         this.state = state;
         this.kind = state.kind;
+
+        this._ownerTier = undefined;
     },
 
     stateChanged: function() {
@@ -59,6 +65,34 @@ module.exports = new lang.Class({
 
     get engine() {
         return this._engine;
+    },
+
+    // Return the tier that "owns" this device, ie, under what namespace
+    // (@phone, @home or @cloud) this device appears
+    // The device will appear unconditionally under @me
+    //
+    // Override this method to get smarter behavior
+    get ownerTier() {
+        if (this._ownerTier !== undefined)
+            return this._ownerTier;
+
+        // online accounts belong to the cloud
+        if (this.hasKind('online-account'))
+            return this._ownerTier = Tier.CLOUD;
+
+        // if this device is on (some) local network, it belongs to home
+        if (this.state) {
+            if ('host' in this.state && ip.isPrivate(this.state.host))
+                return this._ownerTier = Tier.SERVER;
+            if ('ip-address' in this.state && ip.isPrivate(this.state['ip-address']))
+                return this._ownerTier = Tier.SERVER;
+        }
+
+        // anything else belongs to the phone
+        // (in particular, this means that physical devices with a cloud
+        // attachment, or an omlet ID, get handled by the phone, which ensures
+        // privacy and makes everyone happy)
+        return this._ownerTier = Tier.PHONE;
     },
 
     // Note: unlike Channel and App there is no isSupported
@@ -114,12 +148,17 @@ module.exports = new lang.Class({
     // Get a channel that is identified with the given ID
     // The channel is instantiated for the given device
     //
-    // How the device is used depends on the channel: it could be
-    // the channel is connecting to the device, or it could be
-    // the channel is connecting from the device (in which case
-    // the device is probably a thingengine)
+    // Getting a channel corresponds to "opening" a device in a specific
+    // mode, which could be for read if id === 'source', and for write if
+    // id === 'sink'
+    //
+    // Don't overwrite this method!
     getChannel: function(id, filters) {
-        return this.engine.channels.getChannel(this, id, filters);
+        if (this.ownerTier === this.engine.ownTier ||
+            this.ownerTier === Tier.GLOBAL)
+            return this.engine.channels.getOpenedChannel(this, id, filters);
+        else
+            return this.engine.channels.getProxyChannel(this.ownerTier, this, id, filters);
     }
 });
 

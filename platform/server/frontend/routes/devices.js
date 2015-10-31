@@ -25,7 +25,7 @@ router.get('/', user.redirectLogIn, function(req, res, next) {
     var engine = req.app.engine;
 
     var devices = engine.devices.getAllDevices().filter(function(d) {
-        if (d.hasKind('thingengine'))
+        if (d.hasKind('thingengine-system'))
             return false;
 
         if (online)
