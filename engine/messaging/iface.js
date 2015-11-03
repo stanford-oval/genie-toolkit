@@ -38,6 +38,7 @@ const MessagingFeedCursor = new lang.Class({
 const MessagingFeed = new lang.Class({
     Name: 'MessagingFeed',
     Extends: events.EventEmitter,
+    // events: new-message
     Abstract: true,
 
     _init: function(feedId) {
@@ -62,14 +63,6 @@ const MessagingFeed = new lang.Class({
         throw new Error('Not Implemented');
     },
 
-    startWatch: function() {
-        throw new Error('Not Implemented');
-    },
-
-    stopWatch: function() {
-        throw new Error('Not Implemented');
-    },
-
     sendItem: function() {
         throw new Error('Not Implemented');
     },
@@ -77,9 +70,15 @@ const MessagingFeed = new lang.Class({
 
 module.exports = new lang.Class({
     Name: 'Messaging',
+    Extends: events.EventEmitter,
+    // events: feed-added, feed-removed
     Abstract: true,
 
     _init: function() {
+    },
+
+    get isAvailable() {
+        return false;
     },
 
     startSync: function() {
@@ -90,7 +89,15 @@ module.exports = new lang.Class({
         throw new Error('Not Implemented');
     },
 
-    getOwnId: function() {
+    getOwnIds: function() {
+        throw new Error('Not Implemented');
+    },
+
+    getAccountById: function() {
+        throw new Error('Not Implemented');
+    },
+
+    getFeedList: function() {
         throw new Error('Not Implemented');
     },
 

@@ -94,7 +94,7 @@ module.exports = new lang.Class({
             this._set = new ObjectSet.Simple();
             return this._set.add(this.engine.channels.getNamedPipe(this._pipe, this._mode));
         } else {
-            this._view = new DeviceView(null, this._context, this._selectors, this._mode, this._filters);
+            this._view = new DeviceView(null, this._context, this._selectors, this._mode, this._filters, false);
             return this._view.start().then(function(set) {
                 this._set = set;
 

@@ -8,6 +8,7 @@
 
 const lang = require('lang');
 const Q = require('q');
+const uuid = require('node-uuid');
 
 const BaseDevice = require('../base_device');
 const Tier = require('../tier_manager').Tier;
@@ -19,11 +20,72 @@ const MessagingChannelProxy = new lang.Class({
         this._device = thingengine;
     },
 
-    open: function(selector, mode, filters) {
+    getChannel: function(selector, mode, filters) {
         // FINISHME implement me!
-
-        throw new Error('Not implemented');
+        //
+        // Needs to find an appropriate auth token for selector
+        // in the database, then use it to construct a transient
+        // RemoteGroupDevice, then get the RemoteGroupProxy from it,
+        // then call getChannel() on it
+        // -or-
+        // If we don't have an appropriate auth token, then we should
+        // send a message to this user and ask for permissions
     }
+});
+
+function marshalSelector(selectors) {
+    return selectors.map(function(simpleSelectors) {
+        return simpleSelectors.map(function(simpleSelector) {
+            if (simpleSelector.isTag)
+                return { isId: false, isTag: true, name: simpleSelector.name };
+            else if (simpleSelector.isId)
+                return { isTag: false, isId: true, name: simpleSelector.name };
+            else // other kind of stuff should have been lowered already
+                throw new Error('Invalid selector ' + simpleSelector);
+        });
+    });
+}
+
+const ForeignThingEngineInterface = new lang.Class({
+    Name: 'ForeignThingEngineInterface',
+
+    _init: function(device) {
+        this.master = device;
+        this.engine = device.engine;
+
+        this._feed = null;
+    },
+
+    getFeed: function() {
+        if (this._feed !== null)
+            return Q(this._feed);
+        else
+            return this.engine.messaging.getFeedWithContact(this.master.messagingId)
+            .then(function(feed) {
+                this._feed = feed;
+            });
+    },
+
+    subscribe: function(authId, authSignature, selectors, mode, filters) {
+        var subscription = 'sub-' + uuid.v4();
+        return this.getFeed().then(function(feed) {
+            feed.sendItem(JSON.stringify({ op: 'subscribe',
+                                           subscriptionId: subscription,
+                                           authId: authId,
+                                           authSignature: authSignature,
+                                           selectors: marshalSelector(selectors),
+                                           mode: mode,
+                                           filters: [] /* FIXME: filters */ }));
+            return subscription;
+        });
+    },
+
+    unsubscribe: function(subscription) {
+        return this.getFeed().then(function(feed) {
+            feed.sendItem(JSON.stringify({ op: 'unsubscribe',
+                                           subscriptionId: subscription }));
+        });
+    },
 });
 
 // An instance of a ThingEngine running remotely, as discovered
@@ -59,6 +121,9 @@ const ThingEngineDevice = new lang.Class({
         // don't sync everything through them
         this.own = state.own;
 
+        // this !! is for legacy reasons
+        this.isTransient = !!state.isTransient;
+
         if (this.tier === Tier.CLOUD) {
             this.cloudId = state.cloudId;
         } else if (this.tier === Tier.SERVER) {
@@ -67,6 +132,8 @@ const ThingEngineDevice = new lang.Class({
 
             if (typeof state.port != 'number' || isNaN(state.port))
                 throw new TypeError('Invalid port number ' + state.port);
+        } else if (this.tier === Tier.PHONE) {
+            this.messagingId = state.messagingId;
         }
 
         // This is a built-in device so we're allowed some
@@ -86,8 +153,16 @@ const ThingEngineDevice = new lang.Class({
             this.name = "Foreign ThingEngine Server";
             this.description = "This is the ThingEngine of some other user, running at %s, on port %d."
                 .format(this.host, this.port);
-        } else
-            throw new Error('Foreign phones are not supported'); // cause we can't identify them
+        } else if (this.tier === Tier.SERVER) {
+            this.uniqueId = 'thingengine-foreign-phone-' + this.messagingId.replace(/[^a-z0-9]/g, '-');
+            this.name = "Foreign ThingEngine Phone";
+            this.description = "This is the ThingEngine of some other user, running on a phone reachable at " + this.messagingId;
+        }
+    },
+
+    get ownerTier() {
+        // servers talk to servers, clouds to clouds, phones to phones
+        return this.tier;
     },
 
     checkAvailable: function() {
@@ -97,6 +172,8 @@ const ThingEngineDevice = new lang.Class({
             return (this._tierManager.isConnected(this.tier) ?
                     BaseDevice.Availability.AVAILABLE :
                     BaseDevice.Availability.UNAVAILABLE);
+        else if (this.engine.messaging.isAvailable)
+            return BaseDevice.Availability.AVAILABLE;
         else
             return BaseDevice.Availability.UNAVAILABLE;
     },
@@ -141,6 +218,12 @@ const ThingEngineDevice = new lang.Class({
                 return null;
             else
                 return new MessagingChannelProxy(this);
+
+        case 'thingengine-foreign':
+            if (this.own || this.tier !== Tier.PHONE)
+                return null;
+            else
+                return new ForeignThingEngineInterface(this);
 
         default:
             return null;

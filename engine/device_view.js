@@ -19,7 +19,7 @@ const DeviceView = new lang.Class({
     Name: 'DeviceView',
     Extends: events.EventEmitter,
 
-    _init: function(device, context, selectors, mode, filters) {
+    _init: function(device, context, selectors, mode, filters, openContext) {
         events.EventEmitter.call(this);
 
         this.device = device;
@@ -33,6 +33,8 @@ const DeviceView = new lang.Class({
         this._subviews = [];
         this._set = new ObjectSet.Simple();
 
+        this._openContext = openContext;
+
         this._deviceAddedListener = null;
         this._deviceRemovedListener = null;
     },
@@ -44,6 +46,26 @@ const DeviceView = new lang.Class({
             return device.uniqueId === selector.name;
         else // @self and @global should have been lowered by now, as should have @variables...
             throw new Error('Invalid selector ' + selector);
+    },
+
+    _openSubview: function(subview) {
+        return subview.open().then(function(subset) {
+            subset.on('channel-added', function(ch) {
+                // add an 'open' reference that we will match on _onDeviceRemoved
+                ch.open().then(function() {
+                    return this._set.addOne(ch);
+                }).done();
+            }.bind(this));
+            subset.on('channel-removed', function(ch) {
+                // match the reference we got on channel-added
+                ch.close().then(function() {
+                    return this._set.removeOne(ch);
+                }).done();
+            }.bind(this));
+            this._subviews.push(subview);
+
+            return this._set.addMany(subset.values());
+        }.bind(this));
     },
 
     _deviceOpenChannels: function(device) {
@@ -66,37 +88,57 @@ const DeviceView = new lang.Class({
                 return this._set.addOne(device.getChannel('sink', this.filters));
         } else {
             // we need to traverse the device
+
             // the device could implement device-group, in which case we know semi-statically
             // what devices to match on
-
             var group = device.queryInterface('device-group');
             if (group !== null) {
                 var subview = new DeviceView(device, group, this.selectors.slice(1),
-                                             this.mode, this.filters);
-                return subview.open().then(function(subset) {
-                    subset.on('channel-added', function(ch) {
-                        // add an 'open' reference that we will match on _onDeviceRemoved
-                        ch.open().then(function() {
-                            return this._set.addOne(ch);
-                        }).done();
-                    }.bind(this));
-                    subset.on('channel-removed', function(ch) {
-                        // match the reference we got on channel-added
-                        ch.close().then(function() {
-                            return this._set.removeOne(ch);
-                        }).done();
-                    }.bind(this));
-                    this._subviews.push(subview);
+                                             this.mode, this.filters, false);
+                return this._openSubview(subview);
+            }
 
-                    return this._set.addMany(subset.values());
-                }.bind(this));
+            // the device could implement shared-device-group, in which case we either recognize
+            // -> #members to mean the member list, -> #shareddata to mean the feed itself,
+            // or -> <anythingelse> to mean some subset of devices shared in the group
+            var group = device.queryInterface('shared-group');
+            if (group !== null) {
+                // BLARGH I hate that we have this special-special-special case
+                if (this.selectors.length === 2 && this.selectors[1].length === 1 &&
+                    this.selectors[1][0].isTag && this.selectors[1][0] === 'sharedData') {
+                    if (this.mode === 'r')
+                        return this._set.addOne(device.getChannel('source', this.filters));
+                    else
+                        return this._set.addOne(device.getChannel('sink', this.filters));
+                }
+
+                if (this.selectors[1].length === 1 &&
+                    this.selectors[1][0].isTag && this.selectors[1][0] === 'members') {
+                    // given 'S1 -> #members -> S2', where S1 is what we're currently maching
+                    // get the thingengine object set and construct a subview that matches
+                    // '* -> S2' on the thingengine object set
+                    var engines = group.getMemberEngines();
+                    // simple selectors are AND-ed together, so an empty simple selector matches
+                    // everything
+                    var subview = new DeviceView(device, engines, [[]].concat(this.selectors.slice(2)),
+                                                 this.mode, this.filters, true);
+                    return this._openSubview(subview);
+                }
+
+                // The remaining case: open all devices that have been shared with the group
+                // The group actually does not contain devices, it contains RemoteGroupProxies
+                // Hence we go from 'S1 -> S2' to 'S1 -> * -> S2' where * matches the RemoteGroupProxy
+                var proxies = group.getSharedGroups();
+                var subview = new DeviceView(device, proxies, [[]].concat(this.selectors.slice(1)),
+                                             this.mode, this.filters, true);
+                return this._openSubview(subview);
             }
 
             // the device could implement device-channel-proxy, in which case we delegate
             // the channel fully
             var proxy = device.queryInterface('device-channel-proxy');
             if (proxy !== null) {
-                return proxy.open(this.selectors.slice(1), this.mode, this.filters)
+                return proxy.getChannel(this.selectors.slice(1), this.mode, this.filters)
                     .then(function(ch) {
                         return this._set.addOne(ch);
                     });
@@ -161,7 +203,13 @@ const DeviceView = new lang.Class({
         this.context.on('object-added', this._deviceAddedListener);
         this.context.on('object-removed', this._deviceRemovedListener);
 
-        return this._openChannels();
+        if (this._openContext) {
+            this.context.open().then(function() {
+                return this._openChannels();
+            }.bind(this));
+        } else {
+            return this._openChannels();
+        }
     },
 
     stop: function() {
@@ -173,7 +221,13 @@ const DeviceView = new lang.Class({
         this._deviceAddedListener = null;
         this._deviceRemovedListener = null;
 
-        return this._closeChannels();
+        if (this._openContext) {
+            return this._closeChannels().then(function() {
+                return this.context.close();
+            });
+        } else {
+            return this._closeChannels();
+        }
     },
 });
 module.exports = DeviceView;

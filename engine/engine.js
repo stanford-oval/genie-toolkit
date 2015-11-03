@@ -19,6 +19,10 @@ const TierManager = require('./tier_manager');
 const ConfigPairingModule = require('./config_pairing');
 const ManualQueryRunner = require('./rpc_query_runner');
 const UIEventManager = require('./ui_event_manager');
+const MessagingDeviceManager = require('./messaging/device_manager');
+const MessagingGroupManager = require('./messaging/group_manager');
+const MessagingSubscriptionManager = require('./messaging/subscription_manager');
+const MessagingSyncManager = require('./messaging/sync_manager');
 
 const Engine = new lang.Class({
     Name: 'Engine',
@@ -33,15 +37,21 @@ const Engine = new lang.Class({
         this._channels = new ChannelFactory(this, this._tiers, this._deviceFactory);
         this._apps = new AppDatabase(this, this._tiers);
 
+        this._messaging = new MessagingDeviceManager(this._devices);
         this._ui = new UIEventManager(this);
 
         // in loading order
         this._modules = [this._tiers,
                          this._devices,
+                         this._messaging,
+                         new MessagingGroupManager(this._devices, this._messaging),
                          this._channels,
                          this._apps,
                          this._ui,
-                         new ConfigPairingModule(this, this._tiers)];
+                         new ConfigPairingModule(this, this._tiers),
+                         new MessagingSubscriptionManager(this._devices, this._messaging),
+                         new MessagingSyncManager(this._messaging)
+                        ];
 
         this._running = false;
         this._stopCallback = null;
@@ -54,6 +64,10 @@ const Engine = new lang.Class({
 
     get tiers() {
         return this._tiers;
+    },
+
+    get messaging() {
+        return this._messaging;
     },
 
     get channels() {
@@ -198,3 +212,10 @@ const Engine = new lang.Class({
 });
 
 module.exports = Engine;
+
+process.on('uncaughtException', function(e) {
+    console.log('Uncaught exception: ' + e);
+    console.log(e);
+    console.log(e.stack);
+    process.exit(1);
+});

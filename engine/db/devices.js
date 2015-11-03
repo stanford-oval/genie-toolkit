@@ -269,7 +269,7 @@ module.exports = new lang.Class({
         }.bind(this));
 
         this._devices[device.uniqueId] = device;
-        if (addToDB) {
+        if (addToDB && !device.isTransient) {
             var state = device.serialize();
             var uniqueId = device.uniqueId;
             return this._syncdb.insertOne(uniqueId,
@@ -289,9 +289,13 @@ module.exports = new lang.Class({
 
     removeDevice: function(device) {
         delete this._devices[device.uniqueId];
-        return this._syncdb.deleteOne(device.uniqueId).then(function() {
+        if (device.isTransient) {
             this._notifyDeviceRemoved(device);
-        }.bind(this));
+        } else {
+            return this._syncdb.deleteOne(device.uniqueId).then(function() {
+                this._notifyDeviceRemoved(device);
+            }.bind(this));
+        }
     },
 
     hasDevice: function(uniqueId) {

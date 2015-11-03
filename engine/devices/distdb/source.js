@@ -18,6 +18,7 @@ const DistributedDatabaseSourceChannel = new lang.Class({
     _init: function(engine, device) {
         this.parent();
 
+        this.engine = engine;
         this._device = device;
         this._feedId = device.feedId;
         this._feed = null;
@@ -26,47 +27,46 @@ const DistributedDatabaseSourceChannel = new lang.Class({
     },
 
     _readCurrent: function(feed, members) {
-        return feed.getCursor().then(function(cursor) {
-            return Q.try(function() {
-                console.log('Obtained Messaging cursor');
-                var memberToValueMap = [];
-                var nmembers = members.length;
+        var memberToValueMap = [];
+        var nmembers = members.length;
+        var cursor = feed.getCursor();
 
-                while (cursor.hasNext()) {
-                    var obj = cursor.next();
+        try {
+            console.log('Obtained Messaging cursor');
+            while (cursor.hasNext()) {
+                var obj = cursor.next();
 
-                    console.log('Cursor next value is a ' + typeof obj);
-                    console.log('Cursor next value: ' + JSON.stringify(obj));
-                    var sender = obj.sender;
-                    var payload = obj.payload;
-                    if (!(sender in memberToValueMap)) {
-                        console.log('Found new value for ' + sender);
-                        try {
-                            var parsed = JSON.parse(payload);
-                            parsed.sender = sender;
-                            memberToValueMap[sender] = parsed;
-                        } catch(e) {
-                            console.log('Failed to parse payload: ' + e.message);
-                            memberToValueMap[sender] = null;
-                        }
-                        nmembers--;
-                        if (nmembers == 0) {
-                            console.log('Found a value for all members, done');
-                            return memberToValueMap;
-                        }
+                console.log('Cursor next value is a ' + typeof obj);
+                console.log('Cursor next value: ' + JSON.stringify(obj));
+                var sender = obj.senderId;
+                var payload = obj.body;
+                if (!(sender in memberToValueMap)) {
+                    console.log('Found new value for ' + sender);
+                    try {
+                        var parsed = JSON.parse(payload);
+                        parsed.sender = sender;
+                        memberToValueMap[sender] = parsed;
+                    } catch(e) {
+                        console.log('Failed to parse payload: ' + e.message);
+                        memberToValueMap[sender] = null;
+                    }
+                    nmembers--;
+                    if (nmembers == 0) {
+                        console.log('Found a value for all members, done');
+                        break;
                     }
                 }
-            }).finally(function() {
-                console.log('Done using cursor');
-                return cursor.destroy();
-            });
-        }).then(function(memberToValueMap) {
-            var array = Object.keys(memberToValueMap)
-                .filter(function(k) { return memberToValueMap[k] !== null; })
-                .map(function(k) { return memberToValueMap[k]; });
-            console.log('Computed final database event: ' + array);
-            this.emitEvent(array);
-        }.bind(this));
+            }
+        } finally {
+            console.log('Done using cursor');
+            cursor.destroy();
+        }
+
+        var array = Object.keys(memberToValueMap)
+            .filter(function(k) { return memberToValueMap[k] !== null; })
+            .map(function(k) { return memberToValueMap[k]; });
+        console.log('Computed final database event: ' + array);
+        this.emitEvent(array);
     },
 
     _onChange: function() {
@@ -74,14 +74,7 @@ const DistributedDatabaseSourceChannel = new lang.Class({
     },
 
     _doOpen: function() {
-        var messagingDevice = this._device.getMessagingDevice();
-        if (messagingDevice === undefined)
-            throw new Error('Messaging account must be configured before using distdb');
-        var messaging = messagingDevice.queryInterface('messaging');
-        if (messaging === null)
-            throw new Error('Messaging account lacks messaging interface?');
-
-        this._feed = messaging.getFeed(this._feedId);
+        this._feed = this.engine.messaging.getFeed(this._feedId);
         return feed.open().then(function() {
             console.log('Successfully opened Omlet feed');
             return this._feed.getMembers();
@@ -91,17 +84,14 @@ const DistributedDatabaseSourceChannel = new lang.Class({
             return this._readCurrent(this._feed, members);
         }.bind(this)).then(function() {
             this._listener = this._onChange.bind(this);
-            this._feed.on('change', this._listener);
-            this._feed.startWatch();
+            this._feed.on('new-message', this._listener);
         });
     },
 
     _doClose: function() {
         if (this._listener) {
-            this._feed.removeListener('change', this._listener);
+            this._feed.removeListener('new-message', this._listener);
             this._listener = null;
-
-            this._feed.stopWatch();
         }
 
         return this._feed.close();

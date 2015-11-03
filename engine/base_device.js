@@ -43,6 +43,11 @@ module.exports = new lang.Class({
         this.state = state;
         this.kind = state.kind;
 
+        // Set to true if this device should not be stored in the devicedb
+        // but only kept in memory (ie, its lifetime is managed by some
+        // device discovery module)
+        this.isTransient = false;
+
         this._ownerTier = undefined;
     },
 

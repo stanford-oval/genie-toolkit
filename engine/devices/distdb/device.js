@@ -43,19 +43,8 @@ const DistributedDatabaseDevice = new lang.Class({
         return this.state.messagingDeviceId;
     },
 
-    getMessagingDevice: function() {
-        var messagingDevices = this.engine.devices.getAllDevicesOfKind('messaging');
-        var id = this.messagingDeviceId;
-        if (id !== undefined)
-            return messagingDevices.filter(function(d) { return d.uniqueId === id; })[0];
-        else
-            return messagingDevices[0];
-    },
-
     checkAvailable: function() {
-        var messagingDevices = this.engine.devices.getAllDevicesOfKind('messaging');
-
-        if (messagingDevices.length > 0)
+        if (this.engine.messaging.isAvailable)
             return BaseDevice.Availability.AVAILABLE;
         else
             return BaseDevice.Availability.UNAVAILABLE;
