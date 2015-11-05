@@ -7,6 +7,7 @@
 // See COPYING for details
 
 const lang = require('lang');
+const crypto = require('crypto');
 const Q = require('q');
 
 const BaseDevice = require('../../base_device');
@@ -17,7 +18,7 @@ const GroupObjectSet = new lang.Class({
     Extends: ObjectSet.Simple,
 
     _init: function(engine, devices) {
-        this.parent();
+        this.parent(false);
 
         devices.forEach(function(d) {
             try {

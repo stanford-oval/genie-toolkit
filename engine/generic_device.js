@@ -269,7 +269,8 @@ module.exports = function(kind, code) {
                 var method = this._properties.method;
                 var auth = this._makeAuth();
                 httpRequestAsync(url, method, auth, JSON.stringify(event), function(err) {
-                    console.log('Error sending event to server: ' + err.message);
+                    if (err)
+                        console.log('Error sending event to server: ' + err.message);
                 });
             }
         },

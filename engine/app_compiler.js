@@ -641,6 +641,7 @@ module.exports = new lang.Class({
 
             compop = function(env, previousValue, currentValue) {
                 var amount = amountop(env);
+                console.log('Applying change operator to', previousValue, currentValue);
                 return +currentValue - +previousValue >= amount;
             }
         } else if (exprtype.isLocation) {

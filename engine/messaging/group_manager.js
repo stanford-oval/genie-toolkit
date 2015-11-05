@@ -25,9 +25,33 @@ module.exports = new lang.Class({
         if (messagingDevice === null)
             return;
 
-        this._devices.loadOneDevice({ kind: 'messaging-group',
-                                      feedId: feedId,
-                                      messagingDeviceKind: messagingDevice.kind }, false).done();
+        var feed = this._messaging.getFeed(feedId);
+        feed.open().then(function() {
+            return feed.getMembers();
+        }).then(function(members) {
+            // ignore feeds where all members are actually self
+            // (a number of which I created in months of debugging, littering
+            // my account)
+            if (members.every(function(m) { return feed.ownIds.indexOf(m) >= 0; })) {
+                console.log('Ignoring feed with only self as member');
+                return;
+            }
+
+            var state = { kind: 'messaging-group',
+                          feedId: feedId,
+                          name: feed.name,
+                          messagingDeviceKind: messagingDevice.kind };
+            var uniqueId = 'messaging-group-' + messagingDevice.kind +
+                feedId.replace(/[^a-zA-Z0-9]+/g, '-');
+            if (this._devices.hasDevice(uniqueId)) {
+                var device = this._devices.getDevice(uniqueId);
+                device.updateState(state);
+            } else {
+                this._devices.loadOneDevice(state, false);
+            }
+        }.bind(this)).finally(function() {
+            feed.close();
+        }).done();
     },
 
     _onFeedRemoved: function(feedId) {
@@ -43,6 +67,7 @@ module.exports = new lang.Class({
         this._feedAddedListener = this._onFeedAdded.bind(this);
         this._feedRemovedListener = this._onFeedRemoved.bind(this);
         this._messaging.on('feed-added', this._feedAddedListener);
+        this._messaging.on('feed-changed', this._feedAddedListener);
         this._messaging.on('feed-removed', this._feedRemovedListener);
 
         return this._messaging.getFeedList().then(function(feeds) {
@@ -54,6 +79,7 @@ module.exports = new lang.Class({
 
     stop: function() {
         this._messaging.removeListener('feed-added', this._feedAddedListener);
+        this._messaging.removeListener('feed-changed', this._feedAddedListener);
         this._messaging.removeListener('feed-removed', this._feedRemovedListener);
 
         var groupDevices = this._devices.getAllDevicesOfKind('messaging-group');

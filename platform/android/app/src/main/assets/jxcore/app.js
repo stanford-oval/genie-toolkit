@@ -85,17 +85,38 @@ function runEngine() {
                 engine.devices.loadOneDevice(device, true).done();
             },
 
-            createOmletFeed: function() {
-                var omletDevice = engine.devices.getAllDevicesOfKind('omlet')[0];
-                if (omletDevice === undefined)
-                    throw new Error('Omlet device is not configured');
-
-                return omletDevice.queryInterface('messaging').createFeed().tap(function(feed) {
-                    return engine.devices.loadOneDevice({ kind: 'distdb', feedId: feed.feedId,
-                                                          messagingDeviceId: omletDevice.uniqueId,
-                                                        }, true);
+            createOmletFeedWithContact: function(contact) {
+                return engine.messaging.getFeedWithContact(contact).then(function(feed) {
+                    return feed.feedId;
                 });
             },
+
+            removeDevice: function(deviceId) {
+                return engine.devices.removeDevice(engine.devices.getDevice(deviceId));
+            },
+
+            shareDevice: function(groupId, deviceId) {
+                var group = engine.devices.getDevice(groupId);
+                var feed = engine.messaging.getFeed(group.feedId);
+                var device = engine.devices.getDevice(deviceId);
+
+                return Q.try(function() {
+                    return feed.open();
+                }).then(function() {
+                    var json = { groupId: device.uniqueId,
+                                 groupToken: engine.subscriptions.makeAccessToken(device.uniqueId),
+                                 isGroup: device.hasKind('group') };
+                    return feed.sendRaw({ type: 'rdl', noun: 'device',
+                                          displayTitle: device.name,
+                                          displayText: device.description,
+                                          callback: 'https://thingengine.stanford.edu/omlet/callback',
+                                          webCallback: 'https://thingengine.stanford.edu/omlet/web',
+                                          json: JSON.stringify(json)
+                                        });
+                }).finally(function() {
+                    feed.close();
+                });
+            }
         });
 
         return controlChannel.open().then(function() {

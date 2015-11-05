@@ -52,6 +52,7 @@ const TimerChannel = new lang.Class({
     _doOpen: function() {
         this._timeout = setInterval(function() {
             var event = { ts: new Date };
+            console.log('Emitting timer event', event);
             this.emitEvent(event);
         }.bind(this), this._interval);
         return Q();

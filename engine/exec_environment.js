@@ -19,7 +19,6 @@ module.exports = new lang.Class({
         this._state = appstate;
 
         this._enabledFlags = {};
-        this.handling = null;
 
         this.reset();
     },

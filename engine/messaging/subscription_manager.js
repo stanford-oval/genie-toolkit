@@ -10,6 +10,9 @@ const lang = require('lang');
 const crypto = require('crypto');
 const Q = require('q');
 
+const DeviceView = require('../device_view');
+const ObjectSet = require('../object_set');
+
 function getAuthToken() {
     var prefs = platform.getSharedPreferences();
     var authToken = prefs.get('auth-token');
@@ -32,9 +35,17 @@ const SubscriptionWatcher = new lang.Class({
 
     _onNewMessage: function(msg) {
         try {
+            if (!msg.text)
+                return;
             var parsed = JSON.parse(msg.text);
 
             switch(parsed.op) {
+            case 'source-data':
+            case 'source-ready':
+            case 'sink-ready':
+                this._manager.checkSubscription(this._feed, parsed.subscriptionId);
+                break;
+
             case 'subscribe':
                 this._manager.handleSubscribe(this._feed, parsed.subscriptionId,
                                               parsed.authId, parsed.authSignature,
@@ -50,35 +61,70 @@ const SubscriptionWatcher = new lang.Class({
                 // ignore other stuff
             }
         } catch(e) {
-            console.log('Failed to parse Omlet message as JSON');
-            console.log(e.stack);
+            if (e.name !== 'SyntaxError')
+                throw e;
+            // else eat the error
+        }
+    },
+
+    _onOldMessage: function(msg, unsub) {
+        try {
+            if (!msg.text)
+                return;
+            var parsed = JSON.parse(msg.text);
+
+            switch(parsed.op) {
+            case 'subscribe':
+                if (unsub[parsed.subscriptionId] === true)
+                    break;
+
+                this._manager.handleSubscribe(this._feed, parsed.subscriptionId,
+                                              parsed.authId, parsed.authSignature,
+                                              parsed.selectors, parsed.mode,
+                                              parsed.filters);
+                break;
+
+            case 'unsubscribe':
+                unsub[parsed.subscriptionId] = true;
+                break;
+
+            default:
+                // ignore other stuff
+            }
+        } catch(e) {
+            if (e.name !== 'SyntaxError')
+                throw e;
+            // else eat the error
         }
     },
 
     _processOldSubscriptions: function() {
-        return this._messaging.getOwnIds().then(function(ownIds) {
-            var cursor = this._feed.getCursor();
+        var cursor = this._feed.getCursor();
 
-            try {
-                while (cursor.hasNext()) {
-                    var obj = cursor.next();
-                    if (ownIds.indexOf(obj.senderId) >= 0)
-                        continue;
+        var now = new Date();
+        var oneWeekAgo = now.getTime() - 24*3600*1000*7;
+        var unsub = {};
+        try {
+            while (cursor.hasNext()) {
+                var obj = cursor.next();
+                if (this._feed.ownIds.indexOf(obj.senderId) >= 0)
+                    continue;
 
-                    this._onNewMessage(obj);
-                }
-            } finally {
-                cursor.destroy();
+                if (obj.serverTimestamp < oneWeekAgo)
+                    break;
+                this._onOldMessage(obj, unsub);
             }
-        });
+        } finally {
+            cursor.destroy();
+        }
     },
 
     start: function() {
-        this._msgListener = this._onNewMessage.bind(this);
-        this._feed.on('incoming-message', this._msgListener);
-
         return this._feed.open().then(function() {
-            return this._processOldSubscriptions();
+            this._processOldSubscriptions();
+
+            this._msgListener = this._onNewMessage.bind(this);
+            this._feed.on('incoming-message', this._msgListener);
         }.bind(this));
     },
 
@@ -100,15 +146,15 @@ const SourceSubscription = new lang.Class({
     },
 
     _sendData: function(channelId, data) {
-        this._feed.sendItem(JSON.stringify({ op: 'source-data',
-                                             subscriptionId: this._subscriptionId,
-                                             data: data,
-                                             channelId: channelId }));
+        this._feed.sendItem({ op: 'source-data',
+                              subscriptionId: this._subscriptionId,
+                              data: data,
+                              channelId: channelId });
     },
 
     _sendReady: function() {
-        this._feed.sendItem(JSON.stringify({ op: 'source-ready',
-                                             subscriptionId: this._subscriptionId }));
+        this._feed.sendItem({ op: 'source-ready',
+                              subscriptionId: this._subscriptionId });
     },
 
     _onData: function(from, data) {
@@ -125,7 +171,14 @@ const SourceSubscription = new lang.Class({
     },
 
     _ready: function() {
+        set.values().forEach(function(ch) {
+            this._sendData(ch.uniqueId, ch.event);
+        }, this);
         this._sendReady();
+    },
+
+    refresh: function() {
+        this._ready();
     },
 
     stop: function() {
@@ -150,7 +203,7 @@ const SourceSubscription = new lang.Class({
                 this._channelAdded(o);
             });
             this._ready();
-        });
+        }.bind(this));
     }
 });
 
@@ -166,8 +219,8 @@ const SinkSubscription = new lang.Class({
     },
 
     _sendReady: function() {
-        this._feed.sendItem(JSON.stringify({ op: 'sink-ready',
-                                             subscriptionId: this._subscriptionId }));
+        this._feed.sendItem({ op: 'sink-ready',
+                              subscriptionId: this._subscriptionId });
     },
 
     _sinkData: function(data) {
@@ -195,9 +248,17 @@ const SinkSubscription = new lang.Class({
                 break;
             }
         } catch(e) {
-            console.log('Failed to parse incoming Omlet on proxy feed message: ' + e);
-            console.log(e.stack);
+            if (e.name === 'SyntaxError')
+                console.log('Failed to parse incoming Omlet on proxy feed message: ' + e);
+            else
+                throw e;
         }
+    },
+
+    refresh: function() {
+        this._whenReady.then(function() {
+            this._sendReady();
+        }.bind(this));
     },
 
     stop: function() {
@@ -213,7 +274,7 @@ const SinkSubscription = new lang.Class({
         return this._whenReady.then(function(set) {
             this._set = set;
             this._sendReady();
-        });
+        }.bind(this));
     }
 });
 
@@ -228,48 +289,74 @@ module.exports = new lang.Class({
 
         this._subscriptionWatchers = {};
         this._subscriptions = {};
+
+        this._activeRemoteGroups = {};
+    },
+
+    registerSubscription: function(subscriptionId) {
+        this._activeRemoteGroups[subscriptionId] = true;
+    },
+
+    unregisterSubscription: function(subscriptionId) {
+        delete this._activeRemoteGroups[subscriptionId];
+    },
+
+    checkSubscription: function(feed, subscriptionId) {
+        if (this._activeRemoteGroups[subscriptionId] !== true)
+            feed.sendItem({ op: 'unsubscribe', subscriptionId: subscriptionId });
+    },
+
+    makeAccessToken: function(uniqueId) {
+        var hmac = crypto.createHmac('sha256', new Buffer(getAuthToken(), 'hex'));
+        var sign = hmac.digest(uniqueId);
+        return sign.toString('hex');
     },
 
     handleSubscribe: function(feed, subscriptionId, authId, authSignature, selectors, mode, filters) {
         // FIXME: filters
 
-        var hmac = crypto.createHmac('sha256', new Buffer(platform.getAuthToken(), 'hex'));
-        var sign = hmac.digest(authId);
-        if (sign !== authSignature) {
-            feed.sendItem({ op: 'subscribe-error', msg: "Invalid signature" });
+        console.log('Handling subscription ' + subscriptionId + ' to ' + authId);
+
+        if (this.makeAccessToken(authId) !== authSignature) {
+            feed.sendItem({ op: 'subscribe-error', msg: "Invalid token" });
             return;
         }
 
-        var fullId = feed.identifier + '-' + subscriptionId;
+        var fullId = feed.feedId + '-' + subscriptionId;
         if (fullId in this._subscriptions) {
             console.log('Duplicate subscription ' + fullId);
+            this._subscriptions[fullId].refresh();
             return;
         }
 
-        try {
-            var groupDevice = this._devices.getDevice(authId);
-            var context = groupDevice.queryInterface('device-group');
-
-            if (mode === 'r') {
-                this._subscriptions[fullId] = new SourceSubscription(feed, subscriptionId, context,
-                                                                     selectors, filters);
-            } else if (mode === 'w') {
-                this._subscriptions[fullId] = new SinkSubscription(feed, subscriptionId, context,
-                                                                   selectors, filters);
-            } else {
-                throw new Error('Invalid mode ' + mode);
-            }
-
-            this._subscriptions[fullId].start().done();
-        } catch(e) {
-            console.log('Failed to handle subscribe: ' + e.message);
-            console.log(e.stack);
-            feed.sendItem({ op: 'subscribe-error', msg: e.message });
+        if (!this._devices.hasDevice(authId)) {
+            feed.sendItem({ op: 'subscribe-error', msg: "Invalid device" });
+            return;
         }
+
+        var groupDevice = this._devices.getDevice(authId);
+        var context = groupDevice.queryInterface('device-group');
+
+        if (context === null) {
+            context = new ObjectSet.Simple();
+            context.addOne(groupDevice);
+        }
+
+        if (mode === 'r') {
+            this._subscriptions[fullId] = new SourceSubscription(feed, subscriptionId, context,
+                                                                 selectors, filters);
+        } else if (mode === 'w') {
+            this._subscriptions[fullId] = new SinkSubscription(feed, subscriptionId, context,
+                                                               selectors, filters);
+        } else {
+            throw new Error('Invalid mode ' + mode);
+        }
+
+        this._subscriptions[fullId].start().done();
     },
 
     handleUnsubscribe: function(feed, subscriptionId) {
-        var fullId = feed.identifier + '-' + subscriptionId;
+        var fullId = feed.feedId + '-' + subscriptionId;
         if (!(fullId in this._subscriptions)) {
             console.log('Invalid subscription ' + fullId);
             return;

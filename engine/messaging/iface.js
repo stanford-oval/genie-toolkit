@@ -108,6 +108,10 @@ module.exports = new lang.Class({
     createFeed: function() {
         throw new Error('Not Implemented');
     },
+
+    getFeedWithContact: function(contactId) {
+        throw new Error('Not Implemented');
+    },
 });
 module.exports.Feed = MessagingFeed;
 module.exports.FeedCursor = MessagingFeedCursor;

@@ -239,6 +239,8 @@ module.exports = new lang.Class({
     },
 
     _notifyDeviceAdded: function(device) {
+        console.log('Added device ' + device.uniqueId);
+
         this.emit('device-added', device);
 
         for (var key in this._contexts)
@@ -255,7 +257,7 @@ module.exports = new lang.Class({
     _addDeviceInternal: function(device, uniqueId, addToDB) {
         if (device.uniqueId === undefined) {
             if (uniqueId === undefined)
-                device.uniqueId = 'uuid-' + uuid.v4();
+                device.uniqueId = device.kind + '-' + uuid.v4();
             else
                 device.uniqueId = uniqueId;
         } else {
@@ -276,10 +278,11 @@ module.exports = new lang.Class({
                                           { state: JSON.stringify(state) })
                 .then(function() {
                     this._notifyDeviceAdded(device);
+                    return device;
                 }.bind(this));
         } else {
             this._notifyDeviceAdded(device);
-            return Q();
+            return Q(device);
         }
     },
 
@@ -299,7 +302,7 @@ module.exports = new lang.Class({
     },
 
     hasDevice: function(uniqueId) {
-        return uniqueId in this._devices;
+        return (uniqueId in this._devices);
     },
 
     getDevice: function(uniqueId) {

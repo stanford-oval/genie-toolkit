@@ -17,25 +17,24 @@ const SharedGroupDeviceView = new lang.Class({
     Extends: ObjectSet.Simple,
 
     _init: function(engine, feed) {
+        this.parent(false);
+
         this._feed = feed;
         this._messaging = engine.messaging;
         this._factory = engine.devices.factory;
+
+        console.log('Created SharedGroupDeviceView for feed ' + feed.feedId);
     },
 
     _onNewMessage: function(msg) {
         if (msg.type !== 'rdl')
             return;
 
-        if (!msg.callback.startsWith('https://thingengine.stanford.edu'))
+        if (!msg.callback || !msg.callback.startsWith('https://thingengine.stanford.edu'))
             return;
 
         try {
             var parsed = JSON.parse(msg.json);
-
-            console.log('Received Omlet message: ', parsed);
-
-            if (parsed.op !== 'share-device')
-                return;
 
             this._messaging.getAccountById(msg.senderId).then(function(account) {
                 return this.addOne(this._factory.createDevice('remote-group',
@@ -44,10 +43,12 @@ const SharedGroupDeviceView = new lang.Class({
                                                                 authId: parsed.groupId,
                                                                 authSignature: parsed.groupToken,
                                                                 name: msg.displayTitle }));
-            }).done();
+            }.bind(this)).done();
         } catch(e) {
-            console.log('Failed to parse incoming Omlet RDL: ' + e);
-            console.log(e.stack);
+            if (e.name === 'SyntaxError')
+                console.log('Failed to parse incoming Omlet RDL: ' + e);
+            else
+                throw e;
         }
     },
 
@@ -66,7 +67,7 @@ const SharedGroupDeviceView = new lang.Class({
             try {
                 while (cursor.hasNext()) {
                     var obj = cursor.next();
-                    if (ownIds.indexOf(obj.senderId) >= 0)
+                    if (this._feed.ownIds.indexOf(obj.senderId) >= 0)
                         continue;
 
                     this._onNewMessage(obj);
@@ -83,6 +84,8 @@ const SharedGroupMemberView = new lang.Class({
     Extends: ObjectSet.Simple,
 
     _init: function(engine, feed) {
+        this.parent(false);
+
         this._feed = feed;
         this._messaging = engine.messaging;
         this._factory = engine.devices.factory;
@@ -140,18 +143,26 @@ const MessagingGroupDevice = new lang.Class({
     _init: function(engine, state) {
         this.parent(engine, state);
 
-        this.name = "Messaging Group %s".format(this.feedId);
-        this.description = "This is a messaging group. All devices shared in this group become available to all members of the group.";
-
         // this device is never stored on disk
         this.isTransient = true;
 
-        this.uniqueId = 'messaging-group-' + this.messagingDeviceKind + '-' + this.feedId;
+        this.uniqueId = 'messaging-group-' + this.messagingDeviceKind +
+            this.feedId.replace(/[^a-zA-Z0-9]+/g, '-');
 
-        console.log("Created Messaging Group " + this.uniqueId + " on device of kind " +
-                    this.messagingDeviceKind);
-
+        this._syncName();
         this._feed = null;
+    },
+
+    _syncName: function() {
+        this.name = "Messaging Group %s".format(this.state.name);
+        this.description = "This is a messaging group. All devices shared in this " +
+            "group become available to all members of the group. " +
+            "You can use the identifier ." + this.uniqueId + " to refer to this group.";
+    },
+
+    updateState: function(state) {
+        this.parent(state);
+        this._syncName();
     },
 
     get messagingDeviceKind() {

@@ -54,36 +54,42 @@ const ForeignThingEngineInterface = new lang.Class({
         this.engine = device.engine;
 
         this._feed = null;
+        this._feedPromise = null;
     },
 
     getFeed: function() {
-        if (this._feed !== null)
-            return Q(this._feed);
+        if (this._feedPromise !== null)
+            return Q(this._feedPromise);
         else
-            return this.engine.messaging.getFeedWithContact(this.master.messagingId)
+            return this._feedPromise = this.engine.messaging.getFeedWithContact(this.master.messagingId)
             .then(function(feed) {
                 this._feed = feed;
+                return feed;
             });
     },
 
     subscribe: function(authId, authSignature, selectors, mode, filters) {
         var subscription = 'sub-' + uuid.v4();
         return this.getFeed().then(function(feed) {
-            feed.sendItem(JSON.stringify({ op: 'subscribe',
-                                           subscriptionId: subscription,
-                                           authId: authId,
-                                           authSignature: authSignature,
-                                           selectors: marshalSelector(selectors),
-                                           mode: mode,
-                                           filters: [] /* FIXME: filters */ }));
+            this.engine.subscriptions.registerSubscription(subscription);
+
+            feed.sendItem({ op: 'subscribe',
+                            subscriptionId: subscription,
+                            authId: authId,
+                            authSignature: authSignature,
+                            selectors: marshalSelector(selectors),
+                            mode: mode,
+                            filters: [] /* FIXME: filters */ });
             return subscription;
-        });
+        }.bind(this));
     },
 
     unsubscribe: function(subscription) {
         return this.getFeed().then(function(feed) {
-            feed.sendItem(JSON.stringify({ op: 'unsubscribe',
-                                           subscriptionId: subscription }));
+            feed.sendItem({ op: 'unsubscribe',
+                            subscriptionId: subscription });
+
+            this.engine.subscriptions.unregisterSubscription(subscription);
         });
     },
 });

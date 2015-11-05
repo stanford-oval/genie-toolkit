@@ -24,6 +24,9 @@ router.post('/switch-to', function(req, res, next) {
             yt = true;
         } else
             url = url;
+    } else if (body.yt) {
+        url = urlFormatters.yt(body.yt);
+        yt = true;
     } else if (body.youtube) {
         url = urlFormatters.yt(body.youtube);
         yt = true;

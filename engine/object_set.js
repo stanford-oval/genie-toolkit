@@ -165,7 +165,7 @@ const SimpleObjectSet = new lang.Class({
         this._objects = {};
         this._keys = null;
         for (var i = 0; i < removed.length; i++)
-            this.objectRemoved(o);
+            this.objectRemoved(removed[i]);
         return removed;
     },
 });

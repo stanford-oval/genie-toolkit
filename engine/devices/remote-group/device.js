@@ -27,6 +27,8 @@ const RemoteGroupProxyChannel = new lang.Class({
         this._foreignIface = foreignIface;
         this._values = {};
         this._ready = false;
+
+        this.uniqueId = device.uniqueId + '-group-proxy-' + (mode === 'w' ? 'sink' : 'source');
     },
 
     values: function() {
@@ -38,16 +40,19 @@ const RemoteGroupProxyChannel = new lang.Class({
                 values.push(this._values[k]);
         }
         return values;
-    }
+    },
 
     sendEvent: function(event) {
-        this._feed.sendItem(JSON.stringify({ op: 'sink-data',
-                                             subscription: this._subscriptionId,
-                                             data: event }));
+        console.log('Sending event to remote ThingEngine', event);
+        this._feed.sendItem({ op: 'sink-data',
+                              subscription: this._subscriptionId,
+                              data: event });
     },
 
     _onNewMessage: function(msg) {
         try {
+            if (!msg.text)
+                return;
             var parsed = JSON.parse(msg.text);
             if (parsed.subscription !== this._subscriptionId)
                 return;
@@ -55,6 +60,9 @@ const RemoteGroupProxyChannel = new lang.Class({
             console.log('Received Omlet message: ', parsed);
 
             switch(parsed.op) {
+            case 'subscribe-error':
+                console.log("Subscription failed: " + parsed.msg);
+                break;
             case 'source-data':
                 if (parsed.data !== undefined)
                     this._values[parsed.channelId] = parsed.data;
@@ -75,8 +83,10 @@ const RemoteGroupProxyChannel = new lang.Class({
                 break;
             }
         } catch(e) {
-            console.log('Failed to parse incoming Omlet on proxy feed message: ' + e);
-            console.log(e.stack);
+            if (e.name === 'SyntaxError')
+                console.log('Failed to parse incoming Omlet on proxy feed message: ' + e);
+            else
+                throw e;
         }
     },
 
@@ -85,14 +95,13 @@ const RemoteGroupProxyChannel = new lang.Class({
             this._msgListener = this._onNewMessage.bind(this);
             this._feed = feed;
             feed.on('incoming-message', this._msgListener);
--
             return feed.open();
         }.bind(this)).then(function() {
             return this._foreignIface.subscribe(this._device.authId,
                                                 this._device.authSignature,
                                                 this._selectors, this._mode,
                                                 this._filters);
-        }.bind(this).then(function(feed, subscriptionId) {
+        }.bind(this)).then(function(subscriptionId) {
             this._subscriptionId = subscriptionId;
         }.bind(this));
     },
@@ -108,16 +117,32 @@ const RemoteGroupProxyChannel = new lang.Class({
 const RemoteGroupProxy = new lang.Class({
     Name: 'RemoteGroupProxy',
 
-    _init: function(device, thingengine, foreignIface) {
+    _init: function(device) {
         this.master = device;
-        this.owner = thingengine;
-        this._foreignIface = foreignIface;
+        console.log('Created RemoteGroupProxy for ' + device.uniqueId);
     },
 
     getChannel: function(selectors, mode, filters) {
-        // FIXME: reuse subscriptions by returning the same channel if needed
-        return new RemoteGroupProxyChannel(this.master, this._foreignIface,
-                                           selectors, mode, filters);
+        var master = this.master;
+        var devices = master.engine.devices;
+        var thingengineId = 'thingengine-foreign-phone-' + master.ownerId.replace(/[^a-z0-9]/g, '-');
+        if (devices.hasDevice(thingengineId)) {
+            var thingengine = Q(devices.getDevice(thingengineId));
+        } else {
+            var thingengine = devices.loadOneDevice({ kind: 'thingengine',
+                                                      own: false,
+                                                      tier: 'phone',
+                                                      messagingId: master.ownerId }, false);
+        }
+
+        return thingengine.then(function(engine) {
+            var iface = engine.queryInterface('thingengine-foreign');
+
+            // FIXME: reuse subscriptions by returning the same channel if needed
+            var channel = new RemoteGroupProxyChannel(master, iface,
+                                                      selectors, mode, filters);
+            return channel.open().then(function() { return channel; });
+        });
     },
 });
 
@@ -157,16 +182,7 @@ const RemoteGroupDevice = new lang.Class({
 
     queryInterface: function(iface) {
         if (iface === 'device-channel-proxy') {
-            try {
-                var thingengine = this.engine.devices.getDevice(this.ownerId);
-                var iface = thingengine.queryInterface('thingengine-foreign');
-                if (iface !== null)
-                    return new RemoteGroupProxy(this, thingengine, iface);
-                else
-                    return null;
-            } catch (e) {
-                return null;
-            }
+            return new RemoteGroupProxy(this);
         } else {
             return null;
         }

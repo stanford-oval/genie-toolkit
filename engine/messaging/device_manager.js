@@ -32,6 +32,7 @@ module.exports = new lang.Class({
 
         this._feedAddedListener = this._onFeedAdded.bind(this);
         this._feedRemovedListener = this._onFeedRemoved.bind(this);
+        this._feedChangedListener = this._onFeedChanged.bind(this);
     },
 
     get device() {
@@ -59,9 +60,14 @@ module.exports = new lang.Class({
             this._messagingIface.stopSync();
     },
 
-    getOwnId: function() {
+    getOwnIds: function() {
         this._checkAvailable();
-        return this._messagingIface.getOwnId();
+        return this._messagingIface.getOwnIds();
+    },
+
+    getAccountById: function(id) {
+        this._checkAvailable();
+        return this._messagingIface.getAccountById(id);
     },
 
     getFeedList: function() {
@@ -81,12 +87,21 @@ module.exports = new lang.Class({
         return this._messagingIface.createFeed();
     },
 
+    getFeedWithContact: function(contactId) {
+        this._checkAvailable();
+        return this._messagingIface.getFeedWithContact(contactId);
+    },
+
     _onFeedAdded: function(feed) {
         this.emit('feed-added', feed);
     },
 
     _onFeedRemoved: function(feed) {
         this.emit('feed-removed', feed);
+    },
+
+    _onFeedChanged: function(feed) {
+        this.emit('feed-changed', feed);
     },
 
     _tryAddMessagingDevice: function(device) {
@@ -100,6 +115,7 @@ module.exports = new lang.Class({
 
             iface.on('feed-added', this._feedAddedListener);
             iface.on('feed-removed', this._feedRemovedListener);
+            iface.on('feed-changed', this._feedChangedListener);
 
             feeds.forEach(function(feedId) {
                 this.emit('feed-added', feedId);
@@ -113,6 +129,7 @@ module.exports = new lang.Class({
     _closeMessagingDevice: function() {
         this._messagingIface.removeListener('feed-added', this._feedAddedListener);
         this._messagingIface.removeListener('feed-removed', this._feedRemovedListener);
+        this._messagingIface.removeListener('feed-changed', this._feedChangedListener);
 
         console.log('Lost Messaging Device ' + this._messagingDevice.uniqueId);
 

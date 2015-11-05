@@ -48,19 +48,19 @@ const DeviceView = new lang.Class({
             throw new Error('Invalid selector ' + selector);
     },
 
-    _openSubview: function(subview) {
-        return subview.open().then(function(subset) {
-            subset.on('channel-added', function(ch) {
+    _startSubview: function(subview) {
+        return subview.start().then(function(subset) {
+            subset.on('object-added', function(ch) {
                 // add an 'open' reference that we will match on _onDeviceRemoved
                 ch.open().then(function() {
                     return this._set.addOne(ch);
-                }).done();
+                }.bind(this)).done();
             }.bind(this));
-            subset.on('channel-removed', function(ch) {
+            subset.on('object-removed', function(ch) {
                 // match the reference we got on channel-added
                 ch.close().then(function() {
                     return this._set.removeOne(ch);
-                }).done();
+                }.bind(this)).done();
             }.bind(this));
             this._subviews.push(subview);
 
@@ -88,6 +88,7 @@ const DeviceView = new lang.Class({
                 return this._set.addOne(device.getChannel('sink', this.filters));
         } else {
             // we need to traverse the device
+            console.log('Namespace device ' + device.uniqueId + ' matches ' + this.selectors);
 
             // the device could implement device-group, in which case we know semi-statically
             // what devices to match on
@@ -95,13 +96,13 @@ const DeviceView = new lang.Class({
             if (group !== null) {
                 var subview = new DeviceView(device, group, this.selectors.slice(1),
                                              this.mode, this.filters, false);
-                return this._openSubview(subview);
+                return this._startSubview(subview);
             }
 
             // the device could implement shared-device-group, in which case we either recognize
             // -> #members to mean the member list, -> #shareddata to mean the feed itself,
             // or -> <anythingelse> to mean some subset of devices shared in the group
-            var group = device.queryInterface('shared-group');
+            var group = device.queryInterface('shared-device-group');
             if (group !== null) {
                 // BLARGH I hate that we have this special-special-special case
                 if (this.selectors.length === 2 && this.selectors[1].length === 1 &&
@@ -122,7 +123,7 @@ const DeviceView = new lang.Class({
                     // everything
                     var subview = new DeviceView(device, engines, [[]].concat(this.selectors.slice(2)),
                                                  this.mode, this.filters, true);
-                    return this._openSubview(subview);
+                    return this._startSubview(subview);
                 }
 
                 // The remaining case: open all devices that have been shared with the group
@@ -131,17 +132,14 @@ const DeviceView = new lang.Class({
                 var proxies = group.getSharedGroups();
                 var subview = new DeviceView(device, proxies, [[]].concat(this.selectors.slice(1)),
                                              this.mode, this.filters, true);
-                return this._openSubview(subview);
+                return this._startSubview(subview);
             }
 
             // the device could implement device-channel-proxy, in which case we delegate
             // the channel fully
             var proxy = device.queryInterface('device-channel-proxy');
             if (proxy !== null) {
-                return proxy.getChannel(this.selectors.slice(1), this.mode, this.filters)
-                    .then(function(ch) {
-                        return this._set.addOne(ch);
-                    });
+                return this._set.addOne(proxy.getChannel(this.selectors.slice(1), this.mode, this.filters));
             }
 
             // nope, this device cannot be traversed, so ignore it
@@ -156,7 +154,7 @@ const DeviceView = new lang.Class({
     _onDeviceRemoved: function(device) {
         this._subviews = this._subviews.filter(function(subview) {
             if (subview.device === device) {
-                subview.close().done();
+                subview.stop().done();
                 return false;
             } else {
                 return true;
@@ -188,13 +186,17 @@ const DeviceView = new lang.Class({
     },
 
     _closeChannels: function() {
+        this._subviews.forEach(function(subview) {
+            subview.stop().done();
+        });
+
         return this._set.promise().then(function() {
             var removed = this._set.removeAll();
 
             return Q.all(removed.map(function(ch) {
                 return ch.close();
             }));
-        });
+        }.bind(this));
     },
 
     start: function() {
@@ -204,7 +206,7 @@ const DeviceView = new lang.Class({
         this.context.on('object-removed', this._deviceRemovedListener);
 
         if (this._openContext) {
-            this.context.open().then(function() {
+            return this.context.open().then(function() {
                 return this._openChannels();
             }.bind(this));
         } else {

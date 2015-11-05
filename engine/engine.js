@@ -40,6 +40,8 @@ const Engine = new lang.Class({
         this._messaging = new MessagingDeviceManager(this._devices);
         this._ui = new UIEventManager(this);
 
+        this._subscriptions = new MessagingSubscriptionManager(this._devices, this._messaging);
+
         // in loading order
         this._modules = [this._tiers,
                          this._devices,
@@ -49,7 +51,7 @@ const Engine = new lang.Class({
                          this._apps,
                          this._ui,
                          new ConfigPairingModule(this, this._tiers),
-                         new MessagingSubscriptionManager(this._devices, this._messaging),
+                         this._subscriptions,
                          new MessagingSyncManager(this._messaging)
                         ];
 
@@ -68,6 +70,10 @@ const Engine = new lang.Class({
 
     get messaging() {
         return this._messaging;
+    },
+
+    get subscriptions() {
+        return this._subscriptions;
     },
 
     get channels() {

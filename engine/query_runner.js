@@ -37,7 +37,6 @@ module.exports = new lang.Class({
     _onData: function(from, data) {
         try {
             this._env.reset();
-            this._env.handling = from;
 
             // "sample" the current list of channels based on the devices we
             // see now
@@ -79,11 +78,14 @@ module.exports = new lang.Class({
             self._onData(from, data);
         };
 
-        this._inputs.forEach(function(input) {
+        Q.all(this._inputs.map(function(input) {
             input.on('channel-added', this._channelAdded.bind(this));
             input.on('channel-removed', this._channelRemoved.bind(this));
 
-            input.start().done();
-        }, this);
+            return input.start();
+        }, this)).then(function() {
+            console.log('Handling initial channel state sample');
+            this._onData();
+        }.bind(this)).done();
     },
 });

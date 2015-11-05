@@ -99,7 +99,6 @@ module.exports = new lang.Class({
                 this._set = set;
 
                 set.on('object-added', function(o) {
-                    console.log('channel-added ' + o.uniqueId);
                     this.emit('channel-added', o);
                 }.bind(this));
                 set.on('object-removed', function(o) {
@@ -107,7 +106,6 @@ module.exports = new lang.Class({
                 }.bind(this));
 
                 set.values().forEach(function(o) {
-                    console.log('channel-added ' + o.uniqueId);
                     this.emit('channel-added', o);
                 }, this);
             }.bind(this));

@@ -73,7 +73,9 @@ module.exports = new lang.Class({
             env.beginOutput();
             output.block.action(env);
             var out = env.finishOutput();
-            output.selector.getChannels().forEach(function(channel) {
+
+            var channels = output.selector.getChannels();
+            channels.forEach(function(channel) {
                 channel.sendEvent(out);
             });
         });

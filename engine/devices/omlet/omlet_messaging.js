@@ -64,13 +64,14 @@ const OmletFeed = new lang.Class({
         this._client = null;
         this._insertListener = null;
         this._db = null;
-        this._feed = null;
-        this._ownIds = [];
+        this.ownIds = [];
+
+        this.name = null;
     },
 
     _onInsert: function(o) {
         this.emit('new-message', o);
-        if (this._ownIds.indexOf(msg.senderId) < 0)
+        if (this.ownIds.indexOf(o.senderId) < 0)
             this.emit('incoming-message', o);
         else
             this.emit('outgoing-message', o);
@@ -80,12 +81,28 @@ const OmletFeed = new lang.Class({
         this._client = this._device.refOmletClient();
 
         return this._messaging.getOwnIds().then(function(ownIds) {
-            this._ownIds = ownIds;
+            this.ownIds = ownIds;
             return this._getFeed();
-        }).then(function(o) {
-            return oinvoke(this._client.store, 'getFeedObjects', this._client.store.getObjectId(o));
+        }.bind(this)).then(function(o) {
+            if (o.name) {
+                return Q([o.name, o]);
+            } else {
+                if (o.members.every(function(m) { return this.ownIds.indexOf(m) >= 0; }, this))
+                    return Q(["You", o]);
+
+                return oinvoke(this._client.store, 'getAccounts', function(accountdb) {
+                    return oinvoke(accountdb, 'getObjectById', o.members[0]);
+                }).then(function(account) {
+                    return [account.name, o];
+                });
+            }
+        }.bind(this)).then(function(res) {
+            this.name = res[0];
+
+            return oinvoke(this._client.store, 'getFeedObjects', this._client.store.getObjectId(res[1]));
         }.bind(this)).then(function(db) {
             this._db = db;
+            this._insertListener = this._onInsert.bind(this);
             this._db._data.on('insert', this._insertListener);
         }.bind(this));
     },
@@ -105,15 +122,11 @@ const OmletFeed = new lang.Class({
     },
 
     _getFeed: function() {
-        if (this._feed !== null)
-            return Q(this._feed);
-        else
-            return oinvoke(this._client.store, 'getFeeds').then(function(db) {
-                return oinvoke(db, 'getObjectByKey', this.feedId);
-            }.bind(this)).then(function(o) {
-                this._feed = o;
-                return o;
-            }.bind(this));
+        return oinvoke(this._client.store, 'getFeeds').then(function(db) {
+            return oinvoke(db, 'getObjectByKey', this.feedId);
+        }.bind(this)).then(function(o) {
+            return o;
+        }.bind(this));
     },
 
     getMembers: function() {
@@ -124,9 +137,17 @@ const OmletFeed = new lang.Class({
 
     sendItem: function(item) {
         return this._getFeed().then(function(feed) {
-            return Q.ninvoke(this._client.messaging, '_sendObjToFeed', feed, 'text', JSON.stringify(item));
-        });
+            return Q.ninvoke(this._client.messaging, '_sendObjToFeed', feed, 'text',
+                             { text: JSON.stringify(item) });
+        }.bind(this));
     },
+
+    sendRaw: function(rawItem) {
+        return this._getFeed().then(function(feed) {
+            return Q.ninvoke(this._client.messaging, '_sendObjToFeed', feed, rawItem.type,
+                             rawItem);
+        }.bind(this));
+    }
 });
 
 module.exports = new lang.Class({
@@ -148,14 +169,20 @@ module.exports = new lang.Class({
         this.emit('feed-removed', o.identifier);
     },
 
+    _onFeedChanged: function(o) {
+        this.emit('feed-changed', o.identifier);
+    },
+
     startSync: function() {
         this._syncclient = this._device.refOmletClient();
 
         oinvoke(this._syncclient.store, 'getFeeds').then(function(db) {
             this._feedAddedListener = this._onFeedAdded.bind(this);
             this._feedRemovedListener = this._onFeedRemoved.bind(this);
+            this._feedChangedListener = this._onFeedChanged.bind(this);
             db._data.on('insert', this._feedAddedListener);
             db._data.on('delete', this._feedRemovedListener);
+            db._data.on('update', this._feedChangedListener);
         }.bind(this)).done();
     },
 
@@ -163,6 +190,7 @@ module.exports = new lang.Class({
         oinvoke(this._syncclient.store, 'getFeeds').then(function(db) {
             db._data.removeListener('insert', this._feedAddedListener);
             db._data.removeListener('delete', this._feedRemovedListener);
+            db._data.removeListener('update', this._feedChangedListener);
         }.bind(this)).done();
 
         this._device.unrefOmletClient();
@@ -192,8 +220,6 @@ module.exports = new lang.Class({
     },
 
     getFeedList: function() {
-        console.log('OmletMessaging.getFeedList');
-
         var client = this._device.refOmletClient();
         return oinvoke(client.store, 'getFeeds').then(function(db) {
             var data = db._data.find();
@@ -206,10 +232,8 @@ module.exports = new lang.Class({
     },
 
     createFeed: function() {
-        console.log('OmletMessaging.createFeed');
-
         var client = this._device.refOmletClient();
-        return oinvoke(client.feed, 'createFeed').then(function(feed) {
+        return Q.ninvoke(client.feed, 'createFeed').then(function(feed) {
             return new OmletFeed(this, feed.identifier);
         }.bind(this)).finally(function() {
             this._device.unrefOmletClient();
@@ -224,8 +248,9 @@ module.exports = new lang.Class({
         console.log('OmletMessaging.getFeedWithContact');
 
         var client = this._device.refOmletClient();
-        return oinvoke(client.feed, 'getOrCreateFeedWithMembers', [contactId]).then(function(feed) {
-            return new OmletFeed(this, feed.identifier);
+        return Q.ninvoke(client.feed, 'getOrCreateFeedWithMembers', [contactId]).then(function(result) {
+            console.log('result', result)
+            return new OmletFeed(this, result[0].identifier);
         }.bind(this)).finally(function() {
             this._device.unrefOmletClient();
         }.bind(this));
