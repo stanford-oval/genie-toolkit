@@ -226,7 +226,7 @@ const DeviceView = new lang.Class({
         if (this._openContext) {
             return this._closeChannels().then(function() {
                 return this.context.close();
-            });
+            }.bind(this));
         } else {
             return this._closeChannels();
         }

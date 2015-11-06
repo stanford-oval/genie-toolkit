@@ -10,6 +10,7 @@ const lang = require('lang');
 const crypto = require('crypto');
 const Q = require('q');
 
+const Protocol = require('../protocol');
 const DeviceView = require('../device_view');
 const ObjectSet = require('../object_set');
 
@@ -313,8 +314,6 @@ module.exports = new lang.Class({
     },
 
     handleSubscribe: function(feed, subscriptionId, authId, authSignature, selectors, mode, filters) {
-        // FIXME: filters
-
         console.log('Handling subscription ' + subscriptionId + ' to ' + authId);
 
         if (this.makeAccessToken(authId) !== authSignature) {
@@ -331,6 +330,15 @@ module.exports = new lang.Class({
 
         if (!this._devices.hasDevice(authId)) {
             feed.sendItem({ op: 'subscribe-error', msg: "Invalid device" });
+            return;
+        }
+
+        try {
+            selectors = Protocol.selectors.unmarshal(this._devices, selectors);
+            filters = Protocol.filters.unmarshal(this._devices, filters);
+        } catch(e) {
+            console.log('Failed to unmarshal: ' + e.message);
+            feed.sendItem({ op: 'subscribe-error', msg: "Protocol error" });
             return;
         }
 

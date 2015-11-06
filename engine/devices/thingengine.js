@@ -10,6 +10,7 @@ const lang = require('lang');
 const Q = require('q');
 const uuid = require('node-uuid');
 
+const Protocol = require('../protocol');
 const BaseDevice = require('../base_device');
 const Tier = require('../tier_manager').Tier;
 
@@ -32,19 +33,6 @@ const MessagingChannelProxy = new lang.Class({
         // send a message to this user and ask for permissions
     }
 });
-
-function marshalSelector(selectors) {
-    return selectors.map(function(simpleSelectors) {
-        return simpleSelectors.map(function(simpleSelector) {
-            if (simpleSelector.isTag)
-                return { isId: false, isTag: true, name: simpleSelector.name };
-            else if (simpleSelector.isId)
-                return { isTag: false, isId: true, name: simpleSelector.name };
-            else // other kind of stuff should have been lowered already
-                throw new Error('Invalid selector ' + simpleSelector);
-        });
-    });
-}
 
 const ForeignThingEngineInterface = new lang.Class({
     Name: 'ForeignThingEngineInterface',
@@ -77,9 +65,9 @@ const ForeignThingEngineInterface = new lang.Class({
                             subscriptionId: subscription,
                             authId: authId,
                             authSignature: authSignature,
-                            selectors: marshalSelector(selectors),
+                            selectors: Protocol.selectors.marshal(selectors),
                             mode: mode,
-                            filters: [] /* FIXME: filters */ });
+                            filters: Protocol.filters.marshal(filters) });
             return subscription;
         }.bind(this));
     },

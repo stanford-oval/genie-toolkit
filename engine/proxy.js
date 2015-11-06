@@ -10,6 +10,7 @@ const Q = require('q');
 const events = require('events');
 const lang = require('lang');
 
+const Protocol = require('./protocol');
 const BaseChannel = require('./base_channel');
 
 // naming: proxy is the side that requested the channel, stub is the
@@ -123,7 +124,7 @@ module.exports = new lang.Class({
     _handleMessage: function(fromTier, msg) {
         switch (msg.op) {
         case 'request-channel':
-            this._requestChannel(fromTier, msg.channelId, msg.args);
+            this._requestChannel(fromTier, msg.channelId, msg.device, msg.kind, msg.filters);
             return;
         case 'release-channel':
             this._releaseChannel(fromTier, msg.channelId);
@@ -163,13 +164,13 @@ module.exports = new lang.Class({
         this._sendMessage(targetTier, {op:'channel-sink-data', channelId: targetChannelId,data:data});
     },
 
-    getProxyChannel: function(targetChannelId, targetTier, args) {
+    getProxyChannel: function(targetChannelId, targetTier, device, kind, filters) {
         var fullId = targetChannelId + '-' + targetTier;
 
         if (fullId in this._proxies)
             return this._proxies[fullId];
 
-        var proxy = new ProxyChannel(this, targetTier, targetChannelId, args);
+        var proxy = new ProxyChannel(this, targetTier, targetChannelId, [device, kind, filters]);
         console.log('Created proxy channel ' + targetChannelId + ' targeting ' + targetTier);
         this._proxies[fullId] = proxy;
         return proxy;
@@ -178,22 +179,15 @@ module.exports = new lang.Class({
     requestProxyChannel: function(proxyChannel, cachedArgs) {
         var fullId = proxyChannel.uniqueId + '-' + proxyChannel.targetTier;
 
-        // marshal args into something that we can send on the wire
-        var marshalledArgs = cachedArgs.map(function(arg) {
-            if (typeof arg === 'function')
-                throw new Error('Cannot marshal a function');
-            if (typeof arg !== 'object')
-                return arg;
-            if (arg === null)
-                return arg;
-            if (arg.uniqueId !== undefined)
-                return {class:'device',uniqueId:arg.uniqueId};
-            return {class:'json',arg:arg};
-        });
+        var device = cachedArgs[0];
+        var kind = cachedArgs[1];
+        var filters = cachedArgs[2];
 
         var request = {
             defer: Q.defer(),
-            args: marshalledArgs,
+            device: device.uniqueId,
+            kind: kind,
+            filters: Protocol.filters.marshal(filters),
             proxy: proxyChannel,
             targetChannelId: proxyChannel.uniqueId,
             targetTier: proxyChannel.targetTier,
@@ -215,7 +209,7 @@ module.exports = new lang.Class({
     _sendChannelRequest: function(request) {
         this._sendMessage(request.targetTier,
                           {op:'request-channel', channelId: request.targetChannelId,
-                           args: request.args});
+                           device: request.device, kind: request.kind, filters: request.filters});
     },
 
     releaseProxyChannel: function(proxyChannel) {
@@ -241,7 +235,7 @@ module.exports = new lang.Class({
                            result:result});
     },
 
-    _requestChannel: function(fromTier, targetChannelId, marshalledArgs) {
+    _requestChannel: function(fromTier, targetChannelId, device, kind, filters) {
         var fullId = targetChannelId + '-' + fromTier;
 
         if (fullId in this._stubs) {
@@ -261,20 +255,9 @@ module.exports = new lang.Class({
         console.log('New remote channel request for ' + targetChannelId);
 
         try {
-            // marshal args into something that we can send on the wire
-            var devices = this._devices;
-            var args = marshalledArgs.map(function(arg) {
-                if (typeof arg !== 'object')
-                    return arg;
-                if (arg === null)
-                    return arg;
-                if (arg.class === 'device')
-                    return devices.getDevice(arg.uniqueId);
-                else if (arg.class === 'json')
-                    return arg.arg;
-                else
-                    throw new Error('Cannot unmarshal ' + JSON.stringify(arg));
-            });
+            device = this._devices.getDevice(device);
+            kind = kind;
+            filters = Protocol.filters.unmarshal(this._devices, filters);
         } catch(e) {
             this._replyChannel(fromTier, targetChannelId, e.message);
             return;
@@ -283,9 +266,6 @@ module.exports = new lang.Class({
         var defer = Q.defer();
         this._stubs[fullId] = defer.promise;
 
-        var device = args[0];
-        var kind = args[1];
-        var filters = args[2];
         this._channels.getChannel(device, kind, filters).then(function(channel) {
             var stub = new ChannelStub(this, fromTier, channel);
             return stub.open().then(function() {

@@ -14,6 +14,7 @@ const lang = require('lang');
 const Q = require('q');
 
 const prefs = require('./prefs');
+const Protocol = require('./protocol');
 const ProxyManager = require('./proxy');
 const PipeManager = require('./pipes');
 const Tier = require('./tier_manager').Tier;
@@ -68,15 +69,9 @@ module.exports = new lang.Class({
     },
 
     getProxyChannel: function(targetTier, device, kind, filters) {
-        var targetChannelId = device.uniqueId + '-' + kind;
-        // FIXME: we remove filters, otherwise we can't deduplicate
-        // This means that some devices that absolutely require filters
-        // (such as '@global -> #timer') won't work across the proxy
-        // We should find a way to support that, maybe by finding a unique
-        // filter representation
-        var args = [device, kind, []];
-
-        return this._getOpenedChannel(this._proxyManager.getProxyChannel(targetChannelId, targetTier, args));
+        var targetChannelId = device.uniqueId + '-' + kind + '-' + Protocol.filters.makeString(filters);
+        return this._getOpenedChannel(this._proxyManager.getProxyChannel(targetChannelId, targetTier,
+                                                                         device, kind, filters));
     },
 
     _checkFactoryCaps: function(caps) {
@@ -88,7 +83,7 @@ module.exports = new lang.Class({
         }.bind(this));
     },
 
-    getChannel: function(device, kind, filters) {
+    getChannel: function(device, kind) {
         // Named pipes are special in that we need some coordination
         // to ensure that we always have all proxies across all the tiers
         // So ask our trusty pipe manager for it
@@ -96,6 +91,8 @@ module.exports = new lang.Class({
         // (Note: we only follow this path for a request from ProxyManager)
         if (device.kind === 'thingengine-system' && kind === 'pipe')
             return this._pipeManager.getProxyNamedPipe(kind);
+
+        var args = Array.prototype.slice.call(arguments, 2);
 
         return Q.try(function() {
             return this._deviceFactory.getSubmodule(device.kind, kind);
@@ -109,10 +106,10 @@ module.exports = new lang.Class({
             var state;
             if (hasState) {
                 state = new ChannelStateBinder(this._prefs);
-                channel = factory.createChannel(this._engine, state, device, filters);
+                channel = factory.createChannel.apply(factory, [this._engine, state, device].concat(args));
             } else {
                 state = null;
-                channel = factory.createChannel(this._engine, device, filters);
+                channel = factory.createChannel.apply(factory, [this._engine, device].concat(filters));
             }
 
             if (channel.filterString !== undefined)
