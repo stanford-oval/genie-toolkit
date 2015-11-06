@@ -109,7 +109,7 @@ module.exports = new lang.Class({
                 channel = factory.createChannel.apply(factory, [this._engine, state, device].concat(args));
             } else {
                 state = null;
-                channel = factory.createChannel.apply(factory, [this._engine, device].concat(filters));
+                channel = factory.createChannel.apply(factory, [this._engine, device].concat(args));
             }
 
             if (channel.filterString !== undefined)
