@@ -46,13 +46,16 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
         var tier = req.body.tier;
         if (tier !== 'server' && tier !== 'cloud' && tier !== 'phone')
             throw new Error('No such tier ' + tier);
+        var state = JSON.parse(req.body.params);
 
         var engine = req.app.engine;
 
-        return engine.apps.loadOneApp(code, {}, undefined, tier, true);
+        return engine.apps.loadOneApp(code, state, undefined, tier, true);
     }).then(function() {
         appsList(req, res, next, "Application successfully created");
     }).catch(function(e) {
+        console.log(e);
+        console.log(e.stack);
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
     }).done();
@@ -116,10 +119,11 @@ router.post('/:id/update', user.requireLogIn, function(req, res, next) {
     Q.try(function() {
         var code = req.body['code'];
         var parsed = AppGrammar.parse(code);
+        var state = JSON.parse(req.body.params);
 
         var engine = req.app.engine;
 
-        engine.apps.loadOneApp(code, {}, req.params.id, app.currentTier, true);
+        engine.apps.loadOneApp(code, state, req.params.id, app.currentTier, true);
     }).then(function() {
         appsList(req, res, next, "Application successfully created");
     }).catch(function(e) {

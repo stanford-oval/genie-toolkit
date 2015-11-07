@@ -12,24 +12,25 @@ const Q = require('q');
 const Protocol = require('../../protocol');
 const BaseChannel = require('../../base_channel');
 
-const RemoteGroupProxyChannel = new lang.Class({
-    Name: 'RemoteGroupProxyChannel',
+const MessagingGroupProxyChannel = new lang.Class({
+    Name: 'MessagingGroupProxyChannel',
     Extends: BaseChannel,
 
-    _init: function(engine, device, foreignIface, selectors, channelName, mode, filters) {
+    _init: function(engine, device, targetDeviceId, selectors, channelName, mode, filters) {
         this.parent();
 
         this.engine = engine;
         this._device = device;
+        this._targetDeviceId = targetDeviceId;
         this._selectors = selectors;
         this._channelName = channelName;
         this._mode = mode;
         this._filters = filters;
-        this._foreignIface = foreignIface;
         this._values = {};
-        this._ready = false;
+        this._ready = {};
+        this._readyCount = -1;
 
-        this.filterString = Protocol.selectors.makeString(selectors) + '-' +
+        this.filterString = targetDeviceId + '-' + Protocol.selectors.makeString(selectors) + '-' +
             channelName + '-' + mode + Protocol.filters.makeString(filters);
     },
 
@@ -45,7 +46,7 @@ const RemoteGroupProxyChannel = new lang.Class({
     },
 
     sendEvent: function(event) {
-        console.log('Sending event to remote ThingEngine', event);
+        console.log('Sending broadcast event on group chat', event);
         this._feed.sendItem({ op: 'sink-data',
                               subscription: this._subscriptionId,
                               data: event });
@@ -66,19 +67,28 @@ const RemoteGroupProxyChannel = new lang.Class({
                 console.log("Subscription failed: " + parsed.msg);
                 break;
             case 'source-data':
+                if (!(msg.senderId in this._values))
+                    this._values[msg.senderId] = {};
                 if (parsed.data !== undefined)
-                    this._values[parsed.channelId] = parsed.data;
+                    this._values[msg.senderId][parsed.channelId] = parsed.data;
                 else
-                    delete this._values[parsed.channelId];
-                if (this._ready)
+                    delete this._values[msg.senderId][parsed.channelId];
+                if (this._readyCount === 0)
                     this.emitEvent(this.values());
                 break;
             case 'source-ready':
-                this._ready = true;
-                this.emitEvent(this.values());
+                if (!this._ready[msg.senderId]) {
+                    this._ready[msg.senderId] = true;
+                    this._readyCount--;
+                }
+                if (this._readyCount === 0)
+                    this.emitEvent(this.values());
                 break;
             case 'sink-ready':
-                this._ready = true;
+                if (!this._ready[msg.senderId]) {
+                    this._ready[msg.senderId] = true;
+                    this._readyCount--;
+                }
                 break;
             default:
                 // ignore other messages (eg. unsubscribe)
@@ -93,15 +103,18 @@ const RemoteGroupProxyChannel = new lang.Class({
     },
 
     _doOpen: function() {
-        return this._foreignIface.getFeed().then(function(feed) {
-            this._msgListener = this._onNewMessage.bind(this);
-            this._feed = feed;
-            feed.on('incoming-message', this._msgListener);
-            return feed.open();
-        }.bind(this)).then(function() {
+        this._msgListener = this._onNewMessage.bind(this);
+        this._feed = this.engine.messaging.getFeed(this._device.feedId);
+        this._feed.on('incoming-message', this._msgListener);
+        return this._feed.open().then(function() {
+            return this._feed.getMembers();
+        }.bind(this)).then(function(members) {
+            this._ready = {};
+            // 1 is myself, and I don't want to count me
+            this._readyCount = members.length-1;
             return this.engine.subscriptions.sendSubscribe(this._feed,
-                                                           this._device.authId,
-                                                           this._device.authSignature,
+                                                           this._targetDeviceId,
+                                                           null, // auth based on group not token
                                                            this._selectors,
                                                            this._channelName,
                                                            this._mode,
@@ -118,7 +131,7 @@ const RemoteGroupProxyChannel = new lang.Class({
     },
 });
 
-function createChannel(engine, device, foreignIface, selectors, channelName, mode, filters) {
-    return new RemoteGroupProxyChannel(engine, device, foreignIface, selectors, channelName, mode, filters);
+function createChannel(engine, device, targetDeviceId, selectors, channelName, mode, filters) {
+    return new MessagingGroupProxyChannel(engine, device, targetDeviceId, selectors, channelName, mode, filters);
 }
 module.exports.createChannel = createChannel;

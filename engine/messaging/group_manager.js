@@ -20,13 +20,13 @@ module.exports = new lang.Class({
         this._messaging = messaging;
     },
 
-    _onFeedAdded: function(feedId) {
+    _addFeed: function(feedId) {
         var messagingDevice = this._messaging.device;
         if (messagingDevice === null)
-            return;
+            return Q();
 
         var feed = this._messaging.getFeed(feedId);
-        feed.open().then(function() {
+        return feed.open().then(function() {
             return feed.getMembers();
         }).then(function(members) {
             // ignore feeds where all members are actually self
@@ -46,12 +46,17 @@ module.exports = new lang.Class({
             if (this._devices.hasDevice(uniqueId)) {
                 var device = this._devices.getDevice(uniqueId);
                 device.updateState(state);
+                return Q();
             } else {
-                this._devices.loadOneDevice(state, false);
+                return this._devices.loadOneDevice(state, false);
             }
         }.bind(this)).finally(function() {
             feed.close();
-        }).done();
+        });
+    },
+
+    _onFeedAdded: function(feedId) {
+        this._addFeed(feedId).done();
     },
 
     _onFeedRemoved: function(feedId) {
@@ -66,14 +71,15 @@ module.exports = new lang.Class({
     start: function() {
         this._feedAddedListener = this._onFeedAdded.bind(this);
         this._feedRemovedListener = this._onFeedRemoved.bind(this);
-        this._messaging.on('feed-added', this._feedAddedListener);
         this._messaging.on('feed-changed', this._feedAddedListener);
-        this._messaging.on('feed-removed', this._feedRemovedListener);
 
         return this._messaging.getFeedList().then(function(feeds) {
-            feeds.forEach(function(feedId) {
-                this._onFeedAdded(feedId);
-            }, this);
+            this._messaging.on('feed-added', this._feedAddedListener);
+            this._messaging.on('feed-removed', this._feedRemovedListener);
+
+            return Q.all(feeds.map(function(feedId) {
+                return this._addFeed(feedId);
+            }, this));
         }.bind(this));
     },
 

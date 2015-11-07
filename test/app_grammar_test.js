@@ -139,17 +139,19 @@ function executorTest() {
     var code = fs.readFileSync('./test/test.app').toString('utf8');
     var app = new AppExecutor(getMockEngine(), code, {'someone': 'Mike'});
 
+    /*
     app.inputs.forEach(function(input) {
         console.log('input', input);
     });
     app.outputs.forEach(function(output) {
         console.log('output', output);
     });
-
+    */
+    /*
     app.start();
     setTimeout(function() {
         app._onData();
-    }, 1000);
+    }, 1000);*/
 }
 
 function parserTest() {

@@ -21,14 +21,14 @@ module.exports = new lang.Class({
     Extends: events.EventEmitter,
     $rpcMethods: ['start', 'stop'],
 
-    _init: function(engine, state, compiler, inputBlocks) {
+    _init: function(engine, app, inputBlocks) {
         this.engine = engine;
         this._running = false;
 
-        this._state = state;
+        this._state = app.state;
         this._blocks = inputBlocks;
         this._inputs = inputBlocks.map(function(input) {
-            return new DeviceSelector(this.engine, 'r', input, compiler, state);
+            return new DeviceSelector(this.engine, app, 'r', input);
         }.bind(this));
 
         this._env = new ExecEnvironment(this.engine.devices, this._state);

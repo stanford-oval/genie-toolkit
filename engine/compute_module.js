@@ -30,7 +30,7 @@ const ComputeModuleFunctionChannel = new lang.Class({
     }
 });
 
-const ComputeModule = new lang.Class({
+module.exports = new lang.Class({
     Name: 'ComputeModule',
     Extends: BaseDevice,
 
@@ -87,19 +87,41 @@ const ComputeModule = new lang.Class({
         return BaseDevice.Availability.AVAILABLE;
     },
 
+    // check if a group is allowed for this compute module
+    // according to some auth directive (or the default auth directive)
+    verifyGroupAuthorization: function(feed) {
+        for (var auth in this._module.auth) {
+            var groupId = this.app.state[auth];
+            if (!this.engine.devices.hasDevice(groupId)) {
+                console.log('Missing authentication device');
+                continue;
+            }
+            var group = this.engine.devices.getDevice(groupId);
+            if (!group.hasKind('messaging-group'))
+                continue;
+            if (group.feedId === feed.feedId) {
+                console.log('Found valid authorization source');
+                return true;
+            }
+        }
+
+        console.log('No valid authorization source, rejecting...');
+        return false;
+    },
+
     getChannel: function(id, filters) {
         if (id in this._module.functions) {
             var ch;
             if (this._functionChannels[id])
                 ch = this._functionChannels[id];
             else
-                ch = new ComputeModuleFunctionChannel(this._functions[name]);
+                ch = new ComputeModuleFunctionChannel(this._functions[id]);
 
             return ch.open().then(function() {
                 return ch;
             });
         } else if (id in this._module.events) {
-            return this.engine.channels.getNamedPipe(this.uniqueId + '-' name, 'r');
+            return this.engine.channels.getNamedPipe(this.uniqueId + '-' + id, 'r');
         } else {
             throw new TypeError('Invalid channel name ' + id);
         }

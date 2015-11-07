@@ -77,8 +77,7 @@ const DeviceView = new lang.Class({
     },
 
     _deviceOpenChannels: function(device) {
-        var i;
-        if (!this._deviceMatchOneSimpleSelector(device, this.selectors[0])
+        if (!this._deviceMatchOneSimpleSelector(device, this.selectors[0]))
             return Q();
 
         if (this.selectors.length == 1) {
@@ -101,7 +100,7 @@ const DeviceView = new lang.Class({
 
             // the device could implement shared-device-group, in which case we either recognize
             // .members to mean the member list,
-            // or .<anythingelse> to mean some subset of devices shared in the group
+            // .devices to mean a some subset of devices shared in the group
             var group = device.queryInterface('shared-device-group');
             if (group !== null) {
                 if (this.selectors[1].isKind &&
@@ -117,25 +116,32 @@ const DeviceView = new lang.Class({
                     return this._startSubview(subview);
                 }
 
-                // The remaining case: open all devices that have been shared with the group
-                // The group actually does not contain devices, it contains RemoteGroupProxies
-                // Hence we go from 'S1.S2' to 'S1.*.S2' where * matches the RemoteGroupProxy
-                var proxies = group.getSharedGroups();
-                var subview = new DeviceView(device, proxies,
-                                             [Selector.Any].concat(this.selectors.slice(1)),
-                                             this.channelName,
-                                             this.mode, this.filters, true);
-                return this._startSubview(subview);
+                if (this.selectors[1].isKind &&
+                    this.selectors[1].name === 'devices') {
+                    // Open all devices that have been shared with the group
+                    // The group actually does not contain devices, it contains RemoteGroupProxies
+                    // Hence we go from 'S1.S2' to 'S1.*.S2' where * matches the RemoteGroupProxy
+                    var proxies = group.getSharedDevices();
+                    var subview = new DeviceView(device, proxies,
+                                                 [Selector.Any].concat(this.selectors.slice(1)),
+                                                 this.channelName,
+                                                 this.mode, this.filters, true);
+                    return this._startSubview(subview);
+                }
             }
 
             // the device could implement device-channel-proxy, in which case we delegate
             // the channel fully
             var proxy = device.queryInterface('device-channel-proxy');
             if (proxy !== null) {
-                return this._set.addOne(proxy.getChannel(this.selectors.slice(1),
-                                                         this.channelName,
-                                                         this.mode,
-                                                         this.filters));
+                var promise = proxy.getChannel(this.selectors.slice(1),
+                                               this.channelName,
+                                               this.mode,
+                                               this.filters);
+                if (promise !== null)
+                    return this._set.addOne(promise);
+                else
+                    return Q();
             }
 
             // nope, this device cannot be traversed, so ignore it

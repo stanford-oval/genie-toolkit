@@ -1,67 +1,98 @@
-/* -*- mode: css -*- */
+// -* mode: js -*-
+
+LinkedInApp(g : Group) {
+    module compute() {
+        event newalumn(name : String, edu : String);
+        function newmessage(name : String, edu :  String) {
+            query1("linkedin()").then(function(v) {
+                if (edu === v.edu)
+                    newalumn(name, edu);
+            });
+        }
+    }
+
+    mylin = linkedin() => g.compute.newmessage(name = mylin.formattedName, edu = mylin.edu);
+    (name, edu) = compute.newalumn() => notify(msg = name + " also went to " + edu);
+}
+
+====
+
 /* This should not run directly, but it gives an idea of the syntax */
 /* They should all at least parse successfully. */
 
-@name "Test";
-@description "A test application";
-
-:test as test {}
-=>
-:logger {
-    message: "Test App received an event on Test Channel";
+Test() {
+    test() => logger(message = "Test App received an event on Test Channel");
 }
 
 ====
 
-@name "Weather";
-@description "Observe weather predictions and log them";
+Weather() {
+    // Observe weather predictions and log them
 
-:weather as weather {}
-=>
-:logger {
-    message: "Weather forecast. Temperature " weather.temperature ", "
-             "humidity " weather.humidity ;
+    weather = weather() => logger(message = "Weather forecast. Temperature "
+                                  + weather.temperature + ", " +
+                                  "humidity " + weather.humidity);
 }
 
 ====
 
-@name "SmartThings example";
-@description "When everyone leaves, turn the lights off";
-/* This is the example in the SmartThings documentation */
+SmartThingsExample(g : Group) {
+    // When everyone leaves, turn the lights off
+    // This is the example in the SmartThings documentation
 
-all .person.location {
-    distance(location, #home.location) > 50m;
-}
-=>
-.light.livingroom {
-    power: off;
+    import EdgeTrigger as ET;
+    import Aggregation;
+
+    mylocation = gps.location() => ET.update(value = distance(location, @home.location));
+    ET.check(value > 50m) => g.Aggregation.all();
+    Aggregation.all() => #light#livingroom(power = off);
 }
 
 ====
 
-/* The "Aging with Dignity" demo */
-@name "When I fall in the bathtub";
+ImperativeSmartThingsExample(g : Group) {
+    // Same as SmartThingsExample, but with a bit of JS code instead
 
-/* Camera produces a picture, detects() runs the magic and produces a
-   list of features/tags detected from the picture. So you could have
-   detects() ~= face, detects() ~= happy, ...
+    module checkAllPeople() {
+        var count;
+        var personAway;
 
-   Not necessarily the best architecture in practice: we would run
-   the image recognition synchronously in the JS thread toghether with
-   the rest of the pure code.
+        event everyoneLeft();
+        function update(dist : Measure(m)) {
+            if (count === undefined)
+                count = g.members.length;
+            if (!senderId in people)
+                personAway[senderId] = false;
+            if (distance > 50) {
+                if (personAway[senderId])
+                    return;
+                personAway[senderId] = true;
+                count--;
+                if (count == 0)
+                    everyoneLeft();
+            } else {
+                if (!personAway[senderId])
+                    return;
+                personAway[senderId] = false;
+                count++;
+            }
+        }
+    }
 
-   Maybe we'll need .camera.bathroom:detect("..."), which will
-   send the detection filter to the camera to run in dedicated HW.
-   Or maybe this is just an optimization that the interpreter
-   can do without changing the rule.
-*/
-.camera.bathroom {
-    detects(picture) ~= "fall";
+    mylocation = gps.location() => checkAllPeople.update(dist = distance(mylocation, @home.location));
+    checkAllPeople.everyoneLeft() => #light#livingroom(power = off);
 }
-=>
-#phone:call {
-    number: "555-MY-SON";
-    voicemail: "I need urgent help, I fell and I can't get up!";
+
+====
+
+AgingWithDignity() {
+   // "When I fall in the bathtub"
+
+    import ImageRecognition as IR;
+
+    (picture) = #camera#bathroom() => IR.detect.in(picture = picture);
+    IR.detect.tag(tag = "fall") => @phone.call(number = "555-MY-SON",
+                                         voicemail = "I need urgent help, I fell and I can't get up!");
 }
 
 ====

@@ -110,7 +110,7 @@ module.exports = new lang.Class({
 
         console.log('Found Messaging Device ' + device.uniqueId);
 
-        iface.getFeedList().then(function(feeds) {
+        return iface.getFeedList().then(function(feeds) {
             this._messagingIface = iface;
 
             iface.on('feed-added', this._feedAddedListener);
@@ -123,7 +123,7 @@ module.exports = new lang.Class({
 
             if (this._syncing)
                 iface.startSync();
-        }.bind(this)).done();
+        }.bind(this));
     },
 
     _closeMessagingDevice: function() {
@@ -140,14 +140,14 @@ module.exports = new lang.Class({
             feeds.forEach(function(feedId) {
                 this.emit('feed-removed', feedId);
             }, this);
-        }.bind(this));
+        }.bind(this)).done();
     },
 
     _tryFindMessagingDevice: function() {
         var messagingDevices = this._devices.getAllDevicesOfKind('messaging');
         if (messagingDevices.length == 0)
-            return;
-        this._tryAddMessagingDevice(messagingDevices[0]);
+            return Q();
+        return this._tryAddMessagingDevice(messagingDevices[0]);
     },
 
     _onDeviceAdded: function(device) {
@@ -156,7 +156,7 @@ module.exports = new lang.Class({
         if (!device.hasKind('messaging'))
             return;
 
-        this._tryAddMessagingDevice(device);
+        this._tryAddMessagingDevice(device).done();
     },
 
     _onDeviceRemoved: function(device) {
@@ -166,7 +166,7 @@ module.exports = new lang.Class({
         this._closeMessagingDevice();
         this._messagingIface = null;
         this._messagingDevice = null;
-        this._tryFindMessagingDevice();
+        this._tryFindMessagingDevice().done();
     },
 
     start: function() {
@@ -175,8 +175,7 @@ module.exports = new lang.Class({
         this._devices.on('device-added', this._deviceAddedListener);
         this._devices.on('device-removed', this._deviceRemovedListener);
 
-        this._tryFindMessagingDevice();
-        return Q();
+        return this._tryFindMessagingDevice();
     },
 
     stop: function() {

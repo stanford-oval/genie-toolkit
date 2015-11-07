@@ -68,7 +68,7 @@ module.exports = new lang.Class({
         this._useCurrent = flag;
     },
 
-    readVar: function(name) {
+    readVar: function(type, name) {
         var thisobj = this._useCurrent ? this._this : this._previousThis;
         if (thisobj !== null && thisobj[name] !== undefined)
             return thisobj[name];
@@ -76,10 +76,6 @@ module.exports = new lang.Class({
             return this._output[name];
         if (this._scope[name] !== undefined)
             return this._scope[name];
-        throw new TypeError("Unknown variable " + name);
-    },
-
-    readSetting: function(type, name) {
         if (this._state[name] !== undefined)
             return this._state[name];
         if (type.isBoolean)
@@ -90,6 +86,7 @@ module.exports = new lang.Class({
             return '';
         if (type.isLocation)
             return {x:0, y:0};
+        throw new TypeError("Unknown variable " + name);
     },
 
     readObjectProp: function(object, name) {

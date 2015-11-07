@@ -19,7 +19,7 @@ module.exports = new lang.Class({
     Name: 'DeviceSelector',
     Extends: events.EventEmitter,
 
-    _init: function(engine, app, mode, block, state) {
+    _init: function(engine, app, mode, block) {
         events.EventEmitter.call(this);
 
         this.engine = engine;
@@ -28,7 +28,8 @@ module.exports = new lang.Class({
         this._selectors = null;
         this._context = null;
         this._pipe = null;
-        this._resolveSelector(block.selectors, state);
+
+        this._resolveSelector(block.selectors, app.state);
         this._filters = block.filters || [];
 
         this._set = null;
@@ -39,9 +40,8 @@ module.exports = new lang.Class({
         return this._set.values();
     },
 
-    _resolveSelector: function(selectors, state) {
+    _resolveSelector: function(selector, state) {
         var devices = this.engine.devices;
-        var context = devices.getContext(selectors.context);
 
         var mapped = [];
         if (selector.group !== null)
@@ -53,8 +53,9 @@ module.exports = new lang.Class({
             mapped.push(AppCompiler.Selector.Id('thingengine-compute-module-' + this._app.uniqueId + '-' + selector.computeModule.name));
         }
 
+        this._context = devices.getContext(selector.context);
         this._selectors = mapped;
-        this._channelName = selectors.channelName;
+        this._channelName = selector.channelName;
     },
 
     start: function() {

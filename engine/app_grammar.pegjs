@@ -11,6 +11,7 @@
     var AppCompiler = require('./app_compiler');
 
     var Statement = AppCompiler.Statement;
+    var ComputeStatement = AppCompiler.ComputeStatement;
     var Selector = AppCompiler.Selector;
     var AtRule = AppCompiler.AtRule;
     var Value = AppCompiler.Value;
@@ -44,7 +45,7 @@ at_auth = '@auth' _ '{' _ props:(output_property _)* '}' { return AtRule.Auth(ta
 at_kind = '@kind' _ kind:tag_selector _ ';' {
     return AtRule.Kind(kind);
 }
-output_property = name:ident _ ':' _ rhs:expression {
+output_property = name:cssident _ ':' _ rhs:expression _ ';' {
     return OutputRule.Assignment(name, rhs);
 }
 
@@ -61,22 +62,25 @@ statement = import_stmt / compute_module / rule
 import_stmt = 'import' __ name:ident alias:(__ 'as' __ ident)? _ ';' {
     return Statement.Import(name, alias !== null ? alias[3] : name);
 }
-compute_module = name:ident _ params:decl_param_list _ '{' statements:(compute_stmt _)+ '}' _ {
-    return Statement.ComputeModule(name, params, statements);
+compute_module = 'module' __ name:ident _ params:decl_param_list _ '{' _ statements:(compute_stmt _)+ _ '}' _ {
+    return Statement.ComputeModule(name, params, take(statements, 0));
 }
-compute_stmt = var_decl / event_decl / function_decl
+compute_stmt = auth_decl / var_decl / event_decl / function_decl
+auth_decl = 'auth' __ name:ident __ mode:('rw' / 'r' / 'w')? _ ';' {
+    return ComputeStatement.AuthDecl(name, mode !== null ? mode : 'rw');
+}
 var_decl = 'var' __ name:ident _ type:(':' _ type_ref _)? ';' {
     return ComputeStatement.VarDecl(name, type !== null ? type[2] : null);
 }
 event_decl = 'event' __ name:ident _ params:decl_param_list _ ';' {
     return ComputeStatement.EventDecl(name, params);
 }
-function_decl = 'function' __ name:ident _ params:decl_param_list _ '{' code:$(js_code) '}' {
+function_decl = 'function' __ name:ident _ params:decl_param_list _ '{' code:$(js_code*) '}' {
     return ComputeStatement.FunctionDecl(name, params, code);
 }
-js_code = '{' js_code '}' / '(' js_code ')' / '[' js_code ']' / literal_string / [^}\)\]\"\']
+js_code = '{' js_code* '}' / '(' js_code* ')' / '[' js_code* ']' / literal_string / [^{}\(\)\[\]\"\']
 
-rule = inputs:input_channel_list '=>' _ outputs:output_channel_list _ {
+rule = inputs:input_channel_list '=>' _ outputs:output_channel_list _ ';' {
     return Statement.Rule(inputs, outputs);
 }
 
@@ -91,11 +95,11 @@ decl_param = name:ident _ ':' _ type:type_ref {
 input_channel_list = first:input_channel _ rest:(',' _ input_channel _)* {
     return [first].concat(take(rest, 2));
 }
-input_channel = alias:(alias_spec _ '=' _)? context:(at_context _ '.' _)? selectors:selector_list _ params:input_param_list? {
+input_channel = alias:(alias_spec _ '=' _)? context:(at_context _ '.' _)? selectors:selector_list _ filters:input_param_list? {
     return ({ alias: alias !== null ? alias[0] : null,
               context: context !== null ? context[0] : 'self',
-              selectors: selector,
-              params: params !== null ? params : [] });
+              selectors: selectors,
+              filters: filters !== null ? filters : [] });
 }
 alias_spec = ident / '(' _ first:ident _ rest:(',' _ ident _)* ')' {
     return [first].concat(take(rest, 2));
@@ -111,19 +115,19 @@ comparator "comparator" = '>=' / '<=' / '>' / '<' / '=~' / 'has~' / 'has' / '=' 
 output_channel_list = first:output_channel _ rest:(',' _ output_channel _)* {
     return [first].concat(take(rest, 2));
 }
-output_channel = context:(at_context _ '.')? selectors:selector_list _ params:output_param_list {
+output_channel = context:(at_context _ '.')? selectors:selector_list _ outputs:output_param_list {
     return ({ context: context !== null ? context[0] : 'self',
               selectors: selectors,
-              params: params });
+              outputs: outputs });
 }
-output_param_list = '(' _ first:output_param _ rest:(',' _ output_param _)* ')' {
+output_param_list = '(' _ ')' { return []; } / '(' _ first:output_param _ rest:(',' _ output_param _)* ')' {
     return [first].concat(take(rest, 2));
 }
 output_param = name:ident _ '=' _ rhs:expression {
     return OutputRule.Assignment(name, rhs);
 }
 
-at_context = '@self' { return 'self'; } /
+at_context "@-context" = '@self' { return 'self'; } /
     '@phone' { return 'phone'; } /
     '@home' { return 'home'; } /
     '@cloud' { return 'cloud'; } /
@@ -137,7 +141,7 @@ simple_selector = tag_selector_list / id_selector / scoped_selector / var_select
 tag_selector_list = tags:(tag_selector _)+ {
     return Selector.Tags(take(tags, 0));
 }
-tag_selector = '#' name:ident { return name; }
+tag_selector "hashtag" = '#' name:cssident { return name; }
 id_selector = name:literal_string { return Selector.Id(name); }
 scoped_selector = scope:ident _ '::' _ name:ident { return Selector.Scoped(scope, name); }
 var_selector = name:ident { return Selector.VarRef(name); }
@@ -192,6 +196,10 @@ literal_number "number" = num:$(digit+ ('e' digit+)?) { return parseFloat(num); 
 identstart = [A-Za-z]
 identchar = [A-Za-z0-9_]
 ident "ident" = $(identstart identchar*)
+
+cssidentstart = [A-Za-z]
+cssidentchar = [A-Za-z\-0-9_]
+cssident "cssident" = $(cssidentstart cssidentchar*)
 
 _ = (whitespace / comment)*
 __ = whitespace _

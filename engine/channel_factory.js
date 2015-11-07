@@ -142,8 +142,8 @@ module.exports = new lang.Class({
     // but nothing should be ever calling them
     // Use BaseDevice.getChannel() instead
 
-    getOpenedChannel: function(device, kind, filters) {
-        return this._getOpenedChannel(this.getChannel(device, kind, filters));
+    getOpenedChannel: function() {
+        return this._getOpenedChannel(this.getChannel.apply(this, arguments));
     },
 
     // A named pipe is a PipeChannel with the given name

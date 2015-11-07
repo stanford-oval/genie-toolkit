@@ -50,10 +50,11 @@ const Engine = new lang.Class({
                          this._channels,
                          this._apps,
                          this._ui,
-                         new ConfigPairingModule(this, this._tiers),
-                         this._subscriptions,
-                         new MessagingSyncManager(this._messaging)
-                        ];
+                         new ConfigPairingModule(this, this._tiers)];
+        // to be started after the apps
+        this._lateModules = [this._subscriptions,
+                             new MessagingSyncManager(this._messaging)
+                            ];
 
         this._running = false;
         this._stopCallback = null;
@@ -96,18 +97,35 @@ const Engine = new lang.Class({
         return new ManualQueryRunner(this);
     },
 
-    // Run sequential initialization
-    open: function() {
-        function open(modules, i) {
+    _openSequential: function(modules) {
+        function open(i) {
             if (i == modules.length)
                 return;
 
             return modules[i].start().then(function() {
-                return open(modules, i+1);
+                return open(i+1);
             });
         }
 
-        return open(this._modules, 0).then(function() {
+        return open(0);
+    },
+
+    _closeSequential: function(modules) {
+        function close(i) {
+            if (i < 0)
+                return Q();
+
+            return modules[i].stop().then(function() {
+                return close(i-1);
+            });
+        }
+
+        return close(modules.length-1);
+    },
+
+    // Run sequential initialization
+    open: function() {
+        return this._openSequential(this._modules).then(function() {
             console.log('Engine started');
         });
     },
@@ -119,16 +137,8 @@ const Engine = new lang.Class({
     // It can be called multiple times, in which case it has
     // no effect
     close: function() {
-        function close(modules, i) {
-            if (i < 0)
-                return Q();
 
-            return modules[i].stop().then(function() {
-                return close(modules, i-1);
-            });
-        }
-
-        return close(this._modules, this._modules.length-1).then(function() {
+        return this._closeSequential(this._modules).then(function() {
             console.log('Engine closed');
         });
     },
@@ -187,6 +197,8 @@ const Engine = new lang.Class({
 
         return this._startAllApps()
             .then(function() {
+                return this._openSequential(this._lateModules);
+            }.bind(this)).then(function() {
                 if (!this._running)
                     return;
 
@@ -201,6 +213,9 @@ const Engine = new lang.Class({
 
                     this._stopCallback = callback;
                 }.bind(this));
+            }.bind(this))
+            .then(function() {
+                return this._closeSequential(this._lateModules);
             }.bind(this))
             .then(function() {
                 return this._stopAllApps();

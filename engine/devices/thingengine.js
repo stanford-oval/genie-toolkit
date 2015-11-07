@@ -54,33 +54,7 @@ const ForeignThingEngineInterface = new lang.Class({
                 this._feed = feed;
                 return feed;
             });
-    },
-
-    subscribe: function(authId, authSignature, selectors, channelName, mode, filters) {
-        var subscription = 'sub-' + uuid.v4();
-        return this.getFeed().then(function(feed) {
-            this.engine.subscriptions.registerSubscription(subscription);
-
-            feed.sendItem({ op: 'subscribe',
-                            subscriptionId: subscription,
-                            authId: authId,
-                            authSignature: authSignature,
-                            selectors: Protocol.selectors.marshal(selectors),
-                            channelName: channelName,
-                            mode: mode,
-                            filters: Protocol.filters.marshal(filters) });
-            return subscription;
-        }.bind(this));
-    },
-
-    unsubscribe: function(subscription) {
-        return this.getFeed().then(function(feed) {
-            feed.sendItem({ op: 'unsubscribe',
-                            subscriptionId: subscription });
-
-            this.engine.subscriptions.unregisterSubscription(subscription);
-        });
-    },
+    }
 });
 
 // An instance of a ThingEngine running remotely, as discovered

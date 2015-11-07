@@ -11,6 +11,7 @@ const crypto = require('crypto');
 const Q = require('q');
 
 const Protocol = require('../protocol');
+const AppCompiler = require('../app_compiler');
 const DeviceView = require('../device_view');
 const ObjectSet = require('../object_set');
 
@@ -294,11 +295,38 @@ module.exports = new lang.Class({
         this._activeRemoteGroups = {};
     },
 
-    registerSubscription: function(subscriptionId) {
-        this._activeRemoteGroups[subscriptionId] = true;
+    makeSubscriptionId: function(feed, authId, selectors, channelName, mode, filters) {
+        var digest = crypto.createHash('sha256');
+        return digest.digest(feed.feedId + '-' + authId + '-' +
+                             Protocol.selectors.makeString(selectors) + '-'
+                             + channelName + '-' + mode + Protocol.filters.makeString(filters))
+            .toString('hex');
     },
 
-    unregisterSubscription: function(subscriptionId) {
+    sendSubscribe: function(feed, authId, authSignature, selectors, channelName, mode, filters) {
+        var subscriptionId = this.makeSubscriptionId(feed, authId, selectors, channelName, mode, filters);
+        if (this._activeRemoteGroups[subscriptionId])
+            return subscriptionId;
+
+        this._activeRemoteGroups[subscriptionId] = true;
+
+        feed.sendItem({ op: 'subscribe',
+                        subscriptionId: subscriptionId,
+                        authId: authId,
+                        authSignature: authSignature,
+                        selectors: Protocol.selectors.marshal(selectors),
+                        channelName: channelName,
+                        mode: mode,
+                        filters: Protocol.filters.marshal(filters) });
+        return subscriptionId;
+    },
+
+    sendUnsubscribe: function(feed, subscriptionId) {
+        if (!this._activeRemoteGroups[subscriptionId])
+            return;
+
+        feed.sendItem({ op: 'unsubscribe',
+                        subscriptionId: subscription });
         delete this._activeRemoteGroups[subscriptionId];
     },
 
@@ -314,8 +342,17 @@ module.exports = new lang.Class({
     },
 
     _verifyAuthorization: function(feed, authId, authSignature) {
-        if (this.makeAccessToken(authId) !== authSignature)
-            return;
+        if (authSignature !== null) {
+            return (this.makeAccessToken(authId) === authSignature);
+        } else {
+            // authenticate based on the group that "owns" authId
+            if (!this._devices.hasDevice(authId))
+                return false;
+            var device = this._devices.getDevice(authId);
+            if (device.kind !== 'thingengine-compute-module')
+                return false;
+            return device.verifyGroupAuthorization(feed);
+        }
     },
 
     handleSubscribe: function(feed, subscriptionId, authId, authSignature,
@@ -354,6 +391,7 @@ module.exports = new lang.Class({
         if (context === null) {
             context = new ObjectSet.Simple();
             context.addOne(groupDevice);
+            selectors = [AppCompiler.Selector.Any];
         }
 
         if (mode === 'r') {

@@ -35,7 +35,7 @@ const RemoteGroupProxy = new lang.Class({
 
         return thingengine.then(function(engine) {
             var iface = engine.queryInterface('thingengine-foreign');
-            return channels.getChannel(master, 'proxy', iface, selectors, channelName, mode, filters);
+            return channels.getOpenedChannel(master, 'proxy', iface, selectors, channelName, mode, filters);
         });
     },
 });

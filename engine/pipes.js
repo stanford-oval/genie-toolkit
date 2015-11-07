@@ -36,7 +36,7 @@ const PipeSinkChannel = new lang.Class({
         this._pipeManager = pipeManager;
 
         this._sources = [];
-        this.uniqueId = 'pipe-' + name;
+        this.uniqueId = 'pipe-' + name + '-sink';
     },
 
     addSource: function(source) {
@@ -82,7 +82,7 @@ const PipeProxySourceChannel = new lang.Class({
         this.parent();
         this._name = name;
         this._pipeManager = pipeManager;
-        this.uniqueId = 'pipe-' + name;
+        this.uniqueId = 'pipe-' + name + '-source';
     },
 
     // Opening a PipeProxySourceChannel does nothing, the bulk of
@@ -117,6 +117,8 @@ const PipeLocalSourceChannel = new lang.Class({
                 this.emitEvent(event);
             }.bind(this));
         }, this);
+
+        this.uniqueId = 'pipe-' + name + '-source';
     },
 
     _doOpen: function() {

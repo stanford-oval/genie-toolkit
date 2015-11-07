@@ -25,15 +25,15 @@ const RuleExecutor = new lang.Class({
         this.engine = engine;
         this.app = app;
 
-        this.input = new QueryRunner(engine, this.app.state, rule.inputs);
+        this.input = new QueryRunner(engine, this.app, rule.inputs);
         this.input.on('triggered', this._onTriggered.bind(this));
 
-        this.outputs = rule.output.map(function(output) {
+        this.outputs = rule.outputs.map(function(output) {
             return {
                 block: output,
-                selector: new DeviceSelector(engine, 'w', output, state)
+                selector: new DeviceSelector(engine, this.app, 'w', output),
             };
-        });
+        }, this);
     },
 
     _onTriggered: function(env) {
@@ -93,13 +93,14 @@ module.exports = new lang.Class({
 
             // FIXME
             compiler.compileAtRules([]);
+            compiler.compileProgram(ast);
 
             this.uniqueId = 'app-' + compiler.programName;
             var paramnames = Object.keys(compiler.params);
             paramnames.forEach(function(name) {
                 var type = compiler.params[name];
                 if (type.isObject || type.isGroup)
-                    this.uniqueId += '-' + state[name].uniqueId;
+                    this.uniqueId += '-' + state[name];
                 else if (type.isLocation)
                     this.uniqueId += '-' + state[name].x + '-' + state[name].y;
                 else
@@ -108,11 +109,11 @@ module.exports = new lang.Class({
 
             var modulenames = Object.keys(compiler.modules);
             this.modules = modulenames.map(function(name) {
-                return new ComputeModule(engine, this, compiler.modules[name]);
+                return new ComputeModule(engine, this, name, compiler.modules[name]);
             }, this);
-            this.rules = compiler.rules.forEach(function(rule) {
-                return new Rule(engine, this, rule);
-            });
+            this.rules = compiler.rules.map(function(rule) {
+                return new RuleExecutor(engine, this, rule);
+            }, this);
 
             this.name = compiler.name;
             this.description = compiler.description;

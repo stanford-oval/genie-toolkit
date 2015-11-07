@@ -122,6 +122,8 @@ module.exports = new lang.Class({
             else
                 return this._cachedModules[id].getSubmodule(fullId.substr(id.length + 1));
         } catch(e) {
+            console.log(e);
+            console.log(e.stack);
             return null;
         }
     },

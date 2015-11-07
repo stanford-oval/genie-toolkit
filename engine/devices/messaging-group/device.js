@@ -127,13 +127,33 @@ const SharedDeviceGroup = new lang.Class({
         this._feed = this._messaging.getFeed(device.feedId);
     },
 
-    getSharedGroups: function() {
+    getSharedDevices: function() {
         return new SharedGroupDeviceView(this.engine, this._feed);
     },
 
     getMemberEngines: function() {
         return new SharedGroupMemberView(this.engine, this._feed);
     },
+});
+
+const MessagingGroupChannelProxy = new lang.Class({
+    Name: 'MessagingGroupChannelProxy',
+
+    _init: function(master) {
+        this.master = master;
+        console.log('Created MessagingGroupChannelProxy for ' + master.uniqueId);
+    },
+
+    getChannel: function(selectors, channelName, mode, filters) {
+        var master = this.master;
+        var channels = master.engine.channels;
+
+        if (!selectors[0].isId)
+            return null;
+
+        return channels.getOpenedChannel(master, 'proxy', selectors[0].name,
+                                         selectors.slice(1), channelName, mode, filters);
+    }
 });
 
 const MessagingGroupDevice = new lang.Class({
@@ -192,6 +212,8 @@ const MessagingGroupDevice = new lang.Class({
         switch(iface) {
         case 'shared-device-group':
             return new SharedDeviceGroup(this);
+        case 'device-channel-proxy':
+            return new MessagingGroupChannelProxy(this);
         case 'messaging-feed':
             return this.feed;
         default:

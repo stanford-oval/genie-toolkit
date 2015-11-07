@@ -442,7 +442,7 @@ module.exports = new lang.Class({
                     this._warng("Duplicate @auth declaration");
                 auth = compileAuth.call(this, rule.params);
             } else if (rule.isKind) {
-                kinds.push(rule.kind.name);
+                kinds.push(rule.kind);
             }
         }, this);
 
@@ -526,7 +526,7 @@ module.exports = new lang.Class({
         }
 
         return [type, function(env) {
-            return env.readVar(name);
+            return env.readVar(type, name);
         }];
     },
 
@@ -723,11 +723,7 @@ module.exports = new lang.Class({
             throw new TypeError();
     },
 
-    anyThresholdFilter: function(ast) {
-        return ast.some(function(ast) { return ast.isThreshold; });
-    },
-
-    compileUpdate: function(filters, anyThreshold, alias) {
+    compileUpdate: function(filters, alias) {
         function continueUpdate(inputs, i, env, cont) {
             if (i+1 < inputs.length) {
                 return inputs[i+1].update(inputs, i+1, env, cont);
@@ -749,35 +745,22 @@ module.exports = new lang.Class({
                     });
                     env.setThis(null);
 
-                    var fullThresholdName = thresholdName + channel.uniqueId;
-                    if (matchId)
-                        fullThresholdName += '-' + matchId;
-                    var run = false;
-                    if (ok) {
-                        if (env.getInputBlockEnabled(fullThresholdName)) {
-                            if (alias !== null) {
-                                var scope = {};
-                                if (Array.isArray(alias)) {
-                                    alias.forEach(function(name) {
-                                        scope[name] = current[name];
-                                    });
-                                } else {
-                                    scope[alias] = current;
-                                }
-                                env.mergeScope(scope);
-                            }
+                    if (!ok)
+                        return false;
 
-                            run = continueUpdate(inputs, i, env, cont);
-
-                            if (anyThreshold && run)
-                                env.setInputBlockEnabled(fullThresholdName, false);
+                    if (alias !== null) {
+                        var scope = {};
+                        if (Array.isArray(alias)) {
+                            alias.forEach(function(name) {
+                                scope[name] = current[name];
+                            });
+                        } else {
+                            scope[alias] = current;
                         }
-                    } else {
-                        if (anyThreshold)
-                            env.setInputBlockEnabled(fullThresholdName, true);
+                        env.mergeScope(scope);
                     }
 
-                    return run;
+                    return continueUpdate(inputs, i, env, cont);
                 }
 
                 if (Array.isArray(channel.event)) {
@@ -859,7 +842,7 @@ module.exports = new lang.Class({
                 if (group === undefined)
                     group = null;
                 devices = null;
-                computeModule = { scope: scope, first.name; };
+                computeModule = { scope: scope, name: first.name };
                 i++;
             } else if (first.isTags || first.isId) {
                 if (group === undefined)
@@ -893,7 +876,7 @@ module.exports = new lang.Class({
             }
         }
 
-        if (i < selectors.length - 1) {
+        if (i < selectors.length) {
             var first = selectors[i];
 
             if (first.isVarRef) {
@@ -923,7 +906,7 @@ module.exports = new lang.Class({
         }
 
         if (computeModule !== null) {
-            var imported = computedModule.scope;
+            var imported = computeModule.scope;
             if (imported === null)
                 imported = this._modules;
             var module = imported[computeModule.name];
@@ -963,6 +946,7 @@ module.exports = new lang.Class({
         } else {
             localscope[ast] = Type.Object(schema);
         }
+        return ast;
     },
 
     compileInputs: function(localscope, ast) {
@@ -978,9 +962,7 @@ module.exports = new lang.Class({
             var inputBlock = {
                 selectors: selector,
                 channels: [],
-                update: this.compileUpdate(filters,
-                                           this.anyThresholdFilter(input.filters),
-                                           alias),
+                update: this.compileUpdate(filters, alias),
                 filters: input.filters.map(this.simplifyFilter.bind(this)).filter(function(f) { return f !== null; })
             };
 
@@ -991,7 +973,7 @@ module.exports = new lang.Class({
     compileOutputs: function(localscope, ast) {
         return ast.map(function(output) {
             var selector = this.compileSelectors(output.selectors, 'w');
-            selector.context = input.context;
+            selector.context = output.context;
 
             var assignments = output.outputs.map(function(output) {
                 return this.compileAssignment(output, localscope, selector.schema);
@@ -1008,7 +990,7 @@ module.exports = new lang.Class({
     },
 
     compileModule: function(ast) {
-        var module = { params: {}, state: {}, events: {}, functions: {} };
+        var module = { auth: {}, params: {}, state: {}, events: {}, functions: {} };
         var scope = {};
 
         ast.params.forEach(function(p) {
@@ -1018,6 +1000,16 @@ module.exports = new lang.Class({
             scope[p.name] = module.params[p.name];
         });
         ast.statements.forEach(function(stmt) {
+            if (stmt.isAuthDecl) {
+                if (!stmt.name in this._scope ||
+                    !this._scope[stmt.name].isGroup)
+                    throw new TypeError("Auth directive for " + stmt.name + " does not name a group");
+                if (stmt.name in auth)
+                    throw new TypeError("Duplicate auth directive for " + stmt.name);
+                auth[stmt.name] = stmt.mode;
+                return;
+            }
+
             if (stmt.name in scope || stmt.name in this._scope)
                 throw new TypeError("Declaration " + stmt.name + " shadows existing name");
             if (stmt.isVarDecl) {
@@ -1035,9 +1027,9 @@ module.exports = new lang.Class({
             } else if (stmt.isFunctionDecl) {
                 var params = {};
                 stmt.params.forEach(function(p) {
-                    if (p.name in event)
+                    if (p.name in params)
                         throw new TypeError("Duplicate param " + p.name);
-                    event[p.name] = stringToType(p.type);
+                    params[p.name] = stringToType(p.type);
                 });
 
                 module.functions[stmt.name] = { params: params, code: stmt.code };
@@ -1046,6 +1038,20 @@ module.exports = new lang.Class({
                 throw new TypeError();
             }
         }, this);
+
+        // if no auth directives are present
+        // by policy we allow read/write access to compute modules
+        // that are instantiated within one and exactly one group
+        var explicitauths = Object.keys(module.auth);
+        if (explicitauths.length === 0) {
+            var paramnames = Object.keys(this._params);
+            var groupnames = paramnames.filter(function(name) {
+                return this._params[name].isGroup;
+            }, this);
+            if (groupnames.length === 1) {
+                module.auth[groupnames[0]] = 'rw';
+            }
+        }
 
         return module;
     },
@@ -1062,11 +1068,11 @@ module.exports = new lang.Class({
     compileProgram: function(ast) {
         this._programName = ast.name;
         ast.params.forEach(function(ast) {
-            this._params[name] = stringToType(ast.type);
-            this._scope[name] = this._params[name];
+            this._params[ast.name] = stringToType(ast.type);
+            this._scope[ast.name] = this._params[ast.name];
         }, this);
 
-        ast.forEach(function(stmt) {
+        ast.statements.forEach(function(stmt) {
             if (stmt.isImport) {
                 if (stmt.alias in this._imports)
                     throw new TypeError('Duplicate import declaration for ' + stmt.alias);
@@ -1076,7 +1082,8 @@ module.exports = new lang.Class({
                     throw new TypeError('Duplicate declaration for module ' + stmt.name);
                 if (stmt.name in this._scope)
                     throw new TypeError('Module declaration ' + stmt.name + ' aliases name in scope');
-                this._modules[name] = this.compileModule(stmt);
+                this._modules[stmt.name] = this.compileModule(stmt);
+                this._scope[stmt.name] = Type.Module;
             } else if (stmt.isRule) {
                 var localscope = {};
                 this._rules.push({
@@ -1085,18 +1092,21 @@ module.exports = new lang.Class({
                 });
             }
         }, this);
-
-        return program;
     },
 
     compileChannelDescriptions: function(ast) {
         return ast.map(function(channel) {
-            if (!channel.selector.isTags)
-                throw new TypeError('Invalid channel selector');
+            var localscope = {};
+            for (var name in this._settings)
+                localscope[name] = this._settings[name].type;
+
+            var assignments = channel.props.map(function(output) {
+                return this.compileAssignment(output, localscope, null);
+            }, this);
 
             var channelBlock = {
-                kind: channel.selector.name,
-                properties: channel.props.map(this.compileAssignment.bind(this))
+                kind: channel.selector,
+                properties: assignments,
             };
 
             return channelBlock;
@@ -1139,7 +1149,7 @@ var AtRule = adt.data({
         params: adt.only(Array),
     },
     Kind: {
-        kind: adt.only(Selector),
+        kind: adt.only(String),
     },
 });
 module.exports.AtRule = AtRule;
@@ -1237,8 +1247,14 @@ var Statement = adt.data({
 });
 module.exports.Statement = Statement;
 var ComputeStatement = adt.data({
+    AuthDecl: {
+        name: adt.only(String),
+        mode: adt.only(String)
+    },
     VarDecl: {
         name: adt.only(String),
+        type: function(v) { if (v === null) return v;
+                            else return adt.only(String).apply(this, arguments); },
     },
     EventDecl: {
         name: adt.only(String),

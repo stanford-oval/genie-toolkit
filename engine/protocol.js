@@ -146,7 +146,9 @@ const SelectorProto = {
             else if (simple.isTags)
                 return 'tags:' + simple.tags.join(',');
             else if (simple.isKind)
-                    return 'kind:' + simple.kind;
+                return 'kind:' + simple.kind;
+            else if (simple.isAny)
+                return 'any';
             else
                 throw new TypeError();
         }).join('--');
@@ -160,6 +162,8 @@ const SelectorProto = {
                 return { tag: 'tags', tags: simple.tags };
             else if (simple.isKind)
                 return { tag: 'kind', name: simple.name };
+            else if (simple.isAny)
+                return { tag: 'any' };
             else
                 throw new TypeError();
         });
@@ -174,6 +178,8 @@ const SelectorProto = {
                 return AppCompiler.Selector.Tags(simple.tags);
             case 'kind':
                 return AppCompiler.Selector.Kind(simple.name);
+            case 'any':
+                return AppCompiler.Selector.Any;
             default:
                 throw new TypeError();
             }

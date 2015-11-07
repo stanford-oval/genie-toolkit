@@ -15,6 +15,11 @@ block content
       div.form-group
         textarea.form-control(name='code')#code= code
 
+      h2
+        label(for="params") Parameters
+      div.form-group
+        textarea#params(name="params").form-control {}
+
       h2 Settings
       - var anySetting = false
       each setting, key in settings
