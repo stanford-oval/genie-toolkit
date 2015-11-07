@@ -142,7 +142,7 @@ module.exports = new lang.Class({
             return this._contexts[key];
 
         switch(key) {
-        case 'me':
+        case 'self':
             this._contexts[key] = new AllDeviceSet(this);
             break;
         case 'home':

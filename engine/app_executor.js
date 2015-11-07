@@ -16,56 +16,24 @@ const AppGrammar = require('./app_grammar');
 const ExecEnvironment = require('./exec_environment');
 const QueryRunner = require('./query_runner');
 const DeviceSelector = require('./device_selector');
+const ComputeModule = require('./compute_module');
 
-module.exports = new lang.Class({
-    Name: 'AppExecutor',
-    Extends: events.EventEmitter,
-    $rpcMethods: ['get name', 'get description', 'get code',
-                  'get state', 'get settings', 'get uniqueId',
-                  'get currentTier', 'get isRunning', 'get isEnabled'],
+const RuleExecutor = new lang.Class({
+    Name: 'RuleExecutor',
 
-    _init: function(engine, code, state) {
-        events.EventEmitter.call(this);
-
+    _init: function(engine, app, rule) {
         this.engine = engine;
-        this.state = state;
-        this.code = code;
+        this.app = app;
 
-        // set automatically by the engine
-        this.uniqueId = undefined;
-        this.currentTier = undefined;
-        this.isRunning = false;
-        this.isEnabled = false;
+        this.input = new QueryRunner(engine, this.app.state, rule.inputs);
+        this.input.on('triggered', this._onTriggered.bind(this));
 
-        try {
-            var compiler = new AppCompiler();
-            var ast = AppGrammar.parse(code);
-
-            compiler.compileAtRules(ast['at-rules']);
-
-            this.name = compiler.name;
-            this.description = compiler.description;
-            this.settings = compiler.settings;
-
-            this.input = new QueryRunner(engine, this.state, compiler, compiler.compileInputs(ast.inputs, state));
-            this.input.on('triggered', this._onTriggered.bind(this));
-
-            this.outputs = compiler.compileOutputs(ast.outputs).map(function(output) {
-                return {
-                    block: output,
-                    selector: new DeviceSelector(engine, 'w', output, compiler, state)
-                };
-            });
-
-            this.isBroken = false;
-        } catch(e) {
-            console.log('App is broken: ' + e.message);
-            console.log(e.stack);
-            this.isBroken = true;
-            this.name = 'Broken App';
-            this.description = 'This app is broken';
-            this.settings = {};
-        }
+        this.outputs = rule.output.map(function(output) {
+            return {
+                block: output,
+                selector: new DeviceSelector(engine, 'w', output, state)
+            };
+        });
     },
 
     _onTriggered: function(env) {
@@ -97,5 +65,80 @@ module.exports = new lang.Class({
                 return output.selector.stop();
             }));
         }.bind(this));
+    },
+});
+
+module.exports = new lang.Class({
+    Name: 'AppExecutor',
+    Extends: events.EventEmitter,
+    $rpcMethods: ['get name', 'get description', 'get code',
+                  'get state', 'get settings', 'get uniqueId',
+                  'get currentTier', 'get isRunning', 'get isEnabled'],
+
+    _init: function(engine, code, state) {
+        events.EventEmitter.call(this);
+
+        this.engine = engine;
+        this.state = state;
+        this.code = code;
+
+        // set automatically by the engine
+        this.currentTier = undefined;
+        this.isRunning = false;
+        this.isEnabled = false;
+
+        try {
+            var compiler = new AppCompiler();
+            var ast = AppGrammar.parse(code);
+
+            // FIXME
+            compiler.compileAtRules([]);
+
+            this.uniqueId = 'app-' + compiler.programName;
+            var paramnames = Object.keys(compiler.params);
+            paramnames.forEach(function(name) {
+                var type = compiler.params[name];
+                if (type.isObject || type.isGroup)
+                    this.uniqueId += '-' + state[name].uniqueId;
+                else if (type.isLocation)
+                    this.uniqueId += '-' + state[name].x + '-' + state[name].y;
+                else
+                    this.uniqueId += '-' + state[name];
+            }, this);
+
+            var modulenames = Object.keys(compiler.modules);
+            this.modules = modulenames.map(function(name) {
+                return new ComputeModule(engine, this, compiler.modules[name]);
+            }, this);
+            this.rules = compiler.rules.forEach(function(rule) {
+                return new Rule(engine, this, rule);
+            });
+
+            this.name = compiler.name;
+            this.description = compiler.description;
+            this.settings = compiler.settings;
+
+            this.isBroken = false;
+        } catch(e) {
+            console.log('App is broken: ' + e.message);
+            console.log(e.stack);
+            this.isBroken = true;
+            this.name = 'Broken App';
+            this.description = 'This app is broken';
+            this.settings = {};
+        }
+    },
+
+    start: function() {
+        Q.all(this.modules.map(function(m) { return m.start(); })).then(function() {
+            return Q.all(this.rules.map(function(r) { return r.start(); }));
+        }.bind(this)).done();
+
+        return Q();
+    },
+
+    stop: function() {
+        return Q.all(this.rules.map(function(r) { return r.stop() ; }).
+                     concat(this.modules.map(function(m) { return m.stop(); })));
     },
 });

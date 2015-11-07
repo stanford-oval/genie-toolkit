@@ -183,9 +183,12 @@ module.exports = new lang.Class({
         var kind = cachedArgs[1];
         var filters = cachedArgs[2];
 
+        if (device !== 'thingengine-internal')
+            device = device.uniqueId;
+
         var request = {
             defer: Q.defer(),
-            device: device.uniqueId,
+            device: device,
             kind: kind,
             filters: Protocol.filters.marshal(filters),
             proxy: proxyChannel,
@@ -255,7 +258,8 @@ module.exports = new lang.Class({
         console.log('New remote channel request for ' + targetChannelId);
 
         try {
-            device = this._devices.getDevice(device);
+            if (device !== 'thingengine-internal')
+                device = this._devices.getDevice(device);
             kind = kind;
             filters = Protocol.filters.unmarshal(this._devices, filters);
         } catch(e) {

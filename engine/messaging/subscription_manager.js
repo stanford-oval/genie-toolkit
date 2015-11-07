@@ -50,7 +50,7 @@ const SubscriptionWatcher = new lang.Class({
             case 'subscribe':
                 this._manager.handleSubscribe(this._feed, parsed.subscriptionId,
                                               parsed.authId, parsed.authSignature,
-                                              parsed.selectors, parsed.mode,
+                                              parsed.selectors, parsed.channelName, parsed.mode,
                                               parsed.filters);
                 break;
 
@@ -81,7 +81,7 @@ const SubscriptionWatcher = new lang.Class({
 
                 this._manager.handleSubscribe(this._feed, parsed.subscriptionId,
                                               parsed.authId, parsed.authSignature,
-                                              parsed.selectors, parsed.mode,
+                                              parsed.selectors, parsed.channelName, parsed.mode,
                                               parsed.filters);
                 break;
 
@@ -138,11 +138,11 @@ const SubscriptionWatcher = new lang.Class({
 const SourceSubscription = new lang.Class({
     Name: 'SourceSubscription',
 
-    _init: function(feed, subscriptionId, context, selectors, filters) {
+    _init: function(feed, subscriptionId, context, selectors, channelName, filters) {
         this._feed = feed;
         this._subscriptionId = subscriptionId;
 
-        this._view = new DeviceView(null, context, selectors, 'r', filters);
+        this._view = new DeviceView(null, context, selectors, channelName, 'r', filters);
         this._set = null;
     },
 
@@ -211,11 +211,11 @@ const SourceSubscription = new lang.Class({
 const SinkSubscription = new lang.Class({
     Name: 'SinkSubscription',
 
-    _init: function(feed, subscriptionId, context, selectors, filters) {
+    _init: function(feed, subscriptionId, context, selectors, channelName, filters) {
         this._feed = feed;
         this._subscriptionId = subscriptionId;
 
-        this._view = new DeviceView(null, context, selectors, 'w', filters, false);
+        this._view = new DeviceView(null, context, selectors, channelName, 'w', filters, false);
         this._set = null;
     },
 
@@ -313,10 +313,16 @@ module.exports = new lang.Class({
         return sign.toString('hex');
     },
 
-    handleSubscribe: function(feed, subscriptionId, authId, authSignature, selectors, mode, filters) {
+    _verifyAuthorization: function(feed, authId, authSignature) {
+        if (this.makeAccessToken(authId) !== authSignature)
+            return;
+    },
+
+    handleSubscribe: function(feed, subscriptionId, authId, authSignature,
+                              selectors, channelName, mode, filters) {
         console.log('Handling subscription ' + subscriptionId + ' to ' + authId);
 
-        if (this.makeAccessToken(authId) !== authSignature) {
+        if (!this._verifyAuthorization(feed, authId, authSignature)) {
             feed.sendItem({ op: 'subscribe-error', msg: "Invalid token" });
             return;
         }
@@ -352,10 +358,10 @@ module.exports = new lang.Class({
 
         if (mode === 'r') {
             this._subscriptions[fullId] = new SourceSubscription(feed, subscriptionId, context,
-                                                                 selectors, filters);
+                                                                 selectors, channelName, filters);
         } else if (mode === 'w') {
             this._subscriptions[fullId] = new SinkSubscription(feed, subscriptionId, context,
-                                                               selectors, filters);
+                                                               selectors, channelName, filters);
         } else {
             throw new Error('Invalid mode ' + mode);
         }

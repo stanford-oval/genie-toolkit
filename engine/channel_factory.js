@@ -89,7 +89,10 @@ module.exports = new lang.Class({
         // So ask our trusty pipe manager for it
         //
         // (Note: we only follow this path for a request from ProxyManager)
-        if (device.kind === 'thingengine-system' && kind === 'pipe')
+        // (And really, thingengine-internal is a special special special case
+        // just for pipes. Maybe worth a refactoring to use regular devices,
+        // one day).
+        if (device === 'thingengine-internal' && kind === 'pipe')
             return this._pipeManager.getProxyNamedPipe(kind);
 
         var args = Array.prototype.slice.call(arguments, 2);
@@ -150,9 +153,8 @@ module.exports = new lang.Class({
     // The returned channel will be a source if the second parameter is 'r',
     // and a sink if it is 'w'
     //
-    // Like getOpenedChannel, this is "public" to DeviceSelector (because pipes
-    // are special-special-special), but *nothing* should ever call this outside
-    // of core code
+    // Like getOpenedChannel, this is "public" to ComputeModule, but
+    // *nothing* should ever call this outside of core code
     getNamedPipe: function(name, mode) {
         if (mode !== 'r' && mode !== 'w')
             throw new Error('Invalid mode ' + mode);

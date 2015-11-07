@@ -21,10 +21,7 @@ module.exports = new lang.Class({
     },
 
     getSubmodule: function(kind, subkind) {
-        if (kind === 'thingengine-system')
-            return require('./channels/' + subkind);
-        else
-            return this._downloader.getSubmodule(kind, subkind);
+        return this._downloader.getSubmodule(kind, subkind);
     },
 
     getFactory: function(kind) {
@@ -38,9 +35,6 @@ module.exports = new lang.Class({
     },
 
     createDevice: function(kind, serializedDevice) {
-        if (kind === 'thingengine-system')
-            return new SystemDevice(this._engine);
-
         return this.getFactory(kind).then(function(factory) {
             return factory.createDevice(this._engine, serializedDevice);
         }.bind(this));

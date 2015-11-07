@@ -12,6 +12,7 @@ const lang = require('lang');
 const adt = require('adt');
 
 const ObjectSet = require('./object_set');
+const AppCompiler = require('./app_compiler');
 
 // A "view" of a set of devices (or their channels really), as a set of selectors matching
 // in specific context (which must be an ObjectSet of Devices)
@@ -19,12 +20,13 @@ const DeviceView = new lang.Class({
     Name: 'DeviceView',
     Extends: events.EventEmitter,
 
-    _init: function(device, context, selectors, mode, filters, openContext) {
+    _init: function(device, context, selectors, channelName, mode, filters, openContext) {
         events.EventEmitter.call(this);
 
         this.device = device;
         this.context = context;
         this.selectors = selectors;
+        this.channelName = channelName;
         if (selectors.length <= 0)
             throw new Error('Selectors array must be non-empty');
         this.mode = mode;
@@ -40,11 +42,17 @@ const DeviceView = new lang.Class({
     },
 
     _deviceMatchOneSimpleSelector: function(device, selector) {
-        if (selector.isTag)
-            return device.hasKind(selector.name) || device.hasTag(selector.name);
+        if (selector.isAny)
+            return true;
+        else if (selector.isTags)
+            return selector.tags.every(function(t) {
+                return device.hasKind(t) || device.hasTag(t);
+            });
         else if (selector.isId)
             return device.uniqueId === selector.name;
-        else // @self and @global should have been lowered by now, as should have @variables...
+        else if (selector.isKind)
+            return device.kind === selector.name;
+        else // varref should have been lowered by now...
             throw new Error('Invalid selector ' + selector);
     },
 
@@ -70,22 +78,14 @@ const DeviceView = new lang.Class({
 
     _deviceOpenChannels: function(device) {
         var i;
-        // this is the list of tags/ids at our step in the traversal
-        var simpleSelectors = this.selectors[0];
-
-        for (i = 0; i < simpleSelectors.length; i++) {
-            if (!this._deviceMatchOneSimpleSelector(device, simpleSelectors[i]))
-                return Q();
-        }
+        if (!this._deviceMatchOneSimpleSelector(device, this.selectors[0])
+            return Q();
 
         if (this.selectors.length == 1) {
             // this is the last step in the traversal
             // try to open the device
 
-            if (this.mode === 'r')
-                return this._set.addOne(device.getChannel('source', this.filters));
-            else
-                return this._set.addOne(device.getChannel('sink', this.filters));
+            return this._set.addOne(device.getChannel(this.channelName, this.filters));
         } else {
             // we need to traverse the device
             console.log('Namespace device ' + device.uniqueId + ' matches ' + this.selectors);
@@ -95,42 +95,35 @@ const DeviceView = new lang.Class({
             var group = device.queryInterface('device-group');
             if (group !== null) {
                 var subview = new DeviceView(device, group, this.selectors.slice(1),
-                                             this.mode, this.filters, false);
+                                             this.channelName, this.mode, this.filters, false);
                 return this._startSubview(subview);
             }
 
             // the device could implement shared-device-group, in which case we either recognize
-            // -> #members to mean the member list, -> #shareddata to mean the feed itself,
-            // or -> <anythingelse> to mean some subset of devices shared in the group
+            // .members to mean the member list,
+            // or .<anythingelse> to mean some subset of devices shared in the group
             var group = device.queryInterface('shared-device-group');
             if (group !== null) {
-                // BLARGH I hate that we have this special-special-special case
-                if (this.selectors.length === 2 && this.selectors[1].length === 1 &&
-                    this.selectors[1][0].isTag && this.selectors[1][0] === 'sharedData') {
-                    if (this.mode === 'r')
-                        return this._set.addOne(device.getChannel('source', this.filters));
-                    else
-                        return this._set.addOne(device.getChannel('sink', this.filters));
-                }
-
-                if (this.selectors[1].length === 1 &&
-                    this.selectors[1][0].isTag && this.selectors[1][0] === 'members') {
-                    // given 'S1 -> #members -> S2', where S1 is what we're currently maching
+                if (this.selectors[1].isKind &&
+                    this.selectors[1].name === 'members') {
+                    // given 'S1.members.S2', where S1 is what we're currently maching
                     // get the thingengine object set and construct a subview that matches
-                    // '* -> S2' on the thingengine object set
+                    // '*.S2' on the thingengine object set
                     var engines = group.getMemberEngines();
-                    // simple selectors are AND-ed together, so an empty simple selector matches
-                    // everything
-                    var subview = new DeviceView(device, engines, [[]].concat(this.selectors.slice(2)),
+                    var subview = new DeviceView(device, engines,
+                                                 [Selector.Any].concat(this.selectors.slice(2)),
+                                                 this.channelName,
                                                  this.mode, this.filters, true);
                     return this._startSubview(subview);
                 }
 
                 // The remaining case: open all devices that have been shared with the group
                 // The group actually does not contain devices, it contains RemoteGroupProxies
-                // Hence we go from 'S1 -> S2' to 'S1 -> * -> S2' where * matches the RemoteGroupProxy
+                // Hence we go from 'S1.S2' to 'S1.*.S2' where * matches the RemoteGroupProxy
                 var proxies = group.getSharedGroups();
-                var subview = new DeviceView(device, proxies, [[]].concat(this.selectors.slice(1)),
+                var subview = new DeviceView(device, proxies,
+                                             [Selector.Any].concat(this.selectors.slice(1)),
+                                             this.channelName,
                                              this.mode, this.filters, true);
                 return this._startSubview(subview);
             }
@@ -139,7 +132,10 @@ const DeviceView = new lang.Class({
             // the channel fully
             var proxy = device.queryInterface('device-channel-proxy');
             if (proxy !== null) {
-                return this._set.addOne(proxy.getChannel(this.selectors.slice(1), this.mode, this.filters));
+                return this._set.addOne(proxy.getChannel(this.selectors.slice(1),
+                                                         this.channelName,
+                                                         this.mode,
+                                                         this.filters));
             }
 
             // nope, this device cannot be traversed, so ignore it

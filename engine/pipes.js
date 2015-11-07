@@ -176,9 +176,9 @@ module.exports = new lang.Class({
         if (name in this._pipeLocalSources)
             return Q(this._pipeLocalSources[name]);
 
-        var args = ['pipe', name];
         var proxies = this._tierManager.getOtherTiers().map(function(tier) {
-            return this._proxyManager.getProxyChannel('pipe-' + name, tier, args);
+            return this._proxyManager.getProxyChannel('pipe-' + name, tier,
+                                                      'thingengine-internal', 'pipe', []);
         }.bind(this));
         var sourcePipe = new PipeLocalSourceChannel(name, this, proxies);
         this._pipeLocalSources[name] = sourcePipe;

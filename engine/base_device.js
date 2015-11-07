@@ -158,6 +158,10 @@ module.exports = new lang.Class({
     // id === 'sink'
     //
     // Don't overwrite this method!
+    // (Unless you're ComputeModule, then go ahead - ComputeModule is special
+    // because it creates new Device kinds on the fly)
+    // (GenericDevice is also sort of special, but less than ComputeModule, so
+    // it does not need to override getChannel)
     getChannel: function(id, filters) {
         if (this.ownerTier === this.engine.ownTier ||
             this.ownerTier === Tier.GLOBAL)

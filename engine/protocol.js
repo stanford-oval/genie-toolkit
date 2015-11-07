@@ -11,33 +11,7 @@ const Q = require('q');
 
 const AppCompiler = require('./app_compiler');
 
-// selectors
-function compareSimpleSelector(a, b) {
-    if (a.isTag && b.isId)
-        return -1;
-    if (a.isId && b.isTag)
-        return +1;
-    if ((a.isTag && b.isTag) ||
-        (a.isId && b.isId)) {
-        if (a.name < b.name)
-            return -1;
-        if (a.name > b.name)
-            return +1;
-        return 0;
-    }
-
-    if (b.isTag || b.isId)
-        return -1;
-    if (a.isTag || a.isId)
-        return +1;
-    return 0;
-}
-
 const ValueProto = {
-    makeCanonical: function(value) {
-        return value;
-    },
-
     makeString: function(value) {
         if (value.isBoolean)
             return 'bool:' + value.value;
@@ -107,16 +81,6 @@ const ValueProto = {
 };
 
 const FilterProto = {
-    makeCanonical: function(filters) {
-        // filters are already in "canonical form"
-        // as "var comp constant"
-        //    "constant comp constant"
-        //    "change var"
-        //    "change var by constant"
-        // no other filters are handled
-        return filters;
-    },
-
     makeString: function(filters) {
         return filters.map(function(filter) {
             if (filter.isThreshold) {
@@ -130,13 +94,6 @@ const FilterProto = {
                 else if (!lhs.isConstant)
                     throw new TypeError();
                 return ValueProto.makeString(lhs.value) + comp + ValueProto.makeString(rhs.value);
-            } else if (filter.isChange) {
-                if (filter.amount !== null && !filter.amount.isConstant)
-                    throw new TypeError();
-                if (!filter.expr.isVarRef)
-                    throw new TypeError();
-                return 'change-var:' + filter.expr.name +
-                    (filter.amount !== null ? '-by-' + ValueProto.makeString(filter.amount.value) : '');
             } else {
                 throw new TypeError();
             }
@@ -157,11 +114,7 @@ const FilterProto = {
                     throw new TypeError();
                 return { tag: 'threshold', lhs: ValueProto.marshal(lhs.value), comp: comp, rhs: ValueProto.marshal(rhs.value) };
             } else {
-                if (filter.amount !== null && !filter.amount.isConstant)
-                    throw new TypeError();
-                if (!filter.expr.isVarRef)
-                    throw new TypeError();
-                return { tag: 'change', name: filter.expr.name, amount: filter.amount != null ? ValueProto.marshal(filter.amount) : null };
+                throw new TypeError();
             }
         });
     },
@@ -178,9 +131,6 @@ const FilterProto = {
                     return AppCompiler.InputRule.Threshold(AppCompiler.Expression.Constant(ValueProto.unmarshal(devices, filter.lhs)),
                                                            filter.comp,
                                                            AppCompiler.Expression.Constant(ValueProto.unmarshal(devices, filter.rhs)));
-            case 'change':
-                return AppCompiler.InputRule.Change(AppCompiler.Expression.VarRef(filter.name),
-                                                    filter.amount !== null ? AppCompiler.Expression.Constant(ValueProto.unmarshal(devices, filter.amount)) : null);
             default:
                 throw new TypeError();
             }
@@ -189,70 +139,44 @@ const FilterProto = {
 };
 
 const SelectorProto = {
-    makeCanonical: function(selectors) {
-        return selectors.map(function(simpleSelectors) {
-            var copy = simpleSelectors.slice(0);
-            copy.sort(compareSimpleSelector);
-            return copy;
-        });
-    },
-
     makeString: function(selectors) {
-        return SelectorProto.makeCanonical(selectors).map(function(simpleSelectors) {
-            return simpleSelectors.map(function(simple) {
-                if (simple.isId)
-                    return 'id:' + simple.name;
-                else if (simple.isAtPipe)
-                    return 'pipe:' + simple.name;
-                else if (simple.isAtContext)
-                    return 'ctx:' + simple.name;
-                else if (simple.isAtSetting)
-                    return 'var:' + simple.name;
-                else if (simple.isTag)
-                    return 'tag:' + simple.name;
-                else
-                    throw new TypeError();
-            }).join('-');
-        }).join('---');
+        return selectors.map(function(simple) {
+            if (simple.isId)
+                return 'id:' + simple.name;
+            else if (simple.isTags)
+                return 'tags:' + simple.tags.join(',');
+            else if (simple.isKind)
+                    return 'kind:' + simple.kind;
+            else
+                throw new TypeError();
+        }).join('--');
     },
 
     marshal: function(selectors) {
-        return selectors.map(function(simpleSelectors) {
-            return simpleSelectors.map(function(simple) {
-                if (simple.isId)
-                    return { tag: 'id', name: simple.name };
-                else if (simple.isAtPipe)
-                    return { tag: 'pipe', name: simple.name };
-                else if (simple.isAtContext)
-                    return { tag: 'ctx', name: simple.name };
-                else if (simple.isAtSetting)
-                    return { tag: 'var', name: simple.name };
-                else if (simple.isTag)
-                    return { tag: 'tag', name: simple.name };
-                else
-                    throw new TypeError();
-            });
+        return selectors.map(function(simple) {
+            if (simple.isId)
+                return { tag: 'id', name: simple.name };
+            else if (simple.isTags)
+                return { tag: 'tags', tags: simple.tags };
+            else if (simple.isKind)
+                return { tag: 'kind', name: simple.name };
+            else
+                throw new TypeError();
         });
     },
 
     unmarshal: function(devices, selectors) {
-        return selectors.map(function(simpleSelectors) {
-            return simpleSelectors.map(function(simple) {
-                switch(simple.tag) {
-                case 'id':
-                    return AppCompiler.Selector.Id(simple.name);
-                case 'pipe':
-                    return AppCompiler.Selector.AtPipe(simple.name);
-                case 'ctx':
-                    return AppCompiler.Selector.AtContext(simple.name);
-                case 'var':
-                    return AppCompiler.Selector.AtSetting(simple.name);
-                case 'tag':
-                    return AppCompiler.Selector.Tag(simple.name);
-                default:
-                    throw new TypeError();
-                }
-            });
+        return selectors.map(function(simple) {
+            switch(simple.tag) {
+            case 'id':
+                return AppCompiler.Selector.Id(simple.name);
+            case 'tags':
+                return AppCompiler.Selector.Tags(simple.tags);
+            case 'kind':
+                return AppCompiler.Selector.Kind(simple.name);
+            default:
+                throw new TypeError();
+            }
         });
     },
 };

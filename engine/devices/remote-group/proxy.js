@@ -16,11 +16,12 @@ const RemoteGroupProxyChannel = new lang.Class({
     Name: 'RemoteGroupProxyChannel',
     Extends: BaseChannel,
 
-    _init: function(engine, device, foreignIface, selectors, mode, filters) {
+    _init: function(engine, device, foreignIface, selectors, channelName, mode, filters) {
         this.parent();
 
         this._device = device;
         this._selectors = selectors;
+        this._channelName = channelName;
         this._mode = mode;
         this._filters = filters;
         this._foreignIface = foreignIface;
@@ -28,7 +29,7 @@ const RemoteGroupProxyChannel = new lang.Class({
         this._ready = false;
 
         this.filterString = Protocol.selectors.makeString(selectors) + '-' +
-            (mode === 'w' ? 'sink' : 'source') + Protocol.filters.makeString(filters);
+            channelName + Protocol.filters.makeString(filters);
     },
 
     values: function() {
@@ -99,7 +100,7 @@ const RemoteGroupProxyChannel = new lang.Class({
         }.bind(this)).then(function() {
             return this._foreignIface.subscribe(this._device.authId,
                                                 this._device.authSignature,
-                                                this._selectors, this._mode,
+                                                this._selectors, this._channelName, this._mode,
                                                 this._filters);
         }.bind(this)).then(function(subscriptionId) {
             this._subscriptionId = subscriptionId;

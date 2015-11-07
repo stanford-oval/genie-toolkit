@@ -35,19 +35,21 @@ module.exports = new lang.Class({
     },
 
     reset: function() {
-        this._aliases = {};
+        this._scope = {};
         this._previousThis = null;
         this._this = null;
         this._useCurrent = true;
         this._output = null;
     },
 
+    // deprecated
     getAllAliases: function() {
-        return this._aliases;
+        return this._scope;
     },
 
-    setAlias: function(alias, value) {
-        this._aliases[alias] = value;
+    mergeScope: function(scope) {
+        for (var name in scope)
+            this._scope[name] = scope[name];
     },
 
     setPreviousThis: function(obj) {
@@ -72,8 +74,8 @@ module.exports = new lang.Class({
             return thisobj[name];
         if (this._output !== null && this._output[name] !== undefined)
             return this._output[name];
-        if (this._aliases[name] !== undefined)
-            return this._aliases[name];
+        if (this._scope[name] !== undefined)
+            return this._scope[name];
         throw new TypeError("Unknown variable " + name);
     },
 
@@ -91,19 +93,10 @@ module.exports = new lang.Class({
     },
 
     readObjectProp: function(object, name) {
-        if (Array.isArray(object)) {
-            return object.map(function(o) {
-                var v = o[name];
-                if (v === undefined)
-                    throw new TypeError('Object ' + o + ' has no property ' + name);
-                return v;
-            });
-        } else {
-            var v = object[name];
-            if (v === undefined)
-                throw new TypeError('Object ' + object + ' has no property ' + name);
-            return v;
-        }
+        var v = object[name];
+        if (v === undefined)
+            throw new TypeError('Object ' + object + ' has no property ' + name);
+        return v;
     },
 
     readObject: function(name) {

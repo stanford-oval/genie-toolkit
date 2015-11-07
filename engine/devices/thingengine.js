@@ -56,7 +56,7 @@ const ForeignThingEngineInterface = new lang.Class({
             });
     },
 
-    subscribe: function(authId, authSignature, selectors, mode, filters) {
+    subscribe: function(authId, authSignature, selectors, channelName, mode, filters) {
         var subscription = 'sub-' + uuid.v4();
         return this.getFeed().then(function(feed) {
             this.engine.subscriptions.registerSubscription(subscription);
@@ -66,6 +66,7 @@ const ForeignThingEngineInterface = new lang.Class({
                             authId: authId,
                             authSignature: authSignature,
                             selectors: Protocol.selectors.marshal(selectors),
+                            channelName: channelName,
                             mode: mode,
                             filters: Protocol.filters.marshal(filters) });
             return subscription;

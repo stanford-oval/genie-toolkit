@@ -10,6 +10,7 @@
     var adt = require('adt');
     var AppCompiler = require('./app_compiler');
 
+    var Statement = AppCompiler.Statement;
     var Selector = AppCompiler.Selector;
     var AtRule = AppCompiler.AtRule;
     var Value = AppCompiler.Value;
@@ -22,18 +23,18 @@
     }
 }
 
-// global grammar
+// stuff to be removed
 
-program = _ at_rules: (at_app_rule _)* inputs:input_channel_list '=>' _ outputs:output_channel_list _ {
-    return ({ 'at-rules': take(at_rules, 0), inputs: inputs, outputs: outputs });
-}
-query =  _ inputs: (input_channel _)+ {
-    return take(inputs, 0);
-}
 device_description = _ at_rules: (at_device_rule _)* _ channels:channel_meta_list _ {
     return ({ 'at-rules': take(at_rules, 0), channels: channels });
 }
-
+channel_meta_list = channels:(channel_meta _)* {
+    return take(channels, 0);
+}
+channel_meta = tag:tag_selector _ '{' _ props:(output_property _)* '}' {
+    return ({ selector: tag,
+              props: take(props, 0) });
+}
 at_app_rule = at_setting / at_name / at_description
 at_device_rule = at_setting / at_name / at_description / at_auth / at_kind
 at_setting = '@setting' _ name:ident _ '{' _ props:(output_property _)* '}' { return AtRule.Setting(name, take(props, 0)); }
@@ -43,60 +44,103 @@ at_auth = '@auth' _ '{' _ props:(output_property _)* '}' { return AtRule.Auth(ta
 at_kind = '@kind' _ kind:tag_selector _ ';' {
     return AtRule.Kind(kind);
 }
+output_property = name:ident _ ':' _ rhs:expression {
+    return OutputRule.Assignment(name, rhs);
+}
+
+// global grammar
+
+program = _ name:ident _ params:decl_param_list _ '{' _ statements:(statement _)+ '}' _ {
+    return ({ name: name, params: params,
+              statements: take(statements, 0) });
+}
+query = input_channel_list
+
+statement = import_stmt / compute_module / rule
+
+import_stmt = 'import' __ name:ident alias:(__ 'as' __ ident)? _ ';' {
+    return Statement.Import(name, alias !== null ? alias[3] : name);
+}
+compute_module = name:ident _ params:decl_param_list _ '{' statements:(compute_stmt _)+ '}' _ {
+    return Statement.ComputeModule(name, params, statements);
+}
+compute_stmt = var_decl / event_decl / function_decl
+var_decl = 'var' __ name:ident _ type:(':' _ type_ref _)? ';' {
+    return ComputeStatement.VarDecl(name, type !== null ? type[2] : null);
+}
+event_decl = 'event' __ name:ident _ params:decl_param_list _ ';' {
+    return ComputeStatement.EventDecl(name, params);
+}
+function_decl = 'function' __ name:ident _ params:decl_param_list _ '{' code:$(js_code) '}' {
+    return ComputeStatement.FunctionDecl(name, params, code);
+}
+js_code = '{' js_code '}' / '(' js_code ')' / '[' js_code ']' / literal_string / [^}\)\]\"\']
+
+rule = inputs:input_channel_list '=>' _ outputs:output_channel_list _ {
+    return Statement.Rule(inputs, outputs);
+}
+
+decl_param_list = '(' _ ')' { return []; } /
+    '(' _ first:decl_param _ rest:(',' _ decl_param _)* ')' {
+        return [first].concat(take(rest, 2));
+    }
+decl_param = name:ident _ ':' _ type:type_ref {
+    return { name: name, type: type };
+}
 
 input_channel_list = first:input_channel _ rest:(',' _ input_channel _)* {
     return [first].concat(take(rest, 2));
 }
-input_channel = quantifier:(('all' / 'some') __)? selector:selector_list _ '{' _ filters:(input_property _)* '}' _ alias:('as' __ ident _)? {
-    return ({ quantifier: quantifier !== null ? quantifier[0] : 'some',
-              alias: alias !== null ? alias[2] : null,
+input_channel = alias:(alias_spec _ '=' _)? context:(at_context _ '.' _)? selectors:selector_list _ params:input_param_list? {
+    return ({ alias: alias !== null ? alias[0] : null,
+              context: context !== null ? context[0] : 'self',
               selectors: selector,
-              filters: take(filters, 0) });
+              params: params !== null ? params : [] });
 }
+alias_spec = ident / '(' _ first:ident _ rest:(',' _ ident _)* ')' {
+    return [first].concat(take(rest, 2));
+}
+input_param_list = '(' _ ')' { return []; } / '(' _ first:input_param _ rest:(',' _ input_param _)* ')' {
+    return [first].concat(take(rest, 2));
+}
+input_param = lhs:expression _ comp:comparator _ rhs:expression {
+    return InputRule.Threshold(lhs, comp, rhs);
+}
+comparator "comparator" = '>=' / '<=' / '>' / '<' / '=~' / 'has~' / 'has' / '=' / ':' / '!='
+
 output_channel_list = first:output_channel _ rest:(',' _ output_channel _)* {
     return [first].concat(take(rest, 2));
 }
-output_channel = selector:selector_list _ '{' _ outputs: (output_property _)* '}' {
-    return ({ selectors: selector,
-              outputs: take(outputs, 0) });
+output_channel = context:(at_context _ '.')? selectors:selector_list _ params:output_param_list {
+    return ({ context: context !== null ? context[0] : 'self',
+              selectors: selectors,
+              params: params });
 }
-channel_meta_list = channels:(channel_meta _)* {
-    return take(channels, 0);
-}
-channel_meta = tag:tag_selector _ '{' _ props:(output_property _)* '}' {
-    return ({ selector: tag,
-              props: take(props, 0) });
-}
-
-selector_list = first:simple_selector _ rest:('->' _ simple_selector _)* {
+output_param_list = '(' _ first:output_param _ rest:(',' _ output_param _)* ')' {
     return [first].concat(take(rest, 2));
 }
-simple_selector = selector:at_selector { return [selector]; } /
-    selector:(selector _)+ { return take(selector, 0); }
-at_selector = '@pipe' _ id:id_selector { return Selector.AtPipe(id.name); } /
-    '@me' { return Selector.AtContext('me'); } /
-    '@phone' { return Selector.AtContext('phone'); } /
-    '@home' { return Selector.AtContext('home'); } /
-    '@cloud' { return Selector.AtContext('cloud'); } /
-    '@global' { return Selector.AtContext('global'); } /
-    '@' name:ident { return Selector.AtSetting(name); }
-selector = id_selector / tag_selector
-id_selector = '.' name:ident { return Selector.Id(name); }
-tag_selector = '#' name:ident { return Selector.Tag(name); }
-
-input_property = rule:(change_expression / input_filter) _ ';' {
-    return rule;
-}
-input_filter = lhs:expression _ comp:comparator _ rhs:expression {
-    return InputRule.Threshold(lhs, comp, rhs);
-}
-change_expression = 'change' __ lhs:expression _ by:('by' __ amount:expression)? {
-    return InputRule.Change(lhs, by !== null ? by[2] : null);
-}
-output_property = name:ident _ ( ':' / '=' ) _ rhs:expression _ ';' {
+output_param = name:ident _ '=' _ rhs:expression {
     return OutputRule.Assignment(name, rhs);
 }
-comparator "comparator" = '>=' / '<=' / '>' / '<' / '=~' / 'has~' / 'has' / '=' / ':' / '!='
+
+at_context = '@self' { return 'self'; } /
+    '@phone' { return 'phone'; } /
+    '@home' { return 'home'; } /
+    '@cloud' { return 'cloud'; } /
+    '@global' { return 'global'; }
+// this grammar is a bit loose, there are actual restrictions on what
+// is a valid selector list that are not captured by this
+selector_list = first:simple_selector _ rest:('.' _ simple_selector _)* {
+    return [first].concat(take(rest, 2));
+}
+simple_selector = tag_selector_list / id_selector / scoped_selector / var_selector
+tag_selector_list = tags:(tag_selector _)+ {
+    return Selector.Tags(take(tags, 0));
+}
+tag_selector = '#' name:ident { return name; }
+id_selector = name:literal_string { return Selector.Id(name); }
+scoped_selector = scope:ident _ '::' _ name:ident { return Selector.Scoped(scope, name); }
+var_selector = name:ident { return Selector.VarRef(name); }
 
 // expression language
 
@@ -112,7 +156,7 @@ mult_expression =
 member_expression =
     lhs:primary_expression '.' name:ident { return Expression.MemberRef(lhs, name); } /
     primary_expression
-primary_expression = literal / function_call / setting_ref / object_ref /
+primary_expression = literal / context_ref / function_call /
     name:ident { return Expression.VarRef(name); } /
     '(' _ subexp:expression _ ')' { return subexp; }
 function_call = name:ident '(' _ args:parameter_list? _ ')' {
@@ -121,12 +165,12 @@ function_call = name:ident '(' _ args:parameter_list? _ ')' {
 parameter_list = first:expression _ rest:(',' _ expression _)* {
     return [first].concat(take(rest, 2))
 }
-setting_ref = '@' name:ident { return Expression.SettingRef(name); }
-object_ref = '#' name:ident { return Expression.ObjectRef(name); }
+context_ref = ctx:at_context { return Expression.ContextRef(ctx); }
 literal "literal" = val:literal_bool { return Expression.Constant(Value.Boolean(val)); } /
     val:literal_string { return Expression.Constant(Value.String(val)); } /
     val:literal_number unit:('%' / ident) { return Expression.Constant(Value.Measure(val, unit)); } /
     val:literal_number { return Expression.Constant(Value.Number(val)); }
+type_ref = $('Measure(' ident? ')') / $('Array(' type_ref ')') / ident
 
 // tokens
 
@@ -146,13 +190,13 @@ literal_number "number" = num:$(digit+ ('e' digit+)?) { return parseFloat(num); 
     num:$('.' digit+ ('e' digit+)?) { return parseFloat(num); }
 
 identstart = [A-Za-z]
-identchar = [A-Za-z\-0-9_]
+identchar = [A-Za-z0-9_]
 ident "ident" = $(identstart identchar*)
 
 _ = (whitespace / comment)*
 __ = whitespace _
 whitespace "whitespace" = [ \r\n\t\v]
-comment "comment" = '/*' ([^*] / '*'[^/])* '*/'
+comment "comment" = '/*' ([^*] / '*'[^/])* '*/' / '//' [^\n]* '\n'
 
 /*
 {

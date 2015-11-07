@@ -19,7 +19,7 @@ const RemoteGroupProxy = new lang.Class({
         console.log('Created RemoteGroupProxy for ' + device.uniqueId);
     },
 
-    getChannel: function(selectors, mode, filters) {
+    getChannel: function(selectors, channelName, mode, filters) {
         var master = this.master;
         var devices = master.engine.devices;
         var channels = master.engine.channels;
@@ -35,7 +35,7 @@ const RemoteGroupProxy = new lang.Class({
 
         return thingengine.then(function(engine) {
             var iface = engine.queryInterface('thingengine-foreign');
-            return channels.getChannel(master, iface, selectors, mode, filters);
+            return channels.getChannel(master, 'proxy', iface, selectors, channelName, mode, filters);
         });
     },
 });
