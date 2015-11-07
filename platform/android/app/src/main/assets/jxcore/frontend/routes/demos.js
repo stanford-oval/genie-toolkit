@@ -60,8 +60,10 @@ router.get('/linkedin', function(req, res, next) {
     if (apps.getApp(appId) === undefined) {
         engine.apps.loadOneApp(CODE, { g: messagingGroupId }, appId, 'phone', true).then(function() {
             res.render('demo_view', { page_title: "LinkedIn Party!", nofeed: true, done: true });
-        });
-            res.render('index', { page_title: "ThingEngine - run your things!" });
+        }).done();
+    } else {
+        res.render('demo_view', { page_title: "LinkedIn Party!", nofeed: true, done: true });
+    }
 });
 
 module.exports = router;

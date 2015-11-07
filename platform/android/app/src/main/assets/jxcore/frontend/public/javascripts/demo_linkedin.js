@@ -1,8 +1,9 @@
 (function() {
-    LinkedInDemo = {};
+    window.LinkedInDemo = {};
     LinkedInDemo.start = function() {
         Omlet.ready(function() {
-            document.location.href = '/demos/linkedin?feedId=' + Omlet.scope.feedId;
+            if (Omlet.scope.feedId)
+                document.location.href = '/demos/linkedin?feedId=' + Omlet.scope.feedId;
         });
     };
     LinkedInDemo.exit = function() {

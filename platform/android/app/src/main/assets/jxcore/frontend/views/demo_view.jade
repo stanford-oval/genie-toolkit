@@ -2,7 +2,7 @@ extends layout
 
 block scripts
   script(src='https://omlet.me/a/js/omlet.js')
-  script(src='/public/javascripts/demo_linkedin.js')
+  script(src='/javascripts/demo_linkedin.js')
 
 block page_name
   | LinkedIn Sharing
@@ -10,6 +10,9 @@ block page_name
 block content
   if nofeed
     script LinkedInDemo.start()
+
+    p If you see this message, it means you're not inside an Omlet chat.
+    p You must open this app from the Omlet drawer.
   else if done
     p You're all set now, you can go back to your friends!
     p When you return to the chat, your friends will see a link to join

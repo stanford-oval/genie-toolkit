@@ -53,6 +53,7 @@ Frontend.prototype._init = function _init() {
     this._app.use('/', require('./routes/index'));
     this._app.use('/apps', require('./routes/apps'));
     this._app.use('/devices', require('./routes/devices'));
+    this._app.use('/demos', require('./routes/demos'));
 }
 
 var server = null;
