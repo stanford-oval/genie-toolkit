@@ -13,6 +13,8 @@ const fs = require('fs');
 
 const sql = require('./engine/db/sql');
 
+var _notifyApi = require('./notify_api');
+
 var filesDir = null;
 var encoding = null;
 
@@ -65,6 +67,10 @@ module.exports = {
             // We can use the Android APIs if we need to
             return true;
 
+        case 'notify-api':
+            // We have a notify API implemented
+            return true;
+
         default:
             return false;
         }
@@ -75,7 +81,13 @@ module.exports = {
     //
     // This will return null if hasCapability(cap) is false
     getCapability: function(cap) {
-        return null;
+        switch(cap) {
+        case 'notify-api':
+            // We have a notify API implemented
+            return _notifyApi;
+        default:
+            return null;
+        }
     },
 
     // Obtain a shared preference store

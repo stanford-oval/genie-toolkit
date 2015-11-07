@@ -243,11 +243,6 @@ const Comparators = {
         op: equalityTest,
         reverse: '=',
     },
-    ':': {
-        types: [Type.Any],
-        op: equalityTest,
-        reverse: '=',
-    },
     '!=': {
         types: [Type.Any],
         op: function(a, b) { return !(equalityTest(a,b)); },
@@ -638,8 +633,15 @@ module.exports = new lang.Class({
         var rhs = this.compileExpression(ast.rhs, localscope, selfschema);
         var comp = Comparators[ast.comparator];
 
-        typeUnify(lhs[0], comp.types[0]);
-        typeUnify(rhs[0], comp.types[1]);
+        for (var i = 0; i < comp.types.length; i++) {
+            try {
+                typeUnify(lhs[0], comp.types[i]);
+                typeUnify(rhs[0], comp.types[i]);
+                break;
+            } catch(e) { }
+        }
+        if (i === comp.types.length)
+            throw new TypeError('Invalid types for comparator ' + comp);
 
         var lhsop = lhs[1];
         var rhsop = rhs[1];
@@ -714,13 +716,6 @@ module.exports = new lang.Class({
         } else {
             return null;
         }
-    },
-
-    simplifyFilter: function(ast, state) {
-        if (ast.isThreshold)
-            return this.simplifyThreshold(ast);
-        else
-            throw new TypeError();
     },
 
     compileUpdate: function(filters, alias) {

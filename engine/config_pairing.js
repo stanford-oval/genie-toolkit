@@ -193,6 +193,7 @@ module.exports = new lang.Class({
 
     _addPhoneDevs: function() {
         return Q.all([this._engine.devices.loadOneDevice({ kind: 'ui' }, true),
+                      this._engine.devices.loadOneDevice({ kind: 'notify' }, true),
                       this._engine.devices.loadOneDevice({ kind: 'weather' }, true)]);
     },
 

@@ -145,6 +145,7 @@ const SourceSubscription = new lang.Class({
 
         this._view = new DeviceView(null, context, selectors, channelName, 'r', filters);
         this._set = null;
+        this._readyQueued = false;
     },
 
     _sendData: function(channelId, data) {
@@ -166,6 +167,8 @@ const SourceSubscription = new lang.Class({
     _channelAdded: function(ch) {
         console.log('Connecting to data event on ' + ch.uniqueId);
         ch.on('data', this._dataListener);
+        if (!this._readyQueued)
+            this._sendData(ch.uniqueId, ch.event);
     },
 
     _channelRemoved: function(ch) {
@@ -173,6 +176,7 @@ const SourceSubscription = new lang.Class({
     },
 
     _ready: function() {
+        this._readyQueued = false;
         set.values().forEach(function(ch) {
             this._sendData(ch.uniqueId, ch.event);
         }, this);
@@ -180,7 +184,11 @@ const SourceSubscription = new lang.Class({
     },
 
     refresh: function() {
-        this._ready();
+        if (this._readyQueued)
+            return;
+        this._whenReady.then(function() {
+            this._ready();
+        }.bind(this));
     },
 
     stop: function() {
@@ -195,7 +203,7 @@ const SourceSubscription = new lang.Class({
             self._onData(from, data);
         };
 
-        return this._view.start().then(function(set) {
+        this._whenReady = this._view.start().then(function(set) {
             this._set = set;
 
             set.on('object-added', this._channelAdded.bind(this));
@@ -204,6 +212,9 @@ const SourceSubscription = new lang.Class({
             set.values().forEach(function(o) {
                 this._channelAdded(o);
             });
+        });
+        this._readyQueued = true;
+        return this._whenReady.then(function() {
             this._ready();
         }.bind(this));
     }
@@ -218,6 +229,8 @@ const SinkSubscription = new lang.Class({
 
         this._view = new DeviceView(null, context, selectors, channelName, 'w', filters, false);
         this._set = null;
+
+        this._readyQueued = false;
     },
 
     _sendReady: function() {
@@ -258,7 +271,10 @@ const SinkSubscription = new lang.Class({
     },
 
     refresh: function() {
+        if (this._readyQueued)
+            return;
         this._whenReady.then(function() {
+            this._readyQueued = false;
             this._sendReady();
         }.bind(this));
     },
@@ -273,6 +289,7 @@ const SinkSubscription = new lang.Class({
         this._feed.on('incoming-message', this._msgListener);
 
         this._whenReady = this._view.start();
+        this._readyQueued = true;
         return this._whenReady.then(function(set) {
             this._set = set;
             this._sendReady();
@@ -293,6 +310,8 @@ module.exports = new lang.Class({
         this._subscriptions = {};
 
         this._activeRemoteGroups = {};
+
+        this._deferredSubscriptions = {};
     },
 
     makeSubscriptionId: function(feed, authId, selectors, channelName, mode, filters) {
@@ -343,15 +362,23 @@ module.exports = new lang.Class({
 
     _verifyAuthorization: function(feed, authId, authSignature) {
         if (authSignature !== null) {
-            return (this.makeAccessToken(authId) === authSignature);
+            return (this.makeAccessToken(authId) === authSignature ? 1 : 0);
         } else {
             // authenticate based on the group that "owns" authId
-            if (!this._devices.hasDevice(authId))
-                return false;
+            if (!this._devices.hasDevice(authId)) {
+                if (authId.startsWith('thingengine-compute-module-'))
+                    return -1; // deferred
+                else
+                    return 0; // denied
+            }
+
             var device = this._devices.getDevice(authId);
             if (device.kind !== 'thingengine-compute-module')
-                return false;
-            return device.verifyGroupAuthorization(feed);
+                return 0;
+            if (device.verifyGroupAuthorization(feed))
+                return 1;
+            else
+                return 0;
         }
     },
 
@@ -359,8 +386,23 @@ module.exports = new lang.Class({
                               selectors, channelName, mode, filters) {
         console.log('Handling subscription ' + subscriptionId + ' to ' + authId);
 
-        if (!this._verifyAuthorization(feed, authId, authSignature)) {
-            feed.sendItem({ op: 'subscribe-error', msg: "Invalid token" });
+        var auth = this._verifyAuthorization(feed, authId, authSignature);
+        if (auth !== 1) {
+            if (auth === -1) { // deferred
+                console.log('Deferring subscription to ' + authId + ' until it appears');
+                if (!(authId in this._deferredSubscriptions))
+                    this._deferredSubscriptions[authId] = {};
+                this._deferredSubscriptions[authId][subscriptionId] = { feed: feed,
+                                                                        subscriptionId: subscriptionId,
+                                                                        authId: authId,
+                                                                        authSignature: authSignature,
+                                                                        selectors: selectors,
+                                                                        channelName: channelName,
+                                                                        mode: mode,
+                                                                        filters: filters };
+            } else {
+                feed.sendItem({ op: 'subscribe-error', msg: "Invalid token" });
+            }
             return;
         }
 
@@ -418,6 +460,18 @@ module.exports = new lang.Class({
         delete this._subscriptions[fullId];
     },
 
+    _onDeviceAdded: function(device) {
+        if (device.uniqueId in this._deferredSubscriptions) {
+            var subs = this._deferredSubscriptions[device.uniqueId];
+            delete this._deferredSubscriptions[device.uniqueId];
+            for (var id in subs) {
+                var sub = subs[id];
+                this.handleSubscribe(sub.feed, sub.subscriptionId, sub.authId, sub.authSignature,
+                                     sub.selectors, sub.channelName, sub.mode, sub.filters);
+            }
+        }
+    },
+
     _onFeedAdded: function(feedId) {
         this._subscriptionWatchers[feedId] = new SubscriptionWatcher(this, this._messaging, feedId);
         this._subscriptionWatchers[feedId].start().done();
@@ -430,8 +484,10 @@ module.exports = new lang.Class({
     },
 
     start: function() {
+        this._deviceAddedListener = this._onDeviceAdded.bind(this);
         this._feedAddedListener = this._onFeedAdded.bind(this);
         this._feedRemovedListener = this._onFeedRemoved.bind(this);
+        this._devices.on('device-added', this._deviceAddedListener);
         this._messaging.on('feed-added', this._feedAddedListener);
         this._messaging.on('feed-removed', this._feedRemovedListener);
 
@@ -443,6 +499,7 @@ module.exports = new lang.Class({
     },
 
     stop: function() {
+        this._devices.removeListener('device-added', this._deviceAddedListener);
         this._messaging.removeListener('feed-added', this._feedAddedListener);
         this._messaging.removeListener('feed-removed', this._feedRemovedListener);
 

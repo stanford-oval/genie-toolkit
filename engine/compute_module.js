@@ -147,7 +147,9 @@ module.exports = new lang.Class({
     _stopEventPipes: function() {
         var eventnames = Object.keys(this._module.events);
         return Q.all(eventnames.map(function(name) {
-            return this._eventPipes[name].close();
+            return this._eventPipes[name].then(function(pipe) {
+                return pipe.close();
+            });
         }, this));
     },
 

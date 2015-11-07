@@ -37,7 +37,7 @@ function releaseConnection(filename, db, callback) {
 
     var pooled = connectionPool[filename];
     pooled.push(db);
-    if (pooled.length > 3) {
+    if (pooled.length > 1) {
         pooled.shift().close(callback);
     } else {
         callback(null);
@@ -47,6 +47,7 @@ function releaseConnection(filename, db, callback) {
 function rollback(client, err, done) {
     return Q.ninvoke(client, 'run', 'rollback', []).then(function() {
         done();
+        console.log('Error in db transaction, rollbacking: ' + err);
         throw err;
     }, function(rollerr) {
         done(rollerr);
@@ -105,22 +106,34 @@ function withClient(filename, callback) {
 }
 
 function withTransaction(filename, transaction) {
-    return connect(filename).then(function(connectResult) {
-        var client = connectResult[0];
-        var done = connectResult[1];
+    var retryLoop = function() {
+        return connect(filename).then(function(connectResult) {
+            var client = connectResult[0];
+            var done = connectResult[1];
 
-        // SQL standard is 'start transaction', but meh... sqlite!
-        return query(client, 'begin transaction').then(function() {
-            return transaction(client).then(function(result) {
-                return commit(client, result, done);
-            }).catch(function(err) {
-                return rollback(client, err, done);
+            // SQL standard is 'start transaction', but meh... sqlite!
+            return query(client, 'begin transaction').then(function() {
+                return transaction(client).then(function(result) {
+                    return commit(client, result, done);
+                }).catch(function(err) {
+                    return rollback(client, err, done);
+                });
+            }, function(error) {
+                done(error);
+                throw error;
             });
-        }, function(error) {
-            done(error);
-            throw error;
+        }).catch(function(e) {
+            if (e.message.startsWith('SQLITE_BUSY')) {
+                // sqlite locking model is awful, it fails and expects you to retry the transaction
+                // at a later time
+                return Q.delay(1000).then(retryLoop);
+            } else {
+                throw e;
+            }
         });
-    });
+    };
+
+    return retryLoop();
 }
 
 module.exports = {

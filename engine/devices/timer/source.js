@@ -26,23 +26,17 @@ const TimerChannel = new lang.Class({
         // figure out the interval
         var interval = 0;
         for (var i = 0; i < filters.length; i++) {
-            if (filters[i].isChange) {
-                if (filters[i].expr.name !== 'ts')
-                    throw new Error('Unknown property ' + filters[i].expr.name);
-
-                var amount;
-                if (filters[i].amount !== null)
-                    amount = filters[i].amount.value.value;
-                else
-                    amount = 1000;
-                interval = Math.max(interval, amount);
+            if (filters[i].isThreshold) {
+                if (filters[i].lhs.name === 'interval') {
+                    interval = filters[i].rhs.value.value;
+                    break;
+                }
             } else {
-                // FIXME
-                throw new Error('Threshold filters are not yet implemented for #timer');
+                throw new TypeError();
             }
         }
         if (interval <= 0)
-            throw new Error('Must specify a time change for #timer');
+            interval = 1000;
 
         this._interval = interval;
         this.filterString = 'interval-' + this._interval;
@@ -51,7 +45,7 @@ const TimerChannel = new lang.Class({
 
     _doOpen: function() {
         this._timeout = setInterval(function() {
-            var event = { ts: new Date };
+            var event = { interval: this._interval, ts: new Date };
             console.log('Emitting timer event', event);
             this.emitEvent(event);
         }.bind(this), this._interval);

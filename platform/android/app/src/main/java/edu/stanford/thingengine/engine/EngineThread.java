@@ -62,6 +62,8 @@ public class EngineThread extends Thread {
                     initCondition.signalAll();
                     initLock.unlock();
                     isLocked = false;
+
+                    new NotifyAPI(context, control);
                 }
             });
 

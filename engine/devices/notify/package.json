@@ -1,0 +1,15 @@
+{
+  "name": "thingengine-device-notify",
+  "version": "1.0.0",
+  "description": "Notify device for ThingEngine",
+  "author": "Stanford IoT lab",
+  "contributors": [
+    {
+      "name": "Giovanni Campagna",
+      "email": "gcampagn@cs.stanford.edu"
+    }
+  ],
+  "main": "device.js",
+  "dependencies": {
+  }
+}
