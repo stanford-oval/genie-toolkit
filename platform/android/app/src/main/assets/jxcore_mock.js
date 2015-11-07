@@ -54,4 +54,5 @@ JXMobile.Exit = function() {
 };
 
 require('./jxcore/app');
+console.log('Modules loaded');
 natives['runEngine']();

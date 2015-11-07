@@ -94,4 +94,77 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
     }
 });
 
+router.post('/delete', user.requireLogIn, function(req, res, next) {
+    if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
+        res.status(404).render('error', { page_title: "ThingEngine - Error",
+                                          message: "Invalid device class" });
+        return;
+    }
+
+    var engine = req.app.engine;
+    var id = req.body.id;
+    var device;
+    try {
+        if (!engine.devices.hasDevice(id))
+            device = undefined;
+        else
+            device = engine.devices.getDevice(id);
+
+        if (device === undefined) {
+            res.status(404).render('error', { page_title: "ThingEngine - Error",
+                                              message: "Not found." });
+            return;
+        }
+
+        engine.devices.removeDevice(device);
+        res.redirect('/devices?class=' + (req.query.class || 'physical'));
+    } catch(e) {
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }
+});
+
+router.get('/oauth2/:kind', user.redirectLogIn, function(req, res, next) {
+    var kind = req.params.kind;
+
+    var engine = req.app.engine;
+    var devFactory = engine.devices.factory;
+
+    Q.try(function() {
+        return Q(devFactory.runOAuth2(kind, null));
+    }).then(function(result) {
+        if (result !== null) {
+            var redirect = result[0];
+            var session = result[1];
+            for (var key in session)
+                req.session[key] = session[key];
+            res.redirect(redirect);
+        } else {
+            res.redirect('/devices?class=online');
+        }
+    }).catch(function(e) {
+        console.log(e.stack);
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }).done();
+});
+
+router.get('/oauth2/callback/:kind', user.redirectLogIn, function(req, res, next) {
+    var kind = req.params.kind;
+
+    var engine = req.app.engine;
+    var devFactory = engine.devices.factory;
+
+    Q.try(function() {
+        return Q(devFactory.runOAuth2(kind, req));
+    }).then(function() {
+        res.redirect('/devices?class=online');
+    }).catch(function(e) {
+        console.log(e.stack);
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }).done();
+});
+
+
 module.exports = router;

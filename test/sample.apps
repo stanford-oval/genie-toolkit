@@ -2,17 +2,17 @@
 
 LinkedInApp(g : Group) {
     module compute() {
-        event newalumn(name : String, edu : String);
-        function newmessage(name : String, edu :  String) {
+        event newcolleague(name : String, ind : String);
+        function newmessage(name : String, ind :  String) {
             query1("linkedin()").then(function(v) {
-                if (edu === v.edu)
-                    newalumn(name, edu);
+                if (ind === v.industry)
+                    newcolleague(name, ind);
             });
         }
     }
 
-    mylin = linkedin() => g.compute.newmessage(name = mylin.formattedName, edu = mylin.edu);
-    (name, edu) = compute.newalumn() => notify(msg = name + " also went to " + edu);
+    mylin = linkedin() => g.compute.newmessage(name = mylin.formattedName, ind = mylin.industry);
+    (name, ind) = compute.newcolleague() => notify(msg = name + " also works in " + ind);
 }
 
 ====

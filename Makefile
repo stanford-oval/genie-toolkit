@@ -13,7 +13,8 @@ build-cloud: build-engine build-shared
 	make -C platform/cloud all
 
 build-android-js: build-engine
-	cd platform/android/app/src/main/assets/jxcore; npm install 
+	cd platform/android/app/src/main/assets/jxcore; npm install
+	cd platform/android/app/src/main/assets/jxcore/frontend; npm install
 
 build-android: build-android-js
 	cd platform/android; ./gradlew build
@@ -50,7 +51,7 @@ run-server: build-server
 
 run-android-mock: build-android-js
 	test -d home-android || mkdir home-android/
-	cd home-android/ ; node ../platform/android/app/src/main/assets/jxcore_mock.js
+	cd home-android/ ; ../platform/android/jxcore/jx ../platform/android/app/src/main/assets/jxcore_mock.js
 
 clean:
 	make -C engine clean

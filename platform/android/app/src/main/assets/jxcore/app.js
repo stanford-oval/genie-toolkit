@@ -14,6 +14,7 @@ const fs = require('fs');
 const control = require('./control');
 const Engine = require('./engine');
 const Tier = require('./engine/tier_manager').Tier;
+const Frontend = require('./frontend');
 
 const JavaAPI = require('./java_api');
 
@@ -25,6 +26,8 @@ function runEngine() {
         console.log('Creating engine...');
 
         var engine = new Engine();
+        var frontend = new Frontend();
+        frontend.setEngine(engine);
 
         var engineRunning = false;
         var earlyStop = false;
@@ -125,13 +128,13 @@ function runEngine() {
             // and execute on our thread
             JXMobile('controlReady').callNative();
 
-            return engine.open();
+            return Q.all([engine.open(), frontend.open()]);
         }).then(function() {
             engineRunning = true;
             if (earlyStop)
-                return engine.close();
+                return Q.all([engine.close(), frontend.close()]);
             return engine.run().finally(function() {
-                return engine.close();
+                return Q.all([engine.close(), frontend.close()]);
             });
         });
     }).catch(function(error) {

@@ -32,6 +32,7 @@ module.exports = new lang.Class({
         }.bind(this));
 
         this._env = new ExecEnvironment(this.engine.devices, this._state);
+        this._ready = false;
     },
 
     _onData: function(from, data) {
@@ -55,6 +56,11 @@ module.exports = new lang.Class({
     _channelAdded: function(ch) {
         console.log('Connecting to data event on ' + ch.uniqueId);
         ch.on('data', this._dataListener);
+
+        // if this channel was added when the query was already running sample the new data
+        // from it
+        if (this._ready)
+            this._onData();
     },
 
     _channelRemoved: function(ch) {
@@ -85,6 +91,7 @@ module.exports = new lang.Class({
             return input.start();
         }, this)).then(function() {
             console.log('Handling initial channel state sample');
+            this._ready = true;
             this._onData();
         }.bind(this)).done();
     },

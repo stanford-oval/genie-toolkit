@@ -33,6 +33,8 @@ const CONSUMER_SECRET = process.env['LINKEDIN_CONSUMER_SECRET'] || rot13('RuNnl6
 // XOR these comments for testing
 var THINGENGINE_ORIGIN = 'http://127.0.0.1:8080';
 //var THINGENGINE_ORIGIN = 'https://thingengine.stanford.edu';
+// not this one though
+var THINGENGINE_LOCAL_ORIGIN = 'http://127.0.0.1:3000';
 
 function makeLinkedInAPI() {
     var auth = new oauth.OAuth2(CONSUMER_KEY, CONSUMER_SECRET,
@@ -89,12 +91,17 @@ function createDevice(engine, state) {
     return new LinkedInAccountDevice(engine, state);
 }
 
-function runOAuthStep1() {
+function runOAuthStep1(engine) {
     var auth = makeLinkedInAPI();
 
+    var origin;
+    if (engine.ownTier === 'cloud')
+        origin = THINGENGINE_CLOUD_ORIGIN;
+    else
+        origin = THINGENGINE_LOCAL_ORIGIN;
     var state = crypto.randomBytes(16).toString('hex');
     return [auth.getAuthorizeUrl({ response_type: 'code',
-                                   redirect_uri: THINGENGINE_ORIGIN + '/devices/oauth2/callback/linkedin',
+                                   redirect_uri: origin + '/devices/oauth2/callback/linkedin',
                                    state: state,
                                  }), { 'linkedin-state': state }];
 }
@@ -108,8 +115,13 @@ function runOAuthStep2(engine, req) {
         return Q.reject(new Error("Invalid CSRF token"));
     delete req.session['linkedin-state'];
 
+    var origin;
+    if (engine.ownTier === 'cloud')
+        origin = THINGENGINE_CLOUD_ORIGIN;
+    else
+        origin = THINGENGINE_LOCAL_ORIGIN;
     return Q.ninvoke(auth, 'getOAuthAccessToken', code, { grant_type: 'authorization_code',
-                                                          redirect_uri: THINGENGINE_ORIGIN + '/devices/oauth2/callback/linkedin',
+                                                          redirect_uri: origin + '/devices/oauth2/callback/linkedin',
                                                         })
         .then(function(result) {
             var accessToken = result[0];
@@ -136,7 +148,7 @@ function runOAuthStep2(engine, req) {
 function runOAuth2(engine, req) {
     return Q.try(function() {
         if (req === null) {
-            return runOAuthStep1();
+            return runOAuthStep1(engine);
         } else {
             return runOAuthStep2(engine, req);
         }

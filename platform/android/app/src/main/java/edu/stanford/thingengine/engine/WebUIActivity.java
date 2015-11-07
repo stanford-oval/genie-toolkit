@@ -16,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.HttpAuthHandler;
 import android.webkit.JavascriptInterface;
+import android.webkit.JsResult;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 
@@ -38,6 +39,54 @@ public class WebUIActivity extends Activity {
         engine = new EngineServiceConnection();
     }
 
+    private class WebChromeClient extends android.webkit.WebChromeClient {
+        @Override
+        public boolean onJsConfirm(WebView view, String url, String message, final JsResult result)
+        {
+            new AlertDialog.Builder(WebUIActivity.this)
+                    .setTitle("Confirm")
+                    .setMessage(message)
+                    .setPositiveButton(android.R.string.ok,
+                            new AlertDialog.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    result.confirm();
+                                }
+                            })
+                    .setNegativeButton(android.R.string.cancel,
+                            new AlertDialog.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    result.cancel();
+                                }
+                            })
+                    .setCancelable(false)
+                    .create()
+                    .show();
+
+            return true;
+        }
+
+        @Override
+        public boolean onJsAlert(WebView view, String url, String message, final JsResult result)
+        {
+            new AlertDialog.Builder(WebUIActivity.this)
+                    .setTitle("Alert")
+                    .setMessage(message)
+                    .setPositiveButton(android.R.string.ok,
+                            new AlertDialog.OnClickListener()
+                            {
+                                public void onClick(DialogInterface dialog, int which)
+                                {
+                                    result.confirm();
+                                }
+                            })
+                    .setCancelable(false)
+                    .create()
+                    .show();
+
+            return true;
+        }
+    }
+
     private class WebViewClient extends android.webkit.WebViewClient {
         @Override
         public void onReceivedHttpAuthRequest (WebView view, @NonNull HttpAuthHandler handler, String host, String realm) {
@@ -57,12 +106,18 @@ public class WebUIActivity extends Activity {
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            if (Uri.parse(url).getAuthority().equals("thingengine.stanford.edu"))
+            /*
+            Uri parsed = Uri.parse(url);
+            if (parsed.getAuthority().equals("thingengine.stanford.edu") ||
+                    parsed.getAuthority().equals("127.0.0.1:3000"))
                 return false;
 
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
             startActivity(intent);
             return true;
+            */
+            // allow everything so we can run oauth2 properly
+            return false;
         }
 
         @Override
@@ -101,8 +156,10 @@ public class WebUIActivity extends Activity {
         WebView view = (WebView)findViewById(R.id.webView);
         view.addJavascriptInterface(this, "Android");
         view.getSettings().setJavaScriptEnabled(true);
-        view.loadUrl("https://thingengine.stanford.edu/?auth=app");
+        //view.loadUrl("https://thingengine.stanford.edu/?auth=app");
+        view.setWebChromeClient(new WebChromeClient());
         view.setWebViewClient(new WebViewClient());
+        view.loadUrl("http://127.0.0.1:3000");
     }
 
     private void showConfirmDialog(boolean success) {
@@ -222,7 +279,8 @@ public class WebUIActivity extends Activity {
             return;
 
         WebView view = (WebView)findViewById(R.id.webView);
-        view.loadUrl("https://thingengine.stanford.edu/devices/oauth2/" + kind);
+        //view.loadUrl("https://thingengine.stanford.edu/devices/oauth2/" + kind);
+        view.loadUrl("http://127.0.0.1:3000/devices/oauth2/" + kind);
     }
 
     @Override

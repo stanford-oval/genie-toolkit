@@ -23,6 +23,8 @@ const API_SECRET = 'bccb852856c462e748193d6211c730199d62adcf0ba963416fcc715a2db4
 // XOR these comments for testing
 var THINGENGINE_ORIGIN = 'http://127.0.0.1:8080';
 //var THINGENGINE_ORIGIN = 'https://thingengine.stanford.edu';
+// not this one though
+var THINGENGINE_LOCAL_ORIGIN = 'http://127.0.0.1:3000';
 
 const DeviceStateStorage = new lang.Class({
     Name: 'DeviceStateStorage',
@@ -172,7 +174,7 @@ function createDevice(engine, state) {
     return new OmletDevice(engine, state);
 }
 
-function runOAuth2Phase1() {
+function runOAuth2Phase1(engine) {
     var buf = crypto.randomBytes(8).toString('hex');
     var storage = new DeviceStateStorage(null, undefined);
     var client = makeOmletClient(buf, storage, false);
@@ -181,8 +183,14 @@ function runOAuth2Phase1() {
     return Q.try(function() {
         client.enable();
 
+        var origin;
+        if (engine.ownTier === 'cloud')
+            origin = THINGENGINE_CLOUD_ORIGIN;
+        else
+            origin = THINGENGINE_LOCAL_ORIGIN;
+
         return Q.ninvoke(client.auth, 'getAuthPage',
-                         THINGENGINE_ORIGIN + '/devices/oauth2/callback/omlet',
+                         origin + '/devices/oauth2/callback/omlet',
                          ['PublicProfile', 'OmletChat']);
     }).then(function(resp) {
         console.log('Obtained omlet auth page response');
@@ -227,7 +235,7 @@ function runOAuth2Phase2(engine, req) {
 
 function runOAuth2(engine, req) {
     if (req === null)
-        return runOAuth2Phase1();
+        return runOAuth2Phase1(engine);
     else
         return runOAuth2Phase2(engine, req);
 }

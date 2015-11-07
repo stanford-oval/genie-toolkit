@@ -81,9 +81,13 @@ module.exports = new lang.Class({
         if (this._ownerTier !== undefined)
             return this._ownerTier;
 
-        // online accounts belong to the cloud
-        if (this.hasKind('online-account'))
+        // if the device wants to be cloud-only, then it belongs to the cloud
+        if (this.hasKind('cloud-only'))
             return this._ownerTier = Tier.CLOUD;
+
+        // online accounts belong to the phone
+        if (this.hasKind('online-account'))
+            return this._ownerTier = Tier.PHONE;
 
         // if this device is on (some) local network, it belongs to home
         if (this.state) {

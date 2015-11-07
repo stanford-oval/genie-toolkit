@@ -6,16 +6,12 @@
 //
 // See COPYING for details
 
-const Q = require('q');
-const express = require('express');
-const passport = require('passport');
+var Q = require('q');
 
-var user = require('../util/user');
-var EngineManager = require('../enginemanager');
-
+var express = require('express');
 var router = express.Router();
 
-router.get('/', user.redirectLogIn, function(req, res, next) {
+router.get('/', function(req, res, next) {
     if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
         res.status(404).render('error', { page_title: "ThingEngine - Error",
                                           message: "Invalid device class" });
@@ -24,42 +20,35 @@ router.get('/', user.redirectLogIn, function(req, res, next) {
 
     var online = req.query.class === 'online';
 
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return engine.devices.getAllDevices();
-    }).then(function(devices) {
-        return Q.all(devices.map(function(d) {
-            return Q.all([d.uniqueId, d.name, d.description, d.checkAvailable(),
-                          d.hasKind('online-account'), d.hasKind('thingengine-system')])
-                .spread(function(uniqueId, name, description, available, isOnlineAccount, isThingEngine) {
-                    return { uniqueId: uniqueId, name: name || "Unknown device",
-                             description: description || "Description not available",
-                             available: available,
-                             isOnlineAccount: isOnlineAccount,
-                             isThingEngine: isThingEngine };
-                });
-        }));
-    }).then(function(devinfo) {
-        devinfo = devinfo.filter(function(d) {
-            if (d.isThingEngine)
-                return false;
+    var engine = req.app.engine;
 
-            if (online)
-                return d.isOnlineAccount;
-            else
-                return !d.isOnlineAccount;
+    var devices = engine.devices.getAllDevices().filter(function(d) {
+        if (d.hasKind('thingengine-system'))
+            return false;
+
+        if (online)
+            return d.hasKind('online-account');
+        else
+            return !d.hasKind('online-account');
+    });
+    Q.all(devices.map(function(d) {
+        return Q(d.checkAvailable()).then(function(avail) {
+            return { uniqueId: d.uniqueId, name: d.name || "Unknown device",
+                     description: d.description || "Description not available",
+                     available: avail };
         });
-
+    })).then(function(info) {
         res.render('devices_list', { page_title: 'ThingEngine - configured devices',
                                      csrfToken: req.csrfToken(),
                                      onlineAccounts: online,
-                                     devices: devinfo });
+                                     devices: info });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
     }).done();
 });
 
-router.get('/create', user.redirectLogIn, function(req, res, next) {
+router.get('/create', function(req, res, next) {
     if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
         res.status(404).render('error', { page_title: "ThingEngine - Error",
                                           message: "Invalid device class" });
@@ -74,76 +63,73 @@ router.get('/create', user.redirectLogIn, function(req, res, next) {
                                  });
 });
 
-router.post('/create', user.requireLogIn, function(req, res, next) {
+router.post('/create', function(req, res, next) {
     if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
         res.status(404).render('error', { page_title: "ThingEngine - Error",
                                           message: "Invalid device class" });
         return;
     }
 
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        var devices = engine.devices;
+    var engine = req.app.engine;
+    var devices = engine.devices;
 
+    try {
         if (typeof req.body['kind'] !== 'string' ||
             req.body['kind'].length == 0)
             throw new Error("You must choose one kind of device");
 
         delete req.body['_csrf'];
-        return devices.loadOneDevice(req.body, true);
-    }).then(function() {
-        res.redirect('/devices?class=' + (req.query.class || 'physical'));
-    }).catch(function(e) {
+
+        devices.loadOneDevice(req.body, true).then(function() {
+            res.redirect('/devices?class=' + (req.query.class || 'physical'));
+        }).catch(function(e) {
+            res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                              message: e.message });
+        }).done();
+    } catch(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
-    }).done();
+    }
 });
 
-router.post('/delete', user.requireLogIn, function(req, res, next) {
+router.post('/delete', function(req, res, next) {
     if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
         res.status(404).render('error', { page_title: "ThingEngine - Error",
                                           message: "Invalid device class" });
         return;
     }
 
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        var id = req.body.id;
+    var engine = req.app.engine;
+    var id = req.body.id;
+    var device;
+    try {
         if (!engine.devices.hasDevice(id))
-            return undefined;
-        return engine.devices.getDevice(id);
-    }).then(function(device) {
+            device = undefined;
+        else
+            device = engine.devices.getDevice(id);
+
         if (device === undefined) {
             res.status(404).render('error', { page_title: "ThingEngine - Error",
                                               message: "Not found." });
             return;
         }
 
-        return engine.devices.removeDevice(device);
-    }).then(function() {
+        engine.devices.removeDevice(device);
         res.redirect('/devices?class=' + (req.query.class || 'physical'));
-    }).catch(function(e) {
+    } catch(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
-    }).done();
+    }
 });
 
-// special case google because we have login with google
-router.get('/oauth2/google-account', user.redirectLogIn, passport.authorize('google', {
-    scope: (['openid','profile','email',
-             'https://www.googleapis.com/auth/fitness.activity.read',
-             'https://www.googleapis.com/auth/fitness.location.read',
-             'https://www.googleapis.com/auth/fitness.body.read']
-            .join(' ')),
-    failureRedirect: '/devices?class=online',
-    successRedirect: '/devices?class=online'
-}));
-
-router.get('/oauth2/:kind', user.redirectLogIn, function(req, res, next) {
+router.get('/oauth2/:kind', function(req, res, next) {
     var kind = req.params.kind;
 
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return engine.devices.factory;
-    }).then(function(devFactory) {
-        return devFactory.runOAuth2(kind, null);
+    var engine = req.app.engine;
+    var devFactory = engine.devices.factory;
+
+    Q.try(function() {
+        return Q(devFactory.runOAuth2(kind, null));
     }).then(function(result) {
         if (result !== null) {
             var redirect = result[0];
@@ -161,23 +147,14 @@ router.get('/oauth2/:kind', user.redirectLogIn, function(req, res, next) {
     }).done();
 });
 
-router.get('/oauth2/callback/:kind', user.redirectLogIn, function(req, res, next) {
+router.get('/oauth2/callback/:kind', function(req, res, next) {
     var kind = req.params.kind;
 
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return engine.devices.factory;
-    }).then(function(devFactory) {
-        var saneReq = {
-            httpVersion: req.httpVersion,
-            url: req.url,
-            headers: req.headers,
-            rawHeaders: req.rawHeaders,
-            method: req.method,
-            query: req.query,
-            body: req.body,
-            session: req.session,
-        };
-        return devFactory.runOAuth2(kind, saneReq);
+    var engine = req.app.engine;
+    var devFactory = engine.devices.factory;
+
+    Q.try(function() {
+        return Q(devFactory.runOAuth2(kind, req));
     }).then(function() {
         res.redirect('/devices?class=online');
     }).catch(function(e) {
@@ -186,5 +163,6 @@ router.get('/oauth2/callback/:kind', user.redirectLogIn, function(req, res, next
                                           message: e.message });
     }).done();
 });
+
 
 module.exports = router;

@@ -171,7 +171,7 @@ const DeviceView = new lang.Class({
             return Q.all(removed.map(function(ch) {
                 return ch.close();
             }));
-        }).done();
+        }.bind(this)).done();
     },
 
     _openChannels: function() {

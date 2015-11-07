@@ -32,14 +32,21 @@ const CONSUMER_KEY = process.env['TWITTER_CONSUMER_KEY'] || 'VZRViA2T4qy7CBZjU5j
 const CONSUMER_SECRET = process.env['TWITTER_CONSUMER_SECRET'] || rot13('hsTCqM6neIt3hqum6zvnDCIqQkUuyWtSjKBoqZFONvzVXfb7OJ');
 
 // XOR these comments for testing
-//var THINGENGINE_ORIGIN = 'http://127.0.0.1:8080';
-var THINGENGINE_ORIGIN = 'https://thingengine.stanford.edu';
+//var THINGENGINE_CLOUD_ORIGIN = 'http://127.0.0.1:8080';
+var THINGENGINE_CLOUD_ORIGIN = 'https://thingengine.stanford.edu';
+// not this one though
+var THINGENGINE_LOCAL_ORIGIN = 'http://127.0.0.1:3000';
 
-function makeTwitterApi(accessToken, accessTokenSecret) {
+function makeTwitterApi(engine, accessToken, accessTokenSecret) {
+    var origin;
+    if (engine.ownTier === 'cloud')
+        origin = THINGENGINE_CLOUD_ORIGIN;
+    else
+        origin = THINGENGINE_LOCAL_ORIGIN;
     return new Twitter({
         consumerKey: CONSUMER_KEY,
         consumerSecret: CONSUMER_SECRET,
-        callBackUrl: THINGENGINE_ORIGIN + '/devices/oauth2/callback/twitter-account',
+        callBackUrl: origin + '/devices/oauth2/callback/twitter-account',
         accessToken: accessToken,
         accessTokenSecret: accessTokenSecret
     });
@@ -91,7 +98,7 @@ const TwitterAccountDevice = new lang.Class({
     queryInterface: function(iface) {
         switch (iface) {
         case 'twitter':
-            return makeTwitterApi(this.accessToken, this.accessTokenSecret);
+            return makeTwitterApi(this.engine, this.accessToken, this.accessTokenSecret);
         default:
             return null;
         }
@@ -102,8 +109,8 @@ function createDevice(engine, state) {
     return new TwitterAccountDevice(engine, state);
 }
 
-function runOAuthStep1() {
-    var twitter = makeTwitterApi();
+function runOAuthStep1(engine) {
+    var twitter = makeTwitterApi(engine);
 
     return Q.Promise(function(callback, errback) {
         return twitter.oauth.getOAuthRequestToken(function(error, oauth_token, oauth_token_secret, query) {
@@ -123,7 +130,7 @@ function runOAuthStep1() {
 }
 
 function runOAuthStep2(engine, req) {
-    var twitter = makeTwitterApi();
+    var twitter = makeTwitterApi(engine);
 
     return Q.Promise(function(callback, errback) {
         var token = req.session['twitter-token'];
@@ -137,7 +144,7 @@ function runOAuthStep2(engine, req) {
                 callback({ accessToken: oauth_access_token, accessTokenSecret: oauth_access_token_secret });
         });
     }).then(function(result) {
-        twitter = makeTwitterApi(result.accessToken, result.accessTokenSecret);
+        twitter = makeTwitterApi(engine, result.accessToken, result.accessTokenSecret);
         return Q.Promise(function(callback, errback) {
             return twitter.getCustomApiCall('/account/verify_credentials.json', {}, errback, callback);
         });
@@ -154,7 +161,7 @@ function runOAuthStep2(engine, req) {
 function runOAuth2(engine, req) {
     return Q.try(function() {
         if (req === null) {
-            return runOAuthStep1();
+            return runOAuthStep1(engine);
         } else {
             return runOAuthStep2(engine, req);
         }

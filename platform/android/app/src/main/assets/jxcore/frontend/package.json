@@ -1,0 +1,25 @@
+{
+  "name": "thingengine-webui",
+  "version": "1.0.0",
+  "description": "Web UI for ThingEngine",
+  "author": "Stanford IoT lab",
+  "contributors": [
+    {
+      "name": "Giovanni Campagna",
+      "email": "gcampagn@cs.stanford.edu"
+    }
+  ],
+  "main": "frontend.js",
+  "dependencies": {
+    "jade": "*",
+    "cookie-parser": "~1.3.5",
+    "morgan": "~1.6.1",
+    "body-parser": "~1.13.3",
+    "express-session": "~1.11.3",
+    "csurf": "~1.8.3",
+    "express": "~4.13.3",
+    "q": "~1.4.1",
+    "errorhandler": "~1.4.2",
+    "connect-flash": "~0.1.1"
+  }
+}

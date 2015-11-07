@@ -1,5 +1,8 @@
 extends layout
 
+block scripts
+  script(src='/javascripts/apps.js')
+
 block page_name
   if onlineAccounts
     | Online Accounts
@@ -29,6 +32,11 @@ block content
           else
             p It was not possible to verify if the device is available.
               | Please check it is powered on and correctly configured.
+      div
+        form.form-inline(action="/devices/delete?class=" + (onlineAccounts ? 'online' : 'physical'),method="post").form-delete-app
+          input(type='hidden',name='id',value=dev.uniqueId)
+          input(type='hidden',name='_csrf',value=csrfToken)
+          button(type='submit').btn.btn-danger Delete
 
   p
     if onlineAccounts
