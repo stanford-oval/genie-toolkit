@@ -28,6 +28,8 @@ const NotifyChannel = new lang.Class({
             return;
         }
 
+        console.log('Sending notify message', event);
+
         var title, message;
         if (event.title)
             title = event.title;

@@ -48,7 +48,7 @@ const MessagingGroupProxyChannel = new lang.Class({
     sendEvent: function(event) {
         console.log('Sending broadcast event on group chat', event);
         this._feed.sendItem({ op: 'sink-data',
-                              subscription: this._subscriptionId,
+                              subscriptionId: this._subscriptionId,
                               data: event });
     },
 
@@ -57,10 +57,10 @@ const MessagingGroupProxyChannel = new lang.Class({
             if (!msg.text)
                 return;
             var parsed = JSON.parse(msg.text);
-            if (parsed.subscription !== this._subscriptionId)
+            if (parsed.subscriptionId !== this._subscriptionId)
                 return;
 
-            console.log('Received Omlet message: ', parsed);
+            console.log('Received Omlet message on MessagingGroupProxy: ', parsed);
 
             switch(parsed.op) {
             case 'subscribe-error':

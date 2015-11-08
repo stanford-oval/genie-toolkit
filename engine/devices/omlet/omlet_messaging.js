@@ -138,7 +138,7 @@ const OmletFeed = new lang.Class({
     sendItem: function(item) {
         return this._getFeed().then(function(feed) {
             return Q.ninvoke(this._client.messaging, '_sendObjToFeed', feed, 'text',
-                             { text: JSON.stringify(item) });
+                             { text: JSON.stringify(item), silent: true, hidden: true });
         }.bind(this));
     },
 

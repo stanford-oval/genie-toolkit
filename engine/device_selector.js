@@ -37,6 +37,8 @@ module.exports = new lang.Class({
     },
 
     getChannels: function() {
+        if (!this._set) // not sure how this happens, let's be robust though
+            return [];
         return this._set.values();
     },
 

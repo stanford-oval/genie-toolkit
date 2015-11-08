@@ -11,6 +11,9 @@ const events = require('events');
 const lang = require('lang');
 const adt = require('adt');
 
+const AppCompiler = require('./app_compiler');
+const AppGrammar = require('./app_grammar');
+const QueryRunner = require('./query_runner');
 const BaseChannel = require('./base_channel');
 const BaseDevice = require('./base_device');
 
@@ -18,14 +21,15 @@ const ComputeModuleFunctionChannel = new lang.Class({
     Name: 'ComputeModuleFunctionChannel',
     Extends: BaseChannel,
 
-    _init: function(fn) {
+    _init: function(ast, fn) {
         this.parent();
 
+        this._ast = ast;
         this._fn = fn;
     },
 
     sendEvent: function(event) {
-        var args = Object.keys(ast.params).map(function(name) { return event[name]; });
+        var args = Object.keys(this._ast.params).map(function(name) { return event[name]; });
         this._fn.apply(null, args);
     }
 });
@@ -55,17 +59,50 @@ module.exports = new lang.Class({
             var scopestring = 'var ' + states.join(',') + ';'
 
         var events = Object.keys(module.events);
-        var eventarsgs = events.join(',');
+        var eventargs = events.join(',');
         var eventFunctions = events.map(function(name) {
             var event = module.events[name];
             return (function() {
+                console.log('Event function ' + name + ' called');
                 var i = 0;
                 var data = {};
-                for (var name in event)
-                    data[name] = arguments[i++];
+                for (var pname in event)
+                    data[pname] = arguments[i++];
                 return this._emitEvent(name, data);
             }).bind(this);
         }, this);
+        if (events.length > 0)
+            eventargs += ',query1';
+        else
+            eventargs = 'query1';
+        eventFunctions.push(function query1(query) {
+            console.log('Handling query1 call', query);
+            var compiler = new AppCompiler();
+            var ast = AppGrammar.parse(query, { startRule: 'query' });
+            var inputs = compiler.compileInputs({}, ast, '$$');
+            var alias;
+            if (inputs.length == 1)
+                alias = inputs[0].alias;
+            else
+                alias = null;
+
+            var qr = new QueryRunner(this.engine, this.app, inputs);
+
+            return Q.Promise(function(callback, errback) {
+                qr.once('ready', function() {
+                    var scope = qr.env.getAllAliases();
+                    console.log("Got result from query", scope);
+                    if (alias !== null && alias == '$$') {
+                        callback(scope[alias]);
+                    } else {
+                        callback(scope);
+                    }
+
+                    qr.stop().done();
+                });
+                return qr.start();
+            });
+        }.bind(this));
 
         this._functions = {};
         this._eventPipes = {};
@@ -73,7 +110,7 @@ module.exports = new lang.Class({
         for (var name in module.functions) {
             var ast = module.functions[name];
             // this is really evil...
-            var outerfn = new Function(events.join(','), scopestring +
+            var outerfn = new Function(eventargs, scopestring +
                                        'return function(' + Object.keys(ast.params).join(',')
                                        +') {' + ast.code + '};');
             var fn = outerfn.apply(null, eventFunctions);
@@ -115,7 +152,8 @@ module.exports = new lang.Class({
             if (this._functionChannels[id])
                 ch = this._functionChannels[id];
             else
-                ch = new ComputeModuleFunctionChannel(this._functions[id]);
+                ch = new ComputeModuleFunctionChannel(this._module.functions[id],
+                                                      this._functions[id]);
 
             return ch.open().then(function() {
                 return ch;
@@ -132,7 +170,9 @@ module.exports = new lang.Class({
         // the pipe subsystem will ensure to emitEvent() on the reading end as appropriate
         // the reason we need pipe is to make sure we route messages properly, as the sender
         // and the receiver might be running in different tiers
-        this._eventPipes[name].sendEvent(data);
+        this._eventPipes[name].then(function(ch) {
+            ch.sendEvent(data);
+        });
     },
 
     _startEventPipes: function() {

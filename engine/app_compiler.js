@@ -925,9 +925,9 @@ module.exports = new lang.Class({
                  schema: schema };
     },
 
-    compileAlias: function(ast, schema, localscope) {
+    compileAlias: function(ast, schema, localscope, implicitAlias) {
         if (ast === null)
-            return null;
+            return implicitAlias;
         if (Array.isArray(ast)) {
             ast.forEach(function(name) {
                 if (schema === null) {
@@ -944,11 +944,11 @@ module.exports = new lang.Class({
         return ast;
     },
 
-    compileInputs: function(localscope, ast) {
+    compileInputs: function(localscope, ast, implicitAlias) {
         return ast.map(function(input) {
             var selector = this.compileSelectors(input.selectors, 'r');
             selector.context = input.context;
-            var alias = this.compileAlias(input.alias, selector.schema, localscope);
+            var alias = this.compileAlias(input.alias, selector.schema, localscope, implicitAlias);
 
             var filters = input.filters.map(function(filter) {
                 return this.compileFilter(filter, localscope, selector.schema);
@@ -956,6 +956,7 @@ module.exports = new lang.Class({
 
             var inputBlock = {
                 selectors: selector,
+                alias: alias,
                 channels: [],
                 update: this.compileUpdate(filters, alias),
                 filters: input.filters.map(this.simplifyFilter.bind(this)).filter(function(f) { return f !== null; })
@@ -1082,7 +1083,7 @@ module.exports = new lang.Class({
             } else if (stmt.isRule) {
                 var localscope = {};
                 this._rules.push({
-                    inputs: this.compileInputs(localscope, stmt.inputs),
+                    inputs: this.compileInputs(localscope, stmt.inputs, null),
                     outputs: this.compileOutputs(localscope, stmt.outputs)
                 });
             }

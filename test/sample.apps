@@ -7,12 +7,12 @@ LinkedInApp(g : Group) {
             query1("linkedin()").then(function(v) {
                 if (ind === v.industry)
                     newcolleague(name, ind);
-            });
+            }).done();
         }
     }
 
     mylin = linkedin() => g.compute.newmessage(name = mylin.formattedName, ind = mylin.industry);
-    (name, ind) = compute.newcolleague() => notify(msg = name + " also works in " + ind);
+    (name, ind) = compute.newcolleague() => notify(message = name + " also works in " + ind);
 }
 
 ====

@@ -12,17 +12,15 @@ var CODE = 'LinkedInApp(g : Group) {' +
 '            query1("linkedin()").then(function(v) {' +
 '                if (ind === v.industry)' +
 '                    newcolleague(name, ind);' +
-'            });' +
+'            }).done();' +
 '        }' +
 '    }' +
 '' +
 '    mylin = linkedin() => g.compute.newmessage(name = mylin.formattedName, ind = mylin.industry);' +
-'    (name, ind) = compute.newcolleague() => notify(msg = name + " also works in " + ind);' +
+'    (name, ind) = compute.newcolleague() => notify(message = name + " also works in " + ind);' +
 '}';
 
 router.get('/linkedin', function(req, res, next) {
-    if (req.query.instanceToken)
-        req.session['omlet-instance-token'] = req.query.instanceToken;
     var feedId = req.session['linkedin-feed-id'];
     if (!feedId) {
         feedId = req.query['feedId'];
@@ -33,7 +31,7 @@ router.get('/linkedin', function(req, res, next) {
         res.render('demo_view', { page_title: "LinkedIn Party!", nofeed: true, done: false });
         return;
     }
-    req.session['device-redirect-to'] = '/demos/linkedin';
+    req.session['device-redirect-to'] = req.originalUrl;
 
     var engine = req.app.engine;
     var devices = engine.devices;

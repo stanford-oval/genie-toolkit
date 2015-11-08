@@ -239,20 +239,23 @@ const SinkSubscription = new lang.Class({
     },
 
     _sinkData: function(data) {
-        this._whenReady.then(function(set) {
-            set.values().forEach(function(ch) {
-                ch.sendEvent(data);
-            });
-        });
+        this._whenReady.then(function() {
+            setTimeout(function() {
+                this._set.values().forEach(function(ch) {
+                    console.log('Sending event on ' + ch.uniqueId);
+                    ch.sendEvent(data);
+                });
+            }.bind(this), 0);
+        }.bind(this));
     },
 
     _onNewMessage: function(msg) {
         try {
             var parsed = JSON.parse(msg.text);
-            if (parsed.subscription !== this._subscriptionId)
+            if (parsed.subscriptionId !== this._subscriptionId)
                 return;
 
-            console.log('Received Omlet message: ', parsed);
+            console.log('Received Omlet message on SubscriptionSink: ', parsed);
 
             switch(parsed.op) {
             case 'sink-data':
@@ -345,7 +348,7 @@ module.exports = new lang.Class({
             return;
 
         feed.sendItem({ op: 'unsubscribe',
-                        subscriptionId: subscription });
+                        subscriptionId: subscriptionId });
         delete this._activeRemoteGroups[subscriptionId];
     },
 

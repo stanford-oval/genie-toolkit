@@ -35,9 +35,16 @@ module.exports = new lang.Class({
         this._ready = false;
     },
 
+    get env() {
+        return this._env;
+    },
+
     _onData: function(from, data) {
         try {
             this._env.reset();
+
+            if (from)
+                console.log('Handling incoming data on ' + from.uniqueId);
 
             // "sample" the current list of channels based on the devices we
             // see now
@@ -45,6 +52,7 @@ module.exports = new lang.Class({
                 this._blocks[i].channels = this._inputs[i].getChannels();
 
             this._blocks[0].update(this._blocks, 0, this._env, function() {
+                console.log('Rule triggered');
                 this.emit('triggered', this._env);
             }.bind(this));
         } catch(e) {
@@ -93,6 +101,7 @@ module.exports = new lang.Class({
             console.log('Handling initial channel state sample');
             this._ready = true;
             this._onData();
+            this.emit('ready');
         }.bind(this)).done();
     },
 });
