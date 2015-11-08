@@ -1,0 +1,10 @@
+
+@setting account {
+    type: string;
+    name: "User account";
+}
+
+@setting password {
+    type: password;
+    name: "Password";
+}

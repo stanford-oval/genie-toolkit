@@ -1,0 +1,52 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingEngine
+//
+// Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+const lang = require('lang');
+const Q = require('q');
+
+const BaseDevice = require('../../base_device');
+const Tier = require('../../tier_manager').Tier;
+
+// A device that logs on the private server stdout
+const HeatPadDevice = new lang.Class({
+    Name: 'HeatPadDevice',
+    Extends: BaseDevice,
+
+    _init: function(engine, state) {
+        this.parent(engine, state);
+
+        this.account = state.account;
+        this.password = state.password;
+
+        this.uniqueId = 'thingengine-device-heatpad'+this.account;
+
+        this.name = "Heatpad Device";
+        this.description = "The device allows you to turn on/off your heatpad.";
+    },
+
+    get ownerTier() {
+        return Tier.SERVER;
+    },
+
+    checkAvailable: function() {
+        return BaseDevice.Availability.AVAILABLE;
+    },
+
+    hasKind: function(kind) {
+        switch(kind) {
+        default:
+            return this.parent(kind);
+        }
+    },
+});
+
+function createDevice(engine, state) {
+    return new HeatPadDevice(engine, state);
+}
+
+module.exports.createDevice = createDevice;
