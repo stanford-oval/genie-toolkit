@@ -21,15 +21,19 @@ var CODE = 'LinkedInApp(g : Group) {' +
 '}';
 
 router.get('/linkedin', function(req, res, next) {
+    if (req.query.instanceToken)
+        req.session['omlet-instance-token'] = req.query.instanceToken;
     var feedId = req.session['linkedin-feed-id'];
-    if (feedId === undefined) {
+    if (!feedId) {
         feedId = req.query['feedId'];
-        req.session['linkedin-feed-id'] = feedId;
+        if (feedId)
+            req.session['linkedin-feed-id'] = feedId;
     }
-    if (feedId === undefined) {
+    if (!feedId) {
         res.render('demo_view', { page_title: "LinkedIn Party!", nofeed: true, done: false });
         return;
     }
+    req.session['device-redirect-to'] = '/demos/linkedin';
 
     var engine = req.app.engine;
     var devices = engine.devices;
@@ -55,14 +59,17 @@ router.get('/linkedin', function(req, res, next) {
 
     // now check that we have the app installed
     var messagingGroupId = 'messaging-group-omlet' + feedId.replace(/[^a-zA-Z0-9]+/g, '-');
+    console.log('Messaging Group Id');
     var appId = 'app-LinkedInApp-' + messagingGroupId;
 
     if (apps.getApp(appId) === undefined) {
         engine.apps.loadOneApp(CODE, { g: messagingGroupId }, appId, 'phone', true).then(function() {
-            res.render('demo_view', { page_title: "LinkedIn Party!", nofeed: true, done: true });
+            delete req.session['device-redirect-to'];
+            res.render('demo_view', { page_title: "LinkedIn Party!", nofeed: false, done: true });
         }).done();
     } else {
-        res.render('demo_view', { page_title: "LinkedIn Party!", nofeed: true, done: true });
+        delete req.session['device-redirect-to'];
+        res.render('demo_view', { page_title: "LinkedIn Party!", nofeed: false, done: true });
     }
 });
 

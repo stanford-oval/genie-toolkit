@@ -2,6 +2,7 @@ extends layout
 
 block scripts
   script(src='https://omlet.me/a/js/omlet.js')
+  script(src='/javascripts/base64.js')
   script(src='/javascripts/demo_linkedin.js')
 
 block page_name
@@ -13,6 +14,8 @@ block content
 
     p If you see this message, it means you're not inside an Omlet chat.
     p You must open this app from the Omlet drawer.
+
+    p#debug
   else if done
     p You're all set now, you can go back to your friends!
     p When you return to the chat, your friends will see a link to join

@@ -2,12 +2,23 @@
     window.LinkedInDemo = {};
     LinkedInDemo.start = function() {
         Omlet.ready(function() {
+            var feedId;
             if (Omlet.scope.feedId)
-                document.location.href = '/demos/linkedin?feedId=' + Omlet.scope.feedId;
+                feedId = Omlet.scope.feedId;
+            else if (Omlet.scope.feed_key)
+                feedId = Base64.decode(Omlet.scope.feed_key);
+
+            if (feedId) {
+                if (location.search)
+                    location.href = '/demos/linkedin' + location.search + '&feedId=' + feedId;
+                else
+                    location.href = '/demos/linkedin?feedId=' + feedId;
+            }
         });
     };
     LinkedInDemo.exit = function() {
         Omlet.ready(function() {
+            alert('omlet ready');
             var rdl = Omlet.createRDL({
     	        noun: "app",
     	        displayTitle: "LinkedIn Party!",

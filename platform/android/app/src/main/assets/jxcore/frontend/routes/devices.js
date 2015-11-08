@@ -81,7 +81,10 @@ router.post('/create', function(req, res, next) {
         delete req.body['_csrf'];
 
         devices.loadOneDevice(req.body, true).then(function() {
-            res.redirect('/devices?class=' + (req.query.class || 'physical'));
+            if (req.session['device-redirect-to'])
+                res.redirect(req.session['device-redirect-to']);
+            else
+                res.redirect('/devices?class=' + (req.query.class || 'physical'));
         }).catch(function(e) {
             res.status(400).render('error', { page_title: "ThingEngine - Error",
                                               message: e.message });
@@ -138,7 +141,10 @@ router.get('/oauth2/:kind', function(req, res, next) {
                 req.session[key] = session[key];
             res.redirect(redirect);
         } else {
-            res.redirect('/devices?class=online');
+            if (req.session['device-redirect-to'])
+                res.redirect(req.session['device-redirect-to']);
+            else
+                res.redirect('/devices?class=online');
         }
     }).catch(function(e) {
         console.log(e.stack);
@@ -156,7 +162,10 @@ router.get('/oauth2/callback/:kind', function(req, res, next) {
     Q.try(function() {
         return Q(devFactory.runOAuth2(kind, req));
     }).then(function() {
-        res.redirect('/devices?class=online');
+        if (req.session['device-redirect-to'])
+            res.redirect(req.session['device-redirect-to']);
+        else
+            res.redirect('/devices?class=online');
     }).catch(function(e) {
         console.log(e.stack);
         res.status(400).render('error', { page_title: "ThingEngine - Error",

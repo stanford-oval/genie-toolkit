@@ -318,9 +318,10 @@ if (isAndroid) {
 
     var readfilesync = function (pathname) {
         if (!existssync(pathname)) {
-            var error = new Error(pathname + " does not exist");
-            error.code = 'ENOENT';
-            throw error;
+            //var error = new Error(pathname + " does not exist");
+            //error.code = 'ENOENT';
+            //throw error;
+            return '';
         }
 
       var n = pathname.indexOf(root);
