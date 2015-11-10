@@ -128,7 +128,7 @@ function runOAuthStep2(engine, req) {
             var refreshToken = result[1];
             var response = result[2];
 
-            return Q.ninvoke(auth, 'get', 'https://api.linkedin.com/v1/people/~:(id,formatted-name)?format=json',
+            return Q.ninvoke(auth, 'get', 'https://api.linkedin.com/v1/people/~:(id)?format=json',
                              accessToken)
                 .then(function(result) {
                     var profile = result[0];
