@@ -119,7 +119,21 @@ function runEngine() {
                 }).finally(function() {
                     feed.close();
                 });
-            }
+            },
+
+            injectTableInsert: function(table, value) {
+                var device = engine.devices.getDevice(table);
+                var table = device.table;
+                var collection = table.getCollection('data');
+                var previous = collection.findObject(value);
+                if (previous) {
+                    for (var name in value)
+                        previous[name] = value[name];
+                    collection.update(previous);
+                } else {
+                    collection.insert(value);
+                }
+            },
         });
 
         return controlChannel.open().then(function() {

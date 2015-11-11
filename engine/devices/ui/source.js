@@ -41,8 +41,8 @@ const UIChannel = new lang.Class({
     }
 });
 
-function createChannel() {
-    return new UIChannel();
+function createChannel(engine) {
+    return new UIChannel(engine);
 }
 
 module.exports.createChannel = createChannel;

@@ -18,17 +18,17 @@ block content
       h2
         label(for="params") Parameters
       div.form-group
-        textarea#params(name="params").form-control {}
+        textarea#params(name="params").form-control= params
 
-      h2 Settings
-      - var anySetting = false
-      each setting, key in settings
-        - anySetting = true
-        div.form-group.form-inline
-          label(for='setting-' + key).control-label= setting.name
-          input(type='text',name='setting['+key+']',value=(state[key]||''),id='setting-'+key).form-control
-      if !anySetting
-        p This app has no configuration parameters.
+      //h2 Settings
+      //- var anySetting = false
+      //each setting, key in settings
+      //  - anySetting = true
+      //  div.form-group.form-inline
+      //    label(for='setting-' + key).control-label= setting.name
+      //    input(type='text',name='setting['+key+']',value=(state[key]||''),id='setting-'+key).form-control
+      //if !anySetting
+      //  p This app has no configuration parameters.
 
       div.form-group
         button(type='submit').btn.btn-primary Update

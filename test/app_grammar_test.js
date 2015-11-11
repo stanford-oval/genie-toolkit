@@ -1,6 +1,8 @@
 const Q = require('q');
 const fs = require('fs');
 
+require('../engine/polyfill');
+
 const AppExecutor = require('../engine/app_executor');
 const AppGrammar = require('../engine/app_grammar');
 
@@ -178,6 +180,8 @@ function parserTest() {
             console.log('Compilation failed');
             console.log(e);
         }
+
+        throw new Error();
     });
 }
 

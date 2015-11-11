@@ -41,8 +41,8 @@ const ScaleChannel = new lang.Class({
 
         return Q.nfcall(httpGetAsync, url, auth).then(function(response) {
             function makeEvent(time, data) {
-                var date = new Date(0); // The 0 there is the key, which sets the date to the epoch
-                date.setUTCSeconds(time/1000);
+                var date = new Date();
+                date.setTime(time);
 
                 // weight is in grams, convert to kg, which the base unit
                 // AppExecutor wants
@@ -68,11 +68,9 @@ const ScaleChannel = new lang.Class({
                 lastRead = 0;
             if (utcMilliSeconds <= lastRead) {
                 if (channelInstance.event === null) {
-                    // cold plug channel, but don't emit an event
-                    channelInstance.setCurrentEvent(makeEvent(utcMilliSeconds, weight));
-                    channelInstance.nextTick();
+                    channelInstance.emitEvent(makeEvent(utcMilliSeconds, weight));
                 } else {
-                    channelInstance.nextTick();
+                    return;
                 }
             } else {
                 state.set('last-read', utcMilliSeconds);

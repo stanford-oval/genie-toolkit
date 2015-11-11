@@ -137,7 +137,7 @@ module.exports = function(kind, code) {
             if (channelBlock === null)
                 throw new Error('Invalid channel ' + kind + ' in ' + code);
 
-            var env = new ExecEnvironment(engine.devices, device.state);
+            var env = new ExecEnvironment(engine, engine.devices, device.state);
             env.beginOutput();
             channelBlock.properties.forEach(function(prop) {
                 prop(env);

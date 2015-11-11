@@ -1,5 +1,16 @@
 // -* mode: js -*-
 
+WeightCompetitionApp(g : Group) {
+  table weightHistory(week : Number, weight : Measure(kg));
+  table weightBoard(name : String, delta : Measure(kg));
+  scale = #scale() => weightHistory(week = floor(julianday(scale.ts) / 7), weight = scale.weight);
+  old = weightHistory.alldata(week = floor(today() / 7) - 1), current = weightHistory(week = floor(today()/7)) => weightBoard(name = @self.name, delta = old.weight - current.weight);
+  @global.timer(interval = 1week), board = max(g.weightBoard.alldata, delta) => notify(message = "New results for the weight competition! The winner is " + board.name);
+  ui(what='click'), board = max(g.weightBoard.alldata, delta) => notify(message = "The winner of the weight competition for this week is " + board.name);
+}
+
+====
+
 LinkedInApp(g : Group) {
     module compute() {
         event newcolleague(name : String, ind : String);

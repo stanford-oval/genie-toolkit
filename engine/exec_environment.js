@@ -14,7 +14,8 @@ const adt = require('adt');
 module.exports = new lang.Class({
     Name: 'ExecEnvironment',
 
-    _init: function(devicedb, appstate) {
+    _init: function(engine, devicedb, appstate) {
+        this.engine = engine;
         this._devices = devicedb;
         this._state = appstate;
 

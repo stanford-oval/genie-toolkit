@@ -100,8 +100,8 @@ router.get('/:id/show', function(req, res, next) {
                                     description: app.description || '',
                                     csrfToken: req.csrfToken(),
                                     code: app.code,
-                                    settings: app.settings,
-                                    state: app.state });
+                                    params: JSON.stringify(app.state),
+                                    settings: app.settings });
 });
 
 router.post('/:id/update', function(req, res, next) {

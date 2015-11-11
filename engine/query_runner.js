@@ -31,7 +31,7 @@ module.exports = new lang.Class({
             return new DeviceSelector(this.engine, app, 'r', input);
         }.bind(this));
 
-        this._env = new ExecEnvironment(this.engine.devices, this._state);
+        this._env = new ExecEnvironment(this.engine, this.engine.devices, this._state);
         this._ready = false;
     },
 

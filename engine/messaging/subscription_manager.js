@@ -10,6 +10,7 @@ const lang = require('lang');
 const crypto = require('crypto');
 const Q = require('q');
 
+const prefs = require('../prefs');
 const Protocol = require('../protocol');
 const AppCompiler = require('../app_compiler');
 const DeviceView = require('../device_view');
@@ -25,6 +26,28 @@ function getAuthToken() {
     }
     return authToken;
 }
+
+const SubscriptionStateBinder = new lang.Class({
+    Name: 'SubscriptionStateBinder',
+
+    _init: function(prefs, name) {
+        this._prefs = prefs;
+        this._cached = this._prefs.get(name);
+        if (this._cached === undefined) {
+            this._cached = {};
+            this._prefs.set(name, this._cached);
+        }
+    },
+
+    get: function(name) {
+        return this._cached[name];
+    },
+
+    set: function(name, value) {
+        this._cached[name] = value;
+        this._prefs.changed();
+    },
+});
 
 const SubscriptionWatcher = new lang.Class({
     Name: 'SubscriptionWatcher',
@@ -177,7 +200,7 @@ const SourceSubscription = new lang.Class({
 
     _ready: function() {
         this._readyQueued = false;
-        set.values().forEach(function(ch) {
+        this._set.values().forEach(function(ch) {
             this._sendData(ch.uniqueId, ch.event);
         }, this);
         this._sendReady();
@@ -211,8 +234,8 @@ const SourceSubscription = new lang.Class({
 
             set.values().forEach(function(o) {
                 this._channelAdded(o);
-            });
-        });
+            }, this);
+        }.bind(this));
         this._readyQueued = true;
         return this._whenReady.then(function() {
             this._ready();
@@ -223,13 +246,14 @@ const SourceSubscription = new lang.Class({
 const SinkSubscription = new lang.Class({
     Name: 'SinkSubscription',
 
-    _init: function(feed, subscriptionId, context, selectors, channelName, filters) {
+    _init: function(feed, subscriptionId, context, selectors, channelName, state) {
         this._feed = feed;
         this._subscriptionId = subscriptionId;
 
-        this._view = new DeviceView(null, context, selectors, channelName, 'w', filters, false);
+        this._view = new DeviceView(null, context, selectors, channelName, 'w', [], false);
         this._set = null;
 
+        this._state = state;
         this._readyQueued = false;
     },
 
@@ -260,6 +284,7 @@ const SinkSubscription = new lang.Class({
             switch(parsed.op) {
             case 'sink-data':
                 this._sinkData(parsed.data);
+                this._state.set('last-read', msg.serverTimestamp);
                 break;
             default:
                 // ignore other messages
@@ -285,6 +310,24 @@ const SinkSubscription = new lang.Class({
     stop: function() {
         this._feed.removeListener('incoming-message', this._msgListener);
         return this._view.stop();
+    },
+
+    _processOldSubscriptions: function() {
+        var cursor = this._feed.getCursor();
+
+        var lastRead = this._state.get('last-read');
+        try {
+            while (cursor.hasNext()) {
+                var obj = cursor.next();
+                if (this._feed.ownIds.indexOf(obj.senderId) >= 0)
+                    continue;
+                if (obj.serverTimestamp < lastRead)
+                    break;
+                this._onNewMessage(obj);
+            }
+        } finally {
+            cursor.destroy();
+        }
     },
 
     start: function() {
@@ -315,6 +358,8 @@ module.exports = new lang.Class({
         this._activeRemoteGroups = {};
 
         this._deferredSubscriptions = {};
+
+        this._prefs = new prefs.FilePreferences(platform.getWritableDir() + '/subscriptions.db');
     },
 
     makeSubscriptionId: function(feed, authId, selectors, channelName, mode, filters) {
@@ -369,14 +414,16 @@ module.exports = new lang.Class({
         } else {
             // authenticate based on the group that "owns" authId
             if (!this._devices.hasDevice(authId)) {
-                if (authId.startsWith('thingengine-compute-module-'))
+                if (authId.startsWith('thingengine-compute-module-') ||
+                    authId.startsWith('thingengine-table-'))
                     return -1; // deferred
                 else
                     return 0; // denied
             }
 
             var device = this._devices.getDevice(authId);
-            if (device.kind !== 'thingengine-compute-module')
+            if (device.kind !== 'thingengine-compute-module' &&
+                device.kind !== 'thingengine-table')
                 return 0;
             if (device.verifyGroupAuthorization(feed))
                 return 1;
@@ -443,8 +490,9 @@ module.exports = new lang.Class({
             this._subscriptions[fullId] = new SourceSubscription(feed, subscriptionId, context,
                                                                  selectors, channelName, filters);
         } else if (mode === 'w') {
+            var state = new SubscriptionStateBinder(this._prefs, fullId);
             this._subscriptions[fullId] = new SinkSubscription(feed, subscriptionId, context,
-                                                               selectors, channelName, filters);
+                                                               selectors, channelName, state);
         } else {
             throw new Error('Invalid mode ' + mode);
         }

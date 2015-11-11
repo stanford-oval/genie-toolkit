@@ -57,13 +57,16 @@ program = _ name:ident _ params:decl_param_list _ '{' _ statements:(statement _)
 }
 query = input_channel_list
 
-statement = import_stmt / compute_module / rule
+statement = import_stmt / compute_module / table / rule
 
 import_stmt = 'import' __ name:ident alias:(__ 'as' __ ident)? _ ';' {
     return Statement.Import(name, alias !== null ? alias[3] : name);
 }
 compute_module = 'module' __ name:ident _ params:decl_param_list _ '{' _ statements:(compute_stmt _)+ _ '}' _ {
     return Statement.ComputeModule(name, params, take(statements, 0));
+}
+table = 'table' __ name:ident _ params:decl_param_list _ ';' {
+    return Statement.Table(name, params);
 }
 compute_stmt = auth_decl / var_decl / event_decl / function_decl
 auth_decl = 'auth' __ name:ident __ mode:('rw' / 'r' / 'w')? _ ';' {
@@ -95,7 +98,7 @@ decl_param = name:ident _ ':' _ type:type_ref {
 input_channel_list = first:input_channel _ rest:(',' _ input_channel _)* {
     return [first].concat(take(rest, 2));
 }
-input_channel = alias:(alias_spec _ '=' _)? context:(at_context _ '.' _)? selectors:selector_list _ filters:input_param_list? {
+input_channel = alias:(alias_spec _ '=' _)? context:(at_context _ '.' _)? selectors:input_selector _ filters:input_param_list? {
     return ({ alias: alias !== null ? alias[0] : null,
               context: context !== null ? context[0] : 'self',
               selectors: selectors,
@@ -115,7 +118,7 @@ comparator "comparator" = '>=' / '<=' / '>' / '<' / '=~' / 'has~' / 'has' / '=' 
 output_channel_list = first:output_channel _ rest:(',' _ output_channel _)* {
     return [first].concat(take(rest, 2));
 }
-output_channel = context:(at_context _ '.')? selectors:selector_list _ outputs:output_param_list {
+output_channel = context:(at_context _ '.')? selectors:output_selector _ outputs:output_param_list {
     return ({ context: context !== null ? context[0] : 'self',
               selectors: selectors,
               outputs: outputs });
@@ -134,9 +137,12 @@ at_context "@-context" = '@self' { return 'self'; } /
     '@global' { return 'global'; }
 // this grammar is a bit loose, there are actual restrictions on what
 // is a valid selector list that are not captured by this
+input_selector = aggregate_selector / selector_list
+output_selector = selector_list
 selector_list = first:simple_selector _ rest:('.' _ simple_selector _)* {
     return [first].concat(take(rest, 2));
 }
+outermost_selector = aggregate_selector / simple_selector
 simple_selector = tag_selector_list / id_selector / scoped_selector / var_selector
 tag_selector_list = tags:(tag_selector _)+ {
     return Selector.Tags(take(tags, 0));
@@ -144,6 +150,10 @@ tag_selector_list = tags:(tag_selector _)+ {
 tag_selector "hashtag" = '#' name:cssident { return name; }
 id_selector = name:literal_string { return Selector.Id(name); }
 scoped_selector = scope:ident _ '::' _ name:ident { return Selector.Scoped(scope, name); }
+aggr_op = 'max' / 'min' / 'avg' / 'sum'
+aggregate_selector = op:aggr_op _ '(' _ inner:selector_list _ ',' _ what:ident _ ')' {
+    return [Selector.Aggregate(inner, op, what)];
+}
 var_selector = name:ident { return Selector.VarRef(name); }
 
 // expression language
@@ -160,7 +170,7 @@ mult_expression =
 member_expression =
     lhs:primary_expression '.' name:ident { return Expression.MemberRef(lhs, name); } /
     primary_expression
-primary_expression = literal / context_ref / function_call /
+primary_expression "primary" = literal / context_ref / function_call /
     name:ident { return Expression.VarRef(name); } /
     '(' _ subexp:expression _ ')' { return subexp; }
 function_call = name:ident '(' _ args:parameter_list? _ ')' {

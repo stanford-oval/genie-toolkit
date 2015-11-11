@@ -33,6 +33,12 @@ module.exports = new lang.Class({
         this._feedAddedListener = this._onFeedAdded.bind(this);
         this._feedRemovedListener = this._onFeedRemoved.bind(this);
         this._feedChangedListener = this._onFeedChanged.bind(this);
+
+        this._ownerName = null;
+    },
+
+    get ownerName() {
+        return this._ownerName;
     },
 
     get device() {
@@ -123,6 +129,12 @@ module.exports = new lang.Class({
 
             if (this._syncing)
                 iface.startSync();
+
+            return iface.getOwnIds();
+        }.bind(this)).then(function(ids) {
+            return iface.getAccountNameById(ids[0]);
+        }.bind(this)).then(function(account) {
+            this._ownerName = account;
         }.bind(this));
     },
 

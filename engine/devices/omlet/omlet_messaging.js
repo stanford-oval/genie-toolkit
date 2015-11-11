@@ -219,6 +219,17 @@ module.exports = new lang.Class({
         }.bind(this));
     },
 
+    getAccountNameById: function(id) {
+        var client = this._device.refOmletClient();
+        return oinvoke(client.store, 'getAccounts').then(function(db) {
+            return oinvoke(db, 'getObjectById', id).then(function(o) {
+                return o.name;
+            });
+        }).finally(function() {
+            this._device.unrefOmletClient();
+        }.bind(this));
+    },
+
     getFeedList: function() {
         var client = this._device.refOmletClient();
         return oinvoke(client.store, 'getFeeds').then(function(db) {

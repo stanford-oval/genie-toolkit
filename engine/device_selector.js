@@ -51,8 +51,10 @@ module.exports = new lang.Class({
 
         if (selector.devices !== null) {
             mapped = mapped.concat(selector.devices);
-        } else {
+        } else if (selector.computeModule !== null) {
             mapped.push(AppCompiler.Selector.Id('thingengine-compute-module-' + this._app.uniqueId + '-' + selector.computeModule.name));
+        } else if (selector.table !== null) {
+            mapped.push(AppCompiler.Selector.Id('thingengine-table-' + this._app.uniqueId + '-' + selector.table));
         }
 
         this._context = devices.getContext(selector.context);

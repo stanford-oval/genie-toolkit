@@ -17,6 +17,7 @@ const ExecEnvironment = require('./exec_environment');
 const QueryRunner = require('./query_runner');
 const DeviceSelector = require('./device_selector');
 const ComputeModule = require('./compute_module');
+const TableDevice = require('./table');
 
 const RuleExecutor = new lang.Class({
     Name: 'RuleExecutor',
@@ -111,9 +112,15 @@ module.exports = new lang.Class({
             this.modules = modulenames.map(function(name) {
                 return new ComputeModule(engine, this, name, compiler.modules[name]);
             }, this);
+            var tablenames = Object.keys(compiler.tables);
+            this.tables = tablenames.map(function(name) {
+                return new TableDevice(engine, this, name, compiler.tables[name]);
+            }, this);
             this.rules = compiler.rules.map(function(rule) {
                 return new RuleExecutor(engine, this, rule);
             }, this);
+
+            this.data = this.modules.concat(this.tables);
 
             this.name = compiler.name;
             this.description = compiler.description;
@@ -131,7 +138,7 @@ module.exports = new lang.Class({
     },
 
     start: function() {
-        Q.all(this.modules.map(function(m) { return m.start(); })).then(function() {
+        Q.all(this.data.map(function(m) { return m.start(); })).then(function() {
             return Q.all(this.rules.map(function(r) { return r.start(); }));
         }.bind(this)).done();
 
@@ -140,6 +147,6 @@ module.exports = new lang.Class({
 
     stop: function() {
         return Q.all(this.rules.map(function(r) { return r.stop() ; }).
-                     concat(this.modules.map(function(m) { return m.stop(); })));
+                     concat(this.data.map(function(m) { return m.stop(); })));
     },
 });

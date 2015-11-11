@@ -115,6 +115,7 @@ const Type = adt.data(function() {
         },
         Module: null,
         Group: null,
+        Table: null,
     };
 });
 
@@ -210,7 +211,7 @@ function equalityTest(a, b) {
         return true;
     }
 
-    return true;
+    return false;
 }
 
 function likeTest(a, b) {
@@ -286,9 +287,93 @@ const Builtins = {
         argtypes: [Type.Any],
         rettype: Type.String,
         op: objectToString,
-    }
+    },
+    'julianday': {
+        argtypes: [Type.Date],
+        rettype: Type.Number,
+        op: function(date) {
+            return Math.floor((date.getTime() / 86400000) + 2440587.5);
+        },
+    },
+    'today': {
+        argtypes: [],
+        rettype: Type.Number,
+        op: function() {
+            return Builtins.julianday.op(new Date);
+        }
+    },
+    'now': {
+        argtypes: [],
+        rettype: Type.Date,
+        op: function() {
+            return new Date;
+        },
+    },
+    'floor': {
+        argtypes: [Type.Number],
+        rettype: Type.Number,
+        op: function(v) {
+            return Math.floor(v);
+        }
+    },
 };
 
+const Aggregate = {
+    'min': function(what) {
+        return function(events) {
+            var event = null;
+            var best = null;
+            for (var i = 0; i < events.length; i++) {
+                if (event === null) {
+                    event = events[i];
+                    best = event[what];
+                } else if (events[i][what] < best) {
+                    event = events[i];
+                    best = event[what];
+                }
+            }
+            return event;
+        }
+    },
+
+    'max': function(what) {
+        return function(events) {
+            console.log('Aggregating over ', events);
+            var event = null;
+            var best = null;
+            for (var i = 0; i < events.length; i++) {
+                if (event === null) {
+                    event = events[i];
+                    best = event[what];
+                } else if (events[i][what] > best) {
+                    event = events[i];
+                    best = event[what];
+                }
+            }
+            return event;
+        }
+    },
+
+    'sum': function(what) {
+        return function(events) {
+            var sum = 0;
+            for (var i = 0; i < events.length; i++) {
+                sum += events[i][what];
+            }
+            return sum;
+        }
+    },
+
+    'avg': function(what) {
+        return function(events) {
+            var sum = 0;
+            for (var i = 0; i < events.length; i++) {
+                sum += events[i][what];
+            }
+            return sum / events.length;
+        }
+    },
+};
 
 module.exports = new lang.Class({
     Name: 'AppCompiler',
@@ -309,6 +394,7 @@ module.exports = new lang.Class({
         this._modules = {};
         this._rules = [];
         this._params = {};
+        this._tables = {};
 
         this._scope = {};
     },
@@ -351,6 +437,10 @@ module.exports = new lang.Class({
 
     get modules() {
         return this._modules;
+    },
+
+    get tables() {
+        return this._tables;
     },
 
     _warn: function(msg) {
@@ -533,7 +623,7 @@ module.exports = new lang.Class({
         if (objecttype.schema !== null) {
             if (!(name in objecttype.schema))
                 throw new TypeError('Object has no field ' + name);
-            type = objecttype.schema[type];
+            type = objecttype.schema[name];
         } else {
             type = this.fallbackVarName(name);
         }
@@ -613,6 +703,20 @@ module.exports = new lang.Class({
         return [type, function(env) { return op(+lhsop(env), +rhsop(env)); }];
     },
 
+    compileContextRef: function(context) {
+        if (context === 'self') {
+            var schema = { name: Type.String };
+            var op = function(env) {
+                var object = {};
+                object.name = env.engine.messaging.ownerName;
+                return object;
+            }
+            return [Type.Object(schema), op];
+        }
+
+        throw new TypeError("Context @" + context + " is not implemented");
+    },
+
     compileExpression: function(ast, localscope, selfschema) {
         if (ast.isConstant)
             return this.compileConstant(ast.value, localscope, selfschema);
@@ -626,6 +730,10 @@ module.exports = new lang.Class({
             return this.compileUnaryOp(ast.arg, ast.opcode, ast.op, localscope, selfschema);
         else if (ast.isBinaryOp)
             return this.compileBinaryOp(ast.lhs, ast.rhs, ast.opcode, ast.op, localscope, selfschema);
+        else if (ast.isContextRef)
+            return this.compileContextRef(ast.name);
+        else
+            throw new TypeError();
     },
 
     compileFilter: function(ast, localscope, selfschema) {
@@ -648,7 +756,10 @@ module.exports = new lang.Class({
         var compop = comp.op;
 
         return function(env) {
-            return compop(lhsop(env), rhsop(env));
+            var lhsv = lhsop(env);
+            var rhsv = rhsop(env);
+            console.log('Comparing ' + lhsv + ' with ' + rhsv);
+            return compop(lhsv, rhsv);
         }
     },
 
@@ -662,7 +773,7 @@ module.exports = new lang.Class({
     },
 
     constantFoldExpression: function(ast, state) {
-        var env = new ExecEnvironment(null, {});
+        var env = new ExecEnvironment(null, null, {});
 
         try {
             var exp = this.compileExpression(ast, {}, null);
@@ -718,22 +829,13 @@ module.exports = new lang.Class({
         }
     },
 
-    compileUpdate: function(filters, alias) {
-        function continueUpdate(inputs, i, env, cont) {
-            if (i+1 < inputs.length) {
-                return inputs[i+1].update(inputs, i+1, env, cont);
-            } else {
-                cont();
-                return true;
-            }
-        }
-
+    compileUpdateOneTuple: function(filters, alias, continueUpdate) {
         return function(inputs, i, env, cont) {
             return this.channels.some(function(channel) {
                 if (channel.event === null)
                     return false;
 
-                function processOneTuple(current, matchId) {
+                function processOneTuple(current) {
                     env.setThis(current);
                     var ok = filters.every(function(filter) {
                         return filter(env);
@@ -752,6 +854,7 @@ module.exports = new lang.Class({
                         } else {
                             scope[alias] = current;
                         }
+                        console.log('Setting scope', scope);
                         env.mergeScope(scope);
                     }
 
@@ -762,7 +865,7 @@ module.exports = new lang.Class({
                     var retval = false;
                     // don't use .some() here, we want to run side-effects
                     channel.event.forEach(function(event) {
-                        var run = processOneTuple(event, event._key);
+                        var run = processOneTuple(event);
                         retval = run || retval;
                     });
                     return retval;
@@ -771,6 +874,78 @@ module.exports = new lang.Class({
                 }
             });
         };
+    },
+
+    compileUpdateAggregate: function(filters, alias, aggregate, continueUpdate) {
+        var op = Aggregate[aggregate.op](aggregate.what);
+
+        return function(inputs, i, env, cont) {
+            function filterOneTuple(current) {
+                env.setThis(current);
+                var ok = filters.every(function(filter) {
+                    return filter(env);
+                });
+                env.setThis(null);
+
+                return ok;
+            }
+
+            var array = [];
+
+            this.channels.forEach(function(channel) {
+                if (channel.event === null)
+                    return;
+
+                if (Array.isArray(channel.event)) {
+                    var retval = false;
+                    // don't use .some() here, we want to run side-effects
+                    channel.event.forEach(function(event) {
+                        if (filterOneTuple(event))
+                            array.push(event);
+                    });
+                    return retval;
+                } else {
+                    if (filterOneTuple(channel.event))
+                        array.push(channel.event);
+                }
+            });
+
+            var result = op(array);
+            if (result !== null) {
+                if (alias !== null) {
+                    var scope = {};
+                    if (Array.isArray(alias)) {
+                        alias.forEach(function(name) {
+                            scope[name] = result[name];
+                        });
+                    } else {
+                        scope[alias] = result;
+                    }
+                    console.log('Setting scope', scope);
+                    env.mergeScope(scope);
+                }
+
+                return continueUpdate(inputs, i, env, cont);
+            } else {
+                return false;
+            }
+        };
+    },
+
+    compileUpdate: function(filters, alias, aggregate, continueUpdate) {
+        function continueUpdate(inputs, i, env, cont) {
+            if (i+1 < inputs.length) {
+                return inputs[i+1].update(inputs, i+1, env, cont);
+            } else {
+                cont();
+                return true;
+            }
+        }
+
+        if (aggregate !== null)
+            return this.compileUpdateAggregate(filters, alias, aggregate, continueUpdate);
+        else
+            return this.compileUpdateOneTuple(filters, alias, continueUpdate);
     },
 
     compileAction: function(outputs) {
@@ -794,10 +969,23 @@ module.exports = new lang.Class({
         var group = undefined;
         var devices = undefined;
         var computeModule = undefined;
+        var table = undefined;
         var channelName = undefined;
         var schema = undefined;
 
-        while (devices === undefined && computeModule === undefined && i < selectors.length) {
+        if (selectors[0].isAggregate) {
+            var result = this.compileSelectors(selectors[0].inner, mode);
+            result.aggregate = { op: selectors[0].op, what: selectors[0].what };
+
+            if (result.schema !== null &&
+                !(result.aggregate.what in result.schema))
+                throw new TypeError("Invalid aggregation parameter " + result.aggregate.what);
+
+            return result;
+        }
+
+        while (devices === undefined && computeModule === undefined && table === undefined
+               && i < selectors.length) {
             var first = selectors[i];
 
             if (first.isVarRef) {
@@ -808,6 +996,14 @@ module.exports = new lang.Class({
                             group = null;
                         devices = null;
                         computeModule = { scope: null, name: first.name };
+                        table = null;
+                        i++;
+                    } else if (result.isTable) {
+                        if (group === undefined)
+                            group = null;
+                        devices = null;
+                        computeModule = null;
+                        table = first.name;
                         i++;
                     } else if (result.isGroup && group === undefined) {
                         group = first.name;
@@ -821,6 +1017,7 @@ module.exports = new lang.Class({
                         group = null;
                     computeModule = null;
                     devices = [Selector.Kind(first.name)];
+                    table = null;
                     i++;
                 }
             } else if (first.isScoped) {
@@ -838,26 +1035,30 @@ module.exports = new lang.Class({
                     group = null;
                 devices = null;
                 computeModule = { scope: scope, name: first.name };
+                table = null;
                 i++;
             } else if (first.isTags || first.isId) {
                 if (group === undefined)
                     group = null;
                 computeModule = null;
                 devices = [first];
+                table = null;
                 i++;
             }
         }
         if (group === undefined)
             throw new TypeError();
-        if (devices === undefined && computeModule === undefined) {
+        if (devices === undefined && computeModule === undefined && table === undefined) {
             return {
                 group: group,
+                aggregate: null,
                 devices: null,
                 computeModule: null,
+                table: null,
                 channelName: defaultChannel
             };
         }
-        if (devices === undefined || computeModule === undefined)
+        if (devices === undefined || computeModule === undefined || table === undefined)
             throw new TypeError();
 
         if (devices !== null) {
@@ -892,6 +1093,11 @@ module.exports = new lang.Class({
                     channelName = 'in';
                 else
                     channelName = 'out';
+            } else if (table !== null) {
+                if (mode === 'r')
+                    channelName = 'oninsert';
+                else
+                    channelName = 'insert';
             } else {
                 if (mode === 'r')
                     channelName = 'source';
@@ -914,20 +1120,46 @@ module.exports = new lang.Class({
                     throw new TypeError("Invalid function reference " + channelName);
                 schema = module.functions[channelName].params;
             }
+        } else if (table !== null) {
+            schema = this._tables[table];
+            if (mode === 'r') {
+                if (['oninsert', 'alldata'].indexOf(channelName) < 0)
+                    throw new TypeError("Invalid table reference " + channelName);
+            } else {
+                if (['insert', 'delete'].indexOf(channelName) < 0)
+                    throw new TypeError("Invalid table reference " + channelName);
+            }
         } else {
             schema = null;
         }
 
         return { group: group,
+                 aggregate: null,
                  devices: devices,
                  computeModule: computeModule,
+                 table: table,
                  channelName: channelName,
                  schema: schema };
     },
 
-    compileAlias: function(ast, schema, localscope, implicitAlias) {
+    compileAlias: function(ast, schema, aggregate, localscope, implicitAlias) {
         if (ast === null)
             return implicitAlias;
+        if (aggregate !== null) {
+            if (aggregate.op === 'max' || aggregate.op === 'min') {
+                return this.compileAlias(ast, schema, null, localscope, implicitAlias);
+            } else {
+                if (Array.isArray(ast))
+                    throw new TypeError("Cannot unpack the result of numeric aggregation");
+
+                if (schema === null) {
+                    localscope[ast] = Type.Number;
+                } else {
+                    localscope[ast] = schema[aggregate.what];
+                }
+                return ast;
+            }
+        }
         if (Array.isArray(ast)) {
             ast.forEach(function(name) {
                 if (schema === null) {
@@ -948,7 +1180,8 @@ module.exports = new lang.Class({
         return ast.map(function(input) {
             var selector = this.compileSelectors(input.selectors, 'r');
             selector.context = input.context;
-            var alias = this.compileAlias(input.alias, selector.schema, localscope, implicitAlias);
+            var alias = this.compileAlias(input.alias, selector.schema, selector.aggregate,
+                                          localscope, implicitAlias);
 
             var filters = input.filters.map(function(filter) {
                 return this.compileFilter(filter, localscope, selector.schema);
@@ -958,7 +1191,7 @@ module.exports = new lang.Class({
                 selectors: selector,
                 alias: alias,
                 channels: [],
-                update: this.compileUpdate(filters, alias),
+                update: this.compileUpdate(filters, alias, selector.aggregate),
                 filters: input.filters.map(this.simplifyFilter.bind(this)).filter(function(f) { return f !== null; })
             };
 
@@ -1052,6 +1285,18 @@ module.exports = new lang.Class({
         return module;
     },
 
+    compileTable: function(ast) {
+        var table = {};
+
+        ast.params.forEach(function(p) {
+            if (p.name in table)
+                throw new TypeError("Duplicate param " + p.name);
+            table[p.name] = stringToType(p.type);
+        });
+
+        return table;
+    },
+
     lookupImport: function(name) {
         if (name === 'Aggregation')
             return { name: 'Aggregation' }; // FINISHME
@@ -1080,6 +1325,13 @@ module.exports = new lang.Class({
                     throw new TypeError('Module declaration ' + stmt.name + ' aliases name in scope');
                 this._modules[stmt.name] = this.compileModule(stmt);
                 this._scope[stmt.name] = Type.Module;
+            } else if (stmt.isTable) {
+                if (stmt.name in this._tables)
+                    throw new TypeError('Duplicate declaration for table ' + stmt.name);
+                if (stmt.name in this._scope)
+                    throw new TypeError('Table declaration ' + stmt.name + ' aliases name in scope');
+                this._tables[stmt.name] = this.compileTable(stmt);
+                this._scope[stmt.name] = Type.Table;
             } else if (stmt.isRule) {
                 var localscope = {};
                 this._rules.push({
@@ -1110,24 +1362,31 @@ module.exports = new lang.Class({
     },
 });
 
-var Selector = adt.data({
-    VarRef: {
-        name: adt.only(String),
-    },
-    Scoped: {
-        scope: adt.only(String),
-        name: adt.only(String),
-    },
-    Tags: {
-        tags: adt.only(Array),
-    },
-    Id: {
-        name: adt.only(String),
-    },
-    Kind: {
-        name: adt.only(String)
-    },
-    Any: null,
+var Selector = adt.data(function() {
+    return {
+        Aggregate: {
+            inner: adt.only(Array),
+            op: adt.only(String),
+            what: adt.only(String),
+        },
+        VarRef: {
+            name: adt.only(String),
+        },
+        Scoped: {
+            scope: adt.only(String),
+            name: adt.only(String),
+        },
+        Tags: {
+            tags: adt.only(Array),
+        },
+        Id: {
+            name: adt.only(String),
+        },
+        Kind: {
+            name: adt.only(String)
+        },
+        Any: null,
+    };
 });
 module.exports.Selector = Selector;
 var AtRule = adt.data({
@@ -1235,6 +1494,10 @@ var Statement = adt.data({
         name: adt.only(String),
         params: adt.only(Array),
         statements: adt.only(Array), // array of ComputeStatement
+    },
+    Table: {
+        name: adt.only(String),
+        params: adt.only(Array),
     },
     Rule: {
         inputs: adt.only(Array),
