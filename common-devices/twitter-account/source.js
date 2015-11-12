@@ -26,6 +26,7 @@ const TwitterSourceChannel = new lang.Class({
     _init: function(engine, state, device) {
         this.parent();
 
+        this.device = device;
         this._state = state;
         this._twitter = device.queryInterface('twitter');
         this._stream = null;
@@ -74,6 +75,7 @@ const TwitterSourceChannel = new lang.Class({
                       hashtags: hashtags,
                       urls: urls,
                       inReplyTo: tweet.in_reply_to_screen_name,
+                      fromMe: tweet.user.screen_name === this.device.screenName,
                       from: tweet.user.screen_name };
         this.emitEvent(event);
     },
