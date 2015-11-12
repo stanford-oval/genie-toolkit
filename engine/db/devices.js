@@ -32,6 +32,7 @@ const GlobalDeviceSet = new lang.Class({
     open: function() {
         // FINISHME: de-hardcode this
         this.addOne(this._factory.createDevice('timer', { kind: 'timer' }));
+        this.addOne(this._factory.createDevice('sportradar', { kind: 'sportradar' }));
         this.freeze();
         return this.promise();
     },

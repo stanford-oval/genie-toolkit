@@ -94,7 +94,7 @@ module.exports = new lang.Class({
 
             // FIXME
             compiler.compileAtRules([]);
-            compiler.compileProgram(ast);
+            compiler.compileProgram(ast, state);
 
             this.uniqueId = 'app-' + compiler.programName;
             var paramnames = Object.keys(compiler.params);

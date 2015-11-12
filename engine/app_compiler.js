@@ -773,10 +773,10 @@ module.exports = new lang.Class({
     },
 
     constantFoldExpression: function(ast, state) {
-        var env = new ExecEnvironment(null, null, {});
+        var env = new ExecEnvironment(null, null, state);
 
         try {
-            var exp = this.compileExpression(ast, {}, null);
+            var exp = this.compileExpression(ast, this._scope, null);
             var value = exp[1](env);
             var type = exp[0];
             var boxed;
@@ -1180,7 +1180,7 @@ module.exports = new lang.Class({
         return ast;
     },
 
-    compileInputs: function(localscope, ast, implicitAlias) {
+    compileInputs: function(localscope, ast, implicitAlias, state) {
         return ast.map(function(input) {
             var selector = this.compileSelectors(input.selectors, 'r');
             selector.context = input.context;
@@ -1196,7 +1196,9 @@ module.exports = new lang.Class({
                 alias: alias,
                 channels: [],
                 update: this.compileUpdate(filters, alias, selector.aggregate),
-                filters: input.filters.map(this.simplifyFilter.bind(this)).filter(function(f) { return f !== null; })
+                filters: input.filters.map(function(filter) {
+                    return this.simplifyFilter(filter, state);
+                }.bind(this)).filter(function(f) { return f !== null; })
             };
 
             return inputBlock;
@@ -1310,7 +1312,7 @@ module.exports = new lang.Class({
             throw new TypeError("Unknown import " + name);
     },
 
-    compileProgram: function(ast) {
+    compileProgram: function(ast, state) {
         this._programName = ast.name;
         ast.params.forEach(function(ast) {
             this._params[ast.name] = stringToType(ast.type);
@@ -1339,7 +1341,7 @@ module.exports = new lang.Class({
             } else if (stmt.isRule) {
                 var localscope = {};
                 this._rules.push({
-                    inputs: this.compileInputs(localscope, stmt.inputs, null),
+                    inputs: this.compileInputs(localscope, stmt.inputs, null, state),
                     outputs: this.compileOutputs(localscope, stmt.outputs)
                 });
             }
