@@ -865,6 +865,8 @@ module.exports = new lang.Class({
                     var retval = false;
                     // don't use .some() here, we want to run side-effects
                     channel.event.forEach(function(event) {
+                        if (event === null)
+                            return;
                         var run = processOneTuple(event);
                         retval = run || retval;
                     });
@@ -900,6 +902,8 @@ module.exports = new lang.Class({
                     var retval = false;
                     // don't use .some() here, we want to run side-effects
                     channel.event.forEach(function(event) {
+                        if (event === null)
+                            return;
                         if (filterOneTuple(event))
                             array.push(event);
                     });

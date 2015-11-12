@@ -69,6 +69,7 @@ const TimerChannel = new lang.Class({
                 var event = { at: this._at, ts: new Date };
                 console.log('Emitting timer(at) event', event);
                 this.emitEvent(event);
+                this.emitEvent(null);
                 this._interval = 86400000; // same time tomorrow.
                 this._timeout = setTimeout(atCallback.bind(this), this._interval);
             };
@@ -78,6 +79,7 @@ const TimerChannel = new lang.Class({
                 var event = { interval: this._interval, ts: new Date };
                 console.log('Emitting timer event', event);
                 this.emitEvent(event);
+                this.emitEvent(null);
             }.bind(this), this._interval);
         }
         return Q();
