@@ -373,6 +373,12 @@ const Aggregate = {
             return sum / events.length;
         }
     },
+
+    'all': function(what) {
+        return function(events) {
+            return events;
+        }
+    },
 };
 
 module.exports = new lang.Class({
@@ -1053,13 +1059,19 @@ module.exports = new lang.Class({
         if (group === undefined)
             throw new TypeError();
         if (devices === undefined && computeModule === undefined && table === undefined) {
+            if (mode === 'r')
+                var defaultChannel = 'source';
+            else
+                var defaultChannel = 'sink';
+
             return {
                 group: group,
                 aggregate: null,
                 devices: null,
                 computeModule: null,
                 table: null,
-                channelName: defaultChannel
+                channelName: defaultChannel,
+                schema: null,
             };
         }
         if (devices === undefined || computeModule === undefined || table === undefined)
@@ -1156,10 +1168,14 @@ module.exports = new lang.Class({
                 if (Array.isArray(ast))
                     throw new TypeError("Cannot unpack the result of numeric aggregation");
 
-                if (schema === null) {
-                    localscope[ast] = Type.Number;
+                if (aggregate.op === 'all') {
+                    localscope[ast] = Type.Array(Type.Object(schema));
                 } else {
-                    localscope[ast] = schema[aggregate.what];
+                    if (schema === null) {
+                        localscope[ast] = Type.Number;
+                    } else {
+                        localscope[ast] = schema[aggregate.what];
+                    }
                 }
                 return ast;
             }

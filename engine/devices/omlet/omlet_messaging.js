@@ -136,15 +136,17 @@ const OmletFeed = new lang.Class({
     },
 
     sendItem: function(item) {
+        var silent = true;
         return this._getFeed().then(function(feed) {
-            return Q.ninvoke(this._client.messaging, '_sendObjToFeed', feed, 'text',
-                             { text: JSON.stringify(item), silent: true, hidden: true });
+            return Q.ninvoke(this._client.messaging, '_sendObjToFeedImmediate', feed, 'text',
+                             { text: JSON.stringify(item), silent: silent,
+                               hidden: silent });
         }.bind(this));
     },
 
     sendRaw: function(rawItem) {
         return this._getFeed().then(function(feed) {
-            return Q.ninvoke(this._client.messaging, '_sendObjToFeed', feed, rawItem.type,
+            return Q.ninvoke(this._client.messaging, '_sendObjToFeedImmediate', feed, rawItem.type,
                              rawItem);
         }.bind(this));
     }

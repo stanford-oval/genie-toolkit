@@ -9,6 +9,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Date;
+
 public class TestActivity extends AppCompatActivity {
 
     private final EngineServiceConnection engine;
@@ -32,12 +37,21 @@ public class TestActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        AutoStarter.startService(this);
+
         setContentView(R.layout.activity_test);
 
         findViewById(R.id.button_createFeed).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 createFeedClicked();
+            }
+        });
+
+        findViewById(R.id.button_test).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addRandomWeightClicked();
             }
         });
     }
@@ -71,6 +85,26 @@ public class TestActivity extends AppCompatActivity {
                         omletFeedCreated(feed);
                     }
                 });
+            }
+        });
+    }
+
+    private void addRandomWeightClicked() {
+        final ControlBinder control = engine.getControl();
+        if (control == null)
+            return;
+        AsyncTask.THREAD_POOL_EXECUTOR.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject o = new JSONObject();
+                    o.put("time", new Date().getTime());
+                    o.put("weight", 50 + 10 * Math.random());
+                    control.injectTableInsert("thingengine-table-app-WeightCompApp-messaging-group-omlet-a-1tfcul6h5o86l0ave32ivqo8s22tkalnup2s3cr5089aorvqbi6-k-W-vR-hRSIvuYuXMW3Sj8EXfIW42ZDOhRATDWt21p4g4--weightHistory",
+                            o);
+                } catch(JSONException e) {
+                    ;
+                }
             }
         });
     }

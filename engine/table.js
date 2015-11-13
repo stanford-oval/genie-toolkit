@@ -13,6 +13,7 @@ const events = require('events');
 const lang = require('lang');
 const adt = require('adt');
 const Lokijs = require('lokijs');
+const deepEqual = require('deep-equal');
 
 const AppCompiler = require('./app_compiler');
 const AppGrammar = require('./app_grammar');
@@ -112,14 +113,14 @@ const CurrentTableChannel = new lang.Class({
         this.engine = engine;
         this.device = device;
 
-        this.uniqueId = device.uniqueId + '-current';
+        this.uniqueId = device.uniqueId + '-alldata';
 
         this._eventListener = this._onEvent.bind(this);
     },
 
     _onEvent: function() {
         console.log('Event on table ' + this.uniqueId);
-        this.emitEvent(this._collection.find());
+        this.setCurrentEvent(this._collection.find());
     },
 
     _doOpen: function() {
@@ -161,7 +162,9 @@ const OnInsertTableChannel = new lang.Class({
     _onEvent: function(data) {
         console.log('Event on table ' + this.uniqueId);
         console.log('data', data);
-        this.emitEvent(data);
+        setTimeout(function() {
+            this.emitEvent(data);
+        }.bind(this), 0);
     },
 
     _doOpen: function() {
@@ -170,6 +173,7 @@ const OnInsertTableChannel = new lang.Class({
         return this._table.open().then(function() {
             this._collection = this._table.getCollection('data');
             this._collection.on('insert', this._eventListener);
+            this._collection.on('update', this._eventListener);
 
             //this.emitEvent(this._collection.find());
         }.bind(this));
@@ -177,6 +181,7 @@ const OnInsertTableChannel = new lang.Class({
 
     _doClose: function() {
         this._collection.removeListener('insert', this._eventListener);
+        this._collection.removeListener('update', this._eventListener);
 
         return this._table.close();
     },
@@ -195,10 +200,28 @@ const InsertTableChannel = new lang.Class({
     },
 
     sendEvent: function(event) {
-        var previous = this._collection.findObject(event);
+        var previous;
+        if (event.key_) {
+            var key = event.key_;
+            delete event.key_;
+
+            var template = {};
+            template[key] = event[key];
+            previous = this._collection.findObject(template);
+        } else {
+            previous = this._collection.findObject(event);
+        }
         if (previous) {
-            for (var name in event)
+            var equal = true;
+            for (var name in event) {
+                if (!deepEqual(event[name], previous[name], { strict: true }))
+                    equal = false;
                 previous[name] = event[name];
+            }
+            if (equal) {
+                console.log('Event is same as previous');
+                return;
+            }
             this._collection.update(previous);
         } else {
             this._collection.insert(event);

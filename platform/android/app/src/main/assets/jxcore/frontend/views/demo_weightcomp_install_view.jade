@@ -1,0 +1,36 @@
+extends layout
+
+block scripts
+  script(src='https://omlet.me/a/js/omlet.js')
+  script(src='/javascripts/base64.js')
+  script(src='/javascripts/demo_weightcomp.js')
+
+block page_name
+  | Weight Competition
+
+block content
+  if nofeed
+    script Demo.start()
+
+    p If you see this message, it means you're not inside an Omlet chat.
+    p You must open this app from the Omlet drawer.
+
+    p#debug
+  else if done
+    p You're all set now, you can go back to your friends!
+    p When you return to the chat, your friends will see a link to join
+      | the Weight Competition.
+    p Then you can all start jumping on your scales, and post notifications
+      | to the group!
+
+    p
+      a.btn.btn-primary(onclick='Demo.exit()') Return to chat
+  else
+    p Welcome to the Weight Competition!
+    p This app allows you to share your weight data with your friends
+      | in the same chat, and you can compare you progress in weight loss
+      | from now on.
+    p= message
+
+    p
+      a.btn.btn-primary(href=link) Continue

@@ -18,7 +18,7 @@ public class JXMobile {
       @SuppressLint("NewApi")
       @Override
       public void Receiver(ArrayList<Object> params, String callbackId) {
-        String message = (String) params.get(0);
+          String message = (String) params.get(0);
         String stack = (String) params.get(1);
 
         Log.e("jxcore", "Error!: " + message + "\nStack: " + stack);

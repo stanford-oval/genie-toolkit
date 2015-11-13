@@ -108,6 +108,7 @@ module.exports = new lang.Class({
 
     setCurrentEvent: function(object) {
         this._event = object;
+        this.emit('changed');
     },
 
     // report a change in current event value
@@ -117,6 +118,7 @@ module.exports = new lang.Class({
 
         this._event = object;
         this.emit('data', object);
+        this.emit('changed', object);
     },
 
     // report no change in current event value

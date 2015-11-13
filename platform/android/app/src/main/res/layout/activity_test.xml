@@ -31,7 +31,7 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Some other test"
+            android:text="Add random weight"
             android:id="@+id/button_test"
             android:layout_row="1"
             android:layout_column="0"

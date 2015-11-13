@@ -36,19 +36,19 @@ const OwnSourceSubscription = new lang.Class({
         this._messagingChannel.handleSourceReady(this._ownId);
     },
 
-    _onData: function(from, data) {
-        this._sendData(from.uniqueId, data);
+    _onData: function(from) {
+        this._sendData(from.uniqueId, from.event);
     },
 
     _channelAdded: function(ch) {
         console.log('Connecting to data event on ' + ch.uniqueId);
-        ch.on('data', this._dataListener);
+        ch.on('changed', this._dataListener);
         if (!this._readyQueued)
             this._sendData(ch.uniqueId, ch.event);
     },
 
     _channelRemoved: function(ch) {
-        ch.removeListener('data', this._dataListener);
+        ch.removeListener('changed', this._dataListener);
     },
 
     _ready: function() {
@@ -92,10 +92,11 @@ const MessagingGroupProxyChannel = new lang.Class({
     Name: 'MessagingGroupProxyChannel',
     Extends: BaseChannel,
 
-    _init: function(engine, device, targetDeviceId, selectors, channelName, mode, filters) {
+    _init: function(engine, state, device, targetDeviceId, selectors, channelName, mode, filters) {
         this.parent();
 
         this.engine = engine;
+        this._state = state;
         this._device = device;
         this._targetDeviceId = targetDeviceId;
         this._selectors = selectors;
@@ -127,6 +128,11 @@ const MessagingGroupProxyChannel = new lang.Class({
         return values;
     },
 
+    setCurrentEvent: function(event) {
+        this._state.set('values', event);
+        this.parent(event);
+    },
+
     sendEvent: function(event) {
         console.log('Sending broadcast event on group chat', event);
         this._feed.sendItem({ op: 'sink-data',
@@ -142,7 +148,7 @@ const MessagingGroupProxyChannel = new lang.Class({
         else
             delete this._values[senderId][channelId];
         //if (this._readyCount === 0)
-            this.emitEvent(this.values());
+            this.setCurrentEvent(this.values());
     },
 
     handleSourceReady: function(senderId) {
@@ -153,13 +159,13 @@ const MessagingGroupProxyChannel = new lang.Class({
         }
         //if (this._readyCount === 0) {
             //console.log('Messaging group channel ' + this.uniqueId + ' is now ready');
-            this.emitEvent(this.values());
+            this.setCurrentEvent(this.values());
         //}
     },
 
     handleSinkReady: function(senderId) {
-        if (!this._ready[msg.senderId]) {
-            this._ready[msg.senderId] = true;
+        if (!this._ready[senderId]) {
+            this._ready[senderId] = true;
             this._readyCount--;
         }
     },
@@ -200,6 +206,9 @@ const MessagingGroupProxyChannel = new lang.Class({
     },
 
     _doOpen: function() {
+        this._values = this._state.get('values');
+        if (this._values === undefined)
+            this._values = {};
         this._msgListener = this._onNewMessage.bind(this);
         this._feed = this.engine.messaging.getFeed(this._device.feedId);
         this._feed.on('incoming-message', this._msgListener);
@@ -210,7 +219,6 @@ const MessagingGroupProxyChannel = new lang.Class({
             this._readyCount = members.length;
 
             if (this._mode === 'r') {
-                console.log('targetDeviceId', this._targetDeviceId);
                 var groupDevice = this.engine.devices.getDevice(this._targetDeviceId);
                 var context = groupDevice.queryInterface('device-group');
                 var selectors;
@@ -264,7 +272,8 @@ const MessagingGroupProxyChannel = new lang.Class({
     },
 });
 
-function createChannel(engine, device, targetDeviceId, selectors, channelName, mode, filters) {
-    return new MessagingGroupProxyChannel(engine, device, targetDeviceId, selectors, channelName, mode, filters);
+function createChannel(engine, state, device, targetDeviceId, selectors, channelName, mode, filters) {
+    return new MessagingGroupProxyChannel(engine, state, device, targetDeviceId, selectors, channelName, mode, filters);
 }
 module.exports.createChannel = createChannel;
+module.exports.requiredCapabilities = ['channel-state'];

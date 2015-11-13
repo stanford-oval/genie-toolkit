@@ -10,7 +10,7 @@ const Q = require('q');
 const https = require('https');
 const Url = require('url');
 
-const BaseChannel = require('../base_channel');
+const BaseChannel = require('../../base_channel');
 
 const URL_TEMPLATE = 'https://us.data.bodytrace.com/1/device/%s/datavalues?names=batteryVoltage,signalStrength,values/weight,values/unit';
 const POLL_INTERVAL = 30000; // 30s
@@ -47,7 +47,7 @@ const ScaleChannel = new lang.Class({
                 // weight is in grams, convert to kg, which the base unit
                 // AppExecutor wants
                 var weight = (data[time].values.weight)/1000;
-                var event = { ts: date, weight: weight };
+                var event = { ts: time, weight: weight };
                 return event;
             }
 

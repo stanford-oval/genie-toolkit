@@ -1,5 +1,7 @@
 package edu.stanford.thingengine.engine;
 
+import org.json.JSONObject;
+
 /**
  * Created by gcampagn on 8/16/15.
  */
@@ -26,5 +28,9 @@ public class ControlBinder extends IThingEngine.Stub {
 
     public String createOmletFeed() {
         return channel.createOmletFeed();
+    }
+
+    public void injectTableInsert(String table, JSONObject o) {
+        channel.injectTableInsert(table, o);
     }
 }

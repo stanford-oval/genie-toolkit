@@ -183,13 +183,13 @@ const SourceSubscription = new lang.Class({
                               subscriptionId: this._subscriptionId });
     },
 
-    _onData: function(from, data) {
-        this._sendData(from.uniqueId, data);
+    _onData: function(from) {
+        this._sendData(from.uniqueId, from.event);
     },
 
     _channelAdded: function(ch) {
         console.log('Connecting to data event on ' + ch.uniqueId);
-        ch.on('data', this._dataListener);
+        ch.on('changed', this._dataListener);
         if (!this._readyQueued)
             this._sendData(ch.uniqueId, ch.event);
     },
@@ -211,7 +211,7 @@ const SourceSubscription = new lang.Class({
             return;
         this._whenReady.then(function() {
             this._ready();
-        }.bind(this));
+        }.bind(this)).done();
     },
 
     stop: function() {
@@ -364,14 +364,15 @@ module.exports = new lang.Class({
 
     makeSubscriptionId: function(feed, authId, selectors, channelName, mode, filters) {
         var digest = crypto.createHash('sha256');
-        return digest.digest(feed.feedId + '-' + authId + '-' +
+        return digest.update(feed.feedId + '-' + authId + '-' +
                              Protocol.selectors.makeString(selectors) + '-'
                              + channelName + '-' + mode + Protocol.filters.makeString(filters))
-            .toString('hex');
+            .digest('hex');
     },
 
     sendSubscribe: function(feed, authId, authSignature, selectors, channelName, mode, filters) {
         var subscriptionId = this.makeSubscriptionId(feed, authId, selectors, channelName, mode, filters);
+        console.log('Sending subscription to ' + authId + ': ' + subscriptionId);
         if (this._activeRemoteGroups[subscriptionId])
             return subscriptionId;
 

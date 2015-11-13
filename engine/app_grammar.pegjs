@@ -150,7 +150,7 @@ tag_selector_list = tags:(tag_selector _)+ {
 tag_selector "hashtag" = '#' name:cssident { return name; }
 id_selector = name:literal_string { return Selector.Id(name); }
 scoped_selector = scope:ident _ '::' _ name:ident { return Selector.Scoped(scope, name); }
-aggr_op = 'max' / 'min' / 'avg' / 'sum'
+aggr_op = 'max' / 'min' / 'avg' / 'sum' / 'all'
 aggregate_selector = op:aggr_op _ '(' _ inner:selector_list _ ',' _ what:ident _ ')' {
     return [Selector.Aggregate(inner, op, what)];
 }

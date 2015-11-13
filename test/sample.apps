@@ -1,12 +1,18 @@
 // -* mode: js -*-
 
-WeightCompetitionApp(g : Group) {
-  table weightHistory(week : Number, weight : Measure(kg));
+WeightCompApp(g : Group) {
+  table weightHistory(time : Number, weight : Measure(kg));
   table weightBoard(name : String, delta : Measure(kg));
-  scale = #scale() => weightHistory(week = floor(julianday(scale.ts) / 7), weight = scale.weight);
-  old = weightHistory.alldata(week = floor(today() / 7) - 1), current = weightHistory(week = floor(today()/7)) => weightBoard(name = @self.name, delta = old.weight - current.weight);
-  @global.timer(interval = 1week), board = max(g.weightBoard.alldata, delta) => notify(message = "New results for the weight competition! The winner is " + board.name);
-  ui(what='click'), board = max(g.weightBoard.alldata, delta) => notify(message = "The winner of the weight competition for this week is " + board.name);
+
+  scale = #scale() => weightHistory(time = scale.ts, weight = scale.weight);
+
+  initial = min(weightHistory.alldata, time),
+  current = max(weightHistory.oninsert, time) =>
+  weightBoard(key_='name', name = @self.name, delta = (initial.weight - current.weight) / initial.weight);
+
+  weightBoard.oninsert(), board = all(g.weightBoard.alldata, delta) =>
+  g(title='Weight Competition', text='New results for the weight competition', callback='weightcomp',
+    data=board);
 }
 
 ====
