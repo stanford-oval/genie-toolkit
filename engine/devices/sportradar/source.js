@@ -69,6 +69,8 @@ const SportRadarChannel = new lang.Class({
                 this.emitEvent({ nfl: this._nfl, winner: parsed.home_team.id, score: homeScore });
             else
                 this.emitEvent({ nfl: this._nfl, winner: parsed.away_score.id, score: awayScore });
+            clearInterval(this._timeout);
+            this._timeout = -1;
         }.bind(this), function(error) {
             console.log('Error reading from SportRadar server: ' + error.message);
         });
@@ -82,7 +84,8 @@ const SportRadarChannel = new lang.Class({
     },
 
     _doClose: function() {
-        clearInterval(this._timeout);
+        if (this._timeout !== -1)
+            clearInterval(this._timeout);
         this._timeout = -1;
         return Q();
     }
