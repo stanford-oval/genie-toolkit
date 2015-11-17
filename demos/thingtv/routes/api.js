@@ -28,8 +28,9 @@ router.post('/switch-to', function(req, res, next) {
         } else if (body.url.startsWith('http://www.youtube.com/watch?v=')) {
             url = urlFormatters.yt(body.url.substr('http://www.youtube.com/watch?v='.length));
             yt = true;
-        } else
-            url = url;
+        } else {
+            url = body.url;
+        }
     } else if (body.yt) {
         url = urlFormatters.yt(body.yt);
         yt = true;
