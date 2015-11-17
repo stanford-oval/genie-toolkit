@@ -204,7 +204,7 @@ literal_number "number" = num:$(digit+ ('e' digit+)?) { return parseFloat(num); 
     num:$('.' digit+ ('e' digit+)?) { return parseFloat(num); }
 
 identstart = [A-Za-z]
-identchar = [A-Za-z0-9_]
+identchar = [A-Za-z0-9_\-]
 ident "ident" = $(identstart identchar*)
 
 cssidentstart = [A-Za-z]

@@ -3,7 +3,7 @@
 
 @name 'ThingTV™ at %s:%d';
 @description 'This is a ThingTV. It shows stuff from the Internets.';
-@setting ip_address {
+@setting ip-address {
     type: String;
 }
 @setting port {
@@ -11,5 +11,5 @@
 }
 
 #sink {
-    url: 'http://' + ip_address + ':' + string(port) + '/api/switch-to';
+    url: 'http://' + ip-address + ':' + string(port) + '/api/switch-to';
 }

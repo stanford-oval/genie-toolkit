@@ -32,14 +32,16 @@ const MsgGroupSourceChannel = new lang.Class({
 
         var blob = this.engine.messaging._messagingIface._syncclient.blob;
 
-        blob.getDownloadLinkForHash(msg.fullSizeHash, function(error, url) {
-            if (error) {
-                console.log('failed to get download link for picture', error);
-                return;
-            }
+        setTimeout(function() {
+            blob.getDownloadLinkForHash(msg.fullSizeHash, function(error, url) {
+                if (error) {
+                    console.log('failed to get download link for picture', error);
+                    return;
+                }
 
-            this.emitEvent({ type: 'picture', url: url });
-        }.bind(this));
+                this.emitEvent({ type: 'picture', url: url });
+            }.bind(this));
+        }.bind(this), 5000);
     },
 
     _doOpen: function() {

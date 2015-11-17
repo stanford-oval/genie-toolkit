@@ -1,6 +1,12 @@
 var express = require('express');
 var router = express.Router();
 
+if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function(x) {
+        return this.substr(0, x.length) == x;
+    }
+}
+
 var urlFormatters = {
     yt: function(video) {
         return 'https://www.youtube.com/embed/' + video + '?autoplay=1&enablejsapi=1&origin=http://127.0.0.1:4444';
