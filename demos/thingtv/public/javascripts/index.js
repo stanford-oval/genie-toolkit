@@ -18,7 +18,7 @@ $(function() {
             try {
                 var message = JSON.parse(messageEvent.data);
                 if (message.command == 'switch')
-                    switchTo(message.url);
+                    switchTo(message.url, message.youtube);
                 else if (message.command == 'set-state')
                     setState(message.state);
                 else
@@ -31,15 +31,19 @@ $(function() {
     openSocket();
 
     var ytPlayer = null;
-    function switchTo(url) {
+    function switchTo(url, youtube) {
         console.log('Switching to ' + url);
         $('#content').attr('src', url);
-        ytPlayer = new YT.Player('content', {
-            events: {
-                onReady: onReady,
-                onStateChange: onStateChange
-            }
-        });
+        if (youtube) {
+            ytPlayer = new YT.Player('content', {
+                events: {
+                    onReady: onReady,
+                    onStateChange: onStateChange
+                }
+            });
+        } else {
+            ytPlayer = null;
+        }
     }
 
     function onReady() {}

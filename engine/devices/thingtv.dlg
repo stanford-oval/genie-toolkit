@@ -1,0 +1,15 @@
+@kind #tv;
+/* -*- mode: css -*- */
+
+@name 'ThingTV™ at %s:%d';
+@description 'This is a ThingTV. It shows stuff from the Internets.';
+@setting ip_address {
+    type: String;
+}
+@setting port {
+    type: Number;
+}
+
+#sink {
+    url: 'http://' + ip_address + ':' + string(port) + '/api/switch-to';
+}

@@ -141,7 +141,7 @@ const MessagingGroupProxyChannel = new lang.Class({
     },
 
     handleData: function(senderId, channelId, data) {
-        if (!(senderId in this._values))
+        if (!this._values[senderId])
             this._values[senderId] = {};
         if (data !== undefined)
             this._values[senderId][channelId] = data;
