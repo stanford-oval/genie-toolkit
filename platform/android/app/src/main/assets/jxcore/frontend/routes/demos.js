@@ -35,6 +35,10 @@ var WEIGHTCOMP_CODE = 'WeightCompApp(g : Group) {' +
 '    data=board);' +
 '}';
 
+var PICTURE_TV_DEMO = 'PictureTVApp(g : Group) {' +
+    '  in = g(type="picture") => #tv(url=in.url);' +
+    '}';
+
 router.get('/linkedin', function(req, res, next) {
     var feedId = req.session['linkedin-feed-id'];
     if (!feedId) {
@@ -135,5 +139,56 @@ router.get('/callback/weightcomp/:result', function(req, res, next) {
     res.render('demo_weightcomp_board', { page_title: "Weight Competition",
                                           result: (new Buffer(req.params.result, 'base64')).toString() });
 });
+
+router.get('/picturetv', function(req, res, next) {
+    var feedId = req.session['picturetv-feed-id'];
+    if (!feedId) {
+        feedId = req.query['feedId'];
+        if (feedId)
+            req.session['picturetv-feed-id'] = feedId;
+    }
+    if (!feedId) {
+        res.render('demo_picturetv_install_view', { page_title: "Share on TV!", nofeed: true, done: false });
+        return;
+    }
+    req.session['device-redirect-to'] = req.originalUrl;
+
+    var engine = req.app.engine;
+    var devices = engine.devices;
+    var apps = engine.apps;
+
+    // first check that we can talk to omlet
+    var omletDevices = devices.getAllDevicesOfKind('omlet');
+    if (omletDevices.length < 1) {
+        res.render('demo_picturetv_install_view', { page_title: "Share on TV!", nofeed: false, done: false,
+                                                    message: "But first, you must allow your ThingEngine to use your Omlet account",
+                                                    link: '/devices/oauth2/omlet' });
+        return;
+    }
+
+    // now check that we have a tv installed
+    var tvDevices = devices.getAllDevicesOfKind('tv');
+    if (tvDevices.length < 1) {
+        res.render('demo_picturetv_install_view', { page_title: "Share on TV!", nofeed: false, done: false,
+                                                    message: "But first, you must set up your TV with ThingEngine",
+                                                    link: '/devices/create?class=physical' });
+        return;
+    }
+
+    // now check that we have the app installed
+    var messagingGroupId = 'messaging-group-omlet' + feedId.replace(/[^a-zA-Z0-9]+/g, '-');
+    var appId = 'app-PictureTVApp-' + messagingGroupId;
+
+    if (apps.getApp(appId) === undefined) {
+        engine.apps.loadOneApp(PICTURE_TV_DEMO, { g: messagingGroupId }, appId, 'phone', true).then(function() {
+            delete req.session['device-redirect-to'];
+            res.render('demo_picturetv_install_view', { page_title: "Share on TV!", nofeed: false, done: true });
+        }).done();
+    } else {
+        delete req.session['device-redirect-to'];
+        res.render('demo_picturetv_install_view', { page_title: "Share on TV!", nofeed: false, done: true });
+    }
+});
+
 
 module.exports = router;

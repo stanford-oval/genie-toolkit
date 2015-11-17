@@ -1,0 +1,34 @@
+extends layout
+
+block scripts
+  script(src='https://omlet.me/a/js/omlet.js')
+  script(src='/javascripts/base64.js')
+  script(src='/javascripts/demo_picturetv.js')
+
+block page_name
+  | Share on TV!
+
+block content
+  if nofeed
+    script Demo.start()
+
+    p If you see this message, it means you're not inside an Omlet chat.
+    p You must open this app from the Omlet drawer.
+
+    p#debug
+  else if done
+    p You're all set now, you can go back to your friends!
+    p When you return to the chat, all the pictures that you or your friends share
+      | on the chat will appear on your TV.
+
+    p
+      a.btn.btn-primary(onclick='Demo.exit()') Return to chat
+  else
+    p Welcome to TV Sharing!
+    p This app allows you to show your pictures on your big screen. After you
+      | activate this app, all the pictures you or your friends share on the chat
+      | will appear on your TV.
+    p= message
+
+    p
+      a.btn.btn-primary(href=link) Continue
