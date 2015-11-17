@@ -25,7 +25,7 @@ router.post('/switch-to', function(req, res, next) {
         if (body.url.startsWith('http://www.youtube.com/v/')) {
             url = urlFormatters.yt(body.url.substr('http://www.youtube.com/v/'.length));
             yt = true;
-        } else if (bidy.url.startsWith('http://www.youtube.com/watch?v=')) {
+        } else if (body.url.startsWith('http://www.youtube.com/watch?v=')) {
             url = urlFormatters.yt(body.url.substr('http://www.youtube.com/watch?v='.length));
             yt = true;
         } else
