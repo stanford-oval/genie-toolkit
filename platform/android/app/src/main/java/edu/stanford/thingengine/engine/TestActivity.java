@@ -100,7 +100,7 @@ public class TestActivity extends AppCompatActivity {
                     JSONObject o = new JSONObject();
                     o.put("time", new Date().getTime());
                     o.put("weight", 50 + 10 * Math.random());
-                    control.injectTableInsert("thingengine-table-app-WeightCompApp-messaging-group-omlet-a-1tfcul6h5o86l0ave32ivqo8s22tkalnup2s3cr5089aorvqbi6-k-W-vR-hRSIvuYuXMW3Sj8EXfIW42ZDOhRATDWt21p4g4--weightHistory",
+                    control.injectTableInsert("thingengine-table-app-WeightCompApp-messaging-group-omlet-a-d7618db4crce607di1qb6ha52r28u70f0i8mkbddkt4giujkjjs-k-MP5FM5WLt-8VJSMw6WNTkBnI0mA9yYj6d4PZ5Z0Z1u4--weightHistory",
                             o);
                 } catch(JSONException e) {
                     ;

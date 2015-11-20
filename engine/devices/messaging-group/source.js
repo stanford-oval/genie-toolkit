@@ -25,6 +25,8 @@ const MsgGroupSourceChannel = new lang.Class({
     },
 
     _onMsg: function(msg) {
+        console.log('Received message', msg);
+
         if (msg.type != 'picture')
             return;
 

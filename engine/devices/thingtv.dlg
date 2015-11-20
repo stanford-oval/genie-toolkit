@@ -11,5 +11,5 @@
 }
 
 #sink {
-    url: 'http://' + ip-address + ':' + string(port) + '/api/switch-to';
+    url: 'http://' + ip-address + ':' + string(port) + '/pictures';
 }

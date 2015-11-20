@@ -30,9 +30,9 @@ var WEIGHTCOMP_CODE = 'WeightCompApp(g : Group) {' +
 '  current = max(weightHistory.oninsert, time) =>' +
 '  weightBoard(key_="name", name = @self.name, delta = (initial.weight - current.weight) / initial.weight);'+
 '' +
-'  weightBoard.oninsert(), board = all(g.weightBoard.alldata, delta) =>' +
-'  g(title="Weight Competition", text="New results for the weight competition", callback="weightcomp",' +
-'    data=board);' +
+'  weightBoard.oninsert(), board = all(g.weightBoard.alldata, delta), winner = max(g.weightBoard.alldata, delta) =>' +
+'  g(title="Weight Competition", text="The winner of the weight competion is " + winner.name + ", who lost " + string(winner.delta*100kg) + "%",' +
+'    callback="weightcomp",data=board);' +
 '}';
 
 var PICTURE_TV_DEMO = 'PictureTVApp(g : Group) {' +
