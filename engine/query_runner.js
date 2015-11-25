@@ -42,6 +42,9 @@ module.exports = new lang.Class({
     },
 
     _onTriggerData: function(from) {
+        if (from.event === null) // fast path
+            return;
+
         console.log('Handling incoming data on ' + from.uniqueId);
         this._env.reset();
         this._env.triggerValue = from.event;
@@ -81,7 +84,6 @@ module.exports = new lang.Class({
     },
 
     _channelAdded: function(ch) {
-        console.log('Connecting to data event on ' + ch.uniqueId);
         ch.on('data', this._dataListener);
 
         // if this channel was added when the query was already running sample the new data
@@ -108,6 +110,10 @@ module.exports = new lang.Class({
                 kw.removeListener('changed', this._keywordChangedListener);
             }, this);
 
+            return Q.all(kws.map(function(kw) {
+                return kw.stop();
+            }));
+        }.bind(this)).then(function() {
             if (this._selector)
                 return this._selector.stop();
         }.bind(this));
@@ -125,7 +131,7 @@ module.exports = new lang.Class({
         if (decl.extern)
             scope = null;
         else
-            scope = app.uniqueId;
+            scope = this.app.uniqueId;
         name = kw.name;
 
         return this.engine.keywords.getKeyword(scope, name, feedId, kw.owner === 'self');
@@ -172,7 +178,6 @@ module.exports = new lang.Class({
                 }, this);
             }
         }.bind(this)).then(function() {
-            console.log('Handling initial keyword/trigger state sample');
             this._ready = true;
             this._onInitialSample();
             this.emit('ready');

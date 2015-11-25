@@ -9,11 +9,8 @@
 const Q = require('q');
 const events = require('events');
 const lang = require('lang');
-const adt = require('adt');
+const vm = require('vm');
 
-const AppCompiler = require('./app_compiler');
-const AppGrammar = require('./app_grammar');
-const QueryRunner = require('./query_runner');
 const BaseChannel = require('./base_channel');
 const BaseDevice = require('./base_device');
 
@@ -28,8 +25,7 @@ const ComputeModuleFunctionChannel = new lang.Class({
         this._fn = fn;
     },
 
-    sendEvent: function(event) {
-        var args = Object.keys(this._ast.params).map(function(name) { return event[name]; });
+    sendEvent: function(args) {
         this._fn.apply(null, args);
     }
 });
@@ -43,6 +39,8 @@ module.exports = new lang.Class({
         this.engine = engine;
         this.app = app;
 
+        // unlike AppDevice, this needs to be unique because it
+        // is used for the pipes
         this.uniqueId = 'thingengine-compute-module-' + app.uniqueId + '-' + name;
         // this device is stored in AppDatabase not DeviceDatabase
         this.isTransient = true;
@@ -52,99 +50,45 @@ module.exports = new lang.Class({
 
         var scope = {};
 
-        var states = Object.keys(module.state);
-        if (states.length === 0)
-            var scopestring = '';
-        else
-            var scopestring = 'var ' + states.join(',') + ';'
+        var keywords = app.compiler.keywords;
+        for (var name in keywords) {
+            Object.defineProperty(scope, name, { configurable: true,
+                                                 enumerable: true,
+                                                 get: function() {
+                                                     return this._readKeyword(name);
+                                                 }.bind(this) });
+        }
 
         var events = Object.keys(module.events);
-        var eventargs = events.join(',');
-        var eventFunctions = events.map(function(name) {
+        events.forEach(function(name) {
             var event = module.events[name];
-            return (function() {
-                console.log('Event function ' + name + ' called');
-                var i = 0;
-                var data = {};
-                for (var pname in event)
-                    data[pname] = arguments[i++];
-                return this._emitEvent(name, data);
-            }).bind(this);
+            Object.defineProperty(scope, name, { configurable: true,
+                                                 enumerable: true,
+                                                 writable: false,
+                                                 value: function() {
+                                                     return this._emitEvent(name, arguments);
+                                                 }.bind(this) });
         }, this);
-        if (events.length > 0)
-            eventargs += ',query1';
-        else
-            eventargs = 'query1';
-        eventFunctions.push(function query1(query) {
-            console.log('Handling query1 call', query);
-            var compiler = new AppCompiler();
-            var ast = AppGrammar.parse(query, { startRule: 'query' });
-            var inputs = compiler.compileInputs({}, ast, '$$');
-            var alias;
-            if (inputs.length == 1)
-                alias = inputs[0].alias;
-            else
-                alias = null;
 
-            var qr = new QueryRunner(this.engine, this.app, inputs);
+        Object.seal(scope);
 
-            return Q.Promise(function(callback, errback) {
-                qr.once('ready', function() {
-                    var scope = qr.env.getAllAliases();
-                    console.log("Got result from query", scope);
-                    if (alias !== null && alias == '$$') {
-                        callback(scope[alias]);
-                    } else {
-                        callback(scope);
-                    }
-
-                    qr.stop().done();
-                });
-                return qr.start();
-            });
-        }.bind(this));
+        this._context = vm.createContext(scope);
 
         this._functions = {};
         this._eventPipes = {};
 
         for (var name in module.functions) {
             var ast = module.functions[name];
-            // this is really evil...
-            var outerfn = new Function(eventargs, scopestring +
-                                       'return function(' + Object.keys(ast.params).join(',')
-                                       +') {' + ast.code + '};');
-            var fn = outerfn.apply(null, eventFunctions);
+            var fn = vm.runInContext('(function(' + Object.keys(ast.params).join(',')
+                                     +') {' + ast.code + '});', this._context);
             this._functions[name] = fn;
         }
 
         this._functionChannels = {}
     },
 
-    checkAvailable: function() {
-        return BaseDevice.Availability.AVAILABLE;
-    },
-
-    // check if a group is allowed for this compute module
-    // according to some auth directive (or the default auth directive)
-    verifyGroupAuthorization: function(feed) {
-        for (var auth in this._module.auth) {
-            var groupId = this.app.state[auth];
-            if (!this.engine.devices.hasDevice(groupId)) {
-                console.log('Missing authentication device');
-                continue;
-            }
-            var group = this.engine.devices.getDevice(groupId);
-            if (!group.hasKind('messaging-group'))
-                continue;
-            if (group.feedId === feed.feedId) {
-                console.log('Found valid authorization source');
-                return true;
-            }
-        }
-
-        console.log('No valid authorization source, rejecting...');
-        return false;
-    },
+    // we really only need to implement getChannel,
+    // for anything else BaseDevice is fine
 
     getChannel: function(id, filters) {
         if (id in this._module.functions) {
@@ -163,6 +107,27 @@ module.exports = new lang.Class({
         } else {
             throw new TypeError('Invalid channel name ' + id);
         }
+    },
+
+    _getKeyword: function(name, decl) {
+        var compiler = this.app.compiler;
+
+        var scope, name, feedId;
+        if (decl.feedAccess)
+            feedId = this.app.feedId;
+        else
+            feedId = null;
+        if (decl.extern)
+            scope = null;
+        else
+            scope = this.app.uniqueId;
+        name = name;
+
+        return this.engine.keywords.getKeyword(scope, name, feedId);
+    },
+
+    _readKeyword: function(name) {
+        return this._keywords[name].value;
     },
 
     _emitEvent: function(name, data) {
@@ -184,6 +149,20 @@ module.exports = new lang.Class({
         }, this));
     },
 
+    _startKeywords: function() {
+        var keywords = this.app.compiler.keywords;
+        this._keywords = {};
+
+        var promises = [];
+        for (var name in keywords) {
+            var p = this._getKeyword(name, keywords[name]).then(function(kw) {
+                this._keywords[name] = kw;
+            }.bind(this));
+            promises.push(p);
+        }
+        return Q.all(promises);
+    },
+
     _stopEventPipes: function() {
         var eventnames = Object.keys(this._module.events);
         return Q.all(eventnames.map(function(name) {
@@ -193,15 +172,24 @@ module.exports = new lang.Class({
         }, this));
     },
 
+    _stopKeywords: function() {
+        var keywords = this.app.compiler.keywords;
+
+        var promises = [];
+        for (var name in keywords) {
+            var p = this._keywords[name];
+            promises.push(kw.close());
+        }
+        return Q.all(promises);
+    },
+
     start: function() {
-        return this._startEventPipes().then(function() {
-            return this.engine.devices.addDevice(this);
-        }.bind(this));
+        return Q.all([this._startEventPipes(),
+                      this._startKeywords()]);
     },
 
     stop: function() {
-        return Q(this.engine.devices.removeDevice(this)).then(function() {
-            return this._stopEventPipes();
-        }.bind(this));
+        return Q.all([this._stopEventPipes(),
+                      this._startKeywords()]);
     }
 });

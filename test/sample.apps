@@ -40,6 +40,20 @@ WeightCompApp(g : Group) {
 
 ====
 
+TestComputeApp() {
+    module random {
+        event out(x : Number);
+        function ask() {
+            out(Math.floor(42 + Math.random() * 42));
+        }
+    }
+
+    @$timer(30s) => @random.ask();
+    @random.out(x) => @$logger('number: ' + $toString(x));
+}
+
+====
+
 LinkedInApp(g : Group) {
     module compute() {
         event newcolleague(name : String, ind : String);

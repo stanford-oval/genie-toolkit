@@ -50,10 +50,8 @@ const PipeSinkChannel = new lang.Class({
     },
 
     sendEvent: function(event) {
-        console.log('Sending event on sink pipe ' + this.uniqueId);
         setTimeout(function() {
             this._sources.forEach(function(source) {
-                console.log('Emitting event on source pipe ' + source.uniqueId);
                 source.emitEvent(event);
             });
         }.bind(this), 0);

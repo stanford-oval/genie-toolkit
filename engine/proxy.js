@@ -61,14 +61,6 @@ const ChannelStub = new lang.Class({
         this._proxyManager.sendSourceEvent(this._targetTier, this._innerChannel.uniqueId, data);
     },
 
-    _onNextTick: function() {
-        this._proxyManager.sendSourceNextTick(this._targetTier, this._innerChannel.uniqueId);
-    },
-
-    get previousEvent() {
-        return this._innerChannel.previousEvent;
-    },
-
     get event() {
         return this._innerChannel.event;
     },
@@ -82,16 +74,11 @@ const ChannelStub = new lang.Class({
     open: function() {
         this._dataListener = this._onData.bind(this);
         this._innerChannel.on('data', this._dataListener);
-
-        this._nextTickListener = this._onNextTick.bind(this);
-        this._innerChannel.on('next-tick', this._nextTickListener);
-
         return this._innerChannel.open();
     },
 
     close: function() {
         this._innerChannel.removeListener('data', this._dataListener);
-        this._innerChannel.removeListener('next-tick', this._nextTickListener);
         return this._innerChannel.close();
     },
 });
@@ -130,13 +117,10 @@ module.exports = new lang.Class({
             this._releaseChannel(fromTier, msg.channelId);
             return;
         case 'channel-request-complete':
-            this._channelReady(fromTier, msg.channelId, msg.result, msg.event, msg.previousEvent);
+            this._channelReady(fromTier, msg.channelId, msg.result, msg.event);
             return;
         case 'channel-source-data':
             this._channelSourceData(fromTier, msg.channelId, msg.data);
-            return;
-        case 'channel-source-next-tick':
-            this._channelSourceNextTick(fromTier, msg.channelId);
             return;
         case 'channel-sink-data':
             this._channelSinkData(fromTier, msg.channelId, msg.data);
@@ -154,10 +138,6 @@ module.exports = new lang.Class({
 
     sendSourceEvent: function(targetTier, targetChannelId, data) {
         this._sendMessage(targetTier, {op:'channel-source-data', channelId: targetChannelId,data:data});
-    },
-
-    sendSourceNextTick: function(targetTier, targetChannelId) {
-        this._sendMessage(targetTier, {op:'channel-source-next-tick', channelId: targetChannelId});
     },
 
     sendSinkEvent: function(targetTier, targetChannelId, data) {
@@ -229,12 +209,11 @@ module.exports = new lang.Class({
         return Q(true);
     },
 
-    _replyChannel: function(targetTier, targetChannelId, result, event, previousEvent) {
+    _replyChannel: function(targetTier, targetChannelId, result, event) {
         this._sendMessage(targetTier,
                           {op:'channel-request-complete',
                            channelId:targetChannelId,
                            event:event,
-                           previousEvent:previousEvent,
                            result:result});
     },
 
@@ -248,7 +227,7 @@ module.exports = new lang.Class({
             console.log('Duplicate channel request from ' + fromTier + ' for '
                         + targetChannelId);
             this._stubs[fullId].then(function(stub) {
-                this._replyChannel(fromTier, targetChannelId, 'ok', stub.event, stub.previousEvent);
+                this._replyChannel(fromTier, targetChannelId, 'ok', stub.event);
             }, function(e) {
                 this._replyChannel(fromTier, targetChannelId, e.message);
             });
@@ -280,7 +259,7 @@ module.exports = new lang.Class({
         });
 
         defer.promise.then(function(stub) {
-            this._replyChannel(fromTier, targetChannelId, 'ok', stub.event, stub.previousEvent);
+            this._replyChannel(fromTier, targetChannelId, 'ok', stub.event);
         }, function(e) {
             this._replyChannel(fromTier, targetChannelId, e.message);
         });
@@ -300,7 +279,7 @@ module.exports = new lang.Class({
         delete this._stubs[fullId];
     },
 
-    _channelReady: function(fromTier, targetChannelId, result, event, previousEvent) {
+    _channelReady: function(fromTier, targetChannelId, result, event) {
         var fullId = targetChannelId + '-' + fromTier;
 
         if (!(fullId in this._requests)) {
@@ -311,8 +290,7 @@ module.exports = new lang.Class({
         var request = this._requests[fullId];
         var defer = request.defer;
         if (result === 'ok') {
-            request.proxy.setPreviousEvent(previousEvent);
-            request.proxy.setCurrentEvent(event);
+            request.proxy.emitEvent(event);
             defer.resolve();
         } else
             defer.reject(new Error(result));
@@ -333,23 +311,6 @@ module.exports = new lang.Class({
         }
 
         proxy.emitEvent(data);
-    },
-
-    _channelSourceNextTick: function(fromTier, targetChannelId) {
-        var fullId = targetChannelId + '-' + fromTier;
-
-        if (!(fullId in this._proxies)) {
-            console.error('Invalid data message from ' + targetChannelId);
-            return;
-        }
-
-        var proxy = this._proxies[fullId];
-        if (proxy.targetTier !== fromTier) {
-            console.error('Message sender tier does not match expected for ' + proxy.uniqueId);
-            return;
-        }
-
-        proxy.nextTick();
     },
 
     _channelSinkData: function(fromTier, targetChannelId, data) {

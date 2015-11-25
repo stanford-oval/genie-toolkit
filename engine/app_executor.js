@@ -66,7 +66,7 @@ const RuleExecutor = new lang.Class({
         if (decl.extern)
             scope = null;
         else
-            scope = app.uniqueId;
+            scope = this.app.uniqueId;
         name = this.output.keyword.name;
 
         return this.engine.keywords.getKeyword(scope, name, feedId, this.output.owner === 'self');
@@ -125,16 +125,6 @@ module.exports = new lang.Class({
 
             compiler.compileProgram(ast, state);
 
-            var paramnames = Object.keys(compiler.params);
-
-            var modulenames = Object.keys(compiler.modules);
-            this.modules = modulenames.map(function(name) {
-                return new ComputeModule(engine, this, name, compiler.modules[name]);
-            }, this);
-            this.rules = compiler.rules.map(function(rule) {
-                return new RuleExecutor(engine, this, rule);
-            }, this);
-
             this.isBroken = false;
         } catch(e) {
             console.log('App is broken: ' + e.message);
@@ -151,6 +141,19 @@ module.exports = new lang.Class({
             this.feedId = null;
         }
 
+        if (!this.isBroken) {
+            this.modules = {};
+            for (var name in compiler.modules) {
+                this.modules[name] = new ComputeModule(engine, this, name, compiler.modules[name]);
+            }
+            this.rules = compiler.rules.map(function(rule) {
+                return new RuleExecutor(engine, this, rule);
+            }, this);
+        } else {
+            this.modules = {};
+            this.rules = [];
+        }
+
         this.name = compiler.name;
         this.description = 'This app has no description';
     },
@@ -165,8 +168,15 @@ module.exports = new lang.Class({
         this.engine.apps.removeApp(this);
     },
 
+    getComputeModule: function(name) {
+        return this.modules[name];
+    },
+
     start: function() {
-        Q.all(this.modules.map(function(m) { return m.start(); })).then(function() {
+        var modulenames = Object.keys(this.modules);
+        Q.all(modulenames.map(function(name) {
+            return this.modules[name].start();
+        }, this)).then(function() {
             return Q.all(this.rules.map(function(r) { return r.start(); }));
         }.bind(this)).done();
 
@@ -174,7 +184,12 @@ module.exports = new lang.Class({
     },
 
     stop: function() {
-        return Q.all(this.rules.map(function(r) { return r.stop() ; }).
-                     concat(this.modules.map(function(m) { return m.stop(); })));
-    },
+        return Q.all(this.rules.map(function(r) { return r.stop() ; }))
+            .then(function() {
+                var modulenames = Object.keys(this.modules);
+                return Q.all(modulenames.map(function(name) {
+                    return this.modules[name].start();
+                }, this));
+            }.bind(this));
+    }
 });

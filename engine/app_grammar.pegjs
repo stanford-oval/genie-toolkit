@@ -42,16 +42,10 @@ decl_param = name:ident _ ':' _ type:type_ref {
 
 statement = keyword_decl / compute_module / rule
 
-compute_module = 'module' __ name:ident _ params:decl_param_list _ '{' _ statements:(compute_stmt _)+ _ '}' _ {
-    return Statement.ComputeModule(name, params, take(statements, 0));
+compute_module = 'module' __ name:ident _ '{' _ statements:(compute_stmt _)+ _ '}' _ {
+    return Statement.ComputeModule(name, take(statements, 0));
 }
-compute_stmt = auth_decl / var_decl / event_decl / function_decl
-auth_decl = 'auth' __ name:ident __ mode:('rw' / 'r' / 'w')? _ ';' {
-    return ComputeStatement.AuthDecl(name, mode !== null ? mode : 'rw');
-}
-var_decl = 'var' __ name:ident _ type:(':' _ type_ref _)? ';' {
-    return ComputeStatement.VarDecl(name, type !== null ? type[2] : null);
-}
+compute_stmt = event_decl / function_decl
 event_decl = 'event' __ name:ident _ params:decl_param_list _ ';' {
     return ComputeStatement.EventDecl(name, params);
 }
@@ -109,16 +103,18 @@ keyword_output = keyword:keyword _ owner:ownership? _ params:output_param_list {
     return OutputSpec.Keyword(keyword, owner, params);
 }
 
-input_param_list = '(' _ first:keyword_param _ rest:(',' _ keyword_param _)* ')' {
-    return [first].concat(take(rest, 2));
-}
+input_param_list = '(' _ ')' { return []; } /
+    '(' _ first:keyword_param _ rest:(',' _ keyword_param _)* ')' {
+        return [first].concat(take(rest, 2));
+    }
 keyword_param = '_' { return KeywordParam.Null; } /
     val:literal { return KeywordParam.Constant(val); } /
     name:ident { return KeywordParam.Binder(name); }
 
-output_param_list = '(' _ first:expression _ rest:(',' _ expression _)* ')' {
-    return [first].concat(take(rest, 2));
-}
+output_param_list = '(' _ ')' { return []; } /
+    '(' _ first:expression _ rest:(',' _ expression _)* ')' {
+        return [first].concat(take(rest, 2));
+    }
 
 keyword = name:ident feed_spec {
     return Keyword(name, true);

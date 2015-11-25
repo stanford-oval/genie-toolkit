@@ -341,6 +341,11 @@ const Functions = {
         rettype: Type.String,
         op: objectToString,
     },
+    'valueOf': {
+        argtypes: [Type.String],
+        rettype: Type.Number,
+        op: parseFloat,
+    },
     'julianday': {
         argtypes: [Type.Date],
         rettype: Type.Number,
@@ -535,6 +540,10 @@ module.exports = new lang.Class({
         return this._modules;
     },
 
+    get keywords() {
+        return this._keywords;
+    },
+
     getKeywordDecl: function(k) {
         if (!(k in this._keywords))
             throw new Error('Invalid keyword name ' + k);
@@ -649,7 +658,25 @@ module.exports = new lang.Class({
     },
 
     compileFunctionCall: function(name, argsast, scope) {
-        if (name in Aggregations) {
+        if (name in Functions) {
+            var func = Functions[name];
+            if (argsast.length !== func.argtypes.length)
+                throw new TypeError("Function " + func + " does not accept " +
+                                    argsast.length + " arguments");
+            var argsexp = argsast.map(function(arg) {
+                return this.compileExpression(arg, scope);
+            }, this);
+            argsexp.forEach(function(exp, idx) {
+                typeUnify(exp[0], func.argtypes[idx]);
+            });
+            var funcop = func.op;
+            return [func.rettype, function(env) {
+                var args = argsexp.map(function(exp) {
+                    return exp[1](env);
+                });
+                return funcop.apply(null, args);
+            }];
+        } else if (name in Aggregations) {
             var aggr = Aggregations[name];
 
             var argsexp = argsast.map(function(arg) {
@@ -705,25 +732,7 @@ module.exports = new lang.Class({
                     return val;
             }];
         } else {
-            var func = Functions[name];
-            if (func === undefined)
-                throw new TypeError("Unknown function " + name);
-            if (argsast.length !== func.argtypes.length)
-                throw new TypeError("Function " + func + " does not accept " +
-                                    argsast.length + " arguments");
-            var argsexp = argsast.map(function(arg) {
-                return this.compileExpression(arg, scope);
-            }, this);
-            argsexp.forEach(function(exp, idx) {
-                typeUnify(exp[0], func.argtypes[idx]);
-            });
-            var funcop = func.op;
-            return [func.rettype, function(env) {
-                var args = argsexp.map(function(exp) {
-                    return exp[1](env);
-                });
-                return funcop.apply(null, args);
-            }];
+            throw new TypeError('Unknown function ' + name);
         }
     },
 
@@ -937,6 +946,20 @@ module.exports = new lang.Class({
             if (!(name in BuiltinTriggers))
                 throw new TypeError('Unknown built-in ' + name);
             schema = BuiltinTriggers[name];
+        } else if (selector.isGlobalName) {
+            var moduleName = selector.name;
+            if (moduleName in this._scope) {
+                if (!this._scope[moduleName].isModule)
+                    throw new TypeError(moduleName + ' does not name a compute module');
+                var module = this._modules[moduleName];
+                if (!(name in module.events))
+                    throw new TypeError(moduleName + '.' + name + ' does not name a compute event');
+
+                selector = Selector.ComputeModule(moduleName);
+                schema = module.events[name];
+            } else {
+                schema = null;
+            }
         } else {
             // FIXME figure out schema for trigger
             schema = null;
@@ -1383,6 +1406,21 @@ module.exports = new lang.Class({
                 if (!(name in BuiltinActions))
                     throw new TypeError('Unknown built-in ' + name);
                 schema = BuiltinActions[name];
+            } else if (output.selector.isGlobalName) {
+                var moduleName = output.selector.name;
+                if (moduleName in this._scope) {
+                    if (!this._scope[moduleName].isModule)
+                        throw new TypeError(moduleName + ' does not name a compute module');
+                    var module = this._modules[moduleName];
+                    var name = output.name;
+                    if (!(name in module.functions))
+                        throw new TypeError(moduleName + '.' + name + ' does not name a compute function');
+
+                    action.selector = Selector.ComputeModule(moduleName);
+                    schema = module.functions[name].schema;
+                } else {
+                    schema = null;
+                }
             } else {
                 // FIXME figure out schema for action
                 schema = null;
@@ -1465,68 +1503,33 @@ module.exports = new lang.Class({
     },
 
     compileModule: function(ast) {
-        var module = { auth: {}, params: {}, state: {}, events: {}, functions: {} };
+        var module = { events: {}, functions: {} };
         var scope = {};
 
-        ast.params.forEach(function(p) {
-            if (p.name in module.params)
-                throw new TypeError("Duplicate param " + p.name);
-            module.params[p.name] = stringToType(p.type);
-            scope[p.name] = module.params[p.name];
-        });
         ast.statements.forEach(function(stmt) {
-            if (stmt.isAuthDecl) {
-                if (!stmt.name in this._scope ||
-                    !this._scope[stmt.name].isGroup)
-                    throw new TypeError("Auth directive for " + stmt.name + " does not name a group");
-                if (stmt.name in auth)
-                    throw new TypeError("Duplicate auth directive for " + stmt.name);
-                auth[stmt.name] = stmt.mode;
-                return;
-            }
-
             if (stmt.name in scope || stmt.name in this._scope)
                 throw new TypeError("Declaration " + stmt.name + " shadows existing name");
-            if (stmt.isVarDecl) {
-                module.state[stmt.name] = stringToType(stmt.type);
-                scope[stmt.name] = module.state[stmt.name];
-            } else if (stmt.isEventDecl) {
+            if (stmt.isEventDecl) {
                 var event = {};
-                stmt.params.forEach(function(p) {
-                    if (p.name in event)
-                        throw new TypeError("Duplicate param " + p.name);
-                    event[p.name] = stringToType(p.type);
+                var event = stmt.params.map(function(p) {
+                    return stringToType(p.type);
                 });
                 module.events[stmt.name] = event;
                 scope[stmt.name] = event;
             } else if (stmt.isFunctionDecl) {
-                var params = {};
-                stmt.params.forEach(function(p) {
-                    if (p.name in params)
-                        throw new TypeError("Duplicate param " + p.name);
-                    params[p.name] = stringToType(p.type);
+                var names = stmt.params.map(function(p) {
+                    return p.name;
+                });
+                var types = stmt.params.map(function(p) {
+                    return stringToType(p.type);
                 });
 
-                module.functions[stmt.name] = { params: params, code: stmt.code };
+                module.functions[stmt.name] = { params: names, schema: types, code: stmt.code };
                 scope[stmt.name] = module.functions[stmt.name];
             } else {
                 throw new TypeError();
             }
         }, this);
-
-        // if no auth directives are present
-        // by policy we allow read/write access to compute modules
-        // that are instantiated within one and exactly one group
-        var explicitauths = Object.keys(module.auth);
-        if (explicitauths.length === 0) {
-            var paramnames = Object.keys(this._params);
-            var groupnames = paramnames.filter(function(name) {
-                return this._params[name].isGroup;
-            }, this);
-            if (groupnames.length === 1) {
-                module.auth[groupnames[0]] = 'rw';
-            }
-        }
 
         return module;
     },
@@ -1657,6 +1660,9 @@ var Selector = adt.data({
     },
 
     // for internal use only
+    ComputeModule: {
+        module: adt.only(String),
+    },
     Id: {
         name: adt.only(String),
     },
@@ -1750,7 +1756,6 @@ module.exports.OutputSpec = OutputSpec;
 var Statement = adt.data({
     ComputeModule: {
         name: adt.only(String),
-        params: adt.only(Array),
         statements: adt.only(Array), // array of ComputeStatement
     },
     VarDecl: {
@@ -1766,14 +1771,6 @@ var Statement = adt.data({
 });
 module.exports.Statement = Statement;
 var ComputeStatement = adt.data({
-    AuthDecl: {
-        name: adt.only(String),
-        mode: adt.only(String)
-    },
-    VarDecl: {
-        name: adt.only(String),
-        type: adtNullable(String),
-    },
     EventDecl: {
         name: adt.only(String),
         params: adt.only(Array),

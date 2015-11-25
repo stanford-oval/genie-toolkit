@@ -131,8 +131,18 @@ module.exports = new lang.Class({
         this.engine = engine;
         this.app = app;
         this._mode = mode;
+        this._normalizeSelector(block);
+        if (mode === 'r')
+            this._params = this._normalizeParams(block.params);
+        else
+            this._params = [];
+
+        this._set = null;
+        this._view = null;
+    },
+
+    _normalizeSelector: function(block) {
         // for now, only 'me' is accessible
-        this._context = engine.devices.getContext('me');
         if (block.selector.isBuiltin) {
             var owner = BuiltinOwner[block.selector.name];
 
@@ -144,21 +154,26 @@ module.exports = new lang.Class({
                 // the difference
                 this._context = new ObjectSet.Simple();
                 this._context.addOne(new AppDevice(this.app));
+            } else {
+                this._context = this.engine.devices.getContext('me');
             }
 
             this._selector = AppCompiler.Selector.Id(owner);
             this._channelName = block.selector.name;
+        } else if (block.selector.isComputeModule) {
+            // compute modules are handled in a similar fashion as doubly special builtins
+            // above
+            this._context = new ObjectSet.Simple();
+            this._context.addOne(this.app.getComputeModule(block.selector.module));
+            // there is nothing but the right module in this context,
+            // so any is fine
+            this._selector = AppCompiler.Selector.Any;
+            this._channelName = block.name;
         } else {
+            this._context = this.engine.devices.getContext('me');
             this._selector = block.selector;
             this._channelName = block.name;
         }
-        if (mode === 'r')
-            this._params = this._normalizeParams(block.params);
-        else
-            this._params = [];
-
-        this._set = null;
-        this._view = null;
     },
 
     _normalizeParams: function(params) {
