@@ -153,7 +153,7 @@ module.exports = new lang.Class({
     // The returned channel will be a source if the second parameter is 'r',
     // and a sink if it is 'w'
     //
-    // Like getOpenedChannel, this is "public" to ComputeModule, but
+    // Like getOpenedChannel, this is "public" to ComputeModule / AppDevice, but
     // *nothing* should ever call this outside of core code
     getNamedPipe: function(name, mode) {
         if (mode !== 'r' && mode !== 'w')

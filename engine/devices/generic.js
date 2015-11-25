@@ -13,40 +13,13 @@ const Q = require('q');
 const Url = require('url');
 const WebSocket = require('ws');
 
+const httpRequestAsync = require('../util/http').request;
 const BaseDevice = require('../base_device');
 const BaseChannel = require('../base_channel');
 const AppGrammar = require('../app_grammar');
 const AppCompiler = require('../app_compiler');
 const ExecEnvironment = require('../exec_environment');
 
-function httpRequestAsync(url, method, auth, data, callback) {
-    var options = Url.parse(url);
-    options.method = method;
-    options.headers = {};
-    if (method === 'POST')
-        options.headers['Content-Type'] = 'application/json';
-    if (auth)
-        options.headers['Authorization'] = auth;
-
-    var module = options.protocol == 'https:' ? https : http;
-    var req = module.request(options, function(res) {
-        if (res.statusCode >= 400)
-            return callback(new Error(http.STATUS_CODES[res.statusCode]));
-
-        var data = '';
-        res.setEncoding('utf8');
-        res.on('data', function(chunk) {
-            data += chunk;
-        });
-        res.on('end', function() {
-            callback(null, data);
-        });
-    });
-    req.on('error', function(err) {
-        callback(err);
-    });
-    req.end(data);
-}
 
 module.exports = function(kind, code) {
     throw new Error('GenericDevice is temporarily unsupported');

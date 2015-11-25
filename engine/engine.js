@@ -18,7 +18,7 @@ const DeviceDatabase = require('./db/devices');
 const TierManager = require('./tier_manager');
 const DeviceManager = require('./devices/manager');
 const ManualQueryRunner = require('./rpc_query_runner');
-const UIEventManager = require('./ui_event_manager');
+const UIManager = require('./ui_manager');
 const MessagingDeviceManager = require('./messaging/device_manager');
 const KeywordRegistry = require('./db/keyword');
 const MessagingSyncManager = require('./messaging/sync_manager');
@@ -31,14 +31,14 @@ const Engine = new lang.Class({
         // constructor
 
         this._tiers = new TierManager();
-        this._deviceFactory = new DeviceFactory(this);
-        this._devices = new DeviceDatabase(this._tiers, this._deviceFactory);
-        this._channels = new ChannelFactory(this, this._tiers, this._deviceFactory);
+        var deviceFactory = new DeviceFactory(this);
+        this._devices = new DeviceDatabase(this._tiers, deviceFactory);
+        this._channels = new ChannelFactory(this, this._tiers, deviceFactory);
         this._apps = new AppDatabase(this, this._tiers);
 
         this._messaging = new MessagingDeviceManager(this._devices);
         this._keywords = new KeywordRegistry(this._tiers, this._messaging);
-        this._ui = new UIEventManager(this);
+        this._ui = new UIManager(this);
 
         // in loading order
         this._modules = [this._tiers,

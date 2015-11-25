@@ -158,16 +158,6 @@ module.exports = new lang.Class({
         this.description = 'This app has no description';
     },
 
-    notify: function(event) {
-        // FINISHME
-        console.log('@$notify', event);
-    },
-
-    doReturn: function(event) {
-        this.notify(event);
-        this.engine.apps.removeApp(this);
-    },
-
     getComputeModule: function(name) {
         return this.modules[name];
     },

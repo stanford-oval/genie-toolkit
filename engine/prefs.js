@@ -48,6 +48,10 @@ const FilePreferences = new lang.Class({
         this._writeScheduled = false;
     },
 
+    keys: function() {
+        return Object.keys(this._prefs);
+    },
+
     get: function(name) {
         return this._prefs[name];
     },
@@ -68,7 +72,7 @@ const FilePreferences = new lang.Class({
         setTimeout(function() {
             this._writeScheduled = false;
             fs.writeFile(this._file, JSON.stringify(this._prefs));
-        }.bind(this), 0);
+        }.bind(this), 100);
     }
 });
 
