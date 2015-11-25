@@ -88,17 +88,19 @@ module.exports = new lang.Class({
     _createModuleFromBuiltinCode: function(fullId, id) {
         try {
             var fullPath = path.resolve(path.dirname(module.filename),
-                                        '../device-classes/' + id + '.dlg');
+                                        '../device-classes/' + id + '.json');
             var code = fs.readFileSync(fullPath).toString('utf8');
-            console.log('Module ' + fullId + ' loaded as builtin code');
-            this._cachedModules[id] = GenericDeviceFactory(id, code);
-            if (fullId === id)
-                return this._cachedModules[id];
-            else
-                return this._cachedModules[id].getSubmodule(fullId.substr(id.length + 1));
         } catch(e) {
+            console.log(e.stack);
             return null;
         }
+
+        console.log('Module ' + fullId + ' loaded as builtin code');
+        this._cachedModules[id] = GenericDeviceFactory(id, code);
+        if (fullId === id)
+            return this._cachedModules[id];
+        else
+            return this._cachedModules[id].getSubmodule(fullId.substr(id.length + 1));
     },
 
     _createModuleFromCache: function(fullId) {
@@ -114,7 +116,7 @@ module.exports = new lang.Class({
 
     _createModuleFromCachedCode: function(fullId, id) {
         try {
-            var code = fs.readFileSync(this._cacheDir + '/' + id + '.dlg').toString('utf8');
+            var code = fs.readFileSync(this._cacheDir + '/' + id + '.json').toString('utf8');
             console.log('Module ' + fullId + ' loaded as cached code');
             this._cachedModules[id] = GenericDeviceFactory(id, code);
             if (fullId === id)
@@ -132,8 +134,8 @@ module.exports = new lang.Class({
         if (id in this._moduleRequests)
             return this._moduleRequests[id];
 
-        var codeTmpPath = this._cacheDir + '/' + id + '.dlg.tmp';
-        var codePath = this._cacheDir + '/' + id + '.dlg';
+        var codeTmpPath = this._cacheDir + '/' + id + '.json.tmp';
+        var codePath = this._cacheDir + '/' + id + '.json';
 
         return this._moduleRequests[id] = Q.Promise(function(callback, errback) {
             var parsed = url.parse(this._codeUrl + '/' + id);
@@ -216,16 +218,16 @@ module.exports = new lang.Class({
     _createModule: function(fullId, id) {
         console.log('Loading device module ' + fullId);
 
-        var module = this._createModuleFromBuiltin(fullId);
+        var module = this._createModuleFromBuiltinCode(fullId, id);
         if (module)
             return Q(module);
-        module = this._createModuleFromBuiltinCode(fullId, id);
-        if (module)
-            return Q(module);
-        module = this._createModuleFromCache(fullId);
+        module = this._createModuleFromBuiltin(fullId);
         if (module)
             return Q(module);
         module = this._createModuleFromCachedCode(fullId, id);
+        if (module)
+            return Q(module);
+        module = this._createModuleFromCache(fullId);
         if (module)
             return Q(module);
         if (!platform.hasCapability('code-download'))

@@ -1583,25 +1583,6 @@ module.exports = new lang.Class({
             }
         }, this);
     },
-
-    compileChannelDescriptions: function(ast) {
-        return ast.map(function(channel) {
-            var localscope = {};
-            for (var name in this._settings)
-                localscope[name] = this._settings[name].type;
-
-            var assignments = channel.props.map(function(output) {
-                return this.compileAssignment(output, localscope, null);
-            }, this);
-
-            var channelBlock = {
-                kind: channel.selector,
-                properties: assignments,
-            };
-
-            return channelBlock;
-        }.bind(this));
-    },
 });
 
 function adtNullable(o) {

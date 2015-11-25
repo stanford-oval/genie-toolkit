@@ -1,4 +1,7 @@
 $(function() {
+    //var THINGPEDIA_ORIGIN = 'http://thingpedia.stanford.edu';
+    var THINGPEDIA_ORIGIN = 'http://127.0.0.1:5000';
+
     function handleDeviceFactory(json, kind) {
         var placeholder = $('#device-placeholder');
 
@@ -70,7 +73,7 @@ $(function() {
 
     $('#online-account-selector').each(function() {
         var selector = $(this);
-        $.get('http://thingpedia.stanford.edu/api/devices?class=online', function(factoryList) {
+        $.get(THINGPEDIA_ORIGIN + '/api/devices?class=online', function(factoryList) {
             for (var i = 0; i < factoryList.length; i += 3) {
                 var row = $('<div>').addClass('row');
                 selector.append(row);
@@ -87,7 +90,7 @@ $(function() {
         var selector = $(this);
         var deviceFactories = {};
 
-        $.get('http://thingpedia.stanford.edu/api/devices?class=physical', function(factoryList) {
+        $.get(THINGPEDIA_ORIGIN + '/api/devices?class=physical', function(factoryList) {
             factoryList.forEach(function(f) {
                 deviceFactories[f.primary_kind] = f.factory;
 

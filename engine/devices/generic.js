@@ -16,20 +16,10 @@ const WebSocket = require('ws');
 const httpRequestAsync = require('../util/http').request;
 const BaseDevice = require('../base_device');
 const BaseChannel = require('../base_channel');
-const AppGrammar = require('../app_grammar');
-const AppCompiler = require('../app_compiler');
 const ExecEnvironment = require('../exec_environment');
 
-
 module.exports = function(kind, code) {
-    throw new Error('GenericDevice is temporarily unsupported');
-
-    var compiler = new AppCompiler();
-    var ast = AppGrammar.parse(code, { startRule: 'device_description' });
-
-    compiler.compileAtRules(ast['at-rules']);
-    var auth = compiler.auth || { type: 'none' };
-    var channels = compiler.compileChannelDescriptions(ast.channels);
+    var ast = JSON.parse(code);
 
     const GenericDevice = new lang.Class({
         Name: 'GenericDevice',
@@ -40,13 +30,14 @@ module.exports = function(kind, code) {
 
             this.uniqueId = undefined; // let DeviceDatabase pick something
 
-            var stateProps = Object.keys(compiler.settings).map(function(k) { return state[k]; });
-            if (compiler.name !== undefined)
-                this.name = String.prototype.format.apply(compiler.name, stateProps);
-            if (compiler.description !== undefined)
-                this.description = String.prototype.format.apply(compiler.description, stateProps);
+            this.params = Object.keys(ast.params).map(function(k) { return state[k]; });
+            if (ast.name !== undefined)
+                this.name = String.prototype.format.apply(ast.name, this.params);
+            if (ast.description !== undefined)
+                this.description = String.prototype.format.apply(ast.description,
+                                                                 this.params);
 
-            if (auth.type == 'oauth2')
+            if (ast.auth.type == 'oauth2')
                 this._isOAuth2 = true;
 
             console.log('Generic device ' + this.name + ' initialized');
@@ -71,7 +62,7 @@ module.exports = function(kind, code) {
         },
 
         hasKind: function(kind) {
-            if (compiler.kinds.indexOf(kind) >= 0)
+            if (ast.types.indexOf(kind) >= 0)
                 return true;
             else
                 return this.parent(kind);
@@ -97,57 +88,53 @@ module.exports = function(kind, code) {
         Name: 'GenericChannel',
         Extends: BaseChannel,
 
-        _init: function(kind, engine, device) {
+        _init: function(id, engine, device) {
             this.parent();
             this.engine = engine;
             this.device = device;
 
-            var channelBlock = null;
-            for (var i = 0; i < channels.length; i++) {
-                if (channels[i].kind === kind) {
-                    channelBlock = channels[i];
-                    break;
-                }
-            }
-            if (channelBlock === null)
-                throw new Error('Invalid channel ' + kind + ' in ' + code);
-
-            var env = new ExecEnvironment(engine, engine.devices, device.state);
-            env.beginOutput();
-            channelBlock.properties.forEach(function(prop) {
-                prop(env);
-            });
-
-            this._properties = env.finishOutput();
-
-            if (kind === 'sink') {
-                this._properties.source = false;
-            } else if (kind === 'source') {
-                this._properties.source = true;
+            var block, source;
+            if (id in ast.triggers) {
+                block = ast.triggers[id];
+                source = true;
+            } else if (kind in ast.actions) {
+                block = ast.actions[id];
+                source = false;
             } else {
-                if (!'source' in this._properties)
-                    throw new Error('Must specify source flag for custom endpoints');
+                throw new Error('Invalid channel ' + id + ' in ' + kind);
             }
 
-            if (!('url' in this._properties))
+            var props = {};
+            for (var name in block) {
+                if (typeof block[name] === 'string')
+                    props[name] = String.prototype.format.apply(block[name],
+                                                                device.params);
+                else
+                    props[name] = block[name];
+            }
+
+            if (!('url' in props))
                 throw new Error('Must specify endpoint url');
-            if (this._properties.url.startsWith('ws')) {
+            this._url = props.url;
+            if (this._url.startsWith('ws')) {
                 this._isWebsocket = true;
-                this._properties.url = 'http' + this._properties.url.substr(2);
+                this._url = 'http' + this._url.substr(2);
             } else {
                 this._isWebsocket = false;
             }
 
-            if (!('method' in this._properties)) {
-                if (this._properties.source)
-                    this._properties.method = 'GET';
+            if (!('method' in props)) {
+                if (source)
+                    this._method = 'GET';
                 else
-                    this._properties.method = 'POST';
+                    this._method = 'POST';
+            } else {
+                this._method = props.method;
             }
 
-            if (this._properties.source && !this._isWebsocket) {
-                if ('poll-interval' in this._properties)
-                    this._pollInterval = this._properties['poll-interval'];
+            if (source && !this._isWebsocket) {
+                if ('poll-interval' in props)
+                    this._pollInterval = parseInt(props['poll-interval']);
                 else
                     this._pollInterval = 300000; // 5m
             } else {
@@ -155,16 +142,17 @@ module.exports = function(kind, code) {
             }
 
             this._connection = null;
-            this._timeout = -1;
+            this._timeout = null;
         },
 
         _makeAuth: function() {
-            if (auth.type === 'none') {
+            if (ast.auth.type === 'none') {
                 return undefined;
-            } else if (auth.type === 'oauth2') {
+            } else if (ast.auth.type === 'oauth2') {
                 return 'Bearer ' + this.device.accessToken;
-            } else if (auth.type === 'basic') {
-                return 'Basic ' + (new Buffer(device.username + ':' + device.password)).toString('base64');
+            } else if (ast.auth.type === 'basic') {
+                return 'Basic ' + (new Buffer(this.device.username + ':' +
+                                              this.device.password)).toString('base64');
             } else {
                 return undefined;
             }
@@ -172,8 +160,8 @@ module.exports = function(kind, code) {
 
         _onTick: function() {
             var channelInstance = this;
-            var url = this._properties.url;
-            var method = this._properties.method;
+            var url = this._url;
+            var method = this._method;
             var auth = this._makeAuth();
 
             return Q.nfcall(httpRequestAsync, url, method, auth, '').then(function(response) {
@@ -197,7 +185,7 @@ module.exports = function(kind, code) {
                 var headers = {};
                 if (auth)
                     headers['Authorization'] = auth;
-                this._connection = new WebSocket(this._properties.url, { headers: headers });
+                this._connection = new WebSocket(this._url, { headers: headers });
                 this._connection.on('message', function(data) {
                     try {
                         var parsed = JSON.parse(data);
@@ -212,7 +200,7 @@ module.exports = function(kind, code) {
                     this._connection = null;
                 });
                 return Q();
-            } else if (this._properties.source) {
+            } else if (this._pollInterval !== -1) {
                 this._timeout = setInterval(function() {
                         this._onTick().done();
                 }.bind(this), this._pollInterval);
@@ -227,9 +215,9 @@ module.exports = function(kind, code) {
                 if (this._connection)
                     this._connection.close();
                 this._connection = null;
-            } else if (this._properties.source) {
+            } else if (this._timeout) {
                 clearInterval(this._timeout);
-                this._timeout = -1;
+                this._timeout = null;
             }
             return Q();
         },
@@ -240,8 +228,8 @@ module.exports = function(kind, code) {
                     this._doOpen();
                 this._connection.send(JSON.stringify(event));
             } else {
-                var url = this._properties.url;
-                var method = this._properties.method;
+                var url = this._url;
+                var method = this._method;
                 var auth = this._makeAuth();
                 httpRequestAsync(url, method, auth, JSON.stringify(event), function(err) {
                     if (err)
@@ -256,7 +244,7 @@ module.exports = function(kind, code) {
             return new GenericDevice(engine, state);
         },
         runOAuth2: function(engine, req) {
-            if (auth.type === 'none') {
+            if (ast.auth.type === 'none') {
                 engine.devices.loadOneDevice({ kind: kind }, true);
                 return null;
             } else {
