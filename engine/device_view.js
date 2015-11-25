@@ -44,12 +44,14 @@ const DeviceView = new lang.Class({
     _deviceMatchSelector: function(device, selector) {
         if (selector.isAny) {
             return true;
-        } else if (selector.isAttribute) {
+        } else if (selector.isAttributes) {
             return selector.attributes.map(function(a) {
                 return device.state[a.name] === a.value.value;
             });
         } else if (selector.isGlobalName) {
             return device.kind === selector.name;
+        } else if (selector.isId) {
+            return device.uniqueId === selector.name;
         } else {
             throw new Error('Invalid selector ' + selector);
         }

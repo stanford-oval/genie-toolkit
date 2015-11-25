@@ -25,8 +25,6 @@ const ValueProto = {
             return 'loc:' + value.x + ',' + value.x;
         else if (value.isDate)
             return 'date:' + value.value.getTime();
-        else if (value.isObject)
-            return 'obj:' + value.value.uniqueId;
         else if (value.isArray)
             return 'array:[' + value.value.map(ValueProto.makeString).join(',') + ']';
         else
@@ -46,15 +44,13 @@ const ValueProto = {
             return { tag: 'loc', x: value.x, y: value.y };
         else if (value.isDate)
             return { tag: 'date', v: value.value.getTime() };
-        else if (value.isObject)
-            return { tag: 'obj', v: value.value.uniqueId };
         else if (value.isArray)
             return { tag: 'array', v: value.value.map(ValueProto.marshal) };
         else
             throw new TypeError();
     },
 
-    unmarshal: function(devices, value) {
+    unmarshal: function(value) {
         switch(value.tag) {
         case 'bool':
             return AppCompiler.Value.Boolean(value.v);
@@ -70,125 +66,35 @@ const ValueProto = {
             var date = new Date;
             date.setTime(value.v);
             return AppCompiler.Value.Date(date);
-        case 'obj':
-            return AppCompiler.Value.Object(devices.getDevice(value.v));
         case 'array':
-            return AppCompiler.Value.Array(value.v.map(ValueProto.unmarshal.bind(null, devices)));
+            return AppCompiler.Value.Array(value.v.map(ValueProto.unmarshal));
         default:
             throw new TypeError();
         }
     }
 };
 
-const FilterProto = {
-    makeString: function(filters) {
-        return filters.map(function(filter) {
-            if (filter.isThreshold) {
-                var lhs = filter.lhs;
-                var comp = filter.comp;
-                var rhs = filter.rhs;
-                if (!rhs.isConstant)
-                    throw new TypeError();
-                if (lhs.isVarRef)
-                    return 'var:' + lhs.name + comp + ValueProto.makeString(rhs.value);
-                else if (!lhs.isConstant)
-                    throw new TypeError();
-                return ValueProto.makeString(lhs.value) + comp + ValueProto.makeString(rhs.value);
-            } else {
-                throw new TypeError();
-            }
+const ParamsProto = {
+    makeString: function(params) {
+        return params.map(function(p) {
+            return ValueProto.makeString(p);
         }).join('---');
     },
 
-    marshal: function(filters) {
-        return filters.map(function(filter) {
-            if (filter.isThreshold) {
-                var lhs = filter.lhs;
-                var comp = filter.comp;
-                var rhs = filter.rhs;
-                if (!rhs.isConstant)
-                    throw new TypeError();
-                if (lhs.isVarRef)
-                    return { tag: 'threshold', lhs: { tag: 'var', v: lhs.name}, comp: comp, rhs: ValueProto.marhsal(rhs.value) };
-                else if (!lhs.isConstant)
-                    throw new TypeError();
-                return { tag: 'threshold', lhs: ValueProto.marshal(lhs.value), comp: comp, rhs: ValueProto.marshal(rhs.value) };
-            } else {
-                throw new TypeError();
-            }
+    marshal: function(params) {
+        return params.map(function(p) {
+            return ValueProto.marshal(p);
         });
     },
 
-    unmarshal: function(devices, filters) {
-        return filters.map(function(filter) {
-            switch(filter.tag) {
-            case 'threshold:':
-                if (filter.lhs.tag === 'var')
-                    return AppCompiler.InputRule.Threshold(AppCompiler.Expression.VarRef(filter.lhs.v),
-                                                           filter.comp,
-                                                           AppCompiler.Expression.Constant(ValueProto.unmarshal(devices, filter.rhs)));
-                else
-                    return AppCompiler.InputRule.Threshold(AppCompiler.Expression.Constant(ValueProto.unmarshal(devices, filter.lhs)),
-                                                           filter.comp,
-                                                           AppCompiler.Expression.Constant(ValueProto.unmarshal(devices, filter.rhs)));
-            default:
-                throw new TypeError();
-            }
+    unmarshal: function(params) {
+        return params.map(function(p) {
+            return ValueProto.unmarshal(p);
         });
     }
 };
 
-const SelectorProto = {
-    makeString: function(selectors) {
-        return selectors.map(function(simple) {
-            if (simple.isId)
-                return 'id:' + simple.name;
-            else if (simple.isTags)
-                return 'tags:' + simple.tags.join(',');
-            else if (simple.isKind)
-                return 'kind:' + simple.kind;
-            else if (simple.isAny)
-                return 'any';
-            else
-                throw new TypeError();
-        }).join('--');
-    },
-
-    marshal: function(selectors) {
-        return selectors.map(function(simple) {
-            if (simple.isId)
-                return { tag: 'id', name: simple.name };
-            else if (simple.isTags)
-                return { tag: 'tags', tags: simple.tags };
-            else if (simple.isKind)
-                return { tag: 'kind', name: simple.name };
-            else if (simple.isAny)
-                return { tag: 'any' };
-            else
-                throw new TypeError();
-        });
-    },
-
-    unmarshal: function(devices, selectors) {
-        return selectors.map(function(simple) {
-            switch(simple.tag) {
-            case 'id':
-                return AppCompiler.Selector.Id(simple.name);
-            case 'tags':
-                return AppCompiler.Selector.Tags(simple.tags);
-            case 'kind':
-                return AppCompiler.Selector.Kind(simple.name);
-            case 'any':
-                return AppCompiler.Selector.Any;
-            default:
-                throw new TypeError();
-            }
-        });
-    },
-};
-
 module.exports = {
-    selectors: SelectorProto,
     values: ValueProto,
-    filters: FilterProto,
+    params: ParamsProto,
 };

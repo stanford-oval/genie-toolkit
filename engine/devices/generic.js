@@ -13,11 +13,11 @@ const Q = require('q');
 const Url = require('url');
 const WebSocket = require('ws');
 
-const BaseDevice = require('./base_device');
-const BaseChannel = require('./base_channel');
-const AppGrammar = require('./app_grammar');
-const AppCompiler = require('./app_compiler');
-const ExecEnvironment = require('./exec_environment');
+const BaseDevice = require('../base_device');
+const BaseChannel = require('../base_channel');
+const AppGrammar = require('../app_grammar');
+const AppCompiler = require('../app_compiler');
+const ExecEnvironment = require('../exec_environment');
 
 function httpRequestAsync(url, method, auth, data, callback) {
     var options = Url.parse(url);

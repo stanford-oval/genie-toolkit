@@ -30,7 +30,7 @@ const RuleExecutor = new lang.Class({
         this.output = rule.output;
 
         if (this.output.action)
-            this.selector = new DeviceSelector(engine, 'w', this.output.action);
+            this.selector = new DeviceSelector(engine, this.app, 'w', this.output.action);
         else
             this.selector = null;
     },
@@ -118,6 +118,7 @@ module.exports = new lang.Class({
         this.isEnabled = false;
 
         var compiler = new AppCompiler();
+        this.compiler = compiler;
 
         try {
             var ast = AppGrammar.parse(code);
@@ -152,6 +153,16 @@ module.exports = new lang.Class({
 
         this.name = compiler.name;
         this.description = 'This app has no description';
+    },
+
+    notify: function(event) {
+        // FINISHME
+        console.log('@$notify', event);
+    },
+
+    doReturn: function(event) {
+        this.notify(event);
+        this.engine.apps.removeApp(this);
     },
 
     start: function() {

@@ -20,6 +20,7 @@ const SportRadarDevice = new lang.Class({
         this.parent(engine, state);
 
         this.uniqueId = 'sportradar';
+        this.isTransient = true;
 
         this.name = "SportRadar";
         this.description = "SportRadar is a quick source of Sport Results and info and stuff.";

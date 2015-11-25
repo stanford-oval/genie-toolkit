@@ -25,7 +25,7 @@ const LoggingChannel = new lang.Class({
     },
 
     sendEvent: function(event) {
-        console.log("LoggingChannel: ", event.message);
+        console.log("LoggingChannel: ", event[0]);
     }
 
 });

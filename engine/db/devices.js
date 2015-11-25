@@ -16,33 +16,6 @@ const SyncDatabase = require('./syncdb');
 const ObjectSet = require('../object_set');
 const TierManager = require('../tier_manager').Tier;
 
-// An implementation of ObjectSet for global (built-in, always available)
-// devices, such as #timer - well mostly just #timer really, and maybe a few
-// others like #google or other stuff that requires no authentication
-const GlobalDeviceSet = new lang.Class({
-    Name: 'GlobalDeviceSet',
-    Extends: ObjectSet.Simple,
-
-    _init: function(factory) {
-        this.parent(false);
-
-        this._factory = factory;
-    },
-
-    open: function() {
-        // FINISHME: de-hardcode this
-        this.addOne(this._factory.createDevice('timer', { kind: 'timer' }));
-        this.addOne(this._factory.createDevice('sportradar', { kind: 'sportradar' }));
-        this.freeze();
-        return this.promise();
-    },
-
-    close: function() {
-        return Q();
-    },
-});
-
-
 // An implementation of ObjectSet for all devices known to (this) system, which is
 // @me
 const AllDeviceSet = new lang.Class({
@@ -132,18 +105,14 @@ module.exports = new lang.Class({
         this._syncdb = new SyncDatabase('device', ['state'], tierManager);
 
         this._contexts = {};
-        this._global = new GlobalDeviceSet(deviceFactory);
     },
 
     getContext: function(key) {
-        if (key === 'global')
-            return this._global;
-
         if (key in this._contexts)
             return this._contexts[key];
 
         switch(key) {
-        case 'self':
+        case 'me':
             this._contexts[key] = new AllDeviceSet(this);
             break;
         case 'home':
@@ -154,6 +123,9 @@ module.exports = new lang.Class({
             break;
         case 'cloud':
             this._contexts[key] = new SpecificTierDeviceSet(Tier.CLOUD, this);
+            break;
+        case 'global':
+            this._contexts[key] = new SpecificTierDeviceSet(Tier.GLOBAL, this);
             break;
         default:
             throw new Error('Invalid context ' + key);
@@ -192,8 +164,6 @@ module.exports = new lang.Class({
                     console.log('Failed to load one device: ' + e);
                 }
             }.bind(this)));
-        }.bind(this)).then(function() {
-            return this._global.open();
         }.bind(this));
     },
 
@@ -223,7 +193,7 @@ module.exports = new lang.Class({
 
     stop: function() {
         this._syncdb.close();
-        return this._global.close();
+        return Q();
     },
 
     getAllDevices: function() {

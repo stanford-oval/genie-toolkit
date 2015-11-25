@@ -6,7 +6,7 @@
 //
 // See COPYING for details
 
-const Config = require('./config');
+const Config = require('../config');
 
 const child_process = require('child_process');
 const https = require('https');
@@ -17,7 +17,7 @@ const lang = require('lang');
 const Q = require('q');
 const tmp = require('tmp');
 
-const GenericDeviceFactory = require('./generic_device');
+const GenericDeviceFactory = require('./generic');
 
 var _agent = null;
 function getAgent() {
@@ -37,7 +37,7 @@ module.exports = new lang.Class({
     _init: function() {
         this._zipUrl = Config.THINGPEDIA_URL + '/download/devices';
         this._codeUrl = Config.THINGPEDIA_URL + '/api/code/devices';
-        this._cacheDir = platform.getCacheDir() + '/devices';
+        this._cacheDir = platform.getCacheDir() + '/device-classes';
 
         this._cachedModules = {};
         this._moduleRequests = {};
@@ -77,7 +77,7 @@ module.exports = new lang.Class({
 
     _createModuleFromBuiltin: function(fullId) {
         try {
-            this._cachedModules[fullId] = require('./devices/' + fullId);
+            this._cachedModules[fullId] = require('../device-classes/' + fullId);
             console.log('Module ' + fullId + ' loaded as builtin');
             return this._cachedModules[fullId];
         } catch(e) {
@@ -88,7 +88,7 @@ module.exports = new lang.Class({
     _createModuleFromBuiltinCode: function(fullId, id) {
         try {
             var fullPath = path.resolve(path.dirname(module.filename),
-                                        './devices/' + id + '.dlg');
+                                        '../device-classes/' + id + '.dlg');
             var code = fs.readFileSync(fullPath).toString('utf8');
             console.log('Module ' + fullId + ' loaded as builtin code');
             this._cachedModules[id] = GenericDeviceFactory(id, code);

@@ -10,52 +10,8 @@ const lang = require('lang');
 const Q = require('q');
 const uuid = require('node-uuid');
 
-const Protocol = require('../protocol');
 const BaseDevice = require('../base_device');
 const Tier = require('../tier_manager').Tier;
-
-const MessagingChannelProxy = new lang.Class({
-    Name: 'MessagingChannelProxy',
-
-    _init: function(thingengine) {
-        this._device = thingengine;
-    },
-
-    getChannel: function(selector, mode, filters) {
-        // FINISHME implement me!
-        //
-        // Needs to find an appropriate auth token for selector
-        // in the database, then use it to construct a transient
-        // RemoteGroupDevice, then get the RemoteGroupProxy from it,
-        // then call getChannel() on it
-        // -or-
-        // If we don't have an appropriate auth token, then we should
-        // send a message to this user and ask for permissions
-    }
-});
-
-const ForeignThingEngineInterface = new lang.Class({
-    Name: 'ForeignThingEngineInterface',
-
-    _init: function(device) {
-        this.master = device;
-        this.engine = device.engine;
-
-        this._feed = null;
-        this._feedPromise = null;
-    },
-
-    getFeed: function() {
-        if (this._feedPromise !== null)
-            return Q(this._feedPromise);
-        else
-            return this._feedPromise = this.engine.messaging.getFeedWithContact(this.master.messagingId)
-            .then(function(feed) {
-                this._feed = feed;
-                return feed;
-            });
-    }
-});
 
 // An instance of a ThingEngine running remotely, as discovered
 // by bluetooth, mdns or whatever
@@ -126,6 +82,8 @@ const ThingEngineDevice = new lang.Class({
             this.uniqueId = 'thingengine-foreign-phone-' + this.messagingId.replace(/[^a-z0-9]/g, '-');
             this.name = "Foreign ThingEngine Phone";
             this.description = "This is the ThingEngine of some other user, running on a phone reachable at " + this.messagingId;
+        } else if (this.tier === Tier.GLOBAL) {
+            throw new TypeError('Global foreign ThingEngine do not exist');
         }
     },
 
@@ -158,6 +116,8 @@ const ThingEngineDevice = new lang.Class({
             return this.tier === Tier.PHONE;
         case 'thingengine-cloud':
             return this.tier === Tier.CLOUD;
+        case 'thingengine-global':
+            return this.tier === Tier.GLOBAL;
         default:
             return this.parent(kind);
         }
@@ -170,6 +130,8 @@ const ThingEngineDevice = new lang.Class({
             return 'home';
         else if (this.tier === Tier.CLOUD)
             return 'cloud';
+        else if (this.tier === Tier.GLOBAL)
+            return 'global';
         else
             throw new Error('Unexpected tier ' + this.tier);
     },
@@ -181,19 +143,6 @@ const ThingEngineDevice = new lang.Class({
                 return this.engine.devices.getContext(this._getContext());
             else
                 return null;
-
-        case 'device-channel-proxy':
-            if (this.own)
-                return null;
-            else
-                return new MessagingChannelProxy(this);
-
-        case 'thingengine-foreign':
-            if (this.own || this.tier !== Tier.PHONE)
-                return null;
-            else
-                return new ForeignThingEngineInterface(this);
-
         default:
             return null;
         }

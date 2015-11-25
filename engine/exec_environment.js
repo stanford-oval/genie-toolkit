@@ -17,6 +17,7 @@ module.exports = new lang.Class({
     _init: function(appstate) {
         this._state = appstate;
         this._keywords = {};
+        this._feed = null;
         this.reset();
     },
 
@@ -29,9 +30,11 @@ module.exports = new lang.Class({
         this.changedMember = null;
         this.changedKeyword = null;
         // self is always member 0 in the list
-        this._scope = { self: this.readFeedMember(0) };
+        if (this._feed !== null)
+            this._scope = { self: this.readFeedMember(0) };
+        else
+            this._scope = {};
         this._memberBindings = { self: 0 };
-        this._feed = null;
     },
 
     getFeedMembers: function() {

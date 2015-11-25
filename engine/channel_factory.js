@@ -68,10 +68,10 @@ module.exports = new lang.Class({
         return Q();
     },
 
-    getProxyChannel: function(targetTier, device, kind, filters) {
-        var targetChannelId = device.uniqueId + '-' + kind + '-' + Protocol.filters.makeString(filters);
+    getProxyChannel: function(targetTier, device, kind, params) {
+        var targetChannelId = device.uniqueId + '-' + kind + '-' + Protocol.params.makeString(params);
         return this._getOpenedChannel(this._proxyManager.getProxyChannel(targetChannelId, targetTier,
-                                                                         device, kind, filters));
+                                                                         device, kind, params));
     },
 
     _checkFactoryCaps: function(caps) {

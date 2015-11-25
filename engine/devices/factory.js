@@ -8,8 +8,7 @@
 
 const lang = require('lang');
 
-const ModuleDownloader = require('./module_downloader');
-const BaseDevice = require('./base_device');
+const ModuleDownloader = require('./downloader');
 
 module.exports = new lang.Class({
     Name: 'DeviceFactory',

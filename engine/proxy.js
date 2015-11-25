@@ -124,7 +124,7 @@ module.exports = new lang.Class({
     _handleMessage: function(fromTier, msg) {
         switch (msg.op) {
         case 'request-channel':
-            this._requestChannel(fromTier, msg.channelId, msg.device, msg.kind, msg.filters);
+            this._requestChannel(fromTier, msg.channelId, msg.device, msg.kind, msg.params);
             return;
         case 'release-channel':
             this._releaseChannel(fromTier, msg.channelId);
@@ -164,13 +164,13 @@ module.exports = new lang.Class({
         this._sendMessage(targetTier, {op:'channel-sink-data', channelId: targetChannelId,data:data});
     },
 
-    getProxyChannel: function(targetChannelId, targetTier, device, kind, filters) {
+    getProxyChannel: function(targetChannelId, targetTier, device, kind, params) {
         var fullId = targetChannelId + '-' + targetTier;
 
         if (fullId in this._proxies)
             return this._proxies[fullId];
 
-        var proxy = new ProxyChannel(this, targetTier, targetChannelId, [device, kind, filters]);
+        var proxy = new ProxyChannel(this, targetTier, targetChannelId, [device, kind, params]);
         console.log('Created proxy channel ' + targetChannelId + ' targeting ' + targetTier);
         this._proxies[fullId] = proxy;
         return proxy;
@@ -181,7 +181,7 @@ module.exports = new lang.Class({
 
         var device = cachedArgs[0];
         var kind = cachedArgs[1];
-        var filters = cachedArgs[2];
+        var params = cachedArgs[2];
 
         if (device !== 'thingengine-internal')
             device = device.uniqueId;
@@ -190,7 +190,7 @@ module.exports = new lang.Class({
             defer: Q.defer(),
             device: device,
             kind: kind,
-            filters: Protocol.filters.marshal(filters),
+            params: Protocol.params.marshal(params),
             proxy: proxyChannel,
             targetChannelId: proxyChannel.uniqueId,
             targetTier: proxyChannel.targetTier,
@@ -212,7 +212,7 @@ module.exports = new lang.Class({
     _sendChannelRequest: function(request) {
         this._sendMessage(request.targetTier,
                           {op:'request-channel', channelId: request.targetChannelId,
-                           device: request.device, kind: request.kind, filters: request.filters});
+                           device: request.device, kind: request.kind, params: request.params});
     },
 
     releaseProxyChannel: function(proxyChannel) {
@@ -238,7 +238,7 @@ module.exports = new lang.Class({
                            result:result});
     },
 
-    _requestChannel: function(fromTier, targetChannelId, device, kind, filters) {
+    _requestChannel: function(fromTier, targetChannelId, device, kind, params) {
         var fullId = targetChannelId + '-' + fromTier;
 
         if (fullId in this._stubs) {
@@ -261,7 +261,7 @@ module.exports = new lang.Class({
             if (device !== 'thingengine-internal')
                 device = this._devices.getDevice(device);
             kind = kind;
-            filters = Protocol.filters.unmarshal(this._devices, filters);
+            params = Protocol.params.unmarshal(this._devices, params);
         } catch(e) {
             this._replyChannel(fromTier, targetChannelId, e.message);
             return;
@@ -270,7 +270,7 @@ module.exports = new lang.Class({
         var defer = Q.defer();
         this._stubs[fullId] = defer.promise;
 
-        this._channels.getChannel(device, kind, filters).then(function(channel) {
+        this._channels.getChannel(device, kind, params).then(function(channel) {
             var stub = new ChannelStub(this, fromTier, channel);
             return stub.open().then(function() {
                 defer.resolve(stub);

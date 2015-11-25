@@ -18,8 +18,6 @@ const ExecEnvironment = require('./exec_environment');
 const EPSILON = 1e-5;
 
 const UnitsToBaseUnit = {
-    // percent
-    '%': '%',
     // time
     'ms': 'ms', // base unit for time is milliseconds, because +new Date gives milliseconds
     's': 'ms',
@@ -59,7 +57,6 @@ const UnitsToBaseUnit = {
 };
 
 const UnitsTransformToBaseUnit = {
-    '%': 1,
     'ms': 1,
     's': 1000,
     'min': 60 * 1000,
@@ -132,8 +129,13 @@ const Type = adt.data(function() {
 });
 
 function stringToType(s) {
-    if (s.startsWith('Measure('))
-        return Type.Measure(s.substring(8, s.length-1));
+    if (s.startsWith('Measure(')) {
+        var unit = s.substring(8, s.length-1);
+        var baseunit = UnitsToBaseUnit[unit];
+        if (baseunit === undefined)
+            throw new TypeError('Invalid unit ' + unit);
+        return Type.Measure(baseunit);
+    }
     if (s.startsWith('Array('))
         return Type.Array(stringToType(s.substring(6, s.length-1)));
 
@@ -319,7 +321,7 @@ const UnaryOps = {
     }
 };
 
-const Builtins = {
+const Functions = {
     'contains': {
         argtypes: [Type.Array(Type.Any), Type.Any],
         rettype: Type.Boolean,
@@ -350,7 +352,7 @@ const Builtins = {
         argtypes: [],
         rettype: Type.Number,
         op: function() {
-            return Builtins.julianday.op(new Date);
+            return Functions.julianday.op(new Date);
         }
     },
     'now': {
@@ -479,6 +481,17 @@ const Aggregations = {
     },
 };
 
+const BuiltinTriggers = {
+    'timer': [Type.Measure('ms')],
+    'at': [Type.String],
+    'input': [Type.Any],
+};
+const BuiltinActions = {
+    'return': null, // no schema
+    'notify': null, // no schema
+    'logger': [Type.String],
+};
+
 module.exports = new lang.Class({
     Name: 'AppCompiler',
 
@@ -550,16 +563,16 @@ module.exports = new lang.Class({
         var normalized = this.normalizeConstant(value);
 
         var type;
-        if (value.isBoolean)
+        if (normalized.isBoolean)
             type = Type.Boolean;
-        else if (value.isString)
+        else if (normalized.isString)
             type = Type.String;
-        else if (value.isNumber)
+        else if (normalized.isNumber)
             type = Type.Number;
-        else if (value.isMeasure)
-            type = Type.Measure(value.unit);
+        else if (normalized.isMeasure)
+            type = Type.Measure(normalized.unit);
 
-        return [type, function() { return value.value; }];
+        return [type, function() { return normalized.value; }];
     },
 
     compileVarRef: function(name, scope) {
@@ -692,7 +705,7 @@ module.exports = new lang.Class({
                     return val;
             }];
         } else {
-            var func = Builtins[name];
+            var func = Functions[name];
             if (func === undefined)
                 throw new TypeError("Unknown function " + name);
             if (argsast.length !== func.argtypes.length)
@@ -716,7 +729,7 @@ module.exports = new lang.Class({
 
     compileUnaryOp: function(argast, opcode, scope) {
         var argexp = this.compileExpression(argast, scope);
-        var unop = UnaryOp[opcode];
+        var unop = UnaryOps[opcode];
         var argtype, rettype, op;
         for (var i = 0; i < unop.types.length; i++) {
             try {
@@ -736,11 +749,11 @@ module.exports = new lang.Class({
         return [rettype, function(env) { return op(argop(env)); }];
     },
 
-    compileBinaryOp: function(lhsast, rhsast, opcode, schema) {
-        var lhsexp = this.compileExpression(lhsast, schema);
-        var rhsexp = this.compileExpression(rhsast, schema);
+    compileBinaryOp: function(lhsast, rhsast, opcode, scope) {
+        var lhsexp = this.compileExpression(lhsast, scope);
+        var rhsexp = this.compileExpression(rhsast, scope);
 
-        var binop = BinaryOp[opcode];
+        var binop = BinaryOps[opcode];
         var lhstype, rhstype, rettype, op;
         for (var i = 0; i < binop.types.length; i++) {
             try {
@@ -776,9 +789,9 @@ module.exports = new lang.Class({
         else if (ast.isFunctionCall)
             return this.compileFunctionCall(ast.name, ast.args, scope);
         else if (ast.isUnaryOp)
-            return this.compileUnaryOp(ast.arg, ast.opcode, ast.op, scope);
+            return this.compileUnaryOp(ast.arg, ast.opcode, scope);
         else if (ast.isBinaryOp)
-            return this.compileBinaryOp(ast.lhs, ast.rhs, ast.opcode, ast.op, scope);
+            return this.compileBinaryOp(ast.lhs, ast.rhs, ast.opcode, scope);
         else
             throw new TypeError();
     },
@@ -795,7 +808,7 @@ module.exports = new lang.Class({
         if (feedAccess !== decl.feedAccess)
             throw new TypeError('Inconsistent use of keyword feed specifier');
         if (owner !== null && !feedAccess)
-            throw new TypeError('Invalid ownership operator on private keyword');
+            throw new TypeError('Invalid ownership operator on private keyword ' + name);
         if (owner === null && feedAccess)
             throw new TypeError('Missing ownership operator on feed-accessible keyword');
         if (owner !== null && owner !== 'self' &&
@@ -808,8 +821,13 @@ module.exports = new lang.Class({
         var reflections = [];
         var constchecks = [];
 
-        if (decl.isArray && params.length !== 1)
-            throw new TypeError('Keyword ' + name + ' is array, not tuple, cannot unpack');
+        if (decl.isArray) {
+            if (params.length !== 1)
+                throw new TypeError('Keyword ' + name + ' is array, not tuple, cannot unpack');
+        } else {
+            if (params.length !== decl.schema.length)
+                throw new TypeError('Invalid number of parameters for keyword');
+        }
 
         for (var i = 0; i < params.length; i++) {
             var param = params[i];
@@ -894,8 +912,13 @@ module.exports = new lang.Class({
                 return !keywordIsTrue(env, value);
             } else {
                 if (keywordIsTrue(env, value)) {
-                    for (var name in binders)
-                        env.setVar(name, value[binders[name]]);
+                    if (decl.isArray) {
+                        for (var name in binders)
+                            env.setVar(name, value);
+                    } else {
+                        for (var name in binders)
+                            env.setVar(name, value[binders[name]]);
+                    }
                     return true;
                 } else {
                     return false;
@@ -908,12 +931,29 @@ module.exports = new lang.Class({
         var selector = ast.selector;
         var name = ast.name;
 
+        var schema;
+        if (selector.isBuiltin) {
+            var name = selector.name;
+            if (!(name in BuiltinTriggers))
+                throw new TypeError('Unknown built-in ' + name);
+            schema = BuiltinTriggers[name];
+        } else {
+            // FIXME figure out schema for trigger
+            schema = null;
+        }
+
         var params = ast.params;
         var triggerParams = [];
         var binders = {};
+        var equalities = [];
         var constchecks = [];
         var reflections = [];
         var anyBinderOrNull = false;
+
+        if (schema !== null) {
+            if (params.length !== schema.length)
+                throw new TypeError('Invalid number of parameters for trigger');
+        }
 
         for (var i = 0; i < params.length; i++) {
             var param = params[i];
@@ -922,27 +962,46 @@ module.exports = new lang.Class({
                 continue;
             }
             if (param.isBinder) {
-                anyBinderOrNull = true;
                 if (param.name in scope) {
-                    if (!(param.name in binders))
-                        throw new Error();
-                    reflections.push([i, binders[param.name]]);
+                    if (schema !== null)
+                        typeUnify(schema[i], scope[param.name]);
+                    if (!anyBinderOrNull)
+                        triggerParams.push(Expression.VarRef(param.name));
+
+                    if (param.name in binders)
+                        reflections.push([i, binders[param.name]]);
+                    else
+                        equalities.push([i, param.name]);
                 } else {
+                    anyBinderOrNull = true;
                     binders[param.name] = i;
-                    // FIXME figure out schema for trigger
-                    scope[param.name] = Type.Any;
+                    if (schema !== null)
+                        scope[param.name] = schema[i];
+                    else
+                        scope[param.name] = Type.Any;
                 }
             } else {
                 var constexpr = this.compileConstant(param.value);
+                if (schema !== null)
+                    typeUnify(schema[i], constexpr[0]);
                 var constvalue = constexpr[1]();
                 // FIXME typeUnify with schema for trigger
                 constchecks.push([i, constvalue]);
                 if (!anyBinderOrNull)
-                    triggerParams.push(this.normalizeConstant(param.value));
+                    triggerParams.push(Expression.Constant(this.normalizeConstant(param.value)));
             }
         }
 
         function triggerIsTrue(env) {
+            if (env.triggerValue === null)
+                return;
+
+            for (var i = 0; i < equalities.length; i++) {
+                var equal = equalities[i];
+                if (!equalityTest(env.triggerValue[equal[0]],
+                                  env.readVar(equal[1])))
+                    return false;
+            }
             for (var i = 0; i < constchecks.length; i++) {
                 var constcheck = constchecks[i];
                 if (!equalityTest(env.triggerValue[constcheck[0]],
@@ -955,10 +1014,12 @@ module.exports = new lang.Class({
                                   env.triggerValue[refl[1]]))
                     return false;
             }
+
+            return true;
         }
 
         return [selector, name, triggerParams, function(env) {
-            if (triggerIsTrue(env, value)) {
+            if (triggerIsTrue(env)) {
                 for (var name in binders)
                     env.setVar(name, env.triggerValue[binders[name]]);
                 return true;
@@ -1161,7 +1222,10 @@ module.exports = new lang.Class({
         var memberBindingKeywords = {};
         var keywords = [];
         var inputFunctions = [];
-        var scope = { self: Type.User };
+        var scope = {};
+        for (var name in this._scope)
+            scope[name] = this._scope[name];
+        scope.self = Type.User;
         var bindings = [];
         var conditions = [];
         for (var i = 0; i < inputs.length; i++) {
@@ -1176,13 +1240,12 @@ module.exports = new lang.Class({
             } else if (input.isMemberBinding) {
                 var compiled = this.compileInputMemberBinding(input, scope);
                 memberBindings.push(compiled);
-                memberBindingKeywords[compiled] = {};
+                memberBindingKeywords[compiled] = [];
             } else if (input.isKeyword) {
                 var compiled = this.compileInputKeyword(input, scope);
                 // XXX: find a better way than monkey-patching an ADT
                 compiled[0].owner = compiled[1];
-                keywords.push(compiled[0]);
-                if (compiled[1] !== 'self')
+                if (compiled[0].feedAccess && compiled[1] !== 'self')
                     memberBindingKeywords[compiled[1]].push(compiled[0].name);
                 inputFunctions.push(compiled[2]);
             } else if (input.isBinding) {
@@ -1202,8 +1265,8 @@ module.exports = new lang.Class({
         // be small anyway
         bindings = this.reorderInputBindings(bindings, scope);
 
-        for (var i = 0; i < backtrackorder.length; i++)
-            inputFunctions.push(this.compileInputBinding(backtrackorder[i], scope));
+        for (var i = 0; i < bindings.length; i++)
+            inputFunctions.push(this.compileInputBinding(bindings[i], scope));
 
         for (var i = 0; i < conditions.length; i++)
             inputFunctions.push(this.compileCondition(conditions[i], scope));
@@ -1212,6 +1275,7 @@ module.exports = new lang.Class({
             for (var i = 0; i < inputFunctions.length; i++)
                 if (!inputFunctions[i](env))
                     return false;
+            return true;
         }
 
         var memberCaller = null;
@@ -1300,22 +1364,42 @@ module.exports = new lang.Class({
     compileOutput: function(ast, scope) {
         var output = ast.output;
 
-        var params = ast.params.map(function(param) {
+        var params = output.params.map(function(param) {
             return this.compileExpression(param, scope);
         }, this);
 
         var action = null;
         var keyword = null;
         var owner = null;
+        var isArray = false;
         if (output.isAction) {
-            action = { selector: ast.selector,
-                       name: ast.name,
+            action = { selector: output.selector,
+                       name: output.name,
                        params: [] };
 
+            var schema;
+            if (output.selector.isBuiltin) {
+                var name = output.selector.name;
+                if (!(name in BuiltinActions))
+                    throw new TypeError('Unknown built-in ' + name);
+                schema = BuiltinActions[name];
+            } else {
+                // FIXME figure out schema for action
+                schema = null;
+            }
+
+            if (schema !== null) {
+                if (params.length !== schema.length)
+                    throw new TypeError('Invalid number of parameters for action');
+
+                params.forEach(function(p, i) {
+                    typeUnify(p[0], schema[i]);
+                });
+            }
             // FIXME: check types of against action schema
         } else {
-            keyword = ast.keyword;
-            owner = ast.owner;
+            keyword = output.keyword;
+            owner = output.owner;
 
             if (owner !== null && !keyword.feedAccess)
                 throw new TypeError('Invalid ownership operator on private keyword');
@@ -1338,9 +1422,17 @@ module.exports = new lang.Class({
                 decl.schema = params.map(function(p) { return p[0]; });
                 this._keywords[keyword.name] = decl;
             } else {
-                var decl = this._keywords[decl];
+                var decl = this._keywords[keyword.name];
                 if (keyword.feedAccess !== decl.feedAccess)
                     throw new TypeError('Inconsistent use of keyword feed specifier');
+                if (decl.isArray) {
+                    if (params.length !== 1)
+                        throw new TypeError('Keyword ' + keyword.name + ' is array, not tuple, cannot unpack');
+                } else {
+                    if (params.length !== decl.schema.length)
+                        throw new TypeError('Invalid number of parameters for keyword');
+                }
+                isArray = decl.isArray;
 
                 params.forEach(function(p, i) {
                     decl.schema[i] = typeUnify(p[0], decl.schema[i]);
@@ -1353,9 +1445,13 @@ module.exports = new lang.Class({
             keyword: keyword,
             owner: owner,
             produce: function(env) {
-                return params.map(function(fn) {
-                    return fn(env);
+                var v = params.map(function(p) {
+                    return p[1](env);
                 });
+                if (isArray)
+                    return v[0];
+                else
+                    return v;
             }
         };
     },
@@ -1553,11 +1649,17 @@ var Selector = adt.data({
     GlobalName: {
         name: adt.only(String),
     },
-    Attribute: {
+    Attributes: {
         attributes: adt.only(Array),
+    },
+    Builtin: {
+        name: adt.only(String)
     },
 
     // for internal use only
+    Id: {
+        name: adt.only(String),
+    },
     Any: null,
 });
 module.exports.Selector = Selector;
@@ -1611,7 +1713,7 @@ module.exports.KeywordParam = KeywordParam;
 var InputSpec = adt.data({
     Trigger: {
         selector: adt.only(Selector),
-        name: adt.only(String),
+        name: adtNullable(String),
         params: adt.only(Array) // of KeywordParam
     },
     Keyword: {
@@ -1635,7 +1737,7 @@ module.exports.InputSpec = InputSpec;
 var OutputSpec = adt.data({
     Action: {
         selector: adt.only(Selector),
-        name: adt.only(String),
+        name: adtNullable(String),
         params: adt.only(Array),
     },
     Keyword: {

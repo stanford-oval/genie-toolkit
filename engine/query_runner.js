@@ -28,12 +28,12 @@ module.exports = new lang.Class({
         this.app = app;
         this._state = app.state;
 
-        this._trigger = inputs.trigger;
+        this._trigger = input.trigger;
         this._keywords = [];
         this._input = input;
 
         if (this._trigger)
-            this._selector = new DeviceSelector(this.engine, 'r', this._trigger);
+            this._selector = new DeviceSelector(this.engine, this.app, 'r', this._trigger);
         else
             this._selector = null;
 
@@ -58,11 +58,22 @@ module.exports = new lang.Class({
         this._checkQuery();
     },
 
+    _onInitialSample: function() {
+        if (this._selector) {
+            this._selector.getChannels().forEach(function(ch) {
+                this._onTriggerData(ch);
+            }, this);
+        } else {
+            this._env.reset();
+            this._checkQuery();
+        }
+    },
+
     _checkQuery: function() {
         try {
             this._input.caller(this._env, function() {
                 this.emit('triggered', this._env);
-            });
+            }.bind(this));
         } catch(e) {
             console.log('Error during query run: ' + e.message);
             console.log(e.stack);
@@ -133,10 +144,13 @@ module.exports = new lang.Class({
         };
 
         Q.try(function() {
-            if (this.app.feedId) {
+            if (this.app.compiler.feedAccess)
                 this._feed = this.engine.messaging.getFeed(this.app.feedId);
+            else
+                this._feed = null;
+            this._env.setFeed(this._feed);
+            if (this._feed !== null)
                 return this._feed.open();
-            }
         }.bind(this)).then(function() {
             this._keywords = this._input.keywords.map(function(k) {
                 return this._getInputKeyword(k);
@@ -160,7 +174,7 @@ module.exports = new lang.Class({
         }.bind(this)).then(function() {
             console.log('Handling initial keyword/trigger state sample');
             this._ready = true;
-            this._onData();
+            this._onInitialSample();
             this.emit('ready');
         }.bind(this)).done();
     },

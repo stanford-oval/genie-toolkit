@@ -14,24 +14,177 @@ const adt = require('adt');
 const ObjectSet = require('./object_set');
 const DeviceView = require('./device_view');
 const AppCompiler = require('./app_compiler');
+const BaseChannel = require('./base_channel');
+const BaseDevice = require('./base_device');
+
+// the device that owns/implements a builtin
+const BuiltinOwner = {
+    'timer': 'thingengine-own-global',
+    'at': 'thingengine-own-global',
+    'input': 'thingengine-app',
+    'return': 'thingengine-app',
+    'notify': 'thingengine-app',
+    'logger': 'thingengine-own-server'
+};
+
+const AppInputChannel = new lang.Class({
+    Name: 'AppInputChannel',
+    Extends: BaseChannel,
+
+    _init: function(app) {
+        this.parent();
+
+        this._app = app;
+        this._listener = this._onInput.bind(this);
+    },
+
+    _onInput: function(value) {
+        this.emitEvent(value);
+    },
+
+    _doOpen: function() {
+        this._app.on('input', this._listener);
+        return Q();
+    },
+
+    _doClose: function() {
+        this._app.removeListener('input', this._listener);
+        return Q();
+    },
+});
+
+const AppNotifyChannel = new lang.Class({
+    Name: 'AppNotifyChannel',
+    Extends: BaseChannel,
+
+    _init: function(app) {
+        this.parent();
+        this._app = app;
+    },
+
+    sendEvent: function(event) {
+        this._app.notify(event);
+    },
+});
+
+const AppReturnChannel = new lang.Class({
+    Name: 'AppReturnChannel',
+    Extends: BaseChannel,
+
+    _init: function(app) {
+        this.parent();
+        this._app = app;
+    },
+
+    sendEvent: function(event) {
+        this._app.doReturn(event);
+    },
+});
+
+// A app, wrapped as a device to appease DeviceView
+// very evil, look away
+const AppDevice = new lang.Class({
+    Name: 'AppDevice',
+    Extends: BaseDevice,
+
+    _init: function(engine, app) {
+        this.parent(engine, { kind: 'thingengine-app' });
+        this.app = app;
+
+        // there is only one device in the context where this is put
+        // so there is no need for this to be unique
+        // it is not shared between rules or anything, sharing happens
+        // at the app level
+        this.uniqueId = 'thingengine-app';
+    },
+
+    // we really only need to implement getChannel,
+    // for anything else BaseDevice is fine
+
+    getChannel: function(id, params) {
+        var ch;
+        switch(id) {
+        case 'input':
+            ch = new AppInputChannel(this.app);
+            break;
+        case 'return':
+            ch = new AppReturnChannel(this.app);
+            break;
+        case 'logger':
+            ch = new AppNotifyChannel(this.app);
+            break;
+        default:
+            throw new Error('Unknown channel ' + id);
+        }
+
+        return ch.open().then(function() { return ch; });
+    }
+})
 
 module.exports = new lang.Class({
     Name: 'DeviceSelector',
     Extends: events.EventEmitter,
 
-    _init: function(engine, mode, block) {
+    _init: function(engine, app, mode, block) {
         events.EventEmitter.call(this);
 
         this.engine = engine;
+        this.app = app;
         this._mode = mode;
         // for now, only 'me' is accessible
         this._context = engine.devices.getContext('me');
-        this._selector = block.selector;
-        this._channelName = block.name;
-        this._params = block.params;
+        if (block.selector.isBuiltin) {
+            var owner = BuiltinOwner[block.selector.name];
+
+            if (owner === 'thingengine-app') {
+                // all builtins are special, but some are more special than others [semicit]
+                // builtins "owned" by thingengine-app in particular are really owned by
+                // the app that is constructing this device selector
+                // we handle that with a little of glue code that lets DeviceView ignore
+                // the difference
+                this._context = new ObjectSet.Simple();
+                this._context.addOne(new AppDevice(this.app));
+            }
+
+            this._selector = AppCompiler.Selector.Id(owner);
+            this._channelName = block.selector.name;
+        } else {
+            this._selector = block.selector;
+            this._channelName = block.name;
+        }
+        if (mode === 'r')
+            this._params = this._normalizeParams(block.params);
+        else
+            this._params = [];
 
         this._set = null;
         this._view = null;
+    },
+
+    _normalizeParams: function(params) {
+        return params.map(function(p) {
+            if (p.isConstant) {
+                return p.value;
+            } else if (p.isVarRef) {
+                var type = this.app.compiler.params[p.name];
+                var value = this.app.state[p.name];
+                if (type.isBoolean)
+                    return Value.Boolean(value);
+                else if (type.isString)
+                    return Value.String(value);
+                else if (type.isNumber)
+                    return Value.Number(value);
+                else if (type.isLocation)
+                    return Value.Location(value.x, value.y);
+                else if (type.isDate) {
+                    var date = new Date();
+                    date.setTime(value);
+                    return Value.Date(date);
+                } else
+                    throw new TypeError();
+            } else
+                throw new TypeError();
+        }, this);
     },
 
     getChannels: function() {
@@ -41,7 +194,7 @@ module.exports = new lang.Class({
     },
 
     start: function() {
-        this._view = new DeviceView(null, this._context, this._selector, this._channelName,
+        this._view = new DeviceView(null, this._context, [this._selector], this._channelName,
                                     this._params, this._mode, false);
         return this._view.start().then(function(set) {
             this._set = set;

@@ -12,9 +12,14 @@
 //@description "description";
 
 MyProgram(someone : String) {
-    weather = weather(forecast = 1day, temperature <= 70F),
-    myloc = #gps.location(distance(location, @home.location) > 3km)
-    =>
-    #light#livingroom (power = off), "sms1".send(to = "555-555-5555",
-                                                 message = "winter is coming");
+    extern HomeLocation : (Location);
+    var Tomorrow : (String, Measure(C));
+    @weather(1day, forecast, temperature) =>
+        Tomorrow(forecast, temperature);
+    @gps(time, location) =>
+        MyLocation(location);
+
+    Tomorrow(_, temp), temp >= 70F, MyLocation(loc), HomeLocation(homeloc),
+    distance(loc, homeloc) > 3km =>
+        @(type="light",loc="livingroom").power(off);
 }

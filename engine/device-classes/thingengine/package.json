@@ -1,7 +1,7 @@
 {
-  "name": "thingengine-device-messaging-group",
+  "name": "thingengine-device-thingengine",
   "version": "1.0.0",
-  "description": "Messaging Group device for ThingEngine",
+  "description": "ThingEngine device for ThingEngine (for reflection/introspection purposes)",
   "author": "Stanford IoT lab",
   "contributors": [
     {

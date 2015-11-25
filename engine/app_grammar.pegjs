@@ -79,8 +79,8 @@ input_list = first:(channel_input_spec / nontrigger_input_spec) _ rest:(',' _ no
 }
 nontrigger_input_spec = keyword_input / member_binding / left_binding / right_binding / condition
 
-channel_input_spec = selector:device_selector _ name:('.' _ ident)? _ params:input_param_list {
-    return InputSpec.Trigger(selector, name !== null ? name[2] : 'source', params);
+channel_input_spec = trigger:(builtin_spec / trigger_spec) _ params:input_param_list {
+    return InputSpec.Trigger(trigger[0], trigger[1], params);
 }
 keyword_input = negative_keyword / positive_keyword
 negative_keyword = '!' _ keyword:positive_keyword {
@@ -102,8 +102,8 @@ condition = expr:expression {
     return InputSpec.Condition(expr);
 }
 
-channel_output_spec = selector:device_selector _ name:('.' _ ident)? params:output_param_list {
-    return OutputSpec.Action(selector, name !== null ? name[2] : 'sink', params);
+channel_output_spec = action:(builtin_spec / action_spec) params:output_param_list {
+    return OutputSpec.Action(action[0], action[1], params);
 }
 keyword_output = keyword:keyword _ owner:ownership? _ params:output_param_list {
     return OutputSpec.Keyword(keyword, owner, params);
@@ -113,7 +113,7 @@ input_param_list = '(' _ first:keyword_param _ rest:(',' _ keyword_param _)* ')'
     return [first].concat(take(rest, 2));
 }
 keyword_param = '_' { return KeywordParam.Null; } /
-    val:literal { return KeywordParam.Constant(value); } /
+    val:literal { return KeywordParam.Constant(val); } /
     name:ident { return KeywordParam.Binder(name); }
 
 output_param_list = '(' _ first:expression _ rest:(',' _ expression _)* ')' {
@@ -127,8 +127,17 @@ keyword = name:ident feed_spec {
 }
 ownership = '[' _ owner:ident _ ']' { return owner; }
 
+trigger_spec = selector:device_selector _ name:('.' _ ident)? {
+    return [selector, name !== null ? name[2] : 'source'];
+}
+action_spec = selector:device_selector _ name:('.' _ ident)? {
+    return [selector, name !== null ? name[2] : 'sink'];
+}
+builtin_spec = '@$' name:ident {
+    return [Selector.Builtin(name), null];
+}
 device_selector = '@' name:ident { return Selector.GlobalName(name); } /
-    '@(' _ values:attribute_list _ ')' { return Selector.Attributes(values); }
+    '@(' _ values:attribute_list _ ')' { return Selector.Attributes(values); } /
 attribute_list = first:attribute _ rest:(',' _ attribute _)* {
     return [first].concat(take(rest, 2));
 }
@@ -204,7 +213,7 @@ literal_number "number" = num:$(digit+ ('e' digit+)?) { return parseFloat(num); 
     num:$('.' digit+ ('e' digit+)?) { return parseFloat(num); }
 
 identstart = [A-Za-z]
-identchar = [A-Za-z0-9_\-]
+identchar = [A-Za-z0-9_]
 ident "ident" = $(identstart identchar*)
 
 cssidentstart = [A-Za-z]

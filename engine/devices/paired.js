@@ -11,9 +11,9 @@ const crypto = require('crypto');
 const lang = require('lang');
 const Q = require('q');
 
-const Tier = require('./tier_manager').Tier;
-const tc = require('./tier_connections');
-const IpAddress = require('./util/ip_address');
+const Tier = require('../tier_manager').Tier;
+const tc = require('../tier_connections');
+const IpAddress = require('../util/ip_address');
 
 function getAuthToken() {
     var prefs = platform.getSharedPreferences();
@@ -27,10 +27,10 @@ function getAuthToken() {
 }
 
 module.exports = new lang.Class({
-    Name: 'ConfigPairingModule',
+    Name: 'PairedEngineManager',
 
-    _init: function(engine, tierManager) {
-        this._engine = engine;
+    _init: function(devices, tierManager) {
+        this._devices = devices;
         this._tierManager = tierManager;
 
         this._listener = null;
@@ -45,6 +45,9 @@ module.exports = new lang.Class({
         // In any case, we're obviously already configured with
         // ourselves, so do nothing
         if (device.tier === this._tierManager.ownTier)
+            return;
+        // global is not really a tier, ignore it
+        if (device.tier === Tier.GLOBAL)
             return;
 
         Q.try(function() {
@@ -191,44 +194,28 @@ module.exports = new lang.Class({
         return Q();
     },
 
-    _addPhoneDevs: function() {
-        return Q.all([this._engine.devices.loadOneDevice({ kind: 'ui' }, true),
-                      this._engine.devices.loadOneDevice({ kind: 'notify' }, true),
-                      this._engine.devices.loadOneDevice({ kind: 'weather' }, true)]);
-    },
-
-    _addServerDevs: function() {
-        return Q.all([this._engine.devices.loadOneDevice({ kind: 'logger' }, true)]);
-    },
-
     _addPhoneToDB: function() {
-        return this._engine.devices.loadOneDevice({ kind: 'thingengine',
-                                                    tier: Tier.PHONE,
-                                                    own: true }, true)
-            .then(function() {
-                return this._addPhoneDevs();
-            }.bind(this));
+        return this._devices.loadOneDevice({ kind: 'thingengine',
+                                             tier: Tier.PHONE,
+                                             own: true }, true);
     },
 
     _addServerToDB: function() {
         return IpAddress.getServerName().then(function(host) {
-            return this._engine.devices.loadOneDevice({ kind: 'thingengine',
-                                                        tier: Tier.SERVER,
-                                                        host: host,
-                                                        port: 3000, // FIXME: hardcoded
-                                                        own: true }, true)
-                .then(function() {
-                    return this._addServerDevs();
-                }.bind(this));
+            return this._devices.loadOneDevice({ kind: 'thingengine',
+                                                tier: Tier.SERVER,
+                                                host: host,
+                                                port: 3000, // FIXME: hardcoded
+                                                own: true }, true)
         }.bind(this));
     },
 
     _addCloudToDB: function() {
         var prefs = platform.getSharedPreferences();
-        return this._engine.devices.loadOneDevice({ kind: 'thingengine',
-                                                    tier: Tier.CLOUD,
-                                                    cloudId: prefs.get('cloud-id'),
-                                                    own: true }, true);
+        return this._devices.loadOneDevice({ kind: 'thingengine',
+                                            tier: Tier.CLOUD,
+                                            cloudId: prefs.get('cloud-id'),
+                                            own: true }, true);
     },
 
     _addSelfToDB: function() {
@@ -243,18 +230,26 @@ module.exports = new lang.Class({
     start: function() {
         // Start watching for changes to the device database
         this._listener = this._onDeviceAdded.bind(this);
-        this._engine.devices.on('device-added', this._listener);
+        this._devices.on('device-added', this._listener);
 
-        // Make sure that whatever we're running on is in the db
-        if (!this._engine.devices.hasDevice('thingengine-own-' + this._tierManager.ownTier))
-            return this._addSelfToDB();
-        else
-            return Q();
+        // Make sure that the global tier is available
+        return Q.try(function() {
+            // no need to save this on the database, we would reload it at startup anyway
+            return this._devices.loadOneDevice({ kind: 'thingengine',
+                                                 tier: Tier.GLOBAL,
+                                                 own: true }, false);
+        }.bind(this)).then(function() {
+            // Make sure that whatever we're running on is in the db
+            if (!this._devices.hasDevice('thingengine-own-' + this._tierManager.ownTier))
+                return this._addSelfToDB();
+            else
+                return Q();
+        }.bind(this));
     },
 
     stop: function() {
         if (this._listener != null)
-            this._engine.devices.removeListener('device-added', this._listener);
+            this._devices.removeListener('device-added', this._listener);
         this._listener = null;
         return Q();
     },

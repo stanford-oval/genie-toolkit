@@ -1,5 +1,28 @@
 // -* mode: js -*-
 
+WeightCompetition-F(stopTime: String) {
+    var InitialWeight-F : (Measure(kg));
+
+    @(type="scale").measure(w)
+        => Weight(w);
+
+    Weight(w), !InitialWeight-F[self](_)
+        => InitialWeight-F[self](w);
+
+    InitialWeight-F[self](w1), Weight(w2)
+        => Loss-F[self]((w1 - w2)/w2);
+
+    Loss-F[m](l), m in F
+        => Winners($argMax(Loss-F));
+
+    Winners(w)
+        => @$notify(w);
+
+    @$at(stopTime)
+        => @$return(Winners);
+}
+
+/*
 WeightCompApp(g : Group) {
   table weightHistory(time : Number, weight : Measure(kg));
   table weightBoard(name : String, delta : Measure(kg));
@@ -13,7 +36,7 @@ WeightCompApp(g : Group) {
   weightBoard.oninsert(), board = all(g.weightBoard.alldata, delta) =>
   g(title='Weight Competition', text='New results for the weight competition', callback='weightcomp',
     data=board);
-}
+}*/
 
 ====
 
