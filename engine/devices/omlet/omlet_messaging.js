@@ -12,6 +12,18 @@ const Q = require('q');
 const Messaging = require('../../messaging/iface');
 const Feed = Messaging.Feed;
 const FeedCursor = Messaging.FeedCursor;
+const User = Messaging.User;
+
+const OmletUser = new lang.Class({
+    Name: 'OmletUser',
+    Extends: User,
+
+    _init: function(id, o) {
+        this.id = id;
+        this.account = o.account;
+        this.name = o.name;
+    }
+});
 
 const OmletFeedCursor = new lang.Class({
     Name: 'OmletFeedCursor',
@@ -53,6 +65,15 @@ function oinvoke(object, method) {
     });
 }
 
+function arrayEqual(a, b) {
+    if (a.length !== b.length)
+        return false;
+    for (var i = 0; i < a.length; i++)
+        if (a[i] !== b[i])
+            return false;
+    return true;
+}
+
 const OmletFeed = new lang.Class({
     Name: 'OmletFeed',
     Extends: Feed,
@@ -64,42 +85,74 @@ const OmletFeed = new lang.Class({
         this._client = null;
         this._insertListener = null;
         this._db = null;
-        this.ownIds = [];
+        this.ownId = null;
 
+        this._memberList = [];
+        this._members = [];
         this.name = null;
     },
 
     _onInsert: function(o) {
         this.emit('new-message', o);
-        if (this.ownIds.indexOf(o.senderId) < 0)
+        if (this.ownId === o.senderId)
             this.emit('incoming-message', o);
         else
             this.emit('outgoing-message', o);
     },
 
-    open: function() {
+    _updateMembers: function() {
+        if (arrayEqual(this._memberList, this._feed.members))
+            return Q();
+        this._memberList = this._feed.members;
+
+        var sortedList = new Array(this._memberList.length);
+        for (var i = 0, j = 0; i < this._memberList.length; i++) {
+            var id = this._memberList[i];
+            if (id === this.ownId) {
+                sortedList[0] = id;
+            } else {
+                sortedList[j+1] = id;
+                j++;
+            }
+        }
+        return Q.all(sortedList.map(function(m) {
+            return this._messaging.getUserById(m);
+        }, this)).then(function(users) {
+            this._members = users;
+        });
+    },
+
+    _updateName: function() {
+        if (this._feed.name) {
+            this.name = this._feed.name;
+        } else if (this._memberList.every(function(m) { return m === this.ownId; }, this)) {
+            this.name = "You";
+        } else {
+            this.name = this._members[1].name;
+        }
+    },
+
+    update: function(feed) {
+        this._feed = feed;
+
+        this._updateMembers().then(function() {
+            this._updateName();
+            this.emit('changed');
+        }.bind(this)).done();
+    },
+
+    _doOpen: function() {
         this._client = this._device.refOmletClient();
 
-        return this._messaging.getOwnIds().then(function(ownIds) {
-            this.ownIds = ownIds;
+        return this._messaging.getOwnIds().then(function(ownId) {
+            this.ownId = ownId;
             return this._getFeed();
         }.bind(this)).then(function(o) {
-            if (o.name) {
-                return Q([o.name, o]);
-            } else {
-                if (o.members.every(function(m) { return this.ownIds.indexOf(m) >= 0; }, this))
-                    return Q(["You", o]);
-
-                return oinvoke(this._client.store, 'getAccounts', function(accountdb) {
-                    return oinvoke(accountdb, 'getObjectById', o.members[0]);
-                }).then(function(account) {
-                    return [account.name, o];
-                });
-            }
-        }.bind(this)).then(function(res) {
-            this.name = res[0];
-
-            return oinvoke(this._client.store, 'getFeedObjects', this._client.store.getObjectId(res[1]));
+            this._feed = o;
+            return this._updateMembers();
+        }.bind(this)).then(function() {
+            this._updateName();
+            return oinvoke(this._client.store, 'getFeedObjects', this._client.store.getObjectId(this._feed));
         }.bind(this)).then(function(db) {
             this._db = db;
             this._insertListener = this._onInsert.bind(this);
@@ -107,13 +160,15 @@ const OmletFeed = new lang.Class({
         }.bind(this));
     },
 
-    close: function() {
+    _doClose: function() {
         this._device.unrefOmletClient();
         this._client = null;
 
         if (this._insertListener)
             this._db._data.removeListener('insert', this._insertListener);
         this._insertListener = null;
+        this._messaging.feedClosed(this.feedId);
+
         return Q();
     },
 
@@ -130,25 +185,19 @@ const OmletFeed = new lang.Class({
     },
 
     getMembers: function() {
-        return this._getFeed().then(function(o) {
-            return o.members;
-        });
+        return this._members;
     },
 
     sendItem: function(item) {
         var silent = true;
-        return this._getFeed().then(function(feed) {
-            return Q.ninvoke(this._client.messaging, '_sendObjToFeedImmediate', feed, 'text',
-                             { text: JSON.stringify(item), silent: silent,
-                               hidden: silent });
-        }.bind(this));
+        return Q.ninvoke(this._client.messaging, '_sendObjToFeedImmediate', this._feed, 'text',
+                         { text: JSON.stringify(item), silent: silent,
+                           hidden: silent });
     },
 
     sendRaw: function(rawItem) {
-        return this._getFeed().then(function(feed) {
-            return Q.ninvoke(this._client.messaging, '_sendObjToFeedImmediate', feed, rawItem.type,
-                             rawItem);
-        }.bind(this));
+        return Q.ninvoke(this._client.messaging, '_sendObjToFeedImmediate', this._feed, rawItem.type,
+                         rawItem);
     }
 });
 
@@ -158,31 +207,32 @@ module.exports = new lang.Class({
 
     _init: function(device) {
         this._device = device;
-        this._feedWatches = {};
 
+        this._feeds = {};
         this._syncclient = null;
     },
 
-    _onFeedAdded: function(o) {
-        this.emit('feed-added', o.identifier);
-    },
-
     _onFeedRemoved: function(o) {
-        this.emit('feed-removed', o.identifier);
+        delete this._feeds[o.identifier];
     },
 
     _onFeedChanged: function(o) {
-        this.emit('feed-changed', o.identifier);
+        var feed = this._feeds[o.identifier];
+        if (feed)
+            feed.update(o);
+    },
+
+    feedClosed: function(identifier) {
+        delete this._feeds[identifier];
     },
 
     startSync: function() {
         this._syncclient = this._device.refOmletClient();
+        this._syncclient.longdanMessageConsumer.start();
 
         oinvoke(this._syncclient.store, 'getFeeds').then(function(db) {
-            this._feedAddedListener = this._onFeedAdded.bind(this);
             this._feedRemovedListener = this._onFeedRemoved.bind(this);
             this._feedChangedListener = this._onFeedChanged.bind(this);
-            db._data.on('insert', this._feedAddedListener);
             db._data.on('delete', this._feedRemovedListener);
             db._data.on('update', this._feedChangedListener);
         }.bind(this)).done();
@@ -190,7 +240,6 @@ module.exports = new lang.Class({
 
     stopSync: function() {
         oinvoke(this._syncclient.store, 'getFeeds').then(function(db) {
-            db._data.removeListener('insert', this._feedAddedListener);
             db._data.removeListener('delete', this._feedRemovedListener);
             db._data.removeListener('update', this._feedChangedListener);
         }.bind(this)).done();
@@ -199,11 +248,22 @@ module.exports = new lang.Class({
         this._syncclient = null;
     },
 
-    getOwnIds: function() {
+    getOwnId: function() {
         var client = this._device.refOmletClient();
         return oinvoke(client.store, 'getAccounts').then(function(db) {
             return db._data.find({ owned: true }).map(function(o) {
                 return client.store.getObjectId(o);
+            })[0];
+        }).finally(function() {
+            this._device.unrefOmletClient();
+        }.bind(this));
+    },
+
+    getUserById: function(id) {
+        var client = this._device.refOmletClient();
+        return oinvoke(client.store, 'getAccounts').then(function(db) {
+            return oinvoke(db, 'getObjectById', id).then(function(o) {
+                return new OmletUser(client.store.getObjectId(o), o);
             });
         }).finally(function() {
             this._device.unrefOmletClient();

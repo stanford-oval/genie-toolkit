@@ -10,6 +10,7 @@ const Q = require('q');
 const events = require('events');
 const lang = require('lang');
 const adt = require('adt');
+const assert = require('assert');
 
 const AppGrammar = require('./app_grammar');
 const ExecEnvironment = require('./exec_environment');
@@ -110,12 +111,23 @@ const Type = adt.data(function() {
         },
         Date: null,
         Location: null,
+
+        // internal types
+        Tuple: {
+            schema: adt.only(Array),
+        },
         Object: {
             schema: adt.any,
         },
         Module: null,
-        Group: null,
-        Table: null,
+        Feed: null,
+        User: null,
+        UserArray: {
+            elem: adt.only(this),
+        },
+        Keyword: {
+            feedAccess: adt.only(Boolean),
+        },
     };
 });
 
@@ -139,23 +151,9 @@ function stringToType(s) {
         return Type.Location;
     case 'Date':
         return Type.Date;
-    case 'Object':
-        return Type.Object;
-    case 'Module':
-        return Type.Module;
-    case 'Group':
-        return Type.Group;
     default:
         throw new TypeError("Invalid type " + s);
     }
-}
-
-function typeIsObservable(t) {
-    return !t.isArray && !t.isObject;
-}
-
-function typeIsDiscrete(t) {
-    return t.isBoolean || t.isString;
 }
 
 function typeUnify(t1, t2) {
@@ -173,20 +171,31 @@ function typeUnify(t1, t2) {
     else if (t1.isObject && t2.isObject && t1.schema === null)
         return t2;
     else if (t1.isObject && t2.isObject && t2.schema === null)
+        return t2;
+    else if (t1.isObject && t2.isFeed && t1.schema === null)
+        return t2;
+    else if (t2.isObject && t1.isFeed && t2.schema === null)
         return t1;
-    else if (t1.isArray && t2.isArray)
+    else if (t1.isObject && t2.isUser && t1.schema === null)
+        return t2;
+    else if (t2.isObject && t1.isUser && t2.schema === null)
+        return t1;
+    else if (t1.isTuple && t2.isTuple && t1.schema === null)
+        return t2;
+    else if (t1.isTuple && t2.isTuple && t2.schema === null)
+        return t1;
+    else if (t1.isTuple && t2.isTuple && t1.schema.length === t2.schema.length) {
+        var mapped = new Array(t1.schema.length);
+        for (var i = 0; i < t1.schema.length; i++)
+            mapped[i] = typeUnify(t1.schema[i], t2.schema[i]);
+        return Type.Tuple(mapped);
+    }
+    else if (t1.isUserArray && t2.isUserArray)
+        return Type.UserArray(typeUnify(t1.elem, t2.elem));
+    else if ((t1.isArray || t1.isUserArray) && (t2.isArray || t2.isUserArray))
         return Type.Array(typeUnify(t1.elem, t2.elem));
     else
         throw new TypeError('Cannot unify ' + t1 + ' and ' + t2);
-}
-
-function typeMakeArithmetic(t1) {
-    if (t1.isNumber || t1.isMeasure)
-        return t1;
-    else if (t1.isAny)
-        return Type.Number;
-    else
-        throw new TypeError('Type ' + t1 + ' is not arithmetic');
 }
 
 function objectToString(o) {
@@ -218,62 +227,104 @@ function likeTest(a, b) {
     return a.indexOf(b) >= 0;
 }
 
-const Comparators = {
+const BinaryOps = {
+    '+': {
+        types: [[Type.Measure(''), Type.Measure(''), Type.Measure('')],
+                [Type.Number, Type.Number, Type.Number],
+                [Type.String, Type.String, Type.String]],
+        op: function(a, b) { return a + b; }
+    },
+    '-': {
+        types: [[Type.Measure(''), Type.Measure(''), Type.Measure('')],
+                [Type.Number, Type.Number, Type.Number],
+                [Type.Date, Type.Date, Type.Measure('ms')]],
+        op: function(a, b) { return (+a) - (+b); }
+    },
+    '*': {
+        types: [[Type.Measure(''), Type.Number, Type.Measure('')],
+                [Type.Number, Type.Measure(''), Type.Measure('')],
+                [Type.Number, Type.Number, Type.Number]],
+        op: function(a, b) { return a * b; },
+    },
+    '/': {
+        types: [[Type.Measure(''), Type.Measure(''), Type.Number],
+                [Type.Number, Type.Number, Type.Number]],
+        op: function(a, b) { return a / b; },
+    },
+    '&&': {
+        types: [[Type.Boolean, Type.Boolean, Type.Boolean]],
+        op: function(a, b) { return a && b; }
+    },
+    '||': {
+        types: [[Type.Boolean, Type.Boolean, Type.Boolean]],
+        op: function(a, b) { return a && b; }
+    },
     '>': {
-        types: [Type.String, Type.Measure(''), Type.Number, Type.Date],
+        types: [[Type.String, Type.String, Type.Boolean],
+                [Type.Measure(''), Type.Measure(''), Type.Boolean],
+                [Type.Number, Type.Number, Type.Boolean],
+                [Type.Date, Type.Date, Type.Boolean]],
         op: function(a, b) { return a > b; },
-        reverse: '>',
     },
     '<': {
-        types: [Type.String, Type.Measure(''), Type.Number, Type.Date],
+        types: [[Type.String, Type.String, Type.Boolean],
+                [Type.Measure(''), Type.Measure(''), Type.Boolean],
+                [Type.Number, Type.Number, Type.Boolean],
+                [Type.Date, Type.Date, Type.Boolean]],
         op: function(a, b) { return a < b; },
         reverse: '<',
     },
     '>=': {
-        types: [Type.String, Type.Measure(''), Type.Number, Type.Date],
+        types: [[Type.String, Type.String, Type.Boolean],
+                [Type.Measure(''), Type.Measure(''), Type.Boolean],
+                [Type.Number, Type.Number, Type.Boolean],
+                [Type.Date, Type.Date, Type.Boolean]],
         op: function(a, b) { return a >= b; },
         reverse: '<=',
     },
     '<=': {
-        types: [Type.String, Type.Measure(''), Type.Number, Type.Date],
+        types: [[Type.String, Type.String, Type.Boolean],
+                [Type.Measure(''), Type.Measure(''), Type.Boolean],
+                [Type.Number, Type.Number, Type.Boolean],
+                [Type.Date, Type.Date, Type.Boolean]],
         op: function(a, b) { return a <= b; },
         reverse: '>=',
     },
     '=': {
-        types: [Type.Any],
+        types: [[Type.Any]],
         op: equalityTest,
         reverse: '=',
     },
     '!=': {
-        types: [Type.Any],
+        types: [[Type.Any]],
         op: function(a, b) { return !(equalityTest(a,b)); },
         reverse: '=',
     },
     '=~': {
-        types: [Type.String],
+        types: [[Type.String]],
         op: likeTest,
-        reverse: null,
-    },
-    'has': {
-        types: [Type.Array(Type.Any), Type.Any],
-        op: function(a, b) { return a.some(function(x) { return equalityTest(x, b); }); },
-        reverse: null,
-    },
-    'has~': {
-        types: [Type.Array(Type.String), Type.Any],
-        op: function(a, b) { return a.some(function(x) { return likeTest(x, b); }); },
         reverse: null,
     }
 };
 
+const UnaryOps = {
+    '!': {
+        types: [[Type.Boolean, Type.Boolean]],
+        op: function(a) { return a; }
+    },
+    '-': {
+        types: [[Type.Measure(''), Type.Measure('')],
+                [Type.Number, Type.Number]],
+        op: function(a) { return -a; }
+    }
+};
+
 const Builtins = {
-    'join': {
-        argtypes: [Type.Array(Type.Any), Type.String],
-        rettype: Type.String,
-        op: function(array, joiner) {
-            if (!Array.isArray(array))
-                throw new TypeError('First argument to join must be an Array');
-            return array.join(joiner);
+    'contains': {
+        argtypes: [Type.Array(Type.Any), Type.Any],
+        rettype: Type.Boolean,
+        op: function(a, b) {
+            return a.some(function(x) { return equalityTest(x, b); });
         }
     },
     'distance': {
@@ -283,7 +334,7 @@ const Builtins = {
             return Math.sqrt((a.x - b.x)*(a.x - b.x) + (a.y - b.y)*(a.y - b.y));
         }
     },
-    'string': {
+    'toString': {
         argtypes: [Type.Any],
         rettype: Type.String,
         op: objectToString,
@@ -318,65 +369,112 @@ const Builtins = {
     },
 };
 
-const Aggregate = {
-    'min': function(what) {
-        return function(events) {
-            var event = null;
+function tupleLessThan(a, b) {
+    for (var i = 0; i < Math.min(a.length, b.length); i++) {
+        if (a[i] < b[i])
+            return true;
+        if (b[i] < a[i])
+            return false;
+    }
+    if (a.length < b.length)
+        return true;
+    return false;
+}
+
+const Aggregations = {
+    'argMin': {
+        tuplelength: -1,
+        argtypes: [Type.Number, Type.Measure(''), Type.String, Type.Date],
+        rettype: Type.User,
+        extratypes: [],
+        op: function(tuples) {
+            var who = null;
             var best = null;
-            for (var i = 0; i < events.length; i++) {
-                if (event === null) {
-                    event = events[i];
-                    best = event[what];
-                } else if (events[i][what] < best) {
-                    event = events[i];
-                    best = event[what];
+            for (var i = 0; i < tuples.length; i++) {
+                if (who === null) {
+                    who = i;
+                    best = tuples[i];
+                } else if (tupleLessThan(tuples[i], best)) {
+                    who = i;
+                    best = tuples[i];
                 }
             }
-            return event;
+            return who;
         }
     },
 
-    'max': function(what) {
-        return function(events) {
-            console.log('Aggregating over ', events);
-            var event = null;
+    'argMax': {
+        tuplelength: -1,
+        argtypes: [Type.Number, Type.Measure(''), Type.String, Type.Date],
+        rettype: Type.User,
+        extratypes: [],
+        op: function(tuples) {
+            var who = null;
             var best = null;
-            for (var i = 0; i < events.length; i++) {
-                if (event === null) {
-                    event = events[i];
-                    best = event[what];
-                } else if (events[i][what] > best) {
-                    event = events[i];
-                    best = event[what];
+            for (var i = 0; i < tuples.length; i++) {
+                if (who === null) {
+                    who = i;
+                    best = tuples[i];
+                } else if (tupleLessThan(best, tuples[i])) {
+                    who = i;
+                    best = tuples[i];
                 }
             }
-            return event;
+            return who;
         }
     },
 
-    'sum': function(what) {
-        return function(events) {
+    'sum': {
+        tuplelength: 1,
+        argtypes: [Type.Number, Type.Measure('')],
+        rettype: null,
+        extratypes: [],
+        op: function(tuples) {
             var sum = 0;
             for (var i = 0; i < events.length; i++) {
-                sum += events[i][what];
+                sum += tuples[i][0];
             }
             return sum;
         }
     },
 
-    'avg': function(what) {
-        return function(events) {
+    'avg': {
+        tuplelength: 1,
+        argtypes: [Type.Number, Type.Measure('')],
+        rettype: null,
+        extratypes: [],
+        op: function(tuples) {
             var sum = 0;
             for (var i = 0; i < events.length; i++) {
-                sum += events[i][what];
+                sum += tuples[i][0];
             }
-            return sum / events.length;
+            return sum / tuples.length;
         }
     },
 
-    'all': function(what) {
-        return function(events) {
-            return events;
+    'concat': {
+        tuplelength: 1,
+        argtypes: [Type.String],
+        rettype: null,
+        extratypes: [Type.String],
+        op: function(tuples, joiner) {
+            var sum = '';
+            for (var i = 0; i < events.length; i++) {
+                if (i > 0)
+                    sum += joiner;
+                sum += tuples[i][0];
+            }
+            return sum;
+        }
+    },
+
+    'count': {
+        tuplelength: -1,
+        argtypes: [Type.Any],
+        rettype: Type.Number,
+        extratypes: [],
+        op: function(tuples) {
+            return tuples.length;
         }
     },
 };
@@ -384,53 +482,32 @@ const Aggregate = {
 module.exports = new lang.Class({
     Name: 'AppCompiler',
 
-    _init: function(withActions) {
-        this._withActions = withActions;
-        this._settings = {};
-        this._name = undefined;
-        this._description = undefined;
-        this._auth = undefined;
-        this._kinds = [];
-
-        this._nextInputBlockId = 0;
-
+    _init: function() {
         this._warnings = [];
 
-        this._imports = {};
+        this._name = undefined;
+        this._params = {};
+        this._keywords = {};
         this._modules = {};
         this._rules = [];
-        this._params = {};
-        this._tables = {};
 
         this._scope = {};
-    },
-
-    get name() {
-        return this._name;
-    },
-
-    get description() {
-        return this._description;
-    },
-
-    get settings() {
-        return this._settings;
     },
 
     get warnings() {
         return this._warnings;
     },
 
-    get auth() {
-        return this._auth;
+    _warn: function(msg) {
+        this._warnings.push(msg);
     },
 
-    get kinds() {
-        return this._kinds;
+    get name() {
+        return this._name;
     },
 
-    get programName() {
-        return this._programName;
+    get feedAccess() {
+        return this._feedAccess;
     },
 
     get params() {
@@ -445,106 +522,13 @@ module.exports = new lang.Class({
         return this._modules;
     },
 
-    get tables() {
-        return this._tables;
+    getKeywordDecl: function(k) {
+        if (!(k in this._keywords))
+            throw new Error('Invalid keyword name ' + k);
+        return this._keywords[k];
     },
 
-    _warn: function(msg) {
-        this._warnings.push(msg);
-    },
-
-    compileAtRules: function(ast) {
-        var name = undefined;
-        var description = undefined;
-        var settings = {};
-        var auth = undefined;
-        var kinds = [];
-
-        function compileSetting(props) {
-            var name, description, rawType, type;
-
-            props.forEach(function(assignment) {
-                switch(assignment.name) {
-                case 'name':
-                    if (name !== undefined)
-                        this._warn("Duplicate @setting.name declaration");
-                    if (!assignment.rhs.isConstant || !assignment.rhs.value.isString)
-                        throw new TypeError("Invalid @setting.name");
-                    name = assignment.rhs.value.value;
-                    return;
-                case 'description':
-                    if (description !== undefined)
-                        this._warn("Duplicate @setting.description declaration");
-                    if (!assignment.rhs.isConstant || !assignment.rhs.value.isString)
-                        throw new TypeError("Invalid @setting.description");
-                    description = assignment.rhs.value.value;
-                    return;
-                case 'type':
-                    if (type !== undefined)
-                        this._warn("Duplicate @setting.type declaration");
-                    if (!assignment.rhs.isVarRef)
-                        throw new TypeError("Invalid @setting.type");
-                    rawType = assignment.rhs.name;
-                    type = stringToType(assignment.rhs.name);
-                    return;
-                default:
-                    this._warn("Unknown @setting parameter " + assignment.name);
-                }
-            });
-
-            if (type === undefined)
-                throw new Error("Missing @setting.type");
-            return ({ name: name,
-                      description: description,
-                      rawType: rawType,
-                      type: type });
-        }
-        function compileAuth(props) {
-            var auth = {};
-
-            props.forEach(function(assignment) {
-                if (!assignment.rhs.isConstant && !assignment.rhs.isVarRef)
-                    throw new TypeError("Invalid @auth." + assignment.name);
-
-                if (assignment.rhs.isConstant)
-                    auth[assignment.name] = assignment.rhs.value.value;
-                else if (assignment.rhs.isVarRef)
-                    auth[assignment.name] = assignment.rhs.name;
-            });
-
-            return auth;
-        }
-
-        ast.forEach(function(rule) {
-            if (rule.isName) {
-                if (name !== undefined)
-                    this._warn("Duplicate @name declaration");
-                name = rule.value;
-            } else if (rule.isDescription) {
-                if (description !== undefined)
-                    this._warn("Duplication @description declaration");
-                description = rule.value;
-            } else if (rule.isSetting) {
-                if (settings[rule.name] !== undefined)
-                    this._warn("Duplicate @setting declaration for " + rule.name);
-                settings[rule.name] = compileSetting.call(this, rule.props);
-            } else if (rule.isAuth) {
-                if (auth !== undefined)
-                    this._warng("Duplicate @auth declaration");
-                auth = compileAuth.call(this, rule.params);
-            } else if (rule.isKind) {
-                kinds.push(rule.kind);
-            }
-        }, this);
-
-        this._name = name;
-        this._description = description;
-        this._settings = settings;
-        this._auth = auth;
-        this._kinds = kinds;
-    },
-
-    compileConstant: function(value) {
+    normalizeConstant: function(value) {
         if (value.isMeasure) {
             var baseunit = UnitsToBaseUnit[value.unit];
             if (baseunit === undefined)
@@ -556,8 +540,14 @@ module.exports = new lang.Class({
                 transformed = transform(value.value);
             else
                 transformed = value.value * transform;
-            return [type, function() { return transformed; }];
+            return Value.Measure(transformed, baseunit);
+        } else {
+            return value;
         }
+    },
+
+    compileConstant: function(value) {
+        var normalized = this.normalizeConstant(value);
 
         var type;
         if (value.isBoolean)
@@ -566,72 +556,57 @@ module.exports = new lang.Class({
             type = Type.String;
         else if (value.isNumber)
             type = Type.Number;
+        else if (value.isMeasure)
+            type = Type.Measure(value.unit);
 
         return [type, function() { return value.value; }];
     },
 
-    fallbackVarName: function(name) {
-        var type;
-        if (name == 'ts')
-            type = Type.Date;
-        else if (name == 'location')
-            type = Type.Location;
-        else if (name == 'weight')
-            type = Type.Measure('kg');
-        else if (name == 'temperature')
-            type = Type.Measure('C');
-        else if (name == 'length')
-            type = Type.Measure('m');
-        else if (name == 'speed')
-            type = Type.Measure('mps');
-        else if (name == 'pressure')
-            type = Type.Measure('Pa');
-        else if (name == 'power')
-            type = Type.Boolean;
-        else if (name == 'url')
-            type = Type.String;
-        else if (name == 'hashtags' || name == 'urls')
-            type = Type.Array(Type.String);
-        else if (name == 'status' || name == 'from')
-            type = Type.String;
-        else
-            type = Type.Any;
-        return type;
-    },
-
-    compileVarRef: function(name, localscope, selfschema) {
-        var type = null;
-        if (selfschema !== null) {
-            if (name in selfschema)
-                type = selfschema[name];
-        } else {
-            if (name in localscope)
-                type = localscope[name];
+    compileVarRef: function(name, scope) {
+        if (name in this._keywords) {
+            var decl = this._keywords[name];
+            if (decl.feedAccess)
+                throw new TypeError('Keyword ' + name + ' is feed accessible, must use -F syntax');
+            var type;
+            if (decl.isArray)
+                type = Type.Array(Type.Tuple(decl.schema));
             else
-                type = this.fallbackVarName(name);
-        }
-        if (type === null) {
-            if (!(name in localscope))
-                throw new TypeError('Invalid variable reference ' + name);
-            type = localscope[name];
-        }
+                type = Type.Tuple(decl.schema);
+            return [type, function(env) {
+                return env.readKeyword(name);
+            }];
+        } else {
+            if (!(name in scope))
+                throw new TypeError('Variable ' + name + ' is unrestricted');
 
-        return [type, function(env) {
-            return env.readVar(type, name);
-        }];
+            var type = scope[name];
+            return [type, function(env) {
+                return env.readVar(name);
+            }];
+        }
     },
 
-    compileMemberRef: function(objectast, name, localscope, selfschema) {
-        var objectexp = this.compileExpression(objectast, localscope, selfschema);
+    compileMemberRef: function(objectast, name, scope) {
+        var objectexp = this.compileExpression(objectast, scope);
         var objecttype = typeUnify(objectexp[0], Type.Object(null));
 
         var type;
-        if (objecttype.schema !== null) {
-            if (!(name in objecttype.schema))
+        var schema = null;
+        if (objecttype.isObject)
+            schema = objecttype.schema;
+        else if (objecttype.isUser)
+            schema = { name: Type.String };
+        else if (objecttype.isFeed)
+            schema = { length: Type.Number };
+        else
+            throw new TypeError(); // should not unify with Type.Object
+
+        if (schema !== null) {
+            if (!(name in schema))
                 throw new TypeError('Object has no field ' + name);
-            type = objecttype.schema[name];
+            type = schema[name];
         } else {
-            type = this.fallbackVarName(name);
+            type = Type.Any;
         }
         var objectop = objectexp[1];
 
@@ -641,603 +616,756 @@ module.exports = new lang.Class({
         }];
     },
 
-    compileFunctionCall: function(name, argsast, localscope, selfschema) {
-        var func = Builtins[name];
-        if (func === undefined)
-            throw new TypeError("Unknown function " + name);
-        if (argsast.length !== func.argtypes.length)
-            throw new TypeError("Function " + func + " does not accept " +
-                                argsast.length + " arguments");
-        var argsexp = argsast.map(function(arg) {
-            return this.compileExpression(arg, localscope, selfschema);
-        }, this);
-        argsexp.forEach(function(exp, idx) {
-            typeUnify(exp[0], func.argtypes[idx]);
-        });
-        var funcop = func.op;
-        return [func.rettype, function(env) {
-            var args = argsexp.map(function(exp) {
-                return exp[1](env);
+    compileFeedKeywordRef: function(name, scope) {
+        if (name in this._keywords) {
+            var decl = this._keywords[name];
+            if (!decl.feedAccess)
+                throw new TypeError('Keyword ' + name + ' is not feed accessible');
+
+            var type;
+            if (decl.isArray)
+                type = Type.Array(Type.Tuple(decl.schema));
+            else
+                type = Type.Tuple(decl.schema);
+            return [Type.UserArray(type), function(env) {
+                return env.readKeyword(name);
+            }];
+        } else {
+            throw new TypeError(name + ' does not name a feed-accessible keyword');
+        }
+    },
+
+    compileFunctionCall: function(name, argsast, scope) {
+        if (name in Aggregations) {
+            var aggr = Aggregations[name];
+
+            var argsexp = argsast.map(function(arg) {
+                return this.compileExpression(arg, scope);
+            }, this);
+            var keywordexp = argsexp[0];
+            var keywordtype = keywordexp[0];
+
+            if (!keywordtype.isArray && !keywordtype.isUserArray)
+                throw new TypeError('First argument to aggregation must be array');
+
+            var tupletype = keywordtype.elem;
+            if (aggr.tuplelength != -1 && tupletype.schema.length != aggr.tuplelength)
+                throw new TypeError('Invalid first argument to ' + name);
+            var tupleargtype = null;
+            for (var i = 0; i < tupletype.schema.length; i++) {
+                var ok = false;
+                for (var j = 0; j < aggr.argtypes.length; j++) {
+                    try {
+                        tupleargtype = typeUnify(tupletype.schema[i], aggr.argtypes[j]);
+                        ok = true;
+                        break;
+                    } catch(e) {}
+                }
+                if (!ok) {
+                    throw new TypeError('Invalid first argument to ' + name);
+                }
+            }
+            var rettype;
+            if (aggr.rettype !== null)
+                rettype = aggr.rettype;
+            else
+                rettype = tupleargtype;
+            var isUser = false;
+            if (rettype.isUser && !keywordtype.isUserArray)
+                rettype = Type.Number;
+
+            if (argsexp.length !== aggr.extratypes.length + 1)
+                throw new TypeError('Invalid extra arguments to ' + name);
+            for (var i = 0; i < aggr.extratypes.length; i++) {
+                typeUnify(argsexp[i+1][0], aggr.extratypes[i]);
+            }
+
+            var aggrop = aggr.op;
+            return [rettype, function(env) {
+                var args = argsexp.map(function(exp) {
+                    return exp[1](env);
+                });
+                var val = aggrop.apply(null, args);
+                if (rettype.isUser)
+                    return env.readFeedMember(val);
+                else
+                    return val;
+            }];
+        } else {
+            var func = Builtins[name];
+            if (func === undefined)
+                throw new TypeError("Unknown function " + name);
+            if (argsast.length !== func.argtypes.length)
+                throw new TypeError("Function " + func + " does not accept " +
+                                    argsast.length + " arguments");
+            var argsexp = argsast.map(function(arg) {
+                return this.compileExpression(arg, scope);
+            }, this);
+            argsexp.forEach(function(exp, idx) {
+                typeUnify(exp[0], func.argtypes[idx]);
             });
-            return funcop.apply(null, args);
-        }];
+            var funcop = func.op;
+            return [func.rettype, function(env) {
+                var args = argsexp.map(function(exp) {
+                    return exp[1](env);
+                });
+                return funcop.apply(null, args);
+            }];
+        }
     },
 
-    compileUnaryOp: function(argast, opcode, op, localscope, selfschema) {
-        var argexp = this.compileExpression(argast, localscope, selfschema);
-        var type = typeMakeArithmetic(argexp[0]);
-        var argop = argexp[1];
-        return [type, function(env) { return op(argop(env)); }];
-    },
-
-    compileBinaryOp: function(lhsast, rhsast, opcode, op, localscope, selfschema) {
-        var lhsexp = this.compileExpression(lhsast, localscope, selfschema);
-        var rhsexp = this.compileExpression(rhsast, localscope, selfschema);
-
-        // FIXME: make generic
-        var unifiedtype = typeUnify(lhsexp[0], rhsexp[0]);
-        var type;
-        try {
-            type = typeMakeArithmetic(unifiedtype);
-        } catch(e) {
-            if (opcode == '+') {
-                try {
-                    typeUnify(unifiedtype, Type.String);
-                    type = Type.String;
-
-                    var lhsop = lhsexp[1];
-                    var rhsop = rhsexp[1];
-                    return [type, function(env) { return op(objectToString(lhsop(env)),
-                                                            objectToString(rhsop(env))); }];
-                } catch(e2) {
-                    throw e;
-                }
-            } else if (opcode == '-') {
-                try {
-                    typeUnify(unifiedtype, Type.Date);
-                    type = Type.Measure('ms');
-                } catch(e2) {
-                    throw e;
-                }
-            } else {
-                throw e;
+    compileUnaryOp: function(argast, opcode, scope) {
+        var argexp = this.compileExpression(argast, scope);
+        var unop = UnaryOp[opcode];
+        var argtype, rettype, op;
+        for (var i = 0; i < unop.types.length; i++) {
+            try {
+                argtype = typeUnify(argexp[0], unop.types[i][0]);
+                rettype = unop.types[i][1];
+                if (argtype.isMeasure && rettype.isMeasure)
+                    rettype = typeUnify(argtype, rettype);
+                op = unop.op;
+                break;
+            } catch(e) {
             }
         }
+        if (op === undefined)
+            throw new TypeError('Could not find a valid overload for unary op ' + opcode);
+
+        var argop = argexp[1];
+        return [rettype, function(env) { return op(argop(env)); }];
+    },
+
+    compileBinaryOp: function(lhsast, rhsast, opcode, schema) {
+        var lhsexp = this.compileExpression(lhsast, schema);
+        var rhsexp = this.compileExpression(rhsast, schema);
+
+        var binop = BinaryOp[opcode];
+        var lhstype, rhstype, rettype, op;
+        for (var i = 0; i < binop.types.length; i++) {
+            try {
+                lhstype = typeUnify(lhsexp[0], binop.types[i][0]);
+                rhstype = typeUnify(rhsexp[0], binop.types[i][1]);
+                rettype = binop.types[i][2];
+                if (lhstype.isMeasure && rhstype.isMeasure)
+                    lhstype = typeUnify(lhstype, rhstype);
+                if (lhstype.isMeasure && rettype.isMeasure)
+                    rettype = typeUnify(lhstype, rettype);
+                op = binop.op;
+                break;
+            } catch(e) {
+            }
+        }
+        if (op === undefined)
+            throw new TypeError('Could not find a valid overload for binary op ' + opcode);
 
         var lhsop = lhsexp[1];
         var rhsop = rhsexp[1];
-        return [type, function(env) { return op(+lhsop(env), +rhsop(env)); }];
+        return [rettype, function(env) { return op(lhsop(env), rhsop(env)); }];
     },
 
-    compileContextRef: function(context) {
-        if (context === 'self') {
-            var schema = { name: Type.String };
-            var op = function(env) {
-                var object = {};
-                object.name = env.engine.messaging.ownerName;
-                return object;
-            }
-            return [Type.Object(schema), op];
-        }
-
-        throw new TypeError("Context @" + context + " is not implemented");
-    },
-
-    compileExpression: function(ast, localscope, selfschema) {
+    compileExpression: function(ast, scope) {
         if (ast.isConstant)
-            return this.compileConstant(ast.value, localscope, selfschema);
+            return this.compileConstant(ast.value, scope);
         else if (ast.isVarRef)
-            return this.compileVarRef(ast.name, localscope, selfschema);
+            return this.compileVarRef(ast.name, scope);
+        else if (ast.isFeedKeywordRef)
+            return this.compileFeedKeywordRef(ast.name, scope);
         else if (ast.isMemberRef)
-            return this.compileMemberRef(ast.object, ast.name, localscope, selfschema);
+            return this.compileMemberRef(ast.object, ast.name, scope);
         else if (ast.isFunctionCall)
-            return this.compileFunctionCall(ast.name, ast.args, localscope, selfschema);
+            return this.compileFunctionCall(ast.name, ast.args, scope);
         else if (ast.isUnaryOp)
-            return this.compileUnaryOp(ast.arg, ast.opcode, ast.op, localscope, selfschema);
+            return this.compileUnaryOp(ast.arg, ast.opcode, ast.op, scope);
         else if (ast.isBinaryOp)
-            return this.compileBinaryOp(ast.lhs, ast.rhs, ast.opcode, ast.op, localscope, selfschema);
-        else if (ast.isContextRef)
-            return this.compileContextRef(ast.name);
+            return this.compileBinaryOp(ast.lhs, ast.rhs, ast.opcode, ast.op, scope);
         else
             throw new TypeError();
     },
 
-    compileFilter: function(ast, localscope, selfschema) {
-        var lhs = this.compileExpression(ast.lhs, localscope, selfschema);
-        var rhs = this.compileExpression(ast.rhs, localscope, selfschema);
-        var comp = Comparators[ast.comparator];
+    compileInputKeyword: function(ast, scope) {
+        var name = ast.keyword.name;
+        var feedAccess = ast.keyword.feedAccess;
+        var owner = ast.owner;
+        var negative = ast.negative;
 
-        for (var i = 0; i < comp.types.length; i++) {
-            try {
-                typeUnify(lhs[0], comp.types[i]);
-                typeUnify(rhs[0], comp.types[i]);
-                break;
-            } catch(e) { }
-        }
-        if (i === comp.types.length)
-            throw new TypeError('Invalid types for comparator ' + comp);
+        var decl = this._keywords[name];
+        if (decl === undefined)
+            throw new TypeError('Undeclared keyword ' + name);
+        if (feedAccess !== decl.feedAccess)
+            throw new TypeError('Inconsistent use of keyword feed specifier');
+        if (owner !== null && !feedAccess)
+            throw new TypeError('Invalid ownership operator on private keyword');
+        if (owner === null && feedAccess)
+            throw new TypeError('Missing ownership operator on feed-accessible keyword');
+        if (owner !== null && owner !== 'self' &&
+            (!(owner in scope) || !scope[owner].isUser))
+            throw new TypeError('Invalid or unbound ownership operator ' + owner);
 
-        var lhsop = lhs[1];
-        var rhsop = rhs[1];
-        var compop = comp.op;
+        var params = ast.params;
+        var binders = {};
+        var equalities = [];
+        var reflections = [];
+        var constchecks = [];
 
-        return function(env) {
-            var lhsv = lhsop(env);
-            var rhsv = rhsop(env);
-            console.log('Comparing ' + lhsv + ' with ' + rhsv);
-            return compop(lhsv, rhsv);
-        }
-    },
+        if (decl.isArray && params.length !== 1)
+            throw new TypeError('Keyword ' + name + ' is array, not tuple, cannot unpack');
 
-    compileAssignment: function(ast, localscope, selfschema) {
-        var rhs = this.compileExpression(ast.rhs, localscope, selfschema);
-        var name = ast.name;
-        var op = rhs[1];
-        return function(env) {
-            env.writeValue(name, op(env));
-        }
-    },
-
-    constantFoldExpression: function(ast, state) {
-        var env = new ExecEnvironment(null, null, state);
-
-        try {
-            var exp = this.compileExpression(ast, this._scope, null);
-            var value = exp[1](env);
-            var type = exp[0];
-            var boxed;
-            if (type.isBoolean)
-                boxed = Value.Boolean(value);
-            else if (type.isString)
-                boxed = Value.String(value);
-            else if (type.isNumber)
-                boxed = Value.Number(value);
-            else if (type.isMeasure)
-                boxed = Value.Measure(value, type.unit);
-            else if (type.isArray)
-                boxed = Value.Array(value);
-            else if (type.isDate)
-                boxed = Value.Date(value);
-            else if (type.isLocation)
-                boxed = Value.Location(value.x, value.y);
-            else if (type.isObject)
-                boxed = Value.Object(value);
-
-            return Expression.Constant(boxed);
-        } catch(e) {
-            return null;
-        }
-    },
-
-    simplifyFilter: function(ast, state) {
-        var lhsval = this.constantFoldExpression(ast.lhs, state);
-        if (lhsval !== null) {
-            var rhsval = this.constantFoldExpression(ast.rhs, state);
-            if (rhsval !== null) {
-                return InputRule.Threshold(lhsval, ast.comparator, rhsval);
-            } else if (ast.rhs.isVarRef) {
-                var reverse = Comparators[ast.comparator].reverse;
-                if (reverse !== null)
-                    return InputRule.Threshold(ast.rhs, reverse, lhsval);
-                else
-                    return null;
-            } else {
-                return null;
-            }
-        } else if (ast.lhs.isVarRef) {
-            var rhsval = this.constantFoldExpression(ast.rhs, state);
-            if (rhsval !== null)
-                return InputRule.Threshold(ast.lhs, ast.comparator, rhsval);
-            else
-                return null;
-        } else {
-            return null;
-        }
-    },
-
-    compileUpdateOneTuple: function(filters, alias, continueUpdate) {
-        return function(inputs, i, env, cont) {
-            return this.channels.some(function(channel) {
-                if (channel.event === null)
-                    return false;
-
-                function processOneTuple(current) {
-                    env.setThis(current);
-                    var ok = filters.every(function(filter) {
-                        return filter(env);
-                    });
-                    env.setThis(null);
-
-                    if (!ok)
-                        return false;
-
-                    if (alias !== null) {
-                        var scope = {};
-                        if (Array.isArray(alias)) {
-                            alias.forEach(function(name) {
-                                scope[name] = current[name];
-                            });
-                        } else {
-                            scope[alias] = current;
-                        }
-                        console.log('Setting scope', scope);
-                        env.mergeScope(scope);
-                    }
-
-                    return continueUpdate(inputs, i, env, cont);
-                }
-
-                if (Array.isArray(channel.event)) {
-                    var retval = false;
-                    // don't use .some() here, we want to run side-effects
-                    channel.event.forEach(function(event) {
-                        if (event === null)
-                            return;
-                        var run = processOneTuple(event);
-                        retval = run || retval;
-                    });
-                    return retval;
-                } else {
-                    return processOneTuple(channel.event);
-                }
-            });
-        };
-    },
-
-    compileUpdateAggregate: function(filters, alias, aggregate, continueUpdate) {
-        var op = Aggregate[aggregate.op](aggregate.what);
-
-        return function(inputs, i, env, cont) {
-            function filterOneTuple(current) {
-                env.setThis(current);
-                var ok = filters.every(function(filter) {
-                    return filter(env);
-                });
-                env.setThis(null);
-
-                return ok;
-            }
-
-            var array = [];
-
-            this.channels.forEach(function(channel) {
-                if (channel.event === null)
-                    return;
-
-                if (Array.isArray(channel.event)) {
-                    var retval = false;
-                    // don't use .some() here, we want to run side-effects
-                    channel.event.forEach(function(event) {
-                        if (event === null)
-                            return;
-                        if (filterOneTuple(event))
-                            array.push(event);
-                    });
-                    return retval;
-                } else {
-                    if (filterOneTuple(channel.event))
-                        array.push(channel.event);
-                }
-            });
-
-            var result = op(array);
-            if (result !== null) {
-                if (alias !== null) {
-                    var scope = {};
-                    if (Array.isArray(alias)) {
-                        alias.forEach(function(name) {
-                            scope[name] = result[name];
-                        });
+        for (var i = 0; i < params.length; i++) {
+            var param = params[i];
+            if (param.isNull)
+                continue;
+            if (param.isBinder) {
+                if (param.name in scope) {
+                    if (decl.isArray) {
+                        var unified = scope[param.name] = typeUnify(scope[param.name],
+                                                                    Type.Array(Type.Tuple(decl.schema)));
+                        decl.schema = unified.elem.schema;
                     } else {
-                        scope[alias] = result;
+                        decl.schema[i] = scope[param.name] = typeUnify(scope[param.name], decl.schema[i]);
                     }
-                    console.log('Setting scope', scope);
-                    env.mergeScope(scope);
+                    if (param.name in binders)
+                        reflections.push([i, binders[param.name]]);
+                    else
+                        equalities.push([i, param.name]);
+                } else {
+                    if (negative)
+                        throw new TypeError('Unrestricted variable ' + param.name + ' cannot be used in negated keyword');
+                    binders[param.name] = i;
+                    scope[param.name] = decl.schema[i];
+                }
+            } else {
+                if (decl.isArray)
+                    throw new TypeError('Array keyword ' + name + ' cannot be constant');
+
+                var constexpr = this.compileConstant(param.value);
+                decl.schema[i] = typeUnify(constexpr[0], decl.schema[i]);
+                constchecks.push([i, constexpr[1]()]);
+            }
+        }
+        if (decl.isArray) {
+            assert.strictEqual(constchecks.length, 0);
+            assert.strictEqual(reflections.length, 0);
+        }
+
+        function keywordIsTrue(env, value) {
+            if (decl.isArray) {
+                for (var i = 0; i < equalities.length; i++) {
+                    var equal = equalities[i];
+                    if (!equalityTest(value,
+                                      env.readVar(equal[1])))
+                        return false;
                 }
 
-                return continueUpdate(inputs, i, env, cont);
+                return value !== null && value.length > 0;
+            } else {
+                for (var i = 0; i < equalities.length; i++) {
+                    var equal = equalities[i];
+                    if (!equalityTest(value[equal[0]],
+                                      env.readVar(equal[1])))
+                        return false;
+                }
+                for (var i = 0; i < constchecks.length; i++) {
+                    var constcheck = constchecks[i];
+                    if (!equalityTest(value[constcheck[0]],
+                                      constcheck[1]))
+                        return false;
+                }
+                for (var i = 0; i < reflections.length; i++) {
+                    var refl = reflections[i];
+                    if (!equalityTest(value[refl[0]], value[refl[1]]))
+                        return false;
+                }
+
+                return value !== null;
+            }
+        }
+
+        function getKeywordValue(env) {
+            if (feedAccess)
+                return env.readKeyword(name)[env.getMemberBinding(owner)];
+            else
+                return env.readKeyword(name);
+        }
+
+        return [ast.keyword, ast.owner, function(env) {
+            var value = getKeywordValue(env);
+            if (negative) {
+                return !keywordIsTrue(env, value);
+            } else {
+                if (keywordIsTrue(env, value)) {
+                    for (var name in binders)
+                        env.setVar(name, value[binders[name]]);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }];
+    },
+
+    compileInputTrigger: function(ast, scope) {
+        var selector = ast.selector;
+        var name = ast.name;
+
+        var params = ast.params;
+        var triggerParams = [];
+        var binders = {};
+        var constchecks = [];
+        var reflections = [];
+        var anyBinderOrNull = false;
+
+        for (var i = 0; i < params.length; i++) {
+            var param = params[i];
+            if (param.isNull) {
+                anyBinderOrNull = true;
+                continue;
+            }
+            if (param.isBinder) {
+                anyBinderOrNull = true;
+                if (param.name in scope) {
+                    if (!(param.name in binders))
+                        throw new Error();
+                    reflections.push([i, binders[param.name]]);
+                } else {
+                    binders[param.name] = i;
+                    // FIXME figure out schema for trigger
+                    scope[param.name] = Type.Any;
+                }
+            } else {
+                var constexpr = this.compileConstant(param.value);
+                var constvalue = constexpr[1]();
+                // FIXME typeUnify with schema for trigger
+                constchecks.push([i, constvalue]);
+                if (!anyBinderOrNull)
+                    triggerParams.push(this.normalizeConstant(param.value));
+            }
+        }
+
+        function triggerIsTrue(env) {
+            for (var i = 0; i < constchecks.length; i++) {
+                var constcheck = constchecks[i];
+                if (!equalityTest(env.triggerValue[constcheck[0]],
+                                  constcheck[1]))
+                    return false;
+            }
+            for (var i = 0; i < reflections.length; i++) {
+                var refl = reflections[i];
+                if (!equalityTest(env.triggerValue[refl[0]],
+                                  env.triggerValue[refl[1]]))
+                    return false;
+            }
+        }
+
+        return [selector, name, triggerParams, function(env) {
+            if (triggerIsTrue(env, value)) {
+                for (var name in binders)
+                    env.setVar(name, env.triggerValue[binders[name]]);
+                return true;
             } else {
                 return false;
             }
-        };
+        }];
     },
 
-    compileUpdate: function(filters, alias, aggregate, continueUpdate) {
-        function continueUpdate(inputs, i, env, cont) {
-            if (i+1 < inputs.length) {
-                return inputs[i+1].update(inputs, i+1, env, cont);
-            } else {
-                cont();
+    compileInputBinding: function(ast, scope) {
+        var name = ast.name;
+        var expr = this.compileExpression(ast.expr, scope);
+
+        if (name in scope) {
+            scope[name] = typeUnify(scope[name], expr[0]);
+            var exprop = expr[1];
+            return function(env) {
+                return equalityTest(env.readVar(name), exprop(env));
+            }
+        } else {
+            scope[name] = expr[0];
+            return function(env) {
+                env.setVar(name, exprop(env));
                 return true;
             }
         }
-
-        if (aggregate !== null)
-            return this.compileUpdateAggregate(filters, alias, aggregate, continueUpdate);
-        else
-            return this.compileUpdateOneTuple(filters, alias, continueUpdate);
     },
 
-    compileAction: function(outputs) {
-        return function(env) {
-            outputs.forEach(function(output) {
-                output(env);
-            });
-        }
+    compileInputMemberBinding: function(ast, scope) {
+        var name = ast.name;
+        if (name in scope)
+            throw new TypeError('Duplicate member binding expression for ' + name);
+        scope[name] = Type.User;
+        return name;
     },
 
-    compileSelectors: function(selectors, mode) {
-        var i = 0;
-
-        // a selector is composed of an optional context (not handled here)
-        // an optional group reference
-        //   one or more devices
-        //   -or-
-        //   a compute module reference
-        // an optional channel name (defaults to source/sink)
-
-        var group = undefined;
-        var devices = undefined;
-        var computeModule = undefined;
-        var table = undefined;
-        var channelName = undefined;
-        var schema = undefined;
-
-        if (selectors[0].isAggregate) {
-            var result = this.compileSelectors(selectors[0].inner, mode);
-            result.aggregate = { op: selectors[0].op, what: selectors[0].what };
-
-            if (result.schema !== null &&
-                !(result.aggregate.what in result.schema))
-                throw new TypeError("Invalid aggregation parameter " + result.aggregate.what);
-
-            return result;
-        }
-
-        while (devices === undefined && computeModule === undefined && table === undefined
-               && i < selectors.length) {
-            var first = selectors[i];
-
-            if (first.isVarRef) {
-                if (first.name in this._scope) {
-                    var result = this._scope[first.name];
-                    if (result.isModule) {
-                        if (group === undefined)
-                            group = null;
-                        devices = null;
-                        computeModule = { scope: null, name: first.name };
-                        table = null;
-                        i++;
-                    } else if (result.isTable) {
-                        if (group === undefined)
-                            group = null;
-                        devices = null;
-                        computeModule = null;
-                        table = first.name;
-                        i++;
-                    } else if (result.isGroup && group === undefined) {
-                        group = first.name;
-                        i++;
-                    } else {
-                        // FIXME: a better error message for a group nested in a group...
-                        throw new TypeError('Name ' + first.name + ' cannot be used as scoped reference');
-                    }
-                } else {
-                    if (group === undefined)
-                        group = null;
-                    computeModule = null;
-                    devices = [Selector.Kind(first.name)];
-                    table = null;
-                    i++;
-                }
-            } else if (first.isScoped) {
-                if (!(first.scope in this._imports) &&
-                    first.scope !== 'Builtin')
-                    throw new TypeError('Invalid external module reference to ' + first.scope);
-                var scope;
-                if (first.scope === 'Builtin')
-                    scope = 'Builtin';
-                else
-                    scope = this._imports[first.scope];
-                if (!(first.name in scope))
-                    throw new TypeError('Invalid external module reference to ' + first.scope + '::' + first.name);
-                if (group === undefined)
-                    group = null;
-                devices = null;
-                computeModule = { scope: scope, name: first.name };
-                table = null;
-                i++;
-            } else if (first.isTags || first.isId) {
-                if (group === undefined)
-                    group = null;
-                computeModule = null;
-                devices = [first];
-                table = null;
-                i++;
-            }
-        }
-        if (group === undefined)
-            throw new TypeError();
-        if (devices === undefined && computeModule === undefined && table === undefined) {
-            if (mode === 'r')
-                var defaultChannel = 'source';
-            else
-                var defaultChannel = 'sink';
-
-            return {
-                group: group,
-                aggregate: null,
-                devices: null,
-                computeModule: null,
-                table: null,
-                channelName: defaultChannel,
-                schema: null,
-            };
-        }
-        if (devices === undefined || computeModule === undefined || table === undefined)
-            throw new TypeError();
-
-        if (devices !== null) {
-            for ( ; i < selectors.length - 1; i++) {
-                var first = selectors[i];
-
-                if (first.isTags || first.isId)
-                    devices.push(first);
-                else
-                    throw new TypeError('Variable reference not allowed in device scope');
-            }
-        }
-
-        if (i < selectors.length) {
-            var first = selectors[i];
-
-            if (first.isVarRef) {
-                channelName = first.name;
-            } else if (first.isTags || first.isId) {
-                if (devices !== null)
-                    devices.push(first);
-                else
-                    throw new TypeError('Device reference not allowed in compute module scope');
-            } else {
-                throw new TypeError('Scoped reference not allowed in device or compute module scope');
-            }
-        }
-
-        if (channelName === undefined) {
-            if (computeModule !== null) {
-                if (mode === 'r')
-                    channelName = 'in';
-                else
-                    channelName = 'out';
-            } else if (table !== null) {
-                if (mode === 'r')
-                    channelName = 'oninsert';
-                else
-                    channelName = 'insert';
-            } else {
-                if (mode === 'r')
-                    channelName = 'source';
-                else
-                    channelName = 'sink';
-            }
-        }
-
-        if (computeModule !== null) {
-            var imported = computeModule.scope;
-            if (imported === null)
-                imported = this._modules;
-            var module = imported[computeModule.name];
-            if (mode === 'r') {
-                if (!(channelName in module.events))
-                    throw new TypeError("Invalid event reference " + channelName);
-                schema = module.events[channelName];
-            } else {
-                if (!(channelName in module.functions))
-                    throw new TypeError("Invalid function reference " + channelName);
-                schema = module.functions[channelName].params;
-            }
-        } else if (table !== null) {
-            schema = this._tables[table];
-            if (mode === 'r') {
-                if (['oninsert', 'alldata'].indexOf(channelName) < 0)
-                    throw new TypeError("Invalid table reference " + channelName);
-            } else {
-                if (['insert', 'delete'].indexOf(channelName) < 0)
-                    throw new TypeError("Invalid table reference " + channelName);
-            }
-        } else {
-            schema = null;
-        }
-
-        return { group: group,
-                 aggregate: null,
-                 devices: devices,
-                 computeModule: computeModule,
-                 table: table,
-                 channelName: channelName,
-                 schema: schema };
+    compileCondition: function(ast, scope) {
+        var expr = this.compileExpression(ast.expr, scope);
+        typeUnify(expr[0], Type.Boolean);
+        return expr[1];
     },
 
-    compileAlias: function(ast, schema, aggregate, localscope, implicitAlias) {
-        if (ast === null)
-            return implicitAlias;
-        if (aggregate !== null) {
-            if (aggregate.op === 'max' || aggregate.op === 'min') {
-                return this.compileAlias(ast, schema, null, localscope, implicitAlias);
-            } else {
-                if (Array.isArray(ast))
-                    throw new TypeError("Cannot unpack the result of numeric aggregation");
+    analyzeExpression: function(expr, state, scope) {
+        if (expr.isConstant || expr.isFeedKeywordRef)
+            return;
 
-                if (aggregate.op === 'all') {
-                    localscope[ast] = Type.Array(Type.Object(schema));
-                } else {
-                    if (schema === null) {
-                        localscope[ast] = Type.Number;
-                    } else {
-                        localscope[ast] = schema[aggregate.what];
-                    }
-                }
-                return ast;
-            }
-        }
-        if (Array.isArray(ast)) {
-            ast.forEach(function(name) {
-                if (schema === null) {
-                    localscope[name] = Type.Any;
-                } else {
-                    if (!(name in schema))
-                        throw new TypeError('Name ' + name + ' does not appear in schema');
-                    localscope[name] = schema[name];
-                }
-            });
-        } else {
-            localscope[ast] = Type.Object(schema);
-        }
-        return ast;
-    },
-
-    compileInputs: function(localscope, ast, implicitAlias, state) {
-        return ast.map(function(input) {
-            var selector = this.compileSelectors(input.selectors, 'r');
-            selector.context = input.context;
-            var alias = this.compileAlias(input.alias, selector.schema, selector.aggregate,
-                                          localscope, implicitAlias);
-
-            var filters = input.filters.map(function(filter) {
-                return this.compileFilter(filter, localscope, selector.schema);
-            },this);
-
-            var inputBlock = {
-                selectors: selector,
-                alias: alias,
-                channels: [],
-                update: this.compileUpdate(filters, alias, selector.aggregate),
-                filters: input.filters.map(function(filter) {
-                    return this.simplifyFilter(filter, state);
-                }.bind(this)).filter(function(f) { return f !== null; })
-            };
-
-            return inputBlock;
-        }.bind(this));
-    },
-
-    compileOutputs: function(localscope, ast) {
-        return ast.map(function(output) {
-            var selector = this.compileSelectors(output.selectors, 'w');
-            selector.context = output.context;
-
-            var assignments = output.outputs.map(function(output) {
-                return this.compileAssignment(output, localscope, selector.schema);
+        if (expr.isVarRef) {
+            if (expr.name in this._keywords || expr.name in scope)
+                return;
+            state[expr.name] = true;
+        } else if (expr.isMemberRef) {
+            this.analyzeExpression(expr.object, state, scope);
+        } else if (expr.isFunctionCall) {
+            expr.args.forEach(function(arg) {
+                this.analyzeExpression(arg, state, scope);
             }, this);
+        } else if (expr.isUnaryOp) {
+            this.analyzeExpression(expr.arg, state, scope);
+        } else if (expr.isBinaryOp) {
+            this.analyzeExpression(expr.lhs, state, scope);
+            this.analyzeExpression(expr.rhs, state, scope);
+        }
+    },
 
-            var outputBlock = {
-                selectors: selector,
-                channels: [],
-                action: this.compileAction(assignments)
+    analyzeInputBinding: function(ast, scope) {
+        // "x = y" parsed as name x, expr y, could also be name y, expr x
+        // we return null to signal that
+        if (ast.expr.isVarRef)
+            return null;
+
+        var state = {};
+        this.analyzeExpression(ast.expr, state, scope);
+        return Object.keys(state);
+    },
+
+    reorderInputBindings: function(bindings, scope) {
+       var bindinganalysis = [];
+        for (var i = 0; i < bindings.length; i++) {
+            bindinganalysis.push(this.analyzeInputBinding(bindings[i], scope));
+        }
+
+        var backtrackorder = [];
+        var backtrackscope = {};
+        function backtrack(i) {
+            if (i === bindings.length)
+                return true;
+
+            for (var j = 0; j < bindings.length; j++) {
+                if (bindings[j] === null)
+                    continue;
+
+                // try to assign bindings[j] to the order
+
+                // first, check that it is possible
+                var analysis = bindinganalysis[j];
+                if (analysis !== null) {
+                    if (!analysis.every(function(req) { return !!backtrackscope[req]; }))
+                        continue;
+
+                    var binding = bindings[j];
+                    bindings[j] = null;
+                    backtrackorder[i] = binding;
+                    var setscope = false;
+                    if (!backtrackscope[binding.name] &&
+                        !(binding.name in scope)) {
+                        backtrackscope[binding.name] = true;
+                        setscope = true;
+                    }
+
+                    if (backtrack(i+1))
+                        return true;
+
+                    bindings[j] = binding;
+                    if (setscope)
+                        backtrackscope[binding.name] = false;
+                } else {
+                    var rhs = binding.name;
+                    var lhs = binding.expr.name;
+
+                    if ((!!backtrackscope[rhs] || rhs in scope) &&
+                        (!!backtrackscope[lhs] || lhs in scope)) {
+                        // both are bound, this is an equality not a binding
+                        var binding = bindings[j];
+                        bindings[j] = null;
+                        backtrackorder[i] = binding;
+                        if (backtrack(i+1))
+                            return true;
+                        bindings[j] = binding;
+                        // we didn't touch the scope at this point, so if it failed
+                        // there is no point is trying again with this binding
+                        continue;
+                    }
+
+                    if (!!backtrackscope[rhs] || rhs in scope) {
+                        // rhs is bound, so lhs is being assigned -- reverse the binding
+                        var originalbinding = bindings[j];
+                        bindings[j] = null;
+                        backtrackorder[i] = InputSpec.Binding(lsh, Expression.VarRef(rhs));
+                        backtrackscope[lhs] = true;
+
+                        if (backtrack(i+1))
+                            return true;
+
+                        bindings[j] = originalbinding;
+                        backtrackscope[lhs] = false;
+                    }
+
+                    if (!!backtrackscope[lhs] || lhs in scope) {
+                        // lhs is bound, so rhs is being assigned
+                        var binding = bindings[j];
+                        bindings[j] = null;
+                        backtrackorder[i] = binding;
+                        backtrackscope[rhs] = true;
+
+                        if (backtrack(i+1))
+                            return true;
+
+                        bindings[j] = binding;
+                        backtrackscope[rhs] = false;
+                    }
+
+                    // neither is in scope, or neither order worked, move on
+                }
+            }
+
+            // no assignment possible at this step
+            return false;
+        }
+
+        if (!backtrack(0))
+            throw new TypeError("Could not find a valid order of assignments");
+
+        return backtrackorder;
+    },
+
+    compileInputs: function(ast) {
+        var inputs = ast.inputs.slice();
+
+        // order trigger -> member binding -> keyword -> binding -> condition
+        function inputClass(a) {
+            if (a.isTrigger)
+                return 0;
+            else if (a.isMemberBinding)
+                return 1;
+            else if (a.isKeyword)
+                return 2;
+            else if (a.isBinding)
+                return 3;
+            else if (a.isCondition)
+                return 4;
+        }
+        inputs.sort(function(a, b) {
+            var va = inputClass(a);
+            var vb = inputClass(b);
+            return va - vb;
+        });
+
+        var trigger = null;
+        var memberBindings = [];
+        var memberBindingKeywords = {};
+        var keywords = [];
+        var inputFunctions = [];
+        var scope = { self: Type.User };
+        var bindings = [];
+        var conditions = [];
+        for (var i = 0; i < inputs.length; i++) {
+            var input = inputs[i];
+
+            if (input.isTrigger) {
+                var compiled = this.compileInputTrigger(input, scope);
+                trigger = { selector: compiled[0],
+                            name: compiled[1],
+                            params: compiled[2], };
+                inputFunctions.push(compiled[3]);
+            } else if (input.isMemberBinding) {
+                var compiled = this.compileInputMemberBinding(input, scope);
+                memberBindings.push(compiled);
+                memberBindingKeywords[compiled] = {};
+            } else if (input.isKeyword) {
+                var compiled = this.compileInputKeyword(input, scope);
+                // XXX: find a better way than monkey-patching an ADT
+                compiled[0].owner = compiled[1];
+                keywords.push(compiled[0]);
+                if (compiled[1] !== 'self')
+                    memberBindingKeywords[compiled[1]].push(compiled[0].name);
+                inputFunctions.push(compiled[2]);
+            } else if (input.isBinding) {
+                bindings.push(input);
+            } else if (input.isCondition) {
+                conditions.push(input);
+            } else {
+                throw new TypeError();
+            }
+        }
+
+        // bindings further need to be sorted so that the variables they need
+        // are in scope
+        // this is complicated by the fact that bindings like "x := y" are
+        // indistinguishable from "y := x", so we need to explore both possibilities
+        // we run a quick backtracking search, as the number of bindings should
+        // be small anyway
+        bindings = this.reorderInputBindings(bindings, scope);
+
+        for (var i = 0; i < backtrackorder.length; i++)
+            inputFunctions.push(this.compileInputBinding(backtrackorder[i], scope));
+
+        for (var i = 0; i < conditions.length; i++)
+            inputFunctions.push(this.compileCondition(conditions[i], scope));
+
+        function fullFilter(env) {
+            for (var i = 0; i < inputFunctions.length; i++)
+                if (!inputFunctions[i](env))
+                    return false;
+        }
+
+        var memberCaller = null;
+
+        // fast path simple cases
+        if (memberBindings.length === 0) {
+            memberCaller = function(env, cont) {
+                if (fullFilter(env))
+                    cont();
             };
+        } else if (memberBindings.length === 0) {
+            var memberBinding = memberBindings[i];
+            memberCaller = function(env, cont) {
+                var members = env.getAllFeedMembers();
+                if (env.changedMember !== null) {
+                    env.setMemberBinding(memberBinding, env.changedMember);
+                    env.setVar(memberBindings[i], members[env.changedMember]);
+                    if (fullFilter(env))
+                        cont();
+                } else {
+                    for (var j = 0; j < members.length; j++) {
+                        env.setMemberBinding(memberBindings[i], members[j]);
+                        env.setVar(memberBindings[i], members[j]);
+                        if (fullFilter(env))
+                            cont();
+                    }
+                }
+            };
+        } else {
+            memberCaller = function(env, cont) {
+                var fixed;
 
-            return outputBlock;
+                function next(i) {
+                    if (i === memberBindings.length) {
+                        if (fullFilter(env))
+                            cont();
+                        return;
+                    }
+
+                    var members = env.getAllFeedMembers();
+                    if (i === fixed) {
+                        env.setMemberBinding(memberBindings[i], env.changedMember);
+                        env.setVar(memberBindings[i], members[env.changedMember]);
+                        next(i+1);
+                    } else {
+                        for (var j = 0; j < members.length; j++) {
+                            env.setMemberBinding(memberBindings[i], j);
+                            env.setVar(memberBindings[i], members[j]);
+                            next(i+1);
+                        }
+                    }
+                }
+
+                if (env.changedMember !== null) {
+                    // fix bindings that use keywords that changed
+                    //
+                    // so for A[m1], B[m1], C[m2], if A[0] changes
+                    // we fix m1 to 0 and let m2 vary, because A is in m1's memberBindingKeywords
+                    // we don't fix m2 to 0 and let m1 vary, because C did not change
+                    //
+                    // for A[m1], A[m2], if A[0] changes
+                    // first we fix m1 to 0 and let m2 vary,
+                    // then we fix m2 to 0 and let m1 vary
+                    for (var i = 0; i < memberBindings.length; i++) {
+                        if (memberBindingKeywords[memberBindings[i]].indexOf(env.changedKeyword) != -1) {
+                            fixed = i;
+                            next(0);
+                        }
+                    }
+                } else {
+                    // fix nothing
+                    fixed = -1;
+                    next(0);
+                }
+            }
+        }
+
+        return {
+            trigger: trigger,
+            keywords: keywords,
+            caller: memberCaller,
+            scope: scope,
+        };
+    },
+
+    compileOutput: function(ast, scope) {
+        var output = ast.output;
+
+        var params = ast.params.map(function(param) {
+            return this.compileExpression(param, scope);
         }, this);
+
+        var action = null;
+        var keyword = null;
+        var owner = null;
+        if (output.isAction) {
+            action = { selector: ast.selector,
+                       name: ast.name,
+                       params: [] };
+
+            // FIXME: check types of against action schema
+        } else {
+            keyword = ast.keyword;
+            owner = ast.owner;
+
+            if (owner !== null && !keyword.feedAccess)
+                throw new TypeError('Invalid ownership operator on private keyword');
+            if (owner === null && keyword.feedAccess)
+                throw new TypeError('Missing ownership operator on feed-accessible keyword');
+            if (owner !== null && owner !== 'self' &&
+                (!(owner in scope) || !scope[owner].isUser))
+                throw new TypeError('Invalid or unbound ownership operator ' + owner);
+
+            if (!(keyword.name in this._keywords)) {
+                var decl = {
+                    feedAccess: keyword.feedAccess,
+                    isArray: false,
+                    extern: false,
+                    schema: null
+                };
+                if (decl.feedAccess && !this._feedAccess)
+                    throw new TypeError("Feed-accessible keyword declared in non feed-parametric program");
+
+                decl.schema = params.map(function(p) { return p[0]; });
+                this._keywords[keyword.name] = decl;
+            } else {
+                var decl = this._keywords[decl];
+                if (keyword.feedAccess !== decl.feedAccess)
+                    throw new TypeError('Inconsistent use of keyword feed specifier');
+
+                params.forEach(function(p, i) {
+                    decl.schema[i] = typeUnify(p[0], decl.schema[i]);
+                });
+            }
+        }
+
+        return {
+            action: action,
+            keyword: keyword,
+            owner: owner,
+            produce: function(env) {
+                return params.map(function(fn) {
+                    return fn(env);
+                });
+            }
+        };
+    },
+
+    compileRule: function(ast) {
+        var inputs = this.compileInputs(ast);
+        var scope = inputs.scope;
+        delete inputs.scope;
+        return { inputs: inputs,
+                 output: this.compileOutput(ast, scope) };
     },
 
     compileModule: function(ast) {
@@ -1307,59 +1435,52 @@ module.exports = new lang.Class({
         return module;
     },
 
-    compileTable: function(ast) {
-        var table = {};
+    compileVarDecl: function(ast) {
+        var name = ast.name.name;
+        var decl = {
+            feedAccess: ast.name.feedAccess,
+            isArray: ast.isArray,
+            extern: ast.extern,
+            schema: null
+        };
+        if (decl.feedAccess && !this._feedAccess)
+            throw new TypeError("Feed-accessible keyword declared in non feed-parametric program");
 
-        ast.params.forEach(function(p) {
-            if (p.name in table)
-                throw new TypeError("Duplicate param " + p.name);
-            table[p.name] = stringToType(p.type);
+        decl.schema = ast.params.map(function(p) {
+            return stringToType(p);
         });
 
-        return table;
-    },
-
-    lookupImport: function(name) {
-        if (name === 'Aggregation')
-            return { name: 'Aggregation' }; // FINISHME
-        else if (name === 'Builtin')
-            return { name: 'Builtin' };
-        else
-            throw new TypeError("Unknown import " + name);
+        return decl;
     },
 
     compileProgram: function(ast, state) {
-        this._programName = ast.name;
+        this._name = ast.name.name;
+        this._feedAccess = ast.name.feedAccess;
         ast.params.forEach(function(ast) {
             this._params[ast.name] = stringToType(ast.type);
             this._scope[ast.name] = this._params[ast.name];
         }, this);
 
         ast.statements.forEach(function(stmt) {
-            if (stmt.isImport) {
-                if (stmt.alias in this._imports)
-                    throw new TypeError('Duplicate import declaration for ' + stmt.alias);
-                this._imports[stmt.alias] = this.lookupImport(stmt.name);
-            } else if (stmt.isComputeModule) {
+            if (stmt.isComputeModule) {
                 if (stmt.name in this._modules)
                     throw new TypeError('Duplicate declaration for module ' + stmt.name);
                 if (stmt.name in this._scope)
                     throw new TypeError('Module declaration ' + stmt.name + ' aliases name in scope');
                 this._modules[stmt.name] = this.compileModule(stmt);
                 this._scope[stmt.name] = Type.Module;
-            } else if (stmt.isTable) {
-                if (stmt.name in this._tables)
-                    throw new TypeError('Duplicate declaration for table ' + stmt.name);
-                if (stmt.name in this._scope)
-                    throw new TypeError('Table declaration ' + stmt.name + ' aliases name in scope');
-                this._tables[stmt.name] = this.compileTable(stmt);
-                this._scope[stmt.name] = Type.Table;
+            } else if (stmt.isVarDecl) {
+                if (stmt.name.name in this._keywords)
+                    throw new TypeError('Duplicate declaration for keyword ' + stmt.name.name);
+                if (stmt.name.name in this._scope)
+                    throw new TypeError('Keyword declaration ' + stmt.name.name + ' aliases name in scope');
+                this._keywords[stmt.name.name] = this.compileVarDecl(stmt);
+                if (this._keywords[stmt.name.name].isArray)
+                    this._scope[stmt.name.name] = Type.Array(Type.Tuple(this._keywords[stmt.name.name].schema));
+                else
+                    this._scope[stmt.name.name] = Type.Tuple(this._keywords[stmt.name.name].schema);
             } else if (stmt.isRule) {
-                var localscope = {};
-                this._rules.push({
-                    inputs: this.compileInputs(localscope, stmt.inputs, null, state),
-                    outputs: this.compileOutputs(localscope, stmt.outputs)
-                });
+                this._rules.push(this.compileRule(stmt));
             }
         }, this);
     },
@@ -1384,52 +1505,16 @@ module.exports = new lang.Class({
     },
 });
 
-var Selector = adt.data(function() {
-    return {
-        Aggregate: {
-            inner: adt.only(Array),
-            op: adt.only(String),
-            what: adt.only(String),
-        },
-        VarRef: {
-            name: adt.only(String),
-        },
-        Scoped: {
-            scope: adt.only(String),
-            name: adt.only(String),
-        },
-        Tags: {
-            tags: adt.only(Array),
-        },
-        Id: {
-            name: adt.only(String),
-        },
-        Kind: {
-            name: adt.only(String)
-        },
-        Any: null,
+function adtNullable(o) {
+    var only = adt.only(o);
+    return function(v) {
+        if (v === null)
+            return v;
+        else
+            return only.apply(this, arguments);
     };
-});
-module.exports.Selector = Selector;
-var AtRule = adt.data({
-    Setting: {
-        name: adt.only(String),
-        props: adt.only(Array),
-    },
-    Name: {
-        value: adt.only(String),
-    },
-    Description: {
-        value: adt.only(String),
-    },
-    Auth: {
-        params: adt.only(Array),
-    },
-    Kind: {
-        kind: adt.only(String),
-    },
-});
-module.exports.AtRule = AtRule;
+}
+
 var Value = adt.data({
     Boolean: {
         value: adt.only(Boolean),
@@ -1459,6 +1544,29 @@ var Value = adt.data({
     },
 });
 module.exports.Value = Value;
+var Attribute = adt.newtype('Attribute', {
+    name: adt.only(String),
+    value: adt.only(Value)
+});
+module.exports.Attribute = Attribute;
+var Selector = adt.data({
+    GlobalName: {
+        name: adt.only(String),
+    },
+    Attribute: {
+        attributes: adt.only(Array),
+    },
+
+    // for internal use only
+    Any: null,
+});
+module.exports.Selector = Selector;
+var Keyword = adt.newtype('Keyword', {
+    name: adt.only(String),
+    feedAccess: adt.only(Boolean)
+});
+module.exports.Keyword = Keyword;
+
 var Expression = adt.data(function() {
     return ({
         Constant: {
@@ -1467,7 +1575,7 @@ var Expression = adt.data(function() {
         VarRef: {
             name: adt.only(String)
         },
-        ContextRef: {
+        FeedKeywordRef: {
             name: adt.only(String)
         },
         MemberRef: {
@@ -1481,49 +1589,77 @@ var Expression = adt.data(function() {
         UnaryOp: {
             arg: adt.only(this),
             opcode: adt.only(String),
-            op: adt.only(Function),
         },
         BinaryOp: {
             lhs: adt.only(this),
             rhs: adt.only(this),
             opcode: adt.only(String),
-            op: adt.only(Function)
         }
     });
 });
 module.exports.Expression = Expression;
-var InputRule = adt.data({
-    Threshold: {
-        lhs: adt.only(Expression),
-        comparator: adt.only(String),
-        rhs: adt.only(Expression)
+var KeywordParam = adt.data({
+    Null: null,
+    Constant: {
+        value: adt.only(Value),
     },
-});
-module.exports.InputRule = InputRule;
-var OutputRule = adt.data({
-    Assignment: {
+    Binder: {
         name: adt.only(String),
-        rhs: adt.only(Expression)
     }
 });
-module.exports.OutputRule = OutputRule;
-var Statement = adt.data({
-    Import: {
+module.exports.KeywordParam = KeywordParam;
+var InputSpec = adt.data({
+    Trigger: {
+        selector: adt.only(Selector),
         name: adt.only(String),
-        alias: adt.only(String),
+        params: adt.only(Array) // of KeywordParam
     },
+    Keyword: {
+        keyword: adt.only(Keyword),
+        owner: adtNullable(String),
+        params: adt.only(Array), // of KeywordParam
+        negative: adt.only(Boolean)
+    },
+    Binding: {
+        name: adt.only(String),
+        expr: adt.only(Expression)
+    },
+    MemberBinding: {
+        name: adt.only(String)
+    },
+    Condition: {
+        expr: Expression
+    },
+});
+module.exports.InputSpec = InputSpec;
+var OutputSpec = adt.data({
+    Action: {
+        selector: adt.only(Selector),
+        name: adt.only(String),
+        params: adt.only(Array),
+    },
+    Keyword: {
+        keyword: adt.only(Keyword),
+        owner: adtNullable(String),
+        params: adt.only(Array)
+    }
+});
+module.exports.OutputSpec = OutputSpec;
+var Statement = adt.data({
     ComputeModule: {
         name: adt.only(String),
         params: adt.only(Array),
         statements: adt.only(Array), // array of ComputeStatement
     },
-    Table: {
-        name: adt.only(String),
+    VarDecl: {
+        name: adt.only(Keyword),
         params: adt.only(Array),
+        isArray: adt.only(Boolean),
+        extern: adt.only(Boolean),
     },
     Rule: {
         inputs: adt.only(Array),
-        outputs: adt.only(Array),
+        output: adt.only(OutputSpec),
     }
 });
 module.exports.Statement = Statement;
@@ -1534,8 +1670,7 @@ var ComputeStatement = adt.data({
     },
     VarDecl: {
         name: adt.only(String),
-        type: function(v) { if (v === null) return v;
-                            else return adt.only(String).apply(this, arguments); },
+        type: adtNullable(String),
     },
     EventDecl: {
         name: adt.only(String),

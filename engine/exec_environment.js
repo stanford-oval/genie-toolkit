@@ -14,79 +14,59 @@ const adt = require('adt');
 module.exports = new lang.Class({
     Name: 'ExecEnvironment',
 
-    _init: function(engine, devicedb, appstate) {
-        this.engine = engine;
-        this._devices = devicedb;
+    _init: function(appstate) {
         this._state = appstate;
-
-        this._enabledFlags = {};
-
+        this._keywords = {};
         this.reset();
     },
 
-    setInputBlockEnabled: function(name, enabled) {
-        this._enabledFlags[name] = enabled;
-    },
-
-    getInputBlockEnabled: function(name) {
-        if (this._enabledFlags[name] === undefined)
-            return true;
-        else
-            return !!this._enabledFlags[name];
+    addKeyword: function(name, keyword) {
+        this._keywords[name] = keyword;
     },
 
     reset: function() {
-        this._scope = {};
-        this._previousThis = null;
-        this._this = null;
-        this._useCurrent = true;
-        this._output = null;
+        this.triggerValue = null;
+        this.changedMember = null;
+        this.changedKeyword = null;
+        // self is always member 0 in the list
+        this._scope = { self: this.readFeedMember(0) };
+        this._memberBindings = { self: 0 };
+        this._feed = null;
     },
 
-    // deprecated
-    getAllAliases: function() {
-        return this._scope;
+    getFeedMembers: function() {
+        return this._feed.getMembers();
     },
 
-    mergeScope: function(scope) {
-        for (var name in scope)
-            this._scope[name] = scope[name];
+    setMemberBinding: function(name, member) {
+        this._memberBindings[name] = member;
     },
 
-    setPreviousThis: function(obj) {
-        this._previousThis = obj;
+    getMemberBinding: function(name) {
+        return this._memberBindings[name];
     },
 
-    setThis: function(obj) {
-        this._this = obj;
+    setFeed: function(feed) {
+        this._feed = feed;
     },
 
-    get hasPrevious() {
-        return this._previousThis !== null;
+    readFeedMember: function(user) {
+        return this._feed.getMembers()[user];
     },
 
-    setUseCurrent: function(flag) {
-        this._useCurrent = flag;
+    setVar: function(name, value) {
+        this._scope[name] = value;
     },
 
-    readVar: function(type, name) {
-        var thisobj = this._useCurrent ? this._this : this._previousThis;
-        if (thisobj !== null && thisobj[name] !== undefined)
-            return thisobj[name];
-        if (this._output !== null && this._output[name] !== undefined)
-            return this._output[name];
+    readKeyword: function(name) {
+        return this._keywords[name].value;
+    },
+
+    readVar: function(name) {
         if (this._scope[name] !== undefined)
             return this._scope[name];
         if (this._state[name] !== undefined)
             return this._state[name];
-        if (type.isBoolean)
-            return false;
-        if (type.isNumber || type.isMeasure)
-            return 0;
-        if (type.isString)
-            return '';
-        if (type.isLocation)
-            return {x:0, y:0};
         throw new TypeError("Unknown variable " + name);
     },
 
@@ -95,29 +75,5 @@ module.exports = new lang.Class({
         if (v === undefined)
             throw new TypeError('Object ' + object + ' has no property ' + name);
         return v;
-    },
-
-    readObject: function(name) {
-        // recognize short forms of thingengine references
-        if (name === 'me')
-            name = 'thingengine-own-phone';
-        else if (name === 'home')
-            name = 'thingengine-own-server';
-
-        return this._devices.getDevice(name);
-    },
-
-    beginOutput: function() {
-        this._output = {};
-    },
-
-    writeValue: function(name, value) {
-        this._output[name] = value;
-    },
-
-    finishOutput: function() {
-        var out = this._output;
-        this._output = null;
-        return out;
     }
 });

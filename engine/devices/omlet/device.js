@@ -123,7 +123,7 @@ const OmletDevice = new lang.Class({
         if (this._omletClient !== null)
             return this._omletClient;
 
-        this._omletClient = makeOmletClient(this.omletInstance, this.omletStorage, true);
+        this._omletClient = makeOmletClient(this.omletInstance, this.omletStorage, false);
         return this._omletClient;
     },
 

@@ -10,20 +10,17 @@ const events = require('events');
 const lang = require('lang');
 const Q = require('q');
 
+const RefCounted = require('./util/ref_counted');
 const Tier = require('./tier_manager').Tier;
 
 module.exports = new lang.Class({
     Name: 'BaseChannel',
     Abstract: true,
-    Extends: events.EventEmitter,
+    Extends: RefCounted,
 
     _init: function() {
-        events.EventEmitter.call(this);
-        this.setMaxListeners(0);
+        this.parent();
 
-        this._useCount = 0;
-        this._openPromise = null;
-        this._closePromise = null;
         this._previousEvent = null;
         this._event = null;
 
@@ -34,63 +31,6 @@ module.exports = new lang.Class({
 
         // don't set this, it is set automatically by ChannelFactory
         this.uniqueId = undefined;
-    },
-
-    // Open any resources or connections that this channel might
-    // require
-    _doOpen: function() {
-        return Q();
-    },
-
-    // Close all resources that were opened in open()
-    _doClose: function() {
-        return Q();
-    },
-
-    // public API handles ref counts for you, so that multiple apps can open your
-    // channel and individually close it
-    open: function() {
-        // if closing, wait to fully close then reopen
-        if (this._closePromise) {
-            return this._closePromise.then(function() {
-                return this.open();
-            }.bind(this));
-        }
-
-        this._useCount++;
-        if (this._useCount == 1) { // first open
-            if (this._openPromise)
-                throw new Error('bookkeeping error');
-            return this._openPromise = this._doOpen().finally(function() {
-                this._openPromise = null;
-            }.bind(this));
-        } else if (this._openPromise) { // opening
-            return this._openPromise;
-        } else { // opened
-            return Q();
-        }
-    },
-
-    close: function() {
-        // if opening, wait to fully open then close
-        if (this._openPromise) {
-            return this._openPromise.then(function() {
-                return this.close();
-            }.bind(this));
-        }
-
-        this._useCount++;
-        if (this._useCount == 0) { // last close
-            if (this._closePromise)
-                throw new Error('bookkeeping error');
-            return this._closePromise = this._doOpen().finally(function() {
-                this._closePromise = null;
-            }.bind(this));
-        } else if (this._closePromise) { // opening
-            return this._closePromise;
-        } else { // opened
-            return Q();
-        }
     },
 
     get event() {

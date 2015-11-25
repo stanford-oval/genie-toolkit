@@ -166,12 +166,12 @@ module.exports = new lang.Class({
     // because it creates new Device kinds on the fly)
     // (GenericDevice is also sort of special, but less than ComputeModule, so
     // it does not need to override getChannel)
-    getChannel: function(id, filters) {
+    getChannel: function(id, params) {
         if (this.ownerTier === this.engine.ownTier ||
             this.ownerTier === Tier.GLOBAL)
-            return this.engine.channels.getOpenedChannel(this, id, filters);
+            return this.engine.channels.getOpenedChannel(this, id, params);
         else
-            return this.engine.channels.getProxyChannel(this.ownerTier, this, id, filters);
+            return this.engine.channels.getProxyChannel(this.ownerTier, this, id, params);
     }
 });
 

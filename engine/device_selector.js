@@ -19,18 +19,16 @@ module.exports = new lang.Class({
     Name: 'DeviceSelector',
     Extends: events.EventEmitter,
 
-    _init: function(engine, app, mode, block) {
+    _init: function(engine, mode, block) {
         events.EventEmitter.call(this);
 
         this.engine = engine;
-        this._app = app;
         this._mode = mode;
-        this._selectors = null;
-        this._context = null;
-        this._pipe = null;
-
-        this._resolveSelector(block.selectors, app.state);
-        this._filters = block.filters || [];
+        // for now, only 'me' is accessible
+        this._context = engine.devices.getContext('me');
+        this._selector = block.selector;
+        this._channelName = block.name;
+        this._params = block.params;
 
         this._set = null;
         this._view = null;
@@ -42,29 +40,9 @@ module.exports = new lang.Class({
         return this._set.values();
     },
 
-    _resolveSelector: function(selector, state) {
-        var devices = this.engine.devices;
-
-        var mapped = [];
-        if (selector.group !== null)
-            mapped.push(AppCompiler.Selector.Id(state[selector.group]));
-
-        if (selector.devices !== null) {
-            mapped = mapped.concat(selector.devices);
-        } else if (selector.computeModule !== null) {
-            mapped.push(AppCompiler.Selector.Id('thingengine-compute-module-' + this._app.uniqueId + '-' + selector.computeModule.name));
-        } else if (selector.table !== null) {
-            mapped.push(AppCompiler.Selector.Id('thingengine-table-' + this._app.uniqueId + '-' + selector.table));
-        }
-
-        this._context = devices.getContext(selector.context);
-        this._selectors = mapped;
-        this._channelName = selector.channelName;
-    },
-
     start: function() {
-        this._view = new DeviceView(null, this._context, this._selectors, this._channelName,
-                                    this._mode, this._filters, false);
+        this._view = new DeviceView(null, this._context, this._selector, this._channelName,
+                                    this._params, this._mode, false);
         return this._view.start().then(function(set) {
             this._set = set;
 

@@ -11,6 +11,7 @@ require('./polyfill');
 const Q = require('q');
 const lang = require('lang');
 
+const Database = require('./db/db');
 const AppDatabase = require('./db/apps');
 const ChannelFactory = require('./channel_factory');
 const DeviceFactory = require('./device_factory');
@@ -20,8 +21,7 @@ const ConfigPairingModule = require('./config_pairing');
 const ManualQueryRunner = require('./rpc_query_runner');
 const UIEventManager = require('./ui_event_manager');
 const MessagingDeviceManager = require('./messaging/device_manager');
-const MessagingGroupManager = require('./messaging/group_manager');
-const MessagingSubscriptionManager = require('./messaging/subscription_manager');
+const KeywordRegistry = require('./keyword_store');
 const MessagingSyncManager = require('./messaging/sync_manager');
 
 const Engine = new lang.Class({
@@ -33,28 +33,27 @@ const Engine = new lang.Class({
 
         this._tiers = new TierManager();
         this._deviceFactory = new DeviceFactory(this);
+        this._db = new Database();
         this._devices = new DeviceDatabase(this._tiers, this._deviceFactory);
         this._channels = new ChannelFactory(this, this._tiers, this._deviceFactory);
         this._apps = new AppDatabase(this, this._tiers);
 
         this._messaging = new MessagingDeviceManager(this._devices);
+        this._keywords = new KeywordRegistry(this._db, this._messaging);
         this._ui = new UIEventManager(this);
-
-        this._subscriptions = new MessagingSubscriptionManager(this._devices, this._messaging);
 
         // in loading order
         this._modules = [this._tiers,
+                         this._db,
                          this._devices,
                          this._messaging,
-                         new MessagingGroupManager(this._devices, this._messaging),
+                         this._keywords,
                          this._channels,
                          this._apps,
                          this._ui,
                          new ConfigPairingModule(this, this._tiers)];
         // to be started after the apps
-        this._lateModules = [this._subscriptions,
-                             new MessagingSyncManager(this._messaging)
-                            ];
+        this._lateModules = [new MessagingSyncManager(this._messaging)];
 
         this._running = false;
         this._stopCallback = null;
@@ -69,12 +68,16 @@ const Engine = new lang.Class({
         return this._tiers;
     },
 
+    get db() {
+        return this._db;
+    },
+
     get messaging() {
         return this._messaging;
     },
 
-    get subscriptions() {
-        return this._subscriptions;
+    get keywords() {
+        return this._keywords;
     },
 
     get channels() {

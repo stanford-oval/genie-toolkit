@@ -49,6 +49,8 @@ function httpRequestAsync(url, method, auth, data, callback) {
 }
 
 module.exports = function(kind, code) {
+    throw new Error('GenericDevice is temporarily unsupported');
+
     var compiler = new AppCompiler();
     var ast = AppGrammar.parse(code, { startRule: 'device_description' });
 

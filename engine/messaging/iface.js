@@ -10,6 +10,8 @@ const lang = require('lang');
 const events = require('events');
 const Q = require('q');
 
+const RefCounted = require('../util/ref_counted');
+
 const MessagingFeedCursor = new lang.Class({
     Name: 'MessagingFeedCursor',
     Abstract: true,
@@ -35,23 +37,34 @@ const MessagingFeedCursor = new lang.Class({
     },
 });
 
+const MessagingUser = new lang.Class({
+    Name: 'MessagingUser',
+    Abstract: true,
+
+    _init: function() {
+        this.id = undefined;
+        this.account = undefined;
+        this.name = undefined;
+    }
+});
+
 const MessagingFeed = new lang.Class({
     Name: 'MessagingFeed',
-    Extends: events.EventEmitter,
-    // events: new-message
+    Extends: RefCounted,
+    // events: new-message, members-changed
     Abstract: true,
 
     _init: function(feedId) {
-        events.EventEmitter.call(this);
+        this.parent();
 
         this.feedId = feedId;
     },
 
-    open: function() {
+    _doOpen: function() {
         throw new Error('Not Implemented');
     },
 
-    close: function() {
+    _doClose: function() {
         throw new Error('Not Implemented');
     },
 
@@ -89,7 +102,11 @@ module.exports = new lang.Class({
         throw new Error('Not Implemented');
     },
 
-    getOwnIds: function() {
+    getOwnId: function() {
+        throw new Error('Not Implemented');
+    },
+
+    getUserById: function() {
         throw new Error('Not Implemented');
     },
 
