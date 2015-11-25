@@ -72,9 +72,6 @@ function selectAll(client, string, args) {
 
 function selectOne(client, string, args) {
     return Q.ninvoke(client, 'get', string, args).then(function(row) {
-        if (row === undefined)
-            throw new Error("Did not find a row matching this query");
-
         return row;
     });
 }

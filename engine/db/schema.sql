@@ -34,3 +34,15 @@ drop index if exists device_lastModified;
 
 create index device_lastModified on device_journal(lastModified) ;
 
+drop table if exists keyword ;
+drop table if exists keyword_journal ;
+
+create table keyword (
+       uniqueId varchar(255) primary key,
+       value text default null
+);
+
+create table keyword_journal (
+       uniqueId varchar(255) primary key,
+       lastModified datetime
+);

@@ -40,25 +40,41 @@ const RemoteKeyword = new lang.Class({
         return this._value;
     },
 
+    _getKeywordForMember: function(id) {
+        var kw = this._localStore.getKeyword(this.uniqueId + '-' + kw);
+
+        return kw.open().then(function() {
+            this._memberToKeywordMap[id] = kw;
+            return kw;
+        });
+    },
+
     _syncAndEmit: function(senderId) {
         var members = this._feed.getMembers();
         var value = new Array(members.length);
 
-        var changedMember;
-        value[0] = this.local.value;
-        if (senderId === null)
-            changedMember = 0;
-        for (var i = 1; i < members.length; i++) {
-            var id = members[i].id;
-            if (!this._memberToKeywordMap[id])
-                this._memberToKeywordMap[id] = this._localStore.getKeyword(this.uniqueId + '-' + id);
-            value[i] = this._memberToKeywordMap[id].value;
-            if (id === senderId)
-                changedMember = i;
-        }
+        var keywordlist = members.map(function(m, i) {
+            if (i == 0)
+                return this.local;
+            else if (this._memberToKeywordMap[m.id])
+                return this._memberToKeywordMap[m.id];
+            else
+                return this._getKeywordForMember(m.id);
+        }, this);
 
-        this._value = value;
-        this.emit('changed', changedMember);
+        return Q.all(keywordlist).then(function(kws) {
+            if (senderId === null)
+                changedMember = 0;
+            for (var i = 0; i < members.length; i++) {
+                var id = members[i].id;
+                value[i] = kws[i].value;
+                if (id === senderId)
+                    changedMember = i;
+            }
+
+            this._value = value;
+            this.emit('changed', changedMember);
+        }.bind(this));
     },
 
     _sendChange: function(target, value) {
@@ -100,6 +116,7 @@ const RemoteKeyword = new lang.Class({
 
         this._refreshTimeout = setTimeout(function() {
             this._sendValue();
+            this._refreshTimeout = null;
         }.bind(this), 1000);
     },
 
@@ -115,7 +132,7 @@ const RemoteKeyword = new lang.Class({
 
         var keyword = this._memberToKeywordMap[msg.senderId];
         if (keyword.changeValue(parsed.value))
-            this._syncAndEmit(msg.senderId);
+            this._syncAndEmit(msg.senderId).done();
     },
 
     _onNewMessage: function(msg) {
@@ -150,7 +167,7 @@ const RemoteKeyword = new lang.Class({
     },
 
     _onLocalChange: function() {
-        this._syncAndEmit(null);
+        this._syncAndEmit(null).done();
     },
 
     _doOpen: function() {
@@ -168,6 +185,10 @@ const RemoteKeyword = new lang.Class({
             return this._messaging.getAccountById(this._ownId);
         }.bind(this)).then(function(account) {
             this._ownAccount = account;
+
+            this._sendRefresh();
+            this._sendValue();
+            return this._syncAndEmit();
         });
     },
 
@@ -180,6 +201,19 @@ const RemoteKeyword = new lang.Class({
         this.local.removeListener('changed', this._localChangeListener);
         this._feed.removeListener('incoming-message', this._newMessageListener);
 
-        return this._feed.close();
+        var keywordlist = this._feed.getMembers().map(function(m, i) {
+            if (i == 0)
+                return this.local;
+            else if (this._memberToKeywordMap[m.id])
+                return this._memberToKeywordMap[m.id];
+            else
+                return this._getKeywordForMember(m.id);
+        }, this);
+
+        return Q.all(keywordlist).then(function(kws) {
+            return Q.all(kws.map(function(k) { return k.close(); }));
+        }).then(function() {
+            return this._feed.close();
+        }.bind(this));
     },
 });

@@ -46,10 +46,14 @@ module.exports = new lang.Class({
                 this.sync(connected[i]);
             }
         }
+
+        return Q();
     },
 
     close: function() {
         this._tierManager.removeListener('connected', this._connectedHandler);
+
+        return Q();
     },
 
     _onConnected: function(tier) {
@@ -151,6 +155,10 @@ module.exports = new lang.Class({
         return this._sqldb.getAll();
     },
 
+    getOne: function(uniqueId) {
+        return this._sqldb.getOne(uniqueId);
+    },
+
     insertOne: function(uniqueId, row) {
         console.log('Inserting one object in DB: ' + JSON.stringify(row));
         return this._sqldb.insertOne(uniqueId, row)
@@ -169,6 +177,14 @@ module.exports = new lang.Class({
         }.bind(this));
     },
 
+    objectAdded: function(uniqueId, row) {
+        this.emit('object-added', uniqueId, row);
+    },
+
+    objectDeleted: function(uniqueId) {
+        this.emit('object-deleted', uniqueId);
+    },
+
     _reportChange: function(fromTier, uniqueId, lastModified, row, done) {
         if (!done) {
             // stale change
@@ -179,12 +195,12 @@ module.exports = new lang.Class({
 
         if (row !== undefined) {
             try {
-                this.emit('object-added', uniqueId, row);
+                this.objectAdded(uniqueId, row);
             } catch(e) {
                 console.log('Failed to report syncdb change: ' + e);
             }
         } else {
-            this.emit('object-deleted', uniqueId);
+            this.objectDeleted(uniqueId, row);
         }
     },
 

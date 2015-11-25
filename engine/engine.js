@@ -11,7 +11,6 @@ require('./polyfill');
 const Q = require('q');
 const lang = require('lang');
 
-const Database = require('./db/db');
 const AppDatabase = require('./db/apps');
 const ChannelFactory = require('./channel_factory');
 const DeviceFactory = require('./device_factory');
@@ -21,7 +20,7 @@ const ConfigPairingModule = require('./config_pairing');
 const ManualQueryRunner = require('./rpc_query_runner');
 const UIEventManager = require('./ui_event_manager');
 const MessagingDeviceManager = require('./messaging/device_manager');
-const KeywordRegistry = require('./keyword_store');
+const KeywordRegistry = require('./db/keyword');
 const MessagingSyncManager = require('./messaging/sync_manager');
 
 const Engine = new lang.Class({
@@ -33,18 +32,16 @@ const Engine = new lang.Class({
 
         this._tiers = new TierManager();
         this._deviceFactory = new DeviceFactory(this);
-        this._db = new Database();
         this._devices = new DeviceDatabase(this._tiers, this._deviceFactory);
         this._channels = new ChannelFactory(this, this._tiers, this._deviceFactory);
         this._apps = new AppDatabase(this, this._tiers);
 
         this._messaging = new MessagingDeviceManager(this._devices);
-        this._keywords = new KeywordRegistry(this._db, this._messaging);
+        this._keywords = new KeywordRegistry(this._tiers, this._messaging);
         this._ui = new UIEventManager(this);
 
         // in loading order
         this._modules = [this._tiers,
-                         this._db,
                          this._devices,
                          this._messaging,
                          this._keywords,
@@ -66,10 +63,6 @@ const Engine = new lang.Class({
 
     get tiers() {
         return this._tiers;
-    },
-
-    get db() {
-        return this._db;
     },
 
     get messaging() {
