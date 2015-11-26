@@ -123,6 +123,14 @@ module.exports = function(kind, code) {
                 this._isWebsocket = false;
             }
 
+            if (params in props) {
+                if (!Array.isArray(props.params))
+                    throw new Error('params must be an array');
+                this._params = props.params;
+            } else {
+                this._params = null;
+            }
+
             if (!('method' in props)) {
                 if (source)
                     this._method = 'GET';
@@ -158,23 +166,33 @@ module.exports = function(kind, code) {
             }
         },
 
+        _emitBlob: function(blob) {
+            var parsed = JSON.parse(blob);
+            if (this._params) {
+                var positional = this._params.map(function(p) {
+                    return parsed[p];
+                });
+                this.emitEvent(positional);
+            } else {
+                this.emitEvent(parsed);
+            }
+        },
+
         _onTick: function() {
-            var channelInstance = this;
             var url = this._url;
             var method = this._method;
             var auth = this._makeAuth();
 
             return Q.nfcall(httpRequestAsync, url, method, auth, '').then(function(response) {
                 try {
-                var parsed = JSON.parse(response);
-                channelInstance.emitEvent(parsed);
-            } catch(e) {
-                console.log('Error parsing server response: ' + e.message);
-                console.log('Full response was');
-                console.log(response);
-                return;
-            }
-            }, function(error) {
+                    this._emitBlob(response);
+                } catch(e) {
+                    console.log('Error parsing server response: ' + e.message);
+                    console.log('Full response was');
+                    console.log(response);
+                    return;
+                }
+            }.bind(this), function(error) {
                 console.log('Error reading from server: ' + error.message);
             });
         },
@@ -188,8 +206,7 @@ module.exports = function(kind, code) {
                 this._connection = new WebSocket(this._url, { headers: headers });
                 this._connection.on('message', function(data) {
                     try {
-                        var parsed = JSON.parse(data);
-                        this.emitEvent(parsed);
+                        this._emitBlob(data);
                     } catch(e) {
                         console.log('Failed to parse server websocket message: ' + e.message);
                     }
@@ -223,6 +240,16 @@ module.exports = function(kind, code) {
         },
 
         sendEvent: function(event) {
+            if (this._params) {
+                var obj = {};
+                this._params.forEach(function(p, i) {
+                    obj[p] = event[i];
+                });
+                var blob = JSON.stringify(obj);
+            } else {
+                var blob = JSON.stringify(event);
+            }
+
             if (this._isWebsocket) {
                 if (!this._connection)
                     this._doOpen();
