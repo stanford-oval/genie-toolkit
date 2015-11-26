@@ -1,0 +1,14 @@
+{"params":{"ip_address":["IP address", "text"],
+           "port":["Port", "number"]},
+
+ "name":"ThingTV™ at %s:%d",
+ "description":"This is a ThingTV. It shows stuff from the Internets.",
+
+ "auth":{"type":"none"},
+
+ "types":["tv"],
+
+ "triggers":{},
+ "actions":{"sink":{"url":"http://%s:%d/pictures",
+                    "params":["url"]}}
+}
