@@ -9,7 +9,7 @@
 //
 //
 // TurnonHeatpad() {
-// @global.timer(interval=5s) => heatpad (power=on);
+// @$timer(5s) => @heatpad(on);
 // }
 
 const lang = require('lang');
@@ -49,7 +49,8 @@ const HeatPadChannel = new lang.Class({
     },
 
     sendEvent: function(event) {
-        if (event.power) {
+        var power = event[0];
+        if (power) {
             console.log("Turning your heatpad on");
             stanza = new xmppClient.Stanza('message', {to:heatPadAccount, type:'chat'}).c('body').t(
                 'R9HAUTO_JSON{"type":"request","payload":{"indexes":[{"idx":2,"heaters":[{"power":true,"htidx":1}]}],"command":"setstate","devtype":"thermomat"},"msgid":"4F95D3PE1A","version":1}');

@@ -17,35 +17,19 @@ const NFL_API_KEY = 'e8jqhrn3pw2ebddn5bbpctyg';
 const NFL_URL = 'https://api.sportradar.us/nfl-t1/%d/%s/%d/%s/%s/summary.json?api_key=e8jqhrn3pw2ebddn5bbpctyg'
 ;const POLL_INTERVAL = 3600 * 1000; // 1h
 
-const SportRadarChannel = new lang.Class({
-    Name: 'SportRadarChannel',
+const SportRadarNflChannel = new lang.Class({
+    Name: 'SportRadarNflChannel',
     Extends: BaseChannel,
 
-    _init: function(engine, device, filters) {
+    _init: function(engine, device, params) {
         this.parent();
 
-        // figure out the sport
-        var nfl = null;
-        var interval = 0, at = "";
-        for (var i = 0; i < filters.length; i++) {
-            if (filters[i].isThreshold) {
-                if (filters[i].lhs.name === 'nfl') {
-                    nfl = filters[i].rhs.value.value.split('-');
-                    if (nfl.length != 5)
-                        throw new TypeError("Invalid nfl value");
-                    break;
-                }
-            } else {
-                throw new TypeError();
-            }
-        }
+        if (params.length < 5)
+            throw new TypeError("Missing required parameters");
 
-        if (nfl === null)
-            throw new TypeError();
-
-        this._nfl = nfl.join('-');
-        this._url = NFL_URL.format.apply(NFL_URL, nfl);
-        this.filterString = 'nfl-' + nfl.join('-');
+        params = params.slice(0, 5);
+        this._url = NFL_URL.format.apply(NFL_URL, params);
+        this.filterString = params.join('-');
         this._timeout = -1;
     },
 
@@ -66,9 +50,9 @@ const SportRadarChannel = new lang.Class({
             var awayScore = parsed.away_team.points;
 
             if (homeScore > awayScore)
-                this.emitEvent({ nfl: this._nfl, winner: parsed.home_team.id, score: homeScore });
+                this.emitEvent([this._params].concat([parsed.home_team.id, homeScore]));
             else
-                this.emitEvent({ nfl: this._nfl, winner: parsed.away_score.id, score: awayScore });
+                this.emitEvent([this._params].concat([parsed.away_team.id, awayScore]));
             clearInterval(this._timeout);
             this._timeout = -1;
         }.bind(this), function(error) {
@@ -92,7 +76,7 @@ const SportRadarChannel = new lang.Class({
 });
 
 function createChannel(engine, device, filters) {
-    return new SportRadarChannel(engine, device, filters);
+    return new SportRadarNflChannel(engine, device, filters);
 }
 
 function httpGetAsync(url, callback) {

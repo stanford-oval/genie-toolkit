@@ -1,0 +1,34 @@
+{"params":{},
+
+ "name":"Linkedin Account %2$s",
+ "description":"This is your Linkedin Account. You can share it with your friends and they will receive your updates.",
+
+ "auth":{"type":"oauth2",
+         "client_id": "75j2y6wjan5rt2",
+         "client_secret": "RuNnl6Yro69G78lX",
+         "authorize":"https://www.linkedin.com/uas/oauth2/authorization",
+         "get_access_token":"https://www.linkedin.com/uas/oauth2/accessToken",
+         "set_state": true,
+         "get_profile":"https://api.linkedin.com/v1/people/~:(id,formatted-name)?format=json",
+         "profile":["id", "formattedName"]
+        },
+
+ "types":["online-account"],
+
+ "triggers":{
+     "profile": {
+         "url": "https://api.linkedin.com/v1/people/~:(id,formatted-name,headline,industry,specialties,positions,picture-url)?format=json",
+         "poll-interval": 86400000,
+         "params": ["formattedName", "headline", "industry", "specialties",
+                    "positions", "pictureUrl"]
+     }
+ },
+
+ "actions":{
+     "share": {
+         "url": "https://api.linkedin.com/v1/people/~/shares?format=json",
+         "params": ["comment"],
+         "default": { "visibility": { "code": "anyone" } }
+     }
+ }
+}

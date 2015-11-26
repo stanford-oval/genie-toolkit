@@ -11,5 +11,6 @@
   ],
   "main": "device.js",
   "dependencies": {
+    "xml2js": "~0.4.15"
   }
 }

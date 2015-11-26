@@ -1,9 +1,9 @@
 all:
-	npm install
-	npm dedupe
-	for i in channels/* devices/* ; do \
+	npm install --no-optional --only=prod
+	for i in device-classes/* ; do \
 	test -d $$i || continue; \
-	(cd $$i ; npm install ); \
+	(cd $$i ; npm install --no-optional --only=prod ); \
+	npm dedupe; \
 	done
 
 all-fedora:
@@ -14,8 +14,8 @@ all-fedora:
 	npm dedupe
 
 clean:
-	rm -fr node_modules/{q,node-uuid,ws,deep-equal,ip,.bin}
-	for i in channels/* devices/* ; do \
+	rm -fr node_modules/{q,node-uuid,ws,deep-equal,ip,.bin,adt,oauth,tmp}
+	for i in device-classes/* ; do \
 	test -d $$i || continue; \
 	test -f $$i/Makefile && make -C $$i clean ; \
 	test -f $$i/Makefile || rm -fr $$i/node_modules ; \

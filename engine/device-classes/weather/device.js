@@ -22,30 +22,19 @@ const WeatherDevice = new lang.Class({
     _init: function(engine, state) {
         this.parent(engine, state);
 
-        this.uniqueId = 'thingengine-system-weather';
+        this.uniqueId = 'yrno-weather';
 
-        this.name = "System Weather";
-        this.description = "System Weather shows the current weather conditions and weather forecast where your phone is";
+        this.name = "Yr.no Weather";
+        this.description = "Yr.no Weather shows the current weather conditions and weather forecast where your phone is";
     },
 
     get ownerTier() {
-        return Tier.PHONE;
+        return Tier.GLOBAL;
     },
 
     checkAvailable: function() {
-        return this.engine.tiers.isConfigured(Tier.PHONE) ?
-            BaseDevice.Availability.AVAILABLE :
-            BaseDevice.Availability.UNAVAILABLE;
-    },
-
-    hasKind: function(kind) {
-        switch(kind) {
-        case 'thingengine-system':
-            return true;
-        default:
-            return this.parent(kind);
-        }
-    },
+        return BaseDevice.Availability.AVAILABLE;
+    }
 });
 
 function createDevice(engine, state) {

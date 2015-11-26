@@ -47,7 +47,7 @@ const ScaleChannel = new lang.Class({
                 // weight is in grams, convert to kg, which the base unit
                 // AppExecutor wants
                 var weight = (data[time].values.weight)/1000;
-                var event = { ts: time, weight: weight };
+                var event = [time, weight];
                 return event;
             }
 

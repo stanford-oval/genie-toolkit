@@ -23,27 +23,22 @@ const TestChannel = new lang.Class({
         cnt++;
         console.log('Created Test channel #' + cnt);
 
-        this._timeout = -1;
-    },
-
-    sendEvent: function(event) {
-        console.log('Writing data on test channel: ' + JSON.stringify(event));
+        this._timeout = null;
     },
 
     _doOpen: function() {
         setTimeout(function() {
-            this.emitEvent({"number":42});
+            this.emitEvent([42]);
         }.bind(this), 0);
         this._timeout = setInterval(function() {
-            var event = {"number":42 + Math.floor(Math.random() * 42)};
-            this.emitEvent(event);
+            this.emitEvent([42 + Math.floor(Math.random() * 42)]);
         }.bind(this), 1000);
         return Q();
     },
 
     _doClose: function() {
         clearInterval(this._timeout);
-        this._timeout = -1;
+        this._timeout = null;
         return Q();
     }
 });
