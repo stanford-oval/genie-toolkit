@@ -88,11 +88,15 @@ module.exports = new lang.Class({
 
     _tryOpenOne: function(tier) {
         var f = this._tierOpens[tier];
-        if (f === null)
+        if (f === null) {
+            this._tierConfigured[tier] = false;
+            this._tierSockets[tier] = null;
             return null;
+        }
         var socket = f();
         if (socket === null) {
             this._tierConfigured[tier] = false;
+            this._tierSockets[tier] = null;
             return null;
         }
 

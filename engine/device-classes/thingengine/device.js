@@ -95,6 +95,8 @@ const ThingEngineDevice = new lang.Class({
     checkAvailable: function() {
         if (this.own && this.tier === this._tierManager.ownTier)
             return BaseDevice.Availability.AVAILABLE;
+        else if (this.tier === Tier.GLOBAL)
+            return BaseDevice.Availability.AVAILABLE;
         else if (this.own)
             return (this._tierManager.isConnected(this.tier) ?
                     BaseDevice.Availability.AVAILABLE :

@@ -10,6 +10,7 @@ build-server: build-engine build-shared
 	make -C platform/server all
 
 build-cloud: build-engine build-shared
+	npm install sqlite3
 	make -C platform/cloud all
 
 build-android-js: build-engine
