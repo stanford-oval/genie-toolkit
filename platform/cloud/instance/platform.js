@@ -11,6 +11,7 @@
 const Q = require('q');
 const fs = require('fs');
 const os = require('os');
+const child_process = require('child_process');
 
 const sql = require('./engine/db/sql');
 
@@ -30,6 +31,18 @@ var _prefs = null;
 function checkLocalStateDir() {
     fs.mkdirSync(_writabledir);
 }
+
+var _unzipApi = {
+    unzip: function(zipPath, dir) {
+        var args = ['-uo', zipPath, '-d', dir];
+        return Q.nfcall(child_process.execFile, '/usr/bin/unzip', args).then(function(zipResult) {
+            var stdout = zipResult[0];
+            var stderr = zipResult[1];
+            console.log('stdout', stdout);
+            console.log('stderr', stderr);
+        });
+    }
+};
 
 var _websocketHandler;
 
@@ -96,7 +109,14 @@ module.exports = {
     //
     // This will return null if hasCapability(cap) is false
     getCapability: function(cap) {
-        return null;
+        switch(cap) {
+        case 'code-download':
+            // We have the support to download code
+            return _unzipApi;
+
+        default:
+            return null;
+        }
     },
 
     // Obtain a shared preference store
@@ -124,6 +144,11 @@ module.exports = {
     // and metadata
     getCacheDir: function() {
         return _writabledir + '/cache';
+    },
+
+    // Make a symlink potentially to a file that does not exist physically
+    makeVirtualSymlink: function(file, link) {
+        fs.symlinkSync(file, link);
     },
 
     // Get a temporary directory

@@ -1,5 +1,9 @@
 
-zipfiles = twitter-account.zip bodytrace-scale.zip
+zipfiles = \
+	twitter-account.zip \
+	bodytrace-scale.zip \
+	heatpad.zip \
+	sportradar.zip
 
 all: $(zipfiles)
 

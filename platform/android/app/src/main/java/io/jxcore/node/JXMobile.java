@@ -34,6 +34,14 @@ public class JXMobile {
       }
     });
 
+    jxcore.RegisterMethod("GetCachePath", new JXcoreCallback() {
+      @Override
+      public void Receiver(ArrayList<Object> params, String callbackId) {
+        String path = context.getCacheDir().getAbsolutePath();
+        jxcore.CallJSMethod(callbackId, "\"" + path + "\"");
+      }
+    });
+
     jxcore.RegisterMethod("GetConnectionStatus", new JXcoreCallback() {
       @SuppressLint("NewApi")
       @Override

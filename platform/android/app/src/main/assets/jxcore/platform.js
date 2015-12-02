@@ -12,10 +12,13 @@ const Q = require('q');
 const fs = require('fs');
 
 const sql = require('./engine/db/sql');
+const JavaAPI = require('./java_api');
 
+var _unzipApi = JavaAPI.makeJavaAPI('Unzip', ['unzip'], []);
 var _notifyApi = require('./notify_api');
 
 var filesDir = null;
+var cacheDir = null;
 var encoding = null;
 
 function safeMkdirSync(dir) {
@@ -29,6 +32,42 @@ function safeMkdirSync(dir) {
 
 var _prefs = null;
 
+// monkey patch fs to support virtual symlinks, which we need to get
+// symlinks to js files in the apk
+var _originalRealpathSync = fs.realpathSync;
+var _originalStatSync = fs.statSync;
+var _originalLStatSync = fs.lstatSync;
+var _virtualSymlinks = {};
+var _virtualSymlinksStat = {};
+fs.statSync = function(p) {
+    if (p === '/data/data/edu.stanford.thingengine.engine/cache/device-classes/base_device.js')
+        console.log('found', _virtualSymlinks[p]);
+    if (_virtualSymlinks.hasOwnProperty(p))
+        return fs.statSync(_virtualSymlinks[p]);
+    else
+        return _originalStatSync(p);
+};
+fs.lstatSync = function(p) {
+    if (_virtualSymlinks.hasOwnProperty(p)) {
+        if (_virtualSymlinksStat.hasOwnProperty(p))
+            return _virtualSymlinksStat[p];
+
+        var stats = new fs.JXStats(0, 41471); // 0777 | S_IFLNK
+        stats.isSymbolicLink = function() {
+            return true;
+        }
+        return _virtualSymlinksStat[p] = stats;
+    } else {
+        return _originalLStatSync(p);
+    }
+};
+fs.realpathSync = function(_p, cache) {
+    if (_virtualSymlinks.hasOwnProperty(_p))
+        return _virtualSymlinks[_p];
+    else
+        return _originalRealpathSync(_p, cache);
+};
+
 module.exports = {
     // Initialize the platform code
     // Will be called before instantiating the engine
@@ -36,13 +75,16 @@ module.exports = {
         return Q.nfcall(JXMobile.GetDocumentsPath).then(function(dir) {
             filesDir = dir;
             safeMkdirSync(filesDir + '/tmp');
-            safeMkdirSync(filesDir + '/cache');
             return Q.nfcall(JXMobile.GetEncoding);
         }).then(function(value) {
             encoding = value;
             return Q.nfcall(JXMobile.GetSharedPreferences);
         }).then(function(prefs) {
             _prefs = prefs;
+            return Q.nfcall(JXMobile.GetCachePath);
+        }).then(function(value) {
+            cacheDir = value;
+            safeMkdirSync(cacheDir);
 
             return sql.ensureSchema(filesDir + '/sqlite.db',
                                     'schema.sql');
@@ -85,6 +127,11 @@ module.exports = {
         case 'notify-api':
             // We have a notify API implemented
             return _notifyApi;
+
+        case 'code-download':
+            // We have the support to download code
+            return _unzipApi;
+
         default:
             return null;
         }
@@ -122,7 +169,12 @@ module.exports = {
     // Get a directory good for long term caching of code
     // and metadata
     getCacheDir: function() {
-        return filesDir + '/cache';
+        return cacheDir;
+    },
+
+    // Make a symlink potentially to a file that does not exist physically
+    makeVirtualSymlink: function(file, link) {
+        _virtualSymlinks[link] = file;
     },
 
     // Get the filename of the sqlite database

@@ -32,14 +32,11 @@ const TwitterSinkChannel = new lang.Class({
 
     sendEvent: function(event) {
         console.log('Posting Twitter event', event);
-        if (event.status) {
-            this._twitter.postTweet({ status: event.status,
-                                      in_reply_to_status_id: event.inReplyTo }, function(err) {
-                                          console.log('Tweeting failed: ' + err);
-                                      }, function() { });
-        } else {
-            throw new Error("Event must have url or youtube");
-        }
+
+        var status = event[0];
+        this._twitter.postTweet({ status: status }, function(err) {
+            console.log('Tweeting failed: ' + err);
+        }, function() { });
     },
 });
 

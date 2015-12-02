@@ -8,7 +8,6 @@
 
 const Config = require('../config');
 
-const child_process = require('child_process');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
@@ -22,7 +21,7 @@ const GenericDeviceFactory = require('./generic');
 var _agent = null;
 function getAgent() {
     if (_agent === null) {
-        var caFile = path.resolve(path.dirname(module.filename), './data/thingpedia.cert');
+        var caFile = path.resolve(path.dirname(module.filename), '../data/thingpedia.cert');
         _agent = new https.Agent({ keepAlive: false,
                                    maxSockets: 10,
                                    ca: fs.readFileSync(caFile) });
@@ -39,15 +38,26 @@ module.exports = new lang.Class({
         this._codeUrl = Config.THINGPEDIA_URL + '/api/code/devices';
         this._cacheDir = platform.getCacheDir() + '/device-classes';
 
+        this._deviceClassesDir = path.resolve(path.dirname(module.filename),
+                                              '../device-classes');
+        console.log('device class dir', this._deviceClassesDir);
+        console.log('cache dir', this._cacheDir);
         this._cachedModules = {};
         this._moduleRequests = {};
 
         try {
             fs.mkdirSync(this._cacheDir);
-            fs.symlinkSync(require.resolve('./base_device'), this._cacheDir + '/base_device.js');
-            fs.symlinkSync(require.resolve('./base_channel'), this._cacheDir + '/base_channel.js');
         } catch(e) {
-            if (e.code != 'EEXIST')
+            if (e.code !== 'EEXIST')
+                throw e;
+        }
+        try {
+            platform.makeVirtualSymlink(require.resolve('../base_device'),
+                                        this._cacheDir + '/base_device.js');
+            platform.makeVirtualSymlink(require.resolve('../base_channel'),
+                                        this._cacheDir + '/base_channel.js');
+        } catch(e) {
+            if (e.code !== 'EEXIST')
                 throw e;
         }
     },
@@ -90,17 +100,18 @@ module.exports = new lang.Class({
             var fullPath = path.resolve(path.dirname(module.filename),
                                         '../device-classes/' + id + '.json');
             var code = fs.readFileSync(fullPath).toString('utf8');
+
+            console.log('Module ' + fullId + ' loaded as builtin code');
+            this._cachedModules[id] = GenericDeviceFactory(id, code);
+            if (fullId === id)
+                return this._cachedModules[id];
+            else
+                return this._cachedModules[id].getSubmodule(fullId.substr(id.length + 1));
         } catch(e) {
-            console.log(e.stack);
+            if (e.code != 'ENOENT')
+                throw e;
             return null;
         }
-
-        console.log('Module ' + fullId + ' loaded as builtin code');
-        this._cachedModules[id] = GenericDeviceFactory(id, code);
-        if (fullId === id)
-            return this._cachedModules[id];
-        else
-            return this._cachedModules[id].getSubmodule(fullId.substr(id.length + 1));
     },
 
     _createModuleFromCache: function(fullId) {
@@ -124,8 +135,8 @@ module.exports = new lang.Class({
             else
                 return this._cachedModules[id].getSubmodule(fullId.substr(id.length + 1));
         } catch(e) {
-            console.log(e);
-            console.log(e.stack);
+            if (e.code != 'ENOENT')
+                throw e;
             return null;
         }
     },
@@ -200,13 +211,8 @@ module.exports = new lang.Class({
                         throw e;
                 }
 
-                var args = ['-uo', zipPath, '-d', dir];
-                console.log('unzip', args);
-                return Q.nfcall(child_process.execFile, '/usr/bin/unzip', args).then(function(zipResult) {
-                    var stdout = zipResult[0];
-                    var stderr = zipResult[1];
-                    console.log('stdout', stdout);
-                    console.log('stderr', stderr);
+                var unzip = platform.getCapability('code-download');
+                return unzip.unzip(zipPath, dir).then(function() {
                     fs.unlinkSync(zipPath);
                 });
             }.bind(this)).then(function() {

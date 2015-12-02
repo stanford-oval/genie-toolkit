@@ -13,6 +13,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const posix = require('posix');
+const child_process = require('child_process');
 
 const sql = require('./engine/db/sql');
 
@@ -47,13 +48,24 @@ function mkdirWithParentsSync(dir) {
     }
 }
 
-
 function checkLocalStateDir() {
     mkdirWithParentsSync(_writabledir);
     var pw = posix.getpwnam('thingengine');
     fs.chownSync(_writabledir, pw.uid, pw.gid);
     fs.chmodSync(_writabledir, 0700);
 }
+
+var _unzipApi = {
+    unzip: function(zipPath, dir) {
+        var args = ['-uo', zipPath, '-d', dir];
+        return Q.nfcall(child_process.execFile, '/usr/bin/unzip', args).then(function(zipResult) {
+            var stdout = zipResult[0];
+            var stderr = zipResult[1];
+            console.log('stdout', stdout);
+            console.log('stderr', stderr);
+        });
+    }
+};
 
 module.exports = {
     // Initialize the platform code
@@ -101,7 +113,14 @@ module.exports = {
     //
     // This will return null if hasCapability(cap) is false
     getCapability: function(cap) {
-        return null;
+        switch(cap) {
+        case 'code-download':
+            // We have the support to download code
+            return _unzipApi;
+
+        default:
+            return null;
+        }
     },
 
     // Obtain a shared preference store
@@ -129,6 +148,11 @@ module.exports = {
     // and metadata
     getCacheDir: function() {
         return _writabledir + '/cache';
+    },
+
+    // Make a symlink potentially to a file that does not exist physically
+    makeVirtualSymlink: function(file, link) {
+        fs.symlinkSync(file, link);
     },
 
     // Get a temporary directory

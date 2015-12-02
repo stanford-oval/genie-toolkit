@@ -9,8 +9,7 @@
 const lang = require('lang');
 const Q = require('q');
 
-const BaseDevice = require('../../base_device');
-const Tier = require('../../tier_manager').Tier;
+const BaseDevice = require('../base_device');
 
 const SportRadarDevice = new lang.Class({
     Name: 'SportRadarDevice',
@@ -27,7 +26,7 @@ const SportRadarDevice = new lang.Class({
     },
 
     get ownerTier() {
-        return Tier.GLOBAL;
+        return 'global';
     },
 
     checkAvailable: function() {

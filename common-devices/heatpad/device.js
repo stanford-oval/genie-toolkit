@@ -9,10 +9,8 @@
 const lang = require('lang');
 const Q = require('q');
 
-const BaseDevice = require('../../base_device');
-const Tier = require('../../tier_manager').Tier;
+const BaseDevice = require('../base_device');
 
-// A device that logs on the private server stdout
 const HeatPadDevice = new lang.Class({
     Name: 'HeatPadDevice',
     Extends: BaseDevice,
@@ -23,25 +21,14 @@ const HeatPadDevice = new lang.Class({
         this.account = state.account;
         this.password = state.password;
 
-        this.uniqueId = 'thingengine-device-heatpad'+this.account;
+        this.uniqueId = 'thingengine-device-heatpad-' + this.account;
 
         this.name = "Heatpad Device";
         this.description = "The device allows you to turn on/off your heatpad.";
     },
 
-    get ownerTier() {
-        return Tier.SERVER;
-    },
-
     checkAvailable: function() {
         return BaseDevice.Availability.AVAILABLE;
-    },
-
-    hasKind: function(kind) {
-        switch(kind) {
-        default:
-            return this.parent(kind);
-        }
     },
 });
 

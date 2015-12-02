@@ -71,12 +71,12 @@ const TwitterSourceChannel = new lang.Class({
             urls.push(tweet.entities.urls[i].expanded_url);
         }
 
-        var event = { status: tweet.text,
-                      hashtags: hashtags,
-                      urls: urls,
-                      inReplyTo: tweet.in_reply_to_screen_name,
-                      fromMe: tweet.user.screen_name === this.device.screenName,
-                      from: tweet.user.screen_name };
+        var event = [tweet.text,
+                     hashtags,
+                     urls,
+                     tweet.user.screen_name,
+                     tweet.in_reply_to_screen_name,
+                     tweet.user.screen_name === this.device.screenName];
         this.emitEvent(event);
     },
 

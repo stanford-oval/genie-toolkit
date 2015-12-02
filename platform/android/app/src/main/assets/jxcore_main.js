@@ -107,6 +107,16 @@ JXMobile.GetDocumentsPath = function(callback) {
   });
 };
 
+JXMobile.GetCachePath = function(callback) {
+  if (typeof callback != "function") {
+    throw new Error("JXMobile.GetDocumentsPath expects a function callback");
+  }
+
+  JXMobile('GetCachePath').callNative(function(res){
+    callback(null, res);
+  });
+};
+
 JXMobile.GetConnectionStatus = function(callback) {
   if (typeof callback != "function") {
     throw new Error("JXMobile.GetConnectionStatus expects a function callback");

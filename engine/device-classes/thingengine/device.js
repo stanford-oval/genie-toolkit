@@ -10,8 +10,8 @@ const lang = require('lang');
 const Q = require('q');
 const uuid = require('node-uuid');
 
-const BaseDevice = require('../base_device');
-const Tier = require('../tier_manager').Tier;
+const BaseDevice = require('../../base_device');
+const Tier = require('../../tier_manager').Tier;
 
 // An instance of a ThingEngine running remotely, as discovered
 // by bluetooth, mdns or whatever

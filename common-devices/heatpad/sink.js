@@ -16,11 +16,9 @@ const lang = require('lang');
 const Q = require('q');
 const xmppClient = require('node-xmpp-client')
 
-const BaseChannel = require('../../base_channel');
+const BaseChannel = require('../base_channel');
 
-var account = "jiwon.devices@gmail.com"
 var heatPadAccount = '00000c46@iunplug.co.kr'
-var jiwon = 'seojiwon@gmail.com'
 
 const HeatPadChannel = new lang.Class({
     Name: 'HeatPadChannel',
@@ -37,7 +35,7 @@ const HeatPadChannel = new lang.Class({
             host: 'talk.google.com',
             reconnect: true,
             domain: "gmail.com"
-        })
+        });
 
         this._client.connection.socket.setTimeout(0);
         this._client.connection.socket.setKeepAlive(true, 10000);
@@ -61,9 +59,6 @@ const HeatPadChannel = new lang.Class({
                 'R9HAUTO_JSON{"type":"request","payload":{"indexes":[{"idx":2,"heaters":[{"power":false,"htidx":1}]}],"command":"setstate","devtype":"thermomat"},"msgid":"F2ESTPFTG3","version":1}}');
             this._client.send(stanza)
         }
-
-        //stanza = new xmppClient.Stanza('message', {to:jiwon, type:'chat'}).c('body').t('hello!')
-        //this._client.send(stanza)
     }
 
 });

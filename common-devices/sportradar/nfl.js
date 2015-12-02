@@ -11,7 +11,7 @@ const Q = require('q');
 const https = require('https');
 const Url = require('url');
 
-const BaseChannel = require('../../base_channel');
+const BaseChannel = require('../base_channel');
 
 const NFL_API_KEY = 'e8jqhrn3pw2ebddn5bbpctyg';
 const NFL_URL = 'https://api.sportradar.us/nfl-t1/%d/%s/%d/%s/%s/summary.json?api_key=e8jqhrn3pw2ebddn5bbpctyg'

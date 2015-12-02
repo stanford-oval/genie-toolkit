@@ -64,6 +64,7 @@ public class EngineThread extends Thread {
                     isLocked = false;
 
                     new NotifyAPI(context, control);
+                    new UnzipAPI(control);
                 }
             });
 
