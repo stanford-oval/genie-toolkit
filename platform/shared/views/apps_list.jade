@@ -14,26 +14,31 @@ block content
 
       p= message
 
-  for app in apps
-    div.panel.panel-default.installed-app
-      div.panel-heading
-        h2.panel-title= app.name
-      div.panel-body
-        if app.running
-          p This app is running.
-        else
-          if app.enabled
-            p This app is enabled but not running.
-          else
-            p This app is enabled for #{app.currentTier}.
+  - for(var i = 0; i < apps.length; i += 3)
+    div.row
+      - for (var j = 0; j < 3; j ++)
+        - if (i + j >= apps.length) break;
+        - var app = apps[i + j];
+        div.col-md-4
+          div.panel.panel-default.installed-app
+            div.panel-heading
+              h2.panel-title= app.name
+            div.panel-body
+              if app.running
+                p This app is running.
+              else
+                if app.enabled
+                  p This app is enabled but not running.
+                else
+                  p This app is enabled for #{app.currentTier}.
 
-      div.panel-footer
-        a(href="/apps/#{app.uniqueId}/show").btn.btn-primary Show
-        | 
-        form.form-inline(action="/apps/delete",method="post").form-delete-app
-          input(type='hidden',name='id',value=app.uniqueId)
-          input(type='hidden',name='_csrf',value=csrfToken)
-          button(type='submit').btn.btn-danger Delete
+            div.panel-footer
+              a(href="/apps/#{app.uniqueId}/show").btn.btn-primary Show
+                | 
+              form.form-inline(action="/apps/delete",method="post").form-delete-app
+                input(type='hidden',name='id',value=app.uniqueId)
+                input(type='hidden',name='_csrf',value=csrfToken)
+                button(type='submit').btn.btn-danger Delete
 
   p
     a(href="/apps/create", role="button").btn.btn-primary Create new app
