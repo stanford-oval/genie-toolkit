@@ -32,7 +32,7 @@ block content
           else
             p It was not possible to verify if the device is available.
               | Please check it is powered on and correctly configured.
-      div
+      div.panel-footer
         form.form-inline(action="/devices/delete?class=" + (onlineAccounts ? 'online' : 'physical'),method="post").form-delete-app
           input(type='hidden',name='id',value=dev.uniqueId)
           input(type='hidden',name='_csrf',value=csrfToken)
