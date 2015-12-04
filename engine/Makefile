@@ -2,7 +2,8 @@ all:
 	npm install --no-optional --only=prod
 	for i in device-classes/* ; do \
 	test -d $$i || continue; \
-	(cd $$i ; npm install --no-optional --only=prod ); \
+	test -f $$i/Makefile && make -C $$i all ; \
+	test -f $$i/Makefile || (cd $$i ; npm install --no-optional --only=prod ); \
 	npm dedupe; \
 	done
 

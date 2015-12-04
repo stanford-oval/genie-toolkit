@@ -5,38 +5,29 @@ var jade = require('jade');
 var express = require('express');
 var router = express.Router();
 
-var LINKEDIN_CODE = 'LinkedInApp(g : Group) {' +
-'    module compute() {' +
-'        event newcolleague(name : String, ind : String);' +
-'        function newmessage(name : String, ind :  String) {' +
-'            query1("linkedin()").then(function(v) {' +
-'                if (ind === v.industry)' +
-'                    newcolleague(name, ind);' +
-'            }).done();' +
-'        }' +
-'    }' +
-'' +
-'    mylin = linkedin() => g.compute.newmessage(name = mylin.formattedName, ind = mylin.industry);' +
-'    (name, ind) = compute.newcolleague() => notify(message = name + " also works in " + ind);' +
-'}';
+var LINKEDIN_CODE = 'LinkedInApp-F() {' +
+    '  @linkedin.profile(name, _, ind) => Company-F[self](name, ind);' +
+    '  Company-F[self](_, ind), Company-F[m](name, ind), m in F =>' +
+    '    NewColleague(name, ind);' +
+    '  NewColleague(name, co) => @$notify(name, co);' +
+    '}';
 
-var WEIGHTCOMP_CODE = 'WeightCompApp(g : Group) {' +
-'  table weightHistory(time : Number, weight : Measure(kg));' +
-'  table weightBoard(name : String, delta : Measure(kg));' +
-'' +
-'  scale = #scale() => weightHistory(time = scale.ts, weight = scale.weight);' +
-'' +
-'  initial = min(weightHistory.alldata, time),' +
-'  current = max(weightHistory.oninsert, time) =>' +
-'  weightBoard(key_="name", name = @self.name, delta = (initial.weight - current.weight) / initial.weight);'+
-'' +
-'  weightBoard.oninsert(), board = all(g.weightBoard.alldata, delta), winner = max(g.weightBoard.alldata, delta) =>' +
-'  g(title="Weight Competition", text="The winner of the weight competion is " + winner.name + ", who lost " + string(winner.delta*100kg) + "%",' +
-'    callback="weightcomp",data=board);' +
-'}';
+var WEIGHTCOMP_CODE = 'WeightCompetition-F() {' +
+    '  var InitialWeight(w : Measure(kg));' +
+    '  @(type="scale")(w) => Weight(w);' +
+    '  Weight(w), !InitialWeight(_) =>' +
+    '    InitialWeight(w);' +
+    '  InitialWeight(w1), Weight(w2) =>' +
+    '    Loss-F[self]((w1 - w2)/w2);' +
+    '  Loss-F[m](_), m in F =>' +
+    '    Winner(ArgMax(Loss-F));' +
+    '  Winner(w) => @$notify(w);' +
+    '}';
 
-var PICTURE_TV_DEMO = 'PictureTVApp(g : Group) {' +
-    '  in = g(type="picture") => #tv(url=in.url);' +
+var PICTURE_TV_DEMO = 'Slides-F() {' +
+    '  @$input(url) => SharedSlides-F[self](url);' +
+    '  SharedSlides-F[m](url), m in F =>' +
+    '    @(type="tv").show(url);' +
     '}';
 
 router.get('/linkedin', function(req, res, next) {
@@ -80,7 +71,7 @@ router.get('/linkedin', function(req, res, next) {
     var appId = 'app-LinkedInApp-' + messagingGroupId;
 
     if (apps.getApp(appId) === undefined) {
-        engine.apps.loadOneApp(LINKEDIN_CODE, { g: messagingGroupId }, appId, 'phone', true).then(function() {
+        engine.apps.loadOneApp(LINKEDIN_CODE, { '$F': messagingGroupId }, appId, 'phone', true).then(function() {
             delete req.session['device-redirect-to'];
             res.render('demo_view', { page_title: "LinkedIn Party!", nofeed: false, done: true });
         }).done();
@@ -125,7 +116,7 @@ router.get('/weightcomp', function(req, res, next) {
     var appId = 'app-WeightCompApp-' + messagingGroupId;
 
     if (apps.getApp(appId) === undefined) {
-        engine.apps.loadOneApp(WEIGHTCOMP_CODE, { g: messagingGroupId }, appId, 'phone', true).then(function() {
+        engine.apps.loadOneApp(WEIGHTCOMP_CODE, { '$F': messagingGroupId }, appId, 'phone', true).then(function() {
             delete req.session['device-redirect-to'];
             res.render('demo_weightcomp_install_view', { page_title: "Weight Competition!", nofeed: false, done: true });
         }).done();
@@ -180,7 +171,7 @@ router.get('/picturetv', function(req, res, next) {
     var appId = 'app-PictureTVApp-' + messagingGroupId;
 
     if (apps.getApp(appId) === undefined) {
-        engine.apps.loadOneApp(PICTURE_TV_DEMO, { g: messagingGroupId }, appId, 'phone', true).then(function() {
+        engine.apps.loadOneApp(PICTURE_TV_DEMO, { '$F': messagingGroupId }, appId, 'phone', true).then(function() {
             delete req.session['device-redirect-to'];
             res.render('demo_picturetv_install_view', { page_title: "Share on TV!", nofeed: false, done: true });
         }).done();

@@ -136,7 +136,7 @@ module.exports = new lang.Class({
         this.uniqueId = 'app-' + compiler.name;
         if (compiler.feedAccess) {
             this.feedId = state['$F'];
-            this.uniqueId += feedId.replace(/[^a-zA-Z0-9]+/g, '-');
+            this.uniqueId += this.feedId.replace(/[^a-zA-Z0-9]+/g, '-');
         } else {
             this.feedId = null;
         }

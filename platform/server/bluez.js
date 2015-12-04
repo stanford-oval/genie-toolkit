@@ -65,7 +65,9 @@ module.exports = new lang.Class({
                 objects.forEach(function(object) {
                     this._interfacesAdded(object[0], object[1]);
                 }, this);
-            }.bind(this));
+            }.bind(this)).catch(function(e) {
+                console.log('Failed to start BlueZ service: ' + e.message);
+            });
     },
 
     startDiscovery: function() {
