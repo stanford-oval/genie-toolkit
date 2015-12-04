@@ -31,7 +31,8 @@ module.exports = new lang.Class({
 
         if (existing) {
             try {
-                existing.updateFromDiscovery(data);
+                console.log('Updating device with descriptor ' + descriptor);
+                existing.updateFromDiscovery(publicData, privateData);
                 return;
             } catch(e) {
                 console.log('Updating device from discovery failed, removing...');
@@ -39,11 +40,14 @@ module.exports = new lang.Class({
             }
         }
 
+        console.log('Found new device with descriptor ' + descriptor);
+
         if (descriptor in this._inflightRequests)
             return;
 
         this._inflightRequests[descriptor] = Thingpedia.getKindByDiscovery(publicData)
             .then(function(response) {
+                console.log('Descriptor ' + descriptor + ' is of kind ' + response);
                 return this.db.factory.addFromDiscovery(response, publicData, privateData);
             }.bind(this)).catch(function(e) {
                 console.log('Failed to add device from discovery: ' + e.message);

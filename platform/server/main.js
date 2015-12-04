@@ -12,6 +12,8 @@ const Engine = require('./engine');
 const Frontend = require('./frontend');
 
 function main() {
+    Q.longStackSupport = true;
+
     global.platform = require('./platform');
 
     var test = process.argv.indexOf('--test') >= 0;

@@ -28,7 +28,7 @@ const TestDevice = new lang.Class({
 
         this.hwAddress = state.hwAddress;
 
-        this.uniqueId = 'test-device-' + hwAddress.replace(/:/g,'-');
+        this.uniqueId = 'test-device-' + state.hwAddress.replace(/:/g,'-');
 
         this.name = "ThingEngine™ Test Device %s".format(this.hwAddress);
         this.description = "This is a ThingEngine Test Device running at %s, port %d. It does nothing."

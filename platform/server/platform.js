@@ -33,6 +33,9 @@ try {
     AllJoynApi = null;
 }
 
+const BluezBluetooth = require('./bluez');
+var _btApi = null;
+
 var _writabledir = null;
 var _frontend = null;
 var _prefs = null;
@@ -114,6 +117,9 @@ module.exports = {
         case 'alljoyn':
             return AllJoynApi !== null;
 
+        case 'bluetooth':
+            return true;
+
         default:
             return false;
         }
@@ -131,6 +137,11 @@ module.exports = {
 
         case 'alljoyn':
             return new AllJoynApi();
+
+        case 'bluetooth':
+            if (!_btApi)
+                _btApi = new BluezBluetooth();
+            return _btApi;
 
         default:
             return null;

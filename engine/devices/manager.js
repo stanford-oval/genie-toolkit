@@ -14,6 +14,7 @@ const lang = require('lang');
 const GlobalDeviceManager = require('./global');
 const PairedEngineManager = require('./paired');
 const AllJoynDiscovery = require('./alljoyn');
+const BluetoothDiscovery = require('./bluetooth');
 
 // a meta-module that collects all modules that deal with discovering,
 // creating and maintaining devices (ie, things)
@@ -25,7 +26,8 @@ module.exports = new lang.Class({
         // in loading order
         this._modules = [new GlobalDeviceManager(db),
                          new PairedEngineManager(db, tierManager),
-                         new AllJoynDiscovery(db)];
+                         new AllJoynDiscovery(db),
+                         new BluetoothDiscovery(db)];
     },
 
     _startSequential: function(modules) {

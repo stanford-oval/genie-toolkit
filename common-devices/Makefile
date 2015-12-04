@@ -1,5 +1,6 @@
 
 zipfiles = \
+	bluetooth-generic.zip \
 	twitter-account.zip \
 	bodytrace-scale.zip \
 	heatpad.zip \

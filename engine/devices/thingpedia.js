@@ -9,8 +9,10 @@
 const Config = require('../config');
 
 const Q = require('q');
+const http = require('http');
 const https = require('https');
 const path = require('path');
+const fs = require('fs');
 const url = require('url');
 
 var _agent = null;
@@ -25,17 +27,26 @@ function getAgent() {
     return _agent;
 }
 
+function getModule(parsed) {
+    if (parsed.protocol === 'https:')
+        return https;
+    else
+        return http;
+}
+
 function httpRequest(to, id) {
     var parsed = url.parse(to);
-    parsed.agent = getAgent();
+    if (parsed.protocol === 'https:')
+        parsed.agent = getAgent();
+
     return Q.Promise(function(callback, errback) {
-        https.get(parsed, function(response) {
+        getModule(parsed).get(parsed, function(response) {
             if (response.statusCode == 404)
                 return errback(new Error('No such device ' + id));
             if (response.statusCode != 200)
                 return errback(new Error('Unexpected HTTP error ' + response.statusCode + ' downloading channel ' + id));
 
-            return response;
+            callback(response);
         }.bind(this)).on('error', function(error) {
             errback(error);
         });
@@ -47,13 +58,15 @@ function httpDiscoveryRequest(to, blob) {
     parsed.method = 'POST';
     parsed.headers = {};
     parsed.headers['Content-Type'] = 'application/json';
+    if (parsed.protocol === 'https:')
+        parsed.agent = getAgent();
 
     return Q.Promise(function(callback, errback) {
-        var req = https.request(options, function(res) {
-            if (response.statusCode == 404)
+        var req = getModule(parsed).request(parsed, function(res) {
+            if (res.statusCode == 404)
                 return errback(new Error('No such device'));
-            if (response.statusCode != 200)
-                return errback(new Error('Unexpected HTTP error ' + response.statusCode + ' decoding discovery'));
+            if (res.statusCode != 200)
+                return errback(new Error('Unexpected HTTP error ' + res.statusCode));
 
             var data = '';
             res.setEncoding('utf8');
@@ -64,16 +77,14 @@ function httpDiscoveryRequest(to, blob) {
                 callback(data);
             });
         });
-        req.on('error', function(err) {
-            callback(err);
-        });
+        req.on('error', errback);
         req.end(JSON.stringify(blob));
     });
 }
 
 module.exports = {
     getZip: function(id) {
-        return httpRequest(Config.THINGPEDIA_URL + '/download/devices/' + id, id);
+        return httpRequest(Config.THINGPEDIA_URL + '/download/devices/' + id + '.zip', id);
     },
 
     getCode: function(id) {

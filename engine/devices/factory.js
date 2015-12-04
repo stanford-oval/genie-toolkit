@@ -36,7 +36,7 @@ module.exports = new lang.Class({
     addFromDiscovery: function(kind, publicData, privateData) {
         return this.getFactory(kind).then(function(factory) {
             return factory.addFromDiscovery(this._engine, publicData, privateData);
-        });
+        }.bind(this));
     },
 
     createDevice: function(kind, serializedDevice) {

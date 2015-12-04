@@ -1,0 +1,16 @@
+{
+  "name": "thingengine-device-bluetooth-generic",
+  "version": "1.0.0",
+  "description": "Generic Bluetooth device support in ThingEngine",
+  "author": "Stanford IoT lab",
+  "contributors": [
+    {
+      "name": "Giovanni Campagna",
+      "email": "gcampagn@cs.stanford.edu"
+    }
+  ],
+  "main": "device.js",
+  "dependencies": {
+    "q": "~1.4.1"
+  }
+}

@@ -8,6 +8,7 @@
   "dependencies": {
     "q": "~1.4.0",
     "sqlite3": "^3.0.8",
-    "posix": "~2.0.1"
+    "posix": "~2.0.1",
+    "dbus-native": "~0.2.0"
   }
 }
