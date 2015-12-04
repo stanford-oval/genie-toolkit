@@ -43,7 +43,7 @@ module.exports = new lang.Class({
                                                   });
 
         var obj = this._allJoyn.createObject(OBJECT_PATH, [iface]);
-        //obj.addMethodHandler(DISCOVER_METHOD, this._onHello.bind(this));
+        obj.addMethodHandler(DISCOVER_METHOD, this._onHello.bind(this));
         this._allJoyn.exportObject(obj);
 
         this._allJoyn.exportSessionPort(SESSION_PORT);

@@ -27,6 +27,7 @@ const prefs = require('./engine/prefs');
 
 var AllJoynApi;
 try {
+    throw new Error('AllJoyn is disabled');
     AllJoynApi = require('./alljoyn');
 } catch(e) {
     AllJoynApi = null;

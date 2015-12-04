@@ -41,8 +41,7 @@ module.exports = new lang.Class({
         for (var name in descr.signals)
             check(iface.addSignal(name, descr.signals[name][0], descr.signals[name][1]));
         for (var name in descr.methods)
-            //check(iface.addMethod(name, descr.methods[name][0], descr.methods[name][1], descr.methods[name][2]));
-            ;
+            check(iface.addMethod(name, descr.methods[name][0], descr.methods[name][1], descr.methods[name][2]));
 
         iface.activate();
         return iface;
