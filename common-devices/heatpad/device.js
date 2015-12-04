@@ -27,6 +27,10 @@ const HeatPadDevice = new lang.Class({
         this.description = "The device allows you to turn on/off your heatpad.";
     },
 
+    get ownerTier() {
+        return 'server';
+    },
+
     checkAvailable: function() {
         return BaseDevice.Availability.AVAILABLE;
     },

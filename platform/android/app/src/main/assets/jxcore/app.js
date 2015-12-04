@@ -67,8 +67,10 @@ function runEngine() {
             setServerAddress: function(serverHost, serverPort, authToken) {
                 if (engine.devices.hasDevice('thingengine-own-server'))
                     return false;
-                if (!platform.setAuthToken(authToken))
-                    return false;
+                if (authToken !== null) {
+                    if (!platform.setAuthToken(authToken))
+                        return false;
+                }
 
                 engine.devices.loadOneDevice({ kind: 'thingengine',
                                                tier: Tier.SERVER,

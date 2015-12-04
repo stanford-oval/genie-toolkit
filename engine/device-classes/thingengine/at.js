@@ -67,7 +67,7 @@ const AtTimerChannel = new lang.Class({
 });
 
 function createChannel(engine, device, params) {
-    return new TimerChannel(engine, device, params);
+    return new AtTimerChannel(engine, device, params);
 }
 
 module.exports.createChannel = createChannel;

@@ -267,6 +267,8 @@ public class WebUIActivity extends Activity {
             int port = Integer.parseInt(pathSegments.get(2));
             String authToken = pathSegments.get(3);
 
+            if (authToken.equals("undefined"))
+                authToken = null;
             maybeSetServerAddress(host, port, authToken);
         } catch(NumberFormatException e) {
             Log.w(LOG_TAG, "Received spurious intent view " + data);
