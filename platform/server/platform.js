@@ -25,6 +25,13 @@ Config = {};
 }
 const prefs = require('./engine/prefs');
 
+var AllJoynApi;
+try {
+    AllJoynApi = require('./alljoyn');
+} catch(e) {
+    AllJoynApi = null;
+}
+
 var _writabledir = null;
 var _frontend = null;
 var _prefs = null;
@@ -103,6 +110,9 @@ module.exports = {
             // this platform
             return true;
 
+        case 'alljoyn':
+            return AllJoynApi !== null;
+
         default:
             return false;
         }
@@ -117,6 +127,9 @@ module.exports = {
         case 'code-download':
             // We have the support to download code
             return _unzipApi;
+
+        case 'alljoyn':
+            return new AllJoynApi();
 
         default:
             return null;

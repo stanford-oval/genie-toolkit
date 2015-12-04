@@ -228,10 +228,3 @@ const Engine = new lang.Class({
 });
 
 module.exports = Engine;
-
-process.on('uncaughtException', function(e) {
-    console.log('Uncaught exception: ' + e);
-    console.log(e);
-    console.log(e.stack);
-    process.exit(1);
-});

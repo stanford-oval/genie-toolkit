@@ -11,8 +11,6 @@ const Q = require('q');
 const Engine = require('./engine');
 const Frontend = require('./frontend');
 
-const DeviceDiscovery = require('./device_discovery')
-
 function main() {
     global.platform = require('./platform');
 
@@ -20,7 +18,6 @@ function main() {
     platform.init(test).then(function() {
         var engine = new Engine();
         var frontend = new Frontend();
-        var deviceDiscovery = new DeviceDiscovery(engine);
         platform._setFrontend(frontend);
         frontend.setEngine(engine);
 
@@ -36,8 +33,6 @@ function main() {
         //process.on('SIGTERM', handleSignal);
 
         return Q.all([engine.open(), frontend.open()]).then(function() {
-            deviceDiscovery.start();
-
             engineRunning = true;
             if (earlyStop)
                 return;

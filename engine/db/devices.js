@@ -101,6 +101,7 @@ module.exports = new lang.Class({
 
         // FIXME: use Map when node supports it
         this._devices = {};
+        this._byDescriptor = {};
 
         this._syncdb = new SyncDatabase('device', ['state'], tierManager);
 
@@ -209,6 +210,10 @@ module.exports = new lang.Class({
         });
     },
 
+    getDeviceByDescriptor: function(descriptor) {
+        return this._byDescriptor[descriptor];
+    },
+
     _notifyDeviceAdded: function(device) {
         console.log('Added device ' + device.uniqueId);
 
@@ -237,11 +242,19 @@ module.exports = new lang.Class({
                 throw new Error('Device unique id is different from stored value');
         }
 
+        if (device.uniqueId in this._devices) {
+            this._devices[device.uniqueId].updateState(device.serialize());
+            return;
+        }
+
         device.on('state-changed', function() {
             this._onDeviceStateChanged(device);
         }.bind(this));
 
         this._devices[device.uniqueId] = device;
+        device.descriptors.forEach(function(descriptor) {
+            this._byDescriptor[descriptor] = device;
+        }, this);
         if (addToDB && !device.isTransient) {
             var state = device.serialize();
             var uniqueId = device.uniqueId;
@@ -263,6 +276,9 @@ module.exports = new lang.Class({
 
     removeDevice: function(device) {
         delete this._devices[device.uniqueId];
+        device.descriptors.forEach(function(descriptor) {
+            delete this._byDescriptor[descriptor];
+        }, this);
         if (device.isTransient) {
             this._notifyDeviceRemoved(device);
         } else {

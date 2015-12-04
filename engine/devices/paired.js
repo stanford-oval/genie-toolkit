@@ -36,6 +36,10 @@ module.exports = new lang.Class({
         this._listener = null;
     },
 
+    get isSupported() {
+        return true;
+    },
+
     _onDeviceAdded: function(device) {
         if (!device.hasKind('thingengine-own'))
             return;

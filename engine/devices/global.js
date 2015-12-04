@@ -21,6 +21,10 @@ module.exports = new lang.Class({
         this._devices = devices;
     },
 
+    get isSupported() {
+        return true;
+    },
+
     start: function() {
         return Q.all(KINDS.map(function(k) {
             return this._devices.loadOneDevice({ kind: k }, false);

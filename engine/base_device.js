@@ -10,6 +10,7 @@ const events = require('events');
 const lang = require('lang');
 const Q = require('q');
 const ip = require('ip');
+const deepEqual = require('deep-equal');
 
 const Tier = require('./tier_manager').Tier;
 
@@ -35,10 +36,15 @@ module.exports = new lang.Class({
         this._engine = engine;
 
         // Set this to a device specific ID plus something unique
-        // (eg "bluetooth-aa-bb-cc-dd-ee-ff") so that no other device
+        // (eg "mydevice-aa-bb-cc-dd-ee-ff") so that no other device
         // can possibly have the same ID
         // If you leave it undefined, DeviceDatabase will pick for you
         this.uniqueId = undefined;
+
+        // Set these to protocol/discovery specific IDs (such as
+        // "bluetooth-aa-bb-cc-dd-ee-ff") so that it is unlikely that
+        // another device has the same ID
+        this.descriptors = [];
 
         this.state = state;
         this.kind = state.kind;
@@ -60,6 +66,10 @@ module.exports = new lang.Class({
         // pointer
         // subclasses can override if they need to do anything about it
         this.state = state;
+    },
+
+    updateFromDiscovery: function(data) {
+        // nothing to do here, subclasses can override if they support discovery
     },
 
     serialize: function() {

@@ -13,6 +13,7 @@ const lang = require('lang');
 
 const GlobalDeviceManager = require('./global');
 const PairedEngineManager = require('./paired');
+const AllJoynDiscovery = require('./alljoyn');
 
 // a meta-module that collects all modules that deal with discovering,
 // creating and maintaining devices (ie, things)
@@ -23,7 +24,8 @@ module.exports = new lang.Class({
     _init: function(db, tierManager) {
         // in loading order
         this._modules = [new GlobalDeviceManager(db),
-                         new PairedEngineManager(db, tierManager)];
+                         new PairedEngineManager(db, tierManager),
+                         new AllJoynDiscovery(db)];
     },
 
     _startSequential: function(modules) {
@@ -31,9 +33,13 @@ module.exports = new lang.Class({
             if (i == modules.length)
                 return;
 
-            return modules[i].start().then(function() {
+            if (modules[i].isSupported) {
+                return modules[i].start().then(function() {
+                    return start(i+1);
+                });
+            } else {
                 return start(i+1);
-            });
+            }
         }
 
         return start(0);
@@ -44,9 +50,13 @@ module.exports = new lang.Class({
             if (i < 0)
                 return Q();
 
-            return modules[i].stop().then(function() {
+            if (modules[i].isSupported) {
+                return modules[i].stop().then(function() {
+                    return stop(i-1);
+                });
+            } else {
                 return stop(i-1);
-            });
+            }
         }
 
         return stop(modules.length-1);

@@ -6,36 +6,19 @@
 //
 // See COPYING for details
 
-const Config = require('../config');
-
-const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const url = require('url');
 const lang = require('lang');
 const Q = require('q');
 const tmp = require('tmp');
 
+const Thingpedia = require('./thingpedia');
 const GenericDeviceFactory = require('./generic');
-
-var _agent = null;
-function getAgent() {
-    if (_agent === null) {
-        var caFile = path.resolve(path.dirname(module.filename), '../data/thingpedia.cert');
-        _agent = new https.Agent({ keepAlive: false,
-                                   maxSockets: 10,
-                                   ca: fs.readFileSync(caFile) });
-    }
-
-    return _agent;
-}
 
 module.exports = new lang.Class({
     Name: 'ModuleDownloader',
 
     _init: function() {
-        this._zipUrl = Config.THINGPEDIA_URL + '/download/devices';
-        this._codeUrl = Config.THINGPEDIA_URL + '/api/code/devices';
         this._cacheDir = platform.getCacheDir() + '/device-classes';
 
         this._deviceClassesDir = path.resolve(path.dirname(module.filename),
@@ -148,60 +131,36 @@ module.exports = new lang.Class({
         var codeTmpPath = this._cacheDir + '/' + id + '.json.tmp';
         var codePath = this._cacheDir + '/' + id + '.json';
 
-        return this._moduleRequests[id] = Q.Promise(function(callback, errback) {
-            var parsed = url.parse(this._codeUrl + '/' + id);
-            parsed.agent = getAgent();
-            https.get(parsed, function(response) {
-                if (response.statusCode == 404)
-                    return errback(new Error('No such device code ' + id));
-                if (response.statusCode != 200)
-                    return errback(new Error('Unexpected HTTP error ' + response.statusCode + ' downloading channel ' + id));
+        return this._moduleRequests[id] = Thingpedia.getCode(id).then(function(response) {
+            var stream = fs.createWriteStream(codeTmpPath, { flags: 'wx', mode: 0600 });
 
-                var stream = fs.createWriteStream(codeTmpPath, { flags: 'wx', mode: 0600 });
-
+            return Q.Promise(function(callback, errback) {
                 response.pipe(stream);
-                stream.on('finish', function() {
-                    callback();
-                });
-                stream.on('error', function(error) {
-                    errback(error);
-                });
-            }.bind(this)).on('error', function(error) {
-                errback(error);
+                stream.on('finish', callback);
+                stream.on('error', errback);
             });
         }.bind(this)).then(function() {
             fs.renameSync(codeTmpPath, codePath);
 
             return this._createModuleFromCachedCode(fullId, id);
         }.bind(this)).catch(function(e) {
-            return Q.Promise(function(callback, errback) {
-                var parsed = url.parse(this._zipUrl + '/' + id + '.zip');
-                parsed.agent = getAgent();
-                https.get(parsed, function(response) {
-                    if (response.statusCode == 404)
-                        return errback(new Error('No such device ' + id));
-                    if (response.statusCode != 200)
-                        return errback(new Error('Unexpected HTTP error ' + response.statusCode + ' downloading channel ' + id));
+            return Thingpedia.getZip(id).then(function(response) {
+                return Q.nfcall(tmp.file, { mode: 0600,
+                                            keep: true,
+                                            dir: platform.getTmpDir(),
+                                            prefix: 'thingengine-' + id + '-',
+                                            postfix: '.zip' })
+                    .then(function(result) {
+                        var stream = fs.createWriteStream('', { fd: result[1], flags: 'w' });
 
-                    return Q.nfcall(tmp.file, { mode: 0600,
-                                                keep: true,
-                                                dir: platform.getTmpDir(),
-                                                prefix: 'thingengine-' + id + '-',
-                                                postfix: '.zip' })
-                        .then(function(result) {
-                            var stream = fs.createWriteStream('', { fd: result[1], flags: 'w' });
-
+                        return Q.Promise(function(callback, errback) {
                             response.pipe(stream);
                             stream.on('finish', function() {
                                 callback(result[0]);
                             });
-                            stream.on('error', function(error) {
-                                errback(error);
-                            });
+                            stream.on('error', errback);
                         });
-                }.bind(this)).on('error', function(error) {
-                    errback(error);
-                });
+                    });
             }.bind(this)).then(function(zipPath) {
                 var dir = this._cacheDir + '/' + id;
                 try {
