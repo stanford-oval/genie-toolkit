@@ -39,9 +39,9 @@ block content
                     | Please check it is powered on and correctly configured.
             div.panel-footer
               form.form-inline(action="/devices/delete?class=" + (onlineAccounts ? 'online' : 'physical'),method="post").form-delete-app
-              input(type='hidden',name='id',value=dev.uniqueId)
-              input(type='hidden',name='_csrf',value=csrfToken)
-              button(type='submit').btn.btn-danger Delete
+                input(type='hidden',name='id',value=dev.uniqueId)
+                input(type='hidden',name='_csrf',value=csrfToken)
+                button(type='submit').btn.btn-danger Delete
 
   p
     if onlineAccounts
