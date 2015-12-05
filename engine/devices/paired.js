@@ -236,6 +236,13 @@ module.exports = new lang.Class({
         this._listener = this._onDeviceAdded.bind(this);
         this._devices.on('device-added', this._listener);
 
+        if (!this._tierManager.isConfigured(Tier.SERVER) &&
+            this._devices.hasDevice('thingengine-own-server'))
+            this._onServerAdded(this._devices.getDevice('thingengine-own-server'));
+        if (!this._tierManager.isConfigured(Tier.CLOUD) &&
+            this._devices.hasDevice('thingengine-own-cloud'))
+            this._onCloudAdded(this._devices.getDevice('thingengine-own-cloud'));
+
         // Make sure that the global tier is available
         return Q.try(function() {
             // no need to save this on the database, we would reload it at startup anyway

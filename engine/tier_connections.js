@@ -165,8 +165,10 @@ const ClientConnection = new lang.Class({
             try {
                 var agent = this._targetIdentity === 'cloud' ?
                     getCloudAgent() : getServerAgent();
-                var socket = new WebSocket(this._serverAddress,
-                                           { agent: getCloudAgent() });
+                var options = {};
+                if (agent)
+                    options.agent = agent;
+                var socket = new WebSocket(this._serverAddress, options);
                 socket.on('open', function() {
                     callback(socket);
                 });

@@ -1,7 +1,9 @@
 package edu.stanford.thingengine.engine;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -52,6 +54,13 @@ public class TestActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 addRandomWeightClicked();
+            }
+        });
+
+        findViewById(R.id.clear_sync).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearSyncInfoClicked();
             }
         });
     }
@@ -107,6 +116,19 @@ public class TestActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void clearSyncInfoClicked() {
+        SharedPreferences.Editor editor = getSharedPreferences("thingengine", Context.MODE_PRIVATE).edit();
+
+        for (String a : new String[]{"device", "keyword", "app"}) {
+            for (String b : new String[]{"server", "cloud"}) {
+                String k = "syncdb-time-" + a + "-" + b;
+                editor.putString(k, "0");
+            }
+        }
+
+        editor.commit();
     }
 
     @Override

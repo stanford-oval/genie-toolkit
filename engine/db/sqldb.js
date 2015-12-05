@@ -163,7 +163,7 @@ module.exports = new lang.Class({
         var self = this;
 
         return this._db.withTransaction(function(client) {
-            var now = new Date;
+            var now = (new Date).getTime();
             return self._insertInternal(client, uniqueId, now, row);
         });
     },
