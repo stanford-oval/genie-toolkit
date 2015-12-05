@@ -13,7 +13,7 @@ const adt = require('adt');
 
 const RefCounted = require('./util/ref_counted');
 
-const RemoteKeyword = new lang.Class({
+module.exports = new lang.Class({
     Name: 'RemoteKeyword',
     Extends: RefCounted,
 
@@ -24,15 +24,15 @@ const RemoteKeyword = new lang.Class({
         this._localStore = localstore;
 
         this._scope = scope;
-        this._name = name;
         this._feedId = feedId;
 
-        this.local = null;
+        this.local = this._localStore.getKeyword(name, key + '-self');
         this._ownAccount = null;
         this._ownId = null;
         this._memberToKeywordMap = {};
         this._value = [];
 
+        this.name = name;
         this.uniqueId = key;
     },
 
@@ -41,12 +41,12 @@ const RemoteKeyword = new lang.Class({
     },
 
     _getKeywordForMember: function(id) {
-        var kw = this._localStore.getKeyword(this.uniqueId + '-' + kw);
+        var kw = this._localStore.getKeyword(this.name, this.uniqueId + '-' + kw);
 
         return kw.open().then(function() {
             this._memberToKeywordMap[id] = kw;
             return kw;
-        });
+        }.bind(this));
     },
 
     _syncAndEmit: function(senderId) {
@@ -63,6 +63,7 @@ const RemoteKeyword = new lang.Class({
         }, this);
 
         return Q.all(keywordlist).then(function(kws) {
+            var changedMember = null;
             if (senderId === null)
                 changedMember = 0;
             for (var i = 0; i < members.length; i++) {
@@ -72,6 +73,7 @@ const RemoteKeyword = new lang.Class({
                     changedMember = i;
             }
 
+            console.log('value', value);
             this._value = value;
             this.emit('changed', changedMember);
         }.bind(this));
@@ -127,12 +129,15 @@ const RemoteKeyword = new lang.Class({
     },
 
     _handleNewValue: function(msg, parsed) {
-        if (!(msg.senderId in this._memberToKeywordMap))
-            this._memberToKeywordMap[msg.senderId] = this._localStore.getKeyword(this.uniqueId + '-' + msg.senderId);
-
-        var keyword = this._memberToKeywordMap[msg.senderId];
-        if (keyword.changeValue(parsed.value))
-            this._syncAndEmit(msg.senderId).done();
+        Q.try(function() {
+            if (msg.senderId in this._memberToKeywordMap)
+                return this._memberToKeywordMap[msg.senderId];
+            else
+                return this._getKeywordForMember(msg.senderId);
+        }.bind(this)).then(function(keyword) {
+            if (keyword.changeValue(parsed.value))
+                return this._syncAndEmit(msg.senderId);
+        }).done();
     },
 
     _onNewMessage: function(msg) {
@@ -171,7 +176,6 @@ const RemoteKeyword = new lang.Class({
     },
 
     _doOpen: function() {
-        this.local = this._localStore.get(this.uniqueId + '-self');
         this._feed = this._messaging.getFeed(this._feedId);
 
         this._newMessageListener = this._onNewMessage.bind(this);
@@ -180,8 +184,10 @@ const RemoteKeyword = new lang.Class({
         this._localChangeListener = this._onLocalChange.bind(this);
         this.local.on('changed', this._localChangeListener);
 
-        return this._feed.open().then(function() {
-            this._ownId = this._feed.ownIds[0];
+        return this.local.open().then(function() {
+            return this._feed.open();
+        }.bind(this)).then(function() {
+            this._ownId = this._feed.ownId;
             return this._messaging.getAccountById(this._ownId);
         }.bind(this)).then(function(account) {
             this._ownAccount = account;
@@ -189,7 +195,7 @@ const RemoteKeyword = new lang.Class({
             this._sendRefresh();
             this._sendValue();
             return this._syncAndEmit();
-        });
+        }.bind(this));
     },
 
     _doClose: function() {
@@ -214,6 +220,8 @@ const RemoteKeyword = new lang.Class({
             return Q.all(kws.map(function(k) { return k.close(); }));
         }).then(function() {
             return this._feed.close();
+        }.bind(this)).then(function() {
+            return this.local.close();
         }.bind(this));
     },
 });

@@ -8,6 +8,7 @@
                 feedId = Base64.decode(Omlet.scope.feed_key);
 
             if (feedId) {
+                feedId = Base64.encodeURI(feedId);
                 if (location.search)
                     location.href = '/demos/picturetv' + location.search + '&feedId=' + feedId;
                 else
@@ -16,16 +17,14 @@
         });
     };
     Demo.exit = function() {
-        Omlet.ready(function() {
-            var rdl = Omlet.createRDL({
-    	        noun: "app",
-    	        displayTitle: "Share on TV!",
-    	        //displayThumbnailUrl: movie.thumbnail,
-    	        displayText: "Click me to share your pictures on the big screen!",
-    	        json: {},
-    	        webCallback: 'https://thingengine.stanford.edu/demos/picturetv',
-    	        callback: 'http://127.0.0.1:3000/demos/picturetv',
-	    });
-            Omlet.exit(rdl);
-        });
+        var rdl = Omlet.createRDL({
+    	    noun: "app",
+    	    displayTitle: "Share on TV!",
+    	    //displayThumbnailUrl: movie.thumbnail,
+    	    displayText: "Click me to share your pictures on the big screen!",
+    	    json: {},
+    	    webCallback: 'https://thingengine.stanford.edu/demos/picturetv',
+    	    callback: 'http://127.0.0.1:3000/demos/picturetv',
+	});
+        Omlet.exit(rdl);
     };

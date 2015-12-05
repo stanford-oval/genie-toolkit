@@ -20,10 +20,15 @@ const LocalKeyword = new lang.Class({
     Name: 'LocalKeyword',
     Extends: RefCounted,
 
-    _init: function(db, key) {
+    _init: function(db, name, key) {
         this.parent();
 
+        console.log('Created local keyword ' + name + ' with key ' + key);
+        if (!key)
+            throw new TypeError('Invalid local keyword key');
+
         this._db = db;
+        this.name = name;
         this.uniqueId = key;
 
         this._value = null;
@@ -39,7 +44,7 @@ const LocalKeyword = new lang.Class({
 
         this._value = v;
         if (v !== null)
-            this._db.insertOne(this.uniqueId, { value: v });
+            this._db.insertOne(this.uniqueId, { value: JSON.stringify(v) });
         else
             this._db.deleteOne(this.uniqueId);
 
@@ -48,8 +53,13 @@ const LocalKeyword = new lang.Class({
 
     sync: function() {
         this._db.getOne(this.uniqueId).then(function(row) {
-            if (!deepEqual(this._value, row.value, { strict: true })) {
-                this._value = row.value;
+            var value;
+            if (row === undefined)
+                value = null;
+            else
+                value = JSON.parse(row.value);
+            if (!deepEqual(this._value, value, { strict: true })) {
+                this._value = value;
                 this.emit('changed', null);
             }
         }.bind(this)).done();
@@ -57,7 +67,12 @@ const LocalKeyword = new lang.Class({
 
     _doOpen: function() {
         return this._db.getOne(this.uniqueId).then(function(row) {
-            this._value = row.value;
+            var value;
+            if (row === undefined)
+                value = null;
+            else
+                value = JSON.parse(row.value);
+            this._value = value;
         }.bind(this));
     },
 
@@ -90,21 +105,30 @@ const LocalKeywordStore = new lang.Class({
         this.parent(uniqueId);
     },
 
-    getKeyword: function(key) {
+    getKeyword: function(name, key) {
         if (!this._keywords[key])
-            this._keywords[key] = new LocalKeyword(this, key);
+            this._keywords[key] = new LocalKeyword(this, name, key);
         return this._keywords[key];
     }
 });
 
 function makeKey(scope, name, feedId) {
-    var key = name;
-    if (feedId)
-        key += feedId.replace(/[^a-zA-Z0-9]+/g, '-');
-    if (scope)
+    var key;
+
+    if (scope) {
         key = scope + '-' + name;
-    else
+
+        // we don't need to put the full feedId in the keyword name,
+        // it is already implied by the app
+        if (feedId)
+            key += '-F';
+    } else {
         key = 'extern-' + name;
+
+        if (feedId)
+            key += feedId.replace(/[^a-zA-Z0-9]+/g, '-');
+    }
+
     return key;
 }
 
@@ -115,7 +139,7 @@ module.exports = new lang.Class({
         this._local = new LocalKeywordStore(tierManager);
         this._messaging = messaging;
 
-        this._keywords = [];
+        this._keywords = {};
     },
 
     getKeyword: function(scope, name, feedId, forSelf) {
@@ -125,7 +149,7 @@ module.exports = new lang.Class({
                 this._keywords[key] = new RemoteKeyword(this._messaging, this._local,
                                                         scope, name, feedId, key);
             else
-                this._keywords[key] = this._local.getKeyword(key);
+                this._keywords[key] = this._local.getKeyword(name, key);
         }
 
         var obj;

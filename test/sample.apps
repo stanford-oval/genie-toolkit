@@ -1,5 +1,14 @@
 // -* mode: js -*-
 
+LinkedInApp-F() {
+    @linkedin.profile(name, _, ind) => Company-F[self](name, ind);
+    Company-F[self](_, ind), Company-F[m](name, ind), m in F =>
+        NewColleague(name, ind);
+    NewColleague(name, co) => @$notify(name, co);
+}
+
+====
+
 WeightCompetition-F(stopTime: String) {
     var InitialWeight-F : (Measure(kg));
 

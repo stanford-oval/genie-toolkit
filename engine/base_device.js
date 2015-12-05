@@ -97,7 +97,7 @@ module.exports = new lang.Class({
 
         // online accounts belong to the phone
         if (this.hasKind('online-account'))
-            return this._ownerTier = Tier.SERVER;
+            return this._ownerTier = Tier.PHONE;
 
         // if this device is on (some) local network, it belongs to home
         if (this.state) {

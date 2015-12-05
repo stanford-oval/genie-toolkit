@@ -160,7 +160,7 @@ module.exports = new lang.Class({
         }.bind(this)).then(function() {
             this._keywords = this._input.keywords.map(function(k) {
                 return this._getInputKeyword(k);
-            });
+            }, this);
             return Q.all(this._keywords);
         }.bind(this)).then(function(kws) {
             kws.forEach(function(k) {

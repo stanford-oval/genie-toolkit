@@ -1270,6 +1270,7 @@ module.exports = new lang.Class({
                 compiled[0].owner = compiled[1];
                 if (compiled[0].feedAccess && compiled[1] !== 'self')
                     memberBindingKeywords[compiled[1]].push(compiled[0].name);
+                keywords.push(compiled[0]);
                 inputFunctions.push(compiled[2]);
             } else if (input.isBinding) {
                 bindings.push(input);
@@ -1312,7 +1313,7 @@ module.exports = new lang.Class({
         } else if (memberBindings.length === 0) {
             var memberBinding = memberBindings[i];
             memberCaller = function(env, cont) {
-                var members = env.getAllFeedMembers();
+                var members = env.getFeedMembers();
                 if (env.changedMember !== null) {
                     env.setMemberBinding(memberBinding, env.changedMember);
                     env.setVar(memberBindings[i], members[env.changedMember]);
@@ -1338,7 +1339,7 @@ module.exports = new lang.Class({
                         return;
                     }
 
-                    var members = env.getAllFeedMembers();
+                    var members = env.getFeedMembers();
                     if (i === fixed) {
                         env.setMemberBinding(memberBindings[i], env.changedMember);
                         env.setVar(memberBindings[i], members[env.changedMember]);

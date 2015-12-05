@@ -4,6 +4,7 @@ const fs = require('fs');
 require('../engine/polyfill');
 
 const AppExecutor = require('../engine/app_executor');
+const AppCompiler = require('../engine/app_compiler');
 const AppGrammar = require('../engine/app_grammar');
 
 function getMockEngine() {
@@ -167,6 +168,22 @@ function parserTest() {
             console.log(code);
             console.log(e);
         }
+
+        try {
+            var compiler = new AppCompiler();
+
+            compiler.compileProgram(AppGrammar.parse(code));
+            compiler.rules.forEach(function(r, i) {
+                console.log('Rule ' + (i+1));
+                console.log('Inputs', r.inputs);
+                console.log('Output', r.output);
+            });
+        } catch(e) {
+            console.log('Compilation failed');
+            console.log(code);
+            console.log(e);
+        }
+
 
         try {
             // try also instantiating the app, which runs semantic analysis of it

@@ -33,9 +33,10 @@ var PICTURE_TV_DEMO = 'Slides-F() {' +
 router.get('/linkedin', function(req, res, next) {
     var feedId = req.session['linkedin-feed-id'];
     if (!feedId) {
-        feedId = req.query['feedId'];
-        if (feedId)
+        if (req.query.feedId) {
+            feedId = (new Buffer(req.query.feedId, 'base64')).toString();
             req.session['linkedin-feed-id'] = feedId;
+        }
     }
     if (!feedId) {
         res.render('demo_view', { page_title: "LinkedIn Party!", nofeed: true, done: false });
@@ -66,12 +67,9 @@ router.get('/linkedin', function(req, res, next) {
     }
 
     // now check that we have the app installed
-    var messagingGroupId = 'messaging-group-omlet' + feedId.replace(/[^a-zA-Z0-9]+/g, '-');
-    console.log('Messaging Group Id');
-    var appId = 'app-LinkedInApp-' + messagingGroupId;
-
+    var appId = 'app-LinkedInApp' + feedId.replace(/[^a-zA-Z0-9]+/g, '-');
     if (apps.getApp(appId) === undefined) {
-        engine.apps.loadOneApp(LINKEDIN_CODE, { '$F': messagingGroupId }, appId, 'phone', true).then(function() {
+        engine.apps.loadOneApp(LINKEDIN_CODE, { '$F': feedId }, appId, 'phone', true).then(function() {
             delete req.session['device-redirect-to'];
             res.render('demo_view', { page_title: "LinkedIn Party!", nofeed: false, done: true });
         }).done();
@@ -84,9 +82,10 @@ router.get('/linkedin', function(req, res, next) {
 router.get('/weightcomp', function(req, res, next) {
     var feedId = req.session['weightcomp-feed-id'];
     if (!feedId) {
-        feedId = req.query['feedId'];
-        if (feedId)
+        if (req.query.feedId) {
+            feedId = (new Buffer(req.query['feedId'], 'base64')).toString();
             req.session['weightcomp-feed-id'] = feedId;
+        }
     }
     if (!feedId) {
         res.render('demo_weightcomp_install_view', { page_title: "Weight Competition!", nofeed: true, done: false });
@@ -111,12 +110,10 @@ router.get('/weightcomp', function(req, res, next) {
     // but we don't do that, because we only have one scale anyway
 
     // now check that we have the app installed
-    var messagingGroupId = 'messaging-group-omlet' + feedId.replace(/[^a-zA-Z0-9]+/g, '-');
-    console.log('Messaging Group Id');
-    var appId = 'app-WeightCompApp-' + messagingGroupId;
+    var appId = 'app-WeightCompApp' + feedId.replace(/[^a-zA-Z0-9]+/g, '-');
 
     if (apps.getApp(appId) === undefined) {
-        engine.apps.loadOneApp(WEIGHTCOMP_CODE, { '$F': messagingGroupId }, appId, 'phone', true).then(function() {
+        engine.apps.loadOneApp(WEIGHTCOMP_CODE, { '$F': feedId }, appId, 'phone', true).then(function() {
             delete req.session['device-redirect-to'];
             res.render('demo_weightcomp_install_view', { page_title: "Weight Competition!", nofeed: false, done: true });
         }).done();
@@ -134,9 +131,10 @@ router.get('/callback/weightcomp/:result', function(req, res, next) {
 router.get('/picturetv', function(req, res, next) {
     var feedId = req.session['picturetv-feed-id'];
     if (!feedId) {
-        feedId = req.query['feedId'];
-        if (feedId)
+        if (req.query.feedId) {
+            feedId = (new Buffer(req.query.feedId, 'base64')).toString();
             req.session['picturetv-feed-id'] = feedId;
+        }
     }
     if (!feedId) {
         res.render('demo_picturetv_install_view', { page_title: "Share on TV!", nofeed: true, done: false });
@@ -167,11 +165,10 @@ router.get('/picturetv', function(req, res, next) {
     }
 
     // now check that we have the app installed
-    var messagingGroupId = 'messaging-group-omlet' + feedId.replace(/[^a-zA-Z0-9]+/g, '-');
-    var appId = 'app-PictureTVApp-' + messagingGroupId;
+    var appId = 'app-PictureTVApp' + feedId.replace(/[^a-zA-Z0-9]+/g, '-');
 
     if (apps.getApp(appId) === undefined) {
-        engine.apps.loadOneApp(PICTURE_TV_DEMO, { '$F': messagingGroupId }, appId, 'phone', true).then(function() {
+        engine.apps.loadOneApp(PICTURE_TV_DEMO, { '$F': feedId }, appId, 'phone', true).then(function() {
             delete req.session['device-redirect-to'];
             res.render('demo_picturetv_install_view', { page_title: "Share on TV!", nofeed: false, done: true });
         }).done();

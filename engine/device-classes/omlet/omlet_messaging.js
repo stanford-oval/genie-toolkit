@@ -94,7 +94,7 @@ const OmletFeed = new lang.Class({
 
     _onInsert: function(o) {
         this.emit('new-message', o);
-        if (this.ownId === o.senderId)
+        if (this.ownId !== o.senderId)
             this.emit('incoming-message', o);
         else
             this.emit('outgoing-message', o);
@@ -142,9 +142,11 @@ const OmletFeed = new lang.Class({
     },
 
     _doOpen: function() {
+        console.log('Opening feed with ID ' + this.feedId);
+
         this._client = this._device.refOmletClient();
 
-        return this._messaging.getOwnIds().then(function(ownId) {
+        return this._messaging.getOwnId().then(function(ownId) {
             this.ownId = ownId;
             return this._getFeed();
         }.bind(this)).then(function(o) {
@@ -224,6 +226,13 @@ module.exports = new lang.Class({
 
     feedClosed: function(identifier) {
         delete this._feeds[identifier];
+    },
+
+    getFeed: function(feedId) {
+        if (feedId in this._feeds)
+            return this._feeds[feedId];
+
+        return this._feeds[feedId] = new OmletFeed(this, feedId);
     },
 
     startSync: function() {
@@ -313,17 +322,13 @@ module.exports = new lang.Class({
         }.bind(this));
     },
 
-    getFeed: function(feedId) {
-        return new OmletFeed(this, feedId);
-    },
-
     getFeedWithContact: function(contactId) {
         console.log('OmletMessaging.getFeedWithContact');
 
         var client = this._device.refOmletClient();
         return Q.ninvoke(client.feed, 'getOrCreateFeedWithMembers', [contactId]).then(function(result) {
             console.log('result', result)
-            return new OmletFeed(this, result[0].identifier);
+            return this.getFeed(result[0].identifier);
         }.bind(this)).finally(function() {
             this._device.unrefOmletClient();
         }.bind(this));
