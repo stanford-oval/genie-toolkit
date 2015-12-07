@@ -86,10 +86,11 @@ const ChannelStub = new lang.Class({
 module.exports = new lang.Class({
     Name: 'ProxyManager',
 
-    _init: function(tierManager, channels, devices) {
+    _init: function(tierManager, channels, devices, messaging) {
         this._channels = channels;
         this._tierManager = tierManager;
         this._devices = devices;
+        this._messaging = messaging;
 
         this._proxies = {};
         this._requests = {};
@@ -240,7 +241,7 @@ module.exports = new lang.Class({
             if (device !== 'thingengine-internal')
                 device = this._devices.getDevice(device);
             kind = kind;
-            params = Protocol.params.unmarshal(this._devices, params);
+            params = Protocol.params.unmarshal(this._messaging, params);
         } catch(e) {
             this._replyChannel(fromTier, targetChannelId, e.message);
             return;

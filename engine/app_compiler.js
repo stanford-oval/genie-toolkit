@@ -212,6 +212,11 @@ function equalityTest(a, b) {
         return true;
     if (a instanceof Date && b instanceof Date)
         return +a === +b;
+    if (a !== null && typeof a === 'object' &&
+        a.feedId !== undefined &&
+        b !== null && typeof b === 'object' &&
+        a.feedId === b.feedId)
+        return true;
 
     if (Array.isArray(a) && Array.isArray(b) &&
         a.length === b.length) {
@@ -585,6 +590,11 @@ module.exports = new lang.Class({
     },
 
     compileVarRef: function(name, scope) {
+        if (name === 'F' && this._feedAccess) {
+            return [Type.Feed, function(env) {
+                return env.readFeed();
+            }];
+        }
         if (name in this._keywords) {
             var decl = this._keywords[name];
             if (decl.feedAccess)
@@ -844,6 +854,8 @@ module.exports = new lang.Class({
                 continue;
             if (param.isBinder) {
                 if (param.name in scope) {
+                    if (scope[param.name].isFeed)
+                        continue;
                     if (decl.isArray) {
                         var unified = scope[param.name] = typeUnify(scope[param.name],
                                                                     Type.Array(Type.Tuple(decl.schema)));
@@ -876,6 +888,9 @@ module.exports = new lang.Class({
         }
 
         function keywordIsTrue(env, value) {
+            if (value === null)
+                return false;
+
             if (decl.isArray) {
                 for (var i = 0; i < equalities.length; i++) {
                     var equal = equalities[i];
@@ -987,10 +1002,12 @@ module.exports = new lang.Class({
             if (param.isBinder) {
                 if (param.name in scope) {
                     if (schema !== null)
-                        typeUnify(schema[i], scope[param.name]);
+                        schema[i] = typeUnify(schema[i], scope[param.name]);
                     if (!anyBinderOrNull)
                         triggerParams.push(Expression.VarRef(param.name));
 
+                    if (scope[param.name].isFeed)
+                        continue;
                     if (param.name in binders)
                         reflections.push([i, binders[param.name]]);
                     else
@@ -1560,6 +1577,10 @@ module.exports = new lang.Class({
             this._params[ast.name] = stringToType(ast.type);
             this._scope[ast.name] = this._params[ast.name];
         }, this);
+        if (this._feedAccess) {
+            this._params['F'] = Type.Feed;
+            this._scope['F'] = Type.Feed;
+        }
 
         ast.statements.forEach(function(stmt) {
             if (stmt.isComputeModule) {
@@ -1622,6 +1643,9 @@ var Value = adt.data({
     },
     Array: {
         value: adt.only(Array)
+    },
+    Feed: {
+        value: adt.any
     },
 });
 module.exports.Value = Value;

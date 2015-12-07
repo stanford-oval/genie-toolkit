@@ -123,10 +123,11 @@ module.exports = function(kind, code) {
             if (id in ast.triggers) {
                 block = ast.triggers[id];
                 source = true;
-            } else if (kind in ast.actions) {
+            } else if (id in ast.actions) {
                 block = ast.actions[id];
                 source = false;
             } else {
+                console.log('ast', ast);
                 throw new Error('Invalid channel ' + id + ' in ' + kind);
             }
 

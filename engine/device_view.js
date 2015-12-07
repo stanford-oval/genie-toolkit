@@ -45,8 +45,11 @@ const DeviceView = new lang.Class({
         if (selector.isAny) {
             return true;
         } else if (selector.isAttributes) {
-            return selector.attributes.map(function(a) {
-                return device.state[a.name] === a.value.value;
+            return selector.attributes.every(function(a) {
+                if (a.name === 'type')
+                    return device.hasKind(a.value.value);
+                else
+                    return device.state[a.name] === a.value.value;
             });
         } else if (selector.isGlobalName) {
             return device.kind === selector.name;
@@ -105,7 +108,9 @@ const DeviceView = new lang.Class({
     },
 
     _onDeviceAdded: function(device) {
-        this._deviceOpenChannels(device).done();
+        this._deviceOpenChannels(device).catch(function(e) {
+            console.log('Failed to open channels on ' + device.uniqueId + ': ' + e.message);
+        }).done();
     },
 
     _onDeviceRemoved: function(device) {

@@ -46,11 +46,13 @@ const ValueProto = {
             return { tag: 'date', v: value.value.getTime() };
         else if (value.isArray)
             return { tag: 'array', v: value.value.map(ValueProto.marshal) };
+        else if (value.isFeed)
+            return { tag: 'feed', v: value.value.feedId };
         else
             throw new TypeError();
     },
 
-    unmarshal: function(value) {
+    unmarshal: function(messaging, value) {
         switch(value.tag) {
         case 'bool':
             return AppCompiler.Value.Boolean(value.v);
@@ -67,7 +69,11 @@ const ValueProto = {
             date.setTime(value.v);
             return AppCompiler.Value.Date(date);
         case 'array':
-            return AppCompiler.Value.Array(value.v.map(ValueProto.unmarshal));
+            return AppCompiler.Value.Array(value.v.map(function(v) {
+                return ValueProto.unmarshal(messaging, v);
+            }));
+        case 'feed':
+            return AppCompiler.Value.Feed(messaging.getFeed(value.v));
         default:
             throw new TypeError();
         }
@@ -87,9 +93,9 @@ const ParamsProto = {
         });
     },
 
-    unmarshal: function(params) {
+    unmarshal: function(messaging, params) {
         return params.map(function(p) {
-            return ValueProto.unmarshal(p);
+            return ValueProto.unmarshal(messaging, p);
         });
     }
 };

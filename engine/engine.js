@@ -33,11 +33,10 @@ const Engine = new lang.Class({
         this._tiers = new TierManager();
         var deviceFactory = new DeviceFactory(this);
         this._devices = new DeviceDatabase(this._tiers, deviceFactory);
-        this._channels = new ChannelFactory(this, this._tiers, deviceFactory);
-        this._apps = new AppDatabase(this, this._tiers);
-
         this._messaging = new MessagingDeviceManager(this._devices);
         this._keywords = new KeywordRegistry(this._tiers, this._messaging);
+        this._channels = new ChannelFactory(this, this._tiers, deviceFactory);
+        this._apps = new AppDatabase(this, this._tiers);
         this._ui = new UIManager(this);
 
         // in loading order

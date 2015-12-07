@@ -53,6 +53,10 @@ module.exports = new lang.Class({
         this._feed = feed;
     },
 
+    readFeed: function() {
+        return this._feed;
+    },
+
     readFeedMember: function(user) {
         return this._feed.getMembers()[user];
     },

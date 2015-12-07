@@ -24,10 +24,8 @@ var WEIGHTCOMP_CODE = 'WeightCompetition-F() {' +
     '  Winner(w) => @$notify(w);' +
     '}';
 
-var PICTURE_TV_DEMO = 'Slides-F() {' +
-    '  @$input(url) => SharedSlides-F[self](url);' +
-    '  SharedSlides-F[m](url), m in F =>' +
-    '    @(type="tv").show(url);' +
+var PICTURE_TV_DEMO = 'PictureTVApp-F() {' +
+    '  @omlet.newmessage(F, "picture", url) => @(type="tv")(url);' +
     '}';
 
 router.get('/linkedin', function(req, res, next) {

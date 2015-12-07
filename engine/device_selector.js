@@ -160,17 +160,20 @@ module.exports = new lang.Class({
                 var type = this.app.compiler.params[p.name];
                 var value = this.app.state[p.name];
                 if (type.isBoolean)
-                    return Value.Boolean(value);
+                    return AppCompiler.Value.Boolean(value);
                 else if (type.isString)
-                    return Value.String(value);
+                    return AppCompiler.Value.String(value);
                 else if (type.isNumber)
-                    return Value.Number(value);
+                    return AppCompiler.Value.Number(value);
                 else if (type.isLocation)
-                    return Value.Location(value.x, value.y);
+                    return AppCompiler.Value.Location(value.x, value.y);
                 else if (type.isDate) {
                     var date = new Date();
                     date.setTime(value);
-                    return Value.Date(date);
+                    return AppCompiler.Value.Date(date);
+                } else if (type.isFeed) {
+                    value = this.app.state['$' + p.name];
+                    return AppCompiler.Value.Feed(this.engine.messaging.getFeed(value));
                 } else
                     throw new TypeError();
             } else

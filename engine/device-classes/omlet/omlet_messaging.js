@@ -119,7 +119,7 @@ const OmletFeed = new lang.Class({
             return this._messaging.getUserById(m);
         }, this)).then(function(users) {
             this._members = users;
-        });
+        }.bind(this));
     },
 
     _updateName: function() {

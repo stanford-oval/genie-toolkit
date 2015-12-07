@@ -41,7 +41,7 @@ module.exports = new lang.Class({
     },
 
     _getKeywordForMember: function(id) {
-        var kw = this._localStore.getKeyword(this.name, this.uniqueId + '-' + kw);
+        var kw = this._localStore.getKeyword(this.name, this.uniqueId + '-' + id);
 
         return kw.open().then(function() {
             this._memberToKeywordMap[id] = kw;

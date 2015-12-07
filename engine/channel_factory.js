@@ -54,7 +54,7 @@ module.exports = new lang.Class({
 
         this._deviceFactory = deviceFactory;
         this._tierManager = tiers;
-        this._proxyManager = new ProxyManager(tiers, this, engine.devices);
+        this._proxyManager = new ProxyManager(tiers, this, engine.devices, engine.messaging);
         this._pipeManager = new PipeManager(tiers, this._proxyManager);
 
         this._prefs = new prefs.FilePreferences(platform.getWritableDir() + '/channels.db');

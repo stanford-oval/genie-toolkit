@@ -75,6 +75,7 @@ module.exports = new lang.Class({
     _checkQuery: function() {
         try {
             this._input.caller(this._env, function() {
+                console.log('Rule triggered');
                 this.emit('triggered', this._env);
             }.bind(this));
         } catch(e) {
@@ -102,7 +103,7 @@ module.exports = new lang.Class({
 
         return Q.try(function() {
             if (this._feed)
-                return this._feed.stop();
+                return this._feed.close();
         }.bind(this)).then(function() {
             return Q.all(this._keywords);
         }.bind(this)).then(function(kws) {
