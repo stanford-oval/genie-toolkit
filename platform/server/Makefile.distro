@@ -7,7 +7,7 @@ localstatedir ?= /var/lib/thingengine-server
 systemdsystemunitdir ?= $(prefix)/lib/systemd/system
 
 SUBDIRS = engine shared frontend node_modules
-install_sources = package.json main.js platform.js platform_config.js device_discovery.js
+install_sources = package.json main.js platform.js platform_config.js alljoyn.js bluez.js dbus.js
 built_sources = platform_config.js thingengine-server.service
 
 all: $(built_sources)
