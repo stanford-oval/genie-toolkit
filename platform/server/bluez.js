@@ -42,7 +42,7 @@ module.exports = new lang.Class({
 
     _init: function() {
         this._systemBus = DBusUtils.system;
-        this._systemBus.on('error', function() { /* do nothing */ });
+        this._systemBus.connection.on('error', function() { /* do nothing */ });
         this._defaultAdapter = null;
         this._defaultAdapterProperties = {};
         this._devices = {};
