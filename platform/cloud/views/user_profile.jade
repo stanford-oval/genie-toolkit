@@ -68,12 +68,42 @@ block content
         div.form-group
           button(type='submit').btn.btn-primary Change password
 
-      if !user.google_id
-        a.btn.btn-primary(href='/devices/oauth2/google-account') Configure login with Google
-      if !user.google_id && !user.facebook_id
-        |  
-      if !user.facebook_id
-        a.btn.btn-primary(href='/devices/oauth2/facebook') Configure login with Facebook
+      if !user.google_id || !user.facebook_id
+        p
+          if !user.google_id
+            a.btn.btn-default(href='/devices/oauth2/google-account') Configure login with Google
+          if !user.google_id && !user.facebook_id
+            |  
+          if !user.facebook_id
+            a.btn.btn-default(href='/devices/oauth2/facebook') Configure login with Facebook
+
+      p
+        a.btn.btn-danger(data-toggle='modal', data-target='#delete-account-dialog') Delete account
+
+        div.modal.fade#delete-account-dialog(role='dialog')
+          div.modal-dialog
+            div.modal-content
+              div.modal-header
+                a.close(data-dismiss='modal', aria-label="Close")
+                  span(aria-hidden='true') ×
+
+                h4.modal-title Are you sure you want to delete your account?
+
+              div.modal-body
+                p Deleting the account is an irreversible operation. All the data
+                  | stored on the server will be lost permanently.
+
+                if server.isConfigured || phone.isConfigured
+                  p You will need to relink your server or phone if you make a new
+                    | account, but you will not lose the data stored in them.
+
+                form(action='/user/delete', method='post')
+                  input(type='hidden',name='_csrf',value=csrfToken)
+
+                  div.form-group
+                    button(type='submit').btn.btn-danger Yes, I want to delete my account
+                    |  
+                    a.btn.btn-default(data-dismiss='modal') No, I changed my mind
 
   div.panel.panel-default
     div.panel-heading

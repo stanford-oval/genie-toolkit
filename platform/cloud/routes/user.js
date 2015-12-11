@@ -210,4 +210,15 @@ router.post('/change-password', user.requireLogIn, function(req, res, next) {
     }).done();
 });
 
+router.post('/delete', user.requireLogIn, function(req, res, next) {
+    db.withTransaction(function(dbClient) {
+        return EngineManager.get().deleteUser(req.user.id).then(function() {
+            return model.delete(dbClient, req.user.id);
+        });
+    }).then(function() {
+        req.logout();
+        res.redirect('/');
+    }).done();
+});
+
 module.exports = router;

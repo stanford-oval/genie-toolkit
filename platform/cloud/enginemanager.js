@@ -109,6 +109,7 @@ const EngineManager = new lang.Class({
 
                 var engineProxy = Q.defer();
                 runningProcesses[userId] = { child: child,
+                                             cwd: './' + cloudId,
                                              engine: engineProxy.promise };
 
                 // wrap child into something that looks like a Stream
@@ -182,6 +183,14 @@ const EngineManager = new lang.Class({
             var child = this._runningProcesses[userId].child;
             child.kill();
         }
+    },
+
+    deleteUser: function(userId) {
+        var process = this._runningProcesses[userId];
+        var child = process.child;
+        child.kill();
+
+        return Q.nfcall(child_process.exec, 'rm -fr ' + process.cwd);
     },
 });
 

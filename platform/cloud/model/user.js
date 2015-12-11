@@ -59,6 +59,10 @@ module.exports = {
         return db.query(client, "update users set ? where id = ?", [user, id]);
     },
 
+    'delete': function(client, id) {
+        return db.query(client, "delete from users where id = ?", [id]);
+    },
+
     getAll: function(client) {
         return db.selectAll(client, "select * from users");
     },
