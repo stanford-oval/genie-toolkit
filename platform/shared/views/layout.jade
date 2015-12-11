@@ -18,20 +18,26 @@ html
     script(src='/javascripts/shared.js')
     block scripts
 
+  - var index = false;
   body
-    header(class="navbar navbar-inverse navbar-fixed-top", role="banner")
+    nav.navbar.navbar-inverse.navbar-fixed-top(role="banner")
       div.navbar-header
-        button(class="navbar-toggle collapsed", data-toggle="collapse", data-target=".bs-navbar-collapse")
+        button(class="navbar-toggle collapsed", data-toggle="collapse", data-target="#page-nav")
           span.sr-only Toggle navigation
           span.icon-bar
           span.icon-bar
           span.icon-bar
-        span(class="navbar-brand scroller")
+        a.navbar-brand.scroller.hidden-xs.hidden-sm(href='/') ThingEngine
+        span.navbar-brand.scroller.hidden-md.hidden-lg(aria-hidden=true)
           block page_name
-      nav(class="navbar-collapse bs-navbar-collapse collapse", role="navigation")
+      div.navbar-collapse.collapse(role="navigation")#page-nav
         include navbar.jade
 
-    div(style="margin-top: 4em").container
+    div.container#page-body
+      if !index
+        div.row.hidden-xs.hidden-sm
+          h1.col-sm-12#page-title
+            block page_name
       div.row
         div.col-sm-12
           block content

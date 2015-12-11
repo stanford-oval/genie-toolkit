@@ -1,5 +1,15 @@
 body {
     padding: 50px;
+    padding-top: 0px;
+}
+
+#page-body {
+    margin-top: 81px;
+}
+
+#page-title {
+    margin-top: 0px;
+    margin-bottom: 0.5em;
 }
 
 .placeholder {

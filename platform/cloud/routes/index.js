@@ -9,4 +9,16 @@ router.get('/', function(req, res, next) {
     });
 });
 
+router.get('/about', function(req, res, next) {
+    res.render('about', {
+        page_title: 'About ThingEngine'
+    });
+});
+
+router.get('/about/toc', function(req, res, next) {
+    res.render('toc', {
+        page_title: 'Terms & Conditions for ThingEngine'
+    });
+});
+
 module.exports = router;

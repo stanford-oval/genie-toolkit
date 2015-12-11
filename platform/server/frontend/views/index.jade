@@ -1,6 +1,7 @@
 extends layout
 
 block page_name
+  - index = true;
   | ThingEngine
 
 block content
@@ -33,3 +34,13 @@ block content
         | You can do it from the 
         a(href='/config') configuration page
         | .
+
+  footer
+    p
+      small ThingEngine is a research project of the Mobisocial Computing Laboratory
+        |  at Stanford University.
+    p
+      small
+        a(href='http://thingpedia.stanford.edu/about') About
+        |  &mdash; 
+        a(href='https://github.com/Stanford-IoT-Lab/ThingEngine/issues') Report a bug

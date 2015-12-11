@@ -5,16 +5,47 @@ block scripts
     script(src='/javascripts/index.js')
 
 block page_name
+  - index = true;
   | ThingEngine
 
 block content
   if authenticated
     div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
   div.jumbotron.text-center
-    p Welcome to ThingEngine
-    p bla bla bla
+    if authenticated
+      h1 Welcome back!
 
-    if !authenticated
-      a.btn.btn-lg.btn-primary(href='/user/register') Register now!
-      span= " "
-      a.btn.btn-lg.btn-default(href='/user/login') Sign in
+      p Connect your 
+        a(href='/devices/create?class=physical') devices
+        |  or 
+        a(href='/devices/create?class=online') web services
+        | , or jump straight to the 
+        a(href='/apps') list of installed apps
+        | .
+    else
+      h1 Welcome to ThingEngine
+
+      p ThingEngine is the open source platform for Internet of Things rules.
+      p By creating an account on ThingEngine, you can connect all your social networks
+        | and devices in one single place, and execute miniapps using your data.
+
+      p
+        a.btn.btn-lg.btn-primary(href='/user/register') Register now!
+        |  
+        a.btn.btn-lg.btn-default(href='/user/login') Sign in
+
+  footer
+    p
+      small ThingEngine is a research project of the 
+        a(href='http://mobisocial.stanford.edu') Mobisocial Computing Laboratory
+        |  at Stanford University. 
+        a(href='http://thingpedia.stanford.edu/about') Read more
+        | .
+    p
+      small
+        |  ThingEngine is free software, distributed under the 
+        a(href='https://www.gnu.org/licenses/old-licenses/gpl-2.0.html') GPLv2
+        |  license. 
+        a(href='https://github.com/Stanford-IoT-Lab/ThingEngine/issues') Report a bug
+        |  
+        a(href='https://github.com/Stanford-IoT-Lab/ThingEngine').label.label-default Fork me on Github!

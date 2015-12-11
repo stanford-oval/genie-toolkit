@@ -102,7 +102,7 @@ module.exports = new lang.Class({
     Name: 'AppExecutor',
     Extends: events.EventEmitter,
     $rpcMethods: ['get name', 'get description', 'get code',
-                  'get state', 'get settings', 'get uniqueId',
+                  'get state', 'get uniqueId',
                   'get currentTier', 'get isRunning', 'get isEnabled'],
 
     _init: function(engine, code, state) {

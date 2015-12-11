@@ -142,12 +142,14 @@ module.exports = new lang.Class({
 
     _addAppInternal: function(app, uniqueId, tier, addToDB) {
         if (app.uniqueId === undefined) {
-            if (uniqueId === undefined)
+            // HACK: we accept null as well as undefined because undefined
+            // is lost by the RPC layer in the cloud case
+            if (uniqueId === undefined || uniqueId === null)
                 app.uniqueId = 'uuid-' + uuid.v4();
             else
                 app.uniqueId = uniqueId;
         } else {
-            if (uniqueId !== undefined &&
+            if ((uniqueId !== undefined && uniqueId !== null) &&
                 app.uniqueId !== uniqueId)
                 throw new Error('App unique id is different from stored value');
         }

@@ -12,6 +12,7 @@ var router = express.Router();
 
 var user = require('../util/user');
 var AppGrammar = require('../../engine/app_grammar');
+var AppCompiler = require('../../engine/app_compiler');
 
 function appsList(req, res, next, message) {
     var engine = req.app.engine;
@@ -36,23 +37,41 @@ router.get('/', user.redirectLogIn, function(req, res, next) {
 router.get('/create', user.redirectLogIn, function(req, res, next) {
     res.render('apps_create', { page_title: 'ThingEngine - create app',
                                 csrfToken: req.csrfToken(),
+                                code: '',
+                                parameters: '{}',
+                                tier: req.app.engine.ownTier,
                               });
 });
 
 router.post('/create', user.requireLogIn, function(req, res, next) {
     Q.try(function() {
-        var code = req.body['code'];
-        var parsed = AppGrammar.parse(code);
-        var tier = req.body.tier;
-        if (tier !== 'server' && tier !== 'cloud' && tier !== 'phone')
-            throw new Error('No such tier ' + tier);
-        var state = JSON.parse(req.body.params);
+        var code = req.body.code;
+        var state, tier;
+        try {
+            // sanity check the app
+            var parsed = AppGrammar.parse(code);
+            var compiler = new AppCompiler();
+            compiler.compileProgram(parsed);
+
+            state = JSON.parse(req.body.params);
+
+            tier = req.body.tier;
+            if (tier !== 'server' && tier !== 'cloud' && tier !== 'phone')
+                throw new Error('No such tier ' + tier);
+        } catch(e) {
+            res.render('apps_create', { page_title: 'ThingEngine - create app',
+                                        csrfToken: req.csrfToken(),
+                                        error: e.message,
+                                        code: code,
+                                        parameters: req.body.params,
+                                        tier: req.body.tier });
+            return;
+        }
 
         var engine = req.app.engine;
-
-        return engine.apps.loadOneApp(code, state, undefined, tier, true);
-    }).then(function() {
-        appsList(req, res, next, "Application successfully created");
+        return engine.apps.loadOneApp(code, state, undefined, tier, true).then(function() {
+            appsList(req, res, next, "Application successfully created");
+        });
     }).catch(function(e) {
         console.log(e);
         console.log(e.stack);
@@ -97,12 +116,11 @@ router.get('/:id/show', user.redirectLogIn, function(req, res, next) {
     }
 
     return res.render('show_app', { page_title: "ThingEngine App",
-                                    name: app.name || "Some app",
+                                    name: app.name,
                                     description: app.description || '',
                                     csrfToken: req.csrfToken(),
                                     code: app.code,
-                                    params: JSON.stringify(app.state),
-                                    settings: app.settings });
+                                    params: JSON.stringify(app.state) });
 });
 
 router.post('/:id/update', user.requireLogIn, function(req, res, next) {
@@ -117,15 +135,33 @@ router.post('/:id/update', user.requireLogIn, function(req, res, next) {
 
     // do something
     Q.try(function() {
-        var code = req.body['code'];
-        var parsed = AppGrammar.parse(code);
-        var state = JSON.parse(req.body.params);
+        var code = req.body.code;
+        var state, tier;
+        try {
+            // sanity check the app
+            var parsed = AppGrammar.parse(code);
+            var compiler = new AppCompiler();
+            compiler.compileProgram(parsed);
 
-        var engine = req.app.engine;
+            state = JSON.parse(req.body.params);
 
-        engine.apps.loadOneApp(code, state, req.params.id, app.currentTier, true);
-    }).then(function() {
-        appsList(req, res, next, "Application successfully created");
+            tier = req.body.tier;
+            if (tier !== 'server' && tier !== 'cloud' && tier !== 'phone')
+                throw new Error('No such tier ' + tier);
+        } catch(e) {
+            res.render('show_app', { page_title: 'ThingEngine App',
+                                     name: app.name,
+                                     description: app.description || '',
+                                     csrfToken: req.csrfToken(),
+                                     error: e.message,
+                                     code: code,
+                                     params: req.body.params });
+            return;
+        }
+
+        return engine.apps.loadOneApp(code, state, req.params.id, app.currentTier, true).then(function() {
+            appsList(req, res, next, "Application successfully updated");
+        });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
