@@ -236,7 +236,11 @@ module.exports = {
             var salt = makeRandom();
             return hashPassword(salt, password).then(function(newhash) {
                 return model.update(dbClient, user.id, { salt: salt,
-                                                         password: newhash });
+                                                         password: newhash })
+                    .then(function() {
+                        user.salt = salt;
+                        user.password = newhash;
+                    });
             });
         });
     },

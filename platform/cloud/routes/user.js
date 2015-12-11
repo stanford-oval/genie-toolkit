@@ -11,6 +11,7 @@ var express = require('express');
 var passport = require('passport');
 
 var user = require('../util/user');
+var model = require('../model/user');
 var db = require('../util/db');
 
 var TITLE = "ThingEngine";
@@ -173,6 +174,15 @@ router.get('/profile', user.redirectLogIn, function(req, res, next) {
 });
 
 router.post('/profile', user.requireLogIn, function(req, res, next) {
+    return db.withTransaction(function(dbClient) {
+        return model.update(dbClient, req.user.id, { human_name: req.body.human_name });
+    }).then(function() {
+        req.user.human_name = req.body.human_name;
+        return getProfile(req, res, undefined);
+    }).done();
+});
+
+router.post('/change-password', user.requireLogIn, function(req, res, next) {
     var username, password, oldpassword;
     Q.try(function() {
         if (typeof req.body['password'] !== 'string' ||
