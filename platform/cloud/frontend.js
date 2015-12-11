@@ -89,6 +89,7 @@ Frontend.prototype._init = function _init() {
     this._app.use(csurf({ cookie: false }));
 
     this._app.use('/', require('./routes/index'));
+    this._app.use('/', require('./routes/qrcode'));
     this._app.use('/user', require('./routes/user'));
     this._app.use('/apps', require('./routes/apps'));
     this._app.use('/devices', require('./routes/devices'));

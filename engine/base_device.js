@@ -25,7 +25,7 @@ module.exports = new lang.Class({
     Extends: events.EventEmitter,
     // no $rpc for queryInterface, extension interfaces are not exported
     $rpcMethods: ['get name', 'get uniqueId', 'get description',
-                  'get ownerTier',
+                  'get ownerTier', 'get state',
                   'checkAvailable', 'hasKind'],
 
     _init: function(engine, state) {

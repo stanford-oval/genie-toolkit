@@ -50,6 +50,17 @@
                     android:scheme="https" />
             </intent-filter>
             <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="thingengine.stanford.edu"
+                    android:pathPrefix="/qrcode-cloud/"
+                    android:scheme="https" />
+            </intent-filter>
+            <intent-filter>
                 <action android:name="edu.stanford.thingengine.engine.ADD_ONLINE_ACCOUNT" />
             </intent-filter>
         </activity>

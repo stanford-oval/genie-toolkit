@@ -256,20 +256,24 @@ public class WebUIActivity extends Activity {
             return;
         }
 
-        List<String> pathSegments = data.getPathSegments();
-        if (pathSegments.size() != 4 || !"qrcode".equals(pathSegments.get(0))) { // 'qrcode', host, port, authToken
-            Log.w(LOG_TAG, "Received spurious intent view " + data);
-            return;
-        }
-
         try {
-            String host = pathSegments.get(1);
-            int port = Integer.parseInt(pathSegments.get(2));
-            String authToken = pathSegments.get(3);
+            List<String> pathSegments = data.getPathSegments();
+            if (pathSegments.size() == 4 && // 'qrcode', host, port, authToken
+                "qrcode".equals(pathSegments.get(0))) {
+                String host = pathSegments.get(1);
+                int port = Integer.parseInt(pathSegments.get(2));
+                String authToken = pathSegments.get(3);
 
-            if (authToken.equals("undefined"))
-                authToken = null;
-            maybeSetServerAddress(host, port, authToken);
+                if (authToken.equals("undefined"))
+                    authToken = null;
+                maybeSetServerAddress(host, port, authToken);
+            } else if (pathSegments.size() == 3 && // 'qrcode-cloud', cloud_id, auth_token
+                       "qrcode-cloud".equals(pathSegments.get(0))) {
+                setCloudId(pathSegments.get(1), pathSegments.get(2));
+            } else {
+                Log.w(LOG_TAG, "Received spurious intent view " + data);
+                return;
+            }
         } catch(NumberFormatException e) {
             Log.w(LOG_TAG, "Received spurious intent view " + data);
             return;

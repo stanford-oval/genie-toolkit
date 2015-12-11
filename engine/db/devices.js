@@ -293,9 +293,6 @@ module.exports = new lang.Class({
     },
 
     getDevice: function(uniqueId) {
-        if (uniqueId in this._devices)
-            return this._devices[uniqueId];
-        else
-            throw new Error('Unknown device ' + uniqueId);
+        return this._devices[uniqueId];
     }
 });

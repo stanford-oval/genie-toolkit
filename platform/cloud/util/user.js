@@ -223,6 +223,24 @@ module.exports = {
         });
     },
 
+    update: function(dbClient, user, oldpassword, password) {
+        return Q.try(function() {
+            if (user.salt && user.password) {
+                return hashPassword(user.salt, oldpassword)
+                    .then(function(providedHash) {
+                        if (user.password !== providedHash)
+                            throw new Error('Invalid old password');
+                    });
+            }
+        }).then(function() {
+            var salt = makeRandom();
+            return hashPassword(salt, password).then(function(newhash) {
+                return model.update(dbClient, user.id, { salt: salt,
+                                                         password: newhash });
+            });
+        });
+    },
+
     requireLogIn: function(req, res, next) {
         if (!req.user) {
             res.status(401).render('login_required',

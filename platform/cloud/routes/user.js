@@ -92,14 +92,14 @@ router.post('/register', function(req, res, next) {
             throw new Error("The password and the confirmation do not match");
             password = req.body['password']
 
-        } catch(e) {
-            res.render('register', {
-                csrfToken: req.csrfToken(),
-                page_title: "ThingEngine - Register",
-                error: e.message
-            });
-            return;
-        }
+    } catch(e) {
+        res.render('register', {
+            csrfToken: req.csrfToken(),
+            page_title: "ThingEngine - Register",
+            error: e.message
+        });
+        return;
+    }
 
     return db.withTransaction(function(dbClient) {
         return user.register(dbClient, username, password).then(function(user) {
@@ -129,5 +129,75 @@ router.get('/logout', function(req, res, next) {
     res.redirect('/');
 });
 
+function getProfile(req, res, error) {
+    return EngineManager.get().getEngine(req.user.id).then(function(engine) {
+        return Q.all([engine.devices.getDevice('thingengine-own-server'),
+                      engine.devices.getDevice('thingengine-own-phone')]);
+    }).spread(function(server, phone) {
+        return Q.all([server ? server.state : undefined, phone ? phone.state : undefined]);
+    }).spread(function(serverState, phoneState) {
+        var server, phone;
+        if (serverState) {
+            server = {
+                isConfigured: true,
+                name: serverState.host,
+                port: serverState.port
+            };
+        } else {
+            server = {
+                isConfigured: false
+            };
+        }
+        if (phoneState) {
+            phone = {
+                isConfigured: true,
+            };
+        } else {
+            phone = {
+                isConfigured: false,
+                qrcodeTarget: 'https://thingengine.stanford.edu/qrcode-cloud/' + req.user.cloud_id + '/'
+                    + req.user.auth_token
+            }
+        }
+
+        res.render('user_profile', { page_title: "ThingEngine - User Profile",
+                                     csrfToken: req.csrfToken(),
+                                     error: error,
+                                     server: server,
+                                     phone: phone });
+    });
+}
+
+router.get('/profile', user.redirectLogIn, function(req, res, next) {
+    getProfile(req, res, undefined).done();
+});
+
+router.post('/profile', user.requireLogIn, function(req, res, next) {
+    var username, password, oldpassword;
+    Q.try(function() {
+        if (typeof req.body['password'] !== 'string' ||
+            req.body['password'].length < 8 ||
+            req.body['password'].length > 255)
+            throw new Error("You must specifiy a valid password (of at least 8 characters)");
+
+        if (req.body['confirm-password'] !== req.body['password'])
+            throw new Error("The password and the confirmation do not match");
+        password = req.body['password'];
+
+        if (req.user.password) {
+            if (typeof req.body['old_password'] !== 'string')
+                throw new Error("You must specifiy your old password");
+            oldpassword = req.body['old_password'];
+        }
+
+        return db.withTransaction(function(dbClient) {
+            return user.update(dbClient, req.user, oldpassword, password);
+        }).then(function() {
+            res.redirect('/user/profile');
+        });
+    }).catch(function(e) {
+        return getProfile(req, res, e.message);
+    }).done();
+});
 
 module.exports = router;
