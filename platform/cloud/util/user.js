@@ -35,8 +35,8 @@ var GOOGLE_CLIENT_SECRET = 'qeNdAMaIF_9wUy6XORABCIKE';
 var FACEBOOK_APP_SECRET = '770b8df05b487cb44261e7701a46c549';
 
 // XOR these comments for testing
-//var THINGENGINE_ORIGIN = 'http://127.0.0.1:8080';
-var THINGENGINE_ORIGIN = 'https://thingengine.stanford.edu';
+var THINGENGINE_ORIGIN = 'http://127.0.0.1:8080';
+//var THINGENGINE_ORIGIN = 'https://thingengine.stanford.edu';
 
 function hashPassword(salt, password) {
     return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32)
@@ -67,7 +67,8 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
                         EngineManager.get().getEngine(user.id).then(function(engine) {
                             return engine.devices.loadOneDevice({ kind: 'google-account',
                                                                   profileId: profile.id,
-                                                                  accessToken: accessToken }, true);
+                                                                  accessToken: accessToken,
+                                                                  refreshToken: refreshToken }, true);
                         }).done();
 
                         return user;
@@ -79,14 +80,14 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
 
 function associateGoogle(user, accessToken, refreshToken, profile, done) {
     db.withTransaction(function(dbClient) {
-        return model.update(dbClient, user.id, { google_id: profile.id,
-                                                 human_name: profile.displayName })
+        return model.update(dbClient, user.id, { google_id: profile.id })
             .then(function() {
                 // asynchronously inject google-account device
                 EngineManager.get().getEngine(user.id).then(function(engine) {
                     return engine.devices.loadOneDevice({ kind: 'google-account',
                                                           profileId: profile.id,
-                                                          accessToken: accessToken }, true);
+                                                          accessToken: accessToken,
+                                                          refreshToken: refreshToken }, true);
                 }).done();
 
                 return user;
@@ -108,10 +109,35 @@ function authenticateFacebook(accessToken, refreshToken, profile, done) {
                                             auth_token: makeRandom() })
                 .then(function(user) {
                     return EngineManager.get().startUser(user.id, user.cloud_id, user.auth_token).then(function() {
+                        // asynchronously inject facebook device
+                        EngineManager.get().getEngine(user.id).then(function(engine) {
+                            return engine.devices.loadOneDevice({ kind: 'facebook',
+                                                                  profileId: profile.id,
+                                                                  accessToken: accessToken,
+                                                                  refreshToken: refreshToken }, true);
+                        }).done();
+
                         return user;
                     });
                 });
         });
+    }).nodeify(done);
+}
+
+function associateFacebook(user, accessToken, refreshToken, profile, done) {
+    db.withTransaction(function(dbClient) {
+        return model.update(dbClient, user.id, { facebook_id: profile.id })
+            .then(function() {
+                // asynchronously inject facebook device
+                EngineManager.get().getEngine(user.id).then(function(engine) {
+                    return engine.devices.loadOneDevice({ kind: 'facebook',
+                                                          profileId: profile.id,
+                                                          accessToken: accessToken,
+                                                          refreshToken: refreshToken }, true);
+                }).done();
+
+                return user;
+            });
     }).nodeify(done);
 }
 
@@ -192,9 +218,15 @@ function initializePassport() {
         clientSecret: FACEBOOK_APP_SECRET,
         callbackURL: THINGENGINE_ORIGIN + '/user/oauth2/facebook/callback',
         enableProof: true,
-        profileFields: ['id', 'displayName', 'emails']
-    }, function(accessToken, refreshToken, profile, done) {
-        authenticateFacebook(accessToken, refreshToken, profile, done);
+        profileFields: ['id', 'displayName', 'emails'],
+        passReqToCallback: true,
+    }, function(req, accessToken, refreshToken, profile, done) {
+        if (!req.user) {
+            // authenticate the user
+            authenticateFacebook(accessToken, refreshToken, profile, done);
+        } else {
+            associateFacebook(req.user, accessToken, refreshToken, profile, done);
+        }
     }));
 }
 

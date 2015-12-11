@@ -128,11 +128,17 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
 
 // special case google because we have login with google
 router.get('/oauth2/google-account', user.redirectLogIn, passport.authorize('google', {
-    scope: (['openid','profile','email',
-             'https://www.googleapis.com/auth/fitness.activity.read',
-             'https://www.googleapis.com/auth/fitness.location.read',
-             'https://www.googleapis.com/auth/fitness.body.read']
-            .join(' ')),
+    scope: 'openid profile email' +
+        ' https://www.googleapis.com/auth/fitness.activity.read' +
+        ' https://www.googleapis.com/auth/fitness.location.read' +
+        ' https://www.googleapis.com/auth/fitness.body.read',
+    failureRedirect: '/devices?class=online',
+    successRedirect: '/devices?class=online'
+}));
+
+// special case facebook because we have login with facebook
+router.get('/oauth2/facebook', user.redirectLogIn, passport.authorize('facebook', {
+    scope: 'public_profile email',
     failureRedirect: '/devices?class=online',
     successRedirect: '/devices?class=online'
 }));
