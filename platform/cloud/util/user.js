@@ -35,8 +35,8 @@ var GOOGLE_CLIENT_SECRET = 'qeNdAMaIF_9wUy6XORABCIKE';
 var FACEBOOK_APP_SECRET = '770b8df05b487cb44261e7701a46c549';
 
 // XOR these comments for testing
-var THINGENGINE_ORIGIN = 'http://127.0.0.1:8080';
-//var THINGENGINE_ORIGIN = 'https://thingengine.stanford.edu';
+//var THINGENGINE_ORIGIN = 'http://127.0.0.1:8080';
+var THINGENGINE_ORIGIN = 'https://thingengine.stanford.edu';
 
 function hashPassword(salt, password) {
     return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32)
