@@ -70,3 +70,15 @@ body {
 .online-account-expander {
     padding-top: 1em;
 }
+
+#app-install-description {
+    font-style: italic;
+}
+
+#app-install-well .btn {
+    margin-bottom: 1em;
+}
+
+#app-install-alert {
+    margin-bottom: 1em;
+}

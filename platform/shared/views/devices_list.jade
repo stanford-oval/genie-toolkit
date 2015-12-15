@@ -11,40 +11,51 @@ block page_name
 
 block content
   if message
-    div.alert.alert-success.alert-dismissible.fade.in(role='alert')
-      button(type='button', data-dismiss='alert', aria-label="Close").close
-        span(aria-hidden='true') ×
-
-      p= message
-
-  - for(var i = 0; i < devices.length; i += 3)
     div.row
-      - for (var j = 0; j < 3; j ++)
-        - if (i + j >= devices.length) break;
-        - var dev = devices[i + j];
-        div.col-md-4
-          div.panel.panel-default
-            div.panel-heading
-              h2.panel-title= dev.name
-            div.panel-body
-              p= dev.description
+      div.col-xs-12
+        div.alert.alert-success.alert-dismissible.fade.in(role='alert')
+          button(type='button', data-dismiss='alert', aria-label="Close").close
+            span(aria-hidden='true') ×
+          p= message
 
-              if !onlineAccounts
-                if dev.available == 0
-                  p The device is not available. It might be powered off or disconnected.
-                else if dev.available == 1
-                  p The device is available and working.
-                else
-                  p It was not possible to verify if the device is available.
-                    | Please check it is powered on and correctly configured.
-            div.panel-footer
-              form.form-inline(action="/devices/delete?class=" + (onlineAccounts ? 'online' : 'physical'),method="post").form-delete-app
-                input(type='hidden',name='id',value=dev.uniqueId)
-                input(type='hidden',name='_csrf',value=csrfToken)
-                button(type='submit').btn.btn-danger Delete
+  div.row
+    each dev, i in devices
+      if i % 12 === 0
+        div.clearfix.visible-md.visible-md.visible-sm
+      else if i % 6 === 0
+        div.clearfix.visible-md.visible-sm
+      else if i % 4 === 0
+        div.clearfix.visible-lg.visible-sm
+      else if i % 3 === 0
+        div.clearfix.visible-md
+      else if i % 2 === 0
+        div.clearfix.visible-sm
+      div.col-lg-3.col-md-4.col-sm-6
+        div.panel.panel-default
+          div.panel-heading
+            h2.panel-title= dev.name
+          div.panel-body
+            p= dev.description
 
-  p
-    if onlineAccounts
-      a(href='/devices/create?class=online', role='button').btn.btn-primary Add new account
-    else
-      a(href='/devices/create?class=physical', role='button').btn.btn-primary Configure new device
+            if !onlineAccounts
+              if dev.available == 0
+                p The device is not available. It might be powered off or disconnected.
+              else if dev.available == 1
+                p The device is available and working.
+              else
+                p It was not possible to verify if the device is available.
+                  | Please check it is powered on and correctly configured.
+          div.panel-footer
+            div.row
+              div.col-md-6
+                form.form-inline(action="/devices/delete?class=" + (onlineAccounts ? 'online' : 'physical'),method="post").form-delete-app
+                  input(type='hidden',name='id',value=dev.uniqueId)
+                  input(type='hidden',name='_csrf',value=csrfToken)
+                  button(type='submit').btn.btn-danger.btn-sm.btn-block Delete
+
+  div.row
+    div.col-sm-4.col-md-2
+      if onlineAccounts
+        a(href='/devices/create?class=online', role='button').btn.btn-primary.btn-block Add new account
+      else
+        a(href='/devices/create?class=physical', role='button').btn.btn-primary.btn-block Configure new device

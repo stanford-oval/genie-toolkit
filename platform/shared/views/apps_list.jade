@@ -8,37 +8,51 @@ block page_name
 
 block content
   if message
-    div.alert.alert-success.alert-dismissible.fade.in(role='alert')
-      button(type='button', data-dismiss='alert', aria-label="Close").close
-        span(aria-hidden='true') ×
-
-      p= message
-
-  - for(var i = 0; i < apps.length; i += 3)
     div.row
-      - for (var j = 0; j < 3; j ++)
-        - if (i + j >= apps.length) break;
-        - var app = apps[i + j];
-        div.col-md-4
-          div.panel.panel-default.installed-app
-            div.panel-heading
-              h2.panel-title= app.name
-            div.panel-body
-              if app.running
-                p This app is running.
+      div.col-xs-12
+        div.alert.alert-success.alert-dismissible.fade.in(role='alert')
+          button(type='button', data-dismiss='alert', aria-label="Close").close
+            span(aria-hidden='true') ×
+          p= message
+
+  div.row
+    each app, i in apps
+      if i % 12 === 0
+        div.clearfix.visible-md.visible-md.visible-sm
+      else if i % 6 === 0
+        div.clearfix.visible-md.visible-sm
+      else if i % 4 === 0
+        div.clearfix.visible-lg.visible-sm
+      else if i % 3 === 0
+        div.clearfix.visible-md
+      else if i % 2 === 0
+        div.clearfix.visible-sm
+      div.col-lg-3.col-md-4.col-sm-6
+        div.panel.panel-default.installed-app
+          div.panel-heading
+            h2.panel-title= app.name
+          div.panel-body
+            if app.running
+              p This app is running.
+            else
+              if app.enabled
+                p This app is enabled but not running.
               else
-                if app.enabled
-                  p This app is enabled but not running.
-                else
-                  p This app is enabled for #{app.currentTier}.
+                p This app is enabled for #{app.currentTier}.
 
-            div.panel-footer
-              a(href="/apps/#{app.uniqueId}/show").btn.btn-primary Show
-                | 
-              form.form-inline(action="/apps/delete",method="post").form-delete-app
-                input(type='hidden',name='id',value=app.uniqueId)
-                input(type='hidden',name='_csrf',value=csrfToken)
-                button(type='submit').btn.btn-danger Delete
+          div.panel-footer
+            div.row
+              div.col-md-6
+                a(href="/apps/#{app.uniqueId}/show").btn.btn-sm.btn-primary.btn-block Show
+              div.col-md-6
+                form.form-inline(action="/apps/delete",method="post").form-delete-app
+                  input(type='hidden',name='id',value=app.uniqueId)
+                  input(type='hidden',name='_csrf',value=csrfToken)
+                  button(type='submit').btn.btn-sm.btn-danger.btn-block Delete
 
-  p
-    a(href="/apps/create", role="button").btn.btn-primary Create new app
+  div.row
+    div.col-sm-4.col-md-2
+      a(href="/apps/create", role="button").btn.btn-primary.btn-block Create new app
+
+    div.col-sm-4.col-md-2
+      a(href='https://thingpedia.stanford.edu/apps').btn.btn-default.btn-block Find new apps

@@ -92,8 +92,8 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
 router.post('/delete', user.requireLogIn, function(req, res, next) {
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         var id = req.body.id;
-        return engine.apps.getApp(id);
-    }).then(function(app) {
+        return [engine, engine.apps.getApp(id)];
+    }).spread(function(engine, app) {
         if (app === undefined) {
             res.status(404).render('error', { page_title: "ThingEngine - Error",
                                               message: "Not found." });

@@ -12,11 +12,6 @@ const lang = require('lang');
 const adt = require('adt');
 const assert = require('assert');
 
-const AppGrammar = require('./app_grammar');
-const ExecEnvironment = require('./exec_environment');
-
-const EPSILON = 1e-5;
-
 const UnitsToBaseUnit = {
     // time
     'ms': 'ms', // base unit for time is milliseconds, because +new Date gives milliseconds

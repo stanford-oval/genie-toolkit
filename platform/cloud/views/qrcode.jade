@@ -1,12 +1,13 @@
 extends layout
 
 block page_name
+  - index = true;
   | Error
 
 block content
   h2 This is not the page you're looking for
 
-  if authenticated && user.auth_token !== authToken && !forServer
+  if for_ === 'cloud' && authenticated && user.auth_token !== authToken
     p
       strong You should not have this link.
       |  This is a pairing link for a different ThingEngine account than yours.
@@ -18,17 +19,23 @@ block content
   else
     p You must open the QR code link with the ThingEngine app, not with your browser.
 
-    if authenticated
-      if user.auth_token !== authToken
+    if for_ === 'server'
+      if authenticated && user.auth_token !== authToken
         p
           strong Also, it appears that your server and your current account belong
-            |  to different people. This might indicate an error in the linking setup,
-            |  and could impact your ability to link your phone successfully to both.
-            |  You should clear the access information from the server (you can do
-            |  so from the configuration page) and then link it again to this account.
+            |  to different people.
+          |  This might indicate an error in the linking setup,
+          |  and could impact your ability to link your phone successfully to both.
+          |  You should clear the access information from the server (you can do
+          |  so from the configuration page) and then link it again to this account.
 
-    else
-      if !forServer
+    else if for_ === 'thingpedia'
+      if authenticated
+        p If you were trying to install a ThingPedia rule, you should click on
+          |  the "Online" button, not the "Phone" button.
+
+    else if for_ === 'cloud'
+      if !authenticated
         p If you were trying to link your ThingEngine account to your phone, you
           |  should 
           a(href='/user/login') log in

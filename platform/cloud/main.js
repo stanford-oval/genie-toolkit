@@ -6,6 +6,8 @@
 //
 // See COPYING for details
 
+require('./instance/engine/polyfill');
+
 const Q = require('q');
 
 const Frontend = require('./frontend');
