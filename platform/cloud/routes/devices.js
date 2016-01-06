@@ -91,7 +91,12 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
         delete req.body['_csrf'];
         return devices.loadOneDevice(req.body, true);
     }).then(function() {
-        res.redirect('/devices?class=' + (req.query.class || 'physical'));
+        if (req.session['device-redirect-to']) {
+            res.redirect(req.session['device-redirect-to']);
+            delete req.session['device-redirect-to'];
+        } else {
+            res.redirect('/devices?class=' + (req.query.class || 'physical'));
+        }
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
@@ -119,7 +124,12 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
 
         return engine.devices.removeDevice(device);
     }).then(function() {
-        res.redirect('/devices?class=' + (req.query.class || 'physical'));
+        if (req.session['device-redirect-to']) {
+            res.redirect(req.session['device-redirect-to']);
+            delete req.session['device-redirect-to'];
+        } else {
+            res.redirect('/devices?class=' + (req.query.class || 'physical'));
+        }
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
@@ -185,7 +195,12 @@ router.get('/oauth2/callback/:kind', user.redirectLogIn, function(req, res, next
         };
         return devFactory.runOAuth2(kind, saneReq);
     }).then(function() {
-        res.redirect('/devices?class=online');
+        if (req.session['device-redirect-to']) {
+            res.redirect(req.session['device-redirect-to']);
+            delete req.session['device-redirect-to'];
+        } else {
+            res.redirect('/devices?class=online');
+        }
     }).catch(function(e) {
         console.log(e.stack);
         res.status(400).render('error', { page_title: "ThingEngine - Error",

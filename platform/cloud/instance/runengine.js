@@ -11,7 +11,6 @@ const lang = require('lang');
 const events = require('events');
 const rpc = require('transparent-rpc');
 
-const appdb = require('./engine/db/apps');
 const Engine = require('./engine');
 
 const ParentProcessSocket = new lang.Class({

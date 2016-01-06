@@ -21,8 +21,8 @@ const API_KEY = '00109b1ea59d9f46d571834870f0168b5ed20005871d8752ff';
 const API_SECRET = 'bccb852856c462e748193d6211c730199d62adcf0ba963416fcc715a2db4d76f';
 
 // XOR these comments for testing
-var THINGENGINE_ORIGIN = 'http://127.0.0.1:8080';
-//var THINGENGINE_ORIGIN = 'https://thingengine.stanford.edu';
+//var THINGENGINE_CLOUD_ORIGIN = 'http://127.0.0.1:8080';
+var THINGENGINE_CLOUD_ORIGIN = 'https://thingengine.stanford.edu';
 // not this one though
 var THINGENGINE_LOCAL_ORIGIN = 'http://127.0.0.1:3000';
 

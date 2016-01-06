@@ -28,10 +28,8 @@ const ChannelStateBinder = new lang.Class({
 
     init: function(name) {
         this._cached = this._prefs.get(name);
-        if (this._cached === undefined) {
-            this._cached = {};
-            this._prefs.set(name, this._cached);
-        }
+        if (this._cached === undefined)
+            this._prefs.set(name, this._cached = {});
     },
 
     get: function(name) {

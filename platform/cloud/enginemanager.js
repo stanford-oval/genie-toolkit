@@ -18,6 +18,8 @@ const rpc = require('transparent-rpc');
 const user = require('./model/user');
 const db = require('./util/db');
 
+const AssistantManager = require('./assistantmanager');
+
 var _instance = null;
 
 const ChildProcessSocket = new lang.Class({
@@ -62,7 +64,7 @@ const EngineManager = new lang.Class({
         _instance = this;
     },
 
-    _runUser: function(userId, cloudId, authToken) {
+    _runUser: function(userId, cloudId, authToken, assistantFeedId) {
         var runningProcesses = this._runningProcesses;
         var frontend = this._frontend;
 
@@ -125,12 +127,24 @@ const EngineManager = new lang.Class({
 
                         // precache .apps, .devices, .channels instead of querying the
                         // engine all the time, to reduce IPC latency
-                        Q.all([engine.apps, engine.devices, engine.channels, engine.ui]).spread(function(apps, devices, channels, ui) {
-                            engineProxy.resolve({ apps: apps,
+                        Q.all([engine.apps,
+                               engine.devices,
+                               engine.channels,
+                               engine.ui,
+                               engine.assistant,
+                               engine.messaging
+                              ]).spread(function(apps, devices, channels, ui, assistant, messaging) {
+                                  var engine = { apps: apps,
                                                   devices: devices,
                                                   channels: channels,
-                                                  ui: ui
-                                                });
+                                                  ui: ui,
+                                                  assistant: assistant,
+                                                  messaging: messaging
+                                               };
+                                  engineProxy.resolve(engine);
+
+                                  if (assistantFeedId !== null)
+                                      AssistantManager.get().addEngine(userId, engine, assistantFeedId);
                         }, function(err) {
                             engineProxy.reject(err);
                         });
@@ -167,7 +181,7 @@ const EngineManager = new lang.Class({
         return db.withClient(function(client) {
             return user.getAll(client).then(function(rows) {
                 return Q.all(rows.map(function(r) {
-                    return self._runUser(r.id, r.cloud_id, r.auth_token);
+                    return self._runUser(r.id, r.cloud_id, r.auth_token, r.assistant_feed_id);
                 }));
             });
         });
@@ -179,9 +193,11 @@ const EngineManager = new lang.Class({
     },
 
     stop: function() {
+        var am = AssistantManager.get();
         for (var userId in this._runningProcesses) {
             var child = this._runningProcesses[userId].child;
             child.kill();
+            am.removeEngine(userId);
         }
     },
 
@@ -189,6 +205,7 @@ const EngineManager = new lang.Class({
         var process = this._runningProcesses[userId];
         var child = process.child;
         child.kill();
+        AssistantManager.get().removeEngine(userId);
 
         return Q.nfcall(child_process.exec, 'rm -fr ' + process.cwd);
     },

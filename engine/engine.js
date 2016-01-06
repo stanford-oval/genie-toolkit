@@ -22,10 +22,12 @@ const UIManager = require('./ui_manager');
 const MessagingDeviceManager = require('./messaging/device_manager');
 const KeywordRegistry = require('./db/keyword');
 const MessagingSyncManager = require('./messaging/sync_manager');
+const AssistantManager = require('./assistant_manager');
 
 const Engine = new lang.Class({
     Name: 'Engine',
-    $rpcMethods: ['get channels', 'get devices', 'get apps', 'get ui', 'getQueryRunner'],
+    $rpcMethods: ['get channels', 'get devices', 'get apps', 'get ui', 'get assistant',
+                  'get messaging', 'getQueryRunner'],
 
     _init: function() {
         // constructor
@@ -38,6 +40,7 @@ const Engine = new lang.Class({
         this._channels = new ChannelFactory(this, this._tiers, deviceFactory);
         this._apps = new AppDatabase(this, this._tiers);
         this._ui = new UIManager(this);
+        this._assistant = new AssistantManager(this);
 
         // in loading order
         this._modules = [this._tiers,
@@ -47,7 +50,8 @@ const Engine = new lang.Class({
                          this._keywords,
                          this._channels,
                          this._apps,
-                         this._ui];
+                         this._ui,
+                         this._assistant];
         // to be started after the apps
         this._lateModules = [new MessagingSyncManager(this._messaging)];
 
@@ -86,6 +90,10 @@ const Engine = new lang.Class({
 
     get ui() {
         return this._ui;
+    },
+
+    get assistant() {
+        return this._assistant;
     },
 
     getQueryRunner: function() {

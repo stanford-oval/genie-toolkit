@@ -59,6 +59,7 @@ const FilePreferences = new lang.Class({
     set: function(name, value) {
         this._prefs[name] = value;
         this._scheduleWrite();
+        return value;
     },
 
     changed: function() {

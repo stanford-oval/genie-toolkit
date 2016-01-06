@@ -11,6 +11,7 @@ require('./instance/engine/polyfill');
 const Q = require('q');
 
 const Frontend = require('./frontend');
+const AssistantManager = require('./assistantmanager');
 const EngineManager = require('./enginemanager');
 
 function dropCaps() {
@@ -22,31 +23,43 @@ function dropCaps() {
 }
 
 var _frontend;
+var _assistantmanager;
 var _enginemanager;
 
 function handleSignal() {
     _frontend.close().then(function() {
+        if (_assistantmanager)
+            return _assistantmanager.stop();
         if (_enginemanager)
             return _enginemanager.stop();
     }).then(function() {
-        process.exit();
+        platform.exit();
     }).done();
 }
 
 function main() {
-    _frontend = new Frontend();
+    Q.longStackSupport = true;
 
-    process.on('SIGINT', handleSignal);
-    process.on('SIGTERM', handleSignal);
+    global.platform = require('./platform');
 
-    // open the HTTP server
-    _frontend.open().then(function() {
-        // we bound the socket, no need for root now
-        dropCaps();
+    platform.init().then(function() {
+        _frontend = new Frontend();
 
-        console.log('Starting EngineManager');
-        _enginemanager = new EngineManager(_frontend);
-        return _enginemanager.start();
+        process.on('SIGINT', handleSignal);
+        process.on('SIGTERM', handleSignal);
+
+        // open the HTTP server
+        return _frontend.open().then(function() {
+            // we bound the socket, no need for root now
+            dropCaps();
+
+            console.log('Starting EngineManager');
+            _assistantmanager = new AssistantManager();
+            return _assistantmanager.start();
+        }).then(function() {
+            _enginemanager = new EngineManager(_frontend);
+            return _enginemanager.start();
+        });
     }).done();
 }
 

@@ -177,13 +177,15 @@ AndroidSharedPreferences.prototype.set = function(name, value) {
     this._writes.push([name, JSON.stringify(value)]);
 
     if (this._scheduledWrite)
-        return;
+        return value;
 
     this._scheduledWrite = true;
     setTimeout(function() {
         this._flushWrites();
         this._scheduledWrite = false;
     }.bind(this), 30000);
+
+    return value;
 };
 
 JXMobile.GetSharedPreferences = function(callback) {

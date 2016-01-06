@@ -1,0 +1,27 @@
+extends layout
+
+block page_name
+  - index = true;
+  | Sabrina
+
+block content
+  div.jumbotron.text-center
+    if isConfigured
+      h1 You're done
+      p Sabrina is configured correctly and running. You can use Omlet to interact
+        | with your ThingEngine
+    else
+      h1 Sabrina
+      p Do you want to use Sabrina to interact with ThingEngine?
+      p This operation will create a new chat between Sabrina and your configured
+        | primary Omlet account. You'll then be able to send text messages in that
+        | chat to control your ThingEngine, as your virtual assistant.
+      if messagingAvailable
+        p
+          a(href='/assistant/enable').btn.btn-primary Yes, enable Sabrina
+          |  
+          a(href='#').btn.btn-default No, thanks
+      else
+        p But first, you must add a Omlet account!
+        p
+          a(href='/assistant/omlet').btn.btn-primary Go ahead

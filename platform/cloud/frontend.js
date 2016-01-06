@@ -94,6 +94,7 @@ Frontend.prototype._init = function _init() {
     this._app.use('/apps', require('./routes/apps'));
     this._app.use('/devices', require('./routes/devices'));
     this._app.use('/thingpedia', require('./routes/thingpedia'));
+    this._app.use('/assistant', require('./routes/assistant'));
 
     this._websocketEndpoints = {};
 }

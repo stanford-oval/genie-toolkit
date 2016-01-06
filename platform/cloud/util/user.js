@@ -232,6 +232,10 @@ function initializePassport() {
 
 
 module.exports = {
+    Role: {
+        ADMIN: 1,
+    },
+
     initializePassport: initializePassport,
 
     register: function(dbClient, username, password) {
@@ -293,5 +297,27 @@ module.exports = {
         } else {
             next();
         };
+    },
+
+    requireRole: function(role) {
+        return function(req, res, next) {
+            if (!req.user || ((req.user.roles & role) !== role)) {
+                res.status(401).render('login_required',
+                                       { page_title: "ThingEngine - Error" });
+            } else {
+                next();
+            }
+        }
+    },
+
+    redirectRole: function(role) {
+        return function(req, res, next) {
+            if (!req.user || ((req.user.roles & role) !== role)) {
+                req.session.redirect_to = req.originalUrl;
+                res.redirect('/user/login');
+            } else {
+                next();
+            };
+        }
     }
 };

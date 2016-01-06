@@ -86,6 +86,7 @@ module.exports = new lang.Class({
     Extends: events.EventEmitter,
     // events: feed-added, feed-removed
     Abstract: true,
+    $rpcMethods: ['get isAvailable', 'getOwnId', 'getUserById', 'getAccountById'],
 
     _init: function() {
     },

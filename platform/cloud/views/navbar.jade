@@ -1,17 +1,19 @@
 ul.nav.navbar-nav
   li.hidden-md.hidden-lg
-    a(class="scroller", href="/") Home
+    a(href="/") Home
   if authenticated
     li
-      a(class="scroller", href="/user/profile") Profile
+      a(href="/user/profile") Profile
     li
-      a(class="scroller", href="/apps") Installed Apps
+      a(href="/apps") Installed Apps
     li
-      a(class="scroller", href="/apps/create") Create New App
+      a(href="/apps/create") Create New App
     li
-      a(class="scroller", href="/devices?class=physical") Configured Devices
+      a(href="/devices?class=physical") Configured Devices
     li
-      a(class="scroller", href="/devices?class=online") Configured Online Accounts
+      a(href="/devices?class=online") Configured Online Accounts
+    li
+      a(href="/assistant") Sabrina
 
 ul.nav.navbar-nav.navbar-right
   li
