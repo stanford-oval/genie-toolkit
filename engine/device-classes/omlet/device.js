@@ -80,6 +80,30 @@ function makeOmletClient(instance, storage, sync) {
                                  apiKey: { Id: API_KEY, Secret: API_SECRET } });
 }
 
+function findPrimaryIdentity(client) {
+    var account = client.account;
+    var identities = client._details.Identities;
+    var omletId = null;
+    var email = null;
+    var phone = null;
+    for (var i = 0; i < identities.length; i++) {
+        var id = identities[i];
+        if (id.Type === 'omlet')
+            omletId = id.Principal;
+        else if (id.Type === 'email' && email === null)
+            email = id.Principal;
+        else if (id.Type === 'phone' && phone === null)
+            phone = id.Principal;
+    }
+    if (omletId !== null)
+        return omletId;
+    if (email !== null)
+        return email;
+    if (phone !== null)
+        return phone;
+    return account;
+}
+
 const OmletDevice = new lang.Class({
     Name: 'OmletDevice',
     Extends: BaseDevice,
@@ -87,14 +111,17 @@ const OmletDevice = new lang.Class({
     _init: function(engine, state) {
         this.parent(engine, state);
 
-        this.name = "Omlet Account of %s".format(this.omletId);
-        this.description = "This is your Omlet Account. You can use it to communicate and share data with your friends!";
-
+        this._updateNameAndDescription();
         this.uniqueId = 'omlet-' + this.omletInstance;
 
         this._omletStorage = null;
         this._omletClient = null;
         this._omletClientCount = 0;
+    },
+
+    _updateNameAndDescription: function() {
+        this.name = "Omlet Account of %s".format(this.omletId);
+        this.description = "This is your Omlet Account. You can use it to communicate and share data with your friends!";
     },
 
     updateState: function(newstate) {
@@ -130,8 +157,16 @@ const OmletDevice = new lang.Class({
     refOmletClient: function() {
         var client = this.omletClient;
 
-        if (this._omletClientCount == 0)
+        if (this._omletClientCount == 0) {
             client.enable();
+            var identity = findPrimaryIdentity(client);
+            if (identity !== this.state.omletId) {
+                console.log('Omlet ID of ' + this.uniqueId + ' changed to ' + identity);
+                this.state.omletId = identity;
+                this._updateNameAndDescription();
+                this.stateChanged();
+            }
+        }
         this._omletClientCount ++;
         return client;
     },
@@ -225,7 +260,7 @@ function runOAuth2Phase2(engine, req) {
         client.auth.confirmAuth(code, key);
     }).then(function() {
         return engine.devices.loadOneDevice({ kind: 'omlet',
-                                              omletId: null,
+                                              omletId: findPrimaryIdentity(client),
                                               instance: instance,
                                               storage: storage.serialize() }, true);
     }).finally(function() {
