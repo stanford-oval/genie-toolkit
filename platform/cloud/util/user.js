@@ -62,7 +62,7 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
                                             cloud_id: makeRandom(),
                                             auth_token: makeRandom() })
                 .then(function(user) {
-                    return EngineManager.get().startUser(user.id, user.cloud_id, user.auth_token).then(function() {
+                    return EngineManager.get().startUser(user).then(function() {
                         // asynchronously inject google-account device
                         EngineManager.get().getEngine(user.id).then(function(engine) {
                             return engine.devices.loadOneDevice({ kind: 'google-account',
@@ -108,7 +108,7 @@ function authenticateFacebook(accessToken, refreshToken, profile, done) {
                                             cloud_id: makeRandom(),
                                             auth_token: makeRandom() })
                 .then(function(user) {
-                    return EngineManager.get().startUser(user.id, user.cloud_id, user.auth_token).then(function() {
+                    return EngineManager.get().startUser(user).then(function() {
                         // asynchronously inject facebook device
                         EngineManager.get().getEngine(user.id).then(function(engine) {
                             return engine.devices.loadOneDevice({ kind: 'facebook',

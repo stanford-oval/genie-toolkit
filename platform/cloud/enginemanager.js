@@ -187,9 +187,10 @@ const EngineManager = new lang.Class({
         });
     },
 
-    startUser: function(userId, cloudId, authToken) {
+    startUser: function(user) {
         console.log('Requested start of user ' + userId);
-        return this._runUser(userId, cloudId, authToken);
+        return this._runUser(user.id, user.cloud_id, user.auth_token,
+                             user.assistant_feed_id);
     },
 
     stop: function() {

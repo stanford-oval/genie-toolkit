@@ -104,7 +104,7 @@ router.post('/register', function(req, res, next) {
 
     return db.withTransaction(function(dbClient) {
         return user.register(dbClient, username, password).then(function(user) {
-            return EngineManager.get().startUser(user.id, user.cloud_id, user.auth_token).then(function() {
+            return EngineManager.get().startUser(user).then(function() {
                 return Q.ninvoke(req, 'login', user);
             }).then(function() {
                 res.locals.authenticated = true;
