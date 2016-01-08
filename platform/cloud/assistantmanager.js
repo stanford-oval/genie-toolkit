@@ -55,10 +55,12 @@ var storage_ = null;
 var instance_ = null;
 
 function makeOmletClient(sync) {
-    return new omclient.Client({ instance: 'assistant',
-                                 storage: storage_,
-                                 sync: sync,
-                                 apiKey: { Id: API_KEY, Secret: API_SECRET } });
+    var client = new omclient.Client({ instance: 'assistant',
+                                       storage: storage_,
+                                       sync: sync,
+                                       apiKey: { Id: API_KEY, Secret: API_SECRET } });
+    client.longdanMessageConsumer.DEBUG = false;
+    return client;
 }
 
 function oinvoke(object, method) {

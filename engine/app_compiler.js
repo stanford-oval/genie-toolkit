@@ -1612,6 +1612,7 @@ function adtNullable(o) {
     };
 }
 
+module.exports.Type = Type;
 var Value = adt.data({
     Boolean: {
         value: adt.only(Boolean),

@@ -95,9 +95,13 @@ module.exports = new lang.Class({
         if (this.hasKind('cloud-only'))
             return this._ownerTier = Tier.CLOUD;
 
-        // online accounts belong to the phone
-        if (this.hasKind('online-account'))
+        // if the device wants to be phone-only, then it belongs to the phone
+        if (this.hasKind('phone-only'))
             return this._ownerTier = Tier.PHONE;
+
+        // online accounts belong to the cloud
+        if (this.hasKind('online-account'))
+            return this._ownerTier = Tier.CLOUD;
 
         // if this device is on (some) local network, it belongs to home
         if (this.state) {
@@ -111,7 +115,7 @@ module.exports = new lang.Class({
         // (in particular, this means that physical devices with a cloud
         // attachment, or an omlet ID, get handled by the phone, which ensures
         // privacy and makes everyone happy)
-        return this._ownerTier = Tier.PHONE;
+        return this._ownerTier = Tier.CLOUD;
     },
 
     // Note: unlike Channel and App there is no isSupported

@@ -112,18 +112,20 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
 
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         var id = req.body.id;
-        if (!engine.devices.hasDevice(id))
-            return undefined;
-        return engine.devices.getDevice(id);
-    }).then(function(device) {
-        if (device === undefined) {
+        if (!engine.devices.hasDevice(id)) {
             res.status(404).render('error', { page_title: "ThingEngine - Error",
                                               message: "Not found." });
-            return;
+            return false;
         }
 
-        return engine.devices.removeDevice(device);
-    }).then(function() {
+        return engine.devices.getDevice(id).then(function(device) {
+            return engine.devices.removeDevice(device);
+        }).then(function() {
+            return true;
+        });
+    }).then(function(ok) {
+        if (!ok)
+            return;
         if (req.session['device-redirect-to']) {
             res.redirect(req.session['device-redirect-to']);
             delete req.session['device-redirect-to'];

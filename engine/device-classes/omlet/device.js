@@ -74,10 +74,12 @@ const DeviceStateStorage = new lang.Class({
 });
 
 function makeOmletClient(instance, storage, sync) {
-    return new omclient.Client({ instance: instance,
-                                 storage: storage,
-                                 sync: sync,
-                                 apiKey: { Id: API_KEY, Secret: API_SECRET } });
+    var client = new omclient.Client({ instance: instance,
+                                       storage: storage,
+                                       sync: sync,
+                                       apiKey: { Id: API_KEY, Secret: API_SECRET } });
+    client.longdanMessageConsumer.DEBUG = false;
+    return client;
 }
 
 function findPrimaryIdentity(client) {
