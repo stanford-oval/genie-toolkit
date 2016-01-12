@@ -155,7 +155,10 @@ module.exports = new lang.Class({
         }
 
         this.name = compiler.name;
-        this.description = 'This app has no description';
+        if (this.state.description)
+            this.description = this.state.description;
+        else
+            this.description = 'This app has no description';
     },
 
     getComputeModule: function(name) {

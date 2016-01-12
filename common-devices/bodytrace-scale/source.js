@@ -41,13 +41,12 @@ const ScaleChannel = new lang.Class({
 
         return Q.nfcall(httpGetAsync, url, auth).then(function(response) {
             function makeEvent(time, data) {
-                var date = new Date();
-                date.setTime(time);
+                var date = new Date(time);
 
                 // weight is in grams, convert to kg, which the base unit
                 // AppExecutor wants
                 var weight = (data[time].values.weight)/1000;
-                var event = [time, weight];
+                var event = [date, weight];
                 return event;
             }
 
@@ -64,8 +63,10 @@ const ScaleChannel = new lang.Class({
             }
 
             var lastRead = state.get('last-read');
-            if (lastRead === undefined)
-                lastRead = 0;
+            if (lastRead === undefined) {
+                lastRead = utcMilliSeconds;
+                state.set('last-read', utcMilliSeconds);
+            }
             if (utcMilliSeconds <= lastRead) {
                 if (channelInstance.event === null) {
                     channelInstance.emitEvent(makeEvent(utcMilliSeconds, weight));

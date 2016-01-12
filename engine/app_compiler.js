@@ -1738,7 +1738,7 @@ var InputSpec = adt.data({
         name: adt.only(String)
     },
     Condition: {
-        expr: Expression
+        expr: adt.only(Expression)
     },
 });
 module.exports.InputSpec = InputSpec;

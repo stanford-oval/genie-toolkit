@@ -155,8 +155,12 @@ module.exports = new lang.Class({
         }
 
         // pick a tier for this new app if we don't know it yet
-        if (tier === undefined)
+        if (tier === undefined) {
             tier = this._appTierManager.chooseTierForApp(app);
+            console.log('Chosen tier ' + tier + ' for ' + app.uniqueId);
+            if (tier === undefined)
+                throw new TypeError("AppTierManager failed");
+        }
         app.currentTier = tier;
 
         this._apps[app.uniqueId] = app;

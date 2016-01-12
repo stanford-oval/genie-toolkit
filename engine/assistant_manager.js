@@ -15,7 +15,7 @@ const AppCompiler = require('./app_compiler');
 
 // Very bare-bones word-level NLP
 const Words = {
-    // special sentinel for ask() to avoid any NLP normalization or processing
+    // special sentinel for ask()/expect() to avoid any NLP normalization or processing
     RAW_STRING: [],
 
     IGNORED: ['a', 'the', 'and', 'my', 'your', 'mine', 'yours', 'of'],
@@ -27,6 +27,7 @@ const Words = {
     // hence "measure" in QUESTION not DEVICE_VERB or ABSOLUTE_VERB
     QUESTION: ['?', 'who', 'what', 'when', 'where', 'how', 'why', 'measure'],
 
+    CONDITIONAL: ['if', 'when'],
     PREPOSITION: ['on', 'in', 'at'],
     COMPARATOR: ['>', '<', ['is', 'about'], 'is', 'contains', 'same'],
     NUMBER: ['all', 'none'],
@@ -59,7 +60,7 @@ const Words = {
     UNKWOWN: [],
 };
 const WordCategories = [Words.IGNORED, Words.SPECIAL, Words.YES_ANSWER, Words.NO_ANSWER,
-                        Words.QUESTION, Words.PREPOSITION, Words.COMPARATOR,
+                        Words.QUESTION, Words.CONDITIONAL, Words.PREPOSITION, Words.COMPARATOR,
                         Words.NUMBER, Words.TIMESTAMP, Words.DATE,
                         Words.DAY, Words.MONTHS, Words.YEAR,
                         Words.DEVICE_NOUN, Words.VALUE_NOUN, Words.OTHER_NOUN,
@@ -79,7 +80,10 @@ const ThingPedia = {
         'scale': 'scale'
     },
     NounToTriggerMap: {
-        'weight': ['scale', 'source'],
+        'weight': ['scale', 'source(_, %s)', AppCompiler.Type.Measure('kg')],
+        'picture': [],
+        'movie': [],
+        'show': [],
     },
     DeviceVerbToActionMap: {
         'scale': {},
@@ -272,36 +276,52 @@ const Dialog = new lang.Class({
     _init: function() {
         this.expecting = null;
         this.question = null;
+        this.subdialog = null;
     },
 
     ask: function(expected, question) {
         this.question = question;
-        this.expecting = expected;
-        this.reply(question);
-
-        this.manager.setRaw(expected === Words.RAW_STRING);
+        this.expect(expected);
+        return this.reply(question);
     },
 
     expect: function(category) {
         this.expecting = category;
+        this.manager.setRaw(category === Words.RAW_STRING);
     },
 
     switchTo: function(dlg, command) {
         this.manager.setRaw(false);
         this.manager.setDialog(dlg);
         if (command)
-            dlg.handle(command);
+            return dlg.handle(command);
+        else
+            return true;
+    },
+
+    push: function(dlg, command) {
+        this.manager.setRaw(false);
+        this.subdialog = dlg;
+        dlg.manager = this.manager;
+        if (command)
+            return dlg.handle(command);
+        else
+            return true;
     },
 
     reply: function(msg) {
         this.manager.sendReply(msg);
+        return true;
     },
 
     handleGeneric: function(words) {
-        if (words === null) {
-            this.fail();
-            return true;
+        if (this.subdialog !== null) {
+            if (this.subdialog.handle(words))
+                return true;
         }
+
+        if (words === null)
+            return this.fail();
 
         if (words[0].category === Words.SPECIAL) {
             switch(words[0].word) {
@@ -356,21 +376,16 @@ const Dialog = new lang.Class({
                      words[0].category === Words.YES_ANSWER))
                     return false;
 
-                this.reply("Just answer yes or no.");
-                return true;
+                return this.reply("Just answer yes or no.");
             } else {
                 if (words.length === 1) {
-                    if (words[0].category === Words.YES_ANSWER) {
-                        this.reply("Yes what?");
-                        return true;
-                    } else if (words[0].category === Words.NO_ANSWER) {
-                        this.reset();
-                        return true;
-                    }
+                    if (words[0].category === Words.YES_ANSWER)
+                        return this.reply("Yes what?");
+                    else if (words[0].category === Words.NO_ANSWER)
+                        return this.reset();
                 }
 
-                this.unexpected();
-                return true;
+                return this.unexpected();
             }
         }
 
@@ -378,41 +393,50 @@ const Dialog = new lang.Class({
     },
 
     handleRaw: function(raw) {
+        if (this.subdialog !== null)
+            return this.subdialog.handleRaw(raw);
+
         this.reply("I'm a little confused, sorry. What where we talking about?");
         this.switchTo(new DefaultDialog());
+        return true;
     },
 
     handle: function(command) {
         if (this.handleGeneric(command))
-            return;
+            return true;
 
         this.reply("I'm a little confused, sorry. What where we talking about?");
         this.switchTo(new DefaultDialog());
+        return true;
     },
 
     reset: function() {
         this.reply("Ok forget it");
         this.switchTo(new DefaultDialog());
+        return true;
     },
 
     done: function() {
         this.reply("Consider it done");
         this.switchTo(new DefaultDialog());
+        return true;
     },
 
     unexpected: function() {
-        this.reply("That's not what I asked");
+        return this.reply("That's not what I asked");
     },
 
     fail: function() {
         this.reply("Sorry, I did not understand that. Can you rephrase it?");
         console.log((new Error()).stack);
+        return true;
     },
 
     // faild and lose context
     failReset: function() {
         this.fail();
         this.switchTo(new DefaultDialog());
+        return true;
     },
 });
 
@@ -422,26 +446,371 @@ const DefaultDialog = new lang.Class({
 
     handle: function(command) {
         if (this.handleGeneric(command))
-            return;
+            return true;
 
         if (command[0].category === Words.YES_ANSWER)
-            this.reply("I agree, but to what?");
+            return this.reply("I agree, but to what?");
         else if (command[0].category === Words.NO_ANSWER)
-            this.reply("No f-ing way");
+            return this.reply("No f-ing way");
         else if (command[0].category === Words.QUESTION)
-            ; // handle question
+            return true; // handle question
+        else if (command[0].category === Words.CONDITIONAL)
+            return this.switchTo(new RuleDialog(), command);
         else if (command[0].category === Words.DEVICE_NOUN)
-            this.switchTo(new DeviceActionDialog(), command);
+            return this.switchTo(new DeviceActionDialog(true), command);
         else if (command[0].category === Words.DEVICE_VERB)
-            this.switchTo(new DeviceActionDialog(), command);
+            return this.switchTo(new DeviceActionDialog(true), command);
         else if (command[0].category === Words.ABSOLUTE_VERB)
-            this.switchTo(new AbsoluteActionDialog(), command);
+            return this.switchTo(new AbsoluteActionDialog(true), command);
         else if (command[0].category === Words.VALUE_NOUN)
-            ; // handle question
+            return true; // handle question
         else if (command[0].category === Words.OTHER_NOUN)
-            ; // ??? do something
+            return true; // ??? do something
         else
-            this.fail();
+            return this.fail();
+    }
+});
+
+function capitalize(str) {
+    return str[0].toUpperCase() + str.substr(1).toLowerCase();
+}
+
+const ConditionDialog = new lang.Class({
+    Name: 'ConditionDialog',
+    Extends: Dialog,
+
+    _init: function() {
+        this.parent();
+        this.done = false;
+
+        this.lhs = [];
+        this.resolved_lhs = [];
+        this.lhs_devices = {};
+        this.comp = null;
+        this.rhs = null;
+        this.resolved_rhs = null;
+        this.rhs_devices = {};
+
+        this.resolving_noun = null;
+        this.resolving = null;
+        this.resolving_devices = null;
+    },
+
+    describe: function() {
+        return "If " + this.resolved_lhs.map(function(w) { return w.word; }).join(" and ")
+            + " " + this.comp.word + " " +
+            this.resolved_rhs.word;
+    },
+
+    name: function() {
+        return this.resolved_lhs.map(function(w) {
+            return capitalize(w.word);
+        }).join('');
+    },
+
+    generateCode: function() {
+        var idx = 0;
+        var conditions = [];
+        this.resolved_lhs.forEach(function(lhs) {
+            var lhs_devices = this.lhs_devices[lhs.word];
+            var lhs_condition = ThingPedia.NounToTriggerMap[lhs.word];
+            var lhs_kind = lhs_condition[0];
+            var lhs_channelName = lhs_condition[1];
+            var lhs_valueType = lhs_condition[2];
+
+            var lhs_selector;
+            if (lhs_devices.length > 1) {
+                // selected 'all'
+                lhs_selector = '@(type="' + lhs_kind + '")';
+            } else {
+                lhs_selector = '@(id="' + lhs_devices[0].uniqueId + '")';
+            }
+            var lhs_varName = 'v' + (idx++);
+
+            conditions.push(lhs_selector + '.' + lhs_channelName.format(lhs_varName));
+
+            if (lhs_valueType.isString) {
+                conditions.push(lhs_varName + '="' + this.resolved_rhs.word + '"');
+            } else {
+                if (this.resolved_rhs.word.category === Words.VALUE_NOUN) {
+                    var rhs_devices = this.rhs_devices[this.resolved_rhs.word];
+                    var rhs_condition = ThingPedia.NounToTriggerMap[this.resolved_rhs.word];
+                    var rhs_kind = rhs_condition[0];
+                    var rhs_channelName = rhs_condition[1];
+                    var rhs_valueType = rhs_condition[2];
+
+                    var rhs_selector;
+                    if (devices.length > 1) {
+                        // selected 'all'
+                        rhs_selector = '@(type="' + rhs_kind + '")';
+                    } else {
+                        rhs_selector = '@(id="' + rhs_devices[0].uniqueId + '")';
+                    }
+                    var rhs_varName = 'v' + (idx++);
+
+                    conditions.push(rhs_selector + '.' + rhs_channelName.format(rhs_varName));
+
+                    if (this.comp.word === 'is about') {
+                        conditions.push(lhs_varName + '/' + rhs_varName + ' <= 1.05 && '
+                                        + lhs_varName + '/' + rhs_varName + ' >= 0.95');
+                    } else if (this.comp.word === 'contains') {
+                        conditions.push('$contains(' + lhs_varName + ',' + rhs_varName + ')');
+                    } else if (this.comp.word === 'is' ||
+                               this.comp.word === 'same') {
+                        conditions.push(lhs_varName + '=' + rhs_varName);
+                    } else {
+                        conditions.push(lhs_varName + this.comp.word + rhs_varName);
+                    }
+                } else {
+                    if (this.comp.word === 'is about') {
+                        conditions.push(lhs_varName + '/' + this.resolved_rhs.word + ' <= 1.05 && '
+                                        + lhs_varName + '/' + this.resolved_rhs.word + ' >= 0.95');
+                    } else if (this.comp.word === 'contains') {
+                        conditions.push('$contains(' + lhs_varName + ',' + this.resolved_rhs.word + ')');
+                    } else if (this.comp.word === 'is' ||
+                               this.comp.word === 'same') {
+                        conditions.push(lhs_varName + '=' + this.resolved_rhs.word);
+                    } else {
+                        conditions.push(lhs_varName + this.comp.word + this.resolved_rhs.word);
+                    }
+                }
+            }
+        }, this);
+
+        return conditions.join(', ');
+    },
+
+    _tryResolveNoun: function(lhs) {
+        if (lhs) {
+            var toResolve = this.lhs.shift();
+            this.resolved_lhs.push(toResolve);
+            var deviceStore = this.lhs_devices;
+        } else {
+            var toResolve = this.rhs;
+            this.rhs = null;
+            this.resolved_rhs = toResolve;
+            var deviceStore = this.rhs_devices;
+        }
+        if (toResolve.category !== Words.VALUE_NOUN)
+            return;
+
+        var condition = ThingPedia.NounToTriggerMap[toResolve.word];
+        var kind = condition[0];
+        var devices = this.manager.devices.getAllDevicesOfKind(kind);
+
+        if (devices.length === 0) {
+            this.reply("You need a " + kind + " to know your " + toResolve.word);
+            this.switchTo(new DefaultDialog());
+            return true;
+        }
+
+        if (devices.length === 1) {
+            deviceStore[toResolve.word] = [devices[0]];
+            return false;
+        }
+
+        if (devices.length > 0) {
+            this.reply("You have multiple " + kind + "s");
+            var question = "Do you mean ";
+            for (var i = 0; i < devices.length; i++)
+                question += (i > 0 ? " or " : "") + (i+1) + ") " + devices[i].name;
+            question += "?";
+            this.resolving_noun = toResolve;
+            this.resolving = devices;
+            this.resolving_devices = deviceStore;
+            return this.ask(Words.NUMBER, question);
+        }
+    },
+
+    _handleResolve: function(command) {
+        if (command[0].word === 'none')
+            return this.reset();
+
+        if (command[0].word === 'all') {
+            this.reply("You chose all " + this.condition.resolving_noun.word + "s");
+            this.devices[noun] = this.resolving;
+        } else {
+            var value = command[0].value;
+            if (value !== Math.floor(value) ||
+                value < 1 ||
+                value > this.resolving.length) {
+                return this.reply("Please choose a number between 1 and " + this.condition.resolving.length);
+            } else {
+                this.reply("You chose " + this.condition.resolving[value-1].name);
+
+                this.condition.resolving_devices[this.condition.resolving_noun.word] =
+                    [this.condition.resolving_devices[value-1]];
+            }
+        }
+
+        this.condition.resolving_noun = null;
+        this.condition.resolving = null;
+        this.condition.resolving_devices = null;
+        return false;
+    },
+
+    _handleAny: function(command) {
+        if (command[0].category === Words.CONDITIONAL)
+            command.shift();
+        if (command.length === 0)
+            return this.reply("If what?");
+
+        while (command.length > 0 && this.rhs === null) {
+            var next = command.shift();
+
+            if (next.category === Words.VALUE_NOUN) {
+                if (this.comp === null)
+                    this.lhs.push(next);
+                else
+                    this.rhs.push(next);
+            } else if (next.category === Words.COMPARATOR) {
+                if (this.comp !== null)
+                    return this.fail();
+
+                this.comp = next;
+            } else {
+                if (this.comp !== null)
+                    this.rhs = next;
+                else
+                    return this.fail();
+            }
+        }
+
+        if (this.comp === null) {
+            return this.reply("What about " +
+                              this.lhs.map(function(w) { return w.word; }).join(" and ")
+                              + "?");
+        }
+        if (this.rhs === null)
+            return this.reply(this.comp.word + " what?");
+
+        return false;
+    },
+
+    handle: function(command) {
+        if (this.handleGeneric(command))
+            return true;
+
+        if (this.expecting !== Words.NUMBER) {
+            if (this._handleAny(command))
+                return true;
+
+            while (this.lhs.length > 0) {
+                if (this._tryResolveNoun(true))
+                    return true;
+            }
+            while (this.rhs !== null) {
+                if (this._tryResolveNoun(false))
+                    return true;
+            }
+        }
+
+        if (this.expecting === Words.NUMBER) {
+            if (this._handleResolve(command))
+                return true;
+        }
+
+        return false;
+    },
+});
+
+const RuleDialog = new lang.Class({
+    Name: 'RuleDialog',
+    Extends: Dialog,
+
+    _init: function() {
+        this.parent();
+        this.condition = null;
+        this.action = null;
+    },
+
+    execute: function() {
+        var actions = this.action.generateCode();
+        var condition = this.condition.generateCode();
+        var code = 'SabrinaGenerated' + this.condition.name() + this.action.name() + '() {\n';
+        actions.forEach(function(action) {
+            code += condition + " => " + action + ";\n";
+        });
+        code += '}';
+
+        this.manager.apps.loadOneApp(code, { description: this.describe() },
+                                     undefined, undefined, true)
+            .then(function(e) {
+                this.done();
+            }.bind(this)).catch(function(e) {
+                this.reply("Sorry, that did not work: " + e.message);
+                this.switchTo(new DefaultDialog());
+            }.bind(this)).done();
+    },
+
+    describe: function() {
+        return this.condition.describe() + ", " + this.action.describe();
+    },
+
+    handleRaw: function(raw) {
+        if (this.subdialog !== null) {
+            if (this.subdialog.handleRaw(raw))
+                return;
+
+            return this._continue([]);
+        } else {
+            return this.parent(raw);
+        }
+    },
+
+    handle: function(command) {
+        if (this.handleGeneric(command))
+            return true;
+
+        if (this.condition === null) {
+            if (this.push(this.condition = new ConditionDialog(), command))
+                return true;
+        }
+
+        if (this.action === null) {
+            if (command.length === 0) {
+                this.reply("What do you want to do " + this.condition.describe() + "?");
+                this.subdialog = null;
+                return;
+            }
+
+            if (command[0].category === Words.DEVICE_NOUN ||
+                command[0].category === Words.DEVICE_VERB) {
+                if (this.push(this.action = new DeviceActionDialog(false), command))
+                    return true;
+            } else if (command[0].category === Words.ABSOLUTE_VERB) {
+                if (this.push(this.action = new AbsoluteActionDialog(false), command))
+                    return true;
+            } else {
+                // FINISHME
+                return this.fail();
+            }
+        }
+
+        return this._continue(command);
+    },
+
+    _continue: function(command) {
+        this.subdialog = null;
+
+        if (this.expecting === Words.YES_ANSWER) {
+            if (command.length !== 1)
+                return this.fail();
+
+            if (command[0].category === Words.YES_ANSWER)
+                return this.execute();
+            else if (command[0].category === Words.NO_ANSWER)
+                return this.reset();
+            else
+                return this.fail();
+        } else {
+            return this.ask(Words.YES_ANSWER, "Ok, so " +
+                            this.describe() +
+                            ". Is that right?");
+        }
+
+        // FINISHME
+        return this.parent(command);
     }
 });
 
@@ -449,7 +818,8 @@ const AbsoluteActionDialog = new lang.Class({
     Name: 'AbsoluteActionDialog',
     Extends: Dialog,
 
-    _init: function() {
+    _init: function(directExec) {
+        this.parent();
         this.verb = null;
         this.channelName = null;
 
@@ -459,6 +829,11 @@ const AbsoluteActionDialog = new lang.Class({
         this.parameters = [];
         this.currentParam = null;
         this.resolved_parameters = [];
+        this.directExec = directExec;
+    },
+
+    name: function() {
+        return capitalize(this.verb.word);
     },
 
     _handleVerb: function(command) {
@@ -547,7 +922,11 @@ const AbsoluteActionDialog = new lang.Class({
                     value = command.map(function(word) { return word.word; }).join(' ');
                     command = [];
                 } else {
-                    value = command.shift().word;
+                    var word = command.shift();
+                    if (word.value !== null)
+                        value = word.value;
+                    else
+                        value = word.word;
                 }
                 this.resolved_parameters.push(value);
             } else {
@@ -593,62 +972,93 @@ const AbsoluteActionDialog = new lang.Class({
             this.reply("Sorry, that did not work: " + e.message);
             this.switchTo(new DefaultDialog());
         }.bind(this)).done();
+
+        return true;
+    },
+
+    generateCode: function() {
+        var devices = this.devices;
+
+        var action = ThingPedia.AbsoluteVerbToActionMap[this.verb.word];
+        var kind = action[0];
+
+        var selector;
+        if (devices.length > 1) {
+            // selected 'all'
+            selector = '@(type="' + kind + '")';
+        } else {
+            selector = '@(id="' + devices[0].uniqueId + '")';
+        }
+
+        var channelName = action[1];
+        var args = this.resolved_parameters.map(function(p) {
+            if (typeof p === 'string')
+                return '"' + p + '"';
+            else
+                return p;
+        });
+
+        return [selector + '.' + channelName + '(' + args.join(',') + ')'];
     },
 
     handleRaw: function(command) {
         if (this.currentParam !== null &&
             this.expecting === Words.RAW_STRING) {
             this.resolved_parameters.push(command);
-            this._continue([]);
+            return this._continue([]);
         } else {
-            this.parent(command);
+            return this.parent(command);
         }
     },
 
     handle: function(command) {
         if (this.verb === null) {
             if (this._handleVerb(command))
-                return;
+                return true;
         }
 
         if (this.devices === null &&
             this.currentParam === null &&
             this.expecting === Words.NUMBER) {
             if (this._handleResolve(command))
-                return;
+                return true;
             command = [];
         }
 
-        this._continue(command);
+        return this._continue(command);
+    },
+
+    describe: function() {
+        return this.verb.word + " " +
+            this.resolved_parameters.join(" ");
     },
 
     _continue: function(command) {
         if (this._tryNextParameter(command))
-            return;
+            return true;
 
         if (this.devices === null && this.resolving === null) {
             if (this._askDevice(command))
-                return;
+                return true;
         }
 
+        if (!this.directExec)
+            return false;
 
         if (this.expecting === Words.YES_ANSWER) {
-            if (command.length !== 1) {
-                this.fail();
-                return;
-            }
+            if (command.length !== 1)
+                return this.fail();
 
             if (command[0].category === Words.YES_ANSWER)
-                this.execute();
+                return this.execute();
             else if (command[0].category === Words.NO_ANSWER)
-                this.reset();
+                return this.reset();
             else
-                this.fail();
+                return this.fail();
         } else {
-            this.ask(Words.YES_ANSWER, "Ok, so you want me to " +
-                     this.verb.word + " " +
-                     this.resolved_parameters.join(" ") +
-                     ". Is that right?");
+            return this.ask(Words.YES_ANSWER, "Ok, so you want me to " +
+                            this.describe() +
+                            ". Is that right?");
         }
     }
 });
@@ -657,13 +1067,20 @@ const DeviceActionDialog = new lang.Class({
     Name: 'DeviceActionDialog',
     Extends: Dialog,
 
-    _init: function() {
+    _init: function(directExec) {
         this.parent();
         this.nouns = [];
         this.verbs = [];
         this.resolved_nouns = [];
         this.resolving = [];
         this.devices = {};
+        this.directExec = directExec;
+    },
+
+    name: function() {
+        return this.resolved_nouns.map(function(w) {
+            return capitalize(w.word);
+        }).join('');
     },
 
     _checkVerbNoun: function(verb, noun) {
@@ -691,23 +1108,18 @@ const DeviceActionDialog = new lang.Class({
     _handleAny: function(command) {
         for (var i = 0; i < command.length; i++) {
             if (this.expecting !== null) {
-                if (this.expecting !== command[i].category) {
-                    this.unexpected();
-                    return false;
-                }
+                if (this.expecting !== command[i].category)
+                    return this.unexpected();
             } else {
                 if (command[i].category === Words.YES_ANSWER ||
                     command[i].category === Words.NO_ANSWER ||
-                    command[i].category === Words.SPECIAL) {
-                    this.fail();
-                    return false;
-                }
+                    command[i].category === Words.SPECIAL)
+                    return this.fail();
             }
 
             if (command[i].category === Words.DEVICE_VERB) {
-                if (!this._checkVerb(command[i])) {
-                    return false;
-                }
+                if (!this._checkVerb(command[i]))
+                    return true;
             }
         }
 
@@ -719,7 +1131,7 @@ const DeviceActionDialog = new lang.Class({
             }
         }
 
-        return true;
+        return false;
     },
 
     _tryResolveNoun: function(command) {
@@ -793,13 +1205,46 @@ const DeviceActionDialog = new lang.Class({
             this.reply("Sorry, that did not work: " + e.message);
             this.switchTo(new DefaultDialog());
         }.bind(this)).done();
+
+        return true;
+    },
+
+    generateCode: function() {
+        var actions = [];
+        this.resolved_nouns.forEach(function(noun) {
+            var devices = this.devices[noun.word];
+
+            var kind = ThingPedia.NounToKindMap[noun.word];
+
+            var selector;
+            if (devices.length > 1) {
+                // selected 'all'
+                selector = '@(type="' + kind + '")';
+            } else {
+                selector = '@(id="' + devices[0].uniqueId + '")';
+            }
+
+            this.verbs.forEach(function(verb) {
+                var action = ThingPedia.DeviceVerbToActionMap[kind][verb.word];
+
+                var channelName = action[0];
+                var args = action.slice(1).map(function(param) {
+                    if (param.isConstant)
+                        return param.value;
+                    else
+                        throw new TypeError(); // not implemented yet
+                });
+
+                actions.push(selector + '.' + channelName + '(' + args.join(',') + ')');
+            }, this);
+        }, this);
+
+        return actions;
     },
 
     _handleResolve: function(command) {
-        if (command[0].word === 'none') {
-            this.reset();
-            return true;
-        }
+        if (command[0].word === 'none')
+            return this.reset();
 
         var noun = this.resolved_nouns[this.resolved_nouns.length-1].word;
         if (command[0].word === 'all') {
@@ -810,8 +1255,7 @@ const DeviceActionDialog = new lang.Class({
             if (value !== Math.floor(value) ||
                 value < 1 ||
                 value > this.resolving.length) {
-                this.reply("Please choose a number between 1 and " + this.resolving.length);
-                return true;
+                return this.reply("Please choose a number between 1 and " + this.resolving.length);
             } else {
                 this.reply("You chose " + this.resolving[value-1].name);
 
@@ -824,59 +1268,60 @@ const DeviceActionDialog = new lang.Class({
         return false;
     },
 
+    describe: function() {
+        return this.verbs.map(function(w) { return w.word; }).join(" and ") +
+            " the " +
+            this.resolved_nouns.map(function(w) { return w.word; }).join(" and ");
+    },
+
     handle: function(command) {
         if (this.handleGeneric(command))
-            return;
+            return true;
 
         if (this.expecting !== Words.YES_ANSWER &&
             this.expecting !== Words.NUMBER) {
-            if (!this._handleAny(command))
-                return;
+            if (this._handleAny(command))
+                return true;
 
             if (this._tryResolveNoun())
-                return;
+                return true;
         }
 
         if (this.expecting === Words.NUMBER) {
             if (this._handleResolve(command))
-                return;
+                return true;
         }
 
-        if (this.devices.length === 0 && this.verbs.length === 0) {
-            this.fail();
-            return;
-        }
+        if (this.resolved_nouns.length === 0 && this.verbs.length === 0)
+            return this.fail();
 
-        if (this.devices.length === 0) {
-            this.ask(Words.DEVICE_NOUN, "What do you want to " +
-                     this.verbs.map(function(w) { return w.word; }).join(" and ") + "?");
-            return;
+        if (this.resolved_nouns.length === 0) {
+            return this.ask(Words.DEVICE_NOUN, "What do you want to " +
+                            this.verbs.map(function(w) { return w.word; }).join(" and ") + "?");
         }
 
         if (this.verbs.length === 0) {
-            this.ask(Words.DEVICE_VERB, "What do you want to do with the " +
-                     this.resolved_nouns.map(function(w) { return w.word; }).join(" and ") + "?");
-            return;
+            return this.ask(Words.DEVICE_VERB, "What do you want to do with the " +
+                            this.resolved_nouns.map(function(w) { return w.word; }).join(" and ") + "?");
         }
 
+        if (!this.directExec)
+            return false;
+
         if (this.expecting === Words.YES_ANSWER) {
-            if (command.length !== 1) {
-                this.fail();
-                return;
-            }
+            if (command.length !== 1)
+                return this.fail();
 
             if (command[0].category === Words.YES_ANSWER)
-                this.execute();
+                return this.execute();
             else if (command[0].category === Words.NO_ANSWER)
-                this.reset();
+                return this.reset();
             else
-                this.fail();
+                return this.fail();
         } else {
-            this.ask(Words.YES_ANSWER, "Ok, so you want me to " +
-                     this.verbs.map(function(w) { return w.word; }).join(" and ") +
-                     " the " +
-                     this.resolved_nouns.map(function(w) { return w.word; }).join(" and ") +
-                     ". Is that right?");
+            return this.ask(Words.YES_ANSWER, "Ok, so you want me to " +
+                            this.describe() +
+                            ". Is that right?");
         }
     }
 });
@@ -885,7 +1330,8 @@ module.exports = new lang.Class({
     Name: 'AssistantManager',
     $rpcMethods: ['handleCommand', 'setReceiver'],
 
-    _init: function(devices) {
+    _init: function(apps, devices) {
+        this.apps = apps;
         this.devices = devices;
 
         this._receiver = null;

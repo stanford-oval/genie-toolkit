@@ -48,6 +48,8 @@ const DeviceView = new lang.Class({
             return selector.attributes.every(function(a) {
                 if (a.name === 'type')
                     return device.hasKind(a.value.value);
+                else if (a.name === 'id')
+                    return device.uniqueId === a.value.value;
                 else
                     return device.state[a.name] === a.value.value;
             });
