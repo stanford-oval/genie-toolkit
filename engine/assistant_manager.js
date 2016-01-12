@@ -19,7 +19,7 @@ const Words = {
     RAW_STRING: [],
 
     IGNORED: ['a', 'the', 'and', 'my', 'your', 'mine', 'yours', 'of'],
-    SPECIAL: ['debug', 'nlp', 'help', 'sorry', 'cool', ['never', 'mind']],
+    SPECIAL: ['debug', 'nlp', 'help', ['thank', 'you'], 'thanks', 'sorry', 'cool', ['never', 'mind']],
     YES_ANSWER: ['yes', 'sure', 'ok'],
     NO_ANSWER: ['no', 'never'],
 
@@ -362,6 +362,10 @@ const Dialog = new lang.Class({
                         this.reply(this.question);
                     }
                 }
+                break;
+            case 'thanks':
+            case 'thank you':
+                this.reply("At your service.");
                 break;
             case 'sorry':
                 this.reply("No need to be sorry.");

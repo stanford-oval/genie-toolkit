@@ -1,0 +1,66 @@
+extends layout
+
+block page_name
+  | Administration
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/admin.css')
+
+block content
+  h2 Users
+
+  table.table#users-table
+    thead
+      tr
+        th #
+        th User name
+        th Human name
+        th Login methods
+        th Roles
+        th Assistant?
+        th Engine?
+        th Actions
+    tbody
+      each user in users
+        tr
+          td= user.id
+          td= user.username
+          td= user.human_name
+          td
+            - var methods = [];
+            - if (user.password !== null)
+              - methods.push("Password");
+            - if (user.facebook_id !== null)
+              - methods.push("Facebook");
+            - if (user.google_id !== null)
+              - methods.push("Google")
+            | #{methods.join(', ')}
+          td
+            if user.roles & 0x1
+              | Admin
+            else
+              | User
+          td
+            if user.assistant_feed_id !== null
+              span.sr-only= user.assistant_feed_id
+              span(aria-hidden='yes', title=user.assistant_feed_id) Yes
+            else
+              | No
+          td
+            if user.isRunning
+              | Running
+            else
+              | Died
+          td
+            if user.isRunning
+              form(action='/admin/kill-user/' + user.id, method='post').form-inline.form-button
+                input(type='hidden',name='_csrf',value=csrfToken)
+                button(type='submit').btn.btn-danger.form-control Kill user
+            else
+              form(action='/admin/start-user/' + user.id, method='post').form-inline.form-button
+                input(type='hidden',name='_csrf',value=csrfToken)
+                button(type='submit').btn.btn-success.form-control Start user
+            form(action='/admin/delete-user/' + user.id, method='post').form-inline.form-button
+              input(type='hidden',name='_csrf',value=csrfToken)
+              button(type='submit').btn.btn-danger.form-control Delete user
+

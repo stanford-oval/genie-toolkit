@@ -99,6 +99,12 @@ const EngineManager = new lang.Class({
                 child.stdout.on('data', output(console.log));
                 child.stderr.on('data', output(console.error));
 
+                var engineProxy = Q.defer();
+                var obj = { child: child,
+                            cwd: './' + cloudId,
+                            engine: engineProxy.promise }
+                runningProcesses[userId] = obj;
+
                 child.on('error', function(error) {
                     console.error('Child with ID ' + userId + ' reported an error: ' + error);
                 });
@@ -106,13 +112,10 @@ const EngineManager = new lang.Class({
                     if (code !== 0)
                         console.error('Child with ID ' + userId + ' exited with code ' + code);
 
+                    if (runningProcesses[userId] !== obj)
+                        return;
                     delete runningProcesses[userId];
                 });
-
-                var engineProxy = Q.defer();
-                runningProcesses[userId] = { child: child,
-                                             cwd: './' + cloudId,
-                                             engine: engineProxy.promise };
 
                 // wrap child into something that looks like a Stream
                 // (readable + writable), at least as far as JsonDatagramSocket
@@ -168,6 +171,10 @@ const EngineManager = new lang.Class({
             });
     },
 
+    isRunning: function(userId) {
+        return this._runningProcesses[userId] !== undefined;
+    },
+
     getEngine: function(userId) {
         var process = this._runningProcesses[userId];
         if (process === undefined)
@@ -188,7 +195,7 @@ const EngineManager = new lang.Class({
     },
 
     startUser: function(user) {
-        console.log('Requested start of user ' + userId);
+        console.log('Requested start of user ' + user.id);
         return this._runUser(user.id, user.cloud_id, user.auth_token,
                              user.assistant_feed_id);
     },
@@ -200,6 +207,13 @@ const EngineManager = new lang.Class({
             child.kill();
             am.removeEngine(userId);
         }
+    },
+
+    killUser: function(userId) {
+        var process = this._runningProcesses[userId];
+        if (!process)
+            return;
+        process.child.kill();
     },
 
     deleteUser: function(userId) {
