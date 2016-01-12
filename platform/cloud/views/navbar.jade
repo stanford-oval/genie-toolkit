@@ -14,6 +14,9 @@ ul.nav.navbar-nav
       a(href="/devices?class=online") Configured Online Accounts
     li
       a(href="/assistant") Sabrina
+    if user.roles & 0x1
+      li
+        a(href="/admin") Administration
 
 ul.nav.navbar-nav.navbar-right
   li
