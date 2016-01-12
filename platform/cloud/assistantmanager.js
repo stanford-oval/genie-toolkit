@@ -341,15 +341,7 @@ module.exports = new lang.Class({
     _startEngine: function(obj, firstTime) {
         var feed = this._messaging.getFeed(obj.feedId);
         obj.feed = new AssistantFeed(feed, obj.engine);
-
-        if (firstTime) {
-            obj.feed.start().then(function() {
-                obj.feed.send("Hello! My name is Sabrina, and I'm your virtual assistant.");
-                obj.feed.send("I'm ready to use all my magic powers to help you.");
-            });
-        } else {
-            obj.feed.start().done();
-        }
+        obj.feed.start().done();
     },
 
     createFeedForEngine: function(userId, engine, contactId) {

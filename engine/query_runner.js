@@ -135,7 +135,7 @@ module.exports = new lang.Class({
             scope = this.app.uniqueId;
         name = kw.name;
 
-        return this.engine.keywords.getKeyword(scope, name, feedId, kw.owner === 'self');
+        return this.engine.keywords.getOpenedKeyword(scope, name, feedId, kw.owner === 'self');
     },
 
     start: function() {

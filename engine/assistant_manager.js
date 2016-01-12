@@ -33,10 +33,11 @@ const Words = {
     NUMBER: ['all', 'none'],
     TIMESTAMP: [],
     DATE: [],
-    DAY: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
+    DAY: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
     MONTHS: ['january', 'february', 'march', 'april', 'may', 'june', 'july',
              'august', 'september', 'october', 'november', 'december'],
     YEAR: [],
+    GENDER: ['male', 'female'],
 
     // FINISHME: these should be taken from ThingPedia
     // (or some crazy unsupervised learning on a massive amount of text!)
@@ -46,13 +47,13 @@ const Words = {
 
     // a noun that identifies something that can be measured or extracted from
     // a trigger (ie, something that you ask or search for)
-    VALUE_NOUN: ['weight', 'picture', 'movie', 'show'],
+    VALUE_NOUN: ['weight'],
 
     // something else
-    OTHER_NOUN: [],
+    OTHER_NOUN: ['picture', 'movie', 'show'],
 
     // a verb, maps to an action on a device_noun
-    DEVICE_VERB: [['turn', 'on'], ['turn', 'off'], 'play', 'measure'],
+    DEVICE_VERB: [['turn', 'on'], ['turn', 'off'], 'play'],
 
     // a verb that also implies where to execute the action
     ABSOLUTE_VERB: ['tweet'],
@@ -63,6 +64,7 @@ const WordCategories = [Words.IGNORED, Words.SPECIAL, Words.YES_ANSWER, Words.NO
                         Words.QUESTION, Words.CONDITIONAL, Words.PREPOSITION, Words.COMPARATOR,
                         Words.NUMBER, Words.TIMESTAMP, Words.DATE,
                         Words.DAY, Words.MONTHS, Words.YEAR,
+                        Words.GENDER,
                         Words.DEVICE_NOUN, Words.VALUE_NOUN, Words.OTHER_NOUN,
                         Words.DEVICE_VERB, Words.ABSOLUTE_VERB,
                         Words.UNKWOWN];
@@ -97,7 +99,8 @@ const ThingPedia = {
         },
     },
     AbsoluteVerbToActionMap: {
-        'tweet': ['twitter', 'sink', Parameter.Input("What", AppCompiler.Type.String)]
+        'tweet': ['twitter', 'sink', Parameter.Input("What do you want me to tweet?",
+                                                     AppCompiler.Type.String)]
     },
 };
 
@@ -279,6 +282,9 @@ const Dialog = new lang.Class({
         this.subdialog = null;
     },
 
+    start: function() {
+    },
+
     ask: function(expected, question) {
         this.question = question;
         this.expect(expected);
@@ -297,6 +303,10 @@ const Dialog = new lang.Class({
             return dlg.handle(command);
         else
             return true;
+    },
+
+    switchToDefault: function() {
+        return this.switchTo(new DefaultDialog());
     },
 
     push: function(dlg, command) {
@@ -397,7 +407,7 @@ const Dialog = new lang.Class({
             return this.subdialog.handleRaw(raw);
 
         this.reply("I'm a little confused, sorry. What where we talking about?");
-        this.switchTo(new DefaultDialog());
+        this.switchToDefault();
         return true;
     },
 
@@ -406,19 +416,19 @@ const Dialog = new lang.Class({
             return true;
 
         this.reply("I'm a little confused, sorry. What where we talking about?");
-        this.switchTo(new DefaultDialog());
+        this.switchToDefault();
         return true;
     },
 
     reset: function() {
         this.reply("Ok forget it");
-        this.switchTo(new DefaultDialog());
+        this.switchToDefault();
         return true;
     },
 
     done: function() {
         this.reply("Consider it done");
-        this.switchTo(new DefaultDialog());
+        this.switchToDefault();
         return true;
     },
 
@@ -435,7 +445,7 @@ const Dialog = new lang.Class({
     // faild and lose context
     failReset: function() {
         this.fail();
-        this.switchTo(new DefaultDialog());
+        this.switchToDefault();
         return true;
     },
 });
@@ -600,7 +610,7 @@ const ConditionDialog = new lang.Class({
 
         if (devices.length === 0) {
             this.reply("You need a " + kind + " to know your " + toResolve.word);
-            this.switchTo(new DefaultDialog());
+            this.switchToDefault();
             return true;
         }
 
@@ -664,7 +674,7 @@ const ConditionDialog = new lang.Class({
                 else
                     this.rhs.push(next);
             } else if (next.category === Words.COMPARATOR) {
-                if (this.comp !== null)
+                if (this.comp !== null || this.lhs.length === 0)
                     return this.fail();
 
                 this.comp = next;
@@ -739,7 +749,7 @@ const RuleDialog = new lang.Class({
                 this.done();
             }.bind(this)).catch(function(e) {
                 this.reply("Sorry, that did not work: " + e.message);
-                this.switchTo(new DefaultDialog());
+                this.switchToDefault();
             }.bind(this)).done();
     },
 
@@ -855,7 +865,7 @@ const AbsoluteActionDialog = new lang.Class({
 
         if (devices.length === 0) {
             this.reply("You need a " + kind + " to " + this.verb.word);
-            this.switchTo(new DefaultDialog());
+            this.switchToDefault();
             return true;
         }
 
@@ -932,7 +942,7 @@ const AbsoluteActionDialog = new lang.Class({
             } else {
                 this.currentParam = param;
 
-                var question = param.question + " do you want me to " + this.verb.word + "?";
+                var question = param.question;
                 if (param.type.isString)
                     this.ask(Words.RAW_STRING, question);
                 else if (param.type.isMeasure || param.type.isNumber)
@@ -970,7 +980,7 @@ const AbsoluteActionDialog = new lang.Class({
             return this.done();
         }.bind(this)).catch(function(e) {
             this.reply("Sorry, that did not work: " + e.message);
-            this.switchTo(new DefaultDialog());
+            this.switchToDefault();
         }.bind(this)).done();
 
         return true;
@@ -1089,7 +1099,7 @@ const DeviceActionDialog = new lang.Class({
 
         if (!(verb.word in actionMap)) {
             this.reply("I don't how to " + verb.word + " a " + noun.word);
-            this.switchTo(new DefaultDialog());
+            this.switchToDefault();
             return false;
         } else {
             return true;
@@ -1150,7 +1160,7 @@ const DeviceActionDialog = new lang.Class({
 
         if (devices.length === 0) {
             this.reply("You don't have any " + toResolve.word);
-            this.switchTo(new DefaultDialog());
+            this.switchToDefault();
             return true;
         }
 
@@ -1203,7 +1213,7 @@ const DeviceActionDialog = new lang.Class({
             return this.done();
         }.bind(this)).catch(function(e) {
             this.reply("Sorry, that did not work: " + e.message);
-            this.switchTo(new DefaultDialog());
+            this.switchToDefault();
         }.bind(this)).done();
 
         return true;
@@ -1326,23 +1336,250 @@ const DeviceActionDialog = new lang.Class({
     }
 });
 
+// FIXME fetch this from ThingPedia
+const SABRINA_POPULATE_DATABASE = 'SabrinaPopulateDatabase() {' +
+      'extern Weight : (Date, Measure(kg));' +
+      'extern Height : (Date, Measure(kg));' +
+      'extern Gender : (String);' +
+      'extern DateOfBirth : (Date);' +
+      '@(type="scale").source(t, w) => Weight(t, w);' +
+      '}';
+
+const InitializationDialog = new lang.Class({
+    Name: 'InitializationDialog',
+    Extends: Dialog,
+
+    _init: function() {
+        this.parent();
+
+        this.appOk = false;
+        this.hasApp = false;
+        this.name = null;
+        this.tentative_name = null;
+        this.dobOk = false;
+        this.genderOk = false;
+    },
+
+    _checkDatabaseApp: function() {
+        if (this.appOk)
+            return false;
+
+        var apps = this.manager.apps;
+        if (apps.getApp('app-SabrinaPopulateDatabase') !== undefined) {
+            this.appOk = true;
+            this.hasApp = true;
+            return false;
+        }
+
+        this.reply("It looks like you're not storing your personal information in the database yet.");
+        return this.ask(Words.YES_ANSWER, "Would you like me to do so?");
+    },
+
+    _checkName: function() {
+        var prefs = platform.getSharedPreferences();
+        var name = prefs.get('sabrina-name');
+        if (name !== undefined && name !== null) {
+            this.name = name;
+            return false;
+        }
+
+        this.manager.messaging.getOwnId().then(function(id) {
+            return this.manager.messaging.getUserById(id);
+        }.bind(this)).then(function(user) {
+            this.tentative_name = user.name;
+            this.ask(Words.YES_ANSWER, "Can I call you %s?".format(user.name));
+        }.bind(this)).catch(function(e) {
+            console.log('Failed to obtain omlet user name: ' + e.message);
+            this.ask(Words.RAW_STRING, "What's your name?");
+        }.bind(this));
+        return true;
+    },
+
+    _checkDOB: function() {
+        if (this.dobOk)
+            return false;
+        if (!this.hasApp)
+            return false;
+
+        var keyword = this.manager.keywords.getKeyword(null, 'DateOfBirth', null);
+        keyword.open().then(function(kw) {
+            if (keyword.value !== null) {
+                this.dobOk = true;
+                this._continue();
+            } else {
+                this.ask(Words.DATE, "When were you born?");
+                this.reply("(You can say no at any time and I will stop asking you questions)");
+            }
+        }.bind(this)).finally(function() {
+            return keyword.close();
+        }).done();
+        return true;
+    },
+
+    _checkGender: function() {
+        if (this.genderOk)
+            return false;
+        if (!this.hasApp)
+            return false;
+
+        var keyword = this.manager.keywords.getKeyword(null, 'Gender', null);
+        keyword.open().then(function(kw) {
+            if (keyword.value !== null) {
+                this.genderOk = true;
+                this._continue();
+            } else {
+                this.ask(Words.GENDER, "Are you male or female?");
+            }
+        }.bind(this)).finally(function() {
+            return keyword.close();
+        }).done();
+        return true;
+    },
+
+    _handleAppResponse: function(word) {
+        this.expecting = null;
+        this.appOk = true;
+
+        if (word.category === Words.YES_ANSWER) {
+            var apps = this.manager.apps;
+            this.hasApp = true;
+            apps.loadOneApp(SABRINA_POPULATE_DATABASE,
+                            { description: "Fills the Sabrina Database with data from your IoT devices" },
+                            'app-SabrinaPopulateDatabase',
+                            undefined, true)
+                .then(function() {
+                    this._continue();
+                }.bind(this)).done();
+            return true;
+        } else {
+            this.hasApp = false;
+            return false;
+        }
+    },
+
+    _handleNameResponse: function(word) {
+        if (word.category === Words.YES_ANSWER) {
+            this.name = this.tentative_name;
+            var prefs = platform.getSharedPreferences();
+            prefs.set('sabrina-name', this.name);
+            this.reply("Hi %s, nice to meet you.".format(this.name));
+            this.expecting = null;
+            return false;
+        } else {
+            return this.ask(Words.RAW_STRING, "Ok, what's your name then?");
+        }
+    },
+
+    start: function() {
+        var prefs = platform.getSharedPreferences();
+        var initialized = prefs.get('sabrina-initialized');
+        if (initialized)
+            return this.switchToDefault();
+
+        prefs.set('sabrina-initialized', true);
+        this.reply("Hello! My name is Sabrina, and I'm your virtual assistant.");
+
+        this._continue();
+    },
+
+    handleRaw: function(command) {
+        if (this.expecting === Words.RAW_STRING) {
+            if (this.name === null) {
+                this.name = command;
+                var prefs = platform.getSharedPreferences();
+                prefs.set('sabrina-name', command);
+                this.reply("Hi %s, nice to meet you.".format(command));
+                return this._continue();
+            }
+        }
+
+        return this.parent(command);
+    },
+
+    handle: function(command) {
+        if (this.handleGeneric(command))
+            return true;
+
+        if (this.expecting === Words.YES_ANSWER) {
+            if (this.name === null) {
+                if (this._handleNameResponse(command[0]))
+                    return true;
+            } else if (!this.appOk) {
+                if (this._handleAppResponse(command[0]))
+                    return true;
+            }
+        }
+
+        if (this.expecting === Words.DATE) {
+            var keyword = this.manager.keywords.getKeyword(null, 'DateOfBirth', null);
+            keyword.open().then(function() {
+                keyword.changeValue([command[0].value.getTime()]);
+                this._continue();
+            }.bind(this)).finally(function() {
+                keyword.close();
+            }).done();
+            return true;
+        }
+
+        if (this.expecting === Words.GENDER) {
+            var keyword = this.manager.keywords.getKeyword(null, 'Gender', null);
+            keyword.open().then(function() {
+                var gender;
+                if (command[0].word === 'male')
+                    gender = true;
+                else
+                    gender = false;
+                keyword.changeValue([gender]);
+                this._continue();
+            }.bind(this)).finally(function() {
+                keyword.close();
+            }).done();
+            return true;
+        }
+
+        return this._continue();
+    },
+
+    _continue: function() {
+        if (this._checkName())
+            return true;
+
+        if (this._checkDatabaseApp())
+            return true;
+
+        if (this._checkDOB())
+            return true;
+
+        if (this._checkGender())
+            return true;
+
+        this.reply("Ok, now I'm ready to use all my magic powers to help you.");
+        this.switchToDefault();
+    },
+});
+
 module.exports = new lang.Class({
     Name: 'AssistantManager',
     $rpcMethods: ['handleCommand', 'setReceiver'],
 
-    _init: function(apps, devices) {
+    _init: function(apps, devices, messaging, keywords) {
         this.apps = apps;
         this.devices = devices;
+        this.messaging = messaging;
+        this.keywords = keywords;
 
         this._receiver = null;
         this._nlp = new NLP();
         this._raw = false;
         this.setDialog(new DefaultDialog());
+
+        this._initialized = false;
     },
 
     setDialog: function(dlg) {
         this._dialog = dlg;
         dlg.manager = this;
+        dlg.start();
     },
 
     setRaw: function(raw) {
@@ -1359,6 +1596,12 @@ module.exports = new lang.Class({
 
     setReceiver: function(receiver) {
         this._receiver = receiver;
+        this.init();
+    },
+
+    init: function() {
+        if (!this._initialized)
+            this.setDialog(new InitializationDialog());
     },
 
     handleCommand: function(command) {

@@ -69,7 +69,7 @@ const RuleExecutor = new lang.Class({
             scope = this.app.uniqueId;
         name = this.output.keyword.name;
 
-        return this.engine.keywords.getKeyword(scope, name, feedId, this.output.owner === 'self');
+        return this.engine.keywords.getOpenedKeyword(scope, name, feedId, this.output.owner === 'self');
     },
 
     start: function() {

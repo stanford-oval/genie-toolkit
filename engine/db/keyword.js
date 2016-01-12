@@ -159,7 +159,11 @@ module.exports = new lang.Class({
             obj = this._keywords[key].local;
         else
             obj = this._keywords[key];
+        return obj;
+    },
 
+    getOpenedKeyword: function(scope, name, feedId, forSelf) {
+        var obj = this.getKeyword(scope, name, feedId, forSelf);
         return obj.open().then(function() { return obj; });
     },
 

@@ -123,7 +123,7 @@ module.exports = new lang.Class({
             scope = this.app.uniqueId;
         name = name;
 
-        return this.engine.keywords.getKeyword(scope, name, feedId);
+        return this.engine.keywords.getOpenedKeyword(scope, name, feedId);
     },
 
     _readKeyword: function(name) {

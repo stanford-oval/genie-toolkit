@@ -40,7 +40,8 @@ const Engine = new lang.Class({
         this._channels = new ChannelFactory(this, this._tiers, deviceFactory);
         this._apps = new AppDatabase(this, this._tiers);
         this._ui = new UIManager(this);
-        this._assistant = new AssistantManager(this._apps, this._devices);
+        this._assistant = new AssistantManager(this._apps, this._devices,
+                                               this._messaging, this._keywords);
 
         // in loading order
         this._modules = [this._tiers,

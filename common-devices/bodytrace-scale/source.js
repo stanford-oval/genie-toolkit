@@ -41,12 +41,10 @@ const ScaleChannel = new lang.Class({
 
         return Q.nfcall(httpGetAsync, url, auth).then(function(response) {
             function makeEvent(time, data) {
-                var date = new Date(time);
-
                 // weight is in grams, convert to kg, which the base unit
                 // AppExecutor wants
                 var weight = (data[time].values.weight)/1000;
-                var event = [date, weight];
+                var event = [time, weight];
                 return event;
             }
 
@@ -54,7 +52,7 @@ const ScaleChannel = new lang.Class({
             try {
                 weight = JSON.parse(response);
                 keys = Object.keys(weight);
-                utcMilliSeconds = keys[0];
+                utcMilliSeconds = parseInt(keys[0]);
             } catch(e) {
                 console.log('Error parsing BodyTrace server response: ' + e.message);
                 console.log('Full response was');
@@ -78,9 +76,9 @@ const ScaleChannel = new lang.Class({
 
                 // find the last reading that we knew about
                 for (var i = 0; i < keys.length; i++) {
-                    if (keys[i] <= lastRead) {
+                    if (parseInt(keys[i]) <= lastRead) {
                         if (channelInstance.event === null)
-                            channelInstance.setCurrentEvent(makeEvent(keys[i], weight));
+                            channelInstance.setCurrentEvent(makeEvent(parseInt(keys[i]), weight));
                         break;
                     }
                 }
@@ -88,7 +86,7 @@ const ScaleChannel = new lang.Class({
                 // then emit an event for each new data point
                 // (note we reuse i from the previous loop!)
                 for (; i >= 0; i--)
-                    channelInstance.emitEvent(makeEvent(keys[i], weight));
+                    channelInstance.emitEvent(makeEvent(parseInt(keys[i]), weight));
             }
         }, function(error) {
             console.log('Error reading from BodyTrace server: ' + error.message);
