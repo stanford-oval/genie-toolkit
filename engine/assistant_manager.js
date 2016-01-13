@@ -82,7 +82,7 @@ const ThingPedia = {
         'scale': 'scale'
     },
     NounToTriggerMap: {
-        'weight': ['scale', 'source(_, %s)', AppCompiler.Type.Measure('kg')],
+        'weight': ['extern Weight : (Date, Measure(kg));', 'Weight(_, %s)', AppCompiler.Type.Measure('kg')],
         'picture': [],
         'movie': [],
         'show': [],
@@ -498,71 +498,50 @@ const ConditionDialog = new lang.Class({
         this.done = false;
 
         this.lhs = [];
-        this.resolved_lhs = [];
-        this.lhs_devices = {};
         this.comp = null;
         this.rhs = null;
-        this.resolved_rhs = null;
-        this.rhs_devices = {};
-
-        this.resolving_noun = null;
-        this.resolving = null;
-        this.resolving_devices = null;
     },
 
     describe: function() {
-        return "If " + this.resolved_lhs.map(function(w) { return w.word; }).join(" and ")
+        return "If " + this.lhs.map(function(w) { return w.word; }).join(" and ")
             + " " + this.comp.word + " " +
-            this.resolved_rhs.word;
+            this.rhs.word;
     },
 
     name: function() {
-        return this.resolved_lhs.map(function(w) {
+        return this.lhs.map(function(w) {
             return capitalize(w.word);
         }).join('');
     },
 
     generateCode: function() {
         var idx = 0;
+        var declarations = [];
         var conditions = [];
-        this.resolved_lhs.forEach(function(lhs) {
-            var lhs_devices = this.lhs_devices[lhs.word];
+        this.lhs.forEach(function(lhs) {
             var lhs_condition = ThingPedia.NounToTriggerMap[lhs.word];
-            var lhs_kind = lhs_condition[0];
+            var lhs_declaration = lhs_condition[0];
             var lhs_channelName = lhs_condition[1];
             var lhs_valueType = lhs_condition[2];
 
-            var lhs_selector;
-            if (lhs_devices.length > 1) {
-                // selected 'all'
-                lhs_selector = '@(type="' + lhs_kind + '")';
-            } else {
-                lhs_selector = '@(id="' + lhs_devices[0].uniqueId + '")';
-            }
-            var lhs_varName = 'v' + (idx++);
+            declarations.push(lhs_declaration);
 
-            conditions.push(lhs_selector + '.' + lhs_channelName.format(lhs_varName));
+            var lhs_varName = 'v' + (idx++);
+            conditions.push(lhs_channelName.format(lhs_varName));
 
             if (lhs_valueType.isString) {
-                conditions.push(lhs_varName + '="' + this.resolved_rhs.word + '"');
+                conditions.push(lhs_varName + '="' + this.rhs.word + '"');
             } else {
-                if (this.resolved_rhs.word.category === Words.VALUE_NOUN) {
-                    var rhs_devices = this.rhs_devices[this.resolved_rhs.word];
-                    var rhs_condition = ThingPedia.NounToTriggerMap[this.resolved_rhs.word];
-                    var rhs_kind = rhs_condition[0];
+                if (this.rhs.word.category === Words.VALUE_NOUN) {
+                    var rhs_condition = ThingPedia.NounToTriggerMap[this.rhs.word];
+                    var rhs_declaration = rhs_condition[0];
                     var rhs_channelName = rhs_condition[1];
                     var rhs_valueType = rhs_condition[2];
 
-                    var rhs_selector;
-                    if (devices.length > 1) {
-                        // selected 'all'
-                        rhs_selector = '@(type="' + rhs_kind + '")';
-                    } else {
-                        rhs_selector = '@(id="' + rhs_devices[0].uniqueId + '")';
-                    }
-                    var rhs_varName = 'v' + (idx++);
+                    declarations.push(rhs_declaration);
 
-                    conditions.push(rhs_selector + '.' + rhs_channelName.format(rhs_varName));
+                    var rhs_varName = 'v' + (idx++);
+                    conditions.push(rhs_channelName.format(rhs_varName));
 
                     if (this.comp.word === 'is about') {
                         conditions.push(lhs_varName + '/' + rhs_varName + ' <= 1.05 && '
@@ -577,90 +556,21 @@ const ConditionDialog = new lang.Class({
                     }
                 } else {
                     if (this.comp.word === 'is about') {
-                        conditions.push(lhs_varName + '/' + this.resolved_rhs.word + ' <= 1.05 && '
-                                        + lhs_varName + '/' + this.resolved_rhs.word + ' >= 0.95');
+                        conditions.push(lhs_varName + '/' + this.rhs.word + ' <= 1.05 && '
+                                        + lhs_varName + '/' + this.rhs.word + ' >= 0.95');
                     } else if (this.comp.word === 'contains') {
-                        conditions.push('$contains(' + lhs_varName + ',' + this.resolved_rhs.word + ')');
+                        conditions.push('$contains(' + lhs_varName + ',' + this.rhs.word + ')');
                     } else if (this.comp.word === 'is' ||
                                this.comp.word === 'same') {
-                        conditions.push(lhs_varName + '=' + this.resolved_rhs.word);
+                        conditions.push(lhs_varName + '=' + this.rhs.word);
                     } else {
-                        conditions.push(lhs_varName + this.comp.word + this.resolved_rhs.word);
+                        conditions.push(lhs_varName + this.comp.word + this.rhs.word);
                     }
                 }
             }
         }, this);
 
-        return conditions.join(', ');
-    },
-
-    _tryResolveNoun: function(lhs) {
-        if (lhs) {
-            var toResolve = this.lhs.shift();
-            this.resolved_lhs.push(toResolve);
-            var deviceStore = this.lhs_devices;
-        } else {
-            var toResolve = this.rhs;
-            this.rhs = null;
-            this.resolved_rhs = toResolve;
-            var deviceStore = this.rhs_devices;
-        }
-        if (toResolve.category !== Words.VALUE_NOUN)
-            return;
-
-        var condition = ThingPedia.NounToTriggerMap[toResolve.word];
-        var kind = condition[0];
-        var devices = this.manager.devices.getAllDevicesOfKind(kind);
-
-        if (devices.length === 0) {
-            this.reply("You need a " + kind + " to know your " + toResolve.word);
-            this.switchToDefault();
-            return true;
-        }
-
-        if (devices.length === 1) {
-            deviceStore[toResolve.word] = [devices[0]];
-            return false;
-        }
-
-        if (devices.length > 0) {
-            this.reply("You have multiple " + kind + "s");
-            var question = "Do you mean ";
-            for (var i = 0; i < devices.length; i++)
-                question += (i > 0 ? " or " : "") + (i+1) + ") " + devices[i].name;
-            question += "?";
-            this.resolving_noun = toResolve;
-            this.resolving = devices;
-            this.resolving_devices = deviceStore;
-            return this.ask(Words.NUMBER, question);
-        }
-    },
-
-    _handleResolve: function(command) {
-        if (command[0].word === 'none')
-            return this.reset();
-
-        if (command[0].word === 'all') {
-            this.reply("You chose all " + this.condition.resolving_noun.word + "s");
-            this.devices[noun] = this.resolving;
-        } else {
-            var value = command[0].value;
-            if (value !== Math.floor(value) ||
-                value < 1 ||
-                value > this.resolving.length) {
-                return this.reply("Please choose a number between 1 and " + this.condition.resolving.length);
-            } else {
-                this.reply("You chose " + this.condition.resolving[value-1].name);
-
-                this.condition.resolving_devices[this.condition.resolving_noun.word] =
-                    [this.condition.resolving_devices[value-1]];
-            }
-        }
-
-        this.condition.resolving_noun = null;
-        this.condition.resolving = null;
-        this.condition.resolving_devices = null;
-        return false;
+        return [declarations, conditions.join(', ')];
     },
 
     _handleAny: function(command) {
@@ -705,24 +615,8 @@ const ConditionDialog = new lang.Class({
         if (this.handleGeneric(command))
             return true;
 
-        if (this.expecting !== Words.NUMBER) {
-            if (this._handleAny(command))
-                return true;
-
-            while (this.lhs.length > 0) {
-                if (this._tryResolveNoun(true))
-                    return true;
-            }
-            while (this.rhs !== null) {
-                if (this._tryResolveNoun(false))
-                    return true;
-            }
-        }
-
-        if (this.expecting === Words.NUMBER) {
-            if (this._handleResolve(command))
-                return true;
-        }
+        if (this._handleAny(command))
+            return true;
 
         return false;
     },
@@ -740,8 +634,12 @@ const RuleDialog = new lang.Class({
 
     execute: function() {
         var actions = this.action.generateCode();
-        var condition = this.condition.generateCode();
+        var lhs = this.condition.generateCode();
+        var declarations = lhs[0];
+        var condition = lhs[1];
         var code = 'SabrinaGenerated' + this.condition.name() + this.action.name() + '() {\n';
+        code += declarations.join('\n');
+        code += '\n';
         actions.forEach(function(action) {
             code += condition + " => " + action + ";\n";
         });
