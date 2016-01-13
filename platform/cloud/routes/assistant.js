@@ -55,9 +55,11 @@ router.get('/enable', user.redirectLogIn, function(req, res) {
     }).then(function() {
         res.redirect('/assistant');
     }).catch(function(e) {
+        console.log(e);
+        console.log(e.stack);
         res.status(500).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
-    });
+    }).done();
 });
 
 router.get('/setup', user.redirectRole(user.Role.ADMIN), function(req, res) {
