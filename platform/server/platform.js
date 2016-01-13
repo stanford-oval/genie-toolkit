@@ -118,7 +118,7 @@ module.exports = {
             return AllJoynApi !== null;
 
         case 'bluetooth':
-            return true;
+            return os.platform() === 'linux';
 
         default:
             return false;
