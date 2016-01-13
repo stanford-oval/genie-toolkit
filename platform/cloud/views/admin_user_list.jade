@@ -54,15 +54,15 @@ block content
               | Died
           td
             if user.isRunning
-              form(action='/admin/kill-user/' + user.id, method='post').form-inline.form-button
+              form(action='/admin/kill-user/' + user.id, method='post')
                 input(type='hidden',name='_csrf',value=csrfToken)
                 button(type='submit').btn.btn-danger.form-control Kill user
             else
-              form(action='/admin/start-user/' + user.id, method='post').form-inline.form-button
+              form(action='/admin/start-user/' + user.id, method='post')
                 input(type='hidden',name='_csrf',value=csrfToken)
                 button(type='submit').btn.btn-success.form-control Start user
           td
-            form(action='/admin/delete-user/' + user.id, method='post').form-inline.form-button
+            form(action='/admin/delete-user/' + user.id, method='post')
               input(type='hidden',name='_csrf',value=csrfToken)
               button(type='submit').btn.btn-danger.form-control Delete user
 

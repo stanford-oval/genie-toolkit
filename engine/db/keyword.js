@@ -155,10 +155,13 @@ module.exports = new lang.Class({
         var obj;
         // if we're accessing [SELF], punch through the remote keyword to the
         // corresponding local part
-        if (forSelf)
+        if (forSelf) {
+            if (!feedId)
+                throw new TypeError();
             obj = this._keywords[key].local;
-        else
+        } else {
             obj = this._keywords[key];
+        }
         return obj;
     },
 

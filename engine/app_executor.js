@@ -125,6 +125,9 @@ module.exports = new lang.Class({
 
             compiler.compileProgram(ast, state);
 
+            if (!state['$F'] && compiler.feedAccess)
+                throw new Error("Missing $F parameter for feed shared app");
+
             this.isBroken = false;
         } catch(e) {
             console.log('App is broken: ' + e.message);
