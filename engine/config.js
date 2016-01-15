@@ -7,7 +7,7 @@
 // See COPYING for details
 
 module.exports.THINGPEDIA_ACCESS_MODULE = 'https';
-module.exports.THINGPEDIA_URL = 'https://thingpedia.stanford.edu';
+module.exports.THINGPEDIA_URL = 'https://thingpedia.herokuapp.com';
 //module.exports.THINGPEDIA_ACCESS_MODULE = 'http';
 //module.exports.THINGPEDIA_URL = 'http://127.0.0.1:5000';
 

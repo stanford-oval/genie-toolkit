@@ -14,7 +14,8 @@ all: $(zipfiles)
 	zip -r $(abspath $@) *
 
 upload: $(zipfiles)
-	scp $^ pepperjack.stanford.edu:/home/ThingPedia/code_storage/devices/
+	#scp $^ pepperjack.stanford.edu:/home/ThingPedia/code_storage/devices/
+	for f in $^ ; do aws s3 cp $$f s3://thingpedia/devices/ ; done
 
 clean:
 	rm -f *.zip

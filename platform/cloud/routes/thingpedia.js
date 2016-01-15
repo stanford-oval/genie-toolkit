@@ -20,7 +20,7 @@ const EngineManager = require('../enginemanager');
 const AppGrammar = require('../instance/engine/app_grammar');
 const AppCompiler = require('../instance/engine/app_compiler');
 
-const THINGPEDIA_ORIGIN = 'https://thingpedia.stanford.edu';
+const THINGPEDIA_ORIGIN = 'https://thingpedia.herokuapp.com';
 //const THINGPEDIA_ORIGIN = 'http://127.0.0.1:5000';
 
 var router = express.Router();

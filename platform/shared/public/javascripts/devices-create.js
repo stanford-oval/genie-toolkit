@@ -1,5 +1,5 @@
 $(function() {
-    var THINGPEDIA_ORIGIN = 'http://thingpedia.stanford.edu';
+    var THINGPEDIA_ORIGIN = 'https://thingpedia.herokuapp.com';
     //var THINGPEDIA_ORIGIN = 'http://127.0.0.1:5000';
 
     function handleDeviceFactory(json, kind) {
