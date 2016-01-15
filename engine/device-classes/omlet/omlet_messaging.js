@@ -312,7 +312,10 @@ module.exports = new lang.Class({
     getFeedMetas: function() {
         var client = this._device.refOmletClient();
         return oinvoke(client.store, 'getFeeds').then(function(db) {
-            return db._data.find();
+            return db._data.find().filter(function(f) {
+                return f.members.length > 0 &&
+                    f.acceptance !== 'Removed';
+            });
         }).finally(function() {
             this._device.unrefOmletClient();
         }.bind(this));
