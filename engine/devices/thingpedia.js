@@ -28,6 +28,9 @@ function httpRequest(to, id) {
         getModule(parsed).get(parsed, function(response) {
             if (response.statusCode == 404)
                 return errback(new Error('No such device ' + id));
+            if (response.statusCode == 302 ||
+                response.statusCode == 301)
+                return httpRequest(response.headers['location'], id).then(callback, errback);
             if (response.statusCode != 200)
                 return errback(new Error('Unexpected HTTP error ' + response.statusCode + ' downloading channel ' + id));
 
