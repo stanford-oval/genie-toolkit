@@ -11,7 +11,8 @@ const events = require('events');
 const fs = require('fs');
 const lang = require('lang');
 
-const KINDS = ['sportradar', 'weather'];
+//const KINDS = ['sportradar', 'weather'];
+const KINDS = [];
 
 // A device discovery manager that handles always available devices with no authentication
 module.exports = new lang.Class({
