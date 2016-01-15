@@ -15,18 +15,6 @@ const path = require('path');
 const fs = require('fs');
 const url = require('url');
 
-var _agent = null;
-function getAgent() {
-    if (_agent === null) {
-        var caFile = path.resolve(path.dirname(module.filename), '../data/thingpedia.cert');
-        _agent = new https.Agent({ keepAlive: false,
-                                   maxSockets: 10,
-                                   ca: fs.readFileSync(caFile) });
-    }
-
-    return _agent;
-}
-
 function getModule(parsed) {
     if (parsed.protocol === 'https:')
         return https;
@@ -36,9 +24,6 @@ function getModule(parsed) {
 
 function httpRequest(to, id) {
     var parsed = url.parse(to);
-    if (parsed.protocol === 'https:')
-        parsed.agent = getAgent();
-
     return Q.Promise(function(callback, errback) {
         getModule(parsed).get(parsed, function(response) {
             if (response.statusCode == 404)

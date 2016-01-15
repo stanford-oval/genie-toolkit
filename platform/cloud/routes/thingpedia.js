@@ -25,18 +25,6 @@ const THINGPEDIA_ORIGIN = 'https://thingpedia.herokuapp.com';
 
 var router = express.Router();
 
-var _agent = null;
-function getAgent() {
-    if (_agent === null) {
-        var caFile = path.resolve(path.dirname(module.filename), '../instance/engine/data/thingpedia.cert');
-        _agent = new https.Agent({ keepAlive: false,
-                                   maxSockets: 10,
-                                   ca: fs.readFileSync(caFile) });
-    }
-
-    return _agent;
-}
-
 function getModule(parsed) {
     if (parsed.protocol === 'https:')
         return https;
@@ -47,9 +35,6 @@ function getModule(parsed) {
 function httpRequest(to) {
     var parsed = url.parse(to);
     parsed.method = 'GET';
-    if (parsed.protocol === 'https:')
-        parsed.agent = getAgent();
-
     return Q.Promise(function(callback, errback) {
         var req = getModule(parsed).get(parsed, function(res) {
             if (res.statusCode == 404)
