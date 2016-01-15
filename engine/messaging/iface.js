@@ -86,7 +86,8 @@ module.exports = new lang.Class({
     Extends: events.EventEmitter,
     // events: feed-added, feed-removed
     Abstract: true,
-    $rpcMethods: ['get isAvailable', 'getOwnId', 'getUserById', 'getAccountById'],
+    $rpcMethods: ['get isAvailable', 'getOwnId', 'getUserById', 'getAccountById',
+                  'getFeedMetas'],
 
     _init: function() {
     },
@@ -116,6 +117,10 @@ module.exports = new lang.Class({
     },
 
     getFeedList: function() {
+        throw new Error('Not Implemented');
+    },
+
+    getFeedMetas: function() {
         throw new Error('Not Implemented');
     },
 

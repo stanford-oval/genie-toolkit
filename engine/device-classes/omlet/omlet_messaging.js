@@ -302,12 +302,17 @@ module.exports = new lang.Class({
     },
 
     getFeedList: function() {
-        var client = this._device.refOmletClient();
-        return oinvoke(client.store, 'getFeeds').then(function(db) {
-            var data = db._data.find();
+        return this.getFeedMetas().then(function(data) {
             return data.map(function(d) {
                 return d.identifier;
             });
+        });
+    },
+
+    getFeedMetas: function() {
+        var client = this._device.refOmletClient();
+        return oinvoke(client.store, 'getFeeds').then(function(db) {
+            return db._data.find();
         }).finally(function() {
             this._device.unrefOmletClient();
         }.bind(this));

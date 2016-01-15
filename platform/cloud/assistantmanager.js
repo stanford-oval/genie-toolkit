@@ -266,6 +266,8 @@ const AssistantFeed = new lang.Class({
     _onNewMessage: function(msg) {
         if (msg.type !== 'text')
             return;
+        if (msg.hidden) // hidden messages are used by ThingTalk feed-shared keywords, ignore them
+            return;
         this._remote.handleCommand(msg.text).catch(function(e) {
             console.log('Failed to handle assistant command: ' + e.message);
         }).done();

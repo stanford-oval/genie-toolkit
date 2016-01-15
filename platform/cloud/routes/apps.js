@@ -42,13 +42,54 @@ router.get('/', user.redirectLogIn, function(req, res, next) {
     appsList(req, res, next, '');
 });
 
+function appsCreate(error, req, res) {
+    return EngineManager.get().getEngine(req.user.id).then(function(engine) {
+        return engine.messaging.getFeedMetas().then(function(feeds) {
+            return feeds.filter(function(f) {
+                return f.hasWriteAccess && f.kind === null;
+            });
+        }).tap(function(feeds) {
+            return Q.all(feeds.map(function(f) {
+                // at first sight, you might complain that this "modify in place"
+                // would corrupt the database
+                // but there is a RPC layer in the middle saving us: we only operate
+                // on a copy of feeds so everything is fine
+                if (f.name)
+                    return;
+                if (f.members.length === 1) {
+                    f.name = "You";
+                    return;
+                }
+                if (f.members.length === 2) {
+                    if (f.members[0] === 1) {
+                        return engine.messaging.getUserById(f.members[1]).then(function(u) {
+                            f.name = u.name;
+                        });
+                    } else {
+                        return engine.messaging.getUserById(f.members[0]).then(function(u) {
+                            f.name = u.name;
+                        });
+                    }
+                } else {
+                    f.name = "Unnamed (multiple partecipants)";
+                }
+            }));
+        });
+    }).then(function(feeds) {
+        res.render('apps_create', { page_title: 'ThingEngine - create app',
+                                    csrfToken: req.csrfToken(),
+                                    error: error,
+                                    code: req.body.code,
+                                    parameters: req.body.params || '{}',
+                                    tier: req.body.tier || 'cloud',
+                                    omlet: { feeds: feeds,
+                                             feedId: req.body.feedId }
+                                  });
+    });
+}
+
 router.get('/create', user.redirectLogIn, function(req, res, next) {
-    res.render('apps_create', { page_title: 'ThingEngine - create app',
-                                csrfToken: req.csrfToken(),
-                                code: '',
-                                parameters: '{}',
-                                tier: req.app.engine.ownTier,
-                              });
+    appsCreate(undefined, req, res).done();
 });
 
 router.post('/create', user.requireLogIn, function(req, res, next) {
@@ -62,18 +103,20 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
             compiler.compileProgram(parsed);
 
             state = JSON.parse(req.body.params);
+            if (compiler.feedAccess) {
+                if (!state.$F && !req.body.feedId)
+                    throw new Error('Missing feed for feed-shared app');
+                if (!state.$F)
+                    state.$F = req.body.feedId;
+            } else {
+                delete state.$F;
+            }
 
             tier = req.body.tier;
             if (tier !== 'server' && tier !== 'cloud' && tier !== 'phone')
                 throw new Error('No such tier ' + tier);
         } catch(e) {
-            res.render('apps_create', { page_title: 'ThingEngine - create app',
-                                        csrfToken: req.csrfToken(),
-                                        error: e.message,
-                                        code: code,
-                                        parameters: req.body.params,
-                                        tier: req.body.tier });
-            return;
+            return appsCreate(e.message, req, res);
         }
 
         return EngineManager.get().getEngine(req.user.id).then(function(engine) {

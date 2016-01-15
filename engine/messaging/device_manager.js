@@ -82,6 +82,13 @@ module.exports = new lang.Class({
             return this._messagingIface.getFeedList();
     },
 
+    getFeedMetas: function() {
+        if (this._messagingIface === null)
+            return Q([]);
+        else
+            return this._messagingIface.getFeedMetas();
+    },
+
     getFeed: function(feedId) {
         this._checkAvailable();
         return this._messagingIface.getFeed(feedId);
