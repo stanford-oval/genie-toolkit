@@ -6,117 +6,73 @@
 //
 
 const Tp = require('thingpedia');
-const Q = require('q');
-const https = require('https');
-const Url = require('url');
 
 const URL_TEMPLATE = 'https://us.data.bodytrace.com/1/device/%s/datavalues?names=batteryVoltage,signalStrength,values/weight,values/unit';
 const POLL_INTERVAL = 3600 * 1000; // 1h
 
 module.exports = new Tp.ChannelClass({
     Name: 'ScaleChannel',
+    Extends: Tp.HttpPollingTrigger,
     RequiredCapabilities: ['channel-state'],
+    interval: POLL_INTERVAL,
 
     _init: function(engine, state, device) {
         this.parent();
 
-        this._url = URL_TEMPLATE.format(device.serial);
-        this._auth = "Basic " + (new Buffer(device.username + ':' + device.password)).toString('base64');
-        this._timeout = -1;
+        this.url = URL_TEMPLATE.format(device.serial);
+        this.auth = "Basic " + (new Buffer(device.username + ':' + device.password)).toString('base64');
         this._state = state;
     },
 
-    _onTick: function() {
-        var channelInstance = this;
-        var url = this._url;
-        var auth = this._auth;
+    _onResponse: function(response) {
         var state = this._state;
 
-        return Q.nfcall(httpGetAsync, url, auth).then(function(response) {
-            function makeEvent(time, data) {
-                // weight is in grams, convert to kg, which the base unit
-                // AppExecutor wants
-                var weight = (data[time].values.weight)/1000;
-                var event = [time, weight];
-                return event;
-            }
+        function makeEvent(time, data) {
+            // weight is in grams, convert to kg, which the base unit
+            // AppExecutor wants
+            var weight = (data[time].values.weight)/1000;
+            var event = [time, weight];
+            return event;
+        }
 
-            var weight, keys, utcMilliSeconds;
-            try {
-                weight = JSON.parse(response);
-                keys = Object.keys(weight);
-                utcMilliSeconds = parseInt(keys[0]);
-            } catch(e) {
-                console.log('Error parsing BodyTrace server response: ' + e.message);
-                console.log('Full response was');
-                console.log(response);
+        var weight, keys, utcMilliSeconds;
+        try {
+            weight = JSON.parse(response);
+            keys = Object.keys(weight);
+            utcMilliSeconds = parseInt(keys[0]);
+        } catch(e) {
+            console.log('Error parsing BodyTrace server response: ' + e.message);
+            console.log('Full response was');
+            console.log(response);
+            return;
+        }
+
+        var lastRead = state.get('last-read');
+        if (lastRead === undefined) {
+            lastRead = utcMilliSeconds;
+            state.set('last-read', utcMilliSeconds);
+        }
+        if (utcMilliSeconds <= lastRead) {
+            if (this.event === null) {
+                this.emitEvent(makeEvent(utcMilliSeconds, weight));
+            } else {
                 return;
             }
+        } else {
+            state.set('last-read', utcMilliSeconds);
 
-            var lastRead = state.get('last-read');
-            if (lastRead === undefined) {
-                lastRead = utcMilliSeconds;
-                state.set('last-read', utcMilliSeconds);
+            // find the last reading that we knew about
+            for (var i = 0; i < keys.length; i++) {
+                if (parseInt(keys[i]) <= lastRead)
+                    break;
             }
-            if (utcMilliSeconds <= lastRead) {
-                if (channelInstance.event === null) {
-                    channelInstance.emitEvent(makeEvent(utcMilliSeconds, weight));
-                } else {
-                    return;
-                }
-            } else {
-                state.set('last-read', utcMilliSeconds);
 
-                // find the last reading that we knew about
-                for (var i = 0; i < keys.length; i++) {
-                    if (parseInt(keys[i]) <= lastRead) {
-                        if (channelInstance.event === null)
-                            channelInstance.setCurrentEvent(makeEvent(parseInt(keys[i]), weight));
-                        break;
-                    }
-                }
-
-                // then emit an event for each new data point
-                // (note we reuse i from the previous loop!)
-                for (; i >= 0; i--)
-                    channelInstance.emitEvent(makeEvent(parseInt(keys[i]), weight));
-            }
-        }, function(error) {
-            console.log('Error reading from BodyTrace server: ' + error.message);
-        });
+            // then emit an event for each new data point
+            // (note we reuse i from the previous loop!)
+            for (; i >= 0; i--)
+                this.emitEvent(makeEvent(parseInt(keys[i]), weight));
+        }
     },
-
-    _doOpen: function() {
-        this._timeout = setInterval(function() {
-            this._onTick().done();
-        }.bind(this), POLL_INTERVAL);
-        return this._onTick();
-    },
-
-    _doClose: function() {
-        clearInterval(this._timeout);
-        this._timeout = -1;
-        return Q();
-    }
 });
 
-function httpGetAsync(url, auth, callback) {
-    var options = Url.parse(url);
-    options.headers = {
-        'Authorization': auth,
-    };
-    var req = https.get(options, function(res) {
-        var data = '';
-        res.setEncoding('utf8');
-        res.on('data', function(chunk) {
-            data += chunk;
-        });
-        res.on('end', function() {
-            callback(null, data);
-        });
-    });
-    req.on('error', function(err) {
-        callback(err);
-    });
-}
 

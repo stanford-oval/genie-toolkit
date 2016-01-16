@@ -10,9 +10,10 @@ const Tp = require('thingpedia');
 
 module.exports = new Tp.ChannelClass({
     Name: 'LoggingChannel',
+    Extends: Tp.SimpleAction,
 
-    sendEvent: function(event) {
-        console.log("LoggingChannel: ", event[0]);
+    _doInvoke: function(message) {
+        console.log("LoggingChannel: ", message);
     }
 });
 

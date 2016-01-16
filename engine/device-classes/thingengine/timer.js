@@ -12,6 +12,7 @@ const Tp = require('thingpedia');
 
 module.exports = new Tp.ChannelClass({
     Name: 'TimerChannel',
+    Extends: Tp.PollingTrigger,
 
     _init: function(engine, device, params) {
         this.parent();
@@ -21,26 +22,14 @@ module.exports = new Tp.ChannelClass({
             params[0].unit !== 'ms')
             throw new Error('Invalid @$timer parameters');
 
-        this._interval = params[0].value;
+        this.interval = params[0].value;
         this.filterString = 'interval-' + this._interval;
-        this._timeout = -1;
     },
 
-    _doOpen: function() {
-        this._timeout = setInterval(function() {
-            var event = [this._interval];
-
-            console.log('Emitting timer event', event);
-            this.emitEvent(event);
-            this.emitEvent(null);
-
-        }.bind(this), this._interval);
+    _onTick: function() {
+        var event = [this.interval];
+        console.log('Emitting timer event', event);
+        this.emitEvent(event);
         return Q();
     },
-
-    _doClose: function() {
-        clearInterval(this._timeout);
-        this._timeout = null;
-        return Q();
-    }
 });
