@@ -7,6 +7,7 @@
 //
 // See COPYING for details
 
+const Q = require('q');
 const Tp = require('thingpedia');
 
 module.exports = new Tp.ChannelClass({

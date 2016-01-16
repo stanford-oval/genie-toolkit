@@ -6,8 +6,6 @@
 //
 // See COPYING for details
 
-const lang = require('lang');
-const Q = require('q');
 const Tp = require('thingpedia');
 
 module.exports = new Tp.DeviceClass({
