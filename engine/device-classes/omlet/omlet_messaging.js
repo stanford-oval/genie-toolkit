@@ -8,15 +8,11 @@
 
 const lang = require('lang');
 const Q = require('q');
-
-const Messaging = require('../../messaging/iface');
-const Feed = Messaging.Feed;
-const FeedCursor = Messaging.FeedCursor;
-const User = Messaging.User;
+const Tp = require('thingpedia');
 
 const OmletUser = new lang.Class({
     Name: 'OmletUser',
-    Extends: User,
+    Extends: Tp.Messaging.User,
 
     _init: function(id, o) {
         this.id = id;
@@ -27,7 +23,7 @@ const OmletUser = new lang.Class({
 
 const OmletFeedCursor = new lang.Class({
     Name: 'OmletFeedCursor',
-    Extends: FeedCursor,
+    Extends: Tp.Messaging.FeedCursor,
 
     _init: function(feed, db) {
         this.parent(feed);
@@ -76,7 +72,7 @@ function arrayEqual(a, b) {
 
 const OmletFeed = new lang.Class({
     Name: 'OmletFeed',
-    Extends: Feed,
+    Extends: Tp.Messaging.Feed,
 
     _init: function(messaging, feedId) {
         this.parent(feedId);
@@ -205,7 +201,7 @@ const OmletFeed = new lang.Class({
 
 module.exports = new lang.Class({
     Name: 'OmletMessaging',
-    Extends: Messaging,
+    Extends: Tp.Messaging,
 
     _init: function(device) {
         this._device = device;

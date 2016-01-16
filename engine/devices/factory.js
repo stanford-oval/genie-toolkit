@@ -41,7 +41,10 @@ module.exports = new lang.Class({
 
     createDevice: function(kind, serializedDevice) {
         return this.getFactory(kind).then(function(factory) {
-            return factory.createDevice(this._engine, serializedDevice);
+            if (typeof factory === 'function')
+                return new factory(this._engine, serializedDevice);
+            else
+                return factory.createDevice(this._engine, serializedDevice);
         }.bind(this));
     }
 });

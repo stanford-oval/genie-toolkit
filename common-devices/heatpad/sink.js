@@ -3,31 +3,25 @@
 // This file is part of ThingEngine
 //
 // Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
+//                Jiwon Seo <jiwon@cs.stanford.edu>
 //
 // See COPYING for details
 //
-//
-//
-// TurnonHeatpad() {
-// @$timer(5s) => @heatpad(on);
-// }
 
-const lang = require('lang');
+const Tp = require('thingpedia');
 const Q = require('q');
 const xmppClient = require('node-xmpp-client')
 
-const BaseChannel = require('../base_channel');
-
 var heatPadAccount = '00000c46@iunplug.co.kr'
 
-const HeatPadChannel = new lang.Class({
+module.exports = new Tp.ChannelClass({
     Name: 'HeatPadChannel',
-    Extends: BaseChannel,
 
     _init: function(engine, device) {
         this.parent();
         this.device = device;
     },
+
     _doOpen: function() {
         this._client = new xmppClient({
             jid: this.device.account,
@@ -60,12 +54,4 @@ const HeatPadChannel = new lang.Class({
             this._client.send(stanza)
         }
     }
-
 });
-
-function createChannel(engine, device) {
-    return new HeatPadChannel(engine, device);
-}
-
-module.exports.createChannel = createChannel;
-module.exports.requiredCapabilities = [];

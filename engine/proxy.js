@@ -9,16 +9,16 @@
 const Q = require('q');
 const events = require('events');
 const lang = require('lang');
+const Tp = require('thingpedia');
 
 const Protocol = require('./protocol');
-const BaseChannel = require('./base_channel');
 
 // naming: proxy is the side that requested the channel, stub is the
 // side that has the implementation and is forwarding the data
 
 const ProxyChannel = new lang.Class({
     Name: 'ProxyChannel',
-    Extends: BaseChannel,
+    Extends: Tp.BaseChannel,
 
     _init: function(proxyManager, targetTier, targetChannelId, cachedArgs) {
         this.parent();

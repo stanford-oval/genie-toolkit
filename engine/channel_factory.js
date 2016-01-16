@@ -107,10 +107,22 @@ module.exports = new lang.Class({
             var state;
             if (hasState) {
                 state = new ChannelStateBinder(this._prefs);
-                channel = factory.createChannel.apply(factory, [this._engine, state, device].concat(args));
+
+                if (typeof factory === 'function') {
+                    var bound = Function.prototype.bind.apply(factory, [null, this._engine, state, device].concat(args));
+                    channel = new bound();
+                } else {
+                    channel = factory.createChannel.apply(null, [this._engine, state, device].concat(args));
+                }
             } else {
                 state = null;
-                channel = factory.createChannel.apply(factory, [this._engine, device].concat(args));
+
+                if (typeof factory === 'function') {
+                    var bound = Function.prototype.bind.apply(factory, [null, this._engine, device].concat(args));
+                    channel = new bound();
+                } else {
+                    channel = factory.createChannel.apply(null, [this._engine, device].concat(args));
+                }
             }
 
             if (channel.filterString !== undefined)

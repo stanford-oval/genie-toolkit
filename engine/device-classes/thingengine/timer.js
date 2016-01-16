@@ -7,22 +7,13 @@
 //
 // See COPYING for details
 
-const lang = require('lang');
-const Q = require('q');
+const Tp = require('thingpedia');
 
-const BaseChannel = require('../../base_channel');
-
-var cnt = 0;
-
-const TimerChannel = new lang.Class({
+module.exports = new Tp.ChannelClass({
     Name: 'TimerChannel',
-    Extends: BaseChannel,
 
     _init: function(engine, device, params) {
         this.parent();
-
-        cnt++;
-        console.log('Created Timer channel #' + cnt);
 
         if (params.length !== 1 ||
             !params[0].isMeasure ||
@@ -52,10 +43,3 @@ const TimerChannel = new lang.Class({
         return Q();
     }
 });
-
-function createChannel(engine, device, params) {
-    return new TimerChannel(engine, device, params);
-}
-
-module.exports.createChannel = createChannel;
-module.exports.requiredCapabilities = [];

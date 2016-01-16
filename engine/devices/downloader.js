@@ -15,6 +15,15 @@ const tmp = require('tmp');
 const Thingpedia = require('./thingpedia');
 const GenericDeviceFactory = require('./generic');
 
+function safeMkdir(dir) {
+    try {
+        fs.mkdirSync(dir);
+    } catch(e) {
+        if (e.code !== 'EEXIST')
+            throw e;
+    }
+}
+
 module.exports = new lang.Class({
     Name: 'ModuleDownloader',
 
@@ -28,17 +37,12 @@ module.exports = new lang.Class({
         this._cachedModules = {};
         this._moduleRequests = {};
 
+        safeMkdir(this._cacheDir);
+        safeMkdir(this._cacheDir + '/node_modules');
         try {
-            fs.mkdirSync(this._cacheDir);
-        } catch(e) {
-            if (e.code !== 'EEXIST')
-                throw e;
-        }
-        try {
-            platform.makeVirtualSymlink(require.resolve('../base_device'),
-                                        this._cacheDir + '/base_device.js');
-            platform.makeVirtualSymlink(require.resolve('../base_channel'),
-                                        this._cacheDir + '/base_channel.js');
+            platform.makeVirtualSymlink(path.resolve(path.dirname(module.filename),
+                                                     '../node_modules/thingpedia'),
+                                        this._cacheDir + '/node_modules/thingpedia');
         } catch(e) {
             if (e.code !== 'EEXIST')
                 throw e;

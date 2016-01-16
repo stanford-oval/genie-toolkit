@@ -6,20 +6,17 @@
 //
 // See COPYING for details
 
-const lang = require('lang');
 const Q = require('q');
 const https = require('https');
 const Url = require('url');
-
-const BaseChannel = require('../base_channel');
+const Tp = require('thingpedia');
 
 const NFL_API_KEY = 'e8jqhrn3pw2ebddn5bbpctyg';
-const NFL_URL = 'https://api.sportradar.us/nfl-t1/%d/%s/%d/%s/%s/summary.json?api_key=e8jqhrn3pw2ebddn5bbpctyg'
-;const POLL_INTERVAL = 3600 * 1000; // 1h
+const NFL_URL = 'https://api.sportradar.us/nfl-t1/%d/%s/%d/%s/%s/summary.json?api_key=e8jqhrn3pw2ebddn5bbpctyg';
+const POLL_INTERVAL = 3600 * 1000; // 1h
 
-const SportRadarNflChannel = new lang.Class({
+module.exports = new Tp.ChannelClass({
     Name: 'SportRadarNflChannel',
-    Extends: BaseChannel,
 
     _init: function(engine, device, params) {
         this.parent();
@@ -75,10 +72,6 @@ const SportRadarNflChannel = new lang.Class({
     }
 });
 
-function createChannel(engine, device, filters) {
-    return new SportRadarNflChannel(engine, device, filters);
-}
-
 function httpGetAsync(url, callback) {
     var options = Url.parse(url);
     var req = https.get(options, function(res) {
@@ -96,5 +89,3 @@ function httpGetAsync(url, callback) {
     });
 }
 
-module.exports.createChannel = createChannel;
-module.exports.requiredCapabilities = [];

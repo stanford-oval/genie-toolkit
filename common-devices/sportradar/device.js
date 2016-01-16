@@ -6,14 +6,10 @@
 //
 // See COPYING for details
 
-const lang = require('lang');
-const Q = require('q');
+const Tp = require('thingpedia');
 
-const BaseDevice = require('../base_device');
-
-const SportRadarDevice = new lang.Class({
+module.exports = new Tp.DeviceClass({
     Name: 'SportRadarDevice',
-    Extends: BaseDevice,
 
     _init: function(engine, state) {
         this.parent(engine, state);
@@ -26,16 +22,11 @@ const SportRadarDevice = new lang.Class({
     },
 
     get ownerTier() {
-        return 'global';
+        return Tp.Tier.GLOBAL;
     },
 
     checkAvailable: function() {
-        return BaseDevice.Availability.AVAILABLE;
+        return Tp.Availability.AVAILABLE;
     }
 });
 
-function createDevice(engine, state) {
-    return new SportRadarDevice(engine, state);
-}
-
-module.exports.createDevice = createDevice;

@@ -8,12 +8,11 @@
 
 const lang = require('lang');
 const Q = require('q');
+const Tp = require('thingpedia');
 
-const BaseDevice = require('../../base_device');
-
-const GoogleAccountDevice = new lang.Class({
+module.exports = new Tp.DeviceClass({
     Name: 'GoogleAccountDevice',
-    Extends: BaseDevice,
+    Extends: Tp.OnlineAccount,
 
     _init: function(engine, state) {
         this.parent(engine, state);
@@ -29,21 +28,6 @@ const GoogleAccountDevice = new lang.Class({
 
     get accessToken() {
         return this.state.accessToken;
-    },
-
-    checkAvailable: function() {
-        return BaseDevice.Availability.AVAILABLE;
-    },
-
-    hasKind: function(kind) {
-        switch (kind) {
-        case 'online-account':
-            return true;
-        case 'google-account':
-            return true;
-        default:
-            return this.parent(kind);
-        }
     },
 
     _getGoogleApi: function() {
@@ -82,8 +66,3 @@ const GoogleAccountDevice = new lang.Class({
     },
 });
 
-function createDevice(engine, state) {
-    return new GoogleAccountDevice(engine, state);
-}
-
-module.exports.createDevice = createDevice;

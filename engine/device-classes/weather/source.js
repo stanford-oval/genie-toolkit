@@ -6,19 +6,17 @@
 //
 // See COPYING for details
 
-const lang = require('lang');
 const Q = require('q');
 const http = require('http');
-
-const BaseChannel = require('../../base_channel');
+const Tp = require('thingpedia');
 
 var parseString = require('xml2js').parseString;
 var cnt = 0;
 var url = 'http://api.yr.no/weatherapi/locationforecast/1.9/?lat=37.25;lon=122.8';
 
-const WeatherChannel = new lang.Class({
+module.exports = new Tp.ChannelClass({
     Name: 'WeatherChannel',
-    Extends: BaseChannel,
+    RequiredCapabilities: ['channel-state'],
 
     _init: function(engine, state, device) {
         this.parent();
@@ -61,10 +59,6 @@ const WeatherChannel = new lang.Class({
     }
 });
 
-function createChannel() {
-    return new WeatherChannel();
-}
-
 function httpGetAsync(url, auth, callback) {
     var options = Url.parse(url);
     var req = http.get(options, function(res) {
@@ -81,6 +75,3 @@ function httpGetAsync(url, auth, callback) {
         callback(err);
     });
 }
-
-module.exports.createChannel = createChannel;
-module.exports.requiredCapabilities = ['channel-state'];

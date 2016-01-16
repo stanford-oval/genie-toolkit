@@ -8,8 +8,7 @@
 
 const lang = require('lang');
 const Q = require('q');
-
-const BaseChannel = require('./base_channel');
+const Tp = require('thingpedia');
 
 // Pipe channels are a simple unidirectional communication primitive
 // Push stuff to a sink pipe, same stuff comes out of the corresponding
@@ -27,7 +26,7 @@ const BaseChannel = require('./base_channel');
 // It has a list of sources it pushes events to
 const PipeSinkChannel = new lang.Class({
     Name: 'PipeSinkChannel',
-    Extends: BaseChannel,
+    Extends: Tp.BaseChannel,
 
     _init: function(name, pipeManager) {
         this.parent();
@@ -76,7 +75,7 @@ const PipeSinkChannel = new lang.Class({
 // that data down to the remote side
 const PipeProxySourceChannel = new lang.Class({
     Name: 'PipeProxySourceChannel',
-    Extends: BaseChannel,
+    Extends: Tp.BaseChannel,
 
     _init: function(name, pipeManager) {
         this.parent();
@@ -103,7 +102,7 @@ const PipeProxySourceChannel = new lang.Class({
 // data
 const PipeLocalSourceChannel = new lang.Class({
     Name: 'PipeLocalSourceChannel',
-    Extends: BaseChannel,
+    Extends: Tp.BaseChannel,
 
     _init: function(name, pipeManager, proxies) {
         this.parent();

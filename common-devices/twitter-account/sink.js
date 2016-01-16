@@ -5,29 +5,15 @@
 // Copyright 2015 Giovanni Campagna
 //
 
-const lang = require('lang');
-const Q = require('q');
-const http = require('http');
-const Url = require('url');
+const Tp = require('thingpedia');
 
-const BaseChannel = require('../base_channel');
-
-const TwitterSinkChannel = new lang.Class({
+module.exports = new Tp.ChannelClass({
     Name: 'TwitterSinkChannel',
-    Extends: BaseChannel,
 
     _init: function(engine, device) {
         this.parent();
 
         this._twitter = device.queryInterface('twitter');
-    },
-
-    _doOpen: function() {
-        return Q();
-    },
-
-    _doClose: function() {
-        return Q();
     },
 
     sendEvent: function(event) {
@@ -39,9 +25,3 @@ const TwitterSinkChannel = new lang.Class({
         }, function() { });
     },
 });
-
-function createChannel(engine, device) {
-    return new TwitterSinkChannel(engine, device);
-}
-
-module.exports.createChannel = createChannel;

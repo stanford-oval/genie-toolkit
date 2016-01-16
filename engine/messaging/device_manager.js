@@ -8,8 +8,7 @@
 
 const lang = require('lang');
 const Q = require('q');
-
-const Messaging = require('./iface');
+const Tp = require('thingpedia');
 
 // This module observes the addition and removal of messaging devices,
 // and controls the lifetime of additional modules that depend on
@@ -21,7 +20,7 @@ const Messaging = require('./iface');
 // configured messaging device
 module.exports = new lang.Class({
     Name: 'MessagingDeviceManager',
-    Extends: Messaging,
+    Extends: Tp.Messaging,
 
     _init: function(devices) {
         this._devices = devices;

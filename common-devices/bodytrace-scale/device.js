@@ -6,14 +6,11 @@
 //
 // See COPYING for details
 
-const lang = require('lang');
-const Q = require('q');
+const Tp = require('thingpedia');
 
-const BaseDevice = require('../base_device');
-
-const BodyTraceScaleDevice = new lang.Class({
+module.exports = new Tp.DeviceClass({
     Name: 'BodyTraceScaleDevice',
-    Extends: BaseDevice,
+    Kinds: ['scale'],
 
     _init: function(engine, state) {
         this.parent(engine, state);
@@ -29,23 +26,9 @@ const BodyTraceScaleDevice = new lang.Class({
             .format(this.username);
     },
 
-    hasKind: function(kind) {
-        switch (kind) {
-        case 'scale':
-            return true;
-        default:
-            return this.parent(kind);
-        }
-    },
-
     // it's cloud backed so always available
     checkAvailable: function() {
-        return BaseDevice.Availability.AVAILABLE;
+        return Tp.Availability.AVAILABLE;
     },
 });
 
-function createDevice(engine, state) {
-    return new BodyTraceScaleDevice(engine, state);
-}
-
-module.exports.createDevice = createDevice;

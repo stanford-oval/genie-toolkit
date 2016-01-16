@@ -6,33 +6,13 @@
 //
 // See COPYING for details
 
-const lang = require('lang');
-const Q = require('q');
+const Tp = require('thingpedia');
 
-const BaseChannel = require('../../base_channel');
-
-var cnt = 0;
-
-const LoggingChannel = new lang.Class({
+module.exports = new Tp.ChannelClass({
     Name: 'LoggingChannel',
-    Extends: BaseChannel,
-
-    _init: function() {
-        this.parent();
-
-        cnt++;
-        console.log('Created LoggingChannel #' + cnt);
-    },
 
     sendEvent: function(event) {
         console.log("LoggingChannel: ", event[0]);
     }
-
 });
 
-function createChannel() {
-    return new LoggingChannel();
-}
-
-module.exports.createChannel = createChannel;
-module.exports.requiredCapabilities = [];

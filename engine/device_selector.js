@@ -10,12 +10,11 @@ const Q = require('q');
 const events = require('events');
 const lang = require('lang');
 const adt = require('adt');
+const Tp = require('thingpedia');
 
 const ObjectSet = require('./object_set');
 const DeviceView = require('./device_view');
 const AppCompiler = require('./app_compiler');
-const BaseChannel = require('./base_channel');
-const BaseDevice = require('./base_device');
 
 // the device that owns/implements a builtin
 const BuiltinOwner = {
@@ -29,7 +28,7 @@ const BuiltinOwner = {
 
 const AppReturnChannel = new lang.Class({
     Name: 'AppReturnChannel',
-    Extends: BaseChannel,
+    Extends: Tp.BaseChannel,
 
     _init: function(engine, app) {
         this.parent();
@@ -62,7 +61,7 @@ const AppReturnChannel = new lang.Class({
 // very evil, look away
 const AppDevice = new lang.Class({
     Name: 'AppDevice',
-    Extends: BaseDevice,
+    Extends: Tp.BaseDevice,
 
     _init: function(engine, app) {
         this.parent(engine, { kind: 'thingengine-app' });

@@ -6,14 +6,10 @@
 //
 // See COPYING for details
 
-const lang = require('lang');
-const Q = require('q');
+const Tp = require('thingpedia');
 
-const BaseDevice = require('../base_device');
-
-const HeatPadDevice = new lang.Class({
+module.exports = new Tp.DeviceClass({
     Name: 'HeatPadDevice',
-    Extends: BaseDevice,
 
     _init: function(engine, state) {
         this.parent(engine, state);
@@ -28,16 +24,10 @@ const HeatPadDevice = new lang.Class({
     },
 
     get ownerTier() {
-        return 'server';
+        return Tp.Tier.SERVER;
     },
 
     checkAvailable: function() {
-        return BaseDevice.Availability.AVAILABLE;
+        return Tp.Availability.AVAILABLE;
     },
 });
-
-function createDevice(engine, state) {
-    return new HeatPadDevice(engine, state);
-}
-
-module.exports.createDevice = createDevice;

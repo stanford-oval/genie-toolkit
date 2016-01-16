@@ -7,22 +7,13 @@
 //
 // See COPYING for details
 
-const lang = require('lang');
-const Q = require('q');
+const Tp = require('thingpedia');
 
-const BaseChannel = require('../../base_channel');
-
-var cnt = 0;
-
-const AtTimerChannel = new lang.Class({
+module.exports = new Tp.ChannelClass({
     Name: 'AtTimerChannel',
-    Extends: BaseChannel,
 
     _init: function(engine, device, params) {
         this.parent();
-
-        cnt++;
-        console.log('Created AtTimer channel #' + cnt);
 
         if (params.length !== 1 ||
             !params[0].isString)
@@ -65,10 +56,3 @@ const AtTimerChannel = new lang.Class({
         this._timeout = null;
     },
 });
-
-function createChannel(engine, device, params) {
-    return new AtTimerChannel(engine, device, params);
-}
-
-module.exports.createChannel = createChannel;
-module.exports.requiredCapabilities = [];

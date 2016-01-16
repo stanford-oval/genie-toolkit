@@ -6,10 +6,8 @@
 //
 // See COPYING for details
 
-const lang = require('lang');
+const Tp = require('thingpedia');
 const Q = require('q');
-
-const BaseChannel = require('../base_channel');
 
 const TwitterStream = require('./stream');
 
@@ -19,9 +17,9 @@ function rep(x, n) {
     }).join('');
 }
 
-const TwitterSourceChannel = new lang.Class({
+module.exports = new Tp.ChannelClass({
     Name: 'TwitterSourceChannel',
-    Extends: BaseChannel,
+    RequiredCapabilities: ['channel-state'],
 
     _init: function(engine, state, device) {
         this.parent();
@@ -128,9 +126,3 @@ const TwitterSourceChannel = new lang.Class({
     }
 });
 
-function createChannel(engine, state, device) {
-    return new TwitterSourceChannel(engine, state, device);
-}
-
-module.exports.createChannel = createChannel;
-module.exports.requiredCapabilities = ['channel-state'];

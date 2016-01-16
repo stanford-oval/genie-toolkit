@@ -6,14 +6,22 @@
 //
 // See COPYING for details
 
-const lang = require('lang');
-const Q = require('q');
+const Tp = require('thingpedia');
 
-const BaseDevice = require('../base_device');
-
-const BluetoothGenericDevice = new lang.Class({
+module.exports = new Tp.DeviceClass({
     Name: 'BluetoothGenericDevice',
-    Extends: BaseDevice,
+
+    UseDiscovery: function(engine, publicData, privateData) {
+        if (privateData.paired) {
+            engine.devices.loadOneDevice({ kind: 'bluetooth-generic',
+                                           uuids: publicData.uuids,
+                                           class: publicData.class,
+                                           hwAddress: privateData.address,
+                                           alias: privateData.alias }, true);
+        } else {
+            // FINISHME: ask the user to pair the device then add it
+        }
+    },
 
     _init: function(engine, state) {
         this.parent(engine, state);
@@ -31,23 +39,3 @@ const BluetoothGenericDevice = new lang.Class({
     // no override for checkAvailable because I'm lazy and I don't want to poke through
     // bluetooth
 });
-
-function createDevice(engine, state) {
-    return new BluetoothGenericDevice(engine, state);
-}
-
-module.exports.createDevice = createDevice;
-
-function addFromDiscovery(engine, publicData, privateData) {
-    if (privateData.paired) {
-        engine.devices.loadOneDevice({ kind: 'bluetooth-generic',
-                                       uuids: publicData.uuids,
-                                       class: publicData.class,
-                                       hwAddress: privateData.address,
-                                       alias: privateData.alias }, true);
-    } else {
-        // FINISHME: ask the user to pair the device then add it
-    }
-}
-
-module.exports.addFromDiscovery = addFromDiscovery;

@@ -7,10 +7,8 @@
 // See COPYING for details
 
 const lang = require('lang');
-const crypto = require('crypto');
-const Q = require('q');
+const Tp = require('thingpedia');
 
-const BaseDevice = require('../../base_device');
 const ObjectSet = require('../../object_set');
 
 const GroupObjectSet = new lang.Class({
@@ -33,9 +31,8 @@ const GroupObjectSet = new lang.Class({
     }
 });
 
-const GroupDevice = new lang.Class({
+module.exports = new Tp.DeviceClass({
     Name: 'GroupDevice',
-    Extends: BaseDevice,
 
     _init: function(engine, state) {
         this.parent(engine, state);
@@ -52,7 +49,7 @@ const GroupDevice = new lang.Class({
     },
 
     checkAvailable: function() {
-        return BaseDevice.Availability.AVAILABLE;
+        return Tp.Availability.AVAILABLE;
     },
 
     queryInterface: function(iface) {
@@ -62,9 +59,3 @@ const GroupDevice = new lang.Class({
             return null;
     },
 });
-
-function createDevice(engine, state) {
-    return new GroupDevice(engine, state);
-}
-
-module.exports.createDevice = createDevice;

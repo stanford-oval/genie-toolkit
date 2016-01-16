@@ -8,14 +8,12 @@
 
 const lang = require('lang');
 const Q = require('q');
-
-const BaseChannel = require('../../base_channel');
+const Tp = require('thingpedia');
 
 var cnt = 0;
 
-const TestChannel = new lang.Class({
+module.exports = new Tp.ChannelClass({
     Name: 'TestChannel',
-    Extends: BaseChannel,
 
     _init: function() {
         this.parent();
@@ -42,10 +40,3 @@ const TestChannel = new lang.Class({
         return Q();
     }
 });
-
-function createChannel() {
-    return new TestChannel();
-}
-
-module.exports.createChannel = createChannel;
-module.exports.requiredCapabilities = [];

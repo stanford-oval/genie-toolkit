@@ -6,12 +6,7 @@
 //
 // See COPYING for details
 
-const lang = require('lang');
-const Q = require('q');
-const uuid = require('node-uuid');
-
-const BaseDevice = require('../../base_device');
-const Tier = require('../../tier_manager').Tier;
+const Tp = require('thingpedia');
 
 // An instance of a ThingEngine running remotely, as discovered
 // by bluetooth, mdns or whatever
@@ -26,9 +21,8 @@ const Tier = require('../../tier_manager').Tier;
 // inherently local, such as upnp-ssdp, so that you can ask for
 // device discovery around your phone or device discovery around
 // your server (ie, on your home network)
-const ThingEngineDevice = new lang.Class({
+module.exports = new Tp.DeviceClass({
     Name: 'ThingEngineDevice',
-    Extends: BaseDevice,
 
     _init: function(engine, state) {
         this.parent(engine, state);
@@ -49,15 +43,15 @@ const ThingEngineDevice = new lang.Class({
         // this !! is for legacy reasons
         this.isTransient = !!state.isTransient;
 
-        if (this.tier === Tier.CLOUD) {
+        if (this.tier === Tp.Tier.CLOUD) {
             this.cloudId = state.cloudId;
-        } else if (this.tier === Tier.SERVER) {
+        } else if (this.tier === Tp.Tier.SERVER) {
             this.host = state.host;
             this.port = state.port;
 
             if (typeof state.port != 'number' || isNaN(state.port))
                 throw new TypeError('Invalid port number ' + state.port);
-        } else if (this.tier === Tier.PHONE) {
+        } else if (this.tier === Tp.Tier.PHONE) {
             this.messagingId = state.messagingId;
         }
 
@@ -69,20 +63,20 @@ const ThingEngineDevice = new lang.Class({
             this.uniqueId = 'thingengine-own-' + this.tier;
             this.name = "ThingEngine %s".format(this.tier);
             this.description = "This is your own ThingEngine.";
-        } else if (this.tier === Tier.CLOUD) {
+        } else if (this.tier === Tp.Tier.CLOUD) {
             this.uniqueId = 'thingengine-foreign-cloud-' + this.cloudId;
             this.name = "Foreign ThingEngine Cloud";
             this.description = "This is the ThingEngine of some other user.";
-        } else if (this.tier === Tier.SERVER) {
+        } else if (this.tier === Tp.Tier.SERVER) {
             this.uniqueId = 'thingengine-foreign-host-' + this.host + '-' + this.port;
             this.name = "Foreign ThingEngine Server";
             this.description = "This is the ThingEngine of some other user, running at %s, on port %d."
                 .format(this.host, this.port);
-        } else if (this.tier === Tier.SERVER) {
+        } else if (this.tier === Tp.Tier.SERVER) {
             this.uniqueId = 'thingengine-foreign-phone-' + this.messagingId.replace(/[^a-z0-9]/g, '-');
             this.name = "Foreign ThingEngine Phone";
             this.description = "This is the ThingEngine of some other user, running on a phone reachable at " + this.messagingId;
-        } else if (this.tier === Tier.GLOBAL) {
+        } else if (this.tier === Tp.Tier.GLOBAL) {
             throw new TypeError('Global foreign ThingEngine do not exist');
         }
     },
@@ -94,17 +88,17 @@ const ThingEngineDevice = new lang.Class({
 
     checkAvailable: function() {
         if (this.own && this.tier === this._tierManager.ownTier)
-            return BaseDevice.Availability.AVAILABLE;
-        else if (this.tier === Tier.GLOBAL)
-            return BaseDevice.Availability.AVAILABLE;
+            return Tp.Availability.AVAILABLE;
+        else if (this.tier === Tp.Tier.GLOBAL)
+            return Tp.Availability.AVAILABLE;
         else if (this.own)
             return (this._tierManager.isConnected(this.tier) ?
-                    BaseDevice.Availability.AVAILABLE :
-                    BaseDevice.Availability.UNAVAILABLE);
+                    Tp.Availability.AVAILABLE :
+                    Tp.Availability.UNAVAILABLE);
         else if (this.engine.messaging.isAvailable)
-            return BaseDevice.Availability.AVAILABLE;
+            return Tp.Availability.AVAILABLE;
         else
-            return BaseDevice.Availability.UNAVAILABLE;
+            return Tp.Availability.UNAVAILABLE;
     },
 
     hasKind: function(kind) {
@@ -113,26 +107,26 @@ const ThingEngineDevice = new lang.Class({
         case 'thingengine-own':
             return this.own;
         case 'thingengine-server':
-            return this.tier === Tier.SERVER;
+            return this.tier === Tp.Tier.SERVER;
         case 'thingengine-phone':
-            return this.tier === Tier.PHONE;
+            return this.tier === Tp.Tier.PHONE;
         case 'thingengine-cloud':
-            return this.tier === Tier.CLOUD;
+            return this.tier === Tp.Tier.CLOUD;
         case 'thingengine-global':
-            return this.tier === Tier.GLOBAL;
+            return this.tier === Tp.Tier.GLOBAL;
         default:
             return this.parent(kind);
         }
     },
 
     _getContext: function() {
-        if (this.tier === Tier.PHONE)
+        if (this.tier === Tp.Tier.PHONE)
             return 'phone';
-        else if (this.tier === Tier.SERVER)
+        else if (this.tier === Tp.Tier.SERVER)
             return 'home';
-        else if (this.tier === Tier.CLOUD)
+        else if (this.tier === Tp.Tier.CLOUD)
             return 'cloud';
-        else if (this.tier === Tier.GLOBAL)
+        else if (this.tier === Tp.Tier.GLOBAL)
             return 'global';
         else
             throw new Error('Unexpected tier ' + this.tier);
@@ -150,9 +144,3 @@ const ThingEngineDevice = new lang.Class({
         }
     },
 });
-
-function createDevice(engine, state) {
-    return new ThingEngineDevice(engine, state);
-}
-
-module.exports.createDevice = createDevice;

@@ -10,10 +10,9 @@ const Q = require('q');
 const lang = require('lang');
 const crypto = require('crypto');
 const Url = require('url');
+const Tp = require('thingpedia');
 
 const omclient = require('omclient').client;
-
-const BaseDevice = require('../../base_device');
 
 const OmletMessaging = require('./omlet_messaging');
 
@@ -106,9 +105,73 @@ function findPrimaryIdentity(client) {
     return account;
 }
 
-const OmletDevice = new lang.Class({
+function runOAuth2Phase1(engine) {
+    var buf = crypto.randomBytes(8).toString('hex');
+    var storage = new DeviceStateStorage(null, undefined);
+    var client = makeOmletClient(buf, storage, false);
+    console.log('Obtained omlet Client');
+
+    return Q.try(function() {
+        client.enable();
+
+        var origin;
+        if (engine.ownTier === 'cloud')
+            origin = THINGENGINE_CLOUD_ORIGIN;
+        else
+            origin = THINGENGINE_LOCAL_ORIGIN;
+
+        return Q.ninvoke(client.auth, 'getAuthPage',
+                         origin + '/devices/oauth2/callback/omlet',
+                         ['PublicProfile', 'OmletChat']);
+    }).then(function(resp) {
+        console.log('Obtained omlet auth page response');
+
+        var parsed = Url.parse(resp.Link, true);
+        return [resp.Link, { 'omlet-query-key': parsed.query.k,
+                             'omlet-instance': buf,
+                             'omlet-storage': JSON.stringify(storage.serialize()) }];
+    }).finally(function() {
+        return client.disable();
+    }).catch(function(e) {
+        console.log(String(e));
+        console.log(e.stack);
+        throw e;
+    });
+}
+
+function runOAuth2Phase2(engine, req) {
+    var storageState = JSON.parse(req.session['omlet-storage']);
+    var instance = req.session['omlet-instance'];
+    var storage = new DeviceStateStorage(null, storageState);
+    var client = makeOmletClient(instance, storage, false);
+    console.log('Obtained omlet Client');
+
+    var code = req.query.code;
+    var key = req.session['omlet-query-key'];
+
+    return Q.Promise(function(callback, errback) {
+        client.enable();
+
+        client.onSignedUp = callback;
+        client.auth.confirmAuth(code, key);
+    }).then(function() {
+        return engine.devices.loadOneDevice({ kind: 'omlet',
+                                              omletId: findPrimaryIdentity(client),
+                                              instance: instance,
+                                              storage: storage.serialize() }, true);
+    }).finally(function() {
+        client.disable();
+    });
+}
+
+module.exports = new Tp.DeviceClass({
     Name: 'OmletDevice',
-    Extends: BaseDevice,
+    UseOAuth2: function(engine, req) {
+        if (req === null)
+            return runOAuth2Phase1(engine);
+        else
+            return runOAuth2Phase2(engine, req);
+    },
 
     _init: function(engine, state) {
         this.parent(engine, state);
@@ -203,78 +266,6 @@ const OmletDevice = new lang.Class({
     },
 
     checkAvailable: function() {
-        return BaseDevice.Availability.AVAILABLE;
+        return Tp.Availability.AVAILABLE;
     },
 });
-
-function createDevice(engine, state) {
-    return new OmletDevice(engine, state);
-}
-
-function runOAuth2Phase1(engine) {
-    var buf = crypto.randomBytes(8).toString('hex');
-    var storage = new DeviceStateStorage(null, undefined);
-    var client = makeOmletClient(buf, storage, false);
-    console.log('Obtained omlet Client');
-
-    return Q.try(function() {
-        client.enable();
-
-        var origin;
-        if (engine.ownTier === 'cloud')
-            origin = THINGENGINE_CLOUD_ORIGIN;
-        else
-            origin = THINGENGINE_LOCAL_ORIGIN;
-
-        return Q.ninvoke(client.auth, 'getAuthPage',
-                         origin + '/devices/oauth2/callback/omlet',
-                         ['PublicProfile', 'OmletChat']);
-    }).then(function(resp) {
-        console.log('Obtained omlet auth page response');
-
-        var parsed = Url.parse(resp.Link, true);
-        return [resp.Link, { 'omlet-query-key': parsed.query.k,
-                             'omlet-instance': buf,
-                             'omlet-storage': JSON.stringify(storage.serialize()) }];
-    }).finally(function() {
-        return client.disable();
-    }).catch(function(e) {
-        console.log(String(e));
-        console.log(e.stack);
-        throw e;
-    });
-}
-
-function runOAuth2Phase2(engine, req) {
-    var storageState = JSON.parse(req.session['omlet-storage']);
-    var instance = req.session['omlet-instance'];
-    var storage = new DeviceStateStorage(null, storageState);
-    var client = makeOmletClient(instance, storage, false);
-    console.log('Obtained omlet Client');
-
-    var code = req.query.code;
-    var key = req.session['omlet-query-key'];
-
-    return Q.Promise(function(callback, errback) {
-        client.enable();
-
-        client.onSignedUp = callback;
-        client.auth.confirmAuth(code, key);
-    }).then(function() {
-        return engine.devices.loadOneDevice({ kind: 'omlet',
-                                              omletId: findPrimaryIdentity(client),
-                                              instance: instance,
-                                              storage: storage.serialize() }, true);
-    }).finally(function() {
-        client.disable();
-    });
-}
-
-function runOAuth2(engine, req) {
-    if (req === null)
-        return runOAuth2Phase1(engine);
-    else
-        return runOAuth2Phase2(engine, req);
-}
-module.exports.createDevice = createDevice;
-module.exports.runOAuth2 = runOAuth2;

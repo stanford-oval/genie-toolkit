@@ -5,27 +5,20 @@
 // Copyright 2015 Jiaqi Xue <jiaqixue@stanford.edu>
 //
 
-const lang = require('lang');
+const Tp = require('thingpedia');
 const Q = require('q');
 const https = require('https');
 const Url = require('url');
 
-const BaseChannel = require('../base_channel');
-
 const URL_TEMPLATE = 'https://us.data.bodytrace.com/1/device/%s/datavalues?names=batteryVoltage,signalStrength,values/weight,values/unit';
 const POLL_INTERVAL = 3600 * 1000; // 1h
 
-var cnt = 0;
-
-const ScaleChannel = new lang.Class({
+module.exports = new Tp.ChannelClass({
     Name: 'ScaleChannel',
-    Extends: BaseChannel,
+    RequiredCapabilities: ['channel-state'],
 
     _init: function(engine, state, device) {
         this.parent();
-
-        cnt++;
-        console.log('Created Scale channel #' + cnt);
 
         this._url = URL_TEMPLATE.format(device.serial);
         this._auth = "Basic " + (new Buffer(device.username + ':' + device.password)).toString('base64');
@@ -107,10 +100,6 @@ const ScaleChannel = new lang.Class({
     }
 });
 
-function createChannel(engine, state, device) {
-    return new ScaleChannel(engine, state, device);
-}
-
 function httpGetAsync(url, auth, callback) {
     var options = Url.parse(url);
     options.headers = {
@@ -131,5 +120,3 @@ function httpGetAsync(url, auth, callback) {
     });
 }
 
-module.exports.createChannel = createChannel;
-module.exports.requiredCapabilities = ['channel-state'];

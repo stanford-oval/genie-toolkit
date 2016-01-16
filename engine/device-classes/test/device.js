@@ -6,16 +6,12 @@
 //
 // See COPYING for details
 
-const lang = require('lang');
-const Q = require('q');
-
-const BaseDevice = require('../../base_device');
+const Tp = require('thingpedia');
 
 // A... "something", that lives off some IP and port address
 // using some unknown protocol
-const TestDevice = new lang.Class({
+module.exports = new Tp.DeviceClass({
     Name: 'TestDevice',
-    Extends: BaseDevice,
 
     _init: function(engine, state) {
         this.parent(engine, state);
@@ -39,12 +35,6 @@ const TestDevice = new lang.Class({
     // ...or not
     // doesn't really matter
     checkAvailable: function() {
-        return BaseDevice.Availability.AVAILABLE;
+        return Tp.Availability.AVAILABLE;
     },
 });
-
-function createDevice(engine, state) {
-    return new TestDevice(engine, state);
-}
-
-module.exports.createDevice = createDevice;

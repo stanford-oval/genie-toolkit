@@ -6,13 +6,11 @@
 //
 // See COPYING for details
 
-const lang = require('lang');
+const Tp = require('thingpedia');
 const Q = require('q');
 const Url = require('url');
 
 const Twitter = require('twitter-node-client').Twitter;
-
-const BaseDevice = require('../base_device');
 
 // encryption ;)
 function rot13(x) {
@@ -50,63 +48,6 @@ function makeTwitterApi(engine, accessToken, accessTokenSecret) {
         accessToken: accessToken,
         accessTokenSecret: accessTokenSecret
     });
-}
-
-const TwitterAccountDevice = new lang.Class({
-    Name: 'TwitterAccountDevice',
-    Extends: BaseDevice,
-
-    _init: function(engine, state) {
-        this.parent(engine, state);
-
-        this.uniqueId = 'twitter-account-' + this.userId;
-        this.name = "Twitter Account %s".format(this.screenName);
-        this.description = "This is your Twitter Account. You can use it to be updated on the status of your friends, and update them with your thoughts.";
-    },
-
-    get screenName() {
-        return this.state.screenName;
-    },
-
-    get userId() {
-        return this.state.userId;
-    },
-
-    get accessToken() {
-        return this.state.accessToken;
-    },
-
-    get accessTokenSecret() {
-        return this.state.accessTokenSecret;
-    },
-
-    checkAvailable: function() {
-        return BaseDevice.Availability.AVAILABLE;
-    },
-
-    hasKind: function(kind) {
-        switch (kind) {
-        case 'online-account':
-            return true;
-        case 'twitter':
-            return true;
-        default:
-            return this.parent(kind);
-        }
-    },
-
-    queryInterface: function(iface) {
-        switch (iface) {
-        case 'twitter':
-            return makeTwitterApi(this.engine, this.accessToken, this.accessTokenSecret);
-        default:
-            return null;
-        }
-    },
-});
-
-function createDevice(engine, state) {
-    return new TwitterAccountDevice(engine, state);
 }
 
 function runOAuthStep1(engine) {
@@ -172,5 +113,43 @@ function runOAuth2(engine, req) {
     });
 }
 
-module.exports.createDevice = createDevice;
-module.exports.runOAuth2 = runOAuth2;
+module.exports = new Tp.DeviceClass({
+    Name: 'TwitterAccountDevice',
+    Extends: Tp.OnlineAccount,
+    UseOAuth2: runOAuth2,
+    Kinds: ['twitter'],
+
+    _init: function(engine, state) {
+        this.parent(engine, state);
+
+        this.uniqueId = 'twitter-account-' + this.userId;
+        this.name = "Twitter Account %s".format(this.screenName);
+        this.description = "This is your Twitter Account. You can use it to be updated on the status of your friends, and update them with your thoughts.";
+    },
+
+    get screenName() {
+        return this.state.screenName;
+    },
+
+    get userId() {
+        return this.state.userId;
+    },
+
+    get accessToken() {
+        return this.state.accessToken;
+    },
+
+    get accessTokenSecret() {
+        return this.state.accessTokenSecret;
+    },
+
+    queryInterface: function(iface) {
+        switch (iface) {
+        case 'twitter':
+            return makeTwitterApi(this.engine, this.accessToken, this.accessTokenSecret);
+        default:
+            return null;
+        }
+    },
+});
+

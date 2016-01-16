@@ -6,18 +6,13 @@
 //
 // See COPYING for details
 
-const lang = require('lang');
-const Q = require('q');
-
-const BaseDevice = require('../../base_device');
-const Tier = require('../../tier_manager').Tier;
+const Tp = require('thingpedia');
 
 // Weather forecast for the current location
 //
 // FIXME: refactor me!
-const WeatherDevice = new lang.Class({
+module.exports = new Tp.DeviceClass({
     Name: 'WeatherDevice',
-    Extends: BaseDevice,
 
     _init: function(engine, state) {
         this.parent(engine, state);
@@ -29,16 +24,10 @@ const WeatherDevice = new lang.Class({
     },
 
     get ownerTier() {
-        return Tier.GLOBAL;
+        return Tp.Tier.GLOBAL;
     },
 
     checkAvailable: function() {
-        return BaseDevice.Availability.AVAILABLE;
+        return Tp.Availability.AVAILABLE;
     }
 });
-
-function createDevice(engine, state) {
-    return new WeatherDevice(engine, state);
-}
-
-module.exports.createDevice = createDevice;

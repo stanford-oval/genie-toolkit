@@ -8,12 +8,11 @@
 
 const lang = require('lang');
 const Q = require('q');
+const Tp = require('thingpedia');
 
-const BaseDevice = require('../../base_device');
-
-const FacebookDevice = new lang.Class({
+module.exports = new Tp.DeviceClass({
     Name: 'FacebookDevice',
-    Extends: BaseDevice,
+    Extends: Tp.OnlineAccount,
 
     _init: function(engine, state) {
         this.parent(engine, state);
@@ -31,19 +30,6 @@ const FacebookDevice = new lang.Class({
         return this.state.accessToken;
     },
 
-    checkAvailable: function() {
-        return BaseDevice.Availability.AVAILABLE;
-    },
-
-    hasKind: function(kind) {
-        switch (kind) {
-        case 'online-account':
-            return true;
-        default:
-            return this.parent(kind);
-        }
-    },
-
     queryInterface: function(iface) {
         switch (iface) {
         case 'oauth2':
@@ -57,9 +43,3 @@ const FacebookDevice = new lang.Class({
         // FINISHME refresh the access token using the refresh token
     },
 });
-
-function createDevice(engine, state) {
-    return new FacebookDevice(engine, state);
-}
-
-module.exports.createDevice = createDevice;

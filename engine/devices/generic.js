@@ -14,10 +14,9 @@ const Url = require('url');
 const crypto = require('crypto');
 const oauth = require('oauth');
 const WebSocket = require('ws');
+const Tp = require('thingpedia');
 
 const httpRequestAsync = require('../util/http').request;
-const BaseDevice = require('../base_device');
-const BaseChannel = require('../base_channel');
 const ExecEnvironment = require('../exec_environment');
 
 // encryption ;)
@@ -44,7 +43,7 @@ module.exports = function(kind, code) {
 
     const GenericDevice = new lang.Class({
         Name: 'GenericDevice',
-        Extends: BaseDevice,
+        Extends: Tp.BaseDevice,
 
         _init: function(engine, state) {
             this.parent(engine, state);
@@ -84,7 +83,7 @@ module.exports = function(kind, code) {
         },
 
         checkAvailable: function() {
-            return BaseDevice.Availability.AVAILABLE;
+            return Tp.Availability.AVAILABLE;
         },
 
         hasKind: function(kind) {
@@ -112,7 +111,7 @@ module.exports = function(kind, code) {
 
     const GenericChannel = new lang.Class({
         Name: 'GenericChannel',
-        Extends: BaseChannel,
+        Extends: Tp.BaseChannel,
 
         _init: function(id, engine, device, params) {
             this.parent();

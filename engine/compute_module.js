@@ -10,13 +10,11 @@ const Q = require('q');
 const events = require('events');
 const lang = require('lang');
 const vm = require('vm');
-
-const BaseChannel = require('./base_channel');
-const BaseDevice = require('./base_device');
+const Tp = require('thingpedia');
 
 const ComputeModuleFunctionChannel = new lang.Class({
     Name: 'ComputeModuleFunctionChannel',
-    Extends: BaseChannel,
+    Extends: Tp.BaseChannel,
 
     _init: function(ast, fn) {
         this.parent();
@@ -32,7 +30,7 @@ const ComputeModuleFunctionChannel = new lang.Class({
 
 module.exports = new lang.Class({
     Name: 'ComputeModule',
-    Extends: BaseDevice,
+    Extends: Tp.BaseDevice,
 
     _init: function(engine, app, name, module) {
         this.parent(engine, { kind: 'thingengine-compute-module' });
