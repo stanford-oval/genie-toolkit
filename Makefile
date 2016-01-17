@@ -1,4 +1,4 @@
-build-all: build-server build-android
+build-all: build-server build-android build-cloud
 
 build-engine:
 	make -C engine all
@@ -48,7 +48,7 @@ weather-data:
 
 run-server: build-server
 	test -d home-server || mkdir home-server/
-	cd home-server/ ; node ../platform/server/main.js --test
+	cd home-server/ ; node ../platform/server/main.js
 
 run-android-mock: build-android-js
 	test -d home-android || mkdir home-android/
