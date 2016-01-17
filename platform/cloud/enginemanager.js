@@ -80,9 +80,14 @@ const EngineManager = new lang.Class({
                 env.CLOUD_ID = cloudId;
                 env.AUTH_TOKEN = authToken;
                 console.log('Spawning child for user ' + userId);
-                var child = child_process.fork(path.dirname(module.filename)
-                                               + '/instance/runengine', [],
-                                               { cwd: './' + cloudId,
+
+                var managerPath = path.dirname(module.filename);
+                var enginePath = managerPath + '/instance/runengine';
+                var sandboxPath = managerPath + '/sandbox/sandbox';
+                var child = child_process.fork(enginePath, [],
+                                               { execPath: sandboxPath,
+                                                 execArgv: ['-i', cloudId, process.execPath].concat(process.execArgv),
+                                                 cwd: './' + cloudId,
                                                  silent: true,
                                                  env: env });
                 child.stdin.end();

@@ -3,6 +3,7 @@ prefix ?= /opt/thingengine-cloud
 localstatedir ?= /var/opt/thingengine-cloud
 
 all: platform_config.js
+	make -C sandbox all
 	npm install
 	npm dedupe
 
