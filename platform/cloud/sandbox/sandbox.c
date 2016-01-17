@@ -1188,7 +1188,7 @@ acquire_caps (void)
   data.permitted = REQUIRED_CAPS;
   data.inheritable = 0;
   if (capset (&hdr, &data) < 0)
-    die_with_error ("capset failed");
+    die_with_error ("capset failed to acquire");
 }
 
 static void
@@ -1204,7 +1204,7 @@ drop_caps (void)
   data.inheritable = 0;
 
   if (capset (&hdr, &data) < 0)
-    die_with_error ("capset failed");
+    die_with_error ("capset failed to release");
 }
 
 static char *arg_space;
@@ -1307,7 +1307,7 @@ main (int argc,
 
   block_sigchild_sigterm (); /* Block before we clone to avoid races */
 
-  pid = raw_clone (SIGCHLD | CLONE_NEWNS | CLONE_NEWPID,
+  pid = raw_clone (SIGCHLD | CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWIPC,
 		   NULL);
   if (pid == -1)
     die_with_error ("Creating new namespace failed");

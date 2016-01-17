@@ -30,6 +30,7 @@ function handleSignal() {
     _frontend.close().then(function() {
         if (_assistantmanager)
             return _assistantmanager.stop();
+    }).then(function() {
         if (_enginemanager)
             return _enginemanager.stop();
     }).then(function() {
