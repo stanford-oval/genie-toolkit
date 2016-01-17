@@ -75,8 +75,19 @@ const EngineManager = new lang.Class({
             })
             .then(function() {
                 var env = {};
-                for (var name in process.env)
-                    env[name] = process.env[name];
+                const ALLOWED_ENVS = ['LANG', 'LOGNAME', 'USER', 'PATH',
+                                      'HOME', 'SHELL'];
+                function envIsAllowed(name) {
+                    if (name.startsWith('LC_'))
+                        return true;
+                    if (ALLOWED_ENVS.indexOf(name) >= 0)
+                        return true;
+                    return false;
+                }
+                for (var name in process.env) {
+                    if (envIsAllowed(name))
+                        env[name] = process.env[name];
+                }
                 env.CLOUD_ID = cloudId;
                 env.AUTH_TOKEN = authToken;
                 console.log('Spawning child for user ' + userId);
