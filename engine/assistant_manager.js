@@ -282,6 +282,10 @@ const Dialog = new lang.Class({
         this.subdialog = null;
     },
 
+    notify: function(app, event) {
+        return false;
+    },
+
     start: function() {
     },
 
@@ -457,6 +461,13 @@ const Dialog = new lang.Class({
 const DefaultDialog = new lang.Class({
     Name: 'DefaultDialog',
     Extends: Dialog,
+
+    notify: function(appId, event) {
+        var app = this.manager.apps.getApp(appId);
+        if (!app)
+            return;
+        this.reply("Notification from " + app.name + ": " + event.join(', '));
+    },
 
     handle: function(command) {
         if (this.handleGeneric(command))
@@ -1464,24 +1475,42 @@ module.exports = new lang.Class({
     Name: 'AssistantManager',
     $rpcMethods: ['handleCommand', 'setReceiver'],
 
-    _init: function(apps, devices, messaging, keywords) {
+    _init: function(apps, devices, messaging, keywords, ui) {
         this.apps = apps;
         this.devices = devices;
         this.messaging = messaging;
         this.keywords = keywords;
+        this.ui = ui;
 
         this._receiver = null;
         this._nlp = new NLP();
         this._raw = false;
-        this.setDialog(new DefaultDialog());
 
         this._initialized = false;
+
+        this._notify = null;
+        this._notifyListener = this._onNotify.bind(this);
+        this._notifyQueue = [];
+    },
+
+    _onNotify: function(data) {
+        if (!this._dialog.notify(data[0], data[1]))
+            this._notifyQueue.push(data);
+    },
+
+    _flushNotify: function() {
+        var queue = this._notifyQueue;
+        this._notifyQueue = [];
+        queue.forEach(function(data) {
+            this._onNotify(data);
+        }, this);
     },
 
     setDialog: function(dlg) {
         this._dialog = dlg;
         dlg.manager = this;
         dlg.start();
+        this._flushNotify();
     },
 
     setRaw: function(raw) {
@@ -1489,21 +1518,36 @@ module.exports = new lang.Class({
     },
 
     start: function() {
-        return Q();
+        return this.init();
     },
 
     stop: function() {
-        return Q();
+        if (this._notify) {
+            this._notify.removeListener('data', this._notifyListener);
+            return this._notify.close();
+        } else {
+            return Q();
+        }
     },
 
     setReceiver: function(receiver) {
         this._receiver = receiver;
-        this.init();
+        return this.init();
     },
 
     init: function() {
-        if (!this._initialized)
-            this.setDialog(new InitializationDialog());
+        if (this._initialized)
+            return Q();
+        if (!this._receiver)
+            return Q();
+
+        this._initialized = true;
+        this.setDialog(new InitializationDialog());
+
+        return this.ui.getAllNotify().then(function(channel) {
+            this._notify = channel;
+            channel.on('data', this._notifyListener);
+        }.bind(this));
     },
 
     handleCommand: function(command) {
@@ -1521,6 +1565,7 @@ module.exports = new lang.Class({
     },
 
     sendReply: function(message) {
+        console.log('sendReply: ' + message);
         if (this._receiver)
             this._receiver.send(message);
     }

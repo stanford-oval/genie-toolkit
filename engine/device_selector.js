@@ -26,37 +26,6 @@ const BuiltinOwner = {
     'logger': 'thingengine-own-server'
 };
 
-const AppReturnChannel = new lang.Class({
-    Name: 'AppReturnChannel',
-    Extends: Tp.BaseChannel,
-
-    _init: function(engine, app) {
-        this.parent();
-        this.engine = engine;
-        this._app = app;
-
-        this._inner = null;
-    },
-
-    sendEvent: function(event) {
-        this._inner.sendEvent(event);
-        this.engine.apps.removeApp(this._app);
-    },
-
-    _doOpen: function() {
-        return this.engine.channels.getNamedPipe('thingengine-app-' +
-                                                 this.app.uniqueId +
-                                                 '-notify', 'w')
-            .then(function(ch) {
-                this._inner = ch;
-            }.bind(this));
-    },
-
-    _doClose: function() {
-        return this._inner.close();
-    },
-});
-
 // A app, wrapped as a device to appease DeviceView
 // very evil, look away
 const AppDevice = new lang.Class({
@@ -78,21 +47,7 @@ const AppDevice = new lang.Class({
     // for anything else BaseDevice is fine
 
     getChannel: function(id, params) {
-        if (id === 'return') {
-            var ch = new AppReturnChannel(this.engine, this.app);
-            return ch.open().then(function() { return ch; });
-        } else {
-            if (id === 'input')
-                mode = 'r';
-            else if (id === 'notify')
-                mode = 'w';
-            else
-                throw new Error('Invalid channel name ' + id);
-
-            return this.engine.channels.getNamedPipe('thingengine-app-' +
-                                                     this.app.uniqueId +
-                                                     '-' + id, mode);
-        }
+        return this.app.getChannel(id, params);
     }
 })
 

@@ -10,6 +10,7 @@ const Q = require('q');
 const events = require('events');
 const lang = require('lang');
 const adt = require('adt');
+const Tp = require('thingpedia');
 
 const AppCompiler = require('./app_compiler');
 const AppGrammar = require('./app_grammar');
@@ -98,6 +99,75 @@ const RuleExecutor = new lang.Class({
     },
 });
 
+const AppNotifyChannel = new lang.Class({
+    Name: 'AppNotifyChannel',
+    Extends: Tp.BaseChannel,
+
+    _init: function(engine, app, removeOnSend) {
+        this.parent();
+        this.engine = engine;
+        this._app = app;
+
+        this._removeOnSend = removeOnSend;
+        this._inner = null;
+    },
+
+    sendEvent: function(event) {
+        this._inner.sendEvent([this._app.uniqueId, event]);
+
+        if (this._removeOnSend) {
+            setTimeout(function() {
+                this.engine.apps.removeApp(this._app);
+            }.bind(this), 0);
+        }
+    },
+
+    _doOpen: function() {
+        return this.engine.channels.getNamedPipe('thingengine-app-notify', 'w')
+            .then(function(ch) {
+                this._inner = ch;
+            }.bind(this));
+    },
+
+    _doClose: function() {
+        return this._inner.close();
+    },
+});
+
+const AppInputChannel = new lang.Class({
+    Name: 'AppInputChannel',
+    Extends: Tp.BaseChannel,
+
+    _init: function(engine, app) {
+        this.parent();
+        this.engine = engine;
+        this._app = null;
+
+        this._inner = null;
+        this._listener = this._onEvent.bind(this);
+    },
+
+    _onEvent: function(data) {
+        var app = data[0];
+        var event = data[1];
+        if (app === this._app.uniqueId)
+            this.emitEvent(event);
+    },
+
+    _doOpen: function() {
+        return this.engine.channels.getNamedPipe('thingengine-app-input', 'r')
+            .then(function(ch) {
+                this._inner = ch;
+                this._inner.on('data', this._listener);
+            }.bind(this));
+    },
+
+    _doClose: function() {
+        this._inner.removeListener('data', this._listener);
+        return this._inner.close();
+    },
+});
+
 module.exports = new lang.Class({
     Name: 'AppExecutor',
     Extends: events.EventEmitter,
@@ -166,6 +236,25 @@ module.exports = new lang.Class({
 
     getComputeModule: function(name) {
         return this.modules[name];
+    },
+
+    getChannel: function(id) {
+        var channel;
+        switch (id) {
+        case 'return':
+            channel = new AppNotifyChannel(this.engine, this, true);
+            break;
+        case 'notify':
+            channel = new AppNotifyChannel(this.engine, this, false);
+            break;
+        case 'input':
+            channel = new AppInputChannel(this.engine, this);
+            break;
+        default:
+            throw new Error('Invalid channel name ' + id);
+        }
+
+        return channel.open().then(function() { return channel; });
     },
 
     start: function() {

@@ -11,6 +11,7 @@ const lang = require('lang');
 const fs = require('fs');
 const events = require('events');
 const uuid = require('node-uuid');
+const Tp = require('thingpedia');
 
 const httpRequestAsync = require('./util/http').request;
 const prefs = require('./prefs');
@@ -95,9 +96,73 @@ const OmletRDLCallback = new lang.Class({
     },
 });
 
+// These are identical to the copies in AppExecutor, but they are
+// reversed: a @$notify becomes a read channel, @$input becomes a write
+// channel
+const AppInputChannel = new lang.Class({
+    Name: 'AppInputChannel',
+    Extends: Tp.BaseChannel,
+
+    _init: function(engine, app) {
+        this.parent();
+        this.engine = engine;
+        this._app = app;
+        this._inner = null;
+    },
+
+    sendEvent: function(event) {
+        this._inner.sendEvent([this._app.uniqueId, event]);
+    },
+
+    _doOpen: function() {
+        return this.engine.channels.getNamedPipe('thingengine-app-input', 'w')
+            .then(function(ch) {
+                this._inner = ch;
+            }.bind(this));
+    },
+
+    _doClose: function() {
+        return this._inner.close();
+    },
+});
+
+const AppNotifyChannel = new lang.Class({
+    Name: 'AppNotifyChannel',
+    Extends: Tp.BaseChannel,
+
+    _init: function(engine, app) {
+        this.parent();
+        this.engine = engine;
+        this._app = null;
+
+        this._inner = null;
+        this._listener = this._onEvent.bind(this);
+    },
+
+    _onEvent: function(data) {
+        var app = data[0];
+        var event = data[1];
+        if (app === this._app.uniqueId)
+            this.emitEvent(event);
+    },
+
+    _doOpen: function() {
+        return this.engine.channels.getNamedPipe('thingengine-app-notify', 'r')
+            .then(function(ch) {
+                this._inner = ch;
+                this._inner.on('data', this._listener);
+            }.bind(this));
+    },
+
+    _doClose: function() {
+        this._inner.removeListener('data', this._listener);
+        return this._inner.close();
+    },
+});
+
 module.exports = new lang.Class({
     Name: 'UIManager',
-    $rpcMethods: ['getInput', 'getNotify', 'registerCallback'],
+    $rpcMethods: ['getInput', 'getNotify', 'registerCallback', 'unregisterCallback'],
 
     _init: function(engine) {
         events.EventEmitter.call(this);
@@ -110,13 +175,21 @@ module.exports = new lang.Class({
     },
 
     getInput: function(appId) {
-        return this.engine.channels.getNamedPipe('thingengine-app-' +
-                                                 appId + '-input', 'w');
+        var channel = new AppInputChannel(this.engine, this.engine.apps.getApp(appId));
+        return channel.open().then(function() { return channel; });
+    },
+
+    getAllInput: function() {
+        return this.engine.channels.getNamedPipe('thingengine-app-input', 'w');
     },
 
     getNotify: function(appId) {
-        return this.engine.channels.getNamedPipe('thingengine-app-' +
-                                                 appId + '-notify', 'r');
+        var channel = new AppReturnChannel(this.engine, this.engine.apps.getApp(appId));
+        return channel.open().then(function() { return channel; });
+    },
+
+    getAllNotify: function() {
+        return this.engine.channels.getNamedPipe('thingengine-app-notify', 'r');
     },
 
     registerCallback: function(blob) {

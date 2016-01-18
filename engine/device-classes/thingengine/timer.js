@@ -23,7 +23,7 @@ module.exports = new Tp.ChannelClass({
             throw new Error('Invalid @$timer parameters');
 
         this.interval = params[0].value;
-        this.filterString = 'interval-' + this._interval;
+        this.filterString = 'interval-' + this.interval;
     },
 
     _onTick: function() {
