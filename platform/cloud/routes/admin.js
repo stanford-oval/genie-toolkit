@@ -60,6 +60,13 @@ router.post('/start-user/:id', user.requireRole(user.Role.ADMIN), function(req, 
     }).done();
 });
 
+router.post('/kill-all', user.requireRole(user.Role.ADMIN), function(req, res) {
+    var engineManager = EngineManager.get();
+
+    engineManager.stop();
+    res.redirect('/admin');
+});
+
 router.post('/delete-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
     db.withTransaction(function(dbClient) {
         return EngineManager.get().deleteUser(req.params.id).then(function() {

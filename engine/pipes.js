@@ -130,7 +130,7 @@ const PipeLocalSourceChannel = new lang.Class({
         return Q.all(this._proxies.map(function(p) {
             return p.close();
         })).then(function() {
-            this._pipeManager.removeSource(name, this);
+            this._pipeManager.removeSource(this._name, this);
         }.bind(this));
     }
 });

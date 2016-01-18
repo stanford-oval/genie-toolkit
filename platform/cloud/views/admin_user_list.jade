@@ -9,6 +9,10 @@ block styles
 block content
   h2 Users
 
+  form(action='/admin/kill-all', method='post')
+    input(type='hidden',name='_csrf',value=csrfToken)
+    button(type='submit').btn.btn-danger Kill all users
+
   table.table#users-table
     thead
       tr
