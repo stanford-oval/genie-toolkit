@@ -12,9 +12,6 @@ var Q = require('q');
 var http = require(Config.THINGENGINE_ACCESS_MODULE);
 var httpStatusCodes = require('http').STATUS_CODES;
 var url = require('url');
-var fs = require('fs');
-var path = require('path');
-var jade = require('jade');
 var express = require('express');
 var router = express.Router();
 

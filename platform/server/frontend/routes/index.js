@@ -1,7 +1,4 @@
 var os = require('os');
-var fs = require('fs');
-var path = require('path');
-var jade = require('jade');
 var express = require('express');
 var router = express.Router();
 
