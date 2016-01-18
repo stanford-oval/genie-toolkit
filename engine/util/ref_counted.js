@@ -62,16 +62,18 @@ module.exports = new lang.Class({
             }.bind(this));
         }
 
-        this._useCount++;
+        this._useCount--;
+        if (this._useCount < 0)
+            throw new Error('invalid close');
         if (this._useCount == 0) { // last close
             if (this._closePromise)
                 throw new Error('bookkeeping error');
-            return this._closePromise = this._doOpen().finally(function() {
+            return this._closePromise = this._doClose().finally(function() {
                 this._closePromise = null;
             }.bind(this));
-        } else if (this._closePromise) { // opening
+        } else if (this._closePromise) { // closing
             return this._closePromise;
-        } else { // opened
+        } else { // closed
             return Q();
         }
     },
