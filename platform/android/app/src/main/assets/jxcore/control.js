@@ -10,7 +10,7 @@ const Q = require('q');
 const fs = require('fs');
 const net = require('net');
 
-const JsonDatagramSocket = require('./engine/json_datagram_socket');
+const JsonDatagramSocket = require('./json_datagram_socket');
 
 function ControlChannel(delegate) {
     if (!(this instanceof ControlChannel)) return new ControlChannel();
