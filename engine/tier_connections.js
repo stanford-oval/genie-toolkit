@@ -17,22 +17,6 @@ const WebSocket = require('ws');
 
 const Tier = require('./tier_manager').Tier;
 
-var _serverAgent = null;
-function getServerAgent() {
-    return undefined; // FINISHME
-}
-var _cloudAgent = null;
-function getCloudAgent() {
-    if (_cloudAgent === null) {
-        var caFile = path.join(path.dirname(module.filename), './data/cloud.cert');
-        _cloudAgent = new https.Agent({ keepAlive: false,
-                                        maxSockets: 10,
-                                        ca: fs.readFileSync(caFile) });
-    }
-
-    return _cloudAgent;
-}
-
 //    phone <-> server, from the POV of a phone
 // or phone <-> cloud, from the POV of the phone
 // or server <-> cloud, from the POV of the server
@@ -163,12 +147,7 @@ const ClientConnection = new lang.Class({
         console.log('Attempting connection to the server, try ' + (3 - this._retryAttempts) + ' of 3');
         return Q.Promise(function(callback, errback) {
             try {
-                var agent = this._targetIdentity === 'cloud' ?
-                    getCloudAgent() : getServerAgent();
-                var options = {};
-                if (agent)
-                    options.agent = agent;
-                var socket = new WebSocket(this._serverAddress, options);
+                var socket = new WebSocket(this._serverAddress);
                 socket.on('open', function() {
                     callback(socket);
                 });

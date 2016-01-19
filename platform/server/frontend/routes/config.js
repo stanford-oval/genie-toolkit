@@ -124,13 +124,6 @@ router.post('/cloud-setup', user.requireLogIn, function(req, res, next) {
             'Content-Length': postData.length
         };
 
-        var devel = res.app.get('env') === 'development';
-        if (devel) {
-            // accept self-signed certs in development
-            // FIXME: REMOVE
-            request.agent = false;
-            request.rejectUnauthorized = false;
-        }
         var ajax = http.request(request);
 
         ajax.on('error', function(e) {
