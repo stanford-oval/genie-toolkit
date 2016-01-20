@@ -13,7 +13,7 @@ function create(client, user) {
     var KEYS = ['username', 'human_name', 'google_id',
                 'facebook_id', 'password', 'salt',
                 'cloud_id', 'auth_token',
-                'assistant_feed_id', 'deveoper_key'];
+                'assistant_feed_id', 'developer_key'];
     KEYS.forEach(function(key) {
         if (user[key] === undefined)
             user[key] = null;
