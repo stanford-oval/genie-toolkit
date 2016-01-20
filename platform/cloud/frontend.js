@@ -40,8 +40,19 @@ Frontend.prototype._init = function _init() {
     this._app.set('port', process.env.PORT || 8080);
     this._app.set('views', path.join(__dirname, 'views'));
     this._app.set('view engine', 'jade');
+    this._app.enable('trust proxy');
     //this._app.use(favicon());
+
     this._app.use(logger('dev'));
+
+    this._app.use(function(req, res, next) {
+        if (req.headers['x-forwarded-proto'] === 'http') {
+            res.redirect(301, 'https://' + req.hostname + req.originalUrl);
+            return;
+        }
+        next();
+    });
+
     this._app.use(bodyParser.json());
     this._app.use(bodyParser.urlencoded({ extended: true }));
     this._app.use(cookieParser());
