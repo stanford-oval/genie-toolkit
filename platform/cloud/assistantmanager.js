@@ -242,6 +242,10 @@ const Messaging = new lang.Class({
         }.bind(this));
     },
 
+    addAccountToContacts: function(contactId) {
+        return oinvoke(this.client.identity, '_addAccountToContacts', contactId);
+    },
+
     getFeedWithContact: function(contactId) {
         return Q.ninvoke(this.client.feed, 'getOrCreateFeedWithMembers', [contactId]).spread(function(feed, existing) {
             if (existing)
@@ -347,10 +351,14 @@ module.exports = new lang.Class({
     },
 
     createFeedForEngine: function(userId, engine, contactId) {
-        return this._messaging.getFeedWithContact(contactId).then(function(feed) {
-            this.addEngine(userId, engine, feed.feedId);
-            return feed.feedId;
-        }.bind(this));
+        return this._messaging.addAccountToContacts(contactId)
+            .then(function() {
+                return this._messaging.getFeedWithContact(contactId);
+            }.bind(this))
+            .then(function(feed) {
+                this.addEngine(userId, engine, feed.feedId);
+                return feed.feedId;
+            }.bind(this));
     },
 
     addEngine: function(userId, engine, feedId) {
