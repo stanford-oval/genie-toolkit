@@ -336,6 +336,8 @@ static const create_table_t create[] = {
   { FILE_TYPE_DIR, ".oldroot", 0755 },
   { FILE_TYPE_DIR, "tmp", 01777 },
   { FILE_TYPE_DIR, "app", 0755},
+  { FILE_TYPE_DIR, "var", 0755},
+  { FILE_TYPE_DIR, "run", 0755},
   { FILE_TYPE_SYSTEM_SYMLINK, "lib64", 0755, "usr/lib64"},
   { FILE_TYPE_SYSTEM_SYMLINK, "lib", 0755, "usr/lib"},
   { FILE_TYPE_SYSTEM_SYMLINK, "bin", 0755, "usr/bin" },
@@ -381,7 +383,8 @@ static const mount_table_t mount_table[] = {
 
 const char *dont_mount_in_root[] = {
   ".", "..", "lib", "lib32", "lib64", "bin", "sbin", "boot", "root",
-  "srv", "home", "media", "mnt", "tmp", "app", "proc", "sys", "dev"
+  "srv", "home", "media", "mnt", "tmp", "app", "proc", "sys", "dev",
+  "var", "run"
 };
 
 typedef enum {
