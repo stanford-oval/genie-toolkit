@@ -71,13 +71,54 @@ router.get('/install/:id(\\d+)', user.redirectLogIn, function(req, res, next) {
                 return [k, compiler.params[k]];
             });
 
-            res.render('app_install', { page_title: "ThingEngine - Install App",
-                                        csrfToken: req.csrfToken(),
-                                        thingpediaId: req.params.id,
-                                        params: params,
-                                        name: parsed.name,
-                                        description: parsed.description,
-                                        code: parsed.code });
+            return Q.try(function() {
+                if (compiler.feedAccess) {
+                    return EngineManager.get().getEngine(req.user.id).then(function(engine) {
+                        return engine.messaging.getFeedMetas().then(function(feeds) {
+                            return feeds.filter(function(f) {
+                                return f.hasWriteAccess && f.kind === null;
+                            });
+                        }).tap(function(feeds) {
+                            return Q.all(feeds.map(function(f) {
+                                // at first sight, you might complain that this "modify in place"
+                                // would corrupt the database
+                                // but there is a RPC layer in the middle saving us: we only operate
+                                // on a copy of feeds so everything is fine
+                                if (f.name)
+                                    return;
+                                if (f.members.length === 1) {
+                                    f.name = "You";
+                                    return;
+                                }
+                                if (f.members.length === 2) {
+                                    if (f.members[0] === 1) {
+                                        return engine.messaging.getUserById(f.members[1]).then(function(u) {
+                                            f.name = u.name;
+                                        });
+                                    } else {
+                                        return engine.messaging.getUserById(f.members[0]).then(function(u) {
+                                            f.name = u.name;
+                                        });
+                                    }
+                                } else {
+                                    f.name = "Unnamed (multiple partecipants)";
+                                }
+                            }));
+                        });
+                    });
+                } else {
+                    return null;
+                }
+            }).then(function(feeds) {
+                res.render('app_install', { page_title: "ThingEngine - Install App",
+                                            csrfToken: req.csrfToken(),
+                                            thingpediaId: req.params.id,
+                                            params: params,
+                                            name: parsed.name,
+                                            description: parsed.description,
+                                            feeds: feeds,
+                                            code: parsed.code });
+            });
         }).catch(function(e) {
             res.status(400).render('error', { page_title: "ThingEngine - Error",
                                               message: e.message });
