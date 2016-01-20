@@ -5,13 +5,15 @@ ul.nav.navbar-nav
     li
       a(href="/user/profile") Profile
     li
+      a(href="/status") Status
+    li
       a(href="/apps") Installed Apps
     li
-      a(href="/apps/create") Create New App
+      a(href="/apps/create") New App
     li
-      a(href="/devices?class=physical") Configured Devices
+      a(href="/devices?class=physical") Devices
     li
-      a(href="/devices?class=online") Configured Online Accounts
+      a(href="/devices?class=online") Online Accounts
     li
       a(href="/assistant") Sabrina
     if user.roles & 0x1

@@ -64,7 +64,7 @@ const EngineManager = new lang.Class({
         _instance = this;
     },
 
-    _runUser: function(userId, cloudId, authToken, assistantFeedId) {
+    _runUser: function(userId, cloudId, authToken, assistantFeedId, developerKey) {
         var runningProcesses = this._runningProcesses;
         var frontend = this._frontend;
 
@@ -74,7 +74,6 @@ const EngineManager = new lang.Class({
                     throw e;
             })
             .then(function() {
-                var env = {};
                 const ALLOWED_ENVS = ['LANG', 'LOGNAME', 'USER', 'PATH',
                                       'HOME', 'SHELL'];
                 function envIsAllowed(name) {
@@ -84,12 +83,16 @@ const EngineManager = new lang.Class({
                         return true;
                     return false;
                 }
+
+                var env = {};
                 for (var name in process.env) {
                     if (envIsAllowed(name))
                         env[name] = process.env[name];
                 }
                 env.CLOUD_ID = cloudId;
                 env.AUTH_TOKEN = authToken;
+                if (developerKey !== null)
+                    env.DEVELOPER_KEY = developerKey;
                 console.log('Spawning child for user ' + userId);
 
                 var managerPath = path.dirname(module.filename);
@@ -204,7 +207,8 @@ const EngineManager = new lang.Class({
         return db.withClient(function(client) {
             return user.getAll(client).then(function(rows) {
                 return Q.all(rows.map(function(r) {
-                    return self._runUser(r.id, r.cloud_id, r.auth_token, r.assistant_feed_id);
+                    return self._runUser(r.id, r.cloud_id, r.auth_token,
+                                         r.assistant_feed_id, r.developer_key);
                 }));
             });
         });
@@ -213,7 +217,7 @@ const EngineManager = new lang.Class({
     startUser: function(user) {
         console.log('Requested start of user ' + user.id);
         return this._runUser(user.id, user.cloud_id, user.auth_token,
-                             user.assistant_feed_id);
+                             user.assistant_feed_id, user.developer_key);
     },
 
     stop: function() {

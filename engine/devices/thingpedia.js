@@ -23,6 +23,10 @@ function getModule(parsed) {
 }
 
 function httpRequest(to, id) {
+    var developerKey = platform.getDeveloperKey();
+    if (developerKey)
+        to += '?developer_key=' + developerKey;
+
     var parsed = url.parse(to);
     return Q.Promise(function(callback, errback) {
         getModule(parsed).get(parsed, function(response) {
@@ -42,6 +46,10 @@ function httpRequest(to, id) {
 }
 
 function httpDiscoveryRequest(to, blob) {
+    var developerKey = platform.getDeveloperKey();
+    if (developerKey)
+        to += '?developer_key=' + developerKey;
+
     var parsed = url.parse(to);
     parsed.method = 'POST';
     parsed.headers = {};

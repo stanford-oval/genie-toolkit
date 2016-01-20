@@ -190,6 +190,18 @@ module.exports = {
         return JXMobile.Exit();
     },
 
+    // Get the ThingPedia developer key, if one is configured
+    getDeveloperKey: function() {
+        return _prefs.get('developer-key');
+    },
+
+    // Change the ThingPedia developer key, if possible
+    // Returns true if the change actually happened
+    setDeveloperKey: function(key) {
+        return _prefs.set('developer-key', key);
+        return true;
+    },
+
     // Change the auth token
     // Returns true if a change actually occurred, false if the change
     // was rejected

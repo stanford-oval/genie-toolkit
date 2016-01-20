@@ -96,6 +96,7 @@ Frontend.prototype._init = function _init() {
     this._app.use('/thingpedia', require('./routes/thingpedia'));
     this._app.use('/assistant', require('./routes/assistant'));
     this._app.use('/admin', require('./routes/admin'));
+    this._app.use('/status', require('./routes/status'));
 
     this._websocketEndpoints = {};
 }
@@ -128,12 +129,17 @@ Frontend.prototype.open = function() {
 }
 
 Frontend.prototype.close = function() {
-    return Q.ninvoke(this.server, 'close').then(function() {
-        console.log('Express server stopped');
-    }).catch(function(error) {
-        console.log('Error stopping Express server: ' + error);
-        console.log(error.stack);
+    // close the server asynchronously to avoid waiting on open
+    // connections
+    this.server.close(function(err) {
+        if (err) {
+            console.log('Error stopping Express server: ' + error);
+            console.log(error.stack);
+        } else {
+            console.log('Express server stopped');
+        }
     });
+    return Q();
 }
 
 Frontend.prototype.getApp = function() {

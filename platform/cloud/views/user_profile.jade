@@ -21,8 +21,12 @@ block content
           p.form-control-static= user.username
 
         div.form-group
-          label.control-label Real name
+          label.control-label(for='human-name') Real name
           input(type='text',name='human_name',value=user.human_name).form-control#human-name
+
+        div.form-group
+          label.control-label(for='developer-key') ThingPedia Developer Key
+          input(type='text',name='developer_key',value=user.developer_key).form-control#developer-key
 
         div.form-group
           button(type='submit').btn.btn-primary Update profile

@@ -70,6 +70,7 @@ router.get('/create', user.redirectLogIn, function(req, res, next) {
 
     res.render('devices_create', { page_title: 'ThingEngine - configure device',
                                    csrfToken: req.csrfToken(),
+                                   developerKey: req.user.developer_key,
                                    onlineAccounts: online,
                                  });
 });

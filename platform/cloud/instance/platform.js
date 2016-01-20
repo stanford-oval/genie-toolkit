@@ -27,6 +27,7 @@ var _cloudId = null;
 var _writabledir = null;
 var _frontend = null;
 var _prefs = null;
+var _developerKey = null;
 
 function checkLocalStateDir() {
     fs.mkdirSync(_writabledir);
@@ -54,6 +55,7 @@ module.exports = {
         var authToken = process.env.AUTH_TOKEN;
         if (!_cloudId || !authToken)
             throw new Error('Must specify CLOUD_ID and AUTH_TOKEN in the environment');
+        _developerKey = process.env.DEVELOPER_KEY;
 
         _writabledir = process.cwd();
         try {
@@ -170,6 +172,17 @@ module.exports = {
     // code, after stopping the engine
     exit: function() {
         return process.exit();
+    },
+
+    // Get the ThingPedia developer key, if one is configured
+    getDeveloperKey: function() {
+        return _developerKey;
+    },
+
+    // Change the ThingPedia developer key, if possible
+    // Returns true if the change actually happened
+    setDeveloperKey: function() {
+        return false;
     },
 
     // Change the auth token

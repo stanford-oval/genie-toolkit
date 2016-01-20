@@ -1,6 +1,6 @@
 $(function() {
-    var THINGPEDIA_ORIGIN = 'https://thingpedia.herokuapp.com';
-    //var THINGPEDIA_ORIGIN = 'http://127.0.0.1:5000';
+    //var THINGPEDIA_ORIGIN = 'https://thingpedia.herokuapp.com';
+    var THINGPEDIA_ORIGIN = 'http://127.0.0.1:5000';
 
     function handleDeviceFactory(json, kind) {
         var placeholder = $('#device-placeholder');
@@ -73,7 +73,11 @@ $(function() {
 
     $('#online-account-selector').each(function() {
         var selector = $(this);
-        $.get(THINGPEDIA_ORIGIN + '/api/devices?class=online', function(factoryList) {
+
+        var developerKey = $('#developer-key').text();
+        var url = THINGPEDIA_ORIGIN + '/api/devices?class=online&developer_key='
+            + developerKey;
+        $.get(url, function(factoryList) {
             for (var i = 0; i < factoryList.length; i += 3) {
                 var row = $('<div>').addClass('row');
                 selector.append(row);
@@ -90,7 +94,10 @@ $(function() {
         var selector = $(this);
         var deviceFactories = {};
 
-        $.get(THINGPEDIA_ORIGIN + '/api/devices?class=physical', function(factoryList) {
+        var developerKey = $('#developer-key').text();
+        var url = THINGPEDIA_ORIGIN + '/api/devices?class=physical&developer_key='
+            + developerKey;
+        $.get(url, function(factoryList) {
             factoryList.forEach(function(f) {
                 deviceFactories[f.primary_kind] = f.factory;
 
