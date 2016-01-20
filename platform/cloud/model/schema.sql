@@ -15,7 +15,7 @@ create table users (
     auth_token char(64) not null,
     roles int not null default 0,
     assistant_feed_id varchar(255) default null,
-    developer_key char(64) default null,
+    developer_key char(64) unique default null,
     constraint password_salt check ((password is not null and salt is not null) or
                                     (password is null and salt is null)),
     constraint auth_method check (password is not null or google_id is not null or facebook_id is not null)

@@ -348,12 +348,12 @@ module.exports = new lang.Class({
 
     createFeedForEngine: function(userId, engine, contactId) {
         return this._messaging.getFeedWithContact(contactId).then(function(feed) {
-            this.addEngine(userId, engine, feed.feedId, true);
+            this.addEngine(userId, engine, feed.feedId);
             return feed.feedId;
         }.bind(this));
     },
 
-    addEngine: function(userId, engine, feedId, firstTime) {
+    addEngine: function(userId, engine, feedId) {
         var obj = {
             engine: engine,
             feedId: feedId,
@@ -362,7 +362,7 @@ module.exports = new lang.Class({
         this._engines[userId] = obj;
 
         if (this._client)
-            this._startEngine(obj, firstTime);
+            this._startEngine(obj);
     },
 
     removeEngine: function(userId) {
