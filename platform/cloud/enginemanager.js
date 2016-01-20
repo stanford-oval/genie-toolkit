@@ -20,6 +20,24 @@ const db = require('./util/db');
 
 const AssistantManager = require('./assistantmanager');
 
+var _logJournal;
+try {
+    const journald = require('journald').Log;
+    _logJournal = function(obj) {
+        journald.log(obj);
+    };
+} catch(e) {
+    console.error('Failed to setup journald');
+    _logJournal = function(obj) {
+        if (obj.PRIORITY <= 4)
+            console.error(obj.MESSAGE);
+        else
+            console.log(obj.MESSAGE);
+    }
+}
+const LOG_INFO = 6;
+const LOG_ERR = 3;
+
 var _instance = null;
 
 const ChildProcessSocket = new lang.Class({
@@ -105,18 +123,23 @@ const EngineManager = new lang.Class({
                                                  silent: true,
                                                  env: env });
                 child.stdin.end();
-                function output(where) {
+                function output(priority) {
                     return (function(data) {
                         var str = data.toString('utf8');
                         str.split('\n').forEach(function(line) {
                             var trimmed = line.trim();
-                            if (trimmed.length > 0)
-                                where('Child ' + userId + ': ' + trimmed);
+                            if (trimmed.length > 0) {
+                                _logJournal({ PRIORITY: priority,
+                                              MESSAGE: trimmed,
+                                              SYSLOG_IDENTIFIER: 'thingengine-child-' + userId,
+                                              THINGENGINE_PID: child.pid,
+                                              THINGENGINE_USER_ID: userId });
+                            }
                         });
                     });
                 }
-                child.stdout.on('data', output(console.log));
-                child.stderr.on('data', output(console.error));
+                child.stdout.on('data', output(LOG_INFO));
+                child.stderr.on('data', output(LOG_ERR));
 
                 var engineProxy = Q.defer();
                 var obj = { child: child,

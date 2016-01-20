@@ -8,7 +8,7 @@
 
 var Q = require('q');
 var express = require('express');
-var passport = require('passport');
+var child_process = require('child_process');
 
 var user = require('../util/user');
 var model = require('../model/user');
@@ -21,9 +21,21 @@ var EngineManager = require('../enginemanager');
 var router = express.Router();
 
 router.get('/', user.redirectLogIn, function(req, res, next) {
-    res.render('status', { page_title: "ThingEngine - Status",
-                           csrfToken: req.csrfToken(),
-                           isRunning: EngineManager.get().isRunning(req.user.id) });
+    Q.nfcall(child_process.execFile, '/usr/bin/journalctl',
+             ['-n', '100', '-o', 'json', //'-u', 'thingengine-cloud',
+              'THINGENGINE_USER_ID=' + req.user.id],
+             { killSignal: 'SIGINT' })
+        .spread(function(stdout, stderr) {
+            return stdout.trim().split('\n').map(JSON.parse);
+        }).catch(function(e) {
+            console.log(e.stack);
+            return [];
+        }).then(function(lines) {
+            res.render('status', { page_title: "ThingEngine - Status",
+                                   csrfToken: req.csrfToken(),
+                                   log: lines,
+                                   isRunning: EngineManager.get().isRunning(req.user.id) });
+        }).done();
 });
 
 router.post('/kill', user.requireLogIn, function(req, res) {
