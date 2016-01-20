@@ -23,7 +23,7 @@ const BuiltinOwner = {
     'input': 'thingengine-app',
     'return': 'thingengine-app',
     'notify': 'thingengine-app',
-    'logger': 'thingengine-own-server'
+    'logger': 'thingengine-own-cloud'
 };
 
 // A app, wrapped as a device to appease DeviceView
