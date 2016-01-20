@@ -27,7 +27,7 @@ block content
   - var previous = undefined;
   div.log-view
     each l in log
-      if l.THINGENGINE_PID !== previous
+      if l.THINGENGINE_PID !== previous && previous !== undefined
         p #{(new Date(l._SOURCE_REALTIME_TIMESTAMP/1000)).toLocaleString()}: 
           strong *** Restarted ***
         - previous = l.THINGENGINE_PID

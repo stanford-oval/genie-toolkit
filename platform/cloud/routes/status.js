@@ -22,7 +22,7 @@ var router = express.Router();
 
 router.get('/', user.redirectLogIn, function(req, res, next) {
     Q.nfcall(child_process.execFile, '/usr/bin/journalctl',
-             ['-n', '100', '-o', 'json', //'-u', 'thingengine-cloud',
+             ['-n', '100', '-o', 'json', '-u', 'thingengine-cloud',
               'THINGENGINE_USER_ID=' + req.user.id],
              { killSignal: 'SIGINT' })
         .spread(function(stdout, stderr) {
