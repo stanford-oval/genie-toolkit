@@ -12,11 +12,19 @@ const ModuleDownloader = require('./downloader');
 
 module.exports = new lang.Class({
     Name: 'DeviceFactory',
-    $rpcMethods: ['runOAuth2'],
+    $rpcMethods: ['runOAuth2', 'getCachedModules'],
 
     _init: function(engine) {
         this._engine = engine;
         this._downloader = new ModuleDownloader();
+    },
+
+    getCachedModules: function() {
+        return this._downloader.getCachedMetas();
+    },
+
+    updateFactory: function(kind) {
+        return this._downloader.updateModule(kind);
     },
 
     getSubmodule: function(kind, subkind) {

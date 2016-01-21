@@ -46,11 +46,12 @@ module.exports = new lang.Class({
     Name: 'ChannelFactory',
     $rpcMethods: [],
 
-    _init: function(engine, tiers, deviceFactory) {
+    _init: function(engine, tiers, devices) {
         this._engine = engine;
         this._cachedChannels = {};
 
-        this._deviceFactory = deviceFactory;
+        this._devices = devices;
+        this._deviceFactory = devices.factory;
         this._tierManager = tiers;
         this._proxyManager = new ProxyManager(tiers, this, engine.devices, engine.messaging);
         this._pipeManager = new PipeManager(tiers, this._proxyManager);
@@ -58,11 +59,22 @@ module.exports = new lang.Class({
         this._prefs = new prefs.FilePreferences(platform.getWritableDir() + '/channels.db');
     },
 
+    _onDeviceRemoved: function(device) {
+        var prefix = device.uniqueId + '-';
+        for (var key in this._cachedChannels) {
+            if (key.startsWith(prefix))
+                delete this._cachedChannels[key];
+        }
+    },
+
     start: function() {
+        this._deviceRemovedListener = this._onDeviceRemoved.bind(this);
+        this._devices.on('device-removed', this._deviceRemovedListener);
         return Q();
     },
 
     stop: function() {
+        this._devices.removeListener('device-removed', this._deviceRemovedListener);
         return Q();
     },
 

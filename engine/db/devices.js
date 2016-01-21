@@ -91,7 +91,8 @@ module.exports = new lang.Class({
     Name: 'DeviceDatabase',
     Extends: events.EventEmitter,
     $rpcMethods: ['loadOneDevice', 'getAllDevices', 'getAllDevicesOfKind',
-                  'hasDevice', 'getDevice', 'removeDevice', 'get factory'],
+                  'hasDevice', 'getDevice', 'removeDevice', 'get factory',
+                  'reloadDevice', 'updateDevicesOfKind'],
 
     _init: function(tierManager, deviceFactory) {
         events.EventEmitter.call(this);
@@ -274,11 +275,15 @@ module.exports = new lang.Class({
         return this._addDeviceInternal(device, undefined, true);
     },
 
-    removeDevice: function(device) {
+    _removeDeviceFromCache: function(device) {
         delete this._devices[device.uniqueId];
         device.descriptors.forEach(function(descriptor) {
             delete this._byDescriptor[descriptor];
         }, this);
+    },
+
+    removeDevice: function(device) {
+        this._removeDeviceInternal(device);
         if (device.isTransient) {
             this._notifyDeviceRemoved(device);
         } else {
@@ -294,5 +299,26 @@ module.exports = new lang.Class({
 
     getDevice: function(uniqueId) {
         return this._devices[uniqueId];
-    }
+    },
+
+    reloadDevice: function(device) {
+        var state = device.serialize();
+
+        this._removeDeviceFromCache(device);
+        this._notifyDeviceRemoved(device);
+
+        return Q.delay(0).then(function() {
+            return this.loadOneDevice(state, false);
+        }.bind(this));
+    },
+
+    updateDevicesOfKind: function(kind) {
+        return this.factory.updateFactory(kind).then(function() {
+            var devices = this.getAllDevicesOfKind(kind);
+
+            return Q.all(devices.map(function(d) {
+                return this.reloadDevice(d);
+            }, this));
+        }.bind(this));
+    },
 });

@@ -27,7 +27,7 @@ router.get('/', user.redirectLogIn, function(req, res) {
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
-    });
+    }).done();
 });
 
 router.get('/omlet', user.redirectLogIn, function(req, res) {
@@ -55,9 +55,7 @@ router.get('/enable', user.redirectLogIn, function(req, res) {
     }).then(function() {
         res.redirect('/assistant');
     }).catch(function(e) {
-        console.log(e);
-        console.log(e.stack);
-        res.status(500).render('error', { page_title: "ThingEngine - Error",
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
     }).done();
 });

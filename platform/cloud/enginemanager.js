@@ -220,7 +220,7 @@ const EngineManager = new lang.Class({
     getEngine: function(userId) {
         var process = this._runningProcesses[userId];
         if (process === undefined)
-            throw new Error(userId + ' is not running');
+            return Q.reject(new Error(userId + ' is not running'));
 
         return process.engine;
     },

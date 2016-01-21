@@ -35,6 +35,9 @@ function appsList(req, res, next, message) {
                                   message: message,
                                   csrfToken: req.csrfToken(),
                                   apps: appinfo });
+    }).catch(function(e) {
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
     }).done();
 }
 
@@ -91,7 +94,10 @@ function appsCreate(error, req, res) {
 }
 
 router.get('/create', user.redirectLogIn, function(req, res, next) {
-    appsCreate(undefined, req, res).done();
+    appsCreate(undefined, req, res).catch(function(e) {
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }).done();
 });
 
 router.post('/create', user.requireLogIn, function(req, res, next) {
@@ -127,8 +133,6 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
     }).then(function() {
         appsList(req, res, next, "Application successfully created");
     }).catch(function(e) {
-        console.log(e);
-        console.log(e.stack);
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
     }).done();

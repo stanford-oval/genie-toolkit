@@ -24,6 +24,21 @@ function safeMkdir(dir) {
     }
 }
 
+function clearRequireCache(mainModule) {
+    try {
+        var fileName = require.resolve(mainModule);
+        console.log(mainModule + ' was cached as ' + fileName);
+
+        delete require.cache[fileName];
+
+        var prefix = path.dirname(fileName) + '/';
+        for (var key in require.cache) {
+            if (key.startsWith(prefix))
+                delete require.cache[key];
+        }
+    } catch(e) {}
+}
+
 module.exports = new lang.Class({
     Name: 'ModuleDownloader',
 
@@ -47,6 +62,55 @@ module.exports = new lang.Class({
             if (e.code !== 'EEXIST')
                 throw e;
         }
+    },
+
+    getCachedMetas: function() {
+        return Q.nfcall(fs.readdir, this._cacheDir).then(function(files) {
+            return Q.all(files.map(function(name) {
+                return Q.try(function() {
+                    if (name === 'node_modules')
+                        return null;
+                    var file = path.resolve(this._cacheDir, name);
+                    if (name.endsWith('.json')) {
+                        return Q.nfcall(fs.readFile, file).then(function(buffer) {
+                            var json = JSON.parse(buffer.toString());
+
+                            return ({ name: name.substr(0, name.length-5),
+                                      version: json.version,
+                                      generic: true });
+                        });
+                    } else {
+                        return Q.nfcall(fs.readFile, path.resolve(file, 'package.json')).then(function(buffer) {
+                            var json = JSON.parse(buffer.toString());
+
+                            return ({ name: name,
+                                      version: json['thingpedia-version'],
+                                      generic: false });
+                        });
+                    }
+                }.bind(this)).catch(function(e) {
+                    return ({ name: name,
+                              version: 'Error: ' + e.message,
+                              generic: false });
+                });
+            }, this));
+        }.bind(this)).then(function(objs) {
+            return objs.filter(function(o) { return o !== null; });
+        });
+    },
+
+    updateModule: function(id) {
+        delete this._moduleRequests[id];
+        clearRequireCache('../device-classes/' + id);
+        return this._getModuleRequest(id, id).then(function(module) {
+            if (!module.isGeneric) {
+                var prefix = id + '/';
+                for (var key in this._cachedModules) {
+                    if (key.startsWith(prefix))
+                        delete this._cachedModules[key];
+                }
+            }
+        }.bind(this));
     },
 
     _getModuleFull: function(id, subId) {
@@ -75,6 +139,7 @@ module.exports = new lang.Class({
     _createModuleFromBuiltin: function(fullId) {
         try {
             this._cachedModules[fullId] = require('../device-classes/' + fullId);
+            this._cachedModules[fullId].isGeneric = false;
             console.log('Module ' + fullId + ' loaded as builtin');
             return this._cachedModules[fullId];
         } catch(e) {
@@ -90,6 +155,7 @@ module.exports = new lang.Class({
 
             console.log('Module ' + fullId + ' loaded as builtin code');
             this._cachedModules[id] = GenericDeviceFactory(id, code);
+            this._cachedModules[id].isGeneric = true;
             if (fullId === id)
                 return this._cachedModules[id];
             else
@@ -105,6 +171,7 @@ module.exports = new lang.Class({
         try {
             var module = path.resolve(process.cwd(), this._cacheDir + '/' + fullId);
             this._cachedModules[fullId] = require(module);
+            this._cachedModules[fullId].isGeneric = false;
             console.log('Module ' + fullId + ' loaded as cached');
             return this._cachedModules[fullId];
         } catch(e) {
@@ -117,6 +184,7 @@ module.exports = new lang.Class({
             var code = fs.readFileSync(this._cacheDir + '/' + id + '.json').toString('utf8');
             console.log('Module ' + fullId + ' loaded as cached code');
             this._cachedModules[id] = GenericDeviceFactory(id, code);
+            this._cachedModules[id].isGeneric = true;
             if (fullId === id)
                 return this._cachedModules[id];
             else
@@ -200,7 +268,7 @@ module.exports = new lang.Class({
         if (module)
             return Q(module);
         if (!platform.hasCapability('code-download'))
-            throw new Error('Code download is not allowed on this platform');
+            return Q.reject(new Error('Code download is not allowed on this platform'));
 
         return this._getModuleRequest(fullId, id);
     },

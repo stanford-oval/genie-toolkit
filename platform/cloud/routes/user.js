@@ -166,7 +166,10 @@ function getProfile(req, res, error) {
                                      error: error,
                                      server: server,
                                      phone: phone });
-    });
+    }).catch(function(e) {
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }).done();
 }
 
 router.get('/profile', user.redirectLogIn, function(req, res, next) {

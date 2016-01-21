@@ -22,6 +22,30 @@ block content
       input(type='hidden',name='_csrf',value=csrfToken)
       button(type='submit').btn.btn-danger Start
 
+  h2 Cached Modules
+
+  table.table#cached-module-table
+    thead
+      tr
+        th Name
+        th Version
+        th Generic?
+        th Actions
+    tbody
+      each m in modules
+        tr
+          td= m.name
+          td= m.version
+          td
+            if m.generic
+              | Yes
+            else
+              | No
+          td
+            form(action='/status/update-module/' + m.name, method='post')
+              input(type='hidden',name='_csrf',value=csrfToken)
+              button(type='submit').btn.btn-default Update
+
   h2 Logs
 
   - var previous = undefined;

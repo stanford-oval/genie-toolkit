@@ -174,7 +174,6 @@ router.get('/oauth2/:kind', user.redirectLogIn, function(req, res, next) {
             res.redirect('/devices?class=online');
         }
     }).catch(function(e) {
-        console.log(e.stack);
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
     }).done();
@@ -205,7 +204,6 @@ router.get('/oauth2/callback/:kind', user.redirectLogIn, function(req, res, next
             res.redirect('/devices?class=online');
         }
     }).catch(function(e) {
-        console.log(e.stack);
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
     }).done();
