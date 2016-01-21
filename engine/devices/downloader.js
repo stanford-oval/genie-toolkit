@@ -137,32 +137,18 @@ module.exports = new lang.Class({
     },
 
     _createModuleFromBuiltin: function(fullId) {
+        var builtinId;
+        if (fullId.startsWith('org.thingpedia.builtin.'))
+            builtinId = fullId.substr('org.thingpedia.builtin.'.length);
+        else
+            builtinId = fullId; // we should reject it right away but we keep it for compat
+
         try {
-            this._cachedModules[fullId] = require('../device-classes/' + fullId);
+            this._cachedModules[fullId] = require('../device-classes/' + builtinId);
             this._cachedModules[fullId].isGeneric = false;
             console.log('Module ' + fullId + ' loaded as builtin');
             return this._cachedModules[fullId];
         } catch(e) {
-            return null;
-        }
-    },
-
-    _createModuleFromBuiltinCode: function(fullId, id) {
-        try {
-            var fullPath = path.resolve(path.dirname(module.filename),
-                                        '../device-classes/' + id + '.json');
-            var code = fs.readFileSync(fullPath).toString('utf8');
-
-            console.log('Module ' + fullId + ' loaded as builtin code');
-            this._cachedModules[id] = GenericDeviceFactory(id, code);
-            this._cachedModules[id].isGeneric = true;
-            if (fullId === id)
-                return this._cachedModules[id];
-            else
-                return this._cachedModules[id].getSubmodule(fullId.substr(id.length + 1));
-        } catch(e) {
-            if (e.code != 'ENOENT')
-                throw e;
             return null;
         }
     },
@@ -255,9 +241,6 @@ module.exports = new lang.Class({
     _createModule: function(fullId, id) {
         console.log('Loading device module ' + fullId);
 
-        var module = this._createModuleFromBuiltinCode(fullId, id);
-        if (module)
-            return Q(module);
         module = this._createModuleFromBuiltin(fullId);
         if (module)
             return Q(module);
