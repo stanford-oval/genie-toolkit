@@ -33,8 +33,8 @@ function rot13(x) {
 }
 
 // XOR these comments for testing
-var THINGENGINE_ORIGIN = 'http://127.0.0.1:8080';
-//var THINGENGINE_ORIGIN = 'https://thingengine.stanford.edu';
+//var THINGENGINE_CLOUD_ORIGIN = 'http://127.0.0.1:8080';
+var THINGENGINE_CLOUD_ORIGIN = 'https://thingengine.stanford.edu';
 // not this one though
 var THINGENGINE_LOCAL_ORIGIN = 'http://127.0.0.1:3000';
 
