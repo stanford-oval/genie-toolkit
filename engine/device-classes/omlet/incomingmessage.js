@@ -11,7 +11,7 @@ const Tp = require('thingpedia');
 const InMessageChannel = require('./inmessage');
 
 module.exports = new Tp.ChannelClass({
-    Name: 'NewMessageChannel',
+    Name: 'IncomingMessageChannel',
     Extends: InMessageChannel,
-    signal: 'new-message',
+    signal: 'incoming-message',
 });
