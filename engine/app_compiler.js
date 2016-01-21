@@ -323,10 +323,11 @@ const UnaryOps = {
 
 const Functions = {
     'regex': {
-        argtypes: [Type.String, Type.String],
+        argtypes: [Type.String, Type.String, Type.String],
+        minArgs: 2,
         rettype: Type.Boolean,
-        op: function(a, b) {
-            return (new RegExp(b)).test(a);
+        op: function(a, b, c) {
+            return (new RegExp(b, c)).test(a);
         }
     },
     'contains': {
@@ -672,7 +673,12 @@ module.exports = new lang.Class({
     compileFunctionCall: function(name, argsast, scope) {
         if (name in Functions) {
             var func = Functions[name];
-            if (argsast.length !== func.argtypes.length)
+            var maxArgs = func.argtypes.length;
+            if ('minArgs' in func)
+                var minArgs = func.minArgs;
+            else
+                var minArgs = maxArgs;
+            if (argsast.length < minArgs || argsast.length > maxArgs)
                 throw new TypeError("Function " + func + " does not accept " +
                                     argsast.length + " arguments");
             var argsexp = argsast.map(function(arg) {

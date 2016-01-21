@@ -42,7 +42,7 @@ const Engine = new lang.Class({
         this._ui = new UIManager(this);
         this._assistant = new AssistantManager(this._apps, this._devices,
                                                this._messaging, this._keywords,
-                                               this._ui);
+                                               this._ui, this._channels);
 
         // in loading order
         this._modules = [this._tiers,

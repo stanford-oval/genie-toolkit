@@ -446,7 +446,6 @@ const Dialog = new lang.Class({
 
     fail: function() {
         this.reply("Sorry, I did not understand that. Can you rephrase it?");
-        console.log((new Error()).stack);
         return true;
     },
 
@@ -492,7 +491,7 @@ const DefaultDialog = new lang.Class({
         else if (command[0].category === Words.OTHER_NOUN)
             return true; // ??? do something
         else
-            return this.fail();
+            return false;
     }
 });
 
@@ -1475,12 +1474,13 @@ module.exports = new lang.Class({
     Name: 'AssistantManager',
     $rpcMethods: ['handleCommand', 'setReceiver'],
 
-    _init: function(apps, devices, messaging, keywords, ui) {
+    _init: function(apps, devices, messaging, keywords, ui, channels) {
         this.apps = apps;
         this.devices = devices;
         this.messaging = messaging;
         this.keywords = keywords;
         this.ui = ui;
+        this.channels = channels;
 
         this._receiver = null;
         this._nlp = new NLP();
@@ -1491,11 +1491,19 @@ module.exports = new lang.Class({
         this._notify = null;
         this._notifyListener = this._onNotify.bind(this);
         this._notifyQueue = [];
+
+        this._incoming = null;
+        this._outgoing = null;
+        this._outgoingListener = this._onOutgoing.bind(this);
     },
 
     _onNotify: function(data) {
         if (!this._dialog.notify(data[0], data[1]))
             this._notifyQueue.push(data);
+    },
+
+    _onOutgoing: function(data) {
+        this.sendReply(data[0]);
     },
 
     _flushNotify: function() {
@@ -1522,12 +1530,19 @@ module.exports = new lang.Class({
     },
 
     stop: function() {
+        var promises = [];
         if (this._notify) {
             this._notify.removeListener('data', this._notifyListener);
-            return this._notify.close();
-        } else {
-            return Q();
+            promises.push(this._notify.close());
         }
+        if (this._outgoing) {
+            this._outgoing.removeListener('data', this._outgoingListener);
+            promises.push(this._outgoing.close());
+        }
+        if (this._incoming)
+            promises.push(this._incoming.close());
+
+        return Q.all(promises);
     },
 
     setReceiver: function(receiver) {
@@ -1544,20 +1559,32 @@ module.exports = new lang.Class({
         this._initialized = true;
         this.setDialog(new InitializationDialog());
 
-        return this.ui.getAllNotify().then(function(channel) {
-            this._notify = channel;
-            channel.on('data', this._notifyListener);
-        }.bind(this));
+        return Q.all([this.ui.getAllNotify(),
+                      this.channels.getNamedPipe('sabrina-incoming-messages', 'w'),
+                      this.channels.getNamedPipe('sabrina-outgoing-messages', 'r')])
+            .spread(function(notify, incoming, outgoing) {
+                this._notify = notify;
+                this._incoming = incoming;
+                this._outgoing = outgoing;
+                notify.on('data', this._notifyListener);
+                outgoing.on('data', this._outgoingListener);
+            }.bind(this));
     },
 
     handleCommand: function(command) {
         console.log('Received Assistant command ' + command);
 
+        this._incoming.sendEvent([command]);
+
         try {
+            var handled;
             if (this._raw)
-                this._dialog.handleRaw(command);
+                handled = this._dialog.handleRaw(command);
             else
-                this._dialog.handle(this._nlp.analyze(command));
+                handled = this._dialog.handle(this._nlp.analyze(command));
+
+            if (!handled && !this._incoming.hasSources())
+                this._dialog.fail();
         } catch(e) {
             console.log(e.stack);
             this._dialog.failReset();

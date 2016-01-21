@@ -231,6 +231,11 @@ module.exports = new lang.Class({
             return this._addCloudToDB();
     },
 
+    _addSabrinaToDB: function() {
+        return this._devices.loadOneDevice({ kind: 'sabrina',
+                                             own: true });
+    },
+
     start: function() {
         // Start watching for changes to the device database
         this._listener = this._onDeviceAdded.bind(this);
@@ -253,6 +258,12 @@ module.exports = new lang.Class({
             // Make sure that whatever we're running on is in the db
             if (!this._devices.hasDevice('thingengine-own-' + this._tierManager.ownTier))
                 return this._addSelfToDB();
+            else
+                return Q();
+        }.bind(this)).then(function() {
+            if (!this._devices.hasDevice('thingengine-own-sabrina') &&
+                this._tierManager.ownTier === Tier.CLOUD)
+                return this._addSabrinaToDB();
             else
                 return Q();
         }.bind(this));

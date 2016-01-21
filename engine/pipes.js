@@ -48,6 +48,10 @@ const PipeSinkChannel = new lang.Class({
         });
     },
 
+    hasSources: function() {
+        return this._sources.length > 0;
+    },
+
     sendEvent: function(event) {
         setTimeout(function() {
             this._sources.forEach(function(source) {
