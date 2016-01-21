@@ -322,6 +322,13 @@ const UnaryOps = {
 };
 
 const Functions = {
+    'regex': {
+        argtypes: [Type.String, Type.String],
+        rettype: Type.Boolean,
+        op: function(a, b) {
+            return (new RegExp(b)).test(a);
+        }
+    },
     'contains': {
         argtypes: [Type.Array(Type.Any), Type.Any],
         rettype: Type.Boolean,
