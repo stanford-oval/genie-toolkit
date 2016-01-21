@@ -48,6 +48,7 @@ module.exports = function(kind, code) {
         _init: function(engine, state) {
             this.parent(engine, state);
 
+            this.globalName = ast['global-name'];
             this.uniqueId = undefined; // let DeviceDatabase pick something
 
             var params = Object.keys(ast.params);

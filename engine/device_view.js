@@ -54,7 +54,8 @@ const DeviceView = new lang.Class({
                     return device.state[a.name] === a.value.value;
             });
         } else if (selector.isGlobalName) {
-            return device.kind === selector.name;
+            return device.kind === selector.name ||
+                device.globalName === selector.name;
         } else if (selector.isId) {
             return device.uniqueId === selector.name;
         } else {
