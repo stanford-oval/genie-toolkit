@@ -46,7 +46,9 @@ function appsCreate(error, req, res) {
     return EngineManager.get().getEngine(req.user.id).then(function(engine) {
         return engine.messaging.getFeedMetas().then(function(feeds) {
             return feeds.filter(function(f) {
-                return f.hasWriteAccess && f.kind === null;
+                // HACK: omlet sometime will forget the hasWriteAccess field
+                // treat undefined same as true in that case
+                return f.hasWriteAccess !== false && f.kind === null;
             });
         }).tap(function(feeds) {
             return Q.all(feeds.map(function(f) {
@@ -190,7 +192,7 @@ router.post('/:id/update', user.requireLogIn, function(req, res, next) {
         return Q.all([app.name, app.description, app.currentTier])
             .spread(function(name, description, currentTier) {
                 var code = req.body.code;
-                var state, tier;
+                var state;
                 try {
                     // sanity check the app
                     var parsed = AppGrammar.parse(code);
@@ -198,10 +200,6 @@ router.post('/:id/update', user.requireLogIn, function(req, res, next) {
                     compiler.compileProgram(parsed);
 
                     state = JSON.parse(req.body.params);
-
-                    tier = req.body.tier;
-                    if (tier !== 'server' && tier !== 'cloud' && tier !== 'phone')
-                        throw new Error('No such tier ' + tier);
                 } catch(e) {
                     res.render('show_app', { page_title: 'ThingEngine App',
                                              name: name,
