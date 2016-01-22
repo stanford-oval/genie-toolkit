@@ -177,6 +177,7 @@ module.exports = new Tp.DeviceClass({
         this.parent(engine, state);
 
         this._updateNameAndDescription();
+        this.globalName = 'omlet';
         this.uniqueId = 'omlet-' + this.omletInstance;
 
         this._omletStorage = null;
