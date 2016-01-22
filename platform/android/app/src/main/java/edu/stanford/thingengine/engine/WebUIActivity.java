@@ -7,7 +7,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.net.http.SslError;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -17,7 +16,6 @@ import android.view.MenuItem;
 import android.webkit.HttpAuthHandler;
 import android.webkit.JavascriptInterface;
 import android.webkit.JsResult;
-import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 
 import org.json.JSONException;
@@ -118,14 +116,6 @@ public class WebUIActivity extends Activity {
             */
             // allow everything so we can run oauth2 properly
             return false;
-        }
-
-        @Override
-        public void onReceivedSslError(WebView view, @NonNull SslErrorHandler handler, SslError error) {
-            if (Uri.parse(error.getUrl()).getAuthority().equals("thingengine.stanford.edu"))
-                handler.proceed();
-            else
-                handler.cancel();
         }
     }
 

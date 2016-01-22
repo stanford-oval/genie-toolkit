@@ -153,7 +153,7 @@ module.exports = new lang.Class({
         }
     },
 
-    _createModuleFromCache: function(fullId) {
+    _createModuleFromCache: function(fullId, silent) {
         try {
             var module = path.resolve(process.cwd(), this._cacheDir + '/' + fullId);
             this._cachedModules[fullId] = require(module);
@@ -161,6 +161,8 @@ module.exports = new lang.Class({
             console.log('Module ' + fullId + ' loaded as cached');
             return this._cachedModules[fullId];
         } catch(e) {
+            if (!silent)
+                throw e;
             return null;
         }
     },
@@ -233,7 +235,7 @@ module.exports = new lang.Class({
                     fs.unlinkSync(zipPath);
                 });
             }.bind(this)).then(function() {
-                return this._createModuleFromCache(fullId);
+                return this._createModuleFromCache(fullId, false);
             }.bind(this));
         }.bind(this));
     },
@@ -247,7 +249,7 @@ module.exports = new lang.Class({
         module = this._createModuleFromCachedCode(fullId, id);
         if (module)
             return Q(module);
-        module = this._createModuleFromCache(fullId);
+        module = this._createModuleFromCache(fullId, true);
         if (module)
             return Q(module);
         if (!platform.hasCapability('code-download'))

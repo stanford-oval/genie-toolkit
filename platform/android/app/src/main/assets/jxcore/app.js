@@ -19,6 +19,8 @@ const Frontend = require('./frontend');
 const JavaAPI = require('./java_api');
 
 function runEngine() {
+    Q.longStackSupport = true;
+
     global.platform = require('./platform');
 
     platform.init().then(function() {

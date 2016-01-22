@@ -8,6 +8,7 @@
 
 // Set up a mock jxcore and run the app
 
+const path = require('path');
 const prefs = require('./jxcore/engine/prefs');
 
 global.JXMobile = function(name) {
@@ -43,6 +44,10 @@ JXMobile.GetEncoding = function(callback) {
 
 JXMobile.GetDocumentsPath = function(callback) {
     callback(null, process.cwd());
+};
+
+JXMobile.GetCachePath = function(callback) {
+    callback(null, path.resolve(process.cwd(), 'cache'));
 };
 
 JXMobile.GetSharedPreferences = function(callback) {

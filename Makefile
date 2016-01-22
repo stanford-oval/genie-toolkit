@@ -52,7 +52,7 @@ run-server: build-server
 
 run-android-mock: build-android-js
 	test -d home-android || mkdir home-android/
-	cd home-android/ ; ../platform/android/jxcore/jx ../platform/android/app/src/main/assets/jxcore_mock.js
+	cd home-android/ ; jx ../platform/android/app/src/main/assets/jxcore_mock.js
 
 clean:
 	make -C engine clean

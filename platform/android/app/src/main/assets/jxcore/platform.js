@@ -40,32 +40,43 @@ var _originalLStatSync = fs.lstatSync;
 var _virtualSymlinks = {};
 var _virtualSymlinksStat = {};
 fs.statSync = function(p) {
-    if (p === '/data/data/edu.stanford.thingengine.engine/cache/device-classes/base_device.js')
-        console.log('found', _virtualSymlinks[p]);
-    if (_virtualSymlinks.hasOwnProperty(p))
-        return fs.statSync(_virtualSymlinks[p]);
-    else
-        return _originalStatSync(p);
+    for (symlink in _virtualSymlinks) {
+        if (p.startsWith(symlink + '/')) {
+            var relative = p.substr(symlink.length);
+            console.log('found', _virtualSymlinks[symlink] + relative);
+            return fs.statSync(_virtualSymlinks[symlink] + relative);
+        }
+    }
+
+    return _originalStatSync(p);
 };
 fs.lstatSync = function(p) {
-    if (_virtualSymlinks.hasOwnProperty(p)) {
-        if (_virtualSymlinksStat.hasOwnProperty(p))
-            return _virtualSymlinksStat[p];
+    for (symlink in _virtualSymlinks) {
+        if (p === symlink) {
+            if (_virtualSymlinksStat.hasOwnProperty(p))
+                return _virtualSymlinksStat[p];
 
-        var stats = new fs.JXStats(0, 41471); // 0777 | S_IFLNK
-        stats.isSymbolicLink = function() {
-            return true;
+            var stats = new fs.JXStats(0, 41471); // 0777 | S_IFLNK
+            stats.isSymbolicLink = function() {
+                return true;
+            }
+            return _virtualSymlinksStat[p] = stats;
+        } else if (p.startsWith(symlink + '/')) {
+            return fs.statSync(p);
         }
-        return _virtualSymlinksStat[p] = stats;
-    } else {
-        return _originalLStatSync(p);
     }
+
+    return _originalLStatSync(p);
 };
-fs.realpathSync = function(_p, cache) {
-    if (_virtualSymlinks.hasOwnProperty(_p))
-        return _virtualSymlinks[_p];
-    else
-        return _originalRealpathSync(_p, cache);
+fs.realpathSync = function(p, cache) {
+    for (symlink in _virtualSymlinks) {
+        if (p.startsWith(symlink + '/')) {
+            var relative = p.substr(symlink.length);
+            return fs.realpathSync(_virtualSymlinks[symlink] + relative, cache);
+        }
+    }
+
+    return _originalRealpathSync(p, cache);
 };
 
 module.exports = {
