@@ -347,37 +347,37 @@ module.exports = function(kind, code) {
         if (engine.ownTier === 'cloud')
             origin = THINGENGINE_CLOUD_ORIGIN;
         else
-        origin = THINGENGINE_LOCAL_ORIGIN;
+            origin = THINGENGINE_LOCAL_ORIGIN;
         return Q.ninvoke(auth, 'getOAuthAccessToken', code, { grant_type: 'authorization_code',
                                                               redirect_uri: origin + '/devices/oauth2/callback/' + kind,
                                                         })
-        .then(function(result) {
-            var accessToken = result[0];
-            var refreshToken = result[1];
-            var response = result[2];
+            .then(function(result) {
+                var accessToken = result[0];
+                var refreshToken = result[1];
+                var response = result[2];
 
-            var obj = { kind: kind,
-                        accessToken: accessToken,
-                        refreshToken: refreshToken };
+                var obj = { kind: kind,
+                            accessToken: accessToken,
+                            refreshToken: refreshToken };
 
-            if (ast.auth.get_profile) {
-                return Q.ninvoke(auth, 'get', ast.auth.get_profile,
-                                 accessToken)
-                    .then(function(result) {
-                        var profile = result[0];
-                        var response = result[1];
-                        profile = JSON.parse(profile);
+                if (ast.auth.get_profile) {
+                    return Q.ninvoke(auth, 'get', ast.auth.get_profile,
+                                     accessToken)
+                        .then(function(result) {
+                            var profile = result[0];
+                            var response = result[1];
+                            profile = JSON.parse(profile);
 
-                        ast.auth.profile.forEach(function(p) {
-                            obj[p] = profile[p];
+                            ast.auth.profile.forEach(function(p) {
+                                obj[p] = profile[p];
+                            });
+
+                            return engine.devices.loadOneDevice(obj, true);
                         });
-
-                        return engine.devices.loadOneDevice(obj, true);
-                    });
-            } else {
-                return engine.devices.loadOneDevice(obj, true);
-            }
-        });
+                } else {
+                    return engine.devices.loadOneDevice(obj, true);
+                }
+            });
     }
 
     return {

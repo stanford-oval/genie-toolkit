@@ -283,7 +283,7 @@ module.exports = new lang.Class({
     },
 
     removeDevice: function(device) {
-        this._removeDeviceInternal(device);
+        this._removeDeviceFromCache(device);
         if (device.isTransient) {
             this._notifyDeviceRemoved(device);
         } else {
