@@ -105,6 +105,8 @@ const SimpleObjectSet = new lang.Class({
         var promise = Q(o);
         this._promises.push(promise);
         return promise.then(function(o) {
+            if (o === null)
+                return;
             if (o.uniqueId in this._objects)
                 return;
             this._objects[o.uniqueId] = o;

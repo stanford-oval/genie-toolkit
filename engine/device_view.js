@@ -91,7 +91,13 @@ const DeviceView = new lang.Class({
             // this is the last step in the traversal
             // try to open the device
 
-            return this._set.addOne(device.getChannel(this.channelName, this.params));
+            return this._set.addOne(device.getChannel(this.channelName, this.params)
+                                    .catch(function(e) {
+                                        console.error('Failed to get channel ' + this.channelName +
+                                                      ' in device ' + device.uniqueId + ': ' + e.message);
+                                        console.error(e.stack);
+                                        return null;
+                                    }.bind(this)));
         } else {
             // we need to traverse the device
             console.log('Namespace device ' + device.uniqueId + ' matches ' + this.selectors);
@@ -119,7 +125,9 @@ const DeviceView = new lang.Class({
     _onDeviceRemoved: function(device) {
         this._subviews = this._subviews.filter(function(subview) {
             if (subview.device === device) {
-                subview.stop().done();
+                subview.stop().catch(function(e) {
+                    console.error('Failed to stop subview for device ' + device.uniqueId + ': ' + e.message);
+                }).done();
                 return false;
             } else {
                 return true;
@@ -134,7 +142,9 @@ const DeviceView = new lang.Class({
             return Q.all(removed.map(function(ch) {
                 return ch.close();
             }));
-        }.bind(this)).done();
+        }.bind(this)).catch(function(e) {
+            console.error('Failed to close channels for device ' + device.uniqueId + ': ' + e.message);
+        }).done();
     },
 
     _openChannels: function() {
@@ -152,7 +162,9 @@ const DeviceView = new lang.Class({
 
     _closeChannels: function() {
         this._subviews.forEach(function(subview) {
-            subview.stop().done();
+            subview.stop().catch(function(e) {
+                console.error('Failed to stop subview for device ' + subview.device.uniqueId + ': ' + e.message);
+            }).done();
         });
 
         return this._set.promise().then(function() {
