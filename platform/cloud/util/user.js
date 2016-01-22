@@ -65,7 +65,7 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
                     return EngineManager.get().startUser(user).then(function() {
                         // asynchronously inject google-account device
                         EngineManager.get().getEngine(user.id).then(function(engine) {
-                            return engine.devices.loadOneDevice({ kind: 'google-account',
+                            return engine.devices.loadOneDevice({ kind: 'com.google',
                                                                   profileId: profile.id,
                                                                   accessToken: accessToken,
                                                                   refreshToken: refreshToken }, true);
@@ -84,7 +84,7 @@ function associateGoogle(user, accessToken, refreshToken, profile, done) {
             .then(function() {
                 // asynchronously inject google-account device
                 EngineManager.get().getEngine(user.id).then(function(engine) {
-                    return engine.devices.loadOneDevice({ kind: 'google-account',
+                    return engine.devices.loadOneDevice({ kind: 'com.google',
                                                           profileId: profile.id,
                                                           accessToken: accessToken,
                                                           refreshToken: refreshToken }, true);
@@ -111,7 +111,7 @@ function authenticateFacebook(accessToken, refreshToken, profile, done) {
                     return EngineManager.get().startUser(user).then(function() {
                         // asynchronously inject facebook device
                         EngineManager.get().getEngine(user.id).then(function(engine) {
-                            return engine.devices.loadOneDevice({ kind: 'facebook',
+                            return engine.devices.loadOneDevice({ kind: 'com.facebook',
                                                                   profileId: profile.id,
                                                                   accessToken: accessToken,
                                                                   refreshToken: refreshToken }, true);
@@ -130,7 +130,7 @@ function associateFacebook(user, accessToken, refreshToken, profile, done) {
             .then(function() {
                 // asynchronously inject facebook device
                 EngineManager.get().getEngine(user.id).then(function(engine) {
-                    return engine.devices.loadOneDevice({ kind: 'facebook',
+                    return engine.devices.loadOneDevice({ kind: 'com.facebook',
                                                           profileId: profile.id,
                                                           accessToken: accessToken,
                                                           refreshToken: refreshToken }, true);
