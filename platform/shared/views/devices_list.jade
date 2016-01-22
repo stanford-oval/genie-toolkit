@@ -54,8 +54,9 @@ block content
                   button(type='submit').btn.btn-danger.btn-sm.btn-block Delete
 
   div.row
-    div.col-sm-4.col-md-2
-      if onlineAccounts
+    if onlineAccounts
+      div.col-sm-4.col-md-2
         a(href='/devices/create?class=online', role='button').btn.btn-primary.btn-block Add new account
-      else
+    else
+      div.col-sm-4.col-md-3
         a(href='/devices/create?class=physical', role='button').btn.btn-primary.btn-block Configure new device
