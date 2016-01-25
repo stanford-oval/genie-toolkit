@@ -60,7 +60,8 @@ Frontend.prototype._init = function _init() {
                             saveUninitialized: false,
                             secret: secretKey.getSecretKey(this._app) }));
     this._app.use(connect_flash());
-    this._app.use(express.static(path.join(__dirname, 'public')));
+    this._app.use(express.static(path.join(__dirname, 'public'),
+                                 { maxAge: 86400000 }));
 
     // development only
     if ('development' == this._app.get('env')) {

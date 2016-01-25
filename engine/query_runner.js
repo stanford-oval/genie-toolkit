@@ -79,8 +79,8 @@ module.exports = new lang.Class({
                 this.emit('triggered', this._env);
             }.bind(this));
         } catch(e) {
-            console.log('Error during query run: ' + e.message);
-            console.log(e.stack);
+            console.error('Error during query run: ' + e.message);
+            console.error(e.stack);
         }
     },
 
@@ -178,7 +178,10 @@ module.exports = new lang.Class({
                     k.on('changed', this._keywordChangedListener);
                 }, this);
             }
-        }.bind(this)).then(function() {
+        }.bind(this)).catch(function(e) {
+            console.error('Error while setting up query: ' + e.message);
+            console.error(e.stack);
+        }).then(function() {
             this._ready = true;
             this._onInitialSample();
             this.emit('ready');

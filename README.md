@@ -9,7 +9,7 @@ ThingEngine comes in three form:
 
 - As a phone app, for Android
 - As an installable app for a home server
-- As a web service hosted at https://thingengine.stanford.edu
+- As a web service hosted at <https://thingengine.stanford.edu>
 
 Additionally the system is able to synchronize the three installations that belong
 to the same user, so that each app can run on the form most suited to it, in a manner
@@ -21,4 +21,5 @@ And it's free software, released under the GPLv2 or later, to help build
 a community of developers and users around it.
 
 ThingEngine is part of ThingPedia, a research project led by prof. Monica Lam, from Stanford University.
-You can find more information at http://thingpedia.stanford.edu.
+You can find more information at <http://www.thingpedia.org>, and you
+can find user documentation [here](/doc/main.md)
