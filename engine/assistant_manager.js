@@ -1574,8 +1574,6 @@ module.exports = new lang.Class({
     handleCommand: function(command) {
         console.log('Received Assistant command ' + command);
 
-        this._incoming.sendEvent([command]);
-
         try {
             var handled;
             if (this._raw)
@@ -1583,8 +1581,12 @@ module.exports = new lang.Class({
             else
                 handled = this._dialog.handle(this._nlp.analyze(command));
 
-            if (!handled && !this._incoming.hasSources())
-                this._dialog.fail();
+            if (!handled) {
+                if (!this._incoming.hasSources())
+                    this._dialog.fail();
+                else
+                    this._incoming.sendEvent([command]);
+            }
         } catch(e) {
             console.log(e.stack);
             this._dialog.failReset();
