@@ -36,7 +36,7 @@ stream containing the hashtag "sabrina".
 You probably already have an account at
 [ThingEngine Cloud](https://thingengine.stanford.edu), but if you did
 not, you should
-[register](https://thinengine.stanford.edu/user/register) and then
+[register](https://thingengine.stanford.edu/user/register) and then
 come back.
 
 ### Step 1: Getting Sabrina

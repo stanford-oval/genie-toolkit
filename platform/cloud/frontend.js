@@ -41,7 +41,7 @@ Frontend.prototype._init = function _init() {
     this._app.set('views', path.join(__dirname, 'views'));
     this._app.set('view engine', 'jade');
     this._app.enable('trust proxy');
-    //this._app.use(favicon());
+    this._app.use(favicon(__dirname + '/public/images/favicon.ico'));
 
     this._app.use(logger('dev'));
 
@@ -109,6 +109,7 @@ Frontend.prototype._init = function _init() {
     this._app.use('/assistant', require('./routes/assistant'));
     this._app.use('/admin', require('./routes/admin'));
     this._app.use('/status', require('./routes/status'));
+    this._app.use('/doc', require('./routes/doc'));
 
     this._websocketEndpoints = {};
 }

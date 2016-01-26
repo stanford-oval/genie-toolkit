@@ -1,0 +1,18 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/docs.css')
+
+block page_name
+  - index = true;
+  | Documentation
+
+block content
+  div.documentation
+    h1 ThingEngine Documentation Index
+
+    ul
+      li
+        a(href='/doc/getting-started.md') Getting Started
+      li
+        a(href='/doc/thingtalk.md') ThingTalk primer

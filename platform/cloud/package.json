@@ -37,6 +37,7 @@
     "passport-http-bearer": "~1.0.1",
     "passport-http": "~0.3.0",
     "passport-oauth2-client-password": "~0.1.2",
-    "journald": "0.0.5"
+    "journald": "0.0.5",
+    "markdown": "~0.5.0"
   }
 }
