@@ -1,5 +1,11 @@
 # Installing and running ThingEngine
 
+These installation instructions are for running your own ThingEngine.
+Most users will not want to follow these instruction, especially at their
+first encounter with ThingEngine. Instead, we recommend starting with
+an account at [ThingEngine Cloud](https://thingengine.stanford.edu), the
+free online version.
+
 ## Installing pre-built binaries
 
 Pre-built binaries are available for some of our supported platforms:
@@ -47,35 +53,66 @@ to make sure this user and group exists.
 
 ### Cloud platform
 
-The cloud platform must be installed in /opt/thingengine. It is safe to read-only bind
-mount your installation directory there, or just clone the git repository
-directly in there. A symlink will not suffice though, because the sandbox
-will not be able to resolve it.
+The cloud platform must be installed in /opt/thingengine. It is safe
+to read-only bind mount your installation directory there, or just
+clone the git repository directly in there. A symlink will not suffice
+though, because the sandbox will not be able to resolve it.
 
-To build the dependencies, from the top-level, run `make build-cloud`. You must
-have `sudo` configured to build the sandbox and make it setuid.
+To build the dependencies, from the top-level, run `make
+build-cloud`. You must have `sudo` configured to build the sandbox and
+make it setuid.
 
-You must also have a working MySQL database. Data definition SQL commands that
-must be run before the cloud platform is started are in /platform/cloud/model/schema.sql.
-By default, the server will connect to database thingengine on the localhost server
-with the user thingengine and password thingengine. You can change that by
-passing a _DATABASE_URL_ environment variable (in the form commonly provided by
-cloud hosting services such as Heroku).
+#### SQL setup
 
-The cloud platform will work from any current directory, and will not modify
-any file outside of it. You should run from an empty directory like `home-cloud`
-in the top-level.
+You must also have a working MySQL database. Data definition SQL
+commands that must be run before the cloud platform is started are in
+/platform/cloud/model/schema.sql.
 
-Working Debian initscripts and systemd unit files are provided in platform/cloud.
-The Debian initscript will run in /var/lib/thingengine-cloud, the systemd unit
-in /srv/thingengine. Both assume there exists a user called thingengine to
-run the service as - the service does not drop capabilities and should not be run
-as root.
+By default, the server will connect to database thingengine on the
+localhost server with the user thingengine and password
+thingengine. You can change that by passing a _DATABASE\_URL_
+environment variable (in the form commonly provided by cloud hosting
+services such as Heroku).
 
-You should set up a secret key (used for sessions) in the _SECRET_KEY_ environment
-variable before deploying for production.
+The SQL file containing the schema will also create the "root" user,
+with password "rootroot". This is initially the only system
+administrator (with the ability to kill and restart other users), and
+you should change its password immediately. Note that administrator
+accounts will also have engines, things and apps running in their
+name, just like regular accounts. There is no support yet for creating
+service accounts that only operate on the website.
 
-The server by default runs on port 8080. You can change it with the _PORT_ environment
-variable, but it is recommended instead to set up a forwarding proxy listening
-on ports 80 and 443, because the server will not do HTTPS natively. Example
-configuration for ngnix is in /platform/cloud/ngnix.conf.
+#### Deployment
+
+The cloud platform will work from any current directory, and will not
+modify any file outside of it. You should run from an empty directory
+like `home-cloud` in the top-level.
+
+Working Debian initscripts and systemd unit files are provided in
+platform/cloud.  The Debian initscript will run in
+/var/lib/thingengine-cloud, the systemd unit in /srv/thingengine. Both
+assume there exists a user called thingengine to run the service as -
+the service does not drop capabilities and should not be run as root.
+
+You should set up a secret key (used for sessions) in the
+_SECRET\_KEY_ environment variable before deploying for production.
+
+The server by default runs on port 8080. You can change it with the
+_PORT_ environment variable, but it is recommended instead to set up a
+forwarding proxy listening on ports 80 and 443, because the server
+will not do HTTPS natively. Example configuration for ngnix is in
+/platform/cloud/ngnix.conf.
+
+#### Setting up the virtual assistant
+
+If you want to offer virtual assistant services (like Sabrina is
+offered on the reference installation) to your users, you should first
+create a suitable Omlet account, that will appear as the account
+the user is interacting with.
+
+Then, while logged in as an administrator account, you would visit
+/assistant/setup. The page will redirect to Omlet to complete
+authentication: choose to authenticate yourself as the virtual
+assistant account. When successful, you will redirected back to
+an almost empty page that says Ok, and your users will be able
+to enable the assistant from their accounts.

@@ -80,7 +80,7 @@ This second condition uses `$regex(text, regexp, flags)`, a condition which is t
 matches the regular expression `regexp` (in [JavaScript syntax][JSRegExp]). So in this case
 Sabrina will reply "world" every time your message contains "hello" as a substring -
 including "hello", "hello Sabrina" but also "othello". If you want to match just "hello" as a
-word, you could instead use "\\shello\\s" or "\\bhello\\b" (note the double escaping of
+word, you could instead use "\\\\sshello\\\\s" or "\\\\bhello\\\\b" (note the double escaping of
 backlashes, which are special characters in strings). Again, look at JavaScript to find out
 what regular expressions are supported, as the well as what `flags` is for (in our case,
 it just tells the runtime to do case-insensitive matching, so that "Hello" and "hello" both
