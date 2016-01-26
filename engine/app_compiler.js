@@ -293,17 +293,17 @@ const BinaryOps = {
         reverse: '>=',
     },
     '=': {
-        types: [[Type.Any]],
+        types: [[Type.Any, Type.Any, Type.Any]],
         op: equalityTest,
         reverse: '=',
     },
     '!=': {
-        types: [[Type.Any]],
+        types: [[Type.Any, Type.Any, Type.Any]],
         op: function(a, b) { return !(equalityTest(a,b)); },
         reverse: '=',
     },
     '=~': {
-        types: [[Type.String]],
+        types: [[Type.String, Type.String, Type.String]],
         op: likeTest,
         reverse: null,
     }
@@ -322,14 +322,6 @@ const UnaryOps = {
 };
 
 const Functions = {
-    'regex': {
-        argtypes: [Type.String, Type.String, Type.String],
-        minArgs: 2,
-        rettype: Type.Boolean,
-        op: function(a, b, c) {
-            return (new RegExp(b, c)).test(a);
-        }
-    },
     'contains': {
         argtypes: [Type.Array(Type.Any), Type.Any],
         rettype: Type.Boolean,
@@ -670,8 +662,95 @@ module.exports = new lang.Class({
         }
     },
 
+    compileRegex: function(argsast, scope) {
+        if (argsast.length < 2) {
+            throw new TypeError("Function regex does not accept " +
+                                argsast.length + " arguments");
+        }
+
+        var argsexp = argsast.slice(0, 3).map(function(arg) {
+            return this.compileExpression(arg, scope);
+        }, this);
+        typeUnify(argsexp[0][0], Type.String);
+        typeUnify(argsexp[1][0], Type.String);
+        if (argsast.length >= 3)
+            typeUnify(argsexp[2][0], Type.String);
+        var strOp = argsexp[0][1];
+        var regexStrOp = argsexp[1][1];
+        var flagOp;
+        if (argsast.length >= 3)
+            flagOp = argsexp[2][1];
+        else
+            flagOp = function() { return undefined; };
+
+        var regexpOp;
+        if (argsast[1].isConstant &&
+            (argsast.length <= 2 || argsast[2].isConstant)) {
+            var regexp;
+            if (argsast.length >= 3)
+                regexp = new RegExp(argsexp[1][1](), argsexp[2][1]());
+            else
+                regexp = new RegExp(argsexp[1][1]());
+            regexpOp = function() {
+                return regexp;
+            }
+        } else {
+            regexpOp = function(env) {
+                return new RegExp(regexStrOp(env), flagOp(env));
+            }
+        }
+
+        if (argsast.length <= 3) {
+            return [Type.Boolean, function(env) {
+                var regex = regexpOp(env);
+                var str = strOp(env);
+                return regex.test(str);
+            }];
+        } else {
+            var bindersast = argsast.slice(3);
+            var binderops = new Array(bindersast.length);
+
+            for (var i = 0; i < bindersast.length; i++) {
+                var binder = bindersast[i];
+                if (binder.isVarRef && !(binder.name in scope)) {
+                    scope[binder.name] = Type.String;
+                    binderops[i] = function(env, group) {
+                        env.setVar(binder.name, group);
+                        return true;
+                    }
+                } else {
+                    var binderexp = this.compileExpression(binder, scope);
+                    typeUnify(binderexp[0], Type.String);
+                    var binderop = binderexp[1];
+                    binderops[i] = function(env, group) {
+                        return group === binderop(env);
+                    }
+                }
+            }
+
+            return [Type.Boolean, function(env) {
+                var regex = regexpOp(env);
+                var str = strOp(env);
+                var exec = regex.exec(str);
+                if (exec === null)
+                    return false;
+                for (var i = 0; i < binderops.length; i++) {
+                    var group = exec[i+1];
+                    if (!group)
+                        group = '';
+                    if (!binderops[i](env, group))
+                        return false;
+                }
+                return true;
+            }];
+        }
+    },
+
+
     compileFunctionCall: function(name, argsast, scope) {
-        if (name in Functions) {
+        if (name === 'regex') {
+            return this.compileRegex(argsast, scope);
+        } else if (name in Functions) {
             var func = Functions[name];
             var maxArgs = func.argtypes.length;
             if ('minArgs' in func)

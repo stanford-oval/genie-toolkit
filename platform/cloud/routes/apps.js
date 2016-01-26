@@ -124,14 +124,19 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
             if (tier !== 'server' && tier !== 'cloud' && tier !== 'phone')
                 throw new Error('No such tier ' + tier);
         } catch(e) {
-            return appsCreate(e.message, req, res);
+            return appsCreate(e.message, req, res).then(function() {
+                return false;
+            });
         }
 
         return EngineManager.get().getEngine(req.user.id).then(function(engine) {
             return engine.apps.loadOneApp(code, state, null, tier, true);
+        }).then(function() {
+            return true;
         });
-    }).then(function() {
-        appsList(req, res, next, "Application successfully created");
+    }).then(function(ok) {
+        if (ok)
+            appsList(req, res, next, "Application successfully created");
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });

@@ -77,10 +77,49 @@ matches the regular expression `regexp` (in [JavaScript syntax][JSRegExp]). So i
 Sabrina will reply "world" every time your message contains "hello" as a substring -
 including "hello", "hello Sabrina" but also "othello". If you want to match just "hello" as a
 word, you could instead use `"\\\\sshello\\\\s"` or `"\\\\bhello\\\\b"` (note the double escaping of
-backlashes, which are special characters in strings). Again, look at JavaScript to find out
+backlashes, which are special characters in strings <!-- and another level of escaping is
+due to Markdown -->). Again, look at JavaScript to find out
 what regular expressions are supported, as the well as what `flags` is for (in our case,
 it just tells the runtime to do case-insensitive matching, so that "Hello" and "hello" both
-work)
+work).
+
+### 3. Connecting Sources of Information
+
+Right now, the app listens to Sabrina, and speaks to Sabrina. This can be useful, but it's
+hardly interesting, and there are probably better ways to build a programmable virtual assistant
+that can talk back. Instead, the power of ThingTalk relies on the ability to connect to
+outside sources for knowledge.
+
+We [already saw](/doc/getting-started.md) how to get Sabrina to report all Tweets. Now let's
+see how we can make it more interactive. The goal is to be able to tell Sabrina to watch for
+a given hashtag, without changing the app or writing code.
+
+First of all, we need to know what hashtag the user is interested in. For example, we can
+tell the user to say "on hashtag" followed by the hashtag:
+
+    var HashTag : (String);
+    @sabrina.listen(text), $regex(text, "^on\\\\s+hashtag\\\\s+([a-z0-9]+)", "i", hashtag)
+    => HashTag(hashtag);
+
+Here we observe how we use local storage: first we declare a variable, of type `(String)`
+(tuple of one `String` element), and then we use that variable as an action in a rule to
+write into it. Because our first use of the variable is in a write, we could have skipped
+the declaration, but we included it for clarity.
+
+We also observe how we can pass additional arguments to `$regex` to bind to capturing
+groups in the regular expression and extract useful information from the matched text.
+
+The next step is to use the variable holding the hashtag in a rule
+that matches on Twitter.  We already know how to get tweets (if we
+forgot, we can always
+[look on ThingPedia](http://www.thingpedia.org/devices/by-id/com.twitter)), so the rule
+becomes:
+
+    @twitter.source(text, hashtags, _, from, _, _), HashTag(interesting),
+    $contains(hashtags, interesting) =>
+    @sabrina.say("Interesting tweet from " + from + ": " + text);
+
+(The full code of the app is in [ThingPedia](http://www.thingpedia.org/apps/
 
 [IFTTT]: http://ifttt.com
 [JSRegExp]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp

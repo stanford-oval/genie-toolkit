@@ -143,33 +143,29 @@ attribute = name:ident _ '=' _ value:literal {
 
 // expression language
 
-expression =
-    lhs:and_expression _ '||' _ rhs:expression { return Expression.BinaryOp(lhs, rhs, '||'); } /
-    and_expression
+expression = lhs:and_expression rhs:(_ '||' _ expression)?
+    { return rhs !== null ? Expression.BinaryOp(lhs, rhs[3], '||') : lhs; }
 and_expression =
-    lhs:comp_expression _ '&&' _ rhs:and_expression { return Expression.BinaryOp(lhs, rhs, '&&'); } /
-    comp_expression
+    lhs:comp_expression rhs:(_ '&&' _ and_expression)?
+    { return rhs !== null ? Expression.BinaryOp(lhs, rhs[3], '&&') : lhs; }
 comp_expression =
-    lhs:add_expression _ comp:comparator _ rhs:comp_expression { return Expression.BinaryOp(lhs, rhs, comp); } /
-    add_expression
+    lhs:add_expression rhs:(_ comparator _ comp_expression)?
+    { return rhs !== null ? Expression.BinaryOp(lhs, rhs[3], rhs[1]) : lhs; }
 add_expression =
-    lhs:mult_expression _ '+' _ rhs:expression { return Expression.BinaryOp(lhs, rhs, '+'); } /
-    lhs:mult_expression _ '-' _ rhs:expression { return Expression.BinaryOp(lhs, rhs, '-'); } /
-    mult_expression
+    lhs:mult_expression rhs:(_ ('+'/'-') _ add_expression)?
+    { return rhs !== null ? Expression.BinaryOp(lhs, rhs[3], rhs[1]) : lhs; }
 mult_expression =
-    lhs:unary_expression _ '*' _ rhs:mult_expression { return Expression.BinaryOp(lhs, rhs, '*'); } /
-    lhs:unary_expression _ '/' _ rhs:mult_expression { return Expression.BinaryOp(lhs, rhs, '/'); } /
-    unary_expression
+    lhs:unary_expression rhs:(_ ('*'/'/') _ mult_expression)?
+    { return rhs !== null ? Expression.BinaryOp(lhs, rhs[3], rhs[1]) : lhs; }
 unary_expression =
-    '!' _ arg:member_expression { return Expression.UnaryOp(arg, '!'); } /
-    '-' _ arg:member_expression { return Expression.UnaryOp(arg, '-'); } /
+    op:('!'/'-') _ arg:unary_expression { return Expression.UnaryOp(arg, op); } /
     member_expression
 member_expression =
-    lhs:primary_expression '.' name:ident { return Expression.MemberRef(lhs, name); } /
-    primary_expression
+    lhs:primary_expression member:('.' name:ident)?
+    { return member !== null ? Expression.MemberRef(lhs, name) : lhs; }
 primary_expression = literal_expression / function_call /
-    name:ident feed_spec { return Expression.FeedKeywordRef(name); } /
-    name:ident { return Expression.VarRef(name); } /
+    name:ident feed:feed_spec?
+    { return feed !== null ? Expression.FeedKeywordRef(name) : Expression.VarRef(name); } /
     '(' _ subexp:expression _ ')' { return subexp; }
 function_call = '$' name:ident '(' _ args:expr_param_list? _ ')' {
     return Expression.FunctionCall(name, args === null ? [] : args);
@@ -199,8 +195,8 @@ feed_spec = '-F'
 
 // dqstrchar = double quote string char
 // sqstrchar = single quote string char
-dqstrchar = [^\\\"] / "\\\"" { return '"'; } / "\\n" { return '\n'; } / "\\'" { return '\''; }
-sqstrchar = [^\\\'] / "\\\"" { return '"'; } / "\\n" { return '\n'; } / "\\'" { return '\''; }
+dqstrchar = [^\\\"] / "\\\"" { return '"'; } / "\\n" { return '\n'; } / "\\'" { return '\''; } / "\\\\" { return '\\'; }
+sqstrchar = [^\\\'] / "\\\"" { return '"'; } / "\\n" { return '\n'; } / "\\'" { return '\''; } / "\\\\" { return '\\'; }
 literal_string "string" = '"' chars:dqstrchar* '"' { return chars.join(''); }
     / "'" chars:sqstrchar* "'" { return chars.join(''); }
 digit "digit" = [0-9]

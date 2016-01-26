@@ -1,5 +1,18 @@
 // -* mode: js -*-
 
+ParserTest() {
+@sabrina.listen(text), $regex("^on\\s+hashtag\\s+([a-z0-9]+)", 42 = !!false && 7) => Val(42);
+}
+
+====
+
+SabrinaTestCapturingGroup() {
+@sabrina.listen(text), $regex(text, "^on\s+hashtag\\s+([a-z0-9]+)", "i", hashtag)
+    => @sabrina.say("hashtag " + hashtag);
+}
+
+====
+
 LinkedInApp-F() {
     @linkedin.profile(name, _, ind) => Company-F[self](name, ind);
     Company-F[self](_, ind), Company-F[m](name, ind), m in F =>

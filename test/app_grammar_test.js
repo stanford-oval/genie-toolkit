@@ -167,6 +167,7 @@ function parserTest() {
             console.log('Parsing failed');
             console.log(code);
             console.log(e);
+            console.log(e.stack);
         }
 
         try {
