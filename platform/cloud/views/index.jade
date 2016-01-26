@@ -23,16 +23,29 @@ block content
         a(href='/apps') list of installed apps
         | .
     else
-      h1 Welcome to ThingEngine
+      h1 Welcome to ThingEngine Online
 
-      p ThingEngine is the open source platform for Internet of Things rules.
-      p By creating an account on ThingEngine, you can connect all your social networks
-        | and devices in one single place, and execute miniapps using your data.
+      p ThingEngine Online is a free service to manage your Internet of Things,
+        |  through a friendly web interface and through Sabrina, your magic
+        |  virtual assistant.
+      p Here, all your favorite 
+        a(href='http://www.thingpedia.org') ThingPedia
+        |  apps come together to connect to your social networks and your devices.
+        |  It's easy, just 
+        a(href='/user/register') open your free account
+        |  and start 
+        a(href='http://www.thingpedia.org/apps') browsing for apps
+        | .
 
       p
         a.btn.btn-lg.btn-primary(href='/user/register') Register now!
         |  
         a.btn.btn-lg.btn-default(href='/user/login') Sign in
+
+      //p
+        small Don't want an account but still want to run ThingPedia apps? 
+          a(href='https://web.stanford.edu/~gcampagn/misc/thingengine.apk') Install the phone app instead
+          | .
 
   footer
     p
