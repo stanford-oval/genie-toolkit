@@ -98,7 +98,7 @@ First of all, we need to know what hashtag the user is interested in. For exampl
 tell the user to say "on hashtag" followed by the hashtag:
 
     var HashTag : (String);
-    @sabrina.listen(text), $regex(text, "^on\\\\s+hashtag\\\\s+([a-z0-9]+)", "i", hashtag)
+    @sabrina.listen(text), $regex(text, "^on\\s+hashtag\\s+([a-z0-9]+)", "i", hashtag)
     => HashTag(hashtag);
 
 Here we observe how we use local storage: first we declare a variable, of type `(String)`
@@ -119,7 +119,9 @@ becomes:
     $contains(hashtags, interesting) =>
     @sabrina.say("Interesting tweet from " + from + ": " + text);
 
-(The full code of the app is in [ThingPedia](http://www.thingpedia.org/apps/
+(The full code of the app is in [ThingPedia](http://www.thingpedia.org/apps/42) if you
+want to try it right away).
+
 
 [IFTTT]: http://ifttt.com
 [JSRegExp]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
