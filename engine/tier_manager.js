@@ -36,6 +36,7 @@ module.exports = new lang.Class({
     _init: function() {
         events.EventEmitter.call(this);
 
+        this.devices = null;
         this.ownTier = null;
 
         if (platform.type == 'android' || platform.type == 'ios')
@@ -321,12 +322,20 @@ module.exports = new lang.Class({
     },
 
     // This function is very unreliable! Don't use outside of devices/paired.js
-    isConfigured: function(tier) {
+    isConnectable: function(tier) {
         if (this.ownTier === Tier.CLOUD)
             // for cloud we only have server connections, so we don't really know
             return true;
         else
             return this._tierConfigured[tier];
+    },
+
+    // This is the public API used by BaseDevice to compute where to host a device
+    isConfigured: function(tier) {
+        // defensive programming (and races with devices/paired.js)
+        if (tier === this.ownTier)
+            return true;
+        return this.devices.hasDevice('thingengine-own-' + tier);
     },
 
     getConnectedClientTiers: function() {
@@ -347,6 +356,17 @@ module.exports = new lang.Class({
         for (var i = 0; i < ALL_TIERS.length; i++) {
             var tier = ALL_TIERS[i];
             if (tier === this.ownTier)
+                continue;
+            tiers.push(tier);
+        }
+        return tiers;
+    },
+
+    getAllConfiguredTiers: function() {
+        var tiers = [];
+        for (var i = 0; i < ALL_TIERS.length; i++) {
+            var tier = ALL_TIERS[i];
+            if (!this.isConfigured(tier))
                 continue;
             tiers.push(tier);
         }

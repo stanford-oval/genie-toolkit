@@ -65,8 +65,8 @@ module.exports = new lang.Class({
             // If we don't have a connection to this tier, probably we
             // had the wrong settings when tier manager started up,
             // by now we should have fixed them, so try again
-            if (!this._tierManager.isConfigured(device.tier)) {
-                console.log(device.tier + ' was not configured, reopening');
+            if (!this._tierManager.isConnectable(device.tier)) {
+                console.log(device.tier + ' was not connectable, reopening');
                 this._tierManager.reopenOne(device.tier);
             }
         }.bind(this)).done();
@@ -236,10 +236,10 @@ module.exports = new lang.Class({
         this._listener = this._onDeviceAdded.bind(this);
         this._devices.on('device-added', this._listener);
 
-        if (!this._tierManager.isConfigured(Tier.SERVER) &&
+        if (!this._tierManager.isConnectable(Tier.SERVER) &&
             this._devices.hasDevice('thingengine-own-server'))
             this._onServerAdded(this._devices.getDevice('thingengine-own-server'));
-        if (!this._tierManager.isConfigured(Tier.CLOUD) &&
+        if (!this._tierManager.isConnectable(Tier.CLOUD) &&
             this._devices.hasDevice('thingengine-own-cloud'))
             this._onCloudAdded(this._devices.getDevice('thingengine-own-cloud'));
 

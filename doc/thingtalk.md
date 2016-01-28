@@ -77,8 +77,7 @@ matches the regular expression `regexp` (in [JavaScript syntax][JSRegExp]). So i
 Sabrina will reply "world" every time your message contains "hello" as a substring -
 including "hello", "hello Sabrina" but also "othello". If you want to match just "hello" as a
 word, you could instead use `"\\\\sshello\\\\s"` or `"\\\\bhello\\\\b"` (note the double escaping of
-backlashes, which are special characters in strings <!-- and another level of escaping is
-due to Markdown -->). Again, look at JavaScript to find out
+backlashes, which are special characters in strings). Again, look at JavaScript to find out
 what regular expressions are supported, as the well as what `flags` is for (in our case,
 it just tells the runtime to do case-insensitive matching, so that "Hello" and "hello" both
 work).
