@@ -1452,7 +1452,7 @@ module.exports = new lang.Class({
                         cont();
                 } else {
                     for (var j = 0; j < members.length; j++) {
-                        env.setMemberBinding(memberBindings[i], members[j]);
+                        env.setMemberBinding(memberBindings[i], j);
                         env.setVar(memberBindings[i], members[j]);
                         if (fullFilter(env))
                             cont();
