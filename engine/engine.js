@@ -17,7 +17,6 @@ const DeviceFactory = require('./devices/factory');
 const DeviceDatabase = require('./db/devices');
 const TierManager = require('./tier_manager');
 const DeviceManager = require('./devices/manager');
-const ManualQueryRunner = require('./rpc_query_runner');
 const UIManager = require('./ui_manager');
 const MessagingDeviceManager = require('./messaging/device_manager');
 const KeywordRegistry = require('./db/keyword');
@@ -28,7 +27,7 @@ const Logger = require('./logger');
 const Engine = new lang.Class({
     Name: 'Engine',
     $rpcMethods: ['get channels', 'get devices', 'get apps', 'get ui', 'get assistant',
-                  'get messaging', 'getQueryRunner'],
+                  'get messaging'],
 
     _init: function() {
         // constructor
@@ -97,10 +96,6 @@ const Engine = new lang.Class({
 
     get assistant() {
         return this._assistant;
-    },
-
-    getQueryRunner: function() {
-        return new ManualQueryRunner(this);
     },
 
     _openSequential: function(modules) {

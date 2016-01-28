@@ -157,6 +157,7 @@ const EngineManager = new lang.Class({
                     if (runningProcesses[userId] !== obj)
                         return;
                     AssistantManager.get().removeEngine(userId);
+                    frontend.unregisterWebSocketEndpoint('/ws/' + cloudId);
                     delete runningProcesses[userId];
                 });
 
