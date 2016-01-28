@@ -15,8 +15,8 @@ module.exports = new Tp.DeviceClass({
         this.parent(engine, state);
 
         if (state.own) {
-            this.isTransient = true;
             this.own = true;
+            this.globalName = 'sabrina';
             this.uniqueId = 'thingengine-own-sabrina';
         } else {
             throw new TypeError('Remote Sabrinas are not yet supported');

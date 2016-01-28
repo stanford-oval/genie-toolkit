@@ -227,8 +227,8 @@ module.exports = new lang.Class({
     },
 
     _addSabrinaToDB: function() {
-        return this._devices.loadOneDevice({ kind: 'sabrina',
-                                             own: true });
+        return this._devices.loadOneDevice({ kind: 'org.thingpedia.builtin.sabrina',
+                                             own: true }, true);
     },
 
     start: function() {

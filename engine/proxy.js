@@ -48,9 +48,10 @@ const ProxyChannel = new lang.Class({
 const ChannelStub = new lang.Class({
     Name: 'ChannelStub',
 
-    _init: function(proxyManager, targetTier, innerChannel) {
+    _init: function(proxyManager, targetTier, targetChannelId, innerChannel) {
         this._proxyManager = proxyManager;
         this._targetTier = targetTier;
+        this._targetChannelId = targetChannelId;
         this._innerChannel = innerChannel;
         this._dataListener = null;
     },
@@ -58,7 +59,7 @@ const ChannelStub = new lang.Class({
     // called when the inner channel produced some data, we want to send it
     // back to whoever asked for us
     _onData: function(data) {
-        this._proxyManager.sendSourceEvent(this._targetTier, this._innerChannel.uniqueId, data);
+        this._proxyManager.sendSourceEvent(this._targetTier, this._targetChannelId, data);
     },
 
     get event() {
@@ -251,7 +252,7 @@ module.exports = new lang.Class({
         this._stubs[fullId] = defer.promise;
 
         this._channels.getChannel(device, kind, params).then(function(channel) {
-            var stub = new ChannelStub(this, fromTier, channel);
+            var stub = new ChannelStub(this, fromTier, targetChannelId, channel);
             return stub.open().then(function() {
                 defer.resolve(stub);
             });

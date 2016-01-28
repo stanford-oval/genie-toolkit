@@ -7,6 +7,7 @@
 // See COPYING for details
 
 const Tp = require('thingpedia');
+const Q = require('q');
 
 module.exports = new Tp.ChannelClass({
     Name: 'SabrinaListenChannel',
@@ -16,23 +17,20 @@ module.exports = new Tp.ChannelClass({
         this.engine = engine;
 
         this._inner = null;
-        this._listener = this._onEvent.bind(this);
+        this._listener = this._onMessage.bind(this);
     },
 
-    _onEvent: function(data) {
-        this.emitEvent(data);
+    _onMessage: function(message) {
+        this.emitEvent([message]);
     },
 
     _doOpen: function() {
-        return this.engine.channels.getNamedPipe('sabrina-incoming-messages', 'r')
-            .then(function(ch) {
-                this._inner = ch;
-                this._inner.on('data', this._listener);
-            }.bind(this));
+        this.engine.assistant.on('message', this._listener);
+        return Q();
     },
 
     _doClose: function() {
-        this._inner.removeListener('data', this._listener);
-        return this._inner.close();
+        this.engine.assistant.removeListener('message', this._listener);
+        return Q();
     },
 });
