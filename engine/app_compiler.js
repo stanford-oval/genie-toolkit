@@ -1011,7 +1011,12 @@ module.exports = new lang.Class({
         }
 
         function getKeywordValue(env) {
-            if (feedAccess)
+            // self is special! we punch through the RemoteKeyword to access the
+            // local portion only, and avoid a bunch of setup messages on the feed
+            // note that we rely on compileInput monkey-patching the Keyword AST object
+            // to check if the owner value was nullified or not, but we use owner
+            // to access the member binding
+            if (feedAccess && ast.keyword.owner !== 'self')
                 return env.readKeyword(name)[env.getMemberBinding(owner)];
             else
                 return env.readKeyword(name);
@@ -1347,7 +1352,7 @@ module.exports = new lang.Class({
         var trigger = null;
         var memberBindings = [];
         var memberBindingKeywords = {};
-        var keywords = [];
+        var keywords = {};
         var inputFunctions = [];
         var scope = {};
         for (var name in this._scope)
@@ -1374,7 +1379,17 @@ module.exports = new lang.Class({
                 compiled[0].owner = compiled[1];
                 if (compiled[0].feedAccess && compiled[1] !== 'self')
                     memberBindingKeywords[compiled[1]].push(compiled[0].name);
-                keywords.push(compiled[0]);
+                // check if this keyword was already accessed in this rule,
+                // and avoid adding it again
+                if (compiled[0].name in keywords) {
+                    // merge owners
+                    if (compiled[0].owner !== keywords[compiled[0].name].owner) {
+                        keywords[compiled[0].name].owner = null;
+                        compiled[0].owner = null;
+                    }
+                } else {
+                    keywords[compiled[0].name] = compiled[0];
+                }
                 inputFunctions.push(compiled[2]);
             } else if (input.isBinding) {
                 bindings.push(input);
@@ -1384,6 +1399,12 @@ module.exports = new lang.Class({
                 throw new TypeError();
             }
         }
+
+        // turn keywords from an object into an array
+        var keywordArray = [];
+        for (var name in keywords)
+            keywordArray.push(keywords[name]);
+        keywords = keywordArray;
 
         // bindings further need to be sorted so that the variables they need
         // are in scope
@@ -1414,7 +1435,7 @@ module.exports = new lang.Class({
                 if (fullFilter(env))
                     cont();
             };
-        } else if (memberBindings.length === 0) {
+        } else if (memberBindings.length === 1) {
             var memberBinding = memberBindings[i];
             memberCaller = function(env, cont) {
                 var members = env.getFeedMembers();
