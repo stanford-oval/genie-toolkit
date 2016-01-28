@@ -168,20 +168,22 @@ module.exports = new lang.Class({
     },
 
     _createModuleFromCachedCode: function(fullId, id) {
+        var code;
         try {
-            var code = fs.readFileSync(this._cacheDir + '/' + id + '.json').toString('utf8');
-            console.log('Module ' + fullId + ' loaded as cached code');
-            this._cachedModules[id] = GenericDeviceFactory(id, code);
-            this._cachedModules[id].isGeneric = true;
-            if (fullId === id)
-                return this._cachedModules[id];
-            else
-                return this._cachedModules[id].getSubmodule(fullId.substr(id.length + 1));
+            code = fs.readFileSync(this._cacheDir + '/' + id + '.json').toString('utf8');
         } catch(e) {
             if (e.code != 'ENOENT')
                 throw e;
             return null;
         }
+
+        console.log('Module ' + fullId + ' loaded as cached code');
+        this._cachedModules[id] = GenericDeviceFactory(id, code);
+        this._cachedModules[id].isGeneric = true;
+        if (fullId === id)
+            return this._cachedModules[id];
+        else
+            return this._cachedModules[id].getSubmodule(fullId.substr(id.length + 1));
     },
 
     _getModuleRequest: function(fullId, id) {

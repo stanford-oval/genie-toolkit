@@ -32,7 +32,7 @@ function normalizeDevice(bluezprops) {
         address: bluezprops.Address,
         paired: bluezprops.Paired,
         trusted: bluezprops.Trusted,
-        class: bluezprops.Class,
+        class: bluezprops.Class || 0,
     };
 }
 

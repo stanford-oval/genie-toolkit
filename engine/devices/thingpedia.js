@@ -54,8 +54,6 @@ function httpDiscoveryRequest(to, blob) {
     parsed.method = 'POST';
     parsed.headers = {};
     parsed.headers['Content-Type'] = 'application/json';
-    if (parsed.protocol === 'https:')
-        parsed.agent = getAgent();
 
     return Q.Promise(function(callback, errback) {
         var req = getModule(parsed).request(parsed, function(res) {

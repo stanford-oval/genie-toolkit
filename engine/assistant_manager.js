@@ -1470,17 +1470,12 @@ const InitializationDialog = new lang.Class({
     },
 });
 
-module.exports = new lang.Class({
+const AssistantManager = new lang.Class({
     Name: 'AssistantManager',
     $rpcMethods: ['handleCommand', 'setReceiver'],
 
-    _init: function(apps, devices, messaging, keywords, ui, channels) {
-        this.apps = apps;
-        this.devices = devices;
-        this.messaging = messaging;
-        this.keywords = keywords;
-        this.ui = ui;
-        this.channels = channels;
+    _init: function(engine) {
+        this._engine = engine;
 
         this._receiver = null;
         this._nlp = new NLP();
@@ -1495,6 +1490,30 @@ module.exports = new lang.Class({
         this._incoming = null;
         this._outgoing = null;
         this._outgoingListener = this._onOutgoing.bind(this);
+    },
+
+    get apps() {
+        return this._engine.apps;
+    },
+
+    get devices() {
+        return this._engine.devices;
+    },
+
+    get messaging() {
+        return this._engine.messaging;
+    },
+
+    get keywords() {
+        return this._engine.keywords;
+    },
+
+    get ui() {
+        return this._engine.ui;
+    },
+
+    get channels() {
+        return this._engine.channels;
     },
 
     _onNotify: function(data) {
@@ -1526,7 +1545,7 @@ module.exports = new lang.Class({
     },
 
     start: function() {
-        return this.init();
+        return this._initialize();
     },
 
     stop: function() {
@@ -1547,10 +1566,10 @@ module.exports = new lang.Class({
 
     setReceiver: function(receiver) {
         this._receiver = receiver;
-        return this.init();
+        return this._initialize();
     },
 
-    init: function() {
+    _initialize: function() {
         if (this._initialized)
             return Q();
         if (!this._receiver)
@@ -1599,3 +1618,31 @@ module.exports = new lang.Class({
             this._receiver.send(message);
     }
 });
+
+const DummyAssistantManager = new lang.Class({
+    Name: 'DummyAssistantManager',
+
+    _init: function() {
+    },
+
+    start: function() {
+        return Q();
+    },
+
+    stop: function() {
+        return Q();
+    },
+
+    handleCommand: function(command) {
+        throw new Error('handleCommand should not be called on this platform');
+    },
+});
+
+function create(engine) {
+    if (platform.hasCapability('assistant'))
+        return new AssistantManager(engine);
+    else
+        return new DummyAssistantManager();
+}
+
+module.exports.create = create;

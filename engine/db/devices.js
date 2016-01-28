@@ -275,6 +275,10 @@ module.exports = new lang.Class({
         return this._addDeviceInternal(device, undefined, true);
     },
 
+    addFromDiscovery: function(kind, publicData, privateData) {
+        return this.factory.addFromDiscovery(kind, publicData, privateData);
+    },
+
     _removeDeviceFromCache: function(device) {
         delete this._devices[device.uniqueId];
         device.descriptors.forEach(function(descriptor) {

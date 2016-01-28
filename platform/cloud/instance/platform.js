@@ -101,6 +101,11 @@ module.exports = {
             // this platform
             return true;
 
+        case 'assistant':
+            // If we can create a full AssistantManager (because the platform
+            // will back with a Sabrina account)
+            return true;
+
         default:
             return false;
         }

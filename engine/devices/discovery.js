@@ -48,9 +48,10 @@ module.exports = new lang.Class({
         this._inflightRequests[descriptor] = Thingpedia.getKindByDiscovery(publicData)
             .then(function(response) {
                 console.log('Descriptor ' + descriptor + ' is of kind ' + response);
-                return this.db.factory.addFromDiscovery(response, publicData, privateData);
+                return this.db.addFromDiscovery(response, publicData, privateData);
             }.bind(this)).catch(function(e) {
                 console.log('Failed to add device from discovery: ' + e.message);
+                console.log('Full public data was: ' + JSON.stringify(publicData));
             }).finally(function() {
                 delete this._inflightRequests[descriptor];
             }.bind(this));
