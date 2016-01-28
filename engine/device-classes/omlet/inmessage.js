@@ -21,7 +21,7 @@ module.exports = new lang.Class({
 
         if (params.length < 1 ||
             !params[0].isFeed)
-            throw new Error('Invalid @omlet.newmessage() parameters');
+            throw new Error('Invalid @omlet.[new,incoming]message() parameters');
 
         this._feed = params[0].value;
         this.filterString = 'feed-' + this._feed.feedId.replace(/[^a-zA-Z0-9]+/g, '-');

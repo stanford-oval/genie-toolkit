@@ -20,6 +20,8 @@ module.exports = new lang.Class({
     _init: function(messaging, localstore, scope, name, feedId, key) {
         this.parent();
 
+        console.log('Created remote keyword ' + name + ' in feed ' + feedId);
+
         this._messaging = messaging;
         this._localStore = localstore;
 

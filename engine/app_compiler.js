@@ -1024,6 +1024,9 @@ module.exports = new lang.Class({
 
         return [ast.keyword, ast.owner, function(env) {
             var value = getKeywordValue(env);
+            if (value === undefined)
+                throw new TypeError('Keyword ' + name + (feedAccess ? '-F' : '') + ' is undefined?');
+
             if (negative) {
                 return !keywordIsTrue(env, value);
             } else {
@@ -1382,6 +1385,7 @@ module.exports = new lang.Class({
                 // check if this keyword was already accessed in this rule,
                 // and avoid adding it again
                 if (compiled[0].name in keywords) {
+                    console.log('Duplicate keyword ' + compiled[0].name + ' in rule');
                     // merge owners
                     if (compiled[0].owner !== keywords[compiled[0].name].owner) {
                         keywords[compiled[0].name].owner = null;

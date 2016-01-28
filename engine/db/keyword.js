@@ -39,6 +39,9 @@ const LocalKeyword = new lang.Class({
     },
 
     changeValue: function(v) {
+        if (v === undefined)
+            throw new Error('Invalid keyword value undefined');
+
         if (deepEqual(this._value, v, { strict: true }))
             return;
 
