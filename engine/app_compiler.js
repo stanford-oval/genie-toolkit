@@ -1243,6 +1243,7 @@ module.exports = new lang.Class({
                 if (bindings[j] === null)
                     continue;
 
+                var binding = bindings[j];
                 // try to assign bindings[j] to the order
 
                 // first, check that it is possible
@@ -1251,7 +1252,6 @@ module.exports = new lang.Class({
                     if (!analysis.every(function(req) { return !!backtrackscope[req]; }))
                         continue;
 
-                    var binding = bindings[j];
                     bindings[j] = null;
                     backtrackorder[i] = binding;
                     var setscope = false;
@@ -1289,7 +1289,7 @@ module.exports = new lang.Class({
                         // rhs is bound, so lhs is being assigned -- reverse the binding
                         var originalbinding = bindings[j];
                         bindings[j] = null;
-                        backtrackorder[i] = InputSpec.Binding(lsh, Expression.VarRef(rhs));
+                        backtrackorder[i] = InputSpec.Binding(lhs, Expression.VarRef(rhs));
                         backtrackscope[lhs] = true;
 
                         if (backtrack(i+1))

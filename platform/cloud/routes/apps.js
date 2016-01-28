@@ -10,6 +10,7 @@ var Q = require('q');
 var express = require('express');
 
 var user = require('../util/user');
+var feeds = require('../../shared/util/feeds');
 var EngineManager = require('../enginemanager');
 
 var AppGrammar = require('../instance/engine/app_grammar');
@@ -47,39 +48,7 @@ router.get('/', user.redirectLogIn, function(req, res, next) {
 
 function appsCreate(error, req, res) {
     return EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return engine.messaging.getFeedMetas().then(function(feeds) {
-            return feeds.filter(function(f) {
-                // HACK: omlet sometime will forget the hasWriteAccess field
-                // treat undefined same as true in that case
-                return f.hasWriteAccess !== false && f.kind === null;
-            });
-        }).tap(function(feeds) {
-            return Q.all(feeds.map(function(f) {
-                // at first sight, you might complain that this "modify in place"
-                // would corrupt the database
-                // but there is a RPC layer in the middle saving us: we only operate
-                // on a copy of feeds so everything is fine
-                if (f.name)
-                    return;
-                if (f.members.length === 1) {
-                    f.name = "You";
-                    return;
-                }
-                if (f.members.length === 2) {
-                    if (f.members[0] === 1) {
-                        return engine.messaging.getUserById(f.members[1]).then(function(u) {
-                            f.name = u.name;
-                        });
-                    } else {
-                        return engine.messaging.getUserById(f.members[0]).then(function(u) {
-                            f.name = u.name;
-                        });
-                    }
-                } else {
-                    f.name = "Unnamed (multiple partecipants)";
-                }
-            }));
-        });
+        return feeds.getFeedList(engine, true);
     }).then(function(feeds) {
         res.render('apps_create', { page_title: 'ThingEngine - create app',
                                     csrfToken: req.csrfToken(),
@@ -124,19 +93,14 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
             if (tier !== 'server' && tier !== 'cloud' && tier !== 'phone')
                 throw new Error('No such tier ' + tier);
         } catch(e) {
-            return appsCreate(e.message, req, res).then(function() {
-                return false;
-            });
+            return appsCreate(e.message, req, res);
         }
 
         return EngineManager.get().getEngine(req.user.id).then(function(engine) {
             return engine.apps.loadOneApp(code, state, null, tier, true);
         }).then(function() {
-            return true;
-        });
-    }).then(function(ok) {
-        if (ok)
             appsList(req, res, next, "Application successfully created");
+        });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });

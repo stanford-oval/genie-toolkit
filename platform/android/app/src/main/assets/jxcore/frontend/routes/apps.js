@@ -116,11 +116,25 @@ router.post('/:id/update', function(req, res, next) {
 
     // do something
     Q.try(function() {
-        var code = req.body['code'];
-        var parsed = AppGrammar.parse(code);
-        var state = JSON.parse(req.body.params);
+        var code = req.body.code;
+        var state;
+        try {
+            // sanity check the app
+            var parsed = AppGrammar.parse(code);
+            var compiler = new AppCompiler();
+            compiler.compileProgram(parsed);
 
-        var engine = req.app.engine;
+            state = JSON.parse(req.body.params);
+        } catch(e) {
+            res.render('show_app', { page_title: 'ThingEngine App',
+                                     name: app.name,
+                                     description: app.description || '',
+                                     csrfToken: req.csrfToken(),
+                                     error: e.message,
+                                     code: code,
+                                     params: req.body.params });
+            return;
+        }
 
         engine.apps.loadOneApp(code, state, req.params.id, app.currentTier, true);
     }).then(function() {
