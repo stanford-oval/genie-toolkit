@@ -42,10 +42,15 @@ module.exports = new lang.Class({
     },
 
     setMemberBinding: function(name, member) {
+        if (typeof member !== 'number' ||
+            member < 0 || member >= this._feed.getMembers().length)
+            throw new TypeError('Invalid member binding value ' + member + ' for ' + name);
         this._memberBindings[name] = member;
     },
 
     getMemberBinding: function(name) {
+        if (this._memberBindings[name] === undefined)
+            throw new TypeError('Invalid member binding ' + name);
         return this._memberBindings[name];
     },
 

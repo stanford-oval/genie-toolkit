@@ -1024,8 +1024,10 @@ module.exports = new lang.Class({
 
         return [ast.keyword, ast.owner, function(env) {
             var value = getKeywordValue(env);
-            if (value === undefined)
-                throw new TypeError('Keyword ' + name + (feedAccess ? '-F' : '') + ' is undefined?');
+            if (value === undefined) {
+                console.log('Keyword ' + ast.keyword.name + ' is a ' + env._keywords[ast.keyword.name].__name__);
+                throw new TypeError('Keyword ' + ast.keyword.name + (feedAccess ? '-F' : '') + ' is undefined?');
+            }
 
             if (negative) {
                 return !keywordIsTrue(env, value);

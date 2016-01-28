@@ -79,7 +79,7 @@ module.exports = new lang.Class({
                 this.emit('triggered', this._env);
             }.bind(this));
         } catch(e) {
-            console.error('Error during query run: ' + e.message);
+            console.error('Error during query run in ' + this.app.uniqueId + ': ' + e.message);
             console.error(e.stack);
         }
     },
