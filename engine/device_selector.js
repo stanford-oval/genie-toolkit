@@ -23,8 +23,31 @@ const BuiltinOwner = {
     'input': 'thingengine-app',
     'return': 'thingengine-app',
     'notify': 'thingengine-app',
-    'logger': 'thingengine-own-cloud'
+    'logger': 'thingengine-pipe-system-writer'
 };
+
+// The named pipe system, wrapped as a device to appease DeviceView
+// very evil, look away
+const PipeSystemDevice = new lang.Class({
+    Name: 'PipeSystemDevice',
+    Extends: Tp.BaseDevice,
+
+    _init: function(engine, mode) {
+        this.parent(engine, { kind: 'thingengine-pipe-system' });
+        this.mode = mode;
+
+        // there is only one device in the context where this is put
+        // so there is no need for this to be unique
+        // but it has to be correct or DeviceView will not pick it
+        // (it's annoying but I don't want to touch DeviceView until
+        // we clear out what's the story with delegation)
+        this.uniqueId = 'thingengine-pipe-system-' + (mode === 'r' ? 'reader' : 'writer');
+    },
+
+    getChannel: function(id, params) {
+        return this.engine.channels.getNamedPipe('thingengine-system-' + id, this.mode);
+    },
+});
 
 // A app, wrapped as a device to appease DeviceView
 // very evil, look away
@@ -76,14 +99,22 @@ module.exports = new lang.Class({
         if (block.selector.isBuiltin) {
             var owner = BuiltinOwner[block.selector.name];
 
+            // all builtins are special, but some are more special than others [semicit]
             if (owner === 'thingengine-app') {
-                // all builtins are special, but some are more special than others [semicit]
                 // builtins "owned" by thingengine-app in particular are really owned by
                 // the app that is constructing this device selector
                 // we handle that with a little of glue code that lets DeviceView ignore
                 // the difference
                 this._context = new ObjectSet.Simple();
                 this._context.addOne(new AppDevice(this.engine, this.app));
+            } else if (owner === 'thingengine-pipe-system-reader' ||
+                       owner === 'thingengine-pipe-system-writer') {
+                // builtins "owned" by thingengine-pipe-system-reader are just, well, pipes
+                // but we need to massage them into something DeviceView understands
+                this._context = new ObjectSet.Simple();
+                this._context.addOne(new PipeSystemDevice(this.engine,
+                                                          owner === 'thingengine-pipe-system-reader' ?
+                                                          'r' : 'w'));
             } else {
                 this._context = this.engine.devices.getContext('me');
             }

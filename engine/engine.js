@@ -23,6 +23,7 @@ const MessagingDeviceManager = require('./messaging/device_manager');
 const KeywordRegistry = require('./db/keyword');
 const MessagingSyncManager = require('./messaging/sync_manager');
 const AssistantManager = require('./assistant_manager');
+const Logger = require('./logger');
 
 const Engine = new lang.Class({
     Name: 'Engine',
@@ -51,7 +52,8 @@ const Engine = new lang.Class({
                          this._channels,
                          this._apps,
                          this._ui,
-                         this._assistant];
+                         this._assistant,
+                         new Logger(this._channels)];
         // to be started after the apps
         this._lateModules = [new MessagingSyncManager(this._messaging)];
 

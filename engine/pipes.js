@@ -182,8 +182,8 @@ module.exports = new lang.Class({
             return Q(this._pipeLocalSources[name]);
 
         var proxies = this._tierManager.getOtherTiers().map(function(tier) {
-            return this._proxyManager.getProxyChannel('pipe-' + name, tier,
-                                                      'thingengine-internal', 'pipe', []);
+            return this._proxyManager.getProxyChannel('pipe-' + name + '-source', tier,
+                                                      'thingengine-pipe-system', name, []);
         }.bind(this));
         var sourcePipe = new PipeLocalSourceChannel(name, this, proxies);
         this._pipeLocalSources[name] = sourcePipe;

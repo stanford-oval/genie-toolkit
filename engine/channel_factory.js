@@ -99,10 +99,7 @@ module.exports = new lang.Class({
         // So ask our trusty pipe manager for it
         //
         // (Note: we only follow this path for a request from ProxyManager)
-        // (And really, thingengine-internal is a special special special case
-        // just for pipes. Maybe worth a refactoring to use regular devices,
-        // one day).
-        if (device === 'thingengine-internal' && kind === 'pipe')
+        if (device === 'thingengine-pipe-system')
             return this._pipeManager.getProxyNamedPipe(kind);
 
         var args = Array.prototype.slice.call(arguments, 2);

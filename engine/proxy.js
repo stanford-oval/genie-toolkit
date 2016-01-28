@@ -164,7 +164,7 @@ module.exports = new lang.Class({
         var kind = cachedArgs[1];
         var params = cachedArgs[2];
 
-        if (device !== 'thingengine-internal')
+        if (device !== 'thingengine-pipe-system')
             device = device.uniqueId;
 
         var request = {
@@ -238,7 +238,7 @@ module.exports = new lang.Class({
         console.log('New remote channel request for ' + targetChannelId);
 
         try {
-            if (device !== 'thingengine-internal')
+            if (device !== 'thingengine-pipe-system')
                 device = this._devices.getDevice(device);
             kind = kind;
             params = Protocol.params.unmarshal(this._messaging, params);
