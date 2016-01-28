@@ -37,6 +37,7 @@ router.get('/', user.redirectLogIn, function(req, res, next) {
         return Q(d.checkAvailable()).then(function(avail) {
             return { uniqueId: d.uniqueId, name: d.name || "Unknown device",
                      description: d.description || "Description not available",
+                     ownerTier: d.ownerTier,
                      available: avail };
         });
     })).then(function(info) {

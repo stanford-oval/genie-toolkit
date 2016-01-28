@@ -38,7 +38,7 @@ module.exports = new lang.Class({
         // sync is always client-driven, because clients generate the
         // bulk of changes and servers are expected to have a more clearer
         // picture of what's right and what not
-        var connected = this._tierManager.getClientTiers();
+        var connected = this._tierManager.getConnectedClientTiers();
         if (connected.length == 0) {
             console.log('No tier is connected, not syncing ' + this._sqldb.tablename)
         } else {

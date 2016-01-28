@@ -156,12 +156,6 @@ module.exports = new lang.Class({
         return Q.all(promises);
     },
 
-    _openNone: function() {
-        for (var i = 0; i < ALL_TIERS.length; i++)
-            this._tierSockets[ALL_TIERS[i]] = null;
-        return Q();
-    },
-
     _openPhone: function() {
         var prefs = platform.getSharedPreferences();
 
@@ -209,11 +203,17 @@ module.exports = new lang.Class({
         var toCloud = function() {
             var authToken = prefs.get('auth-token');
             var cloudId = prefs.get('cloud-id');
-            if (cloudId !== undefined && authToken !== undefined)
-                return new tc.ClientConnection(Config.THINGENGINE_URL + '/ws/' + cloudId,
+            if (cloudId !== undefined && authToken !== undefined) {
+                var url;
+                if (process.env.THINGENGINE_CLOUD_URL)
+                    url = process.env.THINGENGINE_CLOUD_URL;
+                else
+                    url = Config.THINGENGINE_URL;
+                return new tc.ClientConnection(url + '/ws/' + cloudId,
                                                Tier.SERVER, Tier.CLOUD, authToken);
-            else
+            } else {
                 return null;
+            }
         }
 
         this._tierOpens[Tier.PHONE] = toPhone;
@@ -310,45 +310,32 @@ module.exports = new lang.Class({
             this._tierSockets[tier].isClient;
     },
 
-    isServerTier: function(tier) {
-        return this._tierSockets[tier] !== null &&
-            this._tierSockets[tier].isServer;
-    },
-
     isConnected: function(tier) {
-        return this._tierSockets[tier] !== null &&
-            (this._tierSockets[tier].isClient ||
-             this._tierSockets[tier].isConnected(tier));
+        if (this.ownTier === Tier.CLOUD) {
+            return this._tierSockets[Tier.PHONE].isConnected(tier);
+        } else {
+            return this._tierSockets[tier] !== null &&
+                (this._tierSockets[tier].isClient ||
+                 this._tierSockets[tier].isConnected(tier));
+        }
     },
 
+    // This function is very unreliable! Don't use outside of devices/paired.js
     isConfigured: function(tier) {
-        return this._tierConfigured[tier];
+        if (this.ownTier === Tier.CLOUD)
+            // for cloud we only have server connections, so we don't really know
+            return true;
+        else
+            return this._tierConfigured[tier];
     },
 
-    getClientTiers: function() {
+    getConnectedClientTiers: function() {
         var tiers = [];
         for (var i = 0; i < ALL_TIERS.length; i++) {
             var tier = ALL_TIERS[i];
             if (this._tierSockets[tier] === null)
                 continue;
             if (!this._tierSockets[tier].isClient)
-                continue;
-            if (tier === this._ownTier)
-                continue;
-            tiers.push(tier);
-        }
-        return tiers;
-    },
-
-    getServerTiers: function() {
-        var tiers = [];
-        for (var i = 0; i < ALL_TIERS.length; i++) {
-            var tier = ALL_TIERS[i];
-            if (this._tierSockets[tier] === null)
-                continue;
-            if (!this._tierSockets[tier].isServer)
-                continue;
-            if (tier === this._ownTier)
                 continue;
             tiers.push(tier);
         }
@@ -359,8 +346,6 @@ module.exports = new lang.Class({
         var tiers = [];
         for (var i = 0; i < ALL_TIERS.length; i++) {
             var tier = ALL_TIERS[i];
-            if (this._tierSockets[tier] === null)
-                continue;
             if (tier === this.ownTier)
                 continue;
             tiers.push(tier);
@@ -369,7 +354,6 @@ module.exports = new lang.Class({
     },
 
     sendTo: function(tier, msg) {
-        // HACK:
         if (this.ownTier === Tier.CLOUD) {
             this._tierSockets[Tier.PHONE].send(msg, tier);
         } else if (this._tierSockets[tier] !== null) {

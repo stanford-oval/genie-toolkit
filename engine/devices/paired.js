@@ -65,11 +65,6 @@ module.exports = new lang.Class({
             // If we don't have a connection to this tier, probably we
             // had the wrong settings when tier manager started up,
             // by now we should have fixed them, so try again
-            //
-            // (Note: in the cloud case, isConfigured('server') says
-            // false because the phone tier handles both server and phone
-            // (it's a server connection - it's not a problem because
-            // reopenOne becomes a noop)
             if (!this._tierManager.isConfigured(device.tier)) {
                 console.log(device.tier + ' was not configured, reopening');
                 this._tierManager.reopenOne(device.tier);

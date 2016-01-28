@@ -38,10 +38,23 @@ block content
             p= dev.description
 
             if !onlineAccounts
+              if dev.ownerTier !== 'cloud'
+                p This device is owned by your #{dev.ownerTier}.
+
               if dev.available == 0
                 p The device is not available. It might be powered off or disconnected.
               else if dev.available == 1
                 p The device is available and working.
+              else if dev.available == 2
+                if dev.ownerTier === 'server'
+                  p The device is not available because your server is disconnected.
+                    |  Make sure that it is powered on and correctly configured.
+                else if dev.ownerTier === 'phone'
+                  p The device is not available because your phone is disconnected.
+                    |  Make sure that it is powered on and connected to the network.
+                else
+                  p The device is not available because ThingEngine Online cannot be reached.
+                    |  There might be a temporary service outage.
               else
                 p It was not possible to verify if the device is available.
                   | Please check it is powered on and correctly configured.
