@@ -20,17 +20,32 @@ const EngineManager = require('../enginemanager');
 
 var router = express.Router();
 
-function readLogs(userId) {
-    return Q.nfcall(child_process.execFile, '/usr/bin/journalctl',
-                    ['-n', '100', '-o', 'json', '-u', 'thingengine-cloud',
-                     'THINGENGINE_USER_ID=' + userId],
-                     { killSignal: 'SIGINT' })
-        .spread(function(stdout, stderr) {
-            return stdout.trim().split('\n').map(JSON.parse);
-        }).catch(function(e) {
-            console.log(e.stack);
-            return [];
-        });
+function readLogs(userId, startCursor) {
+    var args = ['-f', '-o', 'json-sse'];
+    if (startCursor) {
+        args.push('--after-cursor');
+        args.push(startCursor);
+    } else {
+        args.push('-n');
+        args.push('100');
+    }
+
+    var unit;
+    if ('THINGENGINE_UNIT_NAME' in process.env) {
+        unit = process.env.THINGENGINE_UNIT_NAME;
+    } else {
+        unit = 'thingengine-cloud';
+    }
+    if (unit) {
+        args.push('u');
+        args.push(unit);
+    }
+
+    args.push('THINGENGINE_USER_ID=' + userId);
+
+    var child = child_process.spawn('/usr/bin/journalctl', args,
+                                    { stdio: ['ignore', 'pipe', 'ignore'] });
+    return child;
 }
 
 function getCachedModules(userId) {
@@ -44,14 +59,28 @@ function getCachedModules(userId) {
     });
 }
 
-router.get('/', user.redirectLogIn, function(req, res, next) {
-    Q.all([readLogs(req.user.id), getCachedModules(req.user.id)]).spread(function(lines, modules) {
+router.get('/', user.redirectLogIn, function(req, res) {
+    getCachedModules(req.user.id).then(function(modules) {
         res.render('status', { page_title: "ThingEngine - Status",
                                csrfToken: req.csrfToken(),
-                               log: lines,
                                modules: modules,
                                isRunning: EngineManager.get().isRunning(req.user.id) });
     }).done();
+});
+
+router.get('/logs', user.requireLogIn, function(req, res) {
+    var child = readLogs(req.user.id, req.query.startCursor);
+    var stdout = child.stdout;
+    res.set('Content-Type', 'text/event-stream');
+    stdout.pipe(res, { end: false });
+    res.on('close', function() {
+        child.kill('SIGINT');
+        stdout.destroy();
+    });
+    res.on('error', function() {
+        child.kill('SIGINT');
+        stdout.destroy();
+    });
 });
 
 router.post('/kill', user.requireLogIn, function(req, res) {

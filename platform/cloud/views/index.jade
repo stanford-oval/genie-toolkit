@@ -13,15 +13,23 @@ block content
     div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
   div.jumbotron.text-center
     if authenticated
-      h1 Welcome back!
+      if isRunning
+        h1 Welcome back!
 
-      p Connect your 
-        a(href='/devices/create?class=physical') devices
-        |  or 
-        a(href='/devices/create?class=online') web services
-        | , or jump straight to the 
-        a(href='/apps') list of installed apps
-        | .
+        p Connect your 
+          a(href='/devices/create?class=physical') devices
+          |  or 
+          a(href='/devices/create?class=online') web services
+          | , or jump straight to the 
+          a(href='/apps') list of installed apps
+          | .
+      else
+        h1 Uh, oh!
+
+        h2 Your engine is not running!
+        p It might have crashed or might have been killed by the site administrators. 
+          a(href='/status') Check out what happened
+          | .
     else
       h1 Welcome to ThingEngine Online
 

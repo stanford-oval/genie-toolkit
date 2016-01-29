@@ -7,11 +7,9 @@ block page_name
   | ThingEngine
 
 block content
-  h1 Welcome to ThingEngine, #{username}!
-  h2 You're now successfully registered with ThingEngine
+  div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
 
-  p Your Cloud ID is <samp id='cloud-id'>#{cloudId}</samp>. Your Auth Token is
-    | <samp id='auth-token'>#{authToken}</samp>.
-  p Make note of these because you'll need them to pair the app
-    | on the phone!
+  div.jumbotron.text-center
+    h1 Welcome to ThingEngine, #{username}!
+    h2 You're now successfully registered with ThingEngine
 

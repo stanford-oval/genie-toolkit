@@ -3,6 +3,9 @@ extends layout
 block styles
   link(rel='stylesheet', href='/stylesheets/status.css')
 
+block scripts
+  script(src='/javascripts/status.js')
+
 block page_name
   | Status
 
@@ -47,17 +50,4 @@ block content
               button(type='submit').btn.btn-default Update
 
   h2 Logs
-
-  - var previous = undefined;
-  div.log-view
-    each l in log
-      if l.THINGENGINE_PID !== previous && previous !== undefined
-        p #{(new Date(l._SOURCE_REALTIME_TIMESTAMP/1000)).toLocaleString()}: 
-          strong *** Restarted ***
-        - previous = l.THINGENGINE_PID
-      if l.PRIORITY <= 3
-        p.text-danger #{(new Date(l._SOURCE_REALTIME_TIMESTAMP/1000)).toLocaleString()}: #{l.MESSAGE}
-      else if l.PRIORITY == 4
-        p.text-warning #{(new Date(l._SOURCE_REALTIME_TIMESTAMP/1000)).toLocaleString()}: #{l.MESSAGE}
-      else
-        p #{(new Date(l._SOURCE_REALTIME_TIMESTAMP/1000)).toLocaleString()}: #{l.MESSAGE}
+  div#log-view
