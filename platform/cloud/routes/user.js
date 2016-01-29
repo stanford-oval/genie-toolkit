@@ -6,17 +6,17 @@
 //
 // See COPYING for details
 
-var Q = require('q');
-var express = require('express');
-var passport = require('passport');
+const Q = require('q');
+const express = require('express');
+const passport = require('passport');
 
-var user = require('../util/user');
-var model = require('../model/user');
-var db = require('../util/db');
+const user = require('../util/user');
+const model = require('../model/user');
+const db = require('../util/db');
 
 var TITLE = "ThingEngine";
 
-var EngineManager = require('../enginemanager');
+const EngineManager = require('../enginemanager');
 
 var router = express.Router();
 

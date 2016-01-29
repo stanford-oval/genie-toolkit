@@ -6,7 +6,7 @@
 //
 // See COPYING for details
 
-var express = require('express');
+const express = require('express');
 var router = express.Router();
 const user = require('../util/user');
 const db = require('../util/db');

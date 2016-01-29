@@ -1,9 +1,9 @@
-var os = require('os');
-var express = require('express');
+const os = require('os');
+const express = require('express');
 var router = express.Router();
 
-var ipAddress = require('../../engine/util/ip_address');
-var user = require('../util/user');
+const ipAddress = require('../../engine/util/ip_address');
+const user = require('../util/user');
 
 router.get('/', user.redirectLogIn, function(req, res, next) {
     ipAddress.getServerName().then(function(host) {

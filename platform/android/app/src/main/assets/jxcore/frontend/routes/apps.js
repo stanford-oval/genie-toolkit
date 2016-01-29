@@ -6,11 +6,11 @@
 //
 // See COPYING for details
 
-var Q = require('q');
-var express = require('express');
+const Q = require('q');
+const express = require('express');
 var router = express.Router();
 
-var AppGrammar = require('../../engine/app_grammar');
+const AppGrammar = require('../../engine/app_grammar');
 
 function appsList(req, res, next, message) {
     var engine = req.app.engine;

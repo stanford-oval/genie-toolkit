@@ -12,15 +12,15 @@ const express = require('express');
 const passport = require('passport');
 const oauth2orize = require('oauth2orize');
 
-var BasicStrategy = require('passport-http').BasicStrategy;
-var ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy;
+const BasicStrategy = require('passport-http').BasicStrategy;
+const ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy;
 
 // create OAuth 2.0 server
 var server = oauth2orize.createServer();
 
-var model = require('../model/oauth2');
-var user = require('../util/user');
-var db = require('../util/db');
+const model = require('../model/oauth2');
+const user = require('../util/user');
+const db = require('../util/db');
 
 var router = express.Router();
 

@@ -6,8 +6,8 @@
 //
 // See COPYING for details
 
-var Q = require('q');
-var express = require('express');
+const Q = require('q');
+const express = require('express');
 
 var router = express.Router();
 

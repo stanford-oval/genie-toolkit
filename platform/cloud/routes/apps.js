@@ -6,15 +6,15 @@
 //
 // See COPYING for details
 
-var Q = require('q');
-var express = require('express');
+const Q = require('q');
+const express = require('express');
 
-var user = require('../util/user');
-var feeds = require('../../shared/util/feeds');
-var EngineManager = require('../enginemanager');
+const user = require('../util/user');
+const feeds = require('../../shared/util/feeds');
+const EngineManager = require('../enginemanager');
 
-var AppGrammar = require('../instance/engine/app_grammar');
-var AppCompiler = require('../instance/engine/app_compiler');
+const AppGrammar = require('../instance/engine/app_grammar');
+const AppCompiler = require('../instance/engine/app_compiler');
 
 var router = express.Router();
 

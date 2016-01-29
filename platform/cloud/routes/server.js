@@ -9,7 +9,7 @@
 const express = require('express');
 const passport = require('passport');
 
-var EngineManager = require('../enginemanager');
+const EngineManager = require('../enginemanager');
 
 var router = express.Router();
 

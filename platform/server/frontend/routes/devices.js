@@ -6,12 +6,12 @@
 //
 // See COPYING for details
 
-var Q = require('q');
+const Q = require('q');
 
-var express = require('express');
+const express = require('express');
 var router = express.Router();
 
-var user = require('../util/user');
+const user = require('../util/user');
 
 router.get('/', user.redirectLogIn, function(req, res, next) {
     if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {

@@ -1,4 +1,4 @@
-var express = require('express');
+const express = require('express');
 var router = express.Router();
 
 var LINKEDIN_CODE = 'LinkedInApp-F() {' +

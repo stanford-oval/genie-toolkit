@@ -3,20 +3,20 @@
  * Module dependencies.
  */
 
-var Q = require('q');
+const Q = require('q');
 
-var express = require('express');
-var http = require('http');
-var path = require('path');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var session = require('express-session');
-var csurf = require('csurf');
-var errorHandler = require('errorhandler');
-var connect_flash = require('connect-flash');
+const express = require('express');
+const http = require('http');
+const path = require('path');
+const logger = require('morgan');
+const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+const session = require('express-session');
+const csurf = require('csurf');
+const errorHandler = require('errorhandler');
+const connect_flash = require('connect-flash');
 
-var secretKey = require('./util/secret_key');
+const secretKey = require('./util/secret_key');
 
 function Frontend() {
     this._init.apply(this, arguments);

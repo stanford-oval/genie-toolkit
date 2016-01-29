@@ -6,14 +6,14 @@
 //
 // See COPYING for details
 
-var Q = require('q');
-var express = require('express');
+const Q = require('q');
+const express = require('express');
 
-var db = require('../util/db');
-var model = require('../model/user');
-var user = require('../util/user');
-var EngineManager = require('../enginemanager');
-var AssistantManager = require('../assistantmanager');
+const db = require('../util/db');
+const model = require('../model/user');
+const user = require('../util/user');
+const EngineManager = require('../enginemanager');
+const AssistantManager = require('../assistantmanager');
 
 var router = express.Router();
 

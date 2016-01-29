@@ -6,14 +6,14 @@
 //
 // See COPYING for details
 
-var Q = require('q');
-var express = require('express');
+const Q = require('q');
+const express = require('express');
 var router = express.Router();
 
-var user = require('../util/user');
-var feeds = require('../../shared/util/feeds');
-var AppGrammar = require('../../engine/app_grammar');
-var AppCompiler = require('../../engine/app_compiler');
+const user = require('../util/user');
+const feeds = require('../../shared/util/feeds');
+const AppGrammar = require('../../engine/app_grammar');
+const AppCompiler = require('../../engine/app_compiler');
 
 function appsList(req, res, next, message) {
     var engine = req.app.engine;

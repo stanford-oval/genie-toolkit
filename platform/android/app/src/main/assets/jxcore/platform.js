@@ -15,7 +15,7 @@ const sql = require('./engine/db/sql');
 const JavaAPI = require('./java_api');
 
 var _unzipApi = JavaAPI.makeJavaAPI('Unzip', ['unzip'], []);
-var _notifyApi = require('./notify_api');
+const _notifyApi = require('./notify_api');
 
 var filesDir = null;
 var cacheDir = null;

@@ -10,8 +10,8 @@ const Q = require('q');
 const express = require('express');
 const passport = require('passport');
 
-var user = require('../util/user');
-var EngineManager = require('../enginemanager');
+const user = require('../util/user');
+const EngineManager = require('../enginemanager');
 
 var router = express.Router();
 

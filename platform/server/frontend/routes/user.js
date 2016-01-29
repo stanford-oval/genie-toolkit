@@ -6,11 +6,11 @@
 //
 // See COPYING for details
 
-var Q = require('q');
-var express = require('express');
-var passport = require('passport');
+const Q = require('q');
+const express = require('express');
+const passport = require('passport');
 
-var user = require('../util/user');
+const user = require('../util/user');
 
 var router = express.Router();
 

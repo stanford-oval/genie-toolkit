@@ -1,6 +1,6 @@
 // See the LICENSE file
 
-var path = require('path');
+const path = require('path');
 
 global.JXMobile = function JXMobile(x) {
   if (!(this instanceof JXMobile)) return new JXMobile(x);

@@ -6,17 +6,17 @@
 //
 // See COPYING for details
 
-var Config = require('../../engine/config');
+const Config = require('../../engine/config');
 
-var Q = require('q');
-var http = require(Config.THINGENGINE_ACCESS_MODULE);
-var httpStatusCodes = require('http').STATUS_CODES;
-var url = require('url');
-var express = require('express');
+const Q = require('q');
+const http = require(Config.THINGENGINE_ACCESS_MODULE);
+const httpStatusCodes = require('http').STATUS_CODES;
+const url = require('url');
+const express = require('express');
 var router = express.Router();
 
-var ipAddress = require('../../engine/util/ip_address');
-var user = require('../util/user');
+const ipAddress = require('../../engine/util/ip_address');
+const user = require('../util/user');
 
 function config(req, res, next, userData, cloudData) {
     return ipAddress.getServerName().then(function(host) {
