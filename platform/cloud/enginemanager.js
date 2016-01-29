@@ -116,13 +116,12 @@ const EngineManager = new lang.Class({
                 var managerPath = path.dirname(module.filename);
                 var enginePath = managerPath + '/instance/runengine';
                 var sandboxPath = managerPath + '/sandbox/sandbox';
-                var child = child_process.fork(enginePath, [],
-                                               { execPath: sandboxPath,
-                                                 execArgv: ['-i', cloudId, process.execPath].concat(process.execArgv),
-                                                 cwd: './' + cloudId,
-                                                 silent: true,
-                                                 env: env });
-                child.stdin.end();
+                var args = ['-i', cloudId, process.execPath].concat(process.execArgv);
+                args.push(enginePath);
+                var child = child_process.spawn(sandboxPath, args,
+                                                { stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+                                                  cwd: './' + cloudId,
+                                                  env: env });
                 function output(priority) {
                     return (function(data) {
                         var str = data.toString('utf8');
