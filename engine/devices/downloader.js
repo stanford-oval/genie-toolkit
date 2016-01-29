@@ -186,14 +186,14 @@ module.exports = new lang.Class({
             return this._cachedModules[id].getSubmodule(fullId.substr(id.length + 1));
     },
 
-    _getModuleRequest: function(fullId, id) {
+    _ensureModuleRequest: function(id) {
         if (id in this._moduleRequests)
-            return this._moduleRequests[id];
+            return;
 
         var codeTmpPath = this._cacheDir + '/' + id + '.json.tmp';
         var codePath = this._cacheDir + '/' + id + '.json';
 
-        return this._moduleRequests[id] = Thingpedia.getCode(id).then(function(response) {
+        this._moduleRequests[id] = Thingpedia.getCode(id).then(function(response) {
             var stream = fs.createWriteStream(codeTmpPath, { flags: 'wx', mode: 0600 });
 
             return Q.Promise(function(callback, errback) {
@@ -203,8 +203,7 @@ module.exports = new lang.Class({
             });
         }.bind(this)).then(function() {
             fs.renameSync(codeTmpPath, codePath);
-
-            return this._createModuleFromCachedCode(fullId, id);
+            return 'code';
         }.bind(this)).catch(function(e) {
             return Thingpedia.getZip(id).then(function(response) {
                 return Q.nfcall(tmp.file, { mode: 0600,
@@ -237,8 +236,19 @@ module.exports = new lang.Class({
                     fs.unlinkSync(zipPath);
                 });
             }.bind(this)).then(function() {
+                return 'zip';
+            });
+        }.bind(this));
+    },
+
+    _getModuleRequest: function(fullId, id) {
+        this._ensureModuleRequest(id);
+
+        return this._moduleRequests[id].then(function(how) {
+            if (how === 'code')
+                return this._createModuleFromCachedCode(fullId, id);
+            else
                 return this._createModuleFromCache(fullId, false);
-            }.bind(this));
         }.bind(this));
     },
 
