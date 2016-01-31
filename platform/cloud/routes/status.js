@@ -35,7 +35,7 @@ function readLogs(userId, startCursor) {
         unit = 'thingengine-cloud';
     }
     if (unit) {
-        args.push('u');
+        args.push('-u');
         args.push(unit);
     }
 
