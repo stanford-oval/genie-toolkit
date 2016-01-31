@@ -11,37 +11,58 @@ const fs = require('fs');
 const path = require('path');
 const Q = require('q');
 
+const CONNECTION_LIMIT = 2;
 var connectionPool = {};
-function acquireConnection(filename, callback) {
-    if (filename in connectionPool) {
-        var pooled = connectionPool[filename];
-        if (pooled.length > 0)
-            callback(null, pooled.pop());
-    }
-
-    connectionPool[filename] = [];
+function connectNow(filename, callback) {
     var db = new sqlite3.Database(filename, sqlite3.OPEN_READWRITE, function(err) {
         if (err) {
             callback(err);
         } else {
+            db.run('PRAGMA busy_timeout = 1000');
             callback(null, db);
         }
     });
 }
+function acquireConnection(filename, callback) {
+    if (filename in connectionPool) {
+        var pooled = connectionPool[filename];
+        if (pooled.connections.length > 0) {
+            callback(null, pooled.connections.pop());
+            return;
+        }
+        if (pooled.active >= 2) {
+            pooled.queue.push(callback);
+            return;
+        }
 
-function releaseConnection(filename, db, callback) {
-    if (!(filename in connectionPool)) {
-        callback(new Error('Connection to ' + filename + ' is not open'));
+        pooled.active++;
+    } else {
+        connectionPool[filename] = {
+            connections: [],
+            active: 1,
+            queue: []
+        };
+    }
+
+    connectNow(filename, callback);
+}
+
+function releaseConnection(filename, db) {
+    if (!(filename in connectionPool))
+        throw new Error('Connection to ' + filename + ' is not open');
+
+    var pooled = connectionPool[filename];
+    if (pooled.queue.length > 0) {
+        var next = pooled.queue.shift();
+        next(null, db);
         return;
     }
 
-    var pooled = connectionPool[filename];
-    pooled.push(db);
-    if (pooled.length > 1) {
-        pooled.shift().close(callback);
-    } else {
-        callback(null);
-    }
+    pooled.active --;
+    if (pooled.connections.length > 3)
+        db.close();
+    else
+        pooled.connections.push(db);
 }
 
 function rollback(client, err, done) {
@@ -81,7 +102,7 @@ function connect(filename) {
         function done(error) {
             if (error)
                 console.log('Error in database transaction: ' + error);
-            return Q.nfcall(releaseConnection, filename, client).done();
+            return releaseConnection(filename, client);
         }
         return [client, done];
     });

@@ -28,6 +28,7 @@ module.exports = new lang.Class({
                                           this._handleMessage.bind(this));
 
         this._syncing = false;
+        this._debug = true;
     },
 
     open: function() {
@@ -160,7 +161,8 @@ module.exports = new lang.Class({
     },
 
     insertOne: function(uniqueId, row) {
-        console.log('Inserting one object in DB: ' + JSON.stringify(row));
+        if (this._debug)
+            console.log('Inserting one object in DB: ' + JSON.stringify(row));
         return this._sqldb.insertOne(uniqueId, row)
             .then(function(lastModified) {
                 this._sendMessageToAll({op:'change', uniqueId: uniqueId,
@@ -170,7 +172,8 @@ module.exports = new lang.Class({
     },
 
     deleteOne: function(uniqueId) {
-        console.log('Deleting one object from DB: ' + uniqueId);
+        if (this._debug)
+            console.log('Deleting one object from DB: ' + uniqueId);
         return this._sqldb.deleteOne(uniqueId).then(function(lastModified) {
             this._sendMessageToAll({op:'change', uniqueId: uniqueId,
                                     row: undefined, lastModified: lastModified });
@@ -188,8 +191,9 @@ module.exports = new lang.Class({
     _reportChange: function(fromTier, uniqueId, lastModified, row, done) {
         if (!done) {
             // stale change
-            console.log('Change for ' + uniqueId + ' in syncdb for ' + this._sqldb.tablename
-                        + ' was stale, ignored');
+            if (this._debug)
+                console.log('Change for ' + uniqueId + ' in syncdb for ' + this._sqldb.tablename
+                            + ' was stale, ignored');
             return;
         }
 
@@ -225,8 +229,9 @@ module.exports = new lang.Class({
     },
 
     _handleChange: function(fromTier, uniqueId, lastModified, row) {
-        console.log('Received syncdb change for ' + this._sqldb.tablename  + ': '
-                    + (row !== undefined ? ' added ' : ' deleted ') + uniqueId);
+        if (this._debug)
+            console.log('Received syncdb change for ' + this._sqldb.tablename  + ': '
+                        + (row !== undefined ? ' added ' : ' deleted ') + uniqueId);
 
         Q.try(function() {
             if (row !== undefined) {
