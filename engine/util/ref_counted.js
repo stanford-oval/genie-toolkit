@@ -44,7 +44,7 @@ module.exports = new lang.Class({
         if (this._useCount == 1) { // first open
             if (this._openPromise)
                 throw new Error('bookkeeping error');
-            return this._openPromise = this._doOpen().finally(function() {
+            return this._openPromise = Q(this._doOpen()).finally(function() {
                 this._openPromise = null;
             }.bind(this));
         } else if (this._openPromise) { // opening
@@ -68,7 +68,7 @@ module.exports = new lang.Class({
         if (this._useCount == 0) { // last close
             if (this._closePromise)
                 throw new Error('bookkeeping error');
-            return this._closePromise = this._doClose().finally(function() {
+            return this._closePromise = Q(this._doClose()).finally(function() {
                 this._closePromise = null;
             }.bind(this));
         } else if (this._closePromise) { // closing

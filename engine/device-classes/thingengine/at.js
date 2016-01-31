@@ -49,10 +49,12 @@ module.exports = new Tp.ChannelClass({
             this._timeout = setTimeout(atCallback.bind(this), this._interval);
         };
         this._timeout = setTimeout(atCallback.bind(this), this._interval);
+        return Q();
     },
 
     _doClose: function() {
         clearTimeout(this._timeout);
         this._timeout = null;
+        return Q();
     },
 });
