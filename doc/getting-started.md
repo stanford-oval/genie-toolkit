@@ -25,6 +25,9 @@ Sabrina is the magic virtual assistant that lives in your ThingEngine. She can
 help you configure your things, execute actions on them, install apps based on
 your description of the behavior you want.
 
+This tutorial is also available in interactive form
+[here](https://thingengine.stanford.edu/tutorial/1).
+
 ## Step-by-step example: Twitter to Sabrina
 
 This example will guide you through filtering your Twitter feed and redirect

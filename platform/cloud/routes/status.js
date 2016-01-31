@@ -14,8 +14,6 @@ const user = require('../util/user');
 const model = require('../model/user');
 const db = require('../util/db');
 
-var TITLE = "ThingEngine";
-
 const EngineManager = require('../enginemanager');
 
 var router = express.Router();

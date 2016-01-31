@@ -4,6 +4,7 @@ block scripts
   script(src='/javascripts/index.js')
 
 block page_name
+  - index = true;
   | ThingEngine
 
 block content
@@ -11,5 +12,11 @@ block content
 
   div.jumbotron.text-center
     h1 Welcome to ThingEngine, #{username}!
-    h2 You're now successfully registered with ThingEngine
+    p You're now ready to start writing your first app.
 
+    p
+      a(href='/tutorial/1').btn.btn-primary Guide me through it
+
+    p
+      small
+        a(href='/') No, thanks. I know my way around it.
