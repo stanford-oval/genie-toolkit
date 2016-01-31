@@ -14,7 +14,8 @@ const Tp = require('thingpedia');
 
 const ObjectSet = require('./object_set');
 const DeviceView = require('./device_view');
-const AppCompiler = require('./app_compiler');
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
 
 // the device that owns/implements a builtin
 const BuiltinOwner = {
@@ -119,7 +120,7 @@ module.exports = new lang.Class({
                 this._context = this.engine.devices.getContext('me');
             }
 
-            this._selector = AppCompiler.Selector.Id(owner);
+            this._selector = Ast.Selector.Id(owner);
             this._channelName = block.selector.name;
         } else if (block.selector.isComputeModule) {
             // compute modules are handled in a similar fashion as doubly special builtins
@@ -128,7 +129,7 @@ module.exports = new lang.Class({
             this._context.addOne(this.app.getComputeModule(block.selector.module));
             // there is nothing but the right module in this context,
             // so any is fine
-            this._selector = AppCompiler.Selector.Any;
+            this._selector = Ast.Selector.Any;
             this._channelName = block.name;
         } else {
             this._context = this.engine.devices.getContext('me');
@@ -145,20 +146,20 @@ module.exports = new lang.Class({
                 var type = this.app.compiler.params[p.name];
                 var value = this.app.state[p.name];
                 if (type.isBoolean)
-                    return AppCompiler.Value.Boolean(value);
+                    return Ast.Value.Boolean(value);
                 else if (type.isString)
-                    return AppCompiler.Value.String(value);
+                    return Ast.Value.String(value);
                 else if (type.isNumber)
-                    return AppCompiler.Value.Number(value);
+                    return Ast.Value.Number(value);
                 else if (type.isLocation)
-                    return AppCompiler.Value.Location(value.x, value.y);
+                    return Ast.Value.Location(value.x, value.y);
                 else if (type.isDate) {
                     var date = new Date();
                     date.setTime(value);
-                    return AppCompiler.Value.Date(date);
+                    return Ast.Value.Date(date);
                 } else if (type.isFeed) {
                     value = this.app.state['$' + p.name];
-                    return AppCompiler.Value.Feed(this.engine.messaging.getFeed(value));
+                    return Ast.Value.Feed(this.engine.messaging.getFeed(value));
                 } else
                     throw new TypeError();
             } else

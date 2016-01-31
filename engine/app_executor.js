@@ -12,8 +12,8 @@ const lang = require('lang');
 const adt = require('adt');
 const Tp = require('thingpedia');
 
-const AppCompiler = require('./app_compiler');
-const AppGrammar = require('./app_grammar');
+const ThingTalk = require('thingtalk');
+const AppCompiler = ThingTalk.Compiler;
 const QueryRunner = require('./query_runner');
 const DeviceSelector = require('./device_selector');
 const ComputeModule = require('./compute_module');
@@ -187,9 +187,7 @@ module.exports = new lang.Class({
         this.compiler = compiler;
 
         try {
-            var ast = AppGrammar.parse(code);
-
-            compiler.compileProgram(ast, state);
+            compiler.compileCode(code, state);
 
             if (!state['$F'] && compiler.feedAccess)
                 throw new Error("Missing $F parameter for feed shared app");

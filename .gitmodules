@@ -4,3 +4,6 @@
 [submodule "engine/node_modules/thingpedia"]
 	path = engine/node_modules/thingpedia
 	url = ../thingpedia-api
+[submodule "engine/node_modules/ThingTalk"]
+	path = node_modules/thingtalk
+	url = ../ThingTalk.git

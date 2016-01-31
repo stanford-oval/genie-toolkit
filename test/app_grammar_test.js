@@ -5,8 +5,6 @@ require('../engine/polyfill');
 
 const ObjectSet = require('../engine/object_set');
 const AppExecutor = require('../engine/app_executor');
-const AppCompiler = require('../engine/app_compiler');
-const AppGrammar = require('../engine/app_grammar');
 
 function getMockEngine() {
     var weatherChannel = {
@@ -143,67 +141,17 @@ function executorTest() {
     var code = fs.readFileSync('./test/test.app').toString('utf8');
     var app = new AppExecutor(getMockEngine(), code, {'someone': 'Mike'});
 
-    /*
     app.inputs.forEach(function(input) {
         console.log('input', input);
     });
     app.outputs.forEach(function(output) {
         console.log('output', output);
     });
-    */
     /*
     app.start();
     setTimeout(function() {
         app._onData();
     }, 1000);*/
 }
-
-function parserTest() {
-    var code = fs.readFileSync('./test/sample.apps').toString('utf8').split('====');
-
-    //code.forEach(function(code) {
-    (function(code) {
-        try {
-            var ast = AppGrammar.parse(code);
-        } catch(e) {
-            console.log('Parsing failed');
-            console.log(code);
-            console.log(e);
-            return;
-        }
-
-        try {
-            var compiler = new AppCompiler();
-
-            compiler.compileProgram(ast);
-            compiler.rules.forEach(function(r, i) {
-                console.log('Rule ' + (i+1));
-                console.log('Inputs', r.inputs);
-                console.log('Output', r.output);
-            });
-        } catch(e) {
-            console.log('Compilation failed');
-            console.log(code);
-            console.log(e.stack);
-            return;
-        }
-
-
-        try {
-            // try also instantiating the app, which runs semantic analysis of it
-            // we won't start the app so it will not poke the engine to get channels
-            // or devices
-            new AppExecutor(getMockEngine(), code, {});
-        } catch(e) {
-            // some of the errors here are expected, eg. the instagram example
-            // as a selfie() function
-            // not a biggie
-            console.log('Semantic analysis failed');
-            console.log(e);
-        }
-    })(code[0]);
-}
-
-parserTest();
 executorTest();
 

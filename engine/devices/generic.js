@@ -17,7 +17,6 @@ const WebSocket = require('ws');
 const Tp = require('thingpedia');
 
 const httpRequestAsync = require('../util/http').request;
-const ExecEnvironment = require('../exec_environment');
 
 // encryption ;)
 function rot13(x) {

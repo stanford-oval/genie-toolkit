@@ -9,7 +9,8 @@
 const lang = require('lang');
 const Q = require('q');
 
-const AppCompiler = require('./app_compiler');
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
 
 const ValueProto = {
     makeString: function(value) {
@@ -55,25 +56,25 @@ const ValueProto = {
     unmarshal: function(messaging, value) {
         switch(value.tag) {
         case 'bool':
-            return AppCompiler.Value.Boolean(value.v);
+            return Ast.Value.Boolean(value.v);
         case 'str':
-            return AppCompiler.Value.String(value.v);
+            return Ast.Value.String(value.v);
         case 'measure':
-            return AppCompiler.Value.Measure(value.v, value.u);
+            return Ast.Value.Measure(value.v, value.u);
         case 'number':
-            return AppCompiler.Value.Number(value.v);
+            return Ast.Value.Number(value.v);
         case 'loc':
-            return AppCompiler.Value.Location(value.x, value.y);
+            return Ast.Value.Location(value.x, value.y);
         case 'date':
             var date = new Date;
             date.setTime(value.v);
-            return AppCompiler.Value.Date(date);
+            return Ast.Value.Date(date);
         case 'array':
-            return AppCompiler.Value.Array(value.v.map(function(v) {
+            return Ast.Value.Array(value.v.map(function(v) {
                 return ValueProto.unmarshal(messaging, v);
             }));
         case 'feed':
-            return AppCompiler.Value.Feed(messaging.getFeed(value.v));
+            return Ast.Value.Feed(messaging.getFeed(value.v));
         default:
             throw new TypeError();
         }

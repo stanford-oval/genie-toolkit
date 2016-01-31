@@ -1,9 +1,12 @@
 build-all: build-server build-android build-cloud
 
-build-engine:
+build-thingtalk:
+	cd node_modules/thingtalk ; npm install --no-optional --only=prod
+
+build-engine: build-thingtalk
 	make -C engine all
 
-build-engine-android:
+build-engine-android: build-thingtalk
 	make -C engine all-android
 
 build-shared:

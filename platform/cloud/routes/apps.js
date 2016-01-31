@@ -13,8 +13,8 @@ const user = require('../util/user');
 const feeds = require('../../shared/util/feeds');
 const EngineManager = require('../enginemanager');
 
-const AppGrammar = require('../instance/engine/app_grammar');
-const AppCompiler = require('../instance/engine/app_compiler');
+const ThingTalk = require('thingtalk');
+const AppCompiler = ThingTalk.Compiler;
 
 var router = express.Router();
 
@@ -75,9 +75,8 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
         var state, tier;
         try {
             // sanity check the app
-            var parsed = AppGrammar.parse(code);
             var compiler = new AppCompiler();
-            compiler.compileProgram(parsed);
+            compiler.compileCode(code);
 
             state = JSON.parse(req.body.params);
             if (compiler.feedAccess) {
@@ -168,9 +167,8 @@ router.post('/:id/update', user.requireLogIn, function(req, res, next) {
                 var state;
                 try {
                     // sanity check the app
-                    var parsed = AppGrammar.parse(code);
                     var compiler = new AppCompiler();
-                    compiler.compileProgram(parsed);
+                    compiler.compileCode(code);
 
                     state = JSON.parse(req.body.params);
                 } catch(e) {

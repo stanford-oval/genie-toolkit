@@ -11,7 +11,7 @@ const lang = require('lang');
 const events = require('events');
 const adt = require('adt');
 
-const AppCompiler = require('./app_compiler');
+const ThingTalk = require('thingtalk');
 
 // Very bare-bones word-level NLP
 const Words = {
@@ -72,7 +72,7 @@ const WordCategories = [Words.IGNORED, Words.SPECIAL, Words.YES_ANSWER, Words.NO
 // FINISHME: move this to actual thingpedia
 const Parameter = adt.data({
     Constant: { value: adt.any },
-    Input: { question: adt.only(String), type: adt.only(AppCompiler.Type) }
+    Input: { question: adt.only(String), type: adt.only(ThingTalk.Type) }
 });
 
 const ThingPedia = {
@@ -82,7 +82,8 @@ const ThingPedia = {
         'scale': 'scale'
     },
     NounToTriggerMap: {
-        'weight': ['extern Weight : (Date, Measure(kg));', 'Weight(_, %s)', AppCompiler.Type.Measure('kg')],
+        'weight': ['extern Weight : (Date, Measure(kg));', 'Weight(_, %s)',
+                   ThingTalk.Type.Measure('kg')],
         'picture': [],
         'movie': [],
         'show': [],
@@ -100,7 +101,7 @@ const ThingPedia = {
     },
     AbsoluteVerbToActionMap: {
         'tweet': ['twitter', 'sink', Parameter.Input("What do you want me to tweet?",
-                                                     AppCompiler.Type.String)]
+                                                     ThingTalk.Type.String)]
     },
 };
 

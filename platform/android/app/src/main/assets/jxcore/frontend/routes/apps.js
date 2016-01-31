@@ -10,7 +10,8 @@ const Q = require('q');
 const express = require('express');
 var router = express.Router();
 
-const AppGrammar = require('../../engine/app_grammar');
+const ThingTalk = require('thingtalk');
+const AppCompiler = ThingTalk.Compiler;
 
 function appsList(req, res, next, message) {
     var engine = req.app.engine;
@@ -32,29 +33,58 @@ router.get('/', function(req, res, next) {
     appsList(req, res, next, '');
 });
 
-router.get('/create', function(req, res, next) {
-    res.render('apps_create', { page_title: 'ThingEngine - create app',
-                                csrfToken: req.csrfToken(),
-                              });
+function appsCreate(error, req, res) {
+    return feeds.getFeedList(req.app.engine, false).then(function(feeds) {
+        res.render('apps_create', { page_title: 'ThingEngine - create app',
+                                    csrfToken: req.csrfToken(),
+                                    error: error,
+                                    code: req.body.code,
+                                    parameters: req.body.params || '{}',
+                                    tier: req.body.tier || 'phone',
+                                    omlet: { feeds: feeds,
+                                             feedId: req.body.feedId }
+                                  });
+    });
+}
+
+router.get('/create', user.redirectLogIn, function(req, res, next) {
+    appsCreate(undefined, req, res).catch(function(e) {
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }).done();
 });
 
-router.post('/create', function(req, res, next) {
+router.post('/create', user.requireLogIn, function(req, res, next) {
     Q.try(function() {
-        var code = req.body['code'];
-        var parsed = AppGrammar.parse(code);
-        var tier = req.body.tier;
-        if (tier !== 'server' && tier !== 'cloud' && tier !== 'phone')
-            throw new Error('No such tier ' + tier);
-        var state = JSON.parse(req.body.params);
+        var code = req.body.code;
+        var state, tier;
+        try {
+            // sanity check the app
+            var compiler = new AppCompiler();
+            compiler.compileCode(code);
+
+            state = JSON.parse(req.body.params);
+            if (compiler.feedAccess) {
+                if (!state.$F && !req.body.feedId)
+                    throw new Error('Missing feed for feed-shared app');
+                if (!state.$F)
+                    state.$F = req.body.feedId;
+            } else {
+                delete state.$F;
+            }
+
+            tier = req.body.tier;
+            if (tier !== 'server' && tier !== 'cloud' && tier !== 'phone')
+                throw new Error('No such tier ' + tier);
+        } catch(e) {
+            return appsCreate(e.message, req, res);
+        }
 
         var engine = req.app.engine;
-
-        return engine.apps.loadOneApp(code, state, undefined, tier, true);
-    }).then(function() {
-        appsList(req, res, next, "Application successfully created");
+        return engine.apps.loadOneApp(code, state, undefined, tier, true).then(function() {
+            appsList(req, res, next, "Application successfully created");
+        });
     }).catch(function(e) {
-        console.log(e);
-        console.log(e.stack);
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
     }).done();
@@ -120,9 +150,8 @@ router.post('/:id/update', function(req, res, next) {
         var state;
         try {
             // sanity check the app
-            var parsed = AppGrammar.parse(code);
             var compiler = new AppCompiler();
-            compiler.compileProgram(parsed);
+            compiler.compileCode(code);
 
             state = JSON.parse(req.body.params);
         } catch(e) {

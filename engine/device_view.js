@@ -12,7 +12,6 @@ const lang = require('lang');
 const adt = require('adt');
 
 const ObjectSet = require('./object_set');
-const AppCompiler = require('./app_compiler');
 
 // A "view" of a set of devices (or their channels really), as a set of selectors matching
 // in specific context (which must be an ObjectSet of Devices)

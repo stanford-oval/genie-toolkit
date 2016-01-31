@@ -17,8 +17,8 @@ const fs = require('fs');
 const user = require('../util/user');
 const EngineManager = require('../enginemanager');
 
-const AppGrammar = require('../instance/engine/app_grammar');
-const AppCompiler = require('../instance/engine/app_compiler');
+const ThingTalk = require('thingtalk');
+const AppCompiler = ThingTalk.Compiler;
 
 const THINGPEDIA_ORIGIN = 'https://thingpedia.herokuapp.com';
 //const THINGPEDIA_ORIGIN = 'http://127.0.0.1:5000';
@@ -63,9 +63,8 @@ router.get('/install/:id(\\d+)', user.redirectLogIn, function(req, res, next) {
                 throw new Error(parsed.error);
 
             // sanity check the app for version incompatibilities
-            var ast = AppGrammar.parse(parsed.code);
             var compiler = new AppCompiler();
-            compiler.compileProgram(ast);
+            compiler.compileCode(parsed.code);
 
             var params = Object.keys(compiler.params).map(function(k) {
                 return [k, compiler.params[k]];

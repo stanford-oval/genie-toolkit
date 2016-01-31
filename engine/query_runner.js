@@ -11,9 +11,8 @@ const events = require('events');
 const lang = require('lang');
 const adt = require('adt');
 
-const AppCompiler = require('./app_compiler');
-const AppGrammar = require('./app_grammar');
-const ExecEnvironment = require('./exec_environment');
+const ThingTalk = require('thingtalk');
+const ExecEnvironment = ThingTalk.ExecEnvironment;
 const DeviceSelector = require('./device_selector');
 
 module.exports = new lang.Class({
