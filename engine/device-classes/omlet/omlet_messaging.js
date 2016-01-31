@@ -186,6 +186,11 @@ const OmletFeed = new lang.Class({
         return this._members;
     },
 
+    sendText: function(text) {
+        return Q.ninvoke(this._client.messaging, '_sendObjToFeedImmediate', this._feed, 'text',
+                         { text: text });
+    },
+
     sendItem: function(item) {
         var silent = true;
         return Q.ninvoke(this._client.messaging, '_sendObjToFeedImmediate', this._feed, 'text',
