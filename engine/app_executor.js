@@ -46,12 +46,10 @@ const RuleExecutor = new lang.Class({
         } else {
             var owner = this.output.owner;
 
-            this._outputKeyword.then(function(kw) {
-                if (owner === null)
-                    kw.changeValue(value);
-                else
-                    kw.changeValue(value, env.getMemberBinding(owner));
-            });
+            if (owner === null)
+                this._outputKeyword.changeValue(value);
+            else
+                this._outputKeyword.changeValue(value, env.getMemberBinding(owner));
         }
     },
 
@@ -78,12 +76,12 @@ const RuleExecutor = new lang.Class({
 
         if (this.selector) {
             this.selector.start().done();
+            return Q();
         } else {
-            this._outputKeyword = this._getOutputKeyword();
-            this._outputKeyword.done();
+            return this._getOutputKeyword().then(function(kw) {
+                this._outputKeyword = kw;
+            }.bind(this));
         }
-
-        return Q();
     },
 
     stop: function() {
@@ -91,9 +89,7 @@ const RuleExecutor = new lang.Class({
             if (this.selector) {
                 return this.selector.stop();
             } else {
-                return this._outputKeyword.then(function(kw) {
-                    return kw.close();
-                });
+                return this._outputKeyword.close();
             }
         }.bind(this));
     },

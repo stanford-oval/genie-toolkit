@@ -32,6 +32,8 @@ const LocalKeyword = new lang.Class({
         this.uniqueId = key;
 
         this._value = null;
+
+        this._updateTimeout = null;
     },
 
     get value() {
@@ -46,12 +48,20 @@ const LocalKeyword = new lang.Class({
             return;
 
         this._value = v;
-        if (v !== null)
-            this._db.insertOne(this.uniqueId, { value: JSON.stringify(v) });
-        else
-            this._db.deleteOne(this.uniqueId);
+
+        clearTimeout(this._updateTimeout);
+        this._updateTimeout = setTimeout(this._flushToDisk.bind(this), 500);
 
         this.emit('changed', null);
+    },
+
+    _flushToDisk: function() {
+        if (this._value !== null)
+            this._db.insertOne(this.uniqueId, {
+                value: JSON.stringify(this._value)
+            });
+        else
+            this._db.deleteOne(this.uniqueId);
     },
 
     sync: function() {
@@ -80,6 +90,7 @@ const LocalKeyword = new lang.Class({
     },
 
     _doClose: function() {
+        clearTimeout(this._updateTimeout);
         return Q();
     },
 });
@@ -92,6 +103,7 @@ const LocalKeywordStore = new lang.Class({
         this.parent('keyword', ['value'], tierManager);
 
         this._keywords = {};
+        this._debug = false;
     },
 
     objectAdded: function(uniqueId, row) {

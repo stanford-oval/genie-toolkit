@@ -336,7 +336,7 @@ const BinaryOps = {
 const UnaryOps = {
     '!': {
         types: [[Type.Boolean, Type.Boolean]],
-        op: function(a) { return a; }
+        op: function(a) { return !a; }
     },
     '-': {
         types: [[Type.Measure(''), Type.Measure('')],
@@ -1113,10 +1113,10 @@ module.exports = new lang.Class({
     compileInputBinding: function(ast, scope) {
         var name = ast.name;
         var expr = this.compileExpression(ast.expr, scope);
+        var exprop = expr[1];
 
         if (name in scope) {
             scope[name] = typeUnify(scope[name], expr[0]);
-            var exprop = expr[1];
             return function(env) {
                 return equalityTest(env.readVar(name), exprop(env));
             }
