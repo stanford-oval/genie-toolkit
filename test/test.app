@@ -20,6 +20,6 @@ MyProgram(someone : String) {
         MyLocation(location);
 
     Tomorrow(_, temp), temp >= 70F, MyLocation(loc), HomeLocation(homeloc),
-    distance(loc, homeloc) > 3km =>
+    $distance(loc, homeloc) > 3km =>
         @(type="light",loc="livingroom").power(off);
 }

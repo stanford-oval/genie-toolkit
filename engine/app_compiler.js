@@ -11,6 +11,7 @@ const events = require('events');
 const lang = require('lang');
 const adt = require('adt');
 const assert = require('assert');
+const Immutable = require('immutable');
 
 const UnitsToBaseUnit = {
     // time
@@ -84,6 +85,25 @@ const UnitsTransformToBaseUnit = {
     'K': function(x) { return x - 273.15; }
 };
 
+function normalizeUnit(unit) {
+    if (unit === '')
+        return '';
+    var baseunit = UnitsToBaseUnit[unit];
+    if (baseunit === undefined)
+        throw new TypeError('Invalid unit ' + unit);
+    return baseunit;
+}
+
+function adtOnlyOrString(what) {
+    return function(v) {
+        if (typeof v === 'string')
+            return v;
+        if (v instanceof what)
+            return v;
+        throw new TypeError('Invalid ADT parameter');
+    }
+}
+
 // strictly speaking, Measure and Arrays are not types, they are type constructors
 // (kind * -> *)
 // typeUnify() has the magic to check types
@@ -96,68 +116,61 @@ const Type = adt.data(function() {
         Measure: {
             // '' means any unit, creating a polymorphic type
             // any other value is a base unit (m for length, C for temperature)
-            unit: adt.only(String)
+            unit: normalizeUnit,
         },
         Array: {
-            elem: adt.only(this)
+            elem: adtOnlyOrString(this),
+        },
+        Map: {
+            key: adtOnlyOrString(this),
+            value: adtOnlyOrString(this),
         },
         Date: null,
         Location: null,
+        Tuple: {
+            schema: adtNullable(Array),
+        },
 
         // internal types
-        Tuple: {
-            schema: adt.only(Array),
-        },
         Object: {
             schema: adt.any,
         },
         Module: null,
         Feed: null,
         User: null,
-        UserArray: {
-            elem: adt.only(this),
-        },
-        Keyword: {
-            feedAccess: adt.only(Boolean),
-        },
     };
 });
 
-function stringToType(s) {
-    if (s.startsWith('Measure(')) {
-        var unit = s.substring(8, s.length-1);
-        var baseunit = UnitsToBaseUnit[unit];
-        if (baseunit === undefined)
-            throw new TypeError('Invalid unit ' + unit);
-        return Type.Measure(baseunit);
-    }
-    if (s.startsWith('Array('))
-        return Type.Array(stringToType(s.substring(6, s.length-1)));
+function typeUnify(t1, t2, typeScope) {
+    if (!typeScope)
+        typeScope = {};
 
-    switch(s) {
-    case 'Any':
-        return Type.Any;
-    case 'Boolean':
-        return Type.Boolean;
-    case 'String':
-    case 'Password':
-        return Type.String;
-    case 'Number':
-        return Type.Number;
-    case 'Location':
-        return Type.Location;
-    case 'Date':
-        return Type.Date;
-    default:
-        throw new TypeError("Invalid type " + s);
+    if (typeof t1 === 'string' && typeof t2 === 'string') {
+        if (t1 in typeScope && t2 in typeScope)
+            return typeUnify(typeScope[t1], typeScope[t2], typeScope);
+        if (t1 in typeScope)
+            return typeScope[t2] = typeScope[t1];
+        else if (t2 in typeScope)
+            return typeScope[t1] = typeScope[t2];
+        else
+            return typeScope[t1] = typeScope[t2] = Type.Any;
     }
-}
-
-function typeUnify(t1, t2) {
+    if (typeof t1 === 'string') {
+        if (t1 in typeScope)
+            t1 = typeScope[t1];
+        else
+            return t1 = typeScope[t1] = t2;
+    }
+    if (typeof t2 === 'string') {
+        if (t2 in typeScope)
+            t2 = typeScope[t2];
+        else
+            return t2 = typeScope[t2] = t1;
+    }
     // this will also check that the units match for two measures
     if (t1.equals(t2))
         return t1;
-    else if (t1.isAny)
+    if (t1.isAny)
         return t2;
     else if (t2.isAny)
         return t1;
@@ -184,15 +197,35 @@ function typeUnify(t1, t2) {
     else if (t1.isTuple && t2.isTuple && t1.schema.length === t2.schema.length) {
         var mapped = new Array(t1.schema.length);
         for (var i = 0; i < t1.schema.length; i++)
-            mapped[i] = typeUnify(t1.schema[i], t2.schema[i]);
+            mapped[i] = typeUnify(t1.schema[i], t2.schema[i], typeScope);
         return Type.Tuple(mapped);
     }
-    else if (t1.isUserArray && t2.isUserArray)
-        return Type.UserArray(typeUnify(t1.elem, t2.elem));
-    else if ((t1.isArray || t1.isUserArray) && (t2.isArray || t2.isUserArray))
-        return Type.Array(typeUnify(t1.elem, t2.elem));
+    else if (t1.isArray && t2.isArray)
+        return Type.Array(typeUnify(t1.elem, t2.elem, typeScope));
+    else if (t1.isMap && t2.isMap)
+        return Type.Map(typeUnify(t1.key, t2.key, typeScope),
+                        typeUnify(t1.value, t2.value, typeScope));
     else
         throw new TypeError('Cannot unify ' + t1 + ' and ' + t2);
+}
+
+function resolveTypeScope(type, typeScope) {
+    if (typeof type === 'string') {
+        if (type in typeScope)
+            return resolveTypeScope(typeScope[type], typeScope);
+        else
+            return Type.Any;
+    }
+
+    if (type.isArray)
+        return Type.Array(resolveTypeScope(type.elem, typeScope));
+    else if (type.isMap)
+        return Type.Map(resolveTypeScope(type.key, typeScope),
+                        resolveTypeScope(type.value, typeScope));
+    else if (type.isTuple && t1.schema !== null)
+        return Type.Tuple(type.schema.map(function(t) { return resolveTypeScope(t, typeScope); }));
+    else
+        return type;
 }
 
 function objectToString(o) {
@@ -213,16 +246,7 @@ function equalityTest(a, b) {
         a.feedId === b.feedId)
         return true;
 
-    if (Array.isArray(a) && Array.isArray(b) &&
-        a.length === b.length) {
-        for (var i = 0; i < a.length; i++) {
-            if (a[i] !== b[i])
-                return false;
-        }
-        return true;
-    }
-
-    return false;
+    return Immutable.is(a, b);
 }
 
 function likeTest(a, b) {
@@ -322,166 +346,181 @@ const UnaryOps = {
 };
 
 const Functions = {
-    'contains': {
-        argtypes: [Type.Array(Type.Any), Type.Any],
-        rettype: Type.Boolean,
+    'append': {
+        types: [[Type.Array('a'), 'a', Type.Array('a')]],
         op: function(a, b) {
-            return a.some(function(x) { return equalityTest(x, b); });
+            if (Array.isArray(a))
+                a = new Immutable.List(a);
+            return a.push(b);
+        },
+    },
+    'remove': {
+        types: [[Type.Array('a'), 'a', Type.Array('a')],
+                [Type.Map('k', 'v'), 'k', Type.Map('k', 'v')]],
+        op: [function(a, b) {
+            return a.filter(function(e) {
+                return !equalityTest(e, b);
+            });
+        }, function(a, b) {
+            if (!(a instanceof Immutable.Map))
+                a = new Immutable.Map(a);
+            return a.delete(key);
+        }],
+    },
+    'emptyMap': {
+        types: [[Type.Map(Type.Any, Type.Any)]],
+        op: function() {
+            return new Immutable.Map();
         }
     },
+    'lookup': {
+        types: [[Type.Map('k', Type.Array('a')), 'k', Type.Array('a')],
+                [Type.Map('k', 'v'), 'k', 'v']],
+        op: [function(a, b) {
+            if (!(a instanceof Immutable.Map))
+                a = new Immutable.Map(a);
+            return a.get(b, []);
+        }, function(a, b) {
+            if (!(a instanceof Immutable.Map))
+                a = new Immutable.Map(a);
+            return a.get(b, null);
+        }],
+    },
+    'insert': {
+        types: [[Type.Map('k', 'v'), 'k', 'v', Type.Map('k', 'v')]],
+        op: function(a, b, c) {
+            if (!(a instanceof Immutable.Map))
+                a = new Immutable.Map(a);
+            return a.set(b, c);
+        },
+    },
+    'regex': {
+        types: [[Type.String, Type.String, Type.String, Type.Boolean]],
+        minArgs: 2,
+        op: function(a, b, c) {
+            return (new RegExp(b, c)).test(a);
+        },
+    },
+    'contains': {
+        types: [[Type.Array('a'), 'a', Type.Boolean],
+                [Type.Map('k', 'v'), 'k', Type.Boolean]],
+        op: [function(a, b) {
+            if (Array.isArray(a))
+                return a.some(function(x) { return equalityTest(x, b); });
+            else
+                return a.has(b);
+        }, function(a, b) {
+            if (Array.isArray(a))
+                return a.some(function(x) { return equalityTest(x[0], b); });
+            else
+                return a.has(b);
+        }],
+    },
     'distance': {
-        argtypes: [Type.Location, Type.Location],
-        rettype: Type.Measure('m'),
+        types: [[Type.Location, Type.Location, Type.Measure('m')]],
         op: function(a, b) {
             return Math.sqrt((a.x - b.x)*(a.x - b.x) + (a.y - b.y)*(a.y - b.y));
         }
     },
     'toString': {
-        argtypes: [Type.Any],
-        rettype: Type.String,
+        types: [[Type.Any, Type.String]],
         op: objectToString,
     },
     'valueOf': {
-        argtypes: [Type.String],
-        rettype: Type.Number,
+        types: [[Type.String, Type.Number]],
         op: parseFloat,
     },
     'julianday': {
-        argtypes: [Type.Date],
-        rettype: Type.Number,
+        types: [[Type.Date, Type.Number]],
         op: function(date) {
             return Math.floor((date.getTime() / 86400000) + 2440587.5);
         },
     },
     'today': {
-        argtypes: [],
-        rettype: Type.Number,
+        types: [[Type.Number]],
         op: function() {
             return Functions.julianday.op(new Date);
         }
     },
     'now': {
-        argtypes: [],
-        rettype: Type.Date,
+        types: [[Type.Date]],
         op: function() {
             return new Date;
         },
     },
     'floor': {
-        argtypes: [Type.Number],
-        rettype: Type.Number,
+        types: [[Type.Number, Type.Number]],
         op: function(v) {
             return Math.floor(v);
         }
     },
-};
-
-function tupleLessThan(a, b) {
-    for (var i = 0; i < Math.min(a.length, b.length); i++) {
-        if (a[i] < b[i])
-            return true;
-        if (b[i] < a[i])
-            return false;
-    }
-    if (a.length < b.length)
-        return true;
-    return false;
-}
-
-const Aggregations = {
-    'argMin': {
-        tuplelength: -1,
-        argtypes: [Type.Number, Type.Measure(''), Type.String, Type.Date],
-        rettype: Type.User,
-        extratypes: [],
-        op: function(tuples) {
-            var who = null;
-            var best = null;
-            for (var i = 0; i < tuples.length; i++) {
-                if (who === null) {
-                    who = i;
-                    best = tuples[i];
-                } else if (tupleLessThan(tuples[i], best)) {
-                    who = i;
-                    best = tuples[i];
-                }
-            }
-            return who;
-        }
-    },
-
-    'argMax': {
-        tuplelength: -1,
-        argtypes: [Type.Number, Type.Measure(''), Type.String, Type.Date],
-        rettype: Type.User,
-        extratypes: [],
-        op: function(tuples) {
-            var who = null;
-            var best = null;
-            for (var i = 0; i < tuples.length; i++) {
-                if (who === null) {
-                    who = i;
-                    best = tuples[i];
-                } else if (tupleLessThan(best, tuples[i])) {
-                    who = i;
-                    best = tuples[i];
-                }
-            }
-            return who;
-        }
-    },
 
     'sum': {
-        tuplelength: 1,
-        argtypes: [Type.Number, Type.Measure('')],
-        rettype: null,
-        extratypes: [],
-        op: function(tuples) {
-            var sum = 0;
-            for (var i = 0; i < events.length; i++) {
-                sum += tuples[i][0];
-            }
-            return sum;
+        types: [[Type.Array(Type.Number), Type.Number],
+                [Type.Array(Type.Measure('')), Type.Measure('')]],
+        op: function(values) {
+            return values.reduce(function(v1, v2) { return v1 + v2; }, 0);
         }
     },
 
     'avg': {
-        tuplelength: 1,
-        argtypes: [Type.Number, Type.Measure('')],
-        rettype: null,
-        extratypes: [],
-        op: function(tuples) {
-            var sum = 0;
-            for (var i = 0; i < events.length; i++) {
-                sum += tuples[i][0];
-            }
-            return sum / tuples.length;
+        types: [[Type.Array(Type.Number), Type.Number],
+                [Type.Array(Type.Measure('')), Type.Measure('')]],
+        op: function(values) {
+            var sum = values.reduce(function(v1, v2) { return v1 + v2; }, 0);
+            if (values instanceof Immutable.Collection)
+                return sum / values.count();
+            else
+                return sum / values.length;
         }
     },
 
     'concat': {
-        tuplelength: 1,
-        argtypes: [Type.String],
-        rettype: null,
-        extratypes: [Type.String],
-        op: function(tuples, joiner) {
-            var sum = '';
-            for (var i = 0; i < events.length; i++) {
-                if (i > 0)
-                    sum += joiner;
-                sum += tuples[i][0];
-            }
-            return sum;
+        types: [[Type.Array(Type.Any), Type.String, Type.String]],
+        minArgs: 1,
+        op: function(values, joiner) {
+            return values.map(objectToString).join(joiner);
         }
     },
 
     'count': {
+        types: [[Type.Array(Type.Any), Type.Number],
+                [Type.Map(Type.Any, Type.Any), Type.Number]],
         tuplelength: -1,
         argtypes: [Type.Any],
         rettype: Type.Number,
         extratypes: [],
-        op: function(tuples) {
-            return tuples.length;
+        op: function(values) {
+            if (values instanceof Immutable.Collection)
+                return values.count();
+            else
+                return values.length;
+        }
+    },
+
+    'argMin': {
+        types: [[Type.Array(Type.Any), Type.Number],
+                [Type.Map('k', Type.Any), 'k']],
+        op: function(values) {
+            return (new Immutable.Seq(values)).reduce(function(state, value, key) {
+                if (state.who === null || value < state.best)
+                    return { who: key, best: value };
+                else
+                    return state;
+            }, { best: null, who: null }).who;
+        }
+    },
+
+    'argMax': {
+        types: [[Type.Array(Type.Any), Type.Number],
+                [Type.Map('k', Type.Any), 'k']],
+        op: function(values) {
+            return (new Immutable.Seq(values)).reduce(function(state, value, key) {
+                if (state.who === null || value > state.best)
+                    return { who: key, best: value };
+                else
+                    return state;
+            }, { best: null, who: null }).who;
         }
     },
 };
@@ -594,12 +633,8 @@ module.exports = new lang.Class({
             var decl = this._keywords[name];
             if (decl.feedAccess)
                 throw new TypeError('Keyword ' + name + ' is feed accessible, must use -F syntax');
-            var type;
-            if (decl.isArray)
-                type = Type.Array(Type.Tuple(decl.schema));
-            else
-                type = Type.Tuple(decl.schema);
-            return [type, function(env) {
+            var type = decl.type;
+            return [decl.type, function(env) {
                 return env.readKeyword(name);
             }];
         } else {
@@ -649,188 +684,58 @@ module.exports = new lang.Class({
             if (!decl.feedAccess)
                 throw new TypeError('Keyword ' + name + ' is not feed accessible');
 
-            var type;
-            if (decl.isArray)
-                type = Type.Array(Type.Tuple(decl.schema));
-            else
-                type = Type.Tuple(decl.schema);
-            return [Type.UserArray(type), function(env) {
-                return env.readKeyword(name);
+            var type = decl.type;
+            return [Type.Map(Type.User, type), function(env) {
+                return (new Immutable.Seq(env.readKeyword(name))).toKeyedSeq()
+                    .map(function(value, key) {
+                        return env.readFeedMember(key);
+                    });
             }];
         } else {
             throw new TypeError(name + ' does not name a feed-accessible keyword');
         }
     },
 
-    compileRegex: function(argsast, scope) {
-        if (argsast.length < 2) {
-            throw new TypeError("Function regex does not accept " +
-                                argsast.length + " arguments");
-        }
+    compileFunctionCall: function(name, argsast, scope) {
+        if (!(name in Functions))
+            throw new TypeError('Unknown function $' + name);
 
-        var argsexp = argsast.slice(0, 3).map(function(arg) {
+        var func = Functions[name];
+        var argsexp = argsast.map(function(arg) {
             return this.compileExpression(arg, scope);
         }, this);
-        typeUnify(argsexp[0][0], Type.String);
-        typeUnify(argsexp[1][0], Type.String);
-        if (argsast.length >= 3)
-            typeUnify(argsexp[2][0], Type.String);
-        var strOp = argsexp[0][1];
-        var regexStrOp = argsexp[1][1];
-        var flagOp;
-        if (argsast.length >= 3)
-            flagOp = argsexp[2][1];
-        else
-            flagOp = function() { return undefined; };
 
-        var regexpOp;
-        if (argsast[1].isConstant &&
-            (argsast.length <= 2 || argsast[2].isConstant)) {
-            var regexp;
-            if (argsast.length >= 3)
-                regexp = new RegExp(argsexp[1][1](), argsexp[2][1]());
-            else
-                regexp = new RegExp(argsexp[1][1]());
-            regexpOp = function() {
-                return regexp;
-            }
-        } else {
-            regexpOp = function(env) {
-                return new RegExp(regexStrOp(env), flagOp(env));
-            }
-        }
-
-        if (argsast.length <= 3) {
-            return [Type.Boolean, function(env) {
-                var regex = regexpOp(env);
-                var str = strOp(env);
-                return regex.test(str);
-            }];
-        } else {
-            var bindersast = argsast.slice(3);
-            var binderops = new Array(bindersast.length);
-
-            for (var i = 0; i < bindersast.length; i++) {
-                var binder = bindersast[i];
-                if (binder.isVarRef && !(binder.name in scope)) {
-                    scope[binder.name] = Type.String;
-                    binderops[i] = function(env, group) {
-                        env.setVar(binder.name, group);
-                        return true;
-                    }
-                } else {
-                    var binderexp = this.compileExpression(binder, scope);
-                    typeUnify(binderexp[0], Type.String);
-                    var binderop = binderexp[1];
-                    binderops[i] = function(env, group) {
-                        return group === binderop(env);
-                    }
-                }
-            }
-
-            return [Type.Boolean, function(env) {
-                var regex = regexpOp(env);
-                var str = strOp(env);
-                var exec = regex.exec(str);
-                if (exec === null)
-                    return false;
-                for (var i = 0; i < binderops.length; i++) {
-                    var group = exec[i+1];
-                    if (!group)
-                        group = '';
-                    if (!binderops[i](env, group))
-                        return false;
-                }
-                return true;
-            }];
-        }
-    },
-
-
-    compileFunctionCall: function(name, argsast, scope) {
-        if (name === 'regex') {
-            return this.compileRegex(argsast, scope);
-        } else if (name in Functions) {
-            var func = Functions[name];
-            var maxArgs = func.argtypes.length;
+        for (var i = 0; i < func.types.length; i++) {
+            var overload = func.types[i];
+            var maxArgs = overload.length - 1;
             if ('minArgs' in func)
                 var minArgs = func.minArgs;
             else
                 var minArgs = maxArgs;
             if (argsast.length < minArgs || argsast.length > maxArgs)
-                throw new TypeError("Function " + func + " does not accept " +
-                                    argsast.length + " arguments");
-            var argsexp = argsast.map(function(arg) {
-                return this.compileExpression(arg, scope);
-            }, this);
-            argsexp.forEach(function(exp, idx) {
-                typeUnify(exp[0], func.argtypes[idx]);
-            });
-            var funcop = func.op;
-            return [func.rettype, function(env) {
-                var args = argsexp.map(function(exp) {
-                    return exp[1](env);
+                continue;
+            try {
+                var typeScope = {};
+                argsexp.forEach(function(exp, idx) {
+                    typeUnify(exp[0], overload[idx], typeScope);
                 });
-                return funcop.apply(null, args);
-            }];
-        } else if (name in Aggregations) {
-            var aggr = Aggregations[name];
-
-            var argsexp = argsast.map(function(arg) {
-                return this.compileExpression(arg, scope);
-            }, this);
-            var keywordexp = argsexp[0];
-            var keywordtype = keywordexp[0];
-
-            if (!keywordtype.isArray && !keywordtype.isUserArray)
-                throw new TypeError('First argument to aggregation must be array');
-
-            var tupletype = keywordtype.elem;
-            if (aggr.tuplelength != -1 && tupletype.schema.length != aggr.tuplelength)
-                throw new TypeError('Invalid first argument to ' + name);
-            var tupleargtype = null;
-            for (var i = 0; i < tupletype.schema.length; i++) {
-                var ok = false;
-                for (var j = 0; j < aggr.argtypes.length; j++) {
-                    try {
-                        tupleargtype = typeUnify(tupletype.schema[i], aggr.argtypes[j]);
-                        ok = true;
-                        break;
-                    } catch(e) {}
-                }
-                if (!ok) {
-                    throw new TypeError('Invalid first argument to ' + name);
-                }
-            }
-            var rettype;
-            if (aggr.rettype !== null)
-                rettype = aggr.rettype;
-            else
-                rettype = tupleargtype;
-            var isUser = false;
-            if (rettype.isUser && !keywordtype.isUserArray)
-                rettype = Type.Number;
-
-            if (argsexp.length !== aggr.extratypes.length + 1)
-                throw new TypeError('Invalid extra arguments to ' + name);
-            for (var i = 0; i < aggr.extratypes.length; i++) {
-                typeUnify(argsexp[i+1][0], aggr.extratypes[i]);
-            }
-
-            var aggrop = aggr.op;
-            return [rettype, function(env) {
-                var args = argsexp.map(function(exp) {
-                    return exp[1](env);
-                });
-                var val = aggrop.apply(null, args);
-                if (rettype.isUser)
-                    return env.readFeedMember(val);
+                var funcop;
+                if (Array.isArray(func.op))
+                    funcop = func.op[i];
                 else
-                    return val;
-            }];
-        } else {
-            throw new TypeError('Unknown function ' + name);
+                    funcop = func.op;
+                var rettype = resolveTypeScope(overload[overload.length-1], typeScope);
+                return [rettype, function(env) {
+                    var args = argsexp.map(function(exp) {
+                        return exp[1](env);
+                    });
+                    return funcop.apply(null, args);
+                }];
+            } catch(e) {
+            }
         }
+
+        throw new TypeError('Could not find a valid overload of $' + name + ' with ' + argsexp.length + ' arguments');
     },
 
     compileUnaryOp: function(argast, opcode, scope) {
@@ -839,10 +744,11 @@ module.exports = new lang.Class({
         var argtype, rettype, op;
         for (var i = 0; i < unop.types.length; i++) {
             try {
-                argtype = typeUnify(argexp[0], unop.types[i][0]);
+                var typeScope = {};
+                argtype = typeUnify(argexp[0], unop.types[i][0], typeScope);
                 rettype = unop.types[i][1];
                 if (argtype.isMeasure && rettype.isMeasure)
-                    rettype = typeUnify(argtype, rettype);
+                    rettype = typeUnify(argtype, rettype, typeScope);
                 op = unop.op;
                 break;
             } catch(e) {
@@ -863,13 +769,14 @@ module.exports = new lang.Class({
         var lhstype, rhstype, rettype, op;
         for (var i = 0; i < binop.types.length; i++) {
             try {
-                lhstype = typeUnify(lhsexp[0], binop.types[i][0]);
-                rhstype = typeUnify(rhsexp[0], binop.types[i][1]);
+                var typeScope = {};
+                lhstype = typeUnify(lhsexp[0], binop.types[i][0], typeScope);
+                rhstype = typeUnify(rhsexp[0], binop.types[i][1], typeScope);
                 rettype = binop.types[i][2];
                 if (lhstype.isMeasure && rhstype.isMeasure)
-                    lhstype = typeUnify(lhstype, rhstype);
+                    lhstype = typeUnify(lhstype, rhstype, typeScope);
                 if (lhstype.isMeasure && rettype.isMeasure)
-                    rettype = typeUnify(lhstype, rettype);
+                    rettype = typeUnify(lhstype, rettype, typeScope);
                 op = binop.op;
                 break;
             } catch(e) {
@@ -881,6 +788,39 @@ module.exports = new lang.Class({
         var lhsop = lhsexp[1];
         var rhsop = rhsexp[1];
         return [rettype, function(env) { return op(lhsop(env), rhsop(env)); }];
+    },
+
+    compileTuple: function(args, scope) {
+        var argsexp = args.map(function(arg) {
+            return this.compileExpression(arg, scope);
+        }, this);
+        var types = argsexp.map(function(exp) {
+            return exp[0];
+        });
+        var ops = argsexp.map(function(exp) {
+            return exp[1];
+        });
+
+        return [Type.Tuple(types), function(env) {
+            return ops.map(function(op) { return op(env); });
+        }];
+    },
+
+    compileArray: function(args, scope) {
+        var argsexp = args.map(function(arg) {
+            return this.compileExpression(arg, scope);
+        }, this);
+        type = Type.Any;
+        argsexp.forEach(function(exp) {
+            type = typeUnify(type, exp[0]);
+        });
+        var ops = argsexp.map(function(exp) {
+            return exp[1];
+        });
+
+        return [Type.Array(type), function(env) {
+            return ops.map(function(op) { return op(env); });
+        }];
     },
 
     compileExpression: function(ast, scope) {
@@ -898,8 +838,12 @@ module.exports = new lang.Class({
             return this.compileUnaryOp(ast.arg, ast.opcode, scope);
         else if (ast.isBinaryOp)
             return this.compileBinaryOp(ast.lhs, ast.rhs, ast.opcode, scope);
+        else if (ast.isTuple)
+            return this.compileTuple(ast.args, scope);
+        else if (ast.isArray)
+            return this.compileArray(ast.args, scope);
         else
-            throw new TypeError();
+            throw new TypeError(String(ast.isTuple));
     },
 
     compileInputKeyword: function(ast, scope) {
@@ -927,13 +871,10 @@ module.exports = new lang.Class({
         var reflections = [];
         var constchecks = [];
 
-        if (decl.isArray) {
-            if (params.length !== 1)
-                throw new TypeError('Keyword ' + name + ' is array, not tuple, cannot unpack');
-        } else {
-            if (params.length !== decl.schema.length)
-                throw new TypeError('Invalid number of parameters for keyword');
-        }
+        if (!decl.type.isTuple)
+            assert.strictEqual(decl.schema.length, 1);
+        if (params.length !== decl.schema.length)
+            throw new TypeError('Invalid number of parameters for keyword');
 
         for (var i = 0; i < params.length; i++) {
             var param = params[i];
@@ -943,12 +884,12 @@ module.exports = new lang.Class({
                 if (param.name in scope) {
                     if (scope[param.name].isFeed)
                         continue;
-                    if (decl.isArray) {
-                        var unified = scope[param.name] = typeUnify(scope[param.name],
-                                                                    Type.Array(Type.Tuple(decl.schema)));
-                        decl.schema = unified.elem.schema;
-                    } else {
+                    if (decl.type.isTuple) {
                         decl.schema[i] = scope[param.name] = typeUnify(scope[param.name], decl.schema[i]);
+                    } else {
+                        var unified = scope[param.name] = typeUnify(scope[param.name], decl.type);
+                        decl.type = unified;
+                        decl.schema = [decl.type];
                     }
                     if (param.name in binders)
                         reflections.push([i, binders[param.name]]);
@@ -961,32 +902,39 @@ module.exports = new lang.Class({
                     scope[param.name] = decl.schema[i];
                 }
             } else {
-                if (decl.isArray)
-                    throw new TypeError('Array keyword ' + name + ' cannot be constant');
-
                 var constexpr = this.compileConstant(param.value);
-                decl.schema[i] = typeUnify(constexpr[0], decl.schema[i]);
+                if (decl.type.isTuple) {
+                    decl.schema[i] = typeUnify(constexpr[0], decl.schema[i]);
+                } else {
+                    var unified = typeUnify(constexpr[0], decl.type);
+                    decl.type = unified;
+                    decl.schema = [decl.type];
+                }
                 constchecks.push([i, constexpr[1]()]);
             }
         }
-        if (decl.isArray) {
-            assert.strictEqual(constchecks.length, 0);
+        if (!decl.type.isTuple)
             assert.strictEqual(reflections.length, 0);
-        }
 
         function keywordIsTrue(env, value) {
             if (value === null)
                 return false;
 
-            if (decl.isArray) {
+            if (!decl.type.isTuple) {
                 for (var i = 0; i < equalities.length; i++) {
                     var equal = equalities[i];
                     if (!equalityTest(value,
                                       env.readVar(equal[1])))
                         return false;
                 }
+                for (var i = 0; i < constchecks.length; i++) {
+                    var constcheck = constchecks[i];
+                    if (!equalityTest(value,
+                                      constcheck[1]))
+                        return false;
+                }
 
-                return value !== null && value.length > 0;
+                return true;
             } else {
                 for (var i = 0; i < equalities.length; i++) {
                     var equal = equalities[i];
@@ -1006,7 +954,7 @@ module.exports = new lang.Class({
                         return false;
                 }
 
-                return value !== null;
+                return true;
             }
         }
 
@@ -1016,33 +964,31 @@ module.exports = new lang.Class({
             // note that we rely on compileInput monkey-patching the Keyword AST object
             // to check if the owner value was nullified or not, but we use owner
             // to access the member binding
+
             if (feedAccess && ast.keyword.owner !== 'self')
                 return env.readKeyword(name)[env.getMemberBinding(owner)];
             else
                 return env.readKeyword(name);
         }
 
-        return [ast.keyword, ast.owner, function(env) {
+        return [ast.keyword, ast.owner, function(env, cont) {
             var value = getKeywordValue(env);
-            if (value === undefined) {
-                console.log('Keyword ' + ast.keyword.name + ' is a ' + env._keywords[ast.keyword.name].__name__);
+            if (value === undefined)
                 throw new TypeError('Keyword ' + ast.keyword.name + (feedAccess ? '-F' : '') + ' is undefined?');
-            }
 
             if (negative) {
-                return !keywordIsTrue(env, value);
+                if (!keywordIsTrue(env, value))
+                    cont();
             } else {
                 if (keywordIsTrue(env, value)) {
-                    if (decl.isArray) {
+                    if (!decl.type.isTuple) {
                         for (var name in binders)
                             env.setVar(name, value);
                     } else {
                         for (var name in binders)
                             env.setVar(name, value[binders[name]]);
                     }
-                    return true;
-                } else {
-                    return false;
+                    cont();
                 }
             }
         }];
@@ -1155,13 +1101,11 @@ module.exports = new lang.Class({
             return true;
         }
 
-        return [selector, name, triggerParams, function(env) {
+        return [selector, name, triggerParams, function(env, cont) {
             if (triggerIsTrue(env)) {
                 for (var name in binders)
                     env.setVar(name, env.triggerValue[binders[name]]);
-                return true;
-            } else {
-                return false;
+                cont();
             }
         }];
     },
@@ -1197,6 +1141,158 @@ module.exports = new lang.Class({
         var expr = this.compileExpression(ast.expr, scope);
         typeUnify(expr[0], Type.Boolean);
         return expr[1];
+    },
+
+    compileRegex: function(argsast, scope) {
+        if (argsast.length < 2) {
+            throw new TypeError("Function regex does not accept " +
+                                argsast.length + " arguments");
+        }
+
+        var argsexp = argsast.slice(0, 3).map(function(arg) {
+            return this.compileExpression(arg, scope);
+        }, this);
+        typeUnify(argsexp[0][0], Type.String);
+        typeUnify(argsexp[1][0], Type.String);
+        if (argsast.length >= 3)
+            typeUnify(argsexp[2][0], Type.String);
+        var strOp = argsexp[0][1];
+        var regexStrOp = argsexp[1][1];
+        var flagOp;
+        if (argsast.length >= 3)
+            flagOp = argsexp[2][1];
+        else
+            flagOp = function() { return undefined; };
+
+        var regexpOp;
+        if (argsast[1].isConstant &&
+            (argsast.length <= 2 || argsast[2].isConstant)) {
+            var regexp;
+            if (argsast.length >= 3)
+                regexp = new RegExp(argsexp[1][1](), argsexp[2][1]());
+            else
+                regexp = new RegExp(argsexp[1][1]());
+            regexpOp = function() {
+                return regexp;
+            }
+        } else {
+            regexpOp = function(env) {
+                return new RegExp(regexStrOp(env), flagOp(env));
+            }
+        }
+
+        if (argsast.length <= 3) {
+            return function(env, cont) {
+                var regex = regexpOp(env);
+                var str = strOp(env);
+                if (regex.test(str))
+                    cont();
+            };
+        } else {
+            var bindersast = argsast.slice(3);
+            var binderops = new Array(bindersast.length);
+
+            for (var i = 0; i < bindersast.length; i++) {
+                var binder = bindersast[i];
+                if (binder.isVarRef && !(binder.name in scope)) {
+                    scope[binder.name] = Type.String;
+                    binderops[i] = function(env, group) {
+                        env.setVar(binder.name, group);
+                        return true;
+                    }
+                } else {
+                    var binderexp = this.compileExpression(binder, scope);
+                    typeUnify(binderexp[0], Type.String);
+                    var binderop = binderexp[1];
+                    binderops[i] = function(env, group) {
+                        return group === binderop(env);
+                    }
+                }
+            }
+
+            return function(env, cont) {
+                var regex = regexpOp(env);
+                var str = strOp(env);
+                var exec = regex.exec(str);
+                if (exec === null)
+                    return;
+                for (var i = 0; i < binderops.length; i++) {
+                    var group = exec[i+1];
+                    if (!group)
+                        group = '';
+                    if (!binderops[i](env, group))
+                        return;
+                }
+                cont();
+            };
+        }
+    },
+
+    compileContains: function(argsast, scope) {
+        if (argsast.length !== 2) {
+            throw new TypeError("Function contains does not accept " +
+                                argsast.length + " arguments");
+        }
+
+        if (argsast[1].isVarRef && !(argsast[1].name in scope)) {
+            var arrayexp = this.compileExpression(argsast[0], scope);
+            var type = null;
+            try {
+                type = typeUnify(arrayexp[0], Type.Array(Type.Any));
+            } catch(e) { }
+            if (type === null) {
+                try {
+                    type = typeUnify(arrayexp[0], Type.Map(Type.Any, Type.Any));
+                } catch(e) { }
+            }
+            if (type === null)
+                throw new TypeError("Invalid first argument to $contains");
+
+            var arrayop = arrayexp[1];
+            var name = argsast[1].name;
+            if (type.isArray) {
+                scope[name] = type.elem;
+                return function(env, cont) {
+                    var array = arrayop(env);
+                    array.forEach(function(elem) {
+                        env.setVar(name, elem);
+                        cont();
+                    });
+                }
+            } else {
+                scope[name] = type.key;
+                return function(env, cont) {
+                    var map = arrayop(env);
+                    if (!(map instanceof Immutable.Map))
+                        map = new Immutable.Map(map);
+                    return map.forEach(function(value, key) {
+                        env.setVar(name, key);
+                        cont();
+                    });
+                }
+            }
+        } else {
+            var filter = this.compileFunctionCall('contains', argsast, scope);
+            typeUnify(filter[0], Type.Boolean);
+            return function(env, cont) {
+                if (filter[1](env))
+                    cont();
+            }
+        }
+    },
+
+    compileBuiltinPredicate: function(ast, scope) {
+        if (ast.expr.name === 'regex') {
+            return this.compileRegex(ast.expr.args, scope);
+        } else if (ast.expr.name === 'contains') {
+            return this.compileContains(ast.expr.args, scope);
+        } else {
+            var filter = this.compileCondition(ast, scope);
+            return function(env, cont) {
+                if (filter(env))
+                    cont();
+            };
+        }
     },
 
     analyzeExpression: function(expr, state, scope) {
@@ -1343,10 +1439,12 @@ module.exports = new lang.Class({
                 return 1;
             else if (a.isKeyword)
                 return 2;
-            else if (a.isBinding)
+            else if (a.isBuiltinPredicate)
                 return 3;
-            else if (a.isCondition)
+            else if (a.isBinding)
                 return 4;
+            else if (a.isCondition)
+                return 5;
         }
         inputs.sort(function(a, b) {
             var va = inputClass(a);
@@ -1359,11 +1457,14 @@ module.exports = new lang.Class({
         var memberBindingKeywords = {};
         var keywords = {};
         var inputFunctions = [];
+        var filterFunctions = [];
         var scope = {};
         for (var name in this._scope)
             scope[name] = this._scope[name];
-        scope.self = Type.User;
+        if (this._feedAccess)
+            scope.self = Type.User;
         var bindings = [];
+        var builtinPredicates = [];
         var conditions = [];
         for (var i = 0; i < inputs.length; i++) {
             var input = inputs[i];
@@ -1397,6 +1498,8 @@ module.exports = new lang.Class({
                     keywords[compiled[0].name] = compiled[0];
                 }
                 inputFunctions.push(compiled[2]);
+            } else if (input.isBuiltinPredicate) {
+                builtinPredicates.push(input);
             } else if (input.isBinding) {
                 bindings.push(input);
             } else if (input.isCondition) {
@@ -1412,6 +1515,9 @@ module.exports = new lang.Class({
             keywordArray.push(keywords[name]);
         keywords = keywordArray;
 
+        for (var i = 0; i < builtinPredicates.length; i++)
+            inputFunctions.push(this.compileBuiltinPredicate(builtinPredicates[i], scope));
+
         // bindings further need to be sorted so that the variables they need
         // are in scope
         // this is complicated by the fact that bindings like "x := y" are
@@ -1421,26 +1527,39 @@ module.exports = new lang.Class({
         bindings = this.reorderInputBindings(bindings, scope);
 
         for (var i = 0; i < bindings.length; i++)
-            inputFunctions.push(this.compileInputBinding(bindings[i], scope));
+            filterFunctions.push(this.compileInputBinding(bindings[i], scope));
 
         for (var i = 0; i < conditions.length; i++)
-            inputFunctions.push(this.compileCondition(conditions[i], scope));
+            filterFunctions.push(this.compileCondition(conditions[i], scope));
 
-        function fullFilter(env) {
-            for (var i = 0; i < inputFunctions.length; i++)
-                if (!inputFunctions[i](env))
-                    return false;
-            return true;
+        function fullFilter(env, cont) {
+            for (var i = 0; i < filterFunctions.length; i++)
+                if (!filterFunctions[i](env))
+                    return;
+            cont();
+        }
+        assert.notEqual(inputFunctions.length, 0);
+        inputFunctions.push(fullFilter);
+
+        function fullInput(env, cont) {
+            function next(i) {
+                if (i === inputFunctions.length) {
+                    cont();
+                } else {
+                    inputFunctions[i](env, function() {
+                        next(i+1);
+                    });
+                }
+            }
+
+            return next(0);
         }
 
         var memberCaller = null;
 
         // fast path simple cases
         if (memberBindings.length === 0) {
-            memberCaller = function(env, cont) {
-                if (fullFilter(env))
-                    cont();
-            };
+            memberCaller = fullInput;
         } else if (memberBindings.length === 1) {
             var memberBinding = memberBindings[i];
             memberCaller = function(env, cont) {
@@ -1448,14 +1567,12 @@ module.exports = new lang.Class({
                 if (env.changedMember !== null) {
                     env.setMemberBinding(memberBinding, env.changedMember);
                     env.setVar(memberBindings[i], members[env.changedMember]);
-                    if (fullFilter(env))
-                        cont();
+                    fullInput(env, cont);
                 } else {
                     for (var j = 0; j < members.length; j++) {
                         env.setMemberBinding(memberBindings[i], j);
                         env.setVar(memberBindings[i], members[j]);
-                        if (fullFilter(env))
-                            cont();
+                        fullInput(env, cont);
                     }
                 }
             };
@@ -1465,8 +1582,7 @@ module.exports = new lang.Class({
 
                 function next(i) {
                     if (i === memberBindings.length) {
-                        if (fullFilter(env))
-                            cont();
+                        fullInput(env, cont);
                         return;
                     }
 
@@ -1526,7 +1642,7 @@ module.exports = new lang.Class({
         var action = null;
         var keyword = null;
         var owner = null;
-        var isArray = false;
+        var type = null;
         if (output.isAction) {
             action = { selector: output.selector,
                        name: output.name,
@@ -1557,6 +1673,7 @@ module.exports = new lang.Class({
                 // FIXME figure out schema for action
                 schema = null;
             }
+            type = Type.Tuple(schema);
 
             if (schema !== null) {
                 if (params.length !== schema.length)
@@ -1582,7 +1699,6 @@ module.exports = new lang.Class({
             if (!(keyword.name in this._keywords)) {
                 var decl = {
                     feedAccess: keyword.feedAccess,
-                    isArray: false,
                     extern: false,
                     schema: null
                 };
@@ -1590,23 +1706,54 @@ module.exports = new lang.Class({
                     throw new TypeError("Feed-accessible keyword declared in non feed-parametric program");
 
                 decl.schema = params.map(function(p) { return p[0]; });
+                decl.type = Type.Tuple(decl.schema);
+                type = decl.type;
                 this._keywords[keyword.name] = decl;
             } else {
                 var decl = this._keywords[keyword.name];
                 if (keyword.feedAccess !== decl.feedAccess)
                     throw new TypeError('Inconsistent use of keyword feed specifier');
-                if (decl.isArray) {
-                    if (params.length !== 1)
-                        throw new TypeError('Keyword ' + keyword.name + ' is array, not tuple, cannot unpack');
-                } else {
-                    if (params.length !== decl.schema.length)
-                        throw new TypeError('Invalid number of parameters for keyword');
-                }
-                isArray = decl.isArray;
+                if (params.length !== decl.schema.length)
+                    throw new TypeError('Invalid number of parameters for keyword');
 
                 params.forEach(function(p, i) {
                     decl.schema[i] = typeUnify(p[0], decl.schema[i]);
                 });
+                type = decl.type;
+            }
+        }
+
+        function toJS(type, value) {
+            if (value === null)
+                return null;
+            if (type.isArray) {
+                if (value instanceof Immutable.List) {
+                    return value.map(function(v) {
+                        return toJS(type.elem, v);
+                    }).toArray();
+                } else {
+                    return value;
+                }
+            } else if (type.isMap) {
+                if (value instanceof Immutable.Map) {
+                    return value.entrySeq().map(function(t) {
+                        var k = t[0];
+                        var v = t[1];
+                        return [toJS(type.key, k), toJS(type.value, v)];
+                    }).toArray();
+                } else {
+                    return value;
+                }
+            } else if (type.isTuple) {
+                if (type.schema !== null) {
+                    return value.map(function(v, i) {
+                        return toJS(type.schema[i], v);
+                    });
+                } else {
+                    return value;
+                }
+            } else {
+                return value;
             }
         }
 
@@ -1618,10 +1765,10 @@ module.exports = new lang.Class({
                 var v = params.map(function(p) {
                     return p[1](env);
                 });
-                if (isArray)
-                    return v[0];
+                if (type.isTuple)
+                    return toJS(type, v);
                 else
-                    return v;
+                    return toJS(type, v[0]);
             }
         };
     },
@@ -1644,7 +1791,7 @@ module.exports = new lang.Class({
             if (stmt.isEventDecl) {
                 var event = {};
                 var event = stmt.params.map(function(p) {
-                    return stringToType(p.type);
+                    return p.type;
                 });
                 module.events[stmt.name] = event;
                 scope[stmt.name] = event;
@@ -1653,7 +1800,7 @@ module.exports = new lang.Class({
                     return p.name;
                 });
                 var types = stmt.params.map(function(p) {
-                    return stringToType(p.type);
+                    return p.type;
                 });
 
                 module.functions[stmt.name] = { params: names, schema: types, code: stmt.code };
@@ -1670,16 +1817,16 @@ module.exports = new lang.Class({
         var name = ast.name.name;
         var decl = {
             feedAccess: ast.name.feedAccess,
-            isArray: ast.isArray,
             extern: ast.extern,
+            type: ast.type,
             schema: null
         };
         if (decl.feedAccess && !this._feedAccess)
             throw new TypeError("Feed-accessible keyword declared in non feed-parametric program");
-
-        decl.schema = ast.params.map(function(p) {
-            return stringToType(p);
-        });
+        if (ast.type.isTuple)
+            decl.schema = decl.type.schema;
+        else
+            decl.schema = [ast.type];
 
         return decl;
     },
@@ -1688,7 +1835,7 @@ module.exports = new lang.Class({
         this._name = ast.name.name;
         this._feedAccess = ast.name.feedAccess;
         ast.params.forEach(function(ast) {
-            this._params[ast.name] = stringToType(ast.type);
+            this._params[ast.name] = ast.type;
             this._scope[ast.name] = this._params[ast.name];
         }, this);
         if (this._feedAccess) {
@@ -1710,10 +1857,7 @@ module.exports = new lang.Class({
                 if (stmt.name.name in this._scope)
                     throw new TypeError('Keyword declaration ' + stmt.name.name + ' aliases name in scope');
                 this._keywords[stmt.name.name] = this.compileVarDecl(stmt);
-                if (this._keywords[stmt.name.name].isArray)
-                    this._scope[stmt.name.name] = Type.Array(Type.Tuple(this._keywords[stmt.name.name].schema));
-                else
-                    this._scope[stmt.name.name] = Type.Tuple(this._keywords[stmt.name.name].schema);
+                this._scope[stmt.name.name] = this._keywords[stmt.name.name].type;
             } else if (stmt.isRule) {
                 this._rules.push(this.compileRule(stmt));
             }
@@ -1823,7 +1967,13 @@ var Expression = adt.data(function() {
             lhs: adt.only(this),
             rhs: adt.only(this),
             opcode: adt.only(String),
-        }
+        },
+        Tuple: {
+            args: adt.only(Array),
+        },
+        Array: {
+            args: adt.only(Array),
+        },
     });
 });
 module.exports.Expression = Expression;
@@ -1856,6 +2006,9 @@ var InputSpec = adt.data({
     MemberBinding: {
         name: adt.only(String)
     },
+    BuiltinPredicate: {
+        expr: adt.only(Expression)
+    },
     Condition: {
         expr: adt.only(Expression)
     },
@@ -1881,8 +2034,7 @@ var Statement = adt.data({
     },
     VarDecl: {
         name: adt.only(Keyword),
-        params: adt.only(Array),
-        isArray: adt.only(Boolean),
+        type: adt.only(Type),
         extern: adt.only(Boolean),
     },
     Rule: {

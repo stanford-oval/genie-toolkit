@@ -3,6 +3,7 @@ const fs = require('fs');
 
 require('../engine/polyfill');
 
+const ObjectSet = require('../engine/object_set');
 const AppExecutor = require('../engine/app_executor');
 const AppCompiler = require('../engine/app_compiler');
 const AppGrammar = require('../engine/app_grammar');
@@ -108,6 +109,15 @@ function getMockEngine() {
                lightbulbDevice('light1', true), lightbulbDevice('light2', true),
                lightbulbDevice('light3', false), smsDevice, homeDevice],
 
+        getContext: function(ctx) {
+            if (ctx !== 'me')
+                throw new Error('Invalid context ' + ctx);
+            var set = new ObjectSet.Simple(false);
+            set.addMany(this.getAllDevices());
+            set.freeze();
+            return set;
+        },
+
         getAllDevices: function() {
             return this._all;
         },
@@ -122,17 +132,8 @@ function getMockEngine() {
         on: function() {},
         removeListener: function() {}
     };
-    var channels = {
-        getChannel: function(id, arg) {
-            if (id === 'weather') {
-                console.log('Created weather channel with arg ' + arg);
-                return Q(weatherChannel);
-            }
-        }
-    };
     var engine = {
         devices: devices,
-        channels: channels,
     };
 
     return engine;
@@ -160,20 +161,21 @@ function executorTest() {
 function parserTest() {
     var code = fs.readFileSync('./test/sample.apps').toString('utf8').split('====');
 
-    code.forEach(function(code) {
+    //code.forEach(function(code) {
+    (function(code) {
         try {
-            AppGrammar.parse(code);
+            var ast = AppGrammar.parse(code);
         } catch(e) {
             console.log('Parsing failed');
             console.log(code);
             console.log(e);
-            console.log(e.stack);
+            return;
         }
 
         try {
             var compiler = new AppCompiler();
 
-            compiler.compileProgram(AppGrammar.parse(code));
+            compiler.compileProgram(ast);
             compiler.rules.forEach(function(r, i) {
                 console.log('Rule ' + (i+1));
                 console.log('Inputs', r.inputs);
@@ -182,7 +184,8 @@ function parserTest() {
         } catch(e) {
             console.log('Compilation failed');
             console.log(code);
-            console.log(e);
+            console.log(e.stack);
+            return;
         }
 
 
@@ -195,12 +198,10 @@ function parserTest() {
             // some of the errors here are expected, eg. the instagram example
             // as a selfie() function
             // not a biggie
-            console.log('Compilation failed');
+            console.log('Semantic analysis failed');
             console.log(e);
         }
-
-        throw new Error();
-    });
+    })(code[0]);
 }
 
 parserTest();

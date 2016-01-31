@@ -20,6 +20,7 @@
     var OutputSpec = AppCompiler.OutputSpec;
     var KeywordParam = AppCompiler.KeywordParam;
     var Keyword = AppCompiler.Keyword;
+    var Type = AppCompiler.Type;
 
     function take(array, idx) {
         return array.map(function(v) { return v[idx]; });
@@ -54,13 +55,9 @@ function_decl = 'function' __ name:ident _ params:decl_param_list _ '{' code:$(j
 }
 js_code = '{' js_code* '}' / '(' js_code* ')' / '[' js_code* ']' / literal_string / [^{}\(\)\[\]\"\']
 
-keyword_tuple_decl = access:('var' / 'extern') __ name:keyword _ ':' _ params:type_list _ ';' {
-    return Statement.VarDecl(name, params, false, access === 'extern');
+keyword_decl = access:('var' / 'extern') __ name:keyword _ ':' _ type:type_ref _ ';' {
+    return Statement.VarDecl(name, type, access === 'extern');
 }
-keyword_array_decl = access:('var' / 'extern') __ name:keyword _ ':' _ 'Array' __ params:type_list _ ';' {
-    return Statement.VarDecl(name, params, true, access === 'extern');
-}
-keyword_decl = keyword_tuple_decl / keyword_array_decl;
 type_list = '(' _ first:type_ref _ rest:(',' _ type_ref _)* ')' {
     return [first].concat(take(rest, 2));
 }
@@ -71,7 +68,8 @@ rule = inputs:input_list _ '=>' _ output:(channel_output_spec / keyword_output) 
 input_list = first:(channel_input_spec / nontrigger_input_spec) _ rest:(',' _ nontrigger_input_spec _)* {
     return [first].concat(take(rest, 2));
 }
-nontrigger_input_spec = keyword_input / member_binding / left_binding / right_binding / condition
+nontrigger_input_spec = keyword_input / member_binding / left_binding / right_binding /
+    builtin_predicate / condition
 
 channel_input_spec = trigger:(builtin_spec / trigger_spec) _ params:input_param_list {
     return InputSpec.Trigger(trigger[0], trigger[1], params);
@@ -91,6 +89,11 @@ left_binding = name:ident _ '=' _ expr:expression {
 }
 right_binding = expr:expression _ '=' _ name:ident {
     return InputSpec.Binding(name, expr);
+}
+// only match a function call alone in a predicate as a builtin predicate
+// otherwise things like $count(...) >= 3 would fail to parse
+builtin_predicate = expr:function_call &(_ (','/'=>')) {
+    return InputSpec.BuiltinPredicate(expr);
 }
 condition = expr:expression {
     return InputSpec.Condition(expr);
@@ -164,15 +167,21 @@ member_expression =
     lhs:primary_expression member:('.' name:ident)?
     { return member !== null ? Expression.MemberRef(lhs, name) : lhs; }
 primary_expression = literal_expression / function_call /
+    array_literal /
     name:ident feed:feed_spec?
     { return feed !== null ? Expression.FeedKeywordRef(name) : Expression.VarRef(name); } /
-    '(' _ subexp:expression _ ')' { return subexp; }
+    '(' _ first:expression _ rest:(',' _ expression _)+ ')'
+    { return Expression.Tuple([first].concat(take(rest, 2))); } /
+    '(' _ subexp:expression _ comma:(',' _)? ')'
+    { return comma !== null ? Expression.Tuple([subexp]) : subexp; }
 function_call = '$' name:ident '(' _ args:expr_param_list? _ ')' {
     return Expression.FunctionCall(name, args === null ? [] : args);
 }
 expr_param_list = first:expression _ rest:(',' _ expression _)* {
     return [first].concat(take(rest, 2))
 }
+array_literal = '[' _ ']' { return Expression.Array([]); } /
+    '[' _ first:expression _ rest:(',' _ expression _)* ']' { return Expression.Array([first].concat(take, 2)); }
 literal_expression = val:literal {
     return Expression.Constant(val);
 }
@@ -181,7 +190,18 @@ literal "literal" = val:literal_bool { return Value.Boolean(val); } /
     val:literal_number '%' { return Value.Number(val / 100); } /
     val:literal_number unit:ident { return Value.Measure(val, unit); } /
     val:literal_number { return Value.Number(val); }
-type_ref = $('Measure(' ident? ')') / $('Array(' type_ref ')') / ident
+
+type_ref = 'Measure' _ '(' _ unit:ident? _ ')' { return Type.Measure(unit); } /
+    'Array' _ '(' _ type:type_ref _ ')' { return Type.Array(type); } /
+    'Map' _ '(' _ key:type_ref _ ',' _ value:type_ref _ ')' { return Type.Map(key, value); } /
+    'Any' { return Type.Any; } /
+    'Boolean' { return Type.Boolean; } /
+    ('String' / 'Password') { return Type.String; } /
+    'Number' { return Type.Number; } /
+    'Location' { return Type.Location; } /
+    'Date' { return Type.Date; } /
+    '(' first:type_ref _ rest:(',' _ type_ref _)* ')' { return Type.Tuple([first].concat(take(rest, 2))); } /
+    invalid:ident { throw new TypeError("Invalid type " + invalid); }
 
 // tokens
 

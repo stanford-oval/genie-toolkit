@@ -1,5 +1,35 @@
 // -* mode: js -*-
 
+TwitterTrendingHashtag(NumberOfUsers : Number) {
+var HashTagToUser : Map(String, Array(String));
+
+!HashTagToUser(_) => HashTagToUser($emptyMap());
+
+@$timer(1day) => HashTagToUser($emptyMap());
+
+@twitter.source(_, hashtags, _, from, _, false),
+HashTagToUser(dict), $contains(hashtags, tag), users = $lookup(dict, tag),
+!$contains(users, from) =>
+HashTagToUser($insert(dict, tag, $append(users, from)));
+
+@$timer(1h), HashTagToUser(dict), $contains(dict, tag), $count($lookup(dict, tag)) >= NumberOfUsers =>
+@$notify(tag + " is a trending hashtag today");
+
+}
+
+====
+
+LinkedInApp-F () {
+extern Colleagues : Array((String, String));
+var NewColleague : (String, String);
+//@linkedin.profile (name, co) =>Company-F[self](name, co);
+//Company-F[self](_,co), Company-F[m](name, co), m in F, m != self =>NewColleague(name, co);
+NewColleague(name, co) => Colleagues($append(Colleagues, (name, co)));
+NewColleague(name, co) => @$notify(name);
+}
+
+====
+
 ParserTest() {
 @sabrina.listen(text), $regex("^on\\s+hashtag\\s+([a-z0-9]+)", 42 = !!false && 7) => Val(42);
 }
