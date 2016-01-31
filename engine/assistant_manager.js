@@ -464,8 +464,9 @@ const DefaultDialog = new lang.Class({
     notify: function(appId, event) {
         var app = this.manager.apps.getApp(appId);
         if (!app)
-            return;
+            return true;
         this.reply("Notification from " + app.name + ": " + event.join(', '));
+        return true;
     },
 
     handle: function(command) {
@@ -1511,6 +1512,10 @@ const AssistantManager = new lang.Class({
     },
 
     _onNotify: function(data) {
+        if (!this._receiver) {
+            this._notifyQueue.push(data);
+            return;
+        }
         if (!this._dialog.notify(data[0], data[1]))
             this._notifyQueue.push(data);
     },
@@ -1535,7 +1540,12 @@ const AssistantManager = new lang.Class({
     },
 
     start: function() {
-        return this._initialize();
+        this._initialize();
+
+        return this.ui.getAllNotify().then(function(notify) {
+            this._notify = notify;
+            notify.on('data', this._notifyListener);
+        }.bind(this));
     },
 
     stop: function() {
@@ -1560,11 +1570,6 @@ const AssistantManager = new lang.Class({
 
         this._initialized = true;
         this.setDialog(new InitializationDialog());
-
-        return this.ui.getAllNotify().then(function(notify) {
-                this._notify = notify;
-                notify.on('data', this._notifyListener);
-            }.bind(this));
     },
 
     handleCommand: function(command) {
