@@ -14,6 +14,7 @@ const lang = require('lang');
 const AppDatabase = require('./db/apps');
 const ChannelFactory = require('./channel_factory');
 const DeviceFactory = require('./devices/factory');
+const SchemaRetriever = require('./devices/schema');
 const DeviceDatabase = require('./db/devices');
 const TierManager = require('./tier_manager');
 const DeviceManager = require('./devices/manager');
@@ -33,8 +34,9 @@ const Engine = new lang.Class({
         // constructor
 
         this._tiers = new TierManager();
-        var deviceFactory = new DeviceFactory(this);
-        this._devices = new DeviceDatabase(this._tiers, deviceFactory);
+        this._devices = new DeviceDatabase(this._tiers,
+                                           new DeviceFactory(this),
+                                           new SchemaRetriever());
         this._tiers.devices = this._devices;
         this._messaging = new MessagingDeviceManager(this._devices);
         this._keywords = new KeywordRegistry(this._tiers, this._messaging);

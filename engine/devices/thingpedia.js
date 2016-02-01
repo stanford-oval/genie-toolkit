@@ -45,6 +45,34 @@ function httpRequest(to, id) {
     });
 }
 
+function httpSimpleRequest(to) {
+    var developerKey = platform.getDeveloperKey();
+    if (developerKey)
+        to += '?developer_key=' + developerKey;
+
+    var parsed = url.parse(to);
+    return Q.Promise(function(callback, errback) {
+        getModule(parsed).get(parsed, function(res) {
+            if (res.statusCode == 302 ||
+                res.statusCode == 301)
+                return httpSimpleRequest(res.headers['location']).then(callback, errback);
+            if (res.statusCode != 200)
+                return errback(new Error('Unexpected HTTP error ' + response.statusCode));
+
+            var data = '';
+            res.setEncoding('utf8');
+            res.on('data', function(chunk) {
+                data += chunk;
+            });
+            res.on('end', function() {
+                callback(data);
+            });
+        }.bind(this)).on('error', function(error) {
+            errback(error);
+        });
+    });
+}
+
 function httpDiscoveryRequest(to, blob) {
     var developerKey = platform.getDeveloperKey();
     if (developerKey)
@@ -87,5 +115,9 @@ module.exports = {
 
     getKindByDiscovery: function(publicData) {
         return httpDiscoveryRequest(Config.THINGPEDIA_URL + '/api/discovery', publicData);
-    }
+    },
+
+    getSchemas: function(kinds) {
+        return httpSimpleRequest(Config.THINGPEDIA_URL + '/api/schema/' + kinds.join(','));
+    },
 };

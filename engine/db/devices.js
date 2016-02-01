@@ -94,11 +94,12 @@ module.exports = new lang.Class({
                   'hasDevice', 'getDevice', 'removeDevice', 'get factory',
                   'reloadDevice', 'updateDevicesOfKind'],
 
-    _init: function(tierManager, deviceFactory) {
+    _init: function(tierManager, deviceFactory, schemas) {
         events.EventEmitter.call(this);
         this.setMaxListeners(0);
 
         this.factory = deviceFactory;
+        this.schemas = schemas;
 
         // FIXME: use Map when node supports it
         this._devices = {};

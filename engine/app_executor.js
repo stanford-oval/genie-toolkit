@@ -13,6 +13,7 @@ const adt = require('adt');
 const Tp = require('thingpedia');
 
 const ThingTalk = require('thingtalk');
+const AppGrammar = ThingTalk.Grammar;
 const AppCompiler = ThingTalk.Compiler;
 const QueryRunner = require('./query_runner');
 const DeviceSelector = require('./device_selector');
@@ -184,48 +185,66 @@ module.exports = new lang.Class({
         this.isEnabled = false;
 
         var compiler = new AppCompiler();
+        compiler.setSchemaRetriever(engine.devices.schemas);
         this.compiler = compiler;
 
         try {
-            compiler.compileCode(code, state);
+            this._ast = AppGrammar.parse(code);
 
-            if (!state['$F'] && compiler.feedAccess)
+            if (!state['$F'] && this._ast.name.feedAccess)
                 throw new Error("Missing $F parameter for feed shared app");
 
-            this.isBroken = false;
+            this.broken = null;
         } catch(e) {
-            console.log('App is broken: ' + e.message);
-            console.log(e.stack);
-            this.isBroken = true;
-            this.description = 'This app is broken';
+            this.broken = e;
         }
 
-        this.uniqueId = 'app-' + compiler.name;
-        if (compiler.feedAccess) {
+        this.uniqueId = 'app-' + this._ast.name.name;
+        if (this._ast.name.feedAccess) {
             this.feedId = state['$F'];
             this.uniqueId += this.feedId.replace(/[^a-zA-Z0-9]+/g, '-');
         } else {
             this.feedId = null;
         }
 
-        if (!this.isBroken) {
-            this.modules = {};
-            for (var name in compiler.modules) {
-                this.modules[name] = new ComputeModule(engine, this, name, compiler.modules[name]);
-            }
-            this.rules = compiler.rules.map(function(rule) {
-                return new RuleExecutor(engine, this, rule);
-            }, this);
-        } else {
-            this.modules = {};
-            this.rules = [];
-        }
-
-        this.name = compiler.name;
+        this.name = this._ast.name.name;
         if (this.state.description)
             this.description = this.state.description;
         else
             this.description = 'This app has no description';
+    },
+
+    start: function() {
+        if (this.broken)
+            return Q.reject(this.broken);
+
+        return this.compiler.compileProgram(this._ast, this.state).then(function() {
+            this.modules = {};
+            for (var name in this.compiler.modules) {
+                this.modules[name] = new ComputeModule(this.engine, this, name,
+                                                       this.compiler.modules[name]);
+            }
+            this.rules = this.compiler.rules.map(function(rule) {
+                return new RuleExecutor(this.engine, this, rule);
+            }, this);
+
+            var modulenames = Object.keys(this.modules);
+            return Q.all(modulenames.map(function(name) {
+                return this.modules[name].start();
+            }, this)).then(function() {
+                return Q.all(this.rules.map(function(r) { return r.start(); }));
+            }.bind(this));
+        }.bind(this));
+    },
+
+    stop: function() {
+        return Q.all(this.rules.map(function(r) { return r.stop() ; }))
+            .then(function() {
+                var modulenames = Object.keys(this.modules);
+                return Q.all(modulenames.map(function(name) {
+                    return this.modules[name].start();
+                }, this));
+            }.bind(this));
     },
 
     getComputeModule: function(name) {
@@ -250,25 +269,4 @@ module.exports = new lang.Class({
 
         return channel.open().then(function() { return channel; });
     },
-
-    start: function() {
-        var modulenames = Object.keys(this.modules);
-        Q.all(modulenames.map(function(name) {
-            return this.modules[name].start();
-        }, this)).then(function() {
-            return Q.all(this.rules.map(function(r) { return r.start(); }));
-        }.bind(this)).done();
-
-        return Q();
-    },
-
-    stop: function() {
-        return Q.all(this.rules.map(function(r) { return r.stop() ; }))
-            .then(function() {
-                var modulenames = Object.keys(this.modules);
-                return Q.all(modulenames.map(function(name) {
-                    return this.modules[name].start();
-                }, this));
-            }.bind(this));
-    }
 });
