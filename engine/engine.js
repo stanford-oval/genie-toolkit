@@ -169,6 +169,7 @@ const Engine = new lang.Class({
             console.log('App ' + a.uniqueId  + ' stopped');
         }).timeout(30000, 'Timed out').catch(function(e) {
             console.error('App failed to stop: ' + e);
+            console.error(e.stack);
         });
     },
 
