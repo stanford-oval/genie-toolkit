@@ -71,34 +71,39 @@ router.get('/create', user.redirectLogIn, function(req, res, next) {
 
 router.post('/create', user.requireLogIn, function(req, res, next) {
     Q.try(function() {
-        var code = req.body.code;
-        var state, tier;
-        try {
-            // sanity check the app
-            var compiler = new AppCompiler();
-            compiler.compileCode(code);
-
-            state = JSON.parse(req.body.params);
-            if (compiler.feedAccess) {
-                if (!state.$F && !req.body.feedId)
-                    throw new Error('Missing feed for feed-shared app');
-                if (!state.$F)
-                    state.$F = req.body.feedId;
-            } else {
-                delete state.$F;
-            }
-
-            tier = req.body.tier;
-            if (tier !== 'server' && tier !== 'cloud' && tier !== 'phone')
-                throw new Error('No such tier ' + tier);
-        } catch(e) {
-            return appsCreate(e.message, req, res);
-        }
-
         return EngineManager.get().getEngine(req.user.id).then(function(engine) {
-            return engine.apps.loadOneApp(code, state, null, tier, true);
+            var code = req.body.code;
+            var state, tier;
+
+            return engine.devices.schemas.then(function(schemaRetriever) {
+                var compiler = new AppCompiler();
+                compiler.setSchemaRetriever(schemaRetriever);
+
+                return Q.try(function() {
+                    // sanity check the app
+                    return compiler.compileCode(code);
+                }).then(function() {
+                    state = JSON.parse(req.body.params);
+                    if (compiler.feedAccess) {
+                        if (!state.$F && !req.body.feedId)
+                            throw new Error('Missing feed for feed-shared app');
+                        if (!state.$F)
+                            state.$F = req.body.feedId;
+                    } else {
+                        delete state.$F;
+                    }
+
+                    tier = req.body.tier;
+                    if (tier !== 'server' && tier !== 'cloud' && tier !== 'phone')
+                        throw new Error('No such tier ' + tier);
+                })
+            }).then(function() {
+                return engine.apps.loadOneApp(code, state, null, tier, true);
+            });
         }).then(function() {
             appsList(req, res, next, "Application successfully created");
+        }).catch(function(e) {
+            return appsCreate(e.message, req, res);
         });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
@@ -153,8 +158,8 @@ router.get('/:id/show', user.redirectLogIn, function(req, res, next) {
 
 router.post('/:id/update', user.requireLogIn, function(req, res, next) {
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return Q.all([engine, engine.apps.getApp(req.params.id)]);
-    }).spread(function(engine, app) {
+        return Q.all([engine, engine.apps.getApp(req.params.id), engine.devices.schemas])
+    }).spread(function(engine, app, schemaRetriever) {
         if (app === undefined) {
             res.status(404).render('error', { page_title: "ThingEngine - Error",
                                               message: "Not found." });
@@ -165,13 +170,17 @@ router.post('/:id/update', user.requireLogIn, function(req, res, next) {
             .spread(function(name, description, currentTier) {
                 var code = req.body.code;
                 var state;
-                try {
+                return Q.try(function() {
                     // sanity check the app
                     var compiler = new AppCompiler();
-                    compiler.compileCode(code);
-
+                    compiler.setSchemaRetriever(schemaRetriever);
+                    return compiler.compileCode(code);
+                }).then(function() {
                     state = JSON.parse(req.body.params);
-                } catch(e) {
+                    return engine.apps.loadOneApp(code, state, req.params.id, currentTier, true);
+                }).then(function() {
+                    appsList(req, res, next, "Application successfully updated");
+                }).catch(function(e) {
                     res.render('show_app', { page_title: 'ThingEngine App',
                                              name: name,
                                              description: description || '',
@@ -179,13 +188,7 @@ router.post('/:id/update', user.requireLogIn, function(req, res, next) {
                                              error: e.message,
                                              code: code,
                                              params: req.body.params });
-                    return;
-                }
-
-                return engine.apps.loadOneApp(code, state, req.params.id, currentTier, true)
-                    .then(function() {
-                        appsList(req, res, next, "Application successfully updated");
-                    });
+                });
             });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",

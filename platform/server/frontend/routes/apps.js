@@ -59,6 +59,7 @@ router.get('/create', user.redirectLogIn, function(req, res, next) {
 
 router.post('/create', user.requireLogIn, function(req, res, next) {
     Q.try(function() {
+        var engine = req.app.engine;
         var code = req.body.code;
         var state, tier;
         return Q.try(function() {
@@ -81,7 +82,6 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
                     throw new Error('No such tier ' + tier);
             });
         }).then(function() {
-            var engine = req.app.engine;
             return engine.apps.loadOneApp(code, state, undefined, tier, true).then(function() {
                 appsList(req, res, next, "Application successfully created");
             });
