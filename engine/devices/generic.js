@@ -102,7 +102,6 @@ module.exports = function(kind, code) {
                 block = ast.actions[id];
                 source = false;
             } else {
-                console.log('ast', ast);
                 throw new Error('Invalid channel ' + id + ' in ' + kind);
             }
 
