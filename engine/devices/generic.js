@@ -7,35 +7,11 @@
 // See COPYING for details
 
 const lang = require('lang');
-const http = require('http');
-const https = require('https');
 const Q = require('q');
-const Url = require('url');
-const crypto = require('crypto');
-const oauth = require('oauth');
 const WebSocket = require('ws');
 const Tp = require('thingpedia');
 
 const httpRequestAsync = require('../util/http').request;
-
-// encryption ;)
-function rot13(x) {
-    return Array.prototype.map.call(x, function(ch) {
-        var code = ch.charCodeAt(0);
-        if (code >= 0x41 && code <= 0x5a)
-            code = (((code - 0x41) + 13) % 26) + 0x41;
-        else if (code >= 0x61 && code <= 0x7a)
-            code = (((code - 0x61) + 13) % 26) + 0x61;
-
-        return String.fromCharCode(code);
-    }).join('');
-}
-
-// XOR these comments for testing
-//var THINGENGINE_CLOUD_ORIGIN = 'http://127.0.0.1:8080';
-var THINGENGINE_CLOUD_ORIGIN = 'https://thingengine.stanford.edu';
-// not this one though
-var THINGENGINE_LOCAL_ORIGIN = 'http://127.0.0.1:3000';
 
 module.exports = function(kind, code) {
     var ast = JSON.parse(code);
@@ -299,104 +275,50 @@ module.exports = function(kind, code) {
         },
     });
 
-    function makeOAuthAPI() {
-        var auth = new oauth.OAuth2(ast.auth.client_id,
-                                    rot13(ast.auth.client_secret),
-                                    '',
-                                    ast.auth.authorize,
-                                    ast.auth.get_access_token);
-        auth.useAuthorizationHeaderforGET(true);
-        return auth;
-    }
+    function OAuthCallback(engine, accessToken, refreshToken) {
+        var obj = { kind: kind,
+                    accessToken: accessToken,
+                    refreshToken: refreshToken };
 
-    function runOAuthStep1(engine) {
-        var auth = makeOAuthAPI();
+        if (ast.auth.get_profile) {
+            var auth = 'Bearer ' + accessToken;
+            return Q.nfcall(httpRequestAsync, ast.auth.get_profile, 'GET',
+                            auth, '')
+                .then(function(response) {
+                    var profile = JSON.parse(response);
 
-        var origin;
-        if (engine.ownTier === 'cloud')
-            origin = THINGENGINE_CLOUD_ORIGIN;
-        else
-            origin = THINGENGINE_LOCAL_ORIGIN;
+                    ast.auth.profile.forEach(function(p) {
+                        obj[p] = profile[p];
+                    });
 
-        var session = {};
-        var query = {
-            response_type: 'code',
-            redirect_uri: origin + '/devices/oauth2/callback/' + kind
-        };
-        if (ast.auth.set_state) {
-            var state = crypto.randomBytes(16).toString('hex');
-            query.state = state;
-            session['oauth2-state-' + kind] = state;
-        }
-
-        return [auth.getAuthorizeUrl(query), session];
-    }
-
-    function runOAuthStep2(engine, req) {
-        var auth = makeOAuthAPI();
-
-        var code = req.query.code;
-        var state = req.query.state;
-        if (ast.auth.set_state &&
-            state !== req.session['oauth2-state-' + kind])
-            return Q.reject(new Error("Invalid CSRF token"));
-        delete req.session['oauth2-state-' + kind];
-
-        var origin;
-        if (engine.ownTier === 'cloud')
-            origin = THINGENGINE_CLOUD_ORIGIN;
-        else
-            origin = THINGENGINE_LOCAL_ORIGIN;
-        return Q.ninvoke(auth, 'getOAuthAccessToken', code, { grant_type: 'authorization_code',
-                                                              redirect_uri: origin + '/devices/oauth2/callback/' + kind,
-                                                        })
-            .then(function(result) {
-                var accessToken = result[0];
-                var refreshToken = result[1];
-                var response = result[2];
-
-                var obj = { kind: kind,
-                            accessToken: accessToken,
-                            refreshToken: refreshToken };
-
-                if (ast.auth.get_profile) {
-                    return Q.ninvoke(auth, 'get', ast.auth.get_profile,
-                                     accessToken)
-                        .then(function(result) {
-                            var profile = result[0];
-                            var response = result[1];
-                            profile = JSON.parse(profile);
-
-                            ast.auth.profile.forEach(function(p) {
-                                obj[p] = profile[p];
-                            });
-
-                            return engine.devices.loadOneDevice(obj, true);
-                        });
-                } else {
                     return engine.devices.loadOneDevice(obj, true);
-                }
-            });
+                });
+        } else {
+            return engine.devices.loadOneDevice(obj, true);
+        }
+    }
+
+    var runOAuth2 = null;
+    if (ast.auth.type === 'none') {
+        runOAuth2 = function runOAuth2(engine) {
+            engine.devices.loadOneDevice({ kind: kind }, true);
+            return null;
+        }
+    } else if (ast.auth.type === 'oauth2') {
+        runOAuth2 = Tp.Helpers.OAuth2({ kind: kind,
+                                        client_id: ast.auth.client_id,
+                                        client_secret: ast.auth.client_secret,
+                                        authorize: ast.auth.authorize,
+                                        get_access_token: ast.auth.get_access_token,
+                                        set_state: ast.auth.set_state,
+                                        callback: OAuthCallback });
     }
 
     return {
         createDevice: function(engine, state) {
             return new GenericDevice(engine, state);
         },
-        runOAuth2: function(engine, req) {
-            if (ast.auth.type === 'none') {
-                engine.devices.loadOneDevice({ kind: kind }, true);
-                return null;
-            } else if (ast.auth.type === 'oauth2') {
-                if (req === null) {
-                    return runOAuthStep1(engine);
-                } else {
-                    return runOAuthStep2(engine, req);
-                }
-            } else {
-                throw new Error('Unsupported auth type for autoconfiguration');
-            }
-        },
+        runOAuth2: runOAuth2,
         getSubmodule: function(kind) {
             return {
                 createChannel: function(engine, state, params) {

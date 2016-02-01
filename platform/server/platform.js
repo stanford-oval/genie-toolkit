@@ -213,6 +213,13 @@ module.exports = {
         return true;
     },
 
+    // Return a server/port URL that can be used to refer to this
+    // installation. This is primarily used for OAuth redirects, and
+    // so must match what the upstream services accept.
+    getOrigin: function() {
+        return 'http://127.0.0.1:3000';
+    },
+
     // Change the auth token
     // Returns true if a change actually occurred, false if the change
     // was rejected
