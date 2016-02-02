@@ -214,6 +214,6 @@ implicitly converted to the base unit for all operations.
 | `mmHg` (millimeters of mercury)   | `Pa`      | pressure          |
 | `inHg` (inches of mercury)        | `Pa`      | pressure          |
 | `F` (Fahrenheit)                  | `C`       | temperature       |
-| `K` (Kelvin)                      | `K`       | temperature       |
+| `K` (Kelvin)                      | `C`       | temperature       |
 | `kJ` (kilojoule)                  | `kcal`    | energy            |
 
