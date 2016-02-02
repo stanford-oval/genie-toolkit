@@ -8,6 +8,7 @@
 
 const Q = require('q');
 const express = require('express');
+const jade = require('jade');
 
 const user = require('../util/user');
 const model = require('../model/user');
@@ -64,6 +65,11 @@ router.post('/kill-all', user.requireRole(user.Role.ADMIN), function(req, res) {
     var engineManager = EngineManager.get();
 
     engineManager.stop();
+    res.redirect('/admin');
+});
+
+router.post('/blow-view-cache', user.requireRole(user.Role.ADMIN), function(req, res) {
+    jade.cache = {};
     res.redirect('/admin');
 });
 

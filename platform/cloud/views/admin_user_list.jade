@@ -9,9 +9,16 @@ block styles
 block content
   h2 Users
 
-  form(action='/admin/kill-all', method='post')
-    input(type='hidden',name='_csrf',value=csrfToken)
-    button(type='submit').btn.btn-danger Kill all users
+  div.row
+    div.col-sm-2
+      form(action='/admin/kill-all', method='post')
+        input(type='hidden',name='_csrf',value=csrfToken)
+        button(type='submit').btn.btn-danger.btn-block Kill all users
+
+    div.col-sm-2
+      form(action='/admin/blow-view-cache', method='post')
+        input(type='hidden',name='_csrf',value=csrfToken)
+        button(type='submit').btn.btn-default.btn-block Clear view cache
 
   table.table#users-table
     thead
