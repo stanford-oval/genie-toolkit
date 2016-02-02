@@ -23,7 +23,8 @@ router.get('/', user.redirectLogIn, function(req, res) {
     }).then(function(available) {
         res.render('assistant_config', { page_title: "ThingEngine - Sabrina",
                                          isConfigured: req.user.assistant_feed_id !== null,
-                                         messagingAvailable: available });
+                                         messagingAvailable: available,
+                                         tutorialContinue: req.session['tutorial-continue'] });
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });

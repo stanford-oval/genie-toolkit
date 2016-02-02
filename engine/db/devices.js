@@ -91,7 +91,8 @@ module.exports = new lang.Class({
     Name: 'DeviceDatabase',
     Extends: events.EventEmitter,
     $rpcMethods: ['loadOneDevice', 'getAllDevices', 'getAllDevicesOfKind',
-                  'hasDevice', 'getDevice', 'removeDevice', 'get factory', 'get schemas',
+                  'hasDevice', 'hasDevicesOfKind',
+                  'getDevice', 'removeDevice', 'get factory', 'get schemas',
                   'reloadDevice', 'updateDevicesOfKind'],
 
     _init: function(tierManager, deviceFactory, schemas) {
@@ -210,6 +211,10 @@ module.exports = new lang.Class({
         return this.getAllDevices().filter(function(device) {
             return device.hasKind(kind);
         });
+    },
+
+    hasDevicesOfKind: function(kind) {
+        return this.getAllDevicesOfKind(kind).length > 0;
     },
 
     getDeviceByDescriptor: function(descriptor) {

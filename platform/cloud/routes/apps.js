@@ -101,7 +101,10 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
                 return engine.apps.loadOneApp(code, state, null, tier, true);
             });
         }).then(function() {
-            appsList(req, res, next, "Application successfully created");
+            if (req.session['tutorial-continue'])
+                res.redirect(req.session['tutorial-continue']);
+            else
+                appsList(req, res, next, "Application successfully created");
         }).catch(function(e) {
             return appsCreate(e.message, req, res);
         });

@@ -102,6 +102,8 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
         if (req.session['device-redirect-to']) {
             res.redirect(req.session['device-redirect-to']);
             delete req.session['device-redirect-to'];
+        } else if (req.session['tutorial-continue']) {
+            res.redirect(req.session['tutorial-continue']);
         } else {
             res.redirect('/devices?class=' + (req.query.class || 'physical'));
         }

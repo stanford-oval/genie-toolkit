@@ -10,6 +10,9 @@ block content
       h1 You're done
       p Sabrina is configured correctly and running. You can use Omlet to interact
         | with your ThingEngine
+
+      if tutorialContinue
+        a.btn.btn-primary(href='/tutorial/2') Continue Tutorial
     else
       h1 Sabrina
       p Do you want to use Sabrina to interact with ThingEngine?
@@ -24,4 +27,19 @@ block content
       else
         p But first, you must add a Omlet account!
         p
-          a(href='/assistant/omlet').btn.btn-primary Go ahead
+          a(href='/assistant/omlet').btn.btn-primary Sure, Go ahead
+          |  
+          a(href='#',data-toggle='collapse',data-target='#omlet-description').btn.btn-default What's Omlet?
+
+        div.collapse.fade#omlet-description
+          p Omlet is a chat application (like Whatsapp or Facebook Messenger),
+            |  through which you will interact with Sabrina.
+
+          p You can obtain it
+            a(href='https://play.google.com/store/apps/details?id=mobisocial.omlet') here for Android
+            |  and 
+            a(href='https://itunes.apple.com/us/app/omlet/id682042134?ls=1&mt=8') here for iPhone
+            | .
+
+          p You must install Omlet in your phone if you wish to use Sabrina, and you
+            |  must link it with a Google, Facebook or Baidu account.
