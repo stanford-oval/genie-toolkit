@@ -1,4 +1,4 @@
-# ThingTalk primer
+# Introduction to ThingTalk
 
 ## What is ThingTalk?
 

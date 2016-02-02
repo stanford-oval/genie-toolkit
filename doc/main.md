@@ -2,4 +2,6 @@
 
 * [Installation](/doc/install.md)
 * [Getting Started](/doc/getting-started.md)
-* [ThingTalk primer](/doc/thingtalk.md)
+* [Introduction to ThingTalk](/doc/thingtalk-intro.md)
+* [ThingTalk Reference](/doc/thingtalk-reference.md)
+* [Writing Interfaces for ThingPedia](/doc/thingpedia-device-intro.md)
