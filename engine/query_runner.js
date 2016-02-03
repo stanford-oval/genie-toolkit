@@ -29,6 +29,7 @@ module.exports = new lang.Class({
 
         this._trigger = input.trigger;
         this._keywords = [];
+        this._keywordAsts = {};
         this._input = input;
 
         if (this._trigger)
@@ -134,6 +135,7 @@ module.exports = new lang.Class({
             scope = this.app.uniqueId;
         name = kw.name;
 
+        this._keywordAsts[name] = kw;
         return this.engine.keywords.getOpenedKeyword(scope, name, feedId, kw.owner === 'self');
     },
 
@@ -174,7 +176,9 @@ module.exports = new lang.Class({
                 return this._selector.start();
             } else {
                 kws.forEach(function(k) {
-                    k.on('changed', this._keywordChangedListener);
+                    var ast = this._keywordAsts[k.name];
+                    if (ast.watched)
+                        k.on('changed', this._keywordChangedListener);
                 }, this);
             }
         }.bind(this)).catch(function(e) {
