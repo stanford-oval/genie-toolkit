@@ -73,16 +73,17 @@ const RuleExecutor = new lang.Class({
     },
 
     start: function() {
-        this.input.start();
-
-        if (this.selector) {
-            this.selector.start().done();
-            return Q();
-        } else {
-            return this._getOutputKeyword().then(function(kw) {
-                this._outputKeyword = kw;
-            }.bind(this));
-        }
+        return Q.try(function() {
+            if (this.selector) {
+                return this.selector.start();
+            } else {
+                return this._getOutputKeyword().then(function(kw) {
+                    this._outputKeyword = kw;
+                }.bind(this));
+            }
+        }.bind(this)).then(function() {
+            this.input.start().done();
+        }.bind(this));
     },
 
     stop: function() {

@@ -149,7 +149,7 @@ module.exports = new lang.Class({
             self._onKeywordChanged(from, owner);
         };
 
-        Q.try(function() {
+        return Q.try(function() {
             if (this.app.compiler.feedAccess)
                 this._feed = this.engine.messaging.getFeed(this.app.feedId);
             else
@@ -184,6 +184,6 @@ module.exports = new lang.Class({
             this._ready = true;
             this._onInitialSample();
             this.emit('ready');
-        }.bind(this)).done();
+        }.bind(this));
     },
 });
