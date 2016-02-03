@@ -21,6 +21,8 @@ const Tp = require('thingpedia');
 module.exports = new lang.Class({
     Name: 'MessagingDeviceManager',
     Extends: Tp.Messaging,
+    $rpcMethods: ['get isAvailable', 'getOwnId', 'getUserById', 'getAccountById',
+                  'getFeedMetas', 'getFeedMeta'],
 
     _init: function(devices) {
         this._devices = devices;
@@ -86,6 +88,11 @@ module.exports = new lang.Class({
             return Q([]);
         else
             return this._messagingIface.getFeedMetas();
+    },
+
+    getFeedMeta: function(feedId) {
+        this._checkAvailable();
+        return this._messagingIface.getFeedMeta(feedId);
     },
 
     getFeed: function(feedId) {

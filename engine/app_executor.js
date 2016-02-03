@@ -170,7 +170,8 @@ module.exports = new lang.Class({
     Extends: events.EventEmitter,
     $rpcMethods: ['get name', 'get description', 'get code',
                   'get state', 'get uniqueId',
-                  'get currentTier', 'get isRunning', 'get isEnabled'],
+                  'get currentTier', 'get isRunning', 'get isEnabled',
+                  'shareYourSelf'],
 
     _init: function(engine, code, state) {
         events.EventEmitter.call(this);
@@ -268,5 +269,23 @@ module.exports = new lang.Class({
         }
 
         return channel.open().then(function() { return channel; });
+    },
+
+    shareYourSelf: function() {
+        if (this.feedId === null)
+            throw new Error(this.uniqueId + ' is not a feed shared app');
+
+        var feed = this.engine.messaging.getFeed(this.feedId);
+        return feed.open().then(function() {
+            var feedIdBase64 = (new Buffer(feed.feedId)).toString('base64');
+            var url = 'https://thingengine.stanford.edu/apps/shared/' + platform.getCloudId() + '/' + this.name + '/' + feedIdBase64;
+            return feed.sendRaw({ type: 'rdl', noun: 'app',
+                                  displayTitle: this.name,
+                                  displayText: this.description,
+                                  callback: url,
+                                  webCallback: url });
+        }.bind(this)).finally(function() {
+            feed.close();
+        });
     },
 });

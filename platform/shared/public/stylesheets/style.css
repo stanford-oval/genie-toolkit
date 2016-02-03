@@ -54,10 +54,6 @@ body {
     font-size: 110%;
 }
 
-.form-delete-app {
-    display:inline;
-}
-
 #code {
     height: 20em;
 }

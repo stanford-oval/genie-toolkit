@@ -36,7 +36,7 @@ const AppTierManager = new lang.Class({
 module.exports = new lang.Class({
     Name: 'AppDatabase',
     Extends: events.EventEmitter,
-    $rpcMethods: ['loadOneApp', 'removeApp', 'getAllApps', 'getApp'],
+    $rpcMethods: ['loadOneApp', 'removeApp', 'getAllApps', 'getApp', 'hasApp'],
 
     _init: function(engine, tierManager) {
         // EventEmitter is a node.js class not a lang class,
@@ -196,5 +196,9 @@ module.exports = new lang.Class({
 
     getApp: function(id) {
         return this._apps[id];
-    }
+    },
+
+    hasApp: function(id) {
+        return this._apps[id] !== undefined;
+    },
 });

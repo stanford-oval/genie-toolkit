@@ -26,5 +26,12 @@ block content
       div.form-group
         textarea#params(name="params").form-control= params
 
+      if feed
+        h2
+          label.control-label Feed
+        div.form-group
+          input(type='hidden',name='feedId',value=feed.identifier)
+          p.form-control-static= feed.name
+
       div.form-group
         button(type='submit').btn.btn-primary Update

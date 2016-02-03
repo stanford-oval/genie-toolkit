@@ -207,6 +207,8 @@ const OmletFeed = new lang.Class({
 module.exports = new lang.Class({
     Name: 'OmletMessaging',
     Extends: Tp.Messaging,
+    $rpcMethods: ['get isAvailable', 'getOwnId', 'getUserById', 'getAccountById',
+                  'getFeedMetas', 'getFeedMeta'],
 
     _init: function(device) {
         this._device = device;
@@ -317,6 +319,15 @@ module.exports = new lang.Class({
                 return f.members.length > 0 &&
                     f.acceptance !== 'Removed';
             });
+        }).finally(function() {
+            this._device.unrefOmletClient();
+        }.bind(this));
+    },
+
+    getFeedMeta: function(feedId) {
+        var client = this._device.refOmletClient();
+        return oinvoke(client.store, 'getFeeds').then(function(db) {
+            return oinvoke(db, 'getObjectByKey', feedId);
         }).finally(function() {
             this._device.unrefOmletClient();
         }.bind(this));
