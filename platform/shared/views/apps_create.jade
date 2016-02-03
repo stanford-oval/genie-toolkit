@@ -23,14 +23,15 @@ block content
       textarea#params(name="params").form-control= parameters
 
     if omlet
-      dif.form-group
+      div.form-group
         h3
           label.control-label(for="feed-id") Feed
         select(name="feedId")#feed-id.form-control
           for f in omlet.feeds
             option(value=f.identifier, selected=omlet.feedId === f.identifier)= f.name
 
-    p.form-group
+    input(type='hidden', name='tier', value=tier)
+    //p.form-group
       h3
         label.control-label(for="tier") Run in
       select#tier(name="tier").form-control

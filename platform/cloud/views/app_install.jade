@@ -46,7 +46,8 @@ block content
             for f in feeds
               option(value=f.identifier)= f.name
 
-    div.form-group
+    input(type='hidden',name='tier',value='cloud')
+    //div.form-group
       div.col-sm-3.col-md-2
         label(for='tier').control-label Run in:
       div.col-sm-9.col-md-10
