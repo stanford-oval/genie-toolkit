@@ -109,7 +109,7 @@ module.exports = new lang.Class({
         var members = this._feed.getMembers();
         var id = members[owner].id;
         if (id === this._ownId)
-            this._local.changeValue(v);
+            this.local.changeValue(v);
         else
             this._sendChange(members[owner].account, v[i]);
     },
@@ -127,7 +127,7 @@ module.exports = new lang.Class({
     _handleChangeValue: function(parsed) {
         if (msg.target !== this._ownAccount)
             return;
-        this._local.changeValue(msg.value);
+        this.local.changeValue(msg.value);
     },
 
     _handleNewValue: function(msg, parsed) {
@@ -139,7 +139,7 @@ module.exports = new lang.Class({
         }.bind(this)).then(function(keyword) {
             if (keyword.changeValue(parsed.value))
                 return this._syncAndEmit(msg.senderId);
-        }).done();
+        }.bind(this)).done();
     },
 
     _onNewMessage: function(msg) {
@@ -174,6 +174,7 @@ module.exports = new lang.Class({
     },
 
     _onLocalChange: function() {
+        this._sendValue();
         this._syncAndEmit(null).done();
     },
 
@@ -222,8 +223,6 @@ module.exports = new lang.Class({
             return Q.all(kws.map(function(k) { return k.close(); }));
         }).then(function() {
             return this._feed.close();
-        }.bind(this)).then(function() {
-            return this.local.close();
         }.bind(this));
     },
 });

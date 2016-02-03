@@ -111,7 +111,7 @@ module.exports = new lang.Class({
             }, this);
 
             return Q.all(kws.map(function(kw) {
-                return kw.stop();
+                return kw.close();
             }));
         }.bind(this)).then(function() {
             if (this._selector)

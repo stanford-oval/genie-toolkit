@@ -45,7 +45,7 @@ const LocalKeyword = new lang.Class({
             throw new Error('Invalid keyword value undefined');
 
         if (deepEqual(this._value, v, { strict: true }))
-            return;
+            return false;
 
         this._value = v;
 
@@ -53,6 +53,7 @@ const LocalKeyword = new lang.Class({
         this._updateTimeout = setTimeout(this._flushToDisk.bind(this), 500);
 
         this.emit('changed', null);
+        return true;
     },
 
     _flushToDisk: function() {

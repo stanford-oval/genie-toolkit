@@ -19,12 +19,6 @@ const OmletMessaging = require('./omlet_messaging');
 const API_KEY = '00109b1ea59d9f46d571834870f0168b5ed20005871d8752ff';
 const API_SECRET = 'bccb852856c462e748193d6211c730199d62adcf0ba963416fcc715a2db4d76f';
 
-// XOR these comments for testing
-//var THINGENGINE_CLOUD_ORIGIN = 'http://127.0.0.1:8080';
-var THINGENGINE_CLOUD_ORIGIN = 'https://thingengine.stanford.edu';
-// not this one though
-var THINGENGINE_LOCAL_ORIGIN = 'http://127.0.0.1:3000';
-
 const DeviceStateStorage = new lang.Class({
     Name: 'DeviceStateStorage',
 
@@ -114,12 +108,7 @@ function runOAuth2Phase1(engine) {
     return Q.try(function() {
         client.enable();
 
-        var origin;
-        if (engine.ownTier === 'cloud')
-            origin = THINGENGINE_CLOUD_ORIGIN;
-        else
-            origin = THINGENGINE_LOCAL_ORIGIN;
-
+        var origin = platform.getOrigin();
         return Q.ninvoke(client.auth, 'getAuthPage',
                          origin + '/devices/oauth2/callback/omlet',
                          ['PublicProfile', 'OmletChat']);
