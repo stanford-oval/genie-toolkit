@@ -12,5 +12,7 @@ block content
 
     p
       a(href='/apps/' + appId + '/show').btn.btn-default Show me the app
-      //|  
-      //a(href='/apps/' + appId + '/results').btn.btn-default Show me the output
+
+      if hasOutVariables
+        |  
+        a(href='/apps/' + appId + '/results').btn.btn-default Show me the results

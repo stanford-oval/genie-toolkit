@@ -181,8 +181,8 @@ router.get('/:id/show', user.redirectLogIn, function(req, res, next) {
             return;
         }
 
-        return Q.all([app.name, app.description, app.code, app.state])
-            .spread(function(name, description, code, state) {
+        return Q.all([app.name, app.description, app.code, app.state, app.hasOutVariables])
+            .spread(function(name, description, code, state, hasOutVariables) {
                 return Q.try(function() {
                     if (state.$F) {
                         return engine.messaging.getFeedMeta(state.$F).then(function(f) {
@@ -196,8 +196,10 @@ router.get('/:id/show', user.redirectLogIn, function(req, res, next) {
                         delete state.$F;
 
                     return res.render('show_app', { page_title: "ThingEngine App",
+                                                    appId: req.params.id,
                                                     name: name,
                                                     description: description || '',
+                                                    hasOutVariables: hasOutVariables,
                                                     csrfToken: req.csrfToken(),
                                                     code: code,
                                                     feed: feed,
@@ -205,6 +207,48 @@ router.get('/:id/show', user.redirectLogIn, function(req, res, next) {
                 });
             });
     }).catch(function(e) {
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }).done();
+});
+
+router.get('/:id/results', user.redirectLogIn, function(req, res, next) {
+    EngineManager.get().getEngine(req.user.id).then(function(engine) {
+        return Q.all([engine, engine.apps.getApp(req.params.id)]);
+    }).spread(function(engine, app) {
+        if (app === undefined) {
+            res.status(404).render('error', { page_title: "ThingEngine - Error",
+                                              message: "Not found." });
+            return;
+        }
+
+        return Q.all([app.name, app.pollOutVariables()])
+            .spread(function(name, results) {
+                // FIXME do something smarter with feedAccessible keywords
+                // and complex types
+
+                var arrays = [];
+                var tuples = [];
+                var singles = [];
+                results.forEach(function(r) {
+                    if (Array.isArray(r.value)) {
+                        if (r.type.startsWith('(') && !r.feedAccess)
+                            tuples.push(r);
+                        else
+                            arrays.push(r);
+                    } else {
+                        singles.push(r);
+                    }
+                });
+                return res.render('show_app_results', { page_title: "ThingEngine App",
+                                                        appId: req.params.id,
+                                                        name: name,
+                                                        arrays: arrays,
+                                                        tuples: tuples,
+                                                        singles: singles });
+            });
+    }).catch(function(e) {
+        console.log(e.stack);
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
     }).done();
@@ -288,9 +332,9 @@ router.get('/shared/:cloudId/:appId/:feedId', user.redirectLogIn, function(req, 
         if (remoteApp === undefined)
             throw new Error('Invalid app ID');
 
-        return Q.all([remoteApp.name, remoteApp.description,
+        return Q.all([remoteApp.name, remoteApp.description, remoteApp.hasOutVariables,
                       remoteApp.state, remoteApp.code]);
-    }).spread(function(name, description, state, code) {
+    }).spread(function(name, description, hasOutVariables, state, code) {
         if (state.$F !== feedId)
             throw new Error('Invalid feed ID');
 
@@ -299,6 +343,7 @@ router.get('/shared/:cloudId/:appId/:feedId', user.redirectLogIn, function(req, 
         }).then(function(hasApp) {
             if (hasApp) {
                 return res.render('app_shared_installed_already', { page_title: "ThingEngine - Install App",
+                                                                    hasOutVariables: hasOutVariables,
                                                                     appId: appId,
                                                                     name: name });
             } else {

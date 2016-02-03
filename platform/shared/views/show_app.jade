@@ -8,6 +8,10 @@ block content
     if description
       p=description
 
+    if hasOutVariables
+      p
+        a(href='/apps/' + appId + '/results').btn.btn-success Show App Results
+
     if error
       div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
         button(type='button', data-dismiss='alert', aria-label="Close").close

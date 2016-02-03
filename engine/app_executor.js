@@ -172,7 +172,7 @@ module.exports = new lang.Class({
     $rpcMethods: ['get name', 'get description', 'get code',
                   'get state', 'get uniqueId',
                   'get currentTier', 'get isRunning', 'get isEnabled',
-                  'shareYourSelf'],
+                  'shareYourSelf', 'get hasOutVariables', 'pollOutVariables'],
 
     _init: function(engine, code, state) {
         events.EventEmitter.call(this);
@@ -289,4 +289,46 @@ module.exports = new lang.Class({
             feed.close();
         });
     },
+
+    get hasOutVariables() {
+        return Object.keys(this.compiler.outs).length > 0;
+    },
+
+    pollOutVariables: function() {
+        return Q.all(Object.keys(this.compiler.outs).map(function(out) {
+            var keyword = this.compiler.getKeywordDecl(out);
+
+            var scope, name, feedId;
+            if (keyword.feedAccess)
+                feedId = this.feedId;
+            else
+                feedId = null;
+            if (keyword.extern)
+                scope = null;
+            else
+                scope = this.uniqueId;
+            name = out;
+
+            return this.engine.keywords.getOpenedKeyword(scope, name, feedId, false).then(function(kw) {
+                return { keyword: kw,
+                         feedAccess: keyword.feedAccess,
+                         type: keyword.type };
+            });
+        }.bind(this))).then(function(kws) {
+            return Q.try(function() {
+                return kws.map(function(kw) {
+                    return {
+                        name: kw.keyword.name,
+                        type: kw.type.toString(),
+                        feedAccess: kw.feedAccess,
+                        value: kw.keyword.value
+                    }
+                });
+            }).finally(function() {
+                return Q.all(kws.map(function(kw) {
+                    return kw.keyword.close();
+                }));
+            });
+        });
+    }
 });
