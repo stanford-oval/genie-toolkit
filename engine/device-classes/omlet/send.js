@@ -21,11 +21,9 @@ module.exports = new Tp.ChannelClass({
         var msg = event[2];
 
         if (msgType === 'text')
-            feed.sendText(msg);
+            feed.sendText(msg).done();
         else if (msgType === 'picture')
-            //feed.sendPicture(msg);
-            // FIXME
-            throw new TypeError('Sending pictures is not yet implemented, sorry');
+            feed.sendPicture(msg).done();
         else
             throw new TypeError('Invalid message type, expected text or picture');
     },

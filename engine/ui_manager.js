@@ -13,7 +13,6 @@ const events = require('events');
 const uuid = require('node-uuid');
 const Tp = require('thingpedia');
 
-const httpRequestAsync = require('./util/http').request;
 const prefs = require('./prefs');
 
 const UICallback = new lang.Class({
@@ -56,11 +55,12 @@ const WebHookCallback = new lang.Class({
     },
 
     invoke: function(event) {
-        httpRequestAsync(this.url, 'POST', this.auth, JSON.stringify(event),
-                         function(err) {
-                             console.log('Failed to send event to UI: ' + err.message);
-                             // eat the error otherwise
-                         });
+        Tp.Helpers.Http.post(this.url, JSON.stringify(event),
+                             { auth: this.auth }).
+            catch(function(err) {
+                console.error('Failed to send event to UI: ' + err.message);
+                // eat the error otherwise
+            }).done();
     }
 });
 

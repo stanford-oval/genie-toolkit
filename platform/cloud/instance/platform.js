@@ -14,6 +14,7 @@ const os = require('os');
 const child_process = require('child_process');
 
 const sql = require('./engine/db/sql');
+const graphics = require('./graphics');
 
 var Config;
 try {
@@ -106,6 +107,9 @@ module.exports = {
             // will back with a Sabrina account)
             return true;
 
+        case 'graphics-api':
+            return true;
+
         default:
             return false;
         }
@@ -120,6 +124,9 @@ module.exports = {
         case 'code-download':
             // We have the support to download code
             return _unzipApi;
+
+        case 'graphics-api':
+            return graphics;
 
         default:
             return null;

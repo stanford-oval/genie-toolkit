@@ -21,37 +21,6 @@ const OmletUser = new lang.Class({
     }
 });
 
-const OmletFeedCursor = new lang.Class({
-    Name: 'OmletFeedCursor',
-    Extends: Tp.Messaging.FeedCursor,
-
-    _init: function(feed, db) {
-        this.parent(feed);
-
-        this._db = db;
-        this._data = db._data.chain().simplesort('serverTimestamp', true).data();
-        this._idx = 0;
-        this._client = this.feed._device.refOmletClient();
-    },
-
-    getValue: function() {
-        return this._data[this._idx];
-    },
-
-    hasNext: function() {
-        return this._idx < this._data.length;
-    },
-
-    next: function() {
-        return this._data[this._idx++];
-    },
-
-    destroy: function() {
-        this.feed._device.unrefOmletClient();
-        this._client = null;
-    },
-});
-
 function oinvoke(object, method) {
     var args = Array.prototype.slice.call(arguments, 2);
 
@@ -170,10 +139,6 @@ const OmletFeed = new lang.Class({
         return Q();
     },
 
-    getCursor: function() {
-        return new OmletFeedCursor(this, this._db);
-    },
-
     _getFeed: function() {
         return oinvoke(this._client.store, 'getFeeds').then(function(db) {
             return oinvoke(db, 'getObjectByKey', this.feedId);
@@ -187,19 +152,42 @@ const OmletFeed = new lang.Class({
     },
 
     sendText: function(text) {
-        return Q.ninvoke(this._client.messaging, '_sendObjToFeedImmediate', this._feed, 'text',
+        return Q.ninvoke(this._client.messaging, '_sendObjToFeed', this._feed, 'text',
                          { text: text });
+    },
+
+    sendPicture: function(url) {
+        if (typeof url === 'string') {
+            if (url.startsWith('http')) {
+                return Tp.Helpers.Http.get(url, { raw: true }).spread(function(data, contentType) {
+                    return Q.ninvoke(this._client.messaging, '_pictureObjFromBytes', data, contentType);
+                }.bind(this)).spread(function(objType, obj) {
+                    return Q.ninvoke(this._client.messaging, '_sendObjToFeed',
+                                     this._feed, objType, obj);
+                }.bind(this));
+            } else {
+                throw new Error('Sending pictures by non-http url is not implemented, sorry');
+            }
+        } else if (Buffer.isBuffer(url)) {
+            return Q.ninvoke(this._client.messaging, '_pictureObjFromBytes', url)
+                .spread(function(objType, obj) {
+                    return Q.ninvoke(this._client.messaging, '_sendObjToFeed',
+                                     this._feed, objType, obj);
+                }.bind(this));
+        } else {
+            throw new TypeError('Invalid type for call to sendPicture, must be string or buffer');
+        }
     },
 
     sendItem: function(item) {
         var silent = true;
-        return Q.ninvoke(this._client.messaging, '_sendObjToFeedImmediate', this._feed, 'text',
+        return Q.ninvoke(this._client.messaging, '_sendObjToFeed', this._feed, 'text',
                          { text: JSON.stringify(item), silent: silent,
                            hidden: silent });
     },
 
     sendRaw: function(rawItem) {
-        return Q.ninvoke(this._client.messaging, '_sendObjToFeedImmediate', this._feed, rawItem.type,
+        return Q.ninvoke(this._client.messaging, '_sendObjToFeed', this._feed, rawItem.type,
                          rawItem);
     }
 });

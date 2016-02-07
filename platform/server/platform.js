@@ -16,6 +16,7 @@ const posix = require('posix');
 const child_process = require('child_process');
 
 const sql = require('./engine/db/sql');
+const graphics = require('./graphics');
 
 var Config;
 try {
@@ -120,6 +121,9 @@ module.exports = {
         case 'bluetooth':
             return os.platform() === 'linux';
 
+        case 'graphics-api':
+            return true;
+
         default:
             return false;
         }
@@ -142,6 +146,9 @@ module.exports = {
             if (!_btApi)
                 _btApi = new BluezBluetooth();
             return _btApi;
+
+        case 'graphics-api':
+            return graphics;
 
         default:
             return null;

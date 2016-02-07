@@ -9,7 +9,7 @@
 const Q = require('q');
 
 const Engine = require('./engine');
-const Frontend = require('./frontend');
+const Frontend = require('./frontend/frontend');
 
 function main() {
     Q.longStackSupport = true;

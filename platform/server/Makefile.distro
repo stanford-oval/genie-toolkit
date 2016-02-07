@@ -6,13 +6,12 @@ pkglibdir ?= $(libdir)/thingengine-server
 localstatedir ?= /var/lib/thingengine-server
 systemdsystemunitdir ?= $(prefix)/lib/systemd/system
 
-SUBDIRS = engine shared frontend node_modules
+SUBDIRS = engine shared node_modules
 install_sources = package.json main.js platform.js platform_config.js alljoyn.js bluez.js dbus.js
 built_sources = platform_config.js thingengine-server.service
 
 all: $(built_sources)
 	make -C engine all
-	make -C frontend all
 	make -C shared all
 	npm install
 	npm dedupe
@@ -21,9 +20,9 @@ all: $(built_sources)
 
 all-fedora: $(built_sources)
 	make -C engine all-fedora
-	make -C frontend all-fedora
 	mkdir node_modules
-	ln -s /usr/lib/node_modules/sqlite3 node_modules/sqlite3
+        npm link sqlite3
+        npm link ws
 	npm install
 	npm dedupe
 	find -name obj.target -exec rm -fr '{}' +
@@ -45,5 +44,4 @@ install:
 
 clean:
 	make -C engine clean
-	make -C frontend clean
 	rm -f platform_config.js

@@ -174,6 +174,10 @@ module.exports = new Tp.DeviceClass({
         this._omletClientCount = 0;
     },
 
+    get ownerTier() {
+        return Tp.Tier.GLOBAL;
+    },
+
     _updateNameAndDescription: function() {
         this.name = "Omlet Account of %s".format(this.omletId);
         this.description = "This is your Omlet Account. You can use it to communicate and share data with your friends!";

@@ -1,5 +1,5 @@
 
-SUBDIRS = engine shared frontend
+SUBDIRS = engine shared
 dist_sources = package.json main.js platform.js thingengine-server.service.in alljoyn.js bluez.js dbus.js
 version = 1.0.0
 pwd := $(shell pwd)
@@ -7,7 +7,6 @@ pwd := $(shell pwd)
 # Builds for local testing only
 # To build for packaging, see Makefile.distro
 all: platform_config.js
-	make -C frontend all
 	npm install
 	npm dedupe
 
@@ -16,8 +15,7 @@ platform_config.js:
 
 clean:
 	make -C engine clean
-	make -C frontend clean
-	#rm -fr node_modules/
+	rm -fr node_modules/
 	rm -f platform_config.js
 
 # Note the / after $$d, forces symlink resolution

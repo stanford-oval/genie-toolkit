@@ -11,8 +11,6 @@ const Q = require('q');
 const WebSocket = require('ws');
 const Tp = require('thingpedia');
 
-const httpRequestAsync = require('../util/http').request;
-
 module.exports = function(kind, code) {
     var ast = JSON.parse(code);
 
@@ -189,18 +187,20 @@ module.exports = function(kind, code) {
             var method = this._method;
             var auth = this._makeAuth();
 
-            return Q.nfcall(httpRequestAsync, url, method, auth, '').then(function(response) {
-                try {
-                    this._emitBlob(response);
-                } catch(e) {
-                    console.log('Error parsing server response: ' + e.message);
-                    console.log('Full response was');
-                    console.log(response);
-                    return;
-                }
-            }.bind(this), function(error) {
-                console.log('Error reading from server: ' + error.message);
-            });
+            return Tp.Helpers.Http.request(url, method, null, { auth: auth,
+                                                                accept: 'application/json' })
+                .then(function(response) {
+                    try {
+                        this._emitBlob(response);
+                    } catch(e) {
+                        console.log('Error parsing server response: ' + e.message);
+                        console.log('Full response was');
+                        console.log(response);
+                        return;
+                    }
+                }.bind(this), function(error) {
+                    console.error('Error reading from server: ' + error.message);
+                });
         },
 
         _doOpen: function() {
@@ -214,11 +214,11 @@ module.exports = function(kind, code) {
                     try {
                         this._emitBlob(data);
                     } catch(e) {
-                        console.log('Failed to parse server websocket message: ' + e.message);
+                        console.error('Failed to parse server websocket message: ' + e.message);
                     }
-                });
+                }.bind(this));
                 this._connection.on('error', function(e) {
-                    console.log('Error on websocket connection: ' + e.message);
+                    console.error('Error on websocket connection: ' + e.message);
                     this._connection.close();
                     this._connection = null;
                 });
@@ -266,10 +266,12 @@ module.exports = function(kind, code) {
                 var url = this._url;
                 var method = this._method;
                 var auth = this._makeAuth();
-                httpRequestAsync(url, method, auth, JSON.stringify(event), function(err) {
-                    if (err)
-                        console.log('Error sending event to server: ' + err.message);
-                });
+                Tp.Helpers.Http.request(url, method, JSON.stringify(event),
+                                        { auth: auth,
+                                          dataContentType: 'application/json' })
+                    .catch(function(err) {
+                        console.error('Error sending event to server: ' + err.message);
+                    }).done();
             }
         },
     });
@@ -281,8 +283,8 @@ module.exports = function(kind, code) {
 
         if (ast.auth.get_profile) {
             var auth = 'Bearer ' + accessToken;
-            return Q.nfcall(httpRequestAsync, ast.auth.get_profile, 'GET',
-                            auth, '')
+            return Tp.Helpers.Http.get(ast.auth.get_profile, { auth: auth,
+                                                               accept: 'application/json' })
                 .then(function(response) {
                     var profile = JSON.parse(response);
 
