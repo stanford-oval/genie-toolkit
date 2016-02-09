@@ -11,6 +11,8 @@ const lang = require('lang');
 const events = require('events');
 const Url = require('url');
 
+const SempreManager = require('./sempremanager');
+
 const omclient = require('./instance/engine/node_modules/omclient').client;
 
 const API_KEY = '00109b1ea59d9f46d571834870f0168b5ed20005871d8752ff';
@@ -259,9 +261,10 @@ const Messaging = new lang.Class({
 
 const AssistantFeed = new lang.Class({
     Name: 'AssistantFeed',
-    $rpcMethods: ['send'],
+    $rpcMethods: ['send', 'analyze'],
 
-    _init: function(feed, engine) {
+    _init: function(sempre, feed, engine) {
+        this._sempre = sempre;
         this._feed = feed;
         this._remote = engine.assistant;
         this._newMessageListener = this._onNewMessage.bind(this);
@@ -278,18 +281,22 @@ const AssistantFeed = new lang.Class({
     },
 
     send: function(msg) {
-        this._feed.sendText(msg);
+        return this._feed.sendText(msg);
+    },
+
+    analyze: function(utterance) {
+        return this._sempre.sendUtterance(this._feed.feedId, utterance);
     },
 
     start: function() {
         this._feed.on('incoming-message', this._newMessageListener);
-        this._remote.setReceiver(this).done();
+        this._remote.setDelegate(this).done();
         return this._feed.open();
     },
 
     stop: function() {
         this._feed.removeListener('incoming-message', this._newMessageListener);
-        this._remote.setReceiver(null).done();
+        this._remote.setDelegate(null).done();
         return this._feed.close();
     }
 });
@@ -301,6 +308,7 @@ module.exports = new lang.Class({
         instance_ = this;
 
         this._engines = {};
+        this._sempre = new SempreManager();
 
         this._prefs = platform.getSharedPreferences();
         if (this._prefs.get('assistant') === undefined)
@@ -318,6 +326,7 @@ module.exports = new lang.Class({
             return;
 
         this._client.enable();
+        this._sempre.start();
         this._messaging = new Messaging(this._client);
         return this._messaging.start().then(function() {
             for (var userId in this._engines) {
@@ -334,6 +343,7 @@ module.exports = new lang.Class({
         if (!this._client)
             return;
         this._client.disable();
+        this._sempre.stop();
 
         for (var userId in this._engines) {
             var obj = this._engines[userId];
@@ -346,7 +356,7 @@ module.exports = new lang.Class({
 
     _startEngine: function(obj, firstTime) {
         var feed = this._messaging.getFeed(obj.feedId);
-        obj.feed = new AssistantFeed(feed, obj.engine);
+        obj.feed = new AssistantFeed(this._sempre, feed, obj.engine);
         obj.feed.start().done();
     },
 

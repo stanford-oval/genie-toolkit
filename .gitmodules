@@ -7,3 +7,6 @@
 [submodule "engine/node_modules/ThingTalk"]
 	path = node_modules/thingtalk
 	url = ../ThingTalk.git
+[submodule "platform/cloud/sempre"]
+	path = platform/cloud/sempre
+	url = ../sempre.git
