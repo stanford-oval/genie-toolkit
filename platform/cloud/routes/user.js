@@ -76,13 +76,19 @@ router.get('/register', function(req, res, next) {
 
 
 router.post('/register', function(req, res, next) {
-    var username, password;
+    var username, password, email;
     try {
         if (typeof req.body['username'] !== 'string' ||
             req.body['username'].length == 0 ||
             req.body['username'].length > 255)
             throw new Error("You must specify a valid username");
         username = req.body['username'];
+        if (typeof req.body['email'] !== 'string' ||
+            req.body['email'].length == 0 ||
+            req.body['email'].indexOf('@') < 0 ||
+            req.body['email'].length > 255)
+            throw new Error("You must specify a valid email");
+        email = req.body['email'];
 
         if (typeof req.body['password'] !== 'string' ||
             req.body['password'].length < 8 ||
@@ -103,7 +109,7 @@ router.post('/register', function(req, res, next) {
     }
 
     return db.withTransaction(function(dbClient) {
-        return user.register(dbClient, username, password).then(function(user) {
+        return user.register(dbClient, username, password, email).then(function(user) {
             return EngineManager.get().startUser(user).then(function() {
                 return Q.ninvoke(req, 'login', user);
             }).then(function() {

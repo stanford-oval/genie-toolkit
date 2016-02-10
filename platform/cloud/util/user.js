@@ -57,6 +57,7 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
 
             var username = profile.username || profile.emails[0].value;
             return model.create(dbClient, { username: username,
+                                            email: profile.emails[0].value,
                                             google_id: profile.id,
                                             human_name: profile.displayName,
                                             cloud_id: makeRandom(),
@@ -103,6 +104,7 @@ function authenticateFacebook(accessToken, refreshToken, profile, done) {
 
             var username = profile.username || profile.emails[0].value;
             return model.create(dbClient, { username: username,
+                                            email: profile.emails[0].value,
                                             facebook_id: profile.id,
                                             human_name: profile.displayName,
                                             cloud_id: makeRandom(),
@@ -238,7 +240,7 @@ module.exports = {
 
     initializePassport: initializePassport,
 
-    register: function(dbClient, username, password) {
+    register: function(dbClient, username, password, email) {
         return model.getByName(dbClient, username).then(function(rows) {
             if (rows.length > 0)
                 throw new Error("An user with this name already exists");
@@ -251,6 +253,7 @@ module.exports = {
                     return model.create(dbClient, {
                         username: username,
                         password: hash,
+                        email: email,
                         salt: salt,
                         cloud_id: cloudId,
                         auth_token: authToken

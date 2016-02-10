@@ -7,6 +7,7 @@ create table users (
     id integer auto_increment primary key,
     username varchar(255) unique not null,
     human_name tinytext default null collate utf8_general_ci,
+    email varchar(255) not null,
     google_id varchar(255) unique default null,
     facebook_id varchar(255) unique default null,
     password char(64) default null,

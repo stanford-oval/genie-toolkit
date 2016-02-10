@@ -36,7 +36,8 @@ block content
         tr
           td
             span(title=user.cloud_id)= user.id
-          td= user.username
+          td
+            a(href='mailto:' + user.email)= user.username
           td= user.human_name
           td
             - var methods = [];

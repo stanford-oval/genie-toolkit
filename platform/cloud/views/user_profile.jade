@@ -21,6 +21,10 @@ block content
           p.form-control-static= user.username
 
         div.form-group
+          label.control-label E-Mail
+          p.form-control-static= user.email
+
+        div.form-group
           label.control-label(for='human-name') Real name
           input(type='text',name='human_name',value=user.human_name).form-control#human-name
 
