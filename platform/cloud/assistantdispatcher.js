@@ -303,7 +303,7 @@ module.exports = new lang.Class({
         instance_ = this;
 
         this._engines = {};
-        this._sempre = new Sempre();
+        this._sempre = new Sempre(false);
 
         this._prefs = platform.getSharedPreferences();
         if (this._prefs.get('assistant') === undefined)
