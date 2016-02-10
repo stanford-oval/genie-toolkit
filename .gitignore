@@ -4,6 +4,3 @@ home-server/
 home-cloud/
 sftp-config.json
 .DS_Store
-
-node_modules/q/
-node_modules/sqlite3/

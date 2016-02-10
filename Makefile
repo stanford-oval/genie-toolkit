@@ -3,10 +3,16 @@ build-all: build-server build-android build-cloud
 build-thingtalk:
 	cd node_modules/thingtalk ; npm install --no-optional --only=prod
 
-build-engine: build-thingtalk
+build-sabrina:
+	make -C node_modules/sabrina all
+	# remove duplicate copy of thingtalk
+	# we cannot rely on npm dedupe because we're playing submodule tricks
+	rm -fr node_modules/sabrina/node_modules/thingtalk
+
+build-engine: build-thingtalk build-sabrina
 	make -C engine all
 
-build-engine-android: build-thingtalk
+build-engine-android: build-thingtalk build-sabrina
 	make -C engine all-android
 
 build-shared:
