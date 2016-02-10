@@ -2,7 +2,7 @@
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 
@@ -11,7 +11,7 @@ const lang = require('lang');
 const events = require('events');
 const Url = require('url');
 
-const SempreManager = require('./sempremanager');
+const Sempre = require('sabrina').Sempre;
 
 const omclient = require('./instance/engine/node_modules/omclient').client;
 
@@ -308,7 +308,7 @@ module.exports = new lang.Class({
         instance_ = this;
 
         this._engines = {};
-        this._sempre = new SempreManager();
+        this._sempre = new Sempre();
 
         this._prefs = platform.getSharedPreferences();
         if (this._prefs.get('assistant') === undefined)

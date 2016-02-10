@@ -8,5 +8,5 @@
 	path = node_modules/thingtalk
 	url = ../ThingTalk.git
 [submodule "platform/cloud/sempre"]
-	path = platform/cloud/sempre
+	path = node_modules/sabrina/sempre
 	url = ../sempre.git
