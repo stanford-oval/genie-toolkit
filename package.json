@@ -12,7 +12,8 @@
   "main": "index.js",
   "dependencies": {
     "adt": "~0.7.2",
-    "q": "~1.4.1"
+    "q": "~1.4.1",
+    "thingtalk": "https://github.com/Stanford-IoT-Lab/ThingTalk/tarball/master"
   },
   "devDependencies": {}
 }
