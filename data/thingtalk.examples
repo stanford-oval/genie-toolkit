@@ -1,0 +1,13 @@
+(example (utterance "post twitter something") (targetValue (string "((tt:device.action.post tt:device.twitter) (string something))")))
+(example (utterance "post something twitter") (targetValue (string "((tt:device.action.post tt:device.twitter) (string something))")))
+(example (utterance "post something") (targetValue (string "(lambda x0 ((tt:device.action.post (var x0)) (string something)))")))
+(example (utterance "post twitter") (targetValue (string "(tt:device.action.post tt:device.twitter)")))
+(example (utterance "tweet something") (targetValue (string "((tt:device.action.post tt:device.twitter) (string something))")))
+
+(example (utterance "post in twitter something") (targetValue (string "((tt:device.action.post tt:device.twitter) (string something))")))
+(example (utterance "post twitter bla") (targetValue (string "((tt:device.action.post tt:device.twitter) (string bla))")))
+(example (utterance "post something on twitter") (targetValue (string "((tt:device.action.post tt:device.twitter) (string something))")))
+(example (utterance "post something in twitter") (targetValue (string "((tt:device.action.post tt:device.twitter) (string something))")))
+(example (utterance "post on twitter") (targetValue (string "(tt:device.action.post tt:device.twitter)")))
+(example (utterance "post something something something on twitter") (targetValue (string "((tt:device.action.post tt:device.twitter) (string \"something something something\"))")))
+(example (utterance "post on twitter something") (targetValue (string "((tt:device.action.post tt:device.twitter) (string something))")))
