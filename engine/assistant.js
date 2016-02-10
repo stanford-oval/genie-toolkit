@@ -13,8 +13,8 @@ const adt = require('adt');
 
 const Sabrina = require('sabrina').Sabrina;
 
-const AssistantManager = new lang.Class({
-    Name: 'AssistantManager',
+const Assistant = new lang.Class({
+    Name: 'Assistant',
     Extends: Sabrina,
     $rpcMethods: ['handleCommand', 'setDelegate'],
 
@@ -50,8 +50,8 @@ const AssistantManager = new lang.Class({
     }
 });
 
-const DummyAssistantManager = new lang.Class({
-    Name: 'DummyAssistantManager',
+const DummyAssistant = new lang.Class({
+    Name: 'DummyAssistant',
 
     _init: function() {
     },
@@ -71,9 +71,9 @@ const DummyAssistantManager = new lang.Class({
 
 function create(engine) {
     if (platform.hasCapability('assistant'))
-        return new AssistantManager(engine);
+        return new Assistant(engine);
     else
-        return new DummyAssistantManager();
+        return new DummyAssistant();
 }
 
 module.exports.create = create;

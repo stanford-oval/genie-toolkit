@@ -22,7 +22,7 @@ const UIManager = require('./ui_manager');
 const MessagingDeviceManager = require('./messaging/device_manager');
 const KeywordRegistry = require('./db/keyword');
 const MessagingSyncManager = require('./messaging/sync_manager');
-const AssistantManager = require('./assistant_manager');
+const Assistant = require('./assistant');
 const Logger = require('./logger');
 
 const Engine = new lang.Class({
@@ -43,7 +43,7 @@ const Engine = new lang.Class({
         this._channels = new ChannelFactory(this, this._tiers, this._devices);
         this._apps = new AppDatabase(this, this._tiers);
         this._ui = new UIManager(this);
-        this._assistant = AssistantManager.create(this);
+        this._assistant = Assistant.create(this);
 
         // in loading order
         this._modules = [this._tiers,

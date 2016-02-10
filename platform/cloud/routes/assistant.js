@@ -13,7 +13,7 @@ const db = require('../util/db');
 const model = require('../model/user');
 const user = require('../util/user');
 const EngineManager = require('../enginemanager');
-const AssistantManager = require('../assistantmanager');
+const AssistantDispatcher = require('../assistantdispatcher');
 
 var router = express.Router();
 
@@ -47,7 +47,7 @@ router.get('/enable', user.redirectLogIn, function(req, res) {
         return engine.messaging.getOwnId().then(function(ownId) {
             return engine.messaging.getAccountById(ownId);
         }).then(function(account) {
-            return AssistantManager.get().createFeedForEngine(req.user.id, engine, account);
+            return AssistantDispatcher.get().createFeedForEngine(req.user.id, engine, account);
         });
     }).then(function(feedId) {
         return db.withTransaction(function(dbClient) {
@@ -67,11 +67,11 @@ router.get('/setup', user.redirectRole(user.Role.ADMIN), function(req, res) {
         return;
     }
 
-    AssistantManager.runOAuth2Phase1(req, res).done();
+    AssistantDispatcher.runOAuth2Phase1(req, res).done();
 });
 
 router.get('/setup/callback', user.requireRole(user.Role.ADMIN), function(req, res) {
-    AssistantManager.runOAuth2Phase2(req, res).then(function() {
+    AssistantDispatcher.runOAuth2Phase2(req, res).then(function() {
         res.send("Ok");
     }).done();
 });

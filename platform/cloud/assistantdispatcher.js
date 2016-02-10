@@ -18,11 +18,6 @@ const omclient = require('./instance/engine/node_modules/omclient').client;
 const API_KEY = '00109b1ea59d9f46d571834870f0168b5ed20005871d8752ff';
 const API_SECRET = 'bccb852856c462e748193d6211c730199d62adcf0ba963416fcc715a2db4d76f';
 
-// XOR these comments for testing
-//var THINGENGINE_ORIGIN = 'http://127.0.0.1:8080';
-var THINGENGINE_ORIGIN = 'https://thingengine.stanford.edu';
-
-
 const OmletStateStorage = new lang.Class({
     Name: 'OmletStateStorage',
 
@@ -302,7 +297,7 @@ const AssistantFeed = new lang.Class({
 });
 
 module.exports = new lang.Class({
-    Name: 'AssistantManager',
+    Name: 'AssistantDispatcher',
 
     _init: function() {
         instance_ = this;
@@ -407,7 +402,7 @@ module.exports.runOAuth2Phase1 = function(req, res) {
         client.enable();
 
         return Q.ninvoke(client.auth, 'getAuthPage',
-                         THINGENGINE_ORIGIN + '/assistant/setup/callback',
+                         platform.getOrigin() + '/assistant/setup/callback',
                          ['PublicProfile', 'OmletChat']);
     }).then(function(resp) {
         var parsed = Url.parse(resp.Link, true);

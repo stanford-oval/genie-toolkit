@@ -18,7 +18,7 @@ const rpc = require('transparent-rpc');
 const user = require('./model/user');
 const db = require('./util/db');
 
-const AssistantManager = require('./assistantmanager');
+const AssistantDispatcher = require('./assistantdispatcher');
 
 var _logJournal;
 try {
@@ -155,7 +155,7 @@ const EngineManager = new lang.Class({
 
                     if (runningProcesses[userId] !== obj)
                         return;
-                    AssistantManager.get().removeEngine(userId);
+                    AssistantDispatcher.get().removeEngine(userId);
                     frontend.unregisterWebSocketEndpoint('/ws/' + cloudId);
                     delete runningProcesses[userId];
                 });
@@ -190,7 +190,7 @@ const EngineManager = new lang.Class({
                                   engineProxy.resolve(engine);
 
                                   if (assistantFeedId !== null)
-                                      AssistantManager.get().addEngine(userId, engine, assistantFeedId);
+                                      AssistantDispatcher.get().addEngine(userId, engine, assistantFeedId);
                         }, function(err) {
                             engineProxy.reject(err);
                         });
@@ -245,7 +245,7 @@ const EngineManager = new lang.Class({
     },
 
     stop: function() {
-        var am = AssistantManager.get();
+        var am = AssistantDispatcher.get();
         for (var userId in this._runningProcesses) {
             var child = this._runningProcesses[userId].child;
             child.kill();
@@ -264,7 +264,7 @@ const EngineManager = new lang.Class({
         var process = this._runningProcesses[userId];
         var child = process.child;
         child.kill();
-        AssistantManager.get().removeEngine(userId);
+        AssistantDispatcher.get().removeEngine(userId);
 
         return Q.nfcall(child_process.exec, 'rm -fr ' + process.cwd);
     },

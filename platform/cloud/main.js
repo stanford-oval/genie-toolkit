@@ -11,7 +11,7 @@ require('./instance/engine/polyfill');
 const Q = require('q');
 
 const Frontend = require('./frontend');
-const AssistantManager = require('./assistantmanager');
+const AssistantDispatcher = require('./assistantdispatcher');
 const EngineManager = require('./enginemanager');
 
 function dropCaps() {
@@ -23,13 +23,13 @@ function dropCaps() {
 }
 
 var _frontend;
-var _assistantmanager;
+var _assistantdispatcher;
 var _enginemanager;
 
 function handleSignal() {
     _frontend.close().then(function() {
-        if (_assistantmanager)
-            return _assistantmanager.stop();
+        if (_assistantdispatcher)
+            return _assistantdispatcher.stop();
     }).then(function() {
         if (_enginemanager)
             return _enginemanager.stop();
@@ -55,8 +55,8 @@ function main() {
             dropCaps();
 
             console.log('Starting EngineManager');
-            _assistantmanager = new AssistantManager();
-            return _assistantmanager.start();
+            _assistantdispatcher = new AssistantDispatcher();
+            return _assistantdispatcher.start();
         }).then(function() {
             _enginemanager = new EngineManager(_frontend);
             return _enginemanager.start();
