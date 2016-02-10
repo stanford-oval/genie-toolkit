@@ -234,6 +234,13 @@ function initializePassport() {
 
 
 module.exports = {
+    DeveloperStatus: {
+        USER: 0,
+        DEVELOPER: 1,
+        TRUSTED_DEVELOPER: 2,
+        ADMIN: 3,
+    },
+
     Role: {
         ADMIN: 1,
     },
