@@ -11,14 +11,20 @@ const express = require('express');
 const router = express.Router();
 const user = require('../util/user');
 const db = require('../util/db');
+const category = require('../model/category');
 
 const EngineManager = require('../enginemanager');
 
 router.get('/', function(req, res, next) {
-    res.render('index', {
-        page_title: 'ThingEngine - run your things!',
-        isRunning: req.user ? EngineManager.get().isRunning(req.user.id) : false,
-    });
+    db.withTransaction(function(dbClient) {
+        return category.getAll(dbClient);
+    }).then(function(categories) {
+        res.render('index', {
+            page_title: 'ThingEngine - run your things!',
+            categories: categories,
+            isRunning: req.user ? EngineManager.get().isRunning(req.user.id) : false
+        });
+    }).done();
 });
 
 router.get('/about', function(req, res, next) {
