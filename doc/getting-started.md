@@ -107,12 +107,15 @@ in the block up to the semicolon.
 The rule has two parts: the part before the `=>` is called a trigger, and defines
 when the code runs, the part after is called an action, and defines what to do.
 
-We learn from [ThingPedia](http://www.thingpedia.org/devices/by-id/com.twitter) that
-`@twitter` is the name of our Twitter Account (which was mapped to `com.twitter` when
-we added it), and `source` is a trigger with 6 arguments: `text`, `hashtags`, `urls`,
-`from`, `inReplyTo` and `yours`. We don't care about some of these, so we put `_` in
-their place. Furthermore, we want the `hashtags` array to contain "sabrina", so put
-a second condition using the `$contains(array, value)` built-in.
+We learn from
+[the interface definition](https://thingengine.stanford.edu/thingpedia/devices/by-id/com.twitter)
+that `@twitter` is the name of our Twitter Account (which was mapped
+to `com.twitter` when we added it), and `source` is a trigger with 6
+arguments: `text`, `hashtags`, `urls`, `from`, `inReplyTo` and
+`yours`. We don't care about some of these, so we put `_` in their
+place. Furthermore, we want the `hashtags` array to contain "sabrina",
+so put a second condition using the `$contains(array, value)`
+built-in.
 
 Now the action part. Again from
 [ThingPedia](http://www.thingpedia.org/devices/by-id/org.thingpedia.builtin.sabrina)

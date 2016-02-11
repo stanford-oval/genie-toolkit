@@ -329,5 +329,21 @@ module.exports = {
                 next();
             };
         }
+    },
+
+    requireDeveloper: function(required) {
+        if (required === undefined)
+            required = 1; // DEVELOPER
+
+        return function(req, res, next) {
+            if (req.user.developer_status < required) {
+                res.status(403).render('developer_access_required',
+                                       { page_title: "ThingPedia - Error",
+                                         title: "Developer Access required",
+                                         csrfToken: req.csrfToken() });
+            } else {
+                next();
+            }
+        };
     }
 };

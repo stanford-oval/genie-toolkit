@@ -28,17 +28,18 @@ router.get('/', user.redirectLogIn, function(req, res, next) {
         return engine.devices.getAllDevices();
     }).then(function(devices) {
         return Q.all(devices.map(function(d) {
-            return Q.all([d.uniqueId, d.name, d.description, d.ownerTier,
+            return Q.all([d.uniqueId, d.name, d.description, d.state, d.ownerTier,
                           d.checkAvailable(),
                           d.hasKind('online-account'),
                           d.hasKind('thingengine-system')])
-                .spread(function(uniqueId, name, description,
+                .spread(function(uniqueId, name, description, state,
                                  ownerTier,
                                  available,
                                  isOnlineAccount,
                                  isThingEngine) {
                     return { uniqueId: uniqueId, name: name || "Unknown device",
                              description: description || "Description not available",
+                             kind: state.kind,
                              ownerTier: ownerTier,
                              available: available,
                              isOnlineAccount: isOnlineAccount,

@@ -31,9 +31,13 @@ block content
       else if i % 2 === 0
         div.clearfix.visible-sm
       div.col-lg-3.col-md-4.col-sm-6
-        div.panel.panel-default
-          div.panel-heading
-            h2.panel-title= dev.name
+        div.panel.panel-default.installed-dev
+          if dev.kind
+            a(href='/thingpedia/devices/by-id/' + dev.kind).panel-heading
+              h2.panel-title= dev.name
+          else
+            div.panel-heading
+              h2.panel-title= dev.name
           div.panel-body
             p= dev.description
 

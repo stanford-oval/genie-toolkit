@@ -111,8 +111,8 @@ groups in the regular expression and extract useful information from the matched
 The next step is to use the variable holding the hashtag in a rule
 that matches on Twitter.  We already know how to get tweets (if we
 forgot, we can always
-[look on ThingPedia](http://www.thingpedia.org/devices/by-id/com.twitter)), so the rule
-becomes:
+[look at the interface definition](https://thingengine.stanford.edu/thingpedia/devices/by-id/com.twitter)),
+so the rule becomes:
 
     @twitter.source(text, hashtags, _, from, _, _), HashTag(interesting),
     $contains(hashtags, interesting) =>
