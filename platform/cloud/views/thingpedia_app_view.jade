@@ -11,7 +11,7 @@ block content
     i= app.description
 
   p Contributed by 
-    a(href='/user/' + app.owner)= app.owner_name
+    a(href='/thingpedia/apps/by-owner/' + app.owner)= app.owner_name
     | .
     if app.tags.length > 0
       |  Tags: 

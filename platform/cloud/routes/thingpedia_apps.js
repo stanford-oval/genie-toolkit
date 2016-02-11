@@ -14,6 +14,7 @@ const AppCompiler = ThingTalk.Compiler;
 
 const db = require('../util/db');
 const user = require('../util/user');
+const userModel = require('../model/user');
 const model = require('../model/app');
 const device = require('../model/device');
 const category = require('../model/category');
@@ -150,6 +151,18 @@ router.get('/by-device/:id', function(req, res) {
             return model.getByDevice(client, deviceId).then(function(apps) {
                 return renderAppList(client, apps, res,
                                      "Apps for " + device.name);
+            });
+        });
+    }).done();
+})
+
+router.get('/by-owner/:id', function(req, res) {
+    db.withTransaction(function(client) {
+        return userModel.get(client, req.params.id).then(function(user) {
+            return model.getByOwner(client, req.params.id).then(function(apps) {
+                var username = user.human_name || user.username;
+                return renderAppList(client, apps, res,
+                                     "Apps contributed by " + username);
             });
         });
     }).done();

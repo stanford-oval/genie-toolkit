@@ -20,6 +20,9 @@ block content
         button.btn.btn-primary(type="submit") Search
     a.navbar-btn.btn.btn-warning#app-create(href="/thingpedia/apps/create") Publish a new app
 
+  if apps.length === 0
+    p Sorry, there are no apps in this list!
+
   div.row
     each app, i in apps
       if i % 12 === 0
@@ -40,7 +43,7 @@ block content
           div.panel-footer
             p
               span By 
-                a(href='/user/' + app.owner)= app.owner_name
+                a(href='/thingpedia/apps/by-owner/' + app.owner)= app.owner_name
                 //span.badge Like #{app.like}
             p
               each tag in app.tags
