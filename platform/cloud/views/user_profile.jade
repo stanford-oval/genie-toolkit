@@ -27,10 +27,8 @@ block content
         div.form-group
           label.control-label(for='human-name') Real name
           input(type='text',name='human_name',value=user.human_name).form-control#human-name
-
-        div.form-group
-          label.control-label(for='developer-key') ThingPedia Developer Key
-          input(type='text',name='developer_key',value=user.developer_key).form-control#developer-key
+          span.help-block This will be shown next to the apps you decide to publish.
+            |  Leave empty to show your username instead.
 
         div.form-group
           button(type='submit').btn.btn-primary Update profile

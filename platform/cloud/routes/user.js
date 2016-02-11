@@ -184,26 +184,10 @@ router.get('/profile', user.redirectLogIn, function(req, res, next) {
 
 router.post('/profile', user.requireLogIn, function(req, res, next) {
     return db.withTransaction(function(dbClient) {
-        var developerKey = req.body.developer_key;
-        if (!developerKey || developerKey.length < 64)
-            developerKey = null;
-
         return model.update(dbClient, req.user.id,
-                            { human_name: req.body.human_name,
-                              developer_key: developerKey
-                              });
+                            { human_name: req.body.human_name });
     }).then(function() {
-        var restartEngine = false;
-        if (req.user.developer_key !== req.body.developer_key)
-            restartEngine = true;
-
         req.user.human_name = req.body.human_name;
-        req.user.developer_key = req.body.developer_key;
-
-        if (restartEngine) {
-            EngineManager.get().killUser(req.user.id);
-            return EngineManager.get().startUser(req.user);
-        }
     }).then(function() {
         return getProfile(req, res, undefined);
     }).done();
