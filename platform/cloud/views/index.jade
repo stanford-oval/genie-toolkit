@@ -73,6 +73,21 @@ block content
           span(class='glyphicon glyphicon-' + cat.icon)
           h4.category-link= cat.catchphrase
 
+  h3.section-title What things can I use?
+
+  h4.section-subtitle ThingEngine supports 
+    a(href='/thingpedia/devices?class=physical') many devices
+    |  and 
+    a(href='/thingpedia/devices?class=online') many web services
+    | . These are our favorites:
+
+  div.container
+    div.row
+      each d in devices
+        div.col-md-4.col-lg-3.col-sm-6.category-button
+          a(href='/thingpedia/devices/details/' + d.id)
+            h4.category-link= d.name
+
   footer
     p
       small ThingEngine is a research project of the 

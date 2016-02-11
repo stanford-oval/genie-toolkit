@@ -12,16 +12,19 @@ const router = express.Router();
 const user = require('../util/user');
 const db = require('../util/db');
 const category = require('../model/category');
+const device = require('../model/device');
 
 const EngineManager = require('../enginemanager');
 
 router.get('/', function(req, res, next) {
     db.withTransaction(function(dbClient) {
-        return category.getAll(dbClient);
-    }).then(function(categories) {
+        return Q.all([category.getAll(dbClient),
+                      device.getByTag(dbClient, 'featured')]);
+    }).spread(function(categories, devices) {
         res.render('index', {
             page_title: 'ThingEngine - run your things!',
             categories: categories,
+            devices: devices,
             isRunning: req.user ? EngineManager.get().isRunning(req.user.id) : false
         });
     }).done();
