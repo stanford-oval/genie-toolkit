@@ -12,18 +12,19 @@ const lang = require('lang');
 const Q = require('q');
 const tmp = require('tmp');
 
-const prefs = require('../prefs');
-const Thingpedia = require('./thingpedia');
+const prefs = require('./prefs');
 
 module.exports = new lang.Class({
     Name: 'SchemaRetriever',
     $rpcMethods: ['getSchema'],
 
-    _init: function() {
+    _init: function(client) {
         this._cache = new prefs.FilePreferences(platform.getWritableDir() + '/schemas.db');
 
         this._request = null;
         this._pendingRequests = [];
+
+        this._client = client;
     },
 
     _ensureRequest: function() {
@@ -34,7 +35,7 @@ module.exports = new lang.Class({
             var pending = this._pendingRequests;
             this._pendingRequests = [];
             console.log('Batched schema request for ' + pending);
-            return Thingpedia.getSchemas(pending);
+            return this._client.getSchemas(pending);
         }.bind(this)).then(function(everything) {
             var everything = JSON.parse(everything);
             for (var kind in everything)

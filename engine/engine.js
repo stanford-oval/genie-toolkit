@@ -11,12 +11,15 @@ require('./polyfill');
 const Q = require('q');
 const lang = require('lang');
 
+const ThingManager = require('thingmanager');
+const Discovery = require('thingpedia-discovery');
+
 const AppDatabase = require('./db/apps');
 const ChannelFactory = require('./channel_factory');
-const DeviceFactory = require('./devices/factory');
-const SchemaRetriever = require('./devices/schema');
+const SchemaRetriever = require('./schema');
 const DeviceDatabase = require('./db/devices');
 const TierManager = require('./tier_manager');
+const PairedEngineManager = require('./paired');
 const DeviceManager = require('./devices/manager');
 const UIManager = require('./ui_manager');
 const MessagingDeviceManager = require('./messaging/device_manager');
@@ -34,9 +37,12 @@ const Engine = new lang.Class({
         // constructor
 
         this._tiers = new TierManager();
+
+        var thingpedia = platform.getCapability('thingpedia-client');
+
         this._devices = new DeviceDatabase(this._tiers,
-                                           new DeviceFactory(this),
-                                           new SchemaRetriever());
+                                           new ThingManager.DeviceFactory(this, thingpedia),
+                                           new SchemaRetriever(thingpedia));
         this._tiers.devices = this._devices;
         this._messaging = new MessagingDeviceManager(this._devices);
         this._keywords = new KeywordRegistry(this._tiers, this._messaging);
@@ -48,7 +54,7 @@ const Engine = new lang.Class({
         // in loading order
         this._modules = [this._tiers,
                          this._devices,
-                         new DeviceManager(this._devices, this._tiers),
+                         new PairedEngineManager(this._devices, this._tiers),
                          this._messaging,
                          this._keywords,
                          this._channels,
@@ -57,7 +63,8 @@ const Engine = new lang.Class({
                          this._assistant,
                          new Logger(this._channels)];
         // to be started after the apps
-        this._lateModules = [new MessagingSyncManager(this._messaging)];
+        this._lateModules = [new MessagingSyncManager(this._messaging),
+                             new Discovery.Client(this._devices, thingpedia)];
 
         this._running = false;
         this._stopCallback = null;
