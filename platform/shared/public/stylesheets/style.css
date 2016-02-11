@@ -3,6 +3,20 @@ body {
     padding-top: 0px;
 }
 
+.navbar .stanford {
+    margin-left: -10px;
+    margin-right: 10px;
+    padding-top: 5px;
+}
+
+.navbar-icon-divider {
+    margin-left: -9px;
+    position: absolute;
+    margin-top: 11px;
+    height: 60%;
+    border-left: 2px solid white
+}
+
 #page-body {
     margin-top: 81px;
 }
