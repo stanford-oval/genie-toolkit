@@ -21,5 +21,5 @@ And it's free software, released under the GPLv2 or later, to help build
 a community of developers and users around it.
 
 ThingEngine is part of ThingPedia, a research project led by prof. Monica Lam, from Stanford University.
-You can find more information at <http://www.thingpedia.org>, and you
+You can find more information at <http://thingengine.stanford.edu/about>, and you
 can find user documentation [here](/doc/main.md)

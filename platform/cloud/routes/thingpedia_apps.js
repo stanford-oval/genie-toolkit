@@ -100,7 +100,7 @@ router.get('/', function(req, res) {
 router.get('/search', function(req, res) {
     var q = req.query.q;
     if (!q) {
-        res.redirect('/apps');
+        res.redirect('/thingpedia/apps');
         return;
     }
 

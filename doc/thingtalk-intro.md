@@ -118,8 +118,9 @@ becomes:
     $contains(hashtags, interesting) =>
     @sabrina.say("Interesting tweet from " + from + ": " + text);
 
-(The full code of the app is in [ThingPedia](http://www.thingpedia.org/apps/42) if you
-want to try it right away).
+(The full code of the app is
+[among the published apps](https://thingengine.stanford.edu.org/thingpedia/apps/42)
+if you want to try it right away).
 
 
 [IFTTT]: http://ifttt.com

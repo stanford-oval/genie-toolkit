@@ -10,7 +10,7 @@ ThingEngine is a system service that will execute simple "mini-apps" for
 your Internet of Things devices and your web accounts.
 
 You can get a taste of the kinds of apps that can run in ThingEngine if
-you go to [ThingPedia](http://www.thingpedia.org), the ThingEngine "app store".
+you go to our [list of recommended apps](https://thingengine.stanford.edu/thingpedia/apps),
 
 ## What can I do with ThingEngine?
 

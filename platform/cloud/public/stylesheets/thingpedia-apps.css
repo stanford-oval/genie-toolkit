@@ -11,6 +11,10 @@
     margin-bottom: 30px;
 }
 
+.app-template .panel-heading {
+    display: block;
+}
+
 .app-template .panel-footer > p {
     margin-top: 0px;
     margin-bottom: 0px;
