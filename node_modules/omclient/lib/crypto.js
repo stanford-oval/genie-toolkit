@@ -1,4 +1,4 @@
-var nacl = require('partial-nacl');
+var nacl = require('ecma-nacl');
 var crypto = require('crypto');
 var FE_SIZE = 32;
 

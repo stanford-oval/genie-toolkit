@@ -19,6 +19,6 @@
     "adt": "~0.7.2",
     "tmp": "0.0.28",
     "oauth": "~0.9.14",
-    "immutable": "~3.7.6"
+    "omclient": "https://github.com/Stanford-IoT-Lab/omclient/tarball/master"
   }
 }
