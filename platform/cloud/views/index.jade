@@ -61,7 +61,10 @@ block content
           |  
           a.btn.btn-lg.btn-default(href='/user/login') Sign in
 
-  h3.section-title What can I do with ThingEngine?
+  if authenticated
+    h3.section-title What to do with ThingEngine?
+  else
+    h3.section-title What can I do with ThingEngine?
 
   div.row
     each cat in categories
