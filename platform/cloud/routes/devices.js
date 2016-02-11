@@ -80,6 +80,7 @@ router.get('/create', user.redirectLogIn, function(req, res, next) {
                                    csrfToken: req.csrfToken(),
                                    developerKey: req.user.developer_key,
                                    onlineAccounts: online,
+                                   ownTier: 'cloud',
                                  });
 });
 

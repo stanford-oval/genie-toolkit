@@ -1,7 +1,4 @@
 $(function() {
-    var THINGPEDIA_ORIGIN = 'https://thingpedia.herokuapp.com';
-    //var THINGPEDIA_ORIGIN = 'http://127.0.0.1:5000';
-
     function handleDeviceFactory(json, kind) {
         var placeholder = $('#device-placeholder');
 
@@ -20,10 +17,12 @@ $(function() {
                                .attr('type', 'submit').text("Configure"));
             break;
         case 'link':
-            placeholder.append($('<p>').append($('<a>').attr('href', json.href).text(json.text)));
+            placeholder.append($('<p>').append($('<a>').addClass('btn btn-primary')
+                                               .attr('href', json.href).text(json.text)));
             break;
         case 'oauth2':
-            placeholder.append($('<p>').append($('<a>').attr('href', '/devices/oauth2/' + kind)
+            placeholder.append($('<p>').append($('<a>').addClass('btn btn-primary')
+                                               .attr('href', '/devices/oauth2/' + kind)
                                                .text(json.text)));
             break;
         }
@@ -75,7 +74,7 @@ $(function() {
         var selector = $(this);
 
         var developerKey = $('#developer-key').text();
-        var url = THINGPEDIA_ORIGIN + '/api/devices?class=online&developer_key='
+        var url = ThingEngine.getThingPedia() + '/thingpedia/api/devices?class=online&developer_key='
             + developerKey;
         $.get(url, function(factoryList) {
             for (var i = 0; i < factoryList.length; i += 3) {
@@ -95,7 +94,7 @@ $(function() {
         var deviceFactories = {};
 
         var developerKey = $('#developer-key').text();
-        var url = THINGPEDIA_ORIGIN + '/api/devices?class=physical&developer_key='
+        var url = ThingEngine.getThingPedia() + '/thingpedia/api/devices?class=physical&developer_key='
             + developerKey;
         $.get(url, function(factoryList) {
             factoryList.forEach(function(f) {
@@ -117,7 +116,7 @@ $(function() {
                 }
 
                 $('#device-placeholder').show();
-                handleDeviceFactory(deviceFactories[val]);
+                handleDeviceFactory(deviceFactories[val], val);
             });
         });
     });
