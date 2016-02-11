@@ -12,4 +12,4 @@ all-fedora:
 	make all-android
 
 clean:
-	rm -fr node_modules/{q,deep-equal,ip,node-uuid,oauth,omclient,tmp,ws}
+	rm -fr node_modules/{q,deep-equal,ip,node-uuid,ws}

@@ -16,9 +16,6 @@
     "node-uuid": "^1.4.0",
     "deep-equal": "~1.0.1",
     "ip": "~1.0.0",
-    "adt": "~0.7.2",
-    "tmp": "0.0.28",
-    "oauth": "~0.9.14",
-    "omclient": "https://github.com/Stanford-IoT-Lab/omclient/tarball/master"
+    "adt": "~0.7.2"
   }
 }
