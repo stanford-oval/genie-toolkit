@@ -1,8 +1,0 @@
-{
-  "name": "thingengine-android",
-  "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "q": "~1.4.0"
-  }
-}

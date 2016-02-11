@@ -1,8 +1,0 @@
-<resources>
-    <string name="app_name">ThingEngine</string>
-    <string name="title_activity_web_ui">ThingEngine</string>
-
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
-    <string name="title_activity_test">TestActivity</string>
-</resources>

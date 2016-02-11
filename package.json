@@ -1,5 +1,5 @@
 {
-  "name": "thingengine",
+  "name": "thingengine-core",
   "version": "1.0.0",
   "description": "An engine for controlling IoT devices",
   "author": "Stanford IoT lab",
@@ -9,7 +9,7 @@
       "email": "gcampagn@cs.stanford.edu"
     }
   ],
-  "main": "engine.js",
+  "main": "lib/engine.js",
   "dependencies": {
     "q": "~1.4.0",
     "ws": "^0.7.0",
