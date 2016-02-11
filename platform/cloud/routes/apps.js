@@ -171,6 +171,32 @@ router.post('/share', user.requireLogIn, function(req, res, next) {
     }).done();
 });
 
+router.get('/:id/publish', user.redirectLogIn, function(req, res, next) {
+    EngineManager.get().getEngine(req.user.id).then(function(engine) {
+        return Q.all([engine, engine.apps.getApp(req.params.id)]);
+    }).spread(function(engine, app) {
+        if (app === undefined) {
+            res.status(404).render('error', { page_title: "ThingEngine - Error",
+                                              message: "Not found." });
+            return;
+        }
+
+        return Q.all([app.name, app.description, app.code])
+            .spread(function(name, description, code) {
+                return res.render('thingpedia_app_create', { page_title: "ThingEngine App",
+                                                             csrfToken: req.csrfToken(),
+                                                             op: 'create',
+                                                             name: name,
+                                                             description: description || '',
+                                                             code: code,
+                                                             tags: [] });
+            });
+    }).catch(function(e) {
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }).done();
+});
+
 router.get('/:id/show', user.redirectLogIn, function(req, res, next) {
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         return Q.all([engine, engine.apps.getApp(req.params.id)]);

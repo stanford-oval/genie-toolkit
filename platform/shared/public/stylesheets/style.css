@@ -93,3 +93,8 @@ body {
 #app-install-alert {
     margin-bottom: 1em;
 }
+
+.installed-app .btn-block {
+    margin-top: 7.5px;
+    margin-bottom: 7.5px;
+}
