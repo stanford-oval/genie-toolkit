@@ -46,6 +46,7 @@ from the API and set it directly to `module.exports`, as in
         Name: "MyDeviceClass",
 
         _init: function(engine, state) {
+             this.parent(engine, state);
              // constructor
         }
 
@@ -69,6 +70,10 @@ in a file named `frobnicate.js` at the toplevel of your device package:
 
         // other methods of channel class
     });
+
+Note: the `Name` you specify in the device and channel class is just
+a debugging hint (your object will stringify to `[object YourName]`),
+it has no real significance.
 
 ## Representing Devices
 
@@ -161,8 +166,8 @@ object, which is shared among all device instances. The API on the
 nevertheless useful.
 
 - `engine.ownTier`: the currently running tier of ThingEngine, ie `cloud`, `phone` or `server`
-- `engine.messaging`: gives you access to the primary messaging interface (i.e., the primary
-Omlet account)
+- `engine.messaging`: gives you access to the primary messaging interface (or a dummy interface
+that always fails if there is no messaging account)
 - `engine.keywords`: the keyword database that holds the ThingTalk persistent data
 - `engine.channels`: the factory class that instantiates channels and deduplicates them
 - `engine.devices`: the devices database
@@ -170,20 +175,291 @@ Omlet account)
 - `engine.ui`: the UI API, to register callbacks for `@$notify()` and `@$input()` in rules
 - `engine.assistant`: the Assistant API, to send and receive messages for Sabrina; this API is cloud-only
 
+## The Platform API
+
+Anywhere in ThingEngine code you will be able to access the Platform API through the `platform`
+global variable.
+
+Most of the API is for internal use only, but you might find the following useful:
+
+- `platform.hasCapability()`, `platform.getCapability()`: access
+  platform specific APIs and capabilities, such as bluetooth,
+  unzipping, showing popups or interacting with the assistant
+- `platform.getSharedPreferences()`: access an instance of
+[`Preferences`](https://github.com/Stanford-IoT-Lab/thingengine-core/blob/master/lib/prefs.js),
+which is a ThingEngine wide store of key-value pairs backed to disk
+- `platform.getRoot()`, `platform.getWritableDir()`,
+`platform.getCacheDir()`, `platform.getTmpDir()`: the paths that
+ThingEngine can use on the file system
+- `platform.getDeveloperKey()`: the currently configured ThingPedia developer key
+- `platform.getOrigin()`: the web site hosting ThingEngine
+
 ## Extension Interfaces and Messaging
+
+As mentioned before, `device.queryInterface()` can be used to retrieve
+extension interfaces for a device class. The most important extension
+interface is
+[`messaging`](https://github.com/Stanford-IoT-Lab/thingpedia-api/blob/master/lib/messaging.js),
+which is implemented by all devices that implement some sort of messaging layer, like Omlet
+or (hypothetically) Facebook Messenger or Telegram.
+
+If your device implements `messaging`, it becomes a candidate for being the primary messaging
+interface (the one exposed by `engine.messaging`), which is used by ThingTalk to implement
+feed shared keywords. In practice, only Omlet should implement `messaging`.
+
+Conversely, if you obtain a messaging device (for example with `engine.devices.getAllDevicesOfKind('messaging')`) you can use its messaging interface to send and receive messages on behalf
+of the user.
 
 ## Handling Authentication
 
-## Handling Discovery
+### Different types of authentication
+
+Most devices will require some kind of authentication, for example a password or an OAuth 2.0
+access token. After the device is set up and stored to disk, this is easy because you have
+the authentication data, but you need a way to obtain it at first.
+
+The way it is handled is through the `auth` field in the _manifest file_, which describes
+the device metadata in ThingPedia and is used to generate the UI show in ThingEngine. The
+manifest will be described in more detail later.
+
+Three ways to do authentication are supported:
+
+- `none`: means that the device has no authentication at all, it only uses publicly available APIs;
+the resulting configuration UI will be a single button (unless you need other data,
+in which case it will be a form)
+- `basic`: traditional username and password; your state must contain `username` and `password`
+properties, which are set to the values provided by the user through a form
+- `oauth2`: OAuth 1.0 and 2.0 style authentication; the user clicks and is redirected to a login
+page, then the login page redirects back to ThingEngine giving you the authorization code
+
+If your device uses `none` or `oauth2` authentication, it must
+implement the `UseOAuth2(engine, req)` class method.
+
+For `none` authentication, you would just add yourself as a new device, filling in whatever
+state variables you need, as in:
+
+    UseOAuth2: function(engine) {
+        engine.devices.loadOneDevice({ kind: 'com.example.mydevice', someother: 'state' }, true);
+        return null;
+    }
+
+`true` indicates that the device should be saved to disk. `return null` indicates that the
+authentication process is complete and there is no redirect.
+
+### `oauth2` authentication the slow way
+
+If your device uses OAuth-style authentication, you must implement `UseOAuth2` in your
+device class.
+
+This method will be called twice: the first time, the `req` argument (the second argument
+to your function) will be `null`. You must do whatever preparation to access the remote
+service and return a [Promise](https://www.promisejs.org/) of an array with two elements:
+
+- first element is the full redirect URI of the authentication page
+- second element is an object with any value you want to store in the user session
+
+The OAuth call should be set to redirect to `platform.getOrigin() +
+'/devices/oauth2/callback/' + `_your kind_. This means that you should
+add `http://127.0.0.1:8080`, `http://127.0.0.1:3000` and
+`https://thingengine.stanford.edu` as acceptable redirects in the
+service console if the service has redirect URI validation.
+
+In pseudo code, the first call looks like:
+
+    UseOAuth2: function(engine, req) {
+        if (req === null) {
+            return prepareForOAuth2().then(function() {
+                return ['https://api.example.com/1.0/authorize?redirect_uri=' +
+                        platform.getOrigin() + '/devices/oauth2/callback/com.example',
+                        { 'com-example-session': 'state' }];
+            });
+        } else {
+            // handle the second phase of OAuth
+        }
+    }
+
+The second time, `UseOAuth2` will be called with `req` set to a sanitized version of
+the callback request generated by the service. Use `req.query` to access the query part
+of the URL, `req.session` to read (but not write) the session.
+
+During the second call, you can use the authentication code produced by the callback
+to obtain the real access token, and then save it to the database. In pseudo-code:
+
+    UseOAuth2: function(engine, req) {
+        if (req === null) {
+            // handle the first phase of OAuth
+        } else {
+            if (req.session['com-example-session'] !== 'state')
+                throw new Error('Invalid state');
+            return getAccessToken(req.query.code).then(function(accessToken, refreshToken) {
+                return getProfile(accessToken).then(function(profile) {
+                    return engine.devices.loadOneDevice({ kind: 'com.example',
+                                                          accessToken: accessToken,
+                                                          userId: profile.id });
+                });
+            });
+        }
+    }
+
+### `oauth2` authentication helpers
+
+As mentioned before, despite the name `oauth2` is the authentication type of
+all OAuth style schemes. But if you use exactly OAuth 2.0 as specified in
+[RFC 6749](https://tools.ietf.org/html/rfc6749), which some services do, you
+can use a shorter helper:
+
+    UseOAuth2: Tp.Helpers.OAuth2({
+        kind: "com.example",
+        client_id: "your_oauth2_client_id",
+        client_secret: "your_oauth2_client_secret",
+        authorize: "https://api.example.com/1.0/authorize",
+        scope: ['example_user_profile', 'example_basic_info']
+        get_access_token: "https://api.example.com/1.0/token",
+        callback: function(accessToken, refreshToken) { /* add device here */ }
+    })
 
 ## Channel classes
 
-## Stateful Channels
+Great, so now you filled up your device class, and the user can add the device from
+the UI. Time to make some triggers and actions.
+
+As mentioned, triggers and actions need channel classes, of the form:
+
+    const Tp = require('thingpedia');
+
+    module.exports = new Tp.ChannelClass({
+        Name: 'MyChannel',
+        RequiredCapabilities: [],
+
+        _init: function(engine, device, params) {
+        },
+
+        _doOpen: function() {
+            // open the channel
+        },
+
+        _doClose: function() {
+            // close the channel
+        }
+    });
+
+`_doOpen` and `_doClose` should return a promise that is ready when your channel is.
+We don't provide a Promise library (and we're not running nodejs in ES6 mode), but we
+encourage you include [Q](https://github.com/kriskowal/q) in your dependencies, because
+that's what the rest of ThingEngine uses.
+
+`RequiredCapabilities` is an array of platform capabilities that your channel requires
+to work. If the platform does not have the capabilities you need, then your channel will
+not be instantiated (and the engine will try to figure out a different way to run it,
+for example through a proxy), so you don't have to check for them.
+
+### Triggers
+
+Triggers should call `this.emitEvent([a,b,c])` whenever they want to generate an event.
+For example:
+
+    const Tp = require('thingpedia');
+
+    module.exports = new Tp.ChannelClass({
+        Name: 'MyTrigger',
+
+        _init: function(engine, device, params) {
+             this.timeout = null;
+        },
+
+        _doOpen: function() {
+             this.timeout = setTimeout(function() { this.emitEvent(['bla']); }.bind(this), 5000);
+        },
+
+        _doClose: function() {
+             clearTimeout(this.timeout);
+             this.timeout = 1000;
+        }
+    });
+
+### Actions
+
+Actions on the other hand should override `sendEvent(event)` in the
+channel class, as in:
+
+    const Tp = require('thingpedia');
+
+    module.exports = new Tp.ChannelClass({
+        Name: 'MyAction',
+
+        _init: function(engine, device, params) {
+        },
+
+        sendEvent: function(event) {
+            // do something
+        },
+
+        _doOpen: function() {
+            // open the channel
+        },
+
+        _doClose: function() {
+            // close the channel
+        }
+    });
+
+A lot of times action channels do not require any set up or tear down,
+in which case you can use `Tp.SimpleAction`:
+
+    const Tp = require('thingpedia');
+
+    module.exports = new Tp.ChannelClass({
+        Name: 'MySimpleAction',
+        Extends: Tp.SimpleAction
+
+        _init: function(engine, device, params) {
+        },
+
+        _doInvoke: function(arg1, arg2, ...) {
+            // do something
+        },
+    });
+
+### Partially applied triggers
+
+It is possible that web services will support server side filtering of
+event streams, which can reduce the number of wake ups required on
+ThingEngine if the rule is also going to filter out the data.
+
+To address some of those cases, rules that invoke a trigger with a
+constant value will see those values propagated to the params argument
+to the constructor, as an array of
+[`ThingTalk.Value`s](https://github.com/Stanford-IoT-Lab/ThingTalk/blob/master/lib/ast.js)
+
+If you make any use of that `params` argument, you should set
+`this.filterString` in your constructor to a stringified version of
+the parameters that you care about. This is needed to properly deduplicate
+your channel across rules with different filter values.
+
+### Stateful Channels
+
+Often times, you will want to preserve state between different invocations
+of your channel. Keeping it in memory is not enough though, because the
+ThingEngine might be restarted at any time and the state would be lost.
+
+Instead, you can require the `channel-state` capability (with `RequiredCapabilities: ['channel-state']`). If you do, the signature of your constructor becomes
+
+    _init: function(engine, state, device, params)
+
+The `state` object is persisted to disk, and has APIs:
+
+- `state.get(key)`: return a state value
+- `state.set(key, value)`: modify a state value
 
 ## Writing Triggers
+
+
+## HTTP Helpers
 
 ## Device Metadata
 
 ## Publishing on ThingPedia
+
+## Handling Discovery
 
 ## Generic Devices
