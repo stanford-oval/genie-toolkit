@@ -5,21 +5,15 @@
 ThingEngine is the workhorse behind ThingPedia, the open source platform for IoT rules
 that you can execute anywhere you want.
 
-ThingEngine comes in three form:
+This package contains the core of ThingEngine, which is concerned with
+actually loading and executing the rules. It cannot be used alone, it
+must be imported by one of the integration layers
+([cloud](https://github.com/Stanford-IoT-Lab/thingengine-platform-cloud),
+[server](https://github.com/Stanford-IoT-Lab/thingengine-platform-server)
+or
+[android](https://github.com/Stanford-IoT-Lab/thingengine-platform-android))
 
-- As a phone app, for Android
-- As an installable app for a home server
-- As a web service hosted at <https://thingengine.stanford.edu>
-
-Additionally the system is able to synchronize the three installations that belong
-to the same user, so that each app can run on the form most suited to it, in a manner
-completely transparent to the developer, while preserving the privacy of the user.
-
-ThingEngine is based on node.js. It uses jxcore to provide Android integration
-and express as the web frontend.
-And it's free software, released under the GPLv2 or later, to help build
-a community of developers and users around it.
-
-ThingEngine is part of ThingPedia, a research project led by prof. Monica Lam, from Stanford University.
-You can find more information at <http://thingengine.stanford.edu/about>, and you
-can find user documentation [here](/doc/main.md)
+ThingEngine is part of Open Thing Platform, a research project led by
+prof. Monica Lam, from Stanford University.  You can find more
+information at <http://thingengine.stanford.edu/about>, and you can
+find user documentation [here](/doc/main.md)
