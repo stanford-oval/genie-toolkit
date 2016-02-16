@@ -533,8 +533,125 @@ be a readable stream and will be piped.
 
 ## Device Metadata
 
+In addition to a device package, each device specification published on
+ThingPedia must include some metadata, called a _device manifest_, which will parsed
+by ThingPedia to generate the web UI.
+
+The manifest contains:
+
+- The list of types the device claims to conform to
+- The triggers and actions, their arguments, and the documentation for each
+- The authentication method, and any parameter that needs to be configured manually by
+  the user (such as IP address or username)
+
+The manifest is written in JSON, and looks like this
+
+    {
+      "params": {
+        "p1": ["P1 Label", "text"],
+        "p2": ["P2 Label", "password"]
+      },
+      "types": ["t1", "t2"],
+      "auth": {
+        "type": "none"
+      },
+      "triggers": {
+        "trigger1": {
+            "args": ["astring", "anumber", "anothernumber"],
+            "schema": ["String", "Number", "Number"],
+            "doc": "produces a string and two numbers"
+        }
+      },
+      "actions": {
+        "action1": {
+            "args": ["afeed","amessage"],
+            "schema": ["Feed", "String"],
+            "doc": "sends a message"
+        }
+      }
+    }
+
+The combination of `params` and `auth.type` determines the UI to configure
+the device. Valid types for `auth.type` are:
+
+- `"none"`, in which case the UI will show a form if there is any parameter,
+or a button otherwise
+- `"oauth2"`, in which case the UI will always show a button
+- `"basic"`, in which case the UI will always show a form; `username` and `password`
+  parameters are required
+
 ## Publishing on ThingPedia
+
+Once you are ready to let other people try your device interface, after thorough
+local testing, you can publish it on ThingPedia.
+
+To do so, you must first
+[request a developer account](https://thingengine.stanford.edu/user/request-developer).
+Once the request is approved by the ThingPedia administrators (you can check the status
+from [your profile page](https://thingengine.stanford.edu/user/profile)), you will be
+able to upload a new device by clicking on
+[Propose it for inclusion](https://thingengine.stanford.edu/thingpedia/upload/create?class=physical)
+in the red banner in the ThingPedia page.
+
+In the creation page you will be required to upload a zip file containing your
+device package. The package.json must be at the toplevel of the zip file, not in a
+subdirectory. You should always tick "This device requires additional JS code"
+or your package will be ignored!
+
+Each device package must contain all its dependencies, except for the `thingpedia`
+module which is always provided. This also includes any promise library you might want
+to use for channel classes.
+
+Once submitted, the device is not automatically available to all users. Instead,
+it is only available to you and people to who you give your _developer key_,
+which you can retrieve from your user profile. The device will become available
+after being reviewed and approved by a ThingPedia administrator.
 
 ## Handling Discovery
 
-## Generic Devices
+Local discovery in ThingPedia relies on the
+[thingpedia-discovery](https://github.com/Stanford-IoT-Lab/thingpedia-discovery)
+nodejs module, which contains the generic code to run the discovery protocols and
+to match the discovery information to a specific interface.
+
+If your interface supports discovery, your must implement the
+`UseDiscovery(publicData, privateData)` device class method. `publicData` and
+`privateData` are objects that contain information derived from the discovery
+protocol, and are discovery protocol specific; `privateData` contains user
+identifying information (such as serial numbers and HW addresses), while `publicData`
+contains the generic capabilities inferred by discovery and is sent to ThingPedia
+to match the interface. `publicData.kind` is the identifier for the discovery
+protocol in use.
+
+Furthermore, your device should implement `updateFromDiscovery(publicData, privateData)`,
+which is called when a device that was already configured is rediscovered. You
+can use this method to update any cached data about the device based on the
+new advertisement, for example to update the Bluetooth alias.
+
+Finally, your device should set `this.descriptors` to a list of protocol specific
+device descriptors that will help the generic code recognize if a device was
+already configured or not, and should set `state.discoveredBy` to `engine.ownTier`.
+
+### Bluetooth discovery
+
+Discovery data:
+
+- `publicData.kind`: `bluetooth`
+- `publicData.uuids`: array of lower case Bluetooth UUIDs
+- `publicData.class`: the numeric Bluetooth class
+- `privateData.address`: lower case canonical Bluetooth HW address
+- `privateData.alias`: Bluetooth alias (human readable name)
+- `privateData.paired`: if Bluetooth pairing happened already
+- `privateData.trusted`: if the device is trusted to access services on the host
+- `descriptor`: `bluetooth/` followed by the HW address
+
+ThingPedia matching of interfaces is based on UUIDs.
+If your interface wants to be a candidate for any device with a given UUID, it
+should expose the type `bluetooth-uuid-`_uuid_, e.g. an interface implementing
+the A2DP sink profile  would mark itself
+with type `blueooth-uuid-000110b-0000-1000-8000-00805f9b34fb`.
+
+The bluetooth class is used as a fallback, and an interface can expose the types
+`bluetooth-class-health` for Bluetooth class `0x900`, `bluetooth-class-audio-video`
+for Bluetooth class `0x400` and `bluetooth-class-phone` for Bluetooth class `0x200`.
+Other Bluetooth classes are ignored.
