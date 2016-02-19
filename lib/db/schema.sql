@@ -5,7 +5,9 @@ create table app (
        uniqueId varchar(255) primary key,
        tier text not null,
        code text not null,
-       state text not null
+       state text not null,
+       name text null default null,
+       description text null default null,
 );
 
 create table app_journal (
