@@ -1,32 +1,36 @@
-# Getting Started with ThingEngine
+# Getting Started with Sabrina
 
-Welcome to ThingEngine!
+Welcome to Sabrina!
 
-This short introduction will teach you the basics of using your ThingEngine.
+This short introduction will teach you the basics of using your Sabrina.
+
+## What is Sabrina?
+
+Sabrina is the magic virtual assistant that you access through your phone. She can
+help you configure your things, execute actions on them, install apps based on
+your description of the behavior you want.
 
 ## What is ThingEngine?
 
 ThingEngine is a system service that will execute simple "mini-apps" for
-your Internet of Things devices and your web accounts.
+your Internet of Things devices and your web accounts. It is the acting
+mind behind Sabrina, and the portion of it that makes stuff happen.
 
 You can get a taste of the kinds of apps that can run in ThingEngine if
-you go to our [list of recommended apps](https://thingengine.stanford.edu/thingpedia/apps),
+you go to our list of recommended apps in [ThingPedia](https://thingengine.stanford.edu/thingpedia/apps),
 
-## What can I do with ThingEngine?
+## What is ThingPedia?
 
-ThingEngine will execute apps that use things. Therefore, to have it do anything,
-you must associate your engine with your things, and tell the engine what apps
-to run, either by choosing them from ThingPedia or by explicitly writing down
-the code.
+ThingPedia is a research project to collect interfaces and apps for the
+Sabrina virtual assistant. It lives [here](https://thingengine.stanford.edu/about),
+and includes an installation of Sabrina and ThingEngine (called the Cloud ThingEngine)
+as a web service available free of charge to the research community.
 
-## What is Sabrina?
+## What can I do with Sabrina?
 
-Sabrina is the magic virtual assistant that lives in your ThingEngine. She can
-help you configure your things, execute actions on them, install apps based on
-your description of the behavior you want.
-
-This tutorial is also available in interactive form
-[here](https://thingengine.stanford.edu/tutorial/1).
+Sabrina will execute apps that use things. Therefore, to have it do anything,
+you must associate her with your things, and tell her what apps
+to run by choosing them from ThingPedia.
 
 ## Step-by-step example: Twitter to Sabrina
 
@@ -34,12 +38,13 @@ This example will guide you through filtering your Twitter feed and redirect
 to Sabrina. At the end of the example, she will tell you about any tweet in your
 stream containing the hashtag "sabrina".
 
-### Step 0: Register to ThingEngine Cloud
+### Step 0: Register to ThingPedia
 
 You probably already have an account at
-[ThingEngine Cloud](https://thingengine.stanford.edu), but if you did
+[ThingPedia](https://thingengine.stanford.edu) (which gives you a running ThingEngine
+to follow along these instructions), but if you did
 not, you should
-[register](https://thingengine.stanford.edu/user/register) and then
+[register](/user/register) and then
 come back.
 
 ### Step 1: Getting Sabrina
@@ -59,84 +64,61 @@ Baidu. You can do that from the profile in the Omlet App. This is a technical
 limitation that we hope to overcome soon.
 
 After you obtained Omlet, you should log in to your ThingEngine account, then
-click on [Sabrina](https://thingengine.stanford.edu/assistant) in the top left
-navigation bar. You will be asked to associate Omlet with your ThingEngine account,
-and you will be asked to enable Sabrina. After you say Yes, you should receive
-the first greeting from your new assistant.
+[activate your Omlet account](/devices/oauth2/org.thingpedia.builtin.omlet).
+At the end of the procedure, your Sabrina should be greeting you through your
+phone. Answer her questions before moving on, or say "no" to continue.
 
 ### Step 2: Twitter
 
-Go to [Online Accounts](https://thingengine.stanford.edu/devices?class=online).
-You'll see a list of your accounts that ThingEngine knows about. At this point,
+Go to [My Sabrina](/apps).
+You'll see a list of your accounts that your Sabrina knows about. At this point,
 he probably knows about your Omlet, but we need to teach him about Twitter as well.
 
 To that extent, just click on
-[Add New Account](https://thingengine.stanford.edu/devices/create?class=online)
+[Add New Account](/devices/create?class=online)
 and then on
-[Twitter Account](https://thingengine.stanford.edu/devices/oauth2/com.twitter).
+[Twitter Account](/devices/oauth2/com.twitter).
 
-After you log in to Twitter and grant premission, you will be redirected to the
-list of accounts, which now includes Twitter too.
+After you log in to Twitter and grant premission, you will be redirected to your
+Sabrina page, which now includes Twitter too.
 
-### Step 3: The App
+### Step 3: Creating the App
+
+From [your Sabrina](/apps), click on
+[Create New App](/thingpedia/apps/create) in
+ and copy-paste the following code in the _App Specification_ field:
+
+    TwitterTutorial() {
+      @twitter.source(text, hashtags, _, from, _, _), $contains(hashtags, "sabrina")
+        => @$notify("Tweet from " + from + ": " + text);
+    }
+
+Pick a name and a description, then click "Create", and you will see the app right
+after your accounts. Don't worry about the name or the description you chose - nobody
+is seeing them yet until you click "Publish"!
+
+### Step 4: Enabling the App
 
 Finally you are ready to enable the app that will actually do the hard-work
 of filtering your Twitter.
 
-Go ahead, click on [New App](https://thingengine.stanford.edu/apps/create) in
-the navigation bar, and copy-paste the following code in the _Code_ field:
-
-    TwitterTutorial() {
-      @twitter.source(text, hashtags, _, from, _, _), $contains(hashtags, "sabrina")
-        => @sabrina.say("Tweet from " + from + ": " + text);
-    }
-
-Don't worry about the Feed drop-down, or the Run In, as we will get to them
-in a more advanced tutorial, but they don't matter for now (but make sure you keep
-the latter to the default value of "Cloud").
-
-Click "Create", and you're done! The app is running, taking care of you.
-
-### A look into the rule
-
-We will look at the code in more detail in the [ThingTalk Tutorial](/doc/thingtalk.md),
-but you can already guess what's happening at a high level. We define our app
-to have name `TwitterTutorial`, and we include one rule in it, composed of everything
-in the block up to the semicolon.
-
-The rule has two parts: the part before the `=>` is called a trigger, and defines
-when the code runs, the part after is called an action, and defines what to do.
-
-We learn from
-[the interface definition](https://thingengine.stanford.edu/thingpedia/devices/by-id/com.twitter)
-that `@twitter` is the name of our Twitter Account (which was mapped
-to `com.twitter` when we added it), and `source` is a trigger with 6
-arguments: `text`, `hashtags`, `urls`, `from`, `inReplyTo` and
-`yours`. We don't care about some of these, so we put `_` in their
-place. Furthermore, we want the `hashtags` array to contain "sabrina",
-so put a second condition using the `$contains(array, value)`
-built-in.
-
-Now the action part. Again from
-[ThingPedia](http://www.thingpedia.org/devices/by-id/org.thingpedia.builtin.sabrina)
-we learn that `@sabrina.say` causes Sabrina to say something, and it wants one
-argument, the message. So we paste togheter the values from the trigger, and we're
-done.
+Just click on the app name from [your Sabrina page](/apps), confirm that
+you want to enable the app, and you're done! Your Sabrina should be telling you
+who is tweeting about her among your friends.
 
 ### Deleting the app
 
-Whenever you're tired of Sabrina telling you about your tweets, you can remove the
-app by going in the [list of apps](https://thingengine.stanford.edu/apps), looking
-for "TwitterTutorial", and clicking "Delete".
+Whenever you're tired of Sabrina telling you about your tweets, you can disable the
+app by going in the [your Sabrina](/apps), looking for it, and clicking "Stop".
 
-And if you want to stop ThingEngine from touching your Twitter
-altogheter, you can do so from the
-[list of accounts](https://thingengine.stanford.edu/devices?class=online).
+And if you want to stop Sabrina from touching your Twitter
+altogheter, you can also do so from [your Sabrina page](/apps), by forgetting
+your Twitter account.
 
 ### Inside the engine: the Logs
 
-If you click on [Status](https://thingengine.stanford.edu/status) in the navigation
-bar, you will see the current status of your engine. In particular, you get access
+If you click on [More Details](/status) from the [Developer Portal](/thingpedia/developers),
+you will access the status of your engine. In particular, you get access
 to the full execution log.
 Here, if you make a mistake, and stuff stops working, you can try and figure out why.
 
@@ -147,5 +129,5 @@ away!).
 
 ### Further Reading:
 
-* [ThingTalk Primer](/doc/thingtalk.md): a more in-depth introduction to the language
-* [Advanced ThingEngine](/doc/advanced.md): more on the ThingEngine
+* [ThingTalk Primer](/doc/thingtalk-intro.md): a more in-depth introduction to the language
+* [ThingTalk Reference](/doc/thingtalk-reference.md): the full ThingTalk reference manual
