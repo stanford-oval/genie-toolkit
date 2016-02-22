@@ -7,7 +7,7 @@ create table app (
        code text not null,
        state text not null,
        name text null default null,
-       description text null default null,
+       description text null default null
 );
 
 create table app_journal (
