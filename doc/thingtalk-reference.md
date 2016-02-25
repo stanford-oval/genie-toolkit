@@ -119,6 +119,12 @@ Builtin predicates)
 
 * `$floor(x : Number) : Number`: returns the highest integer less than or equal to  `x`, i.e. rounds `x` towards negative infinity.
 
+* `$ceil(x : Number) : Number`: returns the lower integer greater than or equal to  `x`, i.e. rounds `x` towards positive infinity.
+
+* `$random() : Number`: returns a uniform random number between 0 and 1
+
+* `$choice(v : Array(a)) : a`: returns a uniformly random element from the given array
+
 * `$sum(array : Array(Number)) : Number`, `$sum(array : Measure(...)) : Measure(...)`: compute the sum of an array of values
 
 * `$avg(array : Array(Number)) : Number`, `$avg(array : Measure(...)) : Measure(...)`: compute the arithmetic average of an array of values
