@@ -101,7 +101,7 @@ For example, we can use regular expressions to match on keywords in the text tha
 are not hashtags:
 
     HelloTwitterWorld() {
-        @twitter.source(text, from, _, _, _, _), $regex(text, "hello", "i")
+        @twitter.source(text, _, _, from, _, _), $regex(text, "hello", "i")
           => @twitter.sink("@" + from + " world");
     }
 
