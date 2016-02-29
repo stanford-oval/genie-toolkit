@@ -65,7 +65,8 @@ in a file named `frobnicate.js` at the toplevel of your device package:
         Name: "FrobnicateChannel",
 
         _init: function(engine, device) {
-             // constructor
+            this.parent();
+            // constructor
         }
 
         // other methods of channel class
@@ -364,7 +365,8 @@ For example:
         Name: 'MyTrigger',
 
         _init: function(engine, device, params) {
-             this.timeout = null;
+            this.parent();
+            this.timeout = null;
         },
 
         _doOpen: function() {
@@ -391,6 +393,7 @@ channel class, as in:
         Name: 'MyAction',
 
         _init: function(engine, device, params) {
+            this.parent();
         },
 
         sendEvent: function(event) {
@@ -416,6 +419,7 @@ in which case you can use `Tp.SimpleAction`:
         Extends: Tp.SimpleAction
 
         _init: function(engine, device, params) {
+            this.parent();
         },
 
         _doInvoke: function(arg1, arg2, ...) {
@@ -469,6 +473,7 @@ those simpler code is possible.
         Extends: Tp.PollingTrigger
 
         _init: function(engine, device, params) {
+            this.parent();
             this.interval = 3600000; // in milliseconds
         },
 
@@ -493,6 +498,7 @@ use `Tp.HttpPollingTrigger`:
         Extends: Tp.HttpPollingTrigger
 
         _init: function(engine, device, params) {
+            this.parent();
             this.interval = 3600000;
             this.url = 'https://api.example.com/1.0/poll';
             this.auth = 'Bearer ' + device.accessToken;
