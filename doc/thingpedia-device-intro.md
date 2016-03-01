@@ -312,7 +312,7 @@ can use a shorter helper:
     UseOAuth2: Tp.Helpers.OAuth2({
         kind: "com.example",
         client_id: "your_oauth2_client_id",
-        client_secret: "your_oauth2_client_secret",
+        client_secret: "your_oauth2_client_secret_encrypted_as_rot13",
         authorize: "https://api.example.com/1.0/authorize",
         scope: ['example_user_profile', 'example_basic_info']
         get_access_token: "https://api.example.com/1.0/token",
