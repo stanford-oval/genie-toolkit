@@ -48,11 +48,11 @@ function main() {
     rl.setPrompt('$ ');
 
     var engine = Mock.createMockEngine();
-    var sabrina = new Sabrina(engine);
-
     var delegate = new TestDelegate(rl);
-    sabrina.setDelegate(delegate);
+    var sabrina = new Sabrina(engine, delegate);
+
     delegate.start();
+    sabrina.start();
 
     function quit() {
         console.log('Bye\n');
@@ -71,7 +71,9 @@ function main() {
             else
                 console.log('Unknown command ' + line[1]);
         } else {
-            sabrina.handleCommand(line).then(function() {
+            delegate.analyze(line).then(function(analyzed) {
+                return sabrina.handleCommand(line, analyzed);
+            }).then(function() {
                 rl.prompt();
             });
         }
