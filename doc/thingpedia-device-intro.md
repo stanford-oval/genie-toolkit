@@ -175,11 +175,12 @@ that always fails if there is no messaging account)
 - `engine.apps`: the apps database
 - `engine.ui`: the UI API, to register callbacks for `@$notify()` and `@$input()` in rules
 - `engine.assistant`: the Assistant API, to send and receive messages for Sabrina; this API is cloud-only
+- `engine.platform`: the Platform API
 
 ## The Platform API
 
-Anywhere in ThingEngine code you will be able to access the Platform API through the `platform`
-global variable.
+Anywhere in ThingEngine code you will be able to access the Platform API through the `engine.platform`
+property.
 
 Most of the API is for internal use only, but you might find the following useful:
 
@@ -192,7 +193,7 @@ which is a ThingEngine wide store of key-value pairs backed to disk
 - `platform.getRoot()`, `platform.getWritableDir()`,
 `platform.getCacheDir()`, `platform.getTmpDir()`: the paths that
 ThingEngine can use on the file system
-- `platform.getDeveloperKey()`: the currently configured ThingPedia developer key
+- `platform.getDeveloperKey()`: the currently configured ThingPedia developer key (if any)
 - `platform.getOrigin()`: the web site hosting ThingEngine
 
 ## Extension Interfaces and Messaging
