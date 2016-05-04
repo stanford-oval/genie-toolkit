@@ -1,0 +1,3 @@
+[submodule "node_modules/datashare"]
+	path = node_modules/datashare
+	url = https://github.com/Stanford-Mobisocial-IoT-Lab/datashare.git
