@@ -1,11 +1,12 @@
-(example (utterance "post on twitter something")                     (targetFormula ((tt:device.action.post tt:device.twitter) (string something))))
-(example (utterance "tweet something")                               (targetFormula ((tt:device.action.post tt:device.twitter) (string something))))
-(example (utterance "post on twitter bla")                           (targetFormula ((tt:device.action.post tt:device.twitter) (string bla))))
-(example (utterance "post on twitter something something something") (targetFormula ((tt:device.action.post tt:device.twitter) (string "something something something"))))
-(example (utterance "post on twitter")                               (targetFormula (lambda y ((tt:device.action.post tt:device.twitter) (var y)))))
+(example (utterance "post on twitter something")                     (targetFormula ((tt:device.action.sink tt:device.twitter) (string something))))
+(example (utterance "tweet something")                               (targetFormula ((tt:device.action.sink tt:device.twitter) (string something))))
+(example (utterance "post on twitter bla")                           (targetFormula ((tt:device.action.sink tt:device.twitter) (string bla))))
+(example (utterance "post on twitter something something something") (targetFormula ((tt:device.action.sink tt:device.twitter) (string "something something something"))))
+(example (utterance "post on twitter")                               (targetFormula (lambda y ((tt:device.action.sink tt:device.twitter) (var y)))))
+(example (utterance "post on facebook")                              (targetFormula (lambda y ((tt:device.action.sink tt:device.twitter) (var y)))))
 
 # the following require propert word/phrase alignment data files, that I don't know how to generate
 # careful because they can confuse the learner
-(example (utterance "post in twitter something") (targetFormula ((tt:device.action.post tt:device.twitter) (string something))))
-(example (utterance "post something on twitter") (targetFormula ((tt:device.action.post tt:device.twitter) (string something))))
-(example (utterance "post something in twitter") (targetFormula ((tt:device.action.post tt:device.twitter) (string something))))
+(example (utterance "post in twitter something") (targetFormula ((tt:device.action.sink tt:device.twitter) (string something))))
+(example (utterance "post something on twitter") (targetFormula ((tt:device.action.sink tt:device.twitter) (string something))))
+(example (utterance "post something in twitter") (targetFormula ((tt:device.action.sink tt:device.twitter) (string something))))
