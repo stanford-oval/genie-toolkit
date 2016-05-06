@@ -1,5 +1,4 @@
-{"lexeme":"post","formula":"(lambda x (lambda y ((tt:device.action.post (var x)) (var y))))", "type":"(-> fb:type.any (-> fb:type.any tt:type.action))"}
-{"lexeme":"say","formula":"(lambda x (lambda y ((tt:device.action.post (var x)) (var y))))", "type":"(-> fb:type.any (-> fb:type.any tt:type.action))"}
+{"lexeme":"post","formula":"(lambda x (lambda y ((tt:device.action.post (var x)) (var y))))", "type":"(-> tt:type.device (-> fb:type.any tt:type.action))"}
 {"lexeme":"tweet","formula":"(lambda x ((tt:device.action.post tt:device.twitter) (var x)))", "type": "(-> fb:type.any tt:type.action)"}
 {"lexeme":"twitter","formula":"tt:device.twitter", "type": "tt:type.device"}
 {"lexeme":"facebook","formula":"tt:device.facebook", "type": "tt:type.device"}
