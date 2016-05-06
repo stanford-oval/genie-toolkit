@@ -5,11 +5,11 @@
 // Copyright 2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 require('./polyfill');
 
 const Q = require('q');
-const lang = require('lang');
 const readline = require('readline');
 
 const Sabrina = require('../lib/sabrina');
@@ -17,30 +17,40 @@ const Sempre = require('../lib/semprewrapper');
 
 const Mock = require('./mock');
 
-const TestDelegate = new lang.Class({
-    Name: 'TestDelegate',
-
-    _init: function(rl) {
+class TestDelegate {
+    constructor(rl) {
         this._rl = rl;
         this._sempre = new Sempre(true);
-    },
+    }
 
-    start: function() {
+    start() {
         this._sempre.start();
-    },
+    }
 
-    stop: function() {
+    stop() {
         this._sempre.stop();
-    },
+    }
 
-    analyze: function(what) {
+    analyze(what) {
         return this._sempre.sendUtterance('test-session', what);
-    },
+    }
 
-    send: function(what) {
+    send(what) {
         console.log('>> ' + what);
     }
-});
+
+    sendPicture(url) {
+        console.log('>> picture: ' + url);
+    }
+}
+
+class MockUser {
+    constructor() {
+        this.id = 1;
+        this.account = 'FOO';
+        this.name = 'Alice Tester';
+    }
+}
 
 function main() {
     var rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -49,7 +59,7 @@ function main() {
 
     var engine = Mock.createMockEngine();
     var delegate = new TestDelegate(rl);
-    var sabrina = new Sabrina(engine, delegate);
+    var sabrina = new Sabrina(engine, new MockUser(), delegate);
 
     delegate.start();
     sabrina.start();
