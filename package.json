@@ -19,6 +19,8 @@
     "node-uuid": "^1.4.0",
     "q": "^1.4.1",
     "sparqljs": "^1.1.4",
-    "ws": "^1.1.0"
+    "tmp": "0.0.28",
+    "ws": "^1.1.0",
+    "omlib": "https://github.com/Stanford-Mobisocial-IoT-Lab/omclient/tarball/new-api"
   }
 }
