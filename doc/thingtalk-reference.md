@@ -95,6 +95,9 @@ Builtin predicates)
 * `$contains(map : Map(k, v), key : k) : Boolean`: returns true if
   `map` contains an element with key `key`
 
+* `$at(array : Array(a), index : Number) : Array(a)`: returns the `index`-th
+  element of `array` (0-based indexing)
+
 * `$count(array : Array(a)) : Number`, `$count(map : Map(k, v)) :
   Number`: returns the number of values in the collection
 
@@ -104,11 +107,22 @@ Builtin predicates)
   [JavaScript documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp)
   for details on the syntax.
 
-* `$toString(x : Any) : String`: convert any value to a `String`
+* `$toString(x : Any) : String`: convert any value to a `String`; this should
+  be used only to display to the user and is not a stable representation
 
 * `$valueOf(v : String) : Number`: convert a string to a `Number`
 
-* `$distance(l1 : Location, l2 : Location) : Measure(m)`: returns the Euclidean distance of the two locations
+* `$distance(l1 : Location, l2 : Location) : Measure(m)`: returns the distance of the two
+  locations, which are assumed to be on the Earth surface
+
+* `$latitude(l : Location) : Number`: extracts the latitude of `l`, in degrees,
+  positive north of the Equator
+
+* `$longitude(l : Location) : Number`: extracts the longitude of `l`, in degrees,
+  positive east of the Greenwich meridian
+
+* `$makeLocation(lat : Number, lon : Number) : Location`: constructs a new
+  location given latitude and longitude
 
 * `$now() : Date`: returns the current time
 
@@ -116,6 +130,18 @@ Builtin predicates)
   [Julian day](https://en.wikipedia.org/wiki/Julian_Day); in practice,
   it corresponds to a monotonically increasing number that identifies
   the current day, useful to compute week numbers or group by day
+
+* `$dayOfWeek(date : Date) : Number`: returns a numeric value between 0 and 6
+  for the day of week of `date`, where 0 is Sunday
+
+* `$dayOfMonth(date : Date) : Number`: returns the day of month, between 1 and 31
+
+* `$month(date : Date) : Number`: returns the month, between 1 and 12
+
+* `$year(date : Date) : Number`: returns the 4 digit year of `date`
+
+* `$makeDate(year : Number, month : Number, day : Number)`: constructs a new date
+  value
 
 * `$floor(x : Number) : Number`: returns the highest integer less than or equal to  `x`, i.e. rounds `x` towards negative infinity.
 
@@ -139,7 +165,7 @@ Builtin predicates)
 
 * `$concat(array : Array(Any), joiner : String?) : String`:
   concatenates all elements of `array`, which are converted to a
-  `String`, separating each element with `joiner`; if the second
+  `String` (as by `$toString`), separating each element with `joiner`; if the second
   argument is omitted it defaults to `","`
 
 ## Builtin Predicates
