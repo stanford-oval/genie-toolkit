@@ -1,3 +1,6 @@
+(def @toLambdaNormalForm edu.stanford.nlp.sempre.NormalFormExecutor.normalize)
+(def @toSparqlQuestion   edu.stanford.nlp.sempre.thingpedia.SparqlConverter.executeAndWrap)
+
 (rule $StringValue ($PHRASE) (IdentityFn) (anchored 1))
 (rule $Param ($StringValue) (IdentityFn))
 
@@ -23,29 +26,37 @@
 
 (rule $Special ($PHRASE) (SimpleLexiconFn (type tt:type.special)))
 
-#(rule $ROOT ($ActionVerb) (lambda x (tt:root.token.action (var x))))
-(rule $ROOT ($ActionVerb) (IdentityFn))
-(rule $ROOT ($Special) (IdentityFn))
-(rule $ROOT ($Param) (lambda x (tt:root.token.value (var x))))
+(rule $ROOT ($ActionVerb) (lambda x (call @toLambdaNormalForm (var x))))
+(rule $ROOT ($Special) (lambda x (call @toLambdaNormalForm (var x))))
+(rule $ROOT ($Param) (lambda x (call @toLambdaNormalForm (tt:root.token.value (var x)))))
 
 # the stuff below was borrowed from the sparql/freebase side of SEMPRE
 
+(rule $ValueNP ($PHRASE) (IdentityFn) (anchored 1))
+(rule $ValueNP ($PHRASE) (NumberFn) (anchored 1))
+(rule $ValueNP ($PHRASE) (DateFn) (anchored 1))
+
 (rule $NP (me) (ConstantFn tt:me fb:type.any))
 (rule $NP (people) (ConstantFn (rdf:type foaf:Person) fb:type.any))
+(rule $NP ($ValueNP) (IdentityFn))
 
-# FINISHME
-#(rule $RelNP (height) (ConstantFn fb:people.person.height_meters))
-#(rule $RelNP (area) (ConstantFn fb:location.location.area))
-#(rule $NP ($RelNP of $NP) (lambda r (lambda x ((reverse (var r)) (var x)))))  # height of tom cruise
+(rule $RelNP (name) (ConstantFn (reverse foaf:name) (-> fb:type.any fb:type.any)))
+(rule $NP ($RelNP of $NP) (JoinFn forward))  # name of bla => ((reverse foaf:name) bla)
+(rule $NP ($NP whose $RelNP is $NP) (lambda x (lambda r (lambda y (and (var x) ((reverse (var r)) (var y)))))))
+# people whose name is bla => (and (rdf:type foaf:Person) ((reverse (reverse foaf:name)) bla))
 
 # Generalized verbs
-(rule $VP/NP (be friend of) (ConstantFn foaf:knows))
+(rule $VP/NP (be friend of) (ConstantFn foaf:knows (-> fb:type.any fb:type.any)))
 (rule $NP ($NP that $VP/NP $NP) (lambda x (lambda r (lambda y (and (var x) ((var r) (var y)))))))  # people that were born in Seattle
-(rule $NP ($NP that $NP $VP/NP) (lambda x (lambda y (lambda r (and (var x) ((reverse (var r)) (var y)))))))  # things that Edison invented
+(rule $NP ($NP that $NP $VP/NP) (lambda x (lambda y (lambda r (and (var x) ((reverse (var r)) (var y)))))))
+# people I am friend of         => (and (rdf:type foaf:Person) ((reverse foaf:knows) tt:me))
+# (canonically: people that me be friend of)
+# people who are friends of me  => (and (rdf:type foaf:Person) (foaf:knows tt:me))
+# (canonically: people that be friend of me)
 
 # Top-level
 (rule $Question ($NP with the largest $RelNP) (lambda x (lambda y (argmax 1 5 (var x) (var y)))))
 (rule $Question (number of $NP) (lambda x (count (var x))))
 (rule $Question ($NP) (IdentityFn))
 
-(rule $ROOT ($Question) (lambda x (tt:root.question.value (var x))))
+(rule $ROOT ($Question) (lambda x (call @toSparqlQuestion (var x))))
