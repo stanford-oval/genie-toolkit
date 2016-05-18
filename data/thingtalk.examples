@@ -4,9 +4,19 @@
 (example (utterance "post on twitter something something something") (targetFormula ((tt:device.action.sink tt:device.twitter) (string "something something something"))))
 (example (utterance "post on twitter")                               (targetFormula (lambda y ((tt:device.action.sink tt:device.twitter) (var y)))))
 (example (utterance "post on facebook")                              (targetFormula (lambda y ((tt:device.action.sink tt:device.twitter) (var y)))))
+(example (utterance "number of people that are friends of me")       (targetFormula (tt:root.question.value (count (and (rdf:type foaf:Person) (foaf:knows tt:me))))))
+(example (utterance "people that friends of me")                     (targetFormula (tt:root.question.value (and (rdf:type foaf:Person) (foaf:knows tt:me)))))
 
 # the following require propert word/phrase alignment data files, that I don't know how to generate
 # careful because they can confuse the learner
 (example (utterance "post in twitter something") (targetFormula ((tt:device.action.sink tt:device.twitter) (string something))))
 (example (utterance "post something on twitter") (targetFormula ((tt:device.action.sink tt:device.twitter) (string something))))
 (example (utterance "post something in twitter") (targetFormula ((tt:device.action.sink tt:device.twitter) (string something))))
+
+# some liberal paraphrases of the questions above
+(example (utterance "how many friends do I have?") (targetFormula (tt:root.question.value (count (and (rdf:type foaf:Person) (foaf:knows tt:me))))))
+(example (utterance "count my friends")            (targetFormula (tt:root.question.value (count (and (rdf:type foaf:Person) (foaf:knows tt:me))))))
+(example (utterance "how many are my friends?")    (targetFormula (tt:root.question.value (count (and (rdf:type foaf:Person) (foaf:knows tt:me))))))
+(example (utterance "who are my friends?")         (targetFormula (tt:root.question.value (and (rdf:type foaf:Person) (foaf:knows tt:me)))))
+(example (utterance "who is my friend?")           (targetFormula (tt:root.question.value (and (rdf:type foaf:Person) (foaf:knows tt:me)))))
+(example (utterance "list my friends")             (targetFormula (tt:root.question.value (and (rdf:type foaf:Person) (foaf:knows tt:me)))))
