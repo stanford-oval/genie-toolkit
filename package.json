@@ -20,7 +20,6 @@
     "q": "^1.4.1",
     "sparqljs": "^1.1.4",
     "tmp": "0.0.28",
-    "ws": "^1.1.0",
-    "omlib": "https://github.com/Stanford-Mobisocial-IoT-Lab/omclient/tarball/new-api"
+    "ws": "^1.1.0"
   }
 }
