@@ -1,12 +1,72 @@
-(example (utterance "post on twitter something")                     (targetFormula ((tt:device.action.sink tt:device.twitter) (string something))))
-(example (utterance "tweet something")                               (targetFormula ((tt:device.action.sink tt:device.twitter) (string something))))
-(example (utterance "post on twitter bla")                           (targetFormula ((tt:device.action.sink tt:device.twitter) (string bla))))
-(example (utterance "post on twitter something something something") (targetFormula ((tt:device.action.sink tt:device.twitter) (string "something something something"))))
-(example (utterance "post on twitter")                               (targetFormula (lambda y ((tt:device.action.sink tt:device.twitter) (var y)))))
-(example (utterance "post on facebook")                              (targetFormula (lambda y ((tt:device.action.sink tt:device.twitter) (var y)))))
-
-# the following require propert word/phrase alignment data files, that I don't know how to generate
-# careful because they can confuse the learner
-(example (utterance "post in twitter something") (targetFormula ((tt:device.action.sink tt:device.twitter) (string something))))
-(example (utterance "post something on twitter") (targetFormula ((tt:device.action.sink tt:device.twitter) (string something))))
-(example (utterance "post something in twitter") (targetFormula ((tt:device.action.sink tt:device.twitter) (string something))))
+(example (utterance "If receive tweet on twitter then post on twitter text new tweet")
+    (targetFormula
+        (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.ifttt
+            (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.trigParam
+                tt:twitter.source
+            )
+            (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.actParam
+                (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.actParam
+                    tt:twitter.sink
+                )
+                (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.paramForm
+                    (string "text") (string "String")
+                    (string "new tweet")
+                )
+            )
+        )
+    )
+)
+(example (utterance "If receive dm on twitter then post on twitter text new dm")
+    (targetFormula
+        (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.ifttt
+            (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.trigParam
+                tt:twitter.direct_message
+            )
+            (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.actParam
+                (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.actParam
+                    tt:twitter.sink
+                )
+                (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.paramForm
+                    (string "text") (string "String")
+                    (string "new dm")
+                )
+            )
+        )
+    )
+)
+(example (utterance "If receive tweet on twitter then send dm on twitter text new tweet")
+    (targetFormula
+        (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.ifttt
+            (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.trigParam
+                tt:twitter.source
+            )
+            (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.actParam
+                (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.actParam
+                    tt:twitter.send_direct_message
+                )
+                (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.paramForm
+                    (string "text") (string "String")
+                    (string "new tweet")
+                )
+            )
+        )
+    )
+)
+(example (utterance "If receive dm on twitter then send dm on twitter text new dm")
+    (targetFormula
+        (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.ifttt
+            (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.trigParam
+                tt:twitter.direct_message
+            )
+            (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.actParam
+                (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.actParam
+                    tt:twitter.send_direct_message
+                )
+                (call edu.stanford.nlp.sempre.thingtalk.ThingTalk.paramForm
+                    (string "text") (string "String")
+                    (string "new dm")
+                )
+            )
+        )
+    )
+)
