@@ -36,9 +36,9 @@ class MockAppDatabase {
         return this._apps[appId];
     }
 
-    loadOneApp(code, state, appId, tier, save) {
-        console.log('App ' + appId + ' with code ' + code + ' loaded');
-        this._apps[appId] = { code: code, state: state, uniqueId: appId };
+    loadOneApp(code, state, uniqueId, tier, name, description, addToDB) {
+        console.log('MOCK: App ' + name + ' with code ' + code + ' loaded');
+        this._apps[uniqueId] = { code: code, state: state, uniqueId: uniqueId };
         return Q();
     }
 }
@@ -51,7 +51,7 @@ class MockTwitterDevice {
     }
 
     invokeAction(id, args) {
-        console.log('Invoking action ' + id + ' with arguments', args);
+        console.log('MOCK: Invoking action ' + id + ' with arguments', args);
     }
 }
 
@@ -59,6 +59,7 @@ class MockDeviceDatabase {
     constructor() {
         this._devices = {};
         this._devices['twitter-foo'] = new MockTwitterDevice('foo');
+        this._devices['twitter-bar'] = new MockTwitterDevice('bar');
     }
 
     getAllDevices() {
@@ -70,6 +71,61 @@ class MockDeviceDatabase {
     }
 }
 
+var _mockSchemaRetriever = {
+    _schema: {
+        "twitter": {
+            "triggers": {
+                "source": ["String","Array(String)","Array(String)","String","String","Boolean"],
+            },
+            "actions": {
+                "sink": ["String"]
+            },
+            "queries": {
+                "retweets_of_me": ["String","Array(String)","Array(String)","String"]
+            }
+        },
+    },
+
+    _meta: {
+        "twitter": {
+            "triggers": {
+                "source": {
+                    "doc": "I receive a tweet",
+                    "schema": ["String","Array(String)","Array(String)","String","String","Boolean"],
+                    "args": ["text", "hashtags", "urls", "from", "inReplyTo", "yours"],
+                    "questions": []
+                }
+            },
+            "actions": {
+                "sink": {
+                    "doc": "post a tweet",
+                    "schema": ["String"],
+                    "args": ["text"],
+                    "questions": ["What do you want me to tweet?"]
+                }
+            }
+        }
+    },
+
+    getSchema: function(kind) {
+        if (kind in this._schema)
+            return Q.delay(1).then(function() {
+                return this._schema[kind];
+            }.bind(this));
+        else
+            return Q.reject(new Error("No such schema " + kind));
+    },
+
+    getMeta: function(kind) {
+        if (kind in this._meta)
+            return Q.delay(1).then(function() {
+                return this._meta[kind];
+            }.bind(this));
+        else
+            return Q.reject(new Error("No such schema " + kind));
+    }
+};
+
 module.exports.createMockEngine = function() {
     return {
         platform: {
@@ -79,6 +135,7 @@ module.exports.createMockEngine = function() {
                 return this._prefs;
             },
         },
+        schemas: _mockSchemaRetriever,
         devices: new MockDeviceDatabase(),
         apps: new MockAppDatabase()
     };

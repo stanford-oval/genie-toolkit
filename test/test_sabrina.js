@@ -17,10 +17,32 @@ const Sempre = require('../lib/semprewrapper');
 
 const Mock = require('./mock');
 
+class FakeSempre {
+    constructor() {
+        console.log('Using fake sempre');
+    }
+
+    start() {}
+    stop() {}
+
+    sendUtterance(session, utt) {
+        if (/yes/i.test(utt))
+            return Q(JSON.stringify({"special":"tt:root.special.yes"}));
+        else if (/no/i.test(utt))
+            return Q(JSON.stringify({"special":"tt:root.special.no"}));
+        else
+            return Q(JSON.stringify({"special":"tt:root.special.failed"}));
+    }
+}
+
 class TestDelegate {
     constructor(rl) {
         this._rl = rl;
-        this._sempre = new Sempre(true);
+
+        if (process.argv[2] === '--disable-sempre')
+            this._sempre = new FakeSempre();
+        else
+            this._sempre = new Sempre(true);
     }
 
     start() {
@@ -42,6 +64,14 @@ class TestDelegate {
     sendPicture(url) {
         console.log('>> picture: ' + url);
     }
+
+    sendRDL(rdl) {
+        console.log('>> rdl: ' + rdl.displayTitle + ' ' + rdl.callback);
+    }
+
+    sendChoice(idx, what, title, text) {
+        console.log('>> choice ' + idx + ': ' + title);
+    }
 }
 
 class MockUser {
@@ -59,7 +89,7 @@ function main() {
 
     var engine = Mock.createMockEngine();
     var delegate = new TestDelegate(rl);
-    var sabrina = new Sabrina(engine, new MockUser(), delegate);
+    var sabrina = new Sabrina(engine, new MockUser(), delegate, false);
 
     delegate.start();
     sabrina.start();
@@ -70,6 +100,17 @@ function main() {
         process.exit();
     }
 
+    function _process(command, analysis) {
+        Q(analysis).then(function(analyzed) {
+            return sabrina.handleCommand(command, analyzed);
+        }).then(function() {
+            rl.prompt();
+        }).catch(function(e) {
+            console.error('Failed to analyze utterance: ' + e.message);
+            console.error(e.stack);
+        }).done();
+    }
+
     rl.on('line', function(line) {
         if (line.trim().length === 0) {
             rl.prompt();
@@ -78,17 +119,14 @@ function main() {
         if (line[0] === '\\') {
             if (line[1] === 'q')
                 quit();
+            else if (line[1] === 'r')
+                _process(null, line.substr(2));
+            else if (line[1] === 'c')
+                _process(null, JSON.stringify({ answer: { type: "Choice", value: parseInt(line.substr(2)) }}));
             else
                 console.log('Unknown command ' + line[1]);
         } else {
-            delegate.analyze(line).then(function(analyzed) {
-                return sabrina.handleCommand(line, analyzed);
-            }).then(function() {
-                rl.prompt();
-            }).catch(function(e) {
-                console.error('Failed to analyze utterance: ' + e.message);
-                console.error(e.stack);
-            });
+            _process(line, delegate.analyze(line));
         }
     });
     rl.on('SIGINT', quit);
