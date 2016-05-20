@@ -64,4 +64,5 @@
 (def @special edu.stanford.nlp.sempre.thingtalk.ThingTalk.special)
 (rule $ROOT ($Special) (lambda spl (call @special (var spl))))
 (rule $ROOT ($Program) (IdentityFn))
-# (rule $ROOT ($Param) (lambda x (tt:root.token.value (var x))))
+(def @paramTop edu.stanford.nlp.sempre.thingtalk.ThingTalk.paramTop)
+(rule $ROOT ($Param) (lambda param (call @paramTop (var param))))
