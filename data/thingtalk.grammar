@@ -1,36 +1,75 @@
-(def @toLambdaNormalForm edu.stanford.nlp.sempre.NormalFormExecutor.normalize)
-(def @toSparqlQuestion   edu.stanford.nlp.sempre.thingpedia.SparqlConverter.executeAndWrap)
-
+# String -> PHRASE
 (rule $StringValue ($PHRASE) (IdentityFn) (anchored 1))
-(rule $Param ($StringValue) (IdentityFn))
+(rule $DateValue ($PHRASE) (DateFn) (anchored 1))
+(rule $TimeValue ($PHRASE) (TimeFn) (anchored 1))
 
-(rule $Param ($PHRASE) (NumberFn) (anchored 1))
-(rule $Param ($PHRASE) (DateFn) (anchored 1))
+# Parameter -> String | Number | from PERSON | to PERSON | on DATE | at TIME | at PLACE
+(def @paramForm edu.stanford.nlp.sempre.thingtalk.ThingTalk.paramForm)
+(rule $Param (text $StringValue) (lambda text (call @paramForm (string "text") (string "String") (var text))))
+(rule $Param (on $DateValue) (lambda date (call @paramForm (string "on") (string "Date") (var date))))
+(rule $Param (at $TimeValue) (lambda time (call @paramForm (string "at") (string "Time") (var time))))
+(rule $Param (at $StringValue) (lambda place (call @paramForm (string "at") (string "String") (var place))))
+(rule $Param (from $StringValue) (lambda person (call @paramForm (string "from") (string "String") (var person))))
+(rule $Param (to $StringValue) (lambda person (call @paramForm (string "to") (string "String") (var person))))
 
-(rule $Device ($PHRASE) (SimpleLexiconFn (type tt:type.device)))
-(rule $Param (on $Device) (SelectFn 0))
+# Naive parameter handling: Action -> Action0 | Action1 | ...
+#   Action1 -> Action0 Param
+#   Action2 -> Action1 Param
+#   ...
+# ActionName -> ... (see lexicon)
+(rule $ActionName ($PHRASE) (SimpleLexiconFn (type tt:type.action)))
 
-(rule $ActionVerb0 ($PHRASE) (SimpleLexiconFn (type tt:type.action)))
-(rule $ActionVerb1 ($PHRASE) (SimpleLexiconFn (type (-> fb:type.any tt:type.action))))
-(rule $ActionVerb2 ($PHRASE) (SimpleLexiconFn (type (-> fb:type.any (-> fb:type.any tt:type.action)))))
-(rule $ActionVerb3 ($PHRASE) (SimpleLexiconFn (type (-> fb:type.any (-> fb:type.any (-> fb:type.any tt:type.action))))))
+(def @actParam edu.stanford.nlp.sempre.thingtalk.ThingTalk.actParam)
+(rule $Action0 ($ActionName) (lambda act (call @actParam (var act))))
+(rule $Action1 ($Action0 $Param) (lambda act (lambda param (call @actParam (var act) (var param)))))
+(rule $Action2 ($Action1 $Param) (lambda act (lambda param (call @actParam (var act) (var param)))))
+(rule $Action3 ($Action2 $Param) (lambda act (lambda param (call @actParam (var act) (var param)))))
 
-(rule $ActionVerb0 ($ActionVerb1 $Param) (JoinFn betaReduce forward))
-(rule $ActionVerb1 ($ActionVerb2 $Param) (JoinFn betaReduce forward))
-(rule $ActionVerb2 ($ActionVerb3 $Param) (JoinFn betaReduce forward))
+(rule $Action ($Action0) (IdentityFn))
+(rule $Action ($Action1) (IdentityFn))
+(rule $Action ($Action2) (IdentityFn))
+(rule $Action ($Action3) (IdentityFn))
 
-(rule $ActionVerb ($ActionVerb0) (IdentityFn))
-(rule $ActionVerb ($ActionVerb1) (IdentityFn))
-(rule $ActionVerb ($ActionVerb2) (IdentityFn))
-(rule $ActionVerb ($ActionVerb3) (IdentityFn))
+# Naive parameter handling: Trigger -> Trigger0 | Trigger1 | ...
+#   Trigger1 -> Trigger0 Param
+#   Trigger2 -> Trigger1 Param
+#   ...
+# TriggerName -> ... (see lexicon)
+(rule $TriggerName ($PHRASE) (SimpleLexiconFn (type tt:type.trigger)))
 
+(def @trigParam edu.stanford.nlp.sempre.thingtalk.ThingTalk.trigParam)
+(rule $Trigger0 ($TriggerName) (lambda trig (call @trigParam (var trig))))
+(rule $Trigger1 ($Trigger0 $Param) (lambda trig (lambda param (call @trigParam (var trig) (var param)))))
+(rule $Trigger2 ($Trigger1 $Param) (lambda trig (lambda param (call @trigParam (var trig) (var param)))))
+(rule $Trigger3 ($Trigger2 $Param) (lambda trig (lambda param (call @trigParam (var trig) (var param)))))
+
+(rule $Trigger ($Trigger0) (IdentityFn))
+(rule $Trigger ($Trigger1) (IdentityFn))
+(rule $Trigger ($Trigger2) (IdentityFn))
+(rule $Trigger ($Trigger3) (IdentityFn))
+
+# Rule -> "If" Trigger "then" Action
+(def @ifTTT edu.stanford.nlp.sempre.thingtalk.ThingTalk.ifttt)
+(rule $Rule (if $Trigger then $Action) (lambda trig (lambda act (call @ifTTT (var trig) (var act)))))
+
+# Program -> Rule
+(rule $Program ($Rule) (IdentityFn))
+# Chaining: Program -> Rule Rule
+# (rule $Program ($Rule $Rule) (MergeFn tt:program))
+
+# Special -> "yes" | "no" | ... (see lexicon)
 (rule $Special ($PHRASE) (SimpleLexiconFn (type tt:type.special)))
 
-(rule $ROOT ($ActionVerb) (lambda x (call @toLambdaNormalForm (var x))))
-(rule $ROOT ($Special) (lambda x (call @toLambdaNormalForm (var x))))
-(rule $ROOT ($Param) (lambda x (call @toLambdaNormalForm (tt:root.token.value (var x)))))
+# Root -> Special word | Program | Parameter
+(def @special edu.stanford.nlp.sempre.thingtalk.ThingTalk.special)
+(rule $ROOT ($Special) (lambda spl (call @special (var spl))))
+(rule $ROOT ($Program) (IdentityFn))
+(def @paramTop edu.stanford.nlp.sempre.thingtalk.ThingTalk.paramTop)
+(rule $ROOT ($Param) (lambda param (call @paramTop (var param))))
 
 # the stuff below was borrowed from the sparql/freebase side of SEMPRE
+
+(def @toSparqlQuestion   edu.stanford.nlp.sempre.thingtalk.SparqlConverter.executeAndWrap)
 
 (rule $ValueNP ($PHRASE) (IdentityFn) (anchored 1))
 (rule $ValueNP ($PHRASE) (NumberFn) (anchored 1))
