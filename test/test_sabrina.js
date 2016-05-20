@@ -85,6 +85,9 @@ function main() {
                 return sabrina.handleCommand(line, analyzed);
             }).then(function() {
                 rl.prompt();
+            }).catch(function(e) {
+                console.error('Failed to analyze utterance: ' + e.message);
+                console.error(e.stack);
             });
         }
     });

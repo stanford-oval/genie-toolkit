@@ -3,12 +3,12 @@
 # The overnight paper does not include "rule" features
 # I have them because they help the parser ignore too many
 # derivation that use $StringValue (which is a catch all)
-exec java -ea '-Dmodules=core,overnight,freebase,thingpedia' \
+exec java -ea '-Dmodules=core,overnight,freebase,thingtalk' \
               '-cp' 'libsempre/*:lib/*' \
               'edu.stanford.nlp.sempre.Main' \
               '-LanguageAnalyzer' 'corenlp.CoreNLPAnalyzer' \
               '-Builder.parser' 'FloatingParser' \
-              '-Builder.executor' 'NormalFormExecutor' \
+              '-Builder.executor' 'JavaExecutor' \
               '-Grammar.inPaths' '../data/thingtalk.grammar' \
               '-FeatureExtractor.featureDomains' 'denotation' 'rule' \
               '-FeatureExtractor.featureComputers' 'overnight.OvernightFeatureComputer' \
