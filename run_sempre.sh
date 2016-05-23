@@ -9,7 +9,7 @@ exec java -ea '-Dmodules=core,overnight,freebase,thingtalk' \
               '-LanguageAnalyzer' 'corenlp.CoreNLPAnalyzer' \
               '-Builder.parser' 'FloatingParser' \
               '-Builder.executor' 'JavaExecutor' \
-              '-Grammar.inPaths' '../data/thingtalk.grammar' \
+              '-Grammar.inPaths' 'thingtalk/thingtalk.grammar' \
               '-FeatureExtractor.featureDomains' 'denotation' 'rule' \
               '-FeatureExtractor.featureComputers' 'overnight.OvernightFeatureComputer' \
               '-OvernightFeatureComputer.featureDomains' \
@@ -19,10 +19,10 @@ exec java -ea '-Dmodules=core,overnight,freebase,thingtalk' \
               '-DerivationPruner.pruningComputer' 'overnight.OvernightDerivationPruningComputer' \
               '-FloatingParser.maxDepth' '11' \
               '-Parser.beamSize' '5' \
-              '-wordAlignmentPath' '../data/thingtalk.word_alignments.berkeley' \
-              '-phraseAlignmentPath' '../data/thingtalk.phrase_alignments' \
-              '-PPDBModel.ppdbModelPath' '../data/thingtalk-ppdb.txt' \
+              '-wordAlignmentPath' 'thingtalk/thingtalk.word_alignments.berkeley' \
+              '-phraseAlignmentPath' 'thingtalk/thingtalk.phrase_alignments' \
+              '-PPDBModel.ppdbModelPath' 'thingtalk/thingtalk-ppdb.txt' \
               '-Learner.maxTrainIters' '1' \
-              '-SimpleLexicon.inPaths' '../data/thingtalk.lexicon' \
-              '-DataSet.inPaths' 'train:../data/thingtalk.examples' \
+              '-SimpleLexicon.inPaths' 'thingtalk/thingtalk.lexicon' \
+              '-DataSet.inPaths' 'train:thingtalk/thingtalk.examples' \
               "$@"
