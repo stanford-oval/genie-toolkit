@@ -2,15 +2,17 @@
 (rule $StringValue ($PHRASE) (IdentityFn) (anchored 1))
 (rule $DateValue ($PHRASE) (DateFn) (anchored 1))
 (rule $TimeValue ($PHRASE) (TimeFn) (anchored 1))
+(rule $PlaceValue ($PHRASE) (FilterNerSpanFn LOCATION) (anchored 1))
+(rule $PersonValue ($PHRASE) (FilterNerSpanFn PERSON) (anchored 1))
 
 # Parameter -> String | Number | from PERSON | to PERSON | on DATE | at TIME | at PLACE
 (def @paramForm edu.stanford.nlp.sempre.thingtalk.ThingTalk.paramForm)
 (rule $Param (text $StringValue) (lambda text (call @paramForm (string "text") (string "String") (var text))))
 (rule $Param (on $DateValue) (lambda date (call @paramForm (string "on") (string "Date") (var date))))
 (rule $Param (at $TimeValue) (lambda time (call @paramForm (string "at") (string "Time") (var time))))
-(rule $Param (at $StringValue) (lambda place (call @paramForm (string "at") (string "String") (var place))))
-(rule $Param (from $StringValue) (lambda person (call @paramForm (string "from") (string "String") (var person))))
-(rule $Param (to $StringValue) (lambda person (call @paramForm (string "to") (string "String") (var person))))
+(rule $Param (at $PlaceValue) (lambda place (call @paramForm (string "at") (string "String") (var place))))
+(rule $Param (from $PersonValue) (lambda person (call @paramForm (string "from") (string "String") (var person))))
+(rule $Param (to $PersonValue) (lambda person (call @paramForm (string "to") (string "String") (var person))))
 
 # Naive parameter handling: Action -> Action0 | Action1 | ...
 #   Action1 -> Action0 Param
