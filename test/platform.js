@@ -15,8 +15,8 @@ const os = require('os');
 const path = require('path');
 const child_process = require('child_process');
 
-const prefs = require('./prefs');
-const SimpleTripleStore = require('./simpletriplestore');
+const prefs = require('../lib/util/prefs');
+const sql = require('../lib/util/sql');
 
 var Config;
 try {
@@ -27,7 +27,6 @@ Config = {};
 
 var _writabledir = null;
 var _prefs = null;
-var _tripleStore = null;
 
 var _unzipApi = {
     unzip: function(zipPath, dir) {
@@ -53,11 +52,21 @@ module.exports = {
                 throw e;
         }
 
-        _tripleStore = new SimpleTripleStore(_writabledir + '/rdf.db');
         _prefs = new prefs.FilePreferences(_writabledir + '/prefs.db');
+        return sql.ensureSchema(_writabledir + '/sqlite.db',
+                                '../data/schema.sql');
     },
 
     type: 'testing',
+
+    // Check if we need to load and run the given thingengine-module on
+    // this platform
+    // (eg we don't need discovery on the cloud, and we don't need graphdb,
+    // messaging or the apps on the phone client)
+    hasFeature(feature) {
+        // enable everything for testing, we mock it out anyway
+        return true;
+    },
 
     // Check if this platform has the required capability
     // (eg. long running, big storage, reliable connectivity, server
@@ -69,9 +78,6 @@ module.exports = {
         case 'code-download':
             // If downloading code from the thingpedia server is allowed on
             // this platform
-            return true;
-
-        case 'triple-store':
             return true;
 
         default:
@@ -88,9 +94,6 @@ module.exports = {
         case 'code-download':
             // We have the support to download code
             return _unzipApi;
-
-        case 'triple-store':
-            return _tripleStore;
 
         default:
             return null;
@@ -140,6 +143,10 @@ module.exports = {
     // Get the filename of the sqlite database
     getSqliteDB: function() {
         return _writabledir + '/sqlite.db';
+    },
+
+    getGraphDB: function() {
+        return _writabledir + '/rdf.db';
     },
 
     // Stop the main loop and exit

@@ -1,0 +1,25 @@
+PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl:     <http://www.w3.org/2002/07/owl#>
+PREFIX fn:      <http://www.w3.org/2005/xpath-functions#>
+PREFIX apf:     <http://jena.hpl.hp.com/ARQ/property#>
+PREFIX dc:      <http://purl.org/dc/elements/1.1/>
+PREFIX foaf:    <http://xmlns.com/foaf/0.1/>
+
+# who has the most friends?
+# should be kind of
+# (argmin 1 5 (rdf:type foaf:Person) (lambda x (count ((reverse foaf:knows) (var x)))))
+# but not quite
+
+SELECT DISTINCT  ?x1 ?x2
+WHERE
+  { ?x1 rdf:type foaf:Person
+     { SELECT DISTINCT  (COUNT(DISTINCT ?x3) AS ?x2) ?x1
+       WHERE
+         { ?x1 foaf:knows ?x3 }
+       GROUP BY ?x1
+     }
+   }
+ ORDER BY ?x2
+ LIMIT   5
