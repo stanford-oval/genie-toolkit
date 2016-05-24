@@ -12,6 +12,7 @@
   "main": "lib/engine.js",
   "dependencies": {
     "adt": "~0.7.2",
+    "byline": "^4.2.1",
     "deep-equal": "~1.0.1",
     "ip": "~1.0.0",
     "levelgraph": "^1.1.4",
