@@ -6,7 +6,7 @@
 //
 // See COPYING for details
 
-const Sempre = require('./lib/semprewrapper');
+const Sempre = require('./lib/sempreclient');
 const Sabrina = require('./lib/sabrina');
 
 module.exports = {
