@@ -20,7 +20,18 @@ const JsonDatagramSocket = require('./json_datagram_socket');
 // see ../run_sempre.sh for all other arguments
 const ARGS = ['-Main.streamapi', 'true'];
 
-module.exports = class SempreWrapper {
+class Session {
+    constructor(id, master) {
+        this.id = id;
+        this.master = master;
+    }
+
+    sendUtterance(utterance) {
+        return this.master.sendUtterance(this.id, utterance);
+    }
+}
+
+module.exports = class LocalSempre {
     constructor(silent) {
         this._socket = null;
         this._child = null;
@@ -31,7 +42,7 @@ module.exports = class SempreWrapper {
 
     start() {
         var dirname = path.resolve(path.dirname(module.filename), '../sempre');
-        var script = path.resolve(path.dirname(module.filename), '../run_sempre.sh');
+        var script = path.resolve(path.dirname(module.filename), './run_sempre.sh');
         this._child = child_process.spawn(script, ARGS,
                                           { cwd: dirname,
                                             stdio: ['pipe','pipe', (this._silent ? 'ignore' : 2)],
@@ -70,6 +81,10 @@ module.exports = class SempreWrapper {
             next.reject(new Error(msg.error));
         else
             next.resolve(msg.answer);
+    }
+
+    openSession(withId) {
+        return new Session(withId, this);
     }
 
     sendUtterance(session, utterance) {

@@ -13,7 +13,8 @@ const Q = require('q');
 const readline = require('readline');
 
 const Sabrina = require('../lib/sabrina');
-const Sempre = require('../lib/semprewrapper');
+const LocalSempre = require('./localsempre');
+const SempreClient = require('../lib/sempreclient');
 
 const Mock = require('./mock');
 
@@ -25,13 +26,17 @@ class FakeSempre {
     start() {}
     stop() {}
 
-    sendUtterance(session, utt) {
-        if (/yes/i.test(utt))
-            return Q(JSON.stringify({"special":"tt:root.special.yes"}));
-        else if (/no/i.test(utt))
-            return Q(JSON.stringify({"special":"tt:root.special.no"}));
-        else
-            return Q(JSON.stringify({"special":"tt:root.special.failed"}));
+    openSession() {
+        return {
+            sendUtterance(utt) {
+                if (/yes/i.test(utt))
+                    return Q(JSON.stringify({"special":"tt:root.special.yes"}));
+                else if (/no/i.test(utt))
+                    return Q(JSON.stringify({"special":"tt:root.special.no"}));
+                else
+                    return Q(JSON.stringify({"special":"tt:root.special.failed"}));
+            }
+        }
     }
 }
 
@@ -39,14 +44,17 @@ class TestDelegate {
     constructor(rl) {
         this._rl = rl;
 
-        if (process.argv[2] === '--disable-sempre')
+        if (process.argv[2] === '--with-sempre=fake')
             this._sempre = new FakeSempre();
+        else if (process.argv[2] === '--with-sempre=local')
+            this._sempre = new LocalSempre(true);
         else
-            this._sempre = new Sempre(true);
+            this._sempre = new SempreClient();
     }
 
     start() {
         this._sempre.start();
+        this._session = this._sempre.openSession();
     }
 
     stop() {
@@ -54,7 +62,7 @@ class TestDelegate {
     }
 
     analyze(what) {
-        return this._sempre.sendUtterance('test-session', what);
+        return this._session.sendUtterance(what);
     }
 
     send(what) {
