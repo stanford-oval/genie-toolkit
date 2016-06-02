@@ -16,8 +16,5 @@
     "thingtalk": "https://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tarball/master",
     "tough-cookie": "^2.2.2"
   },
-  "devDependencies": {},
-  "scripts": {
-    "prepublish": "test -d .git && git submodule update --init --recursive ; cd sempre ; ./pull-dependencies core corenlp freebase ; ant thingtalk"
-  }
+  "devDependencies": {}
 }
