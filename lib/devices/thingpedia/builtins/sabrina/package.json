@@ -3,6 +3,6 @@
   "main": "device.js",
   "thingpedia-metadata": {
     "global-name": "sabrina",
-    "types": ["thingengine-system", "cloud-only"]
+    "types": ["thingengine-system"]
   }
 }
