@@ -193,8 +193,6 @@ with no logic combinators between them), which allow for slightly better behavio
 
 * `@$at(time : String)`: a trigger that fires at a precise point of the day; `time` must be a string of the form `"HH:MM"` in 24h format and must be a constant or an an app parameter
 
-* `@$input(v : Any)`: a trigger that produces value `v` when externally invoked; you can use `@$input` with the ThingEngine API
-
 ## Builtin Actions
 
 * `@$notify(... : Any)`: an action that produces the values passed in

@@ -173,8 +173,6 @@ that always fails if there is no messaging account)
 - `engine.channels`: the factory class that instantiates channels and deduplicates them
 - `engine.devices`: the devices database
 - `engine.apps`: the apps database
-- `engine.ui`: the UI API, to register callbacks for `@$notify()` and `@$input()` in rules
-- `engine.assistant`: the Assistant API, to send and receive messages for Sabrina; this API is cloud-only
 - `engine.platform`: the Platform API
 
 ## The Platform API
