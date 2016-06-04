@@ -9,6 +9,8 @@
 
 const Q = require('q');
 
+const ThingTalk = require('thingtalk');
+
 class MockPreferences {
     constructor() {
         this._store = {};
@@ -71,7 +73,7 @@ class MockDeviceDatabase {
     }
 }
 
-var _mockSchemaRetriever = {
+var _mockSchemaDelegate = {
     _schema: {
         "twitter": {
             "triggers": {
@@ -107,22 +109,12 @@ var _mockSchemaRetriever = {
         }
     },
 
-    getSchema: function(kind) {
-        if (kind in this._schema)
-            return Q.delay(1).then(function() {
-                return this._schema[kind];
-            }.bind(this));
-        else
-            return Q.reject(new Error("No such schema " + kind));
+    getSchemas: function() {
+        return this._schema;
     },
 
-    getMeta: function(kind) {
-        if (kind in this._meta)
-            return Q.delay(1).then(function() {
-                return this._meta[kind];
-            }.bind(this));
-        else
-            return Q.reject(new Error("No such schema " + kind));
+    getMetas: function() {
+        return this._meta;
     }
 };
 
@@ -135,7 +127,7 @@ module.exports.createMockEngine = function() {
                 return this._prefs;
             },
         },
-        schemas: _mockSchemaRetriever,
+        schemas: new ThingTalk.SchemaRetriever(_mockSchemaDelegate),
         devices: new MockDeviceDatabase(),
         apps: new MockAppDatabase()
     };
