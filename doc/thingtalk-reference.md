@@ -195,13 +195,9 @@ with no logic combinators between them), which allow for slightly better behavio
 
 ## Builtin Actions
 
-* `@$notify(... : Any)`: an action that produces the values passed in
-  to the external ThingEngine API; if no invocation is registered, the
-  default behavior is to produce a message through Sabrina
+* `@$notify(... : Any)`: an action that notifies the user through Sabrina
 
-* `@$return(... : Any)`: similar to `@$notify`, but also removes the
-app from the engine when the action is executed, effectively
-terminating it
+* `@$return(... : Any)`: similar to `@$notify`, but also terminates the app
 
 * `@$logger(message : Message)`: post a message to the system log
 
