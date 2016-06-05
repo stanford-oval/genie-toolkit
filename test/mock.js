@@ -11,6 +11,8 @@ const Q = require('q');
 
 const ThingTalk = require('thingtalk');
 
+const ThingPediaClient = require('./http_client');
+
 class MockPreferences {
     constructor() {
         this._store = {};
@@ -73,50 +75,7 @@ class MockDeviceDatabase {
     }
 }
 
-var _mockSchemaDelegate = {
-    _schema: {
-        "twitter": {
-            "triggers": {
-                "source": ["String","Array(String)","Array(String)","String","String","Boolean"],
-            },
-            "actions": {
-                "sink": ["String"]
-            },
-            "queries": {
-                "retweets_of_me": ["String","Array(String)","Array(String)","String"]
-            }
-        },
-    },
-
-    _meta: {
-        "twitter": {
-            "triggers": {
-                "source": {
-                    "doc": "I receive a tweet",
-                    "schema": ["String","Array(String)","Array(String)","String","String","Boolean"],
-                    "args": ["text", "hashtags", "urls", "from", "inReplyTo", "yours"],
-                    "questions": []
-                }
-            },
-            "actions": {
-                "sink": {
-                    "doc": "post a tweet",
-                    "schema": ["String"],
-                    "args": ["text"],
-                    "questions": ["What do you want me to tweet?"]
-                }
-            }
-        }
-    },
-
-    getSchemas: function() {
-        return this._schema;
-    },
-
-    getMetas: function() {
-        return this._meta;
-    }
-};
+var _mockSchemaDelegate = new ThingPediaClient(null);
 
 module.exports.createMockEngine = function() {
     return {
