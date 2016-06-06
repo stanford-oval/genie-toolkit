@@ -38,10 +38,14 @@ module.exports = class LocalSempre {
 
         this._pending = [];
         this._silent = silent;
+        this._id = 1;
     }
 
     start() {
-        var dirname = path.resolve(path.dirname(module.filename), '../sempre');
+        if (process.env.SEMPRE_PATH)
+            var dirname = path.resolve(process.env.SEMPRE_PATH);
+        else
+            var dirname = path.resolve(path.dirname(module.filename), '../../sempre');
         var script = path.resolve(path.dirname(module.filename), './run_sempre.sh');
         this._child = child_process.spawn(script, ARGS,
                                           { cwd: dirname,
@@ -83,12 +87,12 @@ module.exports = class LocalSempre {
             next.resolve(msg.answer);
     }
 
-    openSession(withId) {
-        return new Session(withId, this);
+    openSession() {
+        return new Session(this._id++, this);
     }
 
     sendUtterance(session, utterance) {
-        var msg = { session: session,
+        var msg = { session: String(session),
                     utterance: utterance };
 
         var defer = Q.defer();

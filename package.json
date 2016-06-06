@@ -16,5 +16,7 @@
     "thingtalk": "https://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tarball/master",
     "tough-cookie": "^2.2.2"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "byline": "^4.2.1"
+  }
 }
