@@ -80,6 +80,10 @@ class TestDelegate {
     sendChoice(idx, what, title, text) {
         console.log('>> choice ' + idx + ': ' + title);
     }
+
+    sendLink(title, url) {
+        console.log('>> link: ' + title + ' ' + url);
+    }
 }
 
 class MockUser {
