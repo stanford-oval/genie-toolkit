@@ -75,7 +75,7 @@ class MockDeviceDatabase {
     }
 }
 
-var _mockSchemaDelegate = new ThingPediaClient(null);
+var thingpedia = new ThingPediaClient(null);
 
 module.exports.createMockEngine = function() {
     return {
@@ -86,7 +86,8 @@ module.exports.createMockEngine = function() {
                 return this._prefs;
             },
         },
-        schemas: new ThingTalk.SchemaRetriever(_mockSchemaDelegate),
+        thingpedia: thingpedia,
+        schemas: new ThingTalk.SchemaRetriever(thingpedia),
         devices: new MockDeviceDatabase(),
         apps: new MockAppDatabase()
     };
