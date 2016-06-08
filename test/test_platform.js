@@ -14,6 +14,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const child_process = require('child_process');
+const Sabrina = require('sabrina').Sabrina;
 
 const prefs = require('../lib/util/prefs');
 const sql = require('../lib/util/sql');
@@ -43,7 +44,7 @@ var _unzipApi = {
 module.exports = {
     // Initialize the platform code
     // Will be called before instantiating the engine
-    init: function() {
+    init: function(rl) {
         _writabledir = '.';
         try {
             fs.mkdirSync(_writabledir + '/cache');
@@ -52,9 +53,15 @@ module.exports = {
                 throw e;
         }
 
+        this._assistant = null;
+
         _prefs = new prefs.FilePreferences(_writabledir + '/prefs.db');
         return sql.ensureSchema(_writabledir + '/sqlite.db',
                                 '../data/schema.sql');
+    },
+
+    createAssistant(engine, user, delegate) {
+        this._assistant = new Sabrina(engine, user, delegate);
     },
 
     type: 'testing',
@@ -80,6 +87,11 @@ module.exports = {
             // this platform
             return true;
 
+        case 'assistant':
+            // If we can create a full AssistantManager (because the platform
+            // will back with a Sabrina account)
+            return this._assistant !== null;
+
         default:
             return false;
         }
@@ -94,6 +106,9 @@ module.exports = {
         case 'code-download':
             // We have the support to download code
             return _unzipApi;
+
+        case 'assistant':
+            return this._assistant;
 
         default:
             return null;
