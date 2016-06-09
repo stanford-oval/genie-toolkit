@@ -113,7 +113,6 @@ function main() {
                 console.error(code);
                 console.log(canonical);
             }).catch(function(e) {
-                console.error(e.stack);
                 console.error('Canonical utterance "' + canonical + '" is invalid: ' + e.message);
             });
         }).finally(function() {
