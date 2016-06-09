@@ -48,6 +48,8 @@ class TestDelegate {
             this._sempre = new FakeSempre();
         else if (process.argv[2] === '--with-sempre=local')
             this._sempre = new LocalSempre(true);
+        else if (process.argv[2] !== undefined && process.argv[2].startsWith('--with-sempre='))
+            this._sempre = new SempreClient(process.argv[2].substr('--with-sempre='.length));
         else
             this._sempre = new SempreClient();
     }
