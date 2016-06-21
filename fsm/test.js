@@ -1,5 +1,6 @@
-var StateMachine = require('./state-machine');
-var readline = require('readline');
+const StateMachine = require('./state-machine');
+const ValueCategory = require('../lib/semantic').ValueCategory;
+const readline = require('readline');
 
 var fsm = StateMachine.create({
     initial: {state: 'green', defer: true},
@@ -23,14 +24,19 @@ var fsm = StateMachine.create({
         oncalm: function(event, from, to, msg) {
             console.log('calm ' + msg);
         },
-        onclear: function(event, from, to, msg) {
-            console.log('clear ' + msg);
+        onalarm: function(event, from, to, msg) {
+            console.log('alarm ' + msg);
         },
     },
     triggers: {
-        'green':  {'1': 'warn',  '2': 'alarm'},
-        'yellow': {'1': 'panic', '2': 'clear'},
-        'red':    {'1': 'calm'}
+        'green':  {1: 'warn',  2: 'alarm'},
+        'yellow': {1: 'panic', 2: 'clear'},
+        'red':    {1: 'calm'}
+    },
+    expecting: {
+        'green': ValueCategory.Number,
+        'yellow': ValueCategory.Number,
+        'red': ValueCategory.Number,
     }
 });
 

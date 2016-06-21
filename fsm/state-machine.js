@@ -45,6 +45,9 @@
       var map          = {}; // track state transitions allowed for an event { event: { from: [ to ] } }
       var transitions  = {}; // track events allowed from a state            { state: [ event ] }
       
+      // add expecting value type for each state
+      fsm.expecting = cfg.expecting || {};
+      
       // add triggers (condition-transition mappings) for each state
       fsm.triggers = cfg.triggers || {};
       // check whether the 'condition' is an available trigger
@@ -61,6 +64,7 @@
         else
           console.log('err: unavailable trigger, try: ' + Object.keys(fsm.triggers[fsm.current]));
       };
+      
       
       
       var add = function(e) {
