@@ -47,12 +47,14 @@
       
       // add triggers (condition-transition mappings) for each state
       fsm.triggers = cfg.triggers || {};
+      // check whether the 'condition' is an available trigger
       fsm.isTrigger = function(condition) {
         if (fsm.triggers[fsm.current][condition] === undefined) 
           return false;
         else 
           return true;
       }
+      // trigger transition given the condition
       fsm.transTrigger = function(condition) {  
         if(fsm.isTrigger(condition))
           fsm[fsm.triggers[fsm.current][condition]](condition);

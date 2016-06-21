@@ -1,16 +1,17 @@
 # code2flow.com
 
 Command;
-analyze: if (understand?) {
+analyze: Analyze command;
+if (understand?) {
   confirm: if (!confirm command) {
-    rephrase: I don't understand; 
+    rephrase: I don't understand;
     if (rephrase it?) {
-      goto confirm;
+      goto analyze;
     } else {
       goto end;
     }
   }
-  search: Search registered device;
+  Search registered device;
   switch (search result) {
     case one match: {
       Set device(s);
@@ -27,7 +28,7 @@ analyze: if (understand?) {
       if (discover new?) {
         Discovery Dialog;
         if (dicover success) {
-          goto search;
+          goto confirm;
         } 
       } 
       goto end;
