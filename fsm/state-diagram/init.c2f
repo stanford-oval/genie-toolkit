@@ -1,0 +1,16 @@
+# code2flow.com
+
+Init;
+if (tentative name exists) {
+  if (can I call you $ ?) {
+    Set name;
+  } else {
+    OK, what't your name then?;
+    Set name;
+  }
+} else {
+  What's your name?;
+  Set name;
+}
+
+End;
