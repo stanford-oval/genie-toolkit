@@ -58,7 +58,8 @@
           return true;
       }
       // trigger transition given the condition
-      fsm.transTrigger = function(condition) {  
+      fsm.transTrigger = function(condition, analyzed) {  
+        //TODO: isTrigger check should use analyzed
         if(fsm.isTrigger(condition))
           fsm[fsm.triggers[fsm.current][condition]](condition);
         else
