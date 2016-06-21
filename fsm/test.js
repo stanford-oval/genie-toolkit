@@ -1,4 +1,5 @@
 var StateMachine = require('./state-machine');
+var readline = require('readline');
 
 var fsm = StateMachine.create({
     initial: {state: 'green', defer: true},
@@ -16,23 +17,56 @@ var fsm = StateMachine.create({
         onclear: function(event, from, to, msg) {
             console.log('thanks to ' + msg);
         },
-        ongreen: function(event, from, to, msg) {
-            var condition = '1';
-            this.transTrigger(condition);
-        }
+        onwarn: function(event, from, to, msg) {
+            console.log('warn ' + msg);
+        },
+        oncalm: function(event, from, to, msg) {
+            console.log('calm ' + msg);
+        },
+        onclear: function(event, from, to, msg) {
+            console.log('clear ' + msg);
+        },
     },
     triggers: {
-        'green': {'1': 'warn', '2': 'alarm'},
-        'red':   {'1': 'calm'}
+        'green':  {'1': 'warn',  '2': 'alarm'},
+        'yellow': {'1': 'panic', '2': 'clear'},
+        'red':    {'1': 'calm'}
     }
 });
 
 fsm.startup();
 
-// 'warn' is automatically executed in state green because of the 'transTigger'
-// in 'ongreen', thus the initial state becomes 'yellow', rather than 'green'.
-// fsm.warn();
-
+/*
+fsm.warn();
 fsm.panic('killer bees');
 fsm.calm();
 fsm.clear('sedatives in the honey pots');
+*/
+
+function main() {
+    var rl = readline.createInterface({input: process.stdin, output: process.stdout});
+    rl.setPrompt('$ ');
+    
+    function quit() {
+        console.log('Bye\n');
+        rl.close();
+        process.exit();
+    }
+    
+    rl.on('line', function(line) {
+        if (line.trim().length === 0) {
+            rl.prompt();
+            return;
+        } else {
+            condition = line;
+            fsm.transTrigger(condition);
+            rl.prompt();
+        }
+    });
+    rl.on('SIGINT', quit);
+
+    rl.prompt();
+}
+    
+main();
+  

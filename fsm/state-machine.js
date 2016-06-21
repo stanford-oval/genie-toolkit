@@ -47,9 +47,19 @@
       
       // add triggers (condition-transition mappings) for each state
       fsm.triggers = cfg.triggers || {};
+      fsm.isTrigger = function(condition) {
+        if (fsm.triggers[fsm.current][condition] === undefined) 
+          return false;
+        else 
+          return true;
+      }
       fsm.transTrigger = function(condition) {  
-        fsm[fsm.triggers[fsm.current][condition]](condition);
+        if(fsm.isTrigger(condition))
+          fsm[fsm.triggers[fsm.current][condition]](condition);
+        else
+          console.log('err: unavailable trigger, try: ' + Object.keys(fsm.triggers[fsm.current]));
       };
+      
       
       var add = function(e) {
         var from = (e.from instanceof Array) ? e.from : (e.from ? [e.from] : [StateMachine.WILDCARD]); // allow 'wildcard' transition if 'from' is not specified
