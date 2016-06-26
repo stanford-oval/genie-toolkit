@@ -86,6 +86,10 @@ class TestDelegate {
     sendLink(title, url) {
         console.log('>> link: ' + title + ' ' + url);
     }
+
+    sendButton(title, json) {
+        console.log('>> button: ' + title + ' ' + json);
+    }
 }
 
 class MockUser {
