@@ -59,6 +59,40 @@ class MockTwitterDevice {
     }
 }
 
+class MockBluetoothDevice {
+    constructor(who, paired) {
+        this.name = "Bluetooth Device " + who;
+        this.description = 'This is a bluetooth device of some sort';
+        this.kind = 'mock.bluetooth';
+        this.uniqueId = 'mock.bluetooth-' + who;
+        this.discoveredBy = 'phone';
+        this.paired = paired;
+    }
+
+    invokeAction(id, args) {
+        console.log('MOCK: Invoking action ' + id + ' with arguments', args);
+    }
+
+    completeDiscovery(delegate) {
+        if (this.paired) {
+            delegate.configDone();
+            return Q();
+        }
+
+        console.log('MOCK: Pairing with ' + this.uniqueId);
+        return delegate.confirm('Do you confirm the code 123456?').then((res) => {
+            if (!res) {
+                delegate.configFailed(new Error('Cancelled'));
+                return;
+            }
+
+            console.log('MOCK: Pairing done');
+            this.paired = true;
+            delegate.configDone();
+        });
+    }
+}
+
 class MockDeviceDatabase {
     constructor() {
         this._devices = {};
@@ -72,6 +106,16 @@ class MockDeviceDatabase {
 
     getAllDevicesOfKind(kind) {
         return this.getAllDevices().filter(function(d) { return d.kind === kind; });
+    }
+}
+
+class MockDiscoveryClient {
+    runDiscovery(timeout, type) {
+        return Q([new MockBluetoothDevice('foo', true), new MockBluetoothDevice('bar', false)]);
+    }
+
+    stopDiscovery() {
+        return Q();
     }
 }
 
@@ -89,6 +133,7 @@ module.exports.createMockEngine = function() {
         thingpedia: thingpedia,
         schemas: new ThingTalk.SchemaRetriever(thingpedia),
         devices: new MockDeviceDatabase(),
-        apps: new MockAppDatabase()
+        apps: new MockAppDatabase(),
+        discovery: new MockDiscoveryClient(),
     };
 };
