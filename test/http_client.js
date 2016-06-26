@@ -127,4 +127,10 @@ module.exports = class ThingPediaClientHttp {
             req.end(JSON.stringify(blob));
         });
     }
+
+    getExamplesByKey(key, isBase) {
+        var to = THINGPEDIA_URL + '/api/examples?key=' + encodeURIComponent(key)
+            + '&base=' + (isBase ? '1' : '0');
+        return this._simpleRequest(to);
+    }
 }
