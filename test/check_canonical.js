@@ -74,7 +74,7 @@ class CanonicalChecker {
                 this._slotFill(this.trigger, false);
                 this._slotFill(this.action, true);
 
-                return Codegen.codegen(schemas, this.trigger, this.action);
+                return Codegen.codegenRule(schemas, this.trigger, this.action);
             });
     }
 }
