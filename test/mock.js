@@ -47,6 +47,18 @@ class MockAppDatabase {
     }
 }
 
+class MockNineGagDevice {
+    constructor() {
+        this.name = "NineGag";
+        this.kind = 'ninegag';
+        this.uniqueId = '9gag';
+    }
+
+    invokeAction(id, args) {
+        console.log('MOCK: Invoking action ' + id + ' with arguments', args);
+    }
+}
+
 class MockTwitterDevice {
     constructor(who) {
         this.name = "Twitter Account " + who;
@@ -96,6 +108,7 @@ class MockBluetoothDevice {
 class MockDeviceDatabase {
     constructor() {
         this._devices = {};
+        this._devices['9gag'] = new MockNineGagDevice();
         this._devices['twitter-foo'] = new MockTwitterDevice('foo');
         this._devices['twitter-bar'] = new MockTwitterDevice('bar');
     }
