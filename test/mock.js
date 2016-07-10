@@ -53,10 +53,6 @@ class MockNineGagDevice {
         this.kind = 'ninegag';
         this.uniqueId = '9gag';
     }
-
-    invokeAction(id, args) {
-        console.log('MOCK: Invoking action ' + id + ' with arguments', args);
-    }
 }
 
 class MockTwitterDevice {
@@ -64,10 +60,6 @@ class MockTwitterDevice {
         this.name = "Twitter Account " + who;
         this.kind = 'twitter';
         this.uniqueId = 'twitter-' + who;
-    }
-
-    invokeAction(id, args) {
-        console.log('MOCK: Invoking action ' + id + ' with arguments', args);
     }
 }
 
@@ -79,10 +71,6 @@ class MockBluetoothDevice {
         this.uniqueId = 'mock.bluetooth-' + who;
         this.discoveredBy = 'phone';
         this.paired = paired;
-    }
-
-    invokeAction(id, args) {
-        console.log('MOCK: Invoking action ' + id + ' with arguments', args);
     }
 
     completeDiscovery(delegate) {
@@ -105,12 +93,76 @@ class MockBluetoothDevice {
     }
 }
 
+class MockBingQuery {
+    constructor() {
+        this.uniqueId = 'com.bing-web_search';
+    }
+
+    formatEvent(event) {
+        return { type: 'rdl', displayTitle: event[0], displayText: event[1],
+            webCallback: event[2], callback: event[2] };
+    }
+
+    invokeQuery() {
+        return Q([
+            ['Google', "Google is where you should really run your searches", 'http://google.com'],
+            ['Bing', "Bing is what you're using. So dumb it's not even first!", 'http://bing.com'],
+            ['Yahoo', "If all else fails", 'http://yahoo.com']
+        ])
+    }
+
+    close() {
+    }
+}
+
+class MockBingDevice {
+    constructor() {
+        this.name = "Bing Search";
+        this.description = "I know you secretly want to bing your hot friend.";
+        this.kind = 'com.bing';
+        this.uniqueId = 'com.bing';
+    }
+
+    getQuery(id) {
+        if (id !== 'web_search')
+            throw new Error('Unexpected id in MOCK Bing: ' + id);
+        return Q(new MockBingQuery());
+    }
+}
+
+var _cnt = 0;
+
+class MockUnknownDevice {
+    constructor(kind) {
+        var id = ++_cnt;
+
+        this.name = "Some Device " + id;
+        this.description = 'This is a device of some sort';
+        this.kind = kind;
+        this.uniqueId = kind + '-' + id;
+    }
+}
+
 class MockDeviceDatabase {
     constructor() {
         this._devices = {};
         this._devices['9gag'] = new MockNineGagDevice();
         this._devices['twitter-foo'] = new MockTwitterDevice('foo');
         this._devices['twitter-bar'] = new MockTwitterDevice('bar');
+    }
+
+    loadOneDevice(blob, save) {
+        if (blob.kind === 'com.bing') {
+            console.log('MOCK: Loading bing');
+            return Q(this._devices['com.bing'] = new MockBingDevice());
+        } else {
+            console.log('MOCK: Loading device ' + JSON.stringify(blob));
+            return Q(new MockUnknownDevice(blob.kind));
+        }
+    }
+
+    getDevice(id) {
+        return this._devices[id];
     }
 
     getAllDevices() {
