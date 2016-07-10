@@ -108,7 +108,7 @@ class MockBluetoothDevice {
 class MockDeviceDatabase {
     constructor() {
         this._devices = {};
-        //this._devices['9gag'] = new MockNineGagDevice();
+        this._devices['9gag'] = new MockNineGagDevice();
         this._devices['twitter-foo'] = new MockTwitterDevice('foo');
         this._devices['twitter-bar'] = new MockTwitterDevice('bar');
     }
