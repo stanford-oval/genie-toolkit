@@ -34,7 +34,7 @@ class FakeSempre {
                 else if (/no/i.test(utt))
                     return Q(JSON.stringify({"special":"tt:root.special.no"}));
                 else
-                    return Q(JSON.stringify({"special":"tt:root.special.failed"}));
+                    return Q(null);
             }
         }
     }
