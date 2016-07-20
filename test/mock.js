@@ -27,6 +27,7 @@ class MockPreferences {
     }
 
     set(name, value) {
+        console.log('SharedPreferences.set %s %s'.format(name, JSON.stringify(value)));
         this._store[name] = value;
     }
 }
@@ -130,6 +131,27 @@ class MockBingDevice {
     }
 }
 
+class MockPhoneDevice {
+    constructor() {
+        this.name = "Phone";
+        this.description = "Your phone, in your hand. Not that hand, the other one.";
+        this.kind = 'org.thingpedia.builtin.thingengine';
+        this.own = true;
+        this.tier = 'phone';
+        this.globalName = 'phone';
+        this.uniqueId = 'thingengine-own-phone';
+    }
+
+    invokeTrigger(trigger, callback) {
+        switch (trigger) {
+        case 'gps':
+            return Q([{ y: 37.4275, x: -122.1697 }, 29, 0, 0]); // at stanford, on the ground, facing north, standing still
+        default:
+            throw new Error('Invalid trigger'); // we don't mock anything else
+        }
+    }
+}
+
 var _cnt = 0;
 
 class MockUnknownDevice {
@@ -149,6 +171,7 @@ class MockDeviceDatabase {
         this._devices['9gag'] = new MockNineGagDevice();
         this._devices['twitter-foo'] = new MockTwitterDevice('foo');
         this._devices['twitter-bar'] = new MockTwitterDevice('bar');
+        this._devices['thingengine-own-phone'] = new MockPhoneDevice();
     }
 
     loadOneDevice(blob, save) {

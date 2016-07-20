@@ -90,6 +90,10 @@ class TestDelegate {
     sendButton(title, json) {
         console.log('>> button: ' + title + ' ' + json);
     }
+
+    sendAskSpecial(what) {
+        console.log('>> ask special ' + what);
+    }
 }
 
 class MockUser {
