@@ -1,3 +1,5 @@
 *~
 
 node_modules/
+po/sabrina.pot
+po/*.mo

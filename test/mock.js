@@ -217,6 +217,24 @@ module.exports.createMockEngine = function() {
             getSharedPreferences() {
                 return this._prefs;
             },
+
+            //locale: 'en_US.utf8',
+            locale: 'it',
+
+            hasCapability(cap) {
+                return cap === 'gettext';
+            },
+
+            getCapability(cap) {
+                if (cap === 'gettext') {
+                    var Gettext = require('node-gettext');
+                    var gt = new Gettext();
+                    gt.setlocale(this.locale);
+                    return gt;
+                } else {
+                    return null;
+                }
+            }
         },
         thingpedia: thingpedia,
         schemas: new ThingTalk.SchemaRetriever(thingpedia),

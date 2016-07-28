@@ -1,0 +1,250 @@
+# Italian translations for sabrina package.
+# Copyright (C) 2016 The Stanford Mobile and Social Research Group
+# This file is distributed under the same license as the sabrina package.
+# Giovanni Campagna <gcampagn@cs.stanford.edu>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: sabrina 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-07-28 12:19-0700\n"
+"PO-Revision-Date: 2016-07-28 12:19-0700\n"
+"Last-Translator: Giovanni Campagna <gcampagn@cs.stanford.edu>\n"
+"Language-Team: Italian\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/codegen_dialog.js:64
+#, javascript-format
+msgid "Sorry, that did not work: %s"
+msgstr "Mi dispiace, ma c'è stato un errore: %s."
+
+#: lib/codegen_dialog.js:136
+#, javascript-format
+msgid "Ok, so you want me to %s. Is that right?"
+msgstr "Ok, quindi vuoi che io %s, giusto?"
+
+#: lib/config_dialog.js:50
+msgid "The device has been set up."
+msgstr "Il dispositivo è stato configurato."
+
+#: lib/config_dialog.js:56
+#, javascript-format
+msgid "Configuration failed: %s"
+msgstr "Configurazione fallita: %s."
+
+#: lib/config_dialog.js:62 lib/config_dialog.js:113 lib/config_dialog.js:116
+#: lib/device_choice_dialog.js:82 lib/device_choice_dialog.js:85
+#, javascript-format
+msgid "Configure %s"
+msgstr "Configura %s"
+
+#: lib/config_dialog.js:95
+#, javascript-format
+msgid "I'm so sorry, I can't find %s in my database."
+msgstr "Mi dispiace molto, ma non riesco a trovare %s nel mio database."
+
+#: lib/config_dialog.js:100
+#, javascript-format
+msgid "%s doesn't need configuration."
+msgstr "%s non ha bisogno di configurazione."
+
+#: lib/config_dialog.js:104 lib/device_choice_dialog.js:75
+#, javascript-format
+msgid "You might want to configure one of: %s"
+msgstr "Potresti voler configurare uno di: %s."
+
+#: lib/config_dialog.js:105 lib/device_choice_dialog.js:76
+msgid "Go to Dashboard"
+msgstr "Vai alla Dashboard"
+
+#: lib/config_dialog.js:107
+#, javascript-format
+msgid "Sorry, I don't know how to configure %s."
+msgstr "Mi dispiace, ma non so come configurare %s."
+
+#: lib/config_dialog.js:110
+#, javascript-format
+msgid "OK, here's the link to configure %s."
+msgstr "Ok, ecco il link per configurare %s."
+
+#: lib/config_dialog.js:136
+msgid ""
+"You can configure devices by command 'configure $device', e.g., 'configure "
+"twitter'."
+msgstr "Puoi configurare dispositivi usando il comando 'configura $dispositivo', per esempio 'configura twitter'."
+
+#: lib/default_dialog.js:44
+msgid "I agree, but to what?"
+msgstr "Sono d'accordo, ma... su cosa?"
+
+#: lib/default_dialog.js:46
+msgid "No way!"
+msgstr "Non esiste!"
+
+#: lib/device_choice_dialog.js:65 lib/device_choice_dialog.js:73
+#: lib/device_choice_dialog.js:79
+#, javascript-format
+msgid "You don't have a %s"
+msgstr "Non hai un %s."
+
+#: lib/device_choice_dialog.js:117
+#, javascript-format
+msgid "You have multiple devices of type %s. Which one do you want to use?"
+msgstr "Hai più dispositivi di tipo %s. Quale vuoi usare?"
+
+#: lib/device_choice_dialog.js:129
+msgid "Please click on one of the provided choices."
+msgstr "Per favore clicca su una delle scelte visualizzate."
+
+#: lib/codegen.js:25
+msgid "on"
+msgstr "acceso"
+
+#: lib/codegen.js:25
+msgid "off"
+msgstr "spento"
+
+#: lib/codegen.js:32
+#, javascript-format
+msgid "%s on %s"
+msgstr "%s su %s"
+
+#: lib/codegen.js:36
+#, javascript-format
+msgid " and %s is %s"
+msgstr " e %s è %s"
+
+#: lib/sabrina.js:197
+#, javascript-format
+msgid "Sorry, I had an error processing your command: %s"
+msgstr "Mi dispiace, c'è stato un errore nel processare il tuo comando: %s."
+
+#: lib/dialog.js:160
+#, javascript-format
+msgid "Hi, %s."
+msgstr "Ciao, %s."
+
+#: lib/dialog.js:173
+msgid "Sure! How can I help you?"
+msgstr "Subito! Come posso aiutarti?"
+
+#: lib/dialog.js:174
+msgid ""
+"If you're unsure what to say, try 'list commands', or just give me a word "
+"and I'll try to find commands related to it."
+msgstr "Se non sei sicuro di cosa dire, prova 'lista comandi', o dammi una singola parola e io cercherò comandi relativi ad essa."
+
+#: lib/dialog.js:180
+msgid "At your service."
+msgstr "Al tuo servizio."
+
+#: lib/dialog.js:183
+msgid "No need to be sorry."
+msgstr "Non c'è bisogno di scusarsi."
+
+#: lib/dialog.js:184
+msgid "Unless you're Canadian. Then I won't stop you."
+msgstr "A meno che tu non sia canadese. In quel caso non ti fermerò."
+
+#: lib/dialog.js:187
+msgid "I know, right?"
+msgstr "Vero?"
+
+#: lib/dialog.js:199
+msgid "Yes what?"
+msgstr "Sì cosa?"
+
+#: lib/dialog.js:213 lib/dialog.js:223
+msgid "I'm a little confused, sorry. What where we talking about?"
+msgstr "Sono un attimo confusa, scusa. Di cosa stavamo parlando?"
+
+#: lib/dialog.js:230
+msgid "Ok forget it."
+msgstr "Ok non importa."
+
+#: lib/dialog.js:236
+msgid "Consider it done."
+msgstr "Consideralo fatto."
+
+#: lib/dialog.js:242
+msgid "That's not what I asked."
+msgstr "Non è quello che ho chiesto."
+
+#: lib/dialog.js:249
+msgid "a time interval"
+msgstr "un intervallo di tempo"
+
+#: lib/dialog.js:250
+msgid "a length"
+msgstr "una lunghezza"
+
+#: lib/dialog.js:251
+msgid "a speed"
+msgstr "una velocità"
+
+#: lib/dialog.js:252
+msgid "a weight"
+msgstr "un peso"
+
+#: lib/dialog.js:253
+msgid "a pressure"
+msgstr "una pressione"
+
+#: lib/dialog.js:254
+msgid "a temperature"
+msgstr "una temperatura"
+
+#: lib/dialog.js:255
+msgid "an energy"
+msgstr "un'energia"
+
+#: lib/dialog.js:268
+msgid "In fact, I did not ask for anything at all!"
+msgstr "In effetti, non ho chiesto nulla!"
+
+#: lib/dialog.js:270
+msgid "Just answer yes or no."
+msgstr "Rispondi solo sì o no."
+
+#: lib/dialog.js:272
+msgid "Just click one of the buttons above."
+msgstr "Clicca solo su uno dei pulsanti sopra."
+
+#: lib/dialog.js:274
+#, javascript-format
+msgid "I'm looking for %s in any of the supported units (%s)."
+msgstr "Vorrei %s in una delle unità di misura supportate (%s)."
+
+#: lib/dialog.js:277
+msgid "I'm looking for a number."
+msgstr "Vorrei un numero."
+
+#: lib/dialog.js:279
+msgid "I'm looking for a date and time."
+msgstr "Vorrei una data e un'ora."
+
+#: lib/dialog.js:281
+msgid "You need to upload a picture!"
+msgstr "Devi inviare una foto!"
+
+#: lib/dialog.js:287
+msgid ""
+"Which is interesting, because I'll take anything at all. Just type your mind!"
+msgstr "Il che è interessante, perchè mi va bene qualunque cosa. Libera la tua fantasia!"
+
+#: lib/dialog.js:289
+msgid "In fact, I'm not even sure what I asked. Sorry!"
+msgstr "In effetti, non sono del tutto sicura di cosa ho chiesto. Scusa!"
+
+#: lib/dialog.js:295
+#, javascript-format
+msgid "Sorry, I did not understand that: %s. Can you rephrase it?"
+msgstr "Mi dispiace, non ho capito: %s. Puoi riprovare?"
+
+#: lib/dialog.js:297
+msgid "Sorry, I did not understand that. Can you rephrase it?"
+msgstr "Mi dispiace, non ho capito. Puoi riprovare?"
