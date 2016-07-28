@@ -65,6 +65,7 @@ module.exports = {
     },
 
     type: 'testing',
+    locale: process.env.LANG,
 
     // Check if we need to load and run the given thingengine-module on
     // this platform

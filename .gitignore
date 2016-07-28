@@ -1,3 +1,5 @@
 *~
 
 node_modules/
+po/thingengine-core.pot
+po/*.mo

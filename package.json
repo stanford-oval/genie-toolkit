@@ -22,5 +22,10 @@
     "sparqljs": "^1.1.4",
     "tmp": "0.0.28",
     "ws": "^1.1.0"
+  },
+  "scripts": {
+    "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --package-name ${npm_package_name} --package-version ${npm_package_version}",
+    "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
+    "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done"
   }
 }
