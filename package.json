@@ -12,7 +12,6 @@
   "main": "index.js",
   "dependencies": {
     "adt": "~0.7.2",
-    "node-gettext": "^1.1.0",
     "q": "~1.4.1",
     "thingtalk": "https://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tarball/master",
     "tough-cookie": "^2.2.2"
@@ -21,7 +20,7 @@
     "byline": "^4.2.1"
   },
   "scripts": {
-    "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --package-name ${npm_package_name} --package-version ${npm_package_version}",
+    "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}",
     "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
     "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done"
   }

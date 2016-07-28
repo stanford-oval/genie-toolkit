@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sabrina 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-07-28 12:19-0700\n"
+"POT-Creation-Date: 2016-07-28 14:26-0700\n"
 "PO-Revision-Date: 2016-07-28 12:19-0700\n"
 "Last-Translator: Giovanni Campagna <gcampagn@cs.stanford.edu>\n"
 "Language-Team: Italian\n"
@@ -17,15 +17,249 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: lib/action_dialog.js:36
+msgid "Execute"
+msgstr ""
+
+#: lib/discovery_dialog.js:61
+#, javascript-format
+msgid "Sorry, we don't support %s for now."
+msgstr ""
+
+#: lib/discovery_dialog.js:66
+msgid "Discovering…"
+msgstr ""
+
+#: lib/discovery_dialog.js:86
+msgid "Discovery is not available in this installation of Sabrina"
+msgstr ""
+
+#: lib/discovery_dialog.js:108
+msgid "What device do you want to discover?"
+msgstr ""
+
+#: lib/discovery_dialog.js:124
+#, fuzzy, javascript-format
+msgid "So sorry that I can't find %s in my database."
+msgstr "Mi dispiace molto, ma non riesco a trovare %s nel mio database."
+
+#: lib/discovery_dialog.js:160 lib/list_dialog.js:70
+#: lib/slot_filling_dialog.js:211 lib/device_choice_dialog.js:129
+msgid "Please click on one of the provided choices."
+msgstr "Per favore clicca su una delle scelte visualizzate."
+
+#: lib/discovery_dialog.js:182
+#, javascript-format
+msgid "Discovery failed: %s"
+msgstr ""
+
+#: lib/discovery_dialog.js:190
+#, javascript-format
+msgid "Can't find %s device around."
+msgstr ""
+
+#: lib/discovery_dialog.js:196
+#, javascript-format
+msgid "I found a %s. Do you want to set it up now?"
+msgstr ""
+
+#: lib/discovery_dialog.js:200
+#, fuzzy
+msgid "I found the following devices. Which one do you want to set up?"
+msgstr "Hai più dispositivi di tipo %s. Quale vuoi usare?"
+
+#: lib/fallback_dialog.js:99
+#, fuzzy, javascript-format
+msgid "Sorry, I did not understand that. Searching the web for “%s” instead"
+msgstr "Mi dispiace, non ho capito. Puoi riprovare?"
+
+#: lib/fallback_dialog.js:117
+#, fuzzy, javascript-format
+msgid "Sorry I did not understand that. Did you mean %s?"
+msgstr "Mi dispiace, non ho capito. Puoi riprovare?"
+
+#: lib/fallback_dialog.js:119
+#, fuzzy
+msgid "Sorry, I did not understand that. You can try the following instead:"
+msgstr "Mi dispiace, non ho capito. Puoi riprovare?"
+
+#: lib/help_dialog.js:30
+#, javascript-format
+msgid "Here's what I can do for you on %s."
+msgstr ""
+
+#: lib/help_dialog.js:34
+msgid "Try it now!"
+msgstr ""
+
+#: lib/help_dialog.js:38
+#, fuzzy, javascript-format
+msgid "Sorry I cant't find device %s in my database."
+msgstr "Mi dispiace molto, ma non riesco a trovare %s nel mio database."
+
+#: lib/help_dialog.js:40
+msgid "Try ‘list devices’ to see the devices you have"
+msgstr ""
+
+#: lib/helpers.js:17
+msgid "You"
+msgstr ""
+
+#: lib/helpers.js:29
+msgid "Unnamed (multiple partecipants)"
+msgstr ""
+
+#: lib/helpers.js:75
+#, javascript-format
+msgid "Notification from %s: %s"
+msgstr ""
+
+#: lib/helpers.js:78
+#, javascript-format
+msgid "Notification from %s"
+msgstr ""
+
+#: lib/init_dialog.js:33
+#, javascript-format
+msgid "Can I call you %s?"
+msgstr ""
+
+#: lib/init_dialog.js:35
+msgid "What's your name?"
+msgstr ""
+
+#: lib/init_dialog.js:44 lib/init_dialog.js:72
+#, javascript-format
+msgid "Hi %s, nice to meet you."
+msgstr ""
+
+#: lib/init_dialog.js:49
+msgid "Ok, what's your name then?"
+msgstr ""
+
+#: lib/init_dialog.js:60
+msgid "Hello! My name is Sabrina, and I'm your virtual assistant."
+msgstr ""
+
+#: lib/init_dialog.js:101
+msgid "Ok, now I'm ready to use all my magic powers to help you."
+msgstr ""
+
+#: lib/init_dialog.js:102
+msgid "If you don't know what to say, try ‘list commands’."
+msgstr ""
+
+#: lib/init_dialog.js:103
+msgid "If you need help at any point, try ‘help’."
+msgstr ""
+
+#: lib/init_dialog.js:104
+msgid "You'll want to start by setting up your devices and accounts though."
+msgstr ""
+
+#: lib/init_dialog.js:105
+msgid ""
+"To do so, try ‘configure‘ followed by the type of device or account (e.g., "
+"‘configure twitter’ or ‘configure tv’), or try ‘discover’ and I'll take a "
+"look at what you have."
+msgstr ""
+
+#: lib/list_dialog.js:31 lib/list_dialog.js:89
+#, fuzzy
+msgid "You don't have any device set up yet."
+msgstr "Non hai un %s."
+
+#: lib/list_dialog.js:32
+msgid "Try add some devices first."
+msgstr ""
+
+#: lib/list_dialog.js:35
+msgid "Here're some examples of what I can do for you."
+msgstr ""
+
+#: lib/list_dialog.js:91
+msgid "You have the following devices:"
+msgstr ""
+
+#: lib/list_dialog.js:99
+msgid "Alright, here's a list of commands you can try:"
+msgstr ""
+
+#: lib/list_dialog.js:100
+msgid ""
+"‘list devices/queries/commands’: get the devices you have, example queries, "
+"or available commands."
+msgstr ""
+
+#: lib/list_dialog.js:101
+msgid "‘discover ____’: search for devices match the name or type you give me."
+msgstr ""
+
+#: lib/list_dialog.js:102
+msgid "‘help ____’: give you some example queries you can do with the device."
+msgstr ""
+
+#: lib/list_dialog.js:103
+msgid "‘configure ____’: set up and configure devices."
+msgstr ""
+
+#: lib/list_dialog.js:110
+msgid "What do you want to me to list?"
+msgstr ""
+
+#: lib/query_dialog.js:36
+msgid "Query"
+msgstr ""
+
+#: lib/rule_dialog.js:48 lib/rule_dialog.js:57
+#, fuzzy, javascript-format
+msgid "%s if %s"
+msgstr " e %s è %s"
+
+#: lib/rule_dialog.js:85
+#, fuzzy, javascript-format
+msgid "Sorry, that did not work: %s."
+msgstr "Mi dispiace, ma c'è stato un errore: %s."
+
+#: lib/rule_dialog.js:203 lib/codegen_dialog.js:136
+#, javascript-format
+msgid "Ok, so you want me to %s. Is that right?"
+msgstr "Ok, quindi vuoi che io %s, giusto?"
+
+#: lib/slot_filling_dialog.js:105
+msgid "Messaging is not available, cannot choose a feed."
+msgstr ""
+
+#: lib/slot_filling_dialog.js:135
+#, javascript-format
+msgid "What is the value of argument %s?"
+msgstr ""
+
+#: lib/trigger_dialog.js:25
+#, javascript-format
+msgid "notify if %s"
+msgstr ""
+
+#: lib/trigger_dialog.js:36
+msgid "Monitor"
+msgstr ""
+
+#: lib/user_context_dialog.js:141
+msgid "Where are you now?"
+msgstr ""
+
+#: lib/user_context_dialog.js:145
+msgid "What is your home address?"
+msgstr ""
+
+#: lib/user_context_dialog.js:150
+msgid "What is your work address?"
+msgstr ""
+
 #: lib/codegen_dialog.js:64
 #, javascript-format
 msgid "Sorry, that did not work: %s"
 msgstr "Mi dispiace, ma c'è stato un errore: %s."
-
-#: lib/codegen_dialog.js:136
-#, javascript-format
-msgid "Ok, so you want me to %s. Is that right?"
-msgstr "Ok, quindi vuoi che io %s, giusto?"
 
 #: lib/config_dialog.js:50
 msgid "The device has been set up."
@@ -72,10 +306,13 @@ msgid "OK, here's the link to configure %s."
 msgstr "Ok, ecco il link per configurare %s."
 
 #: lib/config_dialog.js:136
+#, fuzzy
 msgid ""
-"You can configure devices by command 'configure $device', e.g., 'configure "
-"twitter'."
-msgstr "Puoi configurare dispositivi usando il comando 'configura $dispositivo', per esempio 'configura twitter'."
+"You can configure devices by command ‘configure ____’, e.g., ‘configure "
+"twitter’."
+msgstr ""
+"Puoi configurare dispositivi usando il comando 'configura $dispositivo', per "
+"esempio 'configura twitter'."
 
 #: lib/default_dialog.js:44
 msgid "I agree, but to what?"
@@ -96,10 +333,6 @@ msgstr "Non hai un %s."
 msgid "You have multiple devices of type %s. Which one do you want to use?"
 msgstr "Hai più dispositivi di tipo %s. Quale vuoi usare?"
 
-#: lib/device_choice_dialog.js:129
-msgid "Please click on one of the provided choices."
-msgstr "Per favore clicca su una delle scelte visualizzate."
-
 #: lib/codegen.js:25
 msgid "on"
 msgstr "acceso"
@@ -118,7 +351,7 @@ msgstr "%s su %s"
 msgid " and %s is %s"
 msgstr " e %s è %s"
 
-#: lib/sabrina.js:197
+#: lib/sabrina.js:198
 #, javascript-format
 msgid "Sorry, I had an error processing your command: %s"
 msgstr "Mi dispiace, c'è stato un errore nel processare il tuo comando: %s."
@@ -136,7 +369,9 @@ msgstr "Subito! Come posso aiutarti?"
 msgid ""
 "If you're unsure what to say, try 'list commands', or just give me a word "
 "and I'll try to find commands related to it."
-msgstr "Se non sei sicuro di cosa dire, prova 'lista comandi', o dammi una singola parola e io cercherò comandi relativi ad essa."
+msgstr ""
+"Se non sei sicuro di cosa dire, prova 'lista comandi', o dammi una singola "
+"parola e io cercherò comandi relativi ad essa."
 
 #: lib/dialog.js:180
 msgid "At your service."
@@ -234,7 +469,9 @@ msgstr "Devi inviare una foto!"
 #: lib/dialog.js:287
 msgid ""
 "Which is interesting, because I'll take anything at all. Just type your mind!"
-msgstr "Il che è interessante, perchè mi va bene qualunque cosa. Libera la tua fantasia!"
+msgstr ""
+"Il che è interessante, perchè mi va bene qualunque cosa. Libera la tua "
+"fantasia!"
 
 #: lib/dialog.js:289
 msgid "In fact, I'm not even sure what I asked. Sorry!"
