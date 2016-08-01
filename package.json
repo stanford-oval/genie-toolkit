@@ -13,8 +13,7 @@
   "dependencies": {
     "adt": "~0.7.2",
     "q": "~1.4.1",
-    "thingtalk": "https://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tarball/master",
-    "tough-cookie": "^2.2.2"
+    "thingtalk": "https://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tarball/master"
   },
   "devDependencies": {
     "byline": "^4.2.1"
