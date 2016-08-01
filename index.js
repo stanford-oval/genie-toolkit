@@ -6,10 +6,8 @@
 //
 // See COPYING for details
 
-const Sempre = require('./lib/sempreclient');
 const Sabrina = require('./lib/sabrina');
 
-module.exports = {
-    Sempre: Sempre,
-    Sabrina: Sabrina
-};
+module.exports = Sabrina;
+// for compat with require('sabrina').Sabrina
+Sabrina.Sabrina = Sabrina;

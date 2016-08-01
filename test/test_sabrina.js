@@ -13,58 +13,12 @@ const Q = require('q');
 const readline = require('readline');
 
 const Sabrina = require('../lib/sabrina');
-const LocalSempre = require('./localsempre');
-const SempreClient = require('../lib/sempreclient');
 
 const Mock = require('./mock');
-
-class FakeSempre {
-    constructor() {
-        console.log('Using fake sempre');
-    }
-
-    start() {}
-    stop() {}
-
-    openSession() {
-        return {
-            sendUtterance(utt) {
-                if (/yes/i.test(utt))
-                    return Q(JSON.stringify({"special":"tt:root.special.yes"}));
-                else if (/no/i.test(utt))
-                    return Q(JSON.stringify({"special":"tt:root.special.no"}));
-                else
-                    return Q(null);
-            }
-        }
-    }
-}
 
 class TestDelegate {
     constructor(rl) {
         this._rl = rl;
-
-        if (process.argv[2] === '--with-sempre=fake')
-            this._sempre = new FakeSempre();
-        else if (process.argv[2] === '--with-sempre=local')
-            this._sempre = new LocalSempre(true);
-        else if (process.argv[2] !== undefined && process.argv[2].startsWith('--with-sempre='))
-            this._sempre = new SempreClient(process.argv[2].substr('--with-sempre='.length));
-        else
-            this._sempre = new SempreClient();
-    }
-
-    start() {
-        this._sempre.start();
-        this._session = this._sempre.openSession();
-    }
-
-    stop() {
-        this._sempre.stop();
-    }
-
-    analyze(what) {
-        return this._session.sendUtterance(what);
     }
 
     send(what) {
@@ -111,9 +65,12 @@ function main() {
 
     var engine = Mock.createMockEngine();
     var delegate = new TestDelegate(rl);
-    var sabrina = new Sabrina(engine, new MockUser(), delegate, false);
 
-    delegate.start();
+    var sempreUrl;
+    if (process.argv[2] !== undefined && process.argv[2].startsWith('--with-sempre='))
+        sempreUrl = process.argv[2].substr('--with-sempre='.length);
+    var sabrina = new Sabrina(engine, new MockUser(), delegate, false, sempreUrl);
+
     sabrina.start();
 
     function quit() {
@@ -123,13 +80,13 @@ function main() {
     }
 
     function _process(command, analysis) {
-        Q(analysis).then(function(analyzed) {
-            return sabrina.handleCommand(command, analyzed);
+        Q.try(function() {
+            if (command === null)
+                return sabrina.handleParsedCommand(analysis);
+            else
+                return sabrina.handleCommand(command);
         }).then(function() {
             rl.prompt();
-        }).catch(function(e) {
-            console.error('Failed to analyze utterance: ' + e.message);
-            console.error(e.stack);
         }).done();
     }
 
@@ -148,7 +105,7 @@ function main() {
             else
                 console.log('Unknown command ' + line[1]);
         } else {
-            _process(line, delegate.analyze(line));
+            _process(line);
         }
     });
     rl.on('SIGINT', quit);

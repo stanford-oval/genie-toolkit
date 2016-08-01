@@ -218,8 +218,8 @@ module.exports.createMockEngine = function() {
                 return this._prefs;
             },
 
-            //locale: 'en_US.utf8',
-            locale: 'it',
+            locale: 'en_US.utf8',
+            //locale: 'it',
 
             hasCapability(cap) {
                 return cap === 'gettext';
