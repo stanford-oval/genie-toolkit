@@ -32,6 +32,35 @@ class MockPreferences {
     }
 }
 
+class MockStatistics {
+    constructor() {
+        this._store = {};
+    }
+
+    snapshot() {
+        console.log('Statistics snapshot');
+    }
+
+    keys() {
+        return Object.keys(this._store);
+    }
+
+    set(key, value) {
+        return this._store[key] = value;
+    }
+
+    get(key) {
+        return this._store[key];
+    }
+
+    hit(key) {
+        var old = this._store[key];
+        if (old === undefined)
+            old = 0;
+        this._store[key] = old+1;
+    }
+}
+
 class MockAppDatabase {
     constructor() {
         this._apps = {};
@@ -236,6 +265,7 @@ module.exports.createMockEngine = function() {
                 }
             }
         },
+        stats: new MockStatistics,
         thingpedia: thingpedia,
         schemas: new ThingTalk.SchemaRetriever(thingpedia),
         devices: new MockDeviceDatabase(),
