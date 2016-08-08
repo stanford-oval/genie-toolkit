@@ -13,6 +13,75 @@ const ThingTalk = require('thingtalk');
 
 const ThingPediaClient = require('./http_client');
 
+function dotProduct(a, b) {
+    var score = 0;
+    for (var name in b)
+        score += (a[name] || 0) * (b[name] || 0);
+    return score;
+}
+
+class NaiveSoftmaxModel {
+    constructor(featureExtractor, initialParams) {
+        this.extractor = featureExtractor;
+        this.params = initialParams;
+    }
+
+    score(example) {
+        return dotProduct(this.extractor(example), this.params);
+    }
+
+    scoreAll(examples) {
+        var scores = new Array(examples.length);
+        var sum = 0;
+
+        examples.forEach(function(ex, i) {
+            scores[i] = this.score(ex);
+            sum += Math.exp(scores[i]);
+        }, this);
+        var mapped = examples.map(function(ex, i) {
+            return {
+                ex: ex,
+                score: scores[i],
+                prob: Math.exp(scores[i])/sum
+            };
+        });
+        mapped.sort(function(a, b) {
+            return b.score - a.score;
+        });
+        return mapped;
+    }
+
+    predict(examples) {
+        var max = 0, which = undefined;
+        var sum = 0;
+
+        for (var ex of examples) {
+            var prob = Math.exp(this.score(ex));
+            sum += prob;
+            if (prob >= max) {
+                which = ex;
+                max = prob;
+            }
+        }
+
+        return [which, prob, prob/sum];
+    }
+
+    learn() {
+        // never learn
+    }
+}
+
+class NaiveML {
+    getModel(name, type, featureExtractor, initialParams) {
+        console.log('Obtained ML model ' + name + ' (' + type + ')');
+        if (type === 'softmax')
+            return new NaiveSoftmaxModel(featureExtractor, initialParams);
+        else
+            throw new Error('Invalid model type ' + type);
+    }
+}
+
 class MockPreferences {
     constructor() {
         this._store = {};
@@ -236,6 +305,36 @@ class MockDiscoveryClient {
     }
 }
 
+const MOCK_ADDRESS_BOOK_DATA = [
+    { displayName: 'Mom Corp Inc.', alternativeDisplayName: 'Mom Corp Inc.',
+      isPrimary: true, starred: false, timesContacted: 0, type: 'work',
+      email_address: 'momcorp@momcorp.com', phone_number: '+1800666' /* 1-800-MOM (not a satanic reference :P ) */ },
+    { displayName: 'Mom Corp Inc.', alternativeDisplayName: 'Mom Corp Inc.',
+      isPrimary: false, starred: false, timesContacted: 0, type: 'work',
+      email_address: 'support@momcorp.com', phone_number: '+18006664357' /* 1-800-MOM-HELP */ },
+    { displayName: 'Alice Smith (mom)', alternativeDisplayName: 'Smith, Alice',
+      isPrimary: true, starred: true, timesContacted: 10000, type: 'mobile',
+      email_address: 'alice@smith.com', phone_number: '+5556664357' },
+    { displayName: 'Bob Smith (dad)', alternativeDisplayName: 'Smith, Bob',
+      isPrimary: true, starred: true, timesContacted: 10000, type: 'mobile',
+      email_address: 'bob@smith.com', phone_number: '+555123456' },
+    { displayName: 'Carol Johnson', alternativeDisplayName: 'Johnson, Carol',
+      isPrimary: true, starred: false, timesContacted: 10, type: 'home',
+      email_address: 'carol@johnson.com', phone_number: '+555654321' },
+    { displayName: 'Alice Johnson', alternativeDisplayName: 'Johnson, Alice',
+      isPrimary: true, starred: false, timesContacted: 10, type: 'work',
+      email_address: 'alice@johnson.com', phone_number: '+555654322' },
+]
+
+class MockAddressBook {
+    lookup(item, key) {
+        return Q(MOCK_ADDRESS_BOOK_DATA.map(function(el) {
+            el.value = el[item];
+            return el;
+        }));
+    }
+}
+
 var thingpedia = new ThingPediaClient(null);
 
 module.exports.createMockEngine = function() {
@@ -251,7 +350,7 @@ module.exports.createMockEngine = function() {
             //locale: 'it',
 
             hasCapability(cap) {
-                return cap === 'gettext';
+                return cap === 'gettext' || cap === 'contacts';
             },
 
             getCapability(cap) {
@@ -260,6 +359,8 @@ module.exports.createMockEngine = function() {
                     var gt = new Gettext();
                     gt.setlocale(this.locale);
                     return gt;
+                } else if (cap === 'contacts') {
+                    return new MockAddressBook();
                 } else {
                     return null;
                 }
@@ -271,5 +372,6 @@ module.exports.createMockEngine = function() {
         devices: new MockDeviceDatabase(),
         apps: new MockAppDatabase(),
         discovery: new MockDiscoveryClient(),
+        ml: new NaiveML()
     };
 };
