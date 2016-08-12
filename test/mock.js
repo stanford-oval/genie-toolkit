@@ -282,6 +282,10 @@ class MockDeviceDatabase {
         }
     }
 
+    hasDevice(id) {
+        return id in this._devices;
+    }
+
     getDevice(id) {
         return this._devices[id];
     }
