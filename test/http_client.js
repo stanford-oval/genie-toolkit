@@ -24,8 +24,9 @@ function getModule(parsed) {
 }
 
 module.exports = class ThingPediaClientHttp {
-    constructor(developerKey) {
+    constructor(developerKey, locale) {
         this.developerKey = developerKey;
+        this.locale = locale || 'en_US';
     }
 
     getModuleLocation(id) {
@@ -49,9 +50,12 @@ module.exports = class ThingPediaClientHttp {
         });
     }
 
-    _simpleRequest(to) {
-        if (this.developerKey)
-            to += '?developer_key=' + this.developerKey;
+    _simpleRequest(to, noAppend) {
+        if (!noAppend) {
+            to += '?locale=' + this.locale;
+            if (this.developerKey)
+                to += '&developer_key=' + this.developerKey;
+        }
 
         var parsed = url.parse(to);
         return Q.Promise(function(callback, errback) {
@@ -92,15 +96,27 @@ module.exports = class ThingPediaClientHttp {
         return this._simpleRequest(to);
     }
 
+    getDeviceFactories(klass) {
+        var to = THINGPEDIA_URL + '/api/devices';
+        if (klass) {
+            to += '?class=' + klass;
+            if (this.developerKey)
+                to += '&developer_key=' + this.developerKey;
+            return this._simpleRequest(to, true);
+        } else {
+            return this._simpleRequest(to);
+        }
+    }
+
     getDeviceSetup(kinds) {
         var to = THINGPEDIA_URL + '/api/devices/setup/' + kinds.join(',');
         return this._simpleRequest(to);
     }
 
     getKindByDiscovery(publicData) {
-        var to = THINGPEDIA_URL + '/api/discovery';
+        var to = THINGPEDIA_URL + '/api/discovery?locale=' + this.locale;
         if (this.developerKey)
-            to += '?developer_key=' + this.developerKey;
+            to += '&developer_key=' + this.developerKey;
 
         var parsed = url.parse(to);
         parsed.method = 'POST';
@@ -124,13 +140,23 @@ module.exports = class ThingPediaClientHttp {
                 });
             });
             req.on('error', errback);
-            req.end(JSON.stringify(blob));
+            req.end(JSON.stringify(publicData));
         });
     }
 
     getExamplesByKey(key, isBase) {
-        var to = THINGPEDIA_URL + '/api/examples?key=' + encodeURIComponent(key)
+        var to = THINGPEDIA_URL + '/api/examples?locale=' + this.locale + '&key=' + encodeURIComponent(key)
             + '&base=' + (isBase ? '1' : '0');
-        return this._simpleRequest(to);
+        if (this.developerKey)
+            to += '&developer_key=' + this.developerKey;
+        return this._simpleRequest(to, true);
+    }
+
+    getExamplesByKinds(kinds, isBase) {
+        var to = THINGPEDIA_URL + '/api/examples/by-kinds/' + kinds.join(',') + '?locale=' + this.locale
+            + '&base=' + (isBase ? '1' : '0');
+        if (this.developerKey)
+            to += '&developer_key=' + this.developerKey;
+        return this._simpleRequest(to, true);
     }
 }
