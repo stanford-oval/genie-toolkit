@@ -140,7 +140,7 @@ class MockAppDatabase {
     }
 
     loadOneApp(code, state, uniqueId, tier, name, description, addToDB) {
-        console.log('MOCK: App ' + name + ' with code ' + code + ' loaded');
+        console.log('MOCK: App ' + name + ' with code ' + code + ' loaded and state ' + JSON.stringify(state));
         this._apps[uniqueId] = { code: code, state: state, uniqueId: uniqueId };
         return Q();
     }
