@@ -1,4 +1,4 @@
-# Italian translations for sabrina package.
+# Chinese translations for sabrina package.
 # Copyright (C) 2016 The Stanford Mobile and Social Research Group
 # This file is distributed under the same license as the sabrina package.
 # Silei Xu <silei@stanford.edu>, 2016.
