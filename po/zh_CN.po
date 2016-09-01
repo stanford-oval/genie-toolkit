@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sabrina 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-09-01 09:03-0700\n"
+"POT-Creation-Date: 2016-09-01 09:56-0700\n"
 "PO-Revision-Date: 2016-08-16 16:37-0700\n"
 "Last-Translator: Silei Xu <silei@stanford.edu>\n"
 "Language-Team: Chinese (simplified)\n"
@@ -141,99 +141,106 @@ msgstr "我有点困惑，我已经在训练模式了，你为什么还让我训
 msgid "Yes, you can? Then, well, do it..."
 msgstr "是？那就去执行吧……"
 
-#: lib/help_dialog.js:28
+#: lib/help_dialog.js:25
+msgid "Media"
+msgstr "媒体"
+
+#: lib/help_dialog.js:25
+msgid "Social Networks"
+msgstr "社交网络"
+
+#: lib/help_dialog.js:25
+msgid "Home"
+msgstr "家居"
+
+#: lib/help_dialog.js:25
+msgid "Communication"
+msgstr "通讯"
+
+#: lib/help_dialog.js:26
+msgid "Health and Fitness"
+msgstr "健康"
+
+#: lib/help_dialog.js:26
+msgid "Services"
+msgstr "服务"
+
+#: lib/help_dialog.js:26
+msgid "Data Management"
+msgstr "数据管理"
+
+#: lib/help_dialog.js:34
 #, javascript-format
 msgid "Here's what I can do for you on %s."
 msgstr "以下是我能在%s上为你做的。"
 
-#: lib/help_dialog.js:41
+#: lib/help_dialog.js:47
 #, javascript-format
 msgid "There is no example commands for %s."
 msgstr "%s 目前没有示例命令。"
 
-#: lib/help_dialog.js:42
+#: lib/help_dialog.js:48
 msgid ""
 "Try add examples at https://thingengine.stanford.edu/thingpedia/devices if "
 "you are testing as a developer."
-msgstr "如果你正在做开发测试，你可以在 https://thingengine.stanford.edu/thingpedia/devices 添加示例命令。"
+msgstr ""
+"如果你正在做开发测试，你可以在 https://thingengine.stanford.edu/thingpedia/"
+"devices 添加示例命令。"
 
-#: lib/help_dialog.js:58
+#: lib/help_dialog.js:64
 msgid ""
 "Here is a list of what I can do. Click on each of the categories to see "
 "corresponding devices."
 msgstr "这是我目前能做的一些事，点击各个分类可以看到相应的设备。"
 
-#: lib/help_dialog.js:60
-msgid "Media"
-msgstr "媒体"
+#: lib/help_dialog.js:75
+#, javascript-format
+msgid "No category %s."
+msgstr ""
 
-#: lib/help_dialog.js:60
-msgid "Social Networks"
-msgstr "社交网络"
-
-#: lib/help_dialog.js:60
-msgid "Home"
-msgstr "家居"
-
-#: lib/help_dialog.js:60
-msgid "Communication"
-msgstr "通讯"
-
-#: lib/help_dialog.js:61
-msgid "Health and Fitness"
-msgstr "健康"
-
-#: lib/help_dialog.js:61
-msgid "Services"
-msgstr "服务"
-
-#: lib/help_dialog.js:61
-msgid "Data Management"
-msgstr "数据管理"
-
-#: lib/help_dialog.js:79
+#: lib/help_dialog.js:88
 msgid "Phone"
 msgstr "手机"
 
-#: lib/help_dialog.js:81
+#: lib/help_dialog.js:90
 msgid "Miscellaneous"
 msgstr "其他"
 
-#: lib/help_dialog.js:85
+#: lib/help_dialog.js:94
 #, javascript-format
 msgid "Sorry, support of %s is still in development ..."
 msgstr "对不起，对 %s 的支持仍在开发中……"
 
-#: lib/help_dialog.js:88
+#: lib/help_dialog.js:97
 #, javascript-format
 msgid ""
 "Here is the list of what I support for %s. Click on each of them to list "
 "their commands."
 msgstr "这是我目前支持的 %s 设备。点击任意一个可以看到它们相应的命令。"
 
-#: lib/help_dialog.js:112
+#: lib/help_dialog.js:121
 msgid "Here's what you can also try:"
 msgstr "你也可以试试以下这些："
 
-#: lib/help_dialog.js:113
+#: lib/help_dialog.js:122
 msgid "‘list devices’: get the devices you have."
 msgstr "“设备列表”：显示你所有的设备。"
 
-#: lib/help_dialog.js:114
+#: lib/help_dialog.js:123
 msgid "‘list commands’: list the commands available for the devices you have."
 msgstr "“命令列表”：显示你的设备所支持的命令。"
 
-#: lib/help_dialog.js:115
+#: lib/help_dialog.js:124
 msgid ""
 "‘help ____’: give you some example commands you can do with a device or "
 "services."
 msgstr "“帮助 ____”： 显示相应设备或服务的一些示例命令。"
 
-#: lib/help_dialog.js:116
+#: lib/help_dialog.js:125
 msgid "‘discover ____’: search for devices match the name or type you give me."
 msgstr "“搜索 ____”：搜索相应的设备或类别。"
 
-#: lib/help_dialog.js:117
+#: lib/help_dialog.js:126
 msgid "‘configure ____’: set up and configure devices."
 msgstr "“设置 ____”：设置相应的设备。"
 
