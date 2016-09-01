@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sabrina 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-08-15 02:54+0000\n"
+"POT-Creation-Date: 2016-09-01 09:03-0700\n"
 "PO-Revision-Date: 2016-08-16 16:37-0700\n"
 "Last-Translator: Silei Xu <silei@stanford.edu>\n"
 "Language-Team: Chinese (simplified)\n"
@@ -20,44 +20,44 @@ msgstr ""
 msgid "Execute"
 msgstr "执行"
 
-#: lib/discovery_dialog.js:43
+#: lib/discovery_dialog.js:44
 #, javascript-format
 msgid "Searching for %s…"
 msgstr "正在搜索%s……"
 
-#: lib/discovery_dialog.js:45
+#: lib/discovery_dialog.js:46
 msgid "Searching for devices nearby…"
 msgstr "正在搜索附近的设备……"
 
-#: lib/discovery_dialog.js:66
+#: lib/discovery_dialog.js:67
 msgid "Discovery is not available in this installation of Sabrina."
 msgstr "该Sabrina版本不支持设备搜索功能。"
 
-#: lib/discovery_dialog.js:111 lib/fallback_dialog.js:309 lib/list_dialog.js:88
+#: lib/discovery_dialog.js:112 lib/fallback_dialog.js:309 lib/list_dialog.js:88
 #: lib/slot_filling_dialog.js:200 lib/device_choice_dialog.js:134
 msgid "Please click on one of the provided choices."
 msgstr "请选择一个提供的选项。"
 
-#: lib/discovery_dialog.js:135
+#: lib/discovery_dialog.js:136
 #, javascript-format
 msgid "Discovery failed: %s"
 msgstr "搜索失败：%s"
 
-#: lib/discovery_dialog.js:144
+#: lib/discovery_dialog.js:145
 #, javascript-format
 msgid "Can't find any %s around."
 msgstr "未在附近找到%s。"
 
-#: lib/discovery_dialog.js:146
+#: lib/discovery_dialog.js:147
 msgid "Can't find any device around."
 msgstr "未在附近找到任何设备。"
 
-#: lib/discovery_dialog.js:152
+#: lib/discovery_dialog.js:153
 #, javascript-format
 msgid "I found a %s. Do you want to set it up now?"
 msgstr "我找到一个%s。你想现在设置该设备吗？"
 
-#: lib/discovery_dialog.js:156
+#: lib/discovery_dialog.js:157
 msgid "I found the following devices. Which one do you want to set up?"
 msgstr "我找到以下设备，你想要设置哪一个？"
 
@@ -79,8 +79,7 @@ msgstr "我没有理解你的意思。你可以试试下列命令："
 #: lib/fallback_dialog.js:118
 msgid ""
 "Sorry, I did not understand that. Use ‘help’ to learn what I can do for you."
-msgstr ""
-"对不起，我没有理解你的意思。使用“帮助”可以查看我能做些什么。"
+msgstr "对不起，我没有理解你的意思。使用“帮助”可以查看我能做些什么。"
 
 #: lib/fallback_dialog.js:162 lib/fallback_dialog.js:325
 msgid "Sorry, you'll have to try and rephrase it once again."
@@ -147,56 +146,96 @@ msgstr "是？那就去执行吧……"
 msgid "Here's what I can do for you on %s."
 msgstr "以下是我能在%s上为你做的。"
 
-#: lib/help_dialog.js:40
-#, javascript-format
-msgid "Sorry I can't find device %s in my database."
-msgstr "对不起我无法在我的数据库中找到%s。"
+#: lib/help_dialog.js:41
+#, fuzzy, javascript-format
+msgid "There is no example commands for %s."
+msgstr "这是一些示例命令。"
 
 #: lib/help_dialog.js:42
-msgid "Try ‘list devices’ to see the devices you have."
-msgstr "试试“设备列表”命令可以查看你的所有设备。"
-
-#: lib/help_dialog.js:54
 msgid ""
-"Here is the list of what I support. Click on each of them to list their "
-"commands."
-msgstr ""
-"这是我目前支持的设备。点击任意一个可以看到它们相应的命令。"
+"Try add examples at https://thingengine.stanford.edu/thingpedia/devices if "
+"you are testing as a developer."
+msgstr "如果你正在做开发测试，你可以在 https://thingengine.stanford.edu/thingpedia/devices 添加示例命令。"
 
-#: lib/help_dialog.js:64
+#: lib/help_dialog.js:58
+#, fuzzy
+msgid ""
+"Here is a list of what I can do. Click on each of the categories to see "
+"corresponding devices."
+msgstr "这是我目前能做的一些事，点击各个分类可以看到相应的设备。"
+
+#: lib/help_dialog.js:60
+msgid "Media"
+msgstr "媒体"
+
+#: lib/help_dialog.js:60
+msgid "Social Networks"
+msgstr "社交网络"
+
+#: lib/help_dialog.js:60
+msgid "Home"
+msgstr "家居"
+
+#: lib/help_dialog.js:60
+msgid "Communication"
+msgstr "通讯"
+
+#: lib/help_dialog.js:61
+msgid "Health and Fitness"
+msgstr "健康"
+
+#: lib/help_dialog.js:61
+#, fuzzy
+msgid "Services"
+msgstr "服务"
+
+#: lib/help_dialog.js:61
+msgid "Data Management"
+msgstr "数据管理"
+
+#: lib/help_dialog.js:79
 msgid "Phone"
 msgstr "手机"
 
-#: lib/help_dialog.js:65
+#: lib/help_dialog.js:81
 msgid "Miscellaneous"
 msgstr "其他"
 
-#: lib/help_dialog.js:86
+#: lib/help_dialog.js:85
+#, javascript-format
+msgid "Sorry, support of %s is still in development ..."
+msgstr "对不起，对 %s 的支持仍在开发中……"
+
+#: lib/help_dialog.js:88
+#, fuzzy, javascript-format
+msgid ""
+"Here is the list of what I support for %s. Click on each of them to list "
+"their commands."
+msgstr "这是我目前支持的 %s 设备。点击任意一个可以看到它们相应的命令。"
+
+#: lib/help_dialog.js:112
 msgid "Here's what you can also try:"
 msgstr "你也可以试试以下这些："
 
-#: lib/help_dialog.js:87
+#: lib/help_dialog.js:113
 msgid "‘list devices’: get the devices you have."
 msgstr "“设备列表”：显示你所有的设备。"
 
-#: lib/help_dialog.js:88
+#: lib/help_dialog.js:114
 msgid "‘list commands’: list the commands available for the devices you have."
-msgstr ""
-"“命令列表”：显示你的设备所支持的命令。"
+msgstr "“命令列表”：显示你的设备所支持的命令。"
 
-#: lib/help_dialog.js:89
+#: lib/help_dialog.js:115
 msgid ""
 "‘help ____’: give you some example commands you can do with a device or "
 "services."
-msgstr ""
-"“帮助 ____”： 显示相应设备或服务的一些示例命令。"
+msgstr "“帮助 ____”： 显示相应设备或服务的一些示例命令。"
 
-#: lib/help_dialog.js:90
+#: lib/help_dialog.js:116
 msgid "‘discover ____’: search for devices match the name or type you give me."
-msgstr ""
-"“搜索 ____”：搜索相应的设备或类别。"
+msgstr "“搜索 ____”：搜索相应的设备或类别。"
 
-#: lib/help_dialog.js:91
+#: lib/help_dialog.js:117
 msgid "‘configure ____’: set up and configure devices."
 msgstr "“设置 ____”：设置相应的设备。"
 
@@ -228,7 +267,7 @@ msgstr "语法错误：%s（第%d行）：%s"
 msgid "%s had an error: %s."
 msgstr "%s有一个错误：%s."
 
-#: lib/helpers.js:131 lib/rule_dialog.js:102 lib/codegen_dialog.js:66
+#: lib/helpers.js:131 lib/rule_dialog.js:99 lib/codegen_dialog.js:60
 #, javascript-format
 msgid "Sorry, that did not work: %s."
 msgstr "对不起，任务失败：%s。"
@@ -282,8 +321,8 @@ msgid ""
 "‘configure twitter’ or ‘configure tv’), or try ‘discover’ and I'll take a "
 "look at what you have."
 msgstr ""
-"你可以通过“设置”命令加上设备或账户的名称（例如“设置推特”或“设置电视”）来添加设备或账户，"
-"活着你可以使用“搜索”命令，我会搜索周围的设备。"
+"你可以通过“设置”命令加上设备或账户的名称（例如“设置推特”或“设置电视”）来添加"
+"设备或账户，活着你可以使用“搜索”命令，我会搜索周围的设备。"
 
 #: lib/list_dialog.js:25
 msgid "devices"
@@ -317,12 +356,12 @@ msgstr "你想让我显示什么的列表呢？"
 msgid "Query"
 msgstr "查询"
 
-#: lib/rule_dialog.js:60 lib/rule_dialog.js:71
+#: lib/rule_dialog.js:57 lib/rule_dialog.js:68
 #, javascript-format
 msgid "%s if %s"
 msgstr "%s，如果%s"
 
-#: lib/rule_dialog.js:220 lib/codegen_dialog.js:139
+#: lib/rule_dialog.js:220 lib/codegen_dialog.js:133
 #, javascript-format
 msgid "Ok, so you want me to %s. Is that right?"
 msgstr "Ok，所以你想要我%s，对吗？"
@@ -397,8 +436,7 @@ msgstr "设置%s"
 msgid ""
 "You can configure devices by command ‘configure ____’, e.g., ‘configure "
 "twitter’."
-msgstr ""
-"你可以通过“设置____”命令来设置设备，例如“设置推特”。"
+msgstr "你可以通过“设置____”命令来设置设备，例如“设置推特”。"
 
 #: lib/default_dialog.js:56
 msgid "I agree, but to what?"
@@ -480,8 +518,8 @@ msgid " and %s has %s"
 msgstr "并且%s有%s"
 
 #: lib/codegen.js:60
-#, javascript-format
-msgid " %s contains %s"
+#, fuzzy, javascript-format
+msgid " and %s contains %s"
 msgstr "并且%s包含%s"
 
 #: lib/codegen.js:66
@@ -558,78 +596,87 @@ msgstr "一个温度"
 msgid "an energy"
 msgstr "一个能量"
 
-#: lib/dialog.js:282
+#: lib/dialog.js:270
+msgid "a size"
+msgstr ""
+
+#: lib/dialog.js:284
 msgid "In fact, I did not ask for anything at all!"
 msgstr "其实我什么也没问！"
 
-#: lib/dialog.js:284
+#: lib/dialog.js:286
 msgid "Just answer yes or no."
 msgstr "请回答是或否。"
 
-#: lib/dialog.js:288
+#: lib/dialog.js:290
 msgid "Just choose one of the following."
 msgstr "请选择一个选项。"
 
-#: lib/dialog.js:291
+#: lib/dialog.js:293
 #, javascript-format
 msgid "I'm looking for %s in any of the supported units (%s)."
 msgstr "我在搜索%s在所有支持的单位(%s)中。"
 
-#: lib/dialog.js:294
+#: lib/dialog.js:296
 msgid "I'm looking for a number."
 msgstr "我需要一个数字。"
 
-#: lib/dialog.js:298
+#: lib/dialog.js:300
 msgid "I'm looking for a point in time."
 msgstr "我需要一个时间点。"
 
-#: lib/dialog.js:302
+#: lib/dialog.js:304
 msgid "I'm looking for a time of day."
 msgstr "我需要一天中的一个时间。"
 
-#: lib/dialog.js:306
+#: lib/dialog.js:308
 msgid "You need to upload a picture!"
 msgstr "你需要上传一个图片。"
 
-#: lib/dialog.js:310
+#: lib/dialog.js:312
 msgid "I'm looking for a place."
 msgstr "我需要一个位置。"
 
-#: lib/dialog.js:314
+#: lib/dialog.js:316
 msgid "I'm looking for a phone number."
 msgstr "我需要一个电话号码。"
 
-#: lib/dialog.js:318
+#: lib/dialog.js:320
 msgid "I'm looking for an email address."
 msgstr "我需要一个邮箱地址。"
 
-#: lib/dialog.js:326
+#: lib/dialog.js:328
 msgid ""
 "Which is interesting, because I'll take anything at all. Just type your mind!"
-msgstr ""
-"啥都行，想说啥就说啥！"
+msgstr "啥都行，想说啥就说啥！"
 
-#: lib/dialog.js:328
+#: lib/dialog.js:330
 msgid "In fact, I'm not even sure what I asked. Sorry!"
 msgstr "其实我也不知道我在问什么。对不起！"
 
-#: lib/dialog.js:335
+#: lib/dialog.js:337
 #, javascript-format
 msgid "Sorry, I did not understand that: %s. Can you rephrase it?"
 msgstr "不好意思，我没有理解“%s”。你可以换个说法吗？"
 
-#: lib/dialog.js:337
+#: lib/dialog.js:339
 msgid "Sorry, I did not understand that. Can you rephrase it?"
 msgstr "不好意思，我没有理解你的饿意思。你可以换个说法吗？"
 
-#: lib/dialog.js:340
+#: lib/dialog.js:342
 #, javascript-format
 msgid "Sorry, I did not understand that: %s."
 msgstr "不好意思，我没有理解“%s”。"
 
-#: lib/dialog.js:342
+#: lib/dialog.js:344
 msgid "Sorry, I did not understand that."
 msgstr "不好意思，我没有理解你的意思。"
+
+#~ msgid "Sorry I can't find device %s in my database."
+#~ msgstr "对不起我无法在我的数据库中找到%s。"
+
+#~ msgid "Try ‘list devices’ to see the devices you have."
+#~ msgstr "试试“设备列表”命令可以查看你的所有设备。"
 
 #~ msgid "Time"
 #~ msgstr "时间"
@@ -656,17 +703,13 @@ msgstr "不好意思，我没有理解你的意思。"
 #~ msgid "Try it now!"
 #~ msgstr "快试试吧！"
 
-#~ msgid "Here're some examples of what I can do for you."
-#~ msgstr "这是一些示例命令。"
-
 #~ msgid "Alright, here's a list of commands you can try:"
 #~ msgstr "好的，你可以试试这些命令："
 
 #~ msgid ""
 #~ "‘list devices/queries/commands’: get the devices you have, example "
 #~ "queries, or available commands."
-#~ msgstr ""
-#~ "“设备/查询/命令 列表’: 查看你所有的设备，查询命令。 "
+#~ msgstr "“设备/查询/命令 列表’: 查看你所有的设备，查询命令。 "
 
 #~ msgid "The device has been set up."
 #~ msgstr "设备已经完成设置。"
