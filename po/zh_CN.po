@@ -147,9 +147,9 @@ msgid "Here's what I can do for you on %s."
 msgstr "以下是我能在%s上为你做的。"
 
 #: lib/help_dialog.js:41
-#, fuzzy, javascript-format
+#, javascript-format
 msgid "There is no example commands for %s."
-msgstr "这是一些示例命令。"
+msgstr "%s 目前没有示例命令。"
 
 #: lib/help_dialog.js:42
 msgid ""
@@ -158,7 +158,6 @@ msgid ""
 msgstr "如果你正在做开发测试，你可以在 https://thingengine.stanford.edu/thingpedia/devices 添加示例命令。"
 
 #: lib/help_dialog.js:58
-#, fuzzy
 msgid ""
 "Here is a list of what I can do. Click on each of the categories to see "
 "corresponding devices."
@@ -185,7 +184,6 @@ msgid "Health and Fitness"
 msgstr "健康"
 
 #: lib/help_dialog.js:61
-#, fuzzy
 msgid "Services"
 msgstr "服务"
 
@@ -207,7 +205,7 @@ msgid "Sorry, support of %s is still in development ..."
 msgstr "对不起，对 %s 的支持仍在开发中……"
 
 #: lib/help_dialog.js:88
-#, fuzzy, javascript-format
+#, javascript-format
 msgid ""
 "Here is the list of what I support for %s. Click on each of them to list "
 "their commands."
@@ -518,7 +516,7 @@ msgid " and %s has %s"
 msgstr "并且%s有%s"
 
 #: lib/codegen.js:60
-#, fuzzy, javascript-format
+#, javascript-format
 msgid " and %s contains %s"
 msgstr "并且%s包含%s"
 
