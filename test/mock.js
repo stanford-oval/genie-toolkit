@@ -162,6 +162,22 @@ class MockTwitterDevice {
     }
 }
 
+class MockTVDevice {
+    constructor(who) {
+        this.name = "LG WebOS TV " + who;
+        this.kind = 'lg_webos_tv';
+        this.uniqueId = 'lg_webos_tv-' + who;
+    }
+}
+
+class MockYoutubeDevice {
+    constructor(who) {
+        this.name = "Youtube Account " + who;
+        this.kind = 'youtube';
+        this.uniqueId = 'youtube-' + who;
+    }
+}
+
 class MockBluetoothDevice {
     constructor(who, paired) {
         this.name = "Bluetooth Device " + who;
@@ -269,6 +285,8 @@ class MockDeviceDatabase {
         this._devices['9gag'] = new MockNineGagDevice();
         this._devices['twitter-foo'] = new MockTwitterDevice('foo');
         this._devices['twitter-bar'] = new MockTwitterDevice('bar');
+        this._devices['youtube-foo'] = new MockYoutubeDevice('foo');
+        this._devices['lg_webos_tv-foo'] = new MockTVDevice('foo');
         this._devices['thingengine-own-phone'] = new MockPhoneDevice();
     }
 
