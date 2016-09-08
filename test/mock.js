@@ -178,6 +178,14 @@ class MockYoutubeDevice {
     }
 }
 
+class MockEmailDevice {
+    constructor(who) {
+        this.name = "Email Sender";
+        this.kind = 'emailsender';
+        this.uniqueId = 'emailsender';
+    }
+}
+
 class MockBluetoothDevice {
     constructor(who, paired) {
         this.name = "Bluetooth Device " + who;
@@ -283,6 +291,7 @@ class MockDeviceDatabase {
     constructor() {
         this._devices = {};
         this._devices['9gag'] = new MockNineGagDevice();
+        this._devices['emailsender'] = new MockEmailDevice();
         this._devices['twitter-foo'] = new MockTwitterDevice('foo');
         this._devices['twitter-bar'] = new MockTwitterDevice('bar');
         this._devices['youtube-foo'] = new MockYoutubeDevice('foo');
