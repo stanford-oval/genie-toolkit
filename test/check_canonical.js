@@ -23,7 +23,7 @@ var sempre, session, schemas;
 
 class CanonicalChecker {
     constructor(canonical, parsed) {
-        var analysis = new SemanticAnalyzer(JSON.parse(parsed));
+        var analysis = new SemanticAnalyzer(parsed);
         if (!analysis.isRule)
             throw new Error('Canonical utterance is not a rule');
 
