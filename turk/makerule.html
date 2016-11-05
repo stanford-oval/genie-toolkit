@@ -1,0 +1,61 @@
+<html>
+<head>
+    <title>Pick the right rule</title>
+</head>
+
+<script>
+/*
+My plan is to put 2 query parameters in the url since we know the devices used in each sentence.
+As a result, turkers don't need to select device.
+
+So the link should look like: "...makerule.html?device1=twitter&device2=facebook"
+*/
+function getParamByName(name) {
+    var url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+    results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+    
+}
+var device1 = getParamByName("device1");
+var device2 = getParamByName("device2");
+
+const BASE_URL = 'https://thingengine.stanford.edu/thingpedia/api/examples?';
+function getExamplesByName(name) {
+    var to = BASE_URL + 'key=' + encodeURIComponent(name);
+    return _simpleRequest(to);
+}
+function _simpleRequest(to) {
+    var xmlHttp = new window.XMLHttpRequest();
+    xmlHttp.open("GET", to, false);
+    xmlHttp.send(null);
+    return xmlHttp.responseText;
+}
+var res1 = getExamplesByName(device1);
+var res2 = getExamplesByName(device2);
+</script>
+
+<body>
+    <div class="body">
+        <h1 class="title">
+        Pick the right rule given the sentence
+        <h1>
+    </div>
+    <p>
+    Given the sentence you were given on the HIT, try use the following tool to build it.
+    </p>
+
+<p><script>document.write(device1);</script></p>
+<p><script>document.write(res1);</script></p>
+
+<p><script>document.write(device2);</script></p>
+<p><script>document.write(res2);</script></p>
+
+
+<p>
+
+</body>
+</html>
