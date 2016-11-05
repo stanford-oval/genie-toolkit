@@ -26,16 +26,35 @@ var device2 = getParamByName("device2");
 const BASE_URL = 'https://thingengine.stanford.edu/thingpedia/api/examples?';
 function getExamplesByName(name) {
     var to = BASE_URL + 'key=' + encodeURIComponent(name);
-    return _simpleRequest(to);
+    var examples = JSON.parse(_simpleRequest(to));
+    var filtered = [];
+    var added = new Set();
+    for (var ex of examples) {
+        if (ex.target_json.indexOf("\"slots\":\[") < 0)
+            continue;
+        if (added.has(ex.target_json))
+            continue;
+        added.add(ex.target_json);
+        filtered.push(ex);
+    }
+    return filtered;
 }
+
 function _simpleRequest(to) {
     var xmlHttp = new window.XMLHttpRequest();
     xmlHttp.open("GET", to, false);
     xmlHttp.send(null);
     return xmlHttp.responseText;
 }
-var res1 = getExamplesByName(device1);
-var res2 = getExamplesByName(device2);
+
+function listCommands(cmds) {
+    for (var cmd of cmds) {
+        document.write(cmd.utterance + "<br />");
+    }
+}
+var cmd1 = getExamplesByName(device1);
+var cmd2 = getExamplesByName(device2);
+
 </script>
 
 <body>
@@ -48,11 +67,11 @@ var res2 = getExamplesByName(device2);
     Given the sentence you were given on the HIT, try use the following tool to build it.
     </p>
 
-<p><script>document.write(device1);</script></p>
-<p><script>document.write(res1);</script></p>
+<h4><script>document.write(device1);</script></h4>
+<p> <script>listCommands(cmd1)</script></p>
 
-<p><script>document.write(device2);</script></p>
-<p><script>document.write(res2);</script></p>
+<h4><script>document.write(device2);</script></h4>
+<p> <script>listCommands(cmd2)</script></p>
 
 
 <p>
