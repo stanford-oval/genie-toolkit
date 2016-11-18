@@ -53,7 +53,6 @@ lib/graphdb/sparql_runner.js
 lib/graphdb/unionstream.js
 lib/keyword/local.js
 lib/keyword/registry.js
-lib/keyword/remote.js
 lib/logger.js
 lib/messaging/device_manager.js
 lib/messaging/query_responder.js
