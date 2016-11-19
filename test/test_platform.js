@@ -17,7 +17,7 @@ const child_process = require('child_process');
 const Sabrina = require('sabrina').Sabrina;
 
 const prefs = require('../lib/util/prefs');
-const sql = require('../lib/util/sql');
+const sql = require('../lib/db/sqlite');
 
 var Config;
 try {
