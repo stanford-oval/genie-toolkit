@@ -31,3 +31,10 @@ create table keyword (
        uniqueId varchar(255) primary key,
        value text default null
 );
+
+drop table if exists channel ;
+
+create table channel (
+       uniqueId varchar(255) primary key,
+       value text default null
+);
