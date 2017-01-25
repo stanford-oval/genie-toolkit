@@ -87,7 +87,7 @@ function main() {
       // bring everything to 0.15 probability and 0 score, to trigger the heuristic
       // for ambiguous analysis
       choices.forEach((c) => {
-        c.prob = 0.15;
+        c.prob = 0.20;
         c.score = 0;
       });
     }
