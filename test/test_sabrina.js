@@ -79,15 +79,38 @@ function main() {
         process.exit();
     }
 
-    function _process(command, analysis) {
+    function forceFallback(choices) {
+      // remove everything from the array, to force looking up in the examples
+      choices.length = 0;
+    }
+    function forceSuggestions(choices) {
+      // bring everything to 0.15 probability and 0 score, to trigger the heuristic
+      // for ambiguous analysis
+      choices.forEach((c) => {
+        c.prob = 0.15;
+        c.score = 0;
+      });
+    }
+
+    function _process(command, analysis, postprocess) {
         Q.try(function() {
             if (command === null)
                 return sabrina.handleParsedCommand(analysis);
             else
-                return sabrina.handleCommand(command);
+                return sabrina.handleCommand(command, postprocess);
         }).then(function() {
             rl.prompt();
         }).done();
+    }
+
+    function help() {
+      console.log('Available console commands:');
+      console.log('\\q: quit');
+      console.log('\\h: this help');
+      console.log('\\r JSON: send json to Sabrina');
+      console.log('\\f COMMAND: force example search fallback');
+      console.log('\\s COMMAND: force ambiguous command fallback');
+      rl.prompt();
     }
 
     rl.on('line', function(line) {
@@ -98,10 +121,16 @@ function main() {
         if (line[0] === '\\') {
             if (line[1] === 'q')
                 quit();
+            else if (line[1] === 'h')
+                help();
             else if (line[1] === 'r')
                 _process(null, line.substr(2));
             else if (line[1] === 'c')
                 _process(null, JSON.stringify({ answer: { type: "Choice", value: parseInt(line.substr(2)) }}));
+            else if (line[1] === 'f')
+                _process(line.substr(2), null, forceFallback)
+            else if (line[1] === 's')
+                _process(line.substr(2), null, forceSuggestions)
             else
                 console.log('Unknown command ' + line[1]);
         } else {
