@@ -10,6 +10,7 @@
 require('./polyfill');
 
 const Q = require('q');
+Q.longStackSupport = true;
 const readline = require('readline');
 
 const Sabrina = require('../lib/sabrina');
