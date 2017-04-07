@@ -105,7 +105,7 @@ will not do HTTPS natively. Example configuration for ngnix is in
 
 #### Setting up the virtual assistant
 
-If you want to offer virtual assistant services (like Sabrina is
+If you want to offer virtual assistant services (like Almond is
 offered on the reference installation) to your users, you should first
 create a suitable Omlet account, that will appear as the account
 the user is interacting with.

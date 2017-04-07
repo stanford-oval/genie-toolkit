@@ -14,7 +14,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const child_process = require('child_process');
-const Sabrina = require('sabrina').Sabrina;
+const Almond = require('sabrina').Almond;
 
 const prefs = require('../lib/util/prefs');
 const sql = require('../lib/db/sqlite');
@@ -61,7 +61,7 @@ module.exports = {
     },
 
     createAssistant(engine, user, delegate) {
-        this._assistant = new Sabrina(engine, user, delegate);
+        this._assistant = new Almond(engine, user, delegate);
     },
 
     type: 'testing',
@@ -90,7 +90,7 @@ module.exports = {
 
         case 'assistant':
             // If we can create a full AssistantManager (because the platform
-            // will back with a Sabrina account)
+            // will back with a Almond account)
             return this._assistant !== null;
 
         default:
@@ -173,12 +173,12 @@ module.exports = {
         return process.exit();
     },
 
-    // Get the ThingPedia developer key, if one is configured
+    // Get the Thingpedia developer key, if one is configured
     getDeveloperKey: function() {
         return _prefs.get('developer-key');
     },
 
-    // Change the ThingPedia developer key, if possible
+    // Change the Thingpedia developer key, if possible
     // Returns true if the change actually happened
     setDeveloperKey: function(key) {
         return _prefs.set('developer-key', key);

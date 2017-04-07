@@ -107,7 +107,7 @@ function interact(engine, platform, delegate, rl) {
         console.log('\\s <sparql> : run a graphdb query');
         console.log('\\c <number> : make a choice');
         console.log('\\? or \\h : show this help');
-        console.log('Any other command is interpreted as an English sentence and sent to Sabrina');
+        console.log('Any other command is interpreted as an English sentence and sent to Almond');
     }
 
     var assistant = platform.getCapability('assistant');

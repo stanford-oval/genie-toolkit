@@ -1,8 +1,8 @@
-# Writing Interfaces for ThingPedia
+# Writing Interfaces for Thingpedia
 
 ## The basics: Devices, Channels and Events
 
-At the highest level, a ThingPedia interface is just a nodejs
+At the highest level, a Thingpedia interface is just a nodejs
 package, whose main entry point is a _device class_.
 
 From a device class, the system will obtain _device instances_,
@@ -34,7 +34,7 @@ will create and open the channels at the right time.
 
 ## The layout of a Device package
 
-The ThingPedia API assumes a precise layout for a device package.
+The Thingpedia API assumes a precise layout for a device package.
 
 The primary entry point (i.e., the one named as "main" in package.json)
 should be a _device class_. You would instantiate the device class
@@ -83,7 +83,7 @@ A device instance holds several pieces of data.
 ### _primary kind_ (or just kind)
 
 The name of your nodejs package, and the unique identifier of your
-device class that you will use to publish your device to ThingPedia;
+device class that you will use to publish your device to Thingpedia;
 you can access it as `this.kind` in your device class.
 
 ### _secondary kinds_
@@ -191,7 +191,7 @@ which is a ThingEngine wide store of key-value pairs backed to disk
 - `platform.getRoot()`, `platform.getWritableDir()`,
 `platform.getCacheDir()`, `platform.getTmpDir()`: the paths that
 ThingEngine can use on the file system
-- `platform.getDeveloperKey()`: the currently configured ThingPedia developer key (if any)
+- `platform.getDeveloperKey()`: the currently configured Thingpedia developer key (if any)
 - `platform.getOrigin()`: the web site hosting ThingEngine
 
 ## Extension Interfaces and Messaging
@@ -219,7 +219,7 @@ access token. After the device is set up and stored to disk, this is easy becaus
 the authentication data, but you need a way to obtain it at first.
 
 The way it is handled is through the `auth` field in the _manifest file_, which describes
-the device metadata in ThingPedia and is used to generate the UI show in ThingEngine. The
+the device metadata in Thingpedia and is used to generate the UI show in ThingEngine. The
 manifest will be described in more detail later.
 
 Three ways to do authentication are supported:
@@ -539,8 +539,8 @@ be a readable stream and will be piped.
 ## Device Metadata
 
 In addition to a device package, each device specification published on
-ThingPedia must include some metadata, called a _device manifest_, which will parsed
-by ThingPedia to generate the web UI.
+Thingpedia must include some metadata, called a _device manifest_, which will parsed
+by Thingpedia to generate the web UI.
 
 The manifest contains:
 
@@ -585,18 +585,18 @@ or a button otherwise
 - `"basic"`, in which case the UI will always show a form; `username` and `password`
   parameters are required
 
-## Publishing on ThingPedia
+## Publishing on Thingpedia
 
 Once you are ready to let other people try your device interface, after thorough
-local testing, you can publish it on ThingPedia.
+local testing, you can publish it on Thingpedia.
 
 To do so, you must first
 [request a developer account](https://thingengine.stanford.edu/user/request-developer).
-Once the request is approved by the ThingPedia administrators (you can check the status
+Once the request is approved by the Thingpedia administrators (you can check the status
 from [your profile page](https://thingengine.stanford.edu/user/profile)), you will be
 able to upload a new device by clicking on
 [Propose it for inclusion](https://thingengine.stanford.edu/thingpedia/upload/create?class=physical)
-in the red banner in the ThingPedia page.
+in the red banner in the Thingpedia page.
 
 In the creation page you will be required to upload a zip file containing your
 device package. The package.json must be at the toplevel of the zip file, not in a
@@ -610,11 +610,11 @@ to use for channel classes.
 Once submitted, the device is not automatically available to all users. Instead,
 it is only available to you and people to who you give your _developer key_,
 which you can retrieve from your user profile. The device will become available
-after being reviewed and approved by a ThingPedia administrator.
+after being reviewed and approved by a Thingpedia administrator.
 
 ## Handling Discovery
 
-Local discovery in ThingPedia relies on the
+Local discovery in Thingpedia relies on the
 [thingpedia-discovery](https://github.com/Stanford-IoT-Lab/thingpedia-discovery)
 nodejs module, which contains the generic code to run the discovery protocols and
 to match the discovery information to a specific interface.
@@ -624,7 +624,7 @@ If your interface supports discovery, your must implement the
 `privateData` are objects that contain information derived from the discovery
 protocol, and are discovery protocol specific; `privateData` contains user
 identifying information (such as serial numbers and HW addresses), while `publicData`
-contains the generic capabilities inferred by discovery and is sent to ThingPedia
+contains the generic capabilities inferred by discovery and is sent to Thingpedia
 to match the interface. `publicData.kind` is the identifier for the discovery
 protocol in use.
 
@@ -650,7 +650,7 @@ Discovery data:
 - `privateData.trusted`: if the device is trusted to access services on the host
 - `descriptor`: `bluetooth/` followed by the HW address
 
-ThingPedia matching of interfaces is based on UUIDs.
+Thingpedia matching of interfaces is based on UUIDs.
 If your interface wants to be a candidate for any device with a given UUID, it
 should expose the type `bluetooth-uuid-`_uuid_, e.g. an interface implementing
 the A2DP sink profile  would mark itself
