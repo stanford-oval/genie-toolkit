@@ -6,8 +6,8 @@
 //
 // See COPYING for details
 
-const Sabrina = require('./lib/sabrina');
+const Almond = require('./lib/sabrina');
 
-module.exports = Sabrina;
-// for compat with require('sabrina').Sabrina
-Sabrina.Sabrina = Sabrina;
+module.exports = Almond;
+// for compat with require('sabrina').Almond
+Almond.Almond = Almond;

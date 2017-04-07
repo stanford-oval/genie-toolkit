@@ -12,7 +12,7 @@ const byline = require('byline');
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 
-const ThingPediaClient = require('./http_client');
+const ThingpediaClient = require('./http_client');
 const LocalSempre = require('./localsempre');
 const SempreClient = require('../lib/sempreclient');
 
@@ -88,7 +88,7 @@ function main() {
         sempre = new SempreClient();
     sempre.start();
     session = sempre.openSession();
-    schemas = new ThingTalk.SchemaRetriever(new ThingPediaClient(), true);
+    schemas = new ThingTalk.SchemaRetriever(new ThingpediaClient(), true);
 
     var linestdin = byline(process.stdin);
     linestdin.setEncoding('utf8');

@@ -11,7 +11,7 @@ const Q = require('q');
 
 const ThingTalk = require('thingtalk');
 
-const ThingPediaClient = require('./http_client');
+const ThingpediaClient = require('./http_client');
 
 function dotProduct(a, b) {
     var score = 0;
@@ -366,7 +366,7 @@ class MockAddressBook {
     }
 }
 
-var thingpedia = new ThingPediaClient(null);
+var thingpedia = new ThingpediaClient(null);
 
 module.exports.createMockEngine = function() {
     return {
