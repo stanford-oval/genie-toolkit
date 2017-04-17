@@ -9,7 +9,7 @@
       "email": "gcampagn@cs.stanford.edu"
     }
   ],
-  "main": "index.js",
+  "main": "lib/almond.js",
   "dependencies": {
     "adt": "~0.7.2",
     "q": "~1.4.1",
