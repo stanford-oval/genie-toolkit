@@ -70,7 +70,7 @@ function main() {
     var sempreUrl;
     if (process.argv[2] !== undefined && process.argv[2].startsWith('--with-sempre='))
         sempreUrl = process.argv[2].substr('--with-sempre='.length);
-    var sabrina = new Almond(engine, new MockUser(), delegate, false, sempreUrl);
+    var sabrina = new Almond(engine, new MockUser(), delegate, { debug: false, sempreUrl: sempreUrl });
 
     sabrina.start();
 
