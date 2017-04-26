@@ -309,6 +309,11 @@ class MockDeviceDatabase {
         }
     }
 
+    getForeignDevice(principal, kind) {
+        console.log('Returning foreign ' + kind + ' device owned by ' + principal);
+        return Q(new MockUnknownDevice(kind));
+    }
+
     hasDevice(id) {
         return id in this._devices;
     }
@@ -360,7 +365,10 @@ const MOCK_ADDRESS_BOOK_DATA = [
 class MockAddressBook {
     lookup(item, key) {
         return Q(MOCK_ADDRESS_BOOK_DATA.map(function(el) {
-            el.value = el[item];
+            if (item === 'contact')
+                el.value = 'phone:' + el.phone_number;
+            else
+                el.value = el[item];
             return el;
         }));
     }

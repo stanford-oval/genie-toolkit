@@ -37,11 +37,16 @@ module.exports = class ThingpediaClientHttp {
         var parsed = url.parse(to);
         return Q.Promise(function(callback, errback) {
             getModule(parsed).get(parsed, function(res) {
+                // make sure we drain the request or we'll keep the TCP connection
+                // alive forever!
+                res.resume();
+
                 if (res.statusCode != 301) {
                     return errback(new Error('Unexpected HTTP status ' +
                                              res.statusCode +
                                              ' downloading channel ' + id));
                 }
+
 
                 callback(res.headers['location']);
             }).on('error', function(error) {
@@ -60,8 +65,12 @@ module.exports = class ThingpediaClientHttp {
         var parsed = url.parse(to);
         return Q.Promise(function(callback, errback) {
             getModule(parsed).get(parsed, function(res) {
-                if (res.statusCode != 200)
+                if (res.statusCode != 200) {
+                    // make sure we drain the request or we'll keep the TCP connection
+                    // alive forever!
+                    res.resume();
                     return errback(new Error('Unexpected HTTP error ' + res.statusCode));
+                }
 
                 var data = '';
                 res.setEncoding('utf8');
@@ -83,12 +92,18 @@ module.exports = class ThingpediaClientHttp {
 
     getDeviceCode(id) {
         var to = THINGPEDIA_URL + '/api/code/devices/' + id;
-        return this._simpleRequest(to);
+        to += '?version=2&locale=' + this.locale;
+        if (this.developerKey)
+            to += '&developer_key=' + this.developerKey;
+        return this._simpleRequest(to, true);
     }
 
     getSchemas(kinds) {
         var to = THINGPEDIA_URL + '/api/schema/' + kinds.join(',');
-        return this._simpleRequest(to);
+        to += '?version=2&locale=' + this.locale;
+        if (this.developerKey)
+            to += '&developer_key=' + this.developerKey;
+        return this._simpleRequest(to, true);
     }
 
     getMetas(kinds) {
@@ -125,10 +140,14 @@ module.exports = class ThingpediaClientHttp {
 
         return Q.Promise(function(callback, errback) {
             var req = getModule(parsed).request(parsed, function(res) {
-                if (res.statusCode == 404)
+                if (res.statusCode == 404) {
+                    res.resume();
                     return errback(new Error('No such device'));
-                if (res.statusCode != 200)
+                }
+                if (res.statusCode != 200) {
+                    res.resume();
                     return errback(new Error('Unexpected HTTP error ' + res.statusCode));
+                }
 
                 var data = '';
                 res.setEncoding('utf8');
@@ -158,5 +177,10 @@ module.exports = class ThingpediaClientHttp {
         if (this.developerKey)
             to += '&developer_key=' + this.developerKey;
         return this._simpleRequest(to, true);
+    }
+
+    clickExample(exampleId) {
+        var to = THINGPEDIA_URL + '/api/examples/click/' + exampleId;
+        return this._simpleRequest(to);
     }
 }

@@ -13,7 +13,7 @@ const Q = require('q');
 Q.longStackSupport = true;
 const readline = require('readline');
 
-const Almond = require('../lib/sabrina');
+const Almond = require('../lib/almond');
 
 const Mock = require('./mock');
 
@@ -70,7 +70,7 @@ function main() {
     var sempreUrl;
     if (process.argv[2] !== undefined && process.argv[2].startsWith('--with-sempre='))
         sempreUrl = process.argv[2].substr('--with-sempre='.length);
-    var sabrina = new Almond(engine, new MockUser(), delegate, { debug: false, sempreUrl: sempreUrl });
+    var sabrina = new Almond(engine, 'test', new MockUser(), delegate, { debug: false, sempreUrl: sempreUrl });
 
     sabrina.start();
 
