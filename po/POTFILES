@@ -17,6 +17,6 @@ lib/codegen_dialog.js
 lib/config_dialog.js
 lib/default_dialog.js
 lib/device_choice_dialog.js
-lib/codegen.js
-lib/sabrina.js
+lib/describe.js
+lib/almond.js
 lib/dialog.js

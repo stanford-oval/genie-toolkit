@@ -1,11 +1,11 @@
-# Italian translations for sabrina package.
+# Italian translations for almond package.
 # Copyright (C) 2016 The Stanford Mobile and Social Research Group
-# This file is distributed under the same license as the sabrina package.
+# This file is distributed under the same license as the almond package.
 # Giovanni Campagna <gcampagn@cs.stanford.edu>, 2016.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: sabrina 1.0.0\n"
+"Project-Id-Version: almond 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-09-01 21:18-0700\n"
 "PO-Revision-Date: 2016-07-28 12:19-0700\n"

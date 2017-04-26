@@ -1,7 +1,7 @@
 {
-  "name": "sabrina",
+  "name": "almond",
   "version": "1.0.0",
-  "description": "Sabrina the ThingPedia Assistant",
+  "description": "Almond the ThingPedia Assistant",
   "author": "Stanford Mobisocial lab",
   "contributors": [
     {
@@ -12,8 +12,7 @@
   "main": "lib/almond.js",
   "dependencies": {
     "adt": "~0.7.2",
-    "q": "~1.4.1",
-    "thingtalk": "https://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tarball/master"
+    "q": "~1.4.1"
   },
   "devDependencies": {
     "byline": "^4.2.1",
