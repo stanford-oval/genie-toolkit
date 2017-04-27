@@ -89,7 +89,7 @@ you can access it as `this.kind` in your device class.
 ### _secondary kinds_
 
 Additional types that your device class conforms to. If your device class
-supports secondary kind `foo`, then a rule can refer to it as `@(type="foo")`.
+supports secondary kind `foo`, then a rule can refer to it as `@foo`.
 
 The most important secondary kind is `online-account`, which will flag
 the device as an account, and will change where it appears in the UI.
@@ -146,13 +146,9 @@ to preserve the modification to disk
 - `this.updateState(newState)`: conversely, if the state changes outside of you, and you
 want to recompute state, you should override `updateState()` to handle the new state; the overriding
 method should chain up (with `this.parent(newState)`) as the first statement
-- `this.hasKind(kind)`: check if the device has the given kind (primary or secondary); the
-default implementation has no secondary kinds, override it if you need it
-- `Kinds`: an array of secondary kinds, which provides a quick way to implement `hasKind` if
-you don't need dynamic behavior
 - `UseOAuth2`: if your device can be instantiated with an OAuth-like flow (user clicks on a button,
 is redirected to a login page), this should be set to the handler; despite the name, this is
-called also for OAuth 1 or no authentication at all
+called also for OAuth 1
 - `UseDiscovery`, `this.updateFromDiscovery`: discovery operations, described later
 - `this.queryInterface(iface)`: request an _extension interface_ for this device instance; extension
 interfaces are optional features that your device class supports; override this method if you have

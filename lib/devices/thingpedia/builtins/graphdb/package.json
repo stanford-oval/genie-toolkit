@@ -1,8 +1,4 @@
 {
-  "name": "thingengine-device-omlet",
-  "main": "device.js",
-  "thingpedia-metadata": {
-    "global-name": "graphdb",
-    "types": ["thingengine-system"]
-  }
+  "name": "graphdb",
+  "main": "device.js"
 }

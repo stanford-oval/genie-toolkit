@@ -1,7 +1,4 @@
 {
-    "name": "thingengine-device-bluetooth-generic",
-    "main": "device.js",
-    "thingpedia-metadata": {
-       "types": []
-    }
+    "name": "bluetooth.generic",
+    "main": "device.js"
 }

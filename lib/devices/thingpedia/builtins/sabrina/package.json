@@ -1,8 +1,4 @@
 {
-  "name": "thingengine-device-sabrina",
-  "main": "device.js",
-  "thingpedia-metadata": {
-    "global-name": "sabrina",
-    "types": ["thingengine-system"]
-  }
+  "name": "sabrina",
+  "main": "device.js"
 }

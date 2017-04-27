@@ -1,8 +1,4 @@
 {
-  "name": "thingengine-device-phone",
-  "main": "device.js",
-  "thingpedia-metadata": {
-    "global-name": "phone",
-    "types": []
-  }
+  "name": "thingengine.phone",
+  "main": "device.js"
 }

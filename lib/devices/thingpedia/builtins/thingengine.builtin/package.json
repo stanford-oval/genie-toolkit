@@ -1,8 +1,4 @@
 {
-  "name": "thingengine-device-builtin",
-  "main": "device.js",
-  "thingpedia-metadata": {
-    "global-name": "builtin",
-    "types": ["thingengine-system"]
-  }
+  "name": "thingengine.builtin",
+  "main": "device.js"
 }
