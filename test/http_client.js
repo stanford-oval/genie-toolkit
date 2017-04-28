@@ -14,7 +14,7 @@ const path = require('path');
 const fs = require('fs');
 const url = require('url');
 
-const THINGPEDIA_URL = 'https://thingengine.stanford.edu/thingpedia';
+const THINGPEDIA_URL = 'http://parmesan.stanford.edu:8080/thingpedia';
 
 function getModule(parsed) {
     if (parsed.protocol === 'https:')
@@ -88,6 +88,19 @@ module.exports = class ThingpediaClientHttp {
                 errback(error);
             });
         });
+    }
+
+    getAppCode(appId) {
+        var to = THINGPEDIA_URL + '/api/code/devices/' + appId;
+        return this._simpleRequest(to);
+    }
+
+    getApps(start, limit) {
+        var to = THINGPEDIA_URL + '/api/apps';
+        to += '?start=' + start + '&limit=' + limit + '&locale=' + this.locale;
+        if (this.developerKey)
+            to += '&developer_key=' + this.developerKey;
+        return this._simpleRequest(to, true);
     }
 
     getDeviceCode(id) {
