@@ -14,6 +14,8 @@ Q.longStackSupport = true;
 const readline = require('readline');
 
 const Almond = require('../lib/almond');
+const ThingTalk = require('thingtalk');
+const Type = ThingTalk.Type;
 
 const Mock = require('./mock');
 
@@ -114,6 +116,10 @@ function main() {
       rl.prompt();
     }
 
+    function askQuestion(type, question) {
+        sabrina.askQuestion([Type.fromString(type), question]).then((v) => console.log('You Answered: ' + v)).done();
+    }
+
     rl.on('line', function(line) {
         if (line.trim().length === 0) {
             rl.prompt();
@@ -125,13 +131,15 @@ function main() {
             else if (line[1] === 'h')
                 help();
             else if (line[1] === 'r')
-                _process(null, line.substr(2));
+                _process(null, line.substr(3));
             else if (line[1] === 'c')
-                _process(null, JSON.stringify({ answer: { type: "Choice", value: parseInt(line.substr(2)) }}));
+                _process(null, JSON.stringify({ answer: { type: "Choice", value: parseInt(line.substr(3)) }}));
             else if (line[1] === 'f')
-                _process(line.substr(2), null, forceFallback)
+                _process(line.substr(3), null, forceFallback)
             else if (line[1] === 's')
-                _process(line.substr(2), null, forceSuggestions)
+                _process(line.substr(3), null, forceSuggestions)
+            else if (line[1] === 'a')
+                askQuestion(line.substring(3, line.indexOf(' ', 3)), line.substr(line.indexOf(' ', 3)));
             else
                 console.log('Unknown command ' + line[1]);
         } else {
