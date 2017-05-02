@@ -117,7 +117,7 @@ function main() {
     }
 
     function askQuestion(type, question) {
-        sabrina.askQuestion([Type.fromString(type), question]).then((v) => console.log('You Answered: ' + v)).done();
+        sabrina.askQuestion([null, null, Type.fromString(type), question]).then((v) => console.log('You Answered: ' + v)).done();
     }
 
     rl.on('line', function(line) {
