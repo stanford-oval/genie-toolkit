@@ -72,9 +72,10 @@ function main() {
     var sempreUrl;
     if (process.argv[2] !== undefined && process.argv[2].startsWith('--with-sempre='))
         sempreUrl = process.argv[2].substr('--with-sempre='.length);
-    var sabrina = new Almond(engine, 'test', new MockUser(), delegate, { debug: false, sempreUrl: sempreUrl });
+    var almond = new Almond(engine, 'test', new MockUser(), delegate,
+        { debug: false, sempreUrl: sempreUrl, showWelcome: true });
 
-    sabrina.start();
+    almond.start();
 
     function quit() {
         console.log('Bye\n');
@@ -98,9 +99,9 @@ function main() {
     function _process(command, analysis, postprocess) {
         Q.try(function() {
             if (command === null)
-                return sabrina.handleParsedCommand(analysis);
+                return almond.handleParsedCommand(analysis);
             else
-                return sabrina.handleCommand(command, postprocess);
+                return almond.handleCommand(command, postprocess);
         }).then(function() {
             rl.prompt();
         }).done();
@@ -109,15 +110,17 @@ function main() {
     function help() {
       console.log('Available console commands:');
       console.log('\\q: quit');
-      console.log('\\h: this help');
-      console.log('\\r JSON: send json to Sabrina');
+      console.log('\\r JSON: send json to Almond');
+      console.log('\\c NUMBER: make a choice');
       console.log('\\f COMMAND: force example search fallback');
       console.log('\\s COMMAND: force ambiguous command fallback');
+      console.log('\\a TYPE QUESTION: ask a question');
+      console.log('\\? or \\h: this help');
       rl.prompt();
     }
 
     function askQuestion(type, question) {
-        sabrina.askQuestion([null, null, Type.fromString(type), question]).then((v) => console.log('You Answered: ' + v)).done();
+        almond.askQuestion([null, null, Type.fromString(type), question]).then((v) => console.log('You Answered: ' + v)).done();
     }
 
     rl.on('line', function(line) {

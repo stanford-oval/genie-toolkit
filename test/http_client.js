@@ -14,7 +14,8 @@ const path = require('path');
 const fs = require('fs');
 const url = require('url');
 
-const THINGPEDIA_URL = 'http://parmesan.stanford.edu:8080/thingpedia';
+//const THINGPEDIA_URL = 'http://parmesan.stanford.edu:8080/thingpedia';
+const THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 
 function getModule(parsed) {
     if (parsed.protocol === 'https:')

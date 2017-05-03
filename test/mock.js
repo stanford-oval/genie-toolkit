@@ -10,8 +10,10 @@
 const Q = require('q');
 
 const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
 
 const ThingpediaClient = require('./http_client');
+const SemanticAnalyzer = require('../lib/semantic');
 
 function dotProduct(a, b) {
     var score = 0;
@@ -257,11 +259,8 @@ class MockPhoneDevice {
     constructor() {
         this.name = "Phone";
         this.description = "Your phone, in your hand. Not that hand, the other one.";
-        this.kind = 'org.thingpedia.builtin.thingengine';
-        this.own = true;
-        this.tier = 'phone';
-        this.globalName = 'phone';
-        this.uniqueId = 'thingengine-own-phone';
+        this.kind = 'phone';
+        this.uniqueId = 'org.thingpedia.builtin.thingengine.phone';
     }
 
     invokeTrigger(trigger, callback) {
@@ -271,6 +270,15 @@ class MockPhoneDevice {
         default:
             throw new Error('Invalid trigger'); // we don't mock anything else
         }
+    }
+}
+
+class MockBuiltinDevice {
+    constructor() {
+        this.name = "Builtin";
+        this.description = "Time random bla bla bla";
+        this.kind = 'builtin';
+        this.uniqueId = 'thingengine-own-global';
     }
 }
 
@@ -296,7 +304,8 @@ class MockDeviceDatabase {
         this._devices['twitter-bar'] = new MockTwitterDevice('bar');
         this._devices['youtube-foo'] = new MockYoutubeDevice('foo');
         this._devices['lg_webos_tv-foo'] = new MockTVDevice('foo');
-        this._devices['thingengine-own-phone'] = new MockPhoneDevice();
+        this._devices['org.thingpedia.builtin.thingengine.phone'] = new MockPhoneDevice();
+        this._devices['thingengine-own-global'] = new MockBuiltinDevice();
     }
 
     loadOneDevice(blob, save) {
@@ -374,7 +383,92 @@ class MockAddressBook {
     }
 }
 
+class MockMessaging {
+    constructor() {
+        this.type = 'mock';
+        this.account = '123456789';
+    }
+}
+
+class MockRemote {
+    constructor(schemas) {
+        this._schemas = schemas;
+    }
+
+    _getSchema(obj, what) {
+        if (!obj)
+            return;
+        if (obj.schema)
+            return;
+        return this._schemas.getMeta(obj.kind, what, obj.channel).then((schema) => {
+            obj.schema = schema;
+        });
+    }
+
+    _fillSlots(obj, scope, fillAll) {
+        if (!obj)
+            return;
+        var slots = obj.schema.schema.map(function(type, i) {
+            return { name: obj.schema.args[i],
+                     type: type,
+                     question: obj.schema.questions[i],
+                     required: (obj.schema.required[i] || false) };
+        });
+        obj.resolved_args = new Array(obj.schema.length);
+        obj.resolved_conditions = [];
+        var toFill = [];
+        ThingTalk.Generate.assignSlots(slots, obj.args, obj.resolved_args,
+            obj.resolved_conditions, fillAll, obj.slots, scope, toFill);
+        if (toFill.length !== 0)
+            throw new Error('Some slots are not filled');
+    }
+
+    installRuleRemote(principal, rule) {
+        var analyzer = new SemanticAnalyzer(JSON.stringify(rule));
+
+        var mockRuleDialog = {
+            trigger: null,
+            query: null,
+            action: null
+        };
+        if (analyzer.isTrigger)
+            mockRuleDialog.trigger = analyzer;
+        else if (analyzer.isQuery)
+            mockRuleDialog.query = analyzer;
+        else if (analyzer.isAction)
+            mockRuleDialog.action = analyzer;
+        else
+            mockRuleDialog = analyzer;
+        if (mockRuleDialog.trigger) {
+            mockRuleDialog.trigger.resolved_args = null;
+            mockRuleDialog.trigger.resolved_conditions = null;
+        }
+        if (mockRuleDialog.query) {
+            mockRuleDialog.query.resolved_args = null;
+            mockRuleDialog.query.resolved_conditions = null;
+        }
+        if (mockRuleDialog.action) {
+            mockRuleDialog.action.resolved_args = null;
+            mockRuleDialog.action.resolved_conditions = null;
+        }
+
+        return Q.all([this._getSchema(mockRuleDialog.trigger, 'triggers'),
+                      this._getSchema(mockRuleDialog.query, 'queries'),
+                      this._getSchema(mockRuleDialog.action, 'actions')])
+            .then(() => {
+                var scope = {};
+                this._fillSlots(mockRuleDialog.trigger, scope, false);
+                this._fillSlots(mockRuleDialog.query, scope, false);
+                this._fillSlots(mockRuleDialog.action, scope, true);
+
+                var rule = ThingTalk.Generate.codegenRule(mockRuleDialog.trigger, mockRuleDialog.query, mockRuleDialog.action);
+                console.log('MOCK: Sending rule to ' + principal + ': ' + Ast.prettyprint(Ast.Program('AlmondGenerated', [], [rule])));
+            });
+    }
+}
+
 var thingpedia = new ThingpediaClient(null);
+var schemas = new ThingTalk.SchemaRetriever(thingpedia);
 
 module.exports.createMockEngine = function() {
     return {
@@ -407,10 +501,12 @@ module.exports.createMockEngine = function() {
         },
         stats: new MockStatistics,
         thingpedia: thingpedia,
-        schemas: new ThingTalk.SchemaRetriever(thingpedia),
+        schemas: schemas,
         devices: new MockDeviceDatabase(),
         apps: new MockAppDatabase(),
         discovery: new MockDiscoveryClient(),
-        ml: new NaiveML()
+        ml: new NaiveML(),
+        messaging: new MockMessaging(),
+        remote: new MockRemote(schemas)
     };
 };
