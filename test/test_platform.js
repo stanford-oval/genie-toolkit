@@ -14,7 +14,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const child_process = require('child_process');
-const Almond = require('sabrina').Almond;
+const Almond = require('almond');
 
 const prefs = require('../lib/util/prefs');
 const sql = require('../lib/db/sqlite');
@@ -32,7 +32,8 @@ var _prefs = null;
 var _unzipApi = {
     unzip: function(zipPath, dir) {
         var args = ['-uo', zipPath, '-d', dir];
-        return Q.nfcall(child_process.execFile, '/usr/bin/unzip', args).then(function(zipResult) {
+        return Q.nfcall(child_process.execFile, '/usr/bin/unzip', args, {
+            maxBuffer: 10 * 1024 * 1024 }).then(function(zipResult) {
             var stdout = zipResult[0];
             var stderr = zipResult[1];
             console.log('stdout', stdout);
@@ -40,6 +41,25 @@ var _unzipApi = {
         });
     }
 };
+
+class Assistant {
+    constructor(engine, user, delegate) {
+        this._conversation = new Almond(engine, 'test', user, delegate,
+        { debug: false, showWelcome: true });
+    }
+
+    notifyAll(data) {
+        this._conversation.notify(data);
+    }
+
+    notifyErrorAll(data) {
+        this._conversation.notifyErrorAll(data);
+    }
+
+    getConversation(id) {
+        return this._conversation;
+    }
+}
 
 module.exports = {
     // Initialize the platform code
@@ -56,12 +76,10 @@ module.exports = {
         this._assistant = null;
 
         _prefs = new prefs.FilePreferences(_writabledir + '/prefs.db');
-        return sql.ensureSchema(_writabledir + '/sqlite.db',
-                                '../data/schema.sql');
     },
 
     createAssistant(engine, user, delegate) {
-        this._assistant = new Almond(engine, user, delegate);
+        this._assistant = new Assistant(engine, user, delegate);
     },
 
     type: 'testing',
@@ -154,6 +172,10 @@ module.exports = {
     // (ie, it could be periodically cleaned by the system)
     getTmpDir: function() {
         return os.tmpdir();
+    },
+
+    getSqliteKey: function() {
+        return process.env.THINGENGINE_SQLITE_KEY;
     },
 
     // Get the filename of the sqlite database
