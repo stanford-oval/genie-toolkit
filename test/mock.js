@@ -304,6 +304,8 @@ class MockDeviceDatabase {
         this._devices['twitter-bar'] = new MockTwitterDevice('bar');
         this._devices['youtube-foo'] = new MockYoutubeDevice('foo');
         this._devices['lg_webos_tv-foo'] = new MockTVDevice('foo');
+        this._devices['security-camera-foo'] = new MockUnknownDevice('security-camera');
+        this._devices['security-camera-bar'] = new MockUnknownDevice('security-camera');
         this._devices['org.thingpedia.builtin.thingengine.phone'] = new MockPhoneDevice();
         this._devices['thingengine-own-global'] = new MockBuiltinDevice();
         this._devices['org.thingpedia.builtin.thingengine.remote'] = new MockUnknownDevice('org.thingpedia.builtin.thingengine.phone');
