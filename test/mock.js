@@ -306,6 +306,7 @@ class MockDeviceDatabase {
         this._devices['lg_webos_tv-foo'] = new MockTVDevice('foo');
         this._devices['org.thingpedia.builtin.thingengine.phone'] = new MockPhoneDevice();
         this._devices['thingengine-own-global'] = new MockBuiltinDevice();
+        this._devices['org.thingpedia.builtin.thingengine.remote'] = new MockUnknownDevice('org.thingpedia.builtin.thingengine.phone');
     }
 
     loadOneDevice(blob, save) {
@@ -316,11 +317,6 @@ class MockDeviceDatabase {
             console.log('MOCK: Loading device ' + JSON.stringify(blob));
             return Q(new MockUnknownDevice(blob.kind));
         }
-    }
-
-    getForeignDevice(principal, kind) {
-        console.log('Returning foreign ' + kind + ' device owned by ' + principal);
-        return Q(new MockUnknownDevice(kind));
     }
 
     hasDevice(id) {
