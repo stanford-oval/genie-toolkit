@@ -393,6 +393,7 @@ class MockAddressBook {
 
 class MockMessaging {
     constructor() {
+        this.isAvailable = true;
         this.type = 'mock';
         this.account = '123456789';
     }
@@ -402,6 +403,10 @@ class MockMessaging {
             return Q({ name: "Some Guy" });
         else
             return Q(null);
+    }
+
+    getAccountForIdentity(identity) {
+        return Q('MOCK1234-' + identity);
     }
 }
 
