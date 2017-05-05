@@ -306,9 +306,10 @@ class MockDeviceDatabase {
         this._devices['lg_webos_tv-foo'] = new MockTVDevice('foo');
         this._devices['security-camera-foo'] = new MockUnknownDevice('security-camera');
         this._devices['security-camera-bar'] = new MockUnknownDevice('security-camera');
+        this._devices['instagram-1'] = new MockUnknownDevice('instagram');
         this._devices['org.thingpedia.builtin.thingengine.phone'] = new MockPhoneDevice();
         this._devices['thingengine-own-global'] = new MockBuiltinDevice();
-        this._devices['org.thingpedia.builtin.thingengine.remote'] = new MockUnknownDevice('org.thingpedia.builtin.thingengine.phone');
+        this._devices['org.thingpedia.builtin.thingengine.remote'] = new MockUnknownDevice('remote');
     }
 
     loadOneDevice(blob, save) {
@@ -379,12 +380,28 @@ class MockAddressBook {
             return el;
         }));
     }
+
+    lookupPrincipal(principal) {
+        return Q(MOCK_ADDRESS_BOOK_DATA.find(function(contact) {
+            if (principal.startsWith('phone:'))
+                return contact.phone_number === principal.substr('phone:'.length);
+            if (principal.startsWith('email:'))
+                return contact.email_address === principal.substr('email:'.length);
+        }));
+    }
 }
 
 class MockMessaging {
     constructor() {
         this.type = 'mock';
         this.account = '123456789';
+    }
+
+    getUserByAccount(account) {
+        if (account === '123456789')
+            return Q({ name: "Some Guy" });
+        else
+            return Q(null);
     }
 }
 
@@ -422,7 +439,9 @@ class MockRemote {
     }
 
     installRuleRemote(principal, rule) {
-        var analyzer = new SemanticAnalyzer(JSON.stringify(rule));
+        var json = JSON.stringify(rule);
+        console.log('json: ' + json);
+        var analyzer = new SemanticAnalyzer(json);
 
         var mockRuleDialog = {
             trigger: null,
