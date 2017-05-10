@@ -307,6 +307,7 @@ class MockDeviceDatabase {
         this._devices['security-camera-foo'] = new MockUnknownDevice('security-camera');
         this._devices['security-camera-bar'] = new MockUnknownDevice('security-camera');
         this._devices['instagram-1'] = new MockUnknownDevice('instagram');
+        this._devices['light-bulb-1'] = new MockUnknownDevice('light-bulb');
         this._devices['org.thingpedia.builtin.thingengine.phone'] = new MockPhoneDevice();
         this._devices['thingengine-own-global'] = new MockBuiltinDevice();
         this._devices['org.thingpedia.builtin.thingengine.remote'] = new MockUnknownDevice('remote');
@@ -398,6 +399,10 @@ class MockMessaging {
         this.account = '123456789';
     }
 
+    getIdentities() {
+        return ['phone:+15555555555'];
+    }
+
     getUserByAccount(account) {
         if (account === '123456789')
             return Q({ name: "Some Guy" });
@@ -434,7 +439,7 @@ class MockRemote {
                      question: obj.schema.questions[i],
                      required: (obj.schema.required[i] || false) };
         });
-        obj.resolved_args = new Array(obj.schema.length);
+        obj.resolved_args = new Array(obj.schema.schema.length);
         obj.resolved_conditions = [];
         var toFill = [];
         ThingTalk.Generate.assignSlots(slots, obj.args, obj.resolved_args,
@@ -443,7 +448,7 @@ class MockRemote {
             throw new Error('Some slots are not filled');
     }
 
-    installRuleRemote(principal, rule) {
+    installRuleRemote(principal, identity, rule) {
         var json = JSON.stringify(rule);
         console.log('json: ' + json);
         var analyzer = new SemanticAnalyzer(json);
