@@ -21,7 +21,7 @@
     "q": "^1.4.1",
     "sparqljs": "^1.1.4",
     "tmp": "0.0.28",
-    "ws": "^2.3.1"
+    "ws": "^1.1.0"
   },
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --package-name ${npm_package_name} --package-version ${npm_package_version}",
