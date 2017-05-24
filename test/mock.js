@@ -13,7 +13,7 @@ const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 
 const ThingpediaClient = require('./http_client');
-const SemanticAnalyzer = require('../lib/semantic');
+const Intent = require('../lib/semantic').Intent;
 
 function dotProduct(a, b) {
     var score = 0;
@@ -449,9 +449,7 @@ class MockRemote {
     }
 
     installRuleRemote(principal, identity, rule) {
-        var json = JSON.stringify(rule);
-        console.log('json: ' + json);
-        var analyzer = new SemanticAnalyzer(json);
+        var analyzer = Intent.parse(rule);
 
         var mockRuleDialog = {
             trigger: null,
