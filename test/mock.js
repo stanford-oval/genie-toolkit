@@ -133,8 +133,9 @@ class MockStatistics {
 }
 
 class MockAppDatabase {
-    constructor() {
+    constructor(schemas) {
         this._apps = {};
+        this._schemas = schemas;
     }
 
     getApp(appId) {
@@ -144,7 +145,9 @@ class MockAppDatabase {
     loadOneApp(code, state, uniqueId, tier, name, description, addToDB) {
         console.log('MOCK: App ' + name + ' with code ' + code + ' loaded and state ' + JSON.stringify(state));
         this._apps[uniqueId] = { code: code, state: state, uniqueId: uniqueId };
-        return Q();
+        var compiler = new ThingTalk.Compiler();
+        compiler.setSchemaRetriever(this._schemas);
+        return compiler.compileCode(code);
     }
 }
 
@@ -528,7 +531,7 @@ module.exports.createMockEngine = function() {
         thingpedia: thingpedia,
         schemas: schemas,
         devices: new MockDeviceDatabase(),
-        apps: new MockAppDatabase(),
+        apps: new MockAppDatabase(schemas),
         discovery: new MockDiscoveryClient(),
         ml: new NaiveML(),
         messaging: new MockMessaging(),
