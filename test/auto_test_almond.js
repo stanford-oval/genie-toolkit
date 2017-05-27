@@ -94,6 +94,39 @@ const TEST_CASES = [
 `,
     null],
 
+    [{"rule":{"query":{"args":[],"name":{"id":"tt:xkcd.get_comic"}},"action":{"args":[],"name":{"id":"tt:twitter.post_picture"}}}},
+`>> You have multiple devices of type twitter. Which one do you want to use?
+>> ask special generic
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+`,
+    {"answer":{"type":"Choice","value":0}},
+`>> What do you want to tweet?
+>> ask special generic
+>> choice 0: Use the title from xkcd
+>> choice 1: Use the picture url from xkcd
+>> choice 2: Use the link from xkcd
+>> choice 3: A description of the result
+>> choice 4: None of above
+`,
+    {"answer":{"type":"Choice","value":2}},
+`>> Upload the picture now.
+>> ask special generic
+>> choice 0: Use the picture url from xkcd
+>> choice 1: None of above
+`,
+    {"answer":{"type":"Choice","value":0}},
+`>> Ok, so you want me to get an Xkcd comic then tweet link with an attached picture. Is that right?
+>> ask special yesno
+`,
+    { special: "yes" },
+`>> Consider it done.
+>> ask special null
+`,
+`AlmondGenerated() {
+    now => @(type="xkcd",id="xkcd-6").get_comic() , v_number := number, v_title := title, v_picture_url := picture_url, v_link := link => @(type="twitter",id="twitter-foo").post_picture(caption=v_link, picture_url=v_picture_url) ;
+}`],
+
     [{ action: { name: { id: 'tt:twitter.sink' }, args: [] } },
 `>> You have multiple devices of type twitter. Which one do you want to use?
 >> ask special generic
@@ -129,7 +162,7 @@ const TEST_CASES = [
 >> choice 1: Twitter Account bar
 `,
     { answer: { type: 'Choice', value: 0 } },
-`>> Ok, so you want me to post text on Facebook if anyone you follow tweets. Is that right?
+`>> Ok, so you want me to post text on Facebook when anyone you follow tweets. Is that right?
 >> ask special yesno
 `,
     { special: "yes" },
@@ -137,14 +170,14 @@ const TEST_CASES = [
 >> ask special null
 `,
 `AlmondGenerated() {
-    @(type="twitter",id="twitter-foo").source() , v_text := text => @(type="facebook",id="facebook-6").post(status=v_text) ;
+    @(type="twitter",id="twitter-foo").source() , v_text := text, v_hashtags := hashtags, v_urls := urls, v_from := from, v_in_reply_to := in_reply_to => @(type="facebook",id="facebook-7").post(status=v_text) ;
 }`],
 
     [{ query: { name: { id: 'tt:xkcd.get_comic' }, args: [] } },
 `>> ask special null
 `,
 `AlmondGenerated() {
-    now => @(type="xkcd",id="xkcd-7").get_comic()  => notify;
+    now => @(type="xkcd",id="xkcd-8").get_comic() , v_number := number, v_title := title, v_picture_url := picture_url, v_link := link => notify;
 }`],
 
     [{ query: { name: { id: 'tt:xkcd.get_comic' }, person: 'mom', args: [] } },

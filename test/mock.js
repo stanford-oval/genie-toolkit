@@ -11,6 +11,7 @@ const Q = require('q');
 
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
+const SEMPRESyntax = ThingTalk.SEMPRESyntax;
 
 const ThingpediaClient = require('./http_client');
 const Intent = require('../lib/semantic').Intent;
@@ -399,7 +400,7 @@ class MockMessaging {
     constructor() {
         this.isAvailable = true;
         this.type = 'mock';
-        this.account = '123456789';
+        this.account = '123456-SELF';
     }
 
     getIdentities() {
@@ -423,75 +424,15 @@ class MockRemote {
         this._schemas = schemas;
     }
 
-    _getSchema(obj, what) {
-        if (!obj)
-            return;
-        if (obj.schema)
-            return;
-        return this._schemas.getMeta(obj.kind, what, obj.channel).then((schema) => {
-            obj.schema = schema;
-        });
-    }
-
-    _fillSlots(obj, scope, fillAll) {
-        if (!obj)
-            return;
-        var slots = obj.schema.schema.map(function(type, i) {
-            return { name: obj.schema.args[i],
-                     type: type,
-                     question: obj.schema.questions[i],
-                     required: (obj.schema.required[i] || false) };
-        });
-        obj.resolved_args = new Array(obj.schema.schema.length);
-        obj.resolved_conditions = [];
-        var toFill = [];
-        ThingTalk.Generate.assignSlots(slots, obj.args, obj.resolved_args,
-            obj.resolved_conditions, fillAll, obj.slots, scope, toFill);
-        if (toFill.length !== 0)
-            throw new Error('Some slots are not filled');
-    }
 
     installRuleRemote(principal, identity, rule) {
-        var analyzer = Intent.parse(rule);
-
-        var mockRuleDialog = {
-            trigger: null,
-            query: null,
-            action: null
-        };
-        if (analyzer.isTrigger)
-            mockRuleDialog.trigger = analyzer;
-        else if (analyzer.isQuery)
-            mockRuleDialog.query = analyzer;
-        else if (analyzer.isAction)
-            mockRuleDialog.action = analyzer;
-        else
-            mockRuleDialog = analyzer;
-        if (mockRuleDialog.trigger) {
-            mockRuleDialog.trigger.resolved_args = null;
-            mockRuleDialog.trigger.resolved_conditions = null;
-        }
-        if (mockRuleDialog.query) {
-            mockRuleDialog.query.resolved_args = null;
-            mockRuleDialog.query.resolved_conditions = null;
-        }
-        if (mockRuleDialog.action) {
-            mockRuleDialog.action.resolved_args = null;
-            mockRuleDialog.action.resolved_conditions = null;
-        }
-
-        return Q.all([this._getSchema(mockRuleDialog.trigger, 'triggers'),
-                      this._getSchema(mockRuleDialog.query, 'queries'),
-                      this._getSchema(mockRuleDialog.action, 'actions')])
-            .then(() => {
-                var scope = {};
-                this._fillSlots(mockRuleDialog.trigger, scope, false);
-                this._fillSlots(mockRuleDialog.query, scope, false);
-                this._fillSlots(mockRuleDialog.action, scope, true);
-
-                var rule = ThingTalk.Generate.codegenRule(mockRuleDialog.trigger, mockRuleDialog.query, mockRuleDialog.action);
-                console.log('MOCK: Sending rule to ' + principal + ': ' + Ast.prettyprint(Ast.Program('AlmondGenerated', [], [rule])));
-            });
+        return SEMPRESyntax.parseToplevel(this._schemas, rule).then((prog) => {
+            var compiler = new ThingTalk.Compiler();
+            compiler.setSchemaRetriever(this._schemas);
+            return compiler.verifyProgram(prog).then(() => prog);
+        }).then((prog) => {
+            console.log('MOCK: Sending rule to ' + principal + ': ' + Ast.prettyprint(prog));
+        });
     }
 }
 
