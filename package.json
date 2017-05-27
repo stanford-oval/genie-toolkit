@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "byline": "^4.2.1",
+    "istanbul": "^0.4.5",
     "mysql": "^2.13.0",
     "node-gettext": "git+https://github.com/gcampax/node-gettext.git"
   },

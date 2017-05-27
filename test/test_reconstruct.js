@@ -48,7 +48,15 @@ var TEST_CASES = [
     [{"rule":{"trigger":{"name":{"id":"tt:instagram.new_picture"},"args":[{"type":"Location","operator":"is","value":{"relativeTag":"rel_work","latitude":-1,"longitude":-1},"name":{"id":"tt:param.location"}}]},"action":{"name":{"id":"tt:lg_webos_tv.play_url"},"args":[]}}},
     'play ____ on your LG WebOS TV when you upload a new picture on Instagram and location is at work'],
     [{"rule":{"trigger":{"name":{"id":"tt:washington_post.new_article"},"args":[{"type":"Enum","operator":"is","value":{"value":"national"},"name":{"id":"tt:param.section"}}]},"action":{"name":{"id":"tt:slack.updateChannelTopic"},"args":[{"type":"String","operator":"is","value":{"value":"you would never believe what happened"},"name":{"id":"tt:param.topic"}}]}}},
-    'update the topic of slack channel ____ to "you would never believe what happened" when a new article is published in the national section of The Washington Post']
+    'update the topic of slack channel ____ to "you would never believe what happened" when a new article is published in the national section of The Washington Post'],
+
+    [{"special":"no"}, 'no'],
+    [{"answer":{"type":"Measure",value:{value:1, unit:'ft'}}}, '1 ft'],
+    [{"special":"nevermind"}, 'never mind'],
+    [{"special":"makerule"}, 'make a command'],
+    [{"special":"help"}, 'help'],
+    [{"command":{"type":"help","value":{"value":"generic"}}}, 'help'],
+    [{"command":{"type":"help","value":{"id":"tt:device.twitter"}}}, 'help twitter']
 ];
 
 const LOCALE = 'en-US';
