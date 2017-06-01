@@ -392,7 +392,7 @@ class MockAddressBook {
                 return contact.phone_number === principal.substr('phone:'.length);
             if (principal.startsWith('email:'))
                 return contact.email_address === principal.substr('email:'.length);
-        }));
+        }) || null);
     }
 }
 
