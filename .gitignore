@@ -4,3 +4,4 @@ node_modules/
 po/sabrina.pot
 po/almond.pot
 po/*.mo
+po/*.json
