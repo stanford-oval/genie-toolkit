@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: thingengine-core 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-07-28 13:49-0700\n"
+"POT-Creation-Date: 2017-06-04 00:04-0700\n"
 "PO-Revision-Date: 2016-07-28 13:49-0700\n"
 "Last-Translator: Giovanni Campagna <gcampagn@cs.stanford.edu>\n"
 "Language-Team: Italian\n"
@@ -17,18 +17,18 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/apps/app_executor.js:83
-msgid "Missing $F parameter for feed shared app"
-msgstr "Parametro $F mancante per app condivisa su feed."
+#: lib/apps/exec_wrapper.js:60
+msgid "User not available to respond"
+msgstr "L'utente non è disponibile a rispondere"
 
-#: lib/apps/app_executor.js:109
+#: lib/apps/app_executor.js:85
+#: lib/devices/thingpedia/builtins/thingengine.builtin/timer.js:30
+msgid "Timer Elapsed"
+msgstr "Timer scaduto"
+
+#: lib/apps/app_executor.js:139
 msgid "This app has no description"
 msgstr "Questa app non ha descrizione."
-
-#: lib/apps/app_executor.js:199
-#, javascript-format
-msgid "%s is not a feed shared app"
-msgstr "%s non è un'app condivisa su feed."
 
 #: lib/devices/thingpedia/builtins/bluetooth.generic/device.js:34
 #, javascript-format
@@ -43,56 +43,100 @@ msgstr "Questo è un dispositivo Bluetooth di tipo generico o sconosciuto"
 msgid "Platform has no bluetooth capability"
 msgstr "Questa piattaforma non supporta il bluetooth"
 
-#: lib/devices/thingpedia/builtins/omlet/device.js:223
+#: lib/devices/thingpedia/builtins/omlet/omlet_messaging.js:89
+msgid "You"
+msgstr "Tu"
+
+#: lib/devices/thingpedia/builtins/omlet/device.js:297
 #, javascript-format
 msgid "Omlet Account of %s"
 msgstr "Account Omlet di %s"
 
-#: lib/devices/thingpedia/builtins/omlet/device.js:224
+#: lib/devices/thingpedia/builtins/omlet/device.js:298
 msgid ""
 "This is your Omlet Account. You can use it to communicate and share data "
 "with your friends!"
-msgstr "Questo è il tuo account Omlet. Puoi usarlo per comunicare e condividere dati con i tuoi amici!"
+msgstr ""
+"Questo è il tuo account Omlet. Puoi usarlo per comunicare e condividere dati "
+"con i tuoi amici!"
 
-#: lib/devices/thingpedia/builtins/omlet/omlet_messaging.js:98
-msgid "You"
-msgstr "Tu"
-
-#: lib/devices/thingpedia/builtins/thingengine/device.js:41
-#, javascript-format
-msgid "ThingEngine %s"
-msgstr "ThingEngine %s"
-
-#: lib/devices/thingpedia/builtins/thingengine/device.js:42
-msgid "This is your own ThingEngine."
-msgstr "Questo è il tuo ThingEngine."
-
-#: lib/devices/thingpedia/builtins/thingengine.builtin/at.js:42
+#: lib/devices/thingpedia/builtins/thingengine.builtin/at.js:38
 #, javascript-format
 msgid "Timer at %s elapsed."
 msgstr "Timer alle ore %s scaduto."
 
-#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:23
-msgid "Builtin Interfaces"
-msgstr "Interfacce pre-incluse"
+#: lib/devices/thingpedia/builtins/thingengine.builtin/get_date.js:22
+#, javascript-format
+msgid "Current date is %s"
+msgstr "La data di oggi è %s"
 
-#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:24
-msgid "Time and other non-device specific things."
-msgstr "Orario e altre cose non specifiche di un dispositivo."
-
-#: lib/devices/thingpedia/builtins/thingengine.builtin/get_time.js:18
+#: lib/devices/thingpedia/builtins/thingengine.builtin/get_time.js:22
 #, javascript-format
 msgid "Current time is %s"
 msgstr "L'ora attuale è %s"
 
-#: lib/devices/thingpedia/builtins/thingengine.builtin/timer.js:29
-msgid "Timer Elapsed"
-msgstr "Timer scaduto"
+#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:27
+msgid "Hi!"
+msgstr "Ciao!"
 
-#: lib/devices/thingpedia/builtins/thingengine.phone/device.js:26
+#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:30
+msgid "I know, right?"
+msgstr "Vero?"
+
+#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:33
+msgid "No need to be sorry."
+msgstr "Non c'è motivo di scusarsi."
+
+#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:36
+msgid "At your service."
+msgstr "Al tuo servizio."
+
+#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:56
+msgid "User not available"
+msgstr "Utente non disponibile"
+
+#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:70
+msgid "Miscellaneous Interfaces"
+msgstr "Miscellanea"
+
+#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:71
+msgid "Time, randomness and other non-device specific things."
+msgstr "Orario, casualità e altre cose non specifiche di un dispositivo."
+
+#: lib/devices/thingpedia/builtins/thingengine.phone/receive_sms.js:24
+#, javascript-format
+msgid "New SMS from %s: %s"
+msgstr "Nuovo SMS da %s: %s"
+
+#: lib/devices/thingpedia/builtins/thingengine.phone/gps.js:24
+#: lib/devices/thingpedia/builtins/thingengine.phone/get_gps.js:24
+#, javascript-format
+msgid "Current Location: %s"
+msgstr "Posizione Corrente: %s"
+
+#: lib/devices/thingpedia/builtins/thingengine.phone/get_gps.js:35
+msgid "Unknown"
+msgstr "Ignota"
+
+#: lib/devices/thingpedia/builtins/thingengine.phone/device.js:36
 msgid "Phone"
 msgstr "Telefono"
 
-#: lib/devices/thingpedia/builtins/thingengine.phone/device.js:27
-msgid "Access your phone capabilities from Sabrina."
-msgstr "Accedi alle funzionalità del tuo telefono da Sabrina."
+#: lib/devices/thingpedia/builtins/thingengine.phone/device.js:37
+msgid "Access your phone capabilities from Almond."
+msgstr "Accedi alle funzionalità del tuo telefono da Almond."
+
+#: lib/devices/thingpedia/builtins/thingengine/device.js:43
+#, javascript-format
+msgid "ThingEngine %s"
+msgstr "ThingEngine %s"
+
+#: lib/devices/thingpedia/builtins/thingengine/device.js:44
+msgid "This is your own ThingEngine."
+msgstr "Questo è il tuo ThingEngine."
+
+#~ msgid "Missing $F parameter for feed shared app"
+#~ msgstr "Parametro $F mancante per app condivisa su feed."
+
+#~ msgid "%s is not a feed shared app"
+#~ msgstr "%s non è un'app condivisa su feed."
