@@ -28,23 +28,6 @@ function readOneLine(rl) {
     });
 }
 
-function runOneQuery(engine, query) {
-    return Q.try(function() {
-        var stream = engine.sparql.runQuery(query);
-
-        return Q.Promise(function(callback, errback) {
-            stream.on('error', errback);
-            stream.on('data', (data) => {
-                console.log(data);
-            });
-            stream.on('end', callback);
-        });
-    }).catch(function(e) {
-        console.error('Failed to execute query: ' + e.message);
-        console.error(e.stack);
-    });
-}
-
 class TestDelegate {
     constructor(rl) {
         this._rl = rl;
@@ -92,7 +75,6 @@ function interact(engine, platform, delegate, rl) {
         console.log('\\q : quit');
         console.log('\\r <json> : send json to Almond');
         console.log('\\c <number> : make a choice');
-        console.log('\\s <sparql> : run a graphdb query');
         console.log('\\a list : list apps');
         console.log('\\a stop <uuid> : stop app');
         console.log('\\d list : list devices');
@@ -137,8 +119,6 @@ function interact(engine, platform, delegate, rl) {
                     return conversation.handleParsedCommand(line.substr(3));
                 else if (line[1] === 'c')
                     return conversation.handleParsedCommand(JSON.stringify({ answer: { type: "Choice", value: parseInt(line.substr(3)) }}));
-                else if (line[1] === 's')
-                    return runOneQuery(engine, line.substr(3));
                 else if (line[1] === 'a')
                     return runAppCommand(...line.substr(3).split(' '));
                 else if (line[1] === 'd')
@@ -157,23 +137,6 @@ function interact(engine, platform, delegate, rl) {
     rl.prompt();
 }
 
-function batch(engine, platform) {
-    var queries = fs.readFileSync(path.resolve(path.dirname(module.filename), './tests.sparql'), { encoding: 'utf8' }).split('====');
-
-    function loop(i) {
-        if (i === queries.length)
-            return Q();
-
-        return runOneQuery(engine, queries[i]).then(function() { return loop(i+1); });
-    }
-
-    loop(0).delay(5000).finally(function() {
-        return engine.close();
-    }).finally(function() {
-        return platform.exit();
-    });
-}
-
 class MockUser {
     constructor() {
         this.id = 1;
@@ -183,11 +146,8 @@ class MockUser {
 }
 
 function main() {
-    var interactive = process.argv[2] === '-i';
-    if (interactive) {
-        var rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        rl.setPrompt('$ ');
-    }
+    var rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    rl.setPrompt('$ ');
 
     var platform = require('./test_platform');
     platform.init();

@@ -12,12 +12,10 @@
   "main": "lib/engine.js",
   "dependencies": {
     "adt": "~0.7.2",
-    "byline": "^4.2.1",
     "deep-equal": "~1.0.1",
     "ip": "~1.0.0",
     "node-uuid": "^1.4.0",
     "q": "^1.4.1",
-    "sparqljs": "^1.1.4",
     "tmp": "0.0.28",
     "ws": "^1.1.0"
   },
