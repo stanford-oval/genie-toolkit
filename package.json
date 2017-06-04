@@ -11,13 +11,11 @@
   ],
   "main": "lib/engine.js",
   "dependencies": {
-    "adt": "~0.7.2",
-    "deep-equal": "~1.0.1",
-    "ip": "~1.0.0",
-    "node-uuid": "^1.4.0",
-    "q": "^1.4.1",
-    "tmp": "0.0.28",
-    "ws": "^1.1.0"
+    "ip": "^1.1.5",
+    "q": "^1.5.0",
+    "tmp": "0.0.31",
+    "uuid": "^3.0.1",
+    "ws": "^3.0.0"
   },
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --package-name ${npm_package_name} --package-version ${npm_package_version}",
