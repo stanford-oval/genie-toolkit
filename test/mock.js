@@ -459,7 +459,7 @@ module.exports.createMockEngine = function() {
                 if (cap === 'gettext') {
                     var Gettext = require('node-gettext');
                     var gt = new Gettext();
-                    gt.setlocale(this.locale);
+                    gt.setLocale(this.locale);
                     return gt;
                 } else if (cap === 'contacts') {
                     return new MockAddressBook();
