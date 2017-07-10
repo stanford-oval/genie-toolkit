@@ -439,6 +439,10 @@ class MockRemote {
 var thingpedia = new ThingpediaClient(null);
 var schemas = new ThingTalk.SchemaRetriever(thingpedia);
 
+var Gettext = require('node-gettext');
+var _gettext = new Gettext();
+_gettext.setLocale('en_US.utf8');
+
 module.exports.createMockEngine = function() {
     return {
         platform: {
@@ -448,7 +452,7 @@ module.exports.createMockEngine = function() {
                 return this._prefs;
             },
 
-            locale: 'en_US.utf8',
+            locale: 'en-US',
             //locale: 'it',
 
             hasCapability(cap) {
@@ -457,10 +461,7 @@ module.exports.createMockEngine = function() {
 
             getCapability(cap) {
                 if (cap === 'gettext') {
-                    var Gettext = require('node-gettext');
-                    var gt = new Gettext();
-                    gt.setLocale(this.locale);
-                    return gt;
+                    return _gettext;
                 } else if (cap === 'contacts') {
                     return new MockAddressBook();
                 } else {
