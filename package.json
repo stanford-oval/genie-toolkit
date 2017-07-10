@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "byline": "^4.2.1",
+    "eslint": "^4.0.0",
     "istanbul": "^0.4.5",
     "mysql": "^2.13.0",
     "node-gettext": "git+https://github.com/gcampax/node-gettext.git"
@@ -23,6 +24,7 @@
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}",
     "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
-    "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done"
+    "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done",
+    "lint": "eslint lib/"
   }
 }
