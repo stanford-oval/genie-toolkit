@@ -106,6 +106,11 @@ function main() {
             rl.prompt();
         }).done();
     }
+    function _processprogram(prog) {
+        Q(almond.handleThingTalk(prog)).then(() => {
+            rl.prompt();
+        }).done();
+    }
 
     function help() {
       console.log('Available console commands:');
@@ -115,6 +120,7 @@ function main() {
       console.log('\\f COMMAND: force example search fallback');
       console.log('\\s COMMAND: force ambiguous command fallback');
       console.log('\\a TYPE QUESTION: ask a question');
+      console.log('\\t PROGRAM: execute a ThingTalk program');
       console.log('\\? or \\h: this help');
       rl.prompt();
     }
@@ -133,6 +139,8 @@ function main() {
                 quit();
             else if (line[1] === 'h')
                 help();
+            else if (line[1] === 't')
+                _processprogram(line.substr(3));
             else if (line[1] === 'r')
                 _process(null, line.substr(3));
             else if (line[1] === 'c')

@@ -21,7 +21,7 @@ const Mock = require('./mock');
 
 var buffer = '';
 function writeLine(line) {
-    console.log(line);
+    //console.log(line);
     buffer += line + '\n';
 }
 function flushBuffer() {
@@ -106,8 +106,9 @@ const TEST_CASES = [
 >> choice 0: Use the title from xkcd
 >> choice 1: Use the picture url from xkcd
 >> choice 2: Use the link from xkcd
->> choice 3: A description of the result
->> choice 4: None of above
+>> choice 3: Use the alt text from xkcd
+>> choice 4: A description of the result
+>> choice 5: None of above
 `,
     {"answer":{"type":"Choice","value":2}},
 `>> Upload the picture now.
@@ -116,7 +117,7 @@ const TEST_CASES = [
 >> choice 1: None of above
 `,
     {"answer":{"type":"Choice","value":0}},
-`>> Ok, so you want me to get an Xkcd comic then tweet link with an attached picture and picture url is picture url. Is that right?
+`>> Ok, so you want me to get an Xkcd comic then tweet link with an attached picture with picture url equal to picture url. Is that right?
 >> ask special yesno
 `,
     { special: "yes" },
@@ -124,7 +125,7 @@ const TEST_CASES = [
 >> ask special null
 `,
 `AlmondGenerated() {
-    now => @(type="xkcd",id="xkcd-6").get_comic() , v_number := number, v_title := title, v_picture_url := picture_url, v_link := link => @(type="twitter",id="twitter-foo").post_picture(caption=v_link, picture_url=v_picture_url) ;
+    now => @xkcd(id="xkcd-6").get_comic() , v_title := title, v_picture_url := picture_url, v_link := link, v_alt_text := alt_text => @twitter(id="twitter-foo").post_picture(caption=v_link, picture_url=v_picture_url) ;
 }`],
 
     [{ action: { name: { id: 'tt:twitter.sink' }, args: [] } },
@@ -146,7 +147,7 @@ const TEST_CASES = [
 >> ask special null
 `,
 `AlmondGenerated() {
-    now => @(type="twitter",id="twitter-foo").sink(status="lol") ;
+    now => @twitter(id="twitter-foo").sink(status="lol") ;
 }`],
 
     [{ rule: {
@@ -170,14 +171,14 @@ const TEST_CASES = [
 >> ask special null
 `,
 `AlmondGenerated() {
-    @(type="twitter",id="twitter-foo").source() , v_text := text, v_hashtags := hashtags, v_urls := urls, v_from := from, v_in_reply_to := in_reply_to => @(type="facebook",id="facebook-7").post(status=v_text) ;
+    @twitter(id="twitter-foo").source() , v_text := text, v_hashtags := hashtags, v_urls := urls, v_from := from, v_in_reply_to := in_reply_to => @facebook(id="facebook-7").post(status=v_text) ;
 }`],
 
     [{ query: { name: { id: 'tt:xkcd.get_comic' }, args: [] } },
 `>> ask special null
 `,
 `AlmondGenerated() {
-    now => @(type="xkcd",id="xkcd-8").get_comic() , v_number := number, v_title := title, v_picture_url := picture_url, v_link := link => notify;
+    now => @xkcd(id="xkcd-8").get_comic() , v_title := title, v_picture_url := picture_url, v_link := link, v_alt_text := alt_text => notify;
 }`],
 
     [{ query: { name: { id: 'tt:xkcd.get_comic' }, person: 'mom', args: [] } },
@@ -190,7 +191,10 @@ const TEST_CASES = [
 >> ask special null
 `,
 `AlmondGenerated() {
-    @remote.receive(__principal="mock-account:MOCK1234-phone:+1800666"^^tt:contact("Mom Corp Inc."), __token="XXX"^^tt:flow_token, __kindChannel="query:xkcd:get_comic"^^tt:function) , v_number := number, v_title := title, v_picture_url := picture_url, v_link := link => notify;
+    class @__dyn_0 extends @remote {
+        trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out number : Number, out title : String, out picture_url : Entity(tt:picture), out link : Entity(tt:url), out alt_text : String);
+    }
+    @__dyn_0.receive(__principal="mock-account:MOCK1234-phone:+1800666"^^tt:contact("Mom Corp Inc."), __token="XXX"^^tt:flow_token, __kindChannel="query:xkcd:get_comic"^^tt:function) , v_title := title, v_picture_url := picture_url, v_link := link, v_alt_text := alt_text => notify;
 }`],
 
     [{"rule":{"trigger":{"args":[],"name":{"id":"tt:security-camera.new_event"}},"action":{"args":[],"name":{"id":"tt:twitter.post_picture"}}}},
@@ -223,7 +227,7 @@ const TEST_CASES = [
 >> choice 1: None of above
 `,
     { answer: { type: 'Choice', value: 0 } },
-`>> Ok, so you want me to tweet "lol" with an attached picture and picture url is picture url when any event is detected on your security camera. Is that right?
+`>> Ok, so you want me to tweet "lol" with an attached picture with picture url equal to picture url when any event is detected on your security camera. Is that right?
 >> ask special yesno
 `,
     { special: "yes" },
@@ -231,7 +235,7 @@ const TEST_CASES = [
 >> ask special null
 `,
 `AlmondGenerated() {
-    @(type="security-camera",id="security-camera-1").new_event() , v_start_time := start_time, v_has_sound := has_sound, v_has_motion := has_motion, v_has_person := has_person, v_picture_url := picture_url => @(type="twitter",id="twitter-foo").post_picture(caption="lol", picture_url=v_picture_url) ;
+    @security-camera(id="security-camera-1").new_event() , v_start_time := start_time, v_has_sound := has_sound, v_has_motion := has_motion, v_has_person := has_person, v_picture_url := picture_url => @twitter(id="twitter-foo").post_picture(caption="lol", picture_url=v_picture_url) ;
 }`],
 
     [{"special":{"id":"tt:root.special.makerule"}},
@@ -299,6 +303,8 @@ const TEST_CASES = [
 >> button: number > ____ {"filter":{"type":"Number","operator":">","name":"number","value":null}}
 >> button: title is ____ {"filter":{"type":"String","operator":"is","name":"title","value":null}}
 >> button: title contains ____ {"filter":{"type":"String","operator":"contains","name":"title","value":null}}
+>> button: alt text is ____ {"filter":{"type":"String","operator":"is","name":"alt_text","value":null}}
+>> button: alt text contains ____ {"filter":{"type":"String","operator":"contains","name":"alt_text","value":null}}
 >> button: Back {"special":"tt:root.special.back"}
 `,
     {"filter":{"type":"String","operator":"contains","name":"title","value":null}},
@@ -320,14 +326,14 @@ const TEST_CASES = [
 function roundtrip(input, output) {
     flushBuffer();
     if (typeof input === 'string') {
-        console.log('$ ' + input);
+        //console.log('$ ' + input);
         return almond.handleCommand(input).then(() => {
             if (output !== null && buffer !== output)
                 throw new Error('Invalid reply from Almond: ' + buffer);
         });
     } else {
         var json = JSON.stringify(input);
-        console.log('$ \\r ' + json);
+        //console.log('$ \\r ' + json);
         return almond.handleParsedCommand(json).then(() => {
             if (output !== null && buffer !== output)
                 throw new Error('Invalid reply from Almond: ' + buffer);
@@ -341,12 +347,11 @@ function cleanToken(code) {
     return code.replace(/__token="[a-f0-9]+"/g, '__token="XXX"');
 }
 
-function test(i) {
+function test(script, i) {
     console.error('Test Case #' + (i+1));
 
     flushBuffer();
     app = null;
-    var script = TEST_CASES[i];
 
     function step(j) {
         if (j === script.length-1)
@@ -372,11 +377,14 @@ function test(i) {
     });
 }
 
-function loop(i) {
-    if (i === TEST_CASES.length)
-        return Q();
+function promiseDoAll(array, fn) {
+    function loop(i) {
+        if (i === array.length)
+            return Q();
 
-    return Q(test(i)).then(() => loop(i+1));
+        return Q(fn(array[i], i)).then(() => loop(i+1));
+    }
+    return loop(0);
 }
 
 var almond;
@@ -405,6 +413,6 @@ function main() {
     almond.start();
     flushBuffer();
 
-    loop(0).done();
+    promiseDoAll(TEST_CASES, test).done();
 }
 main();

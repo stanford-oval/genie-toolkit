@@ -437,7 +437,7 @@ class MockRemote {
 }
 
 var thingpedia = new ThingpediaClient(null);
-var schemas = new ThingTalk.SchemaRetriever(thingpedia);
+var schemas = new ThingTalk.SchemaRetriever(thingpedia, true);
 
 var Gettext = require('node-gettext');
 var _gettext = new Gettext();
