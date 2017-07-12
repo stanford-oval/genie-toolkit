@@ -15,6 +15,7 @@
     "q": "~1.4.1"
   },
   "devDependencies": {
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
     "byline": "^4.2.1",
     "eslint": "^4.0.0",
     "istanbul": "^0.4.5",
