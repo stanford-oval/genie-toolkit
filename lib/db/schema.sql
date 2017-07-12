@@ -38,3 +38,13 @@ create table channel (
        uniqueId varchar(255) primary key,
        value text default null
 );
+
+drop table if exists permissions;
+
+create table permissions (
+        uniqueId varchar(255) primary key,
+        compat_key text,
+        code text
+);
+
+create index permissions_compat_key on permissions(compat_key);
