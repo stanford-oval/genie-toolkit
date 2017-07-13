@@ -123,12 +123,50 @@ function main() {
       console.log('\\s COMMAND: force ambiguous command fallback');
       console.log('\\a TYPE QUESTION: ask a question');
       console.log('\\t PROGRAM: execute a ThingTalk program');
+      console.log('\\d KIND: run interactive configuration');
+      console.log('\\p IDENTITY PROGRAM: run a permission request');
+      console.log('\\n MESSAGE: show a notification');
+      console.log('\\e ERROR: show an error');
       console.log('\\? or \\h: this help');
       rl.prompt();
     }
 
     function askQuestion(type, question) {
-        almond.askQuestion([null, null, Type.fromString(type), question]).then((v) => console.log('You Answered: ' + v)).done();
+        Q(almond.askQuestion([null, null, Type.fromString(type), question])
+            .then((v) => console.log('You Answered: ' + v)).catch((e) => {
+            if (e.code === 'ECANCELLED')
+                console.log('You Cancelled');
+            else
+                throw e;
+        })).done();
+    }
+    function interactiveConfigure(kind) {
+        Q(almond.interactiveConfigure([kind]).then(() => {
+            console.log('Interactive configuration complete');
+        }).catch((e) => {
+            if (e.code === 'ECANCELLED')
+                console.log('You Cancelled');
+            else
+                throw e;
+        })).done();
+    }
+    function permissionGrant(identity, program) {
+        Q(ThingTalk.Grammar.parseAndTypecheck(program, engine.schemas, true).then((program) => {
+            return almond.askForPermission([identity, identity, program]);
+        }).then((permission) => {
+            console.log('Permission result: ' + permission);
+        }).catch((e) => {
+            if (e.code === 'ECANCELLED')
+                console.log('You Cancelled');
+            else
+                throw e;
+        })).done();
+    }
+    function notify(message) {
+        Q(almond.notify(['app-foo', null, message])).done();
+    }
+    function notifyError(message) {
+        Q(almond.notifyError(['app-foo', null, new Error(message)])).done();
     }
 
     rl.on('line', function(line) {
@@ -139,7 +177,7 @@ function main() {
         if (line[0] === '\\') {
             if (line[1] === 'q')
                 quit();
-            else if (line[1] === 'h')
+            else if (line[1] === 'h' || line[1] === '?')
                 help();
             else if (line[1] === 't')
                 _processprogram(line.substr(3));
@@ -153,8 +191,18 @@ function main() {
                 _process(line.substr(3), null, forceSuggestions)
             else if (line[1] === 'a')
                 askQuestion(line.substring(3, line.indexOf(' ', 3)), line.substr(line.indexOf(' ', 3)));
-            else
+            else if (line[1] === 'd')
+                interactiveConfigure(line.substring(3) || null);
+            else if (line[1] === 'p')
+                permissionGrant(line.substring(3, line.indexOf(' ', 3)), line.substr(line.indexOf(' ', 3)));
+            else if (line[1] === 'n')
+                notify(line.substring(3));
+            else if (line[1] === 'e')
+                notifyError(line.substring(3));
+            else {
                 console.log('Unknown command ' + line[1]);
+                rl.prompt();
+            }
         } else {
             _process(line);
         }

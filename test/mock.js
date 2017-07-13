@@ -137,6 +137,10 @@ class MockAppDatabase {
     constructor(schemas) {
         this._apps = {};
         this._schemas = schemas;
+
+        this._apps['app-foo'] = { name: 'Execute Foo',
+            description: 'This app fooes', code: 'now => @builtin.foo();', state: {},
+            uniqueId: 'app-foo', isRunning: true };
     }
 
     getApp(appId) {
@@ -145,7 +149,7 @@ class MockAppDatabase {
 
     loadOneApp(code, state, uniqueId, tier, name, description, addToDB) {
         console.log('MOCK: App ' + name + ' with code ' + code + ' loaded and state ' + JSON.stringify(state));
-        this._apps[uniqueId] = { code: code, state: state, uniqueId: uniqueId };
+        this._apps[uniqueId] = { name: name, description: description, code: code, state: state, uniqueId: uniqueId };
         var compiler = new ThingTalk.Compiler();
         compiler.setSchemaRetriever(this._schemas);
         return compiler.compileCode(code);
