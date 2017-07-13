@@ -132,7 +132,7 @@ function main() {
     }
 
     function askQuestion(type, question) {
-        Q(almond.askQuestion([null, null, Type.fromString(type), question])
+        Q(almond.askQuestion(null, null, Type.fromString(type), question)
             .then((v) => console.log('You Answered: ' + v)).catch((e) => {
             if (e.code === 'ECANCELLED')
                 console.log('You Cancelled');
@@ -141,7 +141,7 @@ function main() {
         })).done();
     }
     function interactiveConfigure(kind) {
-        Q(almond.interactiveConfigure([kind]).then(() => {
+        Q(almond.interactiveConfigure(kind).then(() => {
             console.log('Interactive configuration complete');
         }).catch((e) => {
             if (e.code === 'ECANCELLED')
@@ -152,7 +152,7 @@ function main() {
     }
     function permissionGrant(identity, program) {
         Q(ThingTalk.Grammar.parseAndTypecheck(program, engine.schemas, true).then((program) => {
-            return almond.askForPermission([identity, identity, program]);
+            return almond.askForPermission(identity, identity, program);
         }).then((permission) => {
             console.log('Permission result: ' + permission);
         }).catch((e) => {
@@ -163,10 +163,10 @@ function main() {
         })).done();
     }
     function notify(message) {
-        Q(almond.notify(['app-foo', null, message])).done();
+        Q(almond.notify('app-foo', null, message)).done();
     }
     function notifyError(message) {
-        Q(almond.notifyError(['app-foo', null, new Error(message)])).done();
+        Q(almond.notifyError('app-foo', null, new Error(message))).done();
     }
 
     rl.on('line', function(line) {
