@@ -320,7 +320,23 @@ const TEST_CASES = [
 >> choice 4: Run it
 >> ask special generic
 `,
-    null] // we can't run it because make dialog uses setImmediate to process a new json, which breaks the script runner
+    { answer: { type: 'Choice', value: 4 } },
+`>> You have multiple devices of type security-camera. Which one do you want to use?
+>> choice 0: Some Device 1
+>> choice 1: Some Device 2
+>> ask special generic
+`,
+    { answer: { type: 'Choice', value: 0 } },
+`>> Ok, so you want me to get an Xkcd comic if title contains "lol" when any event is detected on your security camera. Is that right?
+>> ask special yesno
+`,
+    { special: "yes" },
+`>> Consider it done.
+>> ask special null
+`,
+    `AlmondGenerated() {
+    @security-camera(id="security-camera-1").new_event() , v_start_time := start_time, v_has_sound := has_sound, v_has_motion := has_motion, v_has_person := has_person, v_picture_url := picture_url => @xkcd(id="xkcd-9").get_comic(), title =~ "lol" , v_title := title, v_picture_url := picture_url, v_link := link, v_alt_text := alt_text => notify;
+}`]
 ];
 
 function roundtrip(input, output) {
