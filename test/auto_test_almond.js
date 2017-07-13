@@ -260,9 +260,9 @@ const TEST_CASES = [
 `,
     {"trigger":{"args":[],"name":{"id":"tt:security-camera.new_event"}}},
 `>> Add more commands and filters or run your command if you are ready.
->> choice 0: When: new event on security camera
+>> choice 0: When: any event is detected on your security camera
 >> choice 1: Get
->> choice 2: Do
+>> choice 2: Do: notify me
 >> choice 3: Add a filter
 >> choice 4: Run it
 >> ask special generic
@@ -281,29 +281,32 @@ const TEST_CASES = [
 `,
     {"query":{"args":[],"name":{"id":"tt:xkcd.get_comic"}}},
 `>> Add more commands and filters or run your command if you are ready.
->> choice 0: When: new event on security camera
->> choice 1: Get: comic on xkcd
->> choice 2: Do
+>> choice 0: When: any event is detected on your security camera
+>> choice 1: Get: get an Xkcd comic
+>> choice 2: Do: notify me
 >> choice 3: Add a filter
 >> choice 4: Run it
 >> ask special generic
 `,
     { answer: { type: 'Choice', value: 3 } },
 `>> Pick the command you want to add filters to:
->> choice 0: When: new event on security camera
->> choice 1: Get: comic on xkcd
+>> choice 0: When: any event is detected on your security camera
+>> choice 1: Get: get an Xkcd comic
 >> choice 2: Back
 >> ask special generic
 `,
     { answer: { type: 'Choice', value: 1 } },
 `>> Pick the filter you want to add:
->> button: number is ____ {"filter":{"type":"Number","operator":"is","name":"number","value":null}}
->> button: number < ____ {"filter":{"type":"Number","operator":"<","name":"number","value":null}}
->> button: number > ____ {"filter":{"type":"Number","operator":">","name":"number","value":null}}
->> button: title is ____ {"filter":{"type":"String","operator":"is","name":"title","value":null}}
->> button: title contains ____ {"filter":{"type":"String","operator":"contains","name":"title","value":null}}
->> button: alt text is ____ {"filter":{"type":"String","operator":"is","name":"alt_text","value":null}}
->> button: alt text contains ____ {"filter":{"type":"String","operator":"contains","name":"alt_text","value":null}}
+>> button: title is equal to ____ {"filter":{"name":"title","operator":"is","value":null,"type":"String"}}
+>> button: title is not equal to ____ {"filter":{"name":"title","operator":"!=","value":null,"type":"String"}}
+>> button: title contains ____ {"filter":{"name":"title","operator":"contains","value":null,"type":"String"}}
+>> button: picture url is equal to ____ {"filter":{"name":"picture_url","operator":"is","value":null,"type":"Entity(tt:picture)"}}
+>> button: picture url is not equal to ____ {"filter":{"name":"picture_url","operator":"!=","value":null,"type":"Entity(tt:picture)"}}
+>> button: link is equal to ____ {"filter":{"name":"link","operator":"is","value":null,"type":"Entity(tt:url)"}}
+>> button: link is not equal to ____ {"filter":{"name":"link","operator":"!=","value":null,"type":"Entity(tt:url)"}}
+>> button: alt text is equal to ____ {"filter":{"name":"alt_text","operator":"is","value":null,"type":"String"}}
+>> button: alt text is not equal to ____ {"filter":{"name":"alt_text","operator":"!=","value":null,"type":"String"}}
+>> button: alt text contains ____ {"filter":{"name":"alt_text","operator":"contains","value":null,"type":"String"}}
 >> button: Back {"special":"tt:root.special.back"}
 >> ask special generic
 `,
@@ -313,9 +316,9 @@ const TEST_CASES = [
 `,
     "lol",
 `>> Add more commands and filters or run your command if you are ready.
->> choice 0: When: new event on security camera
->> choice 1: Get: comic on xkcd, title contains lol
->> choice 2: Do
+>> choice 0: When: any event is detected on your security camera
+>> choice 1: Get: get an Xkcd comic, title contains "lol"
+>> choice 2: Do: notify me
 >> choice 3: Add a filter
 >> choice 4: Run it
 >> ask special generic
