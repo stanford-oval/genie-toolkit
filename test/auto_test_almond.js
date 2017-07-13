@@ -330,11 +330,7 @@ const TEST_CASES = [
 >> ask special generic
 `,
     { answer: { type: 'Choice', value: 0 } },
-`>> Ok, so you want me to get an Xkcd comic if title contains "lol" when any event is detected on your security camera. Is that right?
->> ask special yesno
-`,
-    { special: "yes" },
-`>> Consider it done.
+`>> Ok, I'm going to get an Xkcd comic if title contains "lol" when any event is detected on your security camera
 >> ask special null
 `,
     `AlmondGenerated() {
