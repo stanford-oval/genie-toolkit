@@ -11,7 +11,6 @@ const Q = require('q');
 
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
-const SEMPRESyntax = ThingTalk.SEMPRESyntax;
 
 const ThingpediaClient = require('./http_client');
 const Intent = require('../lib/semantic').Intent;
@@ -429,14 +428,9 @@ class MockRemote {
     }
 
 
-    installRuleRemote(principal, identity, rule) {
-        return SEMPRESyntax.parseToplevel(this._schemas, rule).then((prog) => {
-            var compiler = new ThingTalk.Compiler();
-            compiler.setSchemaRetriever(this._schemas);
-            return compiler.verifyProgram(prog).then(() => prog);
-        }).then((prog) => {
-            console.log('MOCK: Sending rule to ' + principal + ': ' + Ast.prettyprint(prog));
-        });
+    installProgramRemote(principal, identity, program) {
+        console.log('MOCK: Sending rule to ' + principal + ': ' + Ast.prettyprint(program));
+        return Promise.resolve();
     }
 }
 
