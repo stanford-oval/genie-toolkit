@@ -75,7 +75,9 @@ function main() {
     var almond = new Almond(engine, 'test', new MockUser(), delegate,
         { debug: false, sempreUrl: sempreUrl, showWelcome: true });
 
-    almond.start();
+    almond.start().then(() => {
+        rl.prompt();
+    });
 
     function quit() {
         console.log('Bye\n');
@@ -158,8 +160,6 @@ function main() {
         }
     });
     rl.on('SIGINT', quit);
-
-    rl.prompt();
 }
 
 main();
