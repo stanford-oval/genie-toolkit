@@ -87,34 +87,34 @@ class MockUser {
 const TEST_CASES = [
     [{ special: "help" },
 `>> Click on one of the following buttons to start adding command.
->> ask special generic
 >> choice 0: When
 >> choice 1: Get
 >> choice 2: Do
+>> ask special generic
 `,
     null],
 
     [{"rule":{"query":{"args":[],"name":{"id":"tt:xkcd.get_comic"}},"action":{"args":[],"name":{"id":"tt:twitter.post_picture"}}}},
 `>> You have multiple devices of type twitter. Which one do you want to use?
->> ask special generic
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> ask special generic
 `,
     {"answer":{"type":"Choice","value":0}},
 `>> What do you want to tweet?
->> ask special generic
 >> choice 0: Use the title from xkcd
 >> choice 1: Use the picture url from xkcd
 >> choice 2: Use the link from xkcd
 >> choice 3: Use the alt text from xkcd
 >> choice 4: A description of the result
 >> choice 5: None of above
+>> ask special generic
 `,
     {"answer":{"type":"Choice","value":2}},
 `>> Upload the picture now.
->> ask special generic
 >> choice 0: Use the picture url from xkcd
 >> choice 1: None of above
+>> ask special generic
 `,
     {"answer":{"type":"Choice","value":0}},
 `>> Ok, so you want me to get an Xkcd comic then tweet link with an attached picture with picture url equal to picture url. Is that right?
@@ -130,9 +130,9 @@ const TEST_CASES = [
 
     [{ action: { name: { id: 'tt:twitter.sink' }, args: [] } },
 `>> You have multiple devices of type twitter. Which one do you want to use?
->> ask special generic
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> ask special generic
 `,
      { answer: { type: 'Choice', value: 0 } },
 `>> What do you want to tweet?
@@ -158,9 +158,9 @@ const TEST_CASES = [
         ]}
     } },
 `>> You have multiple devices of type twitter. Which one do you want to use?
->> ask special generic
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> ask special generic
 `,
     { answer: { type: 'Choice', value: 0 } },
 `>> Ok, so you want me to post text on Facebook when anyone you follow tweets. Is that right?
@@ -199,22 +199,22 @@ const TEST_CASES = [
 
     [{"rule":{"trigger":{"args":[],"name":{"id":"tt:security-camera.new_event"}},"action":{"args":[],"name":{"id":"tt:twitter.post_picture"}}}},
 `>> You have multiple devices of type security-camera. Which one do you want to use?
->> ask special generic
 >> choice 0: Some Device 1
 >> choice 1: Some Device 2
+>> ask special generic
 `,
     { answer: { type: 'Choice', value: 0 } },
 `>> You have multiple devices of type twitter. Which one do you want to use?
->> ask special generic
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> ask special generic
 `,
     { answer: { type: 'Choice', value: 0 } },
 `>> What do you want to tweet?
->> ask special generic
 >> choice 0: Use the picture url from security-camera
 >> choice 1: A description of the result
 >> choice 2: None of above
+>> ask special generic
 `,
     { answer: { type: 'Choice', value: 2 } },
 `>> What do you want to tweet?
@@ -222,9 +222,9 @@ const TEST_CASES = [
 `,
     { answer: { type: 'String', value: { value: 'lol' } } },
 `>> Upload the picture now.
->> ask special generic
 >> choice 0: Use the picture url from security-camera
 >> choice 1: None of above
+>> ask special generic
 `,
     { answer: { type: 'Choice', value: 0 } },
 `>> Ok, so you want me to tweet "lol" with an attached picture with picture url equal to picture url when any event is detected on your security camera. Is that right?
@@ -240,14 +240,13 @@ const TEST_CASES = [
 
     [{"special":{"id":"tt:root.special.makerule"}},
 `>> Click on one of the following buttons to start adding command.
->> ask special generic
 >> choice 0: When
 >> choice 1: Get
 >> choice 2: Do
+>> ask special generic
 `,
     { answer: { type: 'Choice', value: 0 } },
-`>> ask special command
->> Pick one from the following categories or simply type in.
+`>> Pick one from the following categories or simply type in.
 >> button: Do it now {"special":"tt:root.special.empty"}
 >> button: Media {"command":{"type":"help","value":{"id":"tt:type.media"}}}
 >> button: Social Networks {"command":{"type":"help","value":{"id":"tt:type.social-network"}}}
@@ -257,19 +256,19 @@ const TEST_CASES = [
 >> button: Services {"command":{"type":"help","value":{"id":"tt:type.service"}}}
 >> button: Data Management {"command":{"type":"help","value":{"id":"tt:type.data-management"}}}
 >> button: Back {"special":"tt:root.special.back"}
+>> ask special command
 `,
     {"trigger":{"args":[],"name":{"id":"tt:security-camera.new_event"}}},
 `>> Add more commands and filters or run your command if you are ready.
->> ask special generic
 >> choice 0: When: new event on security camera
 >> choice 1: Get
 >> choice 2: Do
 >> choice 3: Add a filter
 >> choice 4: Run it
+>> ask special generic
 `,
     { answer: { type: 'Choice', value: 1 } },
-`>> ask special command
->> Pick one from the following categories or simply type in.
+`>> Pick one from the following categories or simply type in.
 >> button: Media {"command":{"type":"help","value":{"id":"tt:type.media"}}}
 >> button: Social Networks {"command":{"type":"help","value":{"id":"tt:type.social-network"}}}
 >> button: Home {"command":{"type":"help","value":{"id":"tt:type.home"}}}
@@ -278,26 +277,26 @@ const TEST_CASES = [
 >> button: Services {"command":{"type":"help","value":{"id":"tt:type.service"}}}
 >> button: Data Management {"command":{"type":"help","value":{"id":"tt:type.data-management"}}}
 >> button: Back {"special":"tt:root.special.back"}
+>> ask special command
 `,
     {"query":{"args":[],"name":{"id":"tt:xkcd.get_comic"}}},
 `>> Add more commands and filters or run your command if you are ready.
->> ask special generic
 >> choice 0: When: new event on security camera
 >> choice 1: Get: comic on xkcd
 >> choice 2: Do
 >> choice 3: Add a filter
 >> choice 4: Run it
+>> ask special generic
 `,
     { answer: { type: 'Choice', value: 3 } },
 `>> Pick the command you want to add filters to:
->> ask special generic
 >> choice 0: When: new event on security camera
 >> choice 1: Get: comic on xkcd
 >> choice 2: Back
+>> ask special generic
 `,
     { answer: { type: 'Choice', value: 1 } },
 `>> Pick the filter you want to add:
->> ask special command
 >> button: number is ____ {"filter":{"type":"Number","operator":"is","name":"number","value":null}}
 >> button: number < ____ {"filter":{"type":"Number","operator":"<","name":"number","value":null}}
 >> button: number > ____ {"filter":{"type":"Number","operator":">","name":"number","value":null}}
@@ -306,6 +305,7 @@ const TEST_CASES = [
 >> button: alt text is ____ {"filter":{"type":"String","operator":"is","name":"alt_text","value":null}}
 >> button: alt text contains ____ {"filter":{"type":"String","operator":"contains","name":"alt_text","value":null}}
 >> button: Back {"special":"tt:root.special.back"}
+>> ask special generic
 `,
     {"filter":{"type":"String","operator":"contains","name":"title","value":null}},
 `>> What's the value of this filter?
@@ -313,12 +313,12 @@ const TEST_CASES = [
 `,
     "lol",
 `>> Add more commands and filters or run your command if you are ready.
->> ask special generic
 >> choice 0: When: new event on security camera
 >> choice 1: Get: comic on xkcd, title contains lol
 >> choice 2: Do
 >> choice 3: Add a filter
 >> choice 4: Run it
+>> ask special generic
 `,
     null] // we can't run it because make dialog uses setImmediate to process a new json, which breaks the script runner
 ];
