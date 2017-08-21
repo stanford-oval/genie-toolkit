@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: almond 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-07-13 10:42-0700\n"
+"POT-Creation-Date: 2017-08-21 13:46+0200\n"
 "PO-Revision-Date: 2017-04-26 11:57-0700\n"
 "Last-Translator: Giovanni Campagna <gcampagn@cs.stanford.edu>\n"
 "Language-Team: Italian\n"
@@ -68,6 +68,11 @@ msgstr "Qual è il tuo indirizzo di casa?"
 msgid "What is your work address?"
 msgstr "Qual è il tuo indirizzo di lavoro?"
 
+#: lib/dialogs/ask_anything.js:31
+#, javascript-format
+msgid "Question from %s: %s"
+msgstr "Domanda da %s: %s"
+
 #: lib/dialogs/setup.js:31
 #, javascript-format
 msgid "Ok, so you want me to tell %s: %s. Is that right?"
@@ -127,28 +132,28 @@ msgid ""
 msgstr ""
 "Non ho capito. Puoi riformulare? Cercherò di imparare dalla tua parafrasi."
 
-#: lib/dialogs/fallback.js:225
+#: lib/dialogs/fallback.js:229 lib/dialogs/fallback.js:231
 msgid "none of the above"
 msgstr "nessuno di questi"
 
-#: lib/dialogs/fallback.js:227
+#: lib/dialogs/fallback.js:233
 msgid "Did you mean any of the following?"
 msgstr "Intendevi uno dei comandi seguenti?"
 
-#: lib/dialogs/fallback.js:230
+#: lib/dialogs/fallback.js:235
 msgid "Ok, can you rephrase that?"
 msgstr "Ok, puoi riformularlo?"
 
-#: lib/dialogs/fallback.js:257
+#: lib/dialogs/fallback.js:256
 msgid "Your last command was a button. I know what a button means. 😛"
 msgstr ""
 "Il tuo ultimo comando era un pulsante. So cosa vuol dire un pulsante. 😛"
 
-#: lib/dialogs/fallback.js:277
+#: lib/dialogs/fallback.js:276
 msgid "Thanks, I made a note of that."
 msgstr "Grazie, lo terrò a mente."
 
-#: lib/dialogs/fallback.js:278
+#: lib/dialogs/fallback.js:277
 #, javascript-format
 msgid "You have trained me with %d sentence."
 msgid_plural "You have trained me with %d sentences."
@@ -191,36 +196,62 @@ msgstr "Ok, ecco il link per configurare %s."
 msgid "Configure %s"
 msgstr "Configura %s"
 
-#: lib/dialogs/default.js:30
+#: lib/dialogs/default.js:32
 msgid "I agree, but to what?"
 msgstr "Sono d'accordo, ma... su cosa?"
 
-#: lib/dialogs/default.js:33
+#: lib/dialogs/default.js:35
 msgid "No way!"
 msgstr "Non esiste!"
 
-#: lib/dialogs/default.js:77
+#: lib/dialogs/default.js:81 lib/almond.js:156 lib/almond.js:169
+#: lib/almond.js:331
 #, javascript-format
 msgid "Sorry, I had an error processing your command: %s"
 msgstr "Mi dispiace, c'è stato un errore nel processare il tuo comando: %s."
 
-#: lib/dialogs/init.js:27
+#: lib/dialogs/init.js:41
+#, javascript-format
+msgid "Sorry, that did not work: %s"
+msgstr "Mi dispiace, ma c'è stato un errore: %s."
+
+#: lib/dialogs/init.js:42
+msgid "You should try again later."
+msgstr "Riprova più tardi."
+
+#: lib/dialogs/init.js:51 lib/dialogs/init.js:55
 msgid "Welcome back!"
 msgstr "Bentornato!"
 
-#: lib/dialogs/init.js:28 lib/dialogs/init.js:34
+#: lib/dialogs/init.js:52
+msgid ""
+"You haven't configured an Omlet account yet. You need an Omlet account to "
+"let me talk to other Almonds."
+msgstr "Non hai ancora configurato un account Omlet. Hai bisogno di un account Omlet per consentirmi di comunicare con altri Almond."
+
+#: lib/dialogs/init.js:56 lib/dialogs/init.js:62
 msgid "If you need help at any point, try ‘help’."
 msgstr "Se hai bisogno di aiuto in qualsiasi momento, prova ‘aiuto’."
 
-#: lib/dialogs/init.js:32
+#: lib/dialogs/init.js:60
 msgid "Hello! I'm Almond, your virtual assistant."
 msgstr "Ciao! Mi chiamo Almond e sono il tuo assistente virtuale."
 
-#: lib/dialogs/init.js:35
-msgid "You'll want to start by setting up your devices and accounts though."
-msgstr "Tuttavia vorrai iniziare configurando i tuoi dispositivi e account."
+#: lib/dialogs/init.js:64
+msgid "First of all, I'll need you to configure an Omlet account."
+msgstr "Prima di tutto, devi configurare un account Omlet."
 
-#: lib/dialogs/init.js:36
+#: lib/dialogs/init.js:65
+msgid ""
+"I will use this account to contact other Almonds when you ask me to use "
+"other people's devices and accounts."
+msgstr "Questo account sarà usato per contattare altri Almond quando mi chiedi di usare dispositivi e account di altre persone."
+
+#: lib/dialogs/init.js:68
+msgid "Great! Now you can start setting up your other devices and accounts."
+msgstr "Ottimo! Ora puoi iniziare a configurare i tuoi altri dispositivi e account."
+
+#: lib/dialogs/init.js:69
 msgid ""
 "To do so, try ‘configure‘ followed by the type of device or account (e.g., "
 "‘configure twitter’ or ‘configure tv’), or try ‘discover’ and I'll take a "
@@ -230,19 +261,24 @@ msgstr ""
 "esempio ‘configura twitter’ o ‘configura tv’), o prova ‘ricerca’ e io "
 "cercherò che dispositivi possiedi qui attorno."
 
-#: lib/dialogs/rule.js:105
+#: lib/dialogs/rule.js:108
 #, javascript-format
 msgid "Ok, so you want me to %s. Is that right?"
 msgstr "Ok, quindi vuoi che io %s, giusto?"
 
-#: lib/dialogs/help.js:31 lib/dialogs/help.js:52 lib/dialogs/make.js:86
+#: lib/dialogs/rule.js:119
+#, javascript-format
+msgid "Ok, I'm going to %s"
+msgstr "Ok, allora io %s"
+
+#: lib/dialogs/help.js:31 lib/dialogs/help.js:52 lib/dialogs/make.js:87
 msgid "More…"
 msgstr "Ancora…"
 
 #: lib/dialogs/help.js:32 lib/dialogs/help.js:54 lib/dialogs/help.js:56
-#: lib/dialogs/help.js:58 lib/dialogs/help.js:117 lib/dialogs/make.js:42
-#: lib/dialogs/make.js:65 lib/dialogs/make.js:75 lib/dialogs/make.js:88
-#: lib/dialogs/make.js:90 lib/dialogs/make.js:307 lib/dialogs/make.js:320
+#: lib/dialogs/help.js:58 lib/dialogs/help.js:117 lib/dialogs/make.js:43
+#: lib/dialogs/make.js:66 lib/dialogs/make.js:76 lib/dialogs/make.js:89
+#: lib/dialogs/make.js:91 lib/dialogs/make.js:258 lib/dialogs/make.js:303
 msgid "Back"
 msgstr "Indietro"
 
@@ -264,31 +300,31 @@ msgstr ""
 msgid "Here's what I can do for you on %s."
 msgstr "Ecco quello che puoi fare su %s."
 
-#: lib/dialogs/help.js:72 lib/dialogs/help.js:92 lib/dialogs/make.js:29
+#: lib/dialogs/help.js:72 lib/dialogs/help.js:92 lib/dialogs/make.js:30
 msgid "Media"
 msgstr "Media"
 
-#: lib/dialogs/help.js:72 lib/dialogs/help.js:92 lib/dialogs/make.js:29
+#: lib/dialogs/help.js:72 lib/dialogs/help.js:92 lib/dialogs/make.js:30
 msgid "Social Networks"
 msgstr "Social Network"
 
-#: lib/dialogs/help.js:72 lib/dialogs/help.js:92 lib/dialogs/make.js:29
+#: lib/dialogs/help.js:72 lib/dialogs/help.js:92 lib/dialogs/make.js:30
 msgid "Home"
 msgstr "Per la casa"
 
-#: lib/dialogs/help.js:72 lib/dialogs/help.js:92 lib/dialogs/make.js:29
+#: lib/dialogs/help.js:72 lib/dialogs/help.js:92 lib/dialogs/make.js:30
 msgid "Communication"
 msgstr "Comunicazione"
 
-#: lib/dialogs/help.js:73 lib/dialogs/help.js:93 lib/dialogs/make.js:30
+#: lib/dialogs/help.js:73 lib/dialogs/help.js:93 lib/dialogs/make.js:31
 msgid "Health and Fitness"
 msgstr "Salute e Fitness"
 
-#: lib/dialogs/help.js:73 lib/dialogs/help.js:93 lib/dialogs/make.js:30
+#: lib/dialogs/help.js:73 lib/dialogs/help.js:93 lib/dialogs/make.js:31
 msgid "Services"
 msgstr "Servizi"
 
-#: lib/dialogs/help.js:73 lib/dialogs/help.js:93 lib/dialogs/make.js:30
+#: lib/dialogs/help.js:73 lib/dialogs/help.js:93 lib/dialogs/make.js:31
 msgid "Data Management"
 msgstr "Gestione Dati"
 
@@ -305,11 +341,11 @@ msgstr ""
 msgid "No category %s."
 msgstr "Non c'è alcuna categoria %s."
 
-#: lib/dialogs/help.js:104 lib/dialogs/make.js:56
+#: lib/dialogs/help.js:104 lib/dialogs/make.js:57
 msgid "Phone"
 msgstr "Telefono"
 
-#: lib/dialogs/help.js:107 lib/dialogs/make.js:59
+#: lib/dialogs/help.js:107 lib/dialogs/make.js:60
 msgid "Miscellaneous"
 msgstr "Varie"
 
@@ -387,85 +423,100 @@ msgstr "Ho trovato %s. Vuoi configurarlo adesso?"
 msgid "I found the following devices. Which one do you want to set up?"
 msgstr "Ho trovato i seguenti dispositivi, quale vuoi configurare?"
 
-#: lib/dialogs/make.js:32
+#: lib/dialogs/make.js:33
 msgid "Pick one from the following categories or simply type in."
-msgstr ""
+msgstr "Scegli una delle categorie sequenti o scrivi direttamente."
 
-#: lib/dialogs/make.js:35
+#: lib/dialogs/make.js:36
 msgid "Do it now"
 msgstr "Esegui ora"
 
-#: lib/dialogs/make.js:37
+#: lib/dialogs/make.js:38
 msgid "Just notify me"
 msgstr "Notificami"
 
-#: lib/dialogs/make.js:61
+#: lib/dialogs/make.js:62
 msgid "Pick a command from the following devices"
 msgstr "Scegli un comando tra i seguenti dispositivi"
 
-#: lib/dialogs/make.js:74
+#: lib/dialogs/make.js:75
 #, javascript-format
 msgid "Can't find a compatible command from %s, choose another device"
 msgstr "Non trovo un comando compatibile in %s, scegli un altro dispositivo"
 
-#: lib/dialogs/make.js:79
+#: lib/dialogs/make.js:80
 msgid "Pick a command below."
 msgstr "Scegli un comando."
 
-#: lib/dialogs/make.js:281 lib/dialogs/make.js:304
+#: lib/dialogs/make.js:215
+msgid "now"
+msgstr "ora"
+
+#: lib/dialogs/make.js:217
+msgid "notify me"
+msgstr "notificami"
+
+#: lib/dialogs/make.js:232 lib/dialogs/make.js:255
 #, javascript-format
 msgid "When: %s"
 msgstr "Quando: %s"
 
-#: lib/dialogs/make.js:281
+#: lib/dialogs/make.js:232
 msgid "When"
 msgstr "Quando"
 
-#: lib/dialogs/make.js:282 lib/dialogs/make.js:306
+#: lib/dialogs/make.js:233 lib/dialogs/make.js:257
 #, javascript-format
 msgid "Get: %s"
-msgstr "Recupera: %s"
+msgstr "Ottieni: %s"
 
-#: lib/dialogs/make.js:282
+#: lib/dialogs/make.js:233
 msgid "Get"
-msgstr "Recupera"
+msgstr "Ottieni"
 
-#: lib/dialogs/make.js:283
+#: lib/dialogs/make.js:234
 #, javascript-format
 msgid "Do: %s"
 msgstr "Fai: %s"
 
-#: lib/dialogs/make.js:283
+#: lib/dialogs/make.js:234
 msgid "Do"
 msgstr "Fai"
 
-#: lib/dialogs/make.js:285
+#: lib/dialogs/make.js:236
 msgid "Add more commands and filters or run your command if you are ready."
-msgstr "Aggiungi più comandi e filtri o esegui il tuo comando quando sei pronto."
+msgstr ""
+"Aggiungi più comandi e filtri o esegui il tuo comando quando sei pronto."
 
-#: lib/dialogs/make.js:286
+#: lib/dialogs/make.js:237
 msgid "Add a filter"
 msgstr "Aggiungi un filtro"
 
-#: lib/dialogs/make.js:287
+#: lib/dialogs/make.js:238
 msgid "Run it"
 msgstr "Esegui"
 
-#: lib/dialogs/make.js:289
+#: lib/dialogs/make.js:240
 msgid "Click on one of the following buttons to start adding command."
-msgstr "Clicca su uno dei pulsanti seguenti per iniziare ad aggiungere comandi."
+msgstr ""
+"Clicca su uno dei pulsanti seguenti per iniziare ad aggiungere comandi."
 
-#: lib/dialogs/make.js:309
+#: lib/dialogs/make.js:260
 msgid "Pick the command you want to add filters to:"
 msgstr "Scegli il comando a cui vuoi aggiungere il filtro:"
 
-#: lib/dialogs/make.js:316
+#: lib/dialogs/make.js:269
 msgid "Pick the filter you want to add:"
 msgstr "Scegli il filtro che vuoi aggiungere:"
 
-#: lib/dialogs/make.js:332
+#: lib/dialogs/make.js:313
 msgid "What's the value of this filter?"
 msgstr "Qual è il valore di questo filtro?"
+
+#: lib/dialogs/make.js:340
+#, javascript-format
+msgid ", owner is %s"
+msgstr ", proprietario è %s"
 
 #: lib/dialogs/slot_filling.js:52
 msgid "me"
@@ -499,188 +550,188 @@ msgstr "Utente Omlet @%s"
 msgid "%s wants to %s"
 msgstr "%s vuole %s"
 
-#: lib/dialogs/notifications.js:54
+#: lib/dialogs/notifications.js:57
 #, javascript-format
 msgid "Notification from %s: %s"
 msgstr "Notifica da %s: %s"
 
-#: lib/dialogs/notifications.js:58
+#: lib/dialogs/notifications.js:61
 #, javascript-format
 msgid "Notification from %s"
 msgstr "Notifica da %s"
 
-#: lib/dialogs/notifications.js:77
+#: lib/dialogs/notifications.js:80
 #, javascript-format
 msgid "Syntax error at %s line %d: %s"
 msgstr "Errore di sintassi a %s linea %d: %s"
 
-#: lib/dialogs/notifications.js:85
+#: lib/dialogs/notifications.js:88
 #, javascript-format
 msgid "%s had an error: %s."
 msgstr "%s ha avuto un errore: %s."
 
-#: lib/dialogs/notifications.js:87
+#: lib/dialogs/notifications.js:90
 #, javascript-format
 msgid "Sorry, that did not work: %s."
 msgstr "Mi dispiace, ma c'è stato un errore: %s."
 
-#: lib/helpers.js:55
+#: lib/helpers.js:54
 #, javascript-format
 msgid "Sending rule to %s: %s"
 msgstr "Invo regola a %s: %s"
 
-#: lib/almond.js:156 lib/almond.js:169 lib/almond.js:331
-#, javascript-format
-msgid "Sorry, I had an error processing your command: %s"
-msgstr "Mi dispiace, c'è stato un errore nel processare il tuo comando: %s."
-
-#: lib/dispatcher.js:130
+#: lib/dispatcher.js:137
 msgid "Sorry, but that's not what I asked."
 msgstr "Mi dispiace, ma non è quello che ho chiesto."
 
-#: lib/dispatcher.js:137
+#: lib/dispatcher.js:144
 msgid "a time interval"
 msgstr "un intervallo di tempo"
 
-#: lib/dispatcher.js:138
+#: lib/dispatcher.js:145
 msgid "a length"
 msgstr "una lunghezza"
 
-#: lib/dispatcher.js:139
+#: lib/dispatcher.js:146
 msgid "a speed"
 msgstr "una velocità"
 
-#: lib/dispatcher.js:140
+#: lib/dispatcher.js:147
 msgid "a weight"
 msgstr "un peso"
 
-#: lib/dispatcher.js:141
+#: lib/dispatcher.js:148
 msgid "a pressure"
 msgstr "una pressione"
 
-#: lib/dispatcher.js:142
+#: lib/dispatcher.js:149
 msgid "a temperature"
 msgstr "una temperatura"
 
-#: lib/dispatcher.js:143
+#: lib/dispatcher.js:150
 msgid "an energy"
 msgstr "un'energia"
 
-#: lib/dispatcher.js:144
+#: lib/dispatcher.js:151
 msgid "a size"
 msgstr "una dimensione"
 
-#: lib/dispatcher.js:158
+#: lib/dispatcher.js:165
 msgid "In fact, I did not ask for anything at all!"
 msgstr "In effetti, non ho chiesto nulla!"
 
-#: lib/dispatcher.js:160
+#: lib/dispatcher.js:167
 msgid "Sorry, I need you to confirm the last question first."
 msgstr ""
 "Mi dispiace, ma mi serve che confermi l'ultima domanda prima di andare "
 "avanti."
 
-#: lib/dispatcher.js:162
+#: lib/dispatcher.js:169
 msgid "Could you choose one of the following?"
 msgstr "Scegli solo uno dei seguenti."
 
-#: lib/dispatcher.js:165
+#: lib/dispatcher.js:172
 #, javascript-format
 msgid "I'm looking for %s in any of the supported units (%s)."
 msgstr "Vorrei %s in una delle unità di misura supportate (%s)."
 
-#: lib/dispatcher.js:168
+#: lib/dispatcher.js:175
 msgid "Could you give me a number?"
 msgstr "Puoi inserire un numero?"
 
-#: lib/dispatcher.js:170
+#: lib/dispatcher.js:177
 msgid "Could you give me a date?"
 msgstr "Puoi inserire una data?"
 
-#: lib/dispatcher.js:172
+#: lib/dispatcher.js:179
 msgid "Could you give me a time of day?"
 msgstr "Puoi inserire un orario?"
 
-#: lib/dispatcher.js:174
+#: lib/dispatcher.js:181
 msgid "Could you upload a picture?"
 msgstr "Puoi inserire una foto?"
 
-#: lib/dispatcher.js:176
+#: lib/dispatcher.js:183
 msgid "Could you give me a place?"
 msgstr "Puoi inserire una località?"
 
-#: lib/dispatcher.js:178
+#: lib/dispatcher.js:185
 msgid "Could you give me a phone number?"
 msgstr "Puoi inserire un numero di telefono?"
 
-#: lib/dispatcher.js:180
+#: lib/dispatcher.js:187
 msgid "Could you give me an email address?"
 msgstr "Puoi inserire un indirizzo e-mail?"
 
-#: lib/dispatcher.js:186
+#: lib/dispatcher.js:193
 msgid ""
 "Which is interesting, because I'll take anything at all. Just type your mind!"
 msgstr ""
 "Il che è interessante, perchè mi va bene qualunque cosa. Libera la tua "
 "fantasia!"
 
-#: lib/dispatcher.js:188
+#: lib/dispatcher.js:195
 msgid "I'm looking for a trigger, an action, or a query."
 msgstr "Sto cercando un trigger, un'azione o una domanda."
 
-#: lib/dispatcher.js:190
+#: lib/dispatcher.js:197
 msgid "In fact, I'm not even sure what I asked. Sorry!"
 msgstr "In effetti, non sono del tutto sicura di cosa ho chiesto. Scusa!"
 
-#: lib/dispatcher.js:198
+#: lib/dispatcher.js:205
 #, javascript-format
 msgid "Sorry, I did not understand that: %s. Can you rephrase it?"
 msgstr "Mi dispiace, non ho capito: %s. Puoi riprovare?"
 
-#: lib/dispatcher.js:200
+#: lib/dispatcher.js:207
 msgid "Sorry, I did not understand that. Can you rephrase it?"
 msgstr "Mi dispiace, non ho capito. Puoi riprovare?"
 
-#: lib/dispatcher.js:203
+#: lib/dispatcher.js:210
 #, javascript-format
 msgid "Sorry, I did not understand that: %s."
 msgstr "Mi dispiace, non ho capito: %s."
 
-#: lib/dispatcher.js:205
+#: lib/dispatcher.js:212
 msgid "Sorry, I did not understand that."
 msgstr "Mi dispiace, non ho capito."
 
-#: lib/dispatcher.js:212
+#: lib/dispatcher.js:219
 msgid "Consider it done."
 msgstr "Consideralo fatto."
 
-#: lib/dispatcher.js:242
+#: lib/dispatcher.js:251
 msgid "Sorry I couldn't help on that."
 msgstr "Mi dispiace non poter essere d'aiuto."
 
-#: lib/dispatcher.js:275
+#: lib/dispatcher.js:284
 msgid "User cancelled"
-msgstr ""
+msgstr "Annullato dall'utente"
 
-#: lib/dispatcher.js:321
+#: lib/dispatcher.js:330
 msgid "Yes what?"
 msgstr "Sì cosa?"
 
-#: lib/dispatcher.js:352
+#: lib/dispatcher.js:361
 msgid "Please click on one of the provided choices."
 msgstr "Per favore clicca su una delle scelte visualizzate."
 
-#: lib/dispatcher.js:373
+#: lib/dispatcher.js:382
 msgid "Sure! How can I help you?"
 msgstr "Subito! Come posso aiutarti?"
 
-#: lib/dispatcher.js:374
+#: lib/dispatcher.js:383
 msgid ""
 "Try 'help' followed by a device name to get example commands of that device, "
 "e.g., 'help twitter', or just give me a word and I'll try to find commands "
 "related to it."
 msgstr ""
-"Prova 'aiuto' seguito dal nome di un dispositivo per ottenere comandi di esempio per quel dispositivo, e.g. 'aiuto twitter', or dammi una parola e cercherò di trovare comandi relativi ad essa."
+"Prova 'aiuto' seguito dal nome di un dispositivo per ottenere comandi di "
+"esempio per quel dispositivo, e.g. 'aiuto twitter', or dammi una parola e "
+"cercherò di trovare comandi relativi ad essa."
+
+#~ msgid "Sorry,   I had an error processing your command: %s"
+#~ msgstr "Mi dispiace, c'è stato un errore nel processare il tuo comando: %s."
 
 #~ msgid "Execute"
 #~ msgstr "Esegui"
