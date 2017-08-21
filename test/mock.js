@@ -428,7 +428,7 @@ class MockRemote {
     }
 
 
-    installProgramRemote(principal, identity, program) {
+    installProgramRemote(principal, identity, uniqueId, program) {
         console.log('MOCK: Sending rule to ' + principal + ': ' + Ast.prettyprint(program));
         return Promise.resolve();
     }
