@@ -13,7 +13,6 @@ lib/apps/trigger_runner.js
 lib/config.js
 lib/db/app.js
 lib/db/channel.js
-lib/db/keyword.js
 lib/db/sqlite.js
 lib/db/syncdb.js
 lib/devices/channel_factory.js
