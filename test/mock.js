@@ -434,6 +434,17 @@ class MockRemote {
     }
 }
 
+class MockPermissionManager {
+    constructor(schemas) {
+        this._Schemas = schemas;
+    }
+
+    addPermission(permissionRule, extra) {
+        console.log('Added permission rule ' + Ast.prettyprintPermissionRule(permissionRule));
+        return Promise.resolve();
+    }
+}
+
 var thingpedia = new ThingpediaClient(null);
 var schemas = new ThingTalk.SchemaRetriever(thingpedia, true);
 
@@ -475,6 +486,7 @@ module.exports.createMockEngine = function() {
         discovery: new MockDiscoveryClient(),
         ml: new NaiveML(),
         messaging: new MockMessaging(),
-        remote: new MockRemote(schemas)
+        remote: new MockRemote(schemas),
+        permissions: new MockPermissionManager(schemas)
     };
 };
