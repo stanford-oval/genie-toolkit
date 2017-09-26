@@ -43,8 +43,9 @@ drop table if exists permissions;
 
 create table permissions (
         uniqueId varchar(255) primary key,
-        compat_key text,
-        code text
+        compat_key text not null,
+        code text not null,
+        extra text default null
 );
 
 create index permissions_compat_key on permissions(compat_key);
