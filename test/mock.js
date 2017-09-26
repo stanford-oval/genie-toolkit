@@ -166,7 +166,7 @@ class MockNineGagDevice {
 class MockTwitterDevice {
     constructor(who) {
         this.name = "Twitter Account " + who;
-        this.kind = 'twitter';
+        this.kind = 'com.twitter';
         this.uniqueId = 'twitter-' + who;
     }
 }
@@ -174,7 +174,7 @@ class MockTwitterDevice {
 class MockTVDevice {
     constructor(who) {
         this.name = "LG WebOS TV " + who;
-        this.kind = 'lg_webos_tv';
+        this.kind = 'com.lg.tv.webos2';
         this.uniqueId = 'lg_webos_tv-' + who;
     }
 }
@@ -182,7 +182,7 @@ class MockTVDevice {
 class MockYoutubeDevice {
     constructor(who) {
         this.name = "Youtube Account " + who;
-        this.kind = 'youtube';
+        this.kind = 'com.youtube';
         this.uniqueId = 'youtube-' + who;
     }
 }
@@ -266,7 +266,7 @@ class MockPhoneDevice {
     constructor() {
         this.name = "Phone";
         this.description = "Your phone, in your hand. Not that hand, the other one.";
-        this.kind = 'phone';
+        this.kind = 'org.thingpedia.builtin.thingengine.phone';
         this.uniqueId = 'org.thingpedia.builtin.thingengine.phone';
     }
 
@@ -284,7 +284,7 @@ class MockBuiltinDevice {
     constructor() {
         this.name = "Builtin";
         this.description = "Time random bla bla bla";
-        this.kind = 'builtin';
+        this.kind = 'org.thingpedia.builtin.thingengine.builtin';
         this.uniqueId = 'thingengine-own-global';
     }
 }
