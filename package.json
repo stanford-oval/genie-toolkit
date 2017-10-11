@@ -12,7 +12,11 @@
   "main": "lib/engine.js",
   "dependencies": {
     "adt": "^0.7.2",
+    "babel-runtime": "^6.26.0",
+    "deep-equal": "^1.0.1",
     "ip": "^1.1.5",
+    "matrix-js-sdk": "^0.8.4",
+    "olm": "https://matrix.org/packages/npm/olm/olm-2.2.2.tgz",
     "q": "^1.5.0",
     "tmp": "0.0.31",
     "uuid": "^3.1.0",
