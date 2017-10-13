@@ -443,6 +443,10 @@ class MockPermissionManager {
         console.log('Added permission rule ' + Ast.prettyprintPermissionRule(permissionRule));
         return Promise.resolve();
     }
+
+    checkIsAllowed(principal, program) {
+        return Promise.resolve(true);
+    }
 }
 
 var thingpedia = new ThingpediaClient(null);
