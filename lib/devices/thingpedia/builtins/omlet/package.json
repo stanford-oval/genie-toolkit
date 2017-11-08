@@ -1,8 +1,4 @@
 {
-  "name": "thingengine-device-omlet",
-  "main": "device.js",
-  "thingpedia-metadata": {
-    "global-name": "omlet",
-    "types": ["messaging", "online-account"]
-  }
+  "name": "omlet",
+  "main": "device.js"
 }
