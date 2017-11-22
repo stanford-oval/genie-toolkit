@@ -1,6 +1,5 @@
 lib/apps/action_executor.js
 lib/apps/app_executor.js
-lib/apps/async_queue.js
 lib/apps/channel_opener.js
 lib/apps/command_executor.js
 lib/apps/database.js
@@ -60,6 +59,7 @@ lib/tiers/protocol.js
 lib/tiers/proxy.js
 lib/tiers/tier_connections.js
 lib/tiers/tier_manager.js
+lib/util/async_queue.js
 lib/util/ip_address.js
 lib/util/prefs.js
 lib/util/rate_limiter.js
