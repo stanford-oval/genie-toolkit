@@ -85,26 +85,18 @@ function main() {
         process.exit();
     }
 
-    function forceFallback(choices) {
+    function forceFallback(result) {
       // remove everything from the array, to force looking up in the examples
-      choices.length = 0;
-    }
-    function forceSuggestions(choices) {
-      // bring everything to 0.15 probability and 0 score, to trigger the heuristic
-      // for ambiguous analysis
-      choices.forEach((c) => {
-        c.prob = 0.20;
-        c.score = 0;
-      });
+      result.candidates.length = 0;
     }
 
     function _process(command, analysis, postprocess) {
-        Q.try(function() {
+        Q.try(() => {
             if (command === null)
                 return almond.handleParsedCommand(analysis);
             else
                 return almond.handleCommand(command, postprocess);
-        }).then(function() {
+        }).then(() => {
             rl.prompt();
         }).done();
     }
@@ -117,10 +109,9 @@ function main() {
     function help() {
       console.log('Available console commands:');
       console.log('\\q: quit');
-      console.log('\\r JSON: send json to Almond');
+      console.log('\\r NN-TT: send parsed intent to Almond');
       console.log('\\c NUMBER: make a choice');
       console.log('\\f COMMAND: force example search fallback');
-      console.log('\\s COMMAND: force ambiguous command fallback');
       console.log('\\a TYPE QUESTION: ask a question');
       console.log('\\t PROGRAM: execute a ThingTalk program');
       console.log('\\d KIND: run interactive configuration');
@@ -168,8 +159,15 @@ function main() {
     function notifyError(message) {
         Q(almond.notifyError('app-foo', null, new Error(message))).done();
     }
+    function handleSlashR(line) {
+        line = line.trim();
+        if (line.startsWith('{'))
+            _process(null, JSON.parse(line));
+        else
+            _process(null, { code: line.split(' '), entities: {} });
+    }
 
-    rl.on('line', function(line) {
+    rl.on('line', (line) => {
         if (line.trim().length === 0) {
             rl.prompt();
             return;
@@ -182,7 +180,7 @@ function main() {
             else if (line[1] === 't')
                 _processprogram(line.substr(3));
             else if (line[1] === 'r')
-                _process(null, line.substr(3));
+                handleSlashR(line.substr(3));
             else if (line[1] === 'c')
                 _process(null, JSON.stringify({ answer: { type: "Choice", value: parseInt(line.substr(3)) }}));
             else if (line[1] === 'f')

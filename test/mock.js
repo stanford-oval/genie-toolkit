@@ -98,7 +98,6 @@ class MockPreferences {
     }
 
     set(name, value) {
-        console.log('SharedPreferences.set %s %s'.format(name, JSON.stringify(value)));
         this._store[name] = value;
     }
 }
