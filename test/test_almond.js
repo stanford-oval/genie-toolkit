@@ -175,31 +175,29 @@ function main() {
             return;
         }
         if (line[0] === '\\') {
-            if (line[1] === 'q')
+            if (line[1] === 'q') {
                 quit();
-            else if (line[1] === 'h' || line[1] === '?')
+            } else if (line[1] === 'h' || line[1] === '?') {
                 help();
-            else if (line[1] === 't')
+            } else if (line[1] === 't') {
                 _processprogram(line.substr(3));
-            else if (line[1] === 'r')
+            } else if (line[1] === 'r') {
                 handleSlashR(line.substr(3));
-            else if (line[1] === 'c')
-                _process(null, JSON.stringify({ answer: { type: "Choice", value: parseInt(line.substr(3)) }}));
-            else if (line[1] === 'f')
-                _process(line.substr(3), null, forceFallback)
-            else if (line[1] === 's')
-                _process(line.substr(3), null, forceSuggestions)
-            else if (line[1] === 'a')
+            } else if (line[1] === 'c') {
+                _process(null, { code: ['bookkeeping', 'choice', line.substr(3)], entities: {} });
+            } else if (line[1] === 'f') {
+                _process(line.substr(3), null, forceFallback);
+            } else if (line[1] === 'a') {
                 askQuestion(line.substring(3, line.indexOf(' ', 3)), line.substr(line.indexOf(' ', 3)));
-            else if (line[1] === 'd')
+            } else if (line[1] === 'd') {
                 interactiveConfigure(line.substring(3) || null);
-            else if (line[1] === 'p')
+            } else if (line[1] === 'p') {
                 permissionGrant(line.substring(3, line.indexOf(' ', 3)), line.substr(line.indexOf(' ', 3)));
-            else if (line[1] === 'n')
+            } else if (line[1] === 'n') {
                 notify(line.substring(3));
-            else if (line[1] === 'e')
+            } else if (line[1] === 'e') {
                 notifyError(line.substring(3));
-            else {
+            } else {
                 console.log('Unknown command ' + line[1]);
                 rl.prompt();
             }
