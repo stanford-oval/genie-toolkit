@@ -87,7 +87,7 @@ function main() {
         process.exit();
     }
 
-    function forceFallback(result) {
+    function forceSuggestions(result) {
       // remove everything from the array, to force looking up in the examples
       result.candidates.length = 0;
     }
@@ -186,7 +186,7 @@ function main() {
             } else if (line[1] === 'c') {
                 _process(null, { code: ['bookkeeping', 'choice', line.substr(3)], entities: {} });
             } else if (line[1] === 'f') {
-                _process(line.substr(3), null, forceFallback);
+                _process(line.substr(3), null, forceSuggestions);
             } else if (line[1] === 'a') {
                 askQuestion(line.substring(3, line.indexOf(' ', 3)), line.substr(line.indexOf(' ', 3)));
             } else if (line[1] === 'd') {

@@ -14,6 +14,7 @@
     "adt": "~0.7.2",
     "q": "~1.4.1",
     "thingpedia": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-api#wip/new-thingpedia",
+    "thingtalk": "github:Stanford-Mobisocial-IoT-Lab/ThingTalk#wip/new-thingtalk",
     "uuid": "^3.1.0"
   },
   "devDependencies": {

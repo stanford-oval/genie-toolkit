@@ -223,6 +223,10 @@ byline@^4.2.1:
   version "4.2.2"
   resolved "https://registry.yarnpkg.com/byline/-/byline-4.2.2.tgz#c203a98a5b0290822a9386a78eda2cbd5bcdb32f"
 
+byline@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/byline/-/byline-5.0.0.tgz#741c5216468eadc457b03410118ad77de8c1ddb1"
+
 caller-path@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/caller-path/-/caller-path-0.1.0.tgz#94085ef63581ecd3daa92444a8fe94e82577751f"
@@ -1028,6 +1032,12 @@ slice-ansi@1.0.0:
   dependencies:
     is-fullwidth-code-point "^2.0.0"
 
+smtlib@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/smtlib/-/smtlib-0.1.1.tgz#7aae56f12d14e3e370ffc8d1c5c8e4fe01bae950"
+  dependencies:
+    byline "^5.0.0"
+
 source-map@^0.4.4:
   version "0.4.4"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.4.4.tgz#eba4f5da9c0dc999de68032d8b4f76173652036b"
@@ -1121,6 +1131,15 @@ text-table@~0.2.0:
     q "~1.4.1"
     tmp "0.0.31"
     xml2js "^0.4.17"
+
+"thingtalk@github:Stanford-Mobisocial-IoT-Lab/ThingTalk#wip/new-thingtalk":
+  version "1.0.0"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/e2915509a7973cf4edf7595a3dd2c9811ee29138"
+  dependencies:
+    adt "~0.7.2"
+    byline "^5.0.0"
+    q "~1.4.1"
+    smtlib "^0.1.1"
 
 through@^2.3.6:
   version "2.3.8"

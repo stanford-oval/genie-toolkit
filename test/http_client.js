@@ -120,17 +120,15 @@ module.exports = class ThingpediaClientHttp {
         return Tp.Helpers.Http.post(to, JSON.stringify(publicData), { dataContentType: 'application/json' });
     }
 
-    getExamplesByKey(key, isBase) {
-        var to = this._url + '/api/examples?locale=' + this.locale + '&key=' + encodeURIComponent(key)
-            + '&base=' + (isBase ? '1' : '0');
+    getExamplesByKey(key) {
+        var to = this._url + '/api/examples?locale=' + this.locale + '&key=' + encodeURIComponent(key);
         if (this.developerKey)
             to += '&developer_key=' + this.developerKey;
         return this._simpleRequest(to, true);
     }
 
-    getExamplesByKinds(kinds, isBase) {
-        var to = this._url + '/api/examples/by-kinds/' + kinds.join(',') + '?locale=' + this.locale
-            + '&base=' + (isBase ? '1' : '0');
+    getExamplesByKinds(kinds) {
+        var to = this._url + '/api/examples/by-kinds/' + kinds.join(',') + '?locale=' + this.locale;
         if (this.developerKey)
             to += '&developer_key=' + this.developerKey;
         return this._simpleRequest(to, true);
