@@ -38,7 +38,7 @@ rules:
     - error
     - global
   no-label-var: error
-  no-lonely-if: error
+  no-lonely-if: off
   no-new-object: error
   arrow-body-style: off
   arrow-parens:
