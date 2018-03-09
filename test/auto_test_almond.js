@@ -57,7 +57,7 @@ class TestDelegate {
     }
 
     sendButton(title, json) {
-        writeLine('>> button: ' + title + ' ' + json);
+        writeLine('>> button: ' + title + ' ' + JSON.stringify(json));
     }
 
     sendAskSpecial(what) {
@@ -234,7 +234,7 @@ const TEST_CASES = [
     monitor (@security-camera(id="security-camera-1").current_event()) => @com.twitter(id="twitter-foo").post_picture(caption="lol", picture_url=picture_url);
 }`],
 
-    /*[
+    [
     ['bookkeeping', 'special', 'special:makerule'],
 `>> Click on one of the following buttons to start adding command.
 >> choice 0: When
@@ -244,20 +244,20 @@ const TEST_CASES = [
 `,
     ['bookkeeping', 'choice', 0],
 `>> Pick one from the following categories or simply type in.
->> button: Do it now {"special":"tt:root.special.empty"}
->> button: Media {"command":{"type":"help","value":{"id":"tt:type.media"}}}
->> button: Social Networks {"command":{"type":"help","value":{"id":"tt:type.social-network"}}}
->> button: Home {"command":{"type":"help","value":{"id":"tt:type.home"}}}
->> button: Communication {"command":{"type":"help","value":{"id":"tt:type.communication"}}}
->> button: Health and Fitness {"command":{"type":"help","value":{"id":"tt:type.health"}}}
->> button: Services {"command":{"type":"help","value":{"id":"tt:type.service"}}}
->> button: Data Management {"command":{"type":"help","value":{"id":"tt:type.data-management"}}}
->> button: Back {"special":"tt:root.special.back"}
+>> button: Do it now {"code":["bookkeeping","special","special:empty"],"entities":{}}
+>> button: Media {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Health and Fitness {"code":["bookkeeping","category","health"],"entities":{}}
+>> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
-    ['monitor', '@security-camera.current_event', '=>', 'notify'],
+    ['monitor', '(', '@security-camera.current_event', ')', '=>', 'notify'],
 `>> Add more commands and filters or run your command if you are ready.
->> choice 0: When: any event is detected on your security camera
+>> choice 0: When: when the current event detected on your security camera changes
 >> choice 1: Get
 >> choice 2: Do: notify me
 >> choice 3: Add a filter
@@ -266,19 +266,19 @@ const TEST_CASES = [
 `,
     ['bookkeeping', 'choice', 1],
 `>> Pick one from the following categories or simply type in.
->> button: Media {"command":{"type":"help","value":{"id":"tt:type.media"}}}
->> button: Social Networks {"command":{"type":"help","value":{"id":"tt:type.social-network"}}}
->> button: Home {"command":{"type":"help","value":{"id":"tt:type.home"}}}
->> button: Communication {"command":{"type":"help","value":{"id":"tt:type.communication"}}}
->> button: Health and Fitness {"command":{"type":"help","value":{"id":"tt:type.health"}}}
->> button: Services {"command":{"type":"help","value":{"id":"tt:type.service"}}}
->> button: Data Management {"command":{"type":"help","value":{"id":"tt:type.data-management"}}}
->> button: Back {"special":"tt:root.special.back"}
+>> button: Media {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Health and Fitness {"code":["bookkeeping","category","health"],"entities":{}}
+>> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
 `>> Add more commands and filters or run your command if you are ready.
->> choice 0: When: any event is detected on your security camera
+>> choice 0: When: when the current event detected on your security camera changes
 >> choice 1: Get: get an Xkcd comic
 >> choice 2: Do: notify me
 >> choice 3: Add a filter
@@ -287,34 +287,36 @@ const TEST_CASES = [
 `,
     ['bookkeeping', 'choice', 3],
 `>> Pick the command you want to add filters to:
->> choice 0: When: any event is detected on your security camera
+>> choice 0: When: when the current event detected on your security camera changes
 >> choice 1: Get: get an Xkcd comic
 >> choice 2: Back
 >> ask special generic
 `,
     ['bookkeeping', 'choice', 1],
 `>> Pick the filter you want to add:
->> button: title is equal to ____ {"filter":{"name":"title","operator":"is","value":null,"type":"String"}}
->> button: title is not equal to ____ {"filter":{"name":"title","operator":"!=","value":null,"type":"String"}}
->> button: title contains ____ {"filter":{"name":"title","operator":"contains","value":null,"type":"String"}}
->> button: picture url is equal to ____ {"filter":{"name":"picture_url","operator":"is","value":null,"type":"Entity(tt:picture)"}}
->> button: picture url is not equal to ____ {"filter":{"name":"picture_url","operator":"!=","value":null,"type":"Entity(tt:picture)"}}
->> button: link is equal to ____ {"filter":{"name":"link","operator":"is","value":null,"type":"Entity(tt:url)"}}
->> button: link is not equal to ____ {"filter":{"name":"link","operator":"!=","value":null,"type":"Entity(tt:url)"}}
->> button: alt text is equal to ____ {"filter":{"name":"alt_text","operator":"is","value":null,"type":"String"}}
->> button: alt text is not equal to ____ {"filter":{"name":"alt_text","operator":"!=","value":null,"type":"String"}}
->> button: alt text contains ____ {"filter":{"name":"alt_text","operator":"contains","value":null,"type":"String"}}
->> button: Back {"special":"tt:root.special.back"}
+>> button: title is equal to $title {"code":["bookkeeping","filter","param:title:String","=","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"argname":"String"}}
+>> button: title is not equal to $title {"code":["bookkeeping","filter","param:title:String","!=","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"argname":"String"}}
+>> button: title contains $title {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"argname":"String"}}
+>> button: picture url is equal to $picture_url {"code":["bookkeeping","filter","param:picture_url:Entity(tt:picture)","=","SLOT_0"],"entities":{},"slots":["picture_url"],"slotTypes":{"argname":"Entity(tt:picture)"}}
+>> button: picture url is not equal to $picture_url {"code":["bookkeeping","filter","param:picture_url:Entity(tt:picture)","!=","SLOT_0"],"entities":{},"slots":["picture_url"],"slotTypes":{"argname":"Entity(tt:picture)"}}
+>> button: link is equal to $link {"code":["bookkeeping","filter","param:link:Entity(tt:url)","=","SLOT_0"],"entities":{},"slots":["link"],"slotTypes":{"argname":"Entity(tt:url)"}}
+>> button: link is not equal to $link {"code":["bookkeeping","filter","param:link:Entity(tt:url)","!=","SLOT_0"],"entities":{},"slots":["link"],"slotTypes":{"argname":"Entity(tt:url)"}}
+>> button: alt text is equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"argname":"String"}}
+>> button: alt text is not equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","!=","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"argname":"String"}}
+>> button: alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"argname":"String"}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special generic
 `,
-    { code: ['bookkeeping', 'filter', 'param:title:String', 'contains', 'SLOT_0'],
-      entities: { SLOT_0: "title" } },
+    { code: ['bookkeeping', 'filter', 'param:title:String', '=~', 'SLOT_0'],
+      slots: ['title'],
+      slotTypes: { title: 'String' },
+      entities: {} },
 `>> What's the value of this filter?
 >> ask special generic
 `,
     "lol",
 `>> Add more commands and filters or run your command if you are ready.
->> choice 0: When: any event is detected on your security camera
+>> choice 0: When: when the current event detected on your security camera changes
 >> choice 1: Get: get an Xkcd comic, title contains "lol"
 >> choice 2: Do: notify me
 >> choice 3: Add a filter
@@ -322,18 +324,18 @@ const TEST_CASES = [
 >> ask special generic
 `,
     ['bookkeeping', 'choice', 4],
-`>> You have multiple devices of type security-camera. Which one do you want to use?
+`>> You have multiple Security Camera devices. Which one do you want to use?
 >> choice 0: Some Device 1
 >> choice 1: Some Device 2
 >> ask special generic
 `,
     ['bookkeeping', 'choice', 0],
-`>> Ok, I'm going to get an Xkcd comic if title contains "lol" when any event is detected on your security camera
+`>> Ok, I'm going to notify you when the current event detected on your security camera changes and then get get an Xkcd comic if title contains "lol"
 >> ask special null
 `,
-    `AlmondGenerated() {
-    @security-camera(id="security-camera-1").new_event() , v_start_time := start_time, v_has_sound := has_sound, v_has_motion := has_motion, v_has_person := has_person, v_picture_url := picture_url => @xkcd(id="xkcd-9").get_comic(), title =~ "lol" , v_title := title, v_picture_url := picture_url, v_link := link, v_alt_text := alt_text => notify;
-}`]*/
+    `{
+    (monitor (@security-camera(id="security-camera-1").current_event()) join (@com.xkcd(id="com.xkcd-9").get_comic()), (title =~ "lol")) => notify;
+}`]
 ];
 
 function roundtrip(input, output) {
@@ -350,7 +352,7 @@ function roundtrip(input, output) {
         }
     }).then(() => {
         if (output !== null && buffer !== output)
-            throw new Error('Invalid reply from Almond: ' + buffer);
+            throw new Error('Invalid reply from Almond: ' + buffer + '\n\nExpected: ' + output);
     });
 }
 

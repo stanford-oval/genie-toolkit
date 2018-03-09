@@ -466,6 +466,7 @@ module.exports.createMockEngine = function() {
 
             locale: 'en-US',
             //locale: 'it',
+            type: 'test',
 
             hasCapability(cap) {
                 return cap === 'gettext' || cap === 'contacts';
