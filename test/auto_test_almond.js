@@ -92,47 +92,47 @@ const TEST_CASES = [
 
     [
     ['now', '=>', '@com.xkcd.get_comic', '=>', '@com.twitter.post_picture'],
-`>> You have multiple devices of type com.twitter. Which one do you want to use?
+`>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
 >> ask special generic
 `,
     ['bookkeeping', 'choice', 0],
 `>> What do you want to tweet?
->> choice 0: Use the title from xkcd
->> choice 1: Use the picture url from xkcd
->> choice 2: Use the link from xkcd
->> choice 3: Use the alt text from xkcd
+>> choice 0: Use the title from Xkcd
+>> choice 1: Use the picture url from Xkcd
+>> choice 2: Use the link from Xkcd
+>> choice 3: Use the alt text from Xkcd
 >> choice 4: A description of the result
 >> choice 5: None of above
 >> ask special generic
 `,
     ['bookkeeping', 'choice', 2],
 `>> Upload the picture now.
->> choice 0: Use the picture url from xkcd
+>> choice 0: Use the picture url from Xkcd
 >> choice 1: None of above
 >> ask special generic
 `,
     ['bookkeeping', 'choice', 0],
-`>> Ok, so you want me to get an Xkcd comic then tweet link with an attached picture with picture url equal to picture url. Is that right?
+`>> Ok, so you want me to get get an Xkcd comic and then tweet the link with an attached picture with picture url equal to the picture url. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
 >> ask special null
 `,
-`AlmondGenerated() {
-    now => @xkcd(id="xkcd-6").get_comic() , v_title := title, v_picture_url := picture_url, v_link := link, v_alt_text := alt_text => @twitter(id="twitter-foo").post_picture(caption=v_link, picture_url=v_picture_url) ;
+`{
+    now => @com.xkcd(id="com.xkcd-6").get_comic() => @com.twitter(id="twitter-foo").post_picture(caption=link, picture_url=picture_url);
 }`],
 
     [
-    ['now', '=>', '@twitter.post'],
-`>> You have multiple devices of type twitter. Which one do you want to use?
+    ['now', '=>', '@com.twitter.post'],
+`>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
 >> ask special generic
 `,
-     ['bookkeeping', 'choice', 0],
+     ['bookkeeping', 'choice', 1],
 `>> What do you want to tweet?
 >> ask special generic
 `,
@@ -144,35 +144,35 @@ const TEST_CASES = [
 `>> Consider it done.
 >> ask special null
 `,
-`AlmondGenerated() {
-    now => @twitter(id="twitter-foo").sink(status="lol") ;
+`{
+    now => @com.twitter(id="twitter-bar").post(status="lol");
 }`],
 
     [
-    ['monitor', '@com.twitter.home_timeline', '=>', '@com.facebook.post', 'on', 'param:status:String', '=', 'param:text:String'],
-`>> You have multiple devices of type twitter. Which one do you want to use?
+    ['monitor', '(', '@com.twitter.home_timeline', ')', '=>', '@com.facebook.post', 'on', 'param:status:String', '=', 'param:text:String'],
+`>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
 >> ask special generic
 `,
     ['bookkeeping', 'choice', 1],
-`>> Ok, so you want me to post text on Facebook when anyone you follow tweets. Is that right?
+`>> Ok, so you want me to post the text on Facebook when tweets from anyone you follow changes. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
 >> ask special null
 `,
-`AlmondGenerated() {
-    @twitter(id="twitter-foo").source() , v_text := text, v_hashtags := hashtags, v_urls := urls, v_from := from, v_in_reply_to := in_reply_to => @facebook(id="facebook-7").post(status=v_text) ;
+`{
+    monitor (@com.twitter(id="twitter-bar").home_timeline()) => @com.facebook(id="com.facebook-7").post(status=text);
 }`],
 
     [
     ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
 `>> ask special null
 `,
-`AlmondGenerated() {
-    now => @xkcd(id="xkcd-8").get_comic() , v_title := title, v_picture_url := picture_url, v_link := link, v_alt_text := alt_text => notify;
+`{
+    now => @com.xkcd(id="com.xkcd-8").get_comic() => notify;
 }`],
 
     /*[
@@ -193,21 +193,21 @@ const TEST_CASES = [
 }`],*/
 
     [
-    ['monitor', '@security-camera.current_event', '=>', '@com.twitter.post_picture'],
-`>> You have multiple devices of type security-camera. Which one do you want to use?
+    ['monitor', '(', '@security-camera.current_event', ')', '=>', '@com.twitter.post_picture'],
+`>> You have multiple Security Camera devices. Which one do you want to use?
 >> choice 0: Some Device 1
 >> choice 1: Some Device 2
 >> ask special generic
 `,
     ['bookkeeping', 'choice', 0],
-`>> You have multiple devices of type twitter. Which one do you want to use?
+`>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
 >> ask special generic
 `,
     ['bookkeeping', 'choice', 0],
 `>> What do you want to tweet?
->> choice 0: Use the picture url from security-camera
+>> choice 0: Use the picture url from Security Camera
 >> choice 1: A description of the result
 >> choice 2: None of above
 >> ask special generic
@@ -218,23 +218,23 @@ const TEST_CASES = [
 `,
     { code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'lol' } },
 `>> Upload the picture now.
->> choice 0: Use the picture url from security-camera
+>> choice 0: Use the picture url from Security Camera
 >> choice 1: None of above
 >> ask special generic
 `,
     ['bookkeeping', 'choice', 0],
-`>> Ok, so you want me to tweet "lol" with an attached picture with picture url equal to picture url when any event is detected on your security camera. Is that right?
+`>> Ok, so you want me to tweet "lol" with an attached picture with picture url equal to the picture url when the current event detected on your security camera changes. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
 >> ask special null
 `,
-`AlmondGenerated() {
-    @security-camera(id="security-camera-1").new_event() , v_start_time := start_time, v_has_sound := has_sound, v_has_motion := has_motion, v_has_person := has_person, v_picture_url := picture_url => @twitter(id="twitter-foo").post_picture(caption="lol", picture_url=v_picture_url) ;
+`{
+    monitor (@security-camera(id="security-camera-1").current_event()) => @com.twitter(id="twitter-foo").post_picture(caption="lol", picture_url=picture_url);
 }`],
 
-    [
+    /*[
     ['bookkeeping', 'special', 'special:makerule'],
 `>> Click on one of the following buttons to start adding command.
 >> choice 0: When
@@ -333,7 +333,7 @@ const TEST_CASES = [
 `,
     `AlmondGenerated() {
     @security-camera(id="security-camera-1").new_event() , v_start_time := start_time, v_has_sound := has_sound, v_has_motion := has_motion, v_has_person := has_person, v_picture_url := picture_url => @xkcd(id="xkcd-9").get_comic(), title =~ "lol" , v_title := title, v_picture_url := picture_url, v_link := link, v_alt_text := alt_text => notify;
-}`]
+}`]*/
 ];
 
 function roundtrip(input, output) {
