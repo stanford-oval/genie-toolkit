@@ -11,8 +11,6 @@
 
 require('./polyfill');
 
-const Q = require('q');
-Q.longStackSupport = true;
 const readline = require('readline');
 
 const Almond = require('../lib/almond');
@@ -93,19 +91,19 @@ function main() {
     }
 
     function _process(command, analysis, postprocess) {
-        Q.try(() => {
+        Promise.resolve().then(() => {
             if (command === null)
                 return almond.handleParsedCommand(analysis);
             else
                 return almond.handleCommand(command, postprocess);
         }).then(() => {
             rl.prompt();
-        }).done();
+        });
     }
     function _processprogram(prog) {
-        Q(almond.handleThingTalk(prog)).then(() => {
+        Promise.resolve(almond.handleThingTalk(prog)).then(() => {
             rl.prompt();
-        }).done();
+        });
     }
 
     function help() {
@@ -125,26 +123,26 @@ function main() {
     }
 
     function askQuestion(type, question) {
-        Q(almond.askQuestion(null, null, Type.fromString(type), question)
+        Promise.resolve(almond.askQuestion(null, null, Type.fromString(type), question)
             .then((v) => console.log('You Answered: ' + v)).catch((e) => {
             if (e.code === 'ECANCELLED')
                 console.log('You Cancelled');
             else
                 throw e;
-        })).done();
+        }));
     }
     function interactiveConfigure(kind) {
-        Q(almond.interactiveConfigure(kind).then(() => {
+        Promise.resolve(almond.interactiveConfigure(kind).then(() => {
             console.log('Interactive configuration complete');
         }).catch((e) => {
             if (e.code === 'ECANCELLED')
                 console.log('You Cancelled');
             else
                 throw e;
-        })).done();
+        }));
     }
     function permissionGrant(identity, program) {
-        Q(ThingTalk.Grammar.parseAndTypecheck(program, engine.schemas, true).then((program) => {
+        Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(program, engine.schemas, true).then((program) => {
             return almond.askForPermission(identity, identity, program);
         }).then((permission) => {
             console.log('Permission result: ' + permission);
@@ -153,13 +151,13 @@ function main() {
                 console.log('You Cancelled');
             else
                 throw e;
-        })).done();
+        }));
     }
     function notify(message) {
-        Q(almond.notify('app-foo', null, message)).done();
+        Promise.resolve(almond.notify('app-foo', null, message));
     }
     function notifyError(message) {
-        Q(almond.notifyError('app-foo', null, new Error(message))).done();
+        Promise.resolve(almond.notifyError('app-foo', null, new Error(message)));
     }
     function handleSlashR(line) {
         line = line.trim();

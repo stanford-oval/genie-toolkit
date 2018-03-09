@@ -11,13 +11,7 @@
 
 require('./polyfill');
 
-const Q = require('q');
-Q.longStackSupport = true;
-const readline = require('readline');
-
 const Almond = require('../lib/almond');
-const ThingTalk = require('thingtalk');
-const Type = ThingTalk.Type;
 
 const Mock = require('./mock');
 
@@ -372,7 +366,7 @@ function test(script, i) {
 
     function step(j) {
         if (j === script.length-1)
-            return Q();
+            return Promise.resolve();
 
         return roundtrip(script[j], script[j+1]).then(() => step(j+2));
     }
@@ -397,9 +391,9 @@ function test(script, i) {
 function promiseDoAll(array, fn) {
     function loop(i) {
         if (i === array.length)
-            return Q();
+            return Promise.resolve();
 
-        return Q(fn(array[i], i)).then(() => loop(i+1));
+        return Promise.resolve(fn(array[i], i)).then(() => loop(i+1));
     }
     return loop(0);
 }
@@ -411,11 +405,10 @@ function main() {
     // mock out getDeviceSetup
     engine.thingpedia.getDeviceSetup = (kinds) => {
         var ret = {};
-        for (var k of kinds) {
+        for (var k of kinds)
             ret[k] = {type:'none',kind:k};
-        }
-        return Q(ret);
-    }
+        return Promise.resolve(ret);
+    };
     // intercept loadOneApp
     engine.apps.loadOneApp = loadOneApp;
 
@@ -430,6 +423,6 @@ function main() {
     almond.start();
     flushBuffer();
 
-    promiseDoAll(TEST_CASES, test).done();
+    promiseDoAll(TEST_CASES, test);
 }
 main();
