@@ -80,3 +80,9 @@ create table matrix_outgoingRoomKeyRequests (
 );
 create index matrix_outgoingRoomKeyRequests_session on matrix_outgoingRoomKeyRequests(owner_id, room_id, session_id);
 create index matrix_outgoingRoomKeyRequests_state on matrix_outgoingRoomKeyRequests(owner_id, state);
+
+create table if not exists memory_table_meta (
+    name text primary key,
+    args text,
+    types text
+);
