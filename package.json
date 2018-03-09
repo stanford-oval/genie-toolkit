@@ -12,8 +12,8 @@
   "main": "lib/almond.js",
   "dependencies": {
     "adt": "~0.7.2",
-    "thingpedia": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-api#wip/new-thingpedia",
-    "thingtalk": "github:Stanford-Mobisocial-IoT-Lab/ThingTalk#wip/new-thingtalk",
+    "thingpedia": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-api",
+    "thingtalk": "github:Stanford-Mobisocial-IoT-Lab/ThingTalk",
     "uuid": "^3.1.0"
   },
   "devDependencies": {
