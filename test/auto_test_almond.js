@@ -362,6 +362,8 @@ function cleanToken(code) {
     return code.replace(/__token="[a-f0-9]+"/g, '__token="XXX"');
 }
 
+let anyFailed = false;
+
 function test(script, i) {
     console.error('Test Case #' + (i+1));
 
@@ -382,6 +384,7 @@ function test(script, i) {
             console.error('Test Case #' + (i+1) + ': does not match what expected');
             console.error('Expected: ' + expected);
             console.error('Generated: ' + app);
+            anyFailed = true;
         } else {
             console.error('Test Case #' + (i+1) + ' passed');
         }
@@ -389,6 +392,7 @@ function test(script, i) {
         console.error('Test Case #' + (i+1) + ': failed with exception');
         console.error('Error: ' + e.message);
         console.error(e.stack);
+        anyFailed = true;
     });
 }
 
@@ -427,6 +431,9 @@ function main() {
     almond.start();
     flushBuffer();
 
-    promiseDoAll(TEST_CASES, test);
+    promiseDoAll(TEST_CASES, test).then(() => {
+        if (anyFailed)
+            process.exit(1);
+    });
 }
 main();
