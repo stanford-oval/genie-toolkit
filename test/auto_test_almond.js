@@ -81,7 +81,7 @@ class MockUser {
 // generate ThingTalk)
 
 const TEST_CASES = [
-    [['bookkeeping', 'command', 'help'],
+    [['bookkeeping', 'special', 'special:help'],
 `>> Click on one of the following buttons to start adding command.
 >> choice 0: When
 >> choice 1: Get
@@ -90,8 +90,9 @@ const TEST_CASES = [
 `,
     null],
 
-    [['now', '=>', '@com.xkcd.get_comic',  '@com.twitter.post_picture'],
-`>> You have multiple devices of type twitter. Which one do you want to use?
+    [
+    ['now', '=>', '@com.xkcd.get_comic', '=>', '@com.twitter.post_picture'],
+`>> You have multiple devices of type com.twitter. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
 >> ask special generic
@@ -124,21 +125,22 @@ const TEST_CASES = [
     now => @xkcd(id="xkcd-6").get_comic() , v_title := title, v_picture_url := picture_url, v_link := link, v_alt_text := alt_text => @twitter(id="twitter-foo").post_picture(caption=v_link, picture_url=v_picture_url) ;
 }`],
 
-    [{ action: { name: { id: 'tt:twitter.sink' }, args: [] } },
+    [
+    ['now', '=>', '@twitter.post'],
 `>> You have multiple devices of type twitter. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
 >> ask special generic
 `,
-     { answer: { type: 'Choice', value: 0 } },
+     ['bookkeeping', 'choice', 0],
 `>> What do you want to tweet?
 >> ask special generic
 `,
-     { answer: { type: 'String', value: { value: 'lol' } } },
+     { code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'lol' } },
 `>> Ok, so you want me to tweet "lol". Is that right?
 >> ask special yesno
 `,
-     { special: "yes" },
+     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
 >> ask special null
 `,
@@ -146,23 +148,18 @@ const TEST_CASES = [
     now => @twitter(id="twitter-foo").sink(status="lol") ;
 }`],
 
-    [{ rule: {
-        trigger: { name: { id: 'tt:twitter.source' }, args: [] },
-        action: { name: { id: 'tt:facebook.post' }, args: [
-            { name: { id: 'tt:param.status'}, operator: 'is',
-              type: 'VarRef', value: { id: 'tt:param.text' } }
-        ]}
-    } },
+    [
+    ['monitor', '@com.twitter.home_timeline', '=>', '@com.facebook.post', 'on', 'param:status:String', '=', 'param:text:String'],
 `>> You have multiple devices of type twitter. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 0 } },
+    ['bookkeeping', 'choice', 1],
 `>> Ok, so you want me to post text on Facebook when anyone you follow tweets. Is that right?
 >> ask special yesno
 `,
-    { special: "yes" },
+    ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
 >> ask special null
 `,
@@ -170,18 +167,20 @@ const TEST_CASES = [
     @twitter(id="twitter-foo").source() , v_text := text, v_hashtags := hashtags, v_urls := urls, v_from := from, v_in_reply_to := in_reply_to => @facebook(id="facebook-7").post(status=v_text) ;
 }`],
 
-    [{ query: { name: { id: 'tt:xkcd.get_comic' }, args: [] } },
+    [
+    ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
 `>> ask special null
 `,
 `AlmondGenerated() {
     now => @xkcd(id="xkcd-8").get_comic() , v_title := title, v_picture_url := picture_url, v_link := link, v_alt_text := alt_text => notify;
 }`],
 
-    [{ query: { name: { id: 'tt:xkcd.get_comic' }, person: 'mom', args: [] } },
+    /*[
+    { code: ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'], entities: { USERNAME_0: "mom" } },
 `>> Ok, so you want me to get an Xkcd comic using Almond of Mom Corp Inc.. Is that right?
 >> ask special yesno
 `,
-    { special: "yes" },
+    ['bookkeeping', 'special', 'special:yes'],
 `>> Sending rule to Mom Corp Inc.: get an Xkcd comic then send it to me
 >> Consider it done.
 >> ask special null
@@ -191,42 +190,43 @@ const TEST_CASES = [
         trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out number : Number, out title : String, out picture_url : Entity(tt:picture), out link : Entity(tt:url), out alt_text : String);
     }
     @__dyn_0.receive(__principal="mock-account:MOCK1234-phone:+1800666"^^tt:contact("Mom Corp Inc."), __token="XXX"^^tt:flow_token, __kindChannel="query:xkcd:get_comic"^^tt:function) , v_title := title, v_picture_url := picture_url, v_link := link, v_alt_text := alt_text => notify;
-}`],
+}`],*/
 
-    [{"rule":{"trigger":{"args":[],"name":{"id":"tt:security-camera.new_event"}},"action":{"args":[],"name":{"id":"tt:twitter.post_picture"}}}},
+    [
+    ['monitor', '@security-camera.current_event', '=>', '@com.twitter.post_picture'],
 `>> You have multiple devices of type security-camera. Which one do you want to use?
 >> choice 0: Some Device 1
 >> choice 1: Some Device 2
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 0 } },
+    ['bookkeeping', 'choice', 0],
 `>> You have multiple devices of type twitter. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 0 } },
+    ['bookkeeping', 'choice', 0],
 `>> What do you want to tweet?
 >> choice 0: Use the picture url from security-camera
 >> choice 1: A description of the result
 >> choice 2: None of above
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 2 } },
+    ['bookkeeping', 'choice', 2],
 `>> What do you want to tweet?
 >> ask special generic
 `,
-    { answer: { type: 'String', value: { value: 'lol' } } },
+    { code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'lol' } },
 `>> Upload the picture now.
 >> choice 0: Use the picture url from security-camera
 >> choice 1: None of above
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 0 } },
+    ['bookkeeping', 'choice', 0],
 `>> Ok, so you want me to tweet "lol" with an attached picture with picture url equal to picture url when any event is detected on your security camera. Is that right?
 >> ask special yesno
 `,
-    { special: "yes" },
+    ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
 >> ask special null
 `,
@@ -234,14 +234,15 @@ const TEST_CASES = [
     @security-camera(id="security-camera-1").new_event() , v_start_time := start_time, v_has_sound := has_sound, v_has_motion := has_motion, v_has_person := has_person, v_picture_url := picture_url => @twitter(id="twitter-foo").post_picture(caption="lol", picture_url=v_picture_url) ;
 }`],
 
-    [{"special":{"id":"tt:root.special.makerule"}},
+    [
+    ['bookkeeping', 'special', 'special:makerule'],
 `>> Click on one of the following buttons to start adding command.
 >> choice 0: When
 >> choice 1: Get
 >> choice 2: Do
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 0 } },
+    ['bookkeeping', 'choice', 0],
 `>> Pick one from the following categories or simply type in.
 >> button: Do it now {"special":"tt:root.special.empty"}
 >> button: Media {"command":{"type":"help","value":{"id":"tt:type.media"}}}
@@ -254,7 +255,7 @@ const TEST_CASES = [
 >> button: Back {"special":"tt:root.special.back"}
 >> ask special command
 `,
-    {"trigger":{"args":[],"name":{"id":"tt:security-camera.new_event"}}},
+    ['monitor', '@security-camera.current_event', '=>', 'notify'],
 `>> Add more commands and filters or run your command if you are ready.
 >> choice 0: When: any event is detected on your security camera
 >> choice 1: Get
@@ -263,7 +264,7 @@ const TEST_CASES = [
 >> choice 4: Run it
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 1 } },
+    ['bookkeeping', 'choice', 1],
 `>> Pick one from the following categories or simply type in.
 >> button: Media {"command":{"type":"help","value":{"id":"tt:type.media"}}}
 >> button: Social Networks {"command":{"type":"help","value":{"id":"tt:type.social-network"}}}
@@ -275,7 +276,7 @@ const TEST_CASES = [
 >> button: Back {"special":"tt:root.special.back"}
 >> ask special command
 `,
-    {"query":{"args":[],"name":{"id":"tt:xkcd.get_comic"}}},
+    ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
 `>> Add more commands and filters or run your command if you are ready.
 >> choice 0: When: any event is detected on your security camera
 >> choice 1: Get: get an Xkcd comic
@@ -284,14 +285,14 @@ const TEST_CASES = [
 >> choice 4: Run it
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 3 } },
+    ['bookkeeping', 'choice', 3],
 `>> Pick the command you want to add filters to:
 >> choice 0: When: any event is detected on your security camera
 >> choice 1: Get: get an Xkcd comic
 >> choice 2: Back
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 1 } },
+    ['bookkeeping', 'choice', 1],
 `>> Pick the filter you want to add:
 >> button: title is equal to ____ {"filter":{"name":"title","operator":"is","value":null,"type":"String"}}
 >> button: title is not equal to ____ {"filter":{"name":"title","operator":"!=","value":null,"type":"String"}}
@@ -306,7 +307,8 @@ const TEST_CASES = [
 >> button: Back {"special":"tt:root.special.back"}
 >> ask special generic
 `,
-    {"filter":{"type":"String","operator":"contains","name":"title","value":null}},
+    { code: ['bookkeeping', 'filter', 'param:title:String', 'contains', 'SLOT_0'],
+      entities: { SLOT_0: "title" } },
 `>> What's the value of this filter?
 >> ask special generic
 `,
@@ -319,13 +321,13 @@ const TEST_CASES = [
 >> choice 4: Run it
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 4 } },
+    ['bookkeeping', 'choice', 4],
 `>> You have multiple devices of type security-camera. Which one do you want to use?
 >> choice 0: Some Device 1
 >> choice 1: Some Device 2
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 0 } },
+    ['bookkeeping', 'choice', 0],
 `>> Ok, I'm going to get an Xkcd comic if title contains "lol" when any event is detected on your security camera
 >> ask special null
 `,
@@ -370,7 +372,7 @@ function test(script, i) {
 
         return roundtrip(script[j], script[j+1]).then(() => step(j+2));
     }
-    return roundtrip({"special":"nevermind"}, null).then(() => step(0)).then(() => {
+    return roundtrip(['bookkeeping', 'special', 'special:nevermind'], null).then(() => step(0)).then(() => {
         var expected = script[script.length-1];
         app = cleanToken(app);
         expected = cleanToken(expected);
