@@ -82,7 +82,7 @@ class MockUser {
 
 const TEST_CASES = [
     [['bookkeeping', 'special', 'special:help'],
-`>> Click on one of the following buttons to start adding command.
+`>> Click on one of the following buttons to start adding commands.
 >> choice 0: When
 >> choice 1: Get
 >> choice 2: Do
@@ -236,7 +236,7 @@ const TEST_CASES = [
 
     [
     ['bookkeeping', 'special', 'special:makerule'],
-`>> Click on one of the following buttons to start adding command.
+`>> Click on one of the following buttons to start adding commands.
 >> choice 0: When
 >> choice 1: Get
 >> choice 2: Do
@@ -335,6 +335,78 @@ const TEST_CASES = [
 `,
     `{
     (monitor (@security-camera(id="security-camera-1").current_event()) join (@com.xkcd(id="com.xkcd-9").get_comic()), (title =~ "lol")) => notify;
+}`],
+
+
+    [
+    ['bookkeeping', 'special', 'special:makerule'],
+`>> Click on one of the following buttons to start adding commands.
+>> choice 0: When
+>> choice 1: Get
+>> choice 2: Do
+>> ask special generic
+`,
+    ['bookkeeping', 'choice', 0],
+`>> Pick one from the following categories or simply type in.
+>> button: Do it now {"code":["bookkeeping","special","special:empty"],"entities":{}}
+>> button: Media {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Health and Fitness {"code":["bookkeeping","category","health"],"entities":{}}
+>> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+
+    {"code":["bookkeeping","category","media"],"entities":{}},
+`>> Pick a command from the following devices
+>> button: Giphy {"code":["bookkeeping","commands","media","device:com.giphy"],"entities":{}}
+>> button: Imgflip Meme Generator {"code":["bookkeeping","commands","media","device:com.imgflip"],"entities":{}}
+>> button: NASA Daily {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}}
+>> button: Piled Higher and Deeper {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}}
+>> button: Reddit Frontpage Watcher {"code":["bookkeeping","commands","media","device:com.reddit.frontpage"],"entities":{}}
+>> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
+>> button: SportRadar {"code":["bookkeeping","commands","media","device:us.sportradar"],"entities":{}}
+>> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
+>> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
+>> button: The Wall Street Journal {"code":["bookkeeping","commands","media","device:com.wsj"],"entities":{}}
+>> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
+>> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
+>> button: Yahoo Finance {"code":["bookkeeping","commands","media","device:com.yahoo.finance"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+
+    {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}},
+`>> Pick a command below.
+>> button: when a new xkcd is out {"example_id":1549785,"code":["monitor","(","@com.xkcd.get_comic",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when a new xkcd is out in the what-if section {"example_id":1549786,"code":["monitor","(","@com.xkcd.what_if",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when there is a new post in the xkcd what-if blog {"example_id":1549790,"code":["monitor","(","@com.xkcd.what_if",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when a new xkcd is posted {"example_id":1549794,"code":["monitor","(","@com.xkcd.get_comic",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+
+    {"example_id":1549785,"code":["monitor","(","@com.xkcd.get_comic",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]},
+`Clicked example 1549785
+>> Add more commands and filters or run your command if you are ready.
+>> choice 0: When: when get an Xkcd comic changes
+>> choice 1: Get
+>> choice 2: Do: notify me
+>> choice 3: Add a filter
+>> choice 4: Run it
+>> ask special generic
+`,
+
+    ['bookkeeping', 'choice', 4],
+`>> Ok, I'm going to notify you when get an Xkcd comic changes
+>> ask special null
+`,
+
+    `{
+    monitor (@com.xkcd(id="com.xkcd-10").get_comic()) => notify;
 }`]
 ];
 
@@ -411,6 +483,10 @@ var almond;
 function main() {
     var engine = Mock.createMockEngine();
     // mock out getDeviceSetup
+    engine.thingpedia.clickExample = (ex) => {
+        writeLine('Clicked example ' + ex);
+        return Promise.resolve();
+    };
     engine.thingpedia.getDeviceSetup = (kinds) => {
         var ret = {};
         for (var k of kinds)
