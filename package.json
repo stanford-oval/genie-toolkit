@@ -29,6 +29,6 @@
     "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
     "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done",
     "lint": "eslint lib/",
-    "test": "node ./tests/test_all"
+    "test": "node ./test/test_all"
   }
 }
