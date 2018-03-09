@@ -11,13 +11,7 @@
 
 require('./polyfill');
 
-const Q = require('q');
-Q.longStackSupport = true;
-const readline = require('readline');
-
 const Almond = require('../lib/almond');
-const ThingTalk = require('thingtalk');
-const Type = ThingTalk.Type;
 
 const Mock = require('./mock');
 
@@ -87,7 +81,7 @@ class MockUser {
 // generate ThingTalk)
 
 const TEST_CASES = [
-    [{ special: "help" },
+    [['bookkeeping', 'command', 'help'],
 `>> Click on one of the following buttons to start adding command.
 >> choice 0: When
 >> choice 1: Get
@@ -96,13 +90,13 @@ const TEST_CASES = [
 `,
     null],
 
-    [{"rule":{"query":{"args":[],"name":{"id":"tt:xkcd.get_comic"}},"action":{"args":[],"name":{"id":"tt:twitter.post_picture"}}}},
+    [['now', '=>', '@com.xkcd.get_comic',  '@com.twitter.post_picture'],
 `>> You have multiple devices of type twitter. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
 >> ask special generic
 `,
-    {"answer":{"type":"Choice","value":0}},
+    ['bookkeeping', 'choice', 0],
 `>> What do you want to tweet?
 >> choice 0: Use the title from xkcd
 >> choice 1: Use the picture url from xkcd
@@ -112,17 +106,17 @@ const TEST_CASES = [
 >> choice 5: None of above
 >> ask special generic
 `,
-    {"answer":{"type":"Choice","value":2}},
+    ['bookkeeping', 'choice', 2],
 `>> Upload the picture now.
 >> choice 0: Use the picture url from xkcd
 >> choice 1: None of above
 >> ask special generic
 `,
-    {"answer":{"type":"Choice","value":0}},
+    ['bookkeeping', 'choice', 0],
 `>> Ok, so you want me to get an Xkcd comic then tweet link with an attached picture with picture url equal to picture url. Is that right?
 >> ask special yesno
 `,
-    { special: "yes" },
+    ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
 >> ask special null
 `,
@@ -342,20 +336,20 @@ const TEST_CASES = [
 
 function roundtrip(input, output) {
     flushBuffer();
-    if (typeof input === 'string') {
-        //console.log('$ ' + input);
-        return almond.handleCommand(input).then(() => {
-            if (output !== null && buffer !== output)
-                throw new Error('Invalid reply from Almond: ' + buffer);
-        });
-    } else {
-        var json = JSON.stringify(input);
-        //console.log('$ \\r ' + json);
-        return almond.handleParsedCommand(json).then(() => {
-            if (output !== null && buffer !== output)
-                throw new Error('Invalid reply from Almond: ' + buffer);
-        });
-    }
+    return Promise.resolve().then(() => {
+        if (typeof input === 'string') {
+            //console.log('$ ' + input);
+            return almond.handleCommand(input);
+        } else if (Array.isArray(input)) {
+            return almond.handleParsedCommand({ code: input, entities: {} });
+        } else {
+            //console.log('$ \\r ' + json);
+            return almond.handleParsedCommand(input);
+        }
+    }).then(() => {
+        if (output !== null && buffer !== output)
+            throw new Error('Invalid reply from Almond: ' + buffer);
+    });
 }
 
 function cleanToken(code) {
@@ -372,7 +366,7 @@ function test(script, i) {
 
     function step(j) {
         if (j === script.length-1)
-            return Q();
+            return Promise.resolve();
 
         return roundtrip(script[j], script[j+1]).then(() => step(j+2));
     }
@@ -397,9 +391,9 @@ function test(script, i) {
 function promiseDoAll(array, fn) {
     function loop(i) {
         if (i === array.length)
-            return Q();
+            return Promise.resolve();
 
-        return Q(fn(array[i], i)).then(() => loop(i+1));
+        return Promise.resolve(fn(array[i], i)).then(() => loop(i+1));
     }
     return loop(0);
 }
@@ -411,11 +405,10 @@ function main() {
     // mock out getDeviceSetup
     engine.thingpedia.getDeviceSetup = (kinds) => {
         var ret = {};
-        for (var k of kinds) {
+        for (var k of kinds)
             ret[k] = {type:'none',kind:k};
-        }
-        return Q(ret);
-    }
+        return Promise.resolve(ret);
+    };
     // intercept loadOneApp
     engine.apps.loadOneApp = loadOneApp;
 
@@ -430,6 +423,6 @@ function main() {
     almond.start();
     flushBuffer();
 
-    promiseDoAll(TEST_CASES, test).done();
+    promiseDoAll(TEST_CASES, test);
 }
 main();

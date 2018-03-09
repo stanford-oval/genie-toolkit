@@ -12,7 +12,8 @@
   "main": "lib/almond.js",
   "dependencies": {
     "adt": "~0.7.2",
-    "q": "~1.4.1",
+    "thingpedia": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-api#wip/new-thingpedia",
+    "thingtalk": "github:Stanford-Mobisocial-IoT-Lab/ThingTalk#wip/new-thingtalk",
     "uuid": "^3.1.0"
   },
   "devDependencies": {
@@ -20,7 +21,8 @@
     "byline": "^4.2.1",
     "eslint": "^4.0.0",
     "istanbul": "^0.4.5",
-    "mysql": "^2.13.0"
+    "mysql": "^2.13.0",
+    "node-gettext": "^2.0.0"
   },
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}",
