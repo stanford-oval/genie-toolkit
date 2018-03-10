@@ -1,6 +1,6 @@
 # Almond
 
-[![Build Status](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/almond-dialog-agent.svg?branch=master)](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/almond-dialog-agent)
+[![Build Status](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/almond-dialog-agent.svg?branch=master)](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/almond-dialog-agent) [![Coverage Status](https://coveralls.io/repos/github/Stanford-Mobisocial-IoT-Lab/almond-dialog-agent/badge.svg?branch=master)](https://coveralls.io/github/Stanford-Mobisocial-IoT-Lab/almond-dialog-agent?branch=master)
 
 ## End User Programmable Virtual Assistants
 
