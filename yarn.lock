@@ -204,6 +204,10 @@ bignumber.js@4.0.4:
   version "4.0.4"
   resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-4.0.4.tgz#7c40f5abcd2d6623ab7b99682ee7db81b11889a4"
 
+bindings@^1.2.1:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/bindings/-/bindings-1.3.0.tgz#b346f6ecf6a95f5a815c5839fc7cdb22502f1ed7"
+
 brace-expansion@^1.1.7:
   version "1.1.11"
   resolved "https://registry.yarnpkg.com/brace-expansion/-/brace-expansion-1.1.11.tgz#3c7fcbf529d87226f3d2f52b966ff5271eb441dd"
@@ -325,6 +329,13 @@ cross-spawn@^5.1.0:
     lru-cache "^4.0.1"
     shebang-command "^1.2.0"
     which "^1.2.9"
+
+cvc4@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/cvc4/-/cvc4-0.1.1.tgz#053b5536778cadb163c6341471860374e3c081de"
+  dependencies:
+    bindings "^1.2.1"
+    smtlib "^0.1.1"
 
 debug@^2.6.8:
   version "2.6.9"
@@ -1126,12 +1137,14 @@ text-table@~0.2.0:
 
 "thingtalk@github:Stanford-Mobisocial-IoT-Lab/ThingTalk":
   version "1.0.0"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/9d2cf765ba67ce59625103dd58c28cf51162cac3"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/3ae791aff24c5687249721d4b7b0237d2fad2ffa"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
     q "~1.4.1"
     smtlib "^0.1.1"
+  optionalDependencies:
+    cvc4 "^0.1.1"
 
 through@^2.3.6:
   version "2.3.8"
