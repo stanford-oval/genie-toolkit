@@ -2,7 +2,7 @@
 //
 // This file is part of ThingEngine
 //
-// Copyright 2016 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2016-2018 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
