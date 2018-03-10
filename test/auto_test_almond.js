@@ -294,16 +294,16 @@ const TEST_CASES = [
 `,
     ['bookkeeping', 'choice', 1],
 `>> Pick the filter you want to add:
->> button: title is equal to $title {"code":["bookkeeping","filter","param:title:String","=","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"argname":"String"}}
->> button: title is not equal to $title {"code":["bookkeeping","filter","param:title:String","!=","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"argname":"String"}}
->> button: title contains $title {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"argname":"String"}}
->> button: picture url is equal to $picture_url {"code":["bookkeeping","filter","param:picture_url:Entity(tt:picture)","=","SLOT_0"],"entities":{},"slots":["picture_url"],"slotTypes":{"argname":"Entity(tt:picture)"}}
->> button: picture url is not equal to $picture_url {"code":["bookkeeping","filter","param:picture_url:Entity(tt:picture)","!=","SLOT_0"],"entities":{},"slots":["picture_url"],"slotTypes":{"argname":"Entity(tt:picture)"}}
->> button: link is equal to $link {"code":["bookkeeping","filter","param:link:Entity(tt:url)","=","SLOT_0"],"entities":{},"slots":["link"],"slotTypes":{"argname":"Entity(tt:url)"}}
->> button: link is not equal to $link {"code":["bookkeeping","filter","param:link:Entity(tt:url)","!=","SLOT_0"],"entities":{},"slots":["link"],"slotTypes":{"argname":"Entity(tt:url)"}}
->> button: alt text is equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"argname":"String"}}
->> button: alt text is not equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","!=","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"argname":"String"}}
->> button: alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"argname":"String"}}
+>> button: title is equal to $title {"code":["bookkeeping","filter","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: title is not equal to $title {"code":["bookkeeping","filter","param:title:String","!=","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: title contains $title {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: picture url is equal to $picture_url {"code":["bookkeeping","filter","param:picture_url:Entity(tt:picture)","==","SLOT_0"],"entities":{},"slots":["picture_url"],"slotTypes":{"picture_url":"Entity(tt:picture)"}}
+>> button: picture url is not equal to $picture_url {"code":["bookkeeping","filter","param:picture_url:Entity(tt:picture)","!=","SLOT_0"],"entities":{},"slots":["picture_url"],"slotTypes":{"picture_url":"Entity(tt:picture)"}}
+>> button: link is equal to $link {"code":["bookkeeping","filter","param:link:Entity(tt:url)","==","SLOT_0"],"entities":{},"slots":["link"],"slotTypes":{"link":"Entity(tt:url)"}}
+>> button: link is not equal to $link {"code":["bookkeeping","filter","param:link:Entity(tt:url)","!=","SLOT_0"],"entities":{},"slots":["link"],"slotTypes":{"link":"Entity(tt:url)"}}
+>> button: alt text is equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: alt text is not equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","!=","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special generic
 `,
