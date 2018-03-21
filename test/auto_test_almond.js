@@ -366,7 +366,7 @@ const TEST_CASES = [
 >> button: Imgflip Meme Generator {"code":["bookkeeping","commands","media","device:com.imgflip"],"entities":{}}
 >> button: NASA Daily {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}}
 >> button: Piled Higher and Deeper {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}}
->> button: Reddit Frontpage Watcher {"code":["bookkeeping","commands","media","device:com.reddit.frontpage"],"entities":{}}
+>> button: Reddit Frontpage {"code":["bookkeeping","commands","media","device:com.reddit.frontpage"],"entities":{}}
 >> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
 >> button: SportRadar {"code":["bookkeeping","commands","media","device:us.sportradar"],"entities":{}}
 >> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
