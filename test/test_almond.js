@@ -45,7 +45,7 @@ class TestDelegate {
     }
 
     sendButton(title, json) {
-        console.log('>> button: ' + title + ' ' + json);
+        console.log('>> button: ' + title + ' ' + JSON.stringify(json));
     }
 
     sendAskSpecial(what) {
@@ -58,6 +58,7 @@ class MockUser {
         this.id = 1;
         this.account = 'FOO';
         this.name = 'Alice Tester';
+        this.anonymous = true;
     }
 }
 
