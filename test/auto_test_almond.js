@@ -2,7 +2,7 @@
 //
 // This file is part of ThingEngine
 //
-// Copyright 2016 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2016-2018 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -11,13 +11,7 @@
 
 require('./polyfill');
 
-const Q = require('q');
-Q.longStackSupport = true;
-const readline = require('readline');
-
 const Almond = require('../lib/almond');
-const ThingTalk = require('thingtalk');
-const Type = ThingTalk.Type;
 
 const Mock = require('./mock');
 
@@ -63,7 +57,7 @@ class TestDelegate {
     }
 
     sendButton(title, json) {
-        writeLine('>> button: ' + title + ' ' + json);
+        writeLine('>> button: ' + title + ' ' + JSON.stringify(json));
     }
 
     sendAskSpecial(what) {
@@ -87,8 +81,8 @@ class MockUser {
 // generate ThingTalk)
 
 const TEST_CASES = [
-    [{ special: "help" },
-`>> Click on one of the following buttons to start adding command.
+    [['bookkeeping', 'special', 'special:help'],
+`>> Click on one of the following buttons to start adding commands.
 >> choice 0: When
 >> choice 1: Get
 >> choice 2: Do
@@ -96,98 +90,97 @@ const TEST_CASES = [
 `,
     null],
 
-    [{"rule":{"query":{"args":[],"name":{"id":"tt:xkcd.get_comic"}},"action":{"args":[],"name":{"id":"tt:twitter.post_picture"}}}},
-`>> You have multiple devices of type twitter. Which one do you want to use?
+    [
+    ['now', '=>', '@com.xkcd.get_comic', '=>', '@com.twitter.post_picture'],
+`>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
 >> ask special generic
 `,
-    {"answer":{"type":"Choice","value":0}},
+    ['bookkeeping', 'choice', 0],
 `>> What do you want to tweet?
->> choice 0: Use the title from xkcd
->> choice 1: Use the picture url from xkcd
->> choice 2: Use the link from xkcd
->> choice 3: Use the alt text from xkcd
+>> choice 0: Use the title from Xkcd
+>> choice 1: Use the picture url from Xkcd
+>> choice 2: Use the link from Xkcd
+>> choice 3: Use the alt text from Xkcd
 >> choice 4: A description of the result
 >> choice 5: None of above
 >> ask special generic
 `,
-    {"answer":{"type":"Choice","value":2}},
+    ['bookkeeping', 'choice', 2],
 `>> Upload the picture now.
->> choice 0: Use the picture url from xkcd
+>> choice 0: Use the picture url from Xkcd
 >> choice 1: None of above
 >> ask special generic
 `,
-    {"answer":{"type":"Choice","value":0}},
-`>> Ok, so you want me to get an Xkcd comic then tweet link with an attached picture with picture url equal to picture url. Is that right?
+    ['bookkeeping', 'choice', 0],
+`>> Ok, so you want me to get get an Xkcd comic and then tweet the link with an attached picture with picture url equal to the picture url. Is that right?
 >> ask special yesno
 `,
-    { special: "yes" },
+    ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
 >> ask special null
 `,
-`AlmondGenerated() {
-    now => @xkcd(id="xkcd-6").get_comic() , v_title := title, v_picture_url := picture_url, v_link := link, v_alt_text := alt_text => @twitter(id="twitter-foo").post_picture(caption=v_link, picture_url=v_picture_url) ;
+`{
+    now => @com.xkcd(id="com.xkcd-6").get_comic() => @com.twitter(id="twitter-foo").post_picture(caption=link, picture_url=picture_url);
 }`],
 
-    [{ action: { name: { id: 'tt:twitter.sink' }, args: [] } },
-`>> You have multiple devices of type twitter. Which one do you want to use?
+    [
+    ['now', '=>', '@com.twitter.post'],
+`>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
 >> ask special generic
 `,
-     { answer: { type: 'Choice', value: 0 } },
+     ['bookkeeping', 'choice', 1],
 `>> What do you want to tweet?
 >> ask special generic
 `,
-     { answer: { type: 'String', value: { value: 'lol' } } },
+     { code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'lol' } },
 `>> Ok, so you want me to tweet "lol". Is that right?
 >> ask special yesno
 `,
-     { special: "yes" },
+     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
 >> ask special null
 `,
-`AlmondGenerated() {
-    now => @twitter(id="twitter-foo").sink(status="lol") ;
+`{
+    now => @com.twitter(id="twitter-bar").post(status="lol");
 }`],
 
-    [{ rule: {
-        trigger: { name: { id: 'tt:twitter.source' }, args: [] },
-        action: { name: { id: 'tt:facebook.post' }, args: [
-            { name: { id: 'tt:param.status'}, operator: 'is',
-              type: 'VarRef', value: { id: 'tt:param.text' } }
-        ]}
-    } },
-`>> You have multiple devices of type twitter. Which one do you want to use?
+    [
+    ['monitor', '(', '@com.twitter.home_timeline', ')', '=>', '@com.facebook.post', 'on', 'param:status:String', '=', 'param:text:String'],
+`>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 0 } },
-`>> Ok, so you want me to post text on Facebook when anyone you follow tweets. Is that right?
+    ['bookkeeping', 'choice', 1],
+`>> Ok, so you want me to post the text on Facebook when tweets from anyone you follow changes. Is that right?
 >> ask special yesno
 `,
-    { special: "yes" },
+    ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
 >> ask special null
 `,
-`AlmondGenerated() {
-    @twitter(id="twitter-foo").source() , v_text := text, v_hashtags := hashtags, v_urls := urls, v_from := from, v_in_reply_to := in_reply_to => @facebook(id="facebook-7").post(status=v_text) ;
+`{
+    monitor (@com.twitter(id="twitter-bar").home_timeline()) => @com.facebook(id="com.facebook-7").post(status=text);
 }`],
 
-    [{ query: { name: { id: 'tt:xkcd.get_comic' }, args: [] } },
+    [
+    ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
 `>> ask special null
 `,
-`AlmondGenerated() {
-    now => @xkcd(id="xkcd-8").get_comic() , v_title := title, v_picture_url := picture_url, v_link := link, v_alt_text := alt_text => notify;
+`{
+    now => @com.xkcd(id="com.xkcd-8").get_comic() => notify;
 }`],
 
-    [{ query: { name: { id: 'tt:xkcd.get_comic' }, person: 'mom', args: [] } },
+    /*[
+    { code: ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'], entities: { USERNAME_0: "mom" } },
 `>> Ok, so you want me to get an Xkcd comic using Almond of Mom Corp Inc.. Is that right?
 >> ask special yesno
 `,
-    { special: "yes" },
+    ['bookkeeping', 'special', 'special:yes'],
 `>> Sending rule to Mom Corp Inc.: get an Xkcd comic then send it to me
 >> Consider it done.
 >> ask special null
@@ -197,165 +190,242 @@ const TEST_CASES = [
         trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out number : Number, out title : String, out picture_url : Entity(tt:picture), out link : Entity(tt:url), out alt_text : String);
     }
     @__dyn_0.receive(__principal="mock-account:MOCK1234-phone:+1800666"^^tt:contact("Mom Corp Inc."), __token="XXX"^^tt:flow_token, __kindChannel="query:xkcd:get_comic"^^tt:function) , v_title := title, v_picture_url := picture_url, v_link := link, v_alt_text := alt_text => notify;
-}`],
+}`],*/
 
-    [{"rule":{"trigger":{"args":[],"name":{"id":"tt:security-camera.new_event"}},"action":{"args":[],"name":{"id":"tt:twitter.post_picture"}}}},
-`>> You have multiple devices of type security-camera. Which one do you want to use?
+    [
+    ['monitor', '(', '@security-camera.current_event', ')', '=>', '@com.twitter.post_picture'],
+`>> You have multiple Security Camera devices. Which one do you want to use?
 >> choice 0: Some Device 1
 >> choice 1: Some Device 2
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 0 } },
-`>> You have multiple devices of type twitter. Which one do you want to use?
+    ['bookkeeping', 'choice', 0],
+`>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 0 } },
+    ['bookkeeping', 'choice', 0],
 `>> What do you want to tweet?
->> choice 0: Use the picture url from security-camera
+>> choice 0: Use the picture url from Security Camera
 >> choice 1: A description of the result
 >> choice 2: None of above
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 2 } },
+    ['bookkeeping', 'choice', 2],
 `>> What do you want to tweet?
 >> ask special generic
 `,
-    { answer: { type: 'String', value: { value: 'lol' } } },
+    { code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'lol' } },
 `>> Upload the picture now.
->> choice 0: Use the picture url from security-camera
+>> choice 0: Use the picture url from Security Camera
 >> choice 1: None of above
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 0 } },
-`>> Ok, so you want me to tweet "lol" with an attached picture with picture url equal to picture url when any event is detected on your security camera. Is that right?
+    ['bookkeeping', 'choice', 0],
+`>> Ok, so you want me to tweet "lol" with an attached picture with picture url equal to the picture url when the current event detected on your security camera changes. Is that right?
 >> ask special yesno
 `,
-    { special: "yes" },
+    ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
 >> ask special null
 `,
-`AlmondGenerated() {
-    @security-camera(id="security-camera-1").new_event() , v_start_time := start_time, v_has_sound := has_sound, v_has_motion := has_motion, v_has_person := has_person, v_picture_url := picture_url => @twitter(id="twitter-foo").post_picture(caption="lol", picture_url=v_picture_url) ;
+`{
+    monitor (@security-camera(id="security-camera-1").current_event()) => @com.twitter(id="twitter-foo").post_picture(caption="lol", picture_url=picture_url);
 }`],
 
-    [{"special":{"id":"tt:root.special.makerule"}},
-`>> Click on one of the following buttons to start adding command.
+    [
+    ['bookkeeping', 'special', 'special:makerule'],
+`>> Click on one of the following buttons to start adding commands.
 >> choice 0: When
 >> choice 1: Get
 >> choice 2: Do
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 0 } },
+    ['bookkeeping', 'choice', 0],
 `>> Pick one from the following categories or simply type in.
->> button: Do it now {"special":"tt:root.special.empty"}
->> button: Media {"command":{"type":"help","value":{"id":"tt:type.media"}}}
->> button: Social Networks {"command":{"type":"help","value":{"id":"tt:type.social-network"}}}
->> button: Home {"command":{"type":"help","value":{"id":"tt:type.home"}}}
->> button: Communication {"command":{"type":"help","value":{"id":"tt:type.communication"}}}
->> button: Health and Fitness {"command":{"type":"help","value":{"id":"tt:type.health"}}}
->> button: Services {"command":{"type":"help","value":{"id":"tt:type.service"}}}
->> button: Data Management {"command":{"type":"help","value":{"id":"tt:type.data-management"}}}
->> button: Back {"special":"tt:root.special.back"}
+>> button: Do it now {"code":["bookkeeping","special","special:empty"],"entities":{}}
+>> button: Media {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Health and Fitness {"code":["bookkeeping","category","health"],"entities":{}}
+>> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
-    {"trigger":{"args":[],"name":{"id":"tt:security-camera.new_event"}}},
+    ['monitor', '(', '@security-camera.current_event', ')', '=>', 'notify'],
 `>> Add more commands and filters or run your command if you are ready.
->> choice 0: When: any event is detected on your security camera
+>> choice 0: When: when the current event detected on your security camera changes
 >> choice 1: Get
 >> choice 2: Do: notify me
 >> choice 3: Add a filter
 >> choice 4: Run it
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 1 } },
+    ['bookkeeping', 'choice', 1],
 `>> Pick one from the following categories or simply type in.
->> button: Media {"command":{"type":"help","value":{"id":"tt:type.media"}}}
->> button: Social Networks {"command":{"type":"help","value":{"id":"tt:type.social-network"}}}
->> button: Home {"command":{"type":"help","value":{"id":"tt:type.home"}}}
->> button: Communication {"command":{"type":"help","value":{"id":"tt:type.communication"}}}
->> button: Health and Fitness {"command":{"type":"help","value":{"id":"tt:type.health"}}}
->> button: Services {"command":{"type":"help","value":{"id":"tt:type.service"}}}
->> button: Data Management {"command":{"type":"help","value":{"id":"tt:type.data-management"}}}
->> button: Back {"special":"tt:root.special.back"}
+>> button: Media {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Health and Fitness {"code":["bookkeeping","category","health"],"entities":{}}
+>> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
-    {"query":{"args":[],"name":{"id":"tt:xkcd.get_comic"}}},
+    ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
 `>> Add more commands and filters or run your command if you are ready.
->> choice 0: When: any event is detected on your security camera
+>> choice 0: When: when the current event detected on your security camera changes
 >> choice 1: Get: get an Xkcd comic
 >> choice 2: Do: notify me
 >> choice 3: Add a filter
 >> choice 4: Run it
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 3 } },
+    ['bookkeeping', 'choice', 3],
 `>> Pick the command you want to add filters to:
->> choice 0: When: any event is detected on your security camera
+>> choice 0: When: when the current event detected on your security camera changes
 >> choice 1: Get: get an Xkcd comic
 >> choice 2: Back
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 1 } },
+    ['bookkeeping', 'choice', 1],
 `>> Pick the filter you want to add:
->> button: title is equal to ____ {"filter":{"name":"title","operator":"is","value":null,"type":"String"}}
->> button: title is not equal to ____ {"filter":{"name":"title","operator":"!=","value":null,"type":"String"}}
->> button: title contains ____ {"filter":{"name":"title","operator":"contains","value":null,"type":"String"}}
->> button: picture url is equal to ____ {"filter":{"name":"picture_url","operator":"is","value":null,"type":"Entity(tt:picture)"}}
->> button: picture url is not equal to ____ {"filter":{"name":"picture_url","operator":"!=","value":null,"type":"Entity(tt:picture)"}}
->> button: link is equal to ____ {"filter":{"name":"link","operator":"is","value":null,"type":"Entity(tt:url)"}}
->> button: link is not equal to ____ {"filter":{"name":"link","operator":"!=","value":null,"type":"Entity(tt:url)"}}
->> button: alt text is equal to ____ {"filter":{"name":"alt_text","operator":"is","value":null,"type":"String"}}
->> button: alt text is not equal to ____ {"filter":{"name":"alt_text","operator":"!=","value":null,"type":"String"}}
->> button: alt text contains ____ {"filter":{"name":"alt_text","operator":"contains","value":null,"type":"String"}}
->> button: Back {"special":"tt:root.special.back"}
+>> button: title is equal to $title {"code":["bookkeeping","filter","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: title is not equal to $title {"code":["bookkeeping","filter","param:title:String","!=","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: title contains $title {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: picture url is equal to $picture_url {"code":["bookkeeping","filter","param:picture_url:Entity(tt:picture)","==","SLOT_0"],"entities":{},"slots":["picture_url"],"slotTypes":{"picture_url":"Entity(tt:picture)"}}
+>> button: picture url is not equal to $picture_url {"code":["bookkeeping","filter","param:picture_url:Entity(tt:picture)","!=","SLOT_0"],"entities":{},"slots":["picture_url"],"slotTypes":{"picture_url":"Entity(tt:picture)"}}
+>> button: link is equal to $link {"code":["bookkeeping","filter","param:link:Entity(tt:url)","==","SLOT_0"],"entities":{},"slots":["link"],"slotTypes":{"link":"Entity(tt:url)"}}
+>> button: link is not equal to $link {"code":["bookkeeping","filter","param:link:Entity(tt:url)","!=","SLOT_0"],"entities":{},"slots":["link"],"slotTypes":{"link":"Entity(tt:url)"}}
+>> button: alt text is equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: alt text is not equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","!=","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special generic
 `,
-    {"filter":{"type":"String","operator":"contains","name":"title","value":null}},
+    { code: ['bookkeeping', 'filter', 'param:title:String', '=~', 'SLOT_0'],
+      slots: ['title'],
+      slotTypes: { title: 'String' },
+      entities: {} },
 `>> What's the value of this filter?
 >> ask special generic
 `,
     "lol",
 `>> Add more commands and filters or run your command if you are ready.
->> choice 0: When: any event is detected on your security camera
+>> choice 0: When: when the current event detected on your security camera changes
 >> choice 1: Get: get an Xkcd comic, title contains "lol"
 >> choice 2: Do: notify me
 >> choice 3: Add a filter
 >> choice 4: Run it
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 4 } },
-`>> You have multiple devices of type security-camera. Which one do you want to use?
+    ['bookkeeping', 'choice', 4],
+`>> You have multiple Security Camera devices. Which one do you want to use?
 >> choice 0: Some Device 1
 >> choice 1: Some Device 2
 >> ask special generic
 `,
-    { answer: { type: 'Choice', value: 0 } },
-`>> Ok, I'm going to get an Xkcd comic if title contains "lol" when any event is detected on your security camera
+    ['bookkeeping', 'choice', 0],
+`>> Ok, I'm going to notify you when the current event detected on your security camera changes and then get get an Xkcd comic if title contains "lol"
 >> ask special null
 `,
-    `AlmondGenerated() {
-    @security-camera(id="security-camera-1").new_event() , v_start_time := start_time, v_has_sound := has_sound, v_has_motion := has_motion, v_has_person := has_person, v_picture_url := picture_url => @xkcd(id="xkcd-9").get_comic(), title =~ "lol" , v_title := title, v_picture_url := picture_url, v_link := link, v_alt_text := alt_text => notify;
+    `{
+    (monitor (@security-camera(id="security-camera-1").current_event()) join (@com.xkcd(id="com.xkcd-9").get_comic()), (title =~ "lol")) => notify;
+}`],
+
+
+    [
+    ['bookkeeping', 'special', 'special:makerule'],
+`>> Click on one of the following buttons to start adding commands.
+>> choice 0: When
+>> choice 1: Get
+>> choice 2: Do
+>> ask special generic
+`,
+    ['bookkeeping', 'choice', 0],
+`>> Pick one from the following categories or simply type in.
+>> button: Do it now {"code":["bookkeeping","special","special:empty"],"entities":{}}
+>> button: Media {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Health and Fitness {"code":["bookkeeping","category","health"],"entities":{}}
+>> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+
+    {"code":["bookkeeping","category","media"],"entities":{}},
+`>> Pick a command from the following devices
+>> button: Giphy {"code":["bookkeeping","commands","media","device:com.giphy"],"entities":{}}
+>> button: Imgflip Meme Generator {"code":["bookkeeping","commands","media","device:com.imgflip"],"entities":{}}
+>> button: NASA Daily {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}}
+>> button: Piled Higher and Deeper {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}}
+>> button: Reddit Frontpage {"code":["bookkeeping","commands","media","device:com.reddit.frontpage"],"entities":{}}
+>> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
+>> button: SportRadar {"code":["bookkeeping","commands","media","device:us.sportradar"],"entities":{}}
+>> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
+>> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
+>> button: The Wall Street Journal {"code":["bookkeeping","commands","media","device:com.wsj"],"entities":{}}
+>> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
+>> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
+>> button: Yahoo Finance {"code":["bookkeeping","commands","media","device:com.yahoo.finance"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+
+    {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}},
+`>> Pick a command below.
+>> button: when a new xkcd is out {"example_id":1549785,"code":["monitor","(","@com.xkcd.get_comic",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when a new xkcd is out in the what-if section {"example_id":1549786,"code":["monitor","(","@com.xkcd.what_if",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when there is a new post in the xkcd what-if blog {"example_id":1549790,"code":["monitor","(","@com.xkcd.what_if",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when a new xkcd is posted {"example_id":1549794,"code":["monitor","(","@com.xkcd.get_comic",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+
+    {"example_id":1549785,"code":["monitor","(","@com.xkcd.get_comic",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]},
+`Clicked example 1549785
+>> Add more commands and filters or run your command if you are ready.
+>> choice 0: When: when get an Xkcd comic changes
+>> choice 1: Get
+>> choice 2: Do: notify me
+>> choice 3: Add a filter
+>> choice 4: Run it
+>> ask special generic
+`,
+
+    ['bookkeeping', 'choice', 4],
+`>> Ok, I'm going to notify you when get an Xkcd comic changes
+>> ask special null
+`,
+
+    `{
+    monitor (@com.xkcd(id="com.xkcd-10").get_comic()) => notify;
 }`]
 ];
 
 function roundtrip(input, output) {
     flushBuffer();
-    if (typeof input === 'string') {
-        //console.log('$ ' + input);
-        return almond.handleCommand(input).then(() => {
-            if (output !== null && buffer !== output)
-                throw new Error('Invalid reply from Almond: ' + buffer);
-        });
-    } else {
-        var json = JSON.stringify(input);
-        //console.log('$ \\r ' + json);
-        return almond.handleParsedCommand(json).then(() => {
-            if (output !== null && buffer !== output)
-                throw new Error('Invalid reply from Almond: ' + buffer);
-        });
-    }
+    return Promise.resolve().then(() => {
+        if (typeof input === 'string') {
+            //console.log('$ ' + input);
+            return almond.handleCommand(input);
+        } else if (Array.isArray(input)) {
+            return almond.handleParsedCommand({ code: input, entities: {} });
+        } else {
+            //console.log('$ \\r ' + json);
+            return almond.handleParsedCommand(input);
+        }
+    }).then(() => {
+        if (output !== null && buffer !== output)
+            throw new Error('Invalid reply from Almond: ' + buffer + '\n\nExpected: ' + output);
+    });
 }
 
 function cleanToken(code) {
@@ -363,6 +433,8 @@ function cleanToken(code) {
         return null;
     return code.replace(/__token="[a-f0-9]+"/g, '__token="XXX"');
 }
+
+let anyFailed = false;
 
 function test(script, i) {
     console.error('Test Case #' + (i+1));
@@ -372,11 +444,11 @@ function test(script, i) {
 
     function step(j) {
         if (j === script.length-1)
-            return Q();
+            return Promise.resolve();
 
         return roundtrip(script[j], script[j+1]).then(() => step(j+2));
     }
-    return roundtrip({"special":"nevermind"}, null).then(() => step(0)).then(() => {
+    return roundtrip(['bookkeeping', 'special', 'special:nevermind'], null).then(() => step(0)).then(() => {
         var expected = script[script.length-1];
         app = cleanToken(app);
         expected = cleanToken(expected);
@@ -384,6 +456,7 @@ function test(script, i) {
             console.error('Test Case #' + (i+1) + ': does not match what expected');
             console.error('Expected: ' + expected);
             console.error('Generated: ' + app);
+            anyFailed = true;
         } else {
             console.error('Test Case #' + (i+1) + ' passed');
         }
@@ -391,15 +464,16 @@ function test(script, i) {
         console.error('Test Case #' + (i+1) + ': failed with exception');
         console.error('Error: ' + e.message);
         console.error(e.stack);
+        anyFailed = true;
     });
 }
 
 function promiseDoAll(array, fn) {
     function loop(i) {
         if (i === array.length)
-            return Q();
+            return Promise.resolve();
 
-        return Q(fn(array[i], i)).then(() => loop(i+1));
+        return Promise.resolve(fn(array[i], i)).then(() => loop(i+1));
     }
     return loop(0);
 }
@@ -409,13 +483,16 @@ var almond;
 function main() {
     var engine = Mock.createMockEngine();
     // mock out getDeviceSetup
+    engine.thingpedia.clickExample = (ex) => {
+        writeLine('Clicked example ' + ex);
+        return Promise.resolve();
+    };
     engine.thingpedia.getDeviceSetup = (kinds) => {
         var ret = {};
-        for (var k of kinds) {
+        for (var k of kinds)
             ret[k] = {type:'none',kind:k};
-        }
-        return Q(ret);
-    }
+        return Promise.resolve(ret);
+    };
     // intercept loadOneApp
     engine.apps.loadOneApp = loadOneApp;
 
@@ -430,6 +507,9 @@ function main() {
     almond.start();
     flushBuffer();
 
-    promiseDoAll(TEST_CASES, test).done();
+    promiseDoAll(TEST_CASES, test).then(() => {
+        if (anyFailed)
+            process.exit(1);
+    });
 }
 main();

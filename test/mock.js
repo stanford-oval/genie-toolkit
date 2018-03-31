@@ -9,13 +9,10 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
-
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 
 const ThingpediaClient = require('./http_client');
-const Intent = require('../lib/semantic').Intent;
 
 function dotProduct(a, b) {
     var score = 0;
@@ -42,14 +39,14 @@ class NaiveSoftmaxModel {
             scores[i] = this.score(ex);
             sum += Math.exp(scores[i]);
         }, this);
-        var mapped = examples.map(function(ex, i) {
+        var mapped = examples.map((ex, i) => {
             return {
                 ex: ex,
                 score: scores[i],
                 prob: Math.exp(scores[i])/sum
             };
         });
-        mapped.sort(function(a, b) {
+        mapped.sort((a, b) => {
             return b.score - a.score;
         });
         return mapped;
@@ -100,7 +97,6 @@ class MockPreferences {
     }
 
     set(name, value) {
-        console.log('SharedPreferences.set %s %s'.format(name, JSON.stringify(value)));
         this._store[name] = value;
     }
 }
@@ -210,7 +206,7 @@ class MockBluetoothDevice {
     completeDiscovery(delegate) {
         if (this.paired) {
             delegate.configDone();
-            return Q();
+            return Promise.resolve();
         }
 
         console.log('MOCK: Pairing with ' + this.uniqueId);
@@ -238,11 +234,11 @@ class MockBingQuery {
     }
 
     invokeQuery() {
-        return Q([
+        return Promise.resolve([
             ['Google', "Google is where you should really run your searches", 'http://google.com'],
             ['Bing', "Bing is what you're using. So dumb it's not even first!", 'http://bing.com'],
             ['Yahoo', "If all else fails", 'http://yahoo.com']
-        ])
+        ]);
     }
 
     close() {
@@ -260,7 +256,7 @@ class MockBingDevice {
     getQuery(id) {
         if (id !== 'web_search')
             throw new Error('Unexpected id in MOCK Bing: ' + id);
-        return Q(new MockBingQuery());
+        return Promise.resolve(new MockBingQuery());
     }
 }
 
@@ -275,7 +271,7 @@ class MockPhoneDevice {
     invokeTrigger(trigger, callback) {
         switch (trigger) {
         case 'gps':
-            return Q([{ y: 37.4275, x: -122.1697 }, 29, 0, 0]); // at stanford, on the ground, facing north, standing still
+            return Promise.resolve([{ y: 37.4275, x: -122.1697 }, 29, 0, 0]); // at stanford, on the ground, facing north, standing still
         default:
             throw new Error('Invalid trigger'); // we don't mock anything else
         }
@@ -325,10 +321,10 @@ class MockDeviceDatabase {
     loadOneDevice(blob, save) {
         if (blob.kind === 'com.bing') {
             console.log('MOCK: Loading bing');
-            return Q(this._devices['com.bing'] = new MockBingDevice());
+            return Promise.resolve(this._devices['com.bing'] = new MockBingDevice());
         } else {
             console.log('MOCK: Loading device ' + JSON.stringify(blob));
-            return Q(new MockUnknownDevice(blob.kind));
+            return Promise.resolve(new MockUnknownDevice(blob.kind));
         }
     }
 
@@ -341,21 +337,21 @@ class MockDeviceDatabase {
     }
 
     getAllDevices() {
-        return Object.keys(this._devices).map(function(k) { return this._devices[k]; }, this);
+        return Object.keys(this._devices).map((k) => { return this._devices[k]; });
     }
 
     getAllDevicesOfKind(kind) {
-        return this.getAllDevices().filter(function(d) { return d.kind === kind; });
+        return this.getAllDevices().filter((d) => { return d.kind === kind; });
     }
 }
 
 class MockDiscoveryClient {
     runDiscovery(timeout, type) {
-        return Q([new MockBluetoothDevice('foo', true), new MockBluetoothDevice('bar', false)]);
+        return Promise.resolve([new MockBluetoothDevice('foo', true), new MockBluetoothDevice('bar', false)]);
     }
 
     stopDiscovery() {
-        return Q();
+        return Promise.resolve();
     }
 }
 
@@ -378,11 +374,11 @@ const MOCK_ADDRESS_BOOK_DATA = [
     { displayName: 'Alice Johnson', alternativeDisplayName: 'Johnson, Alice',
       isPrimary: true, starred: false, timesContacted: 10, type: 'work',
       email_address: 'alice@johnson.com', phone_number: '+555654322' },
-]
+];
 
 class MockAddressBook {
     lookup(item, key) {
-        return Q(MOCK_ADDRESS_BOOK_DATA.map(function(el) {
+        return Promise.resolve(MOCK_ADDRESS_BOOK_DATA.map((el) => {
             if (item === 'contact')
                 el.value = 'phone:' + el.phone_number;
             else
@@ -392,11 +388,12 @@ class MockAddressBook {
     }
 
     lookupPrincipal(principal) {
-        return Q(MOCK_ADDRESS_BOOK_DATA.find(function(contact) {
+        return Promise.resolve(MOCK_ADDRESS_BOOK_DATA.find((contact) => {
             if (principal.startsWith('phone:'))
                 return contact.phone_number === principal.substr('phone:'.length);
             if (principal.startsWith('email:'))
                 return contact.email_address === principal.substr('email:'.length);
+            return null;
         }) || null);
     }
 }
@@ -414,13 +411,13 @@ class MockMessaging {
 
     getUserByAccount(account) {
         if (account === '123456789')
-            return Q({ name: "Some Guy" });
+            return Promise.resolve({ name: "Some Guy" });
         else
-            return Q(null);
+            return Promise.resolve(null);
     }
 
     getAccountForIdentity(identity) {
-        return Q('MOCK1234-' + identity);
+        return Promise.resolve('MOCK1234-' + identity);
     }
 }
 
@@ -452,7 +449,7 @@ class MockPermissionManager {
 }
 
 var thingpedia = new ThingpediaClient(null);
-var schemas = new ThingTalk.SchemaRetriever(thingpedia, true);
+var schemas = new ThingTalk.SchemaRetriever(thingpedia, null, true);
 
 var Gettext = require('node-gettext');
 var _gettext = new Gettext();
@@ -469,19 +466,19 @@ module.exports.createMockEngine = function() {
 
             locale: 'en-US',
             //locale: 'it',
+            type: 'test',
 
             hasCapability(cap) {
                 return cap === 'gettext' || cap === 'contacts';
             },
 
             getCapability(cap) {
-                if (cap === 'gettext') {
+                if (cap === 'gettext')
                     return _gettext;
-                } else if (cap === 'contacts') {
+                else if (cap === 'contacts')
                     return new MockAddressBook();
-                } else {
+                else
                     return null;
-                }
             }
         },
         stats: new MockStatistics,

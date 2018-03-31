@@ -11,8 +11,6 @@
 
 require('./polyfill');
 
-const Q = require('q');
-Q.longStackSupport = true;
 const readline = require('readline');
 
 const Almond = require('../lib/almond');
@@ -47,7 +45,7 @@ class TestDelegate {
     }
 
     sendButton(title, json) {
-        console.log('>> button: ' + title + ' ' + json);
+        console.log('>> button: ' + title + ' ' + JSON.stringify(json));
     }
 
     sendAskSpecial(what) {
@@ -60,6 +58,7 @@ class MockUser {
         this.id = 1;
         this.account = 'FOO';
         this.name = 'Alice Tester';
+        this.anonymous = true;
     }
 }
 
@@ -87,42 +86,33 @@ function main() {
         process.exit();
     }
 
-    function forceFallback(choices) {
+    function forceSuggestions(result) {
       // remove everything from the array, to force looking up in the examples
-      choices.length = 0;
-    }
-    function forceSuggestions(choices) {
-      // bring everything to 0.15 probability and 0 score, to trigger the heuristic
-      // for ambiguous analysis
-      choices.forEach((c) => {
-        c.prob = 0.20;
-        c.score = 0;
-      });
+      result.candidates.length = 0;
     }
 
     function _process(command, analysis, postprocess) {
-        Q.try(function() {
+        Promise.resolve().then(() => {
             if (command === null)
                 return almond.handleParsedCommand(analysis);
             else
                 return almond.handleCommand(command, postprocess);
-        }).then(function() {
+        }).then(() => {
             rl.prompt();
-        }).done();
+        });
     }
     function _processprogram(prog) {
-        Q(almond.handleThingTalk(prog)).then(() => {
+        Promise.resolve(almond.handleThingTalk(prog)).then(() => {
             rl.prompt();
-        }).done();
+        });
     }
 
     function help() {
       console.log('Available console commands:');
       console.log('\\q: quit');
-      console.log('\\r JSON: send json to Almond');
+      console.log('\\r NN-TT: send parsed intent to Almond');
       console.log('\\c NUMBER: make a choice');
       console.log('\\f COMMAND: force example search fallback');
-      console.log('\\s COMMAND: force ambiguous command fallback');
       console.log('\\a TYPE QUESTION: ask a question');
       console.log('\\t PROGRAM: execute a ThingTalk program');
       console.log('\\d KIND: run interactive configuration');
@@ -134,26 +124,26 @@ function main() {
     }
 
     function askQuestion(type, question) {
-        Q(almond.askQuestion(null, null, Type.fromString(type), question)
+        Promise.resolve(almond.askQuestion(null, null, Type.fromString(type), question)
             .then((v) => console.log('You Answered: ' + v)).catch((e) => {
             if (e.code === 'ECANCELLED')
                 console.log('You Cancelled');
             else
                 throw e;
-        })).done();
+        }));
     }
     function interactiveConfigure(kind) {
-        Q(almond.interactiveConfigure(kind).then(() => {
+        Promise.resolve(almond.interactiveConfigure(kind).then(() => {
             console.log('Interactive configuration complete');
         }).catch((e) => {
             if (e.code === 'ECANCELLED')
                 console.log('You Cancelled');
             else
                 throw e;
-        })).done();
+        }));
     }
     function permissionGrant(identity, program) {
-        Q(ThingTalk.Grammar.parseAndTypecheck(program, engine.schemas, true).then((program) => {
+        Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(program, engine.schemas, true).then((program) => {
             return almond.askForPermission(identity, identity, program);
         }).then((permission) => {
             console.log('Permission result: ' + permission);
@@ -162,46 +152,51 @@ function main() {
                 console.log('You Cancelled');
             else
                 throw e;
-        })).done();
+        }));
     }
     function notify(message) {
-        Q(almond.notify('app-foo', null, message)).done();
+        Promise.resolve(almond.notify('app-foo', null, message));
     }
     function notifyError(message) {
-        Q(almond.notifyError('app-foo', null, new Error(message))).done();
+        Promise.resolve(almond.notifyError('app-foo', null, new Error(message)));
+    }
+    function handleSlashR(line) {
+        line = line.trim();
+        if (line.startsWith('{'))
+            _process(null, JSON.parse(line));
+        else
+            _process(null, { code: line.split(' '), entities: {} });
     }
 
-    rl.on('line', function(line) {
+    rl.on('line', (line) => {
         if (line.trim().length === 0) {
             rl.prompt();
             return;
         }
         if (line[0] === '\\') {
-            if (line[1] === 'q')
+            if (line[1] === 'q') {
                 quit();
-            else if (line[1] === 'h' || line[1] === '?')
+            } else if (line[1] === 'h' || line[1] === '?') {
                 help();
-            else if (line[1] === 't')
+            } else if (line[1] === 't') {
                 _processprogram(line.substr(3));
-            else if (line[1] === 'r')
-                _process(null, line.substr(3));
-            else if (line[1] === 'c')
-                _process(null, JSON.stringify({ answer: { type: "Choice", value: parseInt(line.substr(3)) }}));
-            else if (line[1] === 'f')
-                _process(line.substr(3), null, forceFallback)
-            else if (line[1] === 's')
-                _process(line.substr(3), null, forceSuggestions)
-            else if (line[1] === 'a')
+            } else if (line[1] === 'r') {
+                handleSlashR(line.substr(3));
+            } else if (line[1] === 'c') {
+                _process(null, { code: ['bookkeeping', 'choice', line.substr(3)], entities: {} });
+            } else if (line[1] === 'f') {
+                _process(line.substr(3), null, forceSuggestions);
+            } else if (line[1] === 'a') {
                 askQuestion(line.substring(3, line.indexOf(' ', 3)), line.substr(line.indexOf(' ', 3)));
-            else if (line[1] === 'd')
+            } else if (line[1] === 'd') {
                 interactiveConfigure(line.substring(3) || null);
-            else if (line[1] === 'p')
+            } else if (line[1] === 'p') {
                 permissionGrant(line.substring(3, line.indexOf(' ', 3)), line.substr(line.indexOf(' ', 3)));
-            else if (line[1] === 'n')
+            } else if (line[1] === 'n') {
                 notify(line.substring(3));
-            else if (line[1] === 'e')
+            } else if (line[1] === 'e') {
                 notifyError(line.substring(3));
-            else {
+            } else {
                 console.log('Unknown command ' + line[1]);
                 rl.prompt();
             }

@@ -9,7 +9,6 @@ lib/dialogs/config.js
 lib/dialogs/default.js
 lib/dialogs/init.js
 lib/dialogs/rule.js
-lib/dialogs/help.js
 lib/dialogs/device_choice.js
 lib/dialogs/discovery.js
 lib/dialogs/make.js

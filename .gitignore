@@ -5,3 +5,6 @@ po/sabrina.pot
 po/almond.pot
 po/*.mo
 po/*.json
+
+coverage/
+.nyc_output/
