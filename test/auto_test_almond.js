@@ -86,7 +86,7 @@ const TEST_CASES = [
 >> choice 0: When
 >> choice 1: Get
 >> choice 2: Do
->> ask special generic
+>> ask special choice
 `,
     null],
 
@@ -95,7 +95,7 @@ const TEST_CASES = [
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
->> ask special generic
+>> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
 `>> What do you want to tweet?
@@ -105,13 +105,13 @@ const TEST_CASES = [
 >> choice 3: Use the alt text from Xkcd
 >> choice 4: A description of the result
 >> choice 5: None of above
->> ask special generic
+>> ask special choice
 `,
     ['bookkeeping', 'choice', 2],
 `>> Upload the picture now.
 >> choice 0: Use the picture url from Xkcd
 >> choice 1: None of above
->> ask special generic
+>> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
 `>> Ok, so you want me to get get an Xkcd comic and then tweet the link with an attached picture with picture url equal to the picture url. Is that right?
@@ -130,11 +130,11 @@ const TEST_CASES = [
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
->> ask special generic
+>> ask special choice
 `,
      ['bookkeeping', 'choice', 1],
 `>> What do you want to tweet?
->> ask special generic
+>> ask special raw_string
 `,
      { code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'lol' } },
 `>> Ok, so you want me to tweet "lol". Is that right?
@@ -153,7 +153,7 @@ const TEST_CASES = [
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
->> ask special generic
+>> ask special choice
 `,
     ['bookkeeping', 'choice', 1],
 `>> Ok, so you want me to post the text on Facebook when tweets from anyone you follow changes. Is that right?
@@ -197,30 +197,30 @@ const TEST_CASES = [
 `>> You have multiple Security Camera devices. Which one do you want to use?
 >> choice 0: Some Device 1
 >> choice 1: Some Device 2
->> ask special generic
+>> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
->> ask special generic
+>> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
 `>> What do you want to tweet?
 >> choice 0: Use the picture url from Security Camera
 >> choice 1: A description of the result
 >> choice 2: None of above
->> ask special generic
+>> ask special choice
 `,
     ['bookkeeping', 'choice', 2],
 `>> What do you want to tweet?
->> ask special generic
+>> ask special raw_string
 `,
     { code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'lol' } },
 `>> Upload the picture now.
 >> choice 0: Use the picture url from Security Camera
 >> choice 1: None of above
->> ask special generic
+>> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
 `>> Ok, so you want me to tweet "lol" with an attached picture with picture url equal to the picture url when the current event detected on your security camera changes. Is that right?
@@ -240,7 +240,7 @@ const TEST_CASES = [
 >> choice 0: When
 >> choice 1: Get
 >> choice 2: Do
->> ask special generic
+>> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
 `>> Pick one from the following categories or simply type in.
@@ -262,7 +262,7 @@ const TEST_CASES = [
 >> choice 2: Do: notify me
 >> choice 3: Add a filter
 >> choice 4: Run it
->> ask special generic
+>> ask special choice
 `,
     ['bookkeeping', 'choice', 1],
 `>> Pick one from the following categories or simply type in.
@@ -283,14 +283,14 @@ const TEST_CASES = [
 >> choice 2: Do: notify me
 >> choice 3: Add a filter
 >> choice 4: Run it
->> ask special generic
+>> ask special choice
 `,
     ['bookkeeping', 'choice', 3],
 `>> Pick the command you want to add filters to:
 >> choice 0: When: when the current event detected on your security camera changes
 >> choice 1: Get: get an Xkcd comic
 >> choice 2: Back
->> ask special generic
+>> ask special choice
 `,
     ['bookkeeping', 'choice', 1],
 `>> Pick the filter you want to add:
@@ -312,7 +312,7 @@ const TEST_CASES = [
       slotTypes: { title: 'String' },
       entities: {} },
 `>> What's the value of this filter?
->> ask special generic
+>> ask special raw_string
 `,
     "lol",
 `>> Add more commands and filters or run your command if you are ready.
@@ -321,13 +321,13 @@ const TEST_CASES = [
 >> choice 2: Do: notify me
 >> choice 3: Add a filter
 >> choice 4: Run it
->> ask special generic
+>> ask special choice
 `,
     ['bookkeeping', 'choice', 4],
 `>> You have multiple Security Camera devices. Which one do you want to use?
 >> choice 0: Some Device 1
 >> choice 1: Some Device 2
->> ask special generic
+>> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
 `>> Ok, I'm going to notify you when the current event detected on your security camera changes and then get get an Xkcd comic if title contains "lol"
@@ -344,7 +344,7 @@ const TEST_CASES = [
 >> choice 0: When
 >> choice 1: Get
 >> choice 2: Do
->> ask special generic
+>> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
 `>> Pick one from the following categories or simply type in.
@@ -397,7 +397,7 @@ const TEST_CASES = [
 >> choice 2: Do: notify me
 >> choice 3: Add a filter
 >> choice 4: Run it
->> ask special generic
+>> ask special choice
 `,
 
     ['bookkeeping', 'choice', 4],
