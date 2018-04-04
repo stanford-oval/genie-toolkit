@@ -58,7 +58,7 @@ class MockUser {
         this.id = 1;
         this.account = 'FOO';
         this.name = 'Alice Tester';
-        this.anonymous = true;
+        this.anonymous = false;
     }
 }
 
