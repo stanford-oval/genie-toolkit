@@ -11,6 +11,7 @@
 
 require('./polyfill');
 
+const assert = require('assert');
 const ThingTalk = require('thingtalk');
 
 const Almond = require('../lib/almond');
@@ -442,7 +443,17 @@ const TEST_CASES = [
     [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post'],
       entities: { USERNAME_0: 'mom' } },
-`>> Ok, so you want me to tell Alice Smith (mom): tweet ____. Is that right?
+`>> You haven't configured a Matrix account yet. You need a Matrix account to let me talk to other Almonds.
+>> Insert your Matrix username:
+>> ask special raw_string
+`,
+    `bob`,
+`>> Yes or no?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> The account has been set up.
+>> Ok, so you want me to tell Alice Smith (mom): tweet ____. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -596,6 +607,28 @@ function promiseDoAll(array, fn) {
 
 var almond;
 
+const mockMatrix = {
+    configureFromAlmond(engine, configDelegate) {
+        return configDelegate.requestCode("Insert your Matrix username:").then((username) => {
+            assert.strictEqual(username, 'bob');
+            return configDelegate.confirm("Yes or no?");
+        }).then((v) => {
+            assert.strictEqual(v, true);
+            configDelegate.configDone();
+            engine.messaging.isAvailable = true;
+        });
+    }
+};
+
+const mockDeviceFactory = {
+    getFactory(f) {
+        if (f === 'org.thingpedia.builtin.matrix')
+            return Promise.resolve(mockMatrix);
+        else
+            return Promise.reject(new Error('no such device'));
+    }
+};
+
 function main() {
     var engine = Mock.createMockEngine();
     // mock out getDeviceSetup
@@ -613,6 +646,8 @@ function main() {
     engine.apps.loadOneApp = loadOneApp;
     engine.permissions.addPermission = addPermission;
     engine.remote.installProgramRemote = installProgramRemote;
+    engine.messaging.isAvailable = false;
+    engine.devices.factory = mockDeviceFactory;
 
     var delegate = new TestDelegate();
 
