@@ -334,7 +334,7 @@ const TEST_CASES = [
 >> ask special null
 `,
     `{
-    (monitor (@security-camera(id="security-camera-1").current_event()) join (@com.xkcd(id="com.xkcd-9").get_comic()), (title =~ "lol")) => notify;
+    (monitor (@security-camera(id="security-camera-1").current_event()) join (@com.xkcd(id="com.xkcd-9").get_comic()), title =~ "lol") => notify;
 }`],
 
 
