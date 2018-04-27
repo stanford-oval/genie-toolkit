@@ -13,6 +13,7 @@
   "dependencies": {
     "adt": "^0.7.2",
     "babel-runtime": "^6.26.0",
+    "consumer-queue": "^1.0.0",
     "deep-equal": "^1.0.1",
     "ip": "^1.1.5",
     "matrix-js-sdk": "^0.8.4",

@@ -46,7 +46,6 @@ lib/tiers/protocol.js
 lib/tiers/tier_connections.js
 lib/tiers/tier_manager.js
 lib/util/array_set.js
-lib/util/async_queue.js
 lib/util/ip_address.js
 lib/util/prefs.js
 lib/util/rate_limiter.js
