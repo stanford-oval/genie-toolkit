@@ -16,7 +16,6 @@ lib/dialogs/slot_filling.js
 lib/dialogs/permission_grant.js
 lib/dialogs/notifications.js
 lib/helpers.js
-lib/async_queue.js
 lib/semantic.js
 lib/almond.js
 lib/dispatcher.js
