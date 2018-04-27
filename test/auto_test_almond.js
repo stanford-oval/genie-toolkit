@@ -11,6 +11,8 @@
 
 require('./polyfill');
 
+const ThingTalk = require('thingtalk');
+
 const Almond = require('../lib/almond');
 
 const Mock = require('./mock');
@@ -24,9 +26,37 @@ function flushBuffer() {
     buffer = '';
 }
 
+var permission = null;
 var app = null;
+var appid = 0;
+
+class MockApp {
+    constructor(uniqueId) {
+        this.uniqueId = uniqueId;
+        this.mainOutput = {
+            next() {
+                let _resolve, _reject;
+                new Promise((resolve, reject) => {
+                    _resolve = resolve;
+                    _reject = reject;
+                });
+                return { item: { isDone: true }, resolve: _resolve, reject: _reject };
+            }
+        };
+    }
+}
 function loadOneApp(code) {
     app = code;
+    return Promise.resolve(new MockApp('uuid-' + appid++));
+}
+function addPermission(perm) {
+    permission = perm;
+}
+
+var remoteApps = '';
+function installProgramRemote(principal, identity, uniqueId, program) {
+    remoteApps += `\nremote ${principal}/${identity} : ${uniqueId} : ${ThingTalk.Ast.prettyprint(program)}`;
+    return Promise.resolve();
 }
 
 class TestDelegate {
@@ -407,7 +437,86 @@ const TEST_CASES = [
 
     `{
     monitor (@com.xkcd(id="com.xkcd-10").get_comic()) => notify;
-}`]
+}`],
+
+    [
+    { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post'],
+      entities: { USERNAME_0: 'mom' } },
+`>> Ok, so you want me to tell Alice Smith (mom): tweet ____. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `null
+remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX : {
+    now => @com.twitter.post(status=$undefined);
+}`],
+
+    [
+    { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post', 'param:status:String', '=', 'QUOTED_STRING_0'],
+      entities: { USERNAME_0: 'mom', QUOTED_STRING_0: "lol" } },
+`>> Ok, so you want me to tell Alice Smith (mom): tweet "lol". Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `null
+remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX : {
+    now => @com.twitter.post(status="lol");
+}`],
+
+    [
+    { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
+      entities: { USERNAME_0: 'mom' } },
+`>> Ok, so you want me to tell Alice Smith (mom): get get an Xkcd comic and then notify you. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `null
+remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX : {
+    now => @com.xkcd.get_comic() => notify;
+}`],
+    [
+    { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.xkcd.get_comic', '=>', 'return'],
+      entities: { USERNAME_0: 'mom' } },
+`>> Ok, so you want me to tell Alice Smith (mom): get get an Xkcd comic and then send it to me. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `{
+    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+        query receive (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out title : String, out picture_url : Entity(tt:picture), out link : Entity(tt:url), out alt_text : String);
+    }
+    monitor (@__dyn_0.receive(__principal="mock-account:MOCK1234-phone:+5556664357"^^tt:contact("Alice Smith (mom)"), __program_id=$event.program_id, __flow=0)) => notify;
+}
+remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX : {
+    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+        action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in req title : String, in req picture_url : Entity(tt:picture), in req link : Entity(tt:url), in req alt_text : String);
+    }
+    now => @com.xkcd.get_comic() => @__dyn_0.send(__principal="mock-account:123456-SELF"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, title=title, picture_url=picture_url, link=link, alt_text=alt_text);
+}`],
+
+    [
+    { code: ['policy', 'param:source:Entity(tt:contact)', '==', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post'],
+      entities: { USERNAME_0: 'mom' } },
+`>> Ok, so @mom is allowed to tweet any status. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `source == "mom"^^tt:username : now => @com.twitter.post;`],
 ];
 
 function roundtrip(input, output) {
@@ -431,7 +540,7 @@ function roundtrip(input, output) {
 function cleanToken(code) {
     if (code === null)
         return null;
-    return code.replace(/__token="[a-f0-9]+"/g, '__token="XXX"');
+    return code.replace(/__token="[a-f0-9]+"/g, '__token="XXX"').replace(/uuid-[A-Za-z0-9-]+/g, 'uuid-XXXXXX');
 }
 
 let anyFailed = false;
@@ -441,6 +550,8 @@ function test(script, i) {
 
     flushBuffer();
     app = null;
+    permission = null;
+    remoteApps = '';
 
     function step(j) {
         if (j === script.length-1)
@@ -450,7 +561,12 @@ function test(script, i) {
     }
     return roundtrip(['bookkeeping', 'special', 'special:nevermind'], null).then(() => step(0)).then(() => {
         var expected = script[script.length-1];
-        app = cleanToken(app);
+        if (permission)
+            app = cleanToken(ThingTalk.Ast.prettyprintPermissionRule(permission));
+        else
+            app = cleanToken(app);
+        if (remoteApps)
+            app += cleanToken(remoteApps);
         expected = cleanToken(expected);
         if (app !== expected) {
             console.error('Test Case #' + (i+1) + ': does not match what expected');
@@ -495,6 +611,8 @@ function main() {
     };
     // intercept loadOneApp
     engine.apps.loadOneApp = loadOneApp;
+    engine.permissions.addPermission = addPermission;
+    engine.remote.installProgramRemote = installProgramRemote;
 
     var delegate = new TestDelegate();
 

@@ -21,6 +21,23 @@ function dotProduct(a, b) {
     return score;
 }
 
+function expNormalize(scores) {
+    let prob = [];
+    let max = -Infinity;
+    let sum = 0;
+    for (let i = 0; i < scores.length; i++)
+        max = Math.max(max, scores[i]);
+    if (max === Infinity || max === -Infinity)
+        return null;
+    for (let i = 0; i < scores.length; i++) {
+        prob[i] = Math.exp(scores[i] - max);
+        sum += prob[i];
+    }
+    for (let i = 0; i < scores.length; i++)
+        prob[i] /= sum;
+    return prob;
+}
+
 class NaiveSoftmaxModel {
     constructor(featureExtractor, initialParams) {
         this.extractor = featureExtractor;
@@ -33,17 +50,15 @@ class NaiveSoftmaxModel {
 
     scoreAll(examples) {
         var scores = new Array(examples.length);
-        var sum = 0;
-
         examples.forEach(function(ex, i) {
             scores[i] = this.score(ex);
-            sum += Math.exp(scores[i]);
         }, this);
+        var probs = expNormalize(scores);
         var mapped = examples.map((ex, i) => {
             return {
                 ex: ex,
                 score: scores[i],
-                prob: Math.exp(scores[i])/sum
+                prob: probs ? probs[i] : NaN
             };
         });
         mapped.sort((a, b) => {
