@@ -153,6 +153,12 @@ class MockAppDatabase {
         this._apps['app-foo'] = { name: 'Execute Foo',
             description: 'This app fooes', code: 'now => @builtin.foo();', state: {},
             uniqueId: 'app-foo', isRunning: true };
+        this._apps['uuid-test-notify2'] = {
+            name: 'Xkcd ⇒ Notification',
+            description: 'get xkcd and stuff',
+            uniqueId: 'uuid-test-notify2',
+            isRunning: true
+        };
     }
 
     getApp(appId) {
@@ -459,7 +465,7 @@ class MockPermissionManager {
     }
 
     checkIsAllowed(principal, program) {
-        return Promise.resolve(true);
+        return Promise.resolve(program);
     }
 }
 

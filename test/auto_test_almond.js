@@ -10,6 +10,7 @@
 "use strict";
 
 require('./polyfill');
+process.on('unhandledRejection', (up) => { throw up; });
 
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
@@ -76,7 +77,7 @@ class TestDelegate {
     }
 
     sendRDL(rdl) {
-        writeLine('>> rdl: ' + rdl.displayTitle + ' ' + rdl.callback);
+        writeLine('>> rdl: ' + rdl.displayTitle + ' ' + rdl.webCallback);
     }
 
     sendChoice(idx, what, title, text) {
@@ -88,6 +89,12 @@ class TestDelegate {
     }
 
     sendButton(title, json) {
+        if (typeof json !== 'object')
+            console.error(json);
+        assert(typeof json === 'object');
+        assert(Array.isArray(json.code) ||
+               typeof json.program === 'string' ||
+               typeof json.permissionRule === 'string');
         writeLine('>> button: ' + title + ' ' + JSON.stringify(json));
     }
 
@@ -528,6 +535,267 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `source == "mom"^^tt:username : now => @com.twitter.post;`],
+
+    [(almond) => {
+        return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
+            almond.runProgram(prog, 'uuid-12345');
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        }));
+    },
+`>> Ok, I'm going to get get an Xkcd comic and then notify you
+>> ask special null
+`,
+    `{
+    now => @com.xkcd(id="com.xkcd-11").get_comic() => notify;
+}`],
+
+    [(almond) => {
+        return ThingTalk.Grammar.parseAndTypecheck(`now => @com.bing.web_search() => notify;`, almond.schemas, true).then((prog) => {
+            almond.runProgram(prog, 'uuid-12345');
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        });
+    },
+`>> What do you want to search?
+>> ask special raw_string
+`,
+    `pizza`,
+`>> Ok, I'm going to get search for "pizza" on Bing and then notify you
+>> ask special null
+`,
+    `{
+    now => @com.bing(id="com.bing").web_search(query="pizza") => notify;
+}`],
+
+    [(almond) => {
+        return Promise.resolve().then(() => {
+            almond.notify('uuid-test-notify1', 'com.xkcd', 'com.xkcd:get_comic', {
+                number: 1986,
+                title: 'River Border',
+                picture_url: 'http://imgs.xkcd.com/comics/river_border.png',
+                link: 'https://xkcd.com/1986',
+                alt_text: `I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.` //'
+            });
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        });
+    },
+`>> rdl: River Border https://xkcd.com/1986
+>> picture: http://imgs.xkcd.com/comics/river_border.png
+>> I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.
+>> ask special null
+`,
+    null],
+
+    [(almond) => {
+        return Promise.resolve().then(() => {
+            almond.notify('uuid-test-notify2', 'com.xkcd', 'com.xkcd:get_comic', {
+                number: 1986,
+                title: 'River Border',
+                picture_url: 'http://imgs.xkcd.com/comics/river_border.png',
+                link: 'https://xkcd.com/1986',
+                alt_text: `I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.` //'
+            });
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        });
+    },
+`>> Notification from Xkcd ⇒ Notification
+>> rdl: River Border https://xkcd.com/1986
+>> picture: http://imgs.xkcd.com/comics/river_border.png
+>> I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.
+>> ask special null
+`,
+    null],
+
+    [(almond) => {
+        return Promise.resolve().then(() => {
+            almond.notifyError('uuid-test-notify2', 'com.xkcd', new Error('Something went wrong'));
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        });
+    },
+`>> Xkcd ⇒ Notification had an error: Something went wrong.
+>> ask special null
+`,
+    null],
+
+    [(almond) => {
+        return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
+            Promise.resolve(almond.askForPermission('mock-account:...', 'email:bob@smith.com', prog).then((res) => {
+                assert.strictEqual(res, null);
+            }));
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        }));
+    },
+`>> Bob Smith (dad) wants to get get an Xkcd comic and then notify you
+>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
+>> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
+>> button: Add constraints {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> ask special generic
+`,
+    ['bookkeeping', 'special', 'special:no'],
+`>> Sorry I couldn't help on that.
+>> ask special null
+`,
+    null],
+
+    [(almond) => {
+        return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
+            Promise.resolve(almond.askForPermission('mock-account:...', 'email:bob@smith.com', prog).then((res) => {
+                assert.strictEqual(res, prog);
+            }));
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        }));
+    },
+`>> Bob Smith (dad) wants to get get an Xkcd comic and then notify you
+>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
+>> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
+>> button: Add constraints {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> ask special generic
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> ask special null
+`,
+    null],
+
+    [(almond) => {
+        return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
+            Promise.resolve(almond.askForPermission('mock-account:...', 'email:bob@smith.com', prog).then((res) => {
+                assert.strictEqual(res, prog);
+            }));
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        }));
+    },
+`>> Bob Smith (dad) wants to get get an Xkcd comic and then notify you
+>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
+>> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
+>> button: Add constraints {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> ask special generic
+`,
+    {"code":["policy","true",":","@com.xkcd.get_comic","=>","notify"],"entities":{}},
+`>> Ok, I'll remember that anyone is allowed to read get an Xkcd comic
+>> ask special null
+`,
+    'true : @com.xkcd.get_comic => notify;'],
+
+    [(almond) => {
+        return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
+            Promise.resolve(almond.askForPermission('mock-account:...', 'email:bob@smith.com', prog).then((res) => {
+                assert.strictEqual(res, prog);
+            }));
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        }));
+    },
+`>> Bob Smith (dad) wants to get get an Xkcd comic and then notify you
+>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
+>> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
+>> button: Add constraints {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> ask special generic
+`,
+    {"permissionRule":"true : @com.xkcd.get_comic => notify;"},
+`>> Ok, I'll remember that anyone is allowed to read get an Xkcd comic
+>> ask special null
+`,
+    'true : @com.xkcd.get_comic => notify;'],
+
+    [(almond) => {
+        return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
+            Promise.resolve(almond.askForPermission('mock-account:...', 'email:bob@smith.com', prog).then((res) => {
+                assert.strictEqual(res, prog);
+            }));
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        }));
+    },
+`>> Bob Smith (dad) wants to get get an Xkcd comic and then notify you
+>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
+>> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
+>> button: Add constraints {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> ask special generic
+`,
+    {"permissionRule":"source == \"mock-account:...\"^^tt:contact(\"Bob Smith (dad)\") : @com.xkcd.get_comic => notify;"},
+`>> Ok, I'll remember that Bob Smith (dad) is allowed to read get an Xkcd comic
+>> ask special null
+`,
+    `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic => notify;`],
+
+    [(almond) => {
+        return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
+            Promise.resolve(almond.askForPermission('mock-account:...', 'email:bob@smith.com', prog).then((res) => {
+                assert.strictEqual(res, prog);
+            }));
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        }));
+    },
+`>> Bob Smith (dad) wants to get get an Xkcd comic and then notify you
+>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
+>> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
+>> button: Add constraints {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> ask special generic
+`,
+    ['bookkeeping', 'special', 'special:maybe'],
+`>> Pick the filter you want to add:
+>> button: number is equal to $number {"code":["bookkeeping","filter","param:number:undefined","==","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"undefined"}}
+>> button: number is greater than or equal to $number {"code":["bookkeeping","filter","param:number:undefined",">=","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"undefined"}}
+>> button: number is less than or equal to $number {"code":["bookkeeping","filter","param:number:undefined","<=","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"undefined"}}
+>> button: title is equal to $title {"code":["bookkeeping","filter","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: title is not equal to $title {"code":["bookkeeping","filter","param:title:String","!=","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: title contains $title {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: picture url is equal to $picture_url {"code":["bookkeeping","filter","param:picture_url:Entity(tt:picture)","==","SLOT_0"],"entities":{},"slots":["picture_url"],"slotTypes":{"picture_url":"Entity(tt:picture)"}}
+>> button: picture url is not equal to $picture_url {"code":["bookkeeping","filter","param:picture_url:Entity(tt:picture)","!=","SLOT_0"],"entities":{},"slots":["picture_url"],"slotTypes":{"picture_url":"Entity(tt:picture)"}}
+>> button: link is equal to $link {"code":["bookkeeping","filter","param:link:Entity(tt:url)","==","SLOT_0"],"entities":{},"slots":["link"],"slotTypes":{"link":"Entity(tt:url)"}}
+>> button: link is not equal to $link {"code":["bookkeeping","filter","param:link:Entity(tt:url)","!=","SLOT_0"],"entities":{},"slots":["link"],"slotTypes":{"link":"Entity(tt:url)"}}
+>> button: alt text is equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: alt text is not equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","!=","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the time is before $__time {"code":["bookkeeping","filter","param:__time:Time","<=","SLOT_0"],"entities":{},"slots":["__time"],"slotTypes":{"__time":"Time"}}
+>> button: the time is after $__time {"code":["bookkeeping","filter","param:__time:Time",">=","SLOT_0"],"entities":{},"slots":["__time"],"slotTypes":{"__time":"Time"}}
+>> button: my location is $__location {"code":["bookkeeping","filter","param:__location:Location","==","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
+>> button: my location is not ____ {"code":["bookkeeping","filter","not","param:__location:Location","==","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special generic
+`,
+    {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}},
+`>> What's the value of this filter?
+>> ask special raw_string
+`,
+    `pierates`,
+`>> Ok, I'll remember that Bob Smith (dad) is allowed to read get an Xkcd comic if title contains "pierates"
+>> ask special null
+`,
+
+    `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic, title =~ "pierates" => notify;`],
+
 ];
 
 function roundtrip(input, output) {
@@ -538,6 +806,8 @@ function roundtrip(input, output) {
             return almond.handleCommand(input);
         } else if (Array.isArray(input)) {
             return almond.handleParsedCommand({ code: input, entities: {} });
+        } else if (typeof input === 'function') {
+            return input(almond);
         } else {
             //console.log('$ \\r ' + json);
             return almond.handleParsedCommand(input);
@@ -626,6 +896,29 @@ const mockDeviceFactory = {
             return Promise.resolve(mockMatrix);
         else
             return Promise.reject(new Error('no such device'));
+    },
+
+    getManifest(what) {
+        if (what === 'com.xkcd') {
+            return Promise.resolve({
+                queries: {
+                    get_comic: {
+                        formatted: [
+                            { type: "rdl",
+                              webCallback: "${link}",
+                              displayTitle: "${title}" },
+                            { type: "picture",
+                              url: "${picture_url}" },
+                            { type: "text",
+                              text: "${alt_text}" }
+                        ]
+                    }
+                },
+                actions: {}
+            });
+        } else {
+            return Promise.reject(new Error('no such device'));
+        }
     }
 };
 
