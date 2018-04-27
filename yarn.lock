@@ -2466,7 +2466,7 @@ text-table@~0.2.0:
 
 "thingtalk@github:Stanford-Mobisocial-IoT-Lab/ThingTalk":
   version "1.0.0"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/2b74889bbd55fb264c711098456d320c239794b7"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/7b3f3abea0c16eebe5b5f21842b012c719546d0c"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
