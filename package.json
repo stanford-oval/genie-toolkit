@@ -18,7 +18,6 @@
     "ip": "^1.1.5",
     "matrix-js-sdk": "^0.8.4",
     "olm": "https://matrix.org/packages/npm/olm/olm-2.2.2.tgz",
-    "omlib": "github:Stanford-Mobisocial-IoT-Lab/omclient",
     "pouchdb-adapter-node-websql": "^6.3.4",
     "pouchdb-find": "^6.3.4",
     "q": "^1.5.0",
