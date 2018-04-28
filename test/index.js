@@ -111,6 +111,7 @@ function testDevices(engine) {
         const xkcd = devices.getAllDevicesOfKind('com.xkcd');
         assert.strictEqual(xkcd.length, 1);
         assert.strictEqual(xkcd[0], device);
+        assert(devices.hasDevice('com.xkcd'));
         assert.strictEqual(devices.getDevice('com.xkcd'), device);
 
         const viewvalues = view.values();
@@ -132,8 +133,25 @@ function testDevices(engine) {
             removed = SUCCESS;
         });
 
+        const view3 = new DeviceView(devices, Ast.Selector.Device('com.xkcd', 'com.xkcd', null));
+        view3.start();
+        assert.strictEqual(view3.values().length, 1);
+        view3.stop();
+
+        const view4 = new DeviceView(devices, Ast.Selector.Device('com.xkcd', 'com.xkcd2', null));
+        view4.start();
+        assert.strictEqual(view4.values().length, 0);
+        view4.stop();
+
+        const view5 = new DeviceView(devices, Ast.Selector.Device('com.xkcd', 'com.xkcd',
+            new Ast.Value.Entity('bob', 'tt:contact', null)));
+        view5.start();
+        assert.strictEqual(view5.values().length, 0);
+        view5.stop();
+
         return devices.removeDevice(device);
     }).then(() => {
+        assert(!devices.hasDevice('com.xkcd'));
         assert.strictEqual(added, SUCCESS);
         assert.strictEqual(removed, SUCCESS);
 
