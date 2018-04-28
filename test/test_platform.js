@@ -151,8 +151,13 @@ class Platform {
         this._prefs = new MemoryPreferences();
         this._cacheDir = getUserCacheDir() + '/almond-test';
         safeMkdirSync(this._cacheDir);
-        // wipe the database and start fresh
-        fs.unlinkSync(this.getSqliteDB());
+        try {
+            // wipe the database and start fresh
+            fs.unlinkSync(this.getSqliteDB());
+        } catch(e) {
+            if (e.code !== 'ENOENT')
+                throw e;
+        }
 
         this._btApi = null;
 
