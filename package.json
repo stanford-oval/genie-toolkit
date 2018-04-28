@@ -16,7 +16,7 @@
     "consumer-queue": "^1.0.0",
     "deep-equal": "^1.0.1",
     "ip": "^1.1.5",
-    "matrix-js-sdk": "^0.8.4",
+    "matrix-js-sdk": "^0.9.2",
     "olm": "https://matrix.org/packages/npm/olm/olm-2.2.2.tgz",
     "pouchdb-adapter-node-websql": "^6.3.4",
     "pouchdb-find": "^6.3.4",
@@ -25,10 +25,10 @@
     "thingpedia": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-api",
     "thingpedia-discovery": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-discovery",
     "thingtalk": "github:Stanford-Mobisocial-IoT-Lab/ThingTalk",
-    "tmp": "0.0.31",
+    "tmp": "0.0.33",
     "uuid": "^3.1.0",
     "websql": "^0.4.4",
-    "ws": "^3.1.0"
+    "ws": "^5.1.1"
   },
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --package-name ${npm_package_name} --package-version ${npm_package_version}",
