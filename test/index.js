@@ -11,163 +11,103 @@
 
 const Q = require('q');
 Q.longStackSupport = true;
-const fs = require('fs');
-const path = require('path');
-const readline = require('readline');
+process.on('unhandledRejection', (up) => { throw up; });
+
+const assert = require('assert');
 
 const Engine = require('../lib/engine');
 
-function readOneLine(rl) {
-    return Q.Promise(function(callback, errback) {
-        rl.once('line', function(line) {
-            if (line.trim().length === 0) {
-                errback(new Error('User cancelled'));
-                return;
-            }
+// make all errors fatal
+const originalconsoleerror = console.error;
+console.error = function(errmsg, ...stuff) {
+    originalconsoleerror(errmsg, ...stuff);
+    process.exit(1);
+};
 
-            callback(line);
-        })
-    });
+const notifyBuffer = [];
+const errorBuffer = [];
+function clearBuffers() {
+    notifyBuffer.length = 0;
+    errorBuffer.length = 0;
 }
 
-class TestDelegate {
-    constructor(rl) {
-        this._rl = rl;
+class MockConversation {
+    notify(...data) {
+        notifyBuffer.push(data);
     }
-
-    send(what) {
-        console.log('>> ' + what);
-    }
-
-    sendPicture(url) {
-        console.log('>> picture: ' + url);
-    }
-
-    sendRDL(rdl) {
-        console.log('>> rdl: ' + rdl.displayTitle + ' ' + rdl.callback);
-    }
-
-    sendChoice(idx, what, title, text) {
-        console.log('>> choice ' + idx + ': ' + title);
-    }
-
-    sendLink(title, url) {
-        console.log('>> link: ' + title + ' ' + url);
-    }
-
-    sendButton(title, json) {
-        console.log('>> button: ' + title + ' ' + json);
-    }
-
-    sendAskSpecial(what) {
-        console.log('>> ask special ' + what);
+    notifyError(...data) {
+        errorBuffer.push(data);
     }
 }
 
-function interact(engine, platform, delegate, rl) {
-    function quit() {
-        console.log('Bye\n');
-        rl.close();
-        engine.close().finally(function() {
-            platform.exit();
-        });
-    }
-    function help() {
-        console.log('Available commands:');
-        console.log('\\q : quit');
-        console.log('\\r <json> : send json to Almond');
-        console.log('\\c <number> : make a choice');
-        console.log('\\a list : list apps');
-        console.log('\\a stop <uuid> : stop app');
-        console.log('\\d list : list devices');
-        console.log('\\? or \\h : show this help');
-        console.log('Any other command is interpreted as an English sentence and sent to Almond');
-    }
-
-    var assistant = platform.getCapability('assistant');
-    var conversation = assistant.getConversation();
-    conversation.start();
-
-    function runAppCommand(cmd, param) {
-        if (cmd === 'list') {
-            engine.apps.getAllApps().forEach((app) => {
-                console.log('- ' + app.uniqueId + ' ' + app.name + ': ' + app.description);
-            });
-        } else if (cmd === 'stop') {
-            var app = engine.apps.getApp(param);
-            if (!app) {
-                console.log('No app with ID ' + param);
-            } else {
-                engine.apps.removeApp(app);
-            }
-        }
-    }
-    function runDeviceCommand(cmd, param) {
-        if (cmd === 'list') {
-            engine.devices.getAllDevices().forEach((dev) => {
-                console.log('- ' + dev.uniqueId + ' (' + dev.kind +') ' + dev.name + ': ' + dev.description);
-            });
-        }
-    }
-
-    rl.on('line', function(line) {
-        Q.try(function() {
-            if (line[0] === '\\') {
-                if (line[1] === 'q')
-                    return quit();
-                else if (line[1] === '?' || line === 'h')
-                    return help();
-                else if (line[1] === 'r')
-                    return conversation.handleParsedCommand(line.substr(3));
-                else if (line[1] === 'c')
-                    return conversation.handleParsedCommand(JSON.stringify({ answer: { type: "Choice", value: parseInt(line.substr(3)) }}));
-                else if (line[1] === 'a')
-                    return runAppCommand(...line.substr(3).split(' '));
-                else if (line[1] === 'd')
-                    return runDeviceCommand(...line.substr(3).split(' '));
-                else
-                    console.log('Unknown command ' + line[1]);
-            } else if (line.trim()) {
-                return conversation.handleCommand(line);
-            }
-        }).then(function() {
-            rl.prompt();
-        }).done();
-    });
-    rl.on('SIGINT', quit);
-
-    rl.prompt();
-}
-
-class MockUser {
+class MockAssistant {
     constructor() {
-        this.id = 1;
-        this.account = 'FOO';
-        this.name = 'Alice Tester';
+        this._conv = new MockConversation();
     }
+
+    getConversation(conv) {
+        assert.strictEqual(conv, 'mock');
+        return this._conv;
+    }
+
+    notifyAll(...data) {
+        this._conv.notify(...data);
+    }
+    notifyErrorAll(...data) {
+        this._conv.notifyErrorAll(...data);
+    }
+}
+
+const SUCCESS = {};
+const FAILURE = {};
+
+function testDevices(engine) {
+    const devices = engine.devices;
+
+    assert(devices.hasDevice('thingengine-own-desktop'));
+    assert(devices.hasDevice('thingengine-own-global'));
+    assert(devices.hasDevice('org.thingpedia.builtin.test'));
+    assert(!devices.hasDevice('org.thingpedia.builtin.thingengine.phone'));
+    assert(!devices.hasDevice('org.thingpedia.builtin.thingengine.home'));
+    assert(!devices.hasDevice('org.thingpedia.builtin.thingengine.gnome'));
+
+    const builtin = devices.getAllDevicesOfKind('org.thingpedia.builtin.thingengine.builtin');
+    assert.strictEqual(builtin.length, 1);
+    assert.strictEqual(builtin[0], devices.getDevice('thingengine-own-global'));
+
+    const test = devices.getAllDevicesOfKind('org.thingpedia.builtin.test');
+    assert.strictEqual(test.length, 1);
+    assert.strictEqual(test[0], devices.getDevice('org.thingpedia.builtin.test'));
+
+    assert.deepStrictEqual(devices.getAllDevicesOfKind('messaging'), []);
+    assert.deepStrictEqual(devices.getAllDevicesOfKind('com.xkcd'), []);
+
+    return devices.loadOneDevice({ kind: 'com.xkcd' }, true).then((device) => {
+        const xkcd = devices.getAllDevicesOfKind('com.xkcd');
+        assert.strictEqual(xkcd.length, 1);
+        assert.strictEqual(xkcd[0], device);
+        assert.strictEqual(devices.getDevice('com.xkcd'), device);
+    });
+}
+
+function testApps(engine) {
 }
 
 function main() {
-    var rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    rl.setPrompt('$ ');
+    var platform = require('./test_platform').newInstance();
+    platform.setAssistant(new MockAssistant());
 
-    var platform = require('./test_platform');
-    platform.init();
-
-    var engine = new Engine(platform);
-    if (interactive) {
-        var delegate = new TestDelegate(rl);
-        platform.createAssistant(engine, new MockUser(), delegate);
-    }
-
-    Q.try(function() {
+    var engine;
+    Promise.resolve().then(() => {
+        engine = new Engine(platform);
         return engine.open();
-    }).delay(2000).then(function() {
-        if (interactive)
-            interact(engine, platform, delegate, rl);
-        else
-            batch(engine, platform);
-    }).done();
+    }).then(() => {
+        return testDevices(engine);
+    }).then(() => {
+        return testApps(engine);
+    }).then(() => {
+        return engine.close();
+    });
 }
 
 main();
