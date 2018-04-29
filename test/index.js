@@ -143,7 +143,12 @@ function testDevices(engine) {
         assert.strictEqual(removed, SUCCESS);
 
         assert.deepStrictEqual(view2.values(), []);
-
+    }).then(() => {
+        return devices.updateDevicesOfKind('com.xkcd');
+    }).then(() => {
+        // should do (almost) nothing because there is no twitter configured
+        return devices.updateDevicesOfKind('com.twitter');
+    }).then(() => {
         const test = devices.getDevice('org.thingpedia.builtin.test');
 
         return test.get_get_data({ count: 2, size: 10 });
