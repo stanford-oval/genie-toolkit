@@ -891,11 +891,16 @@ const mockMatrix = {
 };
 
 const mockDeviceFactory = {
+    _engine: null,
+
     getFactory(f) {
         if (f === 'org.thingpedia.builtin.matrix')
             return Promise.resolve(mockMatrix);
         else
             return Promise.reject(new Error('no such device'));
+    },
+    runInteractiveConfiguration(kind, delegate) {
+        return this.getFactory(kind).then((factory) => factory.configureFromAlmond(this._engine, delegate));
     },
 
     getManifest(what) {
@@ -931,8 +936,12 @@ function main() {
     };
     engine.thingpedia.getDeviceSetup = (kinds) => {
         var ret = {};
-        for (var k of kinds)
-            ret[k] = {type:'none',kind:k};
+        for (var k of kinds) {
+            if (k === 'messaging')
+                ret[k] = {type:'interactive',category:'online', kind:'org.thingpedia.builtin.matrix', name:"Matrix Account"};
+            else
+                ret[k] = {type:'none',kind:k};
+        }
         return Promise.resolve(ret);
     };
     // intercept loadOneApp
@@ -941,6 +950,7 @@ function main() {
     engine.remote.installProgramRemote = installProgramRemote;
     engine.messaging.isAvailable = false;
     engine.devices.factory = mockDeviceFactory;
+    mockDeviceFactory._engine = engine;
 
     var delegate = new TestDelegate();
 
