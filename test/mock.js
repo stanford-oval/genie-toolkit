@@ -14,90 +14,6 @@ const Ast = ThingTalk.Ast;
 
 const ThingpediaClient = require('./http_client');
 
-function dotProduct(a, b) {
-    var score = 0;
-    for (var name in b)
-        score += (a[name] || 0) * (b[name] || 0);
-    return score;
-}
-
-function expNormalize(scores) {
-    let prob = [];
-    let max = -Infinity;
-    let sum = 0;
-    for (let i = 0; i < scores.length; i++)
-        max = Math.max(max, scores[i]);
-    if (max === Infinity || max === -Infinity)
-        return null;
-    for (let i = 0; i < scores.length; i++) {
-        prob[i] = Math.exp(scores[i] - max);
-        sum += prob[i];
-    }
-    for (let i = 0; i < scores.length; i++)
-        prob[i] /= sum;
-    return prob;
-}
-
-class NaiveSoftmaxModel {
-    constructor(featureExtractor, initialParams) {
-        this.extractor = featureExtractor;
-        this.params = initialParams;
-    }
-
-    score(example) {
-        return dotProduct(this.extractor(example), this.params);
-    }
-
-    scoreAll(examples) {
-        var scores = new Array(examples.length);
-        examples.forEach(function(ex, i) {
-            scores[i] = this.score(ex);
-        }, this);
-        var probs = expNormalize(scores);
-        var mapped = examples.map((ex, i) => {
-            return {
-                ex: ex,
-                score: scores[i],
-                prob: probs ? probs[i] : NaN
-            };
-        });
-        mapped.sort((a, b) => {
-            return b.score - a.score;
-        });
-        return mapped;
-    }
-
-    predict(examples) {
-        var max = 0, which = undefined;
-        var sum = 0;
-
-        for (var ex of examples) {
-            var prob = Math.exp(this.score(ex));
-            sum += prob;
-            if (prob >= max) {
-                which = ex;
-                max = prob;
-            }
-        }
-
-        return [which, prob, prob/sum];
-    }
-
-    learn() {
-        // never learn
-    }
-}
-
-class NaiveML {
-    getModel(name, type, featureExtractor, initialParams) {
-        console.log('Obtained ML model ' + name + ' (' + type + ')');
-        if (type === 'softmax')
-            return new NaiveSoftmaxModel(featureExtractor, initialParams);
-        else
-            throw new Error('Invalid model type ' + type);
-    }
-}
-
 class MockPreferences {
     constructor() {
         this._store = {};
@@ -508,7 +424,6 @@ module.exports.createMockEngine = function() {
         devices: new MockDeviceDatabase(),
         apps: new MockAppDatabase(schemas),
         discovery: new MockDiscoveryClient(),
-        ml: new NaiveML(),
         messaging: new MockMessaging(),
         remote: new MockRemote(schemas),
         permissions: new MockPermissionManager(schemas)
