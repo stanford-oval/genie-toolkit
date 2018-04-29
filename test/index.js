@@ -45,7 +45,7 @@ class MockAssistant {
         this._conv.notify(...data);
     }
     notifyErrorAll(...data) {
-        this._conv.notifyErrorAll(...data);
+        this._conv.notifyError(...data);
     }
 }
 
@@ -377,6 +377,86 @@ function testWhen(engine, conversation) {
     });
 }
 
+function testTimer(engine, conversation) {
+    const assistant = engine.platform.getCapability('assistant');
+
+    return new Promise((resolve, reject) => {
+        setTimeout(() => reject(new Error('Timed out while waiting for data to appear')), 10000).unref();
+
+        let count = 0;
+        assistant._setConversation({
+            notify(appId, icon, outputType, data) {
+                console.log('notify', appId, icon, outputType, data, count);
+                const app = engine.apps.getApp(appId);
+                assert(app.isEnabled);
+                assert(app.isRunning);
+                assert.strictEqual(outputType, 'org.thingpedia.builtin.test:get_data');
+                assert.strictEqual(icon, 'org.foo');
+                assert.strictEqual(appId, 'uuid-timer-foo');
+                delete data.__timestamp;
+                if (count < 4) {
+                    if (count % 2)
+                        assert.deepStrictEqual(data, { data: '""""""""""' });
+                    else
+                        assert.deepStrictEqual(data, { data: '!!!!!!!!!!' });
+                    count++;
+                    if (count === 4) {
+                        engine.apps.removeApp(app);
+                        resolve();
+                    }
+                } else {
+                    try {
+                        assert.fail("too many results from the monitor");
+                    } catch(e) {
+                        reject(e);
+                    }
+                }
+            },
+
+            notifyError(appId, icon, err) {
+                assert.fail('no error expected');
+            }
+        });
+
+        return engine.apps.loadOneApp('timer(base=makeDate(),interval=2s) join @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+            { $icon: 'org.foo', $conversation: conversation ? 'mock' : undefined },
+            'uuid-timer-foo', undefined, 'some app', 'some app description', true).then((app) => {
+            assert.strictEqual(app.icon, 'org.foo');
+            assert.strictEqual(app.uniqueId, 'uuid-timer-foo');
+        }).catch(reject);
+    });
+}
+
+function testAtTimer(engine, conversation) {
+    const assistant = engine.platform.getCapability('assistant');
+
+    // we cannot reliably test attimers, but we can test they don't fire
+    let now = new Date;
+
+    assistant._setConversation({
+        notify(appId, icon, outputType, data) {
+            assert.fail('expected no result');
+        },
+
+        notifyError(appId, icon, err) {
+            assert.fail('no error expected');
+        }
+    });
+
+    return engine.apps.loadOneApp(`attimer(time=makeTime(${now.getHours()+2},${now.getMinutes()})) join @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;`,
+        { $icon: 'org.foo', $conversation: conversation ? 'mock' : undefined },
+        'uuid-attimer-foo', undefined, 'some app', 'some app description', true).then((app) => {
+        assert.strictEqual(app.icon, 'org.foo');
+        assert.strictEqual(app.uniqueId, 'uuid-attimer-foo');
+
+        return new Promise((resolve, reject) => {
+            setTimeout(resolve, 5000);
+        }).then(() => {
+            return engine.apps.removeApp(app);
+        });
+    });
+}
+
 function testApps(engine) {
     assert.deepStrictEqual(engine.apps.getAllApps(), []);
 
@@ -392,6 +472,12 @@ function testApps(engine) {
         return testWhen(engine, true);
     }).then(() => {
         return testWhen(engine, false);
+    }).then(() => {
+        return testTimer(engine);
+    }).then(() => {
+        return testAtTimer(engine);
+    }).then(() => {
+        assert.deepStrictEqual(engine.apps.getAllApps(), []);
     });
 }
 
