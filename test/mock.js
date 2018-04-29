@@ -28,6 +28,7 @@ class MockPreferences {
     }
 
     set(name, value) {
+        console.log(`preferences set ${name} = ${value}`);
         this._store[name] = value;
     }
 }

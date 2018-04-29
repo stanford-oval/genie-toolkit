@@ -125,7 +125,18 @@ const TEST_CASES = [
         return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
     },
 `>> Hello! I'm Almond, your virtual assistant.
->> First of all, I will help you set up your devices and accounts.
+>> I am part of a research project of Stanford University. Would you like to contribute?
+>> With your consent, I will record the commands you give me for training. Recording the commands will allow me to improve my understanding of natural language.
+>> The collection is completely anonymous, and I will strip personal data (such as search queries, messages or phone numbers). The data, once collected, will be shared with our developers and researchers, and potentially other researchers working on natural language understanding.
+>> You must be 13 or older to partecipate. If you are not, please answer ‘No’ here. Your answer will not affect the functionality of Almond.
+>> Regardless of your choice here, I will not collect or store your credentials or the results of your commands.
+>> If you would like to know more, see our privacy policy at https://almond.stanford.edu/about/privacy or contact us at <mobisocial@lists.stanford.edu>.
+>> Do you consent to recording your commands?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Thank you! If you change your mind, you can change the option from Settings.
+>> Now, I will help you set up your devices and accounts.
 >> To do so, try ‘configure‘ followed by the type of device or account (e.g., ‘configure twitter’ or ‘configure tv’), or try ‘discover’ and I'll take a look at what you have.
 >> If you need help at any point, try ‘help’.
 >> ask special null
