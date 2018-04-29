@@ -119,6 +119,19 @@ class MockUser {
 // generate ThingTalk)
 
 const TEST_CASES = [
+    [(almond) => {
+        almond.start();
+        // inject a meaningless intent so we synchronize the two concurrent tasks
+        return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+    },
+`>> Hello! I'm Almond, your virtual assistant.
+>> First of all, I will help you set up your devices and accounts.
+>> To do so, try ‘configure‘ followed by the type of device or account (e.g., ‘configure twitter’ or ‘configure tv’), or try ‘discover’ and I'll take a look at what you have.
+>> If you need help at any point, try ‘help’.
+>> ask special null
+`,
+    null],
+
     [['bookkeeping', 'special', 'special:help'],
 `>> Click on one of the following buttons to start adding commands.
 >> choice 0: When
@@ -840,7 +853,8 @@ function test(script, i) {
 
         return roundtrip(script[j], script[j+1]).then(() => step(j+2));
     }
-    return roundtrip(['bookkeeping', 'special', 'special:nevermind'], null).then(() => step(0)).then(() => {
+    return (i > 0 ? roundtrip(['bookkeeping', 'special', 'special:nevermind'], null) : Promise.resolve())
+    .then(() => step(0)).then(() => {
         var expected = script[script.length-1];
         if (permission)
             app = cleanToken(ThingTalk.Ast.prettyprintPermissionRule(permission));
@@ -929,6 +943,8 @@ const mockDeviceFactory = {
 
 function main() {
     var engine = Mock.createMockEngine();
+    engine.platform.getSharedPreferences().set('sabrina-initialized', false);
+
     // mock out getDeviceSetup
     engine.thingpedia.clickExample = (ex) => {
         writeLine('Clicked example ' + ex);
@@ -959,9 +975,6 @@ function main() {
         sempreUrl = process.argv[2].substr('--with-sempre='.length);
     almond = new Almond(engine, 'test', new MockUser(), delegate,
         { debug: false, sempreUrl: sempreUrl, showWelcome: true });
-
-    almond.start();
-    flushBuffer();
 
     promiseDoAll(TEST_CASES, test).then(() => {
         if (anyFailed)
