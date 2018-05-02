@@ -484,16 +484,21 @@ const TEST_CASES = [
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> The account has been set up.
->> Ok, so you want me to tell Alice Smith (mom): tweet ____. Is that right?
+>> What do you want to tweet?
+>> ask special raw_string
+`,
+    `some tweet`,
+`>> Ok, so you want me to tell Alice Smith (mom): tweet "some tweet". Is that right?
 >> ask special yesno
 `,
+
     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
 >> ask special null
 `,
     `null
 remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX : {
-    now => @com.twitter.post(status=$undefined);
+    now => @com.twitter.post(status="some tweet");
 }`],
 
     [
@@ -551,14 +556,14 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     [
     { code: ['policy', 'param:source:Entity(tt:contact)', '==', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post'],
       entities: { USERNAME_0: 'mom' } },
-`>> Ok, so @mom is allowed to tweet any status. Is that right?
+`>> Ok, so Alice Smith (mom) is allowed to tweet any status. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
 >> ask special null
 `,
-    `source == "mom"^^tt:username : now => @com.twitter.post;`],
+    `source == "mock-account:MOCK1234-phone:+5556664357"^^tt:contact("Alice Smith (mom)") : now => @com.twitter.post;`],
 
     [(almond) => {
         return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
