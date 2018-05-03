@@ -392,7 +392,7 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
-`>> Ok, I'm going to notify you when the current event detected on your security camera changes and then get get an Xkcd comic if title contains "lol"
+`>> Ok, I'm going to notify you when the current event detected on your security camera changes and then get get an Xkcd comic if title contains "lol".
 >> ask special null
 `,
     `{
@@ -463,7 +463,7 @@ const TEST_CASES = [
 `,
 
     ['bookkeeping', 'choice', 4],
-`>> Ok, I'm going to notify you when get an Xkcd comic changes
+`>> Ok, I'm going to notify you when get an Xkcd comic changes.
 >> ask special null
 `,
 
@@ -567,14 +567,13 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 
     [(almond) => {
         return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
-            almond.runProgram(prog, 'uuid-12345');
+            almond.runProgram(prog, 'uuid-12345', 'phone:+555654321');
 
             // inject a meaningless intent so we synchronize the two concurrent tasks
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Ok, I'm going to get get an Xkcd comic and then notify you
->> ask special null
+`>> I'm going to get get an Xkcd comic and then notify you (as asked by Carol Johnson).
 `,
     `{
     now => @com.xkcd(id="com.xkcd-11").get_comic() => notify;
@@ -582,7 +581,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 
     [(almond) => {
         return ThingTalk.Grammar.parseAndTypecheck(`now => @com.bing.web_search() => notify;`, almond.schemas, true).then((prog) => {
-            almond.runProgram(prog, 'uuid-12345');
+            almond.runProgram(prog, 'uuid-12345', 'phone:+555654321');
 
             // inject a meaningless intent so we synchronize the two concurrent tasks
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
@@ -592,7 +591,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special raw_string
 `,
     `pizza`,
-`>> Ok, I'm going to get search for "pizza" on Bing and then notify you
+`>> I'm going to get search for "pizza" on Bing and then notify you (as asked by Carol Johnson).
 >> ask special null
 `,
     `{
