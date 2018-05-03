@@ -20,6 +20,7 @@ const Ast = ThingTalk.Ast;
 
 const Engine = require('../lib/engine');
 const DeviceView = require('../lib/devices/device_view');
+const IpAddress = require('../lib/util/ip_address');
 
 // make all errors fatal
 /*const originalconsoleerror = console.error;
@@ -486,6 +487,15 @@ function testApps(engine) {
     });
 }
 
+function testUtil(engine) {
+    return Promise.resolve(IpAddress.getServerAddresses()).then((addresses) => {
+        addresses.forEach((address) => {
+            assert(/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|[0-9a-fA-F:]+)$/.test(address));
+        });
+        return IpAddress.getServerName();
+    });
+}
+
 function main() {
     var platform = require('./test_platform').newInstance();
     platform.setAssistant(new MockAssistant());
@@ -499,6 +509,8 @@ function main() {
             return testHTTPClient(engine);
         }).then(() => {
             return testApps(engine);
+        }).then(() => {
+            return testUtil(engine);
         }).then(() => {
             return engine.stop();
         }).catch((e) => {
