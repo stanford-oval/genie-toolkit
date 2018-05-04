@@ -392,7 +392,7 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
-`>> Ok, I'm going to notify you when the current event detected on your security camera changes and then get get an Xkcd comic if title contains "lol".
+`>> Ok, I'm going to notify you when the current event detected on your security camera changes and then get get an Xkcd comic if the title contains "lol".
 >> ask special null
 `,
     `{
@@ -445,8 +445,6 @@ const TEST_CASES = [
 `>> Pick a command below.
 >> button: when a new xkcd is out {"example_id":1549785,"code":["monitor","(","@com.xkcd.get_comic",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: when a new xkcd is out in the what-if section {"example_id":1549786,"code":["monitor","(","@com.xkcd.what_if",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when there is a new post in the xkcd what-if blog {"example_id":1549790,"code":["monitor","(","@com.xkcd.what_if",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when a new xkcd is posted {"example_id":1549794,"code":["monitor","(","@com.xkcd.get_comic",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
@@ -711,7 +709,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special generic
 `,
     {"code":["bookkeeping","filter","param:data:String","=~","SLOT_0"],"entities":{SLOT_0: 'oo'},"slots":["data"],"slotTypes":{"data":"String"}},
-`>> Ok, I'll remember that Bob Smith (dad) is allowed to consume any data if data contains "oo"
+`>> Ok, I'll remember that Bob Smith (dad) is allowed to consume any data if the data contains "oo"
 >> ask special null
 `,
     `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : now => @org.thingpedia.builtin.test.eat_data, data =~ "oo";`],
@@ -880,7 +878,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special raw_string
 `,
     `pierates`,
-`>> Ok, I'll remember that Bob Smith (dad) is allowed to read get an Xkcd comic if title contains "pierates"
+`>> Ok, I'll remember that Bob Smith (dad) is allowed to read get an Xkcd comic if the title contains "pierates"
 >> ask special null
 `,
 
@@ -925,6 +923,169 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 
     `{
     now => @org.thingpedia.weather(id="org.thingpedia.weather-14").current(location=makeLocation(90, 0, "North pole")) => notify;
+}`],
+
+
+    [
+    ['bookkeeping', 'special', 'special:makerule'],
+`>> Click on one of the following buttons to start adding commands.
+>> choice 0: When
+>> choice 1: Get
+>> choice 2: Do
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '0'],
+`>> Pick one from the following categories or simply type in.
+>> button: Do it now {"code":["bookkeeping","special","special:empty"],"entities":{}}
+>> button: Media {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Health and Fitness {"code":["bookkeeping","category","health"],"entities":{}}
+>> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","category","media"],"entities":{}},
+`>> Pick a command from the following devices
+>> button: Giphy {"code":["bookkeeping","commands","media","device:com.giphy"],"entities":{}}
+>> button: Imgflip Meme Generator {"code":["bookkeeping","commands","media","device:com.imgflip"],"entities":{}}
+>> button: NASA Daily {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}}
+>> button: Piled Higher and Deeper {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}}
+>> button: Reddit Frontpage {"code":["bookkeeping","commands","media","device:com.reddit.frontpage"],"entities":{}}
+>> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
+>> button: SportRadar {"code":["bookkeeping","commands","media","device:us.sportradar"],"entities":{}}
+>> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
+>> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
+>> button: The Wall Street Journal {"code":["bookkeeping","commands","media","device:com.wsj"],"entities":{}}
+>> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
+>> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
+>> button: Yahoo Finance {"code":["bookkeeping","commands","media","device:com.yahoo.finance"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","commands","media","device:com.giphy"],"entities":{}},
+`>> Can't find a compatible command from Giphy, choose another device
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","special","special:back"],"entities":{}},
+`>> Pick a command from the following devices
+>> button: Giphy {"code":["bookkeeping","commands","media","device:com.giphy"],"entities":{}}
+>> button: Imgflip Meme Generator {"code":["bookkeeping","commands","media","device:com.imgflip"],"entities":{}}
+>> button: NASA Daily {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}}
+>> button: Piled Higher and Deeper {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}}
+>> button: Reddit Frontpage {"code":["bookkeeping","commands","media","device:com.reddit.frontpage"],"entities":{}}
+>> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
+>> button: SportRadar {"code":["bookkeeping","commands","media","device:us.sportradar"],"entities":{}}
+>> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
+>> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
+>> button: The Wall Street Journal {"code":["bookkeeping","commands","media","device:com.wsj"],"entities":{}}
+>> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
+>> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
+>> button: Yahoo Finance {"code":["bookkeeping","commands","media","device:com.yahoo.finance"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}},
+`>> Pick a command below.
+>> button: when there is a new post on phd comics {"example_id":1549797,"code":["monitor","(","@com.phdcomics.get_post",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","special","special:back"],"entities":{}},
+`>> Pick a command from the following devices
+>> button: Giphy {"code":["bookkeeping","commands","media","device:com.giphy"],"entities":{}}
+>> button: Imgflip Meme Generator {"code":["bookkeeping","commands","media","device:com.imgflip"],"entities":{}}
+>> button: NASA Daily {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}}
+>> button: Piled Higher and Deeper {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}}
+>> button: Reddit Frontpage {"code":["bookkeeping","commands","media","device:com.reddit.frontpage"],"entities":{}}
+>> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
+>> button: SportRadar {"code":["bookkeeping","commands","media","device:us.sportradar"],"entities":{}}
+>> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
+>> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
+>> button: The Wall Street Journal {"code":["bookkeeping","commands","media","device:com.wsj"],"entities":{}}
+>> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
+>> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
+>> button: Yahoo Finance {"code":["bookkeeping","commands","media","device:com.yahoo.finance"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","commands","media","device:com.yahoo.finance"],"entities":{}},
+`>> Pick a command below.
+>> button: when the stock price of $p_stock_id changes {"example_id":1597849,"code":["monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: when stock dividends for $p_stock_id changes {"example_id":1597850,"code":["monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: when the ask stock price of $p_stock_id goes above $p_ask_price {"example_id":1597852,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
+>> button: when the ask stock price of $p_stock_id goes below $p_ask_price {"example_id":1597853,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
+>> button: when the bid stock price of $p_stock_id goes above $p_bid_price {"example_id":1597854,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:bid_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_bid_price":"Currency"},"slots":["p_stock_id","p_bid_price"]}
+>> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","special","special:more"],"entities":{}},
+`>> Pick a command below.
+>> button: when the bid stock price of $p_stock_id goes below $p_bid_price {"example_id":1597855,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:bid_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_bid_price":"Currency"},"slots":["p_stock_id","p_bid_price"]}
+>> button: when the dividend of $p_stock_id goes above $p_value {"example_id":1597860,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:value:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_value":"Currency"},"slots":["p_stock_id","p_value"]}
+>> button: when the dividend of $p_stock_id goes below $p_value {"example_id":1597861,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:value:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_value":"Currency"},"slots":["p_stock_id","p_value"]}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","special","special:back"],"entities":{}},
+`>> Pick a command below.
+>> button: when the stock price of $p_stock_id changes {"example_id":1597849,"code":["monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: when stock dividends for $p_stock_id changes {"example_id":1597850,"code":["monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: when the ask stock price of $p_stock_id goes above $p_ask_price {"example_id":1597852,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
+>> button: when the ask stock price of $p_stock_id goes below $p_ask_price {"example_id":1597853,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
+>> button: when the bid stock price of $p_stock_id goes above $p_bid_price {"example_id":1597854,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:bid_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_bid_price":"Currency"},"slots":["p_stock_id","p_bid_price"]}
+>> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","special","special:back"],"entities":{}},
+`>> Pick a command from the following devices
+>> button: Giphy {"code":["bookkeeping","commands","media","device:com.giphy"],"entities":{}}
+>> button: Imgflip Meme Generator {"code":["bookkeeping","commands","media","device:com.imgflip"],"entities":{}}
+>> button: NASA Daily {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}}
+>> button: Piled Higher and Deeper {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}}
+>> button: Reddit Frontpage {"code":["bookkeeping","commands","media","device:com.reddit.frontpage"],"entities":{}}
+>> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
+>> button: SportRadar {"code":["bookkeeping","commands","media","device:us.sportradar"],"entities":{}}
+>> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
+>> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
+>> button: The Wall Street Journal {"code":["bookkeeping","commands","media","device:com.wsj"],"entities":{}}
+>> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
+>> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
+>> button: Yahoo Finance {"code":["bookkeeping","commands","media","device:com.yahoo.finance"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}},
+`>> Pick a command below.
+>> button: when today 's asteroid info change {"example_id":1641078,"code":["now","=>","@gov.nasa.asteroid","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when nasa 's astronomy picture of the day change {"example_id":1641079,"code":["now","=>","@gov.nasa.apod","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when a picture from curiosity rover change {"example_id":1641082,"code":["now","=>","@gov.nasa.rover","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when $p_count pictures from curiosity rover change {"example_id":1641084,"code":["now","=>","@gov.nasa.rover","param:count:Number","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_count":"Number"},"slots":["p_count"]}
+>> button: when a picture from curiosity rover taken on $p_date_taken change {"example_id":1641085,"code":["now","=>","@gov.nasa.rover","param:date_taken:Date","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_date_taken":"Date"},"slots":["p_date_taken"]}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["now","=>","@gov.nasa.asteroid","=>","notify"],"entities":{},"slotTypes":{},"slots":[]},
+`>> Add more commands and filters or run your command if you are ready.
+>> choice 0: When: when the asteroid passing close to Earth today changes
+>> choice 1: Get
+>> choice 2: Do: notify me
+>> choice 3: Add a filter
+>> choice 4: Run it
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '4'],
+`>> Ok, I'm going to notify you when the asteroid passing close to Earth today changes.
+>> ask special null
+`,
+
+    `{
+    monitor (@gov.nasa(id="gov.nasa-15").asteroid()) => notify;
 }`]
 ];
 
