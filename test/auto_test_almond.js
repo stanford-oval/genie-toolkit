@@ -1082,7 +1082,48 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 
     `{
     monitor (@gov.nasa(id="gov.nasa-15").asteroid()) => notify;
-}`]
+}`],
+
+    [
+    ['bookkeeping', 'special', 'special:makerule'],
+`>> Click on one of the following buttons to start adding commands.
+>> choice 0: When
+>> choice 1: Get
+>> choice 2: Do
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '0'],
+`>> Pick one from the following categories or simply type in.
+>> button: Do it now {"code":["bookkeeping","special","special:empty"],"entities":{}}
+>> button: Media {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","category","communication"],"entities":{}},
+`>> Pick a command from the following devices
+>> button: Gmail Account {"code":["bookkeeping","commands","communication","device:com.gmail"],"entities":{}}
+>> button: Slack {"code":["bookkeeping","commands","communication","device:com.slack"],"entities":{}}
+>> button: Phone {"code":["bookkeeping","commands","communication","device:org.thingpedia.builtin.thingengine.phone"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","commands","communication","device:org.thingpedia.builtin.thingengine.phone"],"entities":{}},
+`>> Pick a command below.
+>> button: when my location changes {"example_id":1550295,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when my location changes to $location {"example_id":1550297,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
+>> button: when i receive a sms {"example_id":1550298,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.sms",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when i receive a sms from $p_sender  {"example_id":1550299,"code":["monitor","(","(","@org.thingpedia.builtin.thingengine.phone.sms",")","filter","param:sender:Entity(tt:phone_number)","==","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_sender":"Entity(tt:phone_number)"},"slots":["p_sender"]}
+>> button: when i move away from $p_location {"example_id":1550315,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","not","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+
+    null]
 ];
 
 function roundtrip(input, output) {
@@ -1250,9 +1291,12 @@ function main() {
     almond = new Almond(engine, 'test', new MockUser(), delegate,
         { debug: false, sempreUrl: sempreUrl, showWelcome: true });
 
-    promiseDoAll(TEST_CASES, test).then(() => {
+    return promiseDoAll(TEST_CASES, test).then(() => {
         if (anyFailed)
             process.exit(1);
     });
 }
-main();
+if (module.parent)
+    module.exports = main;
+else
+    main();

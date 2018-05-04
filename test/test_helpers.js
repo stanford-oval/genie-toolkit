@@ -51,6 +51,9 @@ function main() {
         { debug: false, showWelcome: false });
     dlg = almond._dispatcher;
 
-    Promise.resolve(test());
+    return Promise.resolve(test());
 }
-main();
+if (module.parent)
+    module.exports = main;
+else
+    main();
