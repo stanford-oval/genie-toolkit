@@ -14,8 +14,6 @@ const http = require('http');
 const https = require('https');
 const url = require('url');
 
-const THINGPEDIA_URL = process.env.THINGPEDIA_URL || 'https://crowdie.stanford.edu/thingpedia';
-
 function getModule(parsed) {
     if (parsed.protocol === 'https:')
         return https;
@@ -24,10 +22,10 @@ function getModule(parsed) {
 }
 
 module.exports = class ThingpediaClientHttp {
-    constructor(developerKey, locale) {
+    constructor(thingpediaUrl, developerKey, locale) {
         this.developerKey = developerKey;
         this.locale = locale || 'en_US';
-        this._url = THINGPEDIA_URL;
+        this._url = thingpediaUrl;
     }
 
     getModuleLocation(id) {

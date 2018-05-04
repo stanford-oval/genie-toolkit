@@ -386,14 +386,16 @@ class MockPermissionManager {
     }
 }
 
-var thingpedia = new ThingpediaClient(null);
-var schemas = new ThingTalk.SchemaRetriever(thingpedia, null, true);
-
 var Gettext = require('node-gettext');
 var _gettext = new Gettext();
 _gettext.setLocale('en_US.utf8');
 
-module.exports.createMockEngine = function() {
+const THINGPEDIA_URL = process.env.THINGPEDIA_URL || 'https://crowdie.stanford.edu/thingpedia';
+
+module.exports.createMockEngine = function(thingpediaUrl) {
+    var thingpedia = new ThingpediaClient(thingpediaUrl || THINGPEDIA_URL, null);
+    var schemas = new ThingTalk.SchemaRetriever(thingpedia, null, true);
+
     return {
         platform: {
             _prefs: new MockPreferences(),

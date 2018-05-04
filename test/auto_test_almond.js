@@ -311,7 +311,6 @@ const TEST_CASES = [
 >> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
 >> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
 >> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
->> button: Health and Fitness {"code":["bookkeeping","category","health"],"entities":{}}
 >> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
@@ -332,7 +331,6 @@ const TEST_CASES = [
 >> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
 >> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
 >> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
->> button: Health and Fitness {"code":["bookkeeping","category","health"],"entities":{}}
 >> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
@@ -415,7 +413,6 @@ const TEST_CASES = [
 >> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
 >> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
 >> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
->> button: Health and Fitness {"code":["bookkeeping","category","health"],"entities":{}}
 >> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
@@ -941,7 +938,6 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
 >> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
 >> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
->> button: Health and Fitness {"code":["bookkeeping","category","health"],"entities":{}}
 >> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}

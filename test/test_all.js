@@ -2,3 +2,4 @@
 "use strict";
 
 require('./auto_test_almond');
+require('./test_helpers');
