@@ -886,6 +886,46 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 
     `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic, title =~ "pierates" => notify;`],
 
+    [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
+`>> What location do you want the current weather for?
+>> ask special location
+`,
+    ['bookkeeping', 'answer', 'location:current_location'],
+`>> ask special null
+`,
+
+    `{
+    now => @org.thingpedia.weather(id="org.thingpedia.weather-12").current(location=makeLocation(37.4275, -122.1697)) => notify;
+}`],
+
+    [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
+`>> What location do you want the current weather for?
+>> ask special location
+`,
+    ['bookkeeping', 'answer', 'location:home'],
+`>> What is your home address?
+>> ask special location
+`,
+
+    { code: ['bookkeeping', 'answer', 'LOCATION_0'], entities: {"LOCATION_0": {longitude:0, latitude:90, display:"North pole"}}},
+`>> ask special null
+`,
+
+    `{
+    now => @org.thingpedia.weather(id="org.thingpedia.weather-13").current(location=makeLocation(90, 0, "North pole")) => notify;
+}`],
+
+    [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
+`>> What location do you want the current weather for?
+>> ask special location
+`,
+    ['bookkeeping', 'answer', 'location:home'],
+`>> ask special null
+`,
+
+    `{
+    now => @org.thingpedia.weather(id="org.thingpedia.weather-14").current(location=makeLocation(90, 0, "North pole")) => notify;
+}`]
 ];
 
 function roundtrip(input, output) {

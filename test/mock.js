@@ -206,13 +206,13 @@ class MockPhoneDevice {
         this.uniqueId = 'org.thingpedia.builtin.thingengine.phone';
     }
 
-    invokeTrigger(trigger, callback) {
-        switch (trigger) {
-        case 'gps':
-            return Promise.resolve([{ y: 37.4275, x: -122.1697 }, 29, 0, 0]); // at stanford, on the ground, facing north, standing still
-        default:
-            throw new Error('Invalid trigger'); // we don't mock anything else
-        }
+    get_get_gps() {
+        return Promise.resolve([{
+            location: { y: 37.4275, x: -122.1697 },
+            altitude: 29,
+            bearing: 0,
+            speed: 0
+        }]); // at stanford, on the ground, facing north, standing still
     }
 }
 
