@@ -655,6 +655,68 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     null],
 
     [(almond) => {
+        return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @org.thingpedia.builtin.test.eat_data(data="foo");`, almond.schemas, true).then((prog) => {
+            Promise.resolve(almond.askForPermission('mock-account:...', 'email:bob@smith.com', prog).then((res) => {
+                assert.strictEqual(res, null);
+            }));
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        }));
+    },
+`>> Bob Smith (dad) wants to consume "foo"
+>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
+>> button: Always from anybody (no restrictions) {"permissionRule":"true : now => @org.thingpedia.builtin.test.eat_data;"}
+>> button: Always from Bob Smith (dad) (no restrictions) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data;"}
+>> button: Always from Bob Smith (dad) (this exact request) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
+>> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
+>> button: Add constraints {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> ask special generic
+`,
+    ['bookkeeping', 'special', 'special:no'],
+`>> Sorry I couldn't help on that.
+>> ask special null
+`,
+    null],
+
+    [(almond) => {
+        return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @org.thingpedia.builtin.test.eat_data(data="foo");`, almond.schemas, true).then((prog) => {
+            Promise.resolve(almond.askForPermission('mock-account:...', 'email:bob@smith.com', prog).then((res) => {
+                assert.strictEqual(res, prog);
+            }));
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        }));
+    },
+`>> Bob Smith (dad) wants to consume "foo"
+>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
+>> button: Always from anybody (no restrictions) {"permissionRule":"true : now => @org.thingpedia.builtin.test.eat_data;"}
+>> button: Always from Bob Smith (dad) (no restrictions) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data;"}
+>> button: Always from Bob Smith (dad) (this exact request) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
+>> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
+>> button: Add constraints {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> ask special generic
+`,
+    ['bookkeeping', 'special', 'special:maybe'],
+`>> Pick the filter you want to add:
+>> button: data is equal to $data {"code":["bookkeeping","filter","param:data:String","==","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
+>> button: data is not equal to $data {"code":["bookkeeping","filter","param:data:String","!=","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
+>> button: data contains $data {"code":["bookkeeping","filter","param:data:String","=~","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
+>> button: the time is before $__time {"code":["bookkeeping","filter","param:__time:Time","<=","SLOT_0"],"entities":{},"slots":["__time"],"slotTypes":{"__time":"Time"}}
+>> button: the time is after $__time {"code":["bookkeeping","filter","param:__time:Time",">=","SLOT_0"],"entities":{},"slots":["__time"],"slotTypes":{"__time":"Time"}}
+>> button: my location is $__location {"code":["bookkeeping","filter","param:__location:Location","==","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
+>> button: my location is not ____ {"code":["bookkeeping","filter","not","param:__location:Location","==","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special generic
+`,
+    {"code":["bookkeeping","filter","param:data:String","=~","SLOT_0"],"entities":{SLOT_0: 'oo'},"slots":["data"],"slotTypes":{"data":"String"}},
+`>> Ok, I'll remember that Bob Smith (dad) is allowed to consume any data if data contains "oo"
+>> ask special null
+`,
+    `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : now => @org.thingpedia.builtin.test.eat_data, data =~ "oo";`],
+
+    [(almond) => {
         return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
             Promise.resolve(almond.askForPermission('mock-account:...', 'email:bob@smith.com', prog).then((res) => {
                 assert.strictEqual(res, null);
@@ -793,9 +855,9 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     ['bookkeeping', 'special', 'special:maybe'],
 `>> Pick the filter you want to add:
->> button: number is equal to $number {"code":["bookkeeping","filter","param:number:undefined","==","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"undefined"}}
->> button: number is greater than or equal to $number {"code":["bookkeeping","filter","param:number:undefined",">=","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"undefined"}}
->> button: number is less than or equal to $number {"code":["bookkeeping","filter","param:number:undefined","<=","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"undefined"}}
+>> button: number is equal to $number {"code":["bookkeeping","filter","param:number:Number","==","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"Number"}}
+>> button: number is greater than or equal to $number {"code":["bookkeeping","filter","param:number:Number",">=","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"Number"}}
+>> button: number is less than or equal to $number {"code":["bookkeeping","filter","param:number:Number","<=","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"Number"}}
 >> button: title is equal to $title {"code":["bookkeeping","filter","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
 >> button: title is not equal to $title {"code":["bookkeeping","filter","param:title:String","!=","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
 >> button: title contains $title {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
