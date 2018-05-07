@@ -97,6 +97,11 @@ class TestDelegate {
                typeof json.program === 'string' ||
                typeof json.permissionRule === 'string');
         Promise.resolve(Intent.parse(json, almond.schemas, null, null, null));
+        if (json.slots) {
+            json.slots.forEach((slot) => {
+                assert(title.indexOf('$' + slot) >= 0, `button ${title} is missing slot ${slot}`);
+            });
+        }
         writeLine('>> button: ' + title + ' ' + JSON.stringify(json));
     }
 
@@ -767,10 +772,10 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: the data is not equal to $data {"code":["bookkeeping","filter","not","param:data:String","==","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
 >> button: the data contains $data {"code":["bookkeeping","filter","param:data:String","=~","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
 >> button: the data does not contain $data {"code":["bookkeeping","filter","not","param:data:String","=~","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
->> button: the time is before $__time {"code":["bookkeeping","filter","param:__time:Time","<=","SLOT_0"],"entities":{},"slots":["__time"],"slotTypes":{"__time":"Time"}}
->> button: the time is after $__time {"code":["bookkeeping","filter","param:__time:Time",">=","SLOT_0"],"entities":{},"slots":["__time"],"slotTypes":{"__time":"Time"}}
->> button: my location is $__location {"code":["bookkeeping","filter","param:__location:Location","==","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
->> button: my location is not $__location {"code":["bookkeeping","filter","not","param:__location:Location","==","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
+>> button: the time is before $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time","<=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
+>> button: the time is after $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time",">=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
+>> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special generic
 `,
@@ -793,10 +798,10 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: the data is not equal to $data {"code":["bookkeeping","filter","not","param:data:String","==","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
 >> button: the data contains $data {"code":["bookkeeping","filter","param:data:String","=~","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
 >> button: the data does not contain $data {"code":["bookkeeping","filter","not","param:data:String","=~","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
->> button: the time is before $__time {"code":["bookkeeping","filter","param:__time:Time","<=","SLOT_0"],"entities":{},"slots":["__time"],"slotTypes":{"__time":"Time"}}
->> button: the time is after $__time {"code":["bookkeeping","filter","param:__time:Time",">=","SLOT_0"],"entities":{},"slots":["__time"],"slotTypes":{"__time":"Time"}}
->> button: my location is $__location {"code":["bookkeeping","filter","param:__location:Location","==","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
->> button: my location is not $__location {"code":["bookkeeping","filter","not","param:__location:Location","==","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
+>> button: the time is before $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time","<=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
+>> button: the time is after $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time",">=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
+>> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special generic
 `,
@@ -984,10 +989,10 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: the alt text is not equal to $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
 >> button: the alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
 >> button: the alt text does not contain $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
->> button: the time is before $__time {"code":["bookkeeping","filter","param:__time:Time","<=","SLOT_0"],"entities":{},"slots":["__time"],"slotTypes":{"__time":"Time"}}
->> button: the time is after $__time {"code":["bookkeeping","filter","param:__time:Time",">=","SLOT_0"],"entities":{},"slots":["__time"],"slotTypes":{"__time":"Time"}}
->> button: my location is $__location {"code":["bookkeeping","filter","param:__location:Location","==","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
->> button: my location is not $__location {"code":["bookkeeping","filter","not","param:__location:Location","==","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
+>> button: the time is before $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time","<=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
+>> button: the time is after $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time",">=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
+>> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special generic
 `,
@@ -1217,11 +1222,11 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     {"code":["bookkeeping","commands","communication","device:org.thingpedia.builtin.thingengine.phone"],"entities":{}},
 `>> Pick a command below.
->> button: when my location changes notify me {"example_id":1550295,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when my location changes to $location notify me {"example_id":1550297,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
->> button: when i receive a sms notify me {"example_id":1550298,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.sms",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when i receive a sms from $p_sender  notify me {"example_id":1550299,"code":["monitor","(","(","@org.thingpedia.builtin.thingengine.phone.sms",")","filter","param:sender:Entity(tt:phone_number)","==","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_sender":"Entity(tt:phone_number)"},"slots":["p_sender"]}
->> button: get my current location {"example_id":1550300,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.get_gps","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when my location changes notify me {"example_id":1641295,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when my location changes to $p_location notify me {"example_id":1641297,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
+>> button: when i receive a sms notify me {"example_id":1641298,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.sms",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when i receive a sms from $p_sender  notify me {"example_id":1641299,"code":["monitor","(","(","@org.thingpedia.builtin.thingengine.phone.sms",")","filter","param:sender:Entity(tt:phone_number)","==","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_sender":"Entity(tt:phone_number)"},"slots":["p_sender"]}
+>> button: get my current location {"example_id":1641300,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.get_gps","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
@@ -1255,15 +1260,15 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     {"code":["bookkeeping","category","location"],"entities":{}},
 `>> Pick a command below.
->> button: when their location changes notify me {"example_id":1550295,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when their location changes to $location notify me {"example_id":1550297,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
->> button: get their current location {"example_id":1550300,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.get_gps","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when they move away from $p_location notify me {"example_id":1550315,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","not","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
+>> button: when their location changes notify me {"example_id":1641295,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when their location changes to $p_location notify me {"example_id":1641297,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
+>> button: get their current location {"example_id":1641300,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.get_gps","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when they move away from $p_location notify me {"example_id":1641315,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","not","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
-    {"example_id":1550295,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]},
-`Clicked example 1550295
+    {"example_id":1641295,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]},
+`Clicked example 1641295
 >> Your command is: when get their location changes notify me. You can add more filters or run your command if you are ready.
 >> choice 0: Choose a different command
 >> choice 1: Add a filter
@@ -1430,6 +1435,110 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX : {
     now => @com.facebook.post(status="another test");
 }`],
+
+    [(almond) => {
+        return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
+            Promise.resolve(almond.askForPermission('mock-account:...', 'email:bob@smith.com', prog).then((res) => {
+            }));
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        }));
+    },
+`>> Bob Smith (dad) would like to get get an Xkcd comic and then notify you.
+>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
+>> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
+>> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> ask special generic
+`,
+    ['bookkeeping', 'special', 'special:maybe'],
+`>> Choose the filter you want to add:
+>> button: the number is equal to $number {"code":["bookkeeping","filter","param:number:Number","==","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"Number"}}
+>> button: the number is greater than or equal to $number {"code":["bookkeeping","filter","param:number:Number",">=","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"Number"}}
+>> button: the number is less than or equal to $number {"code":["bookkeeping","filter","param:number:Number","<=","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"Number"}}
+>> button: the title is equal to $title {"code":["bookkeeping","filter","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title is not equal to $title {"code":["bookkeeping","filter","not","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title contains $title {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title does not contain $title {"code":["bookkeeping","filter","not","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the alt text is equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text is not equal to $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text does not contain $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the time is before $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time","<=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
+>> button: the time is after $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time",">=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
+>> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special generic
+`,
+    {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}},
+`>> What's the value of this filter?
+>> ask special location
+`,
+    { code: ['bookkeeping', 'answer', 'LOCATION_0'], entities: {"LOCATION_0": {longitude:0, latitude:90, display:"North pole"}}},
+`>> Ok, so Bob Smith (dad) is allowed to read get an Xkcd comic if the my location is not equal to North pole. Is that correct?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Ok, I'll remember that.
+>> ask special null
+`,
+
+    `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic, @org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == makeLocation(90, 0, "North pole")) } => notify;`],
+
+    [(almond) => {
+        return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
+            Promise.resolve(almond.askForPermission('mock-account:...', 'email:bob@smith.com', prog).then((res) => {
+            }));
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        }));
+    },
+`>> Bob Smith (dad) would like to get get an Xkcd comic and then notify you.
+>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
+>> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
+>> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> ask special generic
+`,
+    ['bookkeeping', 'special', 'special:maybe'],
+`>> Choose the filter you want to add:
+>> button: the number is equal to $number {"code":["bookkeeping","filter","param:number:Number","==","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"Number"}}
+>> button: the number is greater than or equal to $number {"code":["bookkeeping","filter","param:number:Number",">=","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"Number"}}
+>> button: the number is less than or equal to $number {"code":["bookkeeping","filter","param:number:Number","<=","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"Number"}}
+>> button: the title is equal to $title {"code":["bookkeeping","filter","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title is not equal to $title {"code":["bookkeeping","filter","not","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title contains $title {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title does not contain $title {"code":["bookkeeping","filter","not","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the alt text is equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text is not equal to $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text does not contain $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the time is before $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time","<=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
+>> button: the time is after $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time",">=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
+>> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special generic
+`,
+    {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}},
+`>> What's the value of this filter?
+>> ask special location
+`,
+    { code: ['bookkeeping', 'answer', 'LOCATION_0'], entities: {"LOCATION_0": {longitude:0, latitude:90, display:"North pole"}}},
+`>> Ok, so Bob Smith (dad) is allowed to read get an Xkcd comic if the my location is equal to North pole. Is that correct?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Ok, I'll remember that.
+>> ask special null
+`,
+
+    `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic, @org.thingpedia.builtin.thingengine.phone.get_gps() { location == makeLocation(90, 0, "North pole") } => notify;`],
 
 ];
 

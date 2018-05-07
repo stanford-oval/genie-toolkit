@@ -526,8 +526,8 @@ copy-descriptor@^0.1.0:
   resolved "https://registry.yarnpkg.com/copy-descriptor/-/copy-descriptor-0.1.1.tgz#676f6eb3c39997c2ee1ac3a924fd6124748f578d"
 
 core-js@^2.4.0:
-  version "2.5.5"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.5.5.tgz#b14dde936c640c0579a6b50cabcc132dd6127e3b"
+  version "2.5.6"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.5.6.tgz#0fe6d45bf3cac3ac364a9d72de7576f4eb221b9d"
 
 core-util-is@1.0.2, core-util-is@~1.0.0:
   version "1.0.2"
@@ -2483,7 +2483,7 @@ text-table@~0.2.0:
 
 "thingtalk@github:Stanford-Mobisocial-IoT-Lab/ThingTalk":
   version "1.0.0"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/0ab7f6c6c84510252b65edfc374552a3b3ffce8e"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/21e8af4de2620edc64caf28348b404482270420c"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
