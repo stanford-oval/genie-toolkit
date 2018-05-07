@@ -144,10 +144,9 @@ const TEST_CASES = [
     null],
 
     [['bookkeeping', 'special', 'special:help'],
-`>> Click on one of the following buttons to start adding commands.
->> choice 0: When
->> choice 1: Get
->> choice 2: Do
+`>> Do you want to use your own account or others?
+>> choice 0: Use my own account
+>> choice 1: Use others' account
 >> ask special choice
 `,
     null],
@@ -298,72 +297,61 @@ const TEST_CASES = [
 
     [
     ['bookkeeping', 'special', 'special:makerule'],
-`>> Click on one of the following buttons to start adding commands.
->> choice 0: When
->> choice 1: Get
->> choice 2: Do
+`>> Do you want to use your own account or others?
+>> choice 0: Use my own account
+>> choice 1: Use others' account
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
 `>> Pick one from the following categories or simply type in.
->> button: Do it now {"code":["bookkeeping","special","special:empty"],"entities":{}}
->> button: Media {"code":["bookkeeping","category","media"],"entities":{}}
->> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
->> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
->> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
->> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
->> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
+>> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
+>> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     ['monitor', '(', '@security-camera.current_event', ')', '=>', 'notify'],
-`>> Add more commands and filters or run your command if you are ready.
->> choice 0: When: when the current event detected on your security camera changes
->> choice 1: Get
->> choice 2: Do: notify me
->> choice 3: Add a filter
->> choice 4: Run it
+`>> Your command is: when the current event detected on your security camera changes notify me. You can add more filters or run your command if you are ready.
+>> choice 0: Choose a different command
+>> choice 1: Add a filter
+>> choice 2: Run it
 >> ask special choice
 `,
-    ['bookkeeping', 'choice', 1],
+    ['bookkeeping', 'choice', 0],
 `>> Pick one from the following categories or simply type in.
->> button: Media {"code":["bookkeeping","category","media"],"entities":{}}
->> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
->> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
->> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
->> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
->> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
+>> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
+>> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
-`>> Add more commands and filters or run your command if you are ready.
->> choice 0: When: when the current event detected on your security camera changes
->> choice 1: Get: get an Xkcd comic
->> choice 2: Do: notify me
->> choice 3: Add a filter
->> choice 4: Run it
->> ask special choice
-`,
-    ['bookkeeping', 'choice', 3],
-`>> Pick the command you want to add filters to:
->> choice 0: When: when the current event detected on your security camera changes
->> choice 1: Get: get an Xkcd comic
->> choice 2: Back
+`>> Your command is: get an Xkcd comic. You can add more filters or run your command if you are ready.
+>> choice 0: Choose a different command
+>> choice 1: Add a filter
+>> choice 2: Run it
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 1],
-`>> Pick the filter you want to add:
->> button: title is equal to $title {"code":["bookkeeping","filter","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
->> button: title is not equal to $title {"code":["bookkeeping","filter","param:title:String","!=","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
->> button: title contains $title {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
->> button: picture url is equal to $picture_url {"code":["bookkeeping","filter","param:picture_url:Entity(tt:picture)","==","SLOT_0"],"entities":{},"slots":["picture_url"],"slotTypes":{"picture_url":"Entity(tt:picture)"}}
->> button: picture url is not equal to $picture_url {"code":["bookkeeping","filter","param:picture_url:Entity(tt:picture)","!=","SLOT_0"],"entities":{},"slots":["picture_url"],"slotTypes":{"picture_url":"Entity(tt:picture)"}}
->> button: link is equal to $link {"code":["bookkeeping","filter","param:link:Entity(tt:url)","==","SLOT_0"],"entities":{},"slots":["link"],"slotTypes":{"link":"Entity(tt:url)"}}
->> button: link is not equal to $link {"code":["bookkeeping","filter","param:link:Entity(tt:url)","!=","SLOT_0"],"entities":{},"slots":["link"],"slotTypes":{"link":"Entity(tt:url)"}}
->> button: alt text is equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
->> button: alt text is not equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","!=","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
->> button: alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+`>> Choose the filter you want to add:
+>> button: the title is equal to $title {"code":["bookkeeping","filter","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title is not equal to $title {"code":["bookkeeping","filter","not","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title contains $title {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title does not contain $title {"code":["bookkeeping","filter","not","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the alt text is equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text is not equal to $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text does not contain $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special generic
 `,
@@ -375,46 +363,122 @@ const TEST_CASES = [
 >> ask special raw_string
 `,
     "lol",
-`>> Add more commands and filters or run your command if you are ready.
->> choice 0: When: when the current event detected on your security camera changes
->> choice 1: Get: get an Xkcd comic, title contains "lol"
->> choice 2: Do: notify me
->> choice 3: Add a filter
->> choice 4: Run it
+`>> Your command is: get an Xkcd comic, the title contains "lol". You can add more filters or run your command if you are ready.
+>> choice 0: Choose a different command
+>> choice 1: Add a filter
+>> choice 2: Run it
 >> ask special choice
 `,
-    ['bookkeeping', 'choice', 4],
-`>> You have multiple Security Camera devices. Which one do you want to use?
->> choice 0: Some Device 1
->> choice 1: Some Device 2
->> ask special choice
-`,
-    ['bookkeeping', 'choice', 0],
-`>> Ok, I'm going to notify you when the current event detected on your security camera changes and then get get an Xkcd comic if the title contains "lol".
+    ['bookkeeping', 'choice', 2],
+`>> Ok, I'm going to get get an Xkcd comic if the title contains "lol" and then notify you.
 >> ask special null
 `,
     `{
-    (monitor (@security-camera(id="security-camera-1").current_event()) join (@com.xkcd(id="com.xkcd-9").get_comic()), title =~ "lol") => notify;
+    now => (@com.xkcd(id="com.xkcd-9").get_comic()), title =~ "lol" => notify;
 }`],
-
 
     [
     ['bookkeeping', 'special', 'special:makerule'],
-`>> Click on one of the following buttons to start adding commands.
->> choice 0: When
->> choice 1: Get
->> choice 2: Do
+`>> Do you want to use your own account or others?
+>> choice 0: Use my own account
+>> choice 1: Use others' account
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
 `>> Pick one from the following categories or simply type in.
->> button: Do it now {"code":["bookkeeping","special","special:empty"],"entities":{}}
->> button: Media {"code":["bookkeeping","category","media"],"entities":{}}
->> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
->> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
->> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
->> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
->> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
+>> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
+>> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
+`>> Your command is: get an Xkcd comic. You can add more filters or run your command if you are ready.
+>> choice 0: Choose a different command
+>> choice 1: Add a filter
+>> choice 2: Run it
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', 1],
+`>> Choose the filter you want to add:
+>> button: the title is equal to $title {"code":["bookkeeping","filter","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title is not equal to $title {"code":["bookkeeping","filter","not","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title contains $title {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title does not contain $title {"code":["bookkeeping","filter","not","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the alt text is equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text is not equal to $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text does not contain $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special generic
+`,
+    { code: ['bookkeeping', 'filter', 'param:title:String', '=~', 'SLOT_0'],
+      slots: ['title'],
+      slotTypes: { title: 'String' },
+      entities: {} },
+`>> What's the value of this filter?
+>> ask special raw_string
+`,
+    "lol",
+`>> Your command is: get an Xkcd comic, the title contains "lol". You can add more filters or run your command if you are ready.
+>> choice 0: Choose a different command
+>> choice 1: Add a filter
+>> choice 2: Run it
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', 1],
+`>> Choose the filter you want to add:
+>> button: the title is equal to $title {"code":["bookkeeping","filter","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title is not equal to $title {"code":["bookkeeping","filter","not","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title contains $title {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title does not contain $title {"code":["bookkeeping","filter","not","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the alt text is equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text is not equal to $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text does not contain $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special generic
+`,
+    {"code":["bookkeeping","filter","not","param:title:String","=~","SLOT_0"],
+     "entities":{"SLOT_0": "foo"},
+     "slots":["title"],
+     "slotTypes":{"title":"String"}},
+`>> Your command is: get an Xkcd comic, the title contains "lol", the title does not contain "foo". You can add more filters or run your command if you are ready.
+>> choice 0: Choose a different command
+>> choice 1: Add a filter
+>> choice 2: Run it
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', 2],
+`>> Ok, I'm going to get get an Xkcd comic if the title contains "lol" and the title does not contain "foo" and then notify you.
+>> ask special null
+`,
+    `{
+    now => (@com.xkcd(id="com.xkcd-10").get_comic()), (title =~ "lol" && !(title =~ "foo")) => notify;
+}`],
+
+    [
+    ['bookkeeping', 'special', 'special:makerule'],
+`>> Do you want to use your own account or others?
+>> choice 0: Use my own account
+>> choice 1: Use others' account
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', 0],
+`>> Pick one from the following categories or simply type in.
+>> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
+>> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
+>> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
@@ -440,30 +504,32 @@ const TEST_CASES = [
 
     {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}},
 `>> Pick a command below.
->> button: when a new xkcd is out {"example_id":1549785,"code":["monitor","(","@com.xkcd.get_comic",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when a new xkcd is out in the what-if section {"example_id":1549786,"code":["monitor","(","@com.xkcd.what_if",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when a new xkcd is out notify me {"example_id":1549785,"code":["monitor","(","@com.xkcd.get_comic",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when a new xkcd is out in the what-if section notify me {"example_id":1549786,"code":["monitor","(","@com.xkcd.what_if",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: get the latest xkcd {"example_id":1549787,"code":["now","=>","@com.xkcd.get_comic","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: get the xkcd number $p_number {"example_id":1549788,"code":["now","=>","@com.xkcd.get_comic","param:number:Number","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_number":"Number"},"slots":["p_number"]}
+>> button: get a random xkcd {"example_id":1549789,"code":["now","=>","@com.xkcd.random_comic","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
 
     {"example_id":1549785,"code":["monitor","(","@com.xkcd.get_comic",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]},
 `Clicked example 1549785
->> Add more commands and filters or run your command if you are ready.
->> choice 0: When: when get an Xkcd comic changes
->> choice 1: Get
->> choice 2: Do: notify me
->> choice 3: Add a filter
->> choice 4: Run it
+>> Your command is: when get an Xkcd comic changes notify me. You can add more filters or run your command if you are ready.
+>> choice 0: Choose a different command
+>> choice 1: Add a filter
+>> choice 2: Run it
 >> ask special choice
 `,
 
-    ['bookkeeping', 'choice', 4],
+    ['bookkeeping', 'choice', 2],
 `>> Ok, I'm going to notify you when get an Xkcd comic changes.
 >> ask special null
 `,
 
     `{
-    monitor (@com.xkcd(id="com.xkcd-10").get_comic()) => notify;
+    monitor (@com.xkcd(id="com.xkcd-11").get_comic()) => notify;
 }`],
 
     [
@@ -571,7 +637,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `>> I'm going to get get an Xkcd comic and then notify you (as asked by Carol Johnson).
 `,
     `{
-    now => @com.xkcd(id="com.xkcd-11").get_comic() => notify;
+    now => @com.xkcd(id="com.xkcd-12").get_comic() => notify;
 }`],
 
     [(almond) => {
@@ -659,13 +725,13 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) wants to consume "foo"
+`>> Bob Smith (dad) would like to consume "foo".
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody (no restrictions) {"permissionRule":"true : now => @org.thingpedia.builtin.test.eat_data;"}
 >> button: Always from Bob Smith (dad) (no restrictions) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data;"}
 >> button: Always from Bob Smith (dad) (this exact request) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Add constraints {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:no'],
@@ -684,24 +750,25 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) wants to consume "foo"
+`>> Bob Smith (dad) would like to consume "foo".
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody (no restrictions) {"permissionRule":"true : now => @org.thingpedia.builtin.test.eat_data;"}
 >> button: Always from Bob Smith (dad) (no restrictions) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data;"}
 >> button: Always from Bob Smith (dad) (this exact request) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Add constraints {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:maybe'],
-`>> Pick the filter you want to add:
->> button: data is equal to $data {"code":["bookkeeping","filter","param:data:String","==","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
->> button: data is not equal to $data {"code":["bookkeeping","filter","param:data:String","!=","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
->> button: data contains $data {"code":["bookkeeping","filter","param:data:String","=~","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
+`>> Choose the filter you want to add:
+>> button: the data is equal to $data {"code":["bookkeeping","filter","param:data:String","==","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
+>> button: the data is not equal to $data {"code":["bookkeeping","filter","not","param:data:String","==","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
+>> button: the data contains $data {"code":["bookkeeping","filter","param:data:String","=~","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
+>> button: the data does not contain $data {"code":["bookkeeping","filter","not","param:data:String","=~","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
 >> button: the time is before $__time {"code":["bookkeeping","filter","param:__time:Time","<=","SLOT_0"],"entities":{},"slots":["__time"],"slotTypes":{"__time":"Time"}}
 >> button: the time is after $__time {"code":["bookkeeping","filter","param:__time:Time",">=","SLOT_0"],"entities":{},"slots":["__time"],"slotTypes":{"__time":"Time"}}
 >> button: my location is $__location {"code":["bookkeeping","filter","param:__location:Location","==","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
->> button: my location is not ____ {"code":["bookkeeping","filter","not","param:__location:Location","==","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
+>> button: my location is not $__location {"code":["bookkeeping","filter","not","param:__location:Location","!=","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special generic
 `,
@@ -721,12 +788,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) wants to get get an Xkcd comic and then notify you
+`>> Bob Smith (dad) would like to get get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
 >> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Add constraints {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:no'],
@@ -745,12 +812,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) wants to get get an Xkcd comic and then notify you
+`>> Bob Smith (dad) would like to get get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
 >> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Add constraints {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -768,12 +835,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) wants to get get an Xkcd comic and then notify you
+`>> Bob Smith (dad) would like to get get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
 >> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Add constraints {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     {"code":["policy","true",":","@com.xkcd.get_comic","=>","notify"],"entities":{}},
@@ -792,12 +859,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) wants to get get an Xkcd comic and then notify you
+`>> Bob Smith (dad) would like to get get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
 >> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Add constraints {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     {"permissionRule":"true : @com.xkcd.get_comic => notify;"},
@@ -816,12 +883,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) wants to get get an Xkcd comic and then notify you
+`>> Bob Smith (dad) would like to get get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
 >> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Add constraints {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     {"permissionRule":"source == \"mock-account:...\"^^tt:contact(\"Bob Smith (dad)\") : @com.xkcd.get_comic => notify;"},
@@ -840,33 +907,31 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) wants to get get an Xkcd comic and then notify you
+`>> Bob Smith (dad) would like to get get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
 >> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Add constraints {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:maybe'],
-`>> Pick the filter you want to add:
->> button: number is equal to $number {"code":["bookkeeping","filter","param:number:Number","==","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"Number"}}
->> button: number is greater than or equal to $number {"code":["bookkeeping","filter","param:number:Number",">=","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"Number"}}
->> button: number is less than or equal to $number {"code":["bookkeeping","filter","param:number:Number","<=","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"Number"}}
->> button: title is equal to $title {"code":["bookkeeping","filter","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
->> button: title is not equal to $title {"code":["bookkeeping","filter","param:title:String","!=","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
->> button: title contains $title {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
->> button: picture url is equal to $picture_url {"code":["bookkeeping","filter","param:picture_url:Entity(tt:picture)","==","SLOT_0"],"entities":{},"slots":["picture_url"],"slotTypes":{"picture_url":"Entity(tt:picture)"}}
->> button: picture url is not equal to $picture_url {"code":["bookkeeping","filter","param:picture_url:Entity(tt:picture)","!=","SLOT_0"],"entities":{},"slots":["picture_url"],"slotTypes":{"picture_url":"Entity(tt:picture)"}}
->> button: link is equal to $link {"code":["bookkeeping","filter","param:link:Entity(tt:url)","==","SLOT_0"],"entities":{},"slots":["link"],"slotTypes":{"link":"Entity(tt:url)"}}
->> button: link is not equal to $link {"code":["bookkeeping","filter","param:link:Entity(tt:url)","!=","SLOT_0"],"entities":{},"slots":["link"],"slotTypes":{"link":"Entity(tt:url)"}}
->> button: alt text is equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
->> button: alt text is not equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","!=","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
->> button: alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+`>> Choose the filter you want to add:
+>> button: the number is equal to $number {"code":["bookkeeping","filter","param:number:Number","==","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"Number"}}
+>> button: the number is greater than or equal to $number {"code":["bookkeeping","filter","param:number:Number",">=","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"Number"}}
+>> button: the number is less than or equal to $number {"code":["bookkeeping","filter","param:number:Number","<=","SLOT_0"],"entities":{},"slots":["number"],"slotTypes":{"number":"Number"}}
+>> button: the title is equal to $title {"code":["bookkeeping","filter","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title is not equal to $title {"code":["bookkeeping","filter","not","param:title:String","==","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title contains $title {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the title does not contain $title {"code":["bookkeeping","filter","not","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}}
+>> button: the alt text is equal to $alt_text {"code":["bookkeeping","filter","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text is not equal to $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","==","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
+>> button: the alt text does not contain $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
 >> button: the time is before $__time {"code":["bookkeeping","filter","param:__time:Time","<=","SLOT_0"],"entities":{},"slots":["__time"],"slotTypes":{"__time":"Time"}}
 >> button: the time is after $__time {"code":["bookkeeping","filter","param:__time:Time",">=","SLOT_0"],"entities":{},"slots":["__time"],"slotTypes":{"__time":"Time"}}
 >> button: my location is $__location {"code":["bookkeeping","filter","param:__location:Location","==","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
->> button: my location is not ____ {"code":["bookkeeping","filter","not","param:__location:Location","==","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
+>> button: my location is not $__location {"code":["bookkeeping","filter","not","param:__location:Location","!=","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special generic
 `,
@@ -890,7 +955,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
 
     `{
-    now => @org.thingpedia.weather(id="org.thingpedia.weather-12").current(location=makeLocation(37.4275, -122.1697)) => notify;
+    now => @org.thingpedia.weather(id="org.thingpedia.weather-13").current(location=makeLocation(37.4275, -122.1697)) => notify;
 }`],
 
     [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
@@ -907,7 +972,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
 
     `{
-    now => @org.thingpedia.weather(id="org.thingpedia.weather-13").current(location=makeLocation(90, 0, "North pole")) => notify;
+    now => @org.thingpedia.weather(id="org.thingpedia.weather-14").current(location=makeLocation(90, 0, "North pole")) => notify;
 }`],
 
     [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
@@ -919,27 +984,27 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
 
     `{
-    now => @org.thingpedia.weather(id="org.thingpedia.weather-14").current(location=makeLocation(90, 0, "North pole")) => notify;
+    now => @org.thingpedia.weather(id="org.thingpedia.weather-15").current(location=makeLocation(90, 0, "North pole")) => notify;
 }`],
 
 
     [
     ['bookkeeping', 'special', 'special:makerule'],
-`>> Click on one of the following buttons to start adding commands.
->> choice 0: When
->> choice 1: Get
->> choice 2: Do
+`>> Do you want to use your own account or others?
+>> choice 0: Use my own account
+>> choice 1: Use others' account
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '0'],
 `>> Pick one from the following categories or simply type in.
->> button: Do it now {"code":["bookkeeping","special","special:empty"],"entities":{}}
->> button: Media {"code":["bookkeeping","category","media"],"entities":{}}
->> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
->> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
->> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
->> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
->> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
+>> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
+>> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
@@ -961,32 +1026,10 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
-    {"code":["bookkeeping","commands","media","device:com.giphy"],"entities":{}},
-`>> Can't find a compatible command from Giphy, choose another device
->> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
->> ask special command
-`,
-    {"code":["bookkeeping","special","special:back"],"entities":{}},
-`>> Pick a command from the following devices
->> button: Giphy {"code":["bookkeeping","commands","media","device:com.giphy"],"entities":{}}
->> button: Imgflip Meme Generator {"code":["bookkeeping","commands","media","device:com.imgflip"],"entities":{}}
->> button: NASA Daily {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}}
->> button: Piled Higher and Deeper {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}}
->> button: Reddit Frontpage {"code":["bookkeeping","commands","media","device:com.reddit.frontpage"],"entities":{}}
->> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
->> button: SportRadar {"code":["bookkeeping","commands","media","device:us.sportradar"],"entities":{}}
->> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
->> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
->> button: The Wall Street Journal {"code":["bookkeeping","commands","media","device:com.wsj"],"entities":{}}
->> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
->> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
->> button: Yahoo Finance {"code":["bookkeeping","commands","media","device:com.yahoo.finance"],"entities":{}}
->> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
->> ask special command
-`,
     {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}},
 `>> Pick a command below.
->> button: when there is a new post on phd comics {"example_id":1549797,"code":["monitor","(","@com.phdcomics.get_post",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when there is a new post on phd comics notify me {"example_id":1549797,"code":["monitor","(","@com.phdcomics.get_post",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: get posts on phd comics {"example_id":1549798,"code":["now","=>","@com.phdcomics.get_post","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
@@ -1010,30 +1053,32 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     {"code":["bookkeeping","commands","media","device:com.yahoo.finance"],"entities":{}},
 `>> Pick a command below.
->> button: when the stock price of $p_stock_id changes {"example_id":1597849,"code":["monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
->> button: when stock dividends for $p_stock_id changes {"example_id":1597850,"code":["monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
->> button: when the ask stock price of $p_stock_id goes above $p_ask_price {"example_id":1597852,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
->> button: when the ask stock price of $p_stock_id goes below $p_ask_price {"example_id":1597853,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
->> button: when the bid stock price of $p_stock_id goes above $p_bid_price {"example_id":1597854,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:bid_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_bid_price":"Currency"},"slots":["p_stock_id","p_bid_price"]}
+>> button: when the stock price of $p_stock_id changes notify me {"example_id":1597849,"code":["monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: when stock dividends for $p_stock_id changes notify me {"example_id":1597850,"code":["monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: get stock price of $p_stock_id {"example_id":1597851,"code":["now","=>","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: when the ask stock price of $p_stock_id goes above $p_ask_price notify me {"example_id":1597852,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
+>> button: when the ask stock price of $p_stock_id goes below $p_ask_price notify me {"example_id":1597853,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     {"code":["bookkeeping","special","special:more"],"entities":{}},
 `>> Pick a command below.
->> button: when the bid stock price of $p_stock_id goes below $p_bid_price {"example_id":1597855,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:bid_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_bid_price":"Currency"},"slots":["p_stock_id","p_bid_price"]}
->> button: when the dividend of $p_stock_id goes above $p_value {"example_id":1597860,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:value:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_value":"Currency"},"slots":["p_stock_id","p_value"]}
->> button: when the dividend of $p_stock_id goes below $p_value {"example_id":1597861,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:value:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_value":"Currency"},"slots":["p_stock_id","p_value"]}
+>> button: when the bid stock price of $p_stock_id goes above $p_bid_price notify me {"example_id":1597854,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:bid_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_bid_price":"Currency"},"slots":["p_stock_id","p_bid_price"]}
+>> button: when the bid stock price of $p_stock_id goes below $p_bid_price notify me {"example_id":1597855,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:bid_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_bid_price":"Currency"},"slots":["p_stock_id","p_bid_price"]}
+>> button: get dividend per share of $p_stock_id {"example_id":1597858,"code":["now","=>","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: when the dividend of $p_stock_id goes above $p_value notify me {"example_id":1597860,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:value:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_value":"Currency"},"slots":["p_stock_id","p_value"]}
+>> button: when the dividend of $p_stock_id goes below $p_value notify me {"example_id":1597861,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:value:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_value":"Currency"},"slots":["p_stock_id","p_value"]}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     {"code":["bookkeeping","special","special:back"],"entities":{}},
 `>> Pick a command below.
->> button: when the stock price of $p_stock_id changes {"example_id":1597849,"code":["monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
->> button: when stock dividends for $p_stock_id changes {"example_id":1597850,"code":["monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
->> button: when the ask stock price of $p_stock_id goes above $p_ask_price {"example_id":1597852,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
->> button: when the ask stock price of $p_stock_id goes below $p_ask_price {"example_id":1597853,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
->> button: when the bid stock price of $p_stock_id goes above $p_bid_price {"example_id":1597854,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:bid_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_bid_price":"Currency"},"slots":["p_stock_id","p_bid_price"]}
+>> button: when the stock price of $p_stock_id changes notify me {"example_id":1597849,"code":["monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: when stock dividends for $p_stock_id changes notify me {"example_id":1597850,"code":["monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: get stock price of $p_stock_id {"example_id":1597851,"code":["now","=>","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: when the ask stock price of $p_stock_id goes above $p_ask_price notify me {"example_id":1597852,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
+>> button: when the ask stock price of $p_stock_id goes below $p_ask_price notify me {"example_id":1597853,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
@@ -1058,49 +1103,47 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}},
 `>> Pick a command below.
->> button: when today 's asteroid info change {"example_id":1641078,"code":["now","=>","@gov.nasa.asteroid","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when nasa 's astronomy picture of the day change {"example_id":1641079,"code":["now","=>","@gov.nasa.apod","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when a picture from curiosity rover change {"example_id":1641082,"code":["now","=>","@gov.nasa.rover","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when $p_count pictures from curiosity rover change {"example_id":1641084,"code":["now","=>","@gov.nasa.rover","param:count:Number","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_count":"Number"},"slots":["p_count"]}
->> button: when a picture from curiosity rover taken on $p_date_taken change {"example_id":1641085,"code":["now","=>","@gov.nasa.rover","param:date_taken:Date","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_date_taken":"Date"},"slots":["p_date_taken"]}
+>> button: get today 's asteroid info {"example_id":1641078,"code":["now","=>","@gov.nasa.asteroid","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: get nasa 's astronomy picture of the day {"example_id":1641079,"code":["now","=>","@gov.nasa.apod","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: get a picture from curiosity rover {"example_id":1641082,"code":["now","=>","@gov.nasa.rover","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: get $p_count pictures from curiosity rover {"example_id":1641084,"code":["now","=>","@gov.nasa.rover","param:count:Number","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_count":"Number"},"slots":["p_count"]}
+>> button: get a picture from curiosity rover taken on $p_date_taken {"example_id":1641085,"code":["now","=>","@gov.nasa.rover","param:date_taken:Date","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_date_taken":"Date"},"slots":["p_date_taken"]}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     {"code":["now","=>","@gov.nasa.asteroid","=>","notify"],"entities":{},"slotTypes":{},"slots":[]},
-`>> Add more commands and filters or run your command if you are ready.
->> choice 0: When: when the asteroid passing close to Earth today changes
->> choice 1: Get
->> choice 2: Do: notify me
->> choice 3: Add a filter
->> choice 4: Run it
+`>> Your command is: get the asteroid passing close to Earth today. You can add more filters or run your command if you are ready.
+>> choice 0: Choose a different command
+>> choice 1: Add a filter
+>> choice 2: Run it
 >> ask special choice
 `,
-    ['bookkeeping', 'choice', '4'],
-`>> Ok, I'm going to notify you when the asteroid passing close to Earth today changes.
+    ['bookkeeping', 'choice', '2'],
+`>> Ok, I'm going to get the asteroid passing close to Earth today and then notify you.
 >> ask special null
 `,
 
     `{
-    monitor (@gov.nasa(id="gov.nasa-15").asteroid()) => notify;
+    now => @gov.nasa(id="gov.nasa-16").asteroid() => notify;
 }`],
 
     [
     ['bookkeeping', 'special', 'special:makerule'],
-`>> Click on one of the following buttons to start adding commands.
->> choice 0: When
->> choice 1: Get
->> choice 2: Do
+`>> Do you want to use your own account or others?
+>> choice 0: Use my own account
+>> choice 1: Use others' account
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '0'],
 `>> Pick one from the following categories or simply type in.
->> button: Do it now {"code":["bookkeeping","special","special:empty"],"entities":{}}
->> button: Media {"code":["bookkeeping","category","media"],"entities":{}}
->> button: Social Networks {"code":["bookkeeping","category","social-network"],"entities":{}}
->> button: Home {"code":["bookkeeping","category","home"],"entities":{}}
->> button: Communication {"code":["bookkeeping","category","communication"],"entities":{}}
->> button: Services {"code":["bookkeeping","category","service"],"entities":{}}
->> button: Data Management {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
+>> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
+>> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
@@ -1114,16 +1157,220 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     {"code":["bookkeeping","commands","communication","device:org.thingpedia.builtin.thingengine.phone"],"entities":{}},
 `>> Pick a command below.
->> button: when my location changes {"example_id":1550295,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when my location changes to $location {"example_id":1550297,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
->> button: when i receive a sms {"example_id":1550298,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.sms",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when i receive a sms from $p_sender  {"example_id":1550299,"code":["monitor","(","(","@org.thingpedia.builtin.thingengine.phone.sms",")","filter","param:sender:Entity(tt:phone_number)","==","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_sender":"Entity(tt:phone_number)"},"slots":["p_sender"]}
->> button: when i move away from $p_location {"example_id":1550315,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","not","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
+>> button: when my location changes notify me {"example_id":1550295,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when my location changes to $location notify me {"example_id":1550297,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
+>> button: when i receive a sms notify me {"example_id":1550298,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.sms",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when i receive a sms from $p_sender  notify me {"example_id":1550299,"code":["monitor","(","(","@org.thingpedia.builtin.thingengine.phone.sms",")","filter","param:sender:Entity(tt:phone_number)","==","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_sender":"Entity(tt:phone_number)"},"slots":["p_sender"]}
+>> button: get my current location {"example_id":1550300,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.get_gps","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
 
-    null]
+    null],
+
+    [
+    ['bookkeeping', 'special', 'special:makerule'],
+`>> Do you want to use your own account or others?
+>> choice 0: Use my own account
+>> choice 1: Use others' account
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '1'],
+`>> Whose account do you want to use?
+>> ask special phone_number
+`,
+    {code:['bookkeeping', 'answer', 'PHONE_NUMBER_0'],entities:{'PHONE_NUMBER_0':'+1234567890'}},
+`>> Pick one from the following categories or simply type in.
+>> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
+>> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
+>> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","category","location"],"entities":{}},
+`>> Pick a command below.
+>> button: when their location changes notify me {"example_id":1550295,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when their location changes to $location notify me {"example_id":1550297,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
+>> button: get their current location {"example_id":1550300,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.get_gps","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when they move away from $p_location notify me {"example_id":1550315,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","not","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"example_id":1550295,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]},
+`Clicked example 1550295
+>> Your command is: when get their location changes notify me. You can add more filters or run your command if you are ready.
+>> choice 0: Choose a different command
+>> choice 1: Add a filter
+>> choice 2: Run it
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '2'],
+`>> Ok, so you want me to tell mock-account:MOCK1234-phone:+1234567890: send it to me when get your location changes. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `{
+    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+        query receive (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out location : Location, out altitude : Measure(m), out bearing : Number, out speed : Measure(mps));
+    }
+    monitor (@__dyn_0.receive(__principal="mock-account:MOCK1234-phone:+1234567890"^^tt:contact, __program_id=$event.program_id, __flow=0)) => notify;
+}
+remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX : {
+    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+        action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in req location : Location, in req altitude : Measure(m), in req bearing : Number, in req speed : Measure(mps));
+    }
+    monitor (@org.thingpedia.builtin.thingengine.phone.get_gps()) => @__dyn_0.send(__principal="mock-account:123456-SELF"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, location=location, altitude=altitude, bearing=bearing, speed=speed);
+}`],
+
+    [
+    ['bookkeeping', 'special', 'special:makerule'],
+`>> Do you want to use your own account or others?
+>> choice 0: Use my own account
+>> choice 1: Use others' account
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '1'],
+`>> Whose account do you want to use?
+>> ask special phone_number
+`,
+    {code:['bookkeeping', 'answer', 'PHONE_NUMBER_0'],entities:{'PHONE_NUMBER_0':'+1234567890'}},
+`>> Pick one from the following categories or simply type in.
+>> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
+>> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
+>> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","category","social-network"],"entities":{}},
+`>> Pick a command from the following devices
+>> button: Facebook Account {"code":["bookkeeping","commands","social-network","device:com.facebook"],"entities":{}}
+>> button: Instagram {"code":["bookkeeping","commands","social-network","device:com.instagram"],"entities":{}}
+>> button: LinkedIn Account {"code":["bookkeeping","commands","social-network","device:com.linkedin"],"entities":{}}
+>> button: Matrix {"code":["bookkeeping","commands","social-network","device:org.thingpedia.builtin.matrix"],"entities":{}}
+>> button: Omlet Account {"code":["bookkeeping","commands","social-network","device:org.thingpedia.builtin.omlet"],"entities":{}}
+>> button: Tumblr {"code":["bookkeeping","commands","social-network","device:com.tumblr"],"entities":{}}
+>> button: Twitter Account {"code":["bookkeeping","commands","social-network","device:com.twitter"],"entities":{}}
+>> button: Youtube Account {"code":["bookkeeping","commands","social-network","device:com.youtube"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","commands","social-network","device:com.facebook"],"entities":{}},
+`>> Pick a command below.
+>> button: post $p_status on facebook {"example_id":1640495,"code":["now","=>","@com.facebook.post","param:status:String","=","SLOT_0"],"entities":{},"slotTypes":{"p_status":"String"},"slots":["p_status"]}
+>> button: post a picture on facebook {"example_id":1640497,"code":["now","=>","@com.facebook.post_picture"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: post a picture with caption $p_caption on facebook {"example_id":1640498,"code":["now","=>","@com.facebook.post_picture","param:caption:String","=","SLOT_0"],"entities":{},"slotTypes":{"p_caption":"String"},"slots":["p_caption"]}
+>> button: post something on facebook {"example_id":1640502,"code":["now","=>","@com.facebook.post"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"example_id":1640495,"code":["now","=>","@com.facebook.post","param:status:String","=","SLOT_0"],"entities":{'SLOT_0':"a test"},"slotTypes":{"p_status":"String"},"slots":["p_status"]},
+
+`Clicked example 1640495
+>> Your command is: post "a test" on Facebook. You can add more filters or run your command if you are ready.
+>> choice 0: Choose a different command
+>> choice 1: Add a filter
+>> choice 2: Run it
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '2'],
+`>> Ok, so you want me to tell mock-account:MOCK1234-phone:+1234567890: post "a test" on Facebook. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `null
+remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX : {
+    now => @com.facebook.post(status="a test");
+}`],
+
+    [
+    ['bookkeeping', 'special', 'special:makerule'],
+`>> Do you want to use your own account or others?
+>> choice 0: Use my own account
+>> choice 1: Use others' account
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '1'],
+`>> Whose account do you want to use?
+>> ask special phone_number
+`,
+    {code:['bookkeeping', 'answer', 'PHONE_NUMBER_0'],entities:{'PHONE_NUMBER_0':'+1234567890'}},
+`>> Pick one from the following categories or simply type in.
+>> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
+>> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
+>> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","category","social-network"],"entities":{}},
+`>> Pick a command from the following devices
+>> button: Facebook Account {"code":["bookkeeping","commands","social-network","device:com.facebook"],"entities":{}}
+>> button: Instagram {"code":["bookkeeping","commands","social-network","device:com.instagram"],"entities":{}}
+>> button: LinkedIn Account {"code":["bookkeeping","commands","social-network","device:com.linkedin"],"entities":{}}
+>> button: Matrix {"code":["bookkeeping","commands","social-network","device:org.thingpedia.builtin.matrix"],"entities":{}}
+>> button: Omlet Account {"code":["bookkeeping","commands","social-network","device:org.thingpedia.builtin.omlet"],"entities":{}}
+>> button: Tumblr {"code":["bookkeeping","commands","social-network","device:com.tumblr"],"entities":{}}
+>> button: Twitter Account {"code":["bookkeeping","commands","social-network","device:com.twitter"],"entities":{}}
+>> button: Youtube Account {"code":["bookkeeping","commands","social-network","device:com.youtube"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","commands","social-network","device:com.facebook"],"entities":{}},
+`>> Pick a command below.
+>> button: post $p_status on facebook {"example_id":1640495,"code":["now","=>","@com.facebook.post","param:status:String","=","SLOT_0"],"entities":{},"slotTypes":{"p_status":"String"},"slots":["p_status"]}
+>> button: post a picture on facebook {"example_id":1640497,"code":["now","=>","@com.facebook.post_picture"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: post a picture with caption $p_caption on facebook {"example_id":1640498,"code":["now","=>","@com.facebook.post_picture","param:caption:String","=","SLOT_0"],"entities":{},"slotTypes":{"p_caption":"String"},"slots":["p_caption"]}
+>> button: post something on facebook {"example_id":1640502,"code":["now","=>","@com.facebook.post"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"example_id":1640495,"code":["now","=>","@com.facebook.post","param:status:String","=","SLOT_0"],"entities":{},"slotTypes":{"p_status":"String"},"slots":["p_status"]},
+
+`Clicked example 1640495
+>> Your command is: post ____ on Facebook. You can add more filters or run your command if you are ready.
+>> choice 0: Choose a different command
+>> choice 1: Add a filter
+>> choice 2: Run it
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '2'],
+`>> What do you want to post?
+>> ask special raw_string
+`,
+    'another test',
+`>> Ok, so you want me to tell mock-account:MOCK1234-phone:+1234567890: post "another test" on Facebook. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `null
+remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX : {
+    now => @com.facebook.post(status="another test");
+}`],
+
 ];
 
 function roundtrip(input, output) {
