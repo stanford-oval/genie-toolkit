@@ -16,6 +16,7 @@ const assert = require('assert');
 const ThingTalk = require('thingtalk');
 
 const Almond = require('../lib/almond');
+const Intent = require('../lib/semantic').Intent;
 
 const Mock = require('./mock');
 
@@ -95,6 +96,7 @@ class TestDelegate {
         assert(Array.isArray(json.code) ||
                typeof json.program === 'string' ||
                typeof json.permissionRule === 'string');
+        Promise.resolve(Intent.parse(json, almond.schemas, null, null, null));
         writeLine('>> button: ' + title + ' ' + JSON.stringify(json));
     }
 
