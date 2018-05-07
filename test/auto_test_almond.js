@@ -773,7 +773,37 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special generic
 `,
     {"code":["bookkeeping","filter","param:data:String","=~","SLOT_0"],"entities":{SLOT_0: 'oo'},"slots":["data"],"slotTypes":{"data":"String"}},
-`>> Ok, I'll remember that Bob Smith (dad) is allowed to consume any data if the data contains "oo"
+`>> Ok, so Bob Smith (dad) is allowed to consume any data if the data contains "oo". Is that correct?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:no'],
+`>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
+>> button: Always from anybody (no restrictions) {"permissionRule":"true : now => @org.thingpedia.builtin.test.eat_data;"}
+>> button: Always from Bob Smith (dad) (no restrictions) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data;"}
+>> button: Always from Bob Smith (dad) (this exact request) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
+>> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
+>> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> ask special generic
+`,
+    ['bookkeeping', 'special', 'special:maybe'],
+`>> Choose the filter you want to add:
+>> button: the data is equal to $data {"code":["bookkeeping","filter","param:data:String","==","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
+>> button: the data is not equal to $data {"code":["bookkeeping","filter","not","param:data:String","==","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
+>> button: the data contains $data {"code":["bookkeeping","filter","param:data:String","=~","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
+>> button: the data does not contain $data {"code":["bookkeeping","filter","not","param:data:String","=~","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
+>> button: the time is before $__time {"code":["bookkeeping","filter","param:__time:Time","<=","SLOT_0"],"entities":{},"slots":["__time"],"slotTypes":{"__time":"Time"}}
+>> button: the time is after $__time {"code":["bookkeeping","filter","param:__time:Time",">=","SLOT_0"],"entities":{},"slots":["__time"],"slotTypes":{"__time":"Time"}}
+>> button: my location is $__location {"code":["bookkeeping","filter","param:__location:Location","==","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
+>> button: my location is not $__location {"code":["bookkeeping","filter","not","param:__location:Location","!=","SLOT_0"],"entities":{},"slots":["__location"],"slotTypes":{"__location":"Location"}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special generic
+`,
+    {"code":["bookkeeping","filter","param:data:String","=~","SLOT_0"],"entities":{SLOT_0: 'oo'},"slots":["data"],"slotTypes":{"data":"String"}},
+`>> Ok, so Bob Smith (dad) is allowed to consume any data if the data contains "oo". Is that correct?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Ok, I'll remember that.
 >> ask special null
 `,
     `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : now => @org.thingpedia.builtin.test.eat_data, data =~ "oo";`],
@@ -844,7 +874,11 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special generic
 `,
     {"code":["policy","true",":","@com.xkcd.get_comic","=>","notify"],"entities":{}},
-`>> Ok, I'll remember that anyone is allowed to read get an Xkcd comic
+`>> Ok, so anyone is allowed to read get an Xkcd comic. Is that correct?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Ok, I'll remember that.
 >> ask special null
 `,
     'true : @com.xkcd.get_comic => notify;'],
@@ -868,7 +902,11 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special generic
 `,
     {"permissionRule":"true : @com.xkcd.get_comic => notify;"},
-`>> Ok, I'll remember that anyone is allowed to read get an Xkcd comic
+`>> Ok, so anyone is allowed to read get an Xkcd comic. Is that correct?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Ok, I'll remember that.
 >> ask special null
 `,
     'true : @com.xkcd.get_comic => notify;'],
@@ -891,8 +929,24 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
+    {"permissionRule":"true : @com.xkcd.get_comic => notify;"},
+`>> Ok, so anyone is allowed to read get an Xkcd comic. Is that correct?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:no'],
+`>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
+>> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
+>> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> ask special generic
+`,
     {"permissionRule":"source == \"mock-account:...\"^^tt:contact(\"Bob Smith (dad)\") : @com.xkcd.get_comic => notify;"},
-`>> Ok, I'll remember that Bob Smith (dad) is allowed to read get an Xkcd comic
+`>> Ok, so Bob Smith (dad) is allowed to read get an Xkcd comic. Is that correct?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Ok, I'll remember that.
 >> ask special null
 `,
     `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic => notify;`],
@@ -940,7 +994,11 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special raw_string
 `,
     `pierates`,
-`>> Ok, I'll remember that Bob Smith (dad) is allowed to read get an Xkcd comic if the title contains "pierates"
+`>> Ok, so Bob Smith (dad) is allowed to read get an Xkcd comic if the title contains "pierates". Is that correct?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Ok, I'll remember that.
 >> ask special null
 `,
 
