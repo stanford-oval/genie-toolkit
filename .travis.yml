@@ -1,9 +1,11 @@
 language: node_js
 node_js:
- - "6"
- - "8"
-
+- '6'
+- '8'
 script:
-  - yarn lint
-  - yarn test
+- yarn lint
+- yarn test
 after_success: yarn run coverage
+notifications:
+  slack:
+    secure: Xmek8u60Ni2iq7E0qzC5RFa3LufmqESJAsBu6IIAOcGjrkVKrqUyUXbUjnbdATrAN78puupQukhdGLLTj/EaSqSSliQrslQ9F9DgusRL/jZ3tkjjWdtfuTNpfXEJzkKM1rM9UI5PSbSsGnNO1qcYs8VKnTvzoKKkW3Z8h625ZpRzpTnE1UEFlkcOFEIB08Ahlo756/Ptinb55TI6hbmE/hwY1lHuPYHHWUBlSpuUQhSL1PkIzocTFkiKohHMKOszo/ZQTWBN+4Te9mXzR8p2J9Inwb9fBdiLo7Xaf896kUoAIUVvH0WpniooXAvMTxjrLL9OYBRfpFHM/7U1jlTigIiGXXCJOXQBshhs9wxhyDnEfinHSjIfCjDugzGspnPW2MTZeYgyBssznTkjCV4/14dQuRE1I/8sfA0Isqd0R2yBu3NstyiDlmZYEtRXzorhZ3wsDh2v3Q3dS/b6yrT99itnhzhMPALPjgcxyxUQMoFLZrNYOZKIhKporxoxHiP87SgQeto1UxOXrNErseQTc+tHI3mjAabWvFMGEgxCuc5aA9BesbgWBTX3Z1OEHBFIA0pYpINAYl0Dm7+pYamPjoks8jIWSIYEyq/ut3td9MBzVmU9+HncMi0Kqmw1+tmk90hfwkFhxOnynxf1k+T1gvSWy3t/NBXU6JSZetbeoIU=
