@@ -547,6 +547,10 @@ const TEST_CASES = [
 >> ask special raw_string
 `,
     `bob`,
+`>> Insert your Matrix password:
+>> ask special password
+`,
+    `pa55word`,
 `>> Yes or no?
 >> ask special yesno
 `,
@@ -1626,6 +1630,9 @@ const mockMatrix = {
     configureFromAlmond(engine, configDelegate) {
         return configDelegate.requestCode("Insert your Matrix username:").then((username) => {
             assert.strictEqual(username, 'bob');
+            return configDelegate.requestCode("Insert your Matrix password:", true);
+        }).then((password) => {
+            assert.strictEqual(password, 'pa55word');
             return configDelegate.confirm("Yes or no?");
         }).then((v) => {
             assert.strictEqual(v, true);
