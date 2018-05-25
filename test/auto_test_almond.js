@@ -166,7 +166,7 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
-`>> What do you want to tweet?
+`>> What caption do you want?
 >> choice 0: Use the title from Xkcd
 >> choice 1: Use the picture url from Xkcd
 >> choice 2: Use the link from Xkcd
@@ -182,7 +182,7 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
-`>> Ok, so you want me to get get an Xkcd comic and then tweet the link with an attached picture with picture url equal to the picture url. Is that right?
+`>> Ok, so you want me to get an Xkcd comic and then tweet the link with an attached picture with picture url equal to the picture url. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -224,7 +224,7 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 1],
-`>> Ok, so you want me to post the text on Facebook when tweets from anyone you follow changes. Is that right?
+`>> Ok, so you want me to post the text on Facebook when tweets from anyone you follow change. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -274,14 +274,14 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
-`>> What do you want to tweet?
+`>> What caption do you want?
 >> choice 0: Use the picture url from Security Camera
 >> choice 1: A description of the result
 >> choice 2: None of above
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 2],
-`>> What do you want to tweet?
+`>> What caption do you want?
 >> ask special raw_string
 `,
     { code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'lol' } },
@@ -377,7 +377,7 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 2],
-`>> Ok, I'm going to get get an Xkcd comic if the title contains "lol" and then notify you.
+`>> Ok, I'm going to get an Xkcd comic if the title contains "lol" and then notify you.
 >> ask special null
 `,
     `{
@@ -462,7 +462,7 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 2],
-`>> Ok, I'm going to get get an Xkcd comic if the title contains "lol" and the title does not contain "foo" and then notify you.
+`>> Ok, I'm going to get an Xkcd comic if the title contains "lol" and the title does not contain "foo" and then notify you.
 >> ask special null
 `,
     `{
@@ -492,38 +492,38 @@ const TEST_CASES = [
 
     {"code":["bookkeeping","category","media"],"entities":{}},
 `>> Pick a command from the following devices
+>> button: Fox News Articles {"code":["bookkeeping","commands","media","device:com.foxnews"],"entities":{}}
 >> button: Giphy {"code":["bookkeeping","commands","media","device:com.giphy"],"entities":{}}
 >> button: Imgflip Meme Generator {"code":["bookkeeping","commands","media","device:com.imgflip"],"entities":{}}
 >> button: NASA Daily {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}}
+>> button: New York Times {"code":["bookkeeping","commands","media","device:com.nytimes"],"entities":{}}
 >> button: Piled Higher and Deeper {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}}
 >> button: Reddit Frontpage {"code":["bookkeeping","commands","media","device:com.reddit.frontpage"],"entities":{}}
 >> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
->> button: SportRadar {"code":["bookkeeping","commands","media","device:us.sportradar"],"entities":{}}
 >> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
 >> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
 >> button: The Wall Street Journal {"code":["bookkeeping","commands","media","device:com.wsj"],"entities":{}}
 >> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
 >> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
->> button: Yahoo Finance {"code":["bookkeeping","commands","media","device:com.yahoo.finance"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
 
     {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}},
 `>> Pick a command below.
->> button: when a new xkcd is out notify me {"example_id":1549785,"code":["monitor","(","@com.xkcd.get_comic",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when a new xkcd is out in the what-if section notify me {"example_id":1549786,"code":["monitor","(","@com.xkcd.what_if",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: get the latest xkcd {"example_id":1549787,"code":["now","=>","@com.xkcd.get_comic","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: get the xkcd number $p_number {"example_id":1549788,"code":["now","=>","@com.xkcd.get_comic","param:number:Number","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_number":"Number"},"slots":["p_number"]}
->> button: get a random xkcd {"example_id":1549789,"code":["now","=>","@com.xkcd.random_comic","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when a new xkcd is out notify me {"example_id":1648624,"code":["monitor","(","@com.xkcd.get_comic",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when a new xkcd is out in the what-if section notify me {"example_id":1648625,"code":["monitor","(","@com.xkcd.what_if",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: get the latest xkcd {"example_id":1648626,"code":["now","=>","@com.xkcd.get_comic","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: get the xkcd number $p_number {"example_id":1648627,"code":["now","=>","@com.xkcd.get_comic","param:number:Number","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_number":"Number"},"slots":["p_number"]}
+>> button: get a random xkcd {"example_id":1648628,"code":["now","=>","@com.xkcd.random_comic","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
 
-    {"example_id":1549785,"code":["monitor","(","@com.xkcd.get_comic",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]},
-`Clicked example 1549785
->> Your command is: when get an Xkcd comic changes notify me. You can add more filters or run your command if you are ready.
+    {"example_id":1648624,"code":["monitor","(","@com.xkcd.get_comic",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]},
+`Clicked example 1648624
+>> Your command is: when an Xkcd comic changes notify me. You can add more filters or run your command if you are ready.
 >> choice 0: Choose a different command
 >> choice 1: Add a filter
 >> choice 2: Run it
@@ -531,7 +531,7 @@ const TEST_CASES = [
 `,
 
     ['bookkeeping', 'choice', 2],
-`>> Ok, I'm going to notify you when get an Xkcd comic changes.
+`>> Ok, I'm going to notify you when an Xkcd comic changes.
 >> ask special null
 `,
 
@@ -591,7 +591,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
       entities: { USERNAME_0: 'mom' } },
-`>> Ok, so you want me to tell Alice Smith (mom): get get an Xkcd comic and then notify you. Is that right?
+`>> Ok, so you want me to tell Alice Smith (mom): get an Xkcd comic and then notify you. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -605,7 +605,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.xkcd.get_comic', '=>', 'return'],
       entities: { USERNAME_0: 'mom' } },
-`>> Ok, so you want me to tell Alice Smith (mom): get get an Xkcd comic and then send it to me. Is that right?
+`>> Ok, so you want me to tell Alice Smith (mom): get an Xkcd comic and then send it to me. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -645,7 +645,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> I'm going to get get an Xkcd comic and then notify you (as asked by Carol Johnson).
+`>> I'm going to get an Xkcd comic and then notify you (as asked by Carol Johnson).
 `,
     `{
     now => @com.xkcd(id="com.xkcd-12").get_comic() => notify;
@@ -663,7 +663,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special raw_string
 `,
     `pizza`,
-`>> I'm going to get search for "pizza" on Bing and then notify you (as asked by Carol Johnson).
+`>> I'm going to get websites matching "pizza" on Bing and then notify you (as asked by Carol Johnson).
 >> ask special null
 `,
     `{
@@ -829,7 +829,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) would like to get get an Xkcd comic and then notify you.
+`>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
 >> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
@@ -853,7 +853,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) would like to get get an Xkcd comic and then notify you.
+`>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
 >> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
@@ -876,7 +876,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) would like to get get an Xkcd comic and then notify you.
+`>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
 >> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
@@ -885,7 +885,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special generic
 `,
     {"code":["policy","true",":","@com.xkcd.get_comic","=>","notify"],"entities":{}},
-`>> Ok, so anyone is allowed to read get an Xkcd comic. Is that correct?
+`>> Ok, so anyone is allowed to read an Xkcd comic. Is that correct?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -904,7 +904,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) would like to get get an Xkcd comic and then notify you.
+`>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
 >> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
@@ -913,7 +913,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special generic
 `,
     {"permissionRule":"true : @com.xkcd.get_comic => notify;"},
-`>> Ok, so anyone is allowed to read get an Xkcd comic. Is that correct?
+`>> Ok, so anyone is allowed to read an Xkcd comic. Is that correct?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -932,7 +932,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) would like to get get an Xkcd comic and then notify you.
+`>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
 >> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
@@ -941,7 +941,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special generic
 `,
     {"permissionRule":"true : @com.xkcd.get_comic => notify;"},
-`>> Ok, so anyone is allowed to read get an Xkcd comic. Is that correct?
+`>> Ok, so anyone is allowed to read an Xkcd comic. Is that correct?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:no'],
@@ -953,7 +953,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special generic
 `,
     {"permissionRule":"source == \"mock-account:...\"^^tt:contact(\"Bob Smith (dad)\") : @com.xkcd.get_comic => notify;"},
-`>> Ok, so Bob Smith (dad) is allowed to read get an Xkcd comic. Is that correct?
+`>> Ok, so Bob Smith (dad) is allowed to read an Xkcd comic. Is that correct?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -972,7 +972,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) would like to get get an Xkcd comic and then notify you.
+`>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
 >> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
@@ -1005,7 +1005,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special raw_string
 `,
     `pierates`,
-`>> Ok, so Bob Smith (dad) is allowed to read get an Xkcd comic if the title contains "pierates". Is that correct?
+`>> Ok, so Bob Smith (dad) is allowed to read an Xkcd comic if the title contains "pierates". Is that correct?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -1079,104 +1079,105 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     {"code":["bookkeeping","category","media"],"entities":{}},
 `>> Pick a command from the following devices
+>> button: Fox News Articles {"code":["bookkeeping","commands","media","device:com.foxnews"],"entities":{}}
 >> button: Giphy {"code":["bookkeeping","commands","media","device:com.giphy"],"entities":{}}
 >> button: Imgflip Meme Generator {"code":["bookkeeping","commands","media","device:com.imgflip"],"entities":{}}
 >> button: NASA Daily {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}}
+>> button: New York Times {"code":["bookkeeping","commands","media","device:com.nytimes"],"entities":{}}
 >> button: Piled Higher and Deeper {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}}
 >> button: Reddit Frontpage {"code":["bookkeeping","commands","media","device:com.reddit.frontpage"],"entities":{}}
 >> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
->> button: SportRadar {"code":["bookkeeping","commands","media","device:us.sportradar"],"entities":{}}
 >> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
 >> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
 >> button: The Wall Street Journal {"code":["bookkeeping","commands","media","device:com.wsj"],"entities":{}}
 >> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
 >> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
->> button: Yahoo Finance {"code":["bookkeeping","commands","media","device:com.yahoo.finance"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}},
 `>> Pick a command below.
->> button: when there is a new post on phd comics notify me {"example_id":1549797,"code":["monitor","(","@com.phdcomics.get_post",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: get posts on phd comics {"example_id":1549798,"code":["now","=>","@com.phdcomics.get_post","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when there is a new post on phd comics notify me {"example_id":1645320,"code":["monitor","(","@com.phdcomics.get_post",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: get posts on phd comics {"example_id":1645321,"code":["now","=>","@com.phdcomics.get_post","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     {"code":["bookkeeping","special","special:back"],"entities":{}},
 `>> Pick a command from the following devices
+>> button: Fox News Articles {"code":["bookkeeping","commands","media","device:com.foxnews"],"entities":{}}
 >> button: Giphy {"code":["bookkeeping","commands","media","device:com.giphy"],"entities":{}}
 >> button: Imgflip Meme Generator {"code":["bookkeeping","commands","media","device:com.imgflip"],"entities":{}}
 >> button: NASA Daily {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}}
+>> button: New York Times {"code":["bookkeeping","commands","media","device:com.nytimes"],"entities":{}}
 >> button: Piled Higher and Deeper {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}}
 >> button: Reddit Frontpage {"code":["bookkeeping","commands","media","device:com.reddit.frontpage"],"entities":{}}
 >> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
->> button: SportRadar {"code":["bookkeeping","commands","media","device:us.sportradar"],"entities":{}}
 >> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
 >> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
 >> button: The Wall Street Journal {"code":["bookkeeping","commands","media","device:com.wsj"],"entities":{}}
 >> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
 >> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
->> button: Yahoo Finance {"code":["bookkeeping","commands","media","device:com.yahoo.finance"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     {"code":["bookkeeping","commands","media","device:com.yahoo.finance"],"entities":{}},
 `>> Pick a command below.
->> button: when the stock price of $p_stock_id changes notify me {"example_id":1597849,"code":["monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
->> button: when stock dividends for $p_stock_id changes notify me {"example_id":1597850,"code":["monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
->> button: get stock price of $p_stock_id {"example_id":1597851,"code":["now","=>","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
->> button: when the ask stock price of $p_stock_id goes above $p_ask_price notify me {"example_id":1597852,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
->> button: when the ask stock price of $p_stock_id goes below $p_ask_price notify me {"example_id":1597853,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
+>> button: when the stock price of $p_stock_id changes notify me {"example_id":1645420,"code":["monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: when stock dividends for $p_stock_id changes notify me {"example_id":1645421,"code":["monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: get stock price of $p_stock_id {"example_id":1645422,"code":["now","=>","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: when the ask stock price of $p_stock_id goes above $p_ask_price notify me {"example_id":1645423,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
+>> button: when the ask stock price of $p_stock_id goes below $p_ask_price notify me {"example_id":1645424,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     {"code":["bookkeeping","special","special:more"],"entities":{}},
 `>> Pick a command below.
->> button: when the bid stock price of $p_stock_id goes above $p_bid_price notify me {"example_id":1597854,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:bid_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_bid_price":"Currency"},"slots":["p_stock_id","p_bid_price"]}
->> button: when the bid stock price of $p_stock_id goes below $p_bid_price notify me {"example_id":1597855,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:bid_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_bid_price":"Currency"},"slots":["p_stock_id","p_bid_price"]}
->> button: get dividend per share of $p_stock_id {"example_id":1597858,"code":["now","=>","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
->> button: when the dividend of $p_stock_id goes above $p_value notify me {"example_id":1597860,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:value:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_value":"Currency"},"slots":["p_stock_id","p_value"]}
->> button: when the dividend of $p_stock_id goes below $p_value notify me {"example_id":1597861,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:value:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_value":"Currency"},"slots":["p_stock_id","p_value"]}
+>> button: when the bid stock price of $p_stock_id goes above $p_bid_price notify me {"example_id":1645425,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:bid_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_bid_price":"Currency"},"slots":["p_stock_id","p_bid_price"]}
+>> button: when the bid stock price of $p_stock_id goes below $p_bid_price notify me {"example_id":1645426,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:bid_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_bid_price":"Currency"},"slots":["p_stock_id","p_bid_price"]}
+>> button: get dividend per share of $p_stock_id {"example_id":1645429,"code":["now","=>","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: when the dividend of $p_stock_id goes above $p_value notify me {"example_id":1645431,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:value:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_value":"Currency"},"slots":["p_stock_id","p_value"]}
+>> button: when the dividend of $p_stock_id goes below $p_value notify me {"example_id":1645432,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:value:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_value":"Currency"},"slots":["p_stock_id","p_value"]}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     {"code":["bookkeeping","special","special:back"],"entities":{}},
 `>> Pick a command below.
->> button: when the stock price of $p_stock_id changes notify me {"example_id":1597849,"code":["monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
->> button: when stock dividends for $p_stock_id changes notify me {"example_id":1597850,"code":["monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
->> button: get stock price of $p_stock_id {"example_id":1597851,"code":["now","=>","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
->> button: when the ask stock price of $p_stock_id goes above $p_ask_price notify me {"example_id":1597852,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
->> button: when the ask stock price of $p_stock_id goes below $p_ask_price notify me {"example_id":1597853,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
+>> button: when the stock price of $p_stock_id changes notify me {"example_id":1645420,"code":["monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: when stock dividends for $p_stock_id changes notify me {"example_id":1645421,"code":["monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: get stock price of $p_stock_id {"example_id":1645422,"code":["now","=>","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)"},"slots":["p_stock_id"]}
+>> button: when the ask stock price of $p_stock_id goes above $p_ask_price notify me {"example_id":1645423,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
+>> button: when the ask stock price of $p_stock_id goes below $p_ask_price notify me {"example_id":1645424,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     {"code":["bookkeeping","special","special:back"],"entities":{}},
 `>> Pick a command from the following devices
+>> button: Fox News Articles {"code":["bookkeeping","commands","media","device:com.foxnews"],"entities":{}}
 >> button: Giphy {"code":["bookkeeping","commands","media","device:com.giphy"],"entities":{}}
 >> button: Imgflip Meme Generator {"code":["bookkeeping","commands","media","device:com.imgflip"],"entities":{}}
 >> button: NASA Daily {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}}
+>> button: New York Times {"code":["bookkeeping","commands","media","device:com.nytimes"],"entities":{}}
 >> button: Piled Higher and Deeper {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}}
 >> button: Reddit Frontpage {"code":["bookkeeping","commands","media","device:com.reddit.frontpage"],"entities":{}}
 >> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
->> button: SportRadar {"code":["bookkeeping","commands","media","device:us.sportradar"],"entities":{}}
 >> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
 >> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
 >> button: The Wall Street Journal {"code":["bookkeeping","commands","media","device:com.wsj"],"entities":{}}
 >> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
 >> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
->> button: Yahoo Finance {"code":["bookkeeping","commands","media","device:com.yahoo.finance"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}},
 `>> Pick a command below.
->> button: get today 's asteroid info {"example_id":1641078,"code":["now","=>","@gov.nasa.asteroid","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: get nasa 's astronomy picture of the day {"example_id":1641079,"code":["now","=>","@gov.nasa.apod","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: get a picture from curiosity rover {"example_id":1641082,"code":["now","=>","@gov.nasa.rover","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: get $p_count pictures from curiosity rover {"example_id":1641084,"code":["now","=>","@gov.nasa.rover","param:count:Number","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_count":"Number"},"slots":["p_count"]}
->> button: get a picture from curiosity rover taken on $p_date_taken {"example_id":1641085,"code":["now","=>","@gov.nasa.rover","param:date_taken:Date","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_date_taken":"Date"},"slots":["p_date_taken"]}
+>> button: when an asteroid passes close to earth notify me {"example_id":1641548,"code":["monitor","(","@gov.nasa.asteroid",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: get today 's asteroid info {"example_id":1641549,"code":["now","=>","@gov.nasa.asteroid","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: get nasa 's astronomy picture of the day {"example_id":1641550,"code":["now","=>","@gov.nasa.apod","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: get a picture from curiosity rover {"example_id":1641553,"code":["now","=>","@gov.nasa.rover","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: get $p_count pictures from curiosity rover {"example_id":1641555,"code":["now","=>","@gov.nasa.rover","param:count:Number","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_count":"Number"},"slots":["p_count"]}
+>> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
@@ -1226,11 +1227,11 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     {"code":["bookkeeping","commands","communication","device:org.thingpedia.builtin.thingengine.phone"],"entities":{}},
 `>> Pick a command below.
->> button: when my location changes notify me {"example_id":1641295,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when my location changes to $p_location notify me {"example_id":1641297,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
->> button: when i receive a sms notify me {"example_id":1641298,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.sms",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when i receive a sms from $p_sender  notify me {"example_id":1641299,"code":["monitor","(","(","@org.thingpedia.builtin.thingengine.phone.sms",")","filter","param:sender:Entity(tt:phone_number)","==","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_sender":"Entity(tt:phone_number)"},"slots":["p_sender"]}
->> button: get my current location {"example_id":1641300,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.get_gps","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when my location changes notify me {"example_id":1647495,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when my location changes to $p_location notify me {"example_id":1647497,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
+>> button: when i receive a sms notify me {"example_id":1647498,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.sms",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when i receive a sms from $p_sender  notify me {"example_id":1647499,"code":["monitor","(","(","@org.thingpedia.builtin.thingengine.phone.sms",")","filter","param:sender:Entity(tt:phone_number)","==","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_sender":"Entity(tt:phone_number)"},"slots":["p_sender"]}
+>> button: get my current location {"example_id":1647500,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.get_gps","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
@@ -1264,23 +1265,23 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     {"code":["bookkeeping","category","location"],"entities":{}},
 `>> Pick a command below.
->> button: when their location changes notify me {"example_id":1641295,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when their location changes to $p_location notify me {"example_id":1641297,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
->> button: get their current location {"example_id":1641300,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.get_gps","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when they move away from $p_location notify me {"example_id":1641315,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","not","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
+>> button: when their location changes notify me {"example_id":1647495,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when their location changes to $p_location notify me {"example_id":1647497,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
+>> button: get their current location {"example_id":1647500,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.get_gps","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when they move away from $p_location notify me {"example_id":1647515,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","not","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
-    {"example_id":1641295,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]},
-`Clicked example 1641295
->> Your command is: when get their location changes notify me. You can add more filters or run your command if you are ready.
+    {"example_id":1647495,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]},
+`Clicked example 1647495
+>> Your command is: when their location changes notify me. You can add more filters or run your command if you are ready.
 >> choice 0: Choose a different command
 >> choice 1: Add a filter
 >> choice 2: Run it
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '2'],
-`>> Ok, so you want me to tell mock-account:MOCK1234-phone:+1234567890: send it to me when get your location changes. Is that right?
+`>> Ok, so you want me to tell mock-account:MOCK1234-phone:+1234567890: send it to me when your location changes. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -1327,11 +1328,10 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     {"code":["bookkeeping","category","social-network"],"entities":{}},
 `>> Pick a command from the following devices
 >> button: Facebook Account {"code":["bookkeeping","commands","social-network","device:com.facebook"],"entities":{}}
+>> button: Google Contacts {"code":["bookkeeping","commands","social-network","device:com.google.contacts"],"entities":{}}
 >> button: Instagram {"code":["bookkeeping","commands","social-network","device:com.instagram"],"entities":{}}
 >> button: LinkedIn Account {"code":["bookkeeping","commands","social-network","device:com.linkedin"],"entities":{}}
 >> button: Matrix {"code":["bookkeeping","commands","social-network","device:org.thingpedia.builtin.matrix"],"entities":{}}
->> button: Omlet Account {"code":["bookkeeping","commands","social-network","device:org.thingpedia.builtin.omlet"],"entities":{}}
->> button: Tumblr {"code":["bookkeeping","commands","social-network","device:com.tumblr"],"entities":{}}
 >> button: Twitter Account {"code":["bookkeeping","commands","social-network","device:com.twitter"],"entities":{}}
 >> button: Youtube Account {"code":["bookkeeping","commands","social-network","device:com.youtube"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
@@ -1395,11 +1395,10 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     {"code":["bookkeeping","category","social-network"],"entities":{}},
 `>> Pick a command from the following devices
 >> button: Facebook Account {"code":["bookkeeping","commands","social-network","device:com.facebook"],"entities":{}}
+>> button: Google Contacts {"code":["bookkeeping","commands","social-network","device:com.google.contacts"],"entities":{}}
 >> button: Instagram {"code":["bookkeeping","commands","social-network","device:com.instagram"],"entities":{}}
 >> button: LinkedIn Account {"code":["bookkeeping","commands","social-network","device:com.linkedin"],"entities":{}}
 >> button: Matrix {"code":["bookkeeping","commands","social-network","device:org.thingpedia.builtin.matrix"],"entities":{}}
->> button: Omlet Account {"code":["bookkeeping","commands","social-network","device:org.thingpedia.builtin.omlet"],"entities":{}}
->> button: Tumblr {"code":["bookkeeping","commands","social-network","device:com.tumblr"],"entities":{}}
 >> button: Twitter Account {"code":["bookkeeping","commands","social-network","device:com.twitter"],"entities":{}}
 >> button: Youtube Account {"code":["bookkeeping","commands","social-network","device:com.youtube"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
@@ -1449,7 +1448,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) would like to get get an Xkcd comic and then notify you.
+`>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
 >> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
@@ -1482,7 +1481,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special location
 `,
     { code: ['bookkeeping', 'answer', 'LOCATION_0'], entities: {"LOCATION_0": {longitude:0, latitude:90, display:"North pole"}}},
-`>> Ok, so Bob Smith (dad) is allowed to read get an Xkcd comic if the my location is not equal to North pole. Is that correct?
+`>> Ok, so Bob Smith (dad) is allowed to read an Xkcd comic if the my location is not equal to North pole. Is that correct?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -1501,7 +1500,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) would like to get get an Xkcd comic and then notify you.
+`>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
 >> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
@@ -1534,7 +1533,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special location
 `,
     { code: ['bookkeeping', 'answer', 'LOCATION_0'], entities: {"LOCATION_0": {longitude:0, latitude:90, display:"North pole"}}},
-`>> Ok, so Bob Smith (dad) is allowed to read get an Xkcd comic if the my location is equal to North pole. Is that correct?
+`>> Ok, so Bob Smith (dad) is allowed to read an Xkcd comic if the my location is equal to North pole. Is that correct?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -1680,7 +1679,7 @@ const mockDeviceFactory = {
 };
 
 function main() {
-    var engine = Mock.createMockEngine();
+    var engine = Mock.createMockEngine('mock');
     engine.platform.getSharedPreferences().set('sabrina-initialized', false);
 
     // mock out getDeviceSetup

@@ -13,6 +13,7 @@ const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 
 const ThingpediaClient = require('./http_client');
+const _mockThingpediaClient = require('./mock_schema_delegate');
 
 class MockPreferences {
     constructor() {
@@ -393,7 +394,11 @@ _gettext.setLocale('en_US.utf8');
 const THINGPEDIA_URL = process.env.THINGPEDIA_URL || 'https://crowdie.stanford.edu/thingpedia';
 
 module.exports.createMockEngine = function(thingpediaUrl) {
-    var thingpedia = new ThingpediaClient(thingpediaUrl || THINGPEDIA_URL, null);
+    var thingpedia;
+    if (thingpediaUrl === 'mock')
+        thingpedia = _mockThingpediaClient;
+    else
+        thingpedia = new ThingpediaClient(thingpediaUrl || THINGPEDIA_URL, null);
     var schemas = new ThingTalk.SchemaRetriever(thingpedia, null, true);
 
     return {
