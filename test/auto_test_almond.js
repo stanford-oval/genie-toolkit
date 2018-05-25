@@ -646,6 +646,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
         }));
     },
 `>> I'm going to get an Xkcd comic and then notify you (as asked by Carol Johnson).
+>> ask special null
 `,
     `{
     now => @com.xkcd(id="com.xkcd-12").get_comic() => notify;
