@@ -656,14 +656,14 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 
     [(almond) => {
         return Promise.resolve().then(() => {
-            almond.notify('uuid-test-notify1', 'com.xkcd', 'com.xkcd:get_comic', {
+            return almond.notify('uuid-test-notify1', 'com.xkcd', 'com.xkcd:get_comic', {
                 number: 1986,
                 title: 'River Border',
                 picture_url: 'http://imgs.xkcd.com/comics/river_border.png',
                 link: 'https://xkcd.com/1986',
                 alt_text: `I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.` //'
             });
-
+        }).then(() => {
             // inject a meaningless intent so we synchronize the two concurrent tasks
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         });
@@ -684,7 +684,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
                 link: 'https://xkcd.com/1986',
                 alt_text: `I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.` //'
             });
-
+        }).then(() => {
             // inject a meaningless intent so we synchronize the two concurrent tasks
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         });
@@ -699,8 +699,8 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 
     [(almond) => {
         return Promise.resolve().then(() => {
-            almond.notifyError('uuid-test-notify2', 'com.xkcd', new Error('Something went wrong'));
-
+            return almond.notifyError('uuid-test-notify2', 'com.xkcd', new Error('Something went wrong'));
+        }).then(() => {
             // inject a meaningless intent so we synchronize the two concurrent tasks
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         });
