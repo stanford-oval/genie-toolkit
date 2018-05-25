@@ -722,11 +722,11 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     },
 `>> Bob Smith (dad) would like to consume "foo".
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
->> button: Always from anybody (no restrictions) {"permissionRule":"true : now => @org.thingpedia.builtin.test.eat_data;"}
->> button: Always from Bob Smith (dad) (no restrictions) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data;"}
->> button: Always from Bob Smith (dad) (this exact request) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
+>> button: Always from anybody (no restrictions) {"program":"true : now => @org.thingpedia.builtin.test.eat_data;"}
+>> button: Always from Bob Smith (dad) (no restrictions) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data;"}
+>> button: Always from Bob Smith (dad) (this exact request) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:no'],
@@ -747,11 +747,11 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     },
 `>> Bob Smith (dad) would like to consume "foo".
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
->> button: Always from anybody (no restrictions) {"permissionRule":"true : now => @org.thingpedia.builtin.test.eat_data;"}
->> button: Always from Bob Smith (dad) (no restrictions) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data;"}
->> button: Always from Bob Smith (dad) (this exact request) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
+>> button: Always from anybody (no restrictions) {"program":"true : now => @org.thingpedia.builtin.test.eat_data;"}
+>> button: Always from Bob Smith (dad) (no restrictions) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data;"}
+>> button: Always from Bob Smith (dad) (this exact request) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:maybe'],
@@ -773,11 +773,11 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     ['bookkeeping', 'special', 'special:no'],
 `>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
->> button: Always from anybody (no restrictions) {"permissionRule":"true : now => @org.thingpedia.builtin.test.eat_data;"}
->> button: Always from Bob Smith (dad) (no restrictions) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data;"}
->> button: Always from Bob Smith (dad) (this exact request) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
+>> button: Always from anybody (no restrictions) {"program":"true : now => @org.thingpedia.builtin.test.eat_data;"}
+>> button: Always from Bob Smith (dad) (no restrictions) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data;"}
+>> button: Always from Bob Smith (dad) (this exact request) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:maybe'],
@@ -815,10 +815,10 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     },
 `>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
->> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
->> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: Always from anybody {"program":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:no'],
@@ -839,10 +839,10 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     },
 `>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
->> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
->> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: Always from anybody {"program":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -862,10 +862,10 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     },
 `>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
->> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
->> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: Always from anybody {"program":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     {"code":["policy","true",":","@com.xkcd.get_comic","=>","notify"],"entities":{}},
@@ -890,13 +890,13 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     },
 `>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
->> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
->> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: Always from anybody {"program":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
-    {"permissionRule":"true : @com.xkcd.get_comic => notify;"},
+    {"program":"true : @com.xkcd.get_comic => notify;"},
 `>> Ok, so anyone is allowed to read an Xkcd comic. Is that correct?
 >> ask special yesno
 `,
@@ -918,25 +918,25 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     },
 `>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
->> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
->> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: Always from anybody {"program":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
-    {"permissionRule":"true : @com.xkcd.get_comic => notify;"},
+    {"program":"true : @com.xkcd.get_comic => notify;"},
 `>> Ok, so anyone is allowed to read an Xkcd comic. Is that correct?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:no'],
 `>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
->> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
->> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: Always from anybody {"program":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
-    {"permissionRule":"source == \"mock-account:...\"^^tt:contact(\"Bob Smith (dad)\") : @com.xkcd.get_comic => notify;"},
+    {"program":"source == \"mock-account:...\"^^tt:contact(\"Bob Smith (dad)\") : @com.xkcd.get_comic => notify;"},
 `>> Ok, so Bob Smith (dad) is allowed to read an Xkcd comic. Is that correct?
 >> ask special yesno
 `,
@@ -958,10 +958,10 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     },
 `>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
->> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
->> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: Always from anybody {"program":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:maybe'],
@@ -1434,10 +1434,10 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     },
 `>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
->> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
->> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: Always from anybody {"program":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:maybe'],
@@ -1486,10 +1486,10 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     },
 `>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
->> button: Always from anybody {"permissionRule":"true : @com.xkcd.get_comic => notify;"}
->> button: Always from Bob Smith (dad) {"permissionRule":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: Always from anybody {"program":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
->> button: Only if ... {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:maybe'],
