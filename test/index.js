@@ -131,12 +131,6 @@ function testDevices(engine) {
         assert.strictEqual(view4.values().length, 0);
         view4.stop();
 
-        const view5 = new DeviceView(devices, Ast.Selector.Device('com.xkcd', 'com.xkcd',
-            new Ast.Value.Entity('bob', 'tt:contact', null)));
-        view5.start();
-        assert.strictEqual(view5.values().length, 0);
-        view5.stop();
-
         return devices.removeDevice(device);
     }).then(() => {
         assert(!devices.hasDevice('com.xkcd'));
@@ -353,10 +347,10 @@ function testWhen(engine, conversation) {
                 assert(data.hasOwnProperty('__timestamp'));
                 delete data.__timestamp;
                 if (count === 0) {
-                    assert.deepStrictEqual(data, { data: '!!!!!!!!!!' });
+                    assert.deepStrictEqual(data, { count: 2, size: 10, data: '!!!!!!!!!!' });
                     count++;
                 } else if (count === 1) {
-                    assert.deepStrictEqual(data, { data: '""""""""""' });
+                    assert.deepStrictEqual(data, { count: 2, size: 10, data: '""""""""""' });
                     engine.apps.removeApp(app);
                     count++;
                     resolve();
@@ -402,9 +396,9 @@ function testTimer(engine, conversation) {
                 delete data.__timestamp;
                 if (count < 4) {
                     if (count % 2)
-                        assert.deepStrictEqual(data, { data: '""""""""""' });
+                        assert.deepStrictEqual(data, { count: 2, size: 10, data: '""""""""""' });
                     else
-                        assert.deepStrictEqual(data, { data: '!!!!!!!!!!' });
+                        assert.deepStrictEqual(data, { count: 2, size: 10, data: '!!!!!!!!!!' });
                     count++;
                     if (count === 4) {
                         engine.apps.removeApp(app);
