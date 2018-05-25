@@ -243,23 +243,6 @@ const TEST_CASES = [
     now => @com.xkcd(id="com.xkcd-8").get_comic() => notify;
 }`],
 
-    /*[
-    { code: ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'], entities: { USERNAME_0: "mom" } },
-`>> Ok, so you want me to get an Xkcd comic using Almond of Mom Corp Inc.. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Sending rule to Mom Corp Inc.: get an Xkcd comic then send it to me
->> Consider it done.
->> ask special null
-`,
-`AlmondGenerated() {
-    class @__dyn_0 extends @remote {
-        trigger receive (in req __principal : Entity(tt:contact), in req __token : Entity(tt:flow_token), in req __kindChannel : Entity(tt:function), out number : Number, out title : String, out picture_url : Entity(tt:picture), out link : Entity(tt:url), out alt_text : String);
-    }
-    @__dyn_0.receive(__principal="mock-account:MOCK1234-phone:+1800666"^^tt:contact("Mom Corp Inc."), __token="XXX"^^tt:flow_token, __kindChannel="query:xkcd:get_comic"^^tt:function) , v_title := title, v_picture_url := picture_url, v_link := link, v_alt_text := alt_text => notify;
-}`],*/
-
     [
     ['monitor', '(', '@security-camera.current_event', ')', '=>', '@com.twitter.post_picture'],
 `>> You have multiple Security Camera devices. Which one do you want to use?
