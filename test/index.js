@@ -299,6 +299,35 @@ function testSimpleGet(engine, icon = null) {
     });
 }
 
+function testGetGet(engine, icon = null) {
+    return engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) join @org.thingpedia.builtin.test.dup_data() on (data_in=data) => notify;',
+        { $icon: icon }, undefined, undefined, 'some app', 'some app description', true).then((app) => {
+        // when we get here, the app might or might not have started already
+        // to be sure, we iterate its mainOutput
+
+        // the app is still running, so the engine should know about it
+        assert(engine.apps.hasApp(app.uniqueId));
+        return app.mainOutput.next().then((what) => {
+            assert(what.item.isNotification);
+            what.resolve();
+            assert.strictEqual(what.item.icon, icon);
+            assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test:get_data+org.thingpedia.builtin.test:dup_data');
+            assert.deepStrictEqual(what.item.outputValue, { data: '!!!!!!!!!!', count: 2, size: 10, data_in: '!!!!!!!!!!', data_out: '!!!!!!!!!!!!!!!!!!!!',});
+            return app.mainOutput.next();
+        }).then((what) => {
+            assert(what.item.isNotification);
+            what.resolve();
+            assert.strictEqual(what.item.icon, icon);
+            assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test:get_data+org.thingpedia.builtin.test:dup_data');
+            assert.deepStrictEqual(what.item.outputValue, { data: '""""""""""', count: 2, size: 10, data_in: '""""""""""', data_out: '""""""""""""""""""""', });
+            return app.mainOutput.next();
+        }).then((what) => {
+            assert(what.item.isDone);
+            what.resolve();
+        });
+    });
+}
+
 function testGetError(engine, icon = null) {
     const test = engine.devices.getDevice('org.thingpedia.builtin.test');
     const originalget = test.get_get_data;
@@ -377,6 +406,54 @@ function testWhen(engine, conversation) {
     });
 }
 
+function testWhenGet(engine, conversation) {
+    const assistant = engine.platform.getCapability('assistant');
+
+    return new Promise((resolve, reject) => {
+        setTimeout(() => reject(new Error('Timed out while waiting for data to appear')), 10000).unref();
+
+        let count = 0;
+        assistant._setConversation({
+            notify(appId, icon, outputType, data) {
+                const app = engine.apps.getApp(appId);
+                assert(app.isEnabled);
+                assert(app.isRunning);
+                assert.strictEqual(outputType, 'org.thingpedia.builtin.test:get_data+org.thingpedia.builtin.test:dup_data');
+                assert.strictEqual(icon, 'org.foo');
+                assert.strictEqual(appId, 'uuid-when-get');
+                //assert(data.hasOwnProperty('__timestamp'));
+                //delete data.__timestamp;
+                if (count === 0) {
+                    assert.deepStrictEqual(data, { count: 2, size: 10, data: '!!!!!!!!!!', data_in: '!!!!!!!!!!', data_out: '!!!!!!!!!!!!!!!!!!!!' });
+                    count++;
+                } else if (count === 1) {
+                    assert.deepStrictEqual(data, { count: 2, size: 10, data: '""""""""""', data_in: '""""""""""', data_out: '""""""""""""""""""""' });
+                    engine.apps.removeApp(app);
+                    count++;
+                    resolve();
+                } else {
+                    try {
+                        assert.fail("too many results from the monitor");
+                    } catch(e) {
+                        reject(e);
+                    }
+                }
+            },
+
+            notifyError(appId, icon, err) {
+                assert.fail('no error expected');
+            }
+        });
+
+        return engine.apps.loadOneApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) join @org.thingpedia.builtin.test.dup_data() on (data_in=data) => notify;',
+            { $icon: 'org.foo', $conversation: conversation ? 'mock' : undefined },
+            'uuid-when-get', undefined, 'some app', 'some app description', true).then((app) => {
+            assert.strictEqual(app.icon, 'org.foo');
+            assert.strictEqual(app.uniqueId, 'uuid-when-get');
+        }).catch(reject);
+    });
+}
+
 function testTimer(engine, conversation) {
     const assistant = engine.platform.getCapability('assistant');
 
@@ -386,7 +463,6 @@ function testTimer(engine, conversation) {
         let count = 0;
         assistant._setConversation({
             notify(appId, icon, outputType, data) {
-                console.log('notify', appId, icon, outputType, data, count);
                 const app = engine.apps.getApp(appId);
                 assert(app.isEnabled);
                 assert(app.isRunning);
@@ -467,6 +543,8 @@ function testApps(engine) {
     }).then(() => {
         return testSimpleGet(engine, 'org.foo');
     }).then(() => {
+        return testGetGet(engine);
+    }).then(() => {
         return testGetError(engine, 'org.foo');
     }).then(() => {
         return testWhen(engine, true);
@@ -476,6 +554,8 @@ function testApps(engine) {
         return testTimer(engine);
     }).then(() => {
         return testAtTimer(engine);
+    }).then(() => {
+        return testWhenGet(engine);
     }).then(() => {
         assert.deepStrictEqual(engine.apps.getAllApps(), []);
     });
