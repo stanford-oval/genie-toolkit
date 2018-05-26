@@ -454,6 +454,7 @@ function testWhenRestart(engine) {
 
     test.subscribe_get_data = (args, state) => {
         const stream = new Stream.Readable({ read() {}, objectMode: true });
+        stream.destroy = () => {};
 
         setTimeout(() => {
             const now = Date.now();
