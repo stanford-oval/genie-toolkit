@@ -88,7 +88,15 @@ class MockAppDatabase {
         this._apps[uniqueId] = { name: name, description: description, code: code, state: state, uniqueId: uniqueId };
         var compiler = new ThingTalk.Compiler();
         compiler.setSchemaRetriever(this._schemas);
-        return compiler.compileCode(code);
+        return compiler.compileCode(code).then(() => {
+            return {
+                mainOutput: {
+                    next() {
+                        return { done: true };
+                    }
+                }
+            };
+        });
     }
 }
 
