@@ -1527,6 +1527,13 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic, @org.thingpedia.builtin.thingengine.phone.get_gps() { location == makeLocation(90, 0, "North pole") } => notify;`],
 
+    [
+    ['now', '=>', '@com.bodytrace.scale.get', '=>', 'notify'],
+`>> Sorry, I don't know how to do that yet.
+>> ask special null
+`,
+    null],
+
 ];
 
 function roundtrip(input, output) {

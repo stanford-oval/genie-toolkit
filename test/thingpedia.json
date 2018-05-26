@@ -11,40 +11,7 @@
             "developer_version": 24,
             "approved_version": null,
             "triggers": {},
-            "queries": {
-                "get": {
-                    "schema": [
-                        "Date",
-                        "Measure(kg)"
-                    ],
-                    "args": [
-                        "time",
-                        "value"
-                    ],
-                    "required": [
-                        false,
-                        false
-                    ],
-                    "is_input": [
-                        false,
-                        false
-                    ],
-                    "is_list": true,
-                    "is_monitorable": true,
-                    "confirmation": "your weight on BodyTrace scale",
-                    "confirmation_remote": "$__person's weight updates on their BodyTrace scale",
-                    "doc": "get recent measurements on the scale",
-                    "canonical": "get weight on bodytrace",
-                    "argcanonicals": [
-                        "time",
-                        "value"
-                    ],
-                    "questions": [
-                        "",
-                        ""
-                    ]
-                }
-            },
+            "queries": {},
             "actions": {}
         },
         {
