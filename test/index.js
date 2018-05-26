@@ -14,6 +14,7 @@ Q.longStackSupport = true;
 process.on('unhandledRejection', (up) => { throw up; });
 
 const assert = require('assert');
+const Stream = require('stream');
 
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
@@ -372,7 +373,7 @@ function testWhen(engine, conversation) {
                 assert(app.isRunning);
                 assert.strictEqual(outputType, 'org.thingpedia.builtin.test:get_data');
                 assert.strictEqual(icon, 'org.foo');
-                assert.strictEqual(appId, 'uuid-foo');
+                assert.strictEqual(appId, 'uuid-foo-' + conversation);
                 assert(data.hasOwnProperty('__timestamp'));
                 delete data.__timestamp;
                 if (count === 0) {
@@ -399,10 +400,102 @@ function testWhen(engine, conversation) {
 
         return engine.apps.loadOneApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
             { $icon: 'org.foo', $conversation: conversation ? 'mock' : undefined },
-            'uuid-foo', undefined, 'some app', 'some app description', true).then((app) => {
+            'uuid-foo-' + conversation, undefined, 'some app', 'some app description', true).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
-            assert.strictEqual(app.uniqueId, 'uuid-foo');
+            assert.strictEqual(app.uniqueId, 'uuid-foo-' + conversation);
         }).catch(reject);
+    });
+}
+
+function drainTestWhen(engine) {
+    const assistant = engine.platform.getCapability('assistant');
+
+    return new Promise((resolve, reject) => {
+        setTimeout(() => reject(new Error('Timed out while waiting for data to appear')), 10000).unref();
+
+        assistant._setConversation({
+            notify(appId, icon, outputType, data) {
+                const app = engine.apps.getApp(appId);
+                assert(app.isEnabled);
+                assert(app.isRunning);
+                assert.strictEqual(outputType, 'org.thingpedia.builtin.test:get_data');
+                assert.strictEqual(icon, 'org.foo');
+                assert.strictEqual(appId, 'uuid-foo-when-restart');
+                assert(data.hasOwnProperty('__timestamp'));
+                // drain and ignore the result
+            },
+
+            notifyError(appId, icon, err) {
+                assert.fail('no error expected');
+            }
+        });
+
+        return engine.apps.loadOneApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+            { $icon: 'org.foo' },
+            'uuid-foo-when-restart', undefined, 'some app', 'some app description', true).then((app) => {
+            assert.strictEqual(app.icon, 'org.foo');
+            assert.strictEqual(app.uniqueId, 'uuid-foo-when-restart');
+
+            resolve(app.rules[0].waitFinished().then(() => {
+                return engine.apps.removeApp(app);
+            }));
+        }).catch(reject);
+    });
+}
+
+function genFakeData(size, fill) {
+    return String(Buffer.alloc(size, fill));
+}
+
+function testWhenRestart(engine) {
+    const assistant = engine.platform.getCapability('assistant');
+    const test = engine.devices.getDevice('org.thingpedia.builtin.test');
+    const originalsubscribe = test.subscribe_get_data;
+
+    test.subscribe_get_data = (args, state) => {
+        const stream = new Stream.Readable({ read() {}, objectMode: true });
+
+        setTimeout(() => {
+            const now = Date.now();
+            for (let i = 0; i < 10; i++)
+                stream.push({ __timestamp: now, data: genFakeData(args.size, '!'.charCodeAt(0) + i) });
+            stream.push(null);
+        }, 100);
+        return stream;
+    };
+
+    return drainTestWhen(engine).then(() => {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => reject(new Error('Timed out while waiting for data to appear')), 10000).unref();
+
+            assistant._setConversation({
+                notify(appId, icon, outputType, data) {
+                    console.error(data);
+                    assert.fail('no result expected');
+                },
+
+                notifyError(appId, icon, err) {
+                    assert.fail('no error expected');
+                }
+            });
+
+            return engine.apps.loadOneApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+                { $icon: 'org.foo' },
+                'uuid-foo-when-restart', undefined, 'some app', 'some app description', true).then((app) => {
+                assert.strictEqual(app.icon, 'org.foo');
+                assert.strictEqual(app.uniqueId, 'uuid-foo-when-restart');
+
+                resolve(app.rules[0].waitFinished().then(() => {
+                    return engine.apps.removeApp(app);
+                }));
+            }).catch(reject);
+        });
+    }).then((v) => {
+        test.subscribe_get_data = originalsubscribe;
+        return v;
+    }, (e) => {
+        test.subscribe_get_data = originalsubscribe;
+        throw e;
     });
 }
 
@@ -556,6 +649,8 @@ function testApps(engine) {
         return testAtTimer(engine);
     }).then(() => {
         return testWhenGet(engine);
+    }).then(() => {
+        return testWhenRestart(engine);
     }).then(() => {
         assert.deepStrictEqual(engine.apps.getAllApps(), []);
     });
