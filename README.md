@@ -23,5 +23,5 @@ You can find more information at <https://almond.stanford.edu>.
 
 ## License
 
-This package is covered by the GNU General Public License, version 2
+This package is covered by the GNU General Public License, version 3
 or any later version. Further details are in the LICENSE file.

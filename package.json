@@ -1,8 +1,9 @@
 {
-  "name": "almond",
+  "name": "almond-dialog-agent",
   "version": "1.0.0",
-  "description": "Almond the ThingPedia Assistant",
-  "author": "Stanford Mobisocial lab",
+  "description": "Almond The Open Virtual Assistant",
+  "author": "Stanford University Mobile and Social Computing Lab",
+  "license": "GPL-3.0-or-later",
   "contributors": [
     {
       "name": "Giovanni Campagna",
@@ -18,7 +19,6 @@
     "uuid": "^3.1.0"
   },
   "devDependencies": {
-    "babel-plugin-transform-async-to-generator": "^6.24.1",
     "byline": "^4.2.1",
     "coveralls": "^3.0.0",
     "eslint": "^4.0.0",
