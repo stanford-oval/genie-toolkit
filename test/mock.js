@@ -375,7 +375,7 @@ class MockRemote {
 
 
     installProgramRemote(principal, identity, uniqueId, program) {
-        console.log('MOCK: Sending rule to ' + principal + ': ' + Ast.prettyprint(program));
+        console.log('MOCK: Sending rule to ' + principal + ': ' + program.prettyprint());
         return Promise.resolve();
     }
 }
@@ -386,7 +386,7 @@ class MockPermissionManager {
     }
 
     addPermission(permissionRule, extra) {
-        console.log('Added permission rule ' + Ast.prettyprintPermissionRule(permissionRule));
+        console.log('Added permission rule ' + permissionRule.prettyprint());
         return Promise.resolve();
     }
 

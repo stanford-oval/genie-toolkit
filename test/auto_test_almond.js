@@ -58,7 +58,7 @@ function addPermission(perm) {
 
 var remoteApps = '';
 function installProgramRemote(principal, identity, uniqueId, program) {
-    remoteApps += `\nremote ${principal}/${identity} : ${uniqueId} : ${ThingTalk.Ast.prettyprint(program)}`;
+    remoteApps += `\nremote ${principal}/${identity} : ${uniqueId} : ${program.prettyprint()}`;
     return Promise.resolve();
 }
 
@@ -1582,7 +1582,7 @@ function test(script, i) {
     .then(() => step(0)).then(() => {
         var expected = script[script.length-1];
         if (permission)
-            app = cleanToken(ThingTalk.Ast.prettyprintPermissionRule(permission));
+            app = cleanToken(permission.prettyprint());
         else
             app = cleanToken(app);
         if (remoteApps)
