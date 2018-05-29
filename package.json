@@ -13,8 +13,8 @@
   "dependencies": {
     "adt": "~0.7.2",
     "consumer-queue": "^1.0.0",
-    "thingpedia": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-api",
-    "thingtalk": "github:Stanford-Mobisocial-IoT-Lab/ThingTalk",
+    "thingpedia": "^2.2.0",
+    "thingtalk": "^1.0.0",
     "uuid": "^3.1.0"
   },
   "devDependencies": {
