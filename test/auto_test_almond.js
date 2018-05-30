@@ -10,7 +10,6 @@
 "use strict";
 
 require('./polyfill');
-process.on('unhandledRejection', (up) => { throw up; });
 
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
@@ -1530,6 +1529,41 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     [
     ['now', '=>', '@com.bodytrace.scale.get', '=>', 'notify'],
 `>> Sorry, I don't know how to do that yet.
+>> ask special null
+`,
+    null],
+
+    [(almond) => {
+        almond.askQuestion(null, 'org.thingpedia.builtin.test', ThingTalk.Type.Number, 'What is the answer to life the universe and everything?').then((v) => {
+            assert.strictEqual(v, 42);
+        });
+
+        // inject a meaningless intent so we synchronize the two concurrent tasks
+        return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+    },
+`>> What is the answer to life the universe and everything?
+>> ask special number
+`,
+    { entities: {NUMBER_0: 42}, code: ['bookkeeping', 'answer', 'NUMBER_0'] },
+`>> ask special null
+`,
+    null],
+
+    [(almond) => {
+        almond.askQuestion(null, 'org.thingpedia.builtin.test', ThingTalk.Type.Number, 'What is the answer to life the universe and everything?').then((v) => {
+            assert.fail('expected an error');
+        }, (err) => {
+            assert.strictEqual(err.code, 'ECANCELLED');
+        });
+
+        // inject a meaningless intent so we synchronize the two concurrent tasks
+        return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+    },
+`>> What is the answer to life the universe and everything?
+>> ask special number
+`,
+    ['bookkeeping', 'special', 'special:nevermind'],
+`>> Sorry I couldn't help on that.
 >> ask special null
 `,
     null],

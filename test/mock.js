@@ -10,7 +10,6 @@
 "use strict";
 
 const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
 
 const ThingpediaClient = require('./http_client');
 const _mockThingpediaClient = require('./mock_schema_delegate');
