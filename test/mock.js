@@ -91,7 +91,7 @@ class MockAppDatabase {
             return {
                 mainOutput: {
                     next() {
-                        return { done: true };
+                        return { done: true, resolve() {}, reject() {} };
                     }
                 }
             };

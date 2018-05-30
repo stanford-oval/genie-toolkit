@@ -13,6 +13,7 @@ const Tp = require('thingpedia');
 const http = require('http');
 const https = require('https');
 const url = require('url');
+const qs = require('querystring');
 
 function getModule(parsed) {
     if (parsed.protocol === 'https:')
@@ -50,90 +51,65 @@ module.exports = class ThingpediaClientHttp {
         });
     }
 
-    _simpleRequest(to, noAppend) {
-        if (!noAppend) {
-            to += '?locale=' + this.locale;
-            if (this.developerKey)
-                to += '&developer_key=' + this.developerKey;
-        }
-
-        return Tp.Helpers.Http.get(to).then((response) => JSON.parse(response));
-    }
-
-    getAppCode(appId) {
-        var to = this._url + '/api/code/devices/' + appId;
-        return this._simpleRequest(to);
-    }
-
-    getApps(start, limit) {
-        var to = this._url + '/api/apps';
-        to += '?start=' + start + '&limit=' + limit + '&locale=' + this.locale;
+    _simpleRequest(to, params = {}) {
+        params.locale = this.locale;
         if (this.developerKey)
-            to += '&developer_key=' + this.developerKey;
-        return this._simpleRequest(to, true);
+            params.developer_key = this.developerKey;
+        to += '?' + qs.stringify(params);
+        return Tp.Helpers.Http.get(this._url + to).then((response) => JSON.parse(response));
     }
 
     getDeviceCode(id) {
-        var to = this._url + '/api/code/devices/' + id;
-        to += '?version=2&locale=' + this.locale;
-        if (this.developerKey)
-            to += '&developer_key=' + this.developerKey;
-        return this._simpleRequest(to, true);
+        return this._simpleRequest('/api/code/devices/' + id);
     }
 
     getSchemas(kinds) {
-        var to = this._url + '/api/schema/' + kinds.join(',');
-        to += '?version=2&locale=' + this.locale;
-        if (this.developerKey)
-            to += '&developer_key=' + this.developerKey;
-        return this._simpleRequest(to, true);
+        return this._simpleRequest('/api/schema/' + kinds.join(','));
     }
 
     getMetas(kinds) {
-        var to = this._url + '/api/schema-metadata/' + kinds.join(',');
-        return this._simpleRequest(to);
+        return this._simpleRequest('/api/schema-metadata/' + kinds.join(','));
+    }
+
+    getDeviceList(klass, page, page_size) {
+        const params = { page, page_size };
+        if (klass)
+            params.class = klass;
+        return this._simpleRequest('/api/devices/all', params);
     }
 
     getDeviceFactories(klass) {
-        var to = this._url + '/api/devices';
-        if (klass) {
-            to += '?class=' + klass;
-            if (this.developerKey)
-                to += '&developer_key=' + this.developerKey;
-            return this._simpleRequest(to, true);
-        } else {
-            return this._simpleRequest(to);
-        }
+        const params = {};
+        if (klass)
+            params.class = klass;
+        return this._simpleRequest('/api/devices', params);
+    }
+
+    getDeviceSetup2(kinds) {
+        return this._simpleRequest('/api/v2/devices/setup/' + kinds.join(','));
     }
 
     getDeviceSetup(kinds) {
-        var to = this._url + '/api/devices/setup/' + kinds.join(',');
-        return this._simpleRequest(to);
+        return this._simpleRequest('/api/devices/setup/' + kinds.join(','));
     }
 
     getKindByDiscovery(publicData) {
-        var to = this._url + '/api/discovery?locale=' + this.locale;
+        let to = this._url + '/api/discovery';
+        const params = { locale: this.locale };
         if (this.developerKey)
-            to += '&developer_key=' + this.developerKey;
-        return Tp.Helpers.Http.post(to, JSON.stringify(publicData), { dataContentType: 'application/json' });
+            params.developer_key = this.developerKey;
+        return Tp.Helpers.Http.post(to + qs.stringify(params), JSON.stringify(publicData), { dataContentType: 'application/json' });
     }
 
     getExamplesByKey(key) {
-        var to = this._url + '/api/examples?locale=' + this.locale + '&key=' + encodeURIComponent(key);
-        if (this.developerKey)
-            to += '&developer_key=' + this.developerKey;
-        return this._simpleRequest(to, true);
+        return this._simpleRequest('/api/examples', { key });
     }
 
     getExamplesByKinds(kinds) {
-        var to = this._url + '/api/examples/by-kinds/' + kinds.join(',') + '?locale=' + this.locale;
-        if (this.developerKey)
-            to += '&developer_key=' + this.developerKey;
-        return this._simpleRequest(to, true);
+        return this._simpleRequest('/api/examples/by-kinds/' + kinds.join(','));
     }
 
     clickExample(exampleId) {
-        var to = this._url + '/api/examples/click/' + exampleId;
-        return this._simpleRequest(to);
+        return this._simpleRequest('/api/examples/click/' + exampleId);
     }
 };
