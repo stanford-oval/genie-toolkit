@@ -115,14 +115,6 @@ class MockTwitterDevice {
     }
 }
 
-class MockTVDevice {
-    constructor(who) {
-        this.name = "LG WebOS TV " + who;
-        this.kind = 'com.lg.tv.webos2';
-        this.uniqueId = 'lg_webos_tv-' + who;
-    }
-}
-
 class MockYoutubeDevice {
     constructor(who) {
         this.name = "Youtube Account " + who;
@@ -254,7 +246,6 @@ class MockDeviceDatabase {
         this._devices['twitter-foo'] = new MockTwitterDevice('foo');
         this._devices['twitter-bar'] = new MockTwitterDevice('bar');
         this._devices['youtube-foo'] = new MockYoutubeDevice('foo');
-        this._devices['lg_webos_tv-foo'] = new MockTVDevice('foo');
         this._devices['security-camera-foo'] = new MockUnknownDevice('security-camera');
         this._devices['security-camera-bar'] = new MockUnknownDevice('security-camera');
         this._devices['instagram-1'] = new MockUnknownDevice('instagram');
@@ -292,8 +283,11 @@ class MockDeviceDatabase {
 }
 
 class MockDiscoveryClient {
-    runDiscovery(timeout, type) {
-        return Promise.resolve([new MockBluetoothDevice('foo', true), new MockBluetoothDevice('bar', false)]);
+    runDiscovery(_timeout, type) {
+        if (type === 'bluetooth' || !type)
+            return Promise.resolve([new MockBluetoothDevice('foo', true), new MockBluetoothDevice('bar', false)]);
+        else
+            return Promise.resolve([]);
     }
 
     stopDiscovery() {

@@ -1568,6 +1568,164 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `,
     null],
 
+    [
+    ['now', '=>', '@com.instagram.get_pictures', '=>', 'notify'],
+`>> You don't have a Instagram
+>> link: Configure Instagram /devices/oauth2/com.instagram?name=Instagram
+>> ask special null
+`,
+    null],
+
+    [
+    ['now', '=>', '@tumblr-blog.post_text'],
+`>> You don't have a Tumblr Blog
+>> You might want to configure one of: Tumblr Account
+>> link: Go to Dashboard /apps
+>> ask special null
+`,
+    null],
+
+    [
+    ['now', '=>', '@org.thingpedia.rss.get_post', '=>', 'notify'],
+`>> You don't have a RSS Feed
+>> button: Configure RSS Feed {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:org.thingpedia.rss"]}
+>> ask special null
+`,
+    null],
+
+    [
+    ['now', '=>', '@com.lg.tv.webos2.set_power'],
+`>> You don't have a LG WebOS TV
+>> button: Configure LG WebOS TV {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:com.lg.tv.webos2"]}
+>> ask special null
+`,
+    null],
+
+    [
+    (almond) => {
+        almond.interactiveConfigure('com.xkcd');
+
+        return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+    },
+`>> com.xkcd has been enabled successfully.
+>> ask special null
+`,
+    null],
+
+    [
+    (almond) => {
+        almond.interactiveConfigure('com.instagram');
+
+        return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+    },
+`>> OK, here's the link to configure Instagram.
+>> link: Configure Instagram /devices/oauth2/com.instagram?name=Instagram
+>> ask special null
+`,
+    null],
+
+    [
+    (almond) => {
+        almond.interactiveConfigure('org.thingpedia.rss');
+
+        return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+    },
+`>> Please enter the Feed URL.
+>> ask special raw_string
+`,
+    'https://example.com/rss.xml',
+`>> The account has been set up.
+>> ask special null
+`,
+    null],
+
+    [
+    (almond) => {
+        almond.interactiveConfigure('tumblr-blog');
+
+        return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+    },
+`>> Tumblr Blog cannot be configured directly.
+>> You might want to configure one of: Tumblr Account
+>> link: Go to My Goods /apps
+>> ask special null
+`,
+    null],
+
+    [
+    (almond) => {
+        almond.interactiveConfigure('org.thingpedia.builtin.matrix');
+
+        return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+    },
+`>> Insert your Matrix username:
+>> ask special raw_string
+`,
+    `bob`,
+`>> Insert your Matrix password:
+>> ask special password
+`,
+    `pa55word`,
+`>> Yes or no?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> The account has been set up.
+>> ask special null
+`,
+    null],
+
+    [
+    (almond) => {
+        almond.interactiveConfigure('com.lg.tv.webos2');
+
+        return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+    },
+`>> Searching for LG WebOS TV…
+>> Can't find any LG WebOS TV around.
+>> ask special null
+`,
+    null],
+
+    [
+    (almond) => {
+        almond.interactiveConfigure('org.thingpedia.builtin.bluetooth.generic');
+
+        return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+    },
+`>> Searching for Generic Bluetooth Device…
+>> I found the following devices. Which one do you want to set up?
+>> choice 0: Bluetooth Device foo
+>> choice 1: Bluetooth Device bar
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '0'],
+`>> The device has been set up.
+>> ask special null
+`,
+    null],
+
+    [
+    (almond) => {
+        almond.interactiveConfigure(null).then(() => {
+            assert.fail('expected an error');
+        }, (err) => {
+            assert.strictEqual(err.code, 'ECANCELLED');
+        });
+
+        return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+    },
+`>> Searching for devices nearby…
+>> I found the following devices. Which one do you want to set up?
+>> choice 0: Bluetooth Device foo
+>> choice 1: Bluetooth Device bar
+>> ask special choice
+`,
+    ['bookkeeping', 'special', 'special:nevermind'],
+`>> Sorry I couldn't help on that.
+>> ask special null
+`,
+    null],
 ];
 
 function roundtrip(input, output) {
@@ -1703,6 +1861,14 @@ const mockDeviceFactory = {
     }
 };
 
+const _rssFactory = {
+    "type":"form",
+    "category":"online",
+    "kind":"org.thingpedia.rss",
+    "text":"RSS Feed",
+    "fields":[{"name":"url","label":"Feed URL","type":"text"}]
+};
+
 function main() {
     var engine = Mock.createMockEngine('mock');
     engine.platform.getSharedPreferences().set('sabrina-initialized', false);
@@ -1715,10 +1881,20 @@ function main() {
     engine.thingpedia.getDeviceSetup = (kinds) => {
         var ret = {};
         for (var k of kinds) {
-            if (k === 'messaging')
+            if (k === 'messaging' || k === 'org.thingpedia.builtin.matrix')
                 ret[k] = {type:'interactive',category:'online', kind:'org.thingpedia.builtin.matrix', name:"Matrix Account"};
+            else if (k === 'com.lg.tv.webos2')
+                ret[k] = {type: 'discovery', discoveryType: 'upnp', text: 'LG WebOS TV'};
+            else if (k === 'org.thingpedia.builtin.bluetooth.generic')
+                ret[k] = {type: 'discovery', discoveryType: 'bluetooth', text: 'Generic Bluetooth Device'};
+            else if (k === 'tumblr-blog')
+                ret[k] = {type: 'multiple', choices: ["Tumblr Account"]};
+            else if (k === 'com.instagram')
+                ret[k] = {type: 'oauth2', kind: 'com.instagram', text: 'Instagram'};
+            else if (k === 'org.thingpedia.rss')
+                ret[k] = _rssFactory;
             else
-                ret[k] = {type:'none',kind:k};
+                ret[k] = {type:'none',kind:k,text: k};
         }
         return Promise.resolve(ret);
     };
