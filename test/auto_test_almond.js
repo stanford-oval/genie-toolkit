@@ -293,8 +293,6 @@ const TEST_CASES = [
 `,
     ['bookkeeping', 'choice', 0],
 `>> Pick one from the following categories or simply type in.
->> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
->> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
 >> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
 >> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
 >> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
@@ -313,8 +311,6 @@ const TEST_CASES = [
 `,
     ['bookkeeping', 'choice', 0],
 `>> Pick one from the following categories or simply type in.
->> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
->> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
 >> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
 >> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
 >> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
@@ -375,8 +371,6 @@ const TEST_CASES = [
 `,
     ['bookkeeping', 'choice', 0],
 `>> Pick one from the following categories or simply type in.
->> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
->> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
 >> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
 >> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
 >> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
@@ -460,8 +454,6 @@ const TEST_CASES = [
 `,
     ['bookkeeping', 'choice', 0],
 `>> Pick one from the following categories or simply type in.
->> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
->> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
 >> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
 >> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
 >> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
@@ -484,6 +476,38 @@ const TEST_CASES = [
 >> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
 >> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
 >> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
+>> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+
+    {"code":["bookkeeping","special","special:more"],"entities":{}},
+`>> Pick a command from the following devices
+>> button: The Wall Street Journal {"code":["bookkeeping","commands","media","device:com.wsj"],"entities":{}}
+>> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
+>> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+
+    {"code":["bookkeeping","special","special:back"],"entities":{}},
+`>> Pick a command from the following devices
+>> button: Fox News Articles {"code":["bookkeeping","commands","media","device:com.foxnews"],"entities":{}}
+>> button: Giphy {"code":["bookkeeping","commands","media","device:com.giphy"],"entities":{}}
+>> button: Imgflip Meme Generator {"code":["bookkeeping","commands","media","device:com.imgflip"],"entities":{}}
+>> button: NASA Daily {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}}
+>> button: New York Times {"code":["bookkeeping","commands","media","device:com.nytimes"],"entities":{}}
+>> button: Piled Higher and Deeper {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}}
+>> button: Reddit Frontpage {"code":["bookkeeping","commands","media","device:com.reddit.frontpage"],"entities":{}}
+>> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
+>> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
+>> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
+>> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","special","special:more"],"entities":{}},
+`>> Pick a command from the following devices
 >> button: The Wall Street Journal {"code":["bookkeeping","commands","media","device:com.wsj"],"entities":{}}
 >> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
 >> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
@@ -1049,8 +1073,6 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     ['bookkeeping', 'choice', '0'],
 `>> Pick one from the following categories or simply type in.
->> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
->> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
 >> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
 >> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
 >> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
@@ -1072,9 +1094,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
 >> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
 >> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
->> button: The Wall Street Journal {"code":["bookkeeping","commands","media","device:com.wsj"],"entities":{}}
->> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
->> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
+>> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
@@ -1097,9 +1117,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
 >> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
 >> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
->> button: The Wall Street Journal {"code":["bookkeeping","commands","media","device:com.wsj"],"entities":{}}
->> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
->> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
+>> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
@@ -1147,9 +1165,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: RSS Feed {"code":["bookkeeping","commands","media","device:org.thingpedia.rss"],"entities":{}}
 >> button: The Cat API {"code":["bookkeeping","commands","media","device:com.thecatapi"],"entities":{}}
 >> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
->> button: The Wall Street Journal {"code":["bookkeeping","commands","media","device:com.wsj"],"entities":{}}
->> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
->> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
+>> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
@@ -1189,8 +1205,6 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     ['bookkeeping', 'choice', '0'],
 `>> Pick one from the following categories or simply type in.
->> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
->> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
 >> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
 >> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
 >> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
@@ -1203,8 +1217,8 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     {"code":["bookkeeping","category","communication"],"entities":{}},
 `>> Pick a command from the following devices
 >> button: Gmail Account {"code":["bookkeeping","commands","communication","device:com.gmail"],"entities":{}}
->> button: Slack {"code":["bookkeeping","commands","communication","device:com.slack"],"entities":{}}
 >> button: Phone {"code":["bookkeeping","commands","communication","device:org.thingpedia.builtin.thingengine.phone"],"entities":{}}
+>> button: Slack {"code":["bookkeeping","commands","communication","device:com.slack"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
@@ -1235,8 +1249,6 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     {code:['bookkeeping', 'answer', 'PHONE_NUMBER_0'],entities:{'PHONE_NUMBER_0':'+1234567890'}},
 `>> Pick one from the following categories or simply type in.
->> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
->> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
 >> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
 >> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
 >> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
@@ -1246,12 +1258,14 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
-    {"code":["bookkeeping","category","location"],"entities":{}},
+    {"code":["bookkeeping","commands","communication","device:org.thingpedia.builtin.thingengine.phone"],"entities":{}},
 `>> Pick a command below.
 >> button: when their location changes notify me {"example_id":1647495,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: when their location changes to $p_location notify me {"example_id":1647497,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
+>> button: when they receive a sms notify me {"example_id":1647498,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.sms",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when they receive a sms from $p_sender  notify me {"example_id":1647499,"code":["monitor","(","(","@org.thingpedia.builtin.thingengine.phone.sms",")","filter","param:sender:Entity(tt:phone_number)","==","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_sender":"Entity(tt:phone_number)"},"slots":["p_sender"]}
 >> button: get their current location {"example_id":1647500,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.get_gps","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when they move away from $p_location notify me {"example_id":1647515,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","not","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
+>> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
@@ -1297,8 +1311,6 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `,
     {code:['bookkeeping', 'answer', 'PHONE_NUMBER_0'],entities:{'PHONE_NUMBER_0':'+1234567890'}},
 `>> Pick one from the following categories or simply type in.
->> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
->> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
 >> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
 >> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
 >> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
@@ -1364,8 +1376,6 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `,
     {code:['bookkeeping', 'answer', 'PHONE_NUMBER_0'],entities:{'PHONE_NUMBER_0':'+1234567890'}},
 `>> Pick one from the following categories or simply type in.
->> button: Time {"code":["bookkeeping","category","time"],"entities":{}}
->> button: Location {"code":["bookkeeping","category","location"],"entities":{}}
 >> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
 >> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
 >> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}

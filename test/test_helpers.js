@@ -12,9 +12,6 @@
 require('./polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
 
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
-
 const Almond = require('../lib/almond');
 const Helpers = require('../lib/helpers');
 
@@ -27,13 +24,27 @@ var engine, almond, dlg;
 function test() {
     return promiseLoop(CATEGORIES, (category) => {
         console.log('category', category);
-        return engine.thingpedia.getDeviceFactories(category).then((devices) => {
-            return promiseLoop(devices, (device) => {
-                console.log('device', '@' + device.primary_kind);
-                return almond.thingpedia.getExamplesByKinds([device.primary_kind], true)
-                    .then((examples) => Helpers.loadExamples(dlg, examples))
+
+        return (function loop(page) {
+            console.log('page', page);
+            return engine.thingpedia.getDeviceList(category, page, 10).then(({ devices }) => {
+                let hasMore = false;
+                if (devices.length > 10) {
+                    hasMore = true;
+                    devices.length = 10;
+                }
+                return promiseLoop(devices, (device) => {
+                    console.log('device', '@' + device.primary_kind);
+                    return almond.thingpedia.getExamplesByKinds([device.primary_kind], true)
+                        .then((examples) => Helpers.loadExamples(dlg, examples));
+                }).then(() => {
+                    if (hasMore)
+                        return loop(page+1);
+                    else
+                        return Promise.resolve();
+                });
             });
-        });
+        })(0);
     });
 }
 

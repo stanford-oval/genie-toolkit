@@ -28,8 +28,8 @@ module.exports = {
         });
     },
 
-    getDeviceFactories(klass) {
-        return Promise.resolve(ThingpediaDeviceFactories.filter((d) => d.subcategory === klass));
+    getDeviceList(klass, page, page_size) {
+        return Promise.resolve({ devices: ThingpediaDeviceFactories.devices.filter((d) => d.subcategory === klass).slice(page*page_size, page*page_size + page_size + 1) });
     },
 
     getExamplesByKinds(kinds) {
