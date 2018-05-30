@@ -1579,8 +1579,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     [
     ['now', '=>', '@tumblr-blog.post_text'],
 `>> You don't have a Tumblr Blog
->> You might want to configure one of: Tumblr Account
->> link: Go to Dashboard /apps
+>> button: Configure Tumblr Blog {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:tumblr-blog"]}
 >> ask special null
 `,
     null],
@@ -1645,9 +1644,9 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
         return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
     },
-`>> Tumblr Blog cannot be configured directly.
->> You might want to configure one of: Tumblr Account
->> link: Go to My Goods /apps
+`>> Choose one of the following to configure Tumblr Blog.
+>> link: Configure Tumblr Account /devices/oauth2/com.tumblr?name=Tumblr Account
+>> button: Configure Some other Tumblr Thing {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:com.tumblr2"]}
 >> ask special null
 `,
     null],
@@ -1878,7 +1877,7 @@ function main() {
         writeLine('Clicked example ' + ex);
         return Promise.resolve();
     };
-    engine.thingpedia.getDeviceSetup = (kinds) => {
+    engine.thingpedia.getDeviceSetup2 = (kinds) => {
         var ret = {};
         for (var k of kinds) {
             if (k === 'messaging' || k === 'org.thingpedia.builtin.matrix')
@@ -1888,7 +1887,7 @@ function main() {
             else if (k === 'org.thingpedia.builtin.bluetooth.generic')
                 ret[k] = {type: 'discovery', discoveryType: 'bluetooth', text: 'Generic Bluetooth Device'};
             else if (k === 'tumblr-blog')
-                ret[k] = {type: 'multiple', choices: ["Tumblr Account"]};
+                ret[k] = {type: 'multiple', choices: [{ type: 'oauth2', kind: 'com.tumblr', text: "Tumblr Account" }, { type: 'form', kind: 'com.tumblr2', text: 'Some other Tumblr Thing' }]};
             else if (k === 'com.instagram')
                 ret[k] = {type: 'oauth2', kind: 'com.instagram', text: 'Instagram'};
             else if (k === 'org.thingpedia.rss')
