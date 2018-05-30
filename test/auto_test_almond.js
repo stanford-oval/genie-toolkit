@@ -150,10 +150,20 @@ const TEST_CASES = [
     null],
 
     [['bookkeeping', 'special', 'special:help'],
-`>> Do you want to use your own account or others?
+/*`>> Do you want to use your own account or others?
 >> choice 0: Use my own account
 >> choice 1: Use others' account
 >> ask special choice
+`,*/
+`>> Pick one from the following categories or simply type in.
+>> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
 `,
     null],
 
@@ -286,12 +296,12 @@ const TEST_CASES = [
 
     [
     ['bookkeeping', 'special', 'special:makerule'],
-`>> Do you want to use your own account or others?
+/*`>> Do you want to use your own account or others?
 >> choice 0: Use my own account
 >> choice 1: Use others' account
 >> ask special choice
 `,
-    ['bookkeeping', 'choice', 0],
+    ['bookkeeping', 'choice', 0],*/
 `>> Pick one from the following categories or simply type in.
 >> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
 >> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
@@ -364,12 +374,12 @@ const TEST_CASES = [
 
     [
     ['bookkeeping', 'special', 'special:makerule'],
-`>> Do you want to use your own account or others?
+/*`>> Do you want to use your own account or others?
 >> choice 0: Use my own account
 >> choice 1: Use others' account
 >> ask special choice
 `,
-    ['bookkeeping', 'choice', 0],
+    ['bookkeeping', 'choice', 0],*/
 `>> Pick one from the following categories or simply type in.
 >> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
 >> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
@@ -447,12 +457,12 @@ const TEST_CASES = [
 
     [
     ['bookkeeping', 'special', 'special:makerule'],
-`>> Do you want to use your own account or others?
+/*`>> Do you want to use your own account or others?
 >> choice 0: Use my own account
 >> choice 1: Use others' account
 >> ask special choice
 `,
-    ['bookkeeping', 'choice', 0],
+    ['bookkeeping', 'choice', 0],*/
 `>> Pick one from the following categories or simply type in.
 >> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
 >> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
@@ -1066,12 +1076,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['bookkeeping', 'special', 'special:makerule'],
-`>> Do you want to use your own account or others?
+/*`>> Do you want to use your own account or others?
 >> choice 0: Use my own account
 >> choice 1: Use others' account
 >> ask special choice
 `,
-    ['bookkeeping', 'choice', '0'],
+    ['bookkeeping', 'choice', '0'],*/
 `>> Pick one from the following categories or simply type in.
 >> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
 >> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
@@ -1198,12 +1208,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['bookkeeping', 'special', 'special:makerule'],
-`>> Do you want to use your own account or others?
+/*`>> Do you want to use your own account or others?
 >> choice 0: Use my own account
 >> choice 1: Use others' account
 >> ask special choice
 `,
-    ['bookkeeping', 'choice', '0'],
+    ['bookkeeping', 'choice', '0'],*/
 `>> Pick one from the following categories or simply type in.
 >> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
 >> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
@@ -1236,7 +1246,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 
     null],
 
-    [
+    /*[
     ['bookkeeping', 'special', 'special:makerule'],
 `>> Do you want to use your own account or others?
 >> choice 0: Use my own account
@@ -1296,9 +1306,9 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
         action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in req location : Location, in req altitude : Measure(m), in req bearing : Number, in req speed : Measure(mps));
     }
     monitor (@org.thingpedia.builtin.thingengine.phone.get_gps()) => @__dyn_0.send(__principal="mock-account:123456-SELF"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, location=location, altitude=altitude, bearing=bearing, speed=speed);
-}`],
+}`],*/
 
-    [
+    /*[
     ['bookkeeping', 'special', 'special:makerule'],
 `>> Do you want to use your own account or others?
 >> choice 0: Use my own account
@@ -1361,9 +1371,9 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     `null
 remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX : {
     now => @com.facebook.post(status="a test");
-}`],
+}`],*/
 
-    [
+    /*[
     ['bookkeeping', 'special', 'special:makerule'],
 `>> Do you want to use your own account or others?
 >> choice 0: Use my own account
@@ -1430,7 +1440,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     `null
 remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX : {
     now => @com.facebook.post(status="another test");
-}`],
+}`],*/
 
     [(almond) => {
         return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
