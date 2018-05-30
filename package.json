@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Almond The Open Virtual Assistant",
   "author": "Stanford University Mobile and Social Computing Lab",
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0+",
   "contributors": [
     {
       "name": "Giovanni Campagna",
