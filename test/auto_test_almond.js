@@ -162,7 +162,6 @@ const TEST_CASES = [
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
->> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     null],
@@ -309,7 +308,6 @@ const TEST_CASES = [
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
->> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     ['monitor', '(', '@security-camera.current_event', ')', '=>', 'notify'],
@@ -327,7 +325,6 @@ const TEST_CASES = [
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
->> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
@@ -387,7 +384,6 @@ const TEST_CASES = [
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
->> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
@@ -470,7 +466,6 @@ const TEST_CASES = [
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
->> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
 
@@ -1089,7 +1084,6 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
->> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     {"code":["bookkeeping","category","media"],"entities":{}},
@@ -1221,7 +1215,6 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
->> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     {"code":["bookkeeping","category","communication"],"entities":{}},
@@ -1265,7 +1258,6 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
->> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     {"code":["bookkeeping","commands","communication","device:org.thingpedia.builtin.thingengine.phone"],"entities":{}},
@@ -1327,7 +1319,6 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
->> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     {"code":["bookkeeping","category","social-network"],"entities":{}},
@@ -1392,7 +1383,6 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
->> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
     {"code":["bookkeeping","category","social-network"],"entities":{}},
@@ -1745,6 +1735,62 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     null],
+
+    [
+    ['bookkeeping', 'special', 'special:help'],
+`>> Pick one from the following categories or simply type in.
+>> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> ask special command
+`,
+    ['bookkeeping', 'special', 'special:back'],
+`>> Pick one from the following categories or simply type in.
+>> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> ask special command
+`,
+    ['bookkeeping', 'special', 'special:empty'],
+`>> Pick one from the following categories or simply type in.
+>> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> ask special command
+`,
+    ['bookkeeping', 'special', 'special:more'],
+`>> Pick one from the following categories or simply type in.
+>> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> ask special command
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Yes what?
+`,
+    ['bookkeeping', 'answer', '0'],
+`>> Sorry, but that's not what I asked.
+>> I'm looking for a command.
+>> ask special command
+`,
+    ['bookkeeping', 'special', 'special:nevermind'],
+`>> Sorry I couldn't help on that.
+>> ask special null
+`,
+
+    null]
 ];
 
 function roundtrip(input, output) {
