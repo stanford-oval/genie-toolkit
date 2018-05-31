@@ -1674,7 +1674,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `>> Insert your Matrix password:
 >> ask special password
 `,
-    `pa55word`,
+    {entities: { QUOTED_STRING_0: `pa55word` }, code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'] },
 `>> Yes or no?
 >> ask special yesno
 `,
