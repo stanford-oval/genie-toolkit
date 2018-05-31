@@ -41,6 +41,7 @@
     "eslint": "^4.19.1",
     "node-gettext": "^2.0.0",
     "nyc": "^11.7.1",
-    "smtlib": "^0.1.1"
+    "smtlib": "^0.1.1",
+    "sourceify": "^0.1.0"
   }
 }
