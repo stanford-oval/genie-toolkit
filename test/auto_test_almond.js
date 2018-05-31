@@ -1790,7 +1790,25 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
 
-    null]
+    null],
+
+    [
+    ['now', '=>', '@org.thingpedia.builtin.thingengine.home.start_playing'],
+`>> You don't have a Home
+>> ask special null
+`,
+    null],
+
+    [
+    (almond) => {
+        almond.interactiveConfigure('org.thingpedia.builtin.thingengine.home');
+
+        return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+    },
+`>> Sorry, I don't know how to configure Home.
+>> ask special null
+`,
+    null],
 ];
 
 function roundtrip(input, output) {
@@ -1958,6 +1976,8 @@ function main() {
                 ret[k] = {type: 'oauth2', kind: 'com.instagram', text: 'Instagram'};
             else if (k === 'org.thingpedia.rss')
                 ret[k] = _rssFactory;
+            else if (k === 'org.thingpedia.builtin.thingengine.home')
+                ret[k] = {type: 'multiple', choices: [] };
             else
                 ret[k] = {type:'none',kind:k,text: k};
         }
