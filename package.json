@@ -1,8 +1,10 @@
 {
   "name": "thingengine-core",
   "version": "1.0.0",
-  "description": "An engine for controlling IoT devices",
-  "author": "Stanford IoT lab",
+  "description": "The core runtime system of the Almond virtual assistant",
+  "author": "Stanford University Mobile and Social Computing Lab",
+  "repository": "https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core",
+  "license": "GPL-3.0+",
   "contributors": [
     {
       "name": "Giovanni Campagna",
@@ -12,26 +14,34 @@
   "main": "lib/engine.js",
   "dependencies": {
     "adt": "^0.7.2",
-    "babel-runtime": "^6.26.0",
+    "consumer-queue": "^1.0.1",
     "deep-equal": "^1.0.1",
     "ip": "^1.1.5",
-    "matrix-js-sdk": "^0.8.4",
+    "matrix-js-sdk": "^0.9.2",
     "olm": "https://matrix.org/packages/npm/olm/olm-2.2.2.tgz",
-    "omlib": "github:Stanford-Mobisocial-IoT-Lab/omclient",
-    "pouchdb-adapter-node-websql": "^6.3.4",
-    "pouchdb-find": "^6.3.4",
     "q": "^1.5.0",
     "sqlite3": "^3.1.13",
-    "tmp": "0.0.31",
+    "thingpedia": "^2.2.1",
+    "thingpedia-discovery": "^1.0.0",
+    "thingtalk": "^1.0.0",
     "uuid": "^3.1.0",
-    "websql": "^0.4.4",
-    "ws": "^3.1.0"
+    "ws": "^5.1.1"
   },
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --package-name ${npm_package_name} --package-version ${npm_package_version}",
     "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
     "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done",
     "compile-sql-schema": "node -e 'console.log(JSON.stringify(require(\"fs\").readFileSync(\"lib/db/schema.sql\").toString(\"utf8\")))' > lib/db/schema.json",
-    "lint": "eslint ./lib"
+    "lint": "eslint ./lib",
+    "test": "nyc node test",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
+  },
+  "devDependencies": {
+    "coveralls": "^3.0.0",
+    "eslint": "^4.19.1",
+    "node-gettext": "^2.0.0",
+    "nyc": "^11.7.1",
+    "smtlib": "^0.1.1",
+    "sourceify": "^0.1.0"
   }
 }

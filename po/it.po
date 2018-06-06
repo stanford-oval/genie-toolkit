@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: thingengine-core 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-21 14:07+0200\n"
+"POT-Creation-Date: 2018-03-31 00:02-0700\n"
 "PO-Revision-Date: 2016-07-28 13:49-0700\n"
 "Last-Translator: Giovanni Campagna <gcampagn@cs.stanford.edu>\n"
 "Language-Team: Italian\n"
@@ -17,50 +17,67 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/apps/app_executor.js:51
-#: lib/devices/thingpedia/builtins/thingengine.builtin/timer.js:26
-msgid "Timer Elapsed"
-msgstr "Timer scaduto"
-
-#: lib/apps/app_executor.js:129
+#: lib/apps/app_executor.js:107
 msgid "This app has no description"
 msgstr "Questa app non ha descrizione."
 
-#: lib/apps/output_queue.js:110
+#: lib/apps/output_queue.js:112
 msgid "User not available to respond"
 msgstr "L'utente non è disponibile a rispondere"
 
-#: lib/devices/thingpedia/builtins/bluetooth.generic/device.js:32
+#: lib/devices/builtins/bluetooth.generic.js:35
 #, javascript-format
 msgid "Generic Bluetooth Device %s"
 msgstr "Dispositivo Bluetooth Generico %s"
 
-#: lib/devices/thingpedia/builtins/bluetooth.generic/device.js:33
+#: lib/devices/builtins/bluetooth.generic.js:36
 msgid "This is a Bluetooth device of unknown or generic type"
 msgstr "Questo è un dispositivo Bluetooth di tipo generico o sconosciuto"
 
-#: lib/devices/thingpedia/builtins/bluetooth.generic/device.js:44
+#: lib/devices/builtins/bluetooth.generic.js:47
 msgid "Platform has no bluetooth capability"
 msgstr "Questa piattaforma non supporta il bluetooth"
 
-#: lib/devices/thingpedia/builtins/omlet/device.js:272
+#: lib/devices/builtins/matrix/index.js:116
+msgid "Insert your email address or phone number:"
+msgstr "Inserisci il tuo numero di telefono o indirizzo email:"
+
+#: lib/devices/builtins/matrix/index.js:131
+msgid "Insert your password:"
+msgstr "Inserisci la tua password:"
+
+#: lib/devices/builtins/matrix/index.js:144
+#, javascript-format
+msgid "Authentication failed: %s"
+msgstr "Authenticazione fallita: %s"
+
+#: lib/devices/builtins/matrix/index.js:199
+#, javascript-format
+msgid "Matrix Account of %s"
+msgstr "Account Matrix di %s"
+
+#: lib/devices/builtins/matrix/index.js:200
+msgid "This is your Matrix Account."
+msgstr "Questo è il tuo account Matrix."
+
+#: lib/devices/builtins/omlet/index.js:269
 msgid "Insert your phone number or email address:"
 msgstr "Inserisci il tuo numero di telefono o indirizzo email:"
 
-#: lib/devices/thingpedia/builtins/omlet/device.js:290
+#: lib/devices/builtins/omlet/index.js:287
 msgid "Please click the confirmation link that was just sent you."
 msgstr "Clicca il link di conferma che ti è stato inviato."
 
-#: lib/devices/thingpedia/builtins/omlet/device.js:295
+#: lib/devices/builtins/omlet/index.js:292
 msgid "Insert the confirmation code you received in the SMS."
 msgstr "Inserisci il codice di conferma che hai ricevuto via SMS."
 
-#: lib/devices/thingpedia/builtins/omlet/device.js:342
+#: lib/devices/builtins/omlet/index.js:339
 #, javascript-format
 msgid "Omlet Account of %s"
 msgstr "Account Omlet di %s"
 
-#: lib/devices/thingpedia/builtins/omlet/device.js:343
+#: lib/devices/builtins/omlet/index.js:340
 msgid ""
 "This is your Omlet Account. You can use it to communicate and share data "
 "with your friends!"
@@ -68,80 +85,86 @@ msgstr ""
 "Questo è il tuo account Omlet. Puoi usarlo per comunicare e condividere dati "
 "con i tuoi amici!"
 
-#: lib/devices/thingpedia/builtins/thingengine.builtin/at.js:36
-#, javascript-format
-msgid "Timer at %s elapsed."
-msgstr "Timer alle ore %s scaduto."
-
-#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:27
-msgid "Hi!"
-msgstr "Ciao!"
-
-#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:30
-msgid "I know, right?"
-msgstr "Vero?"
-
-#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:33
-msgid "No need to be sorry."
-msgstr "Non c'è motivo di scusarsi."
-
-#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:36
-msgid "At your service."
-msgstr "Al tuo servizio."
-
-#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:56
-msgid "User not available"
-msgstr "Utente non disponibile"
-
-#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:70
+#: lib/devices/builtins/thingengine.builtin.js:24
 msgid "Miscellaneous Interfaces"
 msgstr "Miscellanea"
 
-#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:71
+#: lib/devices/builtins/thingengine.builtin.js:25
 msgid "Time, randomness and other non-device specific things."
 msgstr "Orario, casualità e altre cose non specifiche di un dispositivo."
 
-#: lib/devices/thingpedia/builtins/thingengine.builtin/get_date.js:15
+#: lib/devices/builtins/thingengine.builtin.js:63
+#: lib/devices/builtins/thingengine.builtin.js:70
+msgid "User not available"
+msgstr "Utente non disponibile"
+
+#: lib/devices/builtins/thingengine.builtin.js:77
+msgid "Opening files is not implemented in this Almond"
+msgstr "L'apertura di file non è implementata in questo Almond"
+
+#: lib/devices/builtins/thingengine.gnome.js:25
+msgid "Almond 4 GNOME"
+msgstr "Almond 4 GNOME"
+
+#: lib/devices/builtins/thingengine.gnome.js:26
+msgid "Control your PC with your voice."
+msgstr "Controlla il tuo PC con la tua voce"
+
+#: lib/devices/builtins/thingengine.home.js:24
+msgid "Almond Home"
+msgstr "Almond Home"
+
+#: lib/devices/builtins/thingengine.home.js:25
+msgid "Control your Almond Home with your voice."
+msgstr ""
+
+#: lib/devices/builtins/thingengine.js:41
 #, javascript-format
-msgid "Current date is %s"
-msgstr "La data di oggi è %s"
+msgid "ThingSystem %s"
+msgstr "ThingSystem %s"
 
-#: lib/devices/thingpedia/builtins/thingengine.builtin/get_time.js:15
-#, javascript-format
-msgid "Current time is %s"
-msgstr "L'ora attuale è %s"
+#: lib/devices/builtins/thingengine.js:42
+msgid "This is your own ThingSystem."
+msgstr "Questo è il tuo ThingSystem."
 
-#: lib/devices/thingpedia/builtins/thingengine/device.js:41
-#, javascript-format
-msgid "ThingEngine %s"
-msgstr "ThingEngine %s"
-
-#: lib/devices/thingpedia/builtins/thingengine/device.js:42
-msgid "This is your own ThingEngine."
-msgstr "Questo è il tuo ThingEngine."
-
-#: lib/devices/thingpedia/builtins/thingengine.phone/device.js:34
+#: lib/devices/builtins/thingengine.phone.js:27
 msgid "Phone"
 msgstr "Telefono"
 
-#: lib/devices/thingpedia/builtins/thingengine.phone/device.js:35
+#: lib/devices/builtins/thingengine.phone.js:28
 msgid "Access your phone capabilities from Almond."
 msgstr "Accedi alle funzionalità del tuo telefono da Almond."
 
-#: lib/devices/thingpedia/builtins/thingengine.phone/get_gps.js:25
-#: lib/devices/thingpedia/builtins/thingengine.phone/gps.js:25
-#, javascript-format
-msgid "Current Location: %s"
-msgstr "Posizione Corrente: %s"
-
-#: lib/devices/thingpedia/builtins/thingengine.phone/get_gps.js:36
+#: lib/devices/builtins/thingengine.phone.js:76
 msgid "Unknown"
 msgstr "Ignota"
 
-#: lib/devices/thingpedia/builtins/thingengine.phone/receive_sms.js:24
-#, javascript-format
-msgid "New SMS from %s: %s"
-msgstr "Nuovo SMS da %s: %s"
+#~ msgid "Timer Elapsed"
+#~ msgstr "Timer scaduto"
+
+#~ msgid "Timer at %s elapsed."
+#~ msgstr "Timer alle ore %s scaduto."
+
+#~ msgid "Hi!"
+#~ msgstr "Ciao!"
+
+#~ msgid "I know, right?"
+#~ msgstr "Vero?"
+
+#~ msgid "No need to be sorry."
+#~ msgstr "Non c'è motivo di scusarsi."
+
+#~ msgid "At your service."
+#~ msgstr "Al tuo servizio."
+
+#~ msgid "Current date is %s"
+#~ msgstr "La data di oggi è %s"
+
+#~ msgid "Current time is %s"
+#~ msgstr "L'ora attuale è %s"
+
+#~ msgid "New SMS from %s: %s"
+#~ msgstr "Nuovo SMS da %s: %s"
 
 #~ msgid "You"
 #~ msgstr "Tu"
