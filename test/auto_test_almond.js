@@ -125,11 +125,8 @@ class MockUser {
 // generate ThingTalk)
 
 const TEST_CASES = [
-    [(almond) => {
-        almond.start();
-        // inject a meaningless intent so we synchronize the two concurrent tasks
-        return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
-    },
+    [
+    (almond) => almond.start(),
 `>> Hello! I'm Almond, your virtual assistant.
 >> I am part of a research project of Stanford University. Would you like to contribute?
 >> With your consent, I will record the commands you give me for training. Recording the commands will allow me to improve my understanding of natural language.
@@ -1809,11 +1806,17 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     null],
+
+    [
+    ['bookkeeping', 'special', 'special:wakeup'],
+``,
+    null]
 ];
 
 function roundtrip(input, output) {
     flushBuffer();
     return Promise.resolve().then(() => {
+        //console.log('roundtrip begin', input);
         if (typeof input === 'string') {
             //console.log('$ ' + input);
             return almond.handleCommand(input);
@@ -1826,6 +1829,7 @@ function roundtrip(input, output) {
             return almond.handleParsedCommand(input);
         }
     }).then(() => {
+        //console.log('roundtrip end');
         if (output !== null && buffer !== output)
             throw new Error('Invalid reply from Almond: ' + buffer + '\n\nExpected: ' + output);
     });
@@ -1879,14 +1883,10 @@ function test(script, i) {
     });
 }
 
-function promiseDoAll(array, fn) {
-    function loop(i) {
-        if (i === array.length)
-            return Promise.resolve();
-
-        return Promise.resolve(fn(array[i], i)).then(() => loop(i+1));
-    }
-    return loop(0);
+async function promiseDoAll(array, fn) {
+    //array = array.slice(0,16);
+    for (let i = 0; i < array.length; i++)
+        await fn(array[i], i);
 }
 
 var almond;
