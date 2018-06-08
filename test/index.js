@@ -627,10 +627,70 @@ function testAtTimer(engine, conversation) {
     });
 }
 
+function testLoadAppSyntaxError(engine) {
+    const assistant = engine.platform.getCapability('assistant');
+
+    assistant._setConversation({
+        notify(appId, icon, outputType, data) {
+            assert.fail('expected no result');
+        },
+
+        notifyError(appId, icon, err) {
+            assert.strictEqual(appId, 'uuid-syntax-err');
+            assert.strictEqual(icon, 'org.foo');
+            assert.strictEqual(err.name, 'SyntaxError');
+        }
+    });
+
+    return engine.apps.loadOneApp(`foo foo foo`,
+        { $icon: 'org.foo', $conversation: undefined },
+        'uuid-syntax-err', undefined, 'some app', 'some app description', true).then((app) => {
+        assert.strictEqual(app.icon, 'org.foo');
+        assert.strictEqual(app.uniqueId, 'uuid-syntax-err');
+        assert(!!app.error);
+
+        assert(!engine.apps.hasApp(app));
+        assert.deepStrictEqual(engine.apps.getAllApps(), []);
+    });
+}
+
+function testLoadAppTypeError(engine) {
+    const assistant = engine.platform.getCapability('assistant');
+
+    assistant._setConversation({
+        notify(appId, icon, outputType, data) {
+            assert.fail('expected no result');
+        },
+
+        notifyError(appId, icon, err) {
+            assert.strictEqual(appId, 'uuid-type-err');
+            assert.strictEqual(icon, 'org.foo');
+            assert.strictEqual(err.name, 'TypeError');
+        }
+    });
+
+    return engine.apps.loadOneApp(`now => @com.twitter.search(), temperature >= 42 => notify;`,
+        { $icon: 'org.foo', $conversation: undefined },
+        'uuid-type-err', undefined, 'some app', 'some app description', true).then((app) => {
+        assert.strictEqual(app.icon, 'org.foo');
+        assert.strictEqual(app.uniqueId, 'uuid-type-err');
+        assert(!!app.error);
+
+        assert(!engine.apps.hasApp(app));
+        assert.deepStrictEqual(engine.apps.getAllApps(), []);
+    });
+}
+
 function testApps(engine) {
     assert.deepStrictEqual(engine.apps.getAllApps(), []);
 
-    return testSimpleDo(engine).then(() => {
+    return Promise.resolve().then(() => {
+        return testLoadAppSyntaxError(engine);
+    }).then(() => {
+        return testLoadAppTypeError(engine);
+    }).then(() => {
+        return testSimpleDo(engine);
+    }).then(() => {
         return testDoError(engine);
     }).then(() => {
         return testSimpleGet(engine);
