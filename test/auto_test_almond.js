@@ -13,6 +13,7 @@ require('./polyfill');
 
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
+const AsyncQueue = require('consumer-queue');
 
 const Almond = require('../lib/almond');
 const Intent = require('../lib/semantic').Intent;
@@ -32,24 +33,47 @@ var permission = null;
 var app = null;
 var appid = 0;
 
+function makeQueueItem(item) {
+    let _resolve, _reject;
+    new Promise((resolve, reject) => {
+        _resolve = resolve;
+        _reject = reject;
+    });
+    return { item, resolve: _resolve, reject: _reject };
+}
+
 class MockApp {
-    constructor(uniqueId) {
+    constructor(uniqueId, results) {
         this.uniqueId = uniqueId;
-        this.mainOutput = {
-            next() {
-                let _resolve, _reject;
-                new Promise((resolve, reject) => {
-                    _resolve = resolve;
-                    _reject = reject;
-                });
-                return { item: { isDone: true }, resolve: _resolve, reject: _reject };
-            }
-        };
+
+        const queue = new AsyncQueue();
+        for (let item of results)
+            queue.push(makeQueueItem(item));
+        queue.push(makeQueueItem({ isDone: true }));
+
+        this.mainOutput = queue;
     }
 }
 function loadOneApp(code) {
     app = code;
-    return Promise.resolve(new MockApp('uuid-' + appid++));
+    let results = [];
+    if (code === `{
+    now => @com.xkcd(id="com.xkcd-8").get_comic() => notify;
+}`) {
+        results = [{ isNotification: true, icon: 'com.xkcd', outputType: 'com.xkcd:get_comic', outputValue: {
+                number: 1986,
+                title: 'River Border',
+                picture_url: 'http://imgs.xkcd.com/comics/river_border.png',
+                link: 'https://xkcd.com/1986',
+                alt_text: `I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.` //'
+            } }];
+    } else if (code === `{
+    now => @org.thingpedia.weather(id="org.thingpedia.weather-14").current(location=makeLocation(90, 0, "North pole")) => notify;
+}`) {
+        results = [{ isError: true, icon: 'org.thingpedia.weather', error: new Error('I do not like that location') }];
+    }
+
+    return Promise.resolve(new MockApp('uuid-' + appid++, results));
 }
 function addPermission(perm) {
     permission = perm;
@@ -61,22 +85,29 @@ function installProgramRemote(principal, identity, uniqueId, program) {
     return Promise.resolve();
 }
 
+function checkIcon(icon) {
+    assert((typeof icon === 'string' && icon) || icon === null);
+}
+
 class TestDelegate {
     constructor() {
     }
 
-    send(what) {
+    send(what, icon) {
+        checkIcon(icon);
         writeLine('>> ' + what);
         // die horribly if something does not work
         if (what.indexOf('that did not work') >= 0)
             setImmediate(() => process.exit(1));
     }
 
-    sendPicture(url) {
+    sendPicture(url, icon) {
+        checkIcon(icon);
         writeLine('>> picture: ' + url);
     }
 
-    sendRDL(rdl) {
+    sendRDL(rdl, icon) {
+        checkIcon(icon);
         writeLine('>> rdl: ' + rdl.displayTitle + ' ' + rdl.webCallback);
     }
 
@@ -242,7 +273,10 @@ const TEST_CASES = [
 
     [
     ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
-`>> ask special null
+`>> rdl: River Border https://xkcd.com/1986
+>> picture: http://imgs.xkcd.com/comics/river_border.png
+>> I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.
+>> ask special null
 `,
 `{
     now => @com.xkcd(id="com.xkcd-8").get_comic() => notify;
@@ -288,6 +322,25 @@ const TEST_CASES = [
 `,
 `{
     monitor (@security-camera(id="security-camera-1").current_event()) => @com.twitter(id="twitter-foo").post_picture(caption="lol", picture_url=picture_url);
+}`],
+
+    [
+    ['monitor', '(', '@security-camera.current_event', ')', '=>', 'notify'],
+`>> You have multiple Security Camera devices. Which one do you want to use?
+>> choice 0: Some Device 1
+>> choice 1: Some Device 2
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', 0],
+    `>> Ok, so you want me to notify you when the current event detected on your security camera changes. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+`{
+    monitor (@security-camera(id="security-camera-1").current_event()) => notify;
 }`],
 
     [
@@ -360,6 +413,7 @@ const TEST_CASES = [
 `,
     ['bookkeeping', 'choice', 2],
 `>> Ok, I'm going to get an Xkcd comic if the title contains "lol" and then notify you.
+>> Sorry, I did not find any result for that.
 >> ask special null
 `,
     `{
@@ -442,6 +496,7 @@ const TEST_CASES = [
 `,
     ['bookkeeping', 'choice', 2],
 `>> Ok, I'm going to get an Xkcd comic if the title contains "lol" and the title does not contain "foo" and then notify you.
+>> Sorry, I did not find any result for that.
 >> ask special null
 `,
     `{
@@ -654,6 +709,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
         }));
     },
 `>> I'm going to get an Xkcd comic and then notify you (as asked by Carol Johnson).
+>> Sorry, I did not find any result for that.
 >> ask special null
 `,
     `{
@@ -673,6 +729,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     `pizza`,
 `>> I'm going to get websites matching "pizza" on Bing and then notify you (as asked by Carol Johnson).
+>> Sorry, I did not find any result for that.
 >> ask special null
 `,
     `{
@@ -1029,7 +1086,8 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special location
 `,
     ['bookkeeping', 'answer', 'location:current_location'],
-`>> ask special null
+`>> Sorry, I did not find any result for that.
+>> ask special null
 `,
 
     `{
@@ -1046,7 +1104,8 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
 
     { code: ['bookkeeping', 'answer', 'LOCATION_0'], entities: {"LOCATION_0": {longitude:0, latitude:90, display:"North pole"}}},
-`>> ask special null
+`>> Sorry, that did not work: I do not like that location.
+>> ask special null
 `,
 
     `{
@@ -1058,7 +1117,8 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special location
 `,
     ['bookkeeping', 'answer', 'location:home'],
-`>> ask special null
+`>> Sorry, I did not find any result for that.
+>> ask special null
 `,
 
     `{

@@ -10,9 +10,11 @@
 "use strict";
 
 const ThingTalk = require('thingtalk');
+const AsyncQueue = require('consumer-queue');
 
 const ThingpediaClient = require('./http_client');
 const _mockThingpediaClient = require('./mock_schema_delegate');
+
 
 class MockPreferences {
     constructor() {
@@ -87,13 +89,17 @@ class MockAppDatabase {
         this._apps[uniqueId] = { name: name, description: description, code: code, state: state, uniqueId: uniqueId };
         var compiler = new ThingTalk.Compiler();
         compiler.setSchemaRetriever(this._schemas);
+
+        const queue = new AsyncQueue();
+        let _resolve, _reject;
+        new Promise((resolve, reject) => {
+            _resolve = resolve;
+            _reject = reject;
+        });
+        queue.push({ item: { isDone: true }, resolve: _resolve, reject: _reject });
         return compiler.compileCode(code).then(() => {
             return {
-                mainOutput: {
-                    next() {
-                        return { done: true, resolve() {}, reject() {} };
-                    }
-                }
+                mainOutput: queue
             };
         });
     }
