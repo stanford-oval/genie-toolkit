@@ -96,8 +96,8 @@ class TestDelegate {
     send(what, icon) {
         checkIcon(icon);
         writeLine('>> ' + what);
-        // die horribly if something does not work
-        if (what.indexOf('that did not work') >= 0)
+        // die horribly if something does not work (and it's not a test error
+        if (what.indexOf('that did not work') >= 0 && what.indexOf('I do not like that location') < 0)
             setImmediate(() => process.exit(1));
     }
 
@@ -1310,6 +1310,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     ['bookkeeping', 'choice', '2'],
 `>> Ok, I'm going to get the asteroid passing close to Earth today and then notify you.
+>> Sorry, I did not find any result for that.
 >> ask special null
 `,
 
