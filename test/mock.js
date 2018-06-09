@@ -324,7 +324,16 @@ const MOCK_ADDRESS_BOOK_DATA = [
 
 class MockAddressBook {
     lookup(item, key) {
-        return Promise.resolve(MOCK_ADDRESS_BOOK_DATA.map((el) => {
+        let data;
+        if (key === 'invalid_user') {
+            data = [{ displayName: 'Invalid User', alternativeDisplayName: 'User, Invalid',
+                      isPrimary: true, starred: false, timesContacted: 10, type: 'work',
+                      email_address: 'invalid@example.com', phone_number: '+XXXXXXXXX' }];
+        } else {
+            data = MOCK_ADDRESS_BOOK_DATA;
+        }
+
+        return Promise.resolve(data.map((el) => {
             if (item === 'contact')
                 el.value = 'phone:' + el.phone_number;
             else
@@ -363,6 +372,8 @@ class MockMessaging {
     }
 
     getAccountForIdentity(identity) {
+        if (identity === 'phone:+XXXXXXXXX')
+            return Promise.resolve(null);
         return Promise.resolve('MOCK1234-' + identity);
     }
 }

@@ -637,6 +637,14 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 }`],
 
     [
+    { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post'],
+      entities: { USERNAME_0: 'invalid_user' } },
+`>> Cannot find a messaging account for Invalid User.
+>> ask special null
+`,
+    null],
+
+    [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post', 'param:status:String', '=', 'QUOTED_STRING_0'],
       entities: { USERNAME_0: 'mom', QUOTED_STRING_0: "lol" } },
 `>> Ok, so you want me to tell Alice Smith (mom): tweet "lol". Is that right?
@@ -807,6 +815,56 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from anybody (no restrictions) {"program":"true : now => @org.thingpedia.builtin.test.eat_data;"}
 >> button: Always from Bob Smith (dad) (no restrictions) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data;"}
 >> button: Always from Bob Smith (dad) (this exact request) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
+>> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
+>> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> ask special generic
+`,
+    ['bookkeeping', 'special', 'special:no'],
+`>> Sorry I couldn't help on that.
+>> ask special null
+`,
+    null],
+
+    [(almond) => {
+        return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @org.thingpedia.builtin.test.eat_data(data="foo");`, almond.schemas, true).then((prog) => {
+            Promise.resolve(almond.askForPermission('mock-account:...', 'email:bogus@example.com', prog).then((res) => {
+                assert.strictEqual(res, null);
+            }));
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        }));
+    },
+`>> bogus@example.com would like to consume "foo".
+>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
+>> button: Always from anybody (no restrictions) {"program":"true : now => @org.thingpedia.builtin.test.eat_data;"}
+>> button: Always from bogus@example.com (no restrictions) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"bogus@example.com\\") : now => @org.thingpedia.builtin.test.eat_data;"}
+>> button: Always from bogus@example.com (this exact request) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"bogus@example.com\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
+>> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
+>> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> ask special generic
+`,
+    ['bookkeeping', 'special', 'special:no'],
+`>> Sorry I couldn't help on that.
+>> ask special null
+`,
+    null],
+
+    [(almond) => {
+        return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @org.thingpedia.builtin.test.eat_data(data="foo");`, almond.schemas, true).then((prog) => {
+            Promise.resolve(almond.askForPermission('mock-account:...', 'phone:X1234567', prog).then((res) => {
+                assert.strictEqual(res, null);
+            }));
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        }));
+    },
+`>> X1234567 would like to consume "foo".
+>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
+>> button: Always from anybody (no restrictions) {"program":"true : now => @org.thingpedia.builtin.test.eat_data;"}
+>> button: Always from X1234567 (no restrictions) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"X1234567\\") : now => @org.thingpedia.builtin.test.eat_data;"}
+>> button: Always from X1234567 (this exact request) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"X1234567\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
