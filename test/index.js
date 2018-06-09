@@ -407,6 +407,149 @@ function testWhen(engine, conversation) {
     });
 }
 
+function testWhenErrorInit(engine) {
+    const assistant = engine.platform.getCapability('assistant');
+
+    const test = engine.devices.getDevice('org.thingpedia.builtin.test');
+    const originalsubscribe = test.subscribe_get_data;
+
+    const error = new Error('Test error');
+
+    test.subscribe_get_data = (args, state) => {
+        throw error;
+    };
+
+    return new Promise((resolve, reject) => {
+        setTimeout(() => reject(new Error('Timed out while waiting for error to appear')), 10000).unref();
+
+        assistant._setConversation({
+            notify(appId, icon, outputType, data) {
+                assert.fail('expected no results');
+            },
+
+            notifyError(appId, icon, err) {
+                assert.strictEqual(appId, 'uuid-when-error');
+                assert.strictEqual(icon, 'org.foo');
+                assert.strictEqual(err, error);
+
+                assert(engine.apps.hasApp(appId));
+
+                const app = engine.apps.getApp(appId);
+
+                assert(app.isEnabled);
+                assert(app.isRunning);
+                engine.apps.removeApp(app);
+
+                resolve();
+            }
+        });
+
+        engine.apps.loadOneApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+            { $icon: 'org.foo', $conversation: 'mock' },
+            'uuid-when-error', undefined, 'some app', 'some app description', true).then((app) => {
+            assert.strictEqual(app.icon, 'org.foo');
+            assert.strictEqual(app.uniqueId, 'uuid-when-error');
+        }).catch(reject);
+    }).then((v) => {
+        test.subscribe_get_data = originalsubscribe;
+        return v;
+    }, (e) => {
+        test.subscribe_get_data = originalsubscribe;
+        throw e;
+    });
+}
+
+function testWhenErrorAsync(engine) {
+    const assistant = engine.platform.getCapability('assistant');
+    const test = engine.devices.getDevice('org.thingpedia.builtin.test');
+    const originalsubscribe = test.subscribe_get_data;
+
+    const error = new Error('Asynchronous test error');
+
+    test.subscribe_get_data = (args, state) => {
+        const stream = new Stream.Readable({ read() {}, objectMode: true });
+        stream.destroy = () => {};
+
+        setTimeout(() => {
+            const now = Date.now();
+            for (let i = 0; i < 2; i++)
+                stream.push({ __timestamp: now, data: genFakeData(args.size, '!'.charCodeAt(0) + i) });
+
+            stream.emit('error', error);
+        }, 100);
+        return stream;
+    };
+
+    return new Promise((resolve, reject) => {
+        setTimeout(() => reject(new Error('Timed out while waiting for data to appear')), 10000).unref();
+
+        let count = 0;
+        let seenerror = false;
+        assistant._setConversation({
+            notify(appId, icon, outputType, data) {
+                const app = engine.apps.getApp(appId);
+                if (!app) {
+                    console.log([appId, icon, outputType, data]);
+                    throw new Error('??? ' + appId);
+                }
+                assert(app.isEnabled);
+                assert(app.isRunning);
+                assert.strictEqual(outputType, 'org.thingpedia.builtin.test:get_data');
+                assert.strictEqual(icon, 'org.foo');
+                assert.strictEqual(appId, 'uuid-when-error-async');
+                assert(data.hasOwnProperty('__timestamp'));
+                delete data.__timestamp;
+                if (count === 0) {
+                    assert.deepStrictEqual(data, { count: 2, size: 10, data: '!!!!!!!!!!' });
+                    count++;
+                } else if (count === 1) {
+                    assert.deepStrictEqual(data, { count: 2, size: 10, data: '""""""""""' });
+                    count++;
+                    if (seenerror) {
+                        engine.apps.removeApp(app);
+                        resolve();
+                    }
+                } else {
+                    try {
+                        assert.fail("too many results from the monitor");
+                    } catch(e) {
+                        reject(e);
+                    }
+                }
+            },
+
+            notifyError(appId, icon, err) {
+                const app = engine.apps.getApp(appId);
+
+                assert(app.isEnabled);
+                assert(app.isRunning);
+                assert.strictEqual(icon, 'org.foo');
+                assert.strictEqual(appId, 'uuid-when-error-async');
+                assert.strictEqual(err, error);
+
+                seenerror = true;
+                if (count === 2) {
+                    engine.apps.removeApp(app);
+                    resolve();
+                }
+            }
+        });
+
+        engine.apps.loadOneApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+            { $icon: 'org.foo' },
+            'uuid-when-error-async', undefined, 'some app', 'some app description', true).then((app) => {
+            assert.strictEqual(app.icon, 'org.foo');
+            assert.strictEqual(app.uniqueId, 'uuid-when-error-async');
+        }).catch(reject);
+    }).then((v) => {
+        test.subscribe_get_data = originalsubscribe;
+        return v;
+    }, (e) => {
+        test.subscribe_get_data = originalsubscribe;
+        throw e;
+    });
+}
+
 function drainTestWhen(engine) {
     const assistant = engine.platform.getCapability('assistant');
 
@@ -430,13 +573,13 @@ function drainTestWhen(engine) {
             }
         });
 
-        return engine.apps.loadOneApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        engine.apps.loadOneApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
             { $icon: 'org.foo' },
             'uuid-foo-when-restart', undefined, 'some app', 'some app description', true).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
             assert.strictEqual(app.uniqueId, 'uuid-foo-when-restart');
 
-            resolve(app.rules[0].waitFinished().then(() => {
+            resolve(app.waitFinished().then(() => {
                 return engine.apps.removeApp(app);
             }));
         }).catch(reject);
@@ -486,7 +629,7 @@ function testWhenRestart(engine) {
                 assert.strictEqual(app.icon, 'org.foo');
                 assert.strictEqual(app.uniqueId, 'uuid-foo-when-restart');
 
-                resolve(app.rules[0].waitFinished().then(() => {
+                resolve(app.waitFinished().then(() => {
                     return engine.apps.removeApp(app);
                 }));
             }).catch(reject);
@@ -713,6 +856,13 @@ function testApps(engine) {
     }).then(() => {
         return testWhenRestart(engine);
     }).then(() => {
+        return testWhenErrorInit(engine);
+    }).then(() => {
+        return testWhenErrorAsync(engine);
+    }).then(() => {
+        const assistant = engine.platform.getCapability('assistant');
+        assistant._setConversation(null);
+
         assert.deepStrictEqual(engine.apps.getAllApps(), []);
     });
 }
