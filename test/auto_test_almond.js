@@ -978,6 +978,66 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> ask special generic
 `,
+    {"code":["policy","param:source:Entity(tt:contact)", "==", "USERNAME_0",":","@com.xkcd.get_comic","=>","notify"],"entities":{ "USERNAME_0": "bob" }},
+`>> Ok, so Bob Smith (dad) is allowed to read an Xkcd comic. Is that correct?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Ok, I'll remember that.
+>> ask special null
+`,
+    'source == "mock-account:MOCK1234-phone:+555123456"^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic => notify;'],
+
+    [(almond) => {
+        return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
+            Promise.resolve(almond.askForPermission('mock-account:...', 'email:bob@smith.com', prog).then((res) => {
+                assert.strictEqual(res, prog);
+            }));
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        }));
+    },
+`>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
+>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
+>> button: Always from anybody {"program":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
+>> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> ask special generic
+`,
+    {"program": `true : @com.xkcd.get_comic, title =~ $undefined => notify`},
+`>> What is the value of the filter on the title?
+>> ask special raw_string
+`,
+    "foo",
+`>> Ok, so anyone is allowed to read an Xkcd comic if the title contains "foo". Is that correct?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Ok, I'll remember that.
+>> ask special null
+`,
+    'true : @com.xkcd.get_comic, title =~ "foo" => notify;'],
+
+    [(almond) => {
+        return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
+            Promise.resolve(almond.askForPermission('mock-account:...', 'email:bob@smith.com', prog).then((res) => {
+                assert.strictEqual(res, prog);
+            }));
+
+            // inject a meaningless intent so we synchronize the two concurrent tasks
+            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        }));
+    },
+`>> Bob Smith (dad) would like to get an Xkcd comic and then notify you.
+>> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
+>> button: Always from anybody {"program":"true : @com.xkcd.get_comic => notify;"}
+>> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
+>> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
+>> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> ask special generic
+`,
     {"program":"true : @com.xkcd.get_comic => notify;"},
 `>> Ok, so anyone is allowed to read an Xkcd comic. Is that correct?
 >> ask special yesno
