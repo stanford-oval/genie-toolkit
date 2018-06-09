@@ -2108,6 +2108,39 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     now => @org.thingpedia.builtin.thingengine.phone(id="org.thingpedia.builtin.thingengine.phone").send_sms(to="+555123456"^^tt:phone_number("Bob Smith (dad)"), message="foo");
 }`],
 
+    [
+    {program: `now => @com.twitter.search(), hashtags == $undefined => notify;`},
+`>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '0'],
+`>> What is the value of the filter on the hashtags?
+>> ask special raw_string
+`,
+    {code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'lol' }},
+`>> You chose #lol.
+>> Would you like to add more elements to the list?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> What is the value of the filter on the hashtags?
+>> ask special raw_string
+`,
+    {code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'funny' }},
+`>> You chose #lol, #funny.
+>> Would you like to add more elements to the list?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:no'],
+`>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+    `{
+    now => (@com.twitter(id="twitter-foo").search()), hashtags == ["lol"^^tt:hashtag, "funny"^^tt:hashtag] => notify;
+}`]
+
 ];
 
 function roundtrip(input, output) {
