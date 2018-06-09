@@ -324,6 +324,8 @@ const MOCK_ADDRESS_BOOK_DATA = [
 
 class MockAddressBook {
     lookup(item, key) {
+        if (key === 'missing_user')
+            return Promise.resolve([]);
         let data;
         if (key === 'invalid_user') {
             data = [{ displayName: 'Invalid User', alternativeDisplayName: 'User, Invalid',

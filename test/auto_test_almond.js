@@ -1989,7 +1989,125 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     [
     ['bookkeeping', 'special', 'special:wakeup'],
 ``,
-    null]
+    null],
+
+    [
+    {"program": `now => @com.twitter.follow(user_name="bob"^^tt:username);` },
+`>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '0'],
+`>> Ok, so you want me to follow @bob on Twitter. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `{
+    now => @com.twitter(id="twitter-foo").follow(user_name="bob"^^tt:username);
+}`],
+
+    [
+    {"program": `now => @com.gmail.send_email(to="bob"^^tt:username, message="foo", subject="bar");` },
+`>> Ok, so you want me to send an email to Bob Smith (dad) with subject "bar" on GMail with message equal to "foo". Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `{
+    now => @com.gmail(id="com.gmail-19").send_email(to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"), message="foo", subject="bar");
+}`],
+
+    [
+    {"program": `now => @com.gmail.send_email(to="dad"^^tt:username, message="foo", subject="bar");` },
+`>> Ok, so you want me to send an email to Bob Smith (dad) with subject "bar" on GMail with message equal to "foo". Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `{
+    now => @com.gmail(id="com.gmail-20").send_email(to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"), message="foo", subject="bar");
+}`],
+
+    [
+    {"program": `now => @com.gmail.send_email(to="missing_user"^^tt:username, message="foo", subject="bar");` },
+`>> No contact matches your search.
+>> Who do you want to contact?
+>> ask special email_address
+`,
+    {code:['bookkeeping', 'answer', 'EMAIL_ADDRESS_0'], entities:{'EMAIL_ADDRESS_0': 'bob@smith.com'}},
+`>> Ok, so you want me to send an email to bob@smith.com with subject "bar" on GMail with message equal to "foo". Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `{
+    now => @com.gmail(id="com.gmail-21").send_email(to="bob@smith.com"^^tt:email_address, message="foo", subject="bar");
+}`],
+
+    [
+    {"program": `now => @com.gmail.send_email(to="equal_prob"^^tt:username, message="foo", subject="bar");` },
+`>> Multiple contacts match “equal_prob”. Who do you mean?
+>> choice 0: Alice Smith (mom)
+>> choice 1: Bob Smith (dad)
+>> ask special choice
+`,
+    {code:['bookkeeping', 'answer', 'EMAIL_ADDRESS_0'], entities:{'EMAIL_ADDRESS_0': 'bob@smith.com'}},
+`>> Sorry, but that's not what I asked.
+>> Could you choose one of the following?
+>> choice 0: Alice Smith (mom)
+>> choice 1: Bob Smith (dad)
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '1'],
+`>> Ok, so you want me to send an email to Bob Smith (dad) with subject "bar" on GMail with message equal to "foo". Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `{
+    now => @com.gmail(id="com.gmail-22").send_email(to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"), message="foo", subject="bar");
+}`],
+
+    [
+    {code: ['now', '=>', '@com.gmail.send_email', 'param:to:Entity(tt:email_address)', '=', 'USERNAME_0', 'param:message:String', '=', 'QUOTED_STRING_0', 'param:subject:String', '=', 'QUOTED_STRING_1'],
+     entities: { USERNAME_0: 'dad', QUOTED_STRING_0: 'foo', QUOTED_STRING_1: 'bar' } },
+`>> Ok, so you want me to send an email to Bob Smith (dad) with subject "bar" on GMail with message equal to "foo". Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `{
+    now => @com.gmail(id="com.gmail-23").send_email(to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"), message="foo", subject="bar");
+}`],
+
+    [
+    {code: ['now', '=>', '@org.thingpedia.builtin.thingengine.phone.send_sms', 'param:to:Entity(tt:phone_number)', '=', 'USERNAME_0', 'param:message:String', '=', 'QUOTED_STRING_0'],
+     entities: { USERNAME_0: 'dad', QUOTED_STRING_0: 'foo', QUOTED_STRING_1: 'bar' } },
+`>> Ok, so you want me to send a message to Bob Smith (dad) containing "foo". Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `{
+    now => @org.thingpedia.builtin.thingengine.phone(id="org.thingpedia.builtin.thingengine.phone").send_sms(to="+555123456"^^tt:phone_number("Bob Smith (dad)"), message="foo");
+}`],
+
 ];
 
 function roundtrip(input, output) {
