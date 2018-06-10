@@ -54,6 +54,17 @@ class MockApp {
         this.mainOutput = queue;
     }
 }
+
+function genFakeData(size, fill) {
+    return String(Buffer.alloc(size, fill));
+}
+function getTestData(count, size) {
+    let ret = [];
+    for (let i = 0; i < count; i++)
+        ret.push({ data: genFakeData(size, '!'.charCodeAt(0) + i) });
+    return ret;
+}
+
 function loadOneApp(code) {
     app = code;
     let results = [];
@@ -71,6 +82,9 @@ function loadOneApp(code) {
     now => @org.thingpedia.weather(id="org.thingpedia.weather-14").current(location=makeLocation(90, 0, "North pole")) => notify;
 }`) {
         results = [{ isError: true, icon: 'org.thingpedia.weather', error: new Error('I do not like that location') }];
+    } else if (code.indexOf('@org.thingpedia.builtin.test') >= 0) {
+        results = getTestData(25, 10).map((r) => ({ isNotification: true, icon: 'org.thingpedia.builtin.test',
+            outputType: 'org.thingpedia.builtin.test:get_data', outputValue: r }));
     }
 
     return Promise.resolve(new MockApp('uuid-' + appid++, results));
@@ -2166,6 +2180,140 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `,
     null],
 
+    [
+    {code: ['now', '=>', '@org.thingpedia.builtin.test.get_data', 'param:size:Measure(byte)', '=', 'NUMBER_0',
+     'unit:byte', 'param:count:Number', '=', 'NUMBER_1', '=>', 'notify'],
+     entities: { NUMBER_1: 25, NUMBER_0: 10 } },
+`>> !!!!!!!!!!
+>> """"""""""
+>> ##########
+>> $$$$$$$$$$
+>> %%%%%%%%%%
+>> button: Show more result… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> ask special generic
+`,
+    {"code":["bookkeeping","special","special:more"],"entities":{}},
+`>> &&&&&&&&&&
+>> ''''''''''
+>> ((((((((((
+>> ))))))))))
+>> **********
+>> button: Show more result… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> ask special generic
+`,
+    {"code":["bookkeeping","special","special:more"],"entities":{}},
+`>> ++++++++++
+>> ,,,,,,,,,,
+>> ----------
+>> ..........
+>> //////////
+>> button: Show more result… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> ask special generic
+`,
+    {"code":["bookkeeping","special","special:more"],"entities":{}},
+`>> 0000000000
+>> 1111111111
+>> 2222222222
+>> 3333333333
+>> 4444444444
+>> button: Show more result… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> ask special generic
+`,
+    {"code":["bookkeeping","special","special:more"],"entities":{}},
+`>> 5555555555
+>> 6666666666
+>> 7777777777
+>> 8888888888
+>> 9999999999
+>> ask special null
+`,
+    `{
+    now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test-27").get_data(size=10byte, count=25) => notify;
+}`],
+
+    [
+    {code: ['now', '=>', '@org.thingpedia.builtin.test.get_data', 'param:size:Measure(byte)', '=', 'NUMBER_0',
+     'unit:byte', 'param:count:Number', '=', 'NUMBER_1', '=>', 'notify'],
+     entities: { NUMBER_1: 25, NUMBER_0: 10 } },
+`>> !!!!!!!!!!
+>> """"""""""
+>> ##########
+>> $$$$$$$$$$
+>> %%%%%%%%%%
+>> button: Show more result… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> ask special generic
+`,
+    {"code":["bookkeeping","special","special:nevermind"],"entities":{}},
+`>> ask special null
+`,
+    `{
+    now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test-28").get_data(size=10byte, count=25) => notify;
+}`],
+
+    [
+    {code: ['now', '=>', '@org.thingpedia.builtin.test.get_data', 'param:size:Measure(byte)', '=', 'NUMBER_0',
+     'unit:byte', 'param:count:Number', '=', 'NUMBER_1', '=>', 'notify'],
+     entities: { NUMBER_1: 25, NUMBER_0: 10 } },
+`>> !!!!!!!!!!
+>> """"""""""
+>> ##########
+>> $$$$$$$$$$
+>> %%%%%%%%%%
+>> button: Show more result… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> ask special generic
+`,
+    ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
+`>> ask special null
+>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+    `{
+    now => @com.xkcd(id="com.xkcd-30").get_comic() => notify;
+}`],
+
+    [
+    {code: ['now', '=>', '@org.thingpedia.builtin.test.get_data', 'param:size:Measure(byte)', '=', 'NUMBER_0',
+     'unit:byte', 'param:count:Number', '=', 'NUMBER_1', '=>', 'notify'],
+     entities: { NUMBER_1: 25, NUMBER_0: 10 } },
+`>> !!!!!!!!!!
+>> """"""""""
+>> ##########
+>> $$$$$$$$$$
+>> %%%%%%%%%%
+>> button: Show more result… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> ask special generic
+`,
+    ['now', '=>', '@com.twitter.post'],
+`>> ask special null
+>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['bookkeeping', 'special', 'special:nevermind'],
+`>> Sorry I couldn't help on that.
+>> ask special null
+`,
+    `{
+    now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test-31").get_data(size=10byte, count=25) => notify;
+}`],
+
+    [
+    ['now', '=>', '@com.twitter.post'],
+`>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
+`>> ask special null
+>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+    `{
+    now => @com.xkcd(id="com.xkcd-32").get_comic() => notify;
+}`],
+
     [(almond) => {
     almond._engine.permissions = null;
     almond._engine.remote = null;
@@ -2189,7 +2337,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
 `{
-    now => @com.xkcd(id="com.xkcd-27").get_comic() => notify;
+    now => @com.xkcd(id="com.xkcd-33").get_comic() => notify;
 }`
     ],
 
