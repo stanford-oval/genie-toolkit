@@ -1,3 +1,12 @@
+1.0.1
+=====
+
+* Thingpedia loader modules were moved here from the thingpedia library
+* Improved error handling [#16]
+* Fixed handling of subdevices [thingpedia-api#3]
+* Misc bug fixes
+* Build system/CI fixes
+
 1.0.0
 =====
 
