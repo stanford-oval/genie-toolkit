@@ -1,3 +1,17 @@
+1.0.2
+=====
+
+* Improved handling of devices that cannot be configured
+* Improved handling of passwords
+* Generators were replaced with native async functions
+* Fixed bug #23, #18, #19
+* Build system/CI fixes
+
+1.0.1
+=====
+
+* Bug fixes
+
 1.0.0
 =====
 
