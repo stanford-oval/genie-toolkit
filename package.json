@@ -33,6 +33,7 @@
     "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done",
     "lint": "eslint lib/",
     "test": "nyc node ./test/test_all",
-    "coverage": "nyc report --reporter=text-lcov | coveralls"
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "prepublish": "which yarn >/dev/null 2>&1 && yarn compile-mo || npm run compile-mo"
   }
 }
