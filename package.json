@@ -34,7 +34,8 @@
     "compile-sql-schema": "node -e 'console.log(JSON.stringify(require(\"fs\").readFileSync(\"lib/db/schema.sql\").toString(\"utf8\")))' > lib/db/schema.json",
     "lint": "eslint ./lib",
     "test": "nyc node test",
-    "coverage": "nyc report --reporter=text-lcov | coveralls"
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "prepublish": "which yarn >/dev/null 2>&1 && yarn compile-mo || npm run compile-mo"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
