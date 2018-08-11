@@ -173,9 +173,9 @@ class TestDelegate {
 
 class MockUser {
     constructor() {
-        this.id = 1;
-        this.account = 'FOO';
         this.name = 'Alice Tester';
+        this.isOwner = true;
+        this.anonymous = false;
     }
 }
 
@@ -2332,6 +2332,100 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 }`],
 
     [(almond) => {
+    almond.user.isOwner = false;
+    return almond.handleParsedCommand({ code: ['now', '=>', '@com.twitter.post'], entities: {} });
+},
+`>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['bookkeeping', 'special', 'special:nevermind'],
+`>> Sorry I couldn't help on that.
+>> ask special null
+`,
+null],
+
+    [(almond) => {
+    almond.user.isOwner = false;
+    return almond.handleParsedCommand({ program: `now => @com.facebook.post(status="MOCK DISALLOWED PROGRAM");` });
+},
+`>> I'm sorry, you don't have permission to do that.
+>> ask special null
+`,
+null],
+
+    [(almond) => {
+    almond.user.isOwner = false;
+    return almond.handleParsedCommand({ program: `now => @com.facebook.post(status=$undefined);` });
+},
+`>> What do you want to post?
+>> ask special raw_string
+`,
+    `MOCK DISALLOWED PROGRAM`,
+`>> I'm sorry, you don't have permission to do that.
+>> ask special null
+`,
+null],
+
+    [(almond) => {
+    almond.user.isOwner = false;
+    return almond.handleParsedCommand({ program: `true : * => *;` });
+},
+`>> I'm sorry, only my owner can change my permissions.
+>> ask special null
+`,
+null],
+
+    [(almond) => {
+    almond.user.isOwner = false;
+    return almond.handleParsedCommand({ program: `executor = "bob"^^tt:username : now => @com.facebook.post(status=$undefined);` });
+},
+`>> I'm sorry, only my owner can ask other users for permission.
+>> ask special null
+`,
+null],
+
+    [(almond) => {
+    almond._options.anonymous = true;
+    return almond.handleParsedCommand({ program: `now => @com.facebook.post(status=$undefined);` });
+},
+`>> This user is a demo only, and cannot perform actions. To execute this command, you must register an account for yourself.
+>> link: Register for Almond /user/register
+>> ask special null
+`,
+null],
+
+    [(almond) => {
+    almond._options.anonymous = true;
+    return almond.handleParsedCommand({ program: `monitor @com.xkcd.get_comic() => notify;` });
+},
+`>> This user is a demo only, and cannot enable long-running commands. To execute this command, you must register an account for yourself.
+>> link: Register for Almond /user/register
+>> ask special null
+`,
+null],
+
+    [(almond) => {
+    almond._options.anonymous = true;
+    return almond.handleParsedCommand({ program: `true : * => *;` });
+},
+`>> This user is a demo only; you cannot change the permissions on it.
+>> ask special null
+`,
+null],
+
+    [(almond) => {
+    almond._options.anonymous = true;
+    return almond.handleParsedCommand({ program: `executor = "bob"^^tt:username : now => @com.facebook.post(status=$undefined);` });
+},
+`>> This user is a demo only, and cannot ask other users for permission. To execute this command, you must register an account for yourself.
+>> link: Register for Almond /user/register
+>> ask special null
+`,
+null],
+
+    [(almond) => {
     almond._engine.permissions = null;
     almond._engine.remote = null;
     return almond.handleParsedCommand({ program: `true : @com.xkcd.get_comic => notify;` });
@@ -2354,23 +2448,11 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
 `{
-    now => @com.xkcd(id="com.xkcd-33").get_comic() => notify;
+    now => @com.xkcd(id="com.xkcd-34").get_comic() => notify;
 }`
     ],
 
     ['\\t now => @com.xkcd.get_comic() => notify;',
-`>> Sorry, I did not find any result for that.
->> ask special null
-`,
-`{
-    now => @com.xkcd(id="com.xkcd-34").get_comic() => notify;
-}`],
-
-    [(almond) => {
-    // avoid polluting the logs
-    almond.platform.getSharedPreferences().set('sabrina-store-log', 'no');
-    return almond.handleCommand('get an xkcd comic');
-    },
 `>> Sorry, I did not find any result for that.
 >> ask special null
 `,
@@ -2449,6 +2531,10 @@ function cleanToken(code) {
         return null;
     return code.replace(/__token="[a-f0-9]+"/g, '__token="XXX"').replace(/uuid-[A-Za-z0-9-]+/g, 'uuid-XXXXXX');
 }
+function resetOptions(almond) {
+    almond.user.isOwner = true;
+    almond._options.anonymous = false;
+}
 
 let anyFailed = false;
 
@@ -2466,6 +2552,8 @@ function test(script, i) {
 
         return roundtrip(script[j], script[j+1]).then(() => step(j+2));
     }
+    resetOptions(almond);
+
     return (i > 0 ? roundtrip(['bookkeeping', 'special', 'special:nevermind'], null) : Promise.resolve())
     .then(() => step(0)).then(() => {
         var expected = script[script.length-1];
@@ -2606,7 +2694,7 @@ function main() {
     if (process.argv[2] !== undefined && process.argv[2].startsWith('--with-sempre='))
         sempreUrl = process.argv[2].substr('--with-sempre='.length);
     almond = new Almond(engine, 'test', new MockUser(), delegate,
-        { debug: false, sempreUrl: sempreUrl, showWelcome: true });
+        { debug: false, sempreUrl: sempreUrl, showWelcome: true, anonymous: false });
 
     // inject some mocking in the parser:
     const realSendUtterance = almond.parser.sendUtterance;

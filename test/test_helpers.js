@@ -58,7 +58,7 @@ function promiseLoop(array, fn) {
 
 function main() {
     engine = Mock.createMockEngine('https://thingpedia.stanford.edu/thingpedia');
-    almond = new Almond(engine, 'test', null, null,
+    almond = new Almond(engine, 'test', { name: 'Bob', isOwner: true }, null,
         { debug: false, showWelcome: false });
     dlg = almond._dispatcher;
 

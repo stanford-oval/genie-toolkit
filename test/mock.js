@@ -402,7 +402,17 @@ class MockPermissionManager {
         return Promise.resolve();
     }
 
+    checkCanBeAllowed(principal, program) {
+        if (program.prettyprint(true) === `now => @com.facebook.post(status="MOCK DISALLOWED PROGRAM");`)
+            return Promise.resolve(false);
+
+        return Promise.resolve(true);
+    }
+
     checkIsAllowed(principal, program) {
+        if (program.prettyprint(true) === `now => @com.facebook(id="com.facebook-33").post(status="MOCK DISALLOWED PROGRAM");`)
+            return Promise.resolve(null);
+
         return Promise.resolve(program);
     }
 }
