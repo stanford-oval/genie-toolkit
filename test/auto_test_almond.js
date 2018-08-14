@@ -2164,7 +2164,34 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `>> Sorry, I cannot find any Cryptocurrency Code matching “invalid”
 >> ask special null
 `,
-    null]
+    null],
+
+    [(almond) => {
+    almond._engine.permissions = null;
+    almond._engine.remote = null;
+    return almond.handleParsedCommand({ program: `true : @com.xkcd.get_comic => notify;` });
+},
+`>> Sorry, this version of Almond does not support adding permissions.
+>> ask special null
+`,
+    null
+    ],
+
+    [{program: `executor = "bob"^^tt:username : now => @com.xkcd.get_comic() => notify;` },
+`>> Sorry, this version of Almond does not support asking other users for permission.
+>> ask special null
+`,
+    null
+    ],
+
+    [{program: `now => @com.xkcd.get_comic() => notify;` },
+`>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+`{
+    now => @com.xkcd(id="com.xkcd-27").get_comic() => notify;
+}`
+    ],
 
 ];
 
