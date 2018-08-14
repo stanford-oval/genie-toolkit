@@ -2139,7 +2139,32 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `,
     `{
     now => (@com.twitter(id="twitter-foo").search()), hashtags == ["lol"^^tt:hashtag, "funny"^^tt:hashtag] => notify;
-}`]
+}`],
+
+    [
+    ['now', '=>', '@org.coinbin.get_price', 'param:currency:Entity(tt:cryptocurrency_code)', '=', '"', 'bitcoin', '"', '^^tt:cryptocurrency_code', '=>', 'notify'],
+`>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+    `{
+    now => @org.coinbin(id="org.coinbin-24").get_price(currency="btc"^^tt:cryptocurrency_code("Bitcoin")) => notify;
+}`],
+
+    [
+    ['now', '=>', '@org.coinbin.get_price', 'param:currency:Entity(tt:cryptocurrency_code)', '=', '"', 'bitcoin', '"', '^^tt:cryptocurrency_code', '=>', 'notify'],
+`>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+    `{
+    now => @org.coinbin(id="org.coinbin-25").get_price(currency="btc"^^tt:cryptocurrency_code("Bitcoin")) => notify;
+}`],
+
+    [
+    ['now', '=>', '@org.coinbin.get_price', 'param:currency:Entity(tt:cryptocurrency_code)', '=', '"', 'invalid', '"', '^^tt:cryptocurrency_code', '=>', 'notify'],
+`>> Sorry, I cannot find any Cryptocurrency Code matching “invalid”
+>> ask special null
+`,
+    null]
 
 ];
 

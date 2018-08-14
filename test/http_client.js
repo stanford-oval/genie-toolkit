@@ -25,7 +25,7 @@ function getModule(parsed) {
 module.exports = class ThingpediaClientHttp {
     constructor(thingpediaUrl, developerKey, locale) {
         this.developerKey = developerKey;
-        this.locale = locale || 'en_US';
+        this.locale = locale || 'en-US';
         this._url = thingpediaUrl;
     }
 
@@ -111,5 +111,14 @@ module.exports = class ThingpediaClientHttp {
 
     clickExample(exampleId) {
         return this._simpleRequest('/api/examples/click/' + exampleId);
+    }
+
+    lookupEntity(entityType, searchTerm) {
+        return this._simpleRequest('/api/entities/lookup/' + encodeURIComponent(entityType),
+            { q: searchTerm }).then((result) => {
+                const array = result.data;
+                array.meta = result.meta;
+                return array;
+            });
     }
 };

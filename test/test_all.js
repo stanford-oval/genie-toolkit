@@ -19,5 +19,6 @@ function seq(array) {
 seq([
     () => require('./auto_test_almond')(),
     () => require('./test_helpers')(),
-    () => require('./test_parser')()
+    () => require('./test_parser')(),
+    () => require('./test_entities')()
 ]);

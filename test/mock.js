@@ -411,7 +411,7 @@ var Gettext = require('node-gettext');
 var _gettext = new Gettext();
 _gettext.setLocale('en_US.utf8');
 
-const THINGPEDIA_URL = process.env.THINGPEDIA_URL || 'https://crowdie.stanford.edu/thingpedia';
+const THINGPEDIA_URL = process.env.THINGPEDIA_URL || 'https://thingpedia.stanford.edu/thingpedia';
 
 module.exports.createMockEngine = function(thingpediaUrl) {
     var thingpedia;
