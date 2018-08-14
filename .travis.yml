@@ -1,6 +1,6 @@
 branches:
   except:
-  - /^wip/
+  - "/^wip/"
 language: node_js
 node_js:
 - '8'
@@ -11,3 +11,11 @@ after_success: yarn run coverage
 notifications:
   slack:
     secure: Xmek8u60Ni2iq7E0qzC5RFa3LufmqESJAsBu6IIAOcGjrkVKrqUyUXbUjnbdATrAN78puupQukhdGLLTj/EaSqSSliQrslQ9F9DgusRL/jZ3tkjjWdtfuTNpfXEJzkKM1rM9UI5PSbSsGnNO1qcYs8VKnTvzoKKkW3Z8h625ZpRzpTnE1UEFlkcOFEIB08Ahlo756/Ptinb55TI6hbmE/hwY1lHuPYHHWUBlSpuUQhSL1PkIzocTFkiKohHMKOszo/ZQTWBN+4Te9mXzR8p2J9Inwb9fBdiLo7Xaf896kUoAIUVvH0WpniooXAvMTxjrLL9OYBRfpFHM/7U1jlTigIiGXXCJOXQBshhs9wxhyDnEfinHSjIfCjDugzGspnPW2MTZeYgyBssznTkjCV4/14dQuRE1I/8sfA0Isqd0R2yBu3NstyiDlmZYEtRXzorhZ3wsDh2v3Q3dS/b6yrT99itnhzhMPALPjgcxyxUQMoFLZrNYOZKIhKporxoxHiP87SgQeto1UxOXrNErseQTc+tHI3mjAabWvFMGEgxCuc5aA9BesbgWBTX3Z1OEHBFIA0pYpINAYl0Dm7+pYamPjoks8jIWSIYEyq/ut3td9MBzVmU9+HncMi0Kqmw1+tmk90hfwkFhxOnynxf1k+T1gvSWy3t/NBXU6JSZetbeoIU=
+deploy:
+  provider: npm
+  email: gcampagn@cs.stanford.edu
+  api_key:
+    secure: TIW1NnDhOrwKk5is+vOYqvo8/2+jWcn1EPB4FmLx1qj4+fBALVaBsPN1CJXtbbYpZUDAADyRcQLb9BpVpqAkJjCJhP7gcH8aAAnYFLmfRP+DWrvb/cSFFPGWc6gFs/NLyoj3f4acD4EKI2+SL9jG58FsBGejs7bPYgDmccRSSoxemXGb5/VoFC5y6o4a7dGyS7eww+5Df2qyxDqb1gjU7lDXXhWT69HaxHxfOGm1sXj3SLqN8bmvNEJKyAXBJALdbD7kxZ4IhPBZvIHLe7T5i8lQuz5V0eHWaW5LpvyCYURO8WnRtEOzPVZ3M6tTO403xUU41jmf1s7zeLufhAlszE6rbXT8aQjgVZQEyWswey1zeBAUxFCx0TsU/7DnGXlMTcpdepzg8Km3v8wTCSMT0MPejhlcV5AqHrjAPmEQEHCBvl87yQtatOoNketHUdsAEktgT6xQXkYqEVA1dH8oBax3oJ+PRBoQd3G9EuN4/JKAjtEnWnyBk738HHfqxSOllycFu1SANvdm53ooQrn+mOTB5ltlUi6rd2WSPtzrlnEJ1KsKwprqRvJsxN3ym6sNW2GZM/L07f5pJISkqKJHf68vDFcH0tWTc3HUzf86jRse/LZNER/B3KSw0rsOOyPV2US+3mH12UVD02H4u6n6FviqlhsAJzS/5Dl/BcSKR60=
+  on:
+    tags: true
+    repo: Stanford-Mobisocial-IoT-Lab/almond-dialog-agent
