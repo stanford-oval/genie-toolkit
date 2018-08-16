@@ -1,6 +1,6 @@
 # ThingEngine
 
-[![Build Status](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/thingengine-core.svg?branch=master)](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/ThingTalk) [![Coverage Status](https://coveralls.io/repos/github/Stanford-Mobisocial-IoT-Lab/thingengine-core/badge.svg?branch=master)](https://coveralls.io/github/Stanford-Mobisocial-IoT-Lab/ThingTalk?branch=master) [![Dependency Status](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/thingengine-core/status.svg)](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/thingengine-core)
+[![Build Status](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/thingengine-core.svg?branch=master)](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/ThingTalk) [![Coverage Status](https://coveralls.io/repos/github/Stanford-Mobisocial-IoT-Lab/thingengine-core/badge.svg?branch=master)](https://coveralls.io/github/Stanford-Mobisocial-IoT-Lab/ThingTalk?branch=master) [![Dependency Status](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/thingengine-core/status.svg)](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/thingengine-core) [![Greenkeeper badge](https://badges.greenkeeper.io/Stanford-Mobisocial-IoT-Lab/thingengine-core.svg)](https://greenkeeper.io/)
 
 ## A Modular, Powerful Virtual Assistant Engine
 
