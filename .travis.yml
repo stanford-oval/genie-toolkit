@@ -4,6 +4,9 @@ branches:
 language: node_js
 node_js:
 - '8'
+before_install: yarn global add greenkeeper-lockfile@1
+before_script: greenkeeper-lockfile-update
+after_script: greenkeeper-lockfile-upload
 script:
 - yarn lint
 - yarn test
@@ -19,3 +22,6 @@ deploy:
   on:
     tags: true
     repo: Stanford-Mobisocial-IoT-Lab/almond-dialog-agent
+env:
+  global:
+    secure: Vh7UgT8h+Rw/zBGxuCqfZinoDg98aoCfDKYFZSsyAy2zQo4s2fg9VNoYpQH6RjHKWHUYZeKd19bftM84ynZkzZOmp81qtmuKYEMNkVskuRGLg8b9LlGPEtzbvZW04RKfVwLbt2wh51XEOe8mKV1VNgyEBWrwY/CijxLPk8jVfWAi0TKFkOMf4c8lD2PtMJ8+L98AW67cUfV6Hzr+jYHA97GRPbXE0N6Aq66FcQsmJuf/Bbmvr7It55RzgeJ6+VDN8hFB+g8JEq9ofwVaWzS0D4tVliHN9TM3kb9C/mPVOk2LgY7BCnZ3uF3nBnulTHtJ1qcQZq58hsYa0kVcCJ3m6cvqtKEHgKdutSAg5ttsBoqXE/HFJx0wuIn6LgmqCGR8ZBmeIjVBIvy4R/RYwr4K5b2g+8LaGwVH7K3QJGxHaBIGV7Ge8N7xKBruOTVzQxm1T3qD7yTvIgXzQVAfXgSHHeFyFBWhIACPI5/pkVV+lTWSl44C6Yb7fCMAEtAw6Awv2wbodC4TYgogylSfWUWAyhaZEnmify2ew7+ZcoiWMcVKg99bBylyelXTW/9HnI2TSjIkHUvwUDMHVafjA4QJIZuPOu/7uwTomqcB7HMSaW1eiFxHYHOVrE4iAswrkoWgFkmaWoMY8Ft40jjnIYf/vBmR8mjkuAuZd4oSLVmE6fU=
