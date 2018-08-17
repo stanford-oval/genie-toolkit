@@ -1,3 +1,6 @@
+branches:
+  except:
+  - "/^wip/"
 language: node_js
 node_js:
 - '8'
@@ -22,3 +25,11 @@ notifications:
 env:
   global:
     secure: t2YIgxQicS4LFxjPAmYh/qd5b4Zyh3Y8bLGmVbWUNIfahPOU9jfnKfpAVEvWrjVgcFVIMahw47M3icPaewqcwNQVa0J7PiRHmFn9o7EKC8PJal0frkobuDEuKKF1Hj32IF/kzwqb1fT7YHxi4azwgHROw11A6xsPeQZlJbXwapzIupBav4jSD3F/tohoH/HejqzeHZUiX88/IJ5wvbLypmya5vP9gt1TAtC/Os+fB/lZ1kUtb6PnTmE9KAnxeyPHaIjECZo0t3hhjJRbFqfykP78pv4gusHjUfxBRkQ+X/PRybooO3yAPEbDhUqPk7cBsgRXc1kihISwH8jN9m3APy9t6qRooyolio9vTCiZuO5daxNVpqBk4xESYmT2kd076um3vC7rlBISgvA2x6JnmGdEnm1utMIi3nLho7O9Ofb3DX+YMNboRJOX+y1vULz0bPQdjbLOXDau4SwqphVb+22tIJ2wfzV6iQCngTANxODf8A37jU94yESVcESa9o/NoxRgk6ZtZLcP+gKoNRtErICy15DuDMSmPRxdSSW/+JqjSiY7N9oN/s5d56ziD9caEA57fgIDe8E5M3Tql+9gu4ndFunhcin6Dx2qftUbLL1XxVZQ4dZmUlXxTRg+RJFwxZKgfZO325//dGpVb5CePEbdr2wjB7WiIhgj2CLy8W4=
+deploy:
+  provider: npm
+  email: gcampagn@cs.stanford.edu
+  api_key:
+    secure: QGK0g7AEFlJ44E4pcIg+cuE7b411TvsSfkkp+4RWgSJiF36nv6lRHAO31JXHrmhw+QYpDRqQSZTZseCKpk078RICTUknp2UnZifQK6BLB5sK7Ia9fjDHJdq5vRfQbD9ri74zgL04iMKAH+yQnfBkIGQMvc/SdsRsbdFTMujULuYI5ih9tDlxILOnVZIwTfMS6v6KdhMxLv9+cI7PXkRtljYSnnc4d+zFMQKNuWRLAcWI8mLsT9WjQAY6lbZ5BPevAWB+yVXUfkIc00F0171AcegTZx9WMCP72+WB/pF5RGxZSWDtOb2YOJwVbREof2/8j4AZ5y68je0xfehyvP+P7mXiGklNxVhm7ctPpo3l1vafgqa6plUf8u7pO+qTTeIlG6Qs3xaBNp6motuTb3igSp9/bPFcvukmJF+6LnwtP77HDchbnYCaM+TcxbIBVj3l9OoP0Umt0KM2VhYJ06UIj0JKnvveoMRVRUtJmvY14qKh4EMCQ1KnVnlMDUnhgfQujETSQt3OSNkA8VfOHPzDBlhGS6JuTjZwftBYpOXrYQ5EQTS0Syj/bHXt1Fykcdd5ZHB7Vm2vSNNnGuChp1YxhbiDJ87Es3VqR4Xq/eRO6Itak8p/jVAgE91ognomO+eAuPOL/FlYWJ9XHKXy5hxLrgzx5ynsfaj4W/lUJ60h2Oo=
+  on:
+    tags: true
+    repo: Stanford-Mobisocial-IoT-Lab/thingengine-core
