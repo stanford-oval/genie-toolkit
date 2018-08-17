@@ -1,3 +1,9 @@
+1.1.0
+=====
+
+* New API to lookup entities and to check programs [#22, #21]
+* Misc bug fixes [#20]
+
 1.0.2
 =====
 
