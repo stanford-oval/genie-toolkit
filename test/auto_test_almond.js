@@ -33,13 +33,29 @@ var permission = null;
 var app = null;
 var appid = 0;
 
-function makeQueueItem(item) {
+async function queueResults(queue, results) {
     let _resolve, _reject;
-    new Promise((resolve, reject) => {
+    for (let item of results) {
+        const promise = new Promise((resolve, reject) => {
+            _resolve = resolve;
+            _reject = reject;
+        });
+        queue.push({ item, resolve: _resolve, reject: _reject });
+
+        // await the promise before queueing the next result
+        // this matches the behavior of thingengine-core,
+        // and tests a hang that otherwise occurs if the dialog
+        // waits on the output queue before releasing the queue
+        // item
+        await promise;
+    }
+
+    const promise = new Promise((resolve, reject) => {
         _resolve = resolve;
         _reject = reject;
     });
-    return { item, resolve: _resolve, reject: _reject };
+    queue.push({ item: { isDone: true }, resolve: _resolve, reject: _reject });
+    await promise;
 }
 
 class MockApp {
@@ -47,9 +63,10 @@ class MockApp {
         this.uniqueId = uniqueId;
 
         const queue = new AsyncQueue();
-        for (let item of results)
-            queue.push(makeQueueItem(item));
-        queue.push(makeQueueItem({ isDone: true }));
+        // if any error occurs asynchronously in queueResults,
+        // it won't be caught and it will crash the program
+        // in unhandledRejection (failing the test)
+        queueResults(queue, results);
 
         this.mainOutput = queue;
     }
