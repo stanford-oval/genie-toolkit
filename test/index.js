@@ -239,6 +239,29 @@ function testSimpleDo(engine) {
     });
 }
 
+function testDoSay(engine) {
+    return engine.apps.loadOneApp('now => @org.thingpedia.builtin.thingengine.builtin.say(message="test message");',
+        {}, undefined, undefined, 'some app', 'some app description', true).then((app) => {
+        // when we get here, the app might or might not have started already
+        // to be sure, we iterate its mainOutput
+
+        // the app is still running, so the engine should know about it
+        assert(engine.apps.hasApp(app.uniqueId));
+
+        return Promise.all([app, app.mainOutput.next()]);
+    }).then(([app, what]) => {
+        assert(what.item.isNotification);
+        assert.strictEqual(what.item.outputType, null);
+        assert.strictEqual(what.item.outputValue, "test message");
+        what.resolve();
+        return app.mainOutput.next();
+    }).then((what) => {
+        // there should be no result output, so we should be done immediately
+        assert(what.item.isDone);
+        what.resolve();
+    });
+}
+
 function testDoError(engine) {
     const test = engine.devices.getDevice('org.thingpedia.builtin.test');
     const originaldo = test.do_eat_data;
@@ -835,6 +858,8 @@ function testApps(engine) {
         return testSimpleDo(engine);
     }).then(() => {
         return testDoError(engine);
+    }).then(() => {
+        return testDoSay(engine);
     }).then(() => {
         return testSimpleGet(engine);
     }).then(() => {
