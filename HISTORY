@@ -1,3 +1,19 @@
+1.1.0
+=====
+
+* Entity linking (converting from natural language entity
+  names to their API-specific identifiers) is now performed
+  client-side [#22]
+* Results from queries are now revealed incrementally,
+  with a "More..." button [#17, #31]
+* It is now possible to run Almond without Comma, if Comma
+  is disabled at the platform level [#30]
+* Spotify is now marked as a safe action
+* Safe (auto-confirmed) actions now describe what they are
+  doing to the user before they do it.
+* Misc bug fixes
+* Build system/CI fixes
+
 1.0.3
 =====
 
