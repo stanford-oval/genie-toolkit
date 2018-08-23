@@ -2570,6 +2570,13 @@ text-table@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
 
+"thingpedia-client@github:Stanford-Mobisocial-IoT-Lab/thingpedia-client":
+  version "0.1.0"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-client/tar.gz/1cccfd53b256a8f76dcd1629cfa59ae3a56c92c1"
+  dependencies:
+    thingpedia "^2.2.1"
+    tmp "0.0.33"
+
 thingpedia-discovery@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/thingpedia-discovery/-/thingpedia-discovery-1.0.0.tgz#8f56f22419cc20ddce638ade986410066fc707dc"
