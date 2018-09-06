@@ -2658,7 +2658,7 @@ function main() {
         writeLine('Clicked example ' + ex);
         return Promise.resolve();
     };
-    engine.thingpedia.getDeviceSetup2 = (kinds) => {
+    engine.thingpedia.getDeviceSetup = (kinds) => {
         var ret = {};
         for (var k of kinds) {
             if (k === 'messaging' || k === 'org.thingpedia.builtin.matrix')

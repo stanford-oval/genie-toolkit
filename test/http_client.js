@@ -85,12 +85,8 @@ module.exports = class ThingpediaClientHttp {
         return this._simpleRequest('/api/devices', params);
     }
 
-    getDeviceSetup2(kinds) {
-        return this._simpleRequest('/api/v2/devices/setup/' + kinds.join(','));
-    }
-
     getDeviceSetup(kinds) {
-        return this._simpleRequest('/api/devices/setup/' + kinds.join(','));
+        return this._simpleRequest('/api/v2/devices/setup/' + kinds.join(','));
     }
 
     getKindByDiscovery(publicData) {
