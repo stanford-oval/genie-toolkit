@@ -2358,7 +2358,69 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 }`
     ],
 
+    ['\\t now => @com.xkcd.get_comic() => notify;',
+`>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+`{
+    now => @com.xkcd(id="com.xkcd-34").get_comic() => notify;
+}`],
+
+    [(almond) => {
+    // avoid polluting the logs
+    almond.platform.getSharedPreferences().set('sabrina-store-log', 'no');
+    return almond.handleCommand('get an xkcd comic');
+    },
+`>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+`{
+    now => @com.xkcd(id="com.xkcd-35").get_comic() => notify;
+}`],
+
+    [(almond) => {
+    // avoid polluting the logs
+    almond.platform.getSharedPreferences().set('sabrina-store-log', 'no');
+    return almond.handleCommand('get an xkcd comic');
+    },
+`>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+`{
+    now => @com.xkcd(id="com.xkcd-36").get_comic() => notify;
+}`],
+
+    [`tweet my instagram pictures`,
+`>> You don't have a Instagram
+>> link: Configure Instagram /devices/oauth2/com.instagram?name=Instagram
+>> ask special null
+`,
+    null],
+
+    // this is a special command that always fails to parse
+    // we use it to test the fallback paths
+    [`!! test command always failed !!`,
+`>> Sorry, I did not understand that. Try the following instead:
+>> button: eat test data {"example_id":1,"code":["now","=>","@org.thingpedia.builtin.test.eat_data"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: get test data {"example_id":2,"code":["now","=>","@org.thingpedia.builtin.test.get_data","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: get $p_size test data {"example_id":3,"code":["now","=>","@org.thingpedia.builtin.test.get_data","param:size:Measure(byte)","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_size":"Measure(byte)"},"slots":["p_size"]}
+>> ask special null
+`,
+    null],
+
+    [`!! test command always nothing !!`,
+`>> Sorry, I did not understand that. Use ‘help’ to learn what I can do for you.
+>> ask special null
+`,
+    null]
 ];
+
+function handleCommand(almond, input) {
+    if (input.startsWith('\\t'))
+        return almond.handleThingTalk(input.substring(2));
+    else
+        return almond.handleCommand(input);
+}
 
 function roundtrip(input, output) {
     flushBuffer();
@@ -2366,7 +2428,7 @@ function roundtrip(input, output) {
         //console.log('roundtrip begin', input);
         if (typeof input === 'string') {
             //console.log('$ ' + input);
-            return almond.handleCommand(input);
+            return handleCommand(almond, input);
         } else if (Array.isArray(input)) {
             return almond.handleParsedCommand({ code: input, entities: {} });
         } else if (typeof input === 'function') {
@@ -2545,6 +2607,15 @@ function main() {
         sempreUrl = process.argv[2].substr('--with-sempre='.length);
     almond = new Almond(engine, 'test', new MockUser(), delegate,
         { debug: false, sempreUrl: sempreUrl, showWelcome: true });
+
+    // inject some mocking in the parser:
+    const realSendUtterance = almond.parser.sendUtterance;
+    almond.parser.sendUtterance = function(utterance) {
+        if (utterance === '!! test command always nothing !!')
+            return Promise.resolve({ tokens: ('!! test command always nothing !!').split(' '), entities: {}, candidates: [] });
+        else
+            return realSendUtterance.apply(this, arguments);
+    };
 
     return promiseDoAll(TEST_CASES, test).then(() => {
         if (anyFailed)

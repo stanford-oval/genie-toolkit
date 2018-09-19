@@ -32,6 +32,30 @@ module.exports = {
         return Promise.resolve({ devices: ThingpediaDeviceFactories.devices.filter((d) => d.subcategory === klass).slice(page*page_size, page*page_size + page_size + 1) });
     },
 
+    getExamplesByKey(key) {
+        if (key === '!! test command always failed !!') {
+            return Promise.resolve([
+                { id: 1,
+                  utterance: "eat test data",
+                  preprocessed: "eat test data",
+                  target_code: `let action x := @org.thingpedia.builtin.test.eat_data();`,
+                  language: 'en' },
+                { id: 2,
+                  utterance: "get test data",
+                  preprocessed: "get test data",
+                  target_code: `let table x := @org.thingpedia.builtin.test.get_data();`,
+                  language: 'en' },
+                { id: 3,
+                  utterance: "get ${p_size} test data",
+                  preprocessed: "get ${p_size} test data",
+                  target_code: `let table x := \\(p_size : Measure(byte)) -> @org.thingpedia.builtin.test.get_data(size=p_size);`,
+                  language: 'en' },
+            ]);
+        } else {
+            return Promise.resolve([]);
+        }
+    },
+
     getExamplesByKinds(kinds) {
         return Promise.all(kinds.map((k) => {
             return new Promise((resolve, reject) => {
