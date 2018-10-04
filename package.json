@@ -36,7 +36,7 @@
     "lint": "eslint ./lib",
     "test": "nyc node test",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "prepublish": "which yarn >/dev/null 2>&1 && yarn compile-mo || npm run compile-mo"
+    "prepare": "which yarn >/dev/null 2>&1 && yarn compile-mo || npm run compile-mo"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
