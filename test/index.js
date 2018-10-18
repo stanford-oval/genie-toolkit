@@ -901,13 +901,15 @@ function testUtil(engine) {
     });
 }
 
+const THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
+
 function main() {
     var platform = require('./test_platform').newInstance();
     platform.setAssistant(new MockAssistant());
 
     var engine;
     Promise.resolve().then(() => {
-        engine = new Engine(platform);
+        engine = new Engine(platform, { thingpediaUrl: THINGPEDIA_URL });
         return engine.open();
     }).then(() => {
         Promise.resolve(testDevices(engine)).then(() => {
