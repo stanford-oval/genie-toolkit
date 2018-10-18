@@ -1,0 +1,38 @@
+dataset @gov.nasa language "en" {
+    stream  := monitor (@gov.nasa.asteroid())
+    #_[utterances=["when an asteroid passes close to earth"]]
+    #_[preprocessed=["when an asteroid passes close to earth"]]
+    #[id=1641548] #[click_count=2];
+    query  := @gov.nasa.asteroid()
+    #_[utterances=["today 's asteroid info"]]
+    #_[preprocessed=["today 's asteroid info"]]
+    #[id=1641549] #[click_count=1];
+    query  := @gov.nasa.apod()
+    #_[utterances=["nasa 's astronomy picture of the day","nasa 's apod","a nasa picture"]]
+    #_[preprocessed=["nasa 's astronomy picture of the day","nasa 's apod","a nasa picture"]]
+    #[id=1641550] #[click_count=2];
+    query  := @gov.nasa.rover()
+    #_[utterances=["a picture from curiosity rover","curiosity rover"]]
+    #_[preprocessed=["a picture from curiosity rover","curiosity rover"]]
+    #[id=1641553] #[click_count=1];
+    query (p_count :Number)  := @gov.nasa.rover(count=p_count)
+    #_[utterances=["${p_count:const} pictures from curiosity rover"]]
+    #_[preprocessed=["${p_count:const} pictures from curiosity rover"]]
+    #[id=1641555] #[click_count=1];
+    query (p_date_taken :Date)  := @gov.nasa.rover(date_taken=p_date_taken)
+    #_[utterances=["a picture from curiosity rover taken on $p_date_taken"]]
+    #_[preprocessed=["a picture from curiosity rover taken on $p_date_taken"]]
+    #[id=1641556] #[click_count=1];
+    stream  := monitor ((@gov.nasa.asteroid()), is_dangerous == true)
+    #_[utterances=["when a dangerous asteroid is close to earth"]]
+    #_[preprocessed=["when a dangerous asteroid is close to earth"]]
+    #[id=1641557] #[click_count=1];
+    stream (p_distance :Measure(m))  := monitor ((@gov.nasa.asteroid()), distance <= p_distance)
+    #_[utterances=["when an asteroid is closer to earth than ${p_distance}"]]
+    #_[preprocessed=["when an asteroid is closer to earth than ${p_distance}"]]
+    #[id=1641558] #[click_count=1];
+    stream (p_relative_velocity :Measure(mps))  := monitor ((@gov.nasa.asteroid()), relative_velocity >= p_relative_velocity)
+    #_[utterances=["when a close asteroid is faster than ${p_relative_velocity}"]]
+    #_[preprocessed=["when a close asteroid is faster than ${p_relative_velocity}"]]
+    #[id=1641559] #[click_count=1];
+}

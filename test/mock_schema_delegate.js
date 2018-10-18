@@ -1,78 +1,142 @@
 "use strict";
 
+const util = require('util');
+const assert = require('assert');
+
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
+const TpClient = require('thingpedia-client');
+
 const Thingpedia = require('./thingpedia.json');
 const ThingpediaDeviceFactories = require('./thingpedia-device-factories.json');
 const fs = require('fs');
 const path = require('path');
 
-module.exports = {
-    _schema: {},
-    _meta: {},
+// Parse the semi-obsolete JSON format for schemas used
+// by Thingpedia into a FunctionDef
+function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
+    const args = [];
+    // compat with Thingpedia API quirks
+    const types = schema.types || schema.schema;
 
-    getSchemas() {
-        return this._schema;
-    },
+    types.forEach((type, i) => {
+        type = Type.fromString(type);
+        const argname = schema.args[i];
+        const argrequired = !!schema.required[i];
+        const arginput = !!schema.is_input[i];
 
-    getMetas() {
-        return this._meta;
-    },
+        let direction;
+        if (argrequired)
+            direction = Ast.ArgDirection.IN_REQ;
+        else if (arginput)
+            direction = Ast.ArgDirection.IN_OPT;
+        else
+            direction = Ast.ArgDirection.OUT;
+        const metadata = {};
+        if (isMeta) {
+            metadata.prompt = schema.questions[i] || '';
+            metadata.canonical = schema.argcanonicals[i] || argname;
+        }
+        const annotations = {};
+
+        args.push(new Ast.ArgumentDef(direction, argname,
+            type, metadata, annotations));
+    });
+
+    const metadata = {};
+    if (isMeta) {
+        metadata.canonical = schema.canonical || '';
+        metadata.confirmation = schema.confirmation || '';
+    }
+    const annotations = {};
+
+    return new Ast.FunctionDef(functionType,
+                               functionName,
+                               args,
+                               schema.is_list,
+                               schema.is_monitorable,
+                               metadata,
+                               annotations);
+}
+
+function makeSchemaClassDef(kind, schema, isMeta) {
+    const queries = {};
+    for (let name in schema.queries)
+        queries[name] = makeSchemaFunctionDef('query', name, schema.queries[name], isMeta);
+    const actions = {};
+    for (let name in schema.actions)
+        actions[name] = makeSchemaFunctionDef('action', name, schema.actions[name], isMeta);
+
+    const imports = [];
+    const metadata = {};
+    const annotations = {};
+    return new Ast.ClassDef(kind, null, queries, actions,
+                            imports, metadata, annotations);
+}
+
+class MockSchemaDelegate extends TpClient.BaseClient {
+    constructor() {
+        super();
+        this._schema = {};
+        this._meta = {};
+        this._mixins = {};
+    }
+
+    // The Thingpedia APIs were changed to return ThingTalk class
+    // definitions rather than JSON
+    // We convert our JSON datafiles into ThingTalk code here
+
+    async getSchemas(kinds, useMeta) {
+        const source = useMeta ? this._meta : this._schema;
+
+        const classes = [];
+        for (let kind of kinds) {
+            // emulate Thingpedia's behavior of creating an empty class
+            // for invalid/unknown/invisible devices
+            if (!source[kind])
+                source[kind] = { queries: {}, actions: {} };
+            classes.push(makeSchemaClassDef(kind, source[kind], useMeta));
+        }
+        const input = new Ast.Input.Meta(classes, []);
+        return input.prettyprint();
+    }
 
     getDeviceCode(kind) {
-        return new Promise((resolve, reject) => {
-            fs.readFile(path.resolve(path.dirname(module.filename), kind + '.json'), (err, data) => {
-                if (err)
-                    reject(err);
-                else
-                    resolve(JSON.parse(data));
-            });
-        });
-    },
+        return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), kind + '.tt'));
+    }
 
     getDeviceList(klass, page, page_size) {
         return Promise.resolve({ devices: ThingpediaDeviceFactories.devices.filter((d) => d.subcategory === klass).slice(page*page_size, page*page_size + page_size + 1) });
-    },
+    }
 
     getExamplesByKey(key) {
         if (key === '!! test command always failed !!') {
-            return Promise.resolve([
-                { id: 1,
-                  utterance: "eat test data",
-                  preprocessed: "eat test data",
-                  target_code: `let action x := @org.thingpedia.builtin.test.eat_data();`,
-                  language: 'en' },
-                { id: 2,
-                  utterance: "get test data",
-                  preprocessed: "get test data",
-                  target_code: `let table x := @org.thingpedia.builtin.test.get_data();`,
-                  language: 'en' },
-                { id: 3,
-                  utterance: "get ${p_size} test data",
-                  preprocessed: "get ${p_size} test data",
-                  target_code: `let table x := \\(p_size : Measure(byte)) -> @org.thingpedia.builtin.test.get_data(size=p_size);`,
-                  language: 'en' },
-            ]);
+            return Promise.resolve(`dataset @org.thingpedia.dataset.generated.by_key.always_failed language "en" {
+    action := @org.thingpedia.builtin.test.eat_data()
+    #_[utterances=["eat test data"]]
+    #_[preprocessed=["eat test data"]]
+    #[id=1];
+
+    query := @org.thingpedia.builtin.test.get_data()
+    #_[utterances=["get test data"]]
+    #_[preprocessed=["get test data"]]
+    #[id=2];
+
+    query (p_size : Measure(byte)) := @org.thingpedia.builtin.test.get_data(size=p_size)
+    #_[utterances=["get ${'${p_size}'} test data"]]
+    #_[preprocessed=["get ${'${p_size}'} test data"]]
+    #[id=3];
+}`);
         } else {
-            return Promise.resolve([]);
+            return Promise.resolve(`dataset @org.thingpedia.dataset.generated.by_key language "en" {}`);
         }
-    },
+    }
 
     getExamplesByKinds(kinds) {
-        return Promise.all(kinds.map((k) => {
-            return new Promise((resolve, reject) => {
-                fs.readFile(path.resolve(path.dirname(module.filename), 'examples/' + k + '.json'), (err, data) => {
-                    if (err)
-                        reject(err);
-                    else
-                        resolve(JSON.parse(data));
-                });
-            });
-        })).then((arrays) => {
-            let flat = [];
-            for (let arr of arrays)
-                flat.push(...arr);
-            return flat;
-        });
-    },
+        assert.strictEqual(kinds.length === 1);
+        return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), 'examples/' + kinds[0] + '.tt'));
+    }
 
     async lookupEntity(entityType, entityDisplay) {
         if (entityType === 'tt:cryptocurrency_code') {
@@ -114,7 +178,8 @@ module.exports = {
             throw new Error('Invalid entity type ' + entityType);
         }
     }
-};
+}
+module.exports = new MockSchemaDelegate();
 for (let dev of Thingpedia.data) {
     module.exports._meta[dev.kind] = dev;
     module.exports._schema[dev.kind] = {

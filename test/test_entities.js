@@ -9,12 +9,19 @@
 // See COPYING for details
 "use strict";
 
+const TpClient = require('thingpedia-client');
+
 const { getBestEntityMatch } = require('../lib/dialogs/entity_lookup');
 
-const ThingpediaClient = require('./http_client');
-const THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
+const THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
 
-const _thingpediaClient = new ThingpediaClient(THINGPEDIA_URL, null, 'en-US');
+const _mockPlatform = {
+    locale: 'en-US',
+    getDeveloperkey() {
+        return null;
+    }
+};
+const _thingpediaClient = new TpClient.HttpClient(_mockPlatform, THINGPEDIA_URL);
 
 
 const TEST_CASES = [

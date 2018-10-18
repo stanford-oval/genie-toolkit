@@ -1,0 +1,10 @@
+dataset @com.phdcomics language "en" {
+    stream  := monitor (@com.phdcomics.get_post())
+    #_[utterances=["when there is a new post on phd comics","when a new phd comics is posted","when a new phd comic is published"]]
+    #_[preprocessed=["when there is a new post on phd comics","when a new phd comics is posted","when a new phd comic is published"]]
+    #[id=1645320] #[click_count=1];
+    query  := @com.phdcomics.get_post()
+    #_[utterances=["posts on phd comics","piled higher and deeper comics","phdcomics posts","posts on phdcomics","phd comics"]]
+    #_[preprocessed=["posts on phd comics","piled higher and deeper comics","phdcomics posts","posts on phdcomics","phd comics"]]
+    #[id=1645321] #[click_count=1];
+}
