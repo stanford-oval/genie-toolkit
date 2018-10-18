@@ -103,7 +103,7 @@ class MockSchemaDelegate extends TpClient.BaseClient {
     }
 
     getDeviceCode(kind) {
-        return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), kind + '.tt'));
+        return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), kind + '.tt'), { encoding: 'utf8' });
     }
 
     getDeviceList(klass, page, page_size) {
@@ -135,7 +135,7 @@ class MockSchemaDelegate extends TpClient.BaseClient {
 
     getExamplesByKinds(kinds) {
         assert.strictEqual(kinds.length === 1);
-        return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), 'examples/' + kinds[0] + '.tt'));
+        return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), 'examples/' + kinds[0] + '.tt'), { encoding: 'utf8' });
     }
 
     async lookupEntity(entityType, entityDisplay) {
