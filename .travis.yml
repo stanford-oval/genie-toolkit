@@ -9,10 +9,15 @@ before_install:
 - wget https://cvc4.cs.stanford.edu/downloads/builds/x86_64-linux-opt/cvc4-1.5-x86_64-linux-opt
   -O cvc4/cvc4
 - chmod +x cvc4/cvc4
-- export PATH="`pwd`/cvc4:$PATH"
 - mkdir -p ~/.cache
 - mkdir -p ~/.config
+- curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.10.1
+- export PATH="`pwd`/cvc4:$HOME/.yarn/bin:$PATH"
 - yarn global add greenkeeper-lockfile@1
+- (cd .. ; git clone --depth=50 https://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk.git ; cd ThingTalk ; yarn ; yarn link )
+install:
+- yarn link thingtalk
+- yarn
 before_script: greenkeeper-lockfile-update
 after_script: greenkeeper-lockfile-upload
 script:
