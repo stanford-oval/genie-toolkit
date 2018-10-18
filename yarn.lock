@@ -2657,7 +2657,7 @@ thingpedia@^2.2.1:
     tmp "0.0.33"
     xml2js "^0.4.17"
 
-thingtalk@^1.0.0, thingtalk@^1.1.1:
+thingtalk@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.1.1.tgz#089d8e44f92f3b1b17c2e979cd70467d0818f536"
   integrity sha1-CJ2ORPkvOxsXwul5zXBGfQgY9TY=
@@ -2670,6 +2670,15 @@ thingtalk@^1.0.0, thingtalk@^1.1.1:
 "thingtalk@git://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk":
   version "1.2.0"
   resolved "git://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk#4519e1007e199f3fafa8ba398e6804fb7e129ecb"
+  dependencies:
+    adt "~0.7.2"
+    byline "^5.0.0"
+    consumer-queue "^1.0.0"
+    smtlib "^0.1.1"
+
+"thingtalk@github:Stanford-Mobisocial-IoT-Lab/ThingTalk":
+  version "1.2.0"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/674167155bd5e6f408a0c7ce5772471a04c2a672"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
