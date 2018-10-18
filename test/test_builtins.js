@@ -12,13 +12,15 @@
 const assert = require('assert');
 
 const Tp = require('thingpedia');
+const ThingTalk = require('thingtalk');
 
 async function testGetCommands(engine) {
     const device = engine.devices.getDevice('thingengine-own-global');
 
-    const result = await device.get_get_commands({ device: new Tp.Value.Entity('com.bing', 'tt:device', 'Bing Search') });
+    const result = await device.get_get_commands({ device: new Tp.Value.Entity('com.xkcd', 'tt:device', 'XKCD') });
 
-    assert.deepStrictEqual(result, {});
+    for (let ex of result)
+        assert(ex.program instanceof ThingTalk.Ast.Example);
 }
 
 function testBuiltinsAreExpected(engine) {
