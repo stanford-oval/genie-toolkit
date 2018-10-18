@@ -54,7 +54,7 @@ class MockAssistant {
 const SUCCESS = {};
 const FAILURE = {};
 
-function testDevices(engine) {
+async function testDevices(engine) {
     const devices = engine.devices;
 
     // test that the built devices are what we expect
@@ -72,7 +72,7 @@ function testDevices(engine) {
     assert.strictEqual(builtin.length, 1);
     assert.strictEqual(builtin[0], devices.getDevice('thingengine-own-global'));
 
-    const test = devices.getAllDevicesOfKind('org.thingpedia.builtin.test');
+    let test = devices.getAllDevicesOfKind('org.thingpedia.builtin.test');
     assert.strictEqual(test.length, 1);
     assert.strictEqual(test[0], devices.getDevice('org.thingpedia.builtin.test'));
 
@@ -96,122 +96,120 @@ function testDevices(engine) {
 
     let view2;
 
-    return devices.loadOneDevice({ kind: 'com.xkcd' }, true).then((device) => {
-        const xkcd = devices.getAllDevicesOfKind('com.xkcd');
-        assert.strictEqual(xkcd.length, 1);
-        assert.strictEqual(xkcd[0], device);
-        assert(devices.hasDevice('com.xkcd'));
-        assert.strictEqual(devices.getDevice('com.xkcd'), device);
+    const device = await devices.loadOneDevice({ kind: 'com.xkcd' }, true);
 
-        const viewvalues = view.values();
-        assert.strictEqual(viewvalues.length, 1);
-        assert.strictEqual(viewvalues[0], device);
+    const xkcd = devices.getAllDevicesOfKind('com.xkcd');
+    assert.strictEqual(xkcd.length, 1);
+    assert.strictEqual(xkcd[0], device);
+    assert(devices.hasDevice('com.xkcd'));
+    assert.strictEqual(devices.getDevice('com.xkcd'), device);
 
-        assert.strictEqual(added, SUCCESS);
-        assert.strictEqual(removed, SUCCESS);
+    const viewvalues = view.values();
+    assert.strictEqual(viewvalues.length, 1);
+    assert.strictEqual(viewvalues[0], device);
 
-        view.stop();
-        view2 = new DeviceView(devices, Ast.Selector.Device('com.xkcd', null, null));
-        // start the view before we connect to the signal, so we are sure not to receive it
-        view2.start();
-        view2.on('object-added', (d) => {
-            assert.strictEqual(d, devices.getDevice('com.xkcd'));
-            added = FAILURE;
-        });
-        view2.on('object-removed', () => {
-            removed = SUCCESS;
-        });
+    assert.strictEqual(added, SUCCESS);
+    assert.strictEqual(removed, SUCCESS);
 
-        const view3 = new DeviceView(devices, Ast.Selector.Device('com.xkcd', 'com.xkcd', null));
-        view3.start();
-        assert.strictEqual(view3.values().length, 1);
-        view3.stop();
+    view.stop();
+    view2 = new DeviceView(devices, Ast.Selector.Device('com.xkcd', null, null));
+    // start the view before we connect to the signal, so we are sure not to receive it
+    view2.start();
+    view2.on('object-added', (d) => {
+        assert.strictEqual(d, devices.getDevice('com.xkcd'));
+        added = FAILURE;
+    });
+    view2.on('object-removed', () => {
+        removed = SUCCESS;
+    });
 
-        const view4 = new DeviceView(devices, Ast.Selector.Device('com.xkcd', 'com.xkcd2', null));
-        view4.start();
-        assert.strictEqual(view4.values().length, 0);
-        view4.stop();
+    const view3 = new DeviceView(devices, Ast.Selector.Device('com.xkcd', 'com.xkcd', null));
+    view3.start();
+    assert.strictEqual(view3.values().length, 1);
+    view3.stop();
 
-        return devices.removeDevice(device);
-    }).then(() => {
-        assert(!devices.hasDevice('com.xkcd'));
-        assert.strictEqual(added, SUCCESS);
-        assert.strictEqual(removed, SUCCESS);
+    const view4 = new DeviceView(devices, Ast.Selector.Device('com.xkcd', 'com.xkcd2', null));
+    view4.start();
+    assert.strictEqual(view4.values().length, 0);
+    view4.stop();
 
-        assert.deepStrictEqual(view2.values(), []);
-    }).then(() => {
-        return devices.updateDevicesOfKind('com.xkcd');
-    }).then(() => {
-        // should do (almost) nothing because there is no twitter configured
-        return devices.updateDevicesOfKind('com.twitter');
-    }).then(() => {
+    await devices.removeDevice(device);
+    assert(!devices.hasDevice('com.xkcd'));
+    assert.strictEqual(added, SUCCESS);
+    assert.strictEqual(removed, SUCCESS);
+
+    assert.deepStrictEqual(view2.values(), []);
+
+    await devices.updateDevicesOfKind('com.xkcd');
+
+    // should do (almost) nothing because there is no twitter configured
+
+    await devices.updateDevicesOfKind('com.twitter');
+
+    test = devices.getDevice('org.thingpedia.builtin.test');
+    const result = await test.get_get_data({ count: 2, size: 10 });
+    assert.deepStrictEqual(result, [{
+        data: '!!!!!!!!!!',
+    }, {
+        data: '""""""""""'
+    }]);
+
+    const fakeState = {
+        _state: {},
+        get(key) {
+            return this._state[key];
+        },
+        set(key, v) {
+            this._state[key] = v;
+            return v;
+        }
+    };
+
+    return new Promise((resolve, reject) => {
         const test = devices.getDevice('org.thingpedia.builtin.test');
 
-        return test.get_get_data({ count: 2, size: 10 });
-    }).then((result) => {
-        assert.deepStrictEqual(result, [{
-            data: '!!!!!!!!!!',
-        }, {
-            data: '""""""""""'
-        }]);
+        const stream = test.subscribe_get_data({ size: 10 }, fakeState);
+        const buffer = [];
 
-        const fakeState = {
-            _state: {},
-            get(key) {
-                return this._state[key];
-            },
-            set(key, v) {
-                this._state[key] = v;
-                return v;
-            }
-        };
-
-        return new Promise((resolve, reject) => {
-            const test = devices.getDevice('org.thingpedia.builtin.test');
-
-            const stream = test.subscribe_get_data({ size: 10 }, fakeState);
-            const buffer = [];
-
-            stream.on('data', (d) => {
-                assert(d.hasOwnProperty('__timestamp'));
-                delete d.__timestamp;
-                buffer.push(d);
-            });
-            stream.on('end', () => reject(new Error('Unexpected end')));
-            stream.on('error', reject);
-
-            let atTimeout = null;
-            setTimeout(() => {
-                assert(buffer.length >= 4 && buffer.length <= 6);
-                stream.destroy();
-                atTimeout = buffer.length;
-            }, 5000);
-            setTimeout(() => {
-                assert.strictEqual(buffer.length, atTimeout);
-                assert.deepStrictEqual(buffer.slice(0, 4), [
-                    { data: '!!!!!!!!!!' },
-                    { data: '""""""""""' },
-                    { data: '##########' },
-                    { data: '$$$$$$$$$$' }
-                ]);
-
-                resolve();
-            }, 10000);
+        stream.on('data', (d) => {
+            assert(d.hasOwnProperty('__timestamp'));
+            delete d.__timestamp;
+            buffer.push(d);
         });
+        stream.on('end', () => reject(new Error('Unexpected end')));
+        stream.on('error', reject);
+
+        let atTimeout = null;
+        setTimeout(() => {
+            assert(buffer.length >= 4 && buffer.length <= 6);
+            stream.destroy();
+            atTimeout = buffer.length;
+        }, 5000);
+        setTimeout(() => {
+            assert.strictEqual(buffer.length, atTimeout);
+            assert.deepStrictEqual(buffer.slice(0, 4), [
+                { data: '!!!!!!!!!!' },
+                { data: '""""""""""' },
+                { data: '##########' },
+                { data: '$$$$$$$$$$' }
+            ]);
+
+            resolve();
+        }, 10000);
     });
 }
 
-function testHTTPClient(engine) {
-    return ThingTalk.Grammar.parseAndTypecheck('now => @com.xkcd.get_comic() => notify;', engine.schemas, false).then(() => {
-        // do it again, to check that it is cached
-        return ThingTalk.Grammar.parseAndTypecheck('now => @com.xkcd.get_comic() => notify;', engine.schemas, false);
-    }).then(() => {
-        // now with metas
-        return ThingTalk.Grammar.parseAndTypecheck('now => @com.xkcd.get_comic() => notify;', engine.schemas, true);
-    });
+async function testHTTPClient(engine) {
+    await ThingTalk.Grammar.parseAndTypecheck('now => @com.xkcd.get_comic() => notify;', engine.schemas, false);
+
+    // do it again, to check that it is cached
+    await ThingTalk.Grammar.parseAndTypecheck('now => @com.xkcd.get_comic() => notify;', engine.schemas, false);
+
+    // now with metas
+    await ThingTalk.Grammar.parseAndTypecheck('now => @com.xkcd.get_comic() => notify;', engine.schemas, true);
 }
 
-function testSimpleDo(engine) {
+async function testSimpleDo(engine) {
     const test = engine.devices.getDevice('org.thingpedia.builtin.test');
     const originaldo = test.do_eat_data;
 
@@ -221,48 +219,46 @@ function testSimpleDo(engine) {
         result = SUCCESS;
     };
 
-    return engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.eat_data(data="some data ");',
-        {}, undefined, undefined, 'some app', 'some app description', true).then((app) => {
-        // when we get here, the app might or might not have started already
-        // to be sure, we iterate its mainOutput
+    const app = await engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.eat_data(data="some data ");',
+        {}, undefined, undefined, 'some app', 'some app description', true);
 
-        // the app is still running, so the engine should know about it
-        assert(engine.apps.hasApp(app.uniqueId));
+    // when we get here, the app might or might not have started already
+    // to be sure, we iterate its mainOutput
 
-        return app.mainOutput.next();
-    }).then((what) => {
-        // there should be no result output, so we should be done immediately
-        assert(what.item.isDone);
-        what.resolve();
-        assert.strictEqual(result, SUCCESS);
-        test.do_eat_data = originaldo;
-    });
+    // the app is still running, so the engine should know about it
+    assert(engine.apps.hasApp(app.uniqueId));
+
+    const what = await app.mainOutput.next();
+    // there should be no result output, so we should be done immediately
+    assert(what.item.isDone);
+    what.resolve();
+    assert.strictEqual(result, SUCCESS);
+    test.do_eat_data = originaldo;
 }
 
-function testDoSay(engine) {
-    return engine.apps.loadOneApp('now => @org.thingpedia.builtin.thingengine.builtin.say(message="test message");',
-        {}, undefined, undefined, 'some app', 'some app description', true).then((app) => {
-        // when we get here, the app might or might not have started already
-        // to be sure, we iterate its mainOutput
+async function testDoSay(engine) {
+    const app = await engine.apps.loadOneApp('now => @org.thingpedia.builtin.thingengine.builtin.say(message="test message");',
+        {}, undefined, undefined, 'some app', 'some app description', true);
 
-        // the app is still running, so the engine should know about it
-        assert(engine.apps.hasApp(app.uniqueId));
+    // when we get here, the app might or might not have started already
+    // to be sure, we iterate its mainOutput
 
-        return Promise.all([app, app.mainOutput.next()]);
-    }).then(([app, what]) => {
-        assert(what.item.isNotification);
-        assert.strictEqual(what.item.outputType, null);
-        assert.strictEqual(what.item.outputValue, "test message");
-        what.resolve();
-        return app.mainOutput.next();
-    }).then((what) => {
-        // there should be no result output, so we should be done immediately
-        assert(what.item.isDone);
-        what.resolve();
-    });
+    // the app is still running, so the engine should know about it
+    assert(engine.apps.hasApp(app.uniqueId));
+
+    let what = await app.mainOutput.next();
+    assert(what.item.isNotification);
+    assert.strictEqual(what.item.outputType, null);
+    assert.strictEqual(what.item.outputValue, "test message");
+    what.resolve();
+
+    what = await app.mainOutput.next();
+    // there should be no result output, so we should be done immediately
+    assert(what.item.isDone);
+    what.resolve();
 }
 
-function testDoError(engine) {
+async function testDoError(engine) {
     const test = engine.devices.getDevice('org.thingpedia.builtin.test');
     const originaldo = test.do_eat_data;
 
@@ -271,88 +267,84 @@ function testDoError(engine) {
         throw error;
     };
 
-    return engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.eat_data(data="some data ");',
-        {}, undefined, undefined, 'some app', 'some app description', true).then((app) => {
-        // when we get here, the app might or might not have started already
-        // to be sure, we iterate its mainOutput
+    const app = await engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.eat_data(data="some data ");',
+        {}, undefined, undefined, 'some app', 'some app description', true);
+    // when we get here, the app might or might not have started already
+    // to be sure, we iterate its mainOutput
 
-        // the app is still running, so the engine should know about it
-        assert(engine.apps.hasApp(app.uniqueId));
+    // the app is still running, so the engine should know about it
+    assert(engine.apps.hasApp(app.uniqueId));
 
-        return app.mainOutput.next().then((what) => {
-            assert(what.item.isError);
-            what.resolve();
-            assert.strictEqual(what.item.icon, null);
-            assert.strictEqual(what.item.error, error);
-            return app.mainOutput.next();
-        }).then((what) => {
-            // there should be no result output, so we should be done immediately
-            assert(what.item.isDone);
-            what.resolve();
-            test.do_eat_data = originaldo;
-        });
-    });
+    let what = await app.mainOutput.next();
+    assert(what.item.isError);
+    what.resolve();
+    assert.strictEqual(what.item.icon, null);
+    assert.strictEqual(what.item.error, error);
+
+    what = await app.mainOutput.next();
+    // there should be no result output, so we should be done immediately
+    assert(what.item.isDone);
+    what.resolve();
+    test.do_eat_data = originaldo;
 }
 
-function testSimpleGet(engine, icon = null) {
-    return engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
-        { $icon: icon }, undefined, undefined, 'some app', 'some app description', true).then((app) => {
-        // when we get here, the app might or might not have started already
-        // to be sure, we iterate its mainOutput
+async function testSimpleGet(engine, icon = null) {
+    const app = await engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        { $icon: icon }, undefined, undefined, 'some app', 'some app description', true);
+    // when we get here, the app might or might not have started already
+    // to be sure, we iterate its mainOutput
 
-        // the app is still running, so the engine should know about it
-        assert(engine.apps.hasApp(app.uniqueId));
-        return app.mainOutput.next().then((what) => {
-            assert(what.item.isNotification);
-            what.resolve();
-            assert.strictEqual(what.item.icon, icon);
-            assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test:get_data');
-            assert.deepStrictEqual(what.item.outputValue, { data: '!!!!!!!!!!', count: 2, size: 10 });
-            return app.mainOutput.next();
-        }).then((what) => {
-            assert(what.item.isNotification);
-            what.resolve();
-            assert.strictEqual(what.item.icon, icon);
-            assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test:get_data');
-            assert.deepStrictEqual(what.item.outputValue, { data: '""""""""""', count: 2, size: 10 });
-            return app.mainOutput.next();
-        }).then((what) => {
-            assert(what.item.isDone);
-            what.resolve();
-        });
-    });
+    // the app is still running, so the engine should know about it
+    assert(engine.apps.hasApp(app.uniqueId));
+
+    let what = await app.mainOutput.next();
+    assert(what.item.isNotification);
+    what.resolve();
+    assert.strictEqual(what.item.icon, icon);
+    assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test:get_data');
+    assert.deepStrictEqual(what.item.outputValue, { data: '!!!!!!!!!!', count: 2, size: 10 });
+
+    what = await app.mainOutput.next();
+    assert(what.item.isNotification);
+    what.resolve();
+    assert.strictEqual(what.item.icon, icon);
+    assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test:get_data');
+    assert.deepStrictEqual(what.item.outputValue, { data: '""""""""""', count: 2, size: 10 });
+
+    what = await app.mainOutput.next();
+    assert(what.item.isDone);
+    what.resolve();
 }
 
-function testGetGet(engine, icon = null) {
-    return engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) join @org.thingpedia.builtin.test.dup_data() on (data_in=data) => notify;',
-        { $icon: icon }, undefined, undefined, 'some app', 'some app description', true).then((app) => {
-        // when we get here, the app might or might not have started already
-        // to be sure, we iterate its mainOutput
+async function testGetGet(engine, icon = null) {
+    const app = await engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) join @org.thingpedia.builtin.test.dup_data() on (data_in=data) => notify;',
+        { $icon: icon }, undefined, undefined, 'some app', 'some app description', true);
+    // when we get here, the app might or might not have started already
+    // to be sure, we iterate its mainOutput
 
-        // the app is still running, so the engine should know about it
-        assert(engine.apps.hasApp(app.uniqueId));
-        return app.mainOutput.next().then((what) => {
-            assert(what.item.isNotification);
-            what.resolve();
-            assert.strictEqual(what.item.icon, icon);
-            assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test:get_data+org.thingpedia.builtin.test:dup_data');
-            assert.deepStrictEqual(what.item.outputValue, { data: '!!!!!!!!!!', count: 2, size: 10, data_in: '!!!!!!!!!!', data_out: '!!!!!!!!!!!!!!!!!!!!',});
-            return app.mainOutput.next();
-        }).then((what) => {
-            assert(what.item.isNotification);
-            what.resolve();
-            assert.strictEqual(what.item.icon, icon);
-            assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test:get_data+org.thingpedia.builtin.test:dup_data');
-            assert.deepStrictEqual(what.item.outputValue, { data: '""""""""""', count: 2, size: 10, data_in: '""""""""""', data_out: '""""""""""""""""""""', });
-            return app.mainOutput.next();
-        }).then((what) => {
-            assert(what.item.isDone);
-            what.resolve();
-        });
-    });
+    // the app is still running, so the engine should know about it
+    assert(engine.apps.hasApp(app.uniqueId));
+
+    let what = await app.mainOutput.next();
+    assert(what.item.isNotification);
+    what.resolve();
+    assert.strictEqual(what.item.icon, icon);
+    assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test:get_data+org.thingpedia.builtin.test:dup_data');
+    assert.deepStrictEqual(what.item.outputValue, { data: '!!!!!!!!!!', count: 2, size: 10, data_in: '!!!!!!!!!!', data_out: '!!!!!!!!!!!!!!!!!!!!',});
+
+    what = await app.mainOutput.next();
+    assert(what.item.isNotification);
+    what.resolve();
+    assert.strictEqual(what.item.icon, icon);
+    assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test:get_data+org.thingpedia.builtin.test:dup_data');
+    assert.deepStrictEqual(what.item.outputValue, { data: '""""""""""', count: 2, size: 10, data_in: '""""""""""', data_out: '""""""""""""""""""""', });
+
+    what = await app.mainOutput.next();
+    assert(what.item.isDone);
+    what.resolve();
 }
 
-function testGetError(engine, icon = null) {
+async function testGetError(engine, icon = null) {
     const test = engine.devices.getDevice('org.thingpedia.builtin.test');
     const originalget = test.get_get_data;
 
@@ -361,25 +353,24 @@ function testGetError(engine, icon = null) {
         throw error;
     };
 
-    return engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
-        { $icon: icon }, undefined, undefined, 'some app', 'some app description', true).then((app) => {
-        // when we get here, the app might or might not have started already
-        // to be sure, we iterate its mainOutput
+    const app = await engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        { $icon: icon }, undefined, undefined, 'some app', 'some app description', true);
+    // when we get here, the app might or might not have started already
+    // to be sure, we iterate its mainOutput
 
-        // the app is still running, so the engine should know about it
-        assert(engine.apps.hasApp(app.uniqueId));
-        return app.mainOutput.next().then((what) => {
-            assert(what.item.isError);
-            what.resolve();
-            assert.strictEqual(what.item.icon, 'org.foo');
-            assert.strictEqual(what.item.error, error);
-            return app.mainOutput.next();
-        }).then((what) => {
-            assert(what.item.isDone);
-            what.resolve();
-            test.get_get_data = originalget;
-        });
-    });
+    // the app is still running, so the engine should know about it
+    assert(engine.apps.hasApp(app.uniqueId));
+
+    let what = await app.mainOutput.next();
+    assert(what.item.isError);
+    what.resolve();
+    assert.strictEqual(what.item.icon, 'org.foo');
+    assert.strictEqual(what.item.error, error);
+
+    what = await app.mainOutput.next();
+    assert(what.item.isDone);
+    what.resolve();
+    test.get_get_data = originalget;
 }
 
 function testWhen(engine, conversation) {
@@ -421,7 +412,7 @@ function testWhen(engine, conversation) {
             }
         });
 
-        return engine.apps.loadOneApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        engine.apps.loadOneApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
             { $icon: 'org.foo', $conversation: conversation ? 'mock' : undefined },
             'uuid-foo-' + conversation, undefined, 'some app', 'some app description', true).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
@@ -613,7 +604,7 @@ function genFakeData(size, fill) {
     return String(Buffer.alloc(size, fill));
 }
 
-function testWhenRestart(engine) {
+async function testWhenRestart(engine) {
     const assistant = engine.platform.getCapability('assistant');
     const test = engine.devices.getDevice('org.thingpedia.builtin.test');
     const originalsubscribe = test.subscribe_get_data;
@@ -631,8 +622,10 @@ function testWhenRestart(engine) {
         return stream;
     };
 
-    return drainTestWhen(engine).then(() => {
-        return new Promise((resolve, reject) => {
+    await drainTestWhen(engine);
+
+    try {
+        await new Promise((resolve, reject) => {
             setTimeout(() => reject(new Error('Timed out while waiting for data to appear')), 10000).unref();
 
             assistant._setConversation({
@@ -646,7 +639,7 @@ function testWhenRestart(engine) {
                 }
             });
 
-            return engine.apps.loadOneApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+            engine.apps.loadOneApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
                 { $icon: 'org.foo' },
                 'uuid-foo-when-restart', undefined, 'some app', 'some app description', true).then((app) => {
                 assert.strictEqual(app.icon, 'org.foo');
@@ -657,13 +650,9 @@ function testWhenRestart(engine) {
                 }));
             }).catch(reject);
         });
-    }).then((v) => {
+    } finally {
         test.subscribe_get_data = originalsubscribe;
-        return v;
-    }, (e) => {
-        test.subscribe_get_data = originalsubscribe;
-        throw e;
-    });
+    }
 }
 
 function testWhenGet(engine, conversation) {
@@ -705,7 +694,7 @@ function testWhenGet(engine, conversation) {
             }
         });
 
-        return engine.apps.loadOneApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) join @org.thingpedia.builtin.test.dup_data() on (data_in=data) => notify;',
+        engine.apps.loadOneApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) join @org.thingpedia.builtin.test.dup_data() on (data_in=data) => notify;',
             { $icon: 'org.foo', $conversation: conversation ? 'mock' : undefined },
             'uuid-when-get', undefined, 'some app', 'some app description', true).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
@@ -754,7 +743,7 @@ function testTimer(engine, conversation) {
             }
         });
 
-        return engine.apps.loadOneApp('timer(base=makeDate(),interval=2s) join @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        engine.apps.loadOneApp('timer(base=makeDate(),interval=2s) join @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
             { $icon: 'org.foo', $conversation: conversation ? 'mock' : undefined },
             'uuid-timer-foo', undefined, 'some app', 'some app description', true).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
@@ -763,7 +752,7 @@ function testTimer(engine, conversation) {
     });
 }
 
-function testAtTimer(engine, conversation) {
+async function testAtTimer(engine, conversation) {
     const assistant = engine.platform.getCapability('assistant');
 
     // we cannot reliably test attimers, but we can test they don't fire
@@ -779,21 +768,19 @@ function testAtTimer(engine, conversation) {
         }
     });
 
-    return engine.apps.loadOneApp(`attimer(time=makeTime(${now.getHours()+2},${now.getMinutes()})) join @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;`,
+    const app = await engine.apps.loadOneApp(`attimer(time=makeTime(${now.getHours()+2},${now.getMinutes()})) join @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;`,
         { $icon: 'org.foo', $conversation: conversation ? 'mock' : undefined },
-        'uuid-attimer-foo', undefined, 'some app', 'some app description', true).then((app) => {
-        assert.strictEqual(app.icon, 'org.foo');
-        assert.strictEqual(app.uniqueId, 'uuid-attimer-foo');
+        'uuid-attimer-foo', undefined, 'some app', 'some app description', true);
+    assert.strictEqual(app.icon, 'org.foo');
+    assert.strictEqual(app.uniqueId, 'uuid-attimer-foo');
 
-        return new Promise((resolve, reject) => {
-            setTimeout(resolve, 5000);
-        }).then(() => {
-            return engine.apps.removeApp(app);
-        });
+    await new Promise((resolve, reject) => {
+        setTimeout(resolve, 5000);
     });
+    await engine.apps.removeApp(app);
 }
 
-function testLoadAppSyntaxError(engine) {
+async function testLoadAppSyntaxError(engine) {
     const assistant = engine.platform.getCapability('assistant');
 
     assistant._setConversation({
@@ -808,19 +795,18 @@ function testLoadAppSyntaxError(engine) {
         }
     });
 
-    return engine.apps.loadOneApp(`foo foo foo`,
+    const app = await engine.apps.loadOneApp(`foo foo foo`,
         { $icon: 'org.foo', $conversation: undefined },
-        'uuid-syntax-err', undefined, 'some app', 'some app description', true).then((app) => {
-        assert.strictEqual(app.icon, 'org.foo');
-        assert.strictEqual(app.uniqueId, 'uuid-syntax-err');
-        assert(!!app.error);
+        'uuid-syntax-err', undefined, 'some app', 'some app description', true);
+    assert.strictEqual(app.icon, 'org.foo');
+    assert.strictEqual(app.uniqueId, 'uuid-syntax-err');
+    assert(!!app.error);
 
-        assert(!engine.apps.hasApp(app));
-        assert.deepStrictEqual(engine.apps.getAllApps(), []);
-    });
+    assert(!engine.apps.hasApp(app));
+    assert.deepStrictEqual(engine.apps.getAllApps(), []);
 }
 
-function testLoadAppTypeError(engine) {
+async function testLoadAppTypeError(engine) {
     const assistant = engine.platform.getCapability('assistant');
 
     assistant._setConversation({
@@ -835,99 +821,78 @@ function testLoadAppTypeError(engine) {
         }
     });
 
-    return engine.apps.loadOneApp(`now => @com.twitter.search(), temperature >= 42 => notify;`,
+    const app = await engine.apps.loadOneApp(`now => @com.twitter.search(), temperature >= 42 => notify;`,
         { $icon: 'org.foo', $conversation: undefined },
-        'uuid-type-err', undefined, 'some app', 'some app description', true).then((app) => {
-        assert.strictEqual(app.icon, 'org.foo');
-        assert.strictEqual(app.uniqueId, 'uuid-type-err');
-        assert(!!app.error);
+        'uuid-type-err', undefined, 'some app', 'some app description', true);
+    assert.strictEqual(app.icon, 'org.foo');
+    assert.strictEqual(app.uniqueId, 'uuid-type-err');
+    assert(!!app.error);
 
-        assert(!engine.apps.hasApp(app));
-        assert.deepStrictEqual(engine.apps.getAllApps(), []);
-    });
+    assert(!engine.apps.hasApp(app));
+    assert.deepStrictEqual(engine.apps.getAllApps(), []);
 }
 
-function testApps(engine) {
+async function testApps(engine) {
     assert.deepStrictEqual(engine.apps.getAllApps(), []);
 
-    return Promise.resolve().then(() => {
-        return testLoadAppSyntaxError(engine);
-    }).then(() => {
-        return testLoadAppTypeError(engine);
-    }).then(() => {
-        return testSimpleDo(engine);
-    }).then(() => {
-        return testDoError(engine);
-    }).then(() => {
-        return testDoSay(engine);
-    }).then(() => {
-        return testSimpleGet(engine);
-    }).then(() => {
-        return testSimpleGet(engine, 'org.foo');
-    }).then(() => {
-        return testGetGet(engine);
-    }).then(() => {
-        return testGetError(engine, 'org.foo');
-    }).then(() => {
-        return testWhen(engine, true);
-    }).then(() => {
-        return testWhen(engine, false);
-    }).then(() => {
-        return testTimer(engine);
-    }).then(() => {
-        return testAtTimer(engine);
-    }).then(() => {
-        return testWhenGet(engine);
-    }).then(() => {
-        return testWhenRestart(engine);
-    }).then(() => {
-        return testWhenErrorInit(engine);
-    }).then(() => {
-        return testWhenErrorAsync(engine);
-    }).then(() => {
-        const assistant = engine.platform.getCapability('assistant');
-        assistant._setConversation(null);
+    await testLoadAppSyntaxError(engine);
+    await testLoadAppTypeError(engine);
+    await testSimpleDo(engine);
+    await testDoError(engine);
+    await testDoSay(engine);
+    await testSimpleGet(engine);
+    await testSimpleGet(engine, 'org.foo');
+    await testGetGet(engine);
+    await testGetError(engine, 'org.foo');
+    await testWhen(engine, true);
+    await testWhen(engine, false);
+    await testTimer(engine);
+    await testAtTimer(engine);
+    await testWhenGet(engine);
+    await testWhenRestart(engine);
+    await testWhenErrorInit(engine);
+    await testWhenErrorAsync(engine);
 
-        assert.deepStrictEqual(engine.apps.getAllApps(), []);
-    });
+    const assistant = engine.platform.getCapability('assistant');
+    assistant._setConversation(null);
+
+    assert.deepStrictEqual(engine.apps.getAllApps(), []);
 }
 
-function testUtil(engine) {
-    return Promise.resolve(IpAddress.getServerAddresses()).then((addresses) => {
-        addresses.forEach((address) => {
-            assert(/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|[0-9a-fA-F:]+)$/.test(address));
-        });
-        return IpAddress.getServerName();
+async function testUtil(engine) {
+    const addresses = await IpAddress.getServerAddresses();
+    addresses.forEach((address) => {
+        assert(/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|[0-9a-fA-F:]+)$/.test(address));
     });
+    await IpAddress.getServerName();
 }
 
 const THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
 
-function main() {
-    var platform = require('./test_platform').newInstance();
-    platform.setAssistant(new MockAssistant());
+async function runTests(engine) {
+    try {
+        await testDevices(engine);
+        await testHTTPClient(engine);
+        await testApps(engine);
+        await testUtil(engine);
 
-    var engine;
-    Promise.resolve().then(() => {
-        engine = new Engine(platform, { thingpediaUrl: THINGPEDIA_URL });
-        return engine.open();
-    }).then(() => {
-        Promise.resolve(testDevices(engine)).then(() => {
-            return testHTTPClient(engine);
-        }).then(() => {
-            return testApps(engine);
-        }).then(() => {
-            return testUtil(engine);
-        }).then(() => {
-            return engine.stop();
-        }).catch((e) => {
-            console.error('FAIL: ', e);
-            process.exit(1);
-        });
-        return engine.run();
-    }).then(() => {
-        return engine.close();
-    });
+        await engine.stop();
+    } catch(e) {
+        console.error('FAIL: ', e);
+        process.exit(1);
+    }
 }
 
+async function main() {
+    const platform = require('./test_platform').newInstance();
+    platform.setAssistant(new MockAssistant());
+
+    const engine = new Engine(platform, { thingpediaUrl: THINGPEDIA_URL });
+    await engine.open();
+
+    runTests(engine);
+    await engine.run();
+
+    await engine.close();
+}
 main();
