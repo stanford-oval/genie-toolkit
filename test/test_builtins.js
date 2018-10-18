@@ -23,6 +23,28 @@ async function testGetCommands(engine) {
         assert(ex.program instanceof ThingTalk.Ast.Example);
 }
 
+async function testOtherBuiltins(engine) {
+    const device = engine.devices.getDevice('thingengine-own-global');
+
+    const now = new Date;
+
+    const [date] = await device.get_get_date();
+    assert(date.date instanceof Date);
+    assert(date.date >= now);
+    assert(date.date <= now.getTime() + 10000);
+
+    const [time] = await device.get_get_time();
+    assert(time.time instanceof Date);
+    assert(time.time >= now);
+    assert(time.time <= now.getTime() + 10000);
+
+    const [random] = await device.get_get_random_between({ low: 0, high: 7 });
+    assert.strictEqual(typeof random.random, 'number');
+    assert(random.random >= 0);
+    assert(random.random <= 7);
+    assert.strictEqual(Math.floor(random.random), random.random);
+}
+
 function testBuiltinsAreExpected(engine) {
     // test that the built devices are what we expect
 
@@ -39,4 +61,5 @@ function testBuiltinsAreExpected(engine) {
 module.exports = async function testBuiltins(engine) {
     await testBuiltinsAreExpected(engine);
     await testGetCommands(engine);
+    await testOtherBuiltins(engine);
 };
