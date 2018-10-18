@@ -62,7 +62,7 @@ function candidateToString(cand) {
     else if (cand.isSetup)
         return `Setup(${cand.program.prettyprint(true)})`;
     else if (cand.isPermissionRule)
-        return `PermissionRule(${cand.permissionRule.prettyprint(true)})`;
+        return `PermissionRule(${cand.rule.prettyprint(true)})`;
     else
         return String(cand);
 }
