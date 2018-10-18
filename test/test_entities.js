@@ -17,7 +17,7 @@ const THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
 
 const _mockPlatform = {
     locale: 'en-US',
-    getDeveloperkey() {
+    getDeveloperKey() {
         return null;
     }
 };

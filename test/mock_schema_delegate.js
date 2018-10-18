@@ -107,12 +107,12 @@ class MockSchemaDelegate extends TpClient.BaseClient {
     }
 
     getDeviceList(klass, page, page_size) {
-        return Promise.resolve({ devices: ThingpediaDeviceFactories.devices.filter((d) => d.subcategory === klass).slice(page*page_size, page*page_size + page_size + 1) });
+        return Promise.resolve(ThingpediaDeviceFactories.devices.filter((d) => d.subcategory === klass).slice(page*page_size, page*page_size + page_size + 1));
     }
 
     getExamplesByKey(key) {
         if (key === '!! test command always failed !!') {
-            return Promise.resolve(`dataset @org.thingpedia.dataset.generated.by_key.always_failed language "en" {
+            return Promise.resolve(`dataset @org.thingpedia.generated.by_key.always_failed language "en" {
     action := @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["eat test data"]]
     #_[preprocessed=["eat test data"]]
@@ -129,12 +129,12 @@ class MockSchemaDelegate extends TpClient.BaseClient {
     #[id=3];
 }`);
         } else {
-            return Promise.resolve(`dataset @org.thingpedia.dataset.generated.by_key language "en" {}`);
+            return Promise.resolve(`dataset @org.thingpedia.generated.by_key language "en" {}`);
         }
     }
 
     getExamplesByKinds(kinds) {
-        assert.strictEqual(kinds.length === 1);
+        assert.strictEqual(kinds.length, 1);
         return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), 'examples/' + kinds[0] + '.tt'), { encoding: 'utf8' });
     }
 

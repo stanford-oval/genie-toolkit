@@ -27,7 +27,7 @@ function test() {
 
         return (function loop(page) {
             console.log('page', page);
-            return engine.thingpedia.getDeviceList(category, page, 10).then(({ devices }) => {
+            return engine.thingpedia.getDeviceList(category, page, 10).then((devices) => {
                 let hasMore = false;
                 if (devices.length > 10) {
                     hasMore = true;
@@ -57,7 +57,7 @@ function promiseLoop(array, fn) {
 }
 
 function main() {
-    engine = Mock.createMockEngine('https://thingpedia.stanford.edu/thingpedia');
+    engine = Mock.createMockEngine('https://almond-dev.stanford.edu/thingpedia');
     almond = new Almond(engine, 'test', { name: 'Bob', isOwner: true }, null,
         { debug: false, showWelcome: false });
     dlg = almond._dispatcher;
