@@ -2288,7 +2288,6 @@ thingpedia@^2.2.1:
 thingtalk@^1.0.0, "thingtalk@github:Stanford-Mobisocial-IoT-Lab/ThingTalk":
   version "1.2.0"
   resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/f6328aa3a0eac55af9e25d5a18e16b6bf0044611"
-  integrity sha512-jQVYaBT9SmbGfDaja9Std5sauaLkrlms6V2s7pRiChvHwHTmTv2P8pahg0LNyBcf2ZEbHnmigpmwH7tXaLsD6g==
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
