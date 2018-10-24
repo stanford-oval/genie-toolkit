@@ -142,7 +142,6 @@ function main() {
         testReconstruct(),
         testExpect(),
         testMultipleChoice('choice number one', '0'),
-        testMultipleChoice('one', '0'),
         testMultipleChoice('choice number two', '1'),
         testOnlineLearn()
     ]);
