@@ -5,6 +5,8 @@ po/thingengine-core.pot
 po/*.mo
 po/*.json
 
+*.tt.json
+
 yarn-error.log
 .nyc_output/
 

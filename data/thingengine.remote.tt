@@ -1,0 +1,6 @@
+class @org.thingpedia.builtin.thingengine.remote
+#[system=true] {
+  import loader from @org.thingpedia.builtin();
+  import config from @org.thingpedia.config.builtin();
+}
+

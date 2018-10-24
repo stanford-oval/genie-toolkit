@@ -33,10 +33,11 @@
     "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
     "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done",
     "compile-sql-schema": "node -e 'console.log(JSON.stringify(require(\"fs\").readFileSync(\"lib/db/schema.sql\").toString(\"utf8\")))' > lib/db/schema.json",
+    "compile-builtins": "for i in data/*.tt ; do node -e 'console.log(JSON.stringify(require(\"fs\").readFileSync(\"'${i}'\").toString(\"utf8\")))' > lib/devices/builtins/$(basename $i).json ; done",
     "lint": "eslint ./lib",
     "test": "nyc node test",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "prepare": "which yarn >/dev/null 2>&1 && yarn compile-mo || npm run compile-mo"
+    "prepare": "which yarn >/dev/null 2>&1 && ( yarn compile-mo && yarn compile-builtins ) || ( npm run compile-mo && npm run compile-builtins )"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
