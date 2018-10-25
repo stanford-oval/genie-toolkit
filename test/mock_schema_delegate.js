@@ -88,6 +88,12 @@ class MockSchemaDelegate extends TpClient.BaseClient {
     // We convert our JSON datafiles into ThingTalk code here
 
     async getSchemas(kinds, useMeta) {
+        if (kinds.indexOf('org.thingpedia.test.timedout') >= 0) {
+            const e = new Error('Connection timed out');
+            e.code = 'ETIMEDOUT';
+            throw e;
+        }
+
         const source = useMeta ? this._meta : this._schema;
 
         const classes = [];

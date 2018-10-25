@@ -2508,7 +2508,17 @@ null],
 `>> Sorry, I did not understand that. Use ‘help’ to learn what I can do for you.
 >> ask special null
 `,
-    null]
+    null],
+
+    [`!! test command host unreach !!`,
+`>> Sorry, I cannot contact the Almond service. Please check your Internet connection and try again later.
+`,
+    null],
+
+    [`\\t now => @org.thingpedia.test.timedout.action();`,
+`>> Sorry, I cannot contact the Almond service. Please check your Internet connection and try again later.
+`,
+    null],
 ];
 
 function handleCommand(almond, input) {
@@ -2712,11 +2722,16 @@ function main() {
 
     // inject some mocking in the parser:
     const realSendUtterance = almond.parser.sendUtterance;
-    almond.parser.sendUtterance = function(utterance) {
-        if (utterance === '!! test command always nothing !!')
+    almond.parser.sendUtterance = async function(utterance) {
+        if (utterance === '!! test command always nothing !!') {
             return Promise.resolve({ tokens: ('!! test command always nothing !!').split(' '), entities: {}, candidates: [] });
-        else
+        } else if (utterance === '!! test command host unreach !!') {
+            const e = new Error('Host is unreachable');
+            e.code = 'EHOSTUNREACH';
+            throw e;
+        } else {
             return realSendUtterance.apply(this, arguments);
+        }
     };
 
     return promiseDoAll(TEST_CASES, test).then(() => {
