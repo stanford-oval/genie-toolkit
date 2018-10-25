@@ -272,7 +272,7 @@ const TEST_CASES = [
 >> ask special raw_string
 `,
      { code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'lol' } },
-`>> Ok, so you want me to tweet "lol". Is that right?
+`>> Ok, so you want me to tweet “lol”. Is that right?
 >> ask special yesno
 `,
      ['bookkeeping', 'special', 'special:yes'],
@@ -344,7 +344,7 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
-`>> Ok, so you want me to tweet "lol" with an attached picture with picture url equal to the picture url when the current event detected on your security camera changes. Is that right?
+`>> Ok, so you want me to tweet “lol” with an attached picture with picture url equal to the picture url when the current event detected on your security camera changes. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -436,14 +436,14 @@ const TEST_CASES = [
 >> ask special raw_string
 `,
     "lol",
-`>> Your command is: get an Xkcd comic, the title contains "lol". You can add more filters or run your command if you are ready.
+`>> Your command is: get an Xkcd comic, the title contains “lol”. You can add more filters or run your command if you are ready.
 >> choice 0: Choose a different command
 >> choice 1: Add a filter
 >> choice 2: Run it
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 2],
-`>> Ok, I'm going to get an Xkcd comic if the title contains "lol" and then notify you.
+`>> Ok, I'm going to get an Xkcd comic if the title contains “lol” and then notify you.
 >> Sorry, I did not find any result for that.
 >> ask special null
 `,
@@ -496,7 +496,7 @@ const TEST_CASES = [
 >> ask special raw_string
 `,
     "lol",
-`>> Your command is: get an Xkcd comic, the title contains "lol". You can add more filters or run your command if you are ready.
+`>> Your command is: get an Xkcd comic, the title contains “lol”. You can add more filters or run your command if you are ready.
 >> choice 0: Choose a different command
 >> choice 1: Add a filter
 >> choice 2: Run it
@@ -519,14 +519,14 @@ const TEST_CASES = [
      "entities":{"SLOT_0": "foo"},
      "slots":["title"],
      "slotTypes":{"title":"String"}},
-`>> Your command is: get an Xkcd comic, the title contains "lol", the title does not contain "foo". You can add more filters or run your command if you are ready.
+`>> Your command is: get an Xkcd comic, the title contains “lol”, the title does not contain “foo”. You can add more filters or run your command if you are ready.
 >> choice 0: Choose a different command
 >> choice 1: Add a filter
 >> choice 2: Run it
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 2],
-`>> Ok, I'm going to get an Xkcd comic if the title contains "lol" and the title does not contain "foo" and then notify you.
+`>> Ok, I'm going to get an Xkcd comic if the title contains “lol” and the title does not contain “foo” and then notify you.
 >> Sorry, I did not find any result for that.
 >> ask special null
 `,
@@ -654,7 +654,7 @@ const TEST_CASES = [
 >> ask special raw_string
 `,
     `some tweet`,
-`>> Ok, so you want me to tell Alice Smith (mom): tweet "some tweet". Is that right?
+`>> Ok, so you want me to tell Alice Smith (mom): tweet “some tweet”. Is that right?
 >> ask special yesno
 `,
 
@@ -678,7 +678,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post', 'param:status:String', '=', 'QUOTED_STRING_0'],
       entities: { USERNAME_0: 'mom', QUOTED_STRING_0: "lol" } },
-`>> Ok, so you want me to tell Alice Smith (mom): tweet "lol". Is that right?
+`>> Ok, so you want me to tell Alice Smith (mom): tweet “lol”. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -781,7 +781,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special raw_string
 `,
     `pizza`,
-`>> I'm going to get websites matching "pizza" on Bing and then notify you (as asked by Carol Johnson).
+`>> I'm going to get websites matching “pizza” on Bing and then notify you (as asked by Carol Johnson).
 >> Sorry, I did not find any result for that.
 >> ask special null
 `,
@@ -855,7 +855,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) would like to consume "foo".
+`>> Bob Smith (dad) would like to consume “foo”.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody (no restrictions) {"program":"true : now => @org.thingpedia.builtin.test.eat_data;"}
 >> button: Always from Bob Smith (dad) (no restrictions) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data;"}
@@ -880,7 +880,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> bogus@example.com would like to consume "foo".
+`>> bogus@example.com would like to consume “foo”.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody (no restrictions) {"program":"true : now => @org.thingpedia.builtin.test.eat_data;"}
 >> button: Always from bogus@example.com (no restrictions) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"bogus@example.com\\") : now => @org.thingpedia.builtin.test.eat_data;"}
@@ -905,7 +905,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> X1234567 would like to consume "foo".
+`>> X1234567 would like to consume “foo”.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody (no restrictions) {"program":"true : now => @org.thingpedia.builtin.test.eat_data;"}
 >> button: Always from X1234567 (no restrictions) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"X1234567\\") : now => @org.thingpedia.builtin.test.eat_data;"}
@@ -930,7 +930,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
-`>> Bob Smith (dad) would like to consume "foo".
+`>> Bob Smith (dad) would like to consume “foo”.
 >> button: Yes this time {"code":["bookkeeping","special","special:yes"],"entities":{}}
 >> button: Always from anybody (no restrictions) {"program":"true : now => @org.thingpedia.builtin.test.eat_data;"}
 >> button: Always from Bob Smith (dad) (no restrictions) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data;"}
@@ -953,7 +953,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special generic
 `,
     {"code":["bookkeeping","filter","param:data:String","=~","SLOT_0"],"entities":{SLOT_0: 'oo'},"slots":["data"],"slotTypes":{"data":"String"}},
-`>> Ok, so Bob Smith (dad) is allowed to consume any data if the data contains "oo". Is that correct?
+`>> Ok, so Bob Smith (dad) is allowed to consume any data if the data contains “oo”. Is that correct?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:no'],
@@ -979,7 +979,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special generic
 `,
     {"code":["bookkeeping","filter","param:data:String","=~","SLOT_0"],"entities":{SLOT_0: 'oo'},"slots":["data"],"slotTypes":{"data":"String"}},
-`>> Ok, so Bob Smith (dad) is allowed to consume any data if the data contains "oo". Is that correct?
+`>> Ok, so Bob Smith (dad) is allowed to consume any data if the data contains “oo”. Is that correct?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -1114,7 +1114,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special raw_string
 `,
     "foo",
-`>> Ok, so anyone is allowed to read an Xkcd comic if the title contains "foo". Is that correct?
+`>> Ok, so anyone is allowed to read an Xkcd comic if the title contains “foo”. Is that correct?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -1234,7 +1234,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special raw_string
 `,
     `pierates`,
-`>> Ok, so Bob Smith (dad) is allowed to read an Xkcd comic if the title contains "pierates". Is that correct?
+`>> Ok, so Bob Smith (dad) is allowed to read an Xkcd comic if the title contains “pierates”. Is that correct?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -2057,7 +2057,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     {"program": `now => @com.gmail.send_email(to="bob"^^tt:username, message="foo", subject="bar");` },
-`>> Ok, so you want me to send an email to Bob Smith (dad) with subject "bar" on GMail with message equal to "foo". Is that right?
+`>> Ok, so you want me to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -2070,7 +2070,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     {"program": `now => @com.gmail.send_email(to="dad"^^tt:username, message="foo", subject="bar");` },
-`>> Ok, so you want me to send an email to Bob Smith (dad) with subject "bar" on GMail with message equal to "foo". Is that right?
+`>> Ok, so you want me to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -2088,7 +2088,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special email_address
 `,
     {code:['bookkeeping', 'answer', 'EMAIL_ADDRESS_0'], entities:{'EMAIL_ADDRESS_0': 'bob@smith.com'}},
-`>> Ok, so you want me to send an email to bob@smith.com with subject "bar" on GMail with message equal to "foo". Is that right?
+`>> Ok, so you want me to send an email to bob@smith.com with subject “bar” on GMail with message equal to “foo”. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -2114,7 +2114,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '1'],
-`>> Ok, so you want me to send an email to Bob Smith (dad) with subject "bar" on GMail with message equal to "foo". Is that right?
+`>> Ok, so you want me to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -2128,7 +2128,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     [
     {code: ['now', '=>', '@com.gmail.send_email', 'param:to:Entity(tt:email_address)', '=', 'USERNAME_0', 'param:message:String', '=', 'QUOTED_STRING_0', 'param:subject:String', '=', 'QUOTED_STRING_1'],
      entities: { USERNAME_0: 'dad', QUOTED_STRING_0: 'foo', QUOTED_STRING_1: 'bar' } },
-`>> Ok, so you want me to send an email to Bob Smith (dad) with subject "bar" on GMail with message equal to "foo". Is that right?
+`>> Ok, so you want me to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -2142,7 +2142,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     [
     {code: ['now', '=>', '@org.thingpedia.builtin.thingengine.phone.send_sms', 'param:to:Entity(tt:phone_number)', '=', 'USERNAME_0', 'param:message:String', '=', 'QUOTED_STRING_0'],
      entities: { USERNAME_0: 'dad', QUOTED_STRING_0: 'foo', QUOTED_STRING_1: 'bar' } },
-`>> Ok, so you want me to send a message to Bob Smith (dad) containing "foo". Is that right?
+`>> Ok, so you want me to send a message to Bob Smith (dad) containing “foo”. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
