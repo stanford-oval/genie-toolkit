@@ -86,7 +86,7 @@ function loadOneApp(code) {
     app = code;
     let results = [];
     if (code === `{
-    now => @com.xkcd(id="com.xkcd-8").get_comic() => notify;
+  now => @com.xkcd(id="com.xkcd-8").get_comic() => notify;
 }`) {
         results = [{ isNotification: true, icon: 'com.xkcd', outputType: 'com.xkcd:get_comic', outputValue: {
                 number: 1986,
@@ -96,7 +96,7 @@ function loadOneApp(code) {
                 alt_text: `I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.` //'
             } }];
     } else if (code === `{
-    now => @org.thingpedia.weather(id="org.thingpedia.weather-14").current(location=makeLocation(90, 0, "North pole")) => notify;
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-14").current(location=makeLocation(90, 0, "North pole")) => notify;
 }`) {
         results = [{ isError: true, icon: 'org.thingpedia.weather', error: new Error('I do not like that location') }];
     } else if (code.indexOf('@org.thingpedia.builtin.test') >= 0) {
@@ -257,7 +257,7 @@ const TEST_CASES = [
 >> ask special null
 `,
 `{
-    now => @com.xkcd(id="com.xkcd-6").get_comic() => @com.twitter(id="twitter-foo").post_picture(caption=link, picture_url=picture_url);
+  now => @com.xkcd(id="com.xkcd-6").get_comic() => @com.twitter(id="twitter-foo").post_picture(caption=link, picture_url=picture_url);
 }`],
 
     [
@@ -280,7 +280,7 @@ const TEST_CASES = [
 >> ask special null
 `,
 `{
-    now => @com.twitter(id="twitter-bar").post(status="lol");
+  now => @com.twitter(id="twitter-bar").post(status="lol");
 }`],
 
     [
@@ -299,7 +299,7 @@ const TEST_CASES = [
 >> ask special null
 `,
 `{
-    monitor (@com.twitter(id="twitter-bar").home_timeline()) => @com.facebook(id="com.facebook-7").post(status=text);
+  monitor (@com.twitter(id="twitter-bar").home_timeline()) => @com.facebook(id="com.facebook-7").post(status=text);
 }`],
 
     [
@@ -310,7 +310,7 @@ const TEST_CASES = [
 >> ask special null
 `,
 `{
-    now => @com.xkcd(id="com.xkcd-8").get_comic() => notify;
+  now => @com.xkcd(id="com.xkcd-8").get_comic() => notify;
 }`],
 
     [
@@ -352,7 +352,7 @@ const TEST_CASES = [
 >> ask special null
 `,
 `{
-    monitor (@security-camera(id="security-camera-1").current_event()) => @com.twitter(id="twitter-foo").post_picture(caption="lol", picture_url=picture_url);
+  monitor (@security-camera(id="security-camera-1").current_event()) => @com.twitter(id="twitter-foo").post_picture(caption="lol", picture_url=picture_url);
 }`],
 
     [
@@ -371,7 +371,7 @@ const TEST_CASES = [
 >> ask special null
 `,
 `{
-    monitor (@security-camera(id="security-camera-1").current_event()) => notify;
+  monitor (@security-camera(id="security-camera-1").current_event()) => notify;
 }`],
 
     [
@@ -448,7 +448,7 @@ const TEST_CASES = [
 >> ask special null
 `,
     `{
-    now => (@com.xkcd(id="com.xkcd-9").get_comic()), title =~ "lol" => notify;
+  now => (@com.xkcd(id="com.xkcd-9").get_comic()), title =~ "lol" => notify;
 }`],
 
     [
@@ -531,7 +531,7 @@ const TEST_CASES = [
 >> ask special null
 `,
     `{
-    now => (@com.xkcd(id="com.xkcd-10").get_comic()), (title =~ "lol" && !(title =~ "foo")) => notify;
+  now => (@com.xkcd(id="com.xkcd-10").get_comic()), (title =~ "lol" && !(title =~ "foo")) => notify;
 }`],
 
     [
@@ -630,7 +630,7 @@ const TEST_CASES = [
 `,
 
     `{
-    monitor (@com.xkcd(id="com.xkcd-11").get_comic()) => notify;
+  monitor (@com.xkcd(id="com.xkcd-11").get_comic()) => notify;
 }`],
 
     [
@@ -664,7 +664,7 @@ const TEST_CASES = [
 `,
     `null
 remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX : {
-    now => @com.twitter.post(status="some tweet");
+  now => @com.twitter.post(status="some tweet");
 }`],
 
     [
@@ -687,7 +687,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     `null
 remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX : {
-    now => @com.twitter.post(status="lol");
+  now => @com.twitter.post(status="lol");
 }`],
 
     [
@@ -702,7 +702,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     `null
 remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX : {
-    now => @com.xkcd.get_comic() => notify;
+  now => @com.xkcd.get_comic() => notify;
 }`],
     [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.xkcd.get_comic', '=>', 'return'],
@@ -715,16 +715,30 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        query receive (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, out __kindChannel : Entity(tt:function), out title : String, out picture_url : Entity(tt:picture), out link : Entity(tt:url), out alt_text : String);
-    }
-    monitor (@__dyn_0.receive(__principal="mock-account:MOCK1234-phone:+5556664357"^^tt:contact("Alice Smith (mom)"), __program_id=$event.program_id, __flow=0)) => notify;
+  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+    monitorable list query receive(in req __principal: Entity(tt:contact),
+                                   in req __program_id: Entity(tt:program_id),
+                                   in req __flow: Number,
+                                   out __kindChannel: Entity(tt:function),
+                                   out title: String,
+                                   out picture_url: Entity(tt:picture),
+                                   out link: Entity(tt:url),
+                                   out alt_text: String);
+  }
+  monitor (@__dyn_0.receive(__principal="mock-account:MOCK1234-phone:+5556664357"^^tt:contact("Alice Smith (mom)"), __program_id=$event.program_id, __flow=0)) => notify;
 }
 remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX : {
-    class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-        action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in req title : String, in req picture_url : Entity(tt:picture), in req link : Entity(tt:url), in req alt_text : String);
-    }
-    now => @com.xkcd.get_comic() => @__dyn_0.send(__principal="mock-account:123456-SELF"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, title=title, picture_url=picture_url, link=link, alt_text=alt_text);
+  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+    action send(in req __principal: Entity(tt:contact),
+                in req __program_id: Entity(tt:program_id),
+                in req __flow: Number,
+                in req __kindChannel: Entity(tt:function),
+                in req title: String,
+                in req picture_url: Entity(tt:picture),
+                in req link: Entity(tt:url),
+                in req alt_text: String);
+  }
+  now => @com.xkcd.get_comic() => @__dyn_0.send(__principal="mock-account:123456-SELF"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, title=title, picture_url=picture_url, link=link, alt_text=alt_text);
 }`],
 
     [
@@ -752,7 +766,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    now => @com.xkcd(id="com.xkcd-12").get_comic() => notify;
+  now => @com.xkcd(id="com.xkcd-12").get_comic() => notify;
 }`],
 
     [(almond) => {
@@ -772,7 +786,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    now => @com.bing(id="com.bing").web_search(query="pizza") => notify;
+  now => @com.bing(id="com.bing").web_search(query="pizza") => notify;
 }`],
 
     [(almond) => {
@@ -1240,7 +1254,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
 
     `{
-    now => @org.thingpedia.weather(id="org.thingpedia.weather-13").current(location=makeLocation(37.4275, -122.1697)) => notify;
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-13").current(location=makeLocation(37.4275, -122.1697)) => notify;
 }`],
 
     [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
@@ -1258,7 +1272,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
 
     `{
-    now => @org.thingpedia.weather(id="org.thingpedia.weather-14").current(location=makeLocation(90, 0, "North pole")) => notify;
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-14").current(location=makeLocation(90, 0, "North pole")) => notify;
 }`],
 
     [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
@@ -1271,7 +1285,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
 
     `{
-    now => @org.thingpedia.weather(id="org.thingpedia.weather-15").current(location=makeLocation(90, 0, "North pole")) => notify;
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-15").current(location=makeLocation(90, 0, "North pole")) => notify;
 }`],
 
 
@@ -1404,7 +1418,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
 
     `{
-    now => @gov.nasa(id="gov.nasa-16").asteroid() => notify;
+  now => @gov.nasa(id="gov.nasa-16").asteroid() => notify;
 }`],
 
     [
@@ -2038,7 +2052,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    now => @com.twitter(id="twitter-foo").follow(user_name="bob"^^tt:username);
+  now => @com.twitter(id="twitter-foo").follow(user_name="bob"^^tt:username);
 }`],
 
     [
@@ -2051,7 +2065,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    now => @com.gmail(id="com.gmail-19").send_email(to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"), message="foo", subject="bar");
+  now => @com.gmail(id="com.gmail-19").send_email(to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"), message="foo", subject="bar");
 }`],
 
     [
@@ -2064,7 +2078,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    now => @com.gmail(id="com.gmail-20").send_email(to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"), message="foo", subject="bar");
+  now => @com.gmail(id="com.gmail-20").send_email(to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"), message="foo", subject="bar");
 }`],
 
     [
@@ -2082,7 +2096,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    now => @com.gmail(id="com.gmail-21").send_email(to="bob@smith.com"^^tt:email_address, message="foo", subject="bar");
+  now => @com.gmail(id="com.gmail-21").send_email(to="bob@smith.com"^^tt:email_address, message="foo", subject="bar");
 }`],
 
     [
@@ -2108,7 +2122,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    now => @com.gmail(id="com.gmail-22").send_email(to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"), message="foo", subject="bar");
+  now => @com.gmail(id="com.gmail-22").send_email(to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"), message="foo", subject="bar");
 }`],
 
     [
@@ -2122,7 +2136,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    now => @com.gmail(id="com.gmail-23").send_email(to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"), message="foo", subject="bar");
+  now => @com.gmail(id="com.gmail-23").send_email(to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"), message="foo", subject="bar");
 }`],
 
     [
@@ -2136,7 +2150,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    now => @org.thingpedia.builtin.thingengine.phone(id="org.thingpedia.builtin.thingengine.phone").send_sms(to="+555123456"^^tt:phone_number("Bob Smith (dad)"), message="foo");
+  now => @org.thingpedia.builtin.thingengine.phone(id="org.thingpedia.builtin.thingengine.phone").send_sms(to="+555123456"^^tt:phone_number("Bob Smith (dad)"), message="foo");
 }`],
 
     [
@@ -2169,7 +2183,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    now => (@com.twitter(id="twitter-foo").search()), hashtags == ["lol"^^tt:hashtag, "funny"^^tt:hashtag] => notify;
+  now => (@com.twitter(id="twitter-foo").search()), hashtags == ["lol"^^tt:hashtag, "funny"^^tt:hashtag] => notify;
 }`],
 
     [
@@ -2178,7 +2192,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    now => @org.coinbin(id="org.coinbin-24").get_price(currency="btc"^^tt:cryptocurrency_code("Bitcoin")) => notify;
+  now => @org.coinbin(id="org.coinbin-24").get_price(currency="btc"^^tt:cryptocurrency_code("Bitcoin")) => notify;
 }`],
 
     [
@@ -2187,7 +2201,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    now => @org.coinbin(id="org.coinbin-25").get_price(currency="btc"^^tt:cryptocurrency_code("Bitcoin")) => notify;
+  now => @org.coinbin(id="org.coinbin-25").get_price(currency="btc"^^tt:cryptocurrency_code("Bitcoin")) => notify;
 }`],
 
     [
@@ -2245,7 +2259,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test-27").get_data(size=10byte, count=25) => notify;
+  now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test-27").get_data(size=10byte, count=25) => notify;
 }`],
 
     [
@@ -2264,7 +2278,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `>> ask special null
 `,
     `{
-    now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test-28").get_data(size=10byte, count=25) => notify;
+  now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test-28").get_data(size=10byte, count=25) => notify;
 }`],
 
     [
@@ -2285,7 +2299,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    now => @com.xkcd(id="com.xkcd-30").get_comic() => notify;
+  now => @com.xkcd(id="com.xkcd-30").get_comic() => notify;
 }`],
 
     [
@@ -2312,7 +2326,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test-31").get_data(size=10byte, count=25) => notify;
+  now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test-31").get_data(size=10byte, count=25) => notify;
 }`],
 
     [
@@ -2328,7 +2342,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
     `{
-    now => @com.xkcd(id="com.xkcd-32").get_comic() => notify;
+  now => @com.xkcd(id="com.xkcd-32").get_comic() => notify;
 }`],
 
     [(almond) => {
@@ -2448,7 +2462,7 @@ null],
 >> ask special null
 `,
 `{
-    now => @com.xkcd(id="com.xkcd-34").get_comic() => notify;
+  now => @com.xkcd(id="com.xkcd-34").get_comic() => notify;
 }`
     ],
 
@@ -2457,7 +2471,7 @@ null],
 >> ask special null
 `,
 `{
-    now => @com.xkcd(id="com.xkcd-35").get_comic() => notify;
+  now => @com.xkcd(id="com.xkcd-35").get_comic() => notify;
 }`],
 
     [(almond) => {
@@ -2469,7 +2483,7 @@ null],
 >> ask special null
 `,
 `{
-    now => @com.xkcd(id="com.xkcd-36").get_comic() => notify;
+  now => @com.xkcd(id="com.xkcd-36").get_comic() => notify;
 }`],
 
     [`tweet my instagram pictures`,
@@ -2494,7 +2508,17 @@ null],
 `>> Sorry, I did not understand that. Use ‘help’ to learn what I can do for you.
 >> ask special null
 `,
-    null]
+    null],
+
+    [`!! test command host unreach !!`,
+`>> Sorry, I cannot contact the Almond service. Please check your Internet connection and try again later.
+`,
+    null],
+
+    [`\\t now => @org.thingpedia.test.timedout.action();`,
+`>> Sorry, I cannot contact the Almond service. Please check your Internet connection and try again later.
+`,
+    null],
 ];
 
 function handleCommand(almond, input) {
@@ -2698,11 +2722,16 @@ function main() {
 
     // inject some mocking in the parser:
     const realSendUtterance = almond.parser.sendUtterance;
-    almond.parser.sendUtterance = function(utterance) {
-        if (utterance === '!! test command always nothing !!')
+    almond.parser.sendUtterance = async function(utterance) {
+        if (utterance === '!! test command always nothing !!') {
             return Promise.resolve({ tokens: ('!! test command always nothing !!').split(' '), entities: {}, candidates: [] });
-        else
+        } else if (utterance === '!! test command host unreach !!') {
+            const e = new Error('Host is unreachable');
+            e.code = 'EHOSTUNREACH';
+            throw e;
+        } else {
             return realSendUtterance.apply(this, arguments);
+        }
     };
 
     return promiseDoAll(TEST_CASES, test).then(() => {

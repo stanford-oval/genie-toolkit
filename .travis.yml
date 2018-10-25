@@ -4,7 +4,14 @@ branches:
 language: node_js
 node_js:
 - '8'
-before_install: yarn global add greenkeeper-lockfile@1
+before_install:
+- curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.10.1
+- export PATH="$HOME/.yarn/bin:$PATH"
+- yarn global add greenkeeper-lockfile@1
+- (cd .. ; git clone --depth=50 https://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk.git ; cd ThingTalk ; yarn ; yarn link )
+install:
+- yarn link thingtalk
+- yarn
 before_script: greenkeeper-lockfile-update
 after_script: greenkeeper-lockfile-upload
 script:

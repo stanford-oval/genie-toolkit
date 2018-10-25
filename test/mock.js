@@ -10,9 +10,10 @@
 "use strict";
 
 const ThingTalk = require('thingtalk');
+const TpClient = require('thingpedia-client');
+
 const AsyncQueue = require('consumer-queue');
 
-const ThingpediaClient = require('./http_client');
 const _mockThingpediaClient = require('./mock_schema_delegate');
 
 
@@ -421,41 +422,46 @@ var Gettext = require('node-gettext');
 var _gettext = new Gettext();
 _gettext.setLocale('en_US.utf8');
 
-const THINGPEDIA_URL = process.env.THINGPEDIA_URL || 'https://thingpedia.stanford.edu/thingpedia';
+const THINGPEDIA_URL = process.env.THINGPEDIA_URL || 'https://almond-dev.stanford.edu/thingpedia';
+
+const _mockPlatform = {
+    _prefs: new MockPreferences(),
+
+    getSharedPreferences() {
+        return this._prefs;
+    },
+    getDeveloperKey() {
+        return null;
+    },
+
+    locale: 'en-US',
+    //locale: 'it',
+    type: 'test',
+
+    hasCapability(cap) {
+        return cap === 'gettext' || cap === 'contacts';
+    },
+
+    getCapability(cap) {
+        if (cap === 'gettext')
+            return _gettext;
+        else if (cap === 'contacts')
+            return new MockAddressBook();
+        else
+            return null;
+    }
+};
 
 module.exports.createMockEngine = function(thingpediaUrl) {
     var thingpedia;
     if (thingpediaUrl === 'mock')
         thingpedia = _mockThingpediaClient;
     else
-        thingpedia = new ThingpediaClient(thingpediaUrl || THINGPEDIA_URL, null);
+        thingpedia = new TpClient.HttpClient(_mockPlatform, thingpediaUrl || THINGPEDIA_URL);
     var schemas = new ThingTalk.SchemaRetriever(thingpedia, null, true);
 
     return {
-        platform: {
-            _prefs: new MockPreferences(),
-
-            getSharedPreferences() {
-                return this._prefs;
-            },
-
-            locale: 'en-US',
-            //locale: 'it',
-            type: 'test',
-
-            hasCapability(cap) {
-                return cap === 'gettext' || cap === 'contacts';
-            },
-
-            getCapability(cap) {
-                if (cap === 'gettext')
-                    return _gettext;
-                else if (cap === 'contacts')
-                    return new MockAddressBook();
-                else
-                    return null;
-            }
-        },
+        platform: _mockPlatform,
         stats: new MockStatistics,
         thingpedia: thingpedia,
         schemas: schemas,
