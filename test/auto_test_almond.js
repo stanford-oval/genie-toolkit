@@ -2493,6 +2493,41 @@ null],
 `,
     null],
 
+    [`get an xkcd comic`,
+`>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+    ['bookkeeping', 'special', 'special:train'],
+`>> ask special null
+>> Did you mean get an Xkcd comic and then notify you?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Thanks, I made a note of that.
+>> You have trained me with 1 sentence.
+>> ask special null
+`,
+    `{
+  now => @com.xkcd(id="com.xkcd-37").get_comic() => notify;
+}`],
+
+    [`get an xkcd comic`,
+`>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+    ['bookkeeping', 'special', 'special:train'],
+`>> ask special null
+>> Did you mean get an Xkcd comic and then notify you?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:no'],
+`>> Sorry I couldn't help on that.
+>> ask special null
+`,
+    `{
+  now => @com.xkcd(id="com.xkcd-38").get_comic() => notify;
+}`],
+
     // this is a special command that always fails to parse
     // we use it to test the fallback paths
     [`!! test command always failed !!`,
@@ -2506,6 +2541,70 @@ null],
 
     [`!! test command always nothing !!`,
 `>> Sorry, I did not understand that. Use ‘help’ to learn what I can do for you.
+>> ask special null
+`,
+    null],
+
+    [`!! test command multiple results !!`,
+`>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['bookkeeping', 'special', 'special:train'],
+`>> ask special null
+>> Did you mean any of the following?
+>> choice 0: tweet ____
+>> choice 1: tweet “multiple results”
+>> choice 2: post ____ on Facebook
+>> choice 3: none of the above
+>> ask special choice
+`,
+    ['bookkeeping', 'special', 'special:no'],
+`>> Sorry I couldn't help on that.
+>> ask special null
+`,
+    null],
+
+    [`!! test command multiple results !!`,
+`>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['bookkeeping', 'special', 'special:train'],
+`>> ask special null
+>> Did you mean any of the following?
+>> choice 0: tweet ____
+>> choice 1: tweet “multiple results”
+>> choice 2: post ____ on Facebook
+>> choice 3: none of the above
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '1'],
+`>> Thanks, I made a note of that.
+>> You have trained me with 2 sentences.
+>> ask special null
+`,
+    null],
+
+    [`!! test command multiple results !!`,
+`>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['bookkeeping', 'special', 'special:train'],
+`>> ask special null
+>> Did you mean any of the following?
+>> choice 0: tweet ____
+>> choice 1: tweet “multiple results”
+>> choice 2: post ____ on Facebook
+>> choice 3: none of the above
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '3'],
+`>> Sorry I couldn't help on that.
 >> ask special null
 `,
     null],
@@ -2718,9 +2817,19 @@ function main() {
     if (process.argv[2] !== undefined && process.argv[2].startsWith('--with-sempre='))
         sempreUrl = process.argv[2].substr('--with-sempre='.length);
     almond = new Almond(engine, 'test', new MockUser(), delegate,
-        { debug: false, sempreUrl: sempreUrl, showWelcome: true, anonymous: false });
+        { debug: false, sempreUrl: sempreUrl, showWelcome: true, anonymous: false,
+          testMode: true });
 
     // inject some mocking in the parser:
+    almond.parser.onlineLearn = function(utterance, targetCode) {
+        if (utterance === 'get an xkcd comic')
+            assert.strictEqual(targetCode.join(' '), 'now => @com.xkcd.get_comic => notify');
+        else if (utterance === '!! test command multiple results !!')
+            assert.strictEqual(targetCode.join(' '), 'now => @com.twitter.post param:status:String = " multiple results "');
+        else
+            assert.fail(`Unexpected learned utterance ${utterance}`);
+    };
+
     const realSendUtterance = almond.parser.sendUtterance;
     almond.parser.sendUtterance = async function(utterance) {
         if (utterance === '!! test command always nothing !!') {
@@ -2729,6 +2838,20 @@ function main() {
             const e = new Error('Host is unreachable');
             e.code = 'EHOSTUNREACH';
             throw e;
+        } else if (utterance === '!! test command multiple results !!') {
+            const candidates = [
+                { code: ['now', '=>', '@com.twitter.post'], score: 1 },
+                { code: ['now', '=>', '@com.twitter.post', 'param:status:String', '=', 'QUOTED_STRING_0'],
+                  score: 0.9 },
+                { code: ['now', '=>', '@com.twitter.post', 'param:status:String', '=', '"', 'multiple', 'results', '"'],
+                  score: 0.8 },
+                { code: ['now', '=>', '@com.facebook.post'],
+                  score: 0.7 },
+            ];
+            const tokens = '!! test command multiple results !!'.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
         } else {
             return realSendUtterance.apply(this, arguments);
         }
