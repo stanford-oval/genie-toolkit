@@ -2618,6 +2618,22 @@ null],
 `>> Sorry, I cannot contact the Almond service. Please check your Internet connection and try again later.
 `,
     null],
+
+    [`\\t now => @org.thingpedia.builtin.thingengine.builtin.configure(device="com.instagram"^^tt:device);`,
+`>> Ok, I'm going to configure a new Instagram.
+>> ask special null
+`,
+    `{
+  now => @org.thingpedia.builtin.thingengine.builtin(id="thingengine-own-global").configure(device="com.instagram"^^tt:device("Instagram"));
+}`],
+
+    [`\\t now => @org.thingpedia.builtin.thingengine.builtin.configure(device="tumblr-blog"^^tt:device);`,
+`>> Ok, I'm going to configure a new Tumblr Blog.
+>> ask special null
+`,
+    `{
+  now => @org.thingpedia.builtin.thingengine.builtin(id="thingengine-own-global").configure(device="tumblr-blog"^^tt:device("Tumblr Blog"));
+}`],
 ];
 
 function handleCommand(almond, input) {
