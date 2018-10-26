@@ -1,0 +1,5 @@
+class @org.thingpedia.builtin.bluetooth.generic {
+  import loader from @org.thingpedia.builtin();
+  import config from @org.thingpedia.config.discovery.bluetooth(uuids=[]);
+}
+

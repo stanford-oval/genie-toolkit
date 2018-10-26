@@ -6,12 +6,12 @@ node_js:
 - '8'
 before_install:
 - mkdir cvc4/
-- wget https://cvc4.cs.stanford.edu/downloads/builds/x86_64-linux-opt/cvc4-1.5-x86_64-linux-opt
+- wget https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt
   -O cvc4/cvc4
 - chmod +x cvc4/cvc4
-- export PATH="`pwd`/cvc4:$PATH"
 - mkdir -p ~/.cache
 - mkdir -p ~/.config
+- export PATH="`pwd`/cvc4:$PATH"
 - yarn global add greenkeeper-lockfile@1
 before_script: greenkeeper-lockfile-update
 after_script: greenkeeper-lockfile-upload
