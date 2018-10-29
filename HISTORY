@@ -1,3 +1,18 @@
+1.2.0
+=====
+
+* Quotes have been removed from example commands, as the
+  platform fully supports unquoted commands now
+* Added experimental support for multi-user operation,
+  using speaker id. This feature is still in development,
+  expect changes in the future.
+* Updated to use the new thingpedia-client library, and
+  make use of the latest Thingpedia API
+* Updated the ThingTalk library, bringing many bug fixes
+* Misc bug fixes [#27, #37]
+* Improved test coverage
+* Build system/CI fixes
+
 1.1.0
 =====
 
