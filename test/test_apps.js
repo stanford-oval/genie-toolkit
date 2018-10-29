@@ -363,9 +363,11 @@ function testWhenErrorAsync(engine) {
         }).catch(reject);
     }).then((v) => {
         test.subscribe_get_data = originalsubscribe;
+        assistant._setConversation(null);
         return v;
     }, (e) => {
         test.subscribe_get_data = originalsubscribe;
+        assistant._setConversation(null);
         throw e;
     });
 }
@@ -638,6 +640,100 @@ async function testLoadAppTypeError(engine) {
     assert.deepStrictEqual(engine.apps.getAllApps(), []);
 }
 
+async function testGetSequence(engine, icon = null) {
+    const app = await engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.next_sequence() => notify;',
+        { $icon: icon }, undefined, undefined, 'some app', 'some app description', true);
+    // when we get here, the app might or might not have started already
+    // to be sure, we iterate its mainOutput
+
+    // the app is still running, so the engine should know about it
+    assert(engine.apps.hasApp(app.uniqueId));
+
+    let what = await app.mainOutput.next();
+    assert(what.item.isNotification);
+    what.resolve();
+    assert.strictEqual(what.item.icon, icon);
+    assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test:next_sequence');
+    assert.deepStrictEqual(what.item.outputValue, { number: 0 });
+
+    what = await app.mainOutput.next();
+    assert(what.item.isDone);
+    what.resolve();
+}
+
+async function testGetGetSequence(engine, icon = null) {
+    // if you join a table with itself, with no param passing, you will get the same
+    // result twice (ie, the table is static during the query)
+    const app = await engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.next_sequence() join @org.thingpedia.builtin.test.next_sequence() => notify;',
+        { $icon: icon }, undefined, undefined, 'some app', 'some app description', true);
+    // when we get here, the app might or might not have started already
+    // to be sure, we iterate its mainOutput
+
+    // the app is still running, so the engine should know about it
+    assert(engine.apps.hasApp(app.uniqueId));
+
+    let what = await app.mainOutput.next();
+    assert(what.item.isNotification);
+    what.resolve();
+    assert.strictEqual(what.item.icon, icon);
+    assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test:next_sequence+org.thingpedia.builtin.test:next_sequence');
+    // this should be 1 not 2: the query is only invoked once
+    assert.deepStrictEqual(what.item.outputValue, { number: 1 });
+
+    what = await app.mainOutput.next();
+    assert(what.item.isDone);
+    what.resolve();
+}
+
+
+function testTimerSequence(engine, conversation) {
+    const assistant = engine.platform.getCapability('assistant');
+
+    return new Promise((resolve, reject) => {
+        setTimeout(() => reject(new Error('Timed out while waiting for data to appear')), 10000).unref();
+
+        let count = 0;
+        assistant._setConversation({
+            notify(appId, icon, outputType, data) {
+                const app = engine.apps.getApp(appId);
+                assert(app.isEnabled);
+                assert(app.isRunning);
+                assert.strictEqual(outputType, 'org.thingpedia.builtin.test:next_sequence');
+                assert.strictEqual(icon, 'org.foo');
+                assert.strictEqual(appId, 'uuid-timer-sequence');
+                delete data.__timestamp;
+                if (count < 3) {
+                    assert.deepStrictEqual(data, { number: 2 + count });
+                    count++;
+                    if (count === 3) {
+                        engine.apps.removeApp(app);
+                        resolve();
+                    }
+                } else {
+                    try {
+                        assert.fail("too many results from the monitor");
+                    } catch(e) {
+                        reject(e);
+                    }
+                }
+            },
+
+            notifyError(appId, icon, err) {
+                assert.fail('no error expected');
+            }
+        });
+
+        engine.apps.loadOneApp('timer(base=makeDate(),interval=2s) join @org.thingpedia.builtin.test.next_sequence() => notify;',
+            { $icon: 'org.foo', $conversation: conversation ? 'mock' : undefined },
+            'uuid-timer-sequence', undefined, 'some app', 'some app description', true).then((app) => {
+            assert.strictEqual(app.icon, 'org.foo');
+            assert.strictEqual(app.uniqueId, 'uuid-timer-sequence');
+        }).catch(reject);
+    });
+}
+
+
+
 module.exports = async function testApps(engine) {
     assert.deepStrictEqual(engine.apps.getAllApps(), []);
 
@@ -658,6 +754,11 @@ module.exports = async function testApps(engine) {
     await testWhenRestart(engine);
     await testWhenErrorInit(engine);
     await testWhenErrorAsync(engine);
+
+    // these three must be exactly in this order
+    await testGetSequence(engine);
+    await testGetGetSequence(engine);
+    await testTimerSequence(engine);
 
     const assistant = engine.platform.getCapability('assistant');
     assistant._setConversation(null);

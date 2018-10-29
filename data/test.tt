@@ -13,6 +13,12 @@ class @org.thingpedia.builtin.test
   #[poll_interval=0ms]
   #[doc="generate `size` amount of fake data"];
 
+  query next_sequence(out number: Number)
+  #_[canonical="get sequence number on test"]
+  #_[confirmation="return the next test number"]
+  #_[formatted=[{type="text",text="${number}"}]]
+  #[doc="return the next number in a global sequence; used to test that the queries are invoked the correct number of times; this query is an abuse (it has side effects!), don't copy it in your own devices"];
+
   query dup_data(in req data_in: String #_[prompt="What data do you want to duplicate?"],
                  out data_out: String)
   #_[canonical="duplicate data on test"]
@@ -26,4 +32,3 @@ class @org.thingpedia.builtin.test
   #_[confirmation_remote="consume $data on $__person's Almond"]
   #[doc="consume some data, do nothing"];
 }
-
