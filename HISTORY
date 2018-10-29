@@ -1,3 +1,12 @@
+1.2.0
+=====
+
+* Code to interact with the Thingpedia server was moved to
+  a new library: thingpedia-client
+* Fixed a bug in the when=>get implementation
+* Dependencies have been updated
+* Added tests
+
 1.1.2
 =====
 

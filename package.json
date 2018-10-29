@@ -1,6 +1,6 @@
 {
   "name": "thingengine-core",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "The core runtime system of the Almond virtual assistant",
   "author": "Stanford University Mobile and Social Computing Lab",
   "repository": "https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core",
@@ -22,7 +22,7 @@
     "q": "^1.5.0",
     "sqlite3": "^4.0.2",
     "thingpedia": "^2.2.1",
-    "thingpedia-client": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-client",
+    "thingpedia-client": "^0.1.0",
     "thingpedia-discovery": "^1.0.0",
     "thingtalk": "~1.3.0",
     "uuid": "^3.1.0",
