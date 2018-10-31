@@ -2670,6 +2670,41 @@ null],
 >> ask special null
 `,
     null],
+
+    [
+    ['bookkeeping', 'special', 'special:help'],
+`>> Pick one from the following categories or simply type in.
+>> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> ask special command
+`,
+    ['now', '=>', '@com.twitter.post'],
+`>> Your command is: tweet ____. You can add more filters or run your command if you are ready.
+>> choice 0: Choose a different command
+>> choice 1: Run it
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', 1],
+`>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', 1],
+`>> What do you want to tweet?
+>> ask special raw_string
+`,
+    '!! test command always nothing !!',
+`>> Ok, I'm going to tweet “!! test command always nothing !!”.
+>> ask special null
+`,
+    `{
+  now => @com.twitter(id="twitter-bar").post(status="!! test command always nothing !!");
+}`]
 ];
 
 function handleCommand(almond, input) {
