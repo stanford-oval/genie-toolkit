@@ -1757,13 +1757,6 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic, @org.thingpedia.builtin.thingengine.phone.get_gps() { location == makeLocation(90, 0, "North pole") } => notify;`],
 
-    [
-    ['now', '=>', '@com.bodytrace.scale.get', '=>', 'notify'],
-`>> Sorry, I don't know how to do that yet.
->> ask special null
-`,
-    null],
-
     [(almond) => {
         almond.askQuestion(null, 'org.thingpedia.builtin.test', ThingTalk.Type.Number, 'What is the answer to life the universe and everything?').then((v) => {
             assert.strictEqual(v, 42);
@@ -2634,6 +2627,49 @@ null],
     `{
   now => @org.thingpedia.builtin.thingengine.builtin(id="thingengine-own-global").configure(device="tumblr-blog"^^tt:device("Tumblr Blog"));
 }`],
+
+    [
+    ['now', '=>', '@com.bodytrace.scale.get', '=>', 'notify'],
+`>> Sorry, I don't know how to do that yet.
+>> ask special null
+`,
+    null],
+
+    // the first result is bodytrace, the second is fitbit
+    // both come from the parse (score !== Infinity) and so we only
+    // consider the first, and report unsupported
+    [
+    `get the weight from my scale`,
+`>> Sorry, I don't know how to do that yet.
+>> ask special null
+`,
+    null],
+
+    // the first result is test.newyorktimes, the second is com.nytimes
+    // the first result comes from the exact matcher and is skipped
+    // so we run the second result
+    [
+    `get new york times`,
+`>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+    `{
+  now => @com.nytimes(id="com.nytimes-39").get_front_page() => notify;
+}`],
+
+    [
+    `!! test command all unsupported !!`,
+`>> Sorry, I don't know how to do that yet.
+>> ask special null
+`,
+    null],
+
+    [
+    `!! test command all unsupported 2 !!`,
+`>> Sorry, I don't know how to do that yet.
+>> ask special null
+`,
+    null],
 ];
 
 function handleCommand(almond, input) {
@@ -2848,7 +2884,51 @@ function main() {
 
     const realSendUtterance = almond.parser.sendUtterance;
     almond.parser.sendUtterance = async function(utterance) {
-        if (utterance === '!! test command always nothing !!') {
+        if (utterance === '!! test command all unsupported 2 !!') {
+            const candidates = [
+                { code: ['now', '=>', '@invalid1.get', '=>', 'notify'], score: 'Infinity', },
+                { code: ['now', '=>', '@invalid1.get', '=>', 'notify'], score: 1, },
+            ];
+            const tokens = '!! test command all unsupported 2 !!'.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === '!! test command all unsupported !!') {
+            const candidates = [
+                { code: ['now', '=>', '@invalid1.get', '=>', 'notify'], score: 'Infinity', },
+                { code: ['now', '=>', '@invalid2.get', '=>', 'notify'], score: 'Infinity', },
+            ];
+            const tokens = '!! test command all unsupported !!'.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'get new york times') {
+            const candidates = [
+                { code: ['now', '=>', '@test.nytimes.get', '=>', 'notify'], score: 'Infinity', },
+                { code: ['now', '=>', '@com.nytimes.get_front_page', '=>', 'notify'], score: 1, },
+            ];
+            const tokens = 'get new york times'.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'get the weight from my scale') {
+            const candidates = [
+                { code: ['now', '=>', '@com.bodytrace.scale.get', '=>', 'notify'], score: 1, },
+                { code: ['now', '=>', '@edu.stanford.rakeshr1.fitbit.getbody', '=>', 'notify'], score: 0.5, },
+            ];
+            const tokens = 'get the weight from my scale'.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'get an xkcd comic') {
+            const candidates = [
+                { code: ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'], score: 'Infinity' },
+            ];
+            const tokens = 'get an xkcd comic'.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === '!! test command always nothing !!') {
             return Promise.resolve({ tokens: ('!! test command always nothing !!').split(' '), entities: {}, candidates: [] });
         } else if (utterance === '!! test command host unreach !!') {
             const e = new Error('Host is unreachable');
