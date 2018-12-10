@@ -45,7 +45,6 @@
     "greenkeeper-lockfile": "^1.15.1",
     "node-gettext": "^2.0.0",
     "nyc": "^13.0.1",
-    "smtlib": "^0.1.1",
-    "sourceify": "^0.1.0"
+    "smtlib": "^0.1.1"
   }
 }
