@@ -69,7 +69,7 @@ function candidateToString(cand) {
 
 function testEverything() {
     const TEST_CASES = require('./parser_test_cases');
-    const parser = new ParserClient(null, 'en-US', mockPrefs);
+    const parser = new ParserClient(process.env.SEMPRE_URL, 'en-US', mockPrefs);
 
     return each(TEST_CASES, (test, i) => {
         return parser.sendUtterance(test).then((analyzed) => {
@@ -92,7 +92,7 @@ function testEverything() {
 
 function testReconstruct() {
     const TEST_CASES = require('./parser_test_cases');
-    const parser = new ParserClient(null, 'en-US', mockPrefs);
+    const parser = new ParserClient(process.env.SEMPRE_URL, 'en-US', mockPrefs);
 
     return each(TEST_CASES, (test, i) => {
         return parser.sendUtterance(test).then((analyzed) => {
@@ -110,7 +110,7 @@ function testReconstruct() {
 }
 
 function testExpect() {
-    const parser = new ParserClient(null, 'en-US', mockPrefs);
+    const parser = new ParserClient(process.env.SEMPRE_URL, 'en-US', mockPrefs);
 
     return Promise.all([
         parser.sendUtterance('42', ValueCategory.Number),
@@ -121,7 +121,7 @@ function testExpect() {
 }
 
 function testMultipleChoice(text, expected) {
-    const parser = new ParserClient(null, 'en-US', mockPrefs);
+    const parser = new ParserClient(process.env.SEMPRE_URL, 'en-US', mockPrefs);
 
     return parser.sendUtterance(text, ValueCategory.MultipleChoice,
         [{ title: 'choice number one' }, { title: 'choice number two' }]).then((analyzed) => {
@@ -131,7 +131,7 @@ function testMultipleChoice(text, expected) {
 }
 
 function testOnlineLearn() {
-    const parser = new ParserClient(null, 'en-US', mockPrefs);
+    const parser = new ParserClient(process.env.SEMPRE_URL, 'en-US', mockPrefs);
 
     return parser.onlineLearn('get a cat', ['now', '=>', '@com.thecatapi.get', '=>', 'notify'], 'no');
 }
