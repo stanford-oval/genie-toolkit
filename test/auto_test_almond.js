@@ -1791,7 +1791,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@com.instagram.get_pictures', '=>', 'notify'],
-`>> You don't have a Instagram
+`>> You don't have a Instagram.
 >> link: Configure Instagram /devices/oauth2/com.instagram?name=Instagram
 >> ask special null
 `,
@@ -1799,7 +1799,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@tumblr-blog.post_text'],
-`>> You don't have a Tumblr Blog
+`>> You don't have a Tumblr Blog.
 >> button: Configure Tumblr Blog {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:tumblr-blog"]}
 >> ask special null
 `,
@@ -1807,7 +1807,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@org.thingpedia.rss.get_post', '=>', 'notify'],
-`>> You don't have a RSS Feed
+`>> You don't have a RSS Feed.
 >> button: Configure RSS Feed {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:org.thingpedia.rss"]}
 >> ask special null
 `,
@@ -1815,7 +1815,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@com.lg.tv.webos2.set_power'],
-`>> You don't have a LG WebOS TV
+`>> You don't have a LG WebOS TV.
 >> button: Configure LG WebOS TV {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:com.lg.tv.webos2"]}
 >> ask special null
 `,
@@ -2005,7 +2005,14 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@org.thingpedia.builtin.thingengine.home.start_playing'],
-`>> You don't have a Home
+`>> Sorry, I did not understand that. Can you rephrase it?
+>> ask special null
+`,
+    null],
+
+    [
+    ['now', '=>', '@car.honk_horn'],
+`>> You don't have a Car.
 >> ask special null
 `,
     null],
@@ -2477,7 +2484,7 @@ null],
 }`],
 
     [`tweet my instagram pictures`,
-`>> You don't have a Instagram
+`>> You don't have a Instagram.
 >> link: Configure Instagram /devices/oauth2/com.instagram?name=Instagram
 >> ask special null
 `,
@@ -2880,7 +2887,7 @@ function main() {
                 ret[k] = {type: 'oauth2', kind: 'com.instagram', text: 'Instagram'};
             else if (k === 'org.thingpedia.rss')
                 ret[k] = _rssFactory;
-            else if (k === 'org.thingpedia.builtin.thingengine.home')
+            else if (k === 'org.thingpedia.builtin.thingengine.home' || k === 'car')
                 ret[k] = {type: 'multiple', choices: [] };
             else
                 ret[k] = {type:'none',kind:k,text: k};
