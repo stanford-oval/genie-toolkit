@@ -164,18 +164,22 @@ class MockSchemaDelegate extends TpClient.BaseClient {
                     {"type":"tt:cryptocurrency_code","value":"xbc","canonical":"bitcoin plus","name":"Bitcoin Plus"},
                     {"type":"tt:cryptocurrency_code","value":"xbtc21","canonical":"bitcoin 21","name":"Bitcoin 21"}
                 ];
-                array.meta = {"name":"Cryptocurrency Code","has_ner_support":1,"is_well_known":0};
-                return array;
+                return {
+                    data: array,
+                    meta: {"name":"Cryptocurrency Code","has_ner_support":1,"is_well_known":0}
+                };
             } else if (entityDisplay === 'btc') {
-                const array = [
-                    {"type":"tt:cryptocurrency_code","value":"btc","canonical":"bitcoin","name":"Bitcoin"},
-                ];
-                array.meta = {"name":"Cryptocurrency Code","has_ner_support":1,"is_well_known":0};
-                return array;
+                return {
+                    data: [
+                        {"type":"tt:cryptocurrency_code","value":"btc","canonical":"bitcoin","name":"Bitcoin"},
+                    ],
+                    meta: {"name":"Cryptocurrency Code","has_ner_support":1,"is_well_known":0}
+                };
             } else if (entityDisplay === 'invalid') {
-                const array = [];
-                array.meta = {"name":"Cryptocurrency Code","has_ner_support":1,"is_well_known":0};
-                return array;
+                return {
+                    data: [],
+                    meta: {"name":"Cryptocurrency Code","has_ner_support":1,"is_well_known":0}
+                };
             } else {
                 // unreachable test case
                 throw new Error('Invalid entity ' + entityDisplay);

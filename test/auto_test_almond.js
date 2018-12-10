@@ -235,21 +235,19 @@ const TEST_CASES = [
     ['bookkeeping', 'choice', 0],
 `>> What caption do you want?
 >> choice 0: Use the title from Xkcd
->> choice 1: Use the picture url from Xkcd
->> choice 2: Use the link from Xkcd
->> choice 3: Use the alt text from Xkcd
->> choice 4: A description of the result
->> choice 5: None of above
+>> choice 1: Use the alt text from Xkcd
+>> choice 2: A description of the result
+>> choice 3: None of above
 >> ask special choice
 `,
-    ['bookkeeping', 'choice', 2],
+    ['bookkeeping', 'choice', 0],
 `>> Upload the picture now.
 >> choice 0: Use the picture url from Xkcd
 >> choice 1: None of above
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
-`>> Ok, so you want me to get an Xkcd comic and then tweet the link with an attached picture with picture url equal to the picture url. Is that right?
+`>> Ok, so you want me to get an Xkcd comic and then tweet the title with an attached picture with picture url equal to the picture url. Is that right?
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -257,7 +255,7 @@ const TEST_CASES = [
 >> ask special null
 `,
 `{
-  now => @com.xkcd(id="com.xkcd-6").get_comic() => @com.twitter(id="twitter-foo").post_picture(caption=link, picture_url=picture_url);
+  now => @com.xkcd(id="com.xkcd-6").get_comic() => @com.twitter(id="twitter-foo").post_picture(caption=title, picture_url=picture_url);
 }`],
 
     [
@@ -328,12 +326,11 @@ const TEST_CASES = [
 `,
     ['bookkeeping', 'choice', 0],
 `>> What caption do you want?
->> choice 0: Use the picture url from Security Camera
->> choice 1: A description of the result
->> choice 2: None of above
+>> choice 0: A description of the result
+>> choice 1: None of above
 >> ask special choice
 `,
-    ['bookkeeping', 'choice', 2],
+    ['bookkeeping', 'choice', 1],
 `>> What caption do you want?
 >> ask special raw_string
 `,
