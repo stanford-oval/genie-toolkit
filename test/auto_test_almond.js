@@ -2383,7 +2383,7 @@ null],
     almond.user.isOwner = false;
     return almond.handleParsedCommand({ program: `true : * => *;` });
 },
-`>> I'm sorry, only my owner can change my permissions.
+`>> I'm sorry, you don't have permission to do that.
 >> ask special null
 `,
 null],
@@ -2392,7 +2392,7 @@ null],
     almond.user.isOwner = false;
     return almond.handleParsedCommand({ program: `executor = "bob"^^tt:username : now => @com.facebook.post(status=$undefined);` });
 },
-`>> I'm sorry, only my owner can ask other users for permission.
+`>> I'm sorry, you don't have permission to do that.
 >> ask special null
 `,
 null],
