@@ -26,7 +26,7 @@ class MockAssistant {
     }
 
     getConversation(conv) {
-        assert.strictEqual(conv, 'mock');
+        assert(conv === 'mock' || conv === undefined);
         return this._conv;
     }
 
@@ -42,7 +42,7 @@ const THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
 
 async function runTests(engine, limitTo) {
     try {
-        for (let x of ['devices', 'apps', 'http_client', 'util', 'builtins', 'permissions']) {
+        for (let x of ['devices', 'apps', 'http_client', 'util', 'builtins', 'permissions', 'remote']) {
             if (limitTo !== undefined && x !== limitTo)
                 continue;
             console.log(`Running ${x} tests`);

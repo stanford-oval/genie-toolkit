@@ -22,6 +22,8 @@ const LocalCVC4Solver = smtlib.LocalCVC4Solver;
 
 const prefs = require('../lib/util/prefs');
 
+const MockMessaging = require('./mock_messaging');
+
 var _unzipApi = {
     unzip(zipPath, dir) {
         var args = ['-uo', zipPath, '-d', dir];
@@ -160,8 +162,7 @@ class Platform {
         }
 
         this._btApi = null;
-
-        this._origin = null;
+        this._messaging = new MockMessaging();
     }
 
     setAssistant(ad) {
@@ -230,6 +231,9 @@ class Platform {
         case 'smt-solver':
             return true;
 
+        case 'messaging':
+            return true;
+
         default:
             return false;
         }
@@ -284,6 +288,9 @@ class Platform {
 
         case 'gettext':
             return this._gettext;
+
+        case 'messaging':
+            return this._messaging;
 
         default:
             return null;
