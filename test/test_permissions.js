@@ -34,7 +34,6 @@ module.exports = async function testPermissions(engine) {
 
     assert.deepStrictEqual(permissions.getAllPermissions(), [{
         uniqueId: permruleId,
-        rule: permrule,
         code: permrule.prettyprint(),
         description: `User 1 is allowed to consume any data if the data starts with “foo”`,
         metadata: {
@@ -42,6 +41,16 @@ module.exports = async function testPermissions(engine) {
             metadataKey: 'value1'
         }
     }]);
+    assert.deepStrictEqual(permissions.getPermission(permruleId), {
+        uniqueId: permruleId,
+        code: permrule.prettyprint(),
+        description: `User 1 is allowed to consume any data if the data starts with “foo”`,
+        metadata: {
+            $description: `User 1 is allowed to consume any data if the data starts with “foo”`,
+            metadataKey: 'value1'
+        }
+    });
+    assert.deepStrictEqual(permissions.getPermission('invalid'), undefined);
 
     assert.deepStrictEqual(await permissions.checkCanBeAllowed('mock:user1', prog1), true);
     assert.deepStrictEqual((await permissions.checkIsAllowed('mock:user1', prog1)).prettyprint(), prog1.prettyprint());
