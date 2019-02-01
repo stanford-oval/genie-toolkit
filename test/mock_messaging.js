@@ -16,7 +16,7 @@ let msgId = 0;
 
 class Feed extends Tp.Messaging.Feed {
     constructor(feedId, members, parent) {
-        super(feedId);
+        super('mock:' + feedId);
         this._messages = [];
 
         this._members = members;
@@ -32,7 +32,7 @@ class Feed extends Tp.Messaging.Feed {
 
     _sendMessage(from, msg) {
         setImmediate(() => {
-            msg.sender = from;
+            msg.sender = 'mock-account:' + from;
             msg.serverTimestamp = Date.now();
             msg.msgId = 'msg:' + msgId++;
 
@@ -77,8 +77,8 @@ module.exports = class MockMessaging extends Tp.Messaging {
     constructor() {
         super();
         this._feeds = [
-            new Feed('feed1', ['user1', 'user2'], this),
-            new Feed('feed2', ['user3', 'user1'], this)
+            new Feed('feed1', ['mock-account:user1', 'mock-account:user2'], this),
+            new Feed('feed2', ['mock-account:user3', 'mock-account:user1'], this)
         ];
     }
 
@@ -87,9 +87,9 @@ module.exports = class MockMessaging extends Tp.Messaging {
     }
 
     get account() {
-        return 'user1';
+        return 'mock-account:user1';
     }
-
+    
     get isAvailable() {
         return true;
     }
@@ -108,10 +108,12 @@ module.exports = class MockMessaging extends Tp.Messaging {
     }
 
     getFeed(feedId) {
+        assert(feedId.startsWith('mock:'));
         let feed = this._feeds.find((f) => f.feedId === feedId);
         if (feed)
             return feed;
 
+        feedId = feedId.substring('mock:'.length);
         feed = new Feed(feedId, ['user1'], this);
         this._feeds.push(feed);
         this.emit('feed-added', feed);
@@ -126,15 +128,15 @@ module.exports = class MockMessaging extends Tp.Messaging {
         assert.deepStrictEqual(contactIds.length, 1);
         let contactId = contactIds[0];
 
-        assert(!contactId.startsWith('mock-account:'));
-        assert(!contactId.startsWith('matrix-account:'));
+        assert(contactId.startsWith('mock-account:'));
+        contactId = contactId.substring('mock-account:'.length);
         assert(contactId !== 'user1');
 
         switch (contactId) {
         case 'user2':
-            return this.getFeed('feed1');
+            return this.getFeed('mock:feed1');
         case 'user3':
-            return this.getFeed('feed2');
+            return this.getFeed('mock:feed2');
         default: {
             const feed = new Feed('feed' + (this._feeds.length+1), ['user1', contactId], this);
             this._feeds.push(feed);
@@ -147,11 +149,11 @@ module.exports = class MockMessaging extends Tp.Messaging {
     async searchAccountByName(name) {
         switch (name) {
         case 'bob':
-            return [new MockUser('user1', 'Bob Bobson')];
+            return [new MockUser('mock-account:user1', 'Bob Bobson')];
         case 'alice':
-            return [new MockUser('user2', 'Alice Bobson')];
+            return [new MockUser('mock-account:user2', 'Alice Bobson')];
         case 'charlie':
-            return [new MockUser('user3', 'Charlie Bobson')];
+            return [new MockUser('mock-account:user3', 'Charlie Bobson')];
         default:
             return [];
         }
@@ -159,12 +161,12 @@ module.exports = class MockMessaging extends Tp.Messaging {
 
     async getUserByAccount(account) {
         switch (account) {
-        case 'user1':
-            return new MockUser('user1', 'Bob Bobson');
-        case 'user2':
-            return new MockUser('user2', 'Alice Bobson');
-        case 'user3':
-            return new MockUser('user3', 'Charlie Bobson');
+        case 'mock-account:user1':
+            return new MockUser('mock-account:user1', 'Bob Bobson');
+        case 'mock-account:user2':
+            return new MockUser('mock-account:user2', 'Alice Bobson');
+        case 'mock-account:user3':
+            return new MockUser('mock-account:user3', 'Charlie Bobson');
         default:
             throw new Error(`invalid mock account ${account}`);
         }
@@ -177,11 +179,11 @@ module.exports = class MockMessaging extends Tp.Messaging {
         switch (identity) {
         case 'phone:+1555123456':
         case 'email:bob@example.com':
-            return 'user1';
+            return 'mock-account:user1';
         case 'email:alice@example.com':
-            return 'user2';
+            return 'mock-account:user2';
         case 'email:charlie@example.com':
-            return 'user3';
+            return 'mock-account:user3';
         default:
             return null;
         }
