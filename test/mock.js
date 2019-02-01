@@ -356,11 +356,15 @@ class MockAddressBook {
     }
 }
 
-class MockMessaging {
+class MockMessagingManager {
     constructor() {
         this.isAvailable = true;
         this.type = 'mock';
-        this.account = '123456-SELF';
+        this.account = 'mock-account:123456-SELF';
+    }
+    
+    isSelf(principal) {
+        return principal === this.account;
     }
 
     getIdentities() {
@@ -368,7 +372,7 @@ class MockMessaging {
     }
 
     getUserByAccount(account) {
-        if (account === '123456789')
+        if (account === 'mock-account:123456789')
             return Promise.resolve({ name: "Some Guy" });
         else
             return Promise.resolve(null);
@@ -377,7 +381,7 @@ class MockMessaging {
     getAccountForIdentity(identity) {
         if (identity === 'phone:+XXXXXXXXX')
             return Promise.resolve(null);
-        return Promise.resolve('MOCK1234-' + identity);
+        return Promise.resolve('mock-account:MOCK1234-' + identity);
     }
 }
 
@@ -468,7 +472,7 @@ module.exports.createMockEngine = function(thingpediaUrl) {
         devices: new MockDeviceDatabase(),
         apps: new MockAppDatabase(schemas),
         discovery: new MockDiscoveryClient(),
-        messaging: new MockMessaging(),
+        messaging: new MockMessagingManager(),
         remote: new MockRemote(schemas),
         permissions: new MockPermissionManager(schemas)
     };
