@@ -362,6 +362,10 @@ class MockMessagingManager {
         this.type = 'mock';
         this.account = 'mock-account:123456-SELF';
     }
+
+    getSelf() {
+        return this.account;
+    }
     
     isSelf(principal) {
         return principal === this.account;

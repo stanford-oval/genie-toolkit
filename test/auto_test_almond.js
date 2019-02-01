@@ -2436,6 +2436,226 @@ null],
 `,
 null],
 
+
+    [
+    (almond) => {
+        return almond.handleThingTalk(`executor = "ABCDEFG"^^tt:username : now => @com.gmail.inbox() => return;`, {
+            contacts: [
+            { value: 'ABCDEFG', principal: 'mock-account:123456789', display: "@slack_user_name" }
+            ]
+        });
+    },
+    `>> Ok, so you want me to tell @slack_user_name: get the emails in your GMail inbox and then send it to me. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `{
+  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+    monitorable list query receive(in req __principal: Entity(tt:contact),
+                                   in req __program_id: Entity(tt:program_id),
+                                   in req __flow: Number,
+                                   out __kindChannel: Entity(tt:function),
+                                   out sender_name: String,
+                                   out sender_address: Entity(tt:email_address),
+                                   out subject: String,
+                                   out date: Date,
+                                   out labels: Array(String),
+                                   out snippet: String,
+                                   out thread_id: Entity(com.gmail:thread_id),
+                                   out email_id: Entity(com.gmail:email_id));
+  }
+  monitor (@__dyn_0.receive(__principal="mock-account:123456789"^^tt:contact("@slack_user_name"), __program_id=$event.program_id, __flow=0)) => notify;
+}
+remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
+  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+    action send(in req __principal: Entity(tt:contact),
+                in req __program_id: Entity(tt:program_id),
+                in req __flow: Number,
+                in req __kindChannel: Entity(tt:function),
+                in req sender_name: String,
+                in req sender_address: Entity(tt:email_address),
+                in req subject: String,
+                in req date: Date,
+                in req labels: Array(String),
+                in req snippet: String,
+                in req thread_id: Entity(com.gmail:thread_id),
+                in req email_id: Entity(com.gmail:email_id));
+  }
+  now => @com.gmail.inbox() => @__dyn_0.send(__principal="mock-account:123456-SELF"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, sender_name=sender_name, sender_address=sender_address, subject=subject, date=date, labels=labels, snippet=snippet, thread_id=thread_id, email_id=email_id);
+}`],
+
+    [
+    (almond) => {
+        return almond.handleThingTalk(`executor = "ABCDEFG"^^tt:username : now => @com.gmail.inbox() => return;`, {
+            contacts: [
+            { value: 'ABCDEFG', principal: 'email:dummy@example.com', display: "@slack_user_name" }
+            ]
+        });
+    },
+    `>> Ok, so you want me to tell @slack_user_name: get the emails in your GMail inbox and then send it to me. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `{
+  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+    monitorable list query receive(in req __principal: Entity(tt:contact),
+                                   in req __program_id: Entity(tt:program_id),
+                                   in req __flow: Number,
+                                   out __kindChannel: Entity(tt:function),
+                                   out sender_name: String,
+                                   out sender_address: Entity(tt:email_address),
+                                   out subject: String,
+                                   out date: Date,
+                                   out labels: Array(String),
+                                   out snippet: String,
+                                   out thread_id: Entity(com.gmail:thread_id),
+                                   out email_id: Entity(com.gmail:email_id));
+  }
+  monitor (@__dyn_0.receive(__principal="mock-account:MOCK1234-email:dummy@example.com"^^tt:contact("@slack_user_name"), __program_id=$event.program_id, __flow=0)) => notify;
+}
+remote mock-account:MOCK1234-email:dummy@example.com/phone:+15555555555 : uuid-XXXXXX : {
+  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+    action send(in req __principal: Entity(tt:contact),
+                in req __program_id: Entity(tt:program_id),
+                in req __flow: Number,
+                in req __kindChannel: Entity(tt:function),
+                in req sender_name: String,
+                in req sender_address: Entity(tt:email_address),
+                in req subject: String,
+                in req date: Date,
+                in req labels: Array(String),
+                in req snippet: String,
+                in req thread_id: Entity(com.gmail:thread_id),
+                in req email_id: Entity(com.gmail:email_id));
+  }
+  now => @com.gmail.inbox() => @__dyn_0.send(__principal="mock-account:123456-SELF"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, sender_name=sender_name, sender_address=sender_address, subject=subject, date=date, labels=labels, snippet=snippet, thread_id=thread_id, email_id=email_id);
+}`],
+
+    [
+    (almond) => {
+        return almond.handleThingTalk(`executor = "ABCDEFG"^^tt:username : now => @com.gmail.inbox() => return;`, {
+            contacts: [
+            { value: 'GFEDCBA', principal: 'mock-account:123456789', display: "@slack_user_name" }
+            ]
+        });
+    },
+    `>> Multiple contacts match “ABCDEFG”. Who do you mean?
+>> choice 0: Alice Smith (mom)
+>> choice 1: Bob Smith (dad)
+>> ask special choice
+`,
+    ['bookkeeping', 'special', 'special:nevermind'],
+`>> Sorry I couldn't help on that.
+>> ask special null
+`,
+    null],
+
+    [
+    (almond) => {
+        return almond.handleThingTalk(`executor = "mock-account:123456789"^^tt:contact : now => @com.gmail.inbox() => return;`, {
+            contacts: [
+            { value: 'ABCDEFG', principal: 'mock-account:123456789', display: "@slack_user_name" }
+            ]
+        });
+    },
+    `>> Ok, so you want me to tell @slack_user_name: get the emails in your GMail inbox and then send it to me. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `{
+  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+    monitorable list query receive(in req __principal: Entity(tt:contact),
+                                   in req __program_id: Entity(tt:program_id),
+                                   in req __flow: Number,
+                                   out __kindChannel: Entity(tt:function),
+                                   out sender_name: String,
+                                   out sender_address: Entity(tt:email_address),
+                                   out subject: String,
+                                   out date: Date,
+                                   out labels: Array(String),
+                                   out snippet: String,
+                                   out thread_id: Entity(com.gmail:thread_id),
+                                   out email_id: Entity(com.gmail:email_id));
+  }
+  monitor (@__dyn_0.receive(__principal="mock-account:123456789"^^tt:contact("@slack_user_name"), __program_id=$event.program_id, __flow=0)) => notify;
+}
+remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
+  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+    action send(in req __principal: Entity(tt:contact),
+                in req __program_id: Entity(tt:program_id),
+                in req __flow: Number,
+                in req __kindChannel: Entity(tt:function),
+                in req sender_name: String,
+                in req sender_address: Entity(tt:email_address),
+                in req subject: String,
+                in req date: Date,
+                in req labels: Array(String),
+                in req snippet: String,
+                in req thread_id: Entity(com.gmail:thread_id),
+                in req email_id: Entity(com.gmail:email_id));
+  }
+  now => @com.gmail.inbox() => @__dyn_0.send(__principal="mock-account:123456-SELF"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, sender_name=sender_name, sender_address=sender_address, subject=subject, date=date, labels=labels, snippet=snippet, thread_id=thread_id, email_id=email_id);
+}`],
+
+    [
+    (almond) => {
+        return almond.handleThingTalk(`executor = "mock-account:123456789"^^tt:contact : now => @com.gmail.inbox() => return;`, {
+            contacts: [
+            { value: 'ABCDEFG', principal: 'mock-account:987654321', display: "@slack_user_name" }
+            ]
+        });
+    },
+    `>> Ok, so you want me to tell Some Guy: get the emails in your GMail inbox and then send it to me. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+    `{
+  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+    monitorable list query receive(in req __principal: Entity(tt:contact),
+                                   in req __program_id: Entity(tt:program_id),
+                                   in req __flow: Number,
+                                   out __kindChannel: Entity(tt:function),
+                                   out sender_name: String,
+                                   out sender_address: Entity(tt:email_address),
+                                   out subject: String,
+                                   out date: Date,
+                                   out labels: Array(String),
+                                   out snippet: String,
+                                   out thread_id: Entity(com.gmail:thread_id),
+                                   out email_id: Entity(com.gmail:email_id));
+  }
+  monitor (@__dyn_0.receive(__principal="mock-account:123456789"^^tt:contact("Some Guy"), __program_id=$event.program_id, __flow=0)) => notify;
+}
+remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
+  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
+    action send(in req __principal: Entity(tt:contact),
+                in req __program_id: Entity(tt:program_id),
+                in req __flow: Number,
+                in req __kindChannel: Entity(tt:function),
+                in req sender_name: String,
+                in req sender_address: Entity(tt:email_address),
+                in req subject: String,
+                in req date: Date,
+                in req labels: Array(String),
+                in req snippet: String,
+                in req thread_id: Entity(com.gmail:thread_id),
+                in req email_id: Entity(com.gmail:email_id));
+  }
+  now => @com.gmail.inbox() => @__dyn_0.send(__principal="mock-account:123456-SELF"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, sender_name=sender_name, sender_address=sender_address, subject=subject, date=date, labels=labels, snippet=snippet, thread_id=thread_id, email_id=email_id);
+}`],
+
     [(almond) => {
     almond._engine.permissions = null;
     almond._engine.remote = null;
@@ -2708,7 +2928,7 @@ null],
 `,
     `{
   now => @com.twitter(id="twitter-bar").post(status="!! test command always nothing !!");
-}`]
+}`],
 ];
 
 function handleCommand(almond, input) {
