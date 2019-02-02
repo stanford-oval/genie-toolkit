@@ -37,10 +37,8 @@ lib/devices/thingpedia_http_client.js
 lib/engine.js
 lib/messaging/communication_manager.js
 lib/messaging/device_manager.js
-lib/ml.js
 lib/permissions/permission_manager.js
 lib/polyfill.js
-lib/stats.js
 lib/tiers/paired.js
 lib/tiers/protocol.js
 lib/tiers/tier_connections.js
