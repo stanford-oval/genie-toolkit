@@ -36,35 +36,6 @@ class MockPreferences {
     }
 }
 
-class MockStatistics {
-    constructor() {
-        this._store = {};
-    }
-
-    snapshot() {
-        console.log('Statistics snapshot');
-    }
-
-    keys() {
-        return Object.keys(this._store);
-    }
-
-    set(key, value) {
-        return this._store[key] = value;
-    }
-
-    get(key) {
-        return this._store[key];
-    }
-
-    hit(key) {
-        var old = this._store[key];
-        if (old === undefined)
-            old = 0;
-        this._store[key] = old+1;
-    }
-}
-
 class MockAppDatabase {
     constructor(schemas) {
         this._apps = {};
@@ -443,12 +414,14 @@ const _mockPlatform = {
     },
 
     getCapability(cap) {
-        if (cap === 'gettext')
+        switch (cap) {
+        case 'gettext':
             return _gettext;
-        else if (cap === 'contacts')
+        case 'contacts':
             return new MockAddressBook();
-        else
+        default:
             return null;
+        }
     }
 };
 
@@ -462,7 +435,6 @@ module.exports.createMockEngine = function(thingpediaUrl) {
 
     return {
         platform: _mockPlatform,
-        stats: new MockStatistics,
         thingpedia: thingpedia,
         schemas: schemas,
         devices: new MockDeviceDatabase(),
