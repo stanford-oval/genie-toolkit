@@ -13,10 +13,10 @@ the location where the package is installed.
 
 To use Genie as a command line tool run:
 ```
-yarn global add genie
+yarn global add genie-tool
 ```
 
 To use Genie as a library in another nodejs project:
 ```
-yarn add genie
+yarn add genie-tool
 ```
