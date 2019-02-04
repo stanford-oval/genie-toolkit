@@ -1,0 +1,22 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+// Thingpedia Grammar Rules
+
+thingpedia_query = {}
+thingpedia_get_command = {}
+thingpedia_stream = {}
+thingpedia_action = {}
+
+import './common-constants';
+
+// out params nonterminals are automatically generated
+out_param_Any = {}
+out_param_Array__Any = {}

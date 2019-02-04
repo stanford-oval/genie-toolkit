@@ -1,0 +1,61 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+// import the combinator library
+const C = require('../lib/sentence-generator/ast_manip');
+}
+
+out_param_Numeric = {
+    out_param_Number;
+    out_param_Currency;
+    out_param_Measure_ms;
+    out_param_Measure_byte;
+    out_param_Measure_kg;
+    out_param_Measure_C;
+    out_param_Measure_m;
+    out_param_Measure_mps;
+}
+
+out_param_String   = {}
+out_param_Number   = {}
+out_param_Currency = {}
+out_param_Time     = {}
+out_param_Date     = {}
+out_param_Location = {}
+out_param_Measure_ms   = {}
+out_param_Measure_byte = {}
+out_param_Measure_kg   = {}
+out_param_Measure_C    = {}
+out_param_Measure_m    = {}
+out_param_Measure_mps  = {}
+
+// empty defaults for certain parameter types in case we don't have devices with
+// those parameters
+projection_Entity__tt__username = {}
+projection_Entity__tt__email_address = {}
+
+for (let [pname, typestr] of $options.params.in.values()) {
+    thingpedia_stream = {
+        s:thingpedia_stream v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(s, pname, v, C.betaReduceStream);
+    }
+
+    thingpedia_query = {
+        q:thingpedia_query v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(q, pname, v, C.betaReduceTable);
+    }
+
+    thingpedia_get_command = {
+        q:thingpedia_get_command v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(q, pname, v, C.betaReduceTable);
+    }
+
+    thingpedia_action = {
+        a:thingpedia_action v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(a, pname, v, C.betaReduceAction);
+    }
+}

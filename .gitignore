@@ -1,0 +1,10 @@
+*~
+node_modules/
+coverage/
+.nyc_output/
+.idea/
+
+lib/genie-compiler/grammar.js
+
+*.tgz
+*.tsv

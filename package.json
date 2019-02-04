@@ -1,0 +1,38 @@
+{
+  "name": "genie-toolkit",
+  "version": "0.1.0",
+  "description": "A Generator of Natural Language Parsers for Compositional Virtual Assistants",
+  "main": "lib/index.js",
+  "repository": "https://github.com/Stanford-Mobisocial-IoT-Lab/genie-toolkit.git",
+  "author": "Giovanni Campagna <gcampagn@cs.stanford.edu>",
+  "license": "GPL-3.0+",
+  "dependencies": {
+    "thingtalk": "^1.4.2"
+  },
+  "devDependencies": {
+    "argparse": "^1.0.10",
+    "coveralls": "^3.0.0",
+    "csv": "^5.0.0",
+    "deep-equal": "^1.0.1",
+    "eslint": "^5.3.0",
+    "nyc": "^13.1.0",
+    "pegjs": "~0.10.0",
+    "q": "^1.5.1",
+    "seedrandom": "^2.4.4"
+  },
+  "scripts": {
+    "regen-meta-grammar": "pegjs ./lib/genie-compiler/grammar.pegjs",
+    "compile-all-sentence-grammars": "make -C languages/",
+    "lint": "eslint ./lib",
+    "test": "nyc node ./test/index",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "prepare": "yarn regen-meta-grammar && yarn compile-all-sentence-grammars"
+  },
+  "nyc": {
+    "exclude": [
+      "lib/genie-compiler/grammar.js",
+      "test/**",
+      "coverage/**"
+    ]
+  }
+}
