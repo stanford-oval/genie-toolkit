@@ -19,6 +19,11 @@ semantic parsing code live in other repositories.
 
 See [INSTALL.md]
 
+## License
+
+This package is covered by the GNU General Public License, version 3
+or any later version. See [LICENSE] for details.
+
 ## Reproducing the results of the paper
 
 To reproduce the machine learning results of the paper, see [doc/reproducing.md].
