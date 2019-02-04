@@ -1,0 +1,186 @@
+# Genie
+
+This repository hosts Genie, a tool which allows you to quickly create new semantic
+parsers that translate from natural language to a formal language of your choice.
+
+Genie was described in the paper:
+
+_Genie: A Generator of Natural Language Parsers for Compositional Virtual Assistants_  
+Giovanni Campagna (\*), Silei Xu (\*), Mehrad Moradshahi, and Monica S. Lam  
+To appear in _Proceedings of the 40th ACM SIGPLAN Conference on Programming Language Design and Implementation_ (PLDI 2019), Phoenix, AZ, June 2019.
+
+If you use Genie in any academic work, please cite the above paper.
+
+This repository contains the Genie library and a command line tool; other portions
+of the Genie system, such as the basic language library, paraphrasing web server and
+semantic parsing code live in other repositories.
+
+## Installation
+
+See [INSTALL.md]
+
+## Reproducing the results of the paper
+
+To reproduce the machine learning results of the paper, see [doc/reproducing.md].
+
+## Using Genie
+
+### Genie concepts
+
+Genie is a based on the _Genie template language_, which succintly defines a space of synthetic
+sentences. Genie can use the template language to generate 
+
+### A turnkey solution for Genie+Almond
+
+A all-in-one solution to use Genie to extend ThingTalk with new templates is provided by
+[almond-cloud](https://github.com/Stanford-Mobisocial-IoT-Lab/almond-cloud).
+
+Please refer to `almond-cloud` documentation for installation instructions.
+
+After installation, administrators (and optionally users) can create new Genie template
+modules and new natural language models, trigger automated training and deploy the trained models
+to any Almond system.
+
+### Manual Genie Usage
+
+#### Step 1. Generate synthetic set.
+
+To generate a synthetic set, use:
+
+```
+genie generate --template template.genie --thingpedia thingpedia.json --dataset dataset.tt -o synthetic.tsv
+```
+
+The `--template` flag can be used to point to a template file definining the construct templates,
+in Genie language. Multiple `--template` flags
+can be used to load multiple template files. If Genie has write permissions on the directory
+containing the template files, the files will be automatically compiled to JS and cached.
+
+The `--thingpedia` flag should point to a [Thingpedia snapshot file](https://almond.stanford.edu/thingpedia/developers/thingpedia-api/#api-Schemas-GetSnapshot),
+which defines the types and signatures of the primitives to use. You can download a snapshot file
+for the reference Thingpedia with:
+```
+genie download-snapshot [--snapshot <snapshot_id>] -o thingpedia.json
+```
+If you omit the `--snapshot` parameter, the latest content of Thingpedia will be used.
+
+The `--dataset` flag to should point to the primitive templates in ThingTalk dataset syntax.
+See the [Thingpedia documentation[(https://almond.stanford.edu/thingpedia/developers/thingpedia-nl-support.md)
+for a description of dataset files.
+
+The resulting `synthetic.tsv` file can be used to train directly. To do so, skip to Step 4, Dataset preprocessing.
+
+#### Step 2. Choose the sentences to paraphrases.
+
+To choose which sentences to paraphrase, use:
+```
+genie sample --thingpedia thingpedia.json --constants constants.tsv --sampling-control easy-hard-functions.tsv -o mturk-input.tsv
+```
+
+Use `constants.tsv` to choose which values to use for each constant, based on type and parameter name.
+If `--constants` is omitted, a default that is appropriate for English and the reference Thingpedia is
+used. See [data/constants.tsv](data/constants.tsv) for an example of the file format.
+
+Use `--sampling-control` to choose which functions are hard and which functions are easy; this affect
+the proportion of paraphrase inputs that will use each functions. See [data/easy-hard-functions.tsv](data/easy-hard-functions.tsv)
+for details of the file format. This parameter cannot be omitted.
+
+You can also modify [lib/paraphrase-sampler.js](lib/paraphrase-sampler.js) to further adapt how
+sampling occurs, based on program complexity, sentence complexity or other heuristics.
+
+#### Step 3. Paraphrasing
+
+The command-line version of Genie **does not** include a paraphrasing website, as that is usually too dependency
+heavy and too specific to a particular setup. Instead, the `mturk-input.tsv` is in a format
+suitable for use with the paraphrasing website provided by [almond-cloud](https://github.com/Stanford-Mobisocial-IoT-Lab/almond-cloud),
+which provides one-click integration with Amazon MTurk.
+
+If you wish to avoid almond-cloud, you can prepare the paraphrasing HITs with:
+```
+genie mturk-make-paraphrase-hits -i mturk-input.tsv -o paraphrasing-hits.csv
+```
+The resulting `paraphrasing-hits.csv` will be suitable to use on Amazon MTurk using the template provided
+in [data/mturk-paraphrasing-template.html]. Note that the on-the-fly validation provided by this template is more limited
+than the one performed by almond-cloud, due to limitations of the MTurk platform; hence, subsequent
+validation might end up rejecting more HITs.
+
+After using the embedded template, you can prepare the validation HITs with:
+```
+genie mturk-make-validation-hits -i paraphrasing-results.csv -o validation-hits.csv --validation-count 5
+```
+`--validation-count` will control how many validators will be asked to check each sentence.
+
+Finally, after completing the validation HITs, you can obtain the paraphrasing dataset with:
+```
+genie mturk-validate --paraphrasing-input paraphrasing-results.csv --validation-input validation-hits.csv
+  --validation-threshold 4 -o paraphrasing.tsv [--paraphrasing-rejects rejects.csv] [--validation-rejects validation.csv]
+```
+`--validation-threshold` controls the number of workers that must approve of a sentence before it is included
+in the datasets. The optional `--paraphrasing-rejects` and `--validation-rejects` generate reject files
+that can be used in Amazon MTurk to reject the completed tasks.
+
+If you wish to skip manual validation, use a `--validation-threshold` of 0. In that case, `--validation-input`
+is not necessary. The script will still perform automatic validation.
+
+#### Step 4. Dataset preprocessing
+
+After creating the synthetic and paraphrase datasets, use the following command to augment the dataset
+and apply parameter replacement:
+```
+genie augment -i synthetic.tsv -i paraphrasing.tsv --ppdb compiled-ppdb.bin --parameter-datasets parameter-datasets.tsv
+ -o everything.tsv
+ [--ppdb-synthetic-fraction FRACTION] [--ppdb-paraphrase-fraction FRACTION]
+ [--quoted-fraction FRACTION]
+```
+
+Before this step, you must obtain the parameter datasets, and create a parameter-datasets.tsv file
+mapping a string type to a downloaded dataset file.
+
+Because different datasets have different licenses and restrictions (such as the requirement to cite
+a particular paper, or a restriction to non-commercial use), Genie does not include any dataset directly.
+You can obtain the datasets Almond uses at <https://almond.stanford.edu/thingpedia/strings>. Download
+is available after registration and accepting the terms and conditions.
+
+Given the created everything.tsv file, you can split in train/eval/test with:
+```
+genie split-train-eval -i everything.tsv --train train.tsv --eval eval.tsv [--test test.tsv] --eval-prob 0.1
+```
+Use `--eval-prob` to control the fraction of the data that will be part of the evaluation set. The same
+amount (with different sentences) will be part of the test set, if `--test` is provided.
+
+#### Step 5. Training
+
+To train, use:
+```
+genie train --data-dir <DATADIR> --output-dir <OUTPUTDIR> --workdir <WORKDIR>
+```
+
+`<DATADIR>` is the path to the TSV files, `<OUTPUTDIR>` is a directory that will
+contained the best trained model, and `<WORKDIR>` is a temporary directory containing
+preprocessed dataset files, intermediate training steps, Tensorboard event files,
+and debugging logs from `luinet`. `<WORKDIR>` should be on a file system with at least 10GB free;
+do not use a tmpfs such as `/tmp` for it.
+
+Training will also automatically evaluate on the validation set, and output the best
+scores and error analysis.
+
+To evaluate on the test set, use:
+```
+genie evaluate --data-dir <DATADIR> --output-dir <OUTPUTDIR> --workdir <WORKDIR>
+```
+
+#### Step 6. Deploying
+
+The resulting trained model can be deployed using `luinet-server`, provided by the `luinet` package.
+Please refer to its documentation for instructions.
+
+### Modifying ThingTalk
+
+If you want to also extend ThingTalk (with new syntax or new features) you will need to
+fork and modify the library, which lives at <https://github.com/Stanford-Mobisocial-IoT/thingtalk>.
+After modifying the library, you can use `yarn link` or a combination of package.json `dependencies`
+and `resolutions` to point the almond-cloud installation to your library. You must make sure
+that only one copy of the ThingTalk library is loaded (use `find node_modules/ -name thingtalk` to check).
+
+If you modify the ThingTalk syntax, you must also point `luinet` to a modified parser for the ThingTalk grammar
+(to perform automatic syntax checks). See the ThingTalk documentation for how to generate this.
