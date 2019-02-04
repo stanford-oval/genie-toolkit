@@ -11,9 +11,9 @@
 {
 const assert = require('assert');
 
-const Ast = require('../../lib/ast');
-const Type = require('../../lib/type');
-const Generate = require('../../lib/generate');
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
 const { clean } = require('../../lib/utils');
 
 // import the combinator library

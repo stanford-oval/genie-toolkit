@@ -9,7 +9,8 @@
 // See COPYING for details
 
 {
-const Ast = require('../../lib/ast');
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
 
 const TIMER_SCHEMA = new Ast.FunctionDef('stream',
     'timer',

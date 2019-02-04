@@ -16,12 +16,13 @@ const stream = require('stream');
 const seedrandom = require('seedrandom');
 
 const SentenceGenerator = require('../lib/sentence-generator');
-const NNSyntax = require('../lib/nn_syntax');
-const SchemaRetriever = require('../lib/schema');
+
+const ThingTalk = require('thingtalk');
+const NNSyntax = ThingTalk.NNSyntax;
+const SchemaRetriever = ThingTalk.SchemaRetriever;
 
 const _tpClient = require('./mock_schema_delegate');
-const _mockMemoryClient = require('./mock_memory_client');
-const _schemaRetriever = new SchemaRetriever(_tpClient, _mockMemoryClient, true);
+const _schemaRetriever = new SchemaRetriever(_tpClient, null, true);
 
 const VALUES = {
     QUOTED_STRING: ["i'm happy", "you would never believe what happened", "merry christmas", "love you"],

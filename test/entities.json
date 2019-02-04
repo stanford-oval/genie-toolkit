@@ -1,0 +1,317 @@
+{
+    "result": "ok",
+    "data": [
+        {
+            "type": "com.facebook:id",
+            "name": "Facebook post ID",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "com.gmail:email_id",
+            "name": "GMail Email ID",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "com.gmail:thread_id",
+            "name": "GMail Thread ID",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "com.google.contacts:contact_name",
+            "name": "Name of a contact in Google Contacts",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "com.google.drive:file_id",
+            "name": "Google Drive File ID",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "com.icanhazdadjoke:id",
+            "name": "Dad Joke ID",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "com.instagram:filter",
+            "name": "Instagram Filter",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "com.live.onedrive:file_id",
+            "name": "OneDrive File ID",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "com.live.onedrive:user_id",
+            "name": "OneDrive User ID",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "com.steampowered:user_id",
+            "name": "Steam User ID",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "com.thecatapi:image_id",
+            "name": "The Cat API Image ID",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "com.twitter:id",
+            "name": "Twitter API ID",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "com.youtube:channel_id",
+            "name": "YouTube Channel ID",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "com.youtube:video_id",
+            "name": "YouTube Video ID",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "dogapi:image_id",
+            "name": "The Dog API Image ID",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "gov.nasa:asteroid_id",
+            "name": "NASA Asteroid ID",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "gov.nasa:curiosity_rover_camera",
+            "name": "NASA Curiosity Rover Camera Identifier",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "imgflip:meme_id",
+            "name": "Imgflip Meme ID",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "instagram:media_id",
+            "name": "Instagram Media ID",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "omlet:feed_id",
+            "name": "Omlet Feed",
+            "is_well_known": 0,
+            "has_ner_support": 0
+        },
+        {
+            "type": "org.arxiv:category",
+            "name": "ArXiv Category",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "org.freedesktop:app_id",
+            "name": "Freedesktop App Identifier",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "sportradar:eu_soccer_team",
+            "name": "Sportradar European Soccer Team",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "sportradar:eu_tournament",
+            "name": "Sportradar EU Soccer Tournament ID",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "sportradar:mlb_team",
+            "name": "Sportradar MLB Team",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "sportradar:nba_team",
+            "name": "Sportradar NBA Team",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "sportradar:ncaafb_team",
+            "name": "Sportradar NCAA Football Team",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "sportradar:ncaambb_team",
+            "name": "Sportradar NCAA Men's Basketball Team",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "sportradar:nfl_team",
+            "name": "Sportradar NFL Team",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "sportradar:us_soccer_team",
+            "name": "Sportradar North American Soccer Team",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "sportradar:us_tournament",
+            "name": "Sportradar US Soccer Tournament ID",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "tt:country",
+            "name": "ISO 3166-1 Alpha-2 Country Code",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "tt:cryptocurrency_code",
+            "name": "Cryptocurrency Code",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "tt:currency_code",
+            "name": "Currency Code",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "tt:iso_lang_code",
+            "name": "ISO 639-1 Language Code",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "tt:mime_type",
+            "name": "Media (MIME) Type",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "tt:stock_id",
+            "name": "Company Stock ID",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "tt:test",
+            "name": "test",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "tt:test3",
+            "name": "test",
+            "is_well_known": 0,
+            "has_ner_support": 1
+        },
+        {
+            "type": "tt:contact",
+            "name": "Contact Identity",
+            "is_well_known": 1,
+            "has_ner_support": 0
+        },
+        {
+            "type": "tt:contact_name",
+            "name": "Contact Name",
+            "is_well_known": 1,
+            "has_ner_support": 0
+        },
+        {
+            "type": "tt:device",
+            "name": "Device Name",
+            "is_well_known": 1,
+            "has_ner_support": 0
+        },
+        {
+            "type": "tt:email_address",
+            "name": "Email Address",
+            "is_well_known": 1,
+            "has_ner_support": 0
+        },
+        {
+            "type": "tt:flow_token",
+            "name": "Flow Identifier",
+            "is_well_known": 1,
+            "has_ner_support": 0
+        },
+        {
+            "type": "tt:function",
+            "name": "Function Name",
+            "is_well_known": 1,
+            "has_ner_support": 0
+        },
+        {
+            "type": "tt:hashtag",
+            "name": "Hashtag",
+            "is_well_known": 1,
+            "has_ner_support": 0
+        },
+        {
+            "type": "tt:path_name",
+            "name": "Unix Path",
+            "is_well_known": 1,
+            "has_ner_support": 0
+        },
+        {
+            "type": "tt:phone_number",
+            "name": "Phone Number",
+            "is_well_known": 1,
+            "has_ner_support": 0
+        },
+        {
+            "type": "tt:picture",
+            "name": "Picture",
+            "is_well_known": 1,
+            "has_ner_support": 0
+        },
+        {
+            "type": "tt:program",
+            "name": "Program",
+            "is_well_known": 1,
+            "has_ner_support": 0
+        },
+        {
+            "type": "tt:url",
+            "name": "URL",
+            "is_well_known": 1,
+            "has_ner_support": 0
+        },
+        {
+            "type": "tt:username",
+            "name": "Username",
+            "is_well_known": 1,
+            "has_ner_support": 0
+        }
+    ]
+}

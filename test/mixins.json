@@ -1,0 +1,119 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "kind": "org.thingpedia.v2",
+      "args": [],
+      "types": [],
+      "required": [],
+      "is_input": [],
+      "facets": [
+        "loader"
+      ]
+    },
+    {
+      "kind": "org.thingpedia.builtin",
+      "args": [],
+      "types": [],
+      "required": [],
+      "is_input": [],
+      "facets": [
+        "loader"
+      ]
+    },
+    {
+      "kind": "org.thingpedia.embedded",
+      "args": [],
+      "types": [],
+      "required": [],
+      "is_input": [],
+      "facets": [
+        "loader"
+      ]
+    },
+    {
+      "kind": "org.thingpedia.generic_rest.v1",
+      "args": [],
+      "types": [],
+      "required": [],
+      "is_input": [],
+      "facets": [ "loader" ]
+    },
+    {
+      "kind": "org.thingpedia.config.none",
+      "args": [ "api_key", "subscription_key" ],
+      "types": [ "String", "String" ],
+      "required": [ false, false ],
+      "is_input": [ true, true ],
+      "facets": [ "config" ]
+    },
+    {
+      "kind": "org.thingpedia.config.discovery.bluetooth",
+      "args": [ "uuids", "device_class" ],
+      "types": [ "Array(String)", "Enum(audio_video,computer,health,imaging,misc,networking,peripheral,phone,toy,wearable)" ],
+      "required": [ true, false ],
+      "is_input": [ true, true ],
+      "facets": [ "config" ]
+    },
+    {
+      "kind": "org.thingpedia.config.discovery.upnp",
+      "args": [ "search_target" ],
+      "types": [ "Array(String)" ],
+      "required": [ true ],
+      "is_input": [ true ],
+      "facets": [ "config" ]
+    },
+    {
+      "kind": "org.thingpedia.config.form",
+      "args": [ "params" ],
+      "types": [ "ArgMap"],
+      "required": [ true ],
+      "is_input": [ true ],
+      "facets": [ "config" ]
+    },
+    {
+      "kind": "org.thingpedia.config.oauth2",
+      "args": [ "client_id", "client_secret" ],
+      "types": [ "String", "String" ],
+      "required": [ false, false ],
+      "is_input": [ true, true ],
+      "facets": [ "config" ]
+    },
+    {
+      "kind": "org.thingpedia.config.custom_oauth",
+      "args": [ "client_id", "client_secret" ],
+      "types": [ "String", "String" ],
+      "required": [ false, false ],
+      "is_input": [ true, true ],
+      "facets": [ "config" ]
+    },
+    {
+      "kind": "org.thingpedia.config.basic_auth",
+      "args": [ "extra_params" ],
+      "types": [ "ArgMap" ],
+      "required": [ true, true ],
+      "is_input": [ true, true ],
+      "facets": [ "config" ]
+    },
+    {
+      "kind": "org.thingpedia.config.interactive",
+      "args": [],
+      "types": [],
+      "required": [],
+      "is_input": [],
+      "facets": [
+        "config"
+      ]
+    },
+    {
+      "kind": "org.thingpedia.config.builtin",
+      "args": [],
+      "types": [],
+      "required": [],
+      "is_input": [],
+      "facets": [
+        "config"
+      ]
+    }
+  ]
+}

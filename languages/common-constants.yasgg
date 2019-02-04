@@ -9,7 +9,8 @@
 // See COPYING for details
 
 {
-const Type = require('../lib/type');
+const ThingTalk = require('thingtalk');
+const Type = ThingTalk.Type;
 }
 
 constant_String                    = const(QUOTED_STRING, Type.String);
