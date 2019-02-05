@@ -11,9 +11,10 @@
   },
   "dependencies": {
     "argparse": "^1.0.10",
+    "csv": "^5.0.0",
     "seedrandom": "^2.4.4",
-    "thingtalk": "^1.4.2",
-    "csv": "^5.0.0"
+    "thingpedia": "^2.3.3",
+    "thingtalk": "^1.4.2"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",

@@ -12,11 +12,19 @@
 const seedrandom = require('seedrandom');
 const fs = require('fs');
 const stream = require('stream');
+const argparse = require('argparse');
 
+const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const SentenceGenerator = require('../lib/sentence-generator');
 
-// FIXME
-const _tpClient = require('../test/mock_schema_delegate');
+class ActionSetFlag extends argparse.Action {
+    call(parser, namespace, values) {
+        if (!namespace.flags)
+            namespace.set('flags', {});
+        for (let value of values)
+            namespace.flags[value] = this.constant;
+    }
+}
 
 module.exports = {
     initArgparse(subparsers) {
@@ -24,26 +32,50 @@ module.exports = {
             addHelp: true,
             description: "Generate a new synthetic dataset, given a template file."
         });
+        parser.addArgument(['-o', '--output'], {
+            required: true,
+            type: fs.createWriteStream
+        });
         parser.addArgument(['-l', '--language'], {
             required: false,
             defaultValue: 'en',
             help: `2-letter ISO code of natural language to generate (defaults to 'en', English)`
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.addArgument('--thingpedia', {
             required: true,
-            type: fs.createWriteStream
+            help: 'Path to JSON file containing signature, type and mixin definitions.'
+        });
+        parser.addArgument('--dataset', {
+            required: true,
+            help: 'Path to file containing primitive templates, in ThingTalk syntax.'
+        });
+        parser.addArgument('--template', {
+            required: true,
+            help: 'Path to file containing construct templates, in Genie syntax.'
+        });
+        parser.addArgument('--set-flag', {
+            required: false,
+            nargs: 1,
+            action: ActionSetFlag,
+            constant: true,
+            metavar: 'FLAG',
+            help: 'Set a flag for the construct template file.',
+        });
+        parser.addArgument('--unset-flag', {
+            required: false,
+            nargs: 1,
+            action: ActionSetFlag,
+            constant: false,
+            metavar: 'FLAG',
+            help: 'Unset (clear) a flag for the construct template file.',
         });
         parser.addArgument('--maxdepth', {
+            required: false,
             type: Number,
             defaultValue: 6,
-            help: 'Maximum depth of synthetic sentence generation',
+            help: 'Maximum depth of sentence generation',
         });
-        parser.addArgument('--turking', {
-            nargs: 0,
-            action: 'storeTrue',
-            help: 'Restrict grammar rules to MTurk-friendly ones.',
-            defaultValue: false
-        });
+        
         parser.addArgument('--debug', {
             nargs: 0,
             action: 'storeTrue',
@@ -56,14 +88,20 @@ module.exports = {
             dest: 'debug',
             help: 'Disable debugging.',
         });
+        parser.addArgument('--random-seed', {
+            defaultValue: 'almond is awesome',
+            help: 'Random seed'
+        });
     },
 
-    execute(args) {
+    async execute(args) {
+        const tpClient = new FileThingpediaClient(args.language, args.thingpedia, args.dataset);
         const options = {
-            rng: seedrandom.alea('almond is awesome'),
-            language: 'en',
-            targetLanguage: 'thingtalk',
-            thingpediaClient: _tpClient,
+            rng: seedrandom.alea(args.random_seed),
+            language: args.language,
+            flags: args.flags || {},
+            templateFile: args.template,
+            thingpediaClient: tpClient,
             turkingMode: args.turking,
             maxDepth: args.maxdepth,
             debug: args.debug

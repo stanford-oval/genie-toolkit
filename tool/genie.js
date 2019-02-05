@@ -15,7 +15,10 @@ process.on('unhandledRejection', (up) => { throw up; });
 const argparse = require('argparse');
 
 const subcommands = {
-    'generate': require('./generate')
+    'download-snapshot': require('./download-snapshot'),
+    'download-dataset': require('./download-dataset'),
+
+    'generate': require('./generate'),
 };
 
 async function main() {

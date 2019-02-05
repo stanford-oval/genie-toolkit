@@ -75,6 +75,13 @@ for a description of dataset files.
 
 The resulting `synthetic.tsv` file can be used to train directly. To do so, skip to Step 4, Dataset preprocessing.
 
+NOTE: the `generate` command can require significant amounts of memory. If you experience out of memory,
+it can help to invoke `node` as:
+```
+node --max_old_space_size=8000 `which genie` ...
+```
+or however much memory you want to dedicate to the process (in MB).
+
 #### Step 2. Choose the sentences to paraphrases.
 
 To choose which sentences to paraphrase, use:

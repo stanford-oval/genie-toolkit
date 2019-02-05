@@ -8,3 +8,6 @@ lib/genie-compiler/grammar.js
 
 *.tgz
 *.tsv
+
+dataset.tt
+thingpedia.json
