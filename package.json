@@ -22,11 +22,10 @@
   },
   "scripts": {
     "regen-meta-grammar": "pegjs ./lib/genie-compiler/grammar.pegjs",
-    "compile-all-sentence-grammars": "make -C languages/",
     "lint": "eslint ./lib",
     "test": "nyc node ./test/index",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "prepare": "yarn regen-meta-grammar && yarn compile-all-sentence-grammars"
+    "prepare": "yarn regen-meta-grammar"
   },
   "nyc": {
     "exclude": [
