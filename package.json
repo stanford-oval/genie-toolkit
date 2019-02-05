@@ -6,24 +6,25 @@
   "repository": "https://github.com/Stanford-Mobisocial-IoT-Lab/genie-toolkit.git",
   "author": "Giovanni Campagna <gcampagn@cs.stanford.edu>",
   "license": "GPL-3.0+",
+  "bin": {
+    "genie": "./tool/genie.js"
+  },
   "dependencies": {
-    "thingtalk": "^1.4.2"
+    "argparse": "^1.0.10",
+    "seedrandom": "^2.4.4",
+    "thingtalk": "^1.4.2",
+    "csv": "^5.0.0"
   },
   "devDependencies": {
-    "argparse": "^1.0.10",
     "coveralls": "^3.0.0",
-    "csv": "^5.0.0",
-    "deep-equal": "^1.0.1",
     "eslint": "^5.3.0",
     "nyc": "^13.1.0",
-    "pegjs": "~0.10.0",
-    "q": "^1.5.1",
-    "seedrandom": "^2.4.4"
+    "pegjs": "~0.10.0"
   },
   "scripts": {
     "regen-meta-grammar": "pegjs ./lib/genie-compiler/grammar.pegjs",
     "lint": "eslint ./lib",
-    "test": "nyc node ./test/index",
+    "test": "nyc ./test/everything.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "prepare": "yarn regen-meta-grammar"
   },

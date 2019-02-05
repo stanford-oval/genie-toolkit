@@ -53,7 +53,7 @@ to any Almond system.
 To generate a synthetic set, use:
 
 ```
-genie generate --template template.genie --thingpedia thingpedia.json --dataset dataset.tt -o synthetic.tsv
+genie generate --language en --template template.genie --thingpedia thingpedia.json --dataset dataset.tt -o synthetic.tsv
 ```
 
 The `--template` flag can be used to point to a template file definining the construct templates,
