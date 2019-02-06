@@ -86,12 +86,12 @@ or however much memory you want to dedicate to the process (in MB).
 
 To choose which sentences to paraphrase, use:
 ```
-genie sample --thingpedia thingpedia.json --constants constants.tsv --sampling-control easy-hard-functions.tsv -o mturk-input.tsv
+genie sample -i synthetic.tsv --constants constants.tsv --sampling-strategy bySignature --sampling-control easy-hard-functions.tsv -o mturk-input.tsv
 ```
 
 Use `constants.tsv` to choose which values to use for each constant, based on type and parameter name.
 If `--constants` is omitted, a default that is appropriate for English and the reference Thingpedia is
-used. See [data/constants.tsv](data/constants.tsv) for an example of the file format.
+used. See [data/en-US/constants.tsv](data/en-US/constants.tsv) for an example of the file format.
 
 Use `--sampling-control` to choose which functions are hard and which functions are easy; this affect
 the proportion of paraphrase inputs that will use each functions. See [data/easy-hard-functions.tsv](data/easy-hard-functions.tsv)

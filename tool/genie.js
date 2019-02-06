@@ -19,6 +19,7 @@ const subcommands = {
     'download-dataset': require('./download-dataset'),
 
     'generate': require('./generate'),
+    'sample': require('./sample')
 };
 
 async function main() {

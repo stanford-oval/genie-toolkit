@@ -7,7 +7,9 @@ coverage/
 lib/genie-compiler/grammar.js
 
 *.tgz
-*.tsv
 
 dataset.tt
 thingpedia.json
+mturk-input.tsv
+synthetic.tsv
+everything.tsv

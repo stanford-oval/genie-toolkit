@@ -36,10 +36,10 @@ module.exports = {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument(['-l', '--language'], {
+        parser.addArgument(['-l', '--locale'], {
             required: false,
-            defaultValue: 'en',
-            help: `2-letter ISO code of natural language to generate (defaults to 'en', English)`
+            defaultValue: 'en-US',
+            help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
         parser.addArgument('--thingpedia', {
             required: true,
@@ -95,10 +95,10 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new FileThingpediaClient(args.language, args.thingpedia, args.dataset);
+        const tpClient = new FileThingpediaClient(args.locale, args.thingpedia, args.dataset);
         const options = {
             rng: seedrandom.alea(args.random_seed),
-            language: args.language,
+            locale: args.locale,
             flags: args.flags || {},
             templateFile: args.template,
             thingpediaClient: tpClient,

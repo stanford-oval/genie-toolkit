@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "argparse": "^1.0.10",
+    "byline": "^5.0.0",
     "csv": "^5.0.0",
     "seedrandom": "^2.4.4",
     "thingpedia": "^2.3.3",

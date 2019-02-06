@@ -1,0 +1,62 @@
+# format is <attribute> <function_name>, tab separated
+#
+# <attribute> is:
+# `blacklist`: remove all programs using that function
+# `whitelist`: include only programs that use exclusively whitelisted functions
+# `high`: increase sampling of programs with this function
+# `low`: decrease sampling of programs with this function
+#
+# the whitelist is activated if there is at least one `whitelist` line
+#
+# <function_name> can be specified as @<device_name>.<function_name> for a specific
+# function, or @<device_name>.* for all functions in a device
+#
+# empty (white-space only) lines and lines starting with # (optionally preceded by space)
+# are ignored
+
+high	@us.sportradar.nba
+high	@com.twitter.home_timeline
+high	@com.gmail.inbox
+high	@com.dropbox.list_folder
+high	@edu.stanford.rakeshr1.fitbit.getsteps
+high	@com.thecatapi.get
+high	@com.instagram.get_pictures
+high	@com.washingtonpost.get_article
+high	@org.thingpedia.weather.current
+high	@com.yahoo.finance.get_stock_quote
+high	@com.yandex.translate.translate
+high	@security-camera.current_event
+high	@org.thingpedia.icalendar.list_events
+high	@com.bing.web_search
+high	@org.thingpedia.builtin.thingengine.phone.get_gps
+
+high	@org.thingpedia.bluetooth.speaker.a2dp.play_music
+high	@org.thingpedia.builtin.thingengine.phone.set_ringer
+high	@org.thingpedia.builtin.thingengine.phone.call
+high	@com.facebook.post
+high	@com.twitter.post_picture
+high	@com.gmail.send_email
+high	@com.gmail.reply
+high	@thermostat.set_target_temperature
+high	@light-bulb.set_power
+high	@com.lg.tv.webos2.play_url
+high	@com.live.onedrive.upload_picture
+
+blacklist	@org.thingpedia.builtin.thingengine.builtin.get_commands
+blacklist	@com.xkcd.what_if
+blacklist	@heatpad.set_power
+blacklist	@com.github.add_email
+blacklist	@com.bodytrace.scale.get
+
+#whitelist	@com.gmail.*
+#whitelist	@com.yandex.*
+#whitelist	@org.thingpedia.weather.*
+#whitelist	@org.thingpedia.icalendar.*
+#whitelist	@org.thingpedia.builtin.thingengine.phone.*
+#whitelist	@com.uber.*
+#whitelist	@security-camera.*
+#whitelist	@com.lg.tv.*
+#whitelist	@com.bing.*
+#whitelist	@com.twitter.*
+#whitelist	@com.wsj.*
+#whitelist	@com.spotify.*

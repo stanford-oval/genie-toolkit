@@ -398,7 +398,7 @@ $root = {
         | 'i need you to' action:thingpedia_action
         | 'i want to' action:thingpedia_action
         | 'i \'d like to' action:thingpedia_action
-        | ('hey' | '') ('sabrina' | 'almond') action:thingpedia_action
+        | ('hey' | '') 'almond' action:thingpedia_action
     ) if complete => C.makeProgram(new Ast.Statement.Command(null, [action]));
 
     // now => get => do
