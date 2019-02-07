@@ -14,15 +14,10 @@ const Tp = require('thingpedia');
 
 const DEFAULT_THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 
+const StreamUtils = require('./lib/stream-utils');
+
 async function request(url) {
     return JSON.parse(await Tp.Helpers.Http.get(url, { accept: 'application/json' })).data;
-}
-
-function waitFinish(stream) {
-    return new Promise((resolve, reject) => {
-        stream.once('finish', resolve);
-        stream.on('error', reject);
-    });
 }
 
 module.exports = {
@@ -68,6 +63,6 @@ module.exports = {
         const [devices, entities] = await Promise.all([request(deviceUrl), request(entityUrl)]);
         args.output.end(JSON.stringify({ devices, entities }));
 
-        await waitFinish(args.output);
+        await StreamUtils.waitFinish(args.output);
     }
 };

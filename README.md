@@ -130,11 +130,14 @@ The template for validation HITs lives at [data/mturk/validation-template.html](
 
 Finally, after completing the validation HITs, you can obtain the paraphrasing dataset with:
 ```
-genie mturk-validate --paraphrasing-input paraphrasing-results.csv --validation-input validation-hits.csv
-  --validation-threshold 4 -o paraphrasing.tsv [--paraphrasing-rejects rejects.csv] [--validation-rejects validation.csv]
+genie mturk-validate
+  --paraphrasing-input paraphrasing-results.csv --validation-input validation-hits.csv
+  --validation-count 4 --validation-threshold 4
+  -o paraphrasing.tsv --paraphrasing-rejects paraphrasing-rejects.csv --validation-rejects validation-rejects.csv
 ```
-`--validation-threshold` controls the number of workers that must approve of a sentence before it is included
-in the datasets. The optional `--paraphrasing-rejects` and `--validation-rejects` generate reject files
+`--validation-count` controls the number of workers that vote on each sentence, and `--validation-threshold`
+is the number of workers that must approve of a sentence before it is included
+in the datasets. The `--paraphrasing-rejects` and `--validation-rejects` arguments generate reject files
 that can be used in Amazon MTurk to reject the completed tasks.
 
 If you wish to skip manual validation, use a `--validation-threshold` of 0. In that case, `--validation-input`

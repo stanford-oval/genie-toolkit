@@ -22,7 +22,8 @@ const subcommands = {
     'sample': require('./sample'),
 
     'mturk-make-paraphrase-hits': require('./mturk-make-paraphrase-hits'),
-    'mturk-make-validation-hits': require('./mturk-make-validation-hits')
+    'mturk-make-validation-hits': require('./mturk-make-validation-hits'),
+    'mturk-validate': require('./mturk-validate')
 };
 
 async function main() {

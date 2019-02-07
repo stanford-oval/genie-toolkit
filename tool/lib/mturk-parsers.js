@@ -12,7 +12,9 @@
 
 const Stream = require('stream');
 
-// Parse the raw output of Amazon MTurk into easier to handle objects
+const { ParaphraseValidator } = require('../../lib/validator');
+
+// Parse the raw output of Amazon MTurk paraphrasing into easier to handle objects
 //
 // Input:
 //  - one row per task submission
@@ -34,11 +36,17 @@ class ParaphrasingParser extends Stream.Transform {
 
         this._sentencesPerTask = options.sentencesPerTask;
         this._paraphrasesPerSentence = options.paraphrasesPerSentence;
+        this._skipRejected = options.skipRejected;
 
         this._id = 0;
     }
 
     _transform(row, encoding, callback) {
+        if (this._skipRejected && row['Reject']) {
+            callback();
+            return;
+        }
+    
         for (let i = 0; i < this._sentencesPerTask; i++) {
             const target_code = row[`Input.thingtalk${i+1}`];
             const synthetic = row[`Input.sentence${i+1}`];
@@ -132,7 +140,254 @@ class ParaphrasingAccumulator extends Stream.Transform {
     }
 }
 
+// Parse the raw output of Amazon MTurk validation into easier to handle objects
+//
+// Input:
+//  - one row per task submission
+//    formatted as per MTurk results
+//
+// Output:
+//  - one row per paraphrase, each with:
+//    - id
+//    - synthetic_id
+//    - synthetic
+//    - target_code
+//    - paraphrase
+//    - vote
+class ValidationParser extends Stream.Transform {
+    constructor(options) {
+        super({
+            readableObjectMode: true,
+            writableObjectMode: true
+        });
+
+        this._sentencesPerTask = options.sentencesPerTask;
+        this._targetSize = options.targetSize;
+        this._skipRejected = options.skipRejected;
+
+        this._id = 0;
+    }
+
+    _transform(row, encoding, callback) {
+        if (this._skipRejected && row['Reject']) {
+            callback();
+            return;
+        }
+
+        for (let i = 0; i < this._sentencesPerTask; i++) {
+            const target_code = row[`Input.thingtalk${i+1}`];
+            const synthetic = row[`Input.sentence${i+1}`];
+            const synthetic_id = row[`Input.id${i+1}`];
+
+            for (let j = 0; j < this._targetSize; j++) {
+                const paraphrase = row[`Input.paraphrase${i+1}-${j+1}`];
+                const id = row[`Input.id${i+1}-${j+1}`];
+                const vote = row[`Answer.${i+1}-${j+1}`];
+                this.push({
+                    id, synthetic_id, synthetic, target_code, paraphrase, vote
+                });
+            }
+        }
+        callback();
+    }
+
+    _flush(callback) {
+        process.nextTick(callback);
+    }
+}
+
+// Count all validation votes of the same paraphrase
+//
+// Input:
+//  - one row per validation task, each with:
+//    - id
+//    - synthetic_id
+//    - synthetic
+//    - target_code
+//    - paraphrase
+//    - vote
+//
+// Output:
+//  - one row per paraphrase, each with:
+//    - id
+//    - synthetic_id
+//    - synthetic
+//    - target_code
+//    - paraphrase
+//    - same_count
+//    - diff_count
+class ValidationCounter extends Stream.Transform {
+    constructor(options) {
+        super({
+            readableObjectMode: true,
+            writableObjectMode: true
+        });
+
+        this._targetNumVotes = options.targetNumVotes;
+        this._buffer = new Map;
+    }
+
+    _transform(row, encoding, callback) {
+        const id = row.id;
+
+        let count = this._buffer.get(id);
+        if (!count) {
+            this._buffer.set(id, count = {
+                id,
+                synthetic_id: row.synthetic_id,
+                synthetic: row.synthetic,
+                target_code: row.target_code,
+                paraphrase: row.paraphrase,
+                same_count: 0,
+                diff_count: 0
+            });
+        }
+
+        if (row.vote === 'same')
+            count.same_count ++;
+        else
+            count.diff_count ++;
+
+        if (count.same_count + count.diff_count >= this._targetNumVotes) {
+            this.push(count);
+            this._buffer.delete(id);
+        }
+        callback();
+    }
+
+    _flush(callback) {
+        for (let count of this._buffer.values())
+            this.push(count);
+
+        this._buffer.clear();
+        callback();
+    }
+}
+
+class ValidationRejecter extends Stream.Transform {
+    constructor(options) {
+        super({
+            readableObjectMode: true,
+            writableObjectMode: true
+        });
+
+        this._sentencesPerTask = options.sentencesPerTask;
+    }
+
+    _transform(row, encoding, callback) {
+        let incorrect = 0;
+        for (let i = 0; i < this._sentencesPerTask; i++) {
+            const indexSame = row[`Input.index_same${i+1}`];
+            const indexDifferent = row[`Input.index_diff${i+1}`];
+            const answerSame = row[`Answer.${i+1}-${indexSame}`];
+            const answerDifferent = row[`Answer.${i+1}-${indexDifferent}`];
+            if (answerSame !== 'same')
+                incorrect++;
+            if (answerDifferent !== 'different')
+                incorrect++;
+        }
+
+        if (incorrect >= 2) {
+            row['Approve'] = '';
+            row['Reject'] = '2 or more mistakes in the sanity checks hidden among the questions.';
+        } else {
+            row['Approve'] = 'x';
+            row['Reject'] = '';
+        }
+
+        callback(null, row);
+    }
+
+    _flush(callback) {
+        process.nextTick(callback);
+    }
+}
+
+class ParaphrasingRejecter extends Stream.Transform {
+    constructor(schemaRetriever, tokenizer, options) {
+        super({
+            readableObjectMode: true,
+            writableObjectMode: true
+        });
+
+        this._schemas = schemaRetriever;
+        this._tokenizer = tokenizer;
+
+        this._language = options.locale.split('-')[0];
+        this._sentencesPerTask = options.sentencesPerTask;
+        this._paraphrasesPerSentence = options.paraphrasesPerSentence;
+
+        this._counter = {};
+
+        this._id = 0;
+    }
+
+    async _validate(paraobj) {
+        const paraphrase = new ParaphraseValidator(this._schemas, this._tokenizer, this._language,
+            this._counter, paraobj);
+
+        try {
+            await paraphrase.clean();
+            if (paraphrase.isValid())
+                return paraobj;
+            else
+                return null;
+        } catch(e) {
+            console.error(`Failed paraphrase ${paraobj.id} (${paraobj.synthetic_id}): ${e.message}`);
+            return null;
+        }
+    }
+
+    async _doTransform(row) {
+        const minibatch = [];
+
+        for (let i = 0; i < this._sentencesPerTask; i++) {
+            const target_code = row[`Input.thingtalk${i+1}`];
+            const synthetic = row[`Input.sentence${i+1}`];
+            const synthetic_id = row[`Input.id${i+1}`];
+
+            for (let j = 0; j < this._paraphrasesPerSentence; j++) {
+                const paraphrase = row[`Answer.Paraphrase${i+1}-${j+1}`];
+                const id = this._id++;
+
+                const paraobj = {
+                    id, synthetic_id, synthetic, target_code, paraphrase
+                };
+                minibatch.push(paraobj);
+            }
+        }
+
+        const validated = (await Promise.all(minibatch.map((paraobj) => {
+            return this._validate(paraobj);
+        }))).filter((paraobj) => paraobj !== null);
+
+        if (validated.length < this._sentencesPerTask * this._paraphrasesPerSentence - 2) {
+            row['Accept'] = '';
+            row['Reject'] = 'Failed to give reasonable result or failed to follow the instruction in at least 2 of 8 paraphrases';
+        } else {
+            row['Accept'] = 'x';
+            row['Reject'] = '';
+        }
+        return row;
+    }
+
+    _transform(row, encoding, callback) {
+        this._doTransform(row).then(
+            (row) => callback(null, row),
+            (err) => callback(err)
+        );
+    }
+
+    _flush(callback) {
+        process.nextTick(callback);
+    }
+}
+
 module.exports = {
     ParaphrasingParser,
-    ParaphrasingAccumulator
+    ParaphrasingAccumulator,
+    ValidationParser,
+    ValidationCounter,
+    ValidationRejecter,
+    ParaphrasingRejecter
 };

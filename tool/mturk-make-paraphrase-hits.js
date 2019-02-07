@@ -13,9 +13,10 @@ const fs = require('fs');
 const Stream = require('stream');
 const csv = require('csv');
 
-const NUM_SENTENCES_PER_TASK = 4;
+const StreamUtils = require('./lib/stream-utils');
+const { NUM_SENTENCES_PER_TASK } = require('./lib/constants');
 
-class Transformer extends Stream.Transform {
+class ParaphraseHITCreator extends Stream.Transform {
     constructor(sentencesPerTask) {
         super({
             readableObjectMode: true,
@@ -67,14 +68,12 @@ module.exports = {
 
     async execute(args) {
         process.stdin.setEncoding('utf8');
-        const input = csv.parse({ columns: true, delimiter: '\t' });
-        const transform = new Transformer(args.sentences_per_task);
-        const output = csv.stringify({ header: true, delimiter: ',' });
-        process.stdin.pipe(input).pipe(transform).pipe(output).pipe(args.output);
+        process.stdin
+            .pipe(csv.parse({ columns: true, delimiter: '\t' }))
+            .pipe(new ParaphraseHITCreator(args.sentences_per_task))
+            .pipe(csv.stringify({ header: true, delimiter: ',' }))
+            .pipe(args.output);
 
-        return new Promise((resolve, reject) => {
-            args.output.on('finish', resolve);
-            args.output.on('error', reject);
-        });
+        return StreamUtils.waitFinish(args.output);
     }
 };

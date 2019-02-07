@@ -10,6 +10,7 @@ lib/genie-compiler/grammar.js
 
 dataset.tt
 thingpedia.json
-mturk-input.tsv
-synthetic.tsv
-everything.tsv
+
+*.tsv
+*.csv
+!data/**/*.tsv

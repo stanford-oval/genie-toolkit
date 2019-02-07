@@ -14,8 +14,33 @@ const Tp = require('thingpedia');
 const net = require('net');
 const JsonDatagramSocket = require('./json_datagram_socket');
 
-class LocalTokenizerService {
+class CachingTokenizerService {
     constructor() {
+        this._cache = {};
+    }
+
+    _getCacheForLanguage(lang) {
+        let cache = this._cache[lang];
+        if (!cache)
+            this._cache[lang] = cache = new Map;
+        return cache;
+    }
+
+    _tryCache(languageTag, sentence) {
+        let cache = this._getCacheForLanguage(languageTag);
+        return cache.get(sentence);
+    }
+
+    _storeCache(languageTag, sentence, result) {
+        let cache = this._getCacheForLanguage(languageTag);
+        cache.set(sentence, result);
+    }
+}
+
+class LocalTokenizerService extends CachingTokenizerService {
+    constructor() {
+        super();
+
         const socket = new net.Socket();
         socket.connect({
             host: '127.0.0.1',
@@ -46,20 +71,32 @@ class LocalTokenizerService {
         this._socket.end();
     }
 
-    tokenize(languageTag, utterance) {
+    async tokenize(languageTag, utterance) {
+        let cached = this._tryCache(languageTag, utterance);
+        if (cached)
+            return cached;
+    
         const reqId = this._nextRequest++;
-        return new Promise((resolve, reject) => {
+        const result = await new Promise((resolve, reject) => {
             this._requests.set(reqId, { resolve, reject });
 
             this._socket.write({ req: reqId, utterance, languageTag });
         });
+        this._storeCache(languageTag, utterance, result);
+        return result;
     }
 }
 
-class AlmondNLTokenizer {
-    tokenize(language, sentence) {
-        let url = 'https://almond-nl.stanford.edu/' + language + '/tokenize?q=' + encodeURIComponent(sentence);
-        return Tp.Helpers.Http.get(url).then((result) => JSON.parse(result));
+class AlmondNLTokenizer extends CachingTokenizerService {
+    async tokenize(languageTag, utterance) {
+        let cached = this._tryCache(languageTag, utterance);
+        if (cached)
+            return cached;
+
+        let url = 'https://almond-nl.stanford.edu/' + languageTag + '/tokenize?q=' + encodeURIComponent(utterance);
+        const result = JSON.parse(await Tp.Helpers.Http.get(url));
+        this._storeCache(languageTag, utterance, result);
+        return result;
     }
 
     end() {}

@@ -14,6 +14,7 @@
     "byline": "^5.0.0",
     "csv": "^5.0.0",
     "seedrandom": "^2.4.4",
+    "shuffle-array": "^1.0.1",
     "thingpedia": "^2.3.3",
     "thingtalk": "^1.4.2"
   },
@@ -25,7 +26,7 @@
   },
   "scripts": {
     "regen-meta-grammar": "pegjs ./lib/genie-compiler/grammar.pegjs",
-    "lint": "eslint ./lib",
+    "lint": "eslint ./lib ./tool",
     "test": "nyc ./test/everything.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "prepare": "yarn regen-meta-grammar"

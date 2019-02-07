@@ -2,9 +2,10 @@
 //
 // This file is part of Genie
 //
-// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2018-2019 The Board of Trustees of the Leland Stanford Junior University
 //
-// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Author: Silei Xu <silei@cs.stanford.edu>
+//         Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -12,24 +13,65 @@
 const fs = require('fs');
 const Stream = require('stream');
 const csv = require('csv');
+const seedrandom = require('seedrandom');
+const shuffle = require('shuffle-array');
 const ThingTalk = require('thingtalk');
 
-const ParaphraseValidator = require('../lib/validator');
+const { ParaphraseValidatorFilter } = require('../lib/validator');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const TokenizerService = require('./lib/tokenizer_service');
 const { ParaphrasingParser, ParaphrasingAccumulator } = require('./lib/mturk-parsers');
+const { ArrayAccumulator, ArrayStream, waitFinish } = require('./lib/stream-utils');
 
-const NUM_SENTENCES_PER_TASK = 4;
-const NUM_PARAPHRASES_PER_SENTENCE = 2;
-const NUM_SUBMISSIONS_PER_TASK = 3;
+const { NUM_SENTENCES_PER_TASK, NUM_PARAPHRASES_PER_SENTENCE, NUM_SUBMISSIONS_PER_TASK } = require('./lib/constants');
 
-class Transformer extends Stream.Transform {
-    constructor(options) {
+function quickGetFunctions(code) {
+    const devices = [];
+    const functions = [];
+
+    const regex = /@([a-z0-9_.]+)([a-z0-9_]+)\(/g;
+
+    let match = regex.exec(code);
+    while (match !== null) {
+        devices.push(match[1]);
+        functions.push(match[2]);
+        match = regex.exec(code);
+    }
+    return [devices, functions];
+}
+
+function subset(array1, array2) {
+    for (let el of array1) {
+        if (array2.indexOf(el) < 0)
+            return false;
+    }
+    return true;
+}
+
+// generate a fake parphrase with same device(s) but different functions
+function fakeParaphrase(batch, targetCode) {
+    const [devices, functions] = quickGetFunctions(targetCode);
+
+    for (let candidate of batch) {
+        const [candDevices, candFunctions] = quickGetFunctions(candidate.target_code);
+
+        if (subset(devices, candDevices) && !subset(functions, candFunctions))
+            return candidate.utterance;
+    }
+
+    // return something
+    return 'if reddit front page updated, get a #dog gif';
+}
+
+class ValidationHITCreator extends Stream.Transform {
+    constructor(batch, options) {
         super({
             readableObjectMode: true,
             writableObjectMode: true,
         });
+
+        this._batch = batch;
 
         this._i = 0;
         this._buffer = {};
@@ -37,6 +79,7 @@ class Transformer extends Stream.Transform {
         this._debug = options.debug;
         this._targetSize = options.targetSize;
         this._sentencesPerTask = options.sentencesPerTask;
+        this._rng = options.rng;
     }
 
     _transform(row, encoding, callback) {
@@ -48,15 +91,29 @@ class Transformer extends Stream.Transform {
         }
 
         const i = ++this._i;
-        this._buffer[`synthetic_id${i}`] = row.synthetic_id;
+        this._buffer[`id${i}`] = row.synthetic_id;
         this._buffer[`thingtalk${i}`] = row.target_code;
-        this._buffer[`sentence${i}`] = row.utterance;
+        this._buffer[`sentence${i}`] = row.synthetic;
 
-        for (let j = 0; j < row.paraphrases.length; j++) {
-            let {id, paraphrase} = row.paraphrases[j];
+        const fakeSame = row.synthetic;
+        const fakeDifferent = fakeParaphrase(this._batch, row.target_code);
+        const paraphrases = [{
+            id: '-same',
+            paraphrase: fakeSame
+        }, {
+            id: '-different',
+            paraphrase: fakeDifferent,
+        }].concat(row.paraphrases);
+
+        shuffle(paraphrases, { rng: this._rng });
+
+        for (let j = 0; j < paraphrases.length; j++) {
+            let {id, paraphrase} = paraphrases[j];
             this._buffer[`id${i}-${j+1}`] = id;
             this._buffer[`paraphrase${i}-${j+1}`] = paraphrase;
         }
+        this._buffer[`index_same${i}`] = paraphrases.findIndex((el) => el.id === '-same');
+        this._buffer[`index_diff${i}`] = paraphrases.findIndex((el) => el.id === '-different');
 
         if (i === this._sentencesPerTask) {
             this.push(this._buffer);
@@ -120,41 +177,53 @@ module.exports = {
             dest: 'debug',
             help: 'Disable debugging.',
         });
+        parser.addArgument('--random-seed', {
+            defaultValue: 'almond is awesome',
+            help: 'Random seed'
+        });
     },
 
     async execute(args) {
         const tpClient = new FileThingpediaClient(args.locale, args.thingpedia, args.dataset);
         const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, args.debug);
         const tokenizer = TokenizerService.get();
+        const rng = seedrandom.alea(args.random_seed);
 
         process.stdin.setEncoding('utf8');
 
+        // read all paraphrases, auto-validate them, then accumulate them in memory
+        // so we can sample a fake one to choose
+
+        const accumulator = new ArrayAccumulator();
         process.stdin.pipe(csv.parse({
-            columns: true,
-            delimiter: ',',
-            relax_column_count: true
+                columns: true,
+                delimiter: ',',
+                relax_column_count: true
             }))
             .pipe(new ParaphrasingParser({
                 sentencesPerTask: args.sentences_per_task,
                 paraphrasesPerSentence: args.paraphrases_per_sentence
             }))
-            .pipe(new ParaphraseValidator(schemaRetriever, tokenizer, {
+            .pipe(new ParaphraseValidatorFilter(schemaRetriever, tokenizer, {
                 locale: args.locale,
                 debug: args.debug
             }))
+            .pipe(accumulator);
+
+        const batch = await accumulator.read();
+
+        (new ArrayStream(batch))
             .pipe(new ParaphrasingAccumulator(args.paraphrases_per_sentence * args.submissions_per_task))
-            .pipe(new Transformer({
-                debug: args.debug,
+            .pipe(new ValidationHITCreator(batch, {
                 targetSize: args.paraphrases_per_sentence * args.submissions_per_task,
                 sentencesPerTask: args.sentences_per_task,
+                debug: args.debug,
+                rng: rng
             }))
             .pipe(csv.stringify({ header: true, delimiter: ',' }))
             .pipe(args.output);
 
-        await new Promise((resolve, reject) => {
-            args.output.on('finish', resolve);
-            args.output.on('error', reject);
-        });
+        await waitFinish(args.output);
 
         tokenizer.end();
     }

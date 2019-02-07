@@ -12,14 +12,9 @@
 const fs = require('fs');
 const Tp = require('thingpedia');
 
-const DEFAULT_THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
+const StreamUtils = require('./lib/stream-utils');
 
-function waitFinish(stream) {
-    return new Promise((resolve, reject) => {
-        stream.once('finish', resolve);
-        stream.on('error', reject);
-    });
-}
+const DEFAULT_THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 
 module.exports = {
     initArgparse(subparsers) {
@@ -54,6 +49,6 @@ module.exports = {
             url += '&developer_key=' + args.developer_key;
 
         args.output.end(await Tp.Helpers.Http.get(url, { accept: 'application/x-thingtalk' }));
-        await waitFinish(args.output);
+        await StreamUtils.waitFinish(args.output);
     }
 };
