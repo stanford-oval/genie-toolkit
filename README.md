@@ -73,7 +73,13 @@ The `--dataset` flag to should point to the primitive templates in ThingTalk dat
 See the [Thingpedia documentation[(https://almond.stanford.edu/thingpedia/developers/thingpedia-nl-support.md)
 for a description of dataset files.
 
-The resulting `synthetic.tsv` file can be used to train directly. To do so, skip to Step 4, Dataset preprocessing.
+The latest dataset file for the reference Thingpedia can be downloaded with:
+```
+genie download-dataset -o dataset.tt
+```
+
+The resulting `synthetic.tsv` file can be used to train directly. To do so, skip to Step 4, Dataset preprocessing. If you wish instead to paraphrase, you'll probably want to restrict the synthetic set
+to paraphrase-friendly construct templates, by passing `--flag-set turking` on the command line.
 
 NOTE: the `generate` command can require significant amounts of memory. If you experience out of memory,
 it can help to invoke `node` as:
@@ -86,16 +92,15 @@ or however much memory you want to dedicate to the process (in MB).
 
 To choose which sentences to paraphrase, use:
 ```
-genie sample -i synthetic.tsv --constants constants.tsv --sampling-strategy bySignature --sampling-control easy-hard-functions.tsv -o mturk-input.tsv
+genie sample --constants constants.tsv --sampling-strategy bySignature --sampling-control easy-hard-functions.tsv -o mturk-input.tsv < synthetic.tsv 
 ```
 
 Use `constants.tsv` to choose which values to use for each constant, based on type and parameter name.
-If `--constants` is omitted, a default that is appropriate for English and the reference Thingpedia is
-used. See [data/en-US/constants.tsv](data/en-US/constants.tsv) for an example of the file format.
+This parameter cannot be omitted.
+A default that is appropriate for English and the reference Thingpedia can be found at [data/en-US/constants.tsv](data/en-US/constants.tsv).
 
 Use `--sampling-control` to choose which functions are hard and which functions are easy; this affect
-the proportion of paraphrase inputs that will use each functions. See [data/easy-hard-functions.tsv](data/easy-hard-functions.tsv)
-for details of the file format. This parameter cannot be omitted.
+the proportion of paraphrase inputs that will use each functions. See [data/easy-hard-functions.tsv](data/easy-hard-functions.tsv) for details of the file format. If omitted, all functions are considered equally hard. 
 
 You can also modify [lib/paraphrase-sampler.js](lib/paraphrase-sampler.js) to further adapt how
 sampling occurs, based on program complexity, sentence complexity or other heuristics.
@@ -109,18 +114,19 @@ which provides one-click integration with Amazon MTurk.
 
 If you wish to avoid almond-cloud, you can prepare the paraphrasing HITs with:
 ```
-genie mturk-make-paraphrase-hits -i mturk-input.tsv -o paraphrasing-hits.csv
+genie mturk-make-paraphrase-hits -o paraphrasing-hits.csv < mturk-input.tsv 
 ```
 The resulting `paraphrasing-hits.csv` will be suitable to use on Amazon MTurk using the template provided
-in [data/mturk-paraphrasing-template.html]. Note that the on-the-fly validation provided by this template is more limited
+in [data/mturk/paraphrasing-template.html](data/mturk/paraphrasing-template.html). Note that the on-the-fly validation provided by this template is more limited
 than the one performed by almond-cloud, due to limitations of the MTurk platform; hence, subsequent
 validation might end up rejecting more HITs.
 
 After using the embedded template, you can prepare the validation HITs with:
 ```
-genie mturk-make-validation-hits -i paraphrasing-results.csv -o validation-hits.csv --validation-count 5
+genie mturk-make-validation-hits -o validation-hits.csv < paraphrasing-results.csv
 ```
-`--validation-count` will control how many validators will be asked to check each sentence.
+
+The template for validation HITs lives at [data/mturk/validation-template.html](data/mturk/validation-template.html)
 
 Finally, after completing the validation HITs, you can obtain the paraphrasing dataset with:
 ```

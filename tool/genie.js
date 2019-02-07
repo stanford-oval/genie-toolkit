@@ -19,7 +19,10 @@ const subcommands = {
     'download-dataset': require('./download-dataset'),
 
     'generate': require('./generate'),
-    'sample': require('./sample')
+    'sample': require('./sample'),
+
+    'mturk-make-paraphrase-hits': require('./mturk-make-paraphrase-hits'),
+    'mturk-make-validation-hits': require('./mturk-make-validation-hits')
 };
 
 async function main() {

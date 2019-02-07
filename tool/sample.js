@@ -172,14 +172,63 @@ function parseConstantFile(locale, filename) {
 }
 
 function parseSamplingControlFile(filename) {
-    return [];
+    const file = fs.createReadStream(filename);
+    file.setEncoding('utf8');
+    const input = byline(file);
+
+    const functionBlackList = new Set;
+    const deviceBlackList = new Set;
+    const functionHighValueList = new Set;
+    let functionWhiteList;
+    let deviceWhiteList;
+    input.on('data', (line) => {
+        if (/^\s*(#|$)/.test(line))
+            return;
+
+        const [attribute, functionName] = line.trim().split('\t');
+
+        switch (attribute) {
+        case 'whitelist':
+            if (functionName.endsWith('.*')) {
+                if (!deviceWhiteList)
+                    deviceWhiteList = new Set;
+                deviceWhiteList.add(functionName);
+            } else {
+                if (!functionWhiteList)
+                    functionWhiteList = new Set;
+                functionWhiteList.add(functionName);
+            }
+            break;
+        case 'blacklist':
+            if (functionName.endsWith('.*'))
+                deviceBlackList.add(functionName);
+            else
+                functionBlackList.add(functionName);
+            break;
+        case 'high':
+            // ignore high value whole devices
+            if (!functionName.endsWith('.*'))
+                functionHighValueList.add(functionName);
+            break;
+        case 'low':
+            // ignore low value entry (everything is low-value by default)
+            break;
+        default:
+            throw new Error(`Invalid function attribute ${attribute}`);
+        }
+    });
+
+    return new Promise((resolve, reject) => {
+        input.on('end', () => resolve([functionBlackList, deviceBlackList, functionHighValueList, functionWhiteList, deviceWhiteList]));
+        input.on('error', reject);
+    });
 }
 
 module.exports = {
     initArgparse(subparsers) {
         const parser = subparsers.addParser('sample', {
             addHelp: true,
-            description: "Generate a new synthetic dataset, given a template file."
+            description: "Choose which sentences to paraphrase, given a synthetic set."
         });
         parser.addArgument(['-o', '--output'], {
             required: true,
@@ -228,7 +277,7 @@ module.exports = {
 
     async execute(args) {
         const constants = await parseConstantFile(args.locale, args.constants);
-        const [functionBlackList, functionHighValueList, functionWhiteList, deviceWhiteList] =
+        const [functionBlackList, deviceBlackList, functionHighValueList, functionWhiteList, deviceWhiteList] =
             await parseSamplingControlFile(args.sampling_control);
 
         const options = {
@@ -237,6 +286,7 @@ module.exports = {
 
             samplingStrategy: args.sampling_strategy,
             functionBlackList,
+            deviceBlackList,
             functionHighValueList,
             functionWhiteList,
             deviceWhiteList,

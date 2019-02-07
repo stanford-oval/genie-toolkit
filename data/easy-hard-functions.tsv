@@ -4,7 +4,6 @@
 # `blacklist`: remove all programs using that function
 # `whitelist`: include only programs that use exclusively whitelisted functions
 # `high`: increase sampling of programs with this function
-# `low`: decrease sampling of programs with this function
 #
 # the whitelist is activated if there is at least one `whitelist` line
 #

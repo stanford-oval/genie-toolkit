@@ -1,0 +1,99 @@
+<style type="text/css"> #Survey {
+	width: 50%;
+	margin: 0 auto;
+}
+</style>
+
+<section class="container" id="Survey">
+<h3> Instructions </h3>
+<p>
+We are building a virtual assistant that can help you control all your devices, social accounts, etc. 
+Our virtual assistant can do a lot of things now but it still has a hard time to understand the users 
+since different users may say the same thing very differently. So we need you to help us teach the assistant.
+</p>
+<p>
+In the following, you will see 4 different sentences, and you will be asked to paraphrase each of them in 
+2 different ways <span style="color:#FF0000;">without changing the meaning of the sentence</span>, which means
+<ul>
+<li>Do not remove the device/service names if they exist in the original sentence</li>
+<li>Do not change the meaning of the sentence even if doesn't seem to be useful</li>
+<li>Do not drop any information unless it's obvious <b>without context</b>;</li>
+<li>Do not add any new information that doesn't exist in the sentence;</li>
+<li><b>Keep quoted parts <span style="color:#FF0000;">(including the quote marks)</span>, emails, phone numbers identical</b> 
+<li><b>Do not drop @ signs and # signs</b> 
+</ul>
+<span style="color:#FF0000;">Warning: for the last two requirements, we have a script to verify and if you failed to meet them, the script will reject your answer</span>
+</p>
+<p>Try your best to <font color="red"> make the 2 paraphrases as different as possible</font>.
+If you really don't know how to paraphrase, leave "no idea". According to our stats, we only got 5% of "no idea"s.
+So if you give us too many of them, we might reject you.
+</p>
+
+<h3> Example </h3>
+<pre>send a direct message to @bob saying &quot;hello&quot; on twitter</pre>
+Correct paraphrase 1: <pre>direct message @bob on twitter with the message &quot;hello&quot;</pre>
+Correct paraphrase 2: <pre>say &quot;hello&quot; to @bob via direct message on twitter</pre>
+Wrong paraphrase 1: (<font color="red">missing server name "twitter"</font>) <pre>say "hello" to @bob</pre> 
+Wrong paraphrase 2: (<font color="red">missing quotes for "hello" and the @ sign for "@bob"</font>) <pre>say hello to bob on twitter</pre> 
+
+<h3> Your turn now </h3>
+<div class="panel panel-default">
+<div class="panel-body"><label>Sentence</label>
+
+<pre>
+${sentence1}</pre>
+<label>Paraphrase 1</label>
+<div class="form-group"><textarea class="form-control" cols="120" how="" id="Paraphrase1-1" name="Paraphrase1-1" required="" rows="3"></textarea></div>
+<label>Paraphrase 2</label>
+<div class="form-group"><textarea class="form-control" cols="120" how="" id="Paraphrase1-2" name="Paraphrase1-2" required="" rows="3"></textarea></div>
+</div>
+</div>
+<br>
+
+<div class="panel panel-default">
+<div class="panel-body"><label>Sentence</label>
+
+<pre>
+${sentence2}</pre>
+<label>Paraphrase 1</label>
+<div class="form-group"><textarea class="form-control" cols="120" how="" id="Paraphrase2-1" name="Paraphrase2-1" required="" rows="3"></textarea></div>
+<label>Paraphrase 2</label>
+<div class="form-group"><textarea class="form-control" cols="120" how="" id="Paraphrase2-2" name="Paraphrase2-2" required="" rows="3"></textarea></div>
+</div>
+</div>
+<br>
+
+<div class="panel panel-default">
+<div class="panel-body"><label>Sentence</label>
+
+<pre>
+${sentence3}</pre>
+<label>Paraphrase 1</label>
+<div class="form-group"><textarea class="form-control" cols="120" how="" id="Paraphrase3-1" name="Paraphrase3-1" required="" rows="3"></textarea></div>
+<label>Paraphrase 2</label>
+<div class="form-group"><textarea class="form-control" cols="120" how="" id="Paraphrase3-2" name="Paraphrase3-2" required="" rows="3"></textarea></div>
+</div>
+</div>
+<br>
+
+<div class="panel panel-default">
+<div class="panel-body"><label>Sentence</label>
+
+<pre>
+${sentence4}</pre>
+<label>Paraphrase 1</label>
+<div class="form-group"><textarea class="form-control" cols="120" how="" id="Paraphrase4-1" name="Paraphrase4-1" required="" rows="3"></textarea></div>
+<label>Paraphrase 2</label>
+<div class="form-group"><textarea class="form-control" cols="120" how="" id="Paraphrase4-2" name="Paraphrase4-2" required="" rows="3"></textarea></div>
+</div>
+</div>
+
+
+</section>
+
+<p>&nbsp;</p>
+
+<p>
+<style type="text/css">#collapseTrigger{ color:#fff; display: block; text-decoration: none; } #submitButton{ white-space: normal; } .image{ margin-bottom: 15px; }
+</style>
+</p>
