@@ -102,7 +102,6 @@ module.exports = {
             flags: args.flags || {},
             templateFile: args.template,
             thingpediaClient: tpClient,
-            turkingMode: args.turking,
             maxDepth: args.maxdepth,
             debug: args.debug
         };

@@ -12,6 +12,7 @@
 
 process.on('unhandledRejection', (up) => { throw up; });
 
+const path = require('path');
 const stream = require('stream');
 const seedrandom = require('seedrandom');
 
@@ -229,10 +230,12 @@ async function processOne(id, sentence, code) {
 async function main() {
     const options = {
         rng: seedrandom.alea('almond is awesome'),
-        language: 'en',
-        targetLanguage: 'thingtalk',
+        locale: 'en-US',
+        templateFile: path.resolve(path.dirname(module.filename), '../languages/en/thingtalk.genie'),
         thingpediaClient: _tpClient,
-        turkingMode: false,
+        flags: {
+            turking: false,
+        },
         maxDepth: 6,
         debug: true
     };
