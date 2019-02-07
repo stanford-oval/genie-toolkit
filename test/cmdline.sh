@@ -18,7 +18,8 @@ node $srcdir/tool/genie.js download-dataset -o dataset.tt
 
 # generate
 node $srcdir/tool/genie.js generate --help
-node $srcdir/tool/genie.js generate --maxdepth 2 --thingpedia thingpedia.json --dataset dataset.tt -o /dev/null -l en
+node $srcdir/tool/genie.js generate --maxdepth 2 --thingpedia thingpedia.json --dataset dataset.tt \
+  --template $srcdir/languages/en/thingtalk.genie -o /dev/null -l en
 
 # sample
 node $srcdir/tool/genie.js sample -o synthetic-sampled.tsv \
