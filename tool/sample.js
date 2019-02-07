@@ -172,15 +172,20 @@ function parseConstantFile(locale, filename) {
 }
 
 function parseSamplingControlFile(filename) {
-    const file = fs.createReadStream(filename);
-    file.setEncoding('utf8');
-    const input = byline(file);
-
     const functionBlackList = new Set;
     const deviceBlackList = new Set;
     const functionHighValueList = new Set;
     let functionWhiteList;
     let deviceWhiteList;
+
+    if (!filename)
+        return Promise.resolve([functionBlackList, deviceBlackList, functionHighValueList, functionWhiteList, deviceWhiteList]);
+
+    const file = fs.createReadStream(filename);
+    file.setEncoding('utf8');
+    const input = byline(file);
+
+
     input.on('data', (line) => {
         if (/^\s*(#|$)/.test(line))
             return;

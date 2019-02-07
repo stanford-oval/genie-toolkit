@@ -106,14 +106,14 @@ class ValidationHITCreator extends Stream.Transform {
         }].concat(row.paraphrases);
 
         shuffle(paraphrases, { rng: this._rng });
+        this._buffer[`index_same${i}`] = 1 + paraphrases.findIndex((el) => el.id === '-same');
+        this._buffer[`index_diff${i}`] = 1 + paraphrases.findIndex((el) => el.id === '-different');
 
         for (let j = 0; j < paraphrases.length; j++) {
             let {id, paraphrase} = paraphrases[j];
             this._buffer[`id${i}-${j+1}`] = id;
             this._buffer[`paraphrase${i}-${j+1}`] = paraphrase;
         }
-        this._buffer[`index_same${i}`] = paraphrases.findIndex((el) => el.id === '-same');
-        this._buffer[`index_diff${i}`] = paraphrases.findIndex((el) => el.id === '-different');
 
         if (i === this._sentencesPerTask) {
             this.push(this._buffer);

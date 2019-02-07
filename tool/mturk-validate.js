@@ -59,11 +59,14 @@ module.exports = {
             help: 'CSV file in which to write rejections for MTurk validation.'
         });
         parser.addArgument('--validation-count', {
-            required: true,
+            required: false,
+            type: Number,
+            defaultValue: NUM_SUBMISSIONS_PER_TASK,
             help: 'Number of workers voting on each paraphrase.'
         });
         parser.addArgument('--validation-threshold', {
             required: true,
+            type: Number,
             help: 'Number of workers that must approve of each paraphrase.'
         });
         parser.addArgument('--sentences-per-task', {
@@ -103,35 +106,37 @@ module.exports = {
         const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, args.debug);
         const tokenizer = TokenizerService.get();
 
-        const validationInput = fs.createReadStream(args.validation_input)
-            .pipe(csv.parse({
-                columns: true,
-                delimiter: ',',
-                relax_column_count: true
-            }))
-            .pipe(new MT.ValidationRejecter({
-                sentencesPerTask: args.sentences_per_task
-            }));
+        let validationRejects = Promise.resolve();
+        let validationCounts;
 
-        let validationRejects;
-        if (args.validation_rejects) {
-            validationRejects = StreamUtils.waitFinish(validationInput
-                .pipe(csv.stringify({ header: true, delimiter: ',' }))
-                .pipe(fs.createWriteStream(args.validation_rejects)));
-        } else {
-            validationRejects = Promise.resolve();
+        if (args.validation_threshold > 0) {
+            const validationInput = fs.createReadStream(args.validation_input)
+                .pipe(csv.parse({
+                    columns: true,
+                    delimiter: ',',
+                    relax_column_count: true
+                }))
+                .pipe(new MT.ValidationRejecter({
+                    sentencesPerTask: args.sentences_per_task
+                }));
+
+            if (args.validation_rejects) {
+                validationRejects = StreamUtils.waitFinish(validationInput
+                    .pipe(csv.stringify({ header: true, delimiter: ',' }))
+                    .pipe(fs.createWriteStream(args.validation_rejects)));
+            }
+
+            validationCounts = await validationInput
+                .pipe(new MT.ValidationParser({
+                    sentencesPerTask: args.sentences_per_task,
+                    targetSize: args.paraphrases_per_sentence * args.submissions_per_task,
+                    skipRejected: true
+                }))
+                .pipe(new MT.ValidationCounter({
+                    targetNumVotes: args.validation_count
+                }))
+                .pipe(new StreamUtils.MapAccumulator()).read();
         }
-
-        const validationCounts = await validationInput
-            .pipe(new MT.ValidationParser({
-                sentencesPerTask: args.sentences_per_task,
-                targetSize: args.paraphrases_per_sentence * args.submissions_per_task,
-                skipRejected: true
-            }))
-            .pipe(new MT.ValidationCounter({
-                targetNumVotes: args.validation_count
-            }))
-            .pipe(new StreamUtils.MapAccumulator()).read();
 
         const rejectedPara = fs.createReadStream(args.paraphrasing_input)
             .pipe(csv.parse({

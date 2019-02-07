@@ -36,17 +36,11 @@ class ParaphrasingParser extends Stream.Transform {
 
         this._sentencesPerTask = options.sentencesPerTask;
         this._paraphrasesPerSentence = options.paraphrasesPerSentence;
-        this._skipRejected = options.skipRejected;
 
         this._id = 0;
     }
 
     _transform(row, encoding, callback) {
-        if (this._skipRejected && row['Reject']) {
-            callback();
-            return;
-        }
-    
         for (let i = 0; i < this._sentencesPerTask; i++) {
             const target_code = row[`Input.thingtalk${i+1}`];
             const synthetic = row[`Input.sentence${i+1}`];
@@ -179,9 +173,14 @@ class ValidationParser extends Stream.Transform {
             const synthetic = row[`Input.sentence${i+1}`];
             const synthetic_id = row[`Input.id${i+1}`];
 
-            for (let j = 0; j < this._targetSize; j++) {
+            // + 2 to account for same/different paraphrases (sanity checks)
+            // mixed in with the real data
+            for (let j = 0; j < this._targetSize + 2; j++) {
                 const paraphrase = row[`Input.paraphrase${i+1}-${j+1}`];
                 const id = row[`Input.id${i+1}-${j+1}`];
+                if (id === '-same' || id === '-different')
+                    continue;
+
                 const vote = row[`Answer.${i+1}-${j+1}`];
                 this.push({
                     id, synthetic_id, synthetic, target_code, paraphrase, vote
@@ -362,10 +361,10 @@ class ParaphrasingRejecter extends Stream.Transform {
         }))).filter((paraobj) => paraobj !== null);
 
         if (validated.length < this._sentencesPerTask * this._paraphrasesPerSentence - 2) {
-            row['Accept'] = '';
+            row['Approve'] = '';
             row['Reject'] = 'Failed to give reasonable result or failed to follow the instruction in at least 2 of 8 paraphrases';
         } else {
-            row['Accept'] = 'x';
+            row['Approve'] = 'x';
             row['Reject'] = '';
         }
         return row;
