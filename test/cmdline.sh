@@ -33,16 +33,16 @@ diff -u $srcdir/test/expected-mturk-paraphrasing.csv mturk-paraphrasing.csv
 # time passes...
 
 # make validation hits
-node $srcdir/tool/genie.js mturk-make-validation-hits -o mturk-validation.csv --thingpedia thingpedia.json < paraphrasing-results.csv
+node $srcdir/tool/genie.js mturk-make-validation-hits -o mturk-validation.csv --thingpedia thingpedia.json < $srcdir/test/paraphrasing-results.csv
 diff -u $srcdir/test/expected-mturk-validation.csv mturk-validation.csv
 
 # more time passes...
 
-node $srcdi/tool/genie.js mturk-validate -o paraphrase.tsv -l en-US --thingpedia ../thingpedia.json \
+node $srcdir/tool/genie.js mturk-validate -o paraphrase.tsv -l en-US --thingpedia thingpedia.json \
   --paraphrasing-input $srcdir/test/paraphrasing-results.csv \
   --validation-input $srcdir/test/validation-results.csv \
   --paraphrasing-rejects ./paraphrasing-rejects.csv \
-  --validation-rejects ./validation-rejects.csv
+  --validation-rejects ./validation-rejects.csv \
   --validation-count 3 --validation-threshold 3
 diff -u $srcdir/test/expected-paraphrase1.tsv paraphrase.tsv
 diff -u $srcdir/test/expected-paraphrasing-rejects.csv paraphrasing-rejects.csv
@@ -50,14 +50,14 @@ diff -u $srcdir/test/expected-validation-rejects.csv validation-rejects.csv
 
 # now test we can validate without validation results (auto validation only)
 
-node $srcdi/tool/genie.js mturk-validate -o paraphrase.tsv -l en-US --thingpedia ../thingpedia.json \
+node $srcdir/tool/genie.js mturk-validate -o paraphrase.tsv -l en-US --thingpedia thingpedia.json \
   --paraphrasing-input $srcdir/test/paraphrasing-results.csv \
   --paraphrasing-rejects /dev/null \
   --validation-threshold 0
 diff -u $srcdir/test/expected-paraphrase2.tsv paraphrase.tsv
 
 # test that we can skip the reject files
-node $srcdi/tool/genie.js mturk-validate -o paraphrase.tsv -l en-US --thingpedia ../thingpedia.json \
+node $srcdir/tool/genie.js mturk-validate -o paraphrase.tsv -l en-US --thingpedia thingpedia.json \
   --paraphrasing-input $srcdir/test/paraphrasing-results.csv \
   --validation-input $srcdir/test/validation-results.csv \
   --validation-count 3 --validation-threshold 3

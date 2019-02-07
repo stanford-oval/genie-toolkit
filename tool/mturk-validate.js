@@ -47,7 +47,7 @@ module.exports = {
             help: 'CSV file containing the output from MTurk paraphrasing.'
         });
         parser.addArgument('--validation-input', {
-            required: true,
+            required: false,
             help: 'CSV file containing the output from MTurk validation.'
         });
         parser.addArgument('--paraphrasing-rejects', {
@@ -110,6 +110,8 @@ module.exports = {
         let validationCounts;
 
         if (args.validation_threshold > 0) {
+            if (!args.validation_input)
+                throw new Error(`Argument --validation-input is required when performing manual validation`);
             const validationInput = fs.createReadStream(args.validation_input)
                 .pipe(csv.parse({
                     columns: true,
