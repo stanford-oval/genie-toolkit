@@ -17,6 +17,7 @@ const csv = require('csv');
 
 const { DatasetParser } = require('../lib/dataset-parsers');
 const SentenceSampler = require('../lib/sampler');
+const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
 function parseMeasure(valueString) {
     const match = /^(-?(?:[0-9]+(?:\.[0-9]*)?(?:e[0-9]+)?|\.[0-9]+(?:e[0-9]+)?))([A-Za-z_][A-Za-z0-9_]*)/.exec(valueString);
@@ -243,6 +244,11 @@ module.exports = {
             required: true,
             help: 'TSV file containing constant values to use.'
         });
+        parser.addArgument('input_file', {
+            nargs: '+',
+            type: maybeCreateReadStream,
+            help: 'Input datasets to augment (in TSV format); use - for standard input'
+        });
         parser.addArgument(['-l', '--locale'], {
             required: false,
             defaultValue: 'en-US',
@@ -300,9 +306,7 @@ module.exports = {
             debug: args.debug
         };
 
-        process.stdin.setEncoding('utf8');
-        process.stdin
-            .pipe(byline())
+        readAllLines(args.input_file)
             .pipe(new DatasetParser({ preserveId: true }))
             .pipe(new SentenceSampler(constants, options))
             .pipe(csv.stringify({ header: true, delimiter: '\t' }))

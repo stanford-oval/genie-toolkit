@@ -17,5 +17,6 @@ async function seq(array) {
 
 seq([
     ('./test_stream_utils'),
+    ('./test_requoting'),
     ('./test_sentence_generator'),
 ]);

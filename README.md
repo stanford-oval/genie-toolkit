@@ -113,7 +113,7 @@ or however much memory you want to dedicate to the process (in MB).
 
 To choose which sentences to paraphrase, use:
 ```
-genie sample --constants constants.tsv --sampling-strategy bySignature --sampling-control easy-hard-functions.tsv -o mturk-input.tsv < synthetic.tsv 
+genie sample synthetic.tsv --constants constants.tsv --sampling-strategy bySignature --sampling-control easy-hard-functions.tsv -o mturk-input.tsv
 ```
 
 Use `constants.tsv` to choose which values to use for each constant, based on type and parameter name.
@@ -169,7 +169,7 @@ is not necessary. The script will still perform automatic validation.
 After creating the synthetic and paraphrase datasets, use the following command to augment the dataset
 and apply parameter replacement:
 ```
-genie augment synthetic.tsv paraphrasing.tsv --thingpedia thingpedia.json --ppdb compiled-ppdb.bin --parameter-datasets parameter-datasets.tsv
+genie augment paraphrasing.tsv synthetic.tsv --thingpedia thingpedia.json --ppdb compiled-ppdb.bin --parameter-datasets parameter-datasets.tsv
  -o everything.tsv
  [--ppdb-synthetic-fraction FRACTION] [--ppdb-paraphrase-fraction FRACTION]
  [--quoted-fraction FRACTION]
@@ -187,9 +187,27 @@ is available after registration and accepting the terms and conditions.
 Given the created everything.tsv file, you can split in train/eval/test with:
 ```
 genie split-train-eval -i everything.tsv --train train.tsv --eval eval.tsv [--test test.tsv] --eval-prob 0.1
+  --split-strategy sentence
 ```
-Use `--eval-prob` to control the fraction of the data that will be part of the evaluation set. The same
-amount (with different sentences) will be part of the test set, if `--test` is provided.
+
+This command will split according to split strategy:
+- `id`: naive split; the same exact sentence can occur in the training and testing set; use this split only
+  with data that you're confident is highly representative of real-world usage, otherwise you'll overestimate
+  your accuracy (the difference can be up to 20%)
+- `raw-sentence` and `sentence`: split on sentences; sentences in the training set will not occur in the test
+  set; `sentence` considers two sentences to be equal if they differ only for parameters, while `raw-sentence`
+  does not; this is the split to use to train a production model, as it maximizes the amount of available
+  training data without overestimating accuracy
+- `program`: split on programs; the same program will not appear in both the training set and test set;
+  programs that differ only for the parameter values are considered identical;
+- `combination`: split on function combinations; the same sequence of functions will not appear in the training
+  and test set; use this strategy to reproduce the experiment in the Genie paper with a new dataset
+
+Use `--eval-prob` to control the fraction of the data that will be part of the evaluation set.
+
+If `--test` is provided, the command will generate a test set as well. Regardless of `--split-strategy`,
+the test set is always split naively from the evaluation/development set, so the same sentence can appear
+in both.
 
 #### Step 5. Training
 

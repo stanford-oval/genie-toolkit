@@ -26,7 +26,8 @@ const subcommands = {
     'mturk-validate': require('./mturk-validate'),
 
     'compile-ppdb': require('./compile-ppdb'),
-    'augment': require('./augment')
+    'augment': require('./augment'),
+    'split-train-eval': require('./split-train-eval')
 };
 
 async function main() {

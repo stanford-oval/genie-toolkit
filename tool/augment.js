@@ -12,7 +12,6 @@
 const ThingTalk = require('thingtalk');
 const seedrandom = require('seedrandom');
 const fs = require('fs');
-const byline = require('byline');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const DatasetAugmenter = require('../lib/dataset_augmenter');
@@ -21,13 +20,7 @@ const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
 const BinaryPPDB = require('../lib/binary_ppdb');
 
 const StreamUtils = require('./lib/stream-utils');
-
-function maybeCreateReadStream(filename) {
-    if (filename === '-')
-        return process.stdin;
-    else
-        return fs.createReadStream(filename);
-}
+const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
 module.exports = {
     initArgparse(subparsers) {
@@ -105,7 +98,7 @@ module.exports = {
         const constProvider = new FileParameterProvider(args.parameter_datasets);
         await constProvider.open();
 
-        StreamUtils.chain(args.input_file.map((s) => s.setEncoding('utf8').pipe(byline())), { objectMode: true })
+        readAllLines(args.input_file)
             .pipe(new DatasetParser())
             .pipe(new DatasetAugmenter(schemaRetriever, constProvider, {
                 rng: seedrandom.alea(args.random_seed),

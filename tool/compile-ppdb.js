@@ -9,22 +9,14 @@
 // See COPYING for details
 "use strict";
 
-const byline = require('byline');
 const fs = require('fs');
 const util = require('util');
 
 const BinaryPPDB = require('../lib/binary_ppdb');
 
-const StreamUtils = require('./lib/stream-utils');
+const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
 const BLACKLIST = new Set(['tb', 'channel']);
-
-function maybeCreateReadStream(filename) {
-    if (filename === '-')
-        return process.stdin;
-    else
-        return fs.createReadStream(filename);
-}
 
 module.exports = {
     initArgparse(subparsers) {
@@ -50,7 +42,7 @@ module.exports = {
     execute(args) {
         const builder = new BinaryPPDB.Builder();
         const language = args.locale.split('-')[0];
-        const input = StreamUtils.chain(args.input_file.map((s) => s.setEncoding('utf8').pipe(byline())), { objectMode: true });
+        const input = readAllLines(args.input_file);
 
         input.on('data', (line) => {
             line = line.trim();

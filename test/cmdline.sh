@@ -34,7 +34,7 @@ node $srcdir/tool/genie.js generate --maxdepth 2 --thingpedia thingpedia.json --
 
 # sample
 node $srcdir/tool/genie.js sample -o synthetic-sampled.tsv \
-  --constants $srcdir/data/en-US/constants.tsv --sampling-control $srcdir/test/data/easy-hard-functions.tsv < $srcdir/test/data/synthetic.tsv
+  --constants $srcdir/data/en-US/constants.tsv --sampling-control $srcdir/test/data/easy-hard-functions.tsv $srcdir/test/data/synthetic.tsv
 diff -u $srcdir/test/data/expected-synthetic-sampled.tsv synthetic-sampled.tsv
 
 # make paraphrasing hits
@@ -77,8 +77,28 @@ diff -u $srcdir/test/data/expected-paraphrase1.tsv paraphrase.tsv
 # yay we have a dataset, time to augment it...
 
 node $srcdir/tool/genie.js compile-ppdb -o compiled-ppdb.bin $srcdir/test/data/ppdb-2.0-xs-lexical
-node $srcdir/tool/genie.js augment $srcdir/test/data/synthetic.tsv paraphrase.tsv --thingpedia thingpedia.json \
+node $srcdir/tool/genie.js augment paraphrase.tsv $srcdir/test/data/synthetic.tsv --thingpedia thingpedia.json \
   --ppdb compiled-ppdb.bin --parameter-datasets $srcdir/test/data/parameter-datasets.tsv \
-  -o /dev/null \
+  -o everything.tsv \
   --ppdb-synthetic-fraction 0.5 --ppdb-paraphrase-fraction 1.0 \
   --quoted-fraction 0.1
+diff -u $srcdir/test/data/expected-everything.tsv everything.tsv
+
+# and split it in various ways
+node $srcdir/tool/genie.js split-train-eval everything.tsv \
+  --train /dev/null --eval /dev/null --test /dev/null \
+  --split-strategy id --eval-probability 0.5
+node $srcdir/tool/genie.js split-train-eval everything.tsv \
+  --train /dev/null --eval /dev/null \
+  --split-strategy raw-sentence --eval-probability 0.5
+node $srcdir/tool/genie.js split-train-eval everything.tsv \
+  --train train.tsv --eval eval.tsv \
+  --split-strategy sentence --eval-probability 0.5
+node $srcdir/tool/genie.js split-train-eval everything.tsv \
+  --train /dev/null --eval /dev/null \
+  --split-strategy program --eval-probability 0.5
+node $srcdir/tool/genie.js split-train-eval everything.tsv \
+  --train /dev/null --eval /dev/null \
+  --split-strategy combination --eval-probability 0.5
+
+rm -fr $workdir
