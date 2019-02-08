@@ -12,8 +12,6 @@
 const ThingTalk = require('thingtalk');
 const seedrandom = require('seedrandom');
 const fs = require('fs');
-const util = require('util');
-const mmap = require('mmap-io');
 const byline = require('byline');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
@@ -29,15 +27,6 @@ function maybeCreateReadStream(filename) {
         return process.stdin;
     else
         return fs.createReadStream(filename);
-}
-
-async function openBinaryPPDB(filename) {
-    const fd = await util.promisify(fs.open)(filename, 'r');
-    const stats = await util.promisify(fs.fstat)(fd);
-
-    const buffer = mmap.map(Math.ceil(stats.size / mmap.PAGESIZE) * mmap.PAGESIZE,
-        mmap.PROT_READ, mmap.MAP_SHARED | mmap.MAP_POPULATE, fd, 0, mmap.MADV_RANDOM);
-    return new BinaryPPDB(buffer);
 }
 
 module.exports = {
@@ -123,7 +112,7 @@ module.exports = {
                 locale: args.locale,
                 debug: args.debug,
 
-                ppdbFile: args.ppdb ? await openBinaryPPDB(args.ppdb) : null,
+                ppdbFile: args.ppdb ? await BinaryPPDB.mapFile(args.ppdb) : null,
                 ppdbProbabilitySynthetic: args.ppdb_synthetic_fraction,
                 ppdbProbabilityParaphrase: args.ppdb_paraphrase_fraction,
                 quotedProbability: args.quoted_fraction
