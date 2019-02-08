@@ -57,7 +57,7 @@ function fakeParaphrase(batch, targetCode) {
         const [candDevices, candFunctions] = quickGetFunctions(candidate.target_code);
 
         if (subset(devices, candDevices) && !subset(functions, candFunctions))
-            return candidate.utterance;
+            return candidate.paraphrase;
     }
 
     // return something
@@ -212,7 +212,7 @@ module.exports = {
 
         const batch = await accumulator.read();
 
-        (new ArrayStream(batch))
+        (new ArrayStream(batch, { objectMode: true }))
             .pipe(new ParaphrasingAccumulator(args.paraphrases_per_sentence * args.submissions_per_task))
             .pipe(new ValidationHITCreator(batch, {
                 targetSize: args.paraphrases_per_sentence * args.submissions_per_task,

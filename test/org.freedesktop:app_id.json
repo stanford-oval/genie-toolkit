@@ -1,0 +1,8 @@
+{
+  "result": "ok",
+  "data": [
+    { "value": "edu.stanford.Almond", "canonical": "almond", "name": "Almond" },
+    { "value": "org.gnome.Builder", "canonical": "gnome builder", "name": "GNOME Builder" },
+    { "value": "org.gnome.Weather.Application", "canonical": "gnome weather", "name": "GNOME Weather" }
+  ]
+}

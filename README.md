@@ -48,6 +48,27 @@ to any Almond system.
 
 ### Manual Genie Usage
 
+If almond-cloud is not desired, or one wants to avoid the complexity of setting up a database
+and web server, it is possible to invoke Genie manually, and have it manipulate datasets stored
+as TSV/CSV files.
+
+NOTE: Genie assumes all files are UTF-8, and ignores the current POSIX locale (LC_CTYPE and LANG
+enviornment varialbes). Legacy encodings such as ISO-8859-1 or Big5 are not supported and could
+cause problems.
+
+### Step 0. (Optional) Setup
+
+At various points Genie will call a tokenizer to preprocess the sentences and apply argument
+identification. By default, it will use the REST API provided by <https://almond-nl.stanford.edu/>.
+This can be very slow, especially with large datasets, as it involves one HTTP/1.1 request per sentence.
+
+Alternatively, you should set up a local instance of [almond-tokenizer](https://github.com/Stanford-Mobisocial-IoT-Lab/almond-tokenizer),
+listening on localhost port 8888. If you do so, set the environment variable `GENIE_USE_TOKENIZER=local`.
+This avoids the network communication and also uses a more efficient protocol.
+
+Note that correct preprocessing of Location values with a local tokenizer requires MapQuest API key.
+Please refer to the almond-tokenizer documentation for details.
+
 #### Step 1. Generate synthetic set.
 
 To generate a synthetic set, use:
@@ -148,7 +169,7 @@ is not necessary. The script will still perform automatic validation.
 After creating the synthetic and paraphrase datasets, use the following command to augment the dataset
 and apply parameter replacement:
 ```
-genie augment -i synthetic.tsv -i paraphrasing.tsv --ppdb compiled-ppdb.bin --parameter-datasets parameter-datasets.tsv
+genie augment synthetic.tsv paraphrasing.tsv --thingpedia thingpedia.json --ppdb compiled-ppdb.bin --parameter-datasets parameter-datasets.tsv
  -o everything.tsv
  [--ppdb-synthetic-fraction FRACTION] [--ppdb-paraphrase-fraction FRACTION]
  [--quoted-fraction FRACTION]
@@ -159,7 +180,8 @@ mapping a string type to a downloaded dataset file.
 
 Because different datasets have different licenses and restrictions (such as the requirement to cite
 a particular paper, or a restriction to non-commercial use), Genie does not include any dataset directly.
-You can obtain the datasets Almond uses at <https://almond.stanford.edu/thingpedia/strings>. Download
+You can obtain the datasets Almond uses at <https://almond.stanford.edu/thingpedia/strings> and
+<https://almond.stanford.edu/thingpedia/entities>. Download
 is available after registration and accepting the terms and conditions.
 
 Given the created everything.tsv file, you can split in train/eval/test with:

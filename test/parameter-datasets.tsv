@@ -1,0 +1,20 @@
+# format is <string_or_entity> <type> <path>, tab separated
+#
+# <string_or_entity> is:
+# `string` if the path refers to a string dataset (in TSV format)
+# `entity` if the path refers to an entity dataset (in JSON format)
+#
+# <type> is the dataset identifier from Thingpedia
+#
+# relative paths are interpreted relative to the directory containing this file,
+# not the current working directory
+#
+# empty (white-space only) lines and lines starting with # (optionally preceded by space)
+# are ignored
+
+string	tt:long_free_text	./tt:long_free_text.txt
+string	tt:short_free_text	./tt:short_free_text.txt
+string	tt:search_query	./tt:search_query.txt
+string	tt:song_name	./tt:song_name.txt
+entity	org.freedesktop:app_id	./org.freedesktop:app_id.json
+entity	tt:stock_id	./tt:stock_id.json

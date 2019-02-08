@@ -41,6 +41,8 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
             metadata.canonical = schema.argcanonicals[i] || argname;
         }
         const annotations = {};
+        if (isMeta && schema.string_values[i])
+            annotations.string_values = Ast.Value.String(schema.string_values[i]);
 
         args.push(new Ast.ArgumentDef(direction, argname,
             type, metadata, annotations));

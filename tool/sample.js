@@ -13,9 +13,9 @@ const seedrandom = require('seedrandom');
 const fs = require('fs');
 const assert = require('assert');
 const byline = require('byline');
-const Stream = require('stream');
 const csv = require('csv');
 
+const { DatasetParser } = require('../lib/dataset-parsers');
 const SentenceSampler = require('../lib/sampler');
 
 function parseMeasure(valueString) {
@@ -301,23 +301,11 @@ module.exports = {
         };
 
         process.stdin.setEncoding('utf8');
-        const input = byline(process.stdin);
-        const inputtransform = new Stream.Transform({
-            readableObjectMode: true,
-            writableObjectMode: true,
-
-            transform(line, encoding, callback) {
-                const [id, utterance, target_code] = line.trim().split('\t');
-                callback(null, { id, utterance, target_code });
-            },
-
-            flush(callback) {
-                process.nextTick(callback);
-            }
-        });
-        const sampler = new SentenceSampler(constants, options);
-        const output = csv.stringify({ header: true, delimiter: '\t' });
-        input.pipe(inputtransform).pipe(sampler).pipe(output).pipe(args.output);
+        process.stdin
+            .pipe(byline())
+            .pipe(new DatasetParser())
+            .pipe(new SentenceSampler(constants, options))
+            .pipe(csv.stringify({ header: true, delimiter: '\t' }));
 
         return new Promise((resolve, reject) => {
             args.output.on('finish', resolve);

@@ -5,6 +5,9 @@ process.on('unhandledRejection', (up) => { throw up; });
 
 process.env.TEST_MODE = '1';
 
+// require everything, to get a complete view of code coverage
+require('../lib/index');
+
 async function seq(array) {
     for (let fn of array) {
         console.log(`Running ${fn}`);
@@ -13,5 +16,6 @@ async function seq(array) {
 }
 
 seq([
-    ('./test_sentence_generator')
+    ('./test_stream_utils'),
+    ('./test_sentence_generator'),
 ]);

@@ -13,6 +13,7 @@ thingpedia.json
 
 *.tsv
 *.csv
+*.bin
 !data/**/*.tsv
 
 !test/**/*-results.csv
@@ -20,3 +21,4 @@ thingpedia.json
 !test/**/expected-*.tsv
 !test/synthetic.tsv
 !test/easy-hard-functions.tsv
+!test/parameter-datasets.tsv

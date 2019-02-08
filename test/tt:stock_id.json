@@ -1,0 +1,7 @@
+{
+  "result": "ok",
+  "data": [
+    { "value": "goog", "canonical": "alphabet inc.", "name": "Alphabet Inc." },
+    { "value": "msft", "canonical": "microsoft corp.", "name": "Microsoft Corp." }
+  ]
+}

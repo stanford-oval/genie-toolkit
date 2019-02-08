@@ -62,3 +62,12 @@ node $srcdir/tool/genie.js mturk-validate -o paraphrase.tsv -l en-US --thingpedi
   --validation-input $srcdir/test/validation-results.csv \
   --validation-count 3 --validation-threshold 3
 diff -u $srcdir/test/expected-paraphrase1.tsv paraphrase.tsv
+
+# yay we have a dataset, time to augment it...
+
+node $srcdir/tool/genie.js compile-ppdb -o compiled-ppdb.bin $srcdir/test/ppdb-2.0-xs-lexical
+node $srcdir/tool/genie.js augment synthetic.tsv paraphrase.tsv --thingpedia thingpedia.json \
+  --ppdb compiled-ppdb.bin --parameter-datasets $srcdir/test/parameter-datasets.tsv \
+  -o /dev/null \
+  --ppdb-synthetic-fraction 0.5 --ppdb-paraphrase-fraction 1.0 \
+  --quoted-fraction 0.1

@@ -9,6 +9,7 @@
 // See COPYING for details
 "use strict";
 
+const assert = require('assert');
 const Stream = require('stream');
 
 class ArrayAccumulator extends Stream.Writable {
@@ -52,8 +53,8 @@ class MapAccumulator extends Stream.Writable {
 }
 
 class ArrayStream extends Stream.Readable {
-    constructor(array) {
-        super({ objectMode: true });
+    constructor(array, options) {
+        super(options);
 
         this._iterator = array[Symbol.iterator]();
     }
@@ -73,10 +74,74 @@ class ArrayStream extends Stream.Readable {
     }
 }
 
+class ChainStream extends Stream.Readable {
+    constructor(chain, options) {
+        super(options);
+
+        this._chain = chain;
+        this._i = 0;
+    }
+
+    _read(n) {
+        if (this._i >= this._chain.length) {
+            this.push(null);
+            return;
+        }
+
+        let next = this._chain[this._i];
+        let chunk = next.read(n);
+        if (chunk !== null) {
+            this.push(chunk);
+            return;
+        }
+
+        // ReadableStream.read returns null in three cases:
+        //
+        // - the stream is open and there is not enough data to read (ended === false)
+        // - the stream is ended, there is data left but not enough to read
+        // - the stream is ended and there is nothing left ('end' has been emitted)
+        //
+        // in the first case, we want to connect to readable and read more later
+        // when data shows up
+        //
+        // in the second case, we want to consume as much data as possible,
+        // then try to read the rest from the next stream
+        //
+        // in the third case, we want to switch to the next stream right away
+        // and try to read more
+
+        if (!next._readableState.ended) {
+            // first case
+            next.once('readable', () => this._read(n));
+        } else if (next._readableState.length > 0) {
+            // second case
+
+            chunk = next.read(next._readableState.length);
+            assert(chunk !== null);
+            this.push(chunk);
+
+            // stream has ended and we consumed all data, switch to the next one
+            this._i ++;
+            process.nextTick(() => this._read(n - chunk.length));
+        } else {
+            // third case
+
+            // stream has ended and we consumed all data, switch to the next one
+            this._i ++;
+            process.nextTick(() => this._read(n));
+        }
+    }
+}
+
+function chain(streams, options) {
+    return new ChainStream(streams, options);
+}
+
 module.exports = {
     ArrayAccumulator,
     ArrayStream,
     MapAccumulator,
+    chain,
 
     waitFinish(stream) {
         return new Promise((resolve, reject) => {

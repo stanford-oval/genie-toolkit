@@ -11,11 +11,11 @@
 
 const seedrandom = require('seedrandom');
 const fs = require('fs');
-const stream = require('stream');
 const argparse = require('argparse');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const SentenceGenerator = require('../lib/sentence-generator');
+const { DatasetStringifier } = require('../lib/dataset-parsers');
 
 class ActionSetFlag extends argparse.Action {
     call(parser, namespace, values) {
@@ -107,19 +107,7 @@ module.exports = {
         };
 
         const generator = new SentenceGenerator(options);
-        const transform = new stream.Transform({
-            writableObjectMode: true,
-
-            transform(ex, encoding, callback) {
-                callback(null, 'S' + ex.id + '\t' + ex.utterance + '\t' + ex.target_code + '\n');
-            },
-
-            flush(callback) {
-                process.nextTick(callback);
-            }
-        });
-
-        generator.pipe(transform).pipe(args.output);
+        generator.pipe(new DatasetStringifier()).pipe(args.output);
         args.output.on('finish', () => process.exit());
     }
 };

@@ -246,7 +246,7 @@ async function main() {
 
         write(ex, encoding, callback) {
             Promise.resolve().then(() => {
-                return processOne(ex.id, ex.utterance, ex.target_code);
+                return processOne(ex.id, ex.preprocessed, ex.target_code);
             }).then(() => {
                 callback(null);
             }, (e) => {

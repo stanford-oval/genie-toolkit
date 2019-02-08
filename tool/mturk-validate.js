@@ -177,7 +177,7 @@ module.exports = {
                 writableObjectMode: true,
 
                 transform(ex, encoding, callback) {
-                    callback(null, ex.id + '\t' + ex.paraphrase + '\t' + ex.target_code + '\n');
+                    callback(null, ex.id + '\t' + ex.preprocessed + '\t' + ex.target_preprocessed + '\n');
                 },
 
                 flush(callback) {
