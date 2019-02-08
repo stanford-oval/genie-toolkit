@@ -303,9 +303,10 @@ module.exports = {
         process.stdin.setEncoding('utf8');
         process.stdin
             .pipe(byline())
-            .pipe(new DatasetParser())
+            .pipe(new DatasetParser({ preserveId: true }))
             .pipe(new SentenceSampler(constants, options))
-            .pipe(csv.stringify({ header: true, delimiter: '\t' }));
+            .pipe(csv.stringify({ header: true, delimiter: '\t' }))
+            .pipe(args.output);
 
         return new Promise((resolve, reject) => {
             args.output.on('finish', resolve);

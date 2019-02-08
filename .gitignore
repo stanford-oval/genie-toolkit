@@ -19,6 +19,6 @@ thingpedia.json
 !test/**/*-results.csv
 !test/**/expected-*.csv
 !test/**/expected-*.tsv
-!test/synthetic.tsv
-!test/easy-hard-functions.tsv
-!test/parameter-datasets.tsv
+!test/data/synthetic.tsv
+!test/data/easy-hard-functions.tsv
+!test/data/parameter-datasets.tsv
