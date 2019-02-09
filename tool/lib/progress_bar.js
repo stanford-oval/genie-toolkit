@@ -56,7 +56,7 @@ module.exports = class ProgressBar {
             process.stderr.write("\b".repeat(prev_total_width));
             process.stderr.write("\r");
 
-            const current_pct = Math.floor(current / this.target) * 100;
+            const current_pct = Math.floor(current * 100 / this.target) ;
             let bar = `${String(current_pct).padStart(3)}%  [`;
             const prog = current / this.target;
             const prog_width = Math.floor(this.width * prog);
