@@ -13,6 +13,7 @@ const util = require('util');
 const fs = require('fs');
 
 const Training = require('../lib/training');
+const ProgressBar = require('./lib/progress_bar');
 
 module.exports = {
     initArgparse(subparsers) {
@@ -42,6 +43,18 @@ module.exports = {
             choices: Object.keys(Training.BACKENDS),
             help: "Which training backend to use (experimental)"
         });
+
+        parser.addArgument('--debug', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Enable debugging.',
+        });
+        parser.addArgument('--no-debug', {
+            nargs: 0,
+            action: 'storeFalse',
+            dest: 'debug',
+            help: 'Disable debugging.',
+        });
     },
 
     async execute(args) {
@@ -55,11 +68,20 @@ module.exports = {
 
             datadir: args.datadir,
             workdir: args.workdir,
-            outputdir: args.outputdir
+            outputdir: args.outputdir,
+
+            debug: !!args.debug
         });
-        job.on('progress', (value) => {
-            console.log(`Progress for training job: ${Math.floor(value*100)}`);
-        });
+
+        if (!args.debug) {
+            const progbar = new ProgressBar(1);
+            job.on('progress', (value) => {
+                progbar.update(value);
+            });
+
+            // issue an update now to show the progress bar
+            progbar.update(0);
+        }
 
         await job.train();
     }
