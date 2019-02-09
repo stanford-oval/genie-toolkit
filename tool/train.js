@@ -11,6 +11,7 @@
 
 const util = require('util');
 const fs = require('fs');
+const path = require('path');
 
 const Training = require('../lib/training');
 const ProgressBar = require('./lib/progress_bar');
@@ -84,5 +85,12 @@ module.exports = {
         }
 
         await job.train();
+
+        console.log('Training complete');
+        console.log('Evaluation result (on validation set)');
+        for (let key in job.metrics)
+            console.log(` ${key} = ${job.metrics[key]}`);
+        await util.promisify(fs.writeFile)(path.resolve(args.workdir, 'eval-metrics.json'),
+            JSON.stringify(job.metrics, undefined, 2));
     }
 };
