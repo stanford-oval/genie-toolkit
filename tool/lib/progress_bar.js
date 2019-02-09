@@ -80,7 +80,7 @@ module.exports = class ProgressBar {
             const eta = time_per_unit * (this.target - current);
             let info = '';
             if (current < this.target)
-                info += ` - ETA: ${Math.round(eta)}s`;
+                info += ` - ETA: ${Math.round(eta/1000)}s`;
             else
                 info += ` - ${Math.round((now - this.start)/1000)}s`;
             for (let k of this.unique_values) {
