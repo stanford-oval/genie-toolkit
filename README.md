@@ -213,7 +213,7 @@ in both.
 
 To train, use:
 ```
-genie train --data-dir <DATADIR> --output-dir <OUTPUTDIR> --workdir <WORKDIR>
+genie train --datadir <DATADIR> --outputdir <OUTPUTDIR> --workdir <WORKDIR>
 ```
 
 `<DATADIR>` is the path to the TSV files, `<OUTPUTDIR>` is a directory that will
@@ -227,7 +227,7 @@ scores and error analysis.
 
 To evaluate on the test set, use:
 ```
-genie evaluate --data-dir <DATADIR> --output-dir <OUTPUTDIR> --workdir <WORKDIR>
+genie evaluate --datadir <DATADIR> --outputdir <OUTPUTDIR> --workdir <WORKDIR>
 ```
 
 #### Step 6. Deploying

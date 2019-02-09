@@ -27,7 +27,10 @@ const subcommands = {
 
     'compile-ppdb': require('./compile-ppdb'),
     'augment': require('./augment'),
-    'split-train-eval': require('./split-train-eval')
+    'split-train-eval': require('./split-train-eval'),
+
+    'train': require('./train'),
+    'evaluate': require('./evaluate'),
 };
 
 async function main() {

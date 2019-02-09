@@ -4,7 +4,7 @@ Genie was used in the paper _Genie: A Generator of Natural Language Parsers for 
 published in PLDI 2019.
 
 To reproduce those results, first download the dataset from:
-<https://oval.cs.stanford.edu/datasets/pldi2019.zip>
+<https://oval.cs.stanford.edu/datasets/pldi2019-quote-free.zip>
 
 The dataset contains four folders:
 - `new-combinations`
@@ -32,19 +32,19 @@ indicate how the data point was obtained:
 
 To train, use:
 ```
-genie train --data-dir <DATADIR> --output-dir <OUTPUTDIR> --workdir <WORKDIR> [--synthetic-only | --paraphrase-only] --config-file config.json
+genie train --datadir <DATADIR> --outputdir <OUTPUTDIR> --workdir <WORKDIR> [--synthetic-only | --paraphrase-only] --config-file config.json
 ```
 `<DATADIR>` is the path to the TSV files, `<OUTPUTDIR>` is a directory that will
 contained the best trained model, and `<WORKDIR>` is a temporary directory containing
 preprocessed dataset files, intermediate training steps, Tensorboard event files,
 and debugging logs from `luinet`.
 
-Training will also automatically evaluate on the validation set, and output the best
+Training will also automatically evaluate on the validation set, and it will output the best
 scores and error analysis.
 
 To evaluate on the test set, use:
 ```
-genie evaluate --data-dir <DATADIR> --output-dir <OUTPUTDIR> --workdir <WORKDIR> --config-file config.json
+genie evaluate --datadir <DATADIR> --outputdir <OUTPUTDIR> --workdir <WORKDIR> --config-file config.json
 ```
 
 The following flags can be used for ablation studies:
@@ -55,7 +55,8 @@ The following flags can be used for ablation studies:
 - `--config-file ablation/no-max-margin.json`: use softmax (cross-entropy) loss instead of max-margin
 - `--config-file ablation/no-blowup.json`: disable the use of parameter expansion
 
-You must pass the same `<FLAGS>` between training and evaluation.
+You must pass the same flags (other than `--synthetic-only`/`--paraphrase-only`)
+for training and evaluation.
 
 To customize parameters other than the one in the ablation studies, you
 can create a customized configuration file, or use luinet directly.
