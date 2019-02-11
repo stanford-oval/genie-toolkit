@@ -219,7 +219,7 @@ genie train --datadir <DATADIR> --outputdir <OUTPUTDIR> --workdir <WORKDIR>
 `<DATADIR>` is the path to the TSV files, `<OUTPUTDIR>` is a directory that will
 contained the best trained model, and `<WORKDIR>` is a temporary directory containing
 preprocessed dataset files, intermediate training steps, Tensorboard event files,
-and debugging logs from `luinet`. `<WORKDIR>` should be on a file system with at least 10GB free;
+and debugging logs. `<WORKDIR>` should be on a file system with at least 10GB free;
 do not use a tmpfs such as `/tmp` for it.
 
 Training will also automatically evaluate on the validation set, and output the best
@@ -232,7 +232,8 @@ genie evaluate --datadir <DATADIR> --outputdir <OUTPUTDIR> --workdir <WORKDIR>
 
 #### Step 6. Deploying
 
-The resulting trained model can be deployed using `luinet-server`, provided by the `luinet` package.
+The resulting trained model can be deployed using `genie-server`, provided by the
+[genie-parser](https://github.com/Stanford-Mobisocial-IoT-Lab/genie-parser) package.
 Please refer to its documentation for instructions.
 
 ### Modifying ThingTalk
@@ -243,5 +244,5 @@ After modifying the library, you can use `yarn link` or a combination of package
 and `resolutions` to point the almond-cloud installation to your library. You must make sure
 that only one copy of the ThingTalk library is loaded (use `find node_modules/ -name thingtalk` to check).
 
-If you modify the ThingTalk syntax, you must also point `luinet` to a modified parser for the ThingTalk grammar
+If you modify the ThingTalk syntax, you must also point genie-parser to a modified parser for the ThingTalk grammar
 (to perform automatic syntax checks). See the ThingTalk documentation for how to generate this.

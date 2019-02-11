@@ -19,7 +19,7 @@ module.exports = {
     initArgparse(subparsers) {
         const parser = subparsers.addParser('evaluate', {
             addHelp: true,
-            description: "Evaluate a trained luinet model on a Genie-generated dataset, using the test set."
+            description: "Evaluate a trained model on a Genie-generated dataset, using the test set."
         });
         parser.addArgument('--datadir', {
             required: true,
@@ -35,7 +35,7 @@ module.exports = {
         });
         parser.addArgument('--config-file', {
             required: false,
-            help: "JSON configuration file setting hyper-parameters and luinet options."
+            help: "JSON configuration file setting hyper-parameters and parser options."
         });
         parser.addArgument('--backend', {
             required: false,

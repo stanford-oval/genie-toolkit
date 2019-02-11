@@ -37,7 +37,7 @@ genie train --datadir <DATADIR> --outputdir <OUTPUTDIR> --workdir <WORKDIR> [--s
 `<DATADIR>` is the path to the TSV files, `<OUTPUTDIR>` is a directory that will
 contained the best trained model, and `<WORKDIR>` is a temporary directory containing
 preprocessed dataset files, intermediate training steps, Tensorboard event files,
-and debugging logs from `luinet`.
+and debugging logs.
 
 Training will also automatically evaluate on the validation set, and it will output the best
 scores and error analysis.
@@ -59,5 +59,5 @@ You must pass the same flags (other than `--synthetic-only`/`--paraphrase-only`)
 for training and evaluation.
 
 To customize parameters other than the one in the ablation studies, you
-can create a customized configuration file, or use luinet directly.
-Please refer to the luinet documentation for details.
+can create a customized configuration file, or use [genie-parser](https://github.com/Stanford-Mobisocial-IoT-Lab/genie-parser) directly.
+Please refer to the genie-parser documentation for details.
