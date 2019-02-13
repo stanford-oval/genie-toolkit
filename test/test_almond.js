@@ -96,7 +96,7 @@ function main() {
             if (command === null)
                 return almond.handleParsedCommand(analysis);
             else
-                return almond.handleCommand(command, postprocess);
+                return almond.handleCommand(command, undefined, postprocess);
         }).then(() => {
             rl.prompt();
         });
