@@ -26,10 +26,12 @@ async function testInstallProgram(engine) {
     await new Promise((resolve, reject) => {
         const uniqueId = uuid.v4();
 
-        messaging.on('incoming-message', (msg) => reject(new Error(`Unexpected message from ${msg.sender}`)));
+        messaging.on('incoming-message', (feedId, msg) => {
+            reject(new Error(`Unexpected message from ${msg.sender}`));
+        });
         messaging.once('outgoing-message', (feedId, msg) => {
-            assert.deepStrictEqual(feedId, 'feed1');
-            assert.strictEqual(msg.sender, 'user1');
+            assert.deepStrictEqual(feedId, 'mock:feed1');
+            assert.strictEqual(msg.sender, 'mock-account:user1');
             assert.strictEqual(msg.type, 'app');
             assert.deepStrictEqual(msg.json, {
                 v: 3,
@@ -58,8 +60,8 @@ async function testHandleInstallNoPermissionNoAssistant(engine) {
 
         let count = 0;
         const listener = (feedId, msg) => {
-            assert.deepStrictEqual(feedId, 'feed1');
-            assert.strictEqual(msg.sender, 'user1');
+            assert.deepStrictEqual(feedId, 'mock:feed1');
+            assert.strictEqual(msg.sender, 'mock-account:user1');
             assert.strictEqual(msg.type, 'app');
 
             switch (count) {
@@ -91,7 +93,7 @@ async function testHandleInstallNoPermissionNoAssistant(engine) {
         };
         messaging.on('outgoing-message', listener);
 
-        messaging.getFeed('feed1')._sendMessage('user2', {
+        messaging.getFeed('mock:feed1')._sendMessage('user2', {
             type: 'app',
             json: {
                 v: 3,
@@ -125,8 +127,8 @@ async function testHandleInstallNoPermission(engine) {
 
         let count = 0;
         const listener = (feedId, msg) => {
-            assert.deepStrictEqual(feedId, 'feed1');
-            assert.strictEqual(msg.sender, 'user1');
+            assert.deepStrictEqual(feedId, 'mock:feed1');
+            assert.strictEqual(msg.sender, 'mock-account:user1');
             assert.strictEqual(msg.type, 'app');
 
             switch (count) {
@@ -158,7 +160,7 @@ async function testHandleInstallNoPermission(engine) {
         };
         messaging.on('outgoing-message', listener);
 
-        messaging.getFeed('feed1')._sendMessage('user2', {
+        messaging.getFeed('mock:feed1')._sendMessage('user2', {
             type: 'app',
             json: {
                 v: 3,
@@ -196,8 +198,8 @@ async function testHandleInstallNoPermissionSMT(engine) {
 
         let count = 0;
         const listener = (feedId, msg) => {
-            assert.deepStrictEqual(feedId, 'feed1');
-            assert.strictEqual(msg.sender, 'user1');
+            assert.deepStrictEqual(feedId, 'mock:feed1');
+            assert.strictEqual(msg.sender, 'mock-account:user1');
             assert.strictEqual(msg.type, 'app');
 
             switch (count) {
@@ -229,7 +231,7 @@ async function testHandleInstallNoPermissionSMT(engine) {
         };
         messaging.on('outgoing-message', listener);
 
-        messaging.getFeed('feed1')._sendMessage('user2', {
+        messaging.getFeed('mock:feed1')._sendMessage('user2', {
             type: 'app',
             json: {
                 v: 3,
@@ -255,8 +257,8 @@ async function testHandleInstallInvalidIdentity(engine) {
         const uniqueId = uuid.v4();
 
         messaging.once('outgoing-message', (feedId, msg) => {
-            assert.deepStrictEqual(feedId, 'feed1');
-            assert.strictEqual(msg.sender, 'user1');
+            assert.deepStrictEqual(feedId, 'mock:feed1');
+            assert.strictEqual(msg.sender, 'mock-account:user1');
             assert.strictEqual(msg.type, 'app');
 
             assert.deepStrictEqual(msg.json, {
@@ -271,7 +273,7 @@ async function testHandleInstallInvalidIdentity(engine) {
             resolve();
         });
 
-        messaging.getFeed('feed1')._sendMessage('user2', {
+        messaging.getFeed('mock:feed1')._sendMessage('user2', {
             type: 'app',
             json: {
                 v: 3,
@@ -295,8 +297,8 @@ async function testHandleInstallTypeError(engine) {
         const uniqueId = uuid.v4();
 
         messaging.once('outgoing-message', (feedId, msg) => {
-            assert.deepStrictEqual(feedId, 'feed1');
-            assert.strictEqual(msg.sender, 'user1');
+            assert.deepStrictEqual(feedId, 'mock:feed1');
+            assert.strictEqual(msg.sender, 'mock-account:user1');
             assert.strictEqual(msg.type, 'app');
 
             assert.deepStrictEqual(msg.json, {
@@ -311,7 +313,7 @@ async function testHandleInstallTypeError(engine) {
             resolve();
         });
 
-        messaging.getFeed('feed1')._sendMessage('user2', {
+        messaging.getFeed('mock:feed1')._sendMessage('user2', {
             type: 'app',
             json: {
                 v: 3,
@@ -336,8 +338,8 @@ async function testHandleInstallOk(engine) {
 
         let count = 0;
         const listener = (feedId, msg) => {
-            assert.deepStrictEqual(feedId, 'feed1');
-            assert.strictEqual(msg.sender, 'user1');
+            assert.deepStrictEqual(feedId, 'mock:feed1');
+            assert.strictEqual(msg.sender, 'mock-account:user1');
             assert.strictEqual(msg.type, 'app');
 
             switch (count) {
@@ -373,7 +375,7 @@ async function testHandleInstallOk(engine) {
             }
         });
 
-        messaging.getFeed('feed1')._sendMessage('user2', {
+        messaging.getFeed('mock:feed1')._sendMessage('user2', {
             type: 'app',
             json: {
                 v: 3,
@@ -402,8 +404,8 @@ async function testHandleInstallOkPermission(engine) {
 
         let count = 0;
         const listener = (feedId, msg) => {
-            assert.deepStrictEqual(feedId, 'feed1');
-            assert.strictEqual(msg.sender, 'user1');
+            assert.deepStrictEqual(feedId, 'mock:feed1');
+            assert.strictEqual(msg.sender, 'mock-account:user1');
             assert.strictEqual(msg.type, 'app');
 
             switch (count) {
@@ -439,7 +441,7 @@ async function testHandleInstallOkPermission(engine) {
             }
         });
 
-        messaging.getFeed('feed1')._sendMessage('user2', {
+        messaging.getFeed('mock:feed1')._sendMessage('user2', {
             type: 'app',
             json: {
                 v: 3,
@@ -460,7 +462,7 @@ async function testHandleInstallOkGet(engine) {
     const prog1 = await ThingTalk.Grammar.parseAndTypecheck(`executor = "mock-account:user1"^^tt:contact :
         now => @org.thingpedia.builtin.test.get_data(size=10byte) => return;`, engine.schemas);
     // pass a fake messaging to we send data to user2 not user1
-    prog1.lowerReturn({ type: 'mock', account: 'user2' });
+    prog1.lowerReturn({ getSelf() { return 'mock-account:user2'; } });
     prog1.principal = null;
 
     const code = prog1.prettyprint(true).trim();
@@ -495,8 +497,8 @@ async function testHandleInstallOkGet(engine) {
 
         let count = 0;
         const listener = (feedId, msg) => {
-            assert.deepStrictEqual(feedId, 'feed1');
-            assert.strictEqual(msg.sender, 'user1');
+            assert.deepStrictEqual(feedId, 'mock:feed1');
+            assert.strictEqual(msg.sender, 'mock-account:user1');
             assert.strictEqual(msg.type, 'app');
 
             switch (count) {
@@ -537,7 +539,7 @@ async function testHandleInstallOkGet(engine) {
         };
         messaging.on('outgoing-message', listener);
 
-        messaging.getFeed('feed1')._sendMessage('user2', {
+        messaging.getFeed('mock:feed1')._sendMessage('user2', {
             type: 'app',
             json: {
                 v: 3,
@@ -553,9 +555,8 @@ async function testHandleInstallOkGet(engine) {
 module.exports = async function testRemote(engine) {
     const messaging = engine.messaging;
     //const remote = engine.remote;
-
-    assert.deepStrictEqual(messaging.type, 'mock');
-    assert.deepStrictEqual(messaging.account, 'user1');
+    assert(messaging.isAvailable);
+    assert(messaging.isSelf('mock-account:user1'));
 
     await testInstallProgram(engine);
 
