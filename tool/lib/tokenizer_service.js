@@ -19,20 +19,20 @@ class CachingTokenizerService {
         this._cache = {};
     }
 
-    _getCacheForLanguage(lang) {
-        let cache = this._cache[lang];
+    _getCacheForLanguage(locale) {
+        let cache = this._cache[locale];
         if (!cache)
-            this._cache[lang] = cache = new Map;
+            this._cache[locale] = cache = new Map;
         return cache;
     }
 
-    _tryCache(languageTag, sentence) {
-        let cache = this._getCacheForLanguage(languageTag);
+    _tryCache(locale, sentence) {
+        let cache = this._getCacheForLanguage(locale);
         return cache.get(sentence);
     }
 
-    _storeCache(languageTag, sentence, result) {
-        let cache = this._getCacheForLanguage(languageTag);
+    _storeCache(locale, sentence, result) {
+        let cache = this._getCacheForLanguage(locale);
         cache.set(sentence, result);
     }
 }
@@ -71,7 +71,8 @@ class LocalTokenizerService extends CachingTokenizerService {
         this._socket.end();
     }
 
-    async tokenize(languageTag, utterance) {
+    async tokenize(locale, utterance) {
+        const languageTag = locale.split('-')[0];
         let cached = this._tryCache(languageTag, utterance);
         if (cached)
             return cached;
@@ -88,14 +89,14 @@ class LocalTokenizerService extends CachingTokenizerService {
 }
 
 class AlmondNLTokenizer extends CachingTokenizerService {
-    async tokenize(languageTag, utterance) {
-        let cached = this._tryCache(languageTag, utterance);
+    async tokenize(locale, utterance) {
+        let cached = this._tryCache(locale, utterance);
         if (cached)
             return cached;
 
-        let url = 'https://almond-nl.stanford.edu/' + languageTag + '/tokenize?q=' + encodeURIComponent(utterance);
+        let url = 'https://almond-nl.stanford.edu/' + locale + '/tokenize?q=' + encodeURIComponent(utterance);
         const result = JSON.parse(await Tp.Helpers.Http.get(url));
-        this._storeCache(languageTag, utterance, result);
+        this._storeCache(locale, utterance, result);
         return result;
     }
 

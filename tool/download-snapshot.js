@@ -26,10 +26,10 @@ module.exports = {
             addHelp: true,
             description: "Download a snapshot of Thingpedia."
         });
-        parser.addArgument(['-l', '--language'], {
+        parser.addArgument(['-l', '--locale'], {
             required: false,
             defaultValue: 'en',
-            help: `2-letter ISO code of natural language to download the snapshot for (defaults to 'en', English)`
+            help: `BGP 47 locale tag of the natural language to download the snapshot for (defaults to 'en', English)`
         });
         parser.addArgument(['-o', '--output'], {
             required: true,
@@ -53,10 +53,10 @@ module.exports = {
     },
 
     async execute(args) {
-        let deviceUrl = args.thingpedia_url + '/api/v3/snapshot/' + args.snapshot + '?meta=1&locale=' + args.language;
+        let deviceUrl = args.thingpedia_url + '/api/v3/snapshot/' + args.snapshot + '?meta=1&locale=' + args.locale;
         if (args.developer_key)
             deviceUrl += '&developer_key=' + args.developer_key;
-        let entityUrl = args.thingpedia_url + '/api/v3/entities/all?snapshot=' + args.snapshot + '&locale=' + args.language;
+        let entityUrl = args.thingpedia_url + '/api/v3/entities/all?snapshot=' + args.snapshot + '&locale=' + args.locale;
         if (args.developer_key)
             entityUrl += '&developer_key=' + args.developer_key;
 

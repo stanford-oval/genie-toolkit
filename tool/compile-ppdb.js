@@ -13,10 +13,9 @@ const fs = require('fs');
 const util = require('util');
 
 const BinaryPPDB = require('../lib/binary_ppdb');
+const i18n = require('../lib/i18n');
 
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-
-const BLACKLIST = new Set(['tb', 'channel']);
 
 module.exports = {
     initArgparse(subparsers) {
@@ -41,8 +40,8 @@ module.exports = {
 
     execute(args) {
         const builder = new BinaryPPDB.Builder();
-        const language = args.locale.split('-')[0];
         const input = readAllLines(args.input_file);
+        const langPack = i18n.get(args.locale);
 
         input.on('data', (line) => {
             line = line.trim();
@@ -50,21 +49,8 @@ module.exports = {
             word = word.trim();
             paraphrase = paraphrase.trim();
 
-            if (language === 'en') {
-                if (BLACKLIST.has(word))
-                    return;
-                // ignore singular/plural relation and verb/gerund
-                if (paraphrase === word + 's' || word === paraphrase + 's')
-                    return;
-                if (paraphrase === word + 'ing' || word === paraphrase + 'ing')
-                    return;
-
-                // don't change the mode or tense of the verb
-                if (paraphrase.endsWith('ing') !== word.endsWith('ing'))
-                    return;
-                if (paraphrase.endsWith('ed') !== word.endsWith('ed'))
-                    return;
-            }
+            if (!langPack.isValidParaphrasePair(word, paraphrase))
+                return;
 
             entail = entail.trim();
             // ensure the meaning stays the same)

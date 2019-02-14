@@ -22,10 +22,10 @@ module.exports = {
             addHelp: true,
             description: "Download primitive templates from Thingpedia."
         });
-        parser.addArgument(['-l', '--language'], {
+        parser.addArgument(['-l', '--locale'], {
             required: false,
             defaultValue: 'en',
-            help: `2-letter ISO code of natural language to download the snapshot for (defaults to 'en', English)`
+            help: `BGP 47 locale tag of the natural language to download the snapshot for (defaults to 'en', English)`
         });
         parser.addArgument(['-o', '--output'], {
             required: true,
@@ -44,7 +44,7 @@ module.exports = {
     },
 
     async execute(args) {
-        let url = args.thingpedia_url + '/api/v3/examples/all?locale=' + args.language;
+        let url = args.thingpedia_url + '/api/v3/examples/all?locale=' + args.locale;
         if (args.developer_key)
             url += '&developer_key=' + args.developer_key;
 

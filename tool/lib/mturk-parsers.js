@@ -312,7 +312,7 @@ class ParaphrasingRejecter extends Stream.Transform {
         this._schemas = schemaRetriever;
         this._tokenizer = tokenizer;
 
-        this._language = options.locale.split('-')[0];
+        this._locale = options.locale;
         this._sentencesPerTask = options.sentencesPerTask;
         this._paraphrasesPerSentence = options.paraphrasesPerSentence;
 
@@ -322,7 +322,7 @@ class ParaphrasingRejecter extends Stream.Transform {
     }
 
     async _validate(paraobj) {
-        const paraphrase = new ParaphraseValidator(this._schemas, this._tokenizer, this._language,
+        const paraphrase = new ParaphraseValidator(this._schemas, this._tokenizer, this._locale,
             this._counter, paraobj);
 
         try {
