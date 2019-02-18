@@ -17,16 +17,16 @@ semantic parsing code live in other repositories.
 
 ## Installation
 
-See [INSTALL.md]
+See [Install](INSTALL.md).
 
 ## License
 
 This package is covered by the GNU General Public License, version 3
-or any later version. See [LICENSE] for details.
+or any later version. See [LICENSE](LICENSE) for details.
 
 ## Reproducing the results of the paper
 
-To reproduce the machine learning results of the paper, see [doc/reproducing.md].
+To reproduce the machine learning results of the paper, see [Reproducing](doc/reproducing.md).
 
 ## Using Genie
 
