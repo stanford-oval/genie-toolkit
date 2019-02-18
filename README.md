@@ -91,7 +91,7 @@ genie download-snapshot [--snapshot <snapshot_id>] -o thingpedia.json
 If you omit the `--snapshot` parameter, the latest content of Thingpedia will be used.
 
 The `--dataset` flag to should point to the primitive templates in ThingTalk dataset syntax.
-See the [Thingpedia documentation[(https://almond.stanford.edu/thingpedia/developers/thingpedia-nl-support.md)
+See the [Thingpedia documentation](https://almond.stanford.edu/thingpedia/developers/thingpedia-nl-support.md)
 for a description of dataset files.
 
 The latest dataset file for the reference Thingpedia can be downloaded with:
