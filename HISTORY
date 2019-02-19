@@ -1,3 +1,18 @@
+1.3.0
+=====
+
+* Permission metadata is now exposed to library users [#40]
+* Permission management was improved to be decoupled from
+  remote execution, to enable use-cases with centralized access control [#41]
+* PermissionManager API can now be accessed over RPC
+* Platforms can now provide a custom messaging interface,
+  which will be used in addition to the ones provided by configured devices [#41]
+* More than one messaging device can be configured at once; this required
+  changes to the internal MessagingDeviceManager class and can break some
+  library users [#42]
+* BREAKING CHANGE: The statistics module was removed without replacement [#43]
+* Misc bug fixes and cleanups [#29, #44, #46]
+
 1.2.1
 =====
 
