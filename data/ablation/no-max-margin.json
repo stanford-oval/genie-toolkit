@@ -1,0 +1,11 @@
+{
+    "train_steps": 250000,
+    "thingpedia_snapshot": 8,
+    "model": "genie_copy_seq2seq",
+    "hparams_set": "lstm_genie",
+    "hparams_overrides": "grammar_direction=linear,use_margin_loss=False",
+    "decode_hparams": "",
+    "problem": "semparse_thingtalk_noquote",
+    "eval_early_stopping_metric": "metrics-semparse_thingtalk_noquote/accuracy",
+    "eval_early_stopping_metric_minimize": false
+}

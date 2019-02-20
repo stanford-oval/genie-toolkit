@@ -1,18 +1,21 @@
 # Reproducing the results the PLDI 2019 paper
 
 Genie was used in the paper _Genie: A Generator of Natural Language Parsers for Compositional Virtual Assistants_,
-published in PLDI 2019.
+conditionally accepted to PLDI 2019.
 
 To reproduce those results, first download the dataset from:
 <https://oval.cs.stanford.edu/datasets/pldi2019-quote-free.zip>
 
-The dataset contains four folders:
+The dataset contains the following folders:
 - `new-combinations`
+- `new-combinations-noparamexpansion`
+- `new-combinations-posparams`
 - `spotify`
 - `aggregate-ext`
 - `policy`
 
-These correspond to the four experiments described in the paper.
+These correspond to the four experiments described in the paper, plus two datasets
+that are needed for ablation studies (see below).
 
 Each folder contains three files:
 - `train.tsv`
@@ -32,7 +35,7 @@ indicate how the data point was obtained:
 
 To train, use:
 ```
-genie train --datadir <DATADIR> --outputdir <OUTPUTDIR> --workdir <WORKDIR> [--synthetic-only | --paraphrase-only] --config-file config.json
+genie train --datadir <DATADIR> --outputdir <OUTPUTDIR> --workdir <WORKDIR> --config-file data/ablation/full.json
 ```
 `<DATADIR>` is the path to the TSV files, `<OUTPUTDIR>` is a directory that will
 contained the best trained model, and `<WORKDIR>` is a temporary directory containing
@@ -48,15 +51,19 @@ genie evaluate --datadir <DATADIR> --outputdir <OUTPUTDIR> --workdir <WORKDIR> -
 ```
 
 The following flags can be used for ablation studies:
-- `--synthetic-only`: use only synthetic data
-- `--paraphrase-only`: use only non-augmented paraphrase data
-- `--config-file ablation/no-keyword-params.json`: use positional parameters instead of keyword
-- `--config-file ablation/no-spans.json`: use word-level copying instead of span copying
-- `--config-file ablation/no-max-margin.json`: use softmax (cross-entropy) loss instead of max-margin
-- `--config-file ablation/no-blowup.json`: disable the use of parameter expansion
+- `--config-file data/ablation/no-spans.json`: use word-level copying instead of span copying
+- `--config-file data/ablation/no-max-margin.json`: use softmax (cross-entropy) loss instead of max-margin
 
-You must pass the same flags (other than `--synthetic-only`/`--paraphrase-only`)
-for training and evaluation.
+Use instead the following datasets for the ablation studies:
+- `new-combinations-noparamexpansion`: training without parameter expansion
+- `new-combinations-posparams`: positional instead of keyword parameters; you must also pass `--config-file data/ablation/posparams.json`
+
+You must pass the same flags for training and evaluation.
+
+You can use `grep -P '^R?P?S'` to construct a training set containing only synthetic sentences,
+and `grep -v -P '^R?(P|S)'` to construct a training set with only paraphrased sentences,
+without augmentation. The resulting training set must be called `train.tsv`, so it's recommended
+to copy everything over to a new folder.
 
 To customize parameters other than the one in the ablation studies, you
 can create a customized configuration file, or use [genie-parser](https://github.com/Stanford-Mobisocial-IoT-Lab/genie-parser) directly.
