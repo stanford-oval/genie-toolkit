@@ -1,5 +1,7 @@
 # Genie
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/Stanford-Mobisocial-IoT-Lab/genie-toolkit.svg)](https://greenkeeper.io/)
+
 This repository hosts Genie, a tool which allows you to quickly create new semantic
 parsers that translate from natural language to a formal language of your choice.
 
