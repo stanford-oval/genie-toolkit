@@ -19,16 +19,16 @@ semantic parsing code live in other repositories.
 
 ## Installation
 
-See [INSTALL.md]
+See [Install](INSTALL.md).
 
 ## License
 
 This package is covered by the GNU General Public License, version 3
-or any later version. See [LICENSE] for details.
+or any later version. See [LICENSE](LICENSE) for details.
 
 ## Reproducing the results of the paper
 
-To reproduce the machine learning results of the paper, see [doc/reproducing.md].
+To reproduce the machine learning results of the paper, see [Reproducing](doc/reproducing.md).
 
 ## Using Genie
 
@@ -93,7 +93,7 @@ genie download-snapshot [--snapshot <snapshot_id>] -o thingpedia.json
 If you omit the `--snapshot` parameter, the latest content of Thingpedia will be used.
 
 The `--dataset` flag to should point to the primitive templates in ThingTalk dataset syntax.
-See the [Thingpedia documentation[(https://almond.stanford.edu/thingpedia/developers/thingpedia-nl-support.md)
+See the [Thingpedia documentation](https://almond.stanford.edu/thingpedia/developers/thingpedia-nl-support.md)
 for a description of dataset files.
 
 The latest dataset file for the reference Thingpedia can be downloaded with:
