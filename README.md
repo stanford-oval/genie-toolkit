@@ -1,6 +1,6 @@
 # Genie
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/Stanford-Mobisocial-IoT-Lab/genie-toolkit.svg)](https://greenkeeper.io/)
+[![Build Status](https://travis-ci.com/Stanford-Mobisocial-IoT-Lab/genie-toolkit.svg?branch=master)](https://travis-ci.com/Stanford-Mobisocial-IoT-Lab/genie-toolkit) [![Coverage Status](https://coveralls.io/repos/github/Stanford-Mobisocial-IoT-Lab/genie-toolkit/badge.svg?branch=master)](https://coveralls.io/github/Stanford-Mobisocial-IoT-Lab/genie-toolkit?branch=master) [![Dependency Status](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/genie-toolkit/status.svg)](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/genie-toolkit) [![Greenkeeper badge](https://badges.greenkeeper.io/Stanford-Mobisocial-IoT-Lab/genie-toolkit.svg)](https://greenkeeper.io/) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/Stanford-Mobisocial-IoT-Lab/genie-toolkit.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Stanford-Mobisocial-IoT-Lab/genie-toolkit/context:javascript)
 
 This repository hosts Genie, a tool which allows you to quickly create new semantic
 parsers that translate from natural language to a formal language of your choice.
