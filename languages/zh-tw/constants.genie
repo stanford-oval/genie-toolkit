@@ -37,24 +37,24 @@ constant_date_point = {
     '現在'             => new Ast.Value.Date(null, '+', null);
     '今天'             => new Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '+', null);
     '昨天'             => new Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '-', Ast.Value.Measure(1, 'day'));
-    '這星期'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '+', null);
+    '這 星期'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '+', null);
     '這週'             => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '+', null);
-    '這禮拜'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '+', null);
+    '這 禮拜'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '+', null);
 
     !turking {
     '明天'            => new Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
-    '今天以前'         => new Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
-    '這星期以前'       => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
-    '這週以前'         => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
-    '這禮拜以前' => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
-    '上星期'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
+    '今天 以前'         => new Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
+    '這 星期 以前'       => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
+    '這週 以前'         => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
+    '這 禮拜 以前' => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
+    '上 星期'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
     '上週'             => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
-    '上禮拜'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
-    '這個月'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'mon'), '+', null);
+    '上 禮拜'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
+    '這個 月'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'mon'), '+', null);
     '今年'             => new Ast.Value.Date(Ast.DateEdge('start_of', 'year'), '+', null);
-    '下個月'           => new Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '+', null);
+    '下個 月'           => new Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '+', null);
     '明年'             => new Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '+', null);
-    '上個月'           => new Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '-', Ast.Value.Measure(1, 'mon'));
+    '上個 月'           => new Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '-', Ast.Value.Measure(1, 'mon'));
     '去年'             => new Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '-', Ast.Value.Measure(1, 'year'));
     }
 }
@@ -127,7 +127,7 @@ constant_Measure_mps = {
 
 constant_Location = {
     '這裡'                    => new Ast.Value.Location(Ast.Location.Relative('current_location'));
-    !turking '我在哪裡' => new Ast.Value.Location(Ast.Location.Relative('current_location'));
+    !turking '我 在 哪裡' => new Ast.Value.Location(Ast.Location.Relative('current_location'));
     '家裡'                    => new Ast.Value.Location(Ast.Location.Relative('home'));
     '辦公室'                  => new Ast.Value.Location(Ast.Location.Relative('work'));
 }
