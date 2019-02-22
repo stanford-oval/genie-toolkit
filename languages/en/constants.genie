@@ -91,7 +91,7 @@ constant_Measure_C = {
     }
     num:constant_Number 'f' => C.addUnit('F', num);
     num:constant_Number 'fahrenheit' => C.addUnit('F', num);
-    num:constant_Number 'degrees' => C.addUnit('TB', num);
+    num:constant_Number 'degrees' => C.addUnit('F', num);
 }
 
 constant_Measure_m = {
