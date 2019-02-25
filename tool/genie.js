@@ -31,6 +31,7 @@ const subcommands = {
 
     'train': require('./train'),
     'evaluate': require('./evaluate'),
+    'evaluate-server': require('./evaluate-server')
 };
 
 async function main() {
