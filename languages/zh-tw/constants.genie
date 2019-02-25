@@ -98,7 +98,6 @@ constant_Measure_C = {
     }
     num:constant_Number 'f' => C.addUnit('F', num);
     num:constant_Number '華氏' => C.addUnit('F', num);
-    num:constant_Number '度' => C.addUnit('TB', num);
 }
 
 constant_Measure_m = {
