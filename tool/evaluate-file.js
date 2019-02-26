@@ -9,45 +9,36 @@
 // See COPYING for details
 "use strict";
 
+const fs = require('fs');
+const csv = require('csv');
+const byline = require('byline');
+const Stream = require('stream');
 const ThingTalk = require('thingtalk');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const { DatasetParser } = require('../lib/dataset-parsers');
-const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const ParserClient = require('./lib/parserclient');
 const { SentenceEvaluatorStream, CollectStatistics } = require('./lib/evaluators');
+const StreamUtils = require('./lib/stream-utils');
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('evaluate-server', {
+        const parser = subparsers.addParser('evaluate-file', {
             addHelp: true,
-            description: "Evaluate a trained model on a Genie-generated dataset, by contacting a running Genie server."
-        });
-        parser.addArgument('--url', {
-            required: false,
-            help: "URL of the server to evaluate.",
-            defaultValue: 'http://127.0.0.1:8400',
-        });
-        parser.addArgument('--tokenized', {
-            required: false,
-            action: 'storeTrue',
-            defaultValue: true,
-            help: "The dataset is already tokenized (this is the default)."
-        });
-        parser.addArgument('--no-tokenized', {
-            required: false,
-            dest: 'tokenized',
-            action: 'storeFalse',
-            help: "The dataset is not already tokenized."
+            description: "Evaluate a trained model on a Genie-generated dataset, using a pre-generated prediction file."
         });
         parser.addArgument('--thingpedia', {
             required: true,
             help: 'Path to JSON file containing signature, type and mixin definitions.'
         });
-        parser.addArgument('input_file', {
-            nargs: '+',
-            type: maybeCreateReadStream,
-            help: 'Input datasets to evaluate (in TSV format); use - for standard input'
+        parser.addArgument('--dataset', {
+            required: true,
+            type: fs.createReadStream,
+            help: 'Input dataset to evaluate (in TSV format)'
+        });
+        parser.addArgument('--predictions', {
+            required: true,
+            type: fs.createReadStream,
+            help: 'Prediction results (in TSV format: id, prediction)'
         });
         parser.addArgument(['-l', '--locale'], {
             required: false,
@@ -71,11 +62,33 @@ module.exports = {
     async execute(args) {
         const tpClient = new FileThingpediaClient(args.locale, args.thingpedia);
         const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
-        const parser = new ParserClient(args.url, args.locale);
 
-        const output = readAllLines(args.input_file)
+        const predictionstream = args.predictions
+            .pipe(csv.parse({ columns: ['id', 'prediction'], delimiter: '\t', relax: true }))
+            .pipe(new StreamUtils.MapAccumulator());
+        const predictions = await predictionstream.read();
+
+        const output = args.dataset
+            .setEncoding('utf8')
+            .pipe(byline())
             .pipe(new DatasetParser())
-            .pipe(new SentenceEvaluatorStream(parser, schemas, args.tokenized, args.debug))
+            .pipe(new Stream.Transform({
+                objectMode: true,
+
+                transform(ex, encoding, callback) {
+                    const prediction = predictions.get(ex.id);
+                    if (!prediction)
+                        throw new Error(`missing prediction for sentence ${ex.id}`);
+
+                    ex.predictions = [prediction.prediction.split(' ')];
+                    callback(null, ex);
+                },
+
+                flush(callback) {
+                    process.nextTick(callback);
+                }
+            }))
+            .pipe(new SentenceEvaluatorStream(null, schemas, true, args.debug))
             .pipe(new CollectStatistics());
 
         const result = await output.read();
