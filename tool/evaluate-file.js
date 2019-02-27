@@ -71,7 +71,7 @@ module.exports = {
         const output = args.dataset
             .setEncoding('utf8')
             .pipe(byline())
-            .pipe(new DatasetParser())
+            .pipe(new DatasetParser({ preserveId: true }))
             .pipe(new Stream.Transform({
                 objectMode: true,
 

@@ -38,7 +38,34 @@ const ENTITIES = {
     LOCATION_1: { latitude: 3, longitude: 3 },
     LOCATION_2: { latitude: 4, longitude: 4 },
     LOCATION_3: { latitude: 5, longitude: 5 },
-
+    QUOTED_STRING_0: '"0"',
+    QUOTED_STRING_1: '"1"',
+    QUOTED_STRING_2: '"2"',
+    QUOTED_STRING_3: '"3"',
+    PATH_NAME_0: 'foo/0.png',
+    PATH_NAME_1: 'foo/1.png',
+    PATH_NAME_2: 'foo/2.png',
+    PATH_NAME_3: 'foo/3.png',
+    URL_0: 'https://0.com',
+    URL_1: 'https://1.com',
+    URL_2: 'https://2.com',
+    URL_3: 'https://3.com',
+    PHONE_NUMBER_0: '+11',
+    PHONE_NUMBER_1: '+12',
+    PHONE_NUMBER_2: '+13',
+    PHONE_NUMBER_3: '+14',
+    EMAIL_ADDRESS_0: '1@foo',
+    EMAIL_ADDRESS_1: '2@foo',
+    EMAIL_ADDRESS_2: '3@foo',
+    EMAIL_ADDRESS_3: '4@foo',
+    USERNAME_0: '@1',
+    USERNAME_1: '@2',
+    USERNAME_2: '@3',
+    USERNAME_3: '@4',
+    HASHTAG_0: '#0',
+    HASHTAG_1: '#1',
+    HASHTAG_2: '#2',
+    HASHTAG_3: '#3'
 };
 Object.freeze(ENTITIES);
 
@@ -87,8 +114,26 @@ class SentenceEvaluator {
             is_primitive: false
         };
 
+        let entities;
+        if (this._tokenized) {
+            entities = {};
+            for (let token of this._preprocessed.split(' ')) {
+                if (/^[A-Z]/.test(token)) {
+                    if (token.startsWith('GENERIC_ENTITY_'))
+                        entities[token] = token;
+                    else if (!(token in ENTITIES))
+                        throw new Error(`missing entity ${token}`);
+                    else
+                        entities[token] = ENTITIES[token];
+                }
+            }
+        } else {
+            const tokenized = await this._parser.tokenize(this._preprocessed);
+            entities = tokenized.entities;
+        }
+
         try {
-            const parsed = ThingTalk.NNSyntax.fromNN(this._targetCode.split(' '), this._tokenized ? ENTITIES : parsed.entities);
+            const parsed = ThingTalk.NNSyntax.fromNN(this._targetCode.split(' '), entities);
             await parsed.typecheck(this._schemas);
         } catch(e) {
             // if the target_code did not parse, ignore it
@@ -104,13 +149,13 @@ class SentenceEvaluator {
         let ok = false, ok_without_param = false, ok_function = false,
             ok_device = false, ok_num_function = false, ok_syntax = false;
 
-        let predictions, entities;
+        let predictions;
         if (this._predictions) {
             predictions = this._predictions;
-            entities = ENTITIES;
         } else {
             const parsed = await this._parser.sendUtterance(this._preprocessed, this._tokenized);
-            entities = this._tokenized ? ENTITIES : parsed.entities;
+            if (!entities)
+                entities = parsed.entities;
 
             predictions = parsed.candidates
                 .filter((beam) => beam.score !== 'Infinity') // ignore exact matches

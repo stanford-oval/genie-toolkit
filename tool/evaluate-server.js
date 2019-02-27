@@ -74,7 +74,7 @@ module.exports = {
         const parser = new ParserClient(args.url, args.locale);
 
         const output = readAllLines(args.input_file)
-            .pipe(new DatasetParser())
+            .pipe(new DatasetParser({ preserveId: true }))
             .pipe(new SentenceEvaluatorStream(parser, schemas, args.tokenized, args.debug))
             .pipe(new CollectStatistics());
 

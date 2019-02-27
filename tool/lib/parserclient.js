@@ -19,6 +19,23 @@ module.exports = class ParserClient {
         this._baseUrl = baseUrl + '/' + this._locale;
     }
 
+    tokenize(utterance) {
+        const data = {
+            q: utterance,
+        };
+
+        let url = `${this._baseUrl}/tokenize?${qs.stringify(data)}`;
+
+        return Tp.Helpers.Http.get(url).then((data) => {
+            var parsed = JSON.parse(data);
+
+            if (parsed.error)
+                throw new Error('Error received from Genie-Parser server: ' + parsed.error);
+
+            return parsed;
+        });
+    }
+
     sendUtterance(utterance, tokenized) {
         const data = {
             q: utterance,
