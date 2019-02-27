@@ -420,41 +420,45 @@ $root = {
     rule:when_get_do_rule => C.makeProgram(rule);
 
     // setup commands
-    (
-          ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' action:thingpedia_action
-        | ('tell' | 'command' | 'order' | 'request' | 'inform') principal:constant_Entity__tt__username 'that' ('he needs' | 'she needs' | 'i need him' | 'i need her') 'to' action:thingpedia_action
-    ) if complete => C.makeProgram(new Ast.Statement.Command(null, [action]), principal);
-    (
-          ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table 'and send it to me'
-        | ('request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table
-        | ('show me' | 'get') table:complete_table 'from' principal:constant_Entity__tt__username
-        | ('show me' | 'get' | 'what is') principal:constant_Entity__tt__username '\'s' table:complete_table
-        | ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to send me' table:complete_table
-    ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction('return')]), principal);
-    ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' ('let me know' | 'inform me' | 'notify me' | 'alert me') stream:stream => C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction('return')]), principal);
+    ?remote_commands {
+        (
+              ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' action:thingpedia_action
+            | ('tell' | 'command' | 'order' | 'request' | 'inform') principal:constant_Entity__tt__username 'that' ('he needs' | 'she needs' | 'i need him' | 'i need her') 'to' action:thingpedia_action
+        ) if complete => C.makeProgram(new Ast.Statement.Command(null, [action]), principal);
+        (
+              ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table 'and send it to me'
+            | ('request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table
+            | ('show me' | 'get') table:complete_table 'from' principal:constant_Entity__tt__username
+            | ('show me' | 'get' | 'what is') principal:constant_Entity__tt__username '\'s' table:complete_table
+            | ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to send me' table:complete_table
+        ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction('return')]), principal);
+        ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' ('let me know' | 'inform me' | 'notify me' | 'alert me') stream:stream => C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction('return')]), principal);
+    }
 
     // policies
-    ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action if complete => C.makePolicy(null, null, action);
-    ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action 'if' filter:get_predicate_filter if complete => {
-        if (!filter.isExternal)
-            return null;
-        let policy = C.makePolicy(null, null, action);
-        if (!policy)
-            return null;
-        policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
-        return policy;
-    };
-    ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') ('get' | 'see' | 'access' | 'monitor' | 'read') table:if_filtered_table => C.makePolicy(null, table, null);
-    source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action if complete => C.makePolicy(source, null, action);
-    source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action 'if' filter:get_predicate_filter if complete => {
-        if (!filter.isExternal)
-            return null;
-        let policy = C.makePolicy(source, null, action);
-        if (!policy)
-            return null;
-        policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
-        return policy;
-    };
-    source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') ('get' | 'see' | 'access' | 'monitor' | 'read') table:if_filtered_table => C.makePolicy(source, table, null);
+    ?policies {
+        ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action if complete => C.makePolicy(null, null, action);
+        ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action 'if' filter:get_predicate_filter if complete => {
+            if (!filter.isExternal)
+                return null;
+            let policy = C.makePolicy(null, null, action);
+            if (!policy)
+                return null;
+            policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
+            return policy;
+        };
+        ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') ('get' | 'see' | 'access' | 'monitor' | 'read') table:if_filtered_table => C.makePolicy(null, table, null);
+        source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action if complete => C.makePolicy(source, null, action);
+        source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action 'if' filter:get_predicate_filter if complete => {
+            if (!filter.isExternal)
+                return null;
+            let policy = C.makePolicy(source, null, action);
+            if (!policy)
+                return null;
+            policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
+            return policy;
+        };
+        source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') ('get' | 'see' | 'access' | 'monitor' | 'read') table:if_filtered_table => C.makePolicy(source, table, null);
+    }
 }
 
