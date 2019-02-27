@@ -59,8 +59,8 @@ class Trainer extends events.EventEmitter {
                 return;
             }
 
-            if (line === 'd') {
-                this.emit('dropped', { id: this._id, utterance: this._utterance });
+            if (line === 'd' || line.startsWith('d ')) {
+                this.emit('dropped', { id: this._id, utterance: this._utterance, comment: line.substring(2).trim() });
                 this.next();
                 return;
             }
@@ -225,7 +225,8 @@ module.exports = {
                 `"e $number": to edit on top of the selected thingtalk code, ` +
                 `"n": show more candidates, ` +
                 `"t": to type in the thingtalk directly, ` +
-                `"d": drop the example.`
+                `"d": drop the example,` +
+                `"d $comment": drop the example with some comment.`
         });
         parser.addArgument('--learned', {
             required: false,
@@ -295,8 +296,8 @@ module.exports = {
         trainer.on('learned', (ex) => {
             learned.write(ex);
         });
-        trainer.on('dropped', ({ id, utterance }) => {
-            dropped.write(id + '\t' + utterance + '\n');
+        trainer.on('dropped', ({ id, utterance, comment }) => {
+            dropped.write(id + '\t' + utterance + '\t' + comment + '\n');
         });
         rl.on('SIGINT', quit);
         trainer.next();
