@@ -270,24 +270,24 @@ placeholder_Entity__tt__url = {
 for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
     // don't parameter pass booleans or enums, as that rarely makes sense
     if (typestr !== 'Boolean' && !typestr.startsWith('Enum__')) {
-        if (!$options.flags.turking && pname !== 'count') {
+        if (!$options.flags.turking && pname !== 'count' && pname !== 'p_count') {
             // replace $-placeholders with "some X" where X is based on parameter type
 
-            thingpedia_query = q:thingpedia_query p:$('placeholder_' + typestr) [-> pname] => {
+            thingpedia_query = q:thingpedia_query p:$('placeholder_' + typestr) [-> pname { isConstant: true }] => {
                 if (!q.schema.inReq[pname])
                     return null;
                 if (typestr !== C.typeToStringSafe(q.schema.inReq[pname]))
                     return null;
                 return C.betaReduceTable(q, pname, p);
             };
-            thingpedia_stream = s:thingpedia_stream p:$('placeholder_' + typestr) [-> pname] => {
+            thingpedia_stream = s:thingpedia_stream p:$('placeholder_' + typestr) [-> pname { isConstant: true }] => {
                 if (!s.schema.inReq[pname])
                     return null;
                 if (typestr !== C.typeToStringSafe(s.schema.inReq[pname]))
                     return null;
                 return C.betaReduceStream(s, pname, p);
             };
-            thingpedia_action = a:thingpedia_action p:$('placeholder_' + typestr) [-> pname] => {
+            thingpedia_action = a:thingpedia_action p:$('placeholder_' + typestr) [-> pname { isConstant: true }] => {
                 if (!a.schema.inReq[pname])
                     return null;
                 if (typestr !== C.typeToStringSafe(a.schema.inReq[pname]))
@@ -297,21 +297,21 @@ for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
 
             // replace $-placeholders with "some X" where X is based on parameter name
 
-            thingpedia_query = q:thingpedia_query #('some ' + pcanonical) [-> pname] => {
+            thingpedia_query = q:thingpedia_query #('some ' + pcanonical) [-> pname { isConstant: true }] => {
                 if (!q.schema.inReq[pname])
                     return null;
                 if (typestr !== C.typeToStringSafe(q.schema.inReq[pname]))
                     return null;
                 return C.betaReduceTable(q, pname, Ast.Value.Undefined(true));
             };
-            thingpedia_stream = s:thingpedia_stream #('some ' + pcanonical) [-> pname] => {
+            thingpedia_stream = s:thingpedia_stream #('some ' + pcanonical) [-> pname { isConstant: true }] => {
                 if (!s.schema.inReq[pname])
                     return null;
                 if (typestr !== C.typeToStringSafe(s.schema.inReq[pname]))
                     return null;
                 return C.betaReduceStream(s, pname, Ast.Value.Undefined(true));
             };
-            thingpedia_action = a:thingpedia_action #('some ' + pcanonical) [-> pname] => {
+            thingpedia_action = a:thingpedia_action #('some ' + pcanonical) [-> pname { isConstant: true }] => {
                 if (!a.schema.inReq[pname])
                     return null;
                 if (typestr !== C.typeToStringSafe(a.schema.inReq[pname]))
