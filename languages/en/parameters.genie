@@ -270,7 +270,7 @@ placeholder_Entity__tt__url = {
 for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
     // don't parameter pass booleans or enums, as that rarely makes sense
     if (typestr !== 'Boolean' && !typestr.startsWith('Enum__')) {
-        if (!$options.flags.turking) {
+        if (!$options.flags.turking && pname !== 'count') {
             // replace $-placeholders with "some X" where X is based on parameter type
 
             thingpedia_query = q:thingpedia_query p:$('placeholder_' + typestr) [-> pname] => {
