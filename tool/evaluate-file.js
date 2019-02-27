@@ -64,7 +64,7 @@ module.exports = {
         const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
         const predictionstream = args.predictions
-            .pipe(csv.parse({ columns: ['id', 'prediction'], delimiter: '\t', relax: true }))
+            .pipe(csv.parse({ columns: ['id', 'sentence', 'target_code', 'prediction'], delimiter: '\t', relax: true }))
             .pipe(new StreamUtils.MapAccumulator());
         const predictions = await predictionstream.read();
 
