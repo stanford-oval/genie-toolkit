@@ -20,7 +20,7 @@ const { clean } = require('../../lib/utils');
 const C = require('../../lib/sentence-generator/ast_manip');
 }
 
-atom_filter = {
+get_predicate_filter = {
     'before' t1:constant_Time => C.timeGetPredicate($options, null, t1);
     'after' t2:constant_Time  => C.timeGetPredicate($options, t2, null);
     'between' t1:constant_Time 'and' t2:constant_Time => C.timeGetPredicate($options, t1, t2);
@@ -29,7 +29,9 @@ atom_filter = {
     'my location is not' loc:constant_Location => C.locationGetPredicate($options, loc, true);
     'i am at' loc:constant_Location            => C.locationGetPredicate($options, loc);
     'i am not at' loc:constant_Location        => C.locationGetPredicate($options, loc, true);
+}
 
+atom_filter = {
     proj:projection_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any        => C.makeGetPredicate(proj, '==', x);
     proj:projection_Any ('is not' | 'is n\'t' | 'is different than') x:constant_Any => C.makeGetPredicate(proj, '==', x, true);
 

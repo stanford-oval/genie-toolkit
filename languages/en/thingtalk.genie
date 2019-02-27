@@ -435,7 +435,7 @@ $root = {
 
     // policies
     ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action if complete => C.makePolicy(null, null, action);
-    ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action 'if' filter:atom_filter if complete => {
+    ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action 'if' filter:get_predicate_filter if complete => {
         if (!filter.isExternal)
             return null;
         let policy = C.makePolicy(null, null, action);
@@ -446,7 +446,7 @@ $root = {
     };
     ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') ('get' | 'see' | 'access' | 'monitor' | 'read') table:if_filtered_table => C.makePolicy(null, table, null);
     source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action if complete => C.makePolicy(source, null, action);
-    source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action 'if' filter:atom_filter if complete => {
+    source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action 'if' filter:get_predicate_filter if complete => {
         if (!filter.isExternal)
             return null;
         let policy = C.makePolicy(source, null, action);
