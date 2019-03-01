@@ -57,6 +57,11 @@ module.exports = {
             dest: 'debug',
             help: 'Disable debugging.',
         });
+        parser.addArgument('--csv', {
+            nargs: 0,
+            action: 'storeTrue',
+	    help: 'Output a single CSV line',
+        });
     },
 
     async execute(args) {
@@ -92,11 +97,22 @@ module.exports = {
             .pipe(new CollectStatistics());
 
         const result = await output.read();
-        for (let key in result) {
-            if (Array.isArray(result[key]))
-                console.log(`${key} = [${result[key].join(', ')}]`);
-            else
-                console.log(`${key} = ${result[key]}`);
-        }
+        if (args.csv) {
+            let buffer = '';
+            for (let key of ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax']) {
+                result[key].length = 5;
+                if (buffer)
+                    buffer += ',';
+                buffer += String(result[key]);
+            }
+            console.log(buffer);
+        } else {
+            for (let key in result) {
+                if (Array.isArray(result[key]))
+                    console.log(`${key} = [${result[key].join(', ')}]`);
+                else
+                    console.log(`${key} = ${result[key]}`);
+            }
+	}
     }
 };
