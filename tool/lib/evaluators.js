@@ -85,6 +85,17 @@ function iterEquals(iterable1, iterable2) {
     return true;
 }
 
+function* stripOutTypeAnnotations(tokens) {
+    for (let token of tokens) {
+        if (token.startsWith('param:')) {
+            let name = token.split(':')[1];
+            yield 'param:'+name;
+        } else {
+            yield token;
+        }
+   }
+}
+
 class SentenceEvaluator {
     constructor(parser, schemaRetriever, tokenized, debug, ex) {
         this._parser = parser;
@@ -162,9 +173,10 @@ class SentenceEvaluator {
                 .map((beam) => beam.code);
         }
 
+        const untypedTargetCode = Array.from(stripOutTypeAnnotations(this._targetCode.split(' '))).join(' ');
         for (let beam of predictions) {
-            const code = beam.join(' ');
-            if (ok || code === this._targetCode) {
+            const code = Array.from(stripOutTypeAnnotations(beam)).join(' ');
+            if (ok || code === untypedTargetCode) {
                 // we have a match!
 
                 result.ok.push(true);
