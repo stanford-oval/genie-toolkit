@@ -218,7 +218,7 @@ class Trainer extends events.EventEmitter {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('manual-train', {
+        const parser = subparsers.addParser('manual-annotate', {
             addHelp: true,
             description: `Import a manually annotated dataset. For each command use ` +
                 `"$number": to select from the candidates, ` +
@@ -228,13 +228,13 @@ module.exports = {
                 `"d": drop the example,` +
                 `"d $comment": drop the example with some comment.`
         });
-        parser.addArgument('--learned', {
+        parser.addArgument('--annotated', {
             required: false,
-            defaultValue: './learned.txt',
+            defaultValue: './annotated.tsv',
         });
         parser.addArgument('--dropped', {
             required: false,
-            defaultValue: './dropped.txt',
+            defaultValue: './dropped.tsv',
         });
         parser.addArgument('input', {
             type: fs.createReadStream,
@@ -265,7 +265,7 @@ module.exports = {
 
     async execute(args) {
         const learned = new DatasetStringifier();
-        learned.pipe(fs.createWriteStream(args.learned, { flags: (args.offset > 0 ? 'a' : 'w') }));
+        learned.pipe(fs.createWriteStream(args.annotated, { flags: (args.offset > 0 ? 'a' : 'w') }));
         const dropped = fs.createWriteStream(args.dropped, { flags: (args.offset > 0 ? 'a' : 'w') });
 
         let lines = [];
