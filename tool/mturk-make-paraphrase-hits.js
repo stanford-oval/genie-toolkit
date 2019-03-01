@@ -13,7 +13,7 @@ const fs = require('fs');
 const Stream = require('stream');
 const csv = require('csv');
 
-const StreamUtils = require('./lib/stream-utils');
+const StreamUtils = require('../lib/stream-utils');
 const { NUM_SENTENCES_PER_TASK } = require('./lib/constants');
 
 class ParaphraseHITCreator extends Stream.Transform {

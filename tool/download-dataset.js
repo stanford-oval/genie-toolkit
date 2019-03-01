@@ -12,7 +12,7 @@
 const fs = require('fs');
 const Tp = require('thingpedia');
 
-const StreamUtils = require('./lib/stream-utils');
+const StreamUtils = require('../lib/stream-utils');
 
 const DEFAULT_THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 

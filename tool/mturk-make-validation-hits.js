@@ -22,7 +22,7 @@ const { ParaphraseValidatorFilter } = require('../lib/validator');
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const TokenizerService = require('./lib/tokenizer_service');
 const { ParaphrasingParser, ParaphrasingAccumulator } = require('./lib/mturk-parsers');
-const { ArrayAccumulator, ArrayStream, waitFinish } = require('./lib/stream-utils');
+const { ArrayAccumulator, ArrayStream, waitFinish } = require('../lib/stream-utils');
 
 const { NUM_SENTENCES_PER_TASK, NUM_PARAPHRASES_PER_SENTENCE, NUM_SUBMISSIONS_PER_TASK } = require('./lib/constants');
 

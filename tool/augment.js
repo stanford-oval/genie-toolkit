@@ -19,7 +19,7 @@ const FileParameterProvider = require('./lib/file_parameter_provider');
 const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
 const BinaryPPDB = require('../lib/binary_ppdb');
 
-const StreamUtils = require('./lib/stream-utils');
+const StreamUtils = require('../lib/stream-utils');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
 module.exports = {
