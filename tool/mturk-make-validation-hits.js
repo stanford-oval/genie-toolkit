@@ -20,7 +20,7 @@ const ThingTalk = require('thingtalk');
 const { ParaphraseValidatorFilter } = require('../lib/validator');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
-const TokenizerService = require('./lib/tokenizer_service');
+const TokenizerService = require('../lib/tokenizer');
 const { ParaphrasingParser, ParaphrasingAccumulator } = require('./lib/mturk-parsers');
 const { ArrayAccumulator, ArrayStream, waitFinish } = require('../lib/stream-utils');
 
@@ -186,7 +186,7 @@ module.exports = {
     async execute(args) {
         const tpClient = new FileThingpediaClient(args.locale, args.thingpedia, args.dataset);
         const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, args.debug);
-        const tokenizer = TokenizerService.get();
+        const tokenizer = TokenizerService.get(process.env.GENIE_USE_TOKENIZER, true);
         const rng = seedrandom.alea(args.random_seed);
 
         process.stdin.setEncoding('utf8');
