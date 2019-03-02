@@ -42,6 +42,7 @@ module.exports = class ParserClient {
             store: 'no',
             tokenized: tokenized ? '1' : '',
             thingtalk_version: ThingTalk.version,
+            skip_typechecking: '1'
         };
 
         let url = `${this._baseUrl}/query?${qs.stringify(data)}`;
