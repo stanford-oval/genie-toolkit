@@ -77,6 +77,7 @@ module.exports = {
         const tpClient = new FileThingpediaClient(args.locale, args.thingpedia);
         const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
         const parser = ParserClient.get(args.url, args.locale);
+        await parser.start();
 
         const output = readAllLines(args.input_file)
             .pipe(new DatasetParser({ preserveId: true }))
@@ -102,5 +103,7 @@ module.exports = {
                     console.log(`${key} = ${result[key]}`);
             }
         }
+
+        await parser.stop();
     }
 };

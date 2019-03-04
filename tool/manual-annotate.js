@@ -87,6 +87,13 @@ class Trainer extends events.EventEmitter {
         });
     }
 
+    async start() {
+        await this._parser.start();
+    }
+    async stop() {
+        await this._parser.stop();
+    }
+
     async _learnThingTalk(code) {
         let targetCode;
         try {
@@ -300,6 +307,7 @@ module.exports = {
             dropped.write(id + '\t' + utterance + '\t' + comment + '\n');
         });
         rl.on('SIGINT', quit);
+        await trainer.start();
         trainer.next();
         //process.stdin.on('end', quit);
 
@@ -307,5 +315,7 @@ module.exports = {
             waitFinish(learned),
             waitFinish(dropped),
         ]);
+
+        await trainer.stop();
     }
 };
