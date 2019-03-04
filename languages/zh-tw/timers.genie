@@ -1,0 +1,58 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+
+const TIMER_SCHEMA = new Ast.FunctionDef('stream',
+    'timer',
+    [], // args,
+    false, // is_list
+    true,  // is_monitorable
+    {
+    canonical: '每 固定 週期',
+    confirmation: '每 ${interval}',
+    },
+    {} // annotations
+);
+
+const AT_TIMER_SCHEMA = new Ast.FunctionDef('stream',
+    'attimer',
+    [], // args,
+    false, // is_list
+    true,  // is_monitorable
+    {
+    canonical: '每天 的 固定 時間',
+    confirmation: '每天 的 ${interval}',
+    },
+    {} // annotations
+);
+}
+
+timer = {
+    '每天 的' time:constant_Time => new Ast.Stream.AtTimer(time, AT_TIMER_SCHEMA);
+    '每天 在' time:constant_Time '的 時候' => new Ast.Stream.AtTimer(time, AT_TIMER_SCHEMA);
+
+    !turking {
+        '每' interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA);
+        '每天' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
+        '一 天 一 次' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
+        '每月' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), TIMER_SCHEMA);
+        '每 個 月' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), TIMER_SCHEMA);
+        '一 個 月 一次' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), TIMER_SCHEMA);
+        '每週' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA);
+        '一 週 一 次' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA);
+        '每 小 時' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA);
+        '每 一 小 時' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA);
+        '每 小 時 一 次' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA);
+        '每 一 小 時 一 次' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA);
+    }
+}
