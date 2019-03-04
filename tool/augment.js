@@ -85,6 +85,24 @@ module.exports = {
             metavar: 'LENGTH',
             help: 'Maximum length of a string parameter (in words)'
         });
+        parser.addArgument('--synthetic-expand-factor', {
+            type: Number,
+            defaultValue: 5,
+            metavar: 'FACTOR',
+            help: 'Expansion factor of synthetic sentences (including augmented synthetic)'
+        });
+        parser.addArgument('--quoted-paraphrasing-expand-factor', {
+            type: Number,
+            defaultValue: 30,
+            metavar: 'FACTOR',
+            help: 'Expansion factor of paraphrased sentences with quoted parameters'
+        });
+        parser.addArgument('--no-quote-paraphrasing-expand-factor', {
+            type: Number,
+            defaultValue: 10,
+            metavar: 'FACTOR',
+            help: 'Expansion factor of paraphrased sentences without quoted parameters)'
+        });
 
         parser.addArgument('--debug', {
             nargs: 0,
@@ -122,7 +140,10 @@ module.exports = {
                 ppdbProbabilityParaphrase: args.ppdb_paraphrase_fraction,
                 quotedProbability: args.quoted_fraction,
                 untypedStringProbability: args.untyped_string_probability,
-                maxSpanLength: args.max_span_length
+                maxSpanLength: args.max_span_length,
+                syntheticExpandFactor: args.synthetic_expand_factor,
+                paraphrasingExpandFactor: args.quoted_paraphrasing_expand_factor,
+                noQuoteExpandFactor: args.no_quote_paraphrasing_expand_factor,
             }))
             .pipe(new DatasetStringifier())
             .pipe(args.output);
