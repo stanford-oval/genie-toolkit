@@ -25,7 +25,7 @@ module.exports = {
         });
         parser.addArgument('--url', {
             required: false,
-            help: "URL of the server to evaluate.",
+            help: "URL of the server to evaluate. Use a file:// URL pointing to a model directory to evaluate using a local instance of decanlp",
             defaultValue: 'http://127.0.0.1:8400',
         });
         parser.addArgument('--tokenized', {
@@ -76,7 +76,7 @@ module.exports = {
     async execute(args) {
         const tpClient = new FileThingpediaClient(args.locale, args.thingpedia);
         const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
-        const parser = new ParserClient(args.url, args.locale);
+        const parser = ParserClient.get(args.url, args.locale);
 
         const output = readAllLines(args.input_file)
             .pipe(new DatasetParser({ preserveId: true }))

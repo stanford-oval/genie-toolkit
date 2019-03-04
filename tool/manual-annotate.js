@@ -41,7 +41,7 @@ class Trainer extends events.EventEmitter {
 
         const tpClient = new TpClient(options.locale, options.thingpedia);
         this._schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
-        this._parser = new ParserClient(options.server, 'en-US');
+        this._parser = ParserClient.get(options.server, 'en-US');
 
         this._nextLine = lines[Symbol.iterator]();
 
