@@ -73,6 +73,18 @@ module.exports = {
             metavar: 'FRACTION',
             help: 'Fraction of sentences that will not have their quoted parameters replaced',
         });
+        parser.addArgument('--untyped-string-probability', {
+            type: Number,
+            defaultValue: 0.01,
+            metavar: 'FRACTION',
+            help: 'Fraction of sentences that will have generic text in their string parameters'
+        });
+        parser.addArgument('--max-span-length', {
+            type: Number,
+            defaultValue: 10,
+            metavar: 'LENGTH',
+            help: 'Maximum length of a string parameter (in words)'
+        });
 
         parser.addArgument('--debug', {
             nargs: 0,
@@ -108,7 +120,9 @@ module.exports = {
                 ppdbFile: args.ppdb ? await BinaryPPDB.mapFile(args.ppdb) : null,
                 ppdbProbabilitySynthetic: args.ppdb_synthetic_fraction,
                 ppdbProbabilityParaphrase: args.ppdb_paraphrase_fraction,
-                quotedProbability: args.quoted_fraction
+                quotedProbability: args.quoted_fraction,
+                untypedStringProbability: args.untyped_string_probability,
+                maxSpanLength: args.max_span_length
             }))
             .pipe(new DatasetStringifier())
             .pipe(args.output);
