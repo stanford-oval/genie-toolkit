@@ -25,8 +25,8 @@ atom_filter = {
     t2:constant_Time '之後' => C.timeGetPredicate($options, t2, null);
     t1:constant_Time '和' t2:constant_Time '之間' => C.timeGetPredicate($options, t1, t2);
 
-    '我在' loc:constant_Location     => C.locationGetPredicate($options, loc);
-    '我不在' loc:constant_Location   => C.locationGetPredicate($options, loc, true);
+    '我 在' loc:constant_Location     => C.locationGetPredicate($options, loc);
+    '我 不 在' loc:constant_Location   => C.locationGetPredicate($options, loc, true);
 
     // What is projection here?
     // proj:projection_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any        => C.makeGetPredicate(proj, '==', x);
@@ -35,7 +35,7 @@ atom_filter = {
     p:out_param_Any ('等於' | '相等於') x:constant_Any                  => C.makeFilter($options, p, '==', x);
     p:out_param_Any ('和' | '跟') x:constant_Any ('一樣' | '相同')      => C.makeFilter($options, p, '==', x);
     p:out_param_Any '不等於' x:constant_Any                            => C.makeFilter($options, p, '==', x, true);
-    p:out_param_Any ('和' | '跟') x:constant_Any ('不一樣' | '不相同')   => C.makeFilter($options, p, '==', x, true);
+    p:out_param_Any ('和' | '跟') x:constant_Any ('不一樣' | '不 相同')   => C.makeFilter($options, p, '==', x, true);
 
     p:the_out_param_Numeric '比' x:constant_Numeric ('大' | '多') => C.makeFilter($options, p, '>=', x);
     p:the_out_param_Numeric '比' x:constant_Numeric ('小' | '少') => C.makeFilter($options, p, '<=', x);
@@ -49,16 +49,16 @@ atom_filter = {
     }
 
     p:the_out_param_Array__Any ('有' | '包含' | '擁有' | '含有' | '存在') x:constant_Any          => C.makeFilter($options, p, 'contains', x);
-    p:the_out_param_Array__Any ('沒有' | '不包含' | '沒擁有' | '不含有' | '不存在') x:constant_Any  => C.makeFilter($options, p, 'contains', x, true);
+    p:the_out_param_Array__Any ('沒有' | '不 包含' | '沒 擁有' | '不 含有' | '不 存在') x:constant_Any  => C.makeFilter($options, p, 'contains', x, true);
 
     !turking range_filter;
     //!turking f:either_filter => f;
 }
 
 edge_filter = {
-    !turking '當' p:out_param_Any ('跟' | '和') x:constant_Any ('一樣' | '相同') ('時' | '的時候') => C.makeFilter($options, p, '==', x);
-    '當' p:the_out_param_Numeric ('比' | '變得比') x:constant_Numeric ('大' | '多') ('時' | '的時候') => C.makeFilter($options, p, '>=', x);
-    '當' p:the_out_param_Numeric ('比' | '變得比') x:constant_Numeric ('小' | '少') ('時' | '的時候') => C.makeFilter($options, p, '<=', x);
+    !turking '當' p:out_param_Any ('跟' | '和') x:constant_Any ('一樣' | '相同') ('時' | '的 時候') => C.makeFilter($options, p, '==', x);
+    '當' p:the_out_param_Numeric ('比' | '變得 比') x:constant_Numeric ('大' | '多') ('時' | '的 時候') => C.makeFilter($options, p, '>=', x);
+    '當' p:the_out_param_Numeric ('比' | '變得 比') x:constant_Numeric ('小' | '少') ('時' | '的 時候') => C.makeFilter($options, p, '<=', x);
 }
 
 either_filter = {
@@ -109,6 +109,11 @@ range = {
             return null;
         return [v1, v2];
     };
+    v1:constant_Date ('和' | '跟') v2:constant_Date '之間'=> {
+        if (!v1.getType().equals(v2.getType()))
+            return null;
+        return [v1, v2];
+    }; 
 }
 
 range_filter = {
