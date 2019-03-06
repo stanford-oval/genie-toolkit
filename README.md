@@ -82,8 +82,6 @@ genie generate --locale en --template template.genie --thingpedia thingpedia.jso
 The `--template` flag can be used to point to a template file definining the construct templates,
 in Genie language. E.g. `languages/en/thingtalk.genie` is the one for English sentence synthesis.
 Multiple `--template` flags can be used to load multiple template files.
-If Genie has write permissions on the directory containing the template files,
-the files will be automatically compiled to JS and cached.
 
 The `--thingpedia` flag should point to a [Thingpedia snapshot file](https://almond.stanford.edu/thingpedia/developers/thingpedia-api/#api-Schemas-GetSnapshot),
 which defines the types and signatures of the primitives to use. You can download a snapshot file
