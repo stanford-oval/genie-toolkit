@@ -76,13 +76,12 @@ Please refer to the almond-tokenizer documentation for details.
 To generate a synthetic set, use:
 
 ```
-genie generate --language en --template template.genie --thingpedia thingpedia.json --dataset dataset.tt -o synthetic.tsv
+genie generate --locale en --template template.genie --thingpedia thingpedia.json --dataset dataset.tt -o synthetic.tsv
 ```
 
 The `--template` flag can be used to point to a template file definining the construct templates,
-in Genie language. Multiple `--template` flags
-can be used to load multiple template files. If Genie has write permissions on the directory
-containing the template files, the files will be automatically compiled to JS and cached.
+in Genie language. E.g. `languages/en/thingtalk.genie` is the one for English sentence synthesis.
+Multiple `--template` flags can be used to load multiple template files.
 
 The `--thingpedia` flag should point to a [Thingpedia snapshot file](https://almond.stanford.edu/thingpedia/developers/thingpedia-api/#api-Schemas-GetSnapshot),
 which defines the types and signatures of the primitives to use. You can download a snapshot file
