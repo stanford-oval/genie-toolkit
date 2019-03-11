@@ -66,7 +66,11 @@ with_filtered_table = {
 }
 
 edge_stream = {
-    !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => C.makeEdgeFilterStream(p, '==', x, $options);
+    !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => {
+         if (x.getType().isString)
+             return null;
+         return C.makeEdgeFilterStream(p, '==', x, $options);
+    };
     ('when' | 'if') 'the' p:projection_Numeric ('becomes greater than' | 'becomes higher than' | 'goes above' | 'increases above') x:constant_Numeric => C.makeEdgeFilterStream(p, '>=', x, $options);
     ('when' | 'if') 'the' p:projection_Numeric ('becomes smaller than' | 'becomes lower than' | 'goes below' | 'decreases below') x:constant_Numeric => C.makeEdgeFilterStream(p, '<=', x, $options);
 }
@@ -402,10 +406,10 @@ $root = {
     ) if complete => C.makeProgram(new Ast.Statement.Command(null, [action]));
 
     // now => get => do
-    command:complete_get_do_command => C.makeProgram(command);
+    !primonly command:complete_get_do_command => C.makeProgram(command);
 
     // when join get => notify/say(...)
-    stream:complete_when_get_stream => {
+    !primonly stream:complete_when_get_stream => {
         assert(stream.isJoin, `unexpected stream in when_get, found ${stream}`);
         if (stream.table.isProjection)
             return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Join(stream.stream, stream.table.table, stream.in_params, stream.schema), [C.notifyAction()]));
@@ -414,10 +418,10 @@ $root = {
     };
 
     // when => do
-    rule:complete_when_do_rule => C.makeProgram(rule);
+    !primonly rule:complete_when_do_rule => C.makeProgram(rule);
 
     // when => get => do
-    rule:when_get_do_rule => C.makeProgram(rule);
+    !primonly rule:when_get_do_rule => C.makeProgram(rule);
 
     // setup commands
     ?remote_commands {

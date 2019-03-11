@@ -131,7 +131,7 @@ class SentenceEvaluator {
             for (let token of this._preprocessed.split(' ')) {
                 if (/^[A-Z]/.test(token)) {
                     if (token.startsWith('GENERIC_ENTITY_'))
-                        entities[token] = token;
+                        entities[token] = { value: token, display: token };
                     else if (!(token in ENTITIES))
                         throw new Error(`missing entity ${token}`);
                     else
@@ -147,6 +147,11 @@ class SentenceEvaluator {
             const parsed = ThingTalk.NNSyntax.fromNN(this._targetCode.split(' '), entities);
             await parsed.typecheck(this._schemas);
         } catch(e) {
+            if (e.message.indexOf('has no query') >= 0 || e.message.indexOf('has no action') >= 0)
+                return null;
+        
+            console.error(this._id, this._preprocessed, this._targetCode);
+            throw e;
             // if the target_code did not parse, ignore it
             return null;
         }
