@@ -68,8 +68,9 @@ with_filtered_table = {
 edge_stream = {
     !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => {
          if (x.getType().isString)
-             return null;
-         return C.makeEdgeFilterStream(p, '==', x, $options);
+             return C.makeEdgeFilterStream(p, '=~', x, $options);
+         else
+             return C.makeEdgeFilterStream(p, '==', x, $options);
     };
     ('when' | 'if') 'the' p:projection_Numeric ('becomes greater than' | 'becomes higher than' | 'goes above' | 'increases above') x:constant_Numeric => C.makeEdgeFilterStream(p, '>=', x, $options);
     ('when' | 'if') 'the' p:projection_Numeric ('becomes smaller than' | 'becomes lower than' | 'goes below' | 'decreases below') x:constant_Numeric => C.makeEdgeFilterStream(p, '<=', x, $options);
