@@ -11,9 +11,6 @@
 
 const assert = require('assert');
 
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-
 const DeviceView = require('../lib/devices/device_view');
 
 const SUCCESS = {};
