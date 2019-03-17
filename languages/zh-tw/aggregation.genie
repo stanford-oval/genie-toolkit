@@ -66,7 +66,7 @@ projection_Any = {
         return new Ast.Table.Projection(agg, [p.name], newSchema);
     };
 
-    !turking t:complete_table '的' p:out_param_Numeric ('平均') => {
+    !turking t:complete_table '的' p:out_param_Numeric '平均' => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
