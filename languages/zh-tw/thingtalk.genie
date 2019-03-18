@@ -290,14 +290,14 @@ $root = {
     (
           table:complete_get_command
         | ('給我' | '取得' | '下載' | '傳給 我') table:complete_table
-        | ('嗨 Almond' | '哈囉 Almond' | '') ('給我' | '我要' | '我 需要' | '傳給 我') table:with_filtered_table
+        | ('嗨 almond' | '哈囉 almond' | '') ('給我' | '我要' | '我 需要' | '傳給 我') table:with_filtered_table
     ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
 
     // now => get => say(...)
     // don't merge these, the output sizes are too small
     (
-          ('嗨 Almond' | '哈囉 Almond' | '') ('給我' | '我要' | '我 需要' | '傳給 我') proj:projection_Any
-        | ('嗨 Almond' | '哈囉 Almond' | '') proj:projection_Any ('是 什麼 ?' | '?')
+          ('嗨 almond' | '哈囉 almond' | '') ('給我' | '我要' | '我 需要' | '傳給 我') proj:projection_Any
+        | ('嗨 almond' | '哈囉 almond' | '') proj:projection_Any ('是 什麼 ?' | '?')
         | ('告訴 我' | '跟 我 說') '什麼是' proj:projection_Any
         | '誰 是' proj:projection_Entity__tt__username ('' | '?')
         | proj:projection_Entity__tt__username '是 誰' ('' | '?')
@@ -311,7 +311,7 @@ $root = {
           action:thingpedia_action
         | ('請' | '請你') action:thingpedia_action
         | ('我要' | '我 想 要') action:thingpedia_action
-        | ('嗨 Almond' | '哈囉 Almond') ('請' | '請你' | '') action:thingpedia_action
+        | ('嗨 almond' | '哈囉 almond') ('請' | '請你' | '') action:thingpedia_action
     ) if complete => C.makeProgram(new Ast.Statement.Command(null, [action]));
 
     // now => get => do
