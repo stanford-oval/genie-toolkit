@@ -4,7 +4,7 @@ Genie was used in the paper _Genie: A Generator of Natural Language Parsers for 
 conditionally accepted to PLDI 2019.
 
 To reproduce those results, first download the dataset from:
-<https://oval.cs.stanford.edu/datasets/pldi2019-quote-free.zip>
+<https://oval.cs.stanford.edu/datasets/pldi19-quote-free.zip>
 
 The dataset contains the following folders:
 - `new-combinations`
