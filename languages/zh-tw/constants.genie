@@ -113,7 +113,6 @@ constant_Measure_m = {
     num:constant_Number '公分' => C.addUnit('cm', num);
     num:constant_Number '厘米' => C.addUnit('cm', num);
 }
-}
 
 constant_Measure_mps = {
     num:constant_Number 'mph' => C.addUnit('mph', num);

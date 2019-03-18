@@ -290,13 +290,13 @@ $root = {
     (
           table:complete_get_command
         | ('給我' | '取得' | '下載' | '傳給 我') table:complete_table
-        | ('嗨 Almond' | '哈囉 Almond' | '') ('給我' | '我要' | '我 需要' | ''傳給 我'') table:with_filtered_table
+        | ('嗨 Almond' | '哈囉 Almond' | '') ('給我' | '我要' | '我 需要' | '傳給 我') table:with_filtered_table
     ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
 
     // now => get => say(...)
     // don't merge these, the output sizes are too small
     (
-          ('嗨 Almond' | '哈囉 Almond' | '') ('給我' | '我要' | '我 需要' | ''傳給 我'') proj:projection_Any
+          ('嗨 Almond' | '哈囉 Almond' | '') ('給我' | '我要' | '我 需要' | '傳給 我') proj:projection_Any
         | ('嗨 Almond' | '哈囉 Almond' | '') proj:projection_Any ('是 什麼 ?' | '?')
         | ('告訴 我' | '跟 我 說') '什麼是' proj:projection_Any
         | '誰 是' proj:projection_Entity__tt__username ('' | '?')
@@ -337,7 +337,7 @@ $root = {
     (
           ('叫' | '請' | '要') principal:constant_Entity__tt__username '把' table:complete_table ('傳給 我' | '給我' | '寄給 我')
         | ('叫' | '請' | '要') principal:constant_Entity__tt__username ('傳給 我' | '給我' | '寄給 我') table:complete_table
-        | ('給我' | '我要') principal:constant_Entity__tt__username ('他' | 她') '的' table:complete_table
+        | ('給我' | '我要') principal:constant_Entity__tt__username ('他' | '她') '的' table:complete_table
         | ('給我' | '我要') principal:constant_Entity__tt__username '的' table:complete_table
     ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction('return')]), principal);
     ('叫' | '請' | '要') principal:constant_Entity__tt__username stream:stream ('通知 我' | '告知 我' | '讓 我 知道' | '提醒 我' | '跟 我 說') => C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction('return')]), principal);
