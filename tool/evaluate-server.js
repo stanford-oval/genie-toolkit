@@ -80,7 +80,7 @@ module.exports = {
         await parser.start();
 
         const output = readAllLines(args.input_file)
-            .pipe(new DatasetParser({ preserveId: true }))
+            .pipe(new DatasetParser({ preserveId: true, parseMultiplePrograms: true }))
             .pipe(new SentenceEvaluatorStream(parser, schemas, args.tokenized, args.debug))
             .pipe(new CollectStatistics());
 

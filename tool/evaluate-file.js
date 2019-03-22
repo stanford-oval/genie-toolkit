@@ -60,7 +60,7 @@ module.exports = {
         parser.addArgument('--csv', {
             nargs: 0,
             action: 'storeTrue',
-	    help: 'Output a single CSV line',
+            help: 'Output a single CSV line',
         });
     },
 
@@ -76,7 +76,7 @@ module.exports = {
         const output = args.dataset
             .setEncoding('utf8')
             .pipe(byline())
-            .pipe(new DatasetParser({ preserveId: true }))
+            .pipe(new DatasetParser({ preserveId: true, parseMultiplePrograms: true }))
             .pipe(new Stream.Transform({
                 objectMode: true,
 

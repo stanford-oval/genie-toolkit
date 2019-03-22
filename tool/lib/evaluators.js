@@ -9,6 +9,7 @@
 // See COPYING for details
 "use strict";
 
+const assert = require('assert');
 const Stream = require('stream');
 const ThingTalk = require('thingtalk');
 
@@ -105,7 +106,7 @@ class SentenceEvaluator {
 
         this._id = ex.id;
         this._preprocessed = ex.preprocessed;
-        this._targetCode = ex.target_code;
+        this._targetPrograms = ex.target_code;
         this._predictions = ex.predictions;
     }
 
@@ -114,7 +115,7 @@ class SentenceEvaluator {
         const result = {
             id: this._id,
             preprocessed: this._preprocessed,
-            target_code: this._targetCode,
+            target_code: this._targetPrograms,
             ok: [],
             ok_without_param: [],
             ok_function: [],
@@ -143,23 +144,32 @@ class SentenceEvaluator {
             entities = tokenized.entities;
         }
 
+        assert(Array.isArray(this._targetPrograms));
+        assert(this._targetPrograms.length > 0);
+
+        let firstTargetCode = this._targetPrograms[0];
         try {
-            const parsed = ThingTalk.NNSyntax.fromNN(this._targetCode.split(' '), entities);
+            const parsed = ThingTalk.NNSyntax.fromNN(firstTargetCode.split(' '), entities);
             await parsed.typecheck(this._schemas);
         } catch(e) {
+            // if the target_code did not parse due to missing functions in thingpedia, ignore it
             if (e.message.indexOf('has no query') >= 0 || e.message.indexOf('has no action') >= 0)
                 return null;
         
-            console.error(this._id, this._preprocessed, this._targetCode);
+            console.error(this._id, this._preprocessed, this._targetPrograms);
             throw e;
-            // if the target_code did not parse, ignore it
-            return null;
         }
 
-        const requotedGold = Array.from(requoteProgram(this._targetCode));
-        const goldFunctions = Array.from(getFunctions(this._targetCode));
-        const goldDevices = Array.from(getDevices(this._targetCode));
-        result.is_primitive = goldFunctions.length === 1;
+        // check all other target codes (sanity check)
+        for (let i = 1; i < this._targetPrograms.length; i++) {
+            const parsed = ThingTalk.NNSyntax.fromNN(this._targetPrograms[i].split(' '), entities);
+            await parsed.typecheck(this._schemas);
+        }
+
+        const requotedGold = this._targetPrograms.map((code) => Array.from(requoteProgram(code)));
+        const goldFunctions = this._targetPrograms.map((code) => Array.from(getFunctions(code)));
+        const goldDevices = this._targetPrograms.map((code) => Array.from(getDevices(code)));
+        result.is_primitive = goldFunctions[0].length === 1;
 
         let first = true;
         let ok = false, ok_without_param = false, ok_function = false,
@@ -178,28 +188,9 @@ class SentenceEvaluator {
                 .map((beam) => beam.code);
         }
 
-        const untypedTargetCode = Array.from(stripOutTypeAnnotations(this._targetCode.split(' '))).join(' ');
+        const untypedTargetCode = this._targetPrograms.map((code) => Array.from(stripOutTypeAnnotations(code.split(' '))).join(' '));
         for (let beam of predictions) {
             const code = Array.from(stripOutTypeAnnotations(beam)).join(' ');
-            if (ok || code === untypedTargetCode) {
-                // we have a match!
-
-                result.ok.push(true);
-                result.ok_without_param.push(true);
-                result.ok_function.push(true);
-                result.ok_device.push(true);
-                result.ok_num_function.push(true);
-                result.ok_syntax.push(true);
-
-                if (first && this._debug)
-                    console.log(`${this._id}\tok\t${this._preprocessed}\t${this._targetCode}\t${code}`);
-                first = false;
-                ok = true;
-                continue;
-            }
-
-            // no match...
-            result.ok.push(false);
 
             // first check if the program parses and typechecks (no hope otherwise)
             try {
@@ -215,42 +206,66 @@ class SentenceEvaluator {
                 result.ok_num_function.push(ok_num_function);
                 result.ok_syntax.push(ok_syntax);
                 if (first && this._debug)
-                    console.log(`${this._id}\twrong_syntax\t${this._preprocessed}\t${this._targetCode}\t${code}`);
+                    console.log(`${this._id}\twrong_syntax\t${this._preprocessed}\t${untypedTargetCode[0]}\t${code}`);
                 first = false;
                 continue;
             }
             ok_syntax = true;
-            result.ok_syntax.push(true);
 
-            let this_ok_without_param = iterEquals(requotedGold, requoteProgram(beam));
-            ok_without_param = ok_without_param || this_ok_without_param;
-            result.ok_without_param.push(ok_without_param);
-            if (this_ok_without_param && first && this._debug)
-                console.log(`${this._id}\tok_without_param\t${this._preprocessed}\t${this._targetCode}\t${code}`);
+            let beam_ok = false, beam_ok_without_param = false, beam_ok_function = false,
+                beam_ok_device = false, beam_ok_num_function = false;
+            let result_string = 'ok_syntax';
 
-            let functions = Array.from(getFunctions(beam));
-            let this_ok_function = this_ok_without_param || iterEquals(goldFunctions, functions);
-            ok_function = ok_function || this_ok_function;
-            result.ok_function.push(ok_function);
-            if (this_ok_function && !this_ok_without_param && first && this._debug)
-                console.log(`${this._id}\tok_function\t${this._preprocessed}\t${this._targetCode}\t${code}`);
+            for (let referenceId = 0; referenceId < this._targetPrograms.length; referenceId++) {
+                if (code === untypedTargetCode[referenceId]) {
+                    // we have a match!
 
-            let this_ok_device = this_ok_function || iterEquals(goldDevices, getDevices(beam));
-            ok_device = ok_device || this_ok_device;
-            result.ok_device.push(ok_device);
-            if (this_ok_device && !this_ok_function && first && this._debug)
-                console.log(`${this._id}\tok_device\t${this._preprocessed}\t${this._targetCode}\t${code}`);
+                    beam_ok = true;
+                    beam_ok_without_param = true;
+                    beam_ok_function = true;
+                    beam_ok_device = true;
+                    beam_ok_num_function = true;
+                    result_string = 'ok';
+                    break;
+                }
 
-            let this_ok_num_function = this_ok_device || goldFunctions.length === functions.length;
-            ok_num_function = ok_num_function || this_ok_num_function;
-            result.ok_num_function.push(ok_num_function);
-            if (this_ok_num_function && !this_ok_device && first && this._debug)
-                console.log(`${this._id}\tok_num_function\t${this._preprocessed}\t${this._targetCode}\t${code}`);
+                let this_ok_without_param = iterEquals(requotedGold[referenceId], requoteProgram(beam));
+                beam_ok_without_param = beam_ok_without_param || this_ok_without_param;
+                if (this_ok_without_param && !beam_ok)
+                    result_string = 'ok_without_param';
 
-            if (!this_ok_num_function && first && this._debug)
-                console.log(`${this._id}\tok_syntax\t${this._preprocessed}\t${this._targetCode}\t${code}`);
+                let functions = Array.from(getFunctions(beam));
+                let this_ok_function = this_ok_without_param || iterEquals(goldFunctions[referenceId], functions);
+                beam_ok_function = beam_ok_function || this_ok_function;
+                if (this_ok_function && !beam_ok_without_param)
+                    result_string = 'ok_function';
 
+                let this_ok_device = this_ok_function || iterEquals(goldDevices[referenceId], getDevices(beam));
+                beam_ok_device = beam_ok_device || this_ok_device;
+                if (this_ok_device && !beam_ok_function)
+                    result_string = 'ok_device';
+
+                let this_ok_num_function = this_ok_device || goldFunctions[referenceId].length === functions.length;
+                beam_ok_num_function = beam_ok_num_function || this_ok_num_function;
+                if (this_ok_num_function && !beam_ok_device)
+                    result_string = 'ok_num_function';
+            }
+
+            if (first && this._debug)
+                console.log(`${this._id}\t${result_string}\t${this._preprocessed}\t${untypedTargetCode[0]}\t${code}`);
             first = false;
+            ok = ok || beam_ok;
+            ok_without_param = ok_without_param || beam_ok_without_param;
+            ok_function = ok_function || beam_ok_function;
+            ok_device = ok_device || beam_ok_device;
+            ok_num_function = ok_num_function || beam_ok_num_function;
+
+            result.ok.push(ok);
+            result.ok_without_param.push(ok_without_param);
+            result.ok_function.push(ok_function);
+            result.ok_device.push(ok_device);
+            result.ok_num_function.push(ok_num_function);
+            result.ok_syntax.push(ok_syntax);
         }
 
         return result;
