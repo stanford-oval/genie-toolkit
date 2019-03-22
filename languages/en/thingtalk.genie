@@ -28,7 +28,7 @@ import './aggregation';
 
 complete_table = {
     thingpedia_query if complete;
-    table_join_replace_placeholder if complete;
+    !primonly table_join_replace_placeholder if complete;
 }
 complete_get_command = {
     thingpedia_get_command if complete;
@@ -40,14 +40,14 @@ if_filtered_table = {
 }
 
 one_filter_table = {
-    table:complete_table 'if' filter:atom_filter => {
+    !nofilter table:complete_table 'if' filter:atom_filter => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
     };
 }
 two_filter_table = {
-    table:one_filter_table 'and' filter:atom_filter => {
+    !nofilter table:one_filter_table 'and' filter:atom_filter => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
@@ -56,7 +56,7 @@ two_filter_table = {
 with_filtered_table = {
     complete_table;
 
-    table:complete_table ('with' | 'having') filter:with_filter => {
+    !nofilter table:complete_table ('with' | 'having') filter:with_filter => {
         if (!table.schema.is_list)
             return null;
         if (!C.checkFilter(table, filter))
@@ -102,7 +102,7 @@ stream = {
             return stream;
         };
     }
-    ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:edge_filter => {
+    !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:edge_filter => {
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter) || table.schema.is_list)
             return null;
         table = C.addFilter(table, filter, $options);
@@ -110,7 +110,7 @@ stream = {
             return null;
         return C.tableToStream(table, null);
     };
-    ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:atom_filter => {
+    !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:atom_filter => {
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
             return null;
         if ($options.flags.turking && table.schema.is_list)
@@ -120,7 +120,7 @@ stream = {
             return null;
         return C.tableToStream(table, null);
     };
-    edge_stream;
+    !nofilter edge_stream;
     timer;
 }
 
@@ -319,7 +319,7 @@ $root = {
             return null;
         return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
-    ('monitor' | 'watch') table:complete_table 'and' ('alert me' | 'notify me' | 'inform me' | 'warn me') ('if' | 'when') filter:atom_filter => {
+    !nofilter ('monitor' | 'watch') table:complete_table 'and' ('alert me' | 'notify me' | 'inform me' | 'warn me') ('if' | 'when') filter:atom_filter => {
         if (C.hasGetPredicate(filter))
             return null;
         if (table.schema.is_list || !C.checkFilter(table, filter))
@@ -343,7 +343,7 @@ $root = {
         // note that we intentionally don't use tableToStream here, because we don't want to introduce edge filters
         return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), [C.notifyAction()]));
     };
-    ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:atom_filter 'in' table:complete_table => {
+    !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:atom_filter 'in' table:complete_table => {
         if (C.hasGetPredicate(filter))
             return null;
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
@@ -358,7 +358,7 @@ $root = {
             return null;
         return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
-    ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:edge_filter 'in' table:complete_table => {
+    !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:edge_filter 'in' table:complete_table => {
         if (C.hasGetPredicate(filter))
             return null;
         if (!table.schema.is_monitorable || table.schema.is_list || !C.checkFilter(table, filter))
@@ -393,8 +393,8 @@ $root = {
         | ('show me' | 'tell me' | 'say') 'what is' proj:projection_Any
         | 'who is' proj:projection_Entity__tt__username ('' | '?')
         | 'who is' proj:projection_Entity__tt__email_address ('' | '?')
-        | proj:projection_Any
     ) => C.sayProjectionProgram($options, proj);
+    !turking proj:projection_Any => C.sayProjectionProgram($options, proj);
 
     // now => do
     (
@@ -422,7 +422,7 @@ $root = {
     !primonly rule:complete_when_do_rule => C.makeProgram(rule);
 
     // when => get => do
-    !primonly rule:when_get_do_rule => C.makeProgram(rule);
+    ?triple_commands rule:when_get_do_rule => C.makeProgram(rule);
 
     // setup commands
     ?remote_commands {
