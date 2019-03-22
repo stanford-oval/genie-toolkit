@@ -10,6 +10,7 @@
 "use strict";
 
 const ThingTalk = require('thingtalk');
+const Grammar = ThingTalk.Grammar;
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 const fs = require('fs');
@@ -77,6 +78,15 @@ function makeSchemaClassDef(kind, schema, isMeta) {
     const annotations = {};
     return new Ast.ClassDef(kind, null, queries, actions,
                             imports, metadata, annotations);
+}
+
+function exampleToCode(example) {
+    const clone = example.clone();
+    clone.id = -1;
+    clone.utterances = [];
+    clone.preprocessed = [];
+    clone.metadata = {};
+    return clone.prettyprint();
 }
 
 module.exports = class FileThingpediaClient {
@@ -203,5 +213,32 @@ module.exports = class FileThingpediaClient {
     async getAllEntityTypes() {
         await this._ensureLoaded();
         return this._entities;
+    }
+
+    async genCheatsheet() {
+        await this._ensureLoaded();
+        const devices = [];
+        const devices_rev = {};
+        for (let kind in this._meta) {
+            devices_rev[kind] = devices.length;
+            devices.push({
+                primary_kind: kind,
+                name: this._meta[kind].kind_canonical
+            });
+        }
+        let parsedExamples = (await Grammar.parse(await this.getAllExamples())).datasets[0].examples;
+        const examples = parsedExamples.map((e) => {
+            let kind;
+            for (let [, invocation] of e.iteratePrimitives())
+                kind = invocation.selector.kind;
+            if (kind in devices_rev) {
+                return {
+                    kind: kind,
+                    utterance: e.utterances[Math.floor(Math.random()*e.utterances.length)],
+                    target_code: exampleToCode(e)
+                };
+            }
+        }).filter((e) => !!e);
+        return [devices, examples];
     }
 };
