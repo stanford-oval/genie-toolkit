@@ -97,6 +97,52 @@ function* stripOutTypeAnnotations(tokens) {
    }
 }
 
+function normalizeKeywordParams(program) {
+    const newprogram = [];
+    for (let i = 0; i < program.length; ) {
+        const token = program[i];
+        
+        if (!token.startsWith('@')) {
+            newprogram.push(token);
+            i++;
+            continue;
+        }
+
+        newprogram.push(token);
+        i++;
+        
+        const params = {};
+        while (i < program.length) {
+            if (!program[i].startsWith('param:'))
+                break;
+            const pn = program[i].split(':')[1]
+            i++;
+            assert.strictEqual(program[i], '=');
+            i++;
+            let in_string = program[i] === '"';
+            const value = [program[i]];
+            i++;
+
+            while (i < program.length) {
+                if (program[i] === '"')
+                    in_string = !in_string;
+                if (!in_string &&
+                    (program[i].startsWith('param:') || ['on', '=>', '(', ')', '{', '}', 'filter', 'join'].indexOf(program[i]) >= 0))
+                    break;
+                value.push(program[i]);
+                i++;
+            }
+            params[pn] = value;
+        }
+        
+        const sorted = Object.keys(params);
+        sorted.sort();
+        for (let pname of sorted)
+            newprogram.push('param:'+pname, '=', ...params[pname]);
+    }
+    return newprogram;
+}
+
 class SentenceEvaluator {
     constructor(parser, schemaRetriever, tokenized, debug, ex) {
         this._parser = parser;
@@ -162,13 +208,19 @@ class SentenceEvaluator {
 
         // check all other target codes (sanity check)
         for (let i = 1; i < this._targetPrograms.length; i++) {
-            const parsed = ThingTalk.NNSyntax.fromNN(this._targetPrograms[i].split(' '), entities);
-            await parsed.typecheck(this._schemas);
+            try {
+                const parsed = ThingTalk.NNSyntax.fromNN(this._targetPrograms[i].split(' '), entities);
+                await parsed.typecheck(this._schemas);
+            } catch(e) {
+                console.error(this._id, this._preprocessed, this._targetPrograms);
+                throw e;
+            }
         }
 
-        const requotedGold = this._targetPrograms.map((code) => Array.from(requoteProgram(code)));
-        const goldFunctions = this._targetPrograms.map((code) => Array.from(getFunctions(code)));
-        const goldDevices = this._targetPrograms.map((code) => Array.from(getDevices(code)));
+        const untypedTargetCode = this._targetPrograms.map((code) => Array.from(stripOutTypeAnnotations(code.split(' '))).join(' '));
+        const requotedGold = untypedTargetCode.map((code) => Array.from(requoteProgram(code)));
+        const goldFunctions = untypedTargetCode.map((code) => Array.from(getFunctions(code)));
+        const goldDevices = untypedTargetCode.map((code) => Array.from(getDevices(code)));
         result.is_primitive = goldFunctions[0].length === 1;
 
         let first = true;
@@ -187,11 +239,8 @@ class SentenceEvaluator {
                 .filter((beam) => beam.score !== 'Infinity') // ignore exact matches
                 .map((beam) => beam.code);
         }
-
-        const untypedTargetCode = this._targetPrograms.map((code) => Array.from(stripOutTypeAnnotations(code.split(' '))).join(' '));
+        
         for (let beam of predictions) {
-            const code = Array.from(stripOutTypeAnnotations(beam)).join(' ');
-
             // first check if the program parses and typechecks (no hope otherwise)
             try {
                 const parsed = ThingTalk.NNSyntax.fromNN(beam, entities);
@@ -206,11 +255,14 @@ class SentenceEvaluator {
                 result.ok_num_function.push(ok_num_function);
                 result.ok_syntax.push(ok_syntax);
                 if (first && this._debug)
-                    console.log(`${this._id}\twrong_syntax\t${this._preprocessed}\t${untypedTargetCode[0]}\t${code}`);
+                    console.log(`${this._id}\twrong_syntax\t${this._preprocessed}\t${untypedTargetCode[0]}\t${Array.from(stripOutTypeAnnotations(beam)).join(' ')}`);
                 first = false;
                 continue;
             }
             ok_syntax = true;
+
+            const normalized = normalizeKeywordParams(Array.from(stripOutTypeAnnotations(beam)));
+            const code = normalized.join(' ');
 
             let beam_ok = false, beam_ok_without_param = false, beam_ok_function = false,
                 beam_ok_device = false, beam_ok_num_function = false;
@@ -229,18 +281,18 @@ class SentenceEvaluator {
                     break;
                 }
 
-                let this_ok_without_param = iterEquals(requotedGold[referenceId], requoteProgram(beam));
+                let this_ok_without_param = iterEquals(requotedGold[referenceId], requoteProgram(normalized));
                 beam_ok_without_param = beam_ok_without_param || this_ok_without_param;
                 if (this_ok_without_param && !beam_ok)
                     result_string = 'ok_without_param';
 
-                let functions = Array.from(getFunctions(beam));
+                let functions = Array.from(getFunctions(normalized));
                 let this_ok_function = this_ok_without_param || iterEquals(goldFunctions[referenceId], functions);
                 beam_ok_function = beam_ok_function || this_ok_function;
                 if (this_ok_function && !beam_ok_without_param)
                     result_string = 'ok_function';
 
-                let this_ok_device = this_ok_function || iterEquals(goldDevices[referenceId], getDevices(beam));
+                let this_ok_device = this_ok_function || iterEquals(goldDevices[referenceId], getDevices(normalized));
                 beam_ok_device = beam_ok_device || this_ok_device;
                 if (this_ok_device && !beam_ok_function)
                     result_string = 'ok_device';
