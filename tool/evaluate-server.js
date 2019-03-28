@@ -89,7 +89,7 @@ module.exports = {
         if (args.csv) {
             let buffer = '';
             for (let key of ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax']) {
-                result[key].length = 5;
+                result[key].length = parseInt(process.env.CSV_LENGTH || 5);
                 if (buffer)
                     buffer += ',';
                 buffer += String(result[key]);
