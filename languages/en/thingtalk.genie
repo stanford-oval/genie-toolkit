@@ -280,21 +280,48 @@ when_get_do_rule = {
     command:complete_get_do_command stream:stream => C.combineStreamCommand(stream, command);
 }
 
+timer_rule = {
+    // timer => get => notify
+    (
+          timer:timer table:complete_get_command
+        | timer:timer 'get' table:complete_table
+        | 'get' table:complete_table timer:timer
+        | timer:timer ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table
+        | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table timer:timer
+    ) => new Ast.Statement.Rule(new Ast.Stream.Join(timer, table, [], table.schema), [C.notifyAction()]);
+    // timer => do
+    (
+          timer:timer action:thingpedia_action
+        | action:thingpedia_action timer:timer
+        | 'i want to' action:thingpedia_action timer:timer
+    ) if complete => new Ast.Statement.Rule(timer, [action]);
+    // timer => get => do
+    !primonly (
+          timer:timer command:complete_get_do_command
+        | command:complete_get_do_command timer:timer
+    ) => new Ast.Statement.Rule(new Ast.Stream.Join(timer, command.table, [], command.table.schema), command.actions);
+}
+
+if ($options.standardSchemas.say) {
+     $root = {
+        (
+             'notify me' stream:stream
+           | ('alert me' | 'inform me' | 'let me know' | 'i get notified' | 'i get alerted') stream:stream
+           | 'send me' ('a message' | 'an alert' | 'a notification' | 'a pop up notification' | 'a popup notification') stream:stream
+        ) => C.makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction($options) : C.notifyAction()]));
+        'send me a reminder' stream:timer => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options)]));
+        'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
+        !turking {
+            (
+                  'alert me' stream:stream ('saying' | 'with the text') constant:constant_String
+                | 'show' ('the notification' | 'the message' | 'a popup notification that says' | 'a popup containing') constant:constant_String stream:stream
+             ) => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
+        }
+    }
+}
+
 $root = {
     // when => notify
-    (
-          'notify me' stream:stream
-        | ('alert me' | 'inform me' | 'let me know' | 'i get notified' | 'i get alerted') stream:stream
-        | 'send me' ('a message' | 'an alert' | 'a notification' | 'a pop up notification' | 'a popup notification') stream:stream
-    ) => C.makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction($options) : C.notifyAction()]));
-    'send me a reminder' stream:timer => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options)]));
-    'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
-    !turking {
-        (
-              'alert me' stream:stream ('saying' | 'with the text') constant:constant_String
-            | 'show' ('the notification' | 'the message' | 'a popup notification that says' | 'a popup containing') constant:constant_String stream:stream
-        ) => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
-    }
     ('monitor' | 'watch') table:with_filtered_table => {
         if (!table.schema.is_monitorable)
             return null;
@@ -385,6 +412,7 @@ $root = {
             return null;
         return C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     };
+
     // now => get => say(...)
     // don't merge these, the output sizes are too small
     (
@@ -417,6 +445,8 @@ $root = {
         else
             return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
+
+    rule:timer_rule => C.makeProgram(rule);
 
     // when => do
     !primonly rule:complete_when_do_rule => C.makeProgram(rule);
