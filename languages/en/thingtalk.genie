@@ -424,6 +424,13 @@ $root = {
     ) => C.sayProjectionProgram($options, proj);
     !turking proj:projection_Any => C.sayProjectionProgram($options, proj);
 
+    // now => say
+    (
+          'say' c:constant_String
+        | 'send me a message saying' c:constant_String
+        | 'show a popup that says' c:constant_String
+    ) => C.makeProgram(new Ast.Statement.Command(null, [C.builtinSayAction($options, c)]));
+
     // now => do
     (
           action:thingpedia_action
