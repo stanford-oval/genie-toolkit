@@ -16,6 +16,14 @@ To use Genie as a command line tool run:
 yarn global add genie-toolkit
 ```
 
+After running this, if encounter `command not found`, you can fix this by adding
+```
+export PATH="$PATH:$(yarn global bin)"
+``` 
+or add the `yarn global bin` to your PATH in `~/.bash_profile`
+
+<br />
+
 To use Genie as a library in another nodejs project:
 ```
 yarn add genie-toolkit
