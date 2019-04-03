@@ -317,6 +317,13 @@ if ($options.standardSchemas.say) {
                 | 'show' ('the notification' | 'the message' | 'a popup notification that says' | 'a popup containing') constant:constant_String stream:stream
              ) => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
         }
+
+        // now => say
+        (
+              'say' c:constant_String
+            | 'send me a message saying' c:constant_String
+            | 'show a popup that says' c:constant_String
+        ) => C.makeProgram(new Ast.Statement.Command(null, [C.builtinSayAction($options, c)]));
     }
 }
 
@@ -423,13 +430,6 @@ $root = {
         | 'who is' proj:projection_Entity__tt__email_address ('' | '?')
     ) => C.sayProjectionProgram($options, proj);
     !turking proj:projection_Any => C.sayProjectionProgram($options, proj);
-
-    // now => say
-    (
-          'say' c:constant_String
-        | 'send me a message saying' c:constant_String
-        | 'show a popup that says' c:constant_String
-    ) => C.makeProgram(new Ast.Statement.Command(null, [C.builtinSayAction($options, c)]));
 
     // now => do
     (
