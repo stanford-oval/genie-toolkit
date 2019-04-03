@@ -16,5 +16,7 @@ string	tt:long_free_text	./tt:long_free_text.txt
 string	tt:short_free_text	./tt:short_free_text.txt
 string	tt:search_query	./tt:search_query.txt
 string	tt:song_name	./tt:song_name.txt
+string	tt:person_first_name	./tt:person_first_name.txt
+string	tt:path_name	./tt:path_name.txt
 entity	org.freedesktop:app_id	./org.freedesktop:app_id.json
 entity	tt:stock_id	./tt:stock_id.json
