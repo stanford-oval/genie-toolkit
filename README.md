@@ -189,7 +189,7 @@ The sample parameter-datasets.tsv can found in [here](https://github.com/Stanfor
 
 Given the created everything.tsv file, you can split in train/eval/test with:
 ```
-genie split-train-eval -i everything.tsv --train train.tsv --eval eval.tsv [--test test.tsv] --eval-prob 0.1
+genie split-train-eval everything.tsv --train train.tsv --eval eval.tsv --test test.tsv --eval-prob 0.1
   --split-strategy sentence
 ```
 
