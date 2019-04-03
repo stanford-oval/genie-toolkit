@@ -15,7 +15,7 @@ const fs = require('fs');
 const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
 const DatasetSplitter = require('../lib/dataset_splitter');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const StreamUtils = require('./lib/stream-utils');
+const StreamUtils = require('../lib/stream-utils');
 
 module.exports = {
     initArgparse(subparsers) {
@@ -57,7 +57,7 @@ module.exports = {
         parser.addArgument(['--split-strategy'], {
             help: 'Method to use to choose training and evaluation sentences',
             defaultValue: 'sentence',
-            choices: ['id', 'raw-sentence', 'sentence', 'program', 'combination']
+            choices: DatasetSplitter.SPLIT_STRATEGIES,
         });
         parser.addArgument(['-d', '--device'], {
             action: 'append',

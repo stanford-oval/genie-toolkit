@@ -30,7 +30,10 @@ const subcommands = {
     'split-train-eval': require('./split-train-eval'),
 
     'train': require('./train'),
-    'evaluate': require('./evaluate'),
+    'predict': require('./predict'),
+    'evaluate-server': require('./evaluate-server'),
+    'evaluate-file': require('./evaluate-file'),
+    'manual-annotate': require('./manual-annotate')
 };
 
 async function main() {
@@ -44,6 +47,6 @@ async function main() {
         subcommands[subcommand].initArgparse(subparsers);
 
     const args = parser.parseArgs();
-    await subcommands[args.subcommand].execute(args);
+    await subcommands[args.subcommand].execute(args);    
 }
 main();

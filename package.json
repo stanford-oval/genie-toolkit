@@ -16,6 +16,7 @@
     "mmap-io": "^1.0.0",
     "seedrandom": "^3.0.0",
     "shuffle-array": "^1.0.1",
+    "sockaddr": "^1.0.1",
     "thingpedia": "^2.3.3",
     "thingtalk": "^1.4.2"
   },

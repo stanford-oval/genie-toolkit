@@ -42,7 +42,7 @@ out_param_Measure_mps  = {}
 projection_Entity__tt__username = {}
 projection_Entity__tt__email_address = {}
 
-for (let [pname, typestr] of $options.params.in.values()) {
+for (let [pname, [typestr,]] of $options.params.in.values()) {
     thingpedia_stream = {
         s:thingpedia_stream v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(s, pname, v, C.betaReduceStream);
     }

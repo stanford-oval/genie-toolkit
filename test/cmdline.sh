@@ -81,7 +81,8 @@ node $srcdir/tool/genie.js augment paraphrase.tsv $srcdir/test/data/synthetic.ts
   --ppdb compiled-ppdb.bin --parameter-datasets $srcdir/test/data/parameter-datasets.tsv \
   -o everything.tsv \
   --ppdb-synthetic-fraction 0.5 --ppdb-paraphrase-fraction 1.0 \
-  --quoted-fraction 0.1
+  --quoted-fraction 0.1 \
+  --synthetic-expand-factor 3
 diff -u $srcdir/test/data/expected-everything.tsv everything.tsv
 
 # and split it in various ways

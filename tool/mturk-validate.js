@@ -17,9 +17,9 @@ const ThingTalk = require('thingtalk');
 const { ParaphraseValidatorFilter } = require('../lib/validator');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
-const TokenizerService = require('./lib/tokenizer_service');
+const TokenizerService = require('../lib/tokenizer');
 const MT = require('./lib/mturk-parsers');
-const StreamUtils = require('./lib/stream-utils');
+const StreamUtils = require('../lib/stream-utils');
 
 const { NUM_SENTENCES_PER_TASK, NUM_PARAPHRASES_PER_SENTENCE, NUM_SUBMISSIONS_PER_TASK } = require('./lib/constants');
 
@@ -104,7 +104,7 @@ module.exports = {
     async execute(args) {
         const tpClient = new FileThingpediaClient(args.locale, args.thingpedia, args.dataset);
         const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, args.debug);
-        const tokenizer = TokenizerService.get();
+        const tokenizer = TokenizerService.get(process.env.GENIE_USE_TOKENIZER, true);
 
         let validationRejects = Promise.resolve();
         let validationCounts;

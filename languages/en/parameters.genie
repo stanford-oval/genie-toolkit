@@ -179,9 +179,196 @@ for (let [typestr, type] of $options.types.all) {
     }
 }
 
-for (let [pname, typestr] of $options.params.in.values()) {
+placeholder_Number = {
+    'some number' => Ast.Value.Undefined(true);
+    'some value' => Ast.Value.Undefined(true);
+}
+placeholder_String = {
+    'something' => Ast.Value.Undefined(true);
+}
+placeholder_Currency = {
+    'some value' => Ast.Value.Undefined(true);
+    'some amount' => Ast.Value.Undefined(true);
+}
+placeholder_Time = {
+    'some time' => Ast.Value.Undefined(true);
+     'a certain time' => Ast.Value.Undefined(true);
+}
+placeholder_Date = {
+    'some date' => Ast.Value.Undefined(true);
+    'a certain date' => Ast.Value.Undefined(true);
+    'some time' => Ast.Value.Undefined(true);
+    'a certain time' => Ast.Value.Undefined(true);
+}
+placeholder_Location = {
+    'some location' => Ast.Value.Undefined(true);
+    'a location' => Ast.Value.Undefined(true);
+    'some place' => Ast.Value.Undefined(true);
+    'a place' => Ast.Value.Undefined(true);
+    'a certain place' => Ast.Value.Undefined(true);
+    'somewhere' => Ast.Value.Undefined(true);
+}
+placeholder_Measure_ms   = {
+    'some duration' => Ast.Value.Undefined(true);
+    'some amount of time' => Ast.Value.Undefined(true);
+}
+placeholder_Measure_byte = {
+    'some size' => Ast.Value.Undefined(true);
+    'a certain size' => Ast.Value.Undefined(true);
+}
+placeholder_Measure_kg   = {
+    'a certain weight' => Ast.Value.Undefined(true);
+}
+placeholder_Measure_C    = {
+    'a certain temperature' => Ast.Value.Undefined(true);
+}
+placeholder_Measure_m    = {
+    'some distance' => Ast.Value.Undefined(true);
+    'some length' => Ast.Value.Undefined(true);
+}
+placeholder_Measure_mps  = {
+    'some speed' => Ast.Value.Undefined(true);
+    'a certain speed' => Ast.Value.Undefined(true);
+}
+placeholder_Entity__tt__picture = {
+    'some image' => Ast.Value.Undefined(true);
+    'some picture' => Ast.Value.Undefined(true);
+    'some photo' => Ast.Value.Undefined(true);
+}
+placeholder_Entity__tt__username = {
+    'somebody' => Ast.Value.Undefined(true);
+    'someone' => Ast.Value.Undefined(true);
+    'some one' => Ast.Value.Undefined(true);
+    'some person' => Ast.Value.Undefined(true);
+}
+placeholder_Entity__tt__phone_number = {
+    'somebody' => Ast.Value.Undefined(true);
+    'someone' => Ast.Value.Undefined(true);
+    'some one' => Ast.Value.Undefined(true);
+    'some person' => Ast.Value.Undefined(true);
+    'some number' => Ast.Value.Undefined(true);
+    'some phone number' => Ast.Value.Undefined(true);
+}
+placeholder_Entity__tt__email_address = {
+    'somebody' => Ast.Value.Undefined(true);
+    'someone' => Ast.Value.Undefined(true);
+    'some one' => Ast.Value.Undefined(true);
+    'some person' => Ast.Value.Undefined(true);
+    'some email address' => Ast.Value.Undefined(true);
+}
+placeholder_Entity__tt__path_name = {
+    'some file' => Ast.Value.Undefined(true);
+    'some directory' => Ast.Value.Undefined(true);
+    'some folder' => Ast.Value.Undefined(true);
+}
+placeholder_Entity__tt__url = {
+    'some url' => Ast.Value.Undefined(true);
+    'some website' => Ast.Value.Undefined(true);
+    'some link' => Ast.Value.Undefined(true);
+}
+
+for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
+    if (typestr.startsWith('Enum__')) {
+        // replace $-placeholders with "some X" where X is based on parameter name
+
+        thingpedia_query = q:thingpedia_query #('a certain ' + pcanonical) [-> pname { isUndefined: true }] => {
+            if (!q.schema.inReq[pname])
+                return null;
+            if (typestr !== C.typeToStringSafe(q.schema.inReq[pname]))
+                return null;
+            return C.betaReduceTable(q, pname, Ast.Value.Undefined(true));
+        };
+        thingpedia_get_command = q:thingpedia_get_command #('a certain ' + pcanonical) [-> pname { isUndefined: true }] => {
+            if (!q.schema.inReq[pname])
+                return null;
+            if (typestr !== C.typeToStringSafe(q.schema.inReq[pname]))
+                return null;
+            return C.betaReduceTable(q, pname, Ast.Value.Undefined(true));
+        };
+        thingpedia_stream = s:thingpedia_stream #('a certain ' + pcanonical) [-> pname { isUndefined: true }] => {
+             if (!s.schema.inReq[pname])
+                 return null;
+             if (typestr !== C.typeToStringSafe(s.schema.inReq[pname]))
+                 return null;
+             return C.betaReduceStream(s, pname, Ast.Value.Undefined(true));
+         };
+         thingpedia_action = a:thingpedia_action #('a certain ' + pcanonical) [-> pname { isUndefined: true }] => {
+             if (!a.schema.inReq[pname])
+                 return null;
+             if (typestr !== C.typeToStringSafe(a.schema.inReq[pname]))
+                 return null;
+             return C.betaReduceAction(a, pname, Ast.Value.Undefined(true));
+         };
+    }
+
     // don't parameter pass booleans or enums, as that rarely makes sense
     if (typestr !== 'Boolean' && !typestr.startsWith('Enum__')) {
+        if (pname !== 'count' && pname !== 'p_count') {
+            // replace $-placeholders with "some X" where X is based on parameter type
+
+            thingpedia_query = q:thingpedia_query p:$('placeholder_' + typestr) [-> pname { isUndefined: true }] => {
+                if (!q.schema.inReq[pname])
+                    return null;
+                if (typestr !== C.typeToStringSafe(q.schema.inReq[pname]))
+                    return null;
+                return C.betaReduceTable(q, pname, p);
+            };
+            thingpedia_get_command = q:thingpedia_get_command p:$('placeholder_' + typestr) [-> pname { isUndefined: true }] => {
+                if (!q.schema.inReq[pname])
+                    return null;
+                if (typestr !== C.typeToStringSafe(q.schema.inReq[pname]))
+                    return null;
+                return C.betaReduceTable(q, pname, p);
+            };
+            thingpedia_stream = s:thingpedia_stream p:$('placeholder_' + typestr) [-> pname { isUndefined: true }] => {
+                if (!s.schema.inReq[pname])
+                    return null;
+                if (typestr !== C.typeToStringSafe(s.schema.inReq[pname]))
+                    return null;
+                return C.betaReduceStream(s, pname, p);
+            };
+            thingpedia_action = a:thingpedia_action p:$('placeholder_' + typestr) [-> pname { isUndefined: true }] => {
+                if (!a.schema.inReq[pname])
+                    return null;
+                if (typestr !== C.typeToStringSafe(a.schema.inReq[pname]))
+                    return null;
+                return C.betaReduceAction(a, pname, p);
+            };
+
+            // replace $-placeholders with "some X" where X is based on parameter name
+
+            thingpedia_query = q:thingpedia_query #('some ' + pcanonical) [-> pname { isUndefined: true }] => {
+                if (!q.schema.inReq[pname])
+                    return null;
+                if (typestr !== C.typeToStringSafe(q.schema.inReq[pname]))
+                    return null;
+                return C.betaReduceTable(q, pname, Ast.Value.Undefined(true));
+            };
+            thingpedia_get_command = q:thingpedia_get_command #('some ' + pcanonical) [-> pname { isUndefined: true }] => {
+                if (!q.schema.inReq[pname])
+                    return null;
+                if (typestr !== C.typeToStringSafe(q.schema.inReq[pname]))
+                    return null;
+                return C.betaReduceTable(q, pname, Ast.Value.Undefined(true));
+            };
+            thingpedia_stream = s:thingpedia_stream #('some ' + pcanonical) [-> pname { isUndefined: true }] => {
+                if (!s.schema.inReq[pname])
+                    return null;
+                if (typestr !== C.typeToStringSafe(s.schema.inReq[pname]))
+                    return null;
+                return C.betaReduceStream(s, pname, Ast.Value.Undefined(true));
+            };
+            thingpedia_action = a:thingpedia_action #('some ' + pcanonical) [-> pname { isUndefined: true }] => {
+                if (!a.schema.inReq[pname])
+                    return null;
+                if (typestr !== C.typeToStringSafe(a.schema.inReq[pname]))
+                    return null;
+                return C.betaReduceAction(a, pname, Ast.Value.Undefined(true));
+            };
+        }
+
+        // replace $-placeholders with projection-based parameter passing
+    
         table_join_replace_placeholder = q:thingpedia_query p:$('single_projection_' + typestr) [-> pname] => C.tableJoinReplacePlaceholder(q, pname, p);
         action_replace_param_with_table = a:thingpedia_action p:$('single_projection_' + typestr) [-> pname] => C.actionReplaceParamWithTable(a, pname, p);
         action_replace_param_with_stream = a:thingpedia_action p:$('single_stream_projection_' + typestr) [-> pname] => C.actionReplaceParamWithStream(a, pname, p);

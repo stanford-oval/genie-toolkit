@@ -28,7 +28,7 @@ import './aggregation';
 
 complete_table = {
     thingpedia_query if complete;
-    table_join_replace_placeholder if complete;
+    !primonly table_join_replace_placeholder if complete;
 }
 complete_get_command = {
     thingpedia_get_command if complete;
@@ -40,14 +40,14 @@ if_filtered_table = {
 }
 
 one_filter_table = {
-    table:complete_table 'if' filter:atom_filter => {
+    !nofilter table:complete_table 'if' filter:atom_filter => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
     };
 }
 two_filter_table = {
-    table:one_filter_table 'and' filter:atom_filter => {
+    !nofilter table:one_filter_table 'and' filter:atom_filter => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
@@ -56,7 +56,7 @@ two_filter_table = {
 with_filtered_table = {
     complete_table;
 
-    table:complete_table ('with' | 'having') filter:with_filter => {
+    !nofilter table:complete_table ('with' | 'having') filter:with_filter => {
         if (!table.schema.is_list)
             return null;
         if (!C.checkFilter(table, filter))
@@ -66,7 +66,12 @@ with_filtered_table = {
 }
 
 edge_stream = {
-    !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => C.makeEdgeFilterStream(p, '==', x, $options);
+    !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => {
+         if (x.getType().isString)
+             return C.makeEdgeFilterStream(p, '=~', x, $options);
+         else
+             return C.makeEdgeFilterStream(p, '==', x, $options);
+    };
     ('when' | 'if') 'the' p:projection_Numeric ('becomes greater than' | 'becomes higher than' | 'goes above' | 'increases above') x:constant_Numeric => C.makeEdgeFilterStream(p, '>=', x, $options);
     ('when' | 'if') 'the' p:projection_Numeric ('becomes smaller than' | 'becomes lower than' | 'goes below' | 'decreases below') x:constant_Numeric => C.makeEdgeFilterStream(p, '<=', x, $options);
 }
@@ -97,7 +102,7 @@ stream = {
             return stream;
         };
     }
-    ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:edge_filter => {
+    !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:edge_filter => {
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter) || table.schema.is_list)
             return null;
         table = C.addFilter(table, filter, $options);
@@ -105,7 +110,7 @@ stream = {
             return null;
         return C.tableToStream(table, null);
     };
-    ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:atom_filter => {
+    !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:atom_filter => {
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
             return null;
         if ($options.flags.turking && table.schema.is_list)
@@ -115,7 +120,7 @@ stream = {
             return null;
         return C.tableToStream(table, null);
     };
-    edge_stream;
+    !nofilter edge_stream;
     timer;
 }
 
@@ -275,21 +280,55 @@ when_get_do_rule = {
     command:complete_get_do_command stream:stream => C.combineStreamCommand(stream, command);
 }
 
+timer_rule = {
+    // timer => get => notify
+    (
+          timer:timer table:complete_get_command
+        | timer:timer 'get' table:complete_table
+        | 'get' table:complete_table timer:timer
+        | timer:timer ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table
+        | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table timer:timer
+    ) => new Ast.Statement.Rule(new Ast.Stream.Join(timer, table, [], table.schema), [C.notifyAction()]);
+    // timer => do
+    (
+          timer:timer action:thingpedia_action
+        | action:thingpedia_action timer:timer
+        | 'i want to' action:thingpedia_action timer:timer
+    ) if complete => new Ast.Statement.Rule(timer, [action]);
+    // timer => get => do
+    !primonly (
+          timer:timer command:complete_get_do_command
+        | command:complete_get_do_command timer:timer
+    ) => new Ast.Statement.Rule(new Ast.Stream.Join(timer, command.table, [], command.table.schema), command.actions);
+}
+
+if ($options.standardSchemas.say) {
+     $root = {
+        (
+             'notify me' stream:stream
+           | ('alert me' | 'inform me' | 'let me know' | 'i get notified' | 'i get alerted') stream:stream
+           | 'send me' ('a message' | 'an alert' | 'a notification' | 'a pop up notification' | 'a popup notification') stream:stream
+        ) => C.makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction($options) : C.notifyAction()]));
+        'send me a reminder' stream:timer => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options)]));
+        'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
+        !turking {
+            (
+                  'alert me' stream:stream ('saying' | 'with the text') constant:constant_String
+                | 'show' ('the notification' | 'the message' | 'a popup notification that says' | 'a popup containing') constant:constant_String stream:stream
+             ) => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
+        }
+
+        // now => say
+        (
+              'say' c:constant_String
+            | 'send me a message saying' c:constant_String
+            | 'show a popup that says' c:constant_String
+        ) => C.makeProgram(new Ast.Statement.Command(null, [C.builtinSayAction($options, c)]));
+    }
+}
+
 $root = {
     // when => notify
-    (
-          'notify me' stream:stream
-        | ('alert me' | 'inform me' | 'let me know' | 'i get notified' | 'i get alerted') stream:stream
-        | 'send me' ('a message' | 'an alert' | 'a notification' | 'a pop up notification' | 'a popup notification') stream:stream
-    ) => C.makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction($options) : C.notifyAction()]));
-    'send me a reminder' stream:timer => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options)]));
-    'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
-    !turking {
-        (
-              'alert me' stream:stream ('saying' | 'with the text') constant:constant_String
-            | 'show' ('the notification' | 'the message' | 'a popup notification that says' | 'a popup containing') constant:constant_String stream:stream
-        ) => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
-    }
     ('monitor' | 'watch') table:with_filtered_table => {
         if (!table.schema.is_monitorable)
             return null;
@@ -314,7 +353,7 @@ $root = {
             return null;
         return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
-    ('monitor' | 'watch') table:complete_table 'and' ('alert me' | 'notify me' | 'inform me' | 'warn me') ('if' | 'when') filter:atom_filter => {
+    !nofilter ('monitor' | 'watch') table:complete_table 'and' ('alert me' | 'notify me' | 'inform me' | 'warn me') ('if' | 'when') filter:atom_filter => {
         if (C.hasGetPredicate(filter))
             return null;
         if (table.schema.is_list || !C.checkFilter(table, filter))
@@ -338,7 +377,7 @@ $root = {
         // note that we intentionally don't use tableToStream here, because we don't want to introduce edge filters
         return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), [C.notifyAction()]));
     };
-    ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:atom_filter 'in' table:complete_table => {
+    !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:atom_filter 'in' table:complete_table => {
         if (C.hasGetPredicate(filter))
             return null;
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
@@ -353,7 +392,7 @@ $root = {
             return null;
         return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
-    ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:edge_filter 'in' table:complete_table => {
+    !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:edge_filter 'in' table:complete_table => {
         if (C.hasGetPredicate(filter))
             return null;
         if (!table.schema.is_monitorable || table.schema.is_list || !C.checkFilter(table, filter))
@@ -380,6 +419,7 @@ $root = {
             return null;
         return C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     };
+
     // now => get => say(...)
     // don't merge these, the output sizes are too small
     (
@@ -388,8 +428,8 @@ $root = {
         | ('show me' | 'tell me' | 'say') 'what is' proj:projection_Any
         | 'who is' proj:projection_Entity__tt__username ('' | '?')
         | 'who is' proj:projection_Entity__tt__email_address ('' | '?')
-        | proj:projection_Any
     ) => C.sayProjectionProgram($options, proj);
+    !turking proj:projection_Any => C.sayProjectionProgram($options, proj);
 
     // now => do
     (
@@ -402,10 +442,10 @@ $root = {
     ) if complete => C.makeProgram(new Ast.Statement.Command(null, [action]));
 
     // now => get => do
-    command:complete_get_do_command => C.makeProgram(command);
+    !primonly command:complete_get_do_command => C.makeProgram(command);
 
     // when join get => notify/say(...)
-    stream:complete_when_get_stream => {
+    !primonly stream:complete_when_get_stream => {
         assert(stream.isJoin, `unexpected stream in when_get, found ${stream}`);
         if (stream.table.isProjection)
             return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Join(stream.stream, stream.table.table, stream.in_params, stream.schema), [C.notifyAction()]));
@@ -413,48 +453,54 @@ $root = {
             return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
 
+    rule:timer_rule => C.makeProgram(rule);
+
     // when => do
-    rule:complete_when_do_rule => C.makeProgram(rule);
+    !primonly rule:complete_when_do_rule => C.makeProgram(rule);
 
     // when => get => do
-    rule:when_get_do_rule => C.makeProgram(rule);
+    ?triple_commands rule:when_get_do_rule => C.makeProgram(rule);
 
     // setup commands
-    (
-          ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' action:thingpedia_action
-        | ('tell' | 'command' | 'order' | 'request' | 'inform') principal:constant_Entity__tt__username 'that' ('he needs' | 'she needs' | 'i need him' | 'i need her') 'to' action:thingpedia_action
-    ) if complete => C.makeProgram(new Ast.Statement.Command(null, [action]), principal);
-    (
-          ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table 'and send it to me'
-        | ('request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table
-        | ('show me' | 'get') table:complete_table 'from' principal:constant_Entity__tt__username
-        | ('show me' | 'get' | 'what is') principal:constant_Entity__tt__username '\'s' table:complete_table
-        | ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to send me' table:complete_table
-    ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction('return')]), principal);
-    ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' ('let me know' | 'inform me' | 'notify me' | 'alert me') stream:stream => C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction('return')]), principal);
+    ?remote_commands {
+        (
+              ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' action:thingpedia_action
+            | ('tell' | 'command' | 'order' | 'request' | 'inform') principal:constant_Entity__tt__username 'that' ('he needs' | 'she needs' | 'i need him' | 'i need her') 'to' action:thingpedia_action
+        ) if complete => C.makeProgram(new Ast.Statement.Command(null, [action]), principal);
+        (
+              ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table 'and send it to me'
+            | ('request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table
+            | ('show me' | 'get') table:complete_table 'from' principal:constant_Entity__tt__username
+            | ('show me' | 'get' | 'what is') principal:constant_Entity__tt__username '\'s' table:complete_table
+            | ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to send me' table:complete_table
+        ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction('return')]), principal);
+        ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' ('let me know' | 'inform me' | 'notify me' | 'alert me') stream:stream => C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction('return')]), principal);
+    }
 
     // policies
-    ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action if complete => C.makePolicy(null, null, action);
-    ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action 'if' filter:atom_filter if complete => {
-        if (!filter.isExternal)
-            return null;
-        let policy = C.makePolicy(null, null, action);
-        if (!policy)
-            return null;
-        policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
-        return policy;
-    };
-    ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') ('get' | 'see' | 'access' | 'monitor' | 'read') table:if_filtered_table => C.makePolicy(null, table, null);
-    source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action if complete => C.makePolicy(source, null, action);
-    source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action 'if' filter:atom_filter if complete => {
-        if (!filter.isExternal)
-            return null;
-        let policy = C.makePolicy(source, null, action);
-        if (!policy)
-            return null;
-        policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
-        return policy;
-    };
-    source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') ('get' | 'see' | 'access' | 'monitor' | 'read') table:if_filtered_table => C.makePolicy(source, table, null);
+    ?policies {
+        ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action if complete => C.makePolicy(null, null, action);
+        ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action 'if' filter:get_predicate_filter if complete => {
+            if (!filter.isExternal)
+                return null;
+            let policy = C.makePolicy(null, null, action);
+            if (!policy)
+                return null;
+            policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
+            return policy;
+        };
+        ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') ('get' | 'see' | 'access' | 'monitor' | 'read') table:if_filtered_table => C.makePolicy(null, table, null);
+        source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action if complete => C.makePolicy(source, null, action);
+        source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') action:thingpedia_action 'if' filter:get_predicate_filter if complete => {
+            if (!filter.isExternal)
+                return null;
+            let policy = C.makePolicy(source, null, action);
+            if (!policy)
+                return null;
+            policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
+            return policy;
+        };
+        source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') ('get' | 'see' | 'access' | 'monitor' | 'read') table:if_filtered_table => C.makePolicy(source, table, null);
+    }
 }
 

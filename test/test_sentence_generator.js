@@ -235,6 +235,8 @@ async function main() {
         thingpediaClient: _tpClient,
         flags: {
             turking: false,
+            remote_programs: true,
+            policies: true,
         },
         maxDepth: 6,
         debug: true

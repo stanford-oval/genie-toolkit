@@ -19,7 +19,7 @@ const FileParameterProvider = require('./lib/file_parameter_provider');
 const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
 const BinaryPPDB = require('../lib/binary_ppdb');
 
-const StreamUtils = require('./lib/stream-utils');
+const StreamUtils = require('../lib/stream-utils');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
 module.exports = {
@@ -73,6 +73,36 @@ module.exports = {
             metavar: 'FRACTION',
             help: 'Fraction of sentences that will not have their quoted parameters replaced',
         });
+        parser.addArgument('--untyped-string-probability', {
+            type: Number,
+            defaultValue: 0.0,
+            metavar: 'FRACTION',
+            help: 'Fraction of sentences that will have generic text in their string parameters'
+        });
+        parser.addArgument('--max-span-length', {
+            type: Number,
+            defaultValue: 10,
+            metavar: 'LENGTH',
+            help: 'Maximum length of a string parameter (in words)'
+        });
+        parser.addArgument('--synthetic-expand-factor', {
+            type: Number,
+            defaultValue: 5,
+            metavar: 'FACTOR',
+            help: 'Expansion factor of synthetic sentences (including augmented synthetic)'
+        });
+        parser.addArgument('--quoted-paraphrasing-expand-factor', {
+            type: Number,
+            defaultValue: 30,
+            metavar: 'FACTOR',
+            help: 'Expansion factor of paraphrased sentences with quoted parameters'
+        });
+        parser.addArgument('--no-quote-paraphrasing-expand-factor', {
+            type: Number,
+            defaultValue: 10,
+            metavar: 'FACTOR',
+            help: 'Expansion factor of paraphrased sentences without quoted parameters)'
+        });
 
         parser.addArgument('--debug', {
             nargs: 0,
@@ -108,7 +138,12 @@ module.exports = {
                 ppdbFile: args.ppdb ? await BinaryPPDB.mapFile(args.ppdb) : null,
                 ppdbProbabilitySynthetic: args.ppdb_synthetic_fraction,
                 ppdbProbabilityParaphrase: args.ppdb_paraphrase_fraction,
-                quotedProbability: args.quoted_fraction
+                quotedProbability: args.quoted_fraction,
+                untypedStringProbability: args.untyped_string_probability,
+                maxSpanLength: args.max_span_length,
+                syntheticExpandFactor: args.synthetic_expand_factor,
+                paraphrasingExpandFactor: args.quoted_paraphrasing_expand_factor,
+                noQuoteExpandFactor: args.no_quote_paraphrasing_expand_factor,
             }))
             .pipe(new DatasetStringifier())
             .pipe(args.output);

@@ -10,10 +10,13 @@
 "use strict";
 
 const ThingTalk = require('thingtalk');
+const Grammar = ThingTalk.Grammar;
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 const fs = require('fs');
 const util = require('util');
+
+const { uniform } = require('../../lib/random');
 
 // Parse the semi-obsolete JSON format for schemas used
 // by Thingpedia into a FunctionDef
@@ -77,6 +80,15 @@ function makeSchemaClassDef(kind, schema, isMeta) {
     const annotations = {};
     return new Ast.ClassDef(kind, null, queries, actions,
                             imports, metadata, annotations);
+}
+
+function exampleToCode(example) {
+    const clone = example.clone();
+    clone.id = -1;
+    clone.utterances = [];
+    clone.preprocessed = [];
+    clone.metadata = {};
+    return clone.prettyprint();
 }
 
 module.exports = class FileThingpediaClient {
@@ -203,5 +215,40 @@ module.exports = class FileThingpediaClient {
     async getAllEntityTypes() {
         await this._ensureLoaded();
         return this._entities;
+    }
+
+    async genCheatsheet(random = true, options = {}) {
+        await this._ensureLoaded();
+
+        const devices = [];
+        const devices_rev = {};
+        for (let kind in this._meta) {
+            devices_rev[kind] = devices.length;
+            devices.push({
+                primary_kind: kind,
+                name: this._meta[kind].kind_canonical
+            });
+        }
+        devices.sort((a, b) => {
+            return a.name.localeCompare(b.name);
+        });
+
+        let parsedExamples = (await Grammar.parse(await this.getAllExamples())).datasets[0].examples;
+        const examples = parsedExamples.map((e) => {
+            let kind;
+            for (let [, invocation] of e.iteratePrimitives())
+                kind = invocation.selector.kind;
+            if (kind in devices_rev) {
+                let utterance = random ? uniform(e.utterances, options.rng) : e.utterances[0];
+                return {
+                    kind: kind,
+                    utterance: utterance,
+                    target_code: exampleToCode(e)
+                };
+            } else {
+                return null;
+            }
+        }).filter((e) => !!e);
+        return [devices, examples];
     }
 };
