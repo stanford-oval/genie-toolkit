@@ -7,8 +7,8 @@ parsers that translate from natural language to a formal language of your choice
 
 Genie was described in the paper:
 
-_Genie: A Generator of Natural Language Parsers for Compositional Virtual Assistants_  
-Giovanni Campagna (\*), Silei Xu (\*), Mehrad Moradshahi, and Monica S. Lam  
+_Genie: A Generator of Natural Language Semantic Parsers for Virtual Assistant Commands_  
+Giovanni Campagna (\*), Silei Xu (\*), Mehrad Moradshahi, Richard Socher, and Monica S. Lam  
 Conditionally accepted to _Proceedings of the 40th ACM SIGPLAN Conference on Programming Language Design and Implementation_ (PLDI 2019), Phoenix, AZ, June 2019.
 
 If you use Genie in any academic work, please cite the above paper.
