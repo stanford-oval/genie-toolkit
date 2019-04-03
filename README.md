@@ -214,6 +214,11 @@ in both.
 
 #### Step 5. Training
 
+First, set the `GENIE_PARSER_PATH` to where you put [genie-parser](https://github.com/Stanford-Mobisocial-IoT-Lab/genie-parser):
+```
+export GENIE_PARSER_PATH='your_path_to/genie-parser'
+```
+
 To train, use:
 ```
 genie train --datadir <DATADIR> --outputdir <OUTPUTDIR> --workdir <WORKDIR>
