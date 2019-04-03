@@ -245,6 +245,8 @@ module.exports = class FileThingpediaClient {
                     utterance: utterance,
                     target_code: exampleToCode(e)
                 };
+            } else {
+                return null;
             }
         }).filter((e) => !!e);
         return [devices, examples];

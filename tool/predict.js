@@ -10,12 +10,8 @@
 "use strict";
 
 const fs = require('fs');
-const csv = require('csv');
-const byline = require('byline');
 const Stream = require('stream');
-const ThingTalk = require('thingtalk');
 
-const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('./lib/parserclient');

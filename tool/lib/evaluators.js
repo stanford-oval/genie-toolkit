@@ -115,7 +115,7 @@ function normalizeKeywordParams(program) {
         while (i < program.length) {
             if (!program[i].startsWith('param:'))
                 break;
-            const pn = program[i].split(':')[1]
+            const pn = program[i].split(':')[1];
             i++;
             assert.strictEqual(program[i], '=');
             i++;
