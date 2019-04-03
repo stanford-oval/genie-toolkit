@@ -75,7 +75,7 @@ module.exports = {
         });
         parser.addArgument('--untyped-string-probability', {
             type: Number,
-            defaultValue: 0.01,
+            defaultValue: 0.0,
             metavar: 'FRACTION',
             help: 'Fraction of sentences that will have generic text in their string parameters'
         });
