@@ -112,7 +112,7 @@ function addPermission(perm) {
 
 var remoteApps = '';
 function installProgramRemote(principal, identity, uniqueId, program) {
-    remoteApps += `\nremote ${principal}/${identity} : ${uniqueId} : ${program.prettyprint()}`;
+    remoteApps += `\nremote ${principal}/${identity} : ${uniqueId} : ${program.prettyprint(false)}`;
     return Promise.resolve();
 }
 
