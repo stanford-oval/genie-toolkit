@@ -11,9 +11,6 @@
 
 const assert = require('assert');
 
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-
 const DeviceView = require('../lib/devices/device_view');
 
 const SUCCESS = {};
@@ -39,7 +36,7 @@ module.exports = async function testDevices(engine) {
 
     let added = FAILURE;
     let removed = SUCCESS;
-    const view = new DeviceView(devices, Ast.Selector.Device('com.xkcd', null, null));
+    const view = new DeviceView(devices, 'com.xkcd', {});
     view.on('object-added', (d) => {
         assert.strictEqual(d, devices.getDevice('com.xkcd'));
         added = SUCCESS;
@@ -68,7 +65,7 @@ module.exports = async function testDevices(engine) {
     assert.strictEqual(removed, SUCCESS);
 
     view.stop();
-    view2 = new DeviceView(devices, Ast.Selector.Device('com.xkcd', null, null));
+    view2 = new DeviceView(devices, 'com.xkcd', {});
     // start the view before we connect to the signal, so we are sure not to receive it
     view2.start();
     view2.on('object-added', (d) => {
@@ -79,12 +76,12 @@ module.exports = async function testDevices(engine) {
         removed = SUCCESS;
     });
 
-    const view3 = new DeviceView(devices, Ast.Selector.Device('com.xkcd', 'com.xkcd', null));
+    const view3 = new DeviceView(devices, 'com.xkcd', { id: 'com.xkcd' });
     view3.start();
     assert.strictEqual(view3.values().length, 1);
     view3.stop();
 
-    const view4 = new DeviceView(devices, Ast.Selector.Device('com.xkcd', 'com.xkcd2', null));
+    const view4 = new DeviceView(devices, 'com.xkcd', { id: 'com.xkcd2' });
     view4.start();
     assert.strictEqual(view4.values().length, 0);
     view4.stop();
