@@ -8,7 +8,7 @@ lib/genie-compiler/grammar.js
 
 *.tgz
 
-workdir
+workdir*
 dataset.tt
 thingpedia.json
 

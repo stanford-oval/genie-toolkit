@@ -1,0 +1,118 @@
+<style type="text/css"> #Survey {
+    width: 70%;
+    margin: 0 auto;
+}
+</style>
+
+<section class="container" id="Survey">
+    <h3> Instructions </h3>
+    <p>
+        We are building a voice personal virtual assistant that can help you control all your devices, social accounts, etc.
+    </p>
+    <p>
+        In the following, you will see a cheatsheet containing one of the devices our virtual assistant supports - Spotify.
+        It has three different types of functions:
+    </p>
+    <ul>
+        <li><font color="red">when</font> command: which decides when the rule will trigger, e.g., when it rains, when new article posts.</li>
+        <li><font color="orange">get</font> command: get something from the device/service, e.g., get my latest email, get the current weather.</li>
+        <li><font color="#006400">do</font> command: perform an action on the device/service, e.g., send an email, turn off my camera.</b>;</li>
+    </ul>
+    <p>
+        In the following, we will ask you to give us 5 example commands to demonstrate how you will use this.
+    </p>
+    <p>
+        You can simply adopt any of the commands in the cheatsheet, and replace the placeholder with things you like,
+        such as your favourite songs or artists.
+        You can also combine two commands together to create a rule to simplify your life.
+        Here are some examples.
+    </p>
+
+    <h3> Examples: </h3>
+    Example 1:
+    <ul>
+        <li><em>Play shake it off</em></li>
+    </ul>
+
+    Example 2:
+    <ul>
+        <li><em>What is the tempo of Hey Jude?</em></li>
+    </ul>
+
+    Example 3 (a rule combines two function):
+    <ul>
+        <li><font color="red">when:</font> when a song is playing </li>
+        <li><font color="#006400">do:</font> add ____ (song name) to my playlist ___ (playlist) </b>;</li>
+        <li>Command: <em>Add all played song to my playlist my history</em></li>
+    </ul>
+
+    Bad example (do not leave blanks, replace it with something you like):
+    <ul>
+        <li><em>Play the artist _____ </em></li>
+    </ul>
+
+
+    <h3> Your turn now </h3>
+    <p>
+        Now take your time to read through the cheatsheet.
+        Click "START" button if you are ready, and then you will be asked to provide 5 examples
+        that using <b>one or two</b> functions in the cheatsheet.
+    </p>
+    <p>
+        Note that once you click the "START" button, <b>the cheatsheet will be removed.</b>
+        You will <b>not</b> be able to read them again.
+    </p>
+    <p>
+        When writing your commands, do not keep the "when", "get", and "do" in the cheatsheet in front of each example;
+        do not leave any blanks in your commands, fill them with something you think it's reasonable;
+        do not use functions that are not in the cheatsheet.
+        <b>If more than 2 commands you wrote fail to meet the criteria, your answer might be rejected</b>.
+    </p>
+    <p>
+        You can only do this task once. <b>Multiple submissions from the same user ID will be rejected</b>.
+    </p>
+    <p>
+        No need to write sentences that are exactly the same in the cheatsheet. We want you to know how would you say
+        it in your way in real life.
+        In fact, we would love to have more variety on how different people express the same idea. So be creative.
+    </p>
+
+    <div id="cheatsheet-picture" style="text-align: center">
+        <div>
+            <img src="${url}" alt="cheatsheet">
+        </div>
+
+        <br>
+
+        <button class="start" onClick="(function() {
+            const res = confirm('Warn: once you start, you will no longer see the cheatsheet. Are you ready? ');
+            if (res === true) {
+                document.getElementById('cheatsheet-picture').style.display = 'none';
+                document.getElementById('command-form').style.display='block';
+            }
+        })(); return false;">START</button>
+    </div>
+
+    <div id="command-form" style="display:none">
+        <label>Command 1</label>
+        <div class="form-group"><textarea class="form-control" cols="120" how="" id="command-1" name="command-1" required="" rows="3"></textarea></div>
+        <br>
+
+        <label>Command 2</label>
+        <div class="form-group"><textarea class="form-control" cols="120" how="" id="command-2" name="command-2" required="" rows="3"></textarea></div>
+        <br>
+
+        <label>Command 3</label>
+        <div class="form-group"><textarea class="form-control" cols="120" how="" id="command-3" name="command-3" required="" rows="3"></textarea></div>
+        <br>
+
+        <label>Command 4</label>
+        <div class="form-group"><textarea class="form-control" cols="120" how="" id="command-4" name="command-4" required="" rows="3"></textarea></div>
+        <br>
+
+        <label>Command 5</label>
+        <div class="form-group"><textarea class="form-control" cols="120" how="" id="command-5" name="command-5" required="" rows="3"></textarea></div>
+        <br>
+    </div>
+
+</section>

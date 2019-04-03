@@ -1,0 +1,102 @@
+<style type="text/css"> #Survey {
+    width: 70%;
+    margin: 0 auto;
+}
+</style>
+
+<section class="container" id="Survey">
+    <h3> Instructions </h3>
+    <p>
+        We are building a voice personal virtual assistant that can help you share all your data, devices with others
+        with control in your hand.
+    </p>
+    <p>
+        In the following, you will see a cheatsheet containing the devices and functions our virtual assistant supports.
+        There are 15 devices on the cheatsheet. Each device has up to 2 types of commands:
+    </p>
+    <ul>
+        <li><font color="orange">get</font> command: get something from the device/service, e.g., get my latest email, get the current weather.</li>
+        <li><font color="#006400">do</font> command: perform an action on the device/service, e.g., send an email, turn off my camera.</b>;</li>
+    </ul>
+    <p>
+        Others can use these commands to access your devices and data.
+        To preserve privacy, you can set up rules on how others can see your data and use your device.
+        Here are some examples.
+    </p>
+
+    <h3> Examples: </h3>
+    Example 1:
+    <ul>
+        <li><em>Everyone is allowed to turn on my lights.</em></li>
+    </ul>
+
+    Example 2:
+    <ul>
+        <li><em>Dad can see my security camera.</em></li>
+    </ul>
+
+    Example 3:
+    <ul>
+        <li><em>Bob can view my emails with subject containing walmart receipt.</em></li>
+    </ul>
+
+
+    <h3> Your turn now </h3>
+    <p>
+        Now take your time to read through the cheatsheet.
+        Click "START" button if you are ready, and then you will be asked to provide 5 examples of
+        <b>similar access rules based on the functions in the cheatsheet.</b>
+    </p>
+    <p>
+        Note that once you click the "START" button, <b>the cheatsheet will be removed.</b>
+        You will <b>not</b> be able to read them again.
+    </p>
+    <p>
+        When writing your access rules, do not keep the "get", and "do" in the cheatsheet in front of each example;
+        do not leave any blanks in your rules, fill them with something you think it's reasonable and useful for you;
+        do not use functions that are not in the cheatsheet.
+        <b>If more than 2 commands you wrote fail to meet the criteria, your answer might be rejected</b>.
+    </p>
+    <p>
+        You can only do this task once. <b>Multiple submissions from the same user ID will be rejected</b>.
+    </p>
+
+    <div id="cheatsheet-picture" style="text-align: center">
+        <div>
+            <img src="${url}" alt="cheatsheet">
+        </div>
+
+        <br>
+
+        <button class="start" onClick="(function() {
+            const res = confirm('Warn: once you start, you will no longer see the cheatsheet. Are you ready? ');
+            if (res === true) {
+                document.getElementById('cheatsheet-picture').style.display = 'none';
+                document.getElementById('command-form').style.display='block';
+            }
+        })(); return false;">START</button>
+    </div>
+
+    <div id="command-form" style="display:none">
+        <label>Access Rule 1</label>
+        <div class="form-group"><textarea class="form-control" cols="120" how="" id="command-1" name="command-1" required="" rows="3"></textarea></div>
+        <br>
+
+        <label>Access Rule 2</label>
+        <div class="form-group"><textarea class="form-control" cols="120" how="" id="command-2" name="command-2" required="" rows="3"></textarea></div>
+        <br>
+
+        <label>Access Rule 3</label>
+        <div class="form-group"><textarea class="form-control" cols="120" how="" id="command-3" name="command-3" required="" rows="3"></textarea></div>
+        <br>
+
+        <label>Access Rule 4</label>
+        <div class="form-group"><textarea class="form-control" cols="120" how="" id="command-4" name="command-4" required="" rows="3"></textarea></div>
+        <br>
+
+        <label>Access Rule 5</label>
+        <div class="form-group"><textarea class="form-control" cols="120" how="" id="command-5" name="command-5" required="" rows="3"></textarea></div>
+        <br>
+    </div>
+
+</section>
