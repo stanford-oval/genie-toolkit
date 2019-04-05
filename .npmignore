@@ -12,6 +12,7 @@ thingpedia.json
 *.tsv
 *.csv
 *.bin
+*.py
 !data/**/*.tsv
 
 !test/**/*-results.csv
