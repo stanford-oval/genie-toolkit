@@ -31,4 +31,4 @@ deploy:
     secure: df2J3aDRsAdWk/HzgirqkQ2t8Y+FlP2lbRLO7sgdYAUVgvPlOFKQ5zZGBAvrE+LkZVN6h+Zi5Se56Ro6hLKj78hcbwNbj2bsn/PGbANlzqzrrJnoeXkCowGkE03V6bba0kJkgjuhWZPRb7ms2xcMblhuqKUGQ7nK2or1+Dfmcjq69rhBTvmf/D4TRa/THdr603r9c+iyFKu1SNBsFnp495mzszgpfxQjOf9h32Cmeq32v7wjdfpZ0QzpYSz+zmMvCZyc7WPpGGgbvxCaBgHVjFDfIzOR42xS6E1/6hyfgO+LX/Vt77VVUUhXsqRQ5ljpXnG3ulk0H4AGDvAVFQ3G7S0aX7o/nR+y3nyj+detSos721XdGUltzqbaZa3fv5oYGXbU4wT9QrvhmdP7PWwedigJ7uJcfKoAzic7mvkgXqCVKjQvgabXqz6n2WUK+5qKC5k/9wNIB2gaPLgufX1tvxKaznmwiqNS29tj+IN2KpqVXHvKqQC+d2MjAM002tObbkpfEHkG4S+duVWYWKAgIlA7KAaYv2q4YQBaeo1+okaLhhKPKbg5rm5b4akfUCsu2dOAXEdCq++xroQtvoas1isqOL7fWgT/TubFdOQKJQPwU6oj9hoKDcr8EnXqzfoZtuzyNK2EzXlv0J0mIJogUyeC9ted7vO2YWzfQEqBDzQ=
   on:
     tags: true
-    repo: Stanford-Mobisocial-IoT-Lab/thingengine-core
+    repo: stanford-oval/thingengine-core
