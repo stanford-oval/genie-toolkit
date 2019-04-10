@@ -1,6 +1,6 @@
 # Genie
 
-[![Build Status](https://travis-ci.com/Stanford-Mobisocial-IoT-Lab/genie-toolkit.svg?branch=master)](https://travis-ci.com/Stanford-Mobisocial-IoT-Lab/genie-toolkit) [![Coverage Status](https://coveralls.io/repos/github/Stanford-Mobisocial-IoT-Lab/genie-toolkit/badge.svg?branch=master)](https://coveralls.io/github/Stanford-Mobisocial-IoT-Lab/genie-toolkit?branch=master) [![Dependency Status](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/genie-toolkit/status.svg)](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/genie-toolkit) [![Greenkeeper badge](https://badges.greenkeeper.io/Stanford-Mobisocial-IoT-Lab/genie-toolkit.svg)](https://greenkeeper.io/) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/Stanford-Mobisocial-IoT-Lab/genie-toolkit.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Stanford-Mobisocial-IoT-Lab/genie-toolkit/context:javascript)
+[![Build Status](https://travis-ci.com/stanford-oval/genie-toolkit.svg?branch=master)](https://travis-ci.com/stanford-oval/genie-toolkit) [![Coverage Status](https://coveralls.io/repos/github/stanford-oval/genie-toolkit/badge.svg?branch=master)](https://coveralls.io/github/stanford-oval/genie-toolkit?branch=master) [![Dependency Status](https://david-dm.org/stanford-oval/genie-toolkit/status.svg)](https://david-dm.org/stanford-oval/genie-toolkit) [![Greenkeeper badge](https://badges.greenkeeper.io/stanford-oval/genie-toolkit.svg)](https://greenkeeper.io/) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/stanford-oval/genie-toolkit.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/stanford-oval/genie-toolkit/context:javascript)
 
 This repository hosts Genie, a tool which allows you to quickly create new semantic
 parsers that translate from natural language to a formal language of your choice.
@@ -40,7 +40,7 @@ sentences. Genie can use the template language to generate
 ### A turnkey solution for Genie+Almond
 
 A all-in-one solution to use Genie to extend ThingTalk with new templates is provided by
-[almond-cloud](https://github.com/Stanford-Mobisocial-IoT-Lab/almond-cloud).
+[almond-cloud](https://github.com/stanford-oval/almond-cloud).
 
 Please refer to `almond-cloud` documentation for installation instructions.
 
@@ -64,7 +64,7 @@ At various points Genie will call a tokenizer to preprocess the sentences and ap
 identification. By default, it will use the REST API provided by <https://almond-nl.stanford.edu/>.
 This can be very slow, especially with large datasets, as it involves one HTTP/1.1 request per sentence.
 
-Alternatively, you should set up a local instance of [almond-tokenizer](https://github.com/Stanford-Mobisocial-IoT-Lab/almond-tokenizer),
+Alternatively, you should set up a local instance of [almond-tokenizer](https://github.com/stanford-oval/almond-tokenizer),
 listening on localhost port 8888. If you do so, set the environment variable `GENIE_USE_TOKENIZER=local`.
 This avoids the network communication and also uses a more efficient protocol.
 
@@ -131,7 +131,7 @@ sampling occurs, based on program complexity, sentence complexity or other heuri
 
 The command-line version of Genie **does not** include a paraphrasing website, as that is usually too dependency
 heavy and too specific to a particular setup. Instead, the `mturk-input.tsv` is in a format
-suitable for use with the paraphrasing website provided by [almond-cloud](https://github.com/Stanford-Mobisocial-IoT-Lab/almond-cloud),
+suitable for use with the paraphrasing website provided by [almond-cloud](https://github.com/stanford-oval/almond-cloud),
 which provides one-click integration with Amazon MTurk.
 
 If you wish to avoid almond-cloud, you can prepare the paraphrasing HITs with:
@@ -234,7 +234,7 @@ genie evaluate --datadir <DATADIR> --outputdir <OUTPUTDIR> --workdir <WORKDIR>
 #### Step 6. Deploying
 
 The resulting trained model can be deployed using `genie-server`, provided by the
-[genie-parser](https://github.com/Stanford-Mobisocial-IoT-Lab/genie-parser) package.
+[genie-parser](https://github.com/stanford-oval/genie-parser) package.
 Please refer to its documentation for instructions.
 
 ### Modifying ThingTalk
