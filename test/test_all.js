@@ -18,6 +18,5 @@ seq([
     ('./test_unit'),
     ('./auto_test_almond'),
     ('./test_helpers'),
-    ('./test_parser'),
     ('./test_entities')
 ]);

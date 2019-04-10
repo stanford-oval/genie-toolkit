@@ -1,6 +1,6 @@
 # Internal API
 
-The library must be used in conjuction with [thingengine-core](https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core)
+The library must be used in conjuction with [thingengine-core](https://github.com/stanford-oval/thingengine-core)
 and the rest of the ThingSystem platform.
 
 The library exposes a single class, `Almond`, which represents a single conversation with the user.
