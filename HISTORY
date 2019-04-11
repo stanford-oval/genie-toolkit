@@ -1,3 +1,9 @@
+0.2.1
+=====
+
+* Pinned dependency `mmap-io` down to a functioning version.
+* Fixed `train` command.
+
 0.2.0
 =====
 
