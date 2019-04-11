@@ -13,7 +13,7 @@
     "argparse": "^1.0.10",
     "byline": "^5.0.0",
     "csv": "^5.0.0",
-    "mmap-io": "^1.0.0",
+    "mmap-io": "1.0.0",
     "seedrandom": "^3.0.0",
     "shuffle-array": "^1.0.1",
     "sockaddr": "^1.0.1",
