@@ -50,6 +50,7 @@ module.exports = async function testDevices(engine) {
     let view2;
 
     const device = await devices.loadOneDevice({ kind: 'com.xkcd' }, true);
+    assert(device);
 
     const xkcd = devices.getAllDevicesOfKind('com.xkcd');
     assert.strictEqual(xkcd.length, 1);
