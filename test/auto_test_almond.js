@@ -360,11 +360,7 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
-    `>> Ok, so you want me to notify you when the current event detected on your security camera changes. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+    `>> Ok, I'm going to notify you when the current event detected on your security camera changes.
 >> ask special null
 `,
 `{
@@ -440,8 +436,7 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 2],
-`>> Ok, I'm going to get an Xkcd comic if the title contains “lol” and then notify you.
->> Sorry, I did not find any result for that.
+`>> Sorry, I did not find any result for that.
 >> ask special null
 `,
     `{
@@ -523,8 +518,7 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 2],
-`>> Ok, I'm going to get an Xkcd comic if the title contains “lol” and the title does not contain “foo” and then notify you.
->> Sorry, I did not find any result for that.
+`>> Sorry, I did not find any result for that.
 >> ask special null
 `,
     `{
@@ -690,11 +684,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
       entities: { USERNAME_0: 'mom' } },
-`>> Ok, so you want me to tell Alice Smith (mom): get an Xkcd comic and then notify you. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, so I'm going to tell Alice Smith (mom): get an Xkcd comic and then notify you.
 >> ask special null
 `,
     `null
@@ -704,11 +694,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.xkcd.get_comic', '=>', 'return'],
       entities: { USERNAME_0: 'mom' } },
-`>> Ok, so you want me to tell Alice Smith (mom): get an Xkcd comic and then send it to me. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, so I'm going to tell Alice Smith (mom): get an Xkcd comic and then send it to me.
 >> ask special null
 `,
     `{
@@ -741,11 +727,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     [
     { code: ['policy', 'param:source:Entity(tt:contact)', '==', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post'],
       entities: { USERNAME_0: 'mom' } },
-`>> Ok, so Alice Smith (mom) is allowed to tweet any status. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to set: Alice Smith (mom) is allowed to tweet any status.
 >> ask special null
 `,
     `source == "mock-account:MOCK1234-phone:+5556664357"^^tt:contact("Alice Smith (mom)") : now => @com.twitter.post;`],
@@ -778,8 +760,11 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special raw_string
 `,
     `pizza`,
-`>> I'm going to get websites matching “pizza” on Bing and then notify you (as asked by Carol Johnson).
->> Sorry, I did not find any result for that.
+`>> Ok, so you want me to get websites matching “pizza” on Bing and then notify you (as asked by Carol Johnson). Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Sorry, I did not find any result for that.
 >> ask special null
 `,
     `{
@@ -1409,8 +1394,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '2'],
-`>> Ok, I'm going to get the asteroid passing close to Earth today and then notify you.
->> Sorry, I did not find any result for that.
+`>> Sorry, I did not find any result for that.
 >> ask special null
 `,
 
@@ -2445,11 +2429,7 @@ null],
             ]
         });
     },
-    `>> Ok, so you want me to tell @slack_user_name: get the emails in your GMail inbox and then send it to me. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+    `>> Ok, so I'm going to tell @slack_user_name: get the emails in your GMail inbox and then send it to me.
 >> ask special null
 `,
     `{
@@ -2495,11 +2475,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
             ]
         });
     },
-    `>> Ok, so you want me to tell @slack_user_name: get the emails in your GMail inbox and then send it to me. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+    `>> Ok, so I'm going to tell @slack_user_name: get the emails in your GMail inbox and then send it to me.
 >> ask special null
 `,
     `{
@@ -2564,11 +2540,7 @@ remote mock-account:MOCK1234-email:dummy@example.com/phone:+15555555555 : uuid-X
             ]
         });
     },
-    `>> Ok, so you want me to tell @slack_user_name: get the emails in your GMail inbox and then send it to me. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+    `>> Ok, so I'm going to tell @slack_user_name: get the emails in your GMail inbox and then send it to me.
 >> ask special null
 `,
     `{
@@ -2614,11 +2586,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
             ]
         });
     },
-    `>> Ok, so you want me to tell Some Guy: get the emails in your GMail inbox and then send it to me. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+    `>> Ok, so I'm going to tell Some Guy: get the emails in your GMail inbox and then send it to me.
 >> ask special null
 `,
     `{
@@ -2763,10 +2731,8 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     null],
 
     [`!! test command multiple results !!`,
-`>> You have multiple Twitter devices. Which one do you want to use?
->> choice 0: Twitter Account foo
->> choice 1: Twitter Account bar
->> ask special choice
+`>> Ok, so you want me to tweet ____. Is that right?
+>> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:train'],
 `>> ask special null
@@ -2784,10 +2750,8 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     null],
 
     [`!! test command multiple results !!`,
-`>> You have multiple Twitter devices. Which one do you want to use?
->> choice 0: Twitter Account foo
->> choice 1: Twitter Account bar
->> ask special choice
+`>> Ok, so you want me to tweet ____. Is that right?
+>> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:train'],
 `>> ask special null
@@ -2806,10 +2770,8 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     null],
 
     [`!! test command multiple results !!`,
-`>> You have multiple Twitter devices. Which one do you want to use?
->> choice 0: Twitter Account foo
->> choice 1: Twitter Account bar
->> ask special choice
+`>> Ok, so you want me to tweet ____. Is that right?
+>> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:train'],
 `>> ask special null
@@ -2874,6 +2836,10 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     // so we run the second result
     [
     `get new york times`,
+`>> Ok, so you want me to get New York Times articles and then notify you. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
 `>> Sorry, I did not find any result for that.
 >> ask special null
 `,
@@ -2923,7 +2889,11 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 >> ask special raw_string
 `,
     '!! test command always nothing !!',
-`>> Ok, I'm going to tweet “!! test command always nothing !!”.
+`>> Ok, so you want me to tweet “!! test command always nothing !!”. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
 >> ask special null
 `,
     `{
