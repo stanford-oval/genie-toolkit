@@ -1245,7 +1245,7 @@ mkdirp@^0.5.0, mkdirp@^0.5.1:
   dependencies:
     minimist "0.0.8"
 
-mmap-io@^1.0.0:
+mmap-io@1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/mmap-io/-/mmap-io-1.0.0.tgz#dc0225df5c21a10cfbaa9add54e53bc0a41e19ac"
   integrity sha512-7k9bU9Zlg+REIPiCaGCJ8TEcnl3qAhx+yoFeU+6SFT1Eu27v3gEhOMMvto4QZB4jJHQ+mr/v/umqMBFgcMRlqg==
