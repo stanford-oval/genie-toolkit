@@ -289,11 +289,7 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 1],
-`>> Ok, so you want me to post the text on Facebook when tweets from anyone you follow change. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to post the text on Facebook when tweets from anyone you follow change.
 >> ask special null
 `,
 `{
@@ -669,11 +665,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post', 'param:status:String', '=', 'QUOTED_STRING_0'],
       entities: { USERNAME_0: 'mom', QUOTED_STRING_0: "lol" } },
-`>> Ok, so you want me to tell Alice Smith (mom): tweet “lol”. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, so I'm going to tell Alice Smith (mom): tweet “lol”.
 >> ask special null
 `,
     `null
@@ -2025,11 +2017,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '0'],
-`>> Ok, so you want me to follow @bob on Twitter. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to follow @bob on Twitter.
 >> ask special null
 `,
     `{
@@ -2038,11 +2026,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     {"program": `now => @com.gmail.send_email(to="bob"^^tt:username, message="foo", subject="bar");` },
-`>> Ok, so you want me to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”.
 >> ask special null
 `,
     `{
@@ -2051,11 +2035,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     {"program": `now => @com.gmail.send_email(to="dad"^^tt:username, message="foo", subject="bar");` },
-`>> Ok, so you want me to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”.
 >> ask special null
 `,
     `{
@@ -2069,11 +2049,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special email_address
 `,
     {code:['bookkeeping', 'answer', 'EMAIL_ADDRESS_0'], entities:{'EMAIL_ADDRESS_0': 'bob@smith.com'}},
-`>> Ok, so you want me to send an email to bob@smith.com with subject “bar” on GMail with message equal to “foo”. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to send an email to bob@smith.com with subject “bar” on GMail with message equal to “foo”.
 >> ask special null
 `,
     `{
@@ -2095,11 +2071,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '1'],
-`>> Ok, so you want me to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”.
 >> ask special null
 `,
     `{
@@ -2109,11 +2081,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     [
     {code: ['now', '=>', '@com.gmail.send_email', 'param:to:Entity(tt:email_address)', '=', 'USERNAME_0', 'param:message:String', '=', 'QUOTED_STRING_0', 'param:subject:String', '=', 'QUOTED_STRING_1'],
      entities: { USERNAME_0: 'dad', QUOTED_STRING_0: 'foo', QUOTED_STRING_1: 'bar' } },
-`>> Ok, so you want me to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”.
 >> ask special null
 `,
     `{
@@ -2123,11 +2091,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     [
     {code: ['now', '=>', '@org.thingpedia.builtin.thingengine.phone.send_sms', 'param:to:Entity(tt:phone_number)', '=', 'USERNAME_0', 'param:message:String', '=', 'QUOTED_STRING_0'],
      entities: { USERNAME_0: 'dad', QUOTED_STRING_0: 'foo', QUOTED_STRING_1: 'bar' } },
-`>> Ok, so you want me to send a message to Bob Smith (dad) containing “foo”. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to send a message to Bob Smith (dad) containing “foo”.
 >> ask special null
 `,
     `{
@@ -2942,9 +2906,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 >> ask special choice
 `,
         ['bookkeeping', 'choice', 0],
-        `>> Ok, so you want me to tweet “hello”. Is that right?\n>> ask special yesno\n`,
-        ['bookkeeping', 'special', 'special:yes'],
-        `>> Consider it done.\n>> ask special null\n`,
+        `>> Ok, I'm going to tweet “hello”.\n>> ask special null\n`,
         `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
     ],
 
@@ -3018,8 +2980,6 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 >> ask special choice
 `,
         ['bookkeeping', 'choice', 0],
-        `>> Ok, so you want me to tweet “hello”. Is that right?\n>> ask special yesno\n`,
-        ['bookkeeping', 'special', 'special:yes'],
         `>> Consider it done.\n>> ask special null\n`,
         `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
     ],
