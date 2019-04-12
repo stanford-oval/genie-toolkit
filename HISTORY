@@ -1,3 +1,10 @@
+1.4.1
+=====
+
+* Support for end-to-end crypto in matrix messaging was removed, as the olm library is
+  no longer available. This is temporary and might be reverted when we switch to a
+  newer library.
+
 1.4.0
 =====
 
