@@ -2899,6 +2899,150 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     `{
   now => @com.twitter(id="twitter-bar").post(status="!! test command always nothing !!");
 }`],
+
+    // confirmation: confident, no slot, query
+    [
+        `\\t now => @com.bing.web_search(query="hello") => notify;`,
+        `>> Sorry, I did not find any result for that.\n>> ask special null\n`,
+        `{\n  now => @com.bing(id="com.bing").web_search(query="hello") => notify;\n}`
+    ],
+
+    // confirmation: confident, has slot, query
+    [
+        `\\t now => @com.bing.web_search() => notify;`,
+        `>> What do you want to search?\n>> ask special raw_string\n`,
+        `hello`,
+        `>> Sorry, I did not find any result for that.\n>> ask special null\n`,
+        `{\n  now => @com.bing(id="com.bing").web_search(query="hello") => notify;\n}`
+    ],
+
+    // confirmation: confident, no slot, safe action
+    [
+        `\\t now => @com.spotify.play_song(toPlay = "hello");`,
+        `>> Ok, I'm going to play a song with to play equal to “hello”.\n>> ask special null\n`,
+        `{\n  now => @com.spotify(id="com.spotify-40").play_song(toPlay="hello");\n}`
+    ],
+
+
+    // confirmation: confident, has slot, safe action
+    [
+        `\\t now => @com.spotify.play_song();`,
+        `>> What song would you like to play?\n>> ask special raw_string\n`,
+        `hello`,
+        `>> Ok, I'm going to play a song with to play equal to “hello”.\n>> ask special null\n`,
+        `{\n  now => @com.spotify(id="com.spotify-41").play_song(toPlay="hello");\n}`
+    ],
+
+    // confirmation: confident, no slot, general
+    [
+        `\\t now => @com.twitter.post(status="hello");`,
+        `>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+        ['bookkeeping', 'choice', 0],
+        `>> Ok, so you want me to tweet “hello”. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> Consider it done.\n>> ask special null\n`,
+        `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
+    ],
+
+
+    // confirmation: confident, has slot, general
+    [
+        `\\t now => @com.twitter.post();`,
+        `>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+        ['bookkeeping', 'choice', 0],
+        `>> What do you want to tweet?\n>> ask special raw_string\n`,
+        `hello`,
+        `>> Ok, so you want me to tweet “hello”. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> Consider it done.\n>> ask special null\n`,
+        `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
+    ],
+
+    // confirmation: not confident, no slot, query
+    [
+        `search hello on bing`,
+        `>> Ok, so you want me to get websites matching “hello” on Bing and then notify you. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> Sorry, I did not find any result for that.\n>> ask special null\n`,
+        `{\n  now => @com.bing(id="com.bing").web_search(query="hello") => notify;\n}`
+    ],
+
+    // confirmation: not confident, has slot, query
+    [
+        `search on bing`,
+        `>> Ok, so you want me to get websites matching ____ on Bing and then notify you. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> What do you want to search?\n>> ask special raw_string\n`,
+        `hello`,
+        `>> Sorry, I did not find any result for that.\n>> ask special null\n`,
+        `{\n  now => @com.bing(id="com.bing").web_search(query="hello") => notify;\n}`
+    ],
+
+    // confirmation: not confident, no slot, safe action
+    [
+        `play hello`,
+        `>> Ok, so you want me to play a song with to play equal to “hello”. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> Ok, I'm going to play a song with to play equal to “hello”.\n>> ask special null\n`,
+        `{\n  now => @com.spotify(id="com.spotify-42").play_song(toPlay="hello");\n}`
+    ],
+
+
+    // confirmation: not confident, has slot, safe action
+    [
+        `play a song`,
+        `>> Ok, so you want me to play a song. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> What song would you like to play?\n>> ask special raw_string\n`,
+        `hello`,
+        `>> Ok, I'm going to play a song with to play equal to “hello”.\n>> ask special null\n`,
+        `{\n  now => @com.spotify(id="com.spotify-43").play_song(toPlay="hello");\n}`
+    ],
+
+    // confirmation: not confident, no slot, general
+    [
+        `tweet hello`,
+        `>> Ok, so you want me to tweet “hello”. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+        ['bookkeeping', 'choice', 0],
+        `>> Ok, so you want me to tweet “hello”. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> Consider it done.\n>> ask special null\n`,
+        `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
+    ],
+
+
+    // confirmation: not confident, has slot, general
+    [
+        `tweet`,
+        `>> Ok, so you want me to tweet ____. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+        ['bookkeeping', 'choice', 0],
+        `>> What do you want to tweet?\n>> ask special raw_string\n`,
+        `hello`,
+        `>> Ok, so you want me to tweet “hello”. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> Consider it done.\n>> ask special null\n`,
+        `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
+    ]
 ];
 
 function handleCommand(almond, input) {
@@ -3154,6 +3298,54 @@ function main() {
                 { code: ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'], score: 'Infinity' },
             ];
             const tokens = 'get an xkcd comic'.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'search hello on bing') {
+            const candidates = [
+                { code: ['now', '=>', '@com.bing.web_search', 'param:query:String', '=', '"', 'hello', '"', '=>', 'notify'], score: 0.5 },
+            ];
+            const tokens = utterance.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'search on bing') {
+            const candidates = [
+                { code: ['now', '=>', '@com.bing.web_search', '=>', 'notify'], score: 0.5 },
+            ];
+            const tokens = utterance.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'play hello') {
+            const candidates = [
+                { code: ['now', '=>', '@com.spotify.play_song', 'param:toPlay:String', '=', '"', 'hello', '"'], score: 0.5 },
+            ];
+            const tokens = utterance.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'play a song') {
+            const candidates = [
+                { code: ['now', '=>', '@com.spotify.play_song'], score: 0.5 },
+            ];
+            const tokens = utterance.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'tweet hello') {
+            const candidates = [
+                { code: ['now', '=>', '@com.twitter.post', 'param:status:String', '=', '"', 'hello', '"'], score: 0.5 },
+            ];
+            const tokens = utterance.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'tweet') {
+            const candidates = [
+                { code: ['now', '=>', '@com.twitter.post'], score: 0.5 },
+            ];
+            const tokens = utterance.split(' ');
             const entities = {};
 
             return Promise.resolve({ tokens, entities, candidates });
