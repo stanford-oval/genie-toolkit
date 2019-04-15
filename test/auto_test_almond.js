@@ -2948,6 +2948,22 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
         `{\n  now => @com.bing(id="com.bing").web_search(query="hello") => notify;\n}`
     ],
 
+    // confirmation: not confident, has slot in filter, query
+    [
+        `search hello on bing with title filter`,
+        `>> Ok, so you want me to get websites matching “hello” on Bing if the title contains ____ and then notify you. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> What is the value of the filter on the title?
+>> choice 0: Use the description from Bing
+>> choice 1: A description of the result
+>> choice 2: None of above
+>> ask special choice
+`,
+        ['bookkeeping', 'choice', '1'],
+        `>> Sorry, I did not find any result for that.\n>> ask special null\n`,
+        `{\n  now => (@com.bing(id="com.bing").web_search(query="hello")), title =~ $event => notify;\n}`
+    ],
+
     // confirmation: not confident, no slot, safe action
     [
         `play hello`,
@@ -3272,6 +3288,14 @@ function main() {
         } else if (utterance === 'search on bing') {
             const candidates = [
                 { code: ['now', '=>', '@com.bing.web_search', '=>', 'notify'], score: 0.5 },
+            ];
+            const tokens = utterance.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'search hello on bing with title filter') {
+            const candidates = [
+                { code: ['now', '=>', '(', '@com.bing.web_search', 'param:query:String', '=', '"', 'hello', '"', ')', 'filter', 'param:title:String', '=~', 'undefined' , '=>', 'notify'], score: 0.5 },
             ];
             const tokens = utterance.split(' ');
             const entities = {};
