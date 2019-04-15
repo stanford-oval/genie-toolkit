@@ -33,7 +33,9 @@ const subcommands = {
     'predict': require('./predict'),
     'evaluate-server': require('./evaluate-server'),
     'evaluate-file': require('./evaluate-file'),
-    'manual-annotate': require('./manual-annotate')
+    'manual-annotate': require('./manual-annotate'),
+
+    'dataset': require('./dataset'),
 };
 
 async function main() {
