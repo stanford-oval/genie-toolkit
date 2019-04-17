@@ -2,54 +2,51 @@
 
 [![Build Status](https://travis-ci.com/stanford-oval/genie-toolkit.svg?branch=master)](https://travis-ci.com/stanford-oval/genie-toolkit) [![Coverage Status](https://coveralls.io/repos/github/stanford-oval/genie-toolkit/badge.svg?branch=master)](https://coveralls.io/github/stanford-oval/genie-toolkit?branch=master) [![Dependency Status](https://david-dm.org/stanford-oval/genie-toolkit/status.svg)](https://david-dm.org/stanford-oval/genie-toolkit) [![Greenkeeper badge](https://badges.greenkeeper.io/stanford-oval/genie-toolkit.svg)](https://greenkeeper.io/) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/stanford-oval/genie-toolkit.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/stanford-oval/genie-toolkit/context:javascript)
 
-This repository hosts Genie, a tool which allows you to quickly create new semantic
+This repository hosts Genie, a toolkit which allows you to quickly create new semantic
 parsers that translate from natural language to a formal language of your choice.
 
 Genie was described in the paper:
 
 _Genie: A Generator of Natural Language Semantic Parsers for Virtual Assistant Commands_  
 Giovanni Campagna (\*), Silei Xu (\*), Mehrad Moradshahi, Richard Socher, and Monica S. Lam  
-Conditionally accepted to _Proceedings of the 40th ACM SIGPLAN Conference on Programming Language Design and Implementation_ (PLDI 2019), Phoenix, AZ, June 2019.
+In _Proceedings of the 40th ACM SIGPLAN Conference on Programming Language Design and Implementation_ (PLDI 2019), Phoenix, AZ, June 2019.
 
 If you use Genie in any academic work, please cite the above paper.
 
-This repository contains the Genie library and a command line tool; other portions
-of the Genie system, such as the basic language library, paraphrasing web server and
-semantic parsing code live in other repositories.
-
 ## Installation
 
-See [Install](INSTALL.md).
+Genie depends on additional libraries, including the ThingTalk library and the decaNLP machine learning library.
+See [INSTALL.md](INSTALL.md) for details and installation instructions.
 
 ## License
 
 This package is covered by the GNU General Public License, version 3
 or any later version. See [LICENSE](LICENSE) for details.
 
-## Reproducing the results of the paper
+## Reproducing The Results In The Paper
 
-To reproduce the machine learning results of the paper, please use the associated artifact, available
+To reproduce the machine learning results in the Genie paper, please use the associated artifact, available
 for download from [our website](https://oval.cs.stanford.edu/releases/#section-datasets).
-The artifact includes all the datasets associated with the paper (including ablation and case studies), pretrained models
+The artifact includes all the necessary datasets (including ablation and case studies), pretrained models
 and evaluation scripts. Please follow the instructions in the README file to reproduce individual experiments. 
 
 ## Using Genie
 
-### Genie concepts
+### Genie Concepts
 
-Genie is a based on the _Genie template language_, which succintly defines a space of synthetic
-sentences. Genie can use the template language to generate 
+Genie is a based on the _Genie template language_, which succintly defines a space of synthesized
+sentences. Genie can use the template language to generate a dataset, then sample a subset of
+sentences to paraphrase using crowdsourcing.
 
-### A turnkey solution for Genie+Almond
+### A Turnkey Solution For Genie+Almond
 
 A all-in-one solution to use Genie to extend ThingTalk with new templates is provided by
 [almond-cloud](https://github.com/stanford-oval/almond-cloud).
 
 Please refer to `almond-cloud` documentation for installation instructions.
 
-After installation, administrators (and optionally users) can create new Genie template
-modules and new natural language models, trigger automated training and deploy the trained models
-to any Almond system.
+After installation, administrators can create new natural language models,
+trigger automated training and deploy the trained models to any Almond system.
 
 ### Manual Genie Usage
 
@@ -74,12 +71,12 @@ This avoids the network communication and also uses a more efficient protocol.
 Note that correct preprocessing of Location values with a local tokenizer requires MapQuest API key.
 Please refer to the almond-tokenizer documentation for details.
 
-#### Step 1. Generate synthetic set.
+#### Step 1. Synthesize Sentences.
 
-To generate a synthetic set, use:
+To synthesize a set of sentences, use:
 
 ```
-genie generate --locale en --template template.genie --thingpedia thingpedia.json --dataset dataset.tt -o synthetic.tsv
+genie generate --locale en --template template.genie --thingpedia thingpedia.json --dataset dataset.tt -o synthesized.tsv
 ```
 
 The `--template` flag can be used to point to a template file definining the construct templates,
@@ -103,7 +100,7 @@ The latest dataset file for the reference Thingpedia can be downloaded with:
 genie download-dataset -o dataset.tt
 ```
 
-The resulting `synthetic.tsv` file can be used to train directly. To do so, skip to Step 4, Dataset preprocessing. If you wish instead to paraphrase, you'll probably want to restrict the synthetic set
+The resulting `synthesized.tsv` file can be used to train directly. To do so, skip to Step 4, Dataset preprocessing. If you wish instead to paraphrase, you'll probably want to restrict the synthesized set
 to paraphrase-friendly construct templates, by passing `--flag-set turking` on the command line.
 
 NOTE: the `generate` command can require significant amounts of memory. If you experience out of memory,
@@ -113,11 +110,11 @@ node --max_old_space_size=8000 `which genie` ...
 ```
 or however much memory you want to dedicate to the process (in MB).
 
-#### Step 2. Choose the sentences to paraphrases.
+#### Step 2. Choose The Sentences To Paraphrases.
 
 To choose which sentences to paraphrase, use:
 ```
-genie sample synthetic.tsv --constants constants.tsv --sampling-strategy bySignature --sampling-control easy-hard-functions.tsv -o mturk-input.tsv
+genie sample synthesized.tsv --constants constants.tsv --sampling-strategy bySignature --sampling-control easy-hard-functions.tsv -o mturk-input.tsv
 ```
 
 Use `constants.tsv` to choose which values to use for each constant, based on type and parameter name.
@@ -168,12 +165,12 @@ that can be used in Amazon MTurk to reject the completed tasks.
 If you wish to skip manual validation, use a `--validation-threshold` of 0. In that case, `--validation-input`
 is not necessary. The script will still perform automatic validation.
 
-#### Step 4. Dataset preprocessing
+#### Step 4. Data Augmentation
 
-After creating the synthetic and paraphrase datasets, use the following command to augment the dataset
+After creating the synthesized and paraphrase datasets, use the following command to augment the dataset
 and apply parameter replacement:
 ```
-genie augment paraphrasing.tsv synthetic.tsv --thingpedia thingpedia.json --ppdb compiled-ppdb.bin --parameter-datasets parameter-datasets.tsv
+genie augment paraphrasing.tsv synthesized.tsv --thingpedia thingpedia.json --ppdb compiled-ppdb.bin --parameter-datasets parameter-datasets.tsv
  -o everything.tsv
  [--ppdb-synthetic-fraction FRACTION] [--ppdb-paraphrase-fraction FRACTION]
  [--quoted-fraction FRACTION]
@@ -188,7 +185,9 @@ You can obtain the datasets Almond uses at <https://almond.stanford.edu/thingped
 <https://almond.stanford.edu/thingpedia/entities>. Download
 is available after registration and accepting the terms and conditions.
 
-The sample parameter-datasets.tsv can found in [here](https://github.com/Stanford-Mobisocial-IoT-Lab/genie-toolkit/blob/master/test/data/parameter-datasets.tsv).
+A sample parameter-datasets.tsv can be found in [here](https://github.com/stanford-oval/genie-toolkit/blob/master/test/data/parameter-datasets.tsv).
+
+### Step 5. Training And Evaluation Sets
 
 Given the created everything.tsv file, you can split in train/eval/test with:
 ```
@@ -215,45 +214,56 @@ If `--test` is provided, the command will generate a test set as well. Regardles
 the test set is always split naively from the evaluation/development set, so the same sentence can appear
 in both.
 
-#### Step 5. Training
+NOTE: while splitting the dataset in train/test/eval is standard practice, it can result in an evaluation
+set that overestimates accuracy, because it contains only paraphrases. It is recommended that you
+obtain a separate evaluation set from real user data.
 
-First, set the `GENIE_PARSER_PATH` to where you put [genie-parser](https://github.com/Stanford-Mobisocial-IoT-Lab/genie-parser):
-```
-export GENIE_PARSER_PATH='your_path_to/genie-parser'
-```
+#### Step 6. Training
 
 To train, use:
 ```
-genie train --datadir <DATADIR> --outputdir <OUTPUTDIR> --workdir <WORKDIR>
+genie train --datadir <DATADIR> --outputdir <OUTPUTDIR> --workdir <WORKDIR> [--config-file <config.json>]
 ```
 
 `<DATADIR>` is the path to the TSV files, `<OUTPUTDIR>` is a directory that will
 contained the best trained model, and `<WORKDIR>` is a temporary directory containing
 preprocessed dataset files, intermediate training steps, Tensorboard event files,
-and debugging logs. `<WORKDIR>` should be on a file system with at least 10GB free;
+and debugging logs. `<WORKDIR>` should be on a file system with at least 5GB free;
 do not use a tmpfs such as `/tmp` for it.
+Use the optional `config.json` file to pass additional options to the decaNLP library, or
+adjust hyperparameters.
+You can pass `--debug` to increase output verbosity.
 
 Training will also automatically evaluate on the validation set, and output the best
 scores and error analysis.
 
 To evaluate on the test set, use:
 ```
-genie evaluate --datadir <DATADIR> --outputdir <OUTPUTDIR> --workdir <WORKDIR>
+genie evaluate-server --url file://<OUTPUTDIR> --thingpedia thingpedia.json test.tsv
+```
+You can pass `--debug` for additional error analysis, and `--csv` to generate machine parseable
+output.
+
+To generate a prediction file for a test set, use:
+```
+genie predict --url file://<OUTPUTDIR> -o predictions.tsv test.tsv
 ```
 
-#### Step 6. Deploying
+The prediction file can also be evaluated as:
+```
+genie evaluate-server --thingpedia thingpedia.json --dataset test.tsv --predictions predictions.tsv
+```
+Sentence IDs in the test.tsv file and the prediction file must match, or an error occurs.
 
-The resulting trained model can be deployed using `genie-server`, provided by the
-[genie-parser](https://github.com/stanford-oval/genie-parser) package.
+#### Step 7. Deploying
+
+The resulting trained model can be deployed as a server using the [almond-cloud](https://github.com/stanford-oval/almond-cloud) package.
 Please refer to its documentation for instructions.
 
 ### Modifying ThingTalk
 
 If you want to also extend ThingTalk (with new syntax or new features) you will need to
-fork and modify the library, which lives at <https://github.com/Stanford-Mobisocial-IoT/thingtalk>.
+fork and modify the library, which lives at <https://github.com/stanford-oval/thingtalk>.
 After modifying the library, you can use `yarn link` or a combination of package.json `dependencies`
 and `resolutions` to point the almond-cloud installation to your library. You must make sure
 that only one copy of the ThingTalk library is loaded (use `find node_modules/ -name thingtalk` to check).
-
-If you modify the ThingTalk syntax, you must also point genie-parser to a modified parser for the ThingTalk grammar
-(to perform automatic syntax checks). See the ThingTalk documentation for how to generate this.
