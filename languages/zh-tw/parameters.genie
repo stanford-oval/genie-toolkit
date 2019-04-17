@@ -179,81 +179,81 @@ for (let [typestr, type] of $options.types.all) {
 
 
 placeholder_Number = {
-    '某個數字' => Ast.Value.Undefined(true);
-    '某個數值' => Ast.Value.Undefined(true);
+    '某個 數字' => Ast.Value.Undefined(true);
+    '某個 數值' => Ast.Value.Undefined(true);
 }
 placeholder_String = {
-    '某個東西' => Ast.Value.Undefined(true);
+    '某個 東西' => Ast.Value.Undefined(true);
 }
 placeholder_Currency = {
-    '某個數值' => Ast.Value.Undefined(true);
-    '某個額度' => Ast.Value.Undefined(true);
+    '某個 數值' => Ast.Value.Undefined(true);
+    '某個 額度' => Ast.Value.Undefined(true);
 }
 placeholder_Time = {
-    '某段時間' => Ast.Value.Undefined(true);
-    '一段時間' => Ast.Value.Undefined(true);
+    '某段 時間' => Ast.Value.Undefined(true);
+    '一段 時間' => Ast.Value.Undefined(true);
 }
 placeholder_Date = {
     '某日' => Ast.Value.Undefined(true);
     '某天' => Ast.Value.Undefined(true);
-    '某個時間' => Ast.Value.Undefined(true);
+    '某個 時間' => Ast.Value.Undefined(true);
 }
 placeholder_Location = {
-    '某個地方' => Ast.Value.Undefined(true);
-    '某個地方' => Ast.Value.Undefined(true);
-    '一個地方' => Ast.Value.Undefined(true);
-    '一個地方' => Ast.Value.Undefined(true);
+    '某個 地方' => Ast.Value.Undefined(true);
+    '某個 地方' => Ast.Value.Undefined(true);
+    '一個 地方' => Ast.Value.Undefined(true);
+    '一個 地方' => Ast.Value.Undefined(true);
 }
 placeholder_Measure_ms   = {
-    '某段時間' => Ast.Value.Undefined(true);
+    '某段 時間' => Ast.Value.Undefined(true);
 }
 placeholder_Measure_byte = {
-    '某個大小' => Ast.Value.Undefined(true);
+    '某個 大小' => Ast.Value.Undefined(true);
 }
 placeholder_Measure_kg   = {
-    '某個重量' => Ast.Value.Undefined(true);
+    '某個 重量' => Ast.Value.Undefined(true);
 }
 placeholder_Measure_C    = {
-    '某個溫度' => Ast.Value.Undefined(true);
+    '某個 溫度' => Ast.Value.Undefined(true);
 }
 placeholder_Measure_m    = {
-    '某個長度' => Ast.Value.Undefined(true);
-    '某段距離' => Ast.Value.Undefined(true);
+    '某個 長度' => Ast.Value.Undefined(true);
+    '某段 距離' => Ast.Value.Undefined(true);
 }
 placeholder_Measure_mps  = {
-    '某個速度' => Ast.Value.Undefined(true);
+    '某個 速度' => Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__picture = {
-    '某張圖' => Ast.Value.Undefined(true);
-    '某張圖片' => Ast.Value.Undefined(true);
-    '某張照片' => Ast.Value.Undefined(true);
+    '某張 圖' => Ast.Value.Undefined(true);
+    '某張 圖片' => Ast.Value.Undefined(true);
+    '某張 照片' => Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__username = {
     '某人' => Ast.Value.Undefined(true);
-    '某個人' => Ast.Value.Undefined(true);
+    '某個 人' => Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__phone_number = {
     '某人' => Ast.Value.Undefined(true);
-    '某個人' => Ast.Value.Undefined(true);
-    '某個號碼' => Ast.Value.Undefined(true);
-    '某支電話號碼' => Ast.Value.Undefined(true);
+    '某個 人' => Ast.Value.Undefined(true);
+    '某個 號碼' => Ast.Value.Undefined(true);
+    '某支 電話 號碼' => Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__email_address = {
     '某人' => Ast.Value.Undefined(true);
-    '某個人' => Ast.Value.Undefined(true);
-    '某個電子郵件' => Ast.Value.Undefined(true);
-    '某個電子郵件地址' => Ast.Value.Undefined(true);
+    '某個 人' => Ast.Value.Undefined(true);
+    '某個 電子 郵件' => Ast.Value.Undefined(true);
+    '某個 電子 郵件 地址' => Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__path_name = {
-    '某個檔案' => Ast.Value.Undefined(true);
-    '某個目錄' => Ast.Value.Undefined(true);
-    '某個檔案夾' => Ast.Value.Undefined(true);
-    '某個資料夾' => Ast.Value.Undefined(true);
+    '某個 檔案' => Ast.Value.Undefined(true);
+    '某個 目錄' => Ast.Value.Undefined(true);
+    '某個 檔案夾' => Ast.Value.Undefined(true);
+    '某個 資料夾' => Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__url = {
-    '某個連結' => Ast.Value.Undefined(true);
-    '某個網站' => Ast.Value.Undefined(true);
-    '某個網址' => Ast.Value.Undefined(true);
+    '某個 連結' => Ast.Value.Undefined(true);
+    '某個 網站' => Ast.Value.Undefined(true);
+    '某個 網址' => Ast.Value.Undefined(true);
 }
 
 for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
