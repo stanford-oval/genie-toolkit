@@ -185,9 +185,11 @@ You can obtain the datasets Almond uses at <https://almond.stanford.edu/thingped
 <https://almond.stanford.edu/thingpedia/entities>. Download
 is available after registration and accepting the terms and conditions.
 
+The sample parameter-datasets.tsv can found in [here](https://github.com/Stanford-Mobisocial-IoT-Lab/genie-toolkit/blob/master/test/data/parameter-datasets.tsv).
+
 Given the created everything.tsv file, you can split in train/eval/test with:
 ```
-genie split-train-eval -i everything.tsv --train train.tsv --eval eval.tsv [--test test.tsv] --eval-prob 0.1
+genie split-train-eval everything.tsv --train train.tsv --eval eval.tsv [--test test.tsv] --eval-prob 0.1
   --split-strategy sentence
 ```
 
@@ -211,6 +213,11 @@ the test set is always split naively from the evaluation/development set, so the
 in both.
 
 #### Step 5. Training
+
+First, set the `GENIE_PARSER_PATH` to where you put [genie-parser](https://github.com/Stanford-Mobisocial-IoT-Lab/genie-parser):
+```
+export GENIE_PARSER_PATH='your_path_to/genie-parser'
+```
 
 To train, use:
 ```
