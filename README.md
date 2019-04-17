@@ -28,7 +28,10 @@ or any later version. See [LICENSE](LICENSE) for details.
 
 ## Reproducing the results of the paper
 
-To reproduce the machine learning results of the paper, see [Reproducing](doc/reproducing.md).
+To reproduce the machine learning results of the paper, please use the associated artifact, available
+for download from [our website](https://oval.cs.stanford.edu/releases/#section-datasets).
+The artifact includes all the datasets associated with the paper (including ablation and case studies), pretrained models
+and evaluation scripts. Please follow the instructions in the README file to reproduce individual experiments. 
 
 ## Using Genie
 
