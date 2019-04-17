@@ -19,4 +19,5 @@ seq([
     ('./test_stream_utils'),
     ('./test_requoting'),
     ('./test_sentence_generator'),
+    ('./test_i18n_chinese'),
 ]);
