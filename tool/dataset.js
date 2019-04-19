@@ -2,9 +2,9 @@
 //
 // This file is part of Genie
 //
-// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019 National Taiwan University
 //
-// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Author: Elvis Yu-Jing Lin <r06922068@ntu.edu.tw> <elvisyjlin@gmail.com>
 //
 // See COPYING for details
 "use strict";
