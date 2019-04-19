@@ -66,5 +66,5 @@ without augmentation. The resulting training set must be called `train.tsv`, so 
 to copy everything over to a new folder.
 
 To customize parameters other than the one in the ablation studies, you
-can create a customized configuration file, or use [genie-parser](https://github.com/Stanford-Mobisocial-IoT-Lab/genie-parser) directly.
+can create a customized configuration file, or use [genie-parser](https://github.com/stanford-oval/genie-parser) directly.
 Please refer to the genie-parser documentation for details.

@@ -1,9 +1,9 @@
 {
   "name": "genie-toolkit",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A Generator of Natural Language Parsers for Compositional Virtual Assistants",
   "main": "lib/index.js",
-  "repository": "https://github.com/Stanford-Mobisocial-IoT-Lab/genie-toolkit.git",
+  "repository": "https://github.com/stanford-oval/genie-toolkit.git",
   "author": "Giovanni Campagna <gcampagn@cs.stanford.edu>",
   "license": "GPL-3.0+",
   "bin": {
@@ -13,7 +13,7 @@
     "argparse": "^1.0.10",
     "byline": "^5.0.0",
     "csv": "^5.0.0",
-    "mmap-io": "^1.0.0",
+    "mmap-io": "1.0.0",
     "seedrandom": "^3.0.0",
     "shuffle-array": "^1.0.1",
     "sockaddr": "^1.0.1",
@@ -24,7 +24,7 @@
   "devDependencies": {
     "coveralls": "^3.0.0",
     "eslint": "^5.3.0",
-    "nyc": "^13.1.0",
+    "nyc": "^14.0.0",
     "pegjs": "~0.10.0"
   },
   "scripts": {

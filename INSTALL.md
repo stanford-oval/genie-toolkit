@@ -4,7 +4,7 @@ Genie is hosted on [NPM](https://npmjs.com). We recommend using [Yarn](https://y
 as a package manager, to ensure exact compatibility with Genie's dependencies. Genie depends
 on nodejs >= 8, and it is known to work with nodejs 8.* and 10.* LTS.
 
-Genie also depends on [genie-parser](https://github.com/Stanford-Mobisocial-IoT-Lab/genie-parser), a semantic
+Genie also depends on [genie-parser](https://github.com/stanford-oval/genie-parser), a semantic
 parser written in Python and Tensorflow. Please refer to genie-parser's documentation for installation
 instructions.
 
