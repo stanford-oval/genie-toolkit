@@ -11,14 +11,12 @@
 
 //const seedrandom = require('seedrandom');
 const fs = require('fs');
-const byline = require('byline');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const { ThingTalkDatasetCleaner,
         ThingTalkDatasetPreprocessor,
         ThingTalkDatasetReader,
         ThingTalkDatasetWriter } = require('./thingtalk-dataset')
-const { DatasetStringifier } = require('../lib/dataset-parsers');
 
 module.exports = {
     initArgparse(subparsers) {
