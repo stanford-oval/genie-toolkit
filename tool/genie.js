@@ -19,6 +19,7 @@ const subcommands = {
     'download-dataset': require('./download-dataset'),
 
     'generate': require('./generate'),
+    'generate-contextual': require('./generate-contextual'),
     'sample': require('./sample'),
 
     'mturk-make-paraphrase-hits': require('./mturk-make-paraphrase-hits'),

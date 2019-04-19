@@ -1,0 +1,38 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+// contextual templates for Genie
+
+{
+const assert = require('assert');
+
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
+const { clean } = require('../../lib/utils');
+
+// import the combinator library
+const C = require('../../lib/sentence-generator/ast_manip');
+}
+
+import './constants';
+import '../common-parameters';
+
+context complete_query = C.isQueryProgram($) && C.isCompleteProgram($);
+
+$root = {
+    q:complete_query 'how about' p:constant_Any ('?' | '') => C.replaceAnyParameterFromContext(q, p);
+
+    p:complete_query 'do it again' => {
+        if (!p.rules[0].table.is_monitorable)
+            return null;
+        return p;
+    };
+}

@@ -14,8 +14,9 @@ const fs = require('fs');
 const argparse = require('argparse');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
-const { BasicSentenceGenerator } = require('../lib/sentence-generator');
-const { DatasetStringifier } = require('../lib/dataset-parsers');
+const { ContextualSentenceGenerator } = require('../lib/sentence-generator');
+const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
+const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
 class ActionSetFlag extends argparse.Action {
     call(parser, namespace, values) {
@@ -28,13 +29,18 @@ class ActionSetFlag extends argparse.Action {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('generate', {
+        const parser = subparsers.addParser('generate-contextual', {
             addHelp: true,
-            description: "Generate a new synthetic dataset, given a template file."
+            description: "Generate a new contextual synthetic dataset, given a template file."
         });
         parser.addArgument(['-o', '--output'], {
             required: true,
             type: fs.createWriteStream
+        });
+        parser.addArgument('input_file', {
+            nargs: '+',
+            type: maybeCreateReadStream,
+            help: 'Input datasets to choose contexts from'
         });
         parser.addArgument(['-l', '--locale'], {
             required: false,
@@ -72,10 +78,10 @@ module.exports = {
         parser.addArgument('--maxdepth', {
             required: false,
             type: Number,
-            defaultValue: 5,
+            defaultValue: 4,
             help: 'Maximum depth of sentence generation',
         });
-        
+
         parser.addArgument('--debug', {
             nargs: 0,
             action: 'storeTrue',
@@ -106,8 +112,11 @@ module.exports = {
             debug: args.debug
         };
 
-        const generator = new BasicSentenceGenerator(options);
-        generator.pipe(new DatasetStringifier()).pipe(args.output);
-        args.output.on('finish', () => process.exit());
+        const output = readAllLines(args.input_file)
+            .pipe(new DatasetParser())
+            .pipe(new ContextualSentenceGenerator(options))
+            .pipe(new DatasetStringifier())
+            .pipe(args.output);
+        output.on('finish', () => process.exit());
     }
 };
