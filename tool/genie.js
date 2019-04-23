@@ -21,6 +21,7 @@ const subcommands = {
     'generate': require('./generate'),
     'generate-contextual': require('./generate-contextual'),
     'sample': require('./sample'),
+    'contextual-prepare-turk': require('./contextual-prepare-turk'),
 
     'mturk-make-paraphrase-hits': require('./mturk-make-paraphrase-hits'),
     'mturk-make-validation-hits': require('./mturk-make-validation-hits'),
