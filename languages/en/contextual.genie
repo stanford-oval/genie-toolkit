@@ -26,13 +26,16 @@ import './constants';
 import '../common-parameters';
 
 context complete_query = C.isQueryProgram($) && C.isCompleteProgram($);
+context incomplete_program = !C.isCompleteProgram($);
 
 $root = {
-    q:complete_query 'how about' p:constant_Any ('?' | '') => C.replaceAnyParameterFromContext(q, p);
+    q:complete_query 'how about' p:constant_Any '?' => C.replaceAnyParameterFromContext(q, p);
 
     p:complete_query 'do it again' => {
-        if (!p.rules[0].table.is_monitorable)
+        if (p.rules[0].table.is_monitorable)
             return null;
         return p;
     };
+
+    prog:incomplete_program ('' | 'the answer is' | 'use' | 'i want') param:constant_Any => C.fillNextSlot(prog, param);
 }
