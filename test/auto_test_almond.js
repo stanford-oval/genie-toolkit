@@ -289,11 +289,7 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 1],
-`>> Ok, so you want me to post the text on Facebook when tweets from anyone you follow change. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to post the text on Facebook when tweets from anyone you follow change.
 >> ask special null
 `,
 `{
@@ -360,11 +356,7 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
-    `>> Ok, so you want me to notify you when the current event detected on your security camera changes. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+    `>> Ok, I'm going to notify you when the current event detected on your security camera changes.
 >> ask special null
 `,
 `{
@@ -440,8 +432,7 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 2],
-`>> Ok, I'm going to get an Xkcd comic if the title contains “lol” and then notify you.
->> Sorry, I did not find any result for that.
+`>> Sorry, I did not find any result for that.
 >> ask special null
 `,
     `{
@@ -523,8 +514,7 @@ const TEST_CASES = [
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 2],
-`>> Ok, I'm going to get an Xkcd comic if the title contains “lol” and the title does not contain “foo” and then notify you.
->> Sorry, I did not find any result for that.
+`>> Sorry, I did not find any result for that.
 >> ask special null
 `,
     `{
@@ -675,11 +665,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post', 'param:status:String', '=', 'QUOTED_STRING_0'],
       entities: { USERNAME_0: 'mom', QUOTED_STRING_0: "lol" } },
-`>> Ok, so you want me to tell Alice Smith (mom): tweet “lol”. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, so I'm going to tell Alice Smith (mom): tweet “lol”.
 >> ask special null
 `,
     `null
@@ -690,11 +676,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
       entities: { USERNAME_0: 'mom' } },
-`>> Ok, so you want me to tell Alice Smith (mom): get an Xkcd comic and then notify you. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, so I'm going to tell Alice Smith (mom): get an Xkcd comic and then notify you.
 >> ask special null
 `,
     `null
@@ -704,11 +686,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.xkcd.get_comic', '=>', 'return'],
       entities: { USERNAME_0: 'mom' } },
-`>> Ok, so you want me to tell Alice Smith (mom): get an Xkcd comic and then send it to me. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, so I'm going to tell Alice Smith (mom): get an Xkcd comic and then send it to me.
 >> ask special null
 `,
     `{
@@ -741,11 +719,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     [
     { code: ['policy', 'param:source:Entity(tt:contact)', '==', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post'],
       entities: { USERNAME_0: 'mom' } },
-`>> Ok, so Alice Smith (mom) is allowed to tweet any status. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to set: Alice Smith (mom) is allowed to tweet any status.
 >> ask special null
 `,
     `source == "mock-account:MOCK1234-phone:+5556664357"^^tt:contact("Alice Smith (mom)") : now => @com.twitter.post;`],
@@ -778,8 +752,11 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special raw_string
 `,
     `pizza`,
-`>> I'm going to get websites matching “pizza” on Bing and then notify you (as asked by Carol Johnson).
->> Sorry, I did not find any result for that.
+`>> Ok, so you want me to get websites matching “pizza” on Bing and then notify you (as asked by Carol Johnson). Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Sorry, I did not find any result for that.
 >> ask special null
 `,
     `{
@@ -1409,8 +1386,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '2'],
-`>> Ok, I'm going to get the asteroid passing close to Earth today and then notify you.
->> Sorry, I did not find any result for that.
+`>> Sorry, I did not find any result for that.
 >> ask special null
 `,
 
@@ -2041,11 +2017,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '0'],
-`>> Ok, so you want me to follow @bob on Twitter. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to follow @bob on Twitter.
 >> ask special null
 `,
     `{
@@ -2054,11 +2026,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     {"program": `now => @com.gmail.send_email(to="bob"^^tt:username, message="foo", subject="bar");` },
-`>> Ok, so you want me to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”.
 >> ask special null
 `,
     `{
@@ -2067,11 +2035,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     {"program": `now => @com.gmail.send_email(to="dad"^^tt:username, message="foo", subject="bar");` },
-`>> Ok, so you want me to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”.
 >> ask special null
 `,
     `{
@@ -2085,11 +2049,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special email_address
 `,
     {code:['bookkeeping', 'answer', 'EMAIL_ADDRESS_0'], entities:{'EMAIL_ADDRESS_0': 'bob@smith.com'}},
-`>> Ok, so you want me to send an email to bob@smith.com with subject “bar” on GMail with message equal to “foo”. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to send an email to bob@smith.com with subject “bar” on GMail with message equal to “foo”.
 >> ask special null
 `,
     `{
@@ -2111,11 +2071,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '1'],
-`>> Ok, so you want me to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”.
 >> ask special null
 `,
     `{
@@ -2125,11 +2081,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     [
     {code: ['now', '=>', '@com.gmail.send_email', 'param:to:Entity(tt:email_address)', '=', 'USERNAME_0', 'param:message:String', '=', 'QUOTED_STRING_0', 'param:subject:String', '=', 'QUOTED_STRING_1'],
      entities: { USERNAME_0: 'dad', QUOTED_STRING_0: 'foo', QUOTED_STRING_1: 'bar' } },
-`>> Ok, so you want me to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”.
 >> ask special null
 `,
     `{
@@ -2139,11 +2091,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     [
     {code: ['now', '=>', '@org.thingpedia.builtin.thingengine.phone.send_sms', 'param:to:Entity(tt:phone_number)', '=', 'USERNAME_0', 'param:message:String', '=', 'QUOTED_STRING_0'],
      entities: { USERNAME_0: 'dad', QUOTED_STRING_0: 'foo', QUOTED_STRING_1: 'bar' } },
-`>> Ok, so you want me to send a message to Bob Smith (dad) containing “foo”. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+`>> Ok, I'm going to send a message to Bob Smith (dad) containing “foo”.
 >> ask special null
 `,
     `{
@@ -2445,11 +2393,7 @@ null],
             ]
         });
     },
-    `>> Ok, so you want me to tell @slack_user_name: get the emails in your GMail inbox and then send it to me. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+    `>> Ok, so I'm going to tell @slack_user_name: get the emails in your GMail inbox and then send it to me.
 >> ask special null
 `,
     `{
@@ -2495,11 +2439,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
             ]
         });
     },
-    `>> Ok, so you want me to tell @slack_user_name: get the emails in your GMail inbox and then send it to me. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+    `>> Ok, so I'm going to tell @slack_user_name: get the emails in your GMail inbox and then send it to me.
 >> ask special null
 `,
     `{
@@ -2564,11 +2504,7 @@ remote mock-account:MOCK1234-email:dummy@example.com/phone:+15555555555 : uuid-X
             ]
         });
     },
-    `>> Ok, so you want me to tell @slack_user_name: get the emails in your GMail inbox and then send it to me. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+    `>> Ok, so I'm going to tell @slack_user_name: get the emails in your GMail inbox and then send it to me.
 >> ask special null
 `,
     `{
@@ -2614,11 +2550,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
             ]
         });
     },
-    `>> Ok, so you want me to tell Some Guy: get the emails in your GMail inbox and then send it to me. Is that right?
->> ask special yesno
-`,
-    ['bookkeeping', 'special', 'special:yes'],
-`>> Consider it done.
+    `>> Ok, so I'm going to tell Some Guy: get the emails in your GMail inbox and then send it to me.
 >> ask special null
 `,
     `{
@@ -2763,10 +2695,8 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     null],
 
     [`!! test command multiple results !!`,
-`>> You have multiple Twitter devices. Which one do you want to use?
->> choice 0: Twitter Account foo
->> choice 1: Twitter Account bar
->> ask special choice
+`>> Ok, so you want me to tweet ____. Is that right?
+>> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:train'],
 `>> ask special null
@@ -2784,10 +2714,8 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     null],
 
     [`!! test command multiple results !!`,
-`>> You have multiple Twitter devices. Which one do you want to use?
->> choice 0: Twitter Account foo
->> choice 1: Twitter Account bar
->> ask special choice
+`>> Ok, so you want me to tweet ____. Is that right?
+>> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:train'],
 `>> ask special null
@@ -2806,10 +2734,8 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     null],
 
     [`!! test command multiple results !!`,
-`>> You have multiple Twitter devices. Which one do you want to use?
->> choice 0: Twitter Account foo
->> choice 1: Twitter Account bar
->> ask special choice
+`>> Ok, so you want me to tweet ____. Is that right?
+>> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:train'],
 `>> ask special null
@@ -2874,6 +2800,10 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     // so we run the second result
     [
     `get new york times`,
+`>> Ok, so you want me to get New York Times articles and then notify you. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
 `>> Sorry, I did not find any result for that.
 >> ask special null
 `,
@@ -2923,12 +2853,172 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 >> ask special raw_string
 `,
     '!! test command always nothing !!',
-`>> Ok, I'm going to tweet “!! test command always nothing !!”.
+`>> Ok, so you want me to tweet “!! test command always nothing !!”. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
 >> ask special null
 `,
     `{
   now => @com.twitter(id="twitter-bar").post(status="!! test command always nothing !!");
 }`],
+
+    // confirmation: confident, no slot, query
+    [
+        `\\t now => @com.bing.web_search(query="hello") => notify;`,
+        `>> Sorry, I did not find any result for that.\n>> ask special null\n`,
+        `{\n  now => @com.bing(id="com.bing").web_search(query="hello") => notify;\n}`
+    ],
+
+    // confirmation: confident, has slot, query
+    [
+        `\\t now => @com.bing.web_search() => notify;`,
+        `>> What do you want to search?\n>> ask special raw_string\n`,
+        `hello`,
+        `>> Sorry, I did not find any result for that.\n>> ask special null\n`,
+        `{\n  now => @com.bing(id="com.bing").web_search(query="hello") => notify;\n}`
+    ],
+
+    // confirmation: confident, no slot, safe action
+    [
+        `\\t now => @com.spotify.play_song(toPlay = "hello");`,
+        `>> Ok, I'm going to play a song with to play equal to “hello”.\n>> ask special null\n`,
+        `{\n  now => @com.spotify(id="com.spotify-40").play_song(toPlay="hello");\n}`
+    ],
+
+
+    // confirmation: confident, has slot, safe action
+    [
+        `\\t now => @com.spotify.play_song();`,
+        `>> What song would you like to play?\n>> ask special raw_string\n`,
+        `hello`,
+        `>> Ok, I'm going to play a song with to play equal to “hello”.\n>> ask special null\n`,
+        `{\n  now => @com.spotify(id="com.spotify-41").play_song(toPlay="hello");\n}`
+    ],
+
+    // confirmation: confident, no slot, general
+    [
+        `\\t now => @com.twitter.post(status="hello");`,
+        `>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+        ['bookkeeping', 'choice', 0],
+        `>> Ok, I'm going to tweet “hello”.\n>> ask special null\n`,
+        `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
+    ],
+
+
+    // confirmation: confident, has slot, general
+    [
+        `\\t now => @com.twitter.post();`,
+        `>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+        ['bookkeeping', 'choice', 0],
+        `>> What do you want to tweet?\n>> ask special raw_string\n`,
+        `hello`,
+        `>> Ok, so you want me to tweet “hello”. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> Consider it done.\n>> ask special null\n`,
+        `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
+    ],
+
+    // confirmation: not confident, no slot, query
+    [
+        `search hello on bing`,
+        `>> Ok, so you want me to get websites matching “hello” on Bing and then notify you. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> Sorry, I did not find any result for that.\n>> ask special null\n`,
+        `{\n  now => @com.bing(id="com.bing").web_search(query="hello") => notify;\n}`
+    ],
+
+    // confirmation: not confident, has slot, query
+    [
+        `search on bing`,
+        `>> Ok, so you want me to get websites matching ____ on Bing and then notify you. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> What do you want to search?\n>> ask special raw_string\n`,
+        `hello`,
+        `>> Sorry, I did not find any result for that.\n>> ask special null\n`,
+        `{\n  now => @com.bing(id="com.bing").web_search(query="hello") => notify;\n}`
+    ],
+
+    // confirmation: not confident, has slot in filter, query
+    [
+        `search hello on bing with title filter`,
+        `>> Ok, so you want me to get websites matching “hello” on Bing if the title contains ____ and then notify you. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> What is the value of the filter on the title?
+>> choice 0: Use the description from Bing
+>> choice 1: A description of the result
+>> choice 2: None of above
+>> ask special choice
+`,
+        ['bookkeeping', 'choice', '1'],
+        `>> Sorry, I did not find any result for that.\n>> ask special null\n`,
+        `{\n  now => (@com.bing(id="com.bing").web_search(query="hello")), title =~ $event => notify;\n}`
+    ],
+
+    // confirmation: not confident, no slot, safe action
+    [
+        `play hello`,
+        `>> Ok, so you want me to play a song with to play equal to “hello”. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> Ok, I'm going to play a song with to play equal to “hello”.\n>> ask special null\n`,
+        `{\n  now => @com.spotify(id="com.spotify-42").play_song(toPlay="hello");\n}`
+    ],
+
+
+    // confirmation: not confident, has slot, safe action
+    [
+        `play a song`,
+        `>> Ok, so you want me to play a song. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> What song would you like to play?\n>> ask special raw_string\n`,
+        `hello`,
+        `>> Ok, I'm going to play a song with to play equal to “hello”.\n>> ask special null\n`,
+        `{\n  now => @com.spotify(id="com.spotify-43").play_song(toPlay="hello");\n}`
+    ],
+
+    // confirmation: not confident, no slot, general
+    [
+        `tweet hello`,
+        `>> Ok, so you want me to tweet “hello”. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+        ['bookkeeping', 'choice', 0],
+        `>> Consider it done.\n>> ask special null\n`,
+        `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
+    ],
+
+
+    // confirmation: not confident, has slot, general
+    [
+        `tweet`,
+        `>> Ok, so you want me to tweet ____. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+        ['bookkeeping', 'choice', 0],
+        `>> What do you want to tweet?\n>> ask special raw_string\n`,
+        `hello`,
+        `>> Ok, so you want me to tweet “hello”. Is that right?\n>> ask special yesno\n`,
+        ['bookkeeping', 'special', 'special:yes'],
+        `>> Consider it done.\n>> ask special null\n`,
+        `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
+    ]
 ];
 
 function handleCommand(almond, input) {
@@ -3184,6 +3274,62 @@ function main() {
                 { code: ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'], score: 'Infinity' },
             ];
             const tokens = 'get an xkcd comic'.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'search hello on bing') {
+            const candidates = [
+                { code: ['now', '=>', '@com.bing.web_search', 'param:query:String', '=', '"', 'hello', '"', '=>', 'notify'], score: 0.5 },
+            ];
+            const tokens = utterance.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'search on bing') {
+            const candidates = [
+                { code: ['now', '=>', '@com.bing.web_search', '=>', 'notify'], score: 0.5 },
+            ];
+            const tokens = utterance.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'search hello on bing with title filter') {
+            const candidates = [
+                { code: ['now', '=>', '(', '@com.bing.web_search', 'param:query:String', '=', '"', 'hello', '"', ')', 'filter', 'param:title:String', '=~', 'undefined' , '=>', 'notify'], score: 0.5 },
+            ];
+            const tokens = utterance.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'play hello') {
+            const candidates = [
+                { code: ['now', '=>', '@com.spotify.play_song', 'param:toPlay:String', '=', '"', 'hello', '"'], score: 0.5 },
+            ];
+            const tokens = utterance.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'play a song') {
+            const candidates = [
+                { code: ['now', '=>', '@com.spotify.play_song'], score: 0.5 },
+            ];
+            const tokens = utterance.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'tweet hello') {
+            const candidates = [
+                { code: ['now', '=>', '@com.twitter.post', 'param:status:String', '=', '"', 'hello', '"'], score: 0.5 },
+            ];
+            const tokens = utterance.split(' ');
+            const entities = {};
+
+            return Promise.resolve({ tokens, entities, candidates });
+        } else if (utterance === 'tweet') {
+            const candidates = [
+                { code: ['now', '=>', '@com.twitter.post'], score: 0.5 },
+            ];
+            const tokens = utterance.split(' ');
             const entities = {};
 
             return Promise.resolve({ tokens, entities, candidates });

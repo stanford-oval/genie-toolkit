@@ -59,8 +59,7 @@ class MockAppDatabase {
     loadOneApp(code, state, uniqueId, tier, name, description, addToDB) {
         console.log('MOCK: App ' + name + ' with code ' + code + ' loaded and state ' + JSON.stringify(state));
         this._apps[uniqueId] = { name: name, description: description, code: code, state: state, uniqueId: uniqueId };
-        var compiler = new ThingTalk.Compiler();
-        compiler.setSchemaRetriever(this._schemas);
+        var compiler = new ThingTalk.Compiler(this._schemas);
 
         const queue = new AsyncQueue();
         let _resolve, _reject;
