@@ -43,6 +43,9 @@ async function testOtherBuiltins(engine) {
     assert(random.random >= 0);
     assert(random.random <= 7);
     assert.strictEqual(Math.floor(random.random), random.random);
+
+    const [hello] = await device.get_canned_reply({ intent: 'hello' });
+    assert.deepStrictEqual(hello, { text: "Hi!" });
 }
 
 function testBuiltinsAreExpected(engine) {

@@ -29,6 +29,13 @@ class @org.thingpedia.builtin.thingengine.builtin {
   #_[formatted=[{type="text",text="${program}"}]]
   #[doc="retrieve the list of supported commands for the given device"];
 
+  query canned_reply(in req intent: Enum(hello,cool,sorry,thank_you),
+                   out text : String)
+  #_[canonical="get canned reply"]
+  #_[confirmation="a reply to ${intent}"]
+  #_[formatted=["${text}"]]
+  #[doc="provide a canned reply to some common intents"];
+
   action debug_log(in req message: String #_[prompt="What should I write in the logs?"])
   #_[canonical="log"]
   #_[confirmation="write $message in the developer logs"]
