@@ -26,6 +26,9 @@ import './filters';
 import './parameters';
 import './aggregation';
 
+if ($options.flags.bookkeeping)
+    import './bookkeeping';
+
 complete_table = {
     thingpedia_query if complete;
     !primonly table_join_replace_placeholder if complete;

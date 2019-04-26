@@ -1,0 +1,153 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+const assert = require('assert');
+
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
+
+// import the combinator library
+const C = require('../../lib/sentence-generator/ast_manip');
+
+function special(specialType) {
+    return new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Special(specialType));
+}
+
+}
+
+command_category = {
+    ('news media' | 'news' | 'media' | 'comics' | 'web comics' | 'memes' | 'jokes') => 'media';
+    ('social networks' | 'social network' | 'social' | 'social media') => 'social-network';
+    ('communication' | 'messaging') => 'communication';
+    ('home' | 'home automation' | 'home entertainment' | 'internet of things' | 'iot') => 'home';
+    ('data' | 'cloud' | 'data management' | 'file storage' | 'file managers') => 'data-management';
+    ('health' | 'fitness' | 'health and fitness' | 'health tracking' | 'health iot' | 'fitness iot') => 'media';
+    ('services' | 'other' | 'miscellaneous' | 'misc') => 'service';
+}
+
+$root = {
+    ('yes'
+    | 'of course'
+    | 'sure'
+    | 'affirmative'
+    | 'ok'
+    | 'okay'
+    | 'go ahead'
+    | 'that \'s fine'
+    | 'sounds good to me'
+    | 'looks good to me'
+    | 'hell yes'
+    ) => special('yes');
+
+     ('no'
+    | 'no way !'
+    | 'no way'
+    | 'nope'
+    | 'negative'
+    | 'please no'
+    | 'hell no'
+    | 'that \'s not correct'
+    | 'that is not correct'
+    | 'that is wrong'
+    | 'that \'s wrong'
+    | 'wrong'
+    | 'do not do that'
+    | 'do n\'t do that'
+    | 'i do n\'t want that'
+    | 'do not do it'
+    ) => special('no');
+
+     ('back'
+    | 'go back'
+    | 'show me the previous page'
+    | 'go to the previous page'
+    ) => special('back');
+
+     ('more'
+    | 'show me more'
+    | 'show more results'
+    | 'show me the next page'
+    | 'go to the next page'
+    | 'go to the next page of results'
+    ) => special('more');
+
+    'debug' => special('debug');
+
+     ('cancel'
+    | 'never mind'
+    | 'reset'
+    | 'reset and start over'
+    | 'start over'
+    | 'go to the beginning'
+    | 'cancel everything'
+    ) => special('nevermind');
+
+     ('stop'
+    | 'shut up'
+    | 'shush'
+    | 'quiet'
+    | 'close'
+    ) => special('stop');
+
+     ('help'
+    | 'help me'
+    | 'what can you do ?'
+    | 'list commands'
+    | 'show me commands'
+    | 'show me what you can do'
+    | 'what commands can i say ?'
+    | 'what can i say ?'
+    | 'what do you understand ?'
+    | 'show me the list of all commands'
+    | 'what skills do you have ?'
+    | 'what devices do you have ?'
+    | 'what devices do you support ?'
+    | 'what skills can i use ?'
+    | 'what devices are available ?'
+    | 'what is available ?'
+    ) => special('help');
+
+     ('make a command'
+    | 'make a rule'
+    | 'make a new command'
+    | 'create a command'
+    | 'help me make a command'
+    | 'create a compound command'
+    | 'help me do a command'
+    | 'do a command for me'
+    ) => special('makerule');
+
+     ('wake up'
+    | 'hey almond'
+    ) => special('wakeup');
+
+     ('get' c:command_category 'commands'
+    | 'list commands in' c:command_category
+    | 'list devices in' c:command_category
+    | 'list' c:command_category 'devices'
+    ) => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.CommandList(new Ast.Value.Undefined(true), c));
+
+     ( c:constant_Any
+    | 'the answer is' c:constant_Any
+    | 'use' c:constant_Any
+    | 'i want' c:constant_Any
+    ) => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Answer(c));
+
+    // NOTE: the following bookkeeping commands have no template:
+    // - failed: it's a placeholder for OOD/invalid command
+    // - train: must be activated from the UI (any natural language would override the training)
+    // - empty: not a real command, just the absence of one (used for makerule)
+    // - maybe: also not a real command; used from permission grant
+    // - choice: no general language exists, MultipleChoice is handled by the server instead
+    // - commandlist with specified device: it will go into @builtin.get_commands instead
+    // - predicate: needs to be handled as a contextual template
+}
