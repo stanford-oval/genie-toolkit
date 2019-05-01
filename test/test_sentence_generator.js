@@ -237,6 +237,9 @@ async function main() {
             turking: false,
             remote_programs: true,
             policies: true,
+            aggregation: true,
+            bookkeeping: true,
+            triple_commands: true,
         },
         maxDepth: 6,
         debug: true
