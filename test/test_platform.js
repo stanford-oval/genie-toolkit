@@ -165,6 +165,14 @@ class Platform {
         this._messaging = new MockMessaging();
     }
 
+    getPlatformDevice() {
+        return {
+            kind: 'org.thingpedia.builtin.thingengine.test_platform',
+            class: fs.readFileSync(path.resolve(__dirname, './test-classes/test_platform.tt')).toString(),
+            module: require('./test-classes/test_platform')
+        };
+    }
+
     setAssistant(ad) {
         this._assistant = ad;
     }
