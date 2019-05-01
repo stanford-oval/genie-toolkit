@@ -8,9 +8,9 @@ before_install:
 - yarn global add greenkeeper-lockfile@1
 - sudo apt-get update -q -y
 - sudo apt-get install -y realpath
-after_install:
+before_script:
+- greenkeeper-lockfile-update
 - (cd node_modules/thingtalk ; yarn)
-before_script: greenkeeper-lockfile-update
 after_script: greenkeeper-lockfile-upload
 script:
 - yarn lint
