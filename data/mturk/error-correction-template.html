@@ -1,3 +1,4 @@
+<!-- HIT template: Survey-v3.0 --><!-- The following snippet enables the 'responsive' behavior on smaller screens -->
 <style type="text/css"> #Survey {
 	width: 50%;
 	margin: 0 auto;
@@ -27,6 +28,9 @@ tell the assistant that they misunderstood you.
 In the following, we show <em>the command you intended to give</em>,
 and separately <em>what the assistant actually understood</em>. The two will be similar, but not quite the same.
   Your goal is to point out the mistake, and steer the assistant towards the correct command.
+  In what you write, you should highlight the mistake only. <b>Do not repeat the command in full</b>, unless
+  you really cannot think of another way to phrase the correction.
+
 <p>Please keep in mind the following in completing your task:
 </p><ul>
   <li>Be concise. Assume the assistant knows the context and remembers what it just understood.
@@ -34,6 +38,7 @@ and separately <em>what the assistant actually understood</em>. The two will be 
   <li><b>Do not limit yourself to coping the original command.</b>. Bridge the gap between the two commands instead.</li>
   <li><b>If you don't see the difference between the two commands, please type “no difference” exactly.</b>
   <li><b>If the two commands are not related at all, please type “unrelated” exactly.</b>
+  <li>Some commands have one mistake, and <b>some have two</b>. When that happens, you must correct both mistakes at once.</li>
   <li><b>Keep quoted parts <span style="color:#FF0000;">(including the quote marks)</span>, emails, phone numbers identical</b>
   <li><b>Do not drop @ signs and # signs</b>
 </ul>
