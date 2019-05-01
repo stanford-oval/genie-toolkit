@@ -331,6 +331,8 @@ if ($options.standardSchemas.say) {
 }
 
 $root = {
+    !primonly thingpedia_program if complete;
+
     // when => notify
     ('monitor' | 'watch') table:with_filtered_table => {
         if (!table.schema.is_monitorable)

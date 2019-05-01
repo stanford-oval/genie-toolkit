@@ -271,34 +271,20 @@ for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
     if (typestr.startsWith('Enum__')) {
         // replace $-placeholders with "some X" where X is based on parameter name
 
-        thingpedia_query = q:thingpedia_query #('a certain ' + pcanonical) [-> pname { isUndefined: true }] => {
-            if (!q.schema.inReq[pname])
-                return null;
-            if (typestr !== C.typeToStringSafe(q.schema.inReq[pname]))
-                return null;
-            return C.betaReduceTable(q, pname, Ast.Value.Undefined(true));
-        };
-        thingpedia_get_command = q:thingpedia_get_command #('a certain ' + pcanonical) [-> pname { isUndefined: true }] => {
-            if (!q.schema.inReq[pname])
-                return null;
-            if (typestr !== C.typeToStringSafe(q.schema.inReq[pname]))
-                return null;
-            return C.betaReduceTable(q, pname, Ast.Value.Undefined(true));
-        };
-        thingpedia_stream = s:thingpedia_stream #('a certain ' + pcanonical) [-> pname { isUndefined: true }] => {
-             if (!s.schema.inReq[pname])
-                 return null;
-             if (typestr !== C.typeToStringSafe(s.schema.inReq[pname]))
-                 return null;
-             return C.betaReduceStream(s, pname, Ast.Value.Undefined(true));
-         };
-         thingpedia_action = a:thingpedia_action #('a certain ' + pcanonical) [-> pname { isUndefined: true }] => {
-             if (!a.schema.inReq[pname])
-                 return null;
-             if (typestr !== C.typeToStringSafe(a.schema.inReq[pname]))
-                 return null;
-             return C.betaReduceAction(a, pname, Ast.Value.Undefined(true));
-         };
+        thingpedia_query = q:thingpedia_query #('a certain ' + pcanonical) [-> pname { isUndefined: true }] =>
+            C.replacePlaceholderWithUndefined(q, pname, typestr, C.betaReduceTable);
+
+        thingpedia_get_command = q:thingpedia_get_command #('a certain ' + pcanonical) [-> pname { isUndefined: true }] =>
+            C.replacePlaceholderWithUndefined(q, pname, typestr, C.betaReduceTable);
+
+        thingpedia_stream = s:thingpedia_stream #('a certain ' + pcanonical) [-> pname { isUndefined: true }] =>
+            C.replacePlaceholderWithUndefined(s, pname, typestr, C.betaReduceStream);
+
+        thingpedia_action = a:thingpedia_action #('a certain ' + pcanonical) [-> pname { isUndefined: true }] =>
+            C.replacePlaceholderWithUndefined(a, pname, typestr, C.betaReduceAction);
+
+        thingpedia_program = p:thingpedia_program #('a certain ' + pcanonical) [-> pname { isUndefined: true }] =>
+            C.replacePlaceholderWithUndefined(p, pname, typestr, C.betaReduceProgram);
     }
 
     // don't parameter pass booleans or enums, as that rarely makes sense
@@ -306,34 +292,20 @@ for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
         if (pname !== 'count' && pname !== 'p_count') {
             // replace $-placeholders with "some X" where X is based on parameter name
 
-            thingpedia_query = q:thingpedia_query #('some ' + pcanonical) [-> pname { isUndefined: true }] => {
-                if (!q.schema.inReq[pname])
-                    return null;
-                if (typestr !== C.typeToStringSafe(q.schema.inReq[pname]))
-                    return null;
-                return C.betaReduceTable(q, pname, Ast.Value.Undefined(true));
-            };
-            thingpedia_get_command = q:thingpedia_get_command #('some ' + pcanonical) [-> pname { isUndefined: true }] => {
-                if (!q.schema.inReq[pname])
-                    return null;
-                if (typestr !== C.typeToStringSafe(q.schema.inReq[pname]))
-                    return null;
-                return C.betaReduceTable(q, pname, Ast.Value.Undefined(true));
-            };
-            thingpedia_stream = s:thingpedia_stream #('some ' + pcanonical) [-> pname { isUndefined: true }] => {
-                if (!s.schema.inReq[pname])
-                    return null;
-                if (typestr !== C.typeToStringSafe(s.schema.inReq[pname]))
-                    return null;
-                return C.betaReduceStream(s, pname, Ast.Value.Undefined(true));
-            };
-            thingpedia_action = a:thingpedia_action #('some ' + pcanonical) [-> pname { isUndefined: true }] => {
-                if (!a.schema.inReq[pname])
-                    return null;
-                if (typestr !== C.typeToStringSafe(a.schema.inReq[pname]))
-                    return null;
-                return C.betaReduceAction(a, pname, Ast.Value.Undefined(true));
-            };
+            thingpedia_query = q:thingpedia_query #('some ' + pcanonical) [-> pname { isUndefined: true }] =>
+                C.replacePlaceholderWithUndefined(q, pname, typestr, C.betaReduceTable);
+
+            thingpedia_get_command = q:thingpedia_get_command #('some ' + pcanonical) [-> pname { isUndefined: true }] =>
+                C.replacePlaceholderWithUndefined(q, pname, typestr, C.betaReduceTable);
+
+            thingpedia_stream = s:thingpedia_stream #('some ' + pcanonical) [-> pname { isUndefined: true }] =>
+                C.replacePlaceholderWithUndefined(s, pname, typestr, C.betaReduceStream);
+
+            thingpedia_action = a:thingpedia_action #('some ' + pcanonical) [-> pname { isUndefined: true }] =>
+                C.replacePlaceholderWithUndefined(a, pname, typestr, C.betaReduceAction);
+
+            thingpedia_program = p:thingpedia_program #('some ' + pcanonical) [-> pname { isUndefined: true }] =>
+                C.replacePlaceholderWithUndefined(p, pname, typestr, C.betaReduceProgram);
         }
 
         // replace $-placeholders with projection-based parameter passing

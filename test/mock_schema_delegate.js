@@ -110,6 +110,10 @@ module.exports = {
 
     getAllExamples() {
         return Promise.resolve('dataset @org.thingpedia.everything language "en" {\
+    program (p_hashtag : Entity(tt:hashtag)) := monitor(@com.twitter.home_timeline()), contains(hashtags, p_hashtag) => @com.twitter.retweet(tweet_id=tweet_id)\
+    #[id=-1]\
+    #_[preprocessed=["autoretweet tweets with $p_hashtag", "autoretweet $p_hashtag"]];\
+\
     action () := @com.twitter.post()\
     #[id=0]\
     #_[preprocessed=["tweet something", "post on twitter"]];\
