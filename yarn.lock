@@ -1972,10 +1972,19 @@ thingpedia@^2.3.3:
     thingtalk "^1.4.1"
     xml2js "^0.4.17"
 
-thingtalk@^1.4.1, thingtalk@~1.6.0:
+thingtalk@^1.4.1:
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.6.1.tgz#1320ade20ffe576c399499a7ae68bab186f151a4"
   integrity sha512-Hl0Vy+hGWrPMsJvNgomtBzBPYUnKxtDdKP0p9GiFioZ/2JanqpaB0cEQmZMEQqUAM2l1Fegx02hNIcvO8TP/9A==
+  dependencies:
+    adt "~0.7.2"
+    byline "^5.0.0"
+    consumer-queue "^1.0.0"
+    smtlib "^0.1.1"
+
+"thingtalk@github:stanford-oval/thingtalk":
+  version "1.6.1"
+  resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/205f667f8c53f40c600b49829d5508891c76ea82"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
