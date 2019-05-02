@@ -61,8 +61,19 @@ function testBuiltinsAreExpected(engine) {
     assert(!devices.hasDevice('org.thingpedia.builtin.thingengine.gnome'));
 }
 
+async function testPlatformDevice(engine) {
+    const devices = engine.devices;
+
+    assert(devices.hasDevice('org.thingpedia.builtin.thingengine.test_platform'));
+
+    const d = devices.getDevice('org.thingpedia.builtin.thingengine.test_platform');
+    assert.deepStrictEqual(await d.get_foo(), [{ lol: 'yes' }]);
+    assert.strictEqual(typeof d.subscribe_foo, 'function');
+}
+
 module.exports = async function testBuiltins(engine) {
     await testBuiltinsAreExpected(engine);
     await testGetCommands(engine);
     await testOtherBuiltins(engine);
+    await testPlatformDevice(engine);
 };
