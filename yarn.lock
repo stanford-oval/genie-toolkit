@@ -1984,7 +1984,7 @@ thingtalk@^1.4.1:
 
 "thingtalk@github:stanford-oval/thingtalk":
   version "1.6.1"
-  resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/205f667f8c53f40c600b49829d5508891c76ea82"
+  resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/2ecb5f7fa067f657e60d8092ed08e318a56c56a4"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
