@@ -41,5 +41,11 @@ $root = {
 
     prog:immediate_program ('do this' | 'do it' | 'repeat this command' | 'set this to run') t:timer => C.addTimerToProgram(prog, t);
 
+    prog:complete_query ('ok , notify me when it changes' | 'notify me when it changes' | 'subscribe to changes' | 'let me know of changes' | 'notify me of this' | 'subscribe to this') => {
+        if (prog.rules.length > 1 || !prog.rules[0].table || !prog.rules[0].table.is_monitorable)
+            return null;
+        return C.makeMonitor(prog);
+    };
+
     prog:incomplete_program ('' | 'the answer is' | 'use' | 'i want') param:constant_Any => C.fillNextSlot(prog, param);
 }
