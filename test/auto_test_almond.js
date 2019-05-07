@@ -3084,6 +3084,25 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
         ['bookkeeping', 'special', 'special:yes'],
         `>> Consider it done.\n>> ask special null\n`,
         `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
+    ],
+
+    // contextual help
+    [
+        '\\t now => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=6) => notify;',
+`>> What should be the lower bound?
+>> ask special number
+`,
+['bookkeeping', 'special', 'special:help'],
+`>> Could you give me a number?
+>> ask special number
+`,
+        ['bookkeeping', 'answer', '0'],
+`>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+        `{
+  now => @org.thingpedia.builtin.thingengine.builtin(id="thingengine-own-global").get_random_between(high=6, low=0) => notify;
+}`
     ]
 ];
 
