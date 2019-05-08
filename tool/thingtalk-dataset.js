@@ -9,26 +9,24 @@
 // See COPYING for details
 "use strict";
 
-const stream = require('stream');
-const ProgressBar = require('progress');
+const fs = require('fs');
 
 const ThingTalk = require('thingtalk');
 const Grammar = ThingTalk.Grammar;
 const Library = ThingTalk.Ast.Input.Library;
-const Dataset = ThingTalk.Ast.Statement.Dataset;
+// const Dataset = ThingTalk.Ast.Statement.Dataset;
+const ProgressBar = require('./lib/progress_bar');
+const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const TokenizerService = require('../lib/tokenizer');
-const OpenCC = require('opencc');
+const { tokenizeExample } = require('../lib/almond-cloud');
 
 
-class ThingTalkDatasetCleaner extends stream.Transform {
+class ThingTalkDataset {
     constructor(options) {
-        super({ objectMode: true });
-        
-        if (options.keepKeys && options.dropKeys)
-            throw 'keepKeys and dropKeys cannnot be set at the same time.'
-        this.keepKeys = options.keepKeys;
-        this.dropKeys = options.dropKeys;
-        this.options = options;
+        this._options = options;
+        this._locale = null;
+        this._dataset = null;
+        this._tokenizer = null;
         
         this._defaults = {
             'id': -1,
@@ -38,28 +36,82 @@ class ThingTalkDatasetCleaner extends stream.Transform {
             'preprocessed': []
         }
     }
-
-    _transform(ex, encoding, callback) {
-        if (ex.type == 'example') {
-            let dropKeys = this.dropKeys;
-            if(this.keepKeys) {
-                dropKeys = Object.keys(ex.data).filter(key => !this.keepKeys.includes(key));
+    
+    async read(locale, thingpedia, datasetFile) {
+        const tpClient = new FileThingpediaClient(locale, thingpedia, datasetFile);
+        const dataset = await this._loadDataset(tpClient);
+        
+        if (this._options.debug) {
+            console.log('Loaded ' + dataset.examples.length + ' templates');
+        }
+        this._locale = locale;
+        this._dataset = dataset;
+    }
+    
+    write(outputFile, callback) {
+        const output = new Library([], [
+            this._dataset
+        ]);
+        const writerStream = fs.createWriteStream(outputFile);
+        writerStream.on('finish', () => callback());
+        writerStream.write(output.prettyprint());
+        writerStream.end();
+    }
+    
+    clean(options) {
+        const bar = new ProgressBar(this._dataset.examples.length);
+        if (options.keepKeys && options.dropKeys)
+            throw 'keepKeys and dropKeys cannnot be set at the same time.'
+        this._dataset.examples.forEach((example, index) => {
+            let dropKeys = options.dropKeys;
+            if (options.keepKeys) {
+                dropKeys = Object.keys(example).filter(key => !options.keepKeys.includes(key));
             }
             if (dropKeys)
-                dropKeys.forEach(key => ex.data[key] = this._defaults[key]);
-        }
-        callback(null, ex);
+                dropKeys.forEach(key => this._dataset.examples[index][key] = this._defaults[key]);
+            bar.add(1);
+        });
     }
-
-    _flush(callback) {
-        process.nextTick(callback);
+    
+    async preprocess() {
+        if (this._tokenizer == null)
+            this._tokenizer = TokenizerService.get(process.env.GENIE_USE_TOKENIZER, true);
+        const language = this._dataset.language;
+        const bar = new ProgressBar(this._dataset.examples.length);
+        for (let index in this._dataset.examples) {
+            try {
+                this._dataset.examples[index].preprocessed = await this.preprocessAll(
+                    this._dataset.examples[index].utterances, this._dataset.examples[index].id, language
+                );
+            } catch (e) {
+                console.log(this._dataset.examples[index].id);
+                console.log(this._dataset.examples[index].utterances);
+                console.log(this._dataset.examples[index].preprocessed);
+                throw e;
+            }
+            bar.add(1);
+        }
+    }
+    
+    async _loadDataset(tpClient) {
+        const code = await tpClient.getAllExamples();
+        const parsed = await Grammar.parse(code);
+        return parsed.datasets[0];
+    }
+    
+    async preprocessAll(utterances, id, language) {
+        if (this._tokenizer == null)
+            throw 'Tokenizer is not initialized.';
+        const promises = utterances.map(async utterance => {
+            let preprocessed = await tokenizeExample(this._tokenizer, utterance, id, language);
+            return preprocessed;
+        });
+        return Promise.all(promises);
     }
 }
 
-class ThingTalkDatasetPreprocessor extends stream.Transform {
+class ThingTalkDatasetPreprocessor {
     constructor(options) {
-        super({ objectMode: true });
-        
         this.locale = options.locale;
         this.options = options;
         
@@ -95,16 +147,15 @@ class ThingTalkDatasetPreprocessor extends stream.Transform {
     }
     
     async preprocessAll(utterances, id) {
-        const promises = await utterances.map(async utterance => {
+        const promises = utterances.map(async utterance => {
             if (this.locale.toLowerCase() == 'zh-tw')
-                utterance = this._opencc_t2s.convertSync(utterance)
+                utterance = this._opencc_t2s.convert(utterance)
             let preprocessed = await tokenizeExample(this._tokenizer, utterance, id, this._language);
             if (this.locale.toLowerCase() == 'zh-tw')
-                preprocessed = this._opencc_s2t.convertSync(preprocessed)
+                preprocessed = this._opencc_s2t.convert(preprocessed)
             return preprocessed;
         });
-        const preprocessedAll = await Promise.all(promises);
-        return preprocessedAll;
+        return Promise.all(promises);
     }
 
     _flush(callback) {
@@ -113,200 +164,7 @@ class ThingTalkDatasetPreprocessor extends stream.Transform {
     }
 }
 
-class ThingTalkDatasetReader extends stream.Readable {
-    constructor(options) {
-        super({ objectMode: true });
-        this._tpClient = options.thingpediaClient;
-        
-        this._options = options;
-        
-        this._initialization = null;
-        this._dataset = null;
-        this._i = null;
-    }
-    
-    _read() {
-        if (this._initialization === null)
-            this._initialization = this._initialize();
-
-        this._initialization.then(() => this._output()).catch((e) => {
-            console.error(e);
-            this.emit('error', e);
-        });
-    }
-    
-    _output() {
-        if (this._i == this._dataset.examples.length) {  // done
-            this.push(null);
-            return;
-        } else if (this._i == -1) {
-            this.push({
-                type: 'meta',
-                data: {
-                    name: this._dataset.name,
-                    language: this._dataset.language,
-                    annotations: this._dataset.annotations,
-                    num_examples: this._dataset.examples.length
-                }
-            });
-        } else {
-            this.push({
-                type: 'example',
-                data: this._dataset.examples[this._i]
-            });
-        }
-        this._i++;
-    }
-    
-    async _initialize() {
-        this._dataset = await this._loadDataset();
-        this._i = -1;
-        
-        if (this._options.debug) {
-            console.log('Loaded ' + this._dataset.examples.length + ' templates');
-        }
-    }
-    
-    async _loadDataset() {
-        const code = await this._tpClient.getAllExamples();
-        const parsed = await Grammar.parse(code);
-        return parsed.datasets[0];
-    }
-}
-
-class ThingTalkDatasetWriter extends stream.Writable {
-    constructor(options) {
-        super({ objectMode: true });
-        
-        this.outputStream = options.outputStream;
-        this.options = options;
-        
-        this._meta = null;
-        this._examples = [];
-    }
-    
-    _write(buf, enc, next) {
-        if (buf.type == 'meta') {
-            if(this._meta)
-                throw 'Meta data has be set.';
-            this._meta = buf.data;
-        } else if(buf.type == 'example') {
-            this._examples.push(buf.data);
-        } else {
-            throw `Unsupported buffer type: ${buf.type}`;
-        }
-        process.nextTick(next);
-    }
-    
-    _final(callback) {
-        const output = new Library([], [
-            new Dataset(
-                this._meta.name,
-                this._meta.language,
-                this._examples,
-                this._meta.annotations
-            )
-        ]);
-        this.outputStream.write(output.prettyprint());
-        
-        this._meta = null;
-        this._examples = [];
-    }
-}
 
 module.exports = {
-    ThingTalkDatasetCleaner,
-    ThingTalkDatasetPreprocessor,
-    ThingTalkDatasetReader,
-    ThingTalkDatasetWriter
+    ThingTalkDataset
 };
-
-/* The following part is modified from Almond-Cloud
- * https://github.com/stanford-oval/almond-cloud/blob/master/util/tokenize.js
- * https://github.com/stanford-oval/almond-cloud/blob/master/util/validation.js
- */
-const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})/;
-
-function* split(pattern, regexp) {
-    // a split that preserves capturing parenthesis
-
-    let clone = new RegExp(regexp, 'g');
-    let match = clone.exec(pattern);
-
-    let i = 0;
-    while (match !== null) {
-        if (match.index > i)
-            yield pattern.substring(i, match.index);
-        yield match;
-        i = clone.lastIndex;
-        match = clone.exec(pattern);
-    }
-    if (i < pattern.length)
-        yield pattern.substring(i, pattern.length);
-}
-
-function splitParams(utterance) {
-    return Array.from(split(utterance, PARAM_REGEX));
-}
-
-async function tokenizeExample(tokenizer, utterance, id, language) {
-    let replaced = '';
-    let params = [];
-
-    for (let chunk of splitParams(utterance.trim())) {
-        if (chunk === '')
-            continue;
-        if (typeof chunk === 'string') {
-            replaced += chunk;
-            continue;
-        }
-
-        let [match, param1, param2, opt] = chunk;
-        if (match === '$$') {
-            replaced += '$';
-            continue;
-        }
-        let param = param1 || param2;
-        replaced += ' ____ ';
-        params.push([param, opt]);
-    }
-
-    let tokens = [], entities = [];
-    try {
-        const tokenized = await tokenizer.tokenize(language, replaced);
-        tokens = tokenized.tokens;
-        entities = tokenized.entities;
-    } catch (e) {
-        console.log(utterance);
-        console.log(replaced);
-        console.log(language);
-        throw e;
-    }
-    
-    if (Object.keys(entities).length > 0) {
-        console.log(utterance);
-        console.log(replaced);
-        console.log(entities);
-        throw new Error(`Error in Example ${id}: Cannot have entities in the utterance`);
-    }
-
-    let preprocessed = '';
-    let first = true;
-    for (let token of tokens) {
-        if (token === '____') {
-            let [param, opt] = params.shift();
-            if (opt)
-                token = '${' + param + ':' + opt + '}';
-            else
-                token = '${' + param + '}';
-        } else if (token === '$') {
-            token = '$$';
-        }
-        if (!first)
-            preprocessed += ' ';
-        preprocessed += token;
-        first = false;
-    }
-
-    return preprocessed;
-}

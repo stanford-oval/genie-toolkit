@@ -9,14 +9,7 @@
 // See COPYING for details
 "use strict";
 
-//const seedrandom = require('seedrandom');
-const fs = require('fs');
-
-const FileThingpediaClient = require('./lib/file_thingpedia_client');
-const { ThingTalkDatasetCleaner,
-        ThingTalkDatasetPreprocessor,
-        ThingTalkDatasetReader,
-        ThingTalkDatasetWriter } = require('./thingtalk-dataset')
+const { ThingTalkDataset } = require('./thingtalk-dataset')
 
 module.exports = {
     initArgparse(subparsers) {
@@ -30,7 +23,7 @@ module.exports = {
         });
         parser.addArgument(['-o', '--output'], {
             required: true,
-            type: fs.createWriteStream
+            help: 'Path to output dataset.'
         });
         parser.addArgument(['-l', '--locale'], {
             required: false,
@@ -42,7 +35,7 @@ module.exports = {
             help: 'Path to JSON file containing signature, type and mixin definitions.'
         });
         parser.addArgument('--actions', {
-            required: true,
+            required: false,
             nargs: '*',
             choices: ['clean', 'preprocess'],
             help: 'Action to apply on a dataset.'
@@ -56,36 +49,26 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new FileThingpediaClient(args.locale, args.thingpedia, args.input);
-        const readerOptions = {
-            thingpediaClient: tpClient,
-            debug: args.debug
+        const options = {
+            debug: true
         };
-        const writerOptions = {
-            outputStream: args.output,
-            debug: args.debug
-        };
-
-        const reader = new ThingTalkDatasetReader(readerOptions);
-        const writer = new ThingTalkDatasetWriter(writerOptions);
-        
-        let streaming = reader;
-        if (args.actions.includes('clean')) {
-            const cleanOptions = {
-                keepKeys: ['type', 'args', 'value', 'utterances', 'id']
-            };
-            const cleaner = new ThingTalkDatasetCleaner(cleanOptions);
-            streaming = streaming.pipe(cleaner);
-        }
-        if (args.actions.includes('preprocess')) {
-            const preprocessorOptions = {
-                locale: args.locale,
-                debug: args.debug
-            };
-            const preprocessor = new ThingTalkDatasetPreprocessor(preprocessorOptions);
-            streaming = streaming.pipe(preprocessor);
-        }
-        streaming = streaming.pipe(writer);
-        args.output.on('finish', () => process.exit());
+        const ttDataset = new ThingTalkDataset(options);
+        await ttDataset.read(args.locale, args.thingpedia, args.input);
+        if (args.actions)
+            for (let action of args.actions) {
+                if (action == 'clean') {
+                    console.log('Cleaning...');
+                    const cleanOptions = {
+                        keepKeys: ['type', 'args', 'value', 'utterances', 'id']
+                    };
+                    ttDataset.clean(cleanOptions);
+                } else if (action == 'preprocess') {
+                    console.log('Preprocessing...');
+                    await ttDataset.preprocess();
+                } else {
+                    throw new Error('Unknown action: ' + action);
+                }
+            }
+        ttDataset.write(args.output, () => process.exit());
     }
 };
