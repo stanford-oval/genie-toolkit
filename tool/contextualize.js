@@ -19,7 +19,7 @@ const I18n = require('../lib/i18n');
 const { uniform, coin } = require('../lib/random');
 
 const StreamUtils = require('../lib/stream-utils');
-const { readAllLines } = require('./lib/argutils');
+const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
 class ContextualizeStream extends Stream.Transform {
     constructor(locale, allprograms, rng) {
@@ -66,8 +66,15 @@ module.exports = {
             defaultValue: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
+        parser.addArgument(['-c', '--context'], {
+            required: true,
+            action: 'append',
+            type: fs.createReadStream,
+            help: `Datasets to use as source of contexts`,
+        });
         parser.addArgument('input_file', {
             nargs: '+',
+            type: maybeCreateReadStream,
             help: 'Input datasets to contextualize (in TSV format); use - for standard input'
         });
         parser.addArgument('--random-seed', {
@@ -79,7 +86,7 @@ module.exports = {
     async execute(args) {
         const rng = seedrandom.alea(args.random_seed);
 
-        let allprograms = await readAllLines(args.input_file.map((pathname) => fs.createReadStream(pathname)))
+        let allprograms = await readAllLines(args.context)
             .pipe(new DatasetParser())
             .pipe(new Stream.Transform({
                 objectMode: true,
@@ -97,7 +104,7 @@ module.exports = {
         allprograms = Array.from(allprograms);
 
         await StreamUtils.waitFinish(
-            readAllLines(args.input_file.map((pathname) => fs.createReadStream(pathname)))
+            readAllLines(args.input_file)
             .pipe(new DatasetParser())
             .pipe(new ContextualizeStream(args.locale, allprograms, rng))
             .pipe(new DatasetStringifier())
