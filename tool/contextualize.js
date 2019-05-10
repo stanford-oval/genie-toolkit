@@ -35,9 +35,12 @@ class ContextualizeStream extends Stream.Transform {
     }
 
     _transform(ex, encoding, callback) {
-        ex.context = uniform(this._allprograms, this._rng);
+        if (coin(0.2, this._rng))
+            ex.context = 'null';
+        else
+            ex.context = uniform(this._allprograms, this._rng);
 
-        if (this._templates.length > 0 && coin(0.1, this._rng)) {
+        if (ex.context !== 'null' && this._templates.length > 0 && coin(0.1, this._rng)) {
             const template = uniform(this._templates, this._rng);
 
             ex.preprocessed = template[0] + ex.preprocessed + template[1];

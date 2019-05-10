@@ -281,7 +281,7 @@ class SentenceEvaluatorStream extends Stream.Transform {
     }
 }
 
-class CollectStatistics extends Stream.Writable {
+class CollectSentenceStatistics extends Stream.Writable {
     constructor() {
         super({ objectMode: true });
 
@@ -357,7 +357,137 @@ class CollectStatistics extends Stream.Writable {
     }
 }
 
+class DialogEvaluatorStream extends Stream.Transform {
+    constructor(parser, schemas, tokenized, debug) {
+        super({ objectMode: true });
+
+        this._parser = parser;
+        this._schemas = schemas;
+        this._tokenized = tokenized;
+        this._debug = debug;
+    }
+
+    async _checkTurn(context, input, targetCode) {
+        let entities;
+        if (this._tokenized) {
+            entities = Utils.makeDummyEntities(input);
+        } else {
+            const tokenized = await this._parser.tokenize(input);
+            entities = tokenized.entities;
+        }
+
+        try {
+            const parsed = ThingTalk.NNSyntax.fromNN(targetCode.split(' '), entities);
+            await parsed.typecheck(this._schemas);
+        } catch(e) {
+            console.error(input, targetCode);
+            throw e;
+        }
+
+        const untypedTargetCode = Array.from(stripOutTypeAnnotations(targetCode.split(' ')));
+
+        const parsed = await this._parser.sendUtterance(input, this._tokenized, context);
+        if (!entities)
+            entities = parsed.entities;
+
+        const predictions = parsed.candidates
+            .filter((beam) => beam.score !== 'Infinity') // ignore exact matches
+            .map((beam) => beam.code);
+
+        if (predictions.length === 0)
+            return false;
+
+        const choice = predictions[0];
+
+        // first check if the program parses and typechecks (no hope otherwise)
+        try {
+            const parsed = ThingTalk.NNSyntax.fromNN(choice, entities);
+            await parsed.typecheck(this._schemas);
+        } catch(e) {
+            return false;
+        }
+
+        const normalized = normalizeKeywordParams(Array.from(stripOutTypeAnnotations(choice)));
+        return normalized.join(' ') === untypedTargetCode;
+    }
+
+    async _evaluate(dialog) {
+        let context = 'null';
+
+        let progress = 0;
+        let correct = 0;
+        let failed = false;
+        for (let i = 0; i < dialog.length; i += 2) {
+            const input = dialog[i];
+            const targetCode = dialog[i+1];
+
+            if (await this._checkTurn(context, input, targetCode)) {
+                correct += 2;
+                if (!failed)
+                    progress += 2;
+            } else {
+                failed = true;
+            }
+            context = targetCode;
+        }
+
+        return {
+            ok: progress === dialog.length,
+            ok_initial: progress >= 2,
+            ok_partial: correct/dialog.length,
+            ok_progress: progress/dialog.length
+        };
+    }
+
+    _transform(dialog, encoding, callback) {
+        this._evaluate(dialog).then((result) => callback(null, result), (err) => callback(err));
+    }
+
+    _flush(callback) {
+        process.nextTick(callback);
+    }
+}
+
+class CollectDialogStatistics extends Stream.Writable {
+    constructor() {
+        super({ objectMode: true });
+
+        this._buffer = {
+            total: 0,
+            ok: 0,
+            ok_initial: 0,
+            ok_partial: 0,
+            ok_progress: 0,
+        };
+    }
+
+    _write(sample, encoding, callback) {
+        this._buffer.total ++;
+        for (let key of ['ok', 'ok_initial', 'ok_partial', 'ok_progress'])
+            this._buffer[key] += sample[key];
+        callback();
+    }
+
+    _final(callback) {
+        // convert to percentages
+        for (let key of ['ok', 'ok_initial', 'ok_partial', 'ok_progress'])
+            this._buffer[key] /= this._buffer.total;
+        callback();
+    }
+
+    read() {
+        return new Promise((resolve, reject) => {
+            this.on('finish', () => resolve(this._buffer));
+            this.on('error', reject);
+        });
+    }
+}
+
+
 module.exports = {
     SentenceEvaluatorStream,
-    CollectStatistics
+    CollectSentenceStatistics,
+
+    DialogEvaluatorStream,
+    CollectDialogStatistics
 };

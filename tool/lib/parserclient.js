@@ -34,7 +34,7 @@ class LocalParserClient {
     tokenize(utterance) {
         return this._tokenizer.tokenize(this._locale, utterance);
     }
-    async sendUtterance(utterance, tokenized) {
+    async sendUtterance(utterance, tokenized, context) {
         let tokens, entities;
         if (tokenized) {
             tokens = utterance.split(' ');
@@ -45,7 +45,7 @@ class LocalParserClient {
             entities = tokenized.entities;
         }
 
-        const candidates = await this._predictor.predict(tokens);
+        const candidates = await this._predictor.predict(tokens, context !== undefined ? context.split(' ') : undefined);
         return { tokens, candidates, entities };
     }
 }
@@ -76,25 +76,31 @@ class RemoteParserClient {
         });
     }
 
-    sendUtterance(utterance, tokenized) {
+    async sendUtterance(utterance, tokenized, context) {
         const data = {
             q: utterance,
             store: 'no',
             tokenized: tokenized ? '1' : '',
             thingtalk_version: ThingTalk.version,
-            skip_typechecking: '1'
+            skip_typechecking: '1',
         };
 
-        let url = `${this._baseUrl}/query?${qs.stringify(data)}`;
+        let response;
+        if (context !== undefined) {
+            data.context = context;
+            response = await Tp.Helpers.Http.post(`${this._baseUrl}/query`, qs.stringify(data), {
+                dataContentType: 'application/x-www-form-urlencoded'
+            });
+        } else {
+            let url = `${this._baseUrl}/query?${qs.stringify(data)}`;
+            response = await Tp.Helpers.Http.get(url);
+        }
 
-        return Tp.Helpers.Http.get(url).then((data) => {
-            var parsed = JSON.parse(data);
+        const parsed = JSON.parse(response);
+        if (parsed.error)
+            throw new Error('Error received from Genie-Parser server: ' + parsed.error);
 
-            if (parsed.error)
-                throw new Error('Error received from Genie-Parser server: ' + parsed.error);
-
-            return parsed;
-        });
+        return parsed;
     }
 }
 
