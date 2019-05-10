@@ -69,7 +69,6 @@ const TEST_CASES = [
     ['imgflip:meme_id', 'brace yourself', '61546', 'Brace Yourselves X is Coming'],
     ['imgflip:meme_id', 'brace yourself winter is coming', '61546', 'Brace Yourselves X is Coming'],
     ['imgflip:meme_id', 'y u no', '61527', 'Y U No'],
-    ['imgflip:meme_id', 'why you no', '61527', 'Y U No'],
     ['imgflip:meme_id', 'shut up and take my money', '176908' ,'Shut Up And Take My Money Fry'],
     ['imgflip:meme_id', 'socially awesome penguin', '61584', 'Socially Awesome Awkward Penguin'],
     ['imgflip:meme_id', 'all the things', '61533', 'X All The Y'],
