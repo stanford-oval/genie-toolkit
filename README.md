@@ -83,7 +83,7 @@ The `--template` flag can be used to point to a template file definining the con
 in Genie language. E.g. `languages/en/thingtalk.genie` is the one for English sentence synthesis.
 Multiple `--template` flags can be used to load multiple template files.
 
-The `--thingpedia` flag should point to a [Thingpedia snapshot file](https://almond.stanford.edu/thingpedia/developers/thingpedia-api/#api-Schemas-GetSnapshot),
+The `--thingpedia` flag should point to a Thingpedia snapshot file,
 which defines the types and signatures of the primitives to use. You can download a snapshot file
 for the reference Thingpedia with:
 ```
