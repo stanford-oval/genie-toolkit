@@ -17,7 +17,7 @@ const ThingTalk = require('thingtalk');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const { DatasetParser } = require('../lib/dataset-parsers');
-const { SentenceEvaluatorStream, CollectStatistics } = require('./lib/evaluators');
+const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('./lib/evaluators');
 const StreamUtils = require('../lib/stream-utils');
 
 module.exports = {
@@ -94,7 +94,7 @@ module.exports = {
                 }
             }))
             .pipe(new SentenceEvaluatorStream(null, schemas, true, args.debug))
-            .pipe(new CollectStatistics());
+            .pipe(new CollectSentenceStatistics());
 
         const result = await output.read();
         if (args.csv) {

@@ -16,7 +16,7 @@ const path = require('path');
 const stream = require('stream');
 const seedrandom = require('seedrandom');
 
-const SentenceGenerator = require('../lib/sentence-generator');
+const { BasicSentenceGenerator } = require('../lib/sentence-generator');
 
 const ThingTalk = require('thingtalk');
 const NNSyntax = ThingTalk.NNSyntax;
@@ -252,7 +252,7 @@ async function main() {
         debug: true
     };
 
-    const generator = new SentenceGenerator(options);
+    const generator = new BasicSentenceGenerator(options);
     const writer = new stream.Writable({
         objectMode: true,
 

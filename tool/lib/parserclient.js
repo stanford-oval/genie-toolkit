@@ -15,6 +15,7 @@ const qs = require('querystring');
 
 const TokenizerService = require('../../lib/tokenizer');
 const Predictor = require('../../lib/predictor');
+const Utils = require('../../lib/utils');
 
 class LocalParserClient {
     constructor(modeldir, locale) {
@@ -34,18 +35,19 @@ class LocalParserClient {
     tokenize(utterance) {
         return this._tokenizer.tokenize(this._locale, utterance);
     }
-    async sendUtterance(utterance, tokenized) {
+    async sendUtterance(utterance, tokenized, contextCode, contextEntities) {
         let tokens, entities;
         if (tokenized) {
             tokens = utterance.split(' ');
             entities = {};
+            Object.assign(entities, contextEntities);
         } else {
             const tokenized = await this._tokenize.tokenize(utterance);
+            Utils.renumberEntities(tokenized, contextEntities);
             tokens = tokenized.tokens;
-            entities = tokenized.entities;
         }
 
-        const candidates = await this._predictor.predict(tokens);
+        const candidates = await this._predictor.predict(tokens, contextCode);
         return { tokens, candidates, entities };
     }
 }
@@ -76,25 +78,36 @@ class RemoteParserClient {
         });
     }
 
-    sendUtterance(utterance, tokenized) {
+    async sendUtterance(utterance, tokenized, contextCode, contextEntities) {
         const data = {
             q: utterance,
             store: 'no',
-            tokenized: tokenized ? '1' : '',
             thingtalk_version: ThingTalk.version,
-            skip_typechecking: '1'
         };
 
-        let url = `${this._baseUrl}/query?${qs.stringify(data)}`;
+        let response;
+        if (contextCode !== undefined) {
+            data.context = contextCode.join(' ');
+            data.entities = contextEntities;
+            data.tokenized = !!tokenized;
+            data.skip_typechecking = true;
 
-        return Tp.Helpers.Http.get(url).then((data) => {
-            var parsed = JSON.parse(data);
+            response = await Tp.Helpers.Http.post(`${this._baseUrl}/query`, JSON.stringify(data), {
+                dataContentType: 'application/json'
+            });
+        } else {
+            data.tokenized = tokenized ? '1' : '';
+            data.skip_typechecking = '1';
 
-            if (parsed.error)
-                throw new Error('Error received from Genie-Parser server: ' + parsed.error);
+            let url = `${this._baseUrl}/query?${qs.stringify(data)}`;
+            response = await Tp.Helpers.Http.get(url);
+        }
 
-            return parsed;
-        });
+        const parsed = JSON.parse(response);
+        if (parsed.error)
+            throw new Error('Error received from Genie-Parser server: ' + parsed.error);
+
+        return parsed;
     }
 }
 

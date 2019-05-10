@@ -1,0 +1,111 @@
+<!-- HIT template: Survey-v3.0 --><!-- The following snippet enables the 'responsive' behavior on smaller screens -->
+<style type="text/css"> #Survey {
+	width: 50%;
+	margin: 0 auto;
+}
+
+.scenario td, .scenario th {
+  border: none;
+}
+.scenario table {
+  border: 1px solid black;
+}
+
+th {
+  width: 15%;
+}
+</style>
+
+<section class="container" id="Survey">
+<h1>Correct the misunderstanding</h1>
+<h3>Instructions</h3>
+<p>
+We are building a virtual assistant that can help you control all your devices, social accounts, etc.
+Our virtual assistant can do a lot of things now but it still has a hard time to understand the users,
+and occasionally makes mistakes, especially when the sentence is ambiguous. So we would like you to help us
+tell the assistant that they misunderstood you.
+<p>
+In the following, we show <em>the command you intended to give</em>,
+and separately <em>what the assistant actually understood</em>. The two will be similar, but not quite the same.
+  Your goal is to point out the mistake, and steer the assistant towards the correct command.
+  In what you write, you should highlight the mistake only. <b>Do not repeat the command in full</b>, unless
+  you really cannot think of another way to phrase the correction.
+
+<p>Please keep in mind the following in completing your task:
+</p><ul>
+  <li>Be concise. Assume the assistant knows the context and remembers what it just understood.
+  <li>Be as natural as possible. Imagine actually trying to perform the task and failing. Do you feel confused, at loss, angry, frustrated?
+  <li><b>Do not limit yourself to coping the original command.</b>. Bridge the gap between the two commands instead.</li>
+  <li><b>If you don't see the difference between the two commands, please type “no difference” exactly.</b>
+  <li><b>If the two commands are not related at all, please type “unrelated” exactly.</b>
+  <li>Some commands have one mistake, and <b>some have two</b>. When that happens, you must correct both mistakes at once.</li>
+  <li><b>Keep quoted parts <span style="color:#FF0000;">(including the quote marks)</span>, emails, phone numbers identical</b>
+  <li><b>Do not drop @ signs and # signs</b>
+</ul>
+<span style="color:#FF0000;">Warning: for the last two requirements, we have a script to verify and if you failed to meet them, the script will reject your answer.</span>
+
+<h3>Examples</h3>
+<p>Here are a few examples of completing the task, to guide you.
+
+  <table style="width:100%" class="scenario">
+  <tr>
+    <th>Your Intent
+    <td>post on twitter
+  <tr>
+    <th>Assistant understood
+    <td>post on facebook
+  <tr>
+    <th>You say
+    <td><kbd>I said twitter not facebook</kbd>
+  </table>
+
+  <table style="width:100%" class="scenario">
+  <tr>
+    <th>Your Intent
+    <td>when I leave home, turn off the lights
+  <tr>
+    <th>Assistant understood
+    <td>when I arrive at home, turn off the lights
+  <tr>
+    <th>You say
+    <td><kbd>no do it when I leave</kbd>
+  </table>
+
+  <table style="width:100%" class="scenario">
+  <tr>
+    <th>Your Intent
+    <td>show me emails with label "work"
+  <tr>
+    <th>Assistant understood
+    <td>show me emails with "work" in the snippet
+  <tr>
+    <th>You say
+    <td><kbd>no check the label instead</kbd>
+  </table>
+
+  <table style="width:100%" class="scenario">
+  <tr>
+    <th>Your Intent
+    <td>show me Washington Post sports articles
+  <tr>
+    <th>Assistant understood
+    <td>show me Washington Post local articles
+  <tr>
+    <th>You say
+    <td><kbd>how about sports instead?</kbd>
+  </table>
+
+<h3>Your turn now</h3>
+
+<table style="width:100%" class="scenario">
+<tr>
+  <th>Your Intent
+  <td>${utterance1}
+<tr>
+  <th>Assistant understood
+  <td>${utterance2}
+<tr>
+  <th><label for="answer">You say</label>
+  <td><input type="text" id="answer" name="answer" class="form-control" style="width:100%">
+</table>
+</section>
