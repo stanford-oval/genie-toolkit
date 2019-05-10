@@ -120,6 +120,15 @@ function checkIcon(icon) {
     assert((typeof icon === 'string' && icon) || icon === null);
 }
 
+function makeContext() {
+    return {
+        command: null,
+        previousCommand: null,
+        previousCandidates: [],
+        platformData: {}
+    };
+}
+
 class TestDelegate {
     constructor() {
     }
@@ -157,7 +166,7 @@ class TestDelegate {
         assert(Array.isArray(json.code) ||
                typeof json.program === 'string' ||
                typeof json.permissionRule === 'string');
-        Promise.resolve(Intent.parse(json, almond.schemas, null, null, null));
+        Promise.resolve(Intent.parse(json, almond.schemas, makeContext()));
         if (json.slots) {
             json.slots.forEach((slot) => {
                 assert(title.indexOf('$' + slot) >= 0, `button ${title} is missing slot ${slot}`);
