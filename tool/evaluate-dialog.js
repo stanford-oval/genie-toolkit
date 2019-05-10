@@ -12,7 +12,7 @@
 const ThingTalk = require('thingtalk');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
-const { DatasetParser } = require('../lib/dataset-parsers');
+const DialogParser = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('./lib/parserclient');
 const { DialogEvaluatorStream, CollectDialogStatistics } = require('./lib/evaluators');
@@ -79,15 +79,15 @@ module.exports = {
         const parser = ParserClient.get(args.url, args.locale);
         await parser.start();
 
-        const output = readAllLines(args.input_file)
-            .pipe(new DatasetParser({ preserveId: true, parseMultiplePrograms: true }))
+        const output = readAllLines(args.input_file, '====')
+            .pipe(new DialogParser())
             .pipe(new DialogEvaluatorStream(parser, schemas, args.tokenized, args.debug))
             .pipe(new CollectDialogStatistics());
 
         const result = await output.read();
 
         let buffer = '';
-        for (let key of ['ok', 'ok_initial', 'ok_partial', 'ok_progress']) {
+        for (let key of ['total', 'turns', 'ok', 'ok_initial', 'ok_partial', 'ok_progress']) {
             if (buffer)
                 buffer += ',';
             buffer += String(result[key]);

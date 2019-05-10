@@ -36,6 +36,7 @@ const subcommands = {
     'predict': require('./predict'),
     'evaluate-server': require('./evaluate-server'),
     'evaluate-file': require('./evaluate-file'),
+    'evaluate-dialog': require('./evaluate-dialog'),
     'manual-annotate': require('./manual-annotate')
 };
 

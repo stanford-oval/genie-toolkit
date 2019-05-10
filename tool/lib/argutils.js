@@ -21,8 +21,8 @@ function maybeCreateReadStream(filename) {
         return fs.createReadStream(filename);
 }
 
-function readAllLines(files) {
-    return StreamUtils.chain(files.map((s) => s.setEncoding('utf8').pipe(byline())), { objectMode: true });
+function readAllLines(files, separator = '') {
+    return StreamUtils.chain(files.map((s) => s.setEncoding('utf8').pipe(byline())), { objectMode: true, separator });
 }
 
 module.exports = {

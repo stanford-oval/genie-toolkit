@@ -22,7 +22,7 @@ module.exports = class DialogParser extends Stream.Transform {
         this._expect = 0;
     }
 
-    _write(line, encoding, callback) {
+    _transform(line, encoding, callback) {
         line = line.trim();
 
         // comment or empty line
@@ -53,12 +53,14 @@ module.exports = class DialogParser extends Stream.Transform {
 
         this._buffer.push(line);
         this._expect = (interaction + 1) % 2;
+        callback();
     }
 
     _flush(callback) {
         assert(this._buffer.length % 2 === 0, `malformed dialog ${this._i}, expected an equal number of user/assistant interaction`);
-        this._i++;
         const buffer = this._buffer;
+        buffer.id = this._i;
+        this._i++;
         this._buffer = [];
         callback(null, buffer);
     }

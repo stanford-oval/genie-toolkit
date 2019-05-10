@@ -15,6 +15,7 @@ const qs = require('querystring');
 
 const TokenizerService = require('../../lib/tokenizer');
 const Predictor = require('../../lib/predictor');
+const Utils = require('../../lib/utils');
 
 class LocalParserClient {
     constructor(modeldir, locale) {
@@ -34,18 +35,19 @@ class LocalParserClient {
     tokenize(utterance) {
         return this._tokenizer.tokenize(this._locale, utterance);
     }
-    async sendUtterance(utterance, tokenized, context) {
+    async sendUtterance(utterance, tokenized, contextCode, contextEntities) {
         let tokens, entities;
         if (tokenized) {
             tokens = utterance.split(' ');
             entities = {};
+            Object.assign(entities, contextEntities);
         } else {
             const tokenized = await this._tokenize.tokenize(utterance);
+            Utils.renumberEntities(tokenized, contextEntities);
             tokens = tokenized.tokens;
-            entities = tokenized.entities;
         }
 
-        const candidates = await this._predictor.predict(tokens, context !== undefined ? context.split(' ') : undefined);
+        const candidates = await this._predictor.predict(tokens, contextCode);
         return { tokens, candidates, entities };
     }
 }
@@ -76,22 +78,27 @@ class RemoteParserClient {
         });
     }
 
-    async sendUtterance(utterance, tokenized, context) {
+    async sendUtterance(utterance, tokenized, contextCode, contextEntities) {
         const data = {
             q: utterance,
             store: 'no',
-            tokenized: tokenized ? '1' : '',
             thingtalk_version: ThingTalk.version,
-            skip_typechecking: '1',
         };
 
         let response;
-        if (context !== undefined) {
-            data.context = context;
-            response = await Tp.Helpers.Http.post(`${this._baseUrl}/query`, qs.stringify(data), {
-                dataContentType: 'application/x-www-form-urlencoded'
+        if (contextCode !== undefined) {
+            data.context = contextCode.join(' ');
+            data.entities = contextEntities;
+            data.tokenized = !!tokenized;
+            data.skip_typechecking = true;
+
+            response = await Tp.Helpers.Http.post(`${this._baseUrl}/query`, JSON.stringify(data), {
+                dataContentType: 'application/json'
             });
         } else {
+            data.tokenized = tokenized ? '1' : '';
+            data.skip_typechecking = '1';
+
             let url = `${this._baseUrl}/query?${qs.stringify(data)}`;
             response = await Tp.Helpers.Http.get(url);
         }
