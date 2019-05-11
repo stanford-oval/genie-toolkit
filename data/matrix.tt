@@ -1,4 +1,7 @@
-class @org.thingpedia.builtin.matrix extends @messaging {
+class @org.thingpedia.builtin.matrix extends @messaging
+#_[name="Matrix"]
+#_[description="The Matrix.org federated chat service "]
+{
   import loader from @org.thingpedia.builtin();
   import config from @org.thingpedia.config.interactive();
 }

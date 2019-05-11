@@ -1,5 +1,8 @@
 class @org.thingpedia.builtin.test
-#[system=true] {
+#_[name="Test Device"]
+#_[description="Test Almond in various ways"]
+#[system=true]
+{
   import loader from @org.thingpedia.builtin();
   import config from @org.thingpedia.config.builtin();
 
