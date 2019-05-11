@@ -53,7 +53,6 @@ function testBuiltinsAreExpected(engine) {
 
     const devices = engine.devices;
 
-    assert(devices.hasDevice('thingengine-own-desktop'));
     assert(devices.hasDevice('thingengine-own-global'));
     assert(devices.hasDevice('org.thingpedia.builtin.test'));
     assert(!devices.hasDevice('org.thingpedia.builtin.thingengine.phone'));

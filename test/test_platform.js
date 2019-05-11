@@ -64,9 +64,8 @@ class MemoryPreferences extends prefs.Preferences {
         this.emit('changed', name);
     }
 
-    changed() {
-        this._scheduleWrite();
-        this.emit('changed', null);
+    changed(name = null) {
+        this.emit('changed', name);
     }
 
     flush() {
