@@ -1,8 +1,7 @@
 *~
 
 node_modules/
-po/sabrina.pot
-po/almond.pot
+po/almond-dialog-agent.pot
 po/*.mo
 po/*.json
 
