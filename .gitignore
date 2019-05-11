@@ -4,6 +4,7 @@ node_modules/
 po/thingengine-core.pot
 po/*.mo
 po/*.json
+po/tmp
 
 *.tt.json
 

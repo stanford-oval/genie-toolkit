@@ -1,4 +1,7 @@
-class @org.thingpedia.builtin.thingengine.builtin {
+class @org.thingpedia.builtin.thingengine.builtin
+#_[name="Miscellaneous Interfaces"]
+#_[description="Commands that are always available and don't belong to any specific device or account. Mostly related to time and randomness, because the universe is chaos and those always there. Also debugging."]
+{
   import loader from @org.thingpedia.builtin();
   import config from @org.thingpedia.config.builtin();
 
