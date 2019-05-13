@@ -65,6 +65,18 @@ module.exports = {
             help: 'Filter dataset to commands of the given device. This option can be passed multiple times to specify multiple devices',
             dest: 'forDevices',
         });
+        parser.addArgument('--contextual', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Process a contextual dataset.',
+            defaultValue: false
+        });
+        parser.addArgument('--eval-on-synthetic', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Include synthetic data in eval/test.',
+            defaultValue: false
+        });
 
         parser.addArgument('--debug', {
             nargs: 0,
@@ -98,11 +110,12 @@ module.exports = {
         }
 
         readAllLines(args.input_file)
-            .pipe(new DatasetParser())
+            .pipe(new DatasetParser({ contextual: args.contextual }))
             .pipe(new DatasetSplitter({
                 rng: seedrandom.alea(args.random_seed),
                 locale: args.locale,
                 debug: args.debug,
+                evalOnSynthetic: args.eval_on_synthetic,
 
                 train,
                 eval: eval_,
