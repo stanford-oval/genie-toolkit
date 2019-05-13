@@ -1442,6 +1442,63 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 
     null],
 
+    [
+    ['bookkeeping', 'special', 'special:makerule'],
+/*`>> Do you want to use your own account or others?
+>> choice 0: Use my own account
+>> choice 1: Use others' account
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '0'],*/
+`>> Pick one from the following categories or simply type in.
+>> button: Media (news, comics, meme, etc) {"code":["bookkeeping","category","media"],"entities":{}}
+>> button: Social Networks (facebook, twitter, etc) {"code":["bookkeeping","category","social-network"],"entities":{}}
+>> button: Home (camera, tv, etc) {"code":["bookkeeping","category","home"],"entities":{}}
+>> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
+>> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
+>> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> ask special command
+`,
+    {"code":["bookkeeping","category","service"],"entities":{}},
+`>> Pick a command from the following devices
+>> button: Almond Coffee {"code":["bookkeeping","commands","service","device:org.thingpedia.demo.coffee"],"entities":{}}
+>> button: Bing Search {"code":["bookkeeping","commands","service","device:com.bing"],"entities":{}}
+>> button: Dad Jokes {"code":["bookkeeping","commands","service","device:com.icanhazdadjoke"],"entities":{}}
+>> button: Google Account {"code":["bookkeeping","commands","service","device:com.google"],"entities":{}}
+>> button: Holidays Calendar {"code":["bookkeeping","commands","service","device:org.thingpedia.holidays"],"entities":{}}
+>> button: iCalendar Events {"code":["bookkeeping","commands","service","device:org.thingpedia.icalendar"],"entities":{}}
+>> button: Microsoft Computer Vision {"code":["bookkeeping","commands","service","device:com.microsoft.cognitive.vision"],"entities":{}}
+>> button: Miscellaneous Interfaces {"code":["bookkeeping","commands","service","device:org.thingpedia.builtin.thingengine.builtin"],"entities":{}}
+>> button: Partner Finder {"code":["bookkeeping","commands","service","device:org.thingpedia.friendhub.partnerfinder"],"entities":{}}
+>> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    ['bookkeeping', 'special', 'special:more'],
+`>> Pick a command from the following devices
+>> button: Quotes {"code":["bookkeeping","commands","service","device:com.forismatic.quotes"],"entities":{}}
+>> button: Sticky Notes {"code":["bookkeeping","commands","service","device:org.thingpedia.friendhub.stickynotes"],"entities":{}}
+>> button: Test Device {"code":["bookkeeping","commands","service","device:org.thingpedia.builtin.test"],"entities":{}}
+>> button: Uber {"code":["bookkeeping","commands","service","device:com.uber"],"entities":{}}
+>> button: Weather API {"code":["bookkeeping","commands","service","device:org.thingpedia.weather"],"entities":{}}
+>> button: WolframAlpha {"code":["bookkeeping","commands","service","device:com.wolframalpha"],"entities":{}}
+>> button: Wunderlist {"code":["bookkeeping","commands","service","device:com.wunderlist"],"entities":{}}
+>> button: Yandex Translate {"code":["bookkeeping","commands","service","device:com.yandex.translate"],"entities":{}}
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    ['bookkeeping', 'special', 'special:more'],
+`>> Pick a command from the following devices
+>> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> ask special command
+`,
+    ['bookkeeping', 'special', 'special:nevermind'],
+`>> Sorry I couldn't help on that.
+>> ask special null
+`,
+
+    null],
+
     /*[
     ['bookkeeping', 'special', 'special:makerule'],
 `>> Do you want to use your own account or others?
