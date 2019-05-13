@@ -20,6 +20,7 @@ const subcommands = {
 
     'generate': require('./generate'),
     'generate-contextual': require('./generate-contextual'),
+    'extract-contexts': require('./extract-contexts'),
     'contextualize': require('./contextualize'),
 
     'sample': require('./sample'),

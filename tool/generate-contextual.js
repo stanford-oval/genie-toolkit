@@ -15,7 +15,7 @@ const argparse = require('argparse');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const { ContextualSentenceGenerator } = require('../lib/sentence-generator');
-const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
+const { DatasetStringifier } = require('../lib/dataset-parsers');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
 class ActionSetFlag extends argparse.Action {
@@ -40,7 +40,7 @@ module.exports = {
         parser.addArgument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
-            help: 'Input datasets to choose contexts from'
+            help: 'Context files to choose contexts from'
         });
         parser.addArgument(['-l', '--locale'], {
             required: false,
@@ -113,7 +113,6 @@ module.exports = {
         };
 
         const output = readAllLines(args.input_file)
-            .pipe(new DatasetParser())
             .pipe(new ContextualSentenceGenerator(options))
             .pipe(new DatasetStringifier())
             .pipe(args.output);
