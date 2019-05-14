@@ -1831,6 +1831,24 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `,
     null],
 
+    [(almond) => {
+        almond.askQuestion(null, 'org.thingpedia.builtin.test', ThingTalk.Type.Number, 'What is the answer to life the universe and everything?').then((v) => {
+            assert.fail('expected an error');
+        }, (err) => {
+            assert.strictEqual(err.code, 'ECANCELLED');
+        });
+
+        // inject a meaningless intent so we synchronize the two concurrent tasks
+        return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+    },
+`>> What is the answer to life the universe and everything?
+>> ask special number
+`,
+    ['bookkeeping', 'special', 'special:stop'],
+`>> ask special null
+`,
+    null],
+
     [
     ['now', '=>', '@com.instagram.get_pictures', '=>', 'notify'],
 `>> You don't have a Instagram.
@@ -3103,7 +3121,31 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
         `{
   now => @org.thingpedia.builtin.thingengine.builtin(id="thingengine-own-global").get_random_between(high=6, low=0) => notify;
 }`
-    ]
+    ],
+
+    // stop / nevermind
+    [
+    `\\t now => @com.facebook.post();`,
+`>> What do you want to post?
+>> ask special raw_string
+`,
+    ['bookkeeping', 'special', 'special:nevermind'],
+`>> Sorry I couldn't help on that.
+>> ask special null
+`,
+    null
+    ],
+
+    [
+    `\\t now => @com.facebook.post();`,
+`>> What do you want to post?
+>> ask special raw_string
+`,
+    ['bookkeeping', 'special', 'special:stop'],
+`>> ask special null
+`,
+    null
+    ],
 ];
 
 function handleCommand(almond, input) {
