@@ -383,7 +383,7 @@ class DialogEvaluatorStream extends Stream.Transform {
         const targetCode = ThingTalk.NNSyntax.toNN(targetProgram, tokens, entities);
         const untypedTargetCode = Array.from(stripOutTypeAnnotations(targetCode)).join(' ');
 
-        const parsed = await this._parser.sendUtterance(input, this._tokenized, contextCode, contextEntities);
+        const parsed = await this._parser.sendUtterance(tokens.join(' '), true, contextCode, contextEntities);
 
         const predictions = parsed.candidates
             .filter((beam) => beam.score !== 'Infinity') // ignore exact matches

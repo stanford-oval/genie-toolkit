@@ -31,14 +31,14 @@ module.exports = {
         parser.addArgument('--tokenized', {
             required: false,
             action: 'storeTrue',
-            defaultValue: true,
-            help: "The dataset is already tokenized (this is the default)."
+            defaultValue: false,
+            help: "The dataset is already tokenized."
         });
         parser.addArgument('--no-tokenized', {
             required: false,
             dest: 'tokenized',
             action: 'storeFalse',
-            help: "The dataset is not already tokenized."
+            help: "The dataset is not already tokenized (this is the default)."
         });
         parser.addArgument('--thingpedia', {
             required: true,
