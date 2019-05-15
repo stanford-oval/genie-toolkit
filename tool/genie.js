@@ -37,8 +37,10 @@ const subcommands = {
     'predict': require('./predict'),
     'evaluate-server': require('./evaluate-server'),
     'evaluate-file': require('./evaluate-file'),
+    'manual-annotate': require('./manual-annotate'),
+
     'evaluate-dialog': require('./evaluate-dialog'),
-    'manual-annotate': require('./manual-annotate')
+    'dialog-to-contextual': require('./dialog-to-contextual')
 };
 
 async function main() {
