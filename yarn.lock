@@ -2175,13 +2175,12 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-thingpedia-client@^0.2.3:
+"thingpedia-client@github:stanford-oval/thingpedia-client":
   version "0.2.3"
-  resolved "https://registry.yarnpkg.com/thingpedia-client/-/thingpedia-client-0.2.3.tgz#e7b930a68f3d78ed75a017d6a8dceab0c2641d09"
-  integrity sha512-SMMFx0V7V5pbyPm1nL25/vSWP8NXoUs2rAwLtq5vUKh4mVe+wstu9r5LTqcAv0WYrDpJ1PM251Nh5bW5aYUgTQ==
+  resolved "https://codeload.github.com/stanford-oval/thingpedia-client/tar.gz/e16b77a96cb76b85a091ced07f1b9fc591e1ff60"
   dependencies:
     thingpedia "^2.3.0"
-    thingtalk "~1.6.1"
+    thingtalk "~1.7.0"
     tmp "^0.1.0"
 
 thingpedia-discovery@^1.0.0:
@@ -2207,16 +2206,6 @@ thingtalk@^1.4.1, thingtalk@~1.7.0:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.7.0.tgz#dcc403d00c8fb68d9c2e4eafdb2fcdab632d3293"
   integrity sha512-xOtGizCQi00PScBJ4QUv/vqj5Lo6vG2rU+NLatCrYT13ra5ROgZe+GYabSWXKDJi90Sh3P9K6gKQWT2ghFwxmA==
-  dependencies:
-    adt "~0.7.2"
-    byline "^5.0.0"
-    consumer-queue "^1.0.0"
-    smtlib "^0.1.1"
-
-thingtalk@~1.6.1:
-  version "1.6.1"
-  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.6.1.tgz#1320ade20ffe576c399499a7ae68bab186f151a4"
-  integrity sha512-Hl0Vy+hGWrPMsJvNgomtBzBPYUnKxtDdKP0p9GiFioZ/2JanqpaB0cEQmZMEQqUAM2l1Fegx02hNIcvO8TP/9A==
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
