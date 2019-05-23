@@ -130,17 +130,19 @@ $root = {
     | 'hey almond'
     ) => special('wakeup');
 
-     ('get' c:command_category 'commands'
-    | 'list commands in' c:command_category
-    | 'list devices in' c:command_category
-    | 'list' c:command_category 'devices'
-    ) => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.CommandList(new Ast.Value.Undefined(true), c));
+    !no_contextual_bookkeeping {
+         ('get' c:command_category 'commands'
+        | 'list commands in' c:command_category
+        | 'list devices in' c:command_category
+        | 'list' c:command_category 'devices'
+        ) => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.CommandList(new Ast.Value.Undefined(true), c));
 
-     ( c:constant_Any
-    | 'the answer is' c:constant_Any
-    | 'use' c:constant_Any
-    | 'i want' c:constant_Any
-    ) => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Answer(c));
+         ( c:constant_Any
+        | 'the answer is' c:constant_Any
+        | 'use' c:constant_Any
+        | 'i want' c:constant_Any
+        ) => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Answer(c));
+    }
 
     // NOTE: the following bookkeeping commands have no template:
     // - failed: it's a placeholder for OOD/invalid command
