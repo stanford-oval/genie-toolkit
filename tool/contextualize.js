@@ -55,6 +55,7 @@ class ContextualizeStream extends Stream.Transform {
 
         this._locale = options.locale;
         this._samples = options.numSamples;
+        this._nullOnly = options.nullOnly;
         this._templates = I18n.get(options.locale).CHANGE_SUBJECT_TEMPLATES.map((tpl) => tpl.split('{}'));
         for (let tpl of this._templates)
             assert.strictEqual(tpl.length, 2);
@@ -64,10 +65,17 @@ class ContextualizeStream extends Stream.Transform {
     }
 
     _transform(ex, encoding, callback) {
+        if (this._nullOnly) {
+            ex.context = 'null';
+            callback(null, ex);
+            return;
+        }
+    
         for (let i = 0; i < this._samples; i++) {
             const clone = {};
             Object.assign(clone, ex);
 
+            clone.id = ex.id + ':' + i;
             if (coin(0.5, this._rng))
                 clone.context = 'null';
             else
@@ -125,6 +133,11 @@ module.exports = {
             help: `Number of contexts per input sentence`,
             defaultValue: 20
         });
+        parser.addArgument('--null-only', {
+            action: 'storeTrue',
+            help: 'Use only the null context. If set, --expansion-factor is ignored.',
+            defaultValue: false
+        });
         parser.addArgument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
@@ -149,6 +162,7 @@ module.exports = {
             .pipe(new ContextualizeStream(allprograms, {
                 locale: args.locale,
                 numSamples: args.expansion_factor,
+                nullOnly: args.null_only,
 
                 rng
             }))
