@@ -66,22 +66,23 @@ for (let [pname, [typestr,]] of $options.params.in.values()) {
     // don't parameter pass booleans or enums, as that rarely makes sense
     if (typestr !== 'Boolean' && !typestr.startsWith('Enum__')) {
         if (pname !== 'count' && pname !== 'p_count') {
-            // replace $-placeholders with "some X" where X is based on parameter type
+            if ($options.flags.undefined_filter) {
+                // replace $-placeholders with "some X" where X is based on parameter type
+                thingpedia_query = q:thingpedia_query $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(q, pname, typestr, C.betaReduceTable);
 
-            thingpedia_query = q:thingpedia_query $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
-                C.replacePlaceholderWithUndefined(q, pname, typestr, C.betaReduceTable);
+                thingpedia_get_command = q:thingpedia_get_command $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(q, pname, typestr, C.betaReduceTable);
 
-            thingpedia_get_command = q:thingpedia_get_command $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
-                C.replacePlaceholderWithUndefined(q, pname, typestr, C.betaReduceTable);
+                thingpedia_stream = s:thingpedia_stream $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(s, pname, typestr, C.betaReduceStream);
 
-            thingpedia_stream = s:thingpedia_stream $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
-                C.replacePlaceholderWithUndefined(s, pname, typestr, C.betaReduceStream);
+                thingpedia_action = a:thingpedia_action $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(a, pname, typestr, C.betaReduceAction);
 
-            thingpedia_action = a:thingpedia_action $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
-                C.replacePlaceholderWithUndefined(a, pname, typestr, C.betaReduceAction);
-
-            thingpedia_program = p:thingpedia_program $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
-                C.replacePlaceholderWithUndefined(p, pname, typestr, C.betaReduceProgram);
+                thingpedia_program = p:thingpedia_program $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(p, pname, typestr, C.betaReduceProgram);
+            }
         }
     }
 }
