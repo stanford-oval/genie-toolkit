@@ -33,8 +33,11 @@ node $srcdir/tool/genie.js generate --maxdepth 2 --thingpedia thingpedia.json --
   --template $srcdir/languages/en/thingtalk.genie -o /dev/null -l en
 
 # generate-contextual
+node $srcdir/tool/genie.js extract-contexts -l en-US -o contexts.txt \
+   --thingpedia thingpedia.json $srcdir/test/data/synthetic.tsv
 node $srcdir/tool/genie.js generate-contextual --maxdepth 3 --thingpedia thingpedia.json --dataset dataset.tt \
-   --template $srcdir/languages/en/contextual.genie -o /dev/null -l en $srcdir/test/data/synthetic.tsv
+   --template $srcdir/languages/en/contextual.genie -o /dev/null -l en contexts.txt
+node $srcdir/tool/genie.js contextualize -o /dev/null -l en --context contexts.txt $srcdir/test/data/synthetic.tsv
 
 # sample
 node $srcdir/tool/genie.js sample -o synthetic-sampled.tsv \

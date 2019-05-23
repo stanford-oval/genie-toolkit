@@ -45,6 +45,12 @@ module.exports = {
             defaultValue: 'en-US',
             help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
         });
+        parser.addArgument('--contextual', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Process a contextual dataset.',
+            defaultValue: false
+        });
         parser.addArgument('--debug', {
             nargs: 0,
             action: 'storeTrue',
@@ -68,15 +74,18 @@ module.exports = {
         const tpClient = new FileThingpediaClient(args.locale, args.thingpedia);
         const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
+        const columns = args.contextual ?
+            ['id', 'context', 'sentence', 'target_code', 'prediction'] :
+            ['id', 'sentence', 'target_code', 'prediction'];
         const predictionstream = args.predictions
-            .pipe(csv.parse({ columns: ['id', 'sentence', 'target_code', 'prediction'], delimiter: '\t', relax: true }))
+            .pipe(csv.parse({ columns, delimiter: '\t', relax: true }))
             .pipe(new StreamUtils.MapAccumulator());
         const predictions = await predictionstream.read();
 
         const output = args.dataset
             .setEncoding('utf8')
             .pipe(byline())
-            .pipe(new DatasetParser({ preserveId: true, parseMultiplePrograms: true }))
+            .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true }))
             .pipe(new Stream.Transform({
                 objectMode: true,
 
@@ -98,7 +107,7 @@ module.exports = {
 
         const result = await output.read();
         if (args.csv) {
-            let buffer = '';
+            let buffer = String(result.total);
             for (let key of ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax']) {
                 result[key].length = parseInt(process.env.CSV_LENGTH || 1);
                 if (buffer)

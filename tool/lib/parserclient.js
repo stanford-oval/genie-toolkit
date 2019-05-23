@@ -32,8 +32,11 @@ class LocalParserClient {
         await this._tokenizer.end();
     }
 
-    tokenize(utterance) {
-        return this._tokenizer.tokenize(this._locale, utterance);
+    async tokenize(utterance, contextEntities) {
+        const tokenized = await this._tokenizer.tokenize(this._locale, utterance);
+        Utils.renumberEntities(tokenized, contextEntities);
+        return tokenized;
+
     }
     async sendUtterance(utterance, tokenized, contextCode, contextEntities) {
         let tokens, entities;
@@ -42,7 +45,7 @@ class LocalParserClient {
             entities = {};
             Object.assign(entities, contextEntities);
         } else {
-            const tokenized = await this._tokenize.tokenize(utterance);
+            const tokenized = await this._tokenizer.tokenize(this._locale, utterance);
             Utils.renumberEntities(tokenized, contextEntities);
             tokens = tokenized.tokens;
         }

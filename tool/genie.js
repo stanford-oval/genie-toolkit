@@ -20,6 +20,7 @@ const subcommands = {
 
     'generate': require('./generate'),
     'generate-contextual': require('./generate-contextual'),
+    'extract-contexts': require('./extract-contexts'),
     'contextualize': require('./contextualize'),
 
     'sample': require('./sample'),
@@ -30,14 +31,17 @@ const subcommands = {
 
     'compile-ppdb': require('./compile-ppdb'),
     'augment': require('./augment'),
+    'resample': require('./resample'),
     'split-train-eval': require('./split-train-eval'),
 
     'train': require('./train'),
     'predict': require('./predict'),
     'evaluate-server': require('./evaluate-server'),
     'evaluate-file': require('./evaluate-file'),
+    'manual-annotate': require('./manual-annotate'),
+
     'evaluate-dialog': require('./evaluate-dialog'),
-    'manual-annotate': require('./manual-annotate')
+    'dialog-to-contextual': require('./dialog-to-contextual')
 };
 
 async function main() {

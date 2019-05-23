@@ -18,7 +18,7 @@
     "shuffle-array": "^1.0.1",
     "sockaddr": "^1.0.1",
     "thingpedia": "^2.3.3",
-    "thingtalk": "github:stanford-oval/thingtalk"
+    "thingtalk": "~1.7.0"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",

@@ -21,32 +21,85 @@ const { uniform, coin } = require('../lib/random');
 const StreamUtils = require('../lib/stream-utils');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
+function extractEntities(code) {
+    const entities = {};
+
+    for (let token of code) {
+        const match = /^([A-Z].*)_([0-9]+)$/.exec(token);
+        if (match !== null) {
+            const type = match[1];
+            const num = parseInt(match[2]);
+
+            entities[type] = Math.max(entities[type]||0, num);
+        }
+    }
+
+    return entities;
+}
+
+function renumberEntities(code, offsets) {
+    let changed = false;
+    for (let i = 0; i < code.length; i++) {
+        const match = /^([A-Z].*)_([0-9]+)$/.exec(code[i]);
+        if (match !== null && match[1] in offsets) {
+            code[i] = match[1] + '_' + (parseInt(match[2]) + offsets[match[1]] + 1);
+            changed = true;
+        }
+    }
+    return changed;
+}
+
 class ContextualizeStream extends Stream.Transform {
-    constructor(locale, allprograms, rng) {
+    constructor(allprograms, options) {
         super({ objectMode: true });
 
-        this._locale = locale;
-        this._templates = I18n.get(locale).CHANGE_SUBJECT_TEMPLATES.map((tpl) => tpl.split('{}'));
+        this._locale = options.locale;
+        this._samples = options.numSamples;
+        this._nullOnly = options.nullOnly;
+        this._templates = I18n.get(options.locale).CHANGE_SUBJECT_TEMPLATES.map((tpl) => tpl.split('{}'));
         for (let tpl of this._templates)
             assert.strictEqual(tpl.length, 2);
 
         this._allprograms = allprograms;
-        this._rng = rng;
+        this._rng = options.rng;
     }
 
     _transform(ex, encoding, callback) {
-        if (coin(0.2, this._rng))
+        if (this._nullOnly) {
             ex.context = 'null';
-        else
-            ex.context = uniform(this._allprograms, this._rng);
+            callback(null, ex);
+            return;
+        }
+    
+        for (let i = 0; i < this._samples; i++) {
+            const clone = {};
+            Object.assign(clone, ex);
 
-        if (ex.context !== 'null' && this._templates.length > 0 && coin(0.1, this._rng)) {
-            const template = uniform(this._templates, this._rng);
+            clone.id = ex.id + ':' + i;
+            if (coin(0.5, this._rng))
+                clone.context = 'null';
+            else
+                clone.context = uniform(this._allprograms, this._rng);
 
-            ex.preprocessed = template[0] + ex.preprocessed + template[1];
+            if (clone.context !== 'null') {
+                if (this._templates.length > 0 && coin(0.1, this._rng)) {
+                    const template = uniform(this._templates, this._rng);
+
+                    clone.preprocessed = template[0] + ex.preprocessed + template[1];
+                }
+
+                const preprocessed = clone.preprocessed.split(' ');
+                const code = clone.target_code.split(' ');
+                const contextentities = extractEntities(clone.context.split(' '));
+                renumberEntities(preprocessed, contextentities);
+                renumberEntities(code, contextentities);
+                clone.preprocessed = preprocessed.join(' ');
+                clone.target_code = code.join(' ');
+            }
+            this.push(clone);
         }
 
-        callback(null, ex);
+        callback(null);
     }
 
     _flush(callback) {
@@ -73,7 +126,17 @@ module.exports = {
             required: true,
             action: 'append',
             type: fs.createReadStream,
-            help: `Datasets to use as source of contexts`,
+            help: `Context files to use`,
+        });
+        parser.addArgument(['--expansion-factor'], {
+            type: Number,
+            help: `Number of contexts per input sentence`,
+            defaultValue: 20
+        });
+        parser.addArgument('--null-only', {
+            action: 'storeTrue',
+            help: 'Use only the null context. If set, --expansion-factor is ignored.',
+            defaultValue: false
         });
         parser.addArgument('input_file', {
             nargs: '+',
@@ -90,26 +153,19 @@ module.exports = {
         const rng = seedrandom.alea(args.random_seed);
 
         let allprograms = await readAllLines(args.context)
-            .pipe(new DatasetParser())
-            .pipe(new Stream.Transform({
-                objectMode: true,
-
-                transform(ex, encoding, callback) {
-                    callback(null, ex.target_code);
-                },
-
-                flush(callback) {
-                    process.nextTick(callback);
-                }
-            }))
-            .pipe(new StreamUtils.SetAccumulator())
+            .pipe(new StreamUtils.ArrayAccumulator())
             .read();
-        allprograms = Array.from(allprograms);
 
         await StreamUtils.waitFinish(
             readAllLines(args.input_file)
             .pipe(new DatasetParser())
-            .pipe(new ContextualizeStream(args.locale, allprograms, rng))
+            .pipe(new ContextualizeStream(allprograms, {
+                locale: args.locale,
+                numSamples: args.expansion_factor,
+                nullOnly: args.null_only,
+
+                rng
+            }))
             .pipe(new DatasetStringifier())
             .pipe(args.output)
         );
