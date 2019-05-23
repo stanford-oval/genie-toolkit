@@ -84,7 +84,7 @@ class DialogToTurnStream extends Stream.Transform {
             const targetNN = ThingTalk.NNSyntax.toNN(targetCommand, tokens, entities);
 
             this.push({
-                id: dialog.id + ':' + i,
+                id: 'dlg' + dialog.id + ':' + i,
                 context: contextNN.join(' '),
                 preprocessed: tokens.join(' '),
                 target_code: targetNN.join(' ')
