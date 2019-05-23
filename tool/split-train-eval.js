@@ -11,11 +11,13 @@
 
 const seedrandom = require('seedrandom');
 const fs = require('fs');
+const Stream = require('stream');
 
 const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
 const DatasetSplitter = require('../lib/dataset_splitter');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const StreamUtils = require('../lib/stream-utils');
+const { coin } = require('../lib/random');
 
 module.exports = {
     initArgparse(subparsers) {
@@ -77,6 +79,11 @@ module.exports = {
             help: 'Include synthetic data in eval/test.',
             defaultValue: false
         });
+        parser.addArgument('--subsample', {
+            type: Number,
+            help: 'Sample a fraction of the dataset',
+            defaultValue: 1.0
+        });
 
         parser.addArgument('--debug', {
             nargs: 0,
@@ -109,10 +116,24 @@ module.exports = {
             promises.push(StreamUtils.waitFinish(test.pipe(args.test)));
         }
 
+        const rng = seedrandom.alea(args.random_seed);
         readAllLines(args.input_file)
             .pipe(new DatasetParser({ contextual: args.contextual }))
+            .pipe(new Stream.Transform({
+                objectMode: true,
+
+                transform(ex, encoding, callback) {
+                    if (args.subsample >= 1 || coin(args.subsample, rng))
+                        this.push(ex);
+                    callback();
+                },
+
+                flush(callback) {
+                    process.nextTick(callback);
+                }
+            }))
             .pipe(new DatasetSplitter({
-                rng: seedrandom.alea(args.random_seed),
+                rng: rng,
                 locale: args.locale,
                 debug: args.debug,
                 evalOnSynthetic: args.eval_on_synthetic,
