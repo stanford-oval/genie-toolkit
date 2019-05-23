@@ -33,11 +33,11 @@ module.exports = {
             type: Number,
             help: "The portion of the dataset to sample."
         });
-        parser.addArgument('--no-tokenized', {
-            required: false,
-            dest: 'tokenized',
-            action: 'storeFalse',
-            help: "The dataset is not already tokenized."
+        parser.addArgument('--contextual', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Process a contextual dataset.',
+            defaultValue: false
         });
         parser.addArgument('input_file', {
             nargs: '+',
@@ -54,7 +54,7 @@ module.exports = {
         const rng = seedrandom.alea(args.random_seed);
 
         readAllLines(args.input_file)
-            .pipe(new DatasetParser())
+            .pipe(new DatasetParser({ contextual: args.contextual }))
             .pipe(new Stream.Transform({
                 objectMode: true,
 

@@ -44,6 +44,12 @@ module.exports = {
             required: true,
             help: 'Path to JSON file containing signature, type and mixin definitions.'
         });
+        parser.addArgument('--contextual', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Process a contextual dataset.',
+            defaultValue: false
+        });
         parser.addArgument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
@@ -80,14 +86,14 @@ module.exports = {
         await parser.start();
 
         const output = readAllLines(args.input_file)
-            .pipe(new DatasetParser({ preserveId: true, parseMultiplePrograms: true }))
+            .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true }))
             .pipe(new SentenceEvaluatorStream(parser, schemas, args.tokenized, args.debug))
             .pipe(new CollectSentenceStatistics());
 
         const result = await output.read();
 
         if (args.csv) {
-            let buffer = '';
+            let buffer = String(result.total);
             for (let key of ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax']) {
                 result[key].length = parseInt(process.env.CSV_LENGTH || 1);
                 if (buffer)

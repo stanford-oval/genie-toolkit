@@ -97,6 +97,7 @@ class SentenceEvaluator {
         this._schemas = schemaRetriever;
 
         this._id = ex.id;
+        this._context = ex.context;
         this._preprocessed = ex.preprocessed;
         this._targetPrograms = ex.target_code;
         this._predictions = ex.predictions;
@@ -117,12 +118,19 @@ class SentenceEvaluator {
 
             is_primitive: false
         };
+        
+        let contextCode = undefined, contextEntities = {};
+        if (this._context !== undefined) {
+            contextCode = this._context.split(' ');
+            contextEntities = Utils.makeDummyEntities(this._context);
+        }
 
         let entities;
         if (this._tokenized) {
             entities = Utils.makeDummyEntities(this._preprocessed);
+            Object.assign(entities, contextEntities);
         } else {
-            const tokenized = await this._parser.tokenize(this._preprocessed);
+            const tokenized = await this._parser.tokenize(this._preprocessed, contextEntities);
             entities = tokenized.entities;
         }
 
@@ -167,7 +175,7 @@ class SentenceEvaluator {
         if (this._predictions) {
             predictions = this._predictions;
         } else {
-            const parsed = await this._parser.sendUtterance(this._preprocessed, this._tokenized);
+            const parsed = await this._parser.sendUtterance(this._preprocessed, this._tokenized, contextCode, contextEntities);
             if (!entities)
                 entities = parsed.entities;
 
