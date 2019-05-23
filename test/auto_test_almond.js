@@ -98,7 +98,20 @@ function loadOneApp(code) {
     } else if (code === `{
   now => @org.thingpedia.weather(id="org.thingpedia.weather-14").current(location=makeLocation(90, 0, "North pole")) => notify;
 }`) {
-        results = [{ isError: true, icon: 'org.thingpedia.weather', error: new Error('I do not like that location') }];
+        results = [{ isError: true, icon: 'org.thingpedia.weather',  error: new Error('I do not like that location') }];
+    } else if (code === `{
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-46").current(location=makeLocation(-90, 0, "South pole")) => notify;
+}`) {
+        results = [{ isNotification: true, icon: 'org.thingpedia.weather', outputType: 'org.thingpedia.weather:current', outputValue: {
+            location: { y: -90, x: 0, display: "South pole" },
+            temperature: 22, // Measure(C),
+            wind_speed: 0, // Measure(mps),
+            humidity: 75, // Number,
+            cloudiness: 0, // Number,
+            fog: 0, // Number,
+            status: 'sunny', // Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy),
+            icon: 'sunny.png', // Entity(tt:picture)
+         } }];
     } else if (code.indexOf('@org.thingpedia.builtin.test') >= 0) {
         results = getTestData(25, 10).map((r) => ({ isNotification: true, icon: 'org.thingpedia.builtin.test',
             outputType: 'org.thingpedia.builtin.test:get_data', outputValue: r }));
@@ -177,6 +190,10 @@ class TestDelegate {
 
     sendAskSpecial(what) {
         writeLine('>> ask special ' + what);
+    }
+
+    sendResult(msg, icon) {
+        writeLine(`>> ${msg.constructor.name} ${msg.toLocaleString()}`);
     }
 }
 
@@ -3146,6 +3163,21 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 `,
     null
     ],
+
+    [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
+`>> What location do you want the current weather for?
+>> ask special location
+`,
+
+    { code: ['bookkeeping', 'answer', 'LOCATION_0'], entities: {"LOCATION_0": {longitude:0, latitude:-90, display:"South pole"}}},
+`>> Current weather for South pole: sunny, temperature 22.0 C, wind speed 0.0 m/s, humidity 75%, cloudiness 0%, fog 0%.
+>> MapFO Location: [Latitude: -90.000 deg, Longitude: 0.000 deg]
+>> ask special null
+`,
+
+    `{
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-46").current(location=makeLocation(-90, 0, "South pole")) => notify;
+}`],
 ];
 
 function handleCommand(almond, input) {
