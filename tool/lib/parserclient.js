@@ -11,7 +11,7 @@
 
 const ThingTalk = require('thingtalk');
 const Tp = require('thingpedia');
-const qs = require('querystring');
+const qs = require('qs');
 
 const TokenizerService = require('../../lib/tokenizer');
 const Predictor = require('../../lib/predictor');
@@ -86,21 +86,20 @@ class RemoteParserClient {
             q: utterance,
             store: 'no',
             thingtalk_version: ThingTalk.version,
+            tokenized: tokenized ? '1' : '',
+            skip_typechecking: '1'
         };
 
         let response;
         if (contextCode !== undefined) {
             data.context = contextCode.join(' ');
             data.entities = contextEntities;
-            data.tokenized = !!tokenized;
-            data.skip_typechecking = true;
 
-            response = await Tp.Helpers.Http.post(`${this._baseUrl}/query`, JSON.stringify(data), {
-                dataContentType: 'application/json'
+            response = await Tp.Helpers.Http.post(`${this._baseUrl}/query`, qs.stringify(data), {
+                dataContentType: 'application/x-www-form-urlencoded'
             });
         } else {
-            data.tokenized = tokenized ? '1' : '';
-            data.skip_typechecking = '1';
+
 
             let url = `${this._baseUrl}/query?${qs.stringify(data)}`;
             response = await Tp.Helpers.Http.get(url);
