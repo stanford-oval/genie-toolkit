@@ -163,7 +163,7 @@ for (let [typestr, type] of $options.types.all) {
         }
 
         if ($options.types.id.has(typestr)) {
-            if (!$options.flag.projection_with_filter) {
+            if (!$options.flags.projection_with_filter) {
                 $('single_projection_' + typestr) = table:complete_table => {
                     for (let pname in table.schema.out) {
                         if (table.schema.out[pname].equals(type))
