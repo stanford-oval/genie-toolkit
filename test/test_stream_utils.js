@@ -10,7 +10,7 @@
 "use strict";
 
 const assert = require('assert');
-const StreamUtils = require('../tool/lib/stream-utils');
+const StreamUtils = require('../lib/stream-utils');
 
 async function readall(readable) {
     return new Promise((resolve, reject) => {
@@ -54,7 +54,7 @@ async function testChainStream() {
     const s6 = new StreamUtils.ArrayStream(['1234', '56789012', '34'], { highWaterMark: 4 });
     s6.setEncoding('utf8'); // keep it as strings
 
-    const chain3 = StreamUtils.chain([s5, s6]);
+    const chain3 = StreamUtils.chain([s5, s6], {});
 
     const read2 = await readall(chain3);
     //console.log(read2);
@@ -65,7 +65,7 @@ async function testChainStream() {
     const s7 = new StreamUtils.ArrayStream([Buffer.from('1234'), Buffer.from([0xc3])]);
     const s8 = new StreamUtils.ArrayStream([Buffer.from([0xa9]), Buffer.from('5678')]);
 
-    const chain4 = StreamUtils.chain([s7, s8]);
+    const chain4 = StreamUtils.chain([s7, s8], {});
     chain4.setEncoding('utf8');
 
     const read3 = await readall(chain4);
@@ -77,12 +77,43 @@ async function testChainStream() {
     const s10 = new StreamUtils.ArrayStream([Buffer.from([0xa9]), Buffer.from('5678')]);
     s10.setEncoding('utf8'); // eager decoding
 
-    const chain5 = StreamUtils.chain([s9, s10]);
+    const chain5 = StreamUtils.chain([s9, s10], {});
     chain5.setEncoding('utf8');
 
     const read4 = await readall(chain5);
     //console.log(read4);
     assert.deepStrictEqual(read4.join(''), '1234��5678');
+
+    // with separator
+    const s5s = new StreamUtils.ArrayStream(['1234', '56789012', '34'], { highWaterMark: 4 });
+    s5s.setEncoding('utf8'); // keep it as strings
+
+    const s6s = new StreamUtils.ArrayStream(['1234', '56789012', '34'], { highWaterMark: 4 });
+    s6s.setEncoding('utf8'); // keep it as strings
+
+    const chain6 = StreamUtils.chain([s5s, s6s], { separator: '---' });
+    const read6 = await readall(chain6);
+    //console.log(read2);
+    assert.deepStrictEqual(read6.join(''), '12345678901234---12345678901234');
+
+    const s7s = new StreamUtils.ArrayStream(['1234', '56789012', '34'], { highWaterMark: 4 });
+    s7s.setEncoding('utf8'); // keep it as strings
+
+    const chain7 = StreamUtils.chain([s7s], { separator: '---' });
+    const read7 = await readall(chain7);
+    //console.log(read2);
+    assert.deepStrictEqual(read7.join(''), '12345678901234');
+
+    const s3s = new StreamUtils.ArrayStream(['1234', '56789012', '34']);
+    s3s.setEncoding('utf8'); // keep it as strings
+
+    const s4s = new StreamUtils.ArrayStream(['1234', '56789012', '34']);
+    s4s.setEncoding('utf8'); // keep it as strings
+
+    const chain8 = StreamUtils.chain([s3s, s4s], { highWaterMark: 4, separator: '---' });
+    const read8 = await readall(chain8);
+    //console.log(read2);
+    assert.deepStrictEqual(read8.join(''), '12345678901234---12345678901234');
 }
 
 async function main() {

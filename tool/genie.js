@@ -19,14 +19,19 @@ const subcommands = {
     'download-dataset': require('./download-dataset'),
 
     'generate': require('./generate'),
-    'sample': require('./sample'),
+    'generate-contextual': require('./generate-contextual'),
+    'extract-contexts': require('./extract-contexts'),
+    'contextualize': require('./contextualize'),
 
+    'sample': require('./sample'),
+    'contextual-prepare-turk': require('./contextual-prepare-turk'),
     'mturk-make-paraphrase-hits': require('./mturk-make-paraphrase-hits'),
     'mturk-make-validation-hits': require('./mturk-make-validation-hits'),
     'mturk-validate': require('./mturk-validate'),
 
     'compile-ppdb': require('./compile-ppdb'),
     'augment': require('./augment'),
+    'resample': require('./resample'),
     'split-train-eval': require('./split-train-eval'),
 
     'train': require('./train'),
@@ -34,6 +39,8 @@ const subcommands = {
     'evaluate-server': require('./evaluate-server'),
     'evaluate-file': require('./evaluate-file'),
     'manual-annotate': require('./manual-annotate'),
+    'evaluate-dialog': require('./evaluate-dialog'),
+    'dialog-to-contextual': require('./dialog-to-contextual'),
 
     'dataset': require('./dataset'),
 };

@@ -1,0 +1,59 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+// contextual templates for Genie
+
+{
+const assert = require('assert');
+
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
+const { clean } = require('../../lib/utils');
+
+// import the combinator library
+const C = require('../../lib/sentence-generator/ast_manip');
+}
+
+import './constants';
+import './timers';
+import './filters';
+import './parameters';
+import './stream_tables';
+
+context complete_query_program = C.isQueryProgram($) && C.isCompleteCommand($);
+context immediate_program = $.isProgram && !C.isContinuousProgram($);
+context incomplete_program = !C.isCompleteCommand($);
+
+$root = {
+     ( q:complete_query_program 'how about' p:constant_Any '?'
+    |  q:complete_query_program 'show me' p:constant_Any 'instead'
+    ) => C.replaceAnyParameterFromContext(q, p);
+
+    p:complete_query_program ('do it again' | 'again' | 'another one' | 'run it again') => {
+        if (p.rules[0].table.schema.is_monitorable)
+            return null;
+        return p;
+    };
+
+    prog:immediate_program ('do this' | 'do it' | 'repeat this command' | 'set this to run') t:timer => C.addTimerToProgram(prog, t);
+    prog:complete_query_program ('send this to me' | 'send it to me' | 'i want to see this' | 'i want this' | 'send this') t:timer => C.addTimerToProgram(prog, t);
+    
+    prog:immediate_program ('do this' | 'do it' | 'do it automatically') stream:stream => C.addTimerToProgram(prog, stream);
+    prog:complete_query_program ('send this to me' | 'send this to me' | 'i want to see this' | 'i want this' | 'send this') stream:stream => C.addTimerToProgram(prog, stream);
+
+    prog:complete_query_program ('ok , notify me when it changes' | 'notify me when it changes' | 'subscribe to changes' | 'let me know of changes' | 'notify me of this' | 'subscribe to this') => {
+        if (prog.rules.length > 1 || !prog.rules[0].table || !prog.rules[0].table.schema.is_monitorable)
+            return null;
+        return C.makeMonitor(prog);
+    };
+
+    prog:incomplete_program ('' | 'the answer is' | 'use' | 'i want') param:constant_Any => C.fillNextSlot(prog, param);
+}

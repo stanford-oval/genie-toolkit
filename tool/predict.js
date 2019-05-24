@@ -27,7 +27,7 @@ class PredictStream extends Stream.Transform {
     }
     
     async _process(ex) {
-        const parsed = await this._parser.sendUtterance(ex.preprocessed, this._tokenized);
+        const parsed = await this._parser.sendUtterance(ex.preprocessed, this._tokenized, ex.context);
 
         const predictions = parsed.candidates
             .filter((beam) => beam.score !== 'Infinity') // ignore exact matches
@@ -61,6 +61,12 @@ module.exports = {
             required: false,
             help: "URL of the server to use. Use a file:// URL pointing to a model directory to predict using a local instance of decanlp",
             defaultValue: 'http://127.0.0.1:8400',
+        });
+        parser.addArgument('--contextual', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Process a contextual dataset.',
+            defaultValue: false
         });
         parser.addArgument('--tokenized', {
             required: false,
@@ -108,7 +114,7 @@ module.exports = {
         await parser.start();
     
         readAllLines(args.input_file)
-            .pipe(new DatasetParser({ preserveId: true, parseMultiplePrograms: true }))
+            .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true }))
             .pipe(new PredictStream(parser, args.tokenized, args.debug))
             .pipe(new DatasetStringifier())
             .pipe(args.output);

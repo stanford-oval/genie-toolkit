@@ -11,10 +11,11 @@
 
 const ThingTalk = require('thingtalk');
 const Tp = require('thingpedia');
-const qs = require('querystring');
+const qs = require('qs');
 
 const TokenizerService = require('../../lib/tokenizer');
 const Predictor = require('../../lib/predictor');
+const Utils = require('../../lib/utils');
 
 class LocalParserClient {
     constructor(modeldir, locale) {
@@ -31,21 +32,25 @@ class LocalParserClient {
         await this._tokenizer.end();
     }
 
-    tokenize(utterance) {
-        return this._tokenizer.tokenize(this._locale, utterance);
+    async tokenize(utterance, contextEntities) {
+        const tokenized = await this._tokenizer.tokenize(this._locale, utterance);
+        Utils.renumberEntities(tokenized, contextEntities);
+        return tokenized;
+
     }
-    async sendUtterance(utterance, tokenized) {
+    async sendUtterance(utterance, tokenized, contextCode, contextEntities) {
         let tokens, entities;
         if (tokenized) {
             tokens = utterance.split(' ');
             entities = {};
+            Object.assign(entities, contextEntities);
         } else {
-            const tokenized = await this._tokenize.tokenize(utterance);
+            const tokenized = await this._tokenizer.tokenize(this._locale, utterance);
+            Utils.renumberEntities(tokenized, contextEntities);
             tokens = tokenized.tokens;
-            entities = tokenized.entities;
         }
 
-        const candidates = await this._predictor.predict(tokens);
+        const candidates = await this._predictor.predict(tokens, contextCode);
         return { tokens, candidates, entities };
     }
 }
@@ -76,25 +81,35 @@ class RemoteParserClient {
         });
     }
 
-    sendUtterance(utterance, tokenized) {
+    async sendUtterance(utterance, tokenized, contextCode, contextEntities) {
         const data = {
             q: utterance,
             store: 'no',
-            tokenized: tokenized ? '1' : '',
             thingtalk_version: ThingTalk.version,
+            tokenized: tokenized ? '1' : '',
             skip_typechecking: '1'
         };
 
-        let url = `${this._baseUrl}/query?${qs.stringify(data)}`;
+        let response;
+        if (contextCode !== undefined) {
+            data.context = contextCode.join(' ');
+            data.entities = contextEntities;
 
-        return Tp.Helpers.Http.get(url).then((data) => {
-            var parsed = JSON.parse(data);
+            response = await Tp.Helpers.Http.post(`${this._baseUrl}/query`, qs.stringify(data), {
+                dataContentType: 'application/x-www-form-urlencoded'
+            });
+        } else {
 
-            if (parsed.error)
-                throw new Error('Error received from Genie-Parser server: ' + parsed.error);
 
-            return parsed;
-        });
+            let url = `${this._baseUrl}/query?${qs.stringify(data)}`;
+            response = await Tp.Helpers.Http.get(url);
+        }
+
+        const parsed = JSON.parse(response);
+        if (parsed.error)
+            throw new Error('Error received from Genie-Parser server: ' + parsed.error);
+
+        return parsed;
     }
 }
 

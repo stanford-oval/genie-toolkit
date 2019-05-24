@@ -12,16 +12,16 @@
 const ThingTalk = require('thingtalk');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
-const { DatasetParser } = require('../lib/dataset-parsers');
+const DialogParser = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('./lib/parserclient');
-const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('./lib/evaluators');
+const { DialogEvaluatorStream, CollectDialogStatistics } = require('./lib/evaluators');
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('evaluate-server', {
+        const parser = subparsers.addParser('evaluate-dialog', {
             addHelp: true,
-            description: "Evaluate a trained model on a Genie-generated dataset, by contacting a running Genie server."
+            description: "Evaluate a trained model on a dialog data, by contacting a running Genie server."
         });
         parser.addArgument('--url', {
             required: false,
@@ -31,29 +31,23 @@ module.exports = {
         parser.addArgument('--tokenized', {
             required: false,
             action: 'storeTrue',
-            defaultValue: true,
-            help: "The dataset is already tokenized (this is the default)."
+            defaultValue: false,
+            help: "The dataset is already tokenized."
         });
         parser.addArgument('--no-tokenized', {
             required: false,
             dest: 'tokenized',
             action: 'storeFalse',
-            help: "The dataset is not already tokenized."
+            help: "The dataset is not already tokenized (this is the default)."
         });
         parser.addArgument('--thingpedia', {
             required: true,
             help: 'Path to JSON file containing signature, type and mixin definitions.'
         });
-        parser.addArgument('--contextual', {
-            nargs: 0,
-            action: 'storeTrue',
-            help: 'Process a contextual dataset.',
-            defaultValue: false
-        });
         parser.addArgument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
-            help: 'Input datasets to evaluate (in TSV format); use - for standard input'
+            help: 'Input datasets to evaluate (in dialog format); use - for standard input'
         });
         parser.addArgument(['-l', '--locale'], {
             required: false,
@@ -85,30 +79,20 @@ module.exports = {
         const parser = ParserClient.get(args.url, args.locale);
         await parser.start();
 
-        const output = readAllLines(args.input_file)
-            .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true }))
-            .pipe(new SentenceEvaluatorStream(parser, schemas, args.tokenized, args.debug))
-            .pipe(new CollectSentenceStatistics());
+        const output = readAllLines(args.input_file, '====')
+            .pipe(new DialogParser())
+            .pipe(new DialogEvaluatorStream(parser, schemas, args.tokenized, args.debug))
+            .pipe(new CollectDialogStatistics());
 
         const result = await output.read();
 
-        if (args.csv) {
-            let buffer = String(result.total);
-            for (let key of ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax']) {
-                result[key].length = parseInt(process.env.CSV_LENGTH || 1);
-                if (buffer)
-                    buffer += ',';
-                buffer += String(result[key]);
-            }
-            console.log(buffer);
-        } else {
-            for (let key in result) {
-                if (Array.isArray(result[key]))
-                    console.log(`${key} = [${result[key].join(', ')}]`);
-                else
-                    console.log(`${key} = ${result[key]}`);
-            }
+        let buffer = '';
+        for (let key of ['total', 'turns', 'ok', 'ok_initial', 'ok_partial', 'ok_progress']) {
+            if (buffer)
+                buffer += ',';
+            buffer += String(result[key]);
         }
+        console.log(buffer);
 
         await parser.stop();
     }

@@ -143,6 +143,10 @@ module.exports = class FileThingpediaClient {
 
         this._entities = data.entities;
         for (let dev of data.devices) {
+            // legacy pseudo-device entries that should not be treated as devices
+            if (dev.kind_type === 'global' || dev.kind_type === 'discovery' || dev.kind_type === 'category')
+                continue;
+
             this._meta[dev.kind] = dev;
             this._schema[dev.kind] = {
                 queries: {},

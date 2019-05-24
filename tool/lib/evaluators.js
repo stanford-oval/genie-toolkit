@@ -13,62 +13,8 @@ const assert = require('assert');
 const Stream = require('stream');
 const ThingTalk = require('thingtalk');
 
+const Utils = require('../../lib/utils');
 const { requoteProgram, getFunctions, getDevices } = require('../../lib/requoting');
-
-const ENTITIES = {
-    DURATION_0: { value: 2, unit: 'ms' },
-    DURATION_1: { value: 3, unit: 'ms' },
-    DURATION_3: { value: 4, unit: 'ms' },
-    NUMBER_0: 2,
-    NUMBER_1: 3,
-    NUMBER_2: 4,
-    NUMBER_3: 5,
-    DATE_0: { day: 1, month: 1, year: 2018 },
-    DATE_1: { day: 2, month: 1, year: 2018 },
-    DATE_2: { day: 3, month: 1, year: 2018 },
-    DATE_3: { day: 4, month: 1, year: 2018 },
-    TIME_0: { hour: 0, minute: 1, second: 0 },
-    TIME_1: { hour: 0, minute: 2, second: 0  },
-    TIME_2: { hour: 0, minute: 3, second: 0  },
-    TIME_3: { hour: 0, minute: 4, second: 0  },
-    CURRENCY_0: { value: 2, unit: 'usd' },
-    CURRENCY_1: { value: 3, unit: 'usd' },
-    CURRENCY_2: { value: 4, unit: 'usd' },
-    CURRENCY_3: { value: 5, unit: 'usd' },
-    LOCATION_0: { latitude: 2, longitude: 2 },
-    LOCATION_1: { latitude: 3, longitude: 3 },
-    LOCATION_2: { latitude: 4, longitude: 4 },
-    LOCATION_3: { latitude: 5, longitude: 5 },
-    QUOTED_STRING_0: '"0"',
-    QUOTED_STRING_1: '"1"',
-    QUOTED_STRING_2: '"2"',
-    QUOTED_STRING_3: '"3"',
-    PATH_NAME_0: 'foo/0.png',
-    PATH_NAME_1: 'foo/1.png',
-    PATH_NAME_2: 'foo/2.png',
-    PATH_NAME_3: 'foo/3.png',
-    URL_0: 'https://0.com',
-    URL_1: 'https://1.com',
-    URL_2: 'https://2.com',
-    URL_3: 'https://3.com',
-    PHONE_NUMBER_0: '+11',
-    PHONE_NUMBER_1: '+12',
-    PHONE_NUMBER_2: '+13',
-    PHONE_NUMBER_3: '+14',
-    EMAIL_ADDRESS_0: '1@foo',
-    EMAIL_ADDRESS_1: '2@foo',
-    EMAIL_ADDRESS_2: '3@foo',
-    EMAIL_ADDRESS_3: '4@foo',
-    USERNAME_0: '@1',
-    USERNAME_1: '@2',
-    USERNAME_2: '@3',
-    USERNAME_3: '@4',
-    HASHTAG_0: '#0',
-    HASHTAG_1: '#1',
-    HASHTAG_2: '#2',
-    HASHTAG_3: '#3'
-};
-Object.freeze(ENTITIES);
 
 function iterEquals(iterable1, iterable2) {
     let iter1 = iterable1[Symbol.iterator]();
@@ -151,6 +97,7 @@ class SentenceEvaluator {
         this._schemas = schemaRetriever;
 
         this._id = ex.id;
+        this._context = ex.context;
         this._preprocessed = ex.preprocessed;
         this._targetPrograms = ex.target_code;
         this._predictions = ex.predictions;
@@ -171,22 +118,19 @@ class SentenceEvaluator {
 
             is_primitive: false
         };
+        
+        let contextCode = undefined, contextEntities = {};
+        if (this._context !== undefined) {
+            contextCode = this._context.split(' ');
+            contextEntities = Utils.makeDummyEntities(this._context);
+        }
 
         let entities;
         if (this._tokenized) {
-            entities = {};
-            for (let token of this._preprocessed.split(' ')) {
-                if (/^[A-Z]/.test(token)) {
-                    if (token.startsWith('GENERIC_ENTITY_'))
-                        entities[token] = { value: token, display: token };
-                    else if (!(token in ENTITIES))
-                        throw new Error(`missing entity ${token}`);
-                    else
-                        entities[token] = ENTITIES[token];
-                }
-            }
+            entities = Utils.makeDummyEntities(this._preprocessed);
+            Object.assign(entities, contextEntities);
         } else {
-            const tokenized = await this._parser.tokenize(this._preprocessed);
+            const tokenized = await this._parser.tokenize(this._preprocessed, contextEntities);
             entities = tokenized.entities;
         }
 
@@ -231,7 +175,7 @@ class SentenceEvaluator {
         if (this._predictions) {
             predictions = this._predictions;
         } else {
-            const parsed = await this._parser.sendUtterance(this._preprocessed, this._tokenized);
+            const parsed = await this._parser.sendUtterance(this._preprocessed, this._tokenized, contextCode, contextEntities);
             if (!entities)
                 entities = parsed.entities;
 
@@ -345,7 +289,7 @@ class SentenceEvaluatorStream extends Stream.Transform {
     }
 }
 
-class CollectStatistics extends Stream.Writable {
+class CollectSentenceStatistics extends Stream.Writable {
     constructor() {
         super({ objectMode: true });
 
@@ -421,7 +365,186 @@ class CollectStatistics extends Stream.Writable {
     }
 }
 
+class DialogEvaluatorStream extends Stream.Transform {
+    constructor(parser, schemas, tokenized, debug) {
+        super({ objectMode: true });
+
+        this._parser = parser;
+        this._schemas = schemas;
+        this._tokenized = tokenized;
+        this._debug = debug;
+    }
+
+    async _checkTurn(id, turn, contextCode, contextEntities, input, targetProgram) {
+        let tokens;
+        let entities;
+        if (this._tokenized) {
+            tokens = input.split(' ');
+            entities = Utils.makeDummyEntities(input);
+            Object.assign(entities, contextEntities);
+        } else {
+            const tokenized = await this._parser.tokenize(input, contextEntities);
+            tokens = tokenized.tokens;
+            entities = tokenized.entities;
+        }
+
+        const targetCode = ThingTalk.NNSyntax.toNN(targetProgram, tokens, entities);
+        const untypedTargetCode = Array.from(stripOutTypeAnnotations(targetCode)).join(' ');
+
+        const parsed = await this._parser.sendUtterance(tokens.join(' '), true, contextCode, contextEntities);
+
+        const predictions = parsed.candidates
+            .filter((beam) => beam.score !== 'Infinity') // ignore exact matches
+            .map((beam) => beam.code);
+
+        if (predictions.length === 0)
+            return false;
+
+        const choice = predictions[0];
+
+        // first check if the program parses and typechecks (no hope otherwise)
+        try {
+            const parsed = ThingTalk.NNSyntax.fromNN(choice, entities);
+            await parsed.typecheck(this._schemas);
+        } catch(e) {
+            if (this._debug)
+                console.log(`${id}:${turn}\twrong_syntax\t${contextCode.join(' ')}\t${input}\t${choice.join(' ')}`);
+            return false;
+        }
+
+        const normalized = normalizeKeywordParams(Array.from(stripOutTypeAnnotations(choice))).join(' ');
+
+        if (normalized === untypedTargetCode) {
+            if (this._debug)
+                console.log(`${id}:${turn}\tok\t${contextCode.join(' ')}\t${input}\t${normalized}\t${untypedTargetCode}`);
+            return true;
+        } else {
+            if (this._debug)
+                console.log(`${id}:${turn}\tok_syntax\t${contextCode.join(' ')}\t${input}\t${normalized}\t${untypedTargetCode}`);
+            return false;
+        }
+    }
+
+    _applyReplyToContext(context, newCommand) {
+        if (newCommand.isProgram) {
+            return newCommand;
+        } else if (newCommand.isBookkeeping && newCommand.intent.isAnswer) {
+            for (let slot of context.iterateSlots()) {
+                if (slot instanceof ThingTalk.Ast.Selector)
+                    continue;
+                if (!slot.value.isUndefined)
+                    continue;
+                slot.value = newCommand.intent.value;
+                return context;
+            }
+            throw new Error('???');
+        } else if (newCommand.isBookkeeping && newCommand.intent.isSpecial) {
+            if (newCommand.intent.type === 'nevermind' || newCommand.intent.type === 'stop')
+                return null;
+            else // yes/no
+                return context;
+        } else {
+            throw new Error('????');
+        }
+    }
+
+    async _evaluate(dialog) {
+        let context = null;
+        let contextNN = ['null'];
+        let contextEntities = {};
+
+        let progress = 0;
+        let correct = 0;
+        let failed = false;
+        for (let i = 0; i < dialog.length; i += 2) {
+            const input = dialog[i];
+            const targetCode = dialog[i+1];
+
+            const targetCommand = ThingTalk.Grammar.parse(targetCode);
+            await targetCommand.typecheck(this._schemas);
+
+            const ok = await this._checkTurn(dialog.id, i/2, contextNN, contextEntities, input, targetCommand);
+            if (ok) {
+                correct += 2;
+                if (!failed)
+                    progress += 2;
+            } else {
+                failed = true;
+            }
+
+            context = this._applyReplyToContext(context, targetCommand);
+
+            contextEntities = {};
+            if (context !== null)
+                contextNN = ThingTalk.NNSyntax.toNN(context, '', contextEntities, { allocateEntities: true });
+            else
+                contextNN = ['null'];
+        }
+
+        const ret = {
+            turns: dialog.length/2,
+            ok: progress === dialog.length,
+            ok_initial: progress >= 2,
+            ok_partial: correct/dialog.length,
+            ok_progress: progress/dialog.length
+        };
+        if (this._debug)
+            console.log(`${dialog.id}\t${ret.ok}\t${ret.ok_initial}\t${ret.ok_partial}\t${ret.ok_progress}`);
+
+        return ret;
+    }
+
+    _transform(dialog, encoding, callback) {
+        this._evaluate(dialog).then((result) => callback(null, result), (err) => callback(err));
+    }
+
+    _flush(callback) {
+        process.nextTick(callback);
+    }
+}
+
+class CollectDialogStatistics extends Stream.Writable {
+    constructor() {
+        super({ objectMode: true });
+
+        this._buffer = {
+            total: 0,
+            turns: 0,
+            ok: 0,
+            ok_initial: 0,
+            ok_partial: 0,
+            ok_progress: 0,
+        };
+    }
+
+    _write(sample, encoding, callback) {
+        this._buffer.total ++;
+        this._buffer.turns += sample.turns;
+        for (let key of ['ok', 'ok_initial', 'ok_partial', 'ok_progress'])
+            this._buffer[key] += sample[key];
+        callback();
+    }
+
+    _final(callback) {
+        // convert to percentages
+        for (let key of ['ok', 'ok_initial', 'ok_partial', 'ok_progress'])
+            this._buffer[key] /= this._buffer.total;
+        callback();
+    }
+
+    read() {
+        return new Promise((resolve, reject) => {
+            this.on('finish', () => resolve(this._buffer));
+            this.on('error', reject);
+        });
+    }
+}
+
+
 module.exports = {
     SentenceEvaluatorStream,
-    CollectStatistics
+    CollectSentenceStatistics,
+
+    DialogEvaluatorStream,
+    CollectDialogStatistics
 };

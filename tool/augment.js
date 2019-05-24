@@ -54,6 +54,12 @@ module.exports = {
             type: maybeCreateReadStream,
             help: 'Input datasets to augment (in TSV format); use - for standard input'
         });
+        parser.addArgument('--contextual', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Process a contextual dataset.',
+            defaultValue: false
+        });
 
         parser.addArgument('--ppdb-synthetic-fraction', {
             type: Number,
@@ -129,7 +135,7 @@ module.exports = {
         await constProvider.open();
 
         readAllLines(args.input_file)
-            .pipe(new DatasetParser())
+            .pipe(new DatasetParser({ contextual: args.contextual }))
             .pipe(new DatasetAugmenter(schemaRetriever, constProvider, {
                 rng: seedrandom.alea(args.random_seed),
                 locale: args.locale,
