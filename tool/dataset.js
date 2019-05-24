@@ -9,7 +9,7 @@
 // See COPYING for details
 "use strict";
 
-const { ThingTalkDataset } = require('./thingtalk-dataset')
+const ThingTalkDataset = require('./lib/thingtalk-dataset');
 
 module.exports = {
     initArgparse(subparsers) {
@@ -35,10 +35,10 @@ module.exports = {
             help: 'Path to JSON file containing signature, type and mixin definitions.'
         });
         parser.addArgument('--actions', {
-            required: false,
+            required: true,
             nargs: '*',
             choices: ['clean', 'preprocess'],
-            help: 'Action to apply on a dataset.'
+            help: 'Action to apply on a dataset.',
         });
         parser.addArgument('--debug', {
             nargs: 0,
@@ -54,21 +54,20 @@ module.exports = {
         };
         const ttDataset = new ThingTalkDataset(options);
         await ttDataset.read(args.locale, args.thingpedia, args.input);
-        if (args.actions)
-            for (let action of args.actions) {
-                if (action == 'clean') {
-                    console.log('Cleaning...');
-                    const cleanOptions = {
-                        keepKeys: ['type', 'args', 'value', 'utterances', 'id']
-                    };
-                    ttDataset.clean(cleanOptions);
-                } else if (action == 'preprocess') {
-                    console.log('Preprocessing...');
-                    await ttDataset.preprocess();
-                } else {
-                    throw new Error('Unknown action: ' + action);
-                }
+        for (let action of args.actions) {
+            if (action === 'clean') {
+                console.log('Cleaning...');
+                const cleanOptions = {
+                    keepKeys: ['type', 'args', 'value', 'utterances', 'id']
+                };
+                ttDataset.clean(cleanOptions);
+            } else if (action === 'preprocess') {
+                console.log('Preprocessing...');
+                await ttDataset.preprocess();
+            } else {
+                throw new Error('Unknown action: ' + action);
             }
+        }
         ttDataset.write(args.output, () => process.exit());
     }
 };
