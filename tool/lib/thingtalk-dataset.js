@@ -17,7 +17,7 @@ const Library = ThingTalk.Ast.Input.Library;
 const ProgressBar = require('./progress_bar');
 const FileThingpediaClient = require('./file_thingpedia_client');
 const TokenizerService = require('../../lib/tokenizer');
-const { tokenizeExample } = require('../../lib/almond-cloud');
+const { tokenizeExample } = require('../../lib/utils');
 
 module.exports = class ThingTalkDataset {
     constructor(options) {
