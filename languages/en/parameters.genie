@@ -117,7 +117,7 @@ for (let [typestr, type] of $options.types.all) {
         }
 
         if (!$options.types.id.has(typestr)) {
-            if (!$options.flag.projection_with_filter) {
+            if (!$options.flags.projection_with_filter) {
                 $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:complete_table => {
                     const name = outParam.name;
                     if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
@@ -331,7 +331,7 @@ for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
     // don't parameter pass booleans or enums, as that rarely makes sense
     if (typestr !== 'Boolean' && !typestr.startsWith('Enum__')) {
         if (pname !== 'count' && pname !== 'p_count') {
-            if ($option.flags.undefined_filter) {
+            if ($options.flags.undefined_filter) {
                 // replace $-placeholders with "some X" where X is based on parameter name
                 thingpedia_query = q:thingpedia_query #('some ' + pcanonical) [-> pname { isUndefined: true }] =>
                     C.replacePlaceholderWithUndefined(q, pname, typestr, C.betaReduceTable);
