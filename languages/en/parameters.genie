@@ -117,48 +117,89 @@ for (let [typestr, type] of $options.types.all) {
         }
 
         if (!$options.types.id.has(typestr)) {
-            $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:complete_table => {
-                const name = outParam.name;
-                if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
-                    return null;
-                if (name === 'picture_url' && $options.flags.turking)
-                    return null;
-                const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
-                return new Ast.Table.Projection(table, [name], newSchema);
-            };
-
-            $('stream_projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of new' table:complete_table => {
-                const name = outParam.name;
-                if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
-                    return null;
-                if (!table.schema.is_monitorable)
-                    return null;
-                const stream = new Ast.Stream.Monitor(table, null, table.schema);
-                const newSchema = stream.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
-                return new Ast.Stream.Projection(stream, [name], newSchema);
-            };
+            if (!$options.flag.projection_with_filter) {
+                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:complete_table => {
+                    const name = outParam.name;
+                    if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
+                        return null;
+                    if (name === 'picture_url' && $options.flags.turking)
+                        return null;
+                    const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
+                    return new Ast.Table.Projection(table, [name], newSchema);
+                };
+                $('stream_projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of new' table:complete_table => {
+                    const name = outParam.name;
+                    if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
+                        return null;
+                    if (!table.schema.is_monitorable)
+                        return null;
+                    const stream = new Ast.Stream.Monitor(table, null, table.schema);
+                    const newSchema = stream.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
+                    return new Ast.Stream.Projection(stream, [name], newSchema);
+                };
+            } else {
+                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:with_filtered_table => {
+                    const name = outParam.name;
+                    if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
+                        return null;
+                    if (name === 'picture_url' && $options.flags.turking)
+                        return null;
+                    const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
+                    return new Ast.Table.Projection(table, [name], newSchema);
+                };
+                $('stream_projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of new' table:with_filtered_table => {
+                    const name = outParam.name;
+                    if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
+                        return null;
+                    if (!table.schema.is_monitorable)
+                        return null;
+                    const stream = new Ast.Stream.Monitor(table, null, table.schema);
+                    const newSchema = stream.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
+                    return new Ast.Stream.Projection(stream, [name], newSchema);
+                };
+            }
 
             projection_Any = $('projection_' + typestr);
         }
 
         if ($options.types.id.has(typestr)) {
-            $('single_projection_' + typestr) = table:complete_table => {
-                for (let pname in table.schema.out) {
-                    if (table.schema.out[pname].equals(type))
-                        return new Ast.Table.Projection(table, [pname], table.schema);
-                }
-                return null;
-            };
-
-            $('single_stream_projection_' + typestr) = 'new' table:complete_table => {
-                if (!table.schema.is_monitorable)
+            if (!$options.flag.projection_with_filter) {
+                $('single_projection_' + typestr) = table:complete_table => {
+                    for (let pname in table.schema.out) {
+                        if (table.schema.out[pname].equals(type))
+                            return new Ast.Table.Projection(table, [pname], table.schema);
+                    }
                     return null;
-                for (let pname in table.schema.out) {
-                    if (table.schema.out[pname].equals(type))
-                        return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), [pname], table.schema);
-                }
-                return null;
-            };
+                };
+
+                $('single_stream_projection_' + typestr) = 'new' table:complete_table => {
+                    if (!table.schema.is_monitorable)
+                        return null;
+                    for (let pname in table.schema.out) {
+                        if (table.schema.out[pname].equals(type))
+                            return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), [pname], table.schema);
+                    }
+                    return null;
+                };
+            } else {
+                $('single_projection_' + typestr) = table:with_filtered_table => {
+                    for (let pname in table.schema.out) {
+                        if (table.schema.out[pname].equals(type))
+                            return new Ast.Table.Projection(table, [pname], table.schema);
+                    }
+                    return null;
+                };
+
+                $('single_stream_projection_' + typestr) = 'new' table:with_filtered_table => {
+                    if (!table.schema.is_monitorable)
+                        return null;
+                    for (let pname in table.schema.out) {
+                        if (table.schema.out[pname].equals(type))
+                            return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), [pname], table.schema);
+                    }
+                    return null;
+                };
+            }
         } else if (typestr !== 'Entity__tt__picture' && typestr !== 'String') {
             $('single_projection_' + typestr) = table:complete_table => {
                 let outParams = Object.keys(table.schema.out);
