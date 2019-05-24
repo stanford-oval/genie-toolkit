@@ -64,21 +64,29 @@ class RemoteParserClient {
     async start() {}
     async stop() {}
 
-    tokenize(utterance) {
+    async tokenize(utterance, contextEntities) {
         const data = {
             q: utterance,
         };
 
-        let url = `${this._baseUrl}/tokenize?${qs.stringify(data)}`;
+        let response;
+        if (contextEntities !== undefined) {
+            data.entities = contextEntities;
 
-        return Tp.Helpers.Http.get(url).then((data) => {
-            var parsed = JSON.parse(data);
+            response = await Tp.Helpers.Http.post(`${this._baseUrl}/tokenize`, qs.stringify(data), {
+                dataContentType: 'application/x-www-form-urlencoded'
+            });
+        } else {
+            let url = `${this._baseUrl}/tokenize?${qs.stringify(data)}`;
 
-            if (parsed.error)
-                throw new Error('Error received from Genie-Parser server: ' + parsed.error);
+            response = await Tp.Helpers.Http.get(url);
+        }
+        const parsed = JSON.parse(response);
 
-            return parsed;
-        });
+        if (parsed.error)
+            throw new Error('Error received from Genie-Parser server: ' + parsed.error);
+
+        return parsed;
     }
 
     async sendUtterance(utterance, tokenized, contextCode, contextEntities) {
