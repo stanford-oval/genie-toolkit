@@ -33,7 +33,7 @@ function testPostProcessSynthetic() {
 }
 
 async function main() {
-    testPostProcessSynthetic()
+    testPostProcessSynthetic();
 }
 module.exports = main;
 if (!module.parent)
