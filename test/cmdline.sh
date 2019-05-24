@@ -27,6 +27,8 @@ node $srcdir/tool/genie.js download-dataset --help
 node $srcdir/tool/genie.js download-snapshot -o thingpedia.json --snapshot -1
 node $srcdir/tool/genie.js download-dataset -o dataset.tt
 
+node $srcdir/tool/genie.js dataset -i dataset.tt -o foo.tt --thingpedia thingpedia.json --actions clean
+
 # generate
 node $srcdir/tool/genie.js generate --help
 node $srcdir/tool/genie.js generate --maxdepth 2 --thingpedia thingpedia.json --dataset dataset.tt \
