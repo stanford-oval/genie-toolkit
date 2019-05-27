@@ -18,6 +18,19 @@ const util = require('util');
 
 const { uniform } = require('../../lib/random');
 
+function legacyAnnotationToValue(value) {
+    let v = null;
+    if (typeof value === 'string')
+        v = Ast.Value.String(value);
+    else if (typeof value === 'boolean')
+        v = Ast.Value.Boolean(value);
+    else if (typeof value === 'number')
+        v = Ast.Value.Number(value);
+    else if (Array.isArray(value))
+        v = Ast.Value.Array(value.map((elem) => legacyAnnotationToValue(elem)));
+    return v;
+}
+
 // Parse the semi-obsolete JSON format for schemas used
 // by Thingpedia into a FunctionDef
 function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
@@ -57,6 +70,14 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
         metadata.confirmation = schema.confirmation || '';
     }
     const annotations = {};
+    for (let key in schema) {
+        if (['require_filter', 'default_projection'].indexOf(key) >= 0) {
+            const v = legacyAnnotationToValue(schema[key]);
+            if (v)
+                annotations[key] = v;
+        }
+
+    }
 
     return new Ast.FunctionDef(functionType,
                                functionName,
@@ -155,13 +176,19 @@ module.exports = class FileThingpediaClient {
             for (let what of ['queries', 'actions']) {
                 for (let name in dev[what]) {
                     let from = dev[what][name];
+                    let annotations = {};
+                    if ('require_filter' in from)
+                        annotations.require_filter = Ast.Value.Boolean(from.require_filter);
+                    if ('default_projection' in from)
+                        annotations.default_projection = Ast.Value.Array(from.default_projection.map((v) => Ast.Value.String(v)));
                     this._schema[dev.kind][what][name] = {
                         types: from.types,
                         args: from.args,
                         required: from.required,
                         is_input: from.is_input,
                         is_list: from.is_list,
-                        is_monitorable: from.is_monitorable
+                        is_monitorable: from.is_monitorable,
+                        annotations: annotations
                     };
                 }
             }
