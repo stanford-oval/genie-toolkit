@@ -51,6 +51,14 @@ class TestDelegate {
     sendAskSpecial(what) {
         console.log('>> ask special ' + what);
     }
+
+    sendResult(obj) {
+        console.log('>> result: ' + JSON.stringify(obj));
+    }
+
+    sendSetContext(code, entities, timeout) {
+        console.log('>> context = ' + code + ' // ' + JSON.stringify(entities));
+    }
 }
 
 class MockUser {
@@ -73,6 +81,8 @@ function main() {
     var sempreUrl;
     if (process.argv[2] !== undefined && process.argv[2].startsWith('--with-sempre='))
         sempreUrl = process.argv[2].substr('--with-sempre='.length);
+    else
+        sempreUrl = 'https://almond-dev.stanford.edu/nnparser';
     var almond = new Almond(engine, 'test', new MockUser(), delegate,
         { debug: false, sempreUrl: sempreUrl, showWelcome: true });
 

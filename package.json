@@ -15,6 +15,7 @@
   "dependencies": {
     "adt": "~0.7.2",
     "consumer-queue": "^1.0.0",
+    "qs": "^6.7.0",
     "thingpedia": "^2.3.0",
     "thingtalk": "~1.7.0",
     "uuid": "^3.1.0"
