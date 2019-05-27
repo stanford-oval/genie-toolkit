@@ -48,16 +48,13 @@ class TestDelegate {
         console.log('>> button: ' + title + ' ' + JSON.stringify(json));
     }
 
-    sendAskSpecial(what) {
+    sendAskSpecial(what, code, entities, timeout) {
+        console.log('>> context = ' + code + ' // ' + JSON.stringify(entities));
         console.log('>> ask special ' + what);
     }
 
     sendResult(obj) {
         console.log('>> result: ' + JSON.stringify(obj));
-    }
-
-    sendSetContext(code, entities, timeout) {
-        console.log('>> context = ' + code + ' // ' + JSON.stringify(entities));
     }
 }
 
