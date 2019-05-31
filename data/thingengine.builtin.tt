@@ -5,6 +5,17 @@ class @org.thingpedia.builtin.thingengine.builtin
   import loader from @org.thingpedia.builtin();
   import config from @org.thingpedia.config.builtin();
 
+  monitorable query get_gps(out location: Location #_[prompt="What location are you interested in?"] #_[canonical="location"],
+                            out altitude: Measure(m) #_[canonical="altitude"],
+                            out bearing: Number #_[canonical="bearing"],
+                            out speed: Measure(mps) #_[canonical="speed"])
+  #_[canonical="get current location"]
+  #_[confirmation="your location"]
+  #_[confirmation_remote="$__person's location"]
+  #_[formatted=[{type="text",text="Current Location: ${location}"}]]
+  #[poll_interval=0ms]
+  #[doc="get last known GPS location"];
+
   query get_time(out time: Date)
   #_[canonical="get time"]
   #_[confirmation="the current time"]
