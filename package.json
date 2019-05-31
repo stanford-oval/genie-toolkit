@@ -21,7 +21,7 @@
     "q": "^1.5.0",
     "sqlite3": "^4.0.2",
     "thingpedia": "^2.2.1",
-    "thingpedia-client": "github:stanford-oval/thingpedia-client",
+    "thingpedia-client": "^0.2.4",
     "thingpedia-discovery": "^1.0.0",
     "thingtalk": "~1.7.0",
     "uuid": "^3.1.0",
