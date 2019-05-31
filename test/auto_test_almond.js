@@ -216,7 +216,7 @@ const TEST_CASES = [
     [
     (almond) => almond.start(),
 `>> Hello! I'm Almond, your virtual assistant.
->> I am part of a research project of Stanford University. Would you like to contribute?
+>> I am part of a research project of Stanford University. Would you like to participate?
 >> With your consent, I will record the commands you give me for training. Recording the commands will allow me to improve my understanding of natural language.
 >> The collection is completely anonymous, and I will strip personal data (such as search queries, messages or phone numbers). The data, once collected, will be shared with our developers and researchers, and potentially other researchers working on natural language understanding.
 >> You must be 13 or older to participate. If you are not, please answer ‘No’ here. Your answer will not affect the functionality of Almond.
