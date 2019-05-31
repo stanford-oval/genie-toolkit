@@ -1,3 +1,19 @@
+1.5.0
+=====
+
+* Cloud sync functionality was improved, and it is now possible to synchronize multiple
+  clients of the same type (e.g. multiple phones or multiple laptops) against the same
+  server [#45, #64]
+* Added a function to @builtin for easter eggs / canned replies [#58]
+* The Almond Home device was removed; its functionality will reappear in a different form
+* Platforms can now provide custom platform devices without changes to the library;
+  consequently, the GNOME and Phone platform code was moved to the platform repositories [#60]
+* Support for translation of builtin devices was improved [#63]
+* Misc bug fixes [#17, #61]
+* Updated Italian translation [#63]
+* Updated dependencies
+* Misc build system fixes
+
 1.4.1
 =====
 
