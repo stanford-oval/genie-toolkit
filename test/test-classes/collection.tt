@@ -1,0 +1,16 @@
+class @org.thingpedia.builtin.test.collection
+#[child_types=["org.thingpedia.builtin.test.subdevice"]]
+{
+  import loader from @org.thingpedia.builtin();
+  import config from @org.thingpedia.config.none();
+}
+
+====
+
+class @org.thingpedia.builtin.test.subdevice
+{
+  import loader from @org.thingpedia.embedded();
+  import config from @org.thingpedia.config.builtin();
+
+  action frobnicate(in req param : String);
+}
