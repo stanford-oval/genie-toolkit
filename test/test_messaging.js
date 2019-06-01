@@ -212,15 +212,24 @@ async function testMessagingWithMatrix(engine) {
     assert.deepStrictEqual(await messaging.searchAccountByName('alice'), [await messaging.getUserByAccount('mock-account:user2')]);
 }
 
+async function cleanup(engine) {
+    for (let d of engine.devices.getAllDevicesOfKind('messaging'))
+        await engine.devices.removeDevice(d);
+}
+
 module.exports = async function testRemote(engine) {
-    const messaging = engine.messaging;
-    //const remote = engine.remote;
-    assert(messaging.isAvailable);
+    try {
+        const messaging = engine.messaging;
+        //const remote = engine.remote;
+        assert(messaging.isAvailable);
 
-    await testMockMessaging(messaging);
+        await testMockMessaging(messaging);
 
-    await testLoginAsMatrixUser(engine);
-    await testMatrix(engine);
+        await testLoginAsMatrixUser(engine);
+        await testMatrix(engine);
 
-    await testMessagingWithMatrix(engine);
+        await testMessagingWithMatrix(engine);
+    } finally {
+        await cleanup(engine);
+    }
 };
