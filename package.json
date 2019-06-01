@@ -16,7 +16,7 @@
     "adt": "~0.7.2",
     "consumer-queue": "^1.0.0",
     "thingpedia": "^2.3.0",
-    "thingtalk": "~1.7.0",
+    "thingtalk": "~1.7.2",
     "uuid": "^3.1.0"
   },
   "devDependencies": {
@@ -25,7 +25,7 @@
     "eslint": "^5.3.0",
     "node-gettext": "^2.0.0",
     "nyc": "^14.0.0",
-    "thingpedia-client": "^0.2.0"
+    "thingpedia-client": "^0.2.4"
   },
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}",
