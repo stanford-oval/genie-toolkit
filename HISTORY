@@ -1,3 +1,21 @@
+0.3.0
+=====
+
+* Added templates for the ThingTalk bookkeeping language, which includes
+  commands such as "yes", "no", "more", "back", etc. [#42]
+* Added a tool to preprocess datasets [#40]
+* Experimental support for contextual commands (commands whose meaning
+  changes based on the previously issued commands) [#5, #6, #43, #44]
+* Improved templates for Chinese [#39]
+* Added enum translation for Chinese [#35]
+* Improved documentation for Internationalization [#40]
+* Misc bug fixes [#41, #45, #46]
+* Updated dependencies
+
+Contributors in this release:
+- Elvis Yu-Jing Lin
+- Johnny Hsu
+
 0.2.1
 =====
 
