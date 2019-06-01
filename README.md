@@ -11,12 +11,11 @@ language.
 This package contains the core of ThingEngine, which is concerned with
 actually loading and executing the ThingTalk code. It cannot be used alone, it
 must be imported by one of the integration layers
-([cloud](https://github.com/Stanford-IoT-Lab/thingengine-platform-cloud),
-[server](https://github.com/Stanford-IoT-Lab/thingengine-platform-server)
-or
-[android](https://github.com/Stanford-IoT-Lab/thingengine-platform-android))
+(for example [cloud](https://github.com/stanford-oval/almond-cloud),
+[gnome](https://github.com/stanford-oval/almond-gnome) or
+[android](https://github.com/stanford-oval/almond-android)).
 
 ThingEngine is part of Almond, a research project led by
 prof. Monica Lam, from Stanford University. You can find more
 information at <https://almond.stanford.edu>, and you can
-find user documentation [here](/doc/main.md).
+find developer documentation [here](https://almond.stanford.edu/thingpedia/developers/thingpedia-intro.md).

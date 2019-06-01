@@ -16,10 +16,8 @@ const DeviceView = require('../lib/devices/device_view');
 const SUCCESS = {};
 const FAILURE = {};
 
-module.exports = async function testDevices(engine) {
+async function testLookup(engine) {
     const devices = engine.devices;
-
-    // test looking up devices
 
     const builtin = devices.getAllDevicesOfKind('org.thingpedia.builtin.thingengine.builtin');
     assert.strictEqual(builtin.length, 1);
@@ -31,8 +29,10 @@ module.exports = async function testDevices(engine) {
 
     assert.deepStrictEqual(devices.getAllDevicesOfKind('messaging'), []);
     assert.deepStrictEqual(devices.getAllDevicesOfKind('com.xkcd'), []);
+}
 
-    // test device views, adding and removing devices
+async function testDeviceViews(engine) {
+    const devices = engine.devices;
 
     let added = FAILURE;
     let removed = SUCCESS;
@@ -50,6 +50,7 @@ module.exports = async function testDevices(engine) {
     let view2;
 
     const device = await devices.loadOneDevice({ kind: 'com.xkcd' }, true);
+    assert(device);
 
     const xkcd = devices.getAllDevicesOfKind('com.xkcd');
     assert.strictEqual(xkcd.length, 1);
@@ -92,14 +93,22 @@ module.exports = async function testDevices(engine) {
     assert.strictEqual(removed, SUCCESS);
 
     assert.deepStrictEqual(view2.values(), []);
+}
+
+async function testUpdateDevice(engine) {
+    const devices = engine.devices;
 
     await devices.updateDevicesOfKind('com.xkcd');
 
     // should do (almost) nothing because there is no twitter configured
 
     await devices.updateDevicesOfKind('com.twitter');
+}
 
-    test = devices.getDevice('org.thingpedia.builtin.test');
+async function testDeviceMethods(engine) {
+    const devices = engine.devices;
+
+    const test = devices.getDevice('org.thingpedia.builtin.test');
     const result = await test.get_get_data({ count: 2, size: 10 });
     assert.deepStrictEqual(result, [{
         data: '!!!!!!!!!!',
@@ -150,4 +159,205 @@ module.exports = async function testDevices(engine) {
             resolve();
         }, 10000);
     });
+}
+
+async function withTimeout(timeout, fn) {
+    return new Promise((resolve, reject) => {
+        Promise.resolve(fn()).then(resolve, reject);
+
+        setTimeout(() => reject(new Error(`timed out`)), timeout);
+    });
+}
+
+function autoSignalCleanup(obj, listeners) {
+    function cleanup() {
+        for (let sig in listeners)
+            obj.removeListener(sig, listeners[sig]);
+    }
+
+    for (let sig in listeners)
+        obj.on(sig, listeners[sig]);
+
+    return cleanup;
+}
+
+async function testDeviceAddedRemoved(engine) {
+    const devices = engine.devices;
+
+    await withTimeout(10000, async () => {
+        let added = FAILURE;
+        let removed = SUCCESS;
+        const cleanup = autoSignalCleanup(devices, {
+            'device-added': (d) => {
+                assert.strictEqual(d, devices.getDevice('com.xkcd'));
+                added = SUCCESS;
+            },
+            'device-removed': () => {
+                removed = FAILURE;
+            }
+        });
+
+        const device = await devices.loadOneDevice({ kind: 'com.xkcd' }, true);
+        assert(device);
+
+        assert.strictEqual(added, SUCCESS);
+        assert.strictEqual(removed, SUCCESS);
+        cleanup();
+    });
+
+    await withTimeout(10000, async () => {
+        let added = SUCCESS;
+        let removed = FAILURE;
+
+        const device = devices.getDevice('com.xkcd');
+        const cleanup = autoSignalCleanup(devices, {
+            'device-added': (d) => {
+                added = FAILURE;
+            },
+            'device-removed': (d) => {
+                assert.strictEqual(d, device);
+                removed = SUCCESS;
+            }
+        });
+
+        await devices.removeDevice(device);
+        assert.strictEqual(added, SUCCESS);
+        assert.strictEqual(removed, SUCCESS);
+        cleanup();
+    });
+
+    await withTimeout(10000, async () => {
+        let added = FAILURE;
+        let removed = SUCCESS;
+        const cleanup = autoSignalCleanup(devices, {
+            'device-added': (d) => {
+                assert.strictEqual(d, devices.getDevice('org.thingpedia.builtin.test.collection-1'));
+                added = SUCCESS;
+            },
+            'device-removed': () => {
+                removed = FAILURE;
+            }
+        });
+
+        const device = await devices.loadOneDevice({ kind: 'org.thingpedia.builtin.test.collection' }, true);
+        assert(device);
+
+        assert.strictEqual(added, SUCCESS);
+        assert.strictEqual(removed, SUCCESS);
+        cleanup();
+    });
+
+    await withTimeout(10000, async () => {
+        let added = FAILURE;
+        let removed = SUCCESS;
+        const cleanup = autoSignalCleanup(devices, {
+            'device-added': (d) => {
+                assert.strictEqual(d.kind, 'org.thingpedia.builtin.test.subdevice');
+                assert.strictEqual(d.uniqueId, 'org.thingpedia.builtin.test.subdevice-one');
+                assert.strictEqual(d.name, 'Test Subdevice one');
+                assert.strictEqual(d.description, 'This is another Test, a Device, and also a Subdevice of org.thingpedia.builtin.test.collection-1');
+                added = SUCCESS;
+            },
+            'device-removed': () => {
+                removed = FAILURE;
+            }
+        });
+
+        const master = devices.getDevice('org.thingpedia.builtin.test.collection-1');
+        await master.addOne('one');
+
+        assert.strictEqual(added, SUCCESS);
+        assert.strictEqual(removed, SUCCESS);
+
+        assert.strictEqual(devices.getAllDevicesOfKind('org.thingpedia.builtin.test.subdevice').length, 1);
+        cleanup();
+    });
+
+    await withTimeout(10000, async () => {
+        let added = SUCCESS;
+        let removed = FAILURE;
+
+        const cleanup = autoSignalCleanup(devices, {
+            'device-added': (d) => {
+                added = FAILURE;
+            },
+            'device-removed': (d) => {
+                assert.strictEqual(d.uniqueId, 'org.thingpedia.builtin.test.subdevice-one');
+                removed = SUCCESS;
+            }
+        });
+
+        const master = devices.getDevice('org.thingpedia.builtin.test.collection-1');
+        await master.removeOne('one');
+        assert.strictEqual(added, SUCCESS);
+        assert.strictEqual(removed, SUCCESS);
+        cleanup();
+    });
+
+    await withTimeout(10000, async () => {
+        let added = FAILURE;
+        let removed = SUCCESS;
+        const cleanup = autoSignalCleanup(devices, {
+            'device-added': (d) => {
+                assert.strictEqual(d.kind, 'org.thingpedia.builtin.test.subdevice');
+                assert.strictEqual(d.uniqueId, 'org.thingpedia.builtin.test.subdevice-two');
+                assert.strictEqual(d.name, 'Test Subdevice two');
+                assert.strictEqual(d.description, 'This is another Test, a Device, and also a Subdevice of org.thingpedia.builtin.test.collection-1');
+                added = SUCCESS;
+            },
+            'device-removed': () => {
+                removed = FAILURE;
+            }
+        });
+
+        const master = devices.getDevice('org.thingpedia.builtin.test.collection-1');
+        await master.addOne('two');
+
+        assert.strictEqual(added, SUCCESS);
+        assert.strictEqual(removed, SUCCESS);
+        cleanup();
+
+        assert.strictEqual(devices.getAllDevicesOfKind('org.thingpedia.builtin.test.subdevice').length, 1);
+    });
+
+    // removing the master device will also remove all subdevices currently present
+    await withTimeout(10000, async () => {
+        let added = SUCCESS;
+        let removedmaster = FAILURE;
+        let removedsub = FAILURE;
+
+        const master = devices.getDevice('org.thingpedia.builtin.test.collection-1');
+        assert.strictEqual(master._collection.values().length, 1);
+
+        const cleanup = autoSignalCleanup(devices, {
+            'device-added': (d) => {
+                added = FAILURE;
+            },
+            'device-removed': (d) => {
+                if (d.kind === 'org.thingpedia.builtin.test.subdevice') {
+                    assert.strictEqual(d.uniqueId, 'org.thingpedia.builtin.test.subdevice-two');
+                    assert.strictEqual(removedsub, FAILURE);
+                    removedsub = SUCCESS;
+                } else {
+                    assert.strictEqual(d, master);
+                    assert.strictEqual(removedmaster, FAILURE);
+                    removedmaster = SUCCESS;
+                }
+            }
+        });
+
+        await devices.removeDevice(master);
+        assert.strictEqual(added, SUCCESS);
+        assert.strictEqual(removedmaster, SUCCESS);
+        assert.strictEqual(removedsub, SUCCESS);
+        cleanup();
+    });
+}
+
+module.exports = async function testDevices(engine) {
+    await testLookup(engine);
+    await testDeviceViews(engine);
+    await testUpdateDevice(engine);
+    await testDeviceMethods(engine);
+    await testDeviceAddedRemoved(engine);
 };

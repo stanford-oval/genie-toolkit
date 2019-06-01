@@ -24,6 +24,8 @@ const prefs = require('../lib/util/prefs');
 
 const MockMessaging = require('./mock_messaging');
 
+require('./test-classes/collection');
+
 var _unzipApi = {
     unzip(zipPath, dir) {
         var args = ['-uo', zipPath, '-d', dir];
