@@ -1571,9 +1571,9 @@ resolve-from@^4.0.0:
   integrity sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==
 
 resolve@^1.10.0:
-  version "1.11.0"
-  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.11.0.tgz#4014870ba296176b86343d50b60f3b50609ce232"
-  integrity sha512-WL2pBDjqT6pGUNSUzMw00o4T7If+z4H2x3Gz893WoUQ5KW8Vr9txp00ykiP16VBaZF5+j/OcXJHZ9+PCvdiDKw==
+  version "1.11.1"
+  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.11.1.tgz#ea10d8110376982fef578df8fc30b9ac30a07a3e"
+  integrity sha512-vIpgF6wfuJOZI7KKKSP+HmiKggadPQAdsp5HiC1mvqnfp0gF1vdwgBWZIdrVft9pgqoMFQN+R7BSWZiBxx+BBw==
   dependencies:
     path-parse "^1.0.6"
 
@@ -1839,18 +1839,18 @@ thingpedia-client@^0.2.4:
     tmp "^0.1.0"
 
 thingpedia@^2.3.0:
-  version "2.3.4"
-  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.3.4.tgz#57829d9c66b8b8cf8e6a4a68896e9c4bf89f7cb6"
-  integrity sha512-BJussrwsckckSWAPAqf1y5DZy6+9PGMlNcPENmXGKbYKkReFeb0pxiIojatjSMKrdKq9XxdRukLcBXq6cwRrhg==
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.4.0.tgz#a4bd953848e87fb55dfcdc56e231810c22b58bcc"
+  integrity sha512-AVgQwYBH16pU7OcE5mhsFs3oHZ9EsJG0mqGohNZWLVEHsdiWxoahaMVRQFypXpxlcyF/ksCQ8I/0U3qWmdDJXQ==
   dependencies:
     feedparser "^2.2.9"
     ip "~1.1.0"
     oauth "~0.9.14"
     p-finally "^1.0.0"
-    thingtalk "^1.4.1"
+    thingtalk "^1.7.0"
     xml2js "^0.4.17"
 
-thingtalk@^1.4.1, thingtalk@~1.7.0, thingtalk@~1.7.2:
+thingtalk@^1.7.0, thingtalk@~1.7.0, thingtalk@~1.7.2:
   version "1.7.2"
   resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.7.2.tgz#cbe63961cea371a319d6768aef4a615a66c7da0a"
   integrity sha512-wji0XMvbIReQ7j/edED9POEmcLZlEAc7NlhBjguMSVNzu7+zjtcXFGGst+PMlNeYqndTpr8fbglTUISmdAuPRw==
