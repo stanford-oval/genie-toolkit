@@ -27,7 +27,7 @@ high	@com.yandex.translate.translate
 high	@security-camera.current_event
 high	@org.thingpedia.icalendar.list_events
 high	@com.bing.web_search
-high	@org.thingpedia.builtin.thingengine.phone.get_gps
+high	@org.thingpedia.builtin.thingengine.builtin.get_gps
 
 high	@org.thingpedia.bluetooth.speaker.a2dp.play_music
 high	@org.thingpedia.builtin.thingengine.phone.set_ringer

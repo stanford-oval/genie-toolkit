@@ -12,7 +12,7 @@ high	@org.thingpedia.builtin.thingengine.builtin.configure
 high	@org.thingpedia.builtin.thingengine.builtin.get_commands
 high	@org.thingpedia.builtin.thingengine.builtin.get_time
 high	@org.thingpedia.builtin.thingengine.builtin.say
-high	@org.thingpedia.builtin.thingengine.phone.get_gps
+high	@org.thingpedia.builtin.thingengine.builtin.get_gps
 high	@org.thingpedia.friendhub.stickynotes.list_posts
 high	@org.thingpedia.weather.current
 high	@security-camera.current_event
