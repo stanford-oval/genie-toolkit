@@ -74,7 +74,7 @@ class RemoteParserClient {
             data.entities = contextEntities;
 
             response = await Tp.Helpers.Http.post(`${this._baseUrl}/tokenize`, qs.stringify(data), {
-                dataContentType: 'application/x-www-form-urlencoded'
+                dataContentType: 'application/json'
             });
         } else {
             let url = `${this._baseUrl}/tokenize?${qs.stringify(data)}`;
@@ -94,20 +94,21 @@ class RemoteParserClient {
             q: utterance,
             store: 'no',
             thingtalk_version: ThingTalk.version,
-            tokenized: tokenized ? '1' : '',
-            skip_typechecking: '1'
         };
 
         let response;
         if (contextCode !== undefined) {
             data.context = contextCode.join(' ');
             data.entities = contextEntities;
+            data.tokenized = tokenized;
+            data.skip_typechecking = true;
 
             response = await Tp.Helpers.Http.post(`${this._baseUrl}/query`, qs.stringify(data), {
-                dataContentType: 'application/x-www-form-urlencoded'
+                dataContentType: 'application/json'
             });
         } else {
-
+            data.tokenized = tokenized ? '1' : '';
+            data.skip_typechecking = '1';
 
             let url = `${this._baseUrl}/query?${qs.stringify(data)}`;
             response = await Tp.Helpers.Http.get(url);

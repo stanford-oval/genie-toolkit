@@ -1906,50 +1906,6 @@
             "approved_version": 29,
             "triggers": {},
             "queries": {
-                "get_gps": {
-                    "schema": [
-                        "Location",
-                        "Measure(m)",
-                        "Number",
-                        "Measure(mps)"
-                    ],
-                    "args": [
-                        "location",
-                        "altitude",
-                        "bearing",
-                        "speed"
-                    ],
-                    "required": [
-                        false,
-                        false,
-                        false,
-                        false
-                    ],
-                    "is_input": [
-                        false,
-                        false,
-                        false,
-                        false
-                    ],
-                    "is_list": false,
-                    "is_monitorable": true,
-                    "confirmation": "your location",
-                    "confirmation_remote": "$__person's location",
-                    "doc": "get last known GPS location",
-                    "canonical": "get current location on phone",
-                    "argcanonicals": [
-                        "location",
-                        "altitude",
-                        "bearing",
-                        "speed"
-                    ],
-                    "questions": [
-                        "What location are you interested in?",
-                        "",
-                        "",
-                        ""
-                    ]
-                },
                 "sms": {
                     "schema": [
                         "Entity(tt:phone_number)",
@@ -4550,6 +4506,50 @@
             "approved_version": 28,
             "triggers": {},
             "queries": {
+                "get_gps": {
+                    "schema": [
+                        "Location",
+                        "Measure(m)",
+                        "Number",
+                        "Measure(mps)"
+                    ],
+                    "args": [
+                        "location",
+                        "altitude",
+                        "bearing",
+                        "speed"
+                    ],
+                    "required": [
+                        false,
+                        false,
+                        false,
+                        false
+                    ],
+                    "is_input": [
+                        false,
+                        false,
+                        false,
+                        false
+                    ],
+                    "is_list": false,
+                    "is_monitorable": true,
+                    "confirmation": "your location",
+                    "confirmation_remote": "$__person's location",
+                    "doc": "get last known GPS location",
+                    "canonical": "get current location on phone",
+                    "argcanonicals": [
+                        "location",
+                        "altitude",
+                        "bearing",
+                        "speed"
+                    ],
+                    "questions": [
+                        "What location are you interested in?",
+                        "",
+                        "",
+                        ""
+                    ]
+                },
                 "get_commands": {
                     "schema": [
                         "Entity(tt:device)",
