@@ -31,6 +31,8 @@ import './stream_tables';
 context complete_query_program = C.isQueryProgram($) && C.isCompleteCommand($);
 context immediate_program = $.isProgram && !C.isContinuousProgram($);
 context incomplete_program = !C.isCompleteCommand($);
+context when_program = $.isProgram && $.rules.some((r) => r.isRule);
+context policy = $.isPermissionRule;
 
 $root = {
      ( q:complete_query_program 'how about' p:constant_Any '?'
@@ -56,4 +58,26 @@ $root = {
     };
 
     prog:incomplete_program ('' | 'the answer is' | 'use' | 'i want') param:constant_Any => C.fillNextSlot(prog, param);
+
+     ( q:complete_query_program ('only those with' | 'only those having' |
+        'only with' | 'only if they have' | 'filter to those with' | 'show me those with') filter:with_filter
+    | q:complete_query_program ('show me if' | 'only if') filter:atom_filter
+    ) => {
+        if (!q.rules[0].table.schema.is_list)
+            return null;
+        return C.addFilterToProgram(q, filter, $options);
+    }
+
+    prog:when_program ('only if' | 'do this only if' | 'and only when' | 'only when') filter:atom_filter => C.addFilterToProgram(prog, filter, $options);
+    prog:when_program ('only if' | 'do this only if' | 'and only when' | 'only when') filter:get_predicate_filter => C.addFilterToProgram(prog, filter, $options);
+
+    prog:when_program ('only those with' | 'only those having' |
+        'only with' | 'only if they have' | 'filter to those with' | 'show me those with') filter:with_filter => {
+        if (!prog.rules[0].stream.schema.is_list)
+            return null;
+        return C.addFilterToProgram(prog, filter, $options);
+    }
+
+    prog:policy ('only if' | 'do this only if' | 'and only when' | 'only when') filter:atom_filter => C.addFilterToPolicy(prog, filter, $options);
+    prog:policy ('only if' | 'do this only if' | 'and only when' | 'only when') filter:get_predicate_filter => C.addFilterToPolicy(prog, filter, $options);
 }
