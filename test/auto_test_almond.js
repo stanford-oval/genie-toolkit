@@ -653,6 +653,7 @@ const TEST_CASES = [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post'],
       entities: { USERNAME_0: 'mom' } },
 `>> You haven't configured a Matrix account yet. You need a Matrix account to let me talk to other Almonds.
+>> link: Register a new Matrix account https://riot.im/app/#/register
 >> Insert your Matrix username:
 >> ask special raw_string
 `,
