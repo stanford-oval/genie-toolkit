@@ -1,0 +1,6 @@
+Stanford, California	stanford , california	1
+Palo Alto	palo alto	1
+San Francisco	san francisco	1
+Seattle	seattle	1
+Los Angeles	los angeles	1
+New York	new york	1
