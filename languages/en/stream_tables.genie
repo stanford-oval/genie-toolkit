@@ -116,5 +116,5 @@ stream = {
         return C.tableToStream(table, null);
     };
     !nofilter edge_stream;
-    timer;
+    ?timer timer;
 }
