@@ -1,12 +1,4 @@
 dataset @org.thingpedia.builtin.thingengine.phone language "en" {
-    stream  := monitor (@org.thingpedia.builtin.thingengine.phone.get_gps())
-    #_[utterances=["when my location changes","when i move"]]
-    #_[preprocessed=["when my location changes","when i move"]]
-    #[id=1647495] #[click_count=16];
-    stream (p_location :Location)  := edge (monitor (@org.thingpedia.builtin.thingengine.phone.get_gps())) on location == p_location
-    #_[utterances=["when my location changes to $p_location","when i reach $p_location"]]
-    #_[preprocessed=["when my location changes to ${p_location}","when i reach ${p_location}"]]
-    #[id=1647497] #[click_count=2];
     stream  := monitor (@org.thingpedia.builtin.thingengine.phone.sms())
     #_[utterances=["when i receive a sms"]]
     #_[preprocessed=["when i receive a sms"]]
@@ -15,10 +7,6 @@ dataset @org.thingpedia.builtin.thingengine.phone language "en" {
     #_[utterances=["when i receive a sms from $p_sender "]]
     #_[preprocessed=["when i receive a sms from ${p_sender}"]]
     #[id=1647499] #[click_count=1];
-    query  := @org.thingpedia.builtin.thingengine.phone.get_gps()
-    #_[utterances=["my current location"]]
-    #_[preprocessed=["my current location"]]
-    #[id=1647500] #[click_count=37];
     action (p_to :Entity(tt:phone_number), p_message :String)  := @org.thingpedia.builtin.thingengine.phone.send_sms(to=p_to, message=p_message)
     #_[utterances=["send an sms to $p_to saying $p_message","send an sms message to $p_to saying $p_message","send a text to $p_to saying $p_message","text $p_to saying $p_message","send a text to $p_to containing $p_message","send a message to $p_to containing $p_message"]]
     #_[preprocessed=["send an sms to ${p_to} saying ${p_message}","send an sms message to ${p_to} saying ${p_message}","send a text to ${p_to} saying ${p_message}","text ${p_to} saying ${p_message}","send a text to ${p_to} containing ${p_message}","send a message to ${p_to} containing ${p_message}"]]
@@ -39,10 +27,6 @@ dataset @org.thingpedia.builtin.thingengine.phone language "en" {
     #_[utterances=["send a text to $p_to","send a message to $p_to"]]
     #_[preprocessed=["send a text to ${p_to}","send a message to ${p_to}"]]
     #[id=1647512] #[click_count=1];
-    stream (p_location :Location)  := edge (monitor (@org.thingpedia.builtin.thingengine.phone.get_gps())) on !(location == p_location)
-    #_[utterances=["when i move away from $p_location","when i leave $p_location"]]
-    #_[preprocessed=["when i move away from ${p_location}","when i leave ${p_location}"]]
-    #[id=1647515] #[click_count=3];
     query  := @org.thingpedia.builtin.thingengine.phone.sms()
     #_[utterances=["my sms inbox","sms in my phone","texts i received"]]
     #_[preprocessed=["my sms inbox","sms in my phone","texts i received"]]
