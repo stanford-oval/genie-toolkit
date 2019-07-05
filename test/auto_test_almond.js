@@ -2256,7 +2256,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@org.coinbin.get_price', 'param:currency:Entity(tt:cryptocurrency_code)', '=', '"', 'invalid', '"', '^^tt:cryptocurrency_code', '=>', 'notify'],
-`>> Sorry, I cannot find any Cryptocurrency Code matching “invalid”
+`>> Sorry, I cannot find any Cryptocurrency Code matching “invalid”.
 >> ask special null
 `,
     null],
@@ -3182,6 +3182,36 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     `{
   now => @org.thingpedia.weather(id="org.thingpedia.weather-46").current(location=makeLocation(-90, 0, "South pole")) => notify;
 }`],
+
+    [['now', '=>', '@org.thingpedia.weather.current', 'param:location:Location', '=', 'location:', '"', 'seattle', '"', '=>', 'notify'],
+`>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+
+    `{
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-47").current(location=makeLocation(47.6038321, -122.3300624, "Seattle, King County, Washington, USA")) => notify;
+}`],
+
+    [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
+`>> What location do you want the current weather for?
+>> ask special location
+`,
+
+    { code: ['bookkeeping', 'answer', 'location:', '"', 'seattle', '"',], entities: {}},
+`>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+
+    `{
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-48").current(location=makeLocation(47.6038321, -122.3300624, "Seattle, King County, Washington, USA")) => notify;
+}`],
+
+    [['now', '=>', '@org.thingpedia.weather.current', 'param:location:Location', '=', 'location:', '"', 'invalid', '"', '=>', 'notify'],
+`>> Sorry, I cannot find any location matching “invalid”.
+>> ask special null
+`,
+
+    null],
 ];
 
 function handleCommand(almond, input) {
