@@ -426,7 +426,7 @@ class DialogEvaluatorStream extends Stream.Transform {
     }
 
     _applyReplyToContext(context, newCommand) {
-        if (newCommand.isProgram) {
+        if (newCommand.isProgram || newCommand.isPermissionRule) {
             return newCommand;
         } else if (newCommand.isBookkeeping && newCommand.intent.isAnswer) {
             for (let slot of context.iterateSlots()) {
