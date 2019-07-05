@@ -66,7 +66,7 @@ $root = {
         if (!q.rules[0].table.schema.is_list)
             return null;
         return C.addFilterToProgram(q, filter, $options);
-    }
+    };
 
     prog:when_program ('only if' | 'do this only if' | 'and only when' | 'only when') filter:atom_filter => C.addFilterToProgram(prog, filter, $options);
     prog:when_program ('only if' | 'do this only if' | 'and only when' | 'only when') filter:get_predicate_filter => C.addFilterToProgram(prog, filter, $options);
@@ -76,7 +76,7 @@ $root = {
         if (!prog.rules[0].stream.schema.is_list)
             return null;
         return C.addFilterToProgram(prog, filter, $options);
-    }
+    };
 
     prog:policy ('only if' | 'do this only if' | 'and only when' | 'only when') filter:atom_filter => C.addFilterToPolicy(prog, filter, $options);
     prog:policy ('only if' | 'do this only if' | 'and only when' | 'only when') filter:get_predicate_filter => C.addFilterToPolicy(prog, filter, $options);
