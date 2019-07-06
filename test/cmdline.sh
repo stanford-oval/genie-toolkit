@@ -36,6 +36,7 @@ node $srcdir/tool/genie.js generate --maxdepth 2 --thingpedia thingpedia.json --
 
 # sample
 node $srcdir/tool/genie.js sample -o synthetic-sampled.tsv \
+  --thingpedia thingpedia.json \
   --constants $srcdir/data/en-US/constants.tsv --sampling-control $srcdir/test/data/easy-hard-functions.tsv $srcdir/test/data/synthetic.tsv
 diff -u $srcdir/test/data/expected-synthetic-sampled.tsv synthetic-sampled.tsv
 
@@ -114,6 +115,7 @@ node $srcdir/tool/genie.js generate-contextual --maxdepth 3 --thingpedia thingpe
 node $srcdir/tool/genie.js contextualize -o /dev/null -l en --context contexts.txt $srcdir/test/data/synthetic.tsv
 
 node $srcdir/tool/genie.js sample -o synthetic-contextual-sampled.tsv \
+  --thingpedia thingpedia.json \
   --contextual --context-source $srcdir/test/data/synthetic-context-source.tsv \
   --constants $srcdir/data/en-US/constants.tsv --sampling-control $srcdir/test/data/easy-hard-functions.tsv \
   $srcdir/test/data/synthetic-contextual.tsv

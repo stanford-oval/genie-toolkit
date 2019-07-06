@@ -14,12 +14,14 @@ const fs = require('fs');
 const byline = require('byline');
 const csv = require('csv');
 const Stream = require('stream');
+const ThingTalk = require('thingtalk');
 
 const { DatasetParser } = require('../lib/dataset-parsers');
 const SentenceSampler = require('../lib/sampler');
 const StreamUtils = require('../lib/stream-utils');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const { parseConstantFile } = require('./lib/constant-file');
+const FileThingpediaClient = require('./lib/file_thingpedia_client');
 
 function parseSamplingControlFile(filename) {
     const functionBlackList = new Set;
@@ -88,6 +90,10 @@ module.exports = {
         parser.addArgument(['-o', '--output'], {
             required: true,
             type: fs.createWriteStream
+        });
+        parser.addArgument('--thingpedia', {
+            required: true,
+            help: 'Path to JSON file containing signature, type and mixin definitions.'
         });
         parser.addArgument('--constants', {
             required: true,
@@ -169,6 +175,9 @@ module.exports = {
         const [functionBlackList, deviceBlackList, functionHighValueList, functionWhiteList, deviceWhiteList] =
             await parseSamplingControlFile(args.sampling_control);
 
+        const tpClient = new FileThingpediaClient(args.locale, args.thingpedia, null);
+        const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, args.debug);
+
         const options = {
             rng: seedrandom.alea(args.random_seed),
             locale: args.locale,
@@ -187,7 +196,7 @@ module.exports = {
 
         readAllLines(args.input_file)
             .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true }))
-            .pipe(new SentenceSampler(constants, options))
+            .pipe(new SentenceSampler(schemaRetriever, constants, options))
             .pipe(csv.stringify({ header: true, delimiter: '\t' }))
             .pipe(args.output);
 

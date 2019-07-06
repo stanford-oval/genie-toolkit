@@ -15,6 +15,7 @@ const csv = require('csv');
 
 const StreamUtils = require('../lib/stream-utils');
 const { NUM_SENTENCES_PER_TASK } = require('./lib/constants');
+const { clean } = require('../lib/utils');
 
 class ParaphraseHITCreator extends Stream.Transform {
     constructor(sentencesPerTask) {
@@ -34,6 +35,16 @@ class ParaphraseHITCreator extends Stream.Transform {
         if (row.context) {
             this._buffer[`context${i}`] = row.context;
             this._buffer[`context_utterance${i}`] = row.context_utterance;
+            if (row.assistant_action.startsWith('slot-fill:')) {
+                const param = row.assistant_action.split(':')[1];
+                this._buffer[`assistant_action${i}`] = `The assistant asks for the value of ${clean(param)} parameter.`;
+            } else if (row.assistant_action === 'result') {
+                this._buffer[`assistant_action${i}`] = `The assistant shows the result.`;
+            } else if (row.assistant_action === 'confirm') {
+                this._buffer[`assistant_action${i}`] = `The assistant confirms the command before executing it.`;
+            } else {
+                throw new Error(`Invalid assistant action ${row.assistant_action}`);
+            }
         }
         this._buffer[`thingtalk${i}`] = row.target_code;
         this._buffer[`sentence${i}`] = row.utterance;
