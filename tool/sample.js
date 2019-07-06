@@ -13,12 +13,13 @@ const seedrandom = require('seedrandom');
 const fs = require('fs');
 const byline = require('byline');
 const csv = require('csv');
+const Stream = require('stream');
 
 const { DatasetParser } = require('../lib/dataset-parsers');
 const SentenceSampler = require('../lib/sampler');
+const StreamUtils = require('../lib/stream-utils');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const { parseConstantFile } = require('./lib/constant-file');
-
 
 function parseSamplingControlFile(filename) {
     const functionBlackList = new Set;
@@ -98,9 +99,17 @@ module.exports = {
             help: 'Input datasets to augment (in TSV format); use - for standard input'
         });
         parser.addArgument(['-l', '--locale'], {
-            required: false,
             defaultValue: 'en-US',
             help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
+        });
+        parser.addArgument('--contextual', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Process a contextual dataset.',
+            defaultValue: false
+        });
+        parser.addArgument('--context-source', {
+            help: 'Source dataset from where contexts were extracted; used to choose a context sentence for each context.',
         });
         parser.addArgument('--sampling-strategy', {
             required: false,
@@ -135,6 +144,27 @@ module.exports = {
     },
 
     async execute(args) {
+        const contexts = new Map;
+        if (args.contextual) {
+            if (!args.context_source)
+                throw new Error(`--context-source is required if --contextual`);
+
+            await StreamUtils.waitFinish(
+                readAllLines([fs.createReadStream(args.context_source)])
+                .pipe(new DatasetParser({ preserveId: true }))
+                .pipe(new Stream.Writable({
+                    objectMode: true,
+                    write(ex, encoding, callback) {
+                        if (contexts.has(ex.target_code))
+                            contexts.get(ex.target_code).push(ex.preprocessed);
+                        else
+                            contexts.set(ex.target_code, [ex.preprocessed]);
+                        callback();
+                    },
+                }))
+            );
+        }
+
         const constants = await parseConstantFile(args.locale, args.constants);
         const [functionBlackList, deviceBlackList, functionHighValueList, functionWhiteList, deviceWhiteList] =
             await parseSamplingControlFile(args.sampling_control);
@@ -149,13 +179,14 @@ module.exports = {
             functionHighValueList,
             functionWhiteList,
             deviceWhiteList,
+            contexts,
 
             compoundOnly: !!args.compound_only,
             debug: args.debug
         };
 
         readAllLines(args.input_file)
-            .pipe(new DatasetParser({ preserveId: true }))
+            .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true }))
             .pipe(new SentenceSampler(constants, options))
             .pipe(csv.stringify({ header: true, delimiter: '\t' }))
             .pipe(args.output);

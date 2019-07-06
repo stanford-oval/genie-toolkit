@@ -31,6 +31,10 @@ class ParaphraseHITCreator extends Stream.Transform {
     _transform(row, encoding, callback) {
         const i = ++this._i;
         this._buffer[`id${i}`] = row.id;
+        if (row.context) {
+            this._buffer[`context${i}`] = row.context;
+            this._buffer[`context_utterance${i}`] = row.context_utterance;
+        }
         this._buffer[`thingtalk${i}`] = row.target_code;
         this._buffer[`sentence${i}`] = row.utterance;
 
