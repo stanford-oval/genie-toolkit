@@ -56,7 +56,7 @@ class ParaphrasingParser extends Stream.Transform {
 
             for (let j = 0; j < this._paraphrasesPerSentence; j++) {
                 const paraphrase = row[`Answer.Paraphrase${i+1}-${j+1}`];
-                const id = this._id++;
+                const id = (this._contextual ? 'C' : '') + this._id++;
                 if (this._contextual) {
                     this.push({
                         id, synthetic_id, synthetic,
@@ -371,7 +371,7 @@ class ParaphrasingRejecter extends Stream.Transform {
 
             for (let j = 0; j < this._paraphrasesPerSentence; j++) {
                 const paraphrase = row[`Answer.Paraphrase${i+1}-${j+1}`];
-                const id = this._id++;
+                const id = (this._contextual ? 'C' : '') + this._id++;
 
                 let paraobj;
                 if (this._contextual) {

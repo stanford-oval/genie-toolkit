@@ -15,6 +15,7 @@ const csv = require('csv');
 const ThingTalk = require('thingtalk');
 
 const { ParaphraseValidatorFilter } = require('../lib/validator');
+const { DatasetStringifier } = require('../lib/dataset-parsers');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const TokenizerService = require('../lib/tokenizer');
@@ -155,7 +156,8 @@ module.exports = {
             .pipe(new MT.ParaphrasingRejecter(schemaRetriever, tokenizer, {
                 sentencesPerTask: args.sentences_per_task,
                 paraphrasesPerSentence: args.paraphrases_per_sentence,
-                locale: args.locale
+                locale: args.locale,
+                contextual: args.contextual
             }));
 
         let paraphrasingRejects;
@@ -171,6 +173,7 @@ module.exports = {
             .pipe(new MT.ParaphrasingParser({
                 sentencesPerTask: args.sentences_per_task,
                 paraphrasesPerSentence: args.paraphrases_per_sentence,
+                contextual: args.contextual,
                 skipRejected: true
             }))
             .pipe(new ParaphraseValidatorFilter(schemaRetriever, tokenizer, {
@@ -179,17 +182,7 @@ module.exports = {
                 validationCounts,
                 validationThreshold: args.validation_threshold
             }))
-            .pipe(new Stream.Transform({
-                writableObjectMode: true,
-
-                transform(ex, encoding, callback) {
-                    callback(null, ex.id + '\t' + ex.preprocessed + '\t' + ex.target_preprocessed + '\n');
-                },
-
-                flush(callback) {
-                    process.nextTick(callback);
-                }
-            }))
+            .pipe(new DatasetStringifier())
             .pipe(args.output);
 
         await Promise.all([
