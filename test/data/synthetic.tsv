@@ -10,3 +10,8 @@ S2000043793	USERNAME_0 has my permission to setup tumblr blog if my location is 
 S4000227894	if something happens on my security camera retrieve what philips hue can do	( monitor ( @security-camera.current_event ) ) => ( @org.thingpedia.builtin.thingengine.builtin.get_commands param:device:Entity(tt:device) = device:com.hue ) => notify
 S4000511177	setup thingengine when a file is modified on google drive	monitor ( @com.google.drive.list_drive_files ) => @org.thingpedia.builtin.thingengine.builtin.configure param:device:Entity(tt:device) = device:org.thingpedia.builtin.thingengine
 S4000113241	notify me should photos in album QUOTED_STRING_0 on facebook change and after TIME_0	edge ( monitor ( @com.facebook.list_photos param:album:String = QUOTED_STRING_0 ) ) on @org.thingpedia.builtin.thingengine.builtin.get_time { param:time:Date >= TIME_0 } => notify
+S1234567890	get weather for LOCATION_0	now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify
+S4000123456	what is the weather	now => @org.thingpedia.weather.current => notify
+S4000123457	get the current weather	now => @org.thingpedia.weather.current => notify
+S4000123458	who is the sender of my emails	now => @com.gmail.inbox => notify
+S4000123459	order a coffee	now => @org.thingpedia.demo.coffee.order

@@ -1,3 +1,9 @@
+0.3.3
+=====
+
+* Fix tokenizer ignoring the expected value and not tokenizing locations correctly
+  when given as answers
+
 0.3.2
 =====
 

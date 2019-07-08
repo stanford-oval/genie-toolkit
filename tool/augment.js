@@ -109,6 +109,12 @@ module.exports = {
             metavar: 'FACTOR',
             help: 'Expansion factor of paraphrased sentences without quoted parameters)'
         });
+        parser.addArgument('--single-device-expand-factor', {
+            type: Number,
+            defaultValue: 5,
+            metavar: 'FACTOR',
+            help: 'Number of sentences to generate with "ask" or "tell" prefixes for single-device commands'
+        });
 
         parser.addArgument('--debug', {
             nargs: 0,
@@ -136,7 +142,7 @@ module.exports = {
 
         readAllLines(args.input_file)
             .pipe(new DatasetParser({ contextual: args.contextual }))
-            .pipe(new DatasetAugmenter(schemaRetriever, constProvider, {
+            .pipe(new DatasetAugmenter(schemaRetriever, constProvider, tpClient, {
                 rng: seedrandom.alea(args.random_seed),
                 locale: args.locale,
                 debug: args.debug,
@@ -150,6 +156,7 @@ module.exports = {
                 syntheticExpandFactor: args.synthetic_expand_factor,
                 paraphrasingExpandFactor: args.quoted_paraphrasing_expand_factor,
                 noQuoteExpandFactor: args.no_quote_paraphrasing_expand_factor,
+                singleDeviceExpandFactor: args.single_device_expand_factor
             }))
             .pipe(new DatasetStringifier())
             .pipe(args.output);

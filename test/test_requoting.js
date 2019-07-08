@@ -29,6 +29,9 @@ const SENTENCE_TEST_CASES = [
     ['tweet foo', 'lol " foo " ^^tt:username', 'tweet USERNAME'],
     ['tweet GENERIC_ENTITY_foo:bar_0', 'foo GENERIC_ENTITY_foo:bar_0', 'tweet GENERIC_ENTITY_foo:bar'],
     ['tweet foo', 'lol " foo " ^^foo:bar', 'tweet GENERIC_ENTITY_foo:bar'],
+
+    ['get weather for seattle', 'location: " seattle "', 'get weather for LOCATION'],
+    ['get weather for san francisco and foo', 'location: " san francisco "', 'get weather for LOCATION and foo'],
 ];
 
 function testRequoteSentence() {
@@ -53,7 +56,11 @@ const PROGRAM_TEST_CASES = [
 
     ['@twitter.tweet " HASHTAG_0 "', '@twitter.tweet QUOTED_STRING'],
 
-    ['@twitter.tweet NUMBER_0 F', '@twitter.tweet NUMBER F']
+    ['@twitter.tweet NUMBER_0 F', '@twitter.tweet NUMBER F'],
+
+    ['@foo.bar LOCATION_0', '@foo.bar LOCATION'],
+    ['@foo.bar location: " san francisco "', '@foo.bar LOCATION'],
+    ['@foo.bar location:home', '@foo.bar location:home'],
 ];
 
 function testRequotePrograms() {
