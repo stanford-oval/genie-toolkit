@@ -42,6 +42,12 @@ module.exports = {
             required: true,
             help: 'JSON file containing signature, type and mixin definitions.'
         });
+        parser.addArgument('--contextual', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Process a contextual dataset.',
+            defaultValue: false
+        });
         parser.addArgument('--paraphrasing-input', {
             required: true,
             help: 'CSV file containing the output from MTurk paraphrasing.'
