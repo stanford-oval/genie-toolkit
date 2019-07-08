@@ -57,7 +57,7 @@ $root = {
         return C.makeMonitor(prog);
     };
 
-    prog:incomplete_program ('' | 'the answer is' | 'use' | 'i want') param:constant_Any => C.fillNextSlot(prog, param);
+    !turking prog:incomplete_program ('' | 'the answer is' | 'use' | 'i want') param:constant_Any => C.fillNextSlot(prog, param);
 
      ( q:complete_query_program ('only those with' | 'only those having' |
         'only with' | 'only if they have' | 'filter to those with' | 'show me those with') filter:with_filter

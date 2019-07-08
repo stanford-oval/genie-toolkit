@@ -131,6 +131,14 @@ Entity(imgflip:meme_id)	61546	Brace Yourselves
 Entity(com.instagram:filter)	inkwell	Inkwell
 Entity(com.instagram:filter)	lo-fi	Lo-Fi
 Entity(com.instagram:filter)	sierra	Sierra
+Entity(org.freedesktop:app_id)	inkscape	Inkscape
+Entity(org.freedesktop:app_id)	firefox	Firefox
+Entity(org.freedesktop:app_id)	google-chrome	Google Chrome
+Entity(org.freedesktop:app_id)	emacs	Emacs
+Entity(tt:cryptocurrency_code)	btc	Bitcoin
+Entity(tt:cryptocurrency_code)	xlm	Stellar
+Entity(tt:cryptocurrency_code)	eth	Ethereum
+Entity(tt:cryptocurrency_code)	doge	Dogecoin
 
 # overrides for specific parameters
 param:source_language:Entity(tt:iso_lang_code)	en	English

@@ -81,6 +81,112 @@ function parseSamplingControlFile(filename) {
     });
 }
 
+const ENTITY_MATCH_REGEX = /^([A-Z].*)_[0-9]+$/;
+
+class ContextSourceLoader extends Stream.Writable {
+    constructor() {
+        super({ objectMode: true });
+        
+        this._buffer = new Map;
+    }
+    
+    // renumber entities so they are assigned in program order rather than sentence order
+    _normalizeEntities(ex) {
+        let renameMap = Object.create(null);
+        let countMap = Object.create(null);
+        
+        let inString = false;
+        let anyRename = false;
+        const newCode = [];
+        const code = ex.target_code.split(' ');
+        for (let i = 0; i < code.length; i++) {
+            const token = code[i];
+            if (token === '"') {
+                inString = !inString;
+                newCode.push(token);
+                continue;
+            }
+            if (inString) {
+                newCode.push(token);
+                continue;
+            }
+            if (token in renameMap) {
+                newCode.push(renameMap[token]);
+                
+                // if we renamed a number into a measure, skip the unit
+                if (token.startsWith('NUMBER_') && renameMap[token].startsWith('MEASURE_'))
+                    i++;
+            }
+            
+            const match = ENTITY_MATCH_REGEX.exec(token);
+            if (match === null) {
+                newCode.push(token);
+                continue;
+            }
+            
+            let [,type,idx] = match;
+            
+            // collapse NUMBER_ followed by unit into measure or duration
+            if (type === 'NUMBER' && i < code.length-1 && code[i+1].startsWith('unit:')) {
+                const unit = code[i+1].substring('unit:'.length);
+                const baseunit = ThingTalk.Type.Measure(unit).unit;
+                if (baseunit === 'ms')
+                    type = 'DURATION';
+                else
+                    type = 'MEASURE_' + baseunit;
+                // skip the unit
+                i++;
+            }
+            
+            let newIdx;
+            if (type in countMap)
+                newIdx = countMap[type] + 1;
+            else
+                newIdx = 0;
+            countMap[type] = newIdx;
+            
+            const newToken = type + '_' + newIdx;
+            if (newToken !== token)
+                anyRename = true;
+            renameMap[token] = newToken;
+            newCode.push(newToken);
+        }
+        ex.target_code = newCode.join(' ');
+        if (!anyRename)
+            return;
+        ex.preprocessed = ex.preprocessed.split(' ').map((token) => {
+            if (token in renameMap)
+                return renameMap[token];
+            else
+                return token;
+        }).join(' ');
+    }
+    
+    _write(ex, encoding, callback) {
+        /*let yes = false;
+        if (ex.target_code === 'now => @com.foradb.findBP param:edate:Date = end_of unit:week - DURATION_1 param:patient:String = QUOTED_STRING_0 param:sdate:Date = end_of unit:mon + DURATION_0 => notify')
+            yes = true;*/
+        this._normalizeEntities(ex);
+        //if (yes)
+        //    console.log(ex);
+    
+        if (this._buffer.has(ex.target_code))
+            this._buffer.get(ex.target_code).push(ex.preprocessed);
+        else
+            this._buffer.set(ex.target_code, [ex.preprocessed]);
+        callback();
+    }
+    
+    _finish(callback) {
+        callback();
+    }
+    
+    async read() {
+        await StreamUtils.waitFinish(this);
+        return this._buffer;
+    }
+};
+
 module.exports = {
     initArgparse(subparsers) {
         const parser = subparsers.addParser('sample', {
@@ -119,7 +225,7 @@ module.exports = {
         });
         parser.addArgument('--sampling-strategy', {
             required: false,
-            choices: ['byCode', 'bySignature'],
+            choices: ['byCode', 'bySentence', 'bySignature'],
             help: 'Which sampling strategy to use (defaults: bySignature).'
         });
         parser.addArgument('--sampling-control', {
@@ -150,25 +256,15 @@ module.exports = {
     },
 
     async execute(args) {
-        const contexts = new Map;
+        let contexts;
         if (args.contextual) {
             if (!args.context_source)
                 throw new Error(`--context-source is required if --contextual`);
 
-            await StreamUtils.waitFinish(
-                readAllLines([fs.createReadStream(args.context_source)])
+            contexts = await readAllLines([fs.createReadStream(args.context_source)])
                 .pipe(new DatasetParser({ preserveId: true }))
-                .pipe(new Stream.Writable({
-                    objectMode: true,
-                    write(ex, encoding, callback) {
-                        if (contexts.has(ex.target_code))
-                            contexts.get(ex.target_code).push(ex.preprocessed);
-                        else
-                            contexts.set(ex.target_code, [ex.preprocessed]);
-                        callback();
-                    },
-                }))
-            );
+                .pipe(new ContextSourceLoader())
+                .read();
         }
 
         const constants = await parseConstantFile(args.locale, args.constants);
