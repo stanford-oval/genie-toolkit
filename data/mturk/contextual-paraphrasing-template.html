@@ -39,7 +39,7 @@ Try to make your paraphrases natural, for example:</p>
 If you really don't know how to paraphrase the command, if the context is not understandable, or if the follow-up is not meaningful in the given context, please write the exact words <samp>no idea</samp>.
 </p>
 
-<h3> Example </h3>
+<h3> Example 1 </h3>
 <div class="panel panel-default">
 <div class="panel-body">
 <p><strong>Previous Command</strong></p>
@@ -58,6 +58,48 @@ notify me when it is below $1000</pre>
   <font color="red">missing $ sign for "$1000"</font> <pre>notify me when it is below 1000</pre>
   <font color="red">wrong intent</font> <pre>when will it go below $1,000?</pre>
   <font color="red">wrong meaning</font> <pre>notify me when it is above $1,000</pre>
+</div></div>
+
+<h3> Example 2 </h3>
+<div class="panel panel-default">
+<div class="panel-body">
+<p><strong>Previous Command</strong></p>
+<pre>
+show me youtube automotive channels</pre>
+<p><i>The assistant shows the result</i></p>
+<p><strong>Next Command</strong></p>
+<pre>
+how about cooking?</pre>
+<p><strong>Correct paraphrases</strong></p>
+<pre>how about cooking channels?</pre>
+<pre>search cooking channels instead</pre>
+<pre>search recipes videos instead</pre>
+<p><strong>Wrong paraphrases</strong></p>
+  <font color="red">departs from context</font> <pre>search cooking instead</pre>
+<p><strong>Acceptable but discouraged paraphrases</strong></p>
+<font color="red">repeats previous command</font> <pre>how about automotive channels?</pre>
+</div></div>
+
+<h3> Example 3 </h3>
+<div class="panel panel-default">
+<div class="panel-body">
+<p><strong>Previous Command</strong></p>
+<pre>
+post a picture on twitter</pre>
+<p><i>The assistant confirms the command before executing</i></p>
+<p><strong>Next Command</strong></p>
+<pre>
+do this automatically when I upload a picture to instagram</pre>
+<p><strong>Correct paraphrases</strong></p>
+<pre>do it when I post to Instagram</pre>
+<pre>post it when I upload to Instagram</pre>
+<pre>not now, but when I upload to Instagram</pre>
+<pre>do it for every new picture I have on Instagram</pre>
+<p><strong>Wrong paraphrases</strong></p>
+  <font color="red">missing information (Instagram)</font> <pre>do it when I upload a picture</pre>
+  <font color="red">wrong meaning</font> <pre>upload a picture to Instagram</pre>
+<p><strong>Acceptable but discouraged paraphrases</strong></p>
+<font color="red">repeats previous command</font> <pre>post a picture on twitter when I upload to Instagram</pre>
 </div></div>
 
 <h3> Your turn now </h3>
