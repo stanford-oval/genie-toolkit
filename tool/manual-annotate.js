@@ -15,7 +15,7 @@ const csv = require('csv');
 const readline = require('readline');
 
 const ParserClient = require('./lib/parserclient');
-const TpClient = require('./lib/file_thingpedia_client');
+const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const { DatasetStringifier } = require('../lib/dataset-parsers');
 
 const ThingTalk = require('thingtalk');
@@ -39,7 +39,7 @@ class Trainer extends events.EventEmitter {
 
         this._rl = rl;
 
-        const tpClient = new TpClient(options.locale, options.thingpedia);
+        const tpClient = new FileThingpediaClient(options);
         this._schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
         this._parser = ParserClient.get(options.server, 'en-US');
 
@@ -259,9 +259,8 @@ module.exports = {
             help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
         });
         parser.addArgument('--thingpedia', {
-            required: false,
-            defaultValue: '../thingpedia.json',
-            help: `The path to the thingpedia.json file.`
+            required: true,
+            help: 'Path to ThingTalk file containing class definitions.'
         });
         parser.addArgument('--server', {
             required: false,
