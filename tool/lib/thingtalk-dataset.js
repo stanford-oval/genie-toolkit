@@ -35,14 +35,14 @@ module.exports = class ThingTalkDataset {
         };
     }
 
-    async read(locale, thingpedia, datasetFile) {
-        const tpClient = new FileThingpediaClient(locale, thingpedia, datasetFile);
-        const dataset = await this._loadDataset(tpClient);
+    async read(locale, thingpedia, dataset) {
+        const tpClient = new FileThingpediaClient({ locale, thingpedia, dataset });
+        const parsed = await this._loadDataset(tpClient);
 
         if (this._options.debug)
-            console.log('Loaded ' + dataset.examples.length + ' templates');
+            console.log('Loaded ' + parsed.examples.length + ' templates');
         this._locale = locale;
-        this._dataset = dataset;
+        this._dataset = parsed;
     }
 
     write(outputFile, callback) {

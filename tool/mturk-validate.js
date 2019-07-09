@@ -40,7 +40,7 @@ module.exports = {
         });
         parser.addArgument('--thingpedia', {
             required: true,
-            help: 'JSON file containing signature, type and mixin definitions.'
+            help: 'Path to ThingTalk file containing class definitions.'
         });
         parser.addArgument('--paraphrasing-input', {
             required: true,
@@ -102,7 +102,7 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new FileThingpediaClient(args.locale, args.thingpedia, args.dataset);
+        const tpClient = new FileThingpediaClient(args);
         const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, args.debug);
         const tokenizer = TokenizerService.get(process.env.GENIE_USE_TOKENIZER, true);
 

@@ -145,7 +145,7 @@ module.exports = {
         });
         parser.addArgument('--thingpedia', {
             required: true,
-            help: 'Path to JSON file containing signature, type and mixin definitions.'
+            help: 'Path to ThingTalk file containing class definitions.'
         });
         parser.addArgument('--sentences-per-task', {
             required: false,
@@ -184,7 +184,7 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new FileThingpediaClient(args.locale, args.thingpedia, args.dataset);
+        const tpClient = new FileThingpediaClient(args);
         const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, args.debug);
         const tokenizer = TokenizerService.get(process.env.GENIE_USE_TOKENIZER, true);
         const rng = seedrandom.alea(args.random_seed);
