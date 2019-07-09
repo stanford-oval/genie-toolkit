@@ -124,7 +124,7 @@ class ContextSourceLoader extends Stream.Writable {
                 continue;
             }
             
-            let [,type,idx] = match;
+            let [,type,] = match;
             
             // collapse NUMBER_ followed by unit into measure or duration
             if (type === 'NUMBER' && i < code.length-1 && code[i+1].startsWith('unit:')) {
@@ -185,7 +185,7 @@ class ContextSourceLoader extends Stream.Writable {
         await StreamUtils.waitFinish(this);
         return this._buffer;
     }
-};
+}
 
 module.exports = {
     initArgparse(subparsers) {
