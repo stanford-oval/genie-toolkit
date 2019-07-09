@@ -11,76 +11,10 @@
 
 const ThingTalk = require('thingtalk');
 const Grammar = ThingTalk.Grammar;
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
 const fs = require('fs');
 const util = require('util');
 
 const { uniform } = require('../../lib/random');
-
-// Parse the semi-obsolete JSON format for schemas used
-// by Thingpedia into a FunctionDef
-function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
-    const args = [];
-    // compat with Thingpedia API quirks
-    const types = schema.types || schema.schema;
-
-    types.forEach((type, i) => {
-        type = Type.fromString(type);
-        const argname = schema.args[i];
-        const argrequired = !!schema.required[i];
-        const arginput = !!schema.is_input[i];
-
-        let direction;
-        if (argrequired)
-            direction = Ast.ArgDirection.IN_REQ;
-        else if (arginput)
-            direction = Ast.ArgDirection.IN_OPT;
-        else
-            direction = Ast.ArgDirection.OUT;
-        const metadata = {};
-        if (isMeta) {
-            metadata.prompt = schema.questions[i] || '';
-            metadata.canonical = schema.argcanonicals[i] || argname;
-        }
-        const annotations = {};
-        if (isMeta && schema.string_values[i])
-            annotations.string_values = Ast.Value.String(schema.string_values[i]);
-
-        args.push(new Ast.ArgumentDef(direction, argname,
-            type, metadata, annotations));
-    });
-
-    const metadata = {};
-    if (isMeta) {
-        metadata.canonical = schema.canonical || '';
-        metadata.confirmation = schema.confirmation || '';
-    }
-    const annotations = {};
-
-    return new Ast.FunctionDef(functionType,
-                               functionName,
-                               args,
-                               schema.is_list,
-                               schema.is_monitorable,
-                               metadata,
-                               annotations);
-}
-
-function makeSchemaClassDef(kind, schema, isMeta) {
-    const queries = {};
-    for (let name in schema.queries)
-        queries[name] = makeSchemaFunctionDef('query', name, schema.queries[name], isMeta);
-    const actions = {};
-    for (let name in schema.actions)
-        actions[name] = makeSchemaFunctionDef('action', name, schema.actions[name], isMeta);
-
-    const imports = [];
-    const metadata = {};
-    const annotations = {};
-    return new Ast.ClassDef(kind, null, queries, actions,
-                            imports, metadata, annotations);
-}
 
 function exampleToCode(example) {
     const clone = example.clone();
@@ -92,14 +26,14 @@ function exampleToCode(example) {
 }
 
 module.exports = class FileThingpediaClient {
-    constructor(locale, thingpediafilename, datasetfilename) {
-        this._locale = locale;
-        this._schema = {};
-        this._meta = {};
-        this._entities = {};
+    constructor(args) {
+        this._locale = args.locale;
+        this._devices = null;
+        this._entities = null;
 
-        this._thingpediafilename = thingpediafilename;
-        this._datasetfilename = datasetfilename;
+        this._thingpediafilename = args.thingpedia;
+        this._entityfilename = args.entities;
+        this._datasetfilename = args.dataset;
         this._loaded = null;
     }
 
@@ -139,33 +73,12 @@ module.exports = class FileThingpediaClient {
     }
 
     async _load() {
-        const data = JSON.parse(await util.promisify(fs.readFile)(this._thingpediafilename));
+        this._devices = (await util.promisify(fs.readFile)(this._thingpediafilename)).toString();
 
-        this._entities = data.entities;
-        for (let dev of data.devices) {
-            // legacy pseudo-device entries that should not be treated as devices
-            if (dev.kind_type === 'global' || dev.kind_type === 'discovery' || dev.kind_type === 'category')
-                continue;
-
-            this._meta[dev.kind] = dev;
-            this._schema[dev.kind] = {
-                queries: {},
-                actions: {}
-            };
-            for (let what of ['queries', 'actions']) {
-                for (let name in dev[what]) {
-                    let from = dev[what][name];
-                    this._schema[dev.kind][what][name] = {
-                        types: from.types,
-                        args: from.args,
-                        required: from.required,
-                        is_input: from.is_input,
-                        is_list: from.is_list,
-                        is_monitorable: from.is_monitorable
-                    };
-                }
-            }
-        }
+        if (this._entityfilename)
+            this._entities = JSON.parse(await util.promisify(fs.readFile)(this._entityfilename)).data;
+        else
+            this._entities = null;
     }
 
     _ensureLoaded() {
@@ -181,18 +94,9 @@ module.exports = class FileThingpediaClient {
 
     async getSchemas(kinds, useMeta) {
         await this._ensureLoaded();
-        const source = useMeta ? this._meta : this._schema;
 
-        const classes = [];
-        for (let kind of kinds) {
-            // emulate Thingpedia's behavior of creating an empty class
-            // for invalid/unknown/invisible devices
-            if (!source[kind])
-                source[kind] = { queries: {}, actions: {} };
-            classes.push(makeSchemaClassDef(kind, source[kind], useMeta));
-        }
-        const input = new Ast.Input.Meta(classes, []);
-        return input.prettyprint();
+        // ignore kinds, just return the full file, SchemaRetriever will take care of the rest
+        return this._devices;
     }
     async getDeviceCode(kind) {
         // we don't have the full class, so we just return the meta info
@@ -210,9 +114,15 @@ module.exports = class FileThingpediaClient {
 
     async getAllDeviceNames() {
         await this._ensureLoaded();
+
+        const parsed = ThingTalk.Grammar.parse(this._devices);
         let names = [];
-        for (let kind in this._meta)
-            names.push({ kind, kind_canonical: this._meta[kind].kind_canonical });
+        for (let classDef of parsed.classes) {
+            names.push({
+                kind: classDef.kind,
+                kind_canonical: classDef.metadata.canonical
+            });
+        }
         return names;
     }
 
@@ -223,14 +133,15 @@ module.exports = class FileThingpediaClient {
 
     async genCheatsheet(random = true, options = {}) {
         await this._ensureLoaded();
+        const parsed = ThingTalk.Grammar.parse(this._devices);
 
         const devices = [];
         const devices_rev = {};
-        for (let kind in this._meta) {
-            devices_rev[kind] = devices.length;
+        for (let classDef of parsed.classes) {
+            devices_rev[classDef.kind] = devices.length;
             devices.push({
-                primary_kind: kind,
-                name: this._meta[kind].kind_canonical
+                primary_kind: classDef.kind,
+                name: classDef.metadata.canonical
             });
         }
         devices.sort((a, b) => {

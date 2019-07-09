@@ -59,7 +59,7 @@ module.exports = {
         });
         parser.addArgument('--thingpedia', {
             required: true,
-            help: 'Path to JSON file containing signature, type and mixin definitions.'
+            help: 'Path to ThingTalk file containing class definitions.'
         });
         parser.addArgument('input_file', {
             nargs: '+',
@@ -87,7 +87,7 @@ module.exports = {
 
     async execute(args) {
         const rng = seedrandom.alea(args.random_seed);
-        const tpClient = new FileThingpediaClient(args.locale, args.thingpedia, args.dataset);
+        const tpClient = new FileThingpediaClient(args);
         const schemas = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
 
         let allprograms = await readAllLines(args.input_file)
