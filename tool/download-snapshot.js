@@ -16,10 +16,6 @@ const DEFAULT_THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 
 const StreamUtils = require('../lib/stream-utils');
 
-async function request(url) {
-    return JSON.parse(await Tp.Helpers.Http.get(url, { accept: 'application/json' })).data;
-}
-
 module.exports = {
     initArgparse(subparsers) {
         const parser = subparsers.addParser('download-snapshot', {
@@ -34,6 +30,11 @@ module.exports = {
         parser.addArgument(['-o', '--output'], {
             required: true,
             type: fs.createWriteStream
+        });
+        parser.addArgument(['--entities'], {
+            required: true,
+            type: fs.createWriteStream,
+            help: `Filename where entities should be saved`
         });
         parser.addArgument('--thingpedia-url', {
             required: false,
@@ -60,8 +61,12 @@ module.exports = {
         if (args.developer_key)
             entityUrl += '&developer_key=' + args.developer_key;
 
-        const [devices, entities] = await Promise.all([request(deviceUrl), request(entityUrl)]);
-        args.output.end(JSON.stringify({ devices, entities }));
+        const [devices, entities] = await Promise.all([
+            Tp.Helpers.Http.get(deviceUrl, { accept: 'application/x-thingtalk' }),
+            Tp.Helpers.Http.get(entityUrl, { accept: 'application/json' })
+        ]);
+        args.output.end(devices);
+        args.entities.end(JSON.stringify(JSON.parse(entities), undefined, 2));
 
         await StreamUtils.waitFinish(args.output);
     }

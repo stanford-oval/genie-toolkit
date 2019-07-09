@@ -76,7 +76,9 @@ Please refer to the almond-tokenizer documentation for details.
 To synthesize a set of sentences, use:
 
 ```
-genie generate --locale en --template template.genie --thingpedia thingpedia.json --dataset dataset.tt -o synthesized.tsv
+genie generate --locale en --template template.genie
+  --thingpedia thingpedia.tt --entities entities.json --dataset dataset.tt
+  -o synthesized.tsv
 ```
 
 The `--template` flag can be used to point to a template file definining the construct templates,
@@ -87,7 +89,7 @@ The `--thingpedia` flag should point to a Thingpedia snapshot file,
 which defines the types and signatures of the primitives to use. You can download a snapshot file
 for the reference Thingpedia with:
 ```
-genie download-snapshot [--snapshot <snapshot_id>] -o thingpedia.json
+genie download-snapshot [--snapshot <snapshot_id>] -o thingpedia.tt --entities entities.json
 ```
 If you omit the `--snapshot` parameter, the latest content of Thingpedia will be used.
 
@@ -170,7 +172,7 @@ is not necessary. The script will still perform automatic validation.
 After creating the synthesized and paraphrase datasets, use the following command to augment the dataset
 and apply parameter replacement:
 ```
-genie augment paraphrasing.tsv synthesized.tsv --thingpedia thingpedia.json --ppdb compiled-ppdb.bin --parameter-datasets parameter-datasets.tsv
+genie augment paraphrasing.tsv synthesized.tsv --thingpedia thingpedia.tt --ppdb compiled-ppdb.bin --parameter-datasets parameter-datasets.tsv
  -o everything.tsv
  [--ppdb-synthetic-fraction FRACTION] [--ppdb-paraphrase-fraction FRACTION]
  [--quoted-fraction FRACTION]
@@ -239,7 +241,7 @@ scores and error analysis.
 
 To evaluate on the test set, use:
 ```
-genie evaluate-server --url file://<OUTPUTDIR> --thingpedia thingpedia.json test.tsv
+genie evaluate-server --url file://<OUTPUTDIR> --thingpedia thingpedia.tt test.tsv
 ```
 You can pass `--debug` for additional error analysis, and `--csv` to generate machine parseable
 output.
@@ -251,7 +253,7 @@ genie predict --url file://<OUTPUTDIR> -o predictions.tsv test.tsv
 
 The prediction file can also be evaluated as:
 ```
-genie evaluate-server --thingpedia thingpedia.json --dataset test.tsv --predictions predictions.tsv
+genie evaluate-server --thingpedia thingpedia.tt --dataset test.tsv --predictions predictions.tsv
 ```
 Sentence IDs in the test.tsv file and the prediction file must match, or an error occurs.
 

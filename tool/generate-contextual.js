@@ -49,7 +49,11 @@ module.exports = {
         });
         parser.addArgument('--thingpedia', {
             required: true,
-            help: 'Path to JSON file containing signature, type and mixin definitions.'
+            help: 'Path to ThingTalk file containing class definitions.'
+        });
+        parser.addArgument('--entities', {
+            required: true,
+            help: 'Path to JSON file containing entity type definitions.'
         });
         parser.addArgument('--dataset', {
             required: true,
@@ -101,7 +105,7 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new FileThingpediaClient(args.locale, args.thingpedia, args.dataset);
+        const tpClient = new FileThingpediaClient(args);
         const options = {
             rng: seedrandom.alea(args.random_seed),
             locale: args.locale,

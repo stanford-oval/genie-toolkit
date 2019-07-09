@@ -28,7 +28,7 @@ module.exports = {
         });
         parser.addArgument('--thingpedia', {
             required: true,
-            help: 'Path to JSON file containing signature, type and mixin definitions.'
+            help: 'Path to ThingTalk file containing class definitions.'
         });
         parser.addArgument('--dataset', {
             required: true,
@@ -71,7 +71,7 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new FileThingpediaClient(args.locale, args.thingpedia);
+        const tpClient = new FileThingpediaClient(args);
         const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
         const columns = args.contextual ?
