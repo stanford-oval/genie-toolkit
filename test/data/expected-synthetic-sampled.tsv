@@ -8,8 +8,11 @@ S2000043793	@charlie has my permission to setup tumblr blog if my location is no
 S4000514968	setup cryptonator when techcrunch news updates	"monitor (@com.techcrunch.news()) => @org.thingpedia.builtin.thingengine.builtin.configure(device=""com.cryptonator""^^tt:device);"
 S4000444881	get sticky notes when ars technica publishes a new article	(monitor (@com.arstechnica.index()) => @org.thingpedia.friendhub.stickynotes.list_posts()) => notify;
 S4000140883	alert me when it is more humid than 1 in where i am now saying “merry christmas”	"monitor ((@org.thingpedia.weather.current(location=$context.location.current_location)), humidity >= 1) => @org.thingpedia.builtin.thingengine.builtin.say(message=""merry christmas"");"
+S1234567890	get weather for Palo Alto, California	"now => @org.thingpedia.weather.current(location=makeLocation(37.442156, -122.1634471, ""Palo Alto, California"")) => notify;"
+S4000123456	what is the weather	now => @org.thingpedia.weather.current() => notify;
+S4000123457	get the current weather	now => @org.thingpedia.weather.current() => notify;
 S4000227894	if something happens on my security camera retrieve what philips hue can do	"(monitor (@security-camera.current_event()) => @org.thingpedia.builtin.thingengine.builtin.get_commands(device=""com.hue""^^tt:device)) => notify;"
 S4000511177	setup thingengine when a file is modified on google drive	"monitor (@com.google.drive.list_drive_files()) => @org.thingpedia.builtin.thingengine.builtin.configure(device=""org.thingpedia.builtin.thingengine""^^tt:device);"
 S4000113241	notify me should photos in album “you would never believe what happened” on facebook change and after 7:30 am	"edge (monitor (@com.facebook.list_photos(album=""you would never believe what happened""))) on @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(7, 30) } => notify;"
-S4000123458	who is the sender of my emails	now => @com.gmail.inbox() => notify;	4	30	1	0	0	0	query	@com.gmail.inbox
-S4000123459	order a coffee	now => @org.thingpedia.demo.coffee.order();	4	14	1	0	0	0	action	@org.thingpedia.demo.coffee.order
+S4000123458	who is the sender of my emails	now => @com.gmail.inbox() => notify;
+S4000123459	order a coffee	now => @org.thingpedia.demo.coffee.order();

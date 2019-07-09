@@ -182,6 +182,30 @@ module.exports = {
                 validationCounts,
                 validationThreshold: args.validation_threshold
             }))
+            .pipe(new Stream.Transform({
+                objectMode: true,
+
+                transform(ex, encoding, callback) {
+                    if (args.contextual) {
+                        callback(null, {
+                            id: ex.id,
+                            context: ex.context_preprocessed,
+                            preprocessed: ex.preprocessed,
+                            target_code: ex.target_preprocessed
+                        });
+                    } else {
+                        callback(null, {
+                            id: ex.id,
+                            preprocessed: ex.preprocessed,
+                            target_code: ex.target_preprocessed
+                        });
+                    }
+                },
+
+                flush(callback) {
+                    callback();
+                }
+            }))
             .pipe(new DatasetStringifier())
             .pipe(args.output);
 
