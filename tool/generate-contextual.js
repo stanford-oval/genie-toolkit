@@ -9,14 +9,12 @@
 // See COPYING for details
 "use strict";
 
-const seedrandom = require('seedrandom');
 const fs = require('fs');
 const argparse = require('argparse');
 
-const FileThingpediaClient = require('./lib/file_thingpedia_client');
-const { ContextualSentenceGenerator } = require('../lib/sentence-generator');
 const { DatasetStringifier } = require('../lib/dataset-parsers');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
+const parallelize = require('../lib/parallelize');
 
 class ActionSetFlag extends argparse.Action {
     call(parser, namespace, values) {
@@ -102,24 +100,24 @@ module.exports = {
             defaultValue: 'almond is awesome',
             help: 'Random seed'
         });
+        parser.addArgument('--parallelize', {
+            type: Number,
+            help: 'Run N threads in parallel (requires --experimental-worker support)',
+            metavar: 'N',
+            defaultValue: 1,
+        });
     },
 
     async execute(args) {
-        const tpClient = new FileThingpediaClient(args);
-        const options = {
-            rng: seedrandom.alea(args.random_seed),
-            locale: args.locale,
-            flags: args.flags || {},
-            templateFile: args.template,
-            thingpediaClient: tpClient,
-            maxDepth: args.maxdepth,
-            debug: args.debug
-        };
+        const inputFile = readAllLines(args.input_file);
+        const outputFile = args.output;
 
-        const output = readAllLines(args.input_file)
-            .pipe(new ContextualSentenceGenerator(options))
+        delete args.input_file;
+        delete args.output;
+        const output = inputFile
+            .pipe(parallelize(args.parallelize, require.resolve('./workers/generate-contextual-worker.js'), args))
             .pipe(new DatasetStringifier())
-            .pipe(args.output);
+            .pipe(outputFile);
         output.on('finish', () => process.exit());
     }
 };
