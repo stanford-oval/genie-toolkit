@@ -110,8 +110,9 @@ node $srcdir/tool/genie.js split-train-eval everything.tsv \
 
 # generate-contextual
 node $srcdir/tool/genie.js extract-contexts -l en-US -o contexts.txt \
-   --thingpedia thingpedia.tt --entities entities.json $srcdir/test/data/synthetic.tsv
-node $srcdir/tool/genie.js generate-contextual --maxdepth 3 --thingpedia thingpedia.json --dataset dataset.tt \
+   --thingpedia thingpedia.tt $srcdir/test/data/synthetic.tsv
+node $srcdir/tool/genie.js generate-contextual --maxdepth 3 \
+    --thingpedia thingpedia.tt --entities entities.json --dataset dataset.tt \
    --template $srcdir/languages/en/contextual.genie -o /dev/null -l en contexts.txt
 node $srcdir/tool/genie.js contextualize -o /dev/null -l en --context contexts.txt $srcdir/test/data/synthetic.tsv
 
