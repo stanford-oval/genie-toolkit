@@ -1967,10 +1967,9 @@ thingpedia@^2.3.3:
     thingtalk "^1.7.0"
     xml2js "^0.4.17"
 
-thingtalk@^1.7.0, thingtalk@~1.7.0:
-  version "1.7.2"
-  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.7.2.tgz#cbe63961cea371a319d6768aef4a615a66c7da0a"
-  integrity sha512-wji0XMvbIReQ7j/edED9POEmcLZlEAc7NlhBjguMSVNzu7+zjtcXFGGst+PMlNeYqndTpr8fbglTUISmdAuPRw==
+thingtalk@^1.7.0, "thingtalk@github:stanford-oval/thingtalk#wip/result-recall":
+  version "1.7.3"
+  resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/d83d4853cb242d77a9c3aff38ac93a2150b6c422"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
