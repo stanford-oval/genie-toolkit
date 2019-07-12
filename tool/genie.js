@@ -39,6 +39,7 @@ const subcommands = {
     'evaluate-server': require('./evaluate-server'),
     'evaluate-file': require('./evaluate-file'),
     'manual-annotate': require('./manual-annotate'),
+    'manual-annotate-dialog': require('./manual-annotate-dialog'),
     'evaluate-dialog': require('./evaluate-dialog'),
     'dialog-to-contextual': require('./dialog-to-contextual'),
 

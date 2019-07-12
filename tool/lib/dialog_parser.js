@@ -12,7 +12,37 @@
 const assert = require('assert');
 const Stream = require('stream');
 
-module.exports = class DialogParser extends Stream.Transform {
+class DialogSerializer extends Stream.Transform {
+    constructor() {
+        super({ writableObjectMode: true });
+
+        this._buffer = [];
+    }
+
+    _transform(dlg, encoding, callback) {
+        this.push('====\n');
+
+        let lineno = 0;
+        for (let i = 0; i < dlg.length; i++) {
+            const line = dlg[i];
+            if (line.startsWith('#')) { // comment
+                this.push(line + '\n');
+                continue;
+            }
+
+            const prefix = lineno % 2 ? 'A: ' : 'U: ';
+            this.push(prefix + line + '\n');
+            lineno++;
+        }
+        callback();
+    }
+
+    _flush(callback) {
+        callback();
+    }
+}
+
+class DialogParser extends Stream.Transform {
     constructor() {
         super({ objectMode: true });
 
@@ -59,9 +89,20 @@ module.exports = class DialogParser extends Stream.Transform {
     _flush(callback) {
         assert(this._buffer.length % 2 === 0, `malformed dialog ${this._i}, expected an equal number of user/assistant interaction`);
         const buffer = this._buffer;
+        if (buffer.length === 0) {
+            // ignore if the user had a ==== at the beginning or at the end of the file
+            callback();
+            return;
+        }
+
         buffer.id = this._i;
         this._i++;
         this._buffer = [];
         callback(null, buffer);
     }
+}
+
+module.exports = {
+    DialogParser,
+    DialogSerializer,
 };

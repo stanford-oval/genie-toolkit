@@ -19,7 +19,7 @@ const StreamUtils = require('../lib/stream-utils');
 const Utils = require('../lib/utils');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
-const DialogParser = require('./lib/dialog_parser');
+const { DialogParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
 class DialogToTurnStream extends Stream.Transform {
