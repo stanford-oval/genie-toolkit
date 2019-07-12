@@ -36,6 +36,7 @@ class ParaphrasingParser extends Stream.Transform {
 
         this._sentencesPerTask = options.sentencesPerTask;
         this._paraphrasesPerSentence = options.paraphrasesPerSentence;
+        this._contextual = options.contextual;
 
         this._id = 0;
     }
@@ -46,12 +47,27 @@ class ParaphrasingParser extends Stream.Transform {
             const synthetic = row[`Input.sentence${i+1}`];
             const synthetic_id = row[`Input.id${i+1}`];
 
+            let context, context_utterance, assistant_action;
+            if (this._contextual) {
+                context = row[`Input.context${i+1}`];
+                context_utterance = row[`Input.context_utterance${i+1}`];
+                assistant_action = row[`Input.assistant_action${i+1}`];
+            }
+
             for (let j = 0; j < this._paraphrasesPerSentence; j++) {
                 const paraphrase = row[`Answer.Paraphrase${i+1}-${j+1}`];
-                const id = this._id++;
-                this.push({
-                    id, synthetic_id, synthetic, target_code, paraphrase
-                });
+                const id = (this._contextual ? 'C' : '') + this._id++;
+                if (this._contextual) {
+                    this.push({
+                        id, synthetic_id, synthetic,
+                        context, context_utterance, assistant_action,
+                        target_code, paraphrase
+                    });
+                } else {
+                    this.push({
+                        id, synthetic_id, synthetic, target_code, paraphrase
+                    });
+                }
             }
         }
         callback();
@@ -315,6 +331,7 @@ class ParaphrasingRejecter extends Stream.Transform {
         this._locale = options.locale;
         this._sentencesPerTask = options.sentencesPerTask;
         this._paraphrasesPerSentence = options.paraphrasesPerSentence;
+        this._contextual = options.contextual;
 
         this._counter = {};
 
@@ -345,13 +362,29 @@ class ParaphrasingRejecter extends Stream.Transform {
             const synthetic = row[`Input.sentence${i+1}`];
             const synthetic_id = row[`Input.id${i+1}`];
 
+            let context, context_utterance, assistant_action;
+            if (this._contextual) {
+                context = row[`Input.context${i+1}`];
+                context_utterance = row[`Input.context_utterance${i+1}`];
+                assistant_action = row[`Input.assistant_action${i+1}`];
+            }
+
             for (let j = 0; j < this._paraphrasesPerSentence; j++) {
                 const paraphrase = row[`Answer.Paraphrase${i+1}-${j+1}`];
-                const id = this._id++;
+                const id = (this._contextual ? 'C' : '') + this._id++;
 
-                const paraobj = {
-                    id, synthetic_id, synthetic, target_code, paraphrase
-                };
+                let paraobj;
+                if (this._contextual) {
+                    paraobj = {
+                        id, synthetic_id, synthetic,
+                        context, context_utterance, assistant_action,
+                        target_code, paraphrase
+                    };
+                } else {
+                    paraobj = {
+                        id, synthetic_id, synthetic, target_code, paraphrase
+                    };
+                }
                 minibatch.push(paraobj);
             }
         }
@@ -362,7 +395,7 @@ class ParaphrasingRejecter extends Stream.Transform {
 
         if (validated.length < this._sentencesPerTask * this._paraphrasesPerSentence - 2) {
             row['Approve'] = '';
-            row['Reject'] = 'Failed to give reasonable result or failed to follow the instruction in at least 2 of 8 paraphrases';
+            row['Reject'] = `Failed to give reasonable result or failed to follow the instruction in at least 2 of ${this._sentencesPerTask * this._paraphrasesPerSentence} paraphrases`;
         } else {
             row['Approve'] = 'x';
             row['Reject'] = '';

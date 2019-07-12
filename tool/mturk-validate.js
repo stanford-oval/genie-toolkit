@@ -15,6 +15,7 @@ const csv = require('csv');
 const ThingTalk = require('thingtalk');
 
 const { ParaphraseValidatorFilter } = require('../lib/validator');
+const { DatasetStringifier } = require('../lib/dataset-parsers');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const TokenizerService = require('../lib/tokenizer');
@@ -41,6 +42,12 @@ module.exports = {
         parser.addArgument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
+        });
+        parser.addArgument('--contextual', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Process a contextual dataset.',
+            defaultValue: false
         });
         parser.addArgument('--paraphrasing-input', {
             required: true,
@@ -149,7 +156,8 @@ module.exports = {
             .pipe(new MT.ParaphrasingRejecter(schemaRetriever, tokenizer, {
                 sentencesPerTask: args.sentences_per_task,
                 paraphrasesPerSentence: args.paraphrases_per_sentence,
-                locale: args.locale
+                locale: args.locale,
+                contextual: args.contextual
             }));
 
         let paraphrasingRejects;
@@ -165,6 +173,7 @@ module.exports = {
             .pipe(new MT.ParaphrasingParser({
                 sentencesPerTask: args.sentences_per_task,
                 paraphrasesPerSentence: args.paraphrases_per_sentence,
+                contextual: args.contextual,
                 skipRejected: true
             }))
             .pipe(new ParaphraseValidatorFilter(schemaRetriever, tokenizer, {
@@ -174,16 +183,30 @@ module.exports = {
                 validationThreshold: args.validation_threshold
             }))
             .pipe(new Stream.Transform({
-                writableObjectMode: true,
+                objectMode: true,
 
                 transform(ex, encoding, callback) {
-                    callback(null, ex.id + '\t' + ex.preprocessed + '\t' + ex.target_preprocessed + '\n');
+                    if (args.contextual) {
+                        callback(null, {
+                            id: ex.id,
+                            context: ex.context_preprocessed,
+                            preprocessed: ex.preprocessed,
+                            target_code: ex.target_preprocessed
+                        });
+                    } else {
+                        callback(null, {
+                            id: ex.id,
+                            preprocessed: ex.preprocessed,
+                            target_code: ex.target_preprocessed
+                        });
+                    }
                 },
 
                 flush(callback) {
-                    process.nextTick(callback);
+                    callback();
                 }
             }))
+            .pipe(new DatasetStringifier())
             .pipe(args.output);
 
         await Promise.all([

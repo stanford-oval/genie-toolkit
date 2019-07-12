@@ -21,5 +21,8 @@ thingpedia.json
 !test/**/expected-*.csv
 !test/**/expected-*.tsv
 !test/data/synthetic.tsv
+!test/data/synthetic-contextual.tsv
+!test/data/synthetic-context-source.tsv
 !test/data/easy-hard-functions.tsv
 !test/data/parameter-datasets.tsv
+
