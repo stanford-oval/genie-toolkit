@@ -158,7 +158,7 @@ module.exports = {
 
         await StreamUtils.waitFinish(
             readAllLines(args.input_file)
-            .pipe(new DatasetParser())
+            .pipe(new DatasetParser({ parseMultiplePrograms: args.null_only, preserveId: true }))
             .pipe(new ContextualizeStream(allprograms, {
                 locale: args.locale,
                 numSamples: args.expansion_factor,

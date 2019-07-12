@@ -115,6 +115,18 @@ module.exports = {
             metavar: 'FACTOR',
             help: 'Number of sentences to generate with "ask" or "tell" prefixes for single-device commands'
         });
+        parser.addArgument('--replace-locations', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Replace LOCATION tokens with unquoted locations.',
+            defaultValue: true
+        });
+        parser.addArgument('--no-replace-locations', {
+            nargs: 0,
+            action: 'storeFalse',
+            dest: 'replace_locations',
+            help: 'Do not replace LOCATION tokens with unquoted locations.',
+        });
 
         parser.addArgument('--debug', {
             nargs: 0,
@@ -156,7 +168,8 @@ module.exports = {
                 syntheticExpandFactor: args.synthetic_expand_factor,
                 paraphrasingExpandFactor: args.quoted_paraphrasing_expand_factor,
                 noQuoteExpandFactor: args.no_quote_paraphrasing_expand_factor,
-                singleDeviceExpandFactor: args.single_device_expand_factor
+                singleDeviceExpandFactor: args.single_device_expand_factor,
+                replaceLocations: args.replace_locations,
             }))
             .pipe(new DatasetStringifier())
             .pipe(args.output);

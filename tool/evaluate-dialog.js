@@ -12,7 +12,7 @@
 const ThingTalk = require('thingtalk');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
-const DialogParser = require('./lib/dialog_parser');
+const { DialogParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('./lib/parserclient');
 const { DialogEvaluatorStream, CollectDialogStatistics } = require('./lib/evaluators');

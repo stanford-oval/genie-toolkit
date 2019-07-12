@@ -16,6 +16,7 @@ const argparse = require('argparse');
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const { BasicSentenceGenerator } = require('../lib/sentence-generator');
 const { DatasetStringifier } = require('../lib/dataset-parsers');
+const ProgressBar = require('./lib/progress_bar');
 
 class ActionSetFlag extends argparse.Action {
     call(parser, namespace, values) {
@@ -113,5 +114,16 @@ module.exports = {
         const generator = new BasicSentenceGenerator(options);
         generator.pipe(new DatasetStringifier()).pipe(args.output);
         args.output.on('finish', () => process.exit());
+
+        if (!args.debug) {
+            const progbar = new ProgressBar(1);
+            generator.on('progress', (value) => {
+                //console.log(value);
+                progbar.update(value);
+            });
+
+            // issue an update now to show the progress bar
+            progbar.update(0);
+        }
     }
 };

@@ -73,7 +73,7 @@ class RemoteParserClient {
         if (contextEntities !== undefined) {
             data.entities = contextEntities;
 
-            response = await Tp.Helpers.Http.post(`${this._baseUrl}/tokenize`, qs.stringify(data), {
+            response = await Tp.Helpers.Http.post(`${this._baseUrl}/tokenize`, JSON.stringify(data), {
                 dataContentType: 'application/json'
             });
         } else {
@@ -103,7 +103,7 @@ class RemoteParserClient {
             data.tokenized = tokenized;
             data.skip_typechecking = true;
 
-            response = await Tp.Helpers.Http.post(`${this._baseUrl}/query`, qs.stringify(data), {
+            response = await Tp.Helpers.Http.post(`${this._baseUrl}/query`, JSON.stringify(data), {
                 dataContentType: 'application/json'
             });
         } else {

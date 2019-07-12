@@ -19,7 +19,7 @@ const StreamUtils = require('../lib/stream-utils');
 const Utils = require('../lib/utils');
 
 const FileThingpediaClient = require('./lib/file_thingpedia_client');
-const DialogParser = require('./lib/dialog_parser');
+const { DialogParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
 class DialogToTurnStream extends Stream.Transform {
@@ -34,7 +34,7 @@ class DialogToTurnStream extends Stream.Transform {
     }
 
     _applyReplyToContext(context, newCommand) {
-        if (newCommand.isProgram) {
+        if (newCommand.isProgram || newCommand.isPermissionRule) {
             return newCommand;
         } else if (newCommand.isBookkeeping && newCommand.intent.isAnswer) {
             for (let slot of context.iterateSlots()) {
@@ -52,6 +52,7 @@ class DialogToTurnStream extends Stream.Transform {
             else // yes/no
                 return context;
         } else {
+            console.log(newCommand);
             throw new Error('????');
         }
     }
