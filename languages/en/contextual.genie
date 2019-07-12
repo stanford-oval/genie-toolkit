@@ -216,10 +216,13 @@ $root = {
 
     !turking prog:incomplete_program ('' | 'the answer is' | 'use' | 'i want') param:constant_Any => C.fillNextSlot(prog, param);
 
-     ( q:complete_query_program ('only those with' | 'only those having' |
-        'only with' | 'only if they have' | 'filter to those with' | 'show me those with') filter:with_filter
-    | q:complete_query_program ('show me if' | 'only if') filter:atom_filter
-    ) => {
+    q:complete_query_program ('only those with' | 'only those having' |
+        'only with' | 'only if they have' | 'filter to those with' | 'show me those with') filter:with_filter => {
+        if (!q.rules[0].table.schema.is_list)
+            return null;
+        return C.addFilterToProgram(q, filter, $options);
+    };
+    !turking q:complete_query_program ('show me if' | 'only if') filter:atom_filter => {
         if (!q.rules[0].table.schema.is_list)
             return null;
         return C.addFilterToProgram(q, filter, $options);
