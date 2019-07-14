@@ -30,19 +30,19 @@ complete_get_command = {
 }
 if_filtered_table = {
     complete_table;
-    one_filter_table;
-    !turking two_filter_table;
+    one_if_filter_table;
+    !turking two_if_filter_table;
 }
 
-one_filter_table = {
+one_if_filter_table = {
     !nofilter table:complete_table 'if' filter:atom_filter => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
     };
 }
-two_filter_table = {
-    !nofilter table:one_filter_table 'and' filter:atom_filter => {
+two_if_filter_table = {
+    !nofilter table:one_if_filter_table 'and' filter:atom_filter => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
@@ -50,7 +50,11 @@ two_filter_table = {
 }
 with_filtered_table = {
     complete_table;
+    one_with_filter_table;
+    !turking two_with_filter_table;
+}
 
+one_with_filter_table = {
     !nofilter table:complete_table ('with' | 'having') filter:with_filter => {
         if (!table.schema.is_list)
             return null;
@@ -59,6 +63,16 @@ with_filtered_table = {
         return C.addFilter(table, filter, $options);
     };
 }
+two_with_filter_table = {
+    !nofilter table:one_with_filter_table 'and' filter:with_filter => {
+        if (!table.schema.is_list)
+            return null;
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
 
 edge_stream = {
     !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => {
@@ -116,5 +130,5 @@ stream = {
         return C.tableToStream(table, null);
     };
     !nofilter edge_stream;
-    timer;
+    ?timer timer;
 }

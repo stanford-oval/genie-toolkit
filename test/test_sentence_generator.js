@@ -247,6 +247,10 @@ async function main() {
             aggregation: true,
             bookkeeping: true,
             triple_commands: true,
+            undefined_filter: true,
+            timer: true,
+            projection: true,
+            projection_with_filter: true
         },
         maxDepth: 6,
         debug: true
