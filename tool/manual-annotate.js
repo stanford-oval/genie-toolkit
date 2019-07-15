@@ -187,7 +187,7 @@ class Trainer extends events.EventEmitter {
         if (!id)
             id = this._serial;
 
-        const parsed = await this._parser.sendUtterance(utterance, /* expecting */ null, /* choices */ []);
+        const parsed = await this._parser.sendUtterance(utterance, /* tokenized */ false, /* context */ undefined);
 
         if (oldTargetCode) {
             try {
