@@ -272,7 +272,7 @@ module.exports = {
             await parseSamplingControlFile(args.sampling_control);
 
         const tpClient = new FileThingpediaClient(args.locale, args.thingpedia, null);
-        const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, args.debug);
+        const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
 
         const options = {
             rng: seedrandom.alea(args.random_seed),
