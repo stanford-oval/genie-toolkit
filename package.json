@@ -10,7 +10,7 @@
     "genie": "./tool/genie.js"
   },
   "resolutions": {
-    "thingtalk": "github:stanford-oval/thingtalk#wip/result-recall"
+    "thingtalk": "github:stanford-oval/thingtalk"
   },
   "dependencies": {
     "argparse": "^1.0.10",
@@ -22,7 +22,7 @@
     "shuffle-array": "^1.0.1",
     "sockaddr": "^1.0.1",
     "thingpedia": "^2.3.3",
-    "thingtalk": "github:stanford-oval/thingtalk#wip/result-recall"
+    "thingtalk": "github:stanford-oval/thingtalk"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
