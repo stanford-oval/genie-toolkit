@@ -20,6 +20,7 @@ const { clean } = require('../../lib/utils');
 const C = require('../../lib/sentence-generator/ast_manip');
 }
 
+// generic filters (npp)
 get_predicate_filter = {
     'before' t1:constant_Time => C.timeGetPredicate($options, null, t1);
     'after' t2:constant_Time  => C.timeGetPredicate($options, t2, null);
@@ -180,3 +181,42 @@ range_with_filter = {
         ]);
     };
 }
+
+// pvp filters
+pvp_filter = {
+    p:out_param_pvp x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+
+    p:out_param_pvp x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+}
+
+// avp filters
+avp_filter = {
+    p:out_param_avp x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+
+    p:out_param_avp x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+}
+
+
+// npi filters
+npi_filter = {
+    ('that' | '') 'is' 'the' p:out_param_npi x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+
+    ('that' | '') 'is' 'the' p:out_param_npi x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+}
+
+

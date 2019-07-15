@@ -73,6 +73,29 @@ two_with_filter_table = {
     };
 }
 
+pvp_filtered_table = {
+    !nofilter table:complete_table filter:pvp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+avp_filtered_table = {
+    !nofilter table:complete_table filter:avp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+npi_filtered_table = {
+    !nofilter table:complete_table filter:npi_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
 
 edge_stream = {
     !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => {
