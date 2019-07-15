@@ -37,7 +37,7 @@ class DialogToTurnStream extends Stream.Transform {
         if (newCommand.isProgram || newCommand.isPermissionRule) {
             return newCommand;
         } else if (newCommand.isBookkeeping && newCommand.intent.isAnswer) {
-            for (let slot of context.iterateSlots()) {
+            for (let [,slot] of context.iterateSlots()) {
                 if (slot instanceof ThingTalk.Ast.Selector)
                     continue;
                 if (!slot.value.isUndefined)
