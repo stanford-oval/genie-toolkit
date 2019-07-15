@@ -220,3 +220,27 @@ npi_filter = {
 }
 
 
+// npv filters
+npv_filter = {
+    ('that' | '') 'is' 'a' p:out_param_npv x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+
+    ('that' | '') 'is' 'a' p:out_param_npv x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+}
+
+
+// apv filters
+apv_filter = {
+    ('that' | '') 'is' p:out_param_apv x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+
+    ('that' | '') 'is' p:out_param_apv x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+}

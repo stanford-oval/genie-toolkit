@@ -324,6 +324,8 @@ $root = {
         | ('hey almond' | '') 'what are' table:pvp_filtered_table ('' | '?')
         | ('hey almond' | '') 'what are' table:avp_filtered_table ('' | '?')
         | ('hey almond' | '') 'what are' table:npi_filtered_table ('' | '?')
+        | ('hey almond' | '') 'what are' table:npv_filtered_table ('' | '?')
+        | ('hey almond' | '') 'what are' table:apv_filtered_table ('' | '?')
     ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     ('hey almond' | 'please' | '') ('list' | 'enumerate') table:with_filtered_table => {
         if (!table.schema.is_list)

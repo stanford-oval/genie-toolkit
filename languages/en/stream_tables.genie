@@ -97,6 +97,22 @@ npi_filtered_table = {
     };
 }
 
+npv_filtered_table = {
+    !nofilter table:complete_table filter:npv_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+apv_filtered_table = {
+    !nofilter table:complete_table filter:apv_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
 edge_stream = {
     !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => {
          if (x.getType().isString)
