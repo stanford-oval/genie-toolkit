@@ -576,7 +576,7 @@ async function testAtTimer(engine, conversation) {
         }
     });
 
-    const app = await engine.apps.loadOneApp(`attimer(time=makeTime(${now.getHours()+2},${now.getMinutes()}) join @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;`,
+    const app = await engine.apps.loadOneApp(`attimer(time=makeTime(${now.getHours()+2},${now.getMinutes()})) join @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;`,
         { $icon: 'org.foo', $conversation: conversation ? 'mock' : undefined },
         'uuid-attimer-foo', undefined, 'some app', 'some app description', true);
     assert.strictEqual(app.icon, 'org.foo');
