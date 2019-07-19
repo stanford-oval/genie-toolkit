@@ -69,6 +69,11 @@ class DialogToTurnStream extends Stream.Transform {
             const targetCommand = ThingTalk.Grammar.parse(targetCode);
             await targetCommand.typecheck(this._schemas);
 
+            // skip raw string answers (which are handled by the dialog agent) because it does not make sense to
+            // evaluate them
+            if (targetCommand.isBookkeeping && targetCommand.intent.isAnswer && targetCommand.intent.value.isString)
+                continue;
+
             let tokens;
             let entities;
             if (this._tokenized) {
