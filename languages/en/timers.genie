@@ -38,7 +38,7 @@ const AT_TIMER_SCHEMA = new Ast.FunctionDef('stream',
 }
 
 timer = {
-    'every day at' time:constant_Time => new Ast.Stream.AtTimer(time, AT_TIMER_SCHEMA);
+    'every day at' time:constant_Time => new Ast.Stream.AtTimer([time], null, AT_TIMER_SCHEMA);
 
     !turking {
         'every' interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA);
@@ -50,6 +50,6 @@ timer = {
         'once a month' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), TIMER_SCHEMA);
         'once a week' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA);
         'once an hour' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA);
-        'daily at' time:constant_Time => new Ast.Stream.AtTimer(time, AT_TIMER_SCHEMA);
+        'daily at' time:constant_Time => new Ast.Stream.AtTimer([time], null, AT_TIMER_SCHEMA);
     }
 }
