@@ -25,6 +25,7 @@ import './timers';
 import './filters';
 import './parameters';
 import './aggregation';
+import './who_questions';
 
 if ($options.flags.bookkeeping)
     import './bookkeeping';
@@ -326,6 +327,14 @@ $root = {
         | ('hey almond' | '') 'what are' table:npi_filtered_table ('' | '?')
         | ('hey almond' | '') 'what are' table:npv_filtered_table ('' | '?')
         | ('hey almond' | '') 'what are' table:apv_filtered_table ('' | '?')
+        | ('who' | 'which person' | 'which one')  ('has' | 'got' ) table:who_npp_filtered_table ('' | '?')
+        | ('who is the guy' | 'who is the one') ('with' | 'has' | 'got') table:who_npp_filtered_table ('' | '?')
+        | ('hey almond' | '') 'whose' table:whose_npp_filtered_table ('' | '?')
+        | ('hey almond' | '') 'who is' table:who_pvp_filtered_table ('' | '?')
+        | ('hey almond' | '') 'who' table:who_avp_filtered_table ('' | '?')
+        | ('hey almond' | '') 'who is' table:who_npi_filtered_table ('' | '?')
+        | ('hey almond' | '') 'who is' table:who_npv_filtered_table ('' | '?')
+        | ('hey almond' | '') 'who is' table:who_apv_filtered_table ('' | '?')
     ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     ('hey almond' | 'please' | '') ('list' | 'enumerate') table:with_filtered_table => {
         if (!table.schema.is_list)

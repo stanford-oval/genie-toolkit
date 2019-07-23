@@ -15,6 +15,7 @@ thingpedia_get_command = {}
 thingpedia_stream = {}
 thingpedia_action = {}
 thingpedia_program = {}
+thingpedia_who_question = {}
 
 import './common-constants';
 
