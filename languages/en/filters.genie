@@ -311,12 +311,12 @@ who_avp_filter = {
 
 // npi filters
 who_npi_filter = {
-    'the' p:out_param_npi x:constant_Any => {
+    p:out_param_npi x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
 
-    'the' p:out_param_npi x:constant_Any => {
+    p:out_param_npi x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }
@@ -324,12 +324,12 @@ who_npi_filter = {
 
 // npv filters
 who_npv_filter = {
-    'a' p:out_param_npv x:constant_Any => {
+    p:out_param_npv x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
 
-    'a' p:out_param_npv x:constant_Any => {
+    p:out_param_npv x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }
@@ -343,6 +343,56 @@ who_apv_filter = {
     };
 
     p:out_param_apv x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+}
+
+who_generic_filter = {
+    ('has' | 'got') p:out_param_npp x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    ('has' | 'got') p:out_param_npp x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+
+    'is the' p:out_param_npi x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    'is the' p:out_param_npi x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+
+    p:out_param_avp x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    p:out_param_apv x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+
+    'is' p:out_param_pvp x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    'is' p:out_param_pvp x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+
+    'is a' p:out_param_npv x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    'is a' p:out_param_npv x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+
+    'is' p:out_param_apv x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    'is' p:out_param_apv x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }
