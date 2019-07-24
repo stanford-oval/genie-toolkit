@@ -356,7 +356,7 @@ $root = {
         | ('hey almond' | '') ('who' | 'which person' | 'which one' | 'which guy') table:who_generic_npp_filtered_table ('' | '?')
     ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     ?turking (
-          'who'  ('has' | 'got' ) table:who_npp_filtered_table ('' | '?')
+          'who has' table:who_npp_filtered_table ('' | '?')
         | ('who is the one' | 'who is the person') 'with' table:who_npp_filtered_table ('' | '?')
         | 'whose' table:whose_npp_filtered_table ('' | '?')
         | 'who is' table:who_pvp_filtered_table ('' | '?')
@@ -368,7 +368,7 @@ $root = {
         | 'which' table:who_npv_generic_filtered_table ('' | '?')
         | 'who is a' table:who_apv_npv_filtered_table ('' | '?')
         | 'who is a' table:who_apv_npi_filtered_table ('' | '?')
-        | 'who' ('has' | 'got') table:who_npp_npp_filtered_table ('' | '?')
+        | 'who has' table:who_npp_npp_filtered_table ('' | '?')
         | 'who is' table:who_npi_npi_filtered_table ('' | '?')
         | 'who is' table:who_npi_pvp_filtered_table ('' | '?')
         | 'who' table:who_generic_npp_filtered_table ('' | '?')
