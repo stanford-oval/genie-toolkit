@@ -22,3 +22,9 @@ import './common-constants';
 // out params nonterminals are automatically generated
 out_param_Any = {}
 out_param_Array__Any = {}
+out_param_npp = {}
+out_param_npi = {}
+out_param_avp = {}
+out_param_pvp = {}
+out_param_npv = {}
+out_param_apv = {}
