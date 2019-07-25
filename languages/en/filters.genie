@@ -281,11 +281,19 @@ whose_npp_filter = {
 
 // generic filters on parameters in all 6 grammar categories for "who" questions
 who_generic_filter = {
-    ('has' | 'got') p:out_param_npp x:constant_Any => {
+    !turking ('has' | 'got' | 'has got') p:out_param_npp x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
-    ('has' | 'got') p:out_param_npp x:constant_Any => {
+    !turking ('has' | 'got' | 'has got') p:out_param_npp x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+
+    ?turking 'has' p:out_param_npp x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    ?turking 'has' p:out_param_npp x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 
