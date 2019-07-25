@@ -3211,6 +3211,121 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 `,
 
     null],
+
+    ['\\t attimer(time=$?) => @com.twitter.post();',
+`>> When do you want your command to run?
+>> ask special time
+`,
+    { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 7, minute: 30 }}},
+`>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '0'],
+`>> What do you want to tweet?
+>> ask special raw_string
+`,
+    `good morning`,
+`>> Ok, so you want me to tweet “good morning” every day at 7:30 AM. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+
+    `{
+  attimer(time=makeTime(7, 30)) => @com.twitter(id="twitter-foo").post(status="good morning");
+}`],
+
+    ['\\t attimer(time=[$?, $?]) => @com.twitter.post();',
+`>> What is the first time you would like your command to run?
+>> ask special time
+`,
+    { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 7, minute: 30 }}},
+`>> What is the second time you would like your command to run?
+>> ask special time
+`,
+    { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 8, minute: 30 }}},
+`>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '0'],
+`>> What do you want to tweet?
+>> ask special raw_string
+`,
+    `good morning`,
+`>> Ok, so you want me to tweet “good morning” every day at 7:30 AM and 8:30 AM. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+
+    `{
+  attimer(time=[makeTime(7, 30), makeTime(8, 30)]) => @com.twitter(id="twitter-foo").post(status="good morning");
+}`],
+
+    ['\\t attimer(time=[$?, $?], expiration_date=$?) => @com.twitter.post();',
+`>> What is the first time you would like your command to run?
+>> ask special time
+`,
+    { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 7, minute: 30 }}},
+`>> What is the second time you would like your command to run?
+>> ask special time
+`,
+    { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 8, minute: 30 }}},
+`>> When should your command stop?
+>> ask special date
+`,
+    { code: ['bookkeeping', 'answer', 'end_of', 'unit:week'], entities: {}},
+`>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '0'],
+`>> What do you want to tweet?
+>> ask special raw_string
+`,
+    `good morning`,
+`>> Ok, so you want me to tweet “good morning” every day at 7:30 AM and 8:30 AM until the end of this week. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+
+    `{
+  attimer(time=[makeTime(7, 30), makeTime(8, 30)], expiration_date=end_of(week)) => @com.twitter(id="twitter-foo").post(status="good morning");
+}`],
+
+    ['\\t now => @com.twitter.search(), hashtags == [$?,$?] => notify;',
+`>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '0'],
+`>> What would you like the first hashtags to be?
+>> ask special raw_string
+`,
+    ['bookkeeping', 'answer', '"', 'foo', '"', '^^tt:hashtag'],
+`>> What would you like the second hashtags to be?
+>> ask special raw_string
+`,
+    ['bookkeeping', 'answer', '"', 'bar', '"', '^^tt:hashtag'],
+`>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+    `{
+  now => (@com.twitter(id="twitter-foo").search()), hashtags == ["foo"^^tt:hashtag, "bar"^^tt:hashtag] => notify;
+}`]
 ];
 
 function handleCommand(almond, input) {
