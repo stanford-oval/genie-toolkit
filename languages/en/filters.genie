@@ -20,6 +20,7 @@ const { clean } = require('../../lib/utils');
 const C = require('../../lib/sentence-generator/ast_manip');
 }
 
+// generic filters (npp)
 get_predicate_filter = {
     'before' t1:constant_Time => C.timeGetPredicate($options, null, t1);
     'after' t2:constant_Time  => C.timeGetPredicate($options, t2, null);
@@ -178,5 +179,161 @@ range_with_filter = {
             Ast.BooleanExpression.Atom(param.name, '>=', v1),
             Ast.BooleanExpression.Atom(param.name, '<=', v2)
         ]);
+    };
+}
+
+// filters on npp parameters
+// nnp: Noun-Phrase parameter for Property of the subject
+// e.g.: "name", "date of birth"
+npp_filter = {
+    p:out_param_npp x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+
+    p:out_param_npp x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+}
+
+// filters on npi parameters
+// npi: Noun-phrase parameter for Identity of the subejct
+// e.g.: "owner of <company>", "student in <university>"
+npi_filter = {
+    p:out_param_npi x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+
+    p:out_param_npi x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+}
+
+// filters on pvp parameters
+// pvp: Passive-Verb Phrase parameter
+// e.g.: "called <nickname>", "born on <date>"
+pvp_filter = {
+    p:out_param_pvp x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+
+    p:out_param_pvp x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+}
+
+// filters on avp parameters
+// avp: Active-Verb Phrase parameter
+// e.g.: "owns <company>", "studied in <university>"
+avp_filter = {
+    p:out_param_avp x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+
+    p:out_param_avp x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+}
+
+// filters on npv parameters
+// npv: implicit parameter with Noun-Phrase Value, i.e., the parameter itself will not appear in the sentence
+// e.g.: "Bob is a PhD", the parameter `academic_degree` is implicit, and should be inferred by the value "PhD"
+npv_filter = {
+    p:out_param_npv x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+
+    p:out_param_npv x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+}
+
+// filters on apv parameter
+// apv: implicit parameter with Adjective-Phrase Value (similar to npv, but in adjective form)
+// e.g.: "Bob is left-handed"
+apv_filter = {
+    p:out_param_apv x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+
+    p:out_param_apv x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+}
+
+// filters on npp parameter for "whose" question
+// e.g.: whose nickname is boogie?
+whose_npp_filter = {
+    p:out_param_npp 'is' x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+
+    p:out_param_npp 'is' x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+}
+
+// generic filters on parameters in all 6 grammar categories for "who" questions
+who_generic_filter = {
+    !turking ('has' | 'got' | 'has got') p:out_param_npp x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    !turking ('has' | 'got' | 'has got') p:out_param_npp x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+
+    ?turking 'has' p:out_param_npp x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    ?turking 'has' p:out_param_npp x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+
+    'is the' p:out_param_npi x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    'is the' p:out_param_npi x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+
+    p:out_param_avp x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    p:out_param_apv x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+
+    'is' p:out_param_pvp x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    'is' p:out_param_pvp x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+
+    'is a' p:out_param_npv x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    'is a' p:out_param_npv x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+
+    'is' p:out_param_apv x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    'is' p:out_param_apv x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
     };
 }

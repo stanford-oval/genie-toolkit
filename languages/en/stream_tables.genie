@@ -74,6 +74,52 @@ two_with_filter_table = {
 }
 
 
+npi_filtered_table = {
+    !nofilter table:complete_table ('that' | 'which') 'is the' filter:npi_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+pvp_filtered_table = {
+    !nofilter table:complete_table filter:pvp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+avp_filtered_table = {
+    !nofilter table:complete_table ('that' | 'which' | '') filter:avp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+npv_filtered_table = {
+    !nofilter table:complete_table ('that' | 'which') 'is a' filter:npv_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+apv_filtered_table = {
+    !nofilter table:complete_table ('that' | 'which') 'is' filter:apv_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+
+    !nofilter filter:apv_filter table:complete_table => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
 edge_stream = {
     !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => {
          if (x.getType().isString)

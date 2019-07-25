@@ -25,6 +25,7 @@ import './timers';
 import './filters';
 import './parameters';
 import './aggregation';
+import './who_questions';
 
 if ($options.flags.bookkeeping)
     import './bookkeeping';
@@ -321,12 +322,57 @@ $root = {
         | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table
         | ('hey almond' | '') ('search' | 'find' | 'i want' | 'i need') table:with_filtered_table
         | ('hey almond' | '') 'what are' table:with_filtered_table ('' | '?')
+        | ('hey almond' | '') 'what are' table:pvp_filtered_table ('' | '?')
+        | ('hey almond' | '') 'what are' table:avp_filtered_table ('' | '?')
+        | ('hey almond' | '') 'what are' table:npi_filtered_table ('' | '?')
+        | ('hey almond' | '') 'what are' table:npv_filtered_table ('' | '?')
+        | ('hey almond' | '') 'what are' table:apv_filtered_table ('' | '?')
     ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     ('hey almond' | 'please' | '') ('list' | 'enumerate') table:with_filtered_table => {
         if (!table.schema.is_list)
             return null;
         return C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     };
+
+    // now => get => notify (who questions)
+    !turking (
+          ('hey almond' | '') ('who' | 'which person' | 'which individual')  ('has' | 'got' | 'has got' ) table:who_npp_filtered_table ('' | '?')
+        | ('hey almond' | '') ('who is the person' | 'who is the one' | 'who is the individual') ('with' | 'has' | 'got' | 'has got') table:who_npp_filtered_table ('' | '?')
+        | ('hey almond' | '') 'whose' table:whose_npp_filtered_table ('' | '?')
+        | ('hey almond' | '') ('who' | 'which person' | 'which individual') 'is' table:who_pvp_filtered_table ('' | '?')
+        | ('hey almond' | '') ('who is the person' | 'who is the one' | 'who is the individual') table:who_pvp_filtered_table ('' | '?')
+        | ('hey almond' | '') ('who' | 'which person' | 'which individual' | 'who is the person' | 'who is the one' | 'who is the individual') table:who_avp_filtered_table ('' | '?')
+        | ('hey almond' | '') ('who' | 'which person' | 'which individual') 'is the' table:who_npi_filtered_table ('' | '?')
+        | ('hey almond' | '') ('who' | 'which person' | 'which individual') 'is a' table:who_npv_filtered_table ('' | '?')
+        | ('hey almond' | '') ('who' | 'which person' | 'which individual') 'is' table:who_apv_filtered_table ('' | '?')
+        | ('hey almond' | '') 'which' table:who_npi_generic_filtered_table ('' | '?')
+        | ('hey almond' | '') 'which' table:who_npv_generic_filtered_table ('' | '?')
+        | ('hey almond' | '') ('who' | 'which person' | 'which individual') 'is a' table:who_apv_npv_filtered_table ('' | '?')
+        | ('hey almond' | '') ('who' | 'which person' | 'which individual') 'is a' table:who_apv_npi_filtered_table ('' | '?')
+        | ('hey almond' | '') ('who' | 'which person' | 'which individual') ('has' | 'got' | 'has got') table:who_npp_npp_filtered_table ('' | '?')
+        | ('hey almond' | '') ('who is the person' | 'who is the one' | 'who is the individual') ('with' | 'has' | 'got' | 'has got') table:who_npp_npp_filtered_table ('' | '?')
+        | ('hey almond' | '') ('who' | 'which person' | 'which individual') 'is' table:who_npi_npi_filtered_table ('' | '?')
+        | ('hey almond' | '') ('who' | 'which person' | 'which individual') 'is' table:who_npi_pvp_filtered_table ('' | '?')
+        | ('hey almond' | '') ('who' | 'which person' | 'which individual') table:who_generic_npp_filtered_table ('' | '?')
+    ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
+    ?turking (
+          'who has' table:who_npp_filtered_table ('' | '?')
+        | ('who is the one' | 'who is the person') 'with' table:who_npp_filtered_table ('' | '?')
+        | 'whose' table:whose_npp_filtered_table ('' | '?')
+        | 'who is' table:who_pvp_filtered_table ('' | '?')
+        | 'who' table:who_avp_filtered_table ('' | '?')
+        | 'who is the' table:who_npi_filtered_table ('' | '?')
+        | 'who is a' table:who_npv_filtered_table ('' | '?')
+        | 'who is' table:who_apv_filtered_table ('' | '?')
+        | 'which' table:who_npi_generic_filtered_table ('' | '?')
+        | 'which' table:who_npv_generic_filtered_table ('' | '?')
+        | 'who is a' table:who_apv_npv_filtered_table ('' | '?')
+        | 'who is a' table:who_apv_npi_filtered_table ('' | '?')
+        | 'who has' table:who_npp_npp_filtered_table ('' | '?')
+        | 'who is' table:who_npi_npi_filtered_table ('' | '?')
+        | 'who is' table:who_npi_pvp_filtered_table ('' | '?')
+        | 'who' table:who_generic_npp_filtered_table ('' | '?')
+    ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
 
     // now => get => say(...)
     // don't merge these, the output sizes are too small
