@@ -37,7 +37,7 @@ class DialogToTurnStream extends Stream.Transform {
         if (newCommand.isProgram || newCommand.isPermissionRule) {
             return newCommand;
         } else if (newCommand.isBookkeeping && newCommand.intent.isAnswer) {
-            for (let slot of context.iterateSlots()) {
+            for (let [,slot] of context.iterateSlots()) {
                 if (slot instanceof ThingTalk.Ast.Selector)
                     continue;
                 if (!slot.value.isUndefined)
@@ -68,6 +68,11 @@ class DialogToTurnStream extends Stream.Transform {
 
             const targetCommand = ThingTalk.Grammar.parse(targetCode);
             await targetCommand.typecheck(this._schemas);
+
+            // skip raw string answers (which are handled by the dialog agent) because it does not make sense to
+            // evaluate them
+            if (targetCommand.isBookkeeping && targetCommand.intent.isAnswer && targetCommand.intent.value.isString)
+                continue;
 
             let tokens;
             let entities;

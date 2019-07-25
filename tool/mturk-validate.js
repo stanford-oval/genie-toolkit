@@ -110,7 +110,7 @@ module.exports = {
 
     async execute(args) {
         const tpClient = new FileThingpediaClient(args);
-        const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, args.debug);
+        const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
         const tokenizer = TokenizerService.get(process.env.GENIE_USE_TOKENIZER, true);
 
         let validationRejects = Promise.resolve();
