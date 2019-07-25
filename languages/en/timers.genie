@@ -35,21 +35,28 @@ const AT_TIMER_SCHEMA = new Ast.FunctionDef('stream',
     },
     {} // annotations
 );
+
+const TIME_MORNING = new Ast.Value.Time(9, 0, 0);
+const TIME_NOON = new Ast.Value.Time(12, 0, 0);
+const TIME_EVENING = new Ast.Value.Time(21, 0, 0);
 }
 
 timer = {
-    'every day at' time:constant_Time => new Ast.Stream.AtTimer([time], null, AT_TIMER_SCHEMA);
+    ('each day' | 'every day' | 'once a day' | 'daily' | 'one time a day') 'at' time:constant_Time => new Ast.Stream.AtTimer([time], null, AT_TIMER_SCHEMA);
+    ('each day' | 'every day' | 'daily' | 'two times a day' | 'twice a day' | 'two times every day' | 'two times daily') 'at' time1:constant_Time 'and' time2:constant_Time => new Ast.Stream.AtTimer([time1, time2], AT_TIMER_SCHEMA);
 
     !turking {
-        'every' interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA);
-        'once in' interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA);
-        'every day' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
-        'daily' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
-        'everyday' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
-        'once a day' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
-        'once a month' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), TIMER_SCHEMA);
-        'once a week' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA);
-        'once an hour' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA);
-        'daily at' time:constant_Time => new Ast.Stream.AtTimer([time], null, AT_TIMER_SCHEMA);
+        ('once' | 'one time' | '') ('every' | 'each') interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA);
+        ('one time a day' | 'once a day' | 'every day' | 'daily') => new Ast.Stream.AtTimer([TIME_MORNING], AT_TIMER_SCHEMA);
+        ('two times a day' | 'twice a day' | 'two times every day' | 'two times daily') => new Ast.Stream.AtTimer([TIME_MORNING, TIME_EVENING], AT_TIMER_SCHEMA);
+        ('three times a day' | 'thrice a day' | 'three times every day' | 'three times daily' | 'before meals' | 'after meals' | 'at meals' | 'at meal times') => new Ast.Stream.AtTimer([TIME_MORNING, TIME_NOON, TIME_EVENING], AT_TIMER_SCHEMA);
+        ('once' | 'one time' | '') ('every' | 'each' | 'a') 'month' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), TIMER_SCHEMA);
+        ('once' | 'one time' | '') ('every' | 'each' | 'a') 'week' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA);
+        ('once' | 'one time' | '') ('every' | 'each' | 'a') 'hour' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA);
+
+        ('when you get up' | 'when you wake up' | 'after getting up' | 'after waking up' | 'each morning' | 'every morning' | 'in the morning' | 'at breakfast' | 'before breakfast' | 'after breakfast') => new Ast.Stream.AtTimer([TIME_MORNING], AT_TIMER_SCHEMA);
+        ('each evening' | 'every evening' | 'in the evening' | 'at dinner' | 'before dinner' | 'after dinner' | 'at night' | 'before bed' | 'before sleeping') => new Ast.Stream.AtTimer([TIME_EVENING], AT_TIMER_SCHEMA);
+        ('in the middle of the day' | 'at noon' | 'at lunch' | 'before lunch' | 'after lunch') => new Ast.Stream.AtTimer([TIME_NOON], AT_TIMER_SCHEMA);
+        ('when you get up' | 'after getting up' | 'when you wake up' | 'after waking up' | 'each morning' | 'every morning' | 'in the morning' | 'at breakfast' | 'before breakfast' | 'after breakfast') 'and' ('in the evening' | 'at dinner' | 'before dinner' | 'after dinner' | 'at night' | 'before bed' | 'before sleeping')=> new Ast.Stream.AtTimer([TIME_MORNING, TIME_EVENING], AT_TIMER_SCHEMA);
     }
 }
