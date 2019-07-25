@@ -200,12 +200,12 @@ npp_filter = {
 // npi: Noun-phrase parameter for Identity of the subejct
 // e.g.: "owner of <company>", "student in <university>"
 npi_filter = {
-    ('that' | '') 'is' 'the' p:out_param_npi x:constant_Any => {
+    p:out_param_npi x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
 
-    ('that' | '') 'is' 'the' p:out_param_npi x:constant_Any => {
+    p:out_param_npi x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }
@@ -242,12 +242,12 @@ avp_filter = {
 // npv: implicit parameter with Noun-Phrase Value, i.e., the parameter itself will not appear in the sentence
 // e.g.: "Bob is a PhD", the parameter `academic_degree` is implicit, and should be inferred by the value "PhD"
 npv_filter = {
-    ('that' | '') 'is' 'a' p:out_param_npv x:constant_Any => {
+    p:out_param_npv x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
 
-    ('that' | '') 'is' 'a' p:out_param_npv x:constant_Any => {
+    p:out_param_npv x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }
@@ -256,12 +256,12 @@ npv_filter = {
 // apv: implicit parameter with Adjective-Phrase Value (similar to npv, but in adjective form)
 // e.g.: "Bob is left-handed"
 apv_filter = {
-    ('that' | '') 'is' p:out_param_apv x:constant_Any => {
+    p:out_param_apv x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
 
-    ('that' | '') 'is' p:out_param_apv x:constant_Any => {
+    p:out_param_apv x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }
@@ -275,81 +275,6 @@ whose_npp_filter = {
     };
 
     p:out_param_npp 'is' x:constant_Any => {
-        return C.makeFilter($options, p, 'contains', x);
-    };
-}
-
-// npp filters for "who" questions
-who_npp_filter = {
-    p:out_param_npp x:constant_Any => {
-        const op = x.getType().isString ? '=~' : '==';
-        return C.makeFilter($options, p, op, x);
-    };
-
-    p:out_param_npp x:constant_Any => {
-        return C.makeFilter($options, p, 'contains', x);
-    };
-}
-
-// pvp filters for "who" questions
-who_pvp_filter = {
-    p:out_param_pvp x:constant_Any => {
-        const op = x.getType().isString ? '=~' : '==';
-        return C.makeFilter($options, p, op, x);
-    };
-
-    p:out_param_pvp x:constant_Any => {
-        return C.makeFilter($options, p, 'contains', x);
-    };
-}
-
-// avp filters for "who" questions
-who_avp_filter = {
-    p:out_param_avp x:constant_Any => {
-        const op = x.getType().isString ? '=~' : '==';
-        return C.makeFilter($options, p, op, x);
-    };
-
-    p:out_param_avp x:constant_Any => {
-        return C.makeFilter($options, p, 'contains', x);
-    };
-}
-
-
-// npi filters for "who" questions
-who_npi_filter = {
-    p:out_param_npi x:constant_Any => {
-        const op = x.getType().isString ? '=~' : '==';
-        return C.makeFilter($options, p, op, x);
-    };
-
-    p:out_param_npi x:constant_Any => {
-        return C.makeFilter($options, p, 'contains', x);
-    };
-}
-
-
-// npv filters for "who" questions
-who_npv_filter = {
-    p:out_param_npv x:constant_Any => {
-        const op = x.getType().isString ? '=~' : '==';
-        return C.makeFilter($options, p, op, x);
-    };
-
-    p:out_param_npv x:constant_Any => {
-        return C.makeFilter($options, p, 'contains', x);
-    };
-}
-
-
-// apv filters for "who" questions
-who_apv_filter = {
-    p:out_param_apv x:constant_Any => {
-        const op = x.getType().isString ? '=~' : '==';
-        return C.makeFilter($options, p, op, x);
-    };
-
-    p:out_param_apv x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }

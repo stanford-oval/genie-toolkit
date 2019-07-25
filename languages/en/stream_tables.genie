@@ -73,6 +73,15 @@ two_with_filter_table = {
     };
 }
 
+
+npi_filtered_table = {
+    !nofilter table:complete_table ('that' | 'which') 'is the' filter:npi_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
 pvp_filtered_table = {
     !nofilter table:complete_table filter:pvp_filter => {
         if (!C.checkFilter(table, filter))
@@ -82,15 +91,7 @@ pvp_filtered_table = {
 }
 
 avp_filtered_table = {
-    !nofilter table:complete_table filter:avp_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, $options);
-    };
-}
-
-npi_filtered_table = {
-    !nofilter table:complete_table filter:npi_filter => {
+    !nofilter table:complete_table ('that' | 'which' | '') filter:avp_filter => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
@@ -98,7 +99,7 @@ npi_filtered_table = {
 }
 
 npv_filtered_table = {
-    !nofilter table:complete_table filter:npv_filter => {
+    !nofilter table:complete_table ('that' | 'which') 'is a' filter:npv_filter => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
@@ -106,7 +107,13 @@ npv_filtered_table = {
 }
 
 apv_filtered_table = {
-    !nofilter table:complete_table filter:apv_filter => {
+    !nofilter table:complete_table ('that' | 'which') 'is' filter:apv_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+
+    !nofilter filter:apv_filter table:complete_table => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
