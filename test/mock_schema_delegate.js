@@ -188,6 +188,49 @@ class MockSchemaDelegate extends TpClient.BaseClient {
             throw new Error('Invalid entity type ' + entityType);
         }
     }
+
+    async lookupLocation(searchKey) {
+        if (searchKey === 'seattle') {
+            return [
+     { latitude: 47.6038321,
+       longitude: -122.3300624,
+       display: 'Seattle, King County, Washington, USA',
+       canonical: 'seattle king county washington usa',
+       rank: 16,
+       importance: 0.791543985387614 },
+     { latitude: 20.7199684,
+       longitude: -103.3763286,
+       display: 'Seattle, Los Maestros, Zapopan, Jalisco, 38901, México',
+       canonical: 'seattle los maestros zapopan jalisco 38901 méxico',
+       rank: 22,
+       importance: 0.30000000000000004 },
+     { latitude: 25.18415975,
+       longitude: 121.446939985985,
+       display: '西雅圖, 淡水區, 北投里, 瀾尾埔, 淡水區, 新北市, 251, 臺灣',
+       canonical: '西雅圖 淡水區 北投里 瀾尾埔 淡水區 新北市 251 臺灣',
+       rank: 22,
+       importance: 0.2 },
+     { latitude: 41.9641881,
+       longitude: -121.922629,
+       display: 'Seattle, Dorris, Siskiyou County, California, USA',
+       canonical: 'seattle dorris siskiyou county california usa',
+       rank: 26,
+       importance: 0.2 },
+     { latitude: 14.6696779,
+       longitude: 121.0988312,
+       display:
+        'Seattle, Vista Real Classica, Batasan Hills, 2nd District, Quezon City, Metro Manila, 1808, Philippines',
+       canonical:
+        'seattle vista real classica batasan hills 2nd district quezon city metro manila 1808 philippines',
+       rank: 26,
+       importance: 0.2 } ];
+        } else if (searchKey === 'invalid') {
+            return [];
+        } else {
+            // unreachable test case
+            throw new Error('Invalid location ' + searchKey);
+        }
+    }
 }
 module.exports = new MockSchemaDelegate();
 for (let dev of Thingpedia.data) {

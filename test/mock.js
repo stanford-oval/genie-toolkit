@@ -183,15 +183,6 @@ class MockPhoneDevice {
         this.kind = 'org.thingpedia.builtin.thingengine.phone';
         this.uniqueId = 'org.thingpedia.builtin.thingengine.phone';
     }
-
-    get_get_gps() {
-        return Promise.resolve([{
-            location: { y: 37.4275, x: -122.1697 },
-            altitude: 29,
-            bearing: 0,
-            speed: 0
-        }]); // at stanford, on the ground, facing north, standing still
-    }
 }
 
 class MockBuiltinDevice {
@@ -200,6 +191,15 @@ class MockBuiltinDevice {
         this.description = "Time random bla bla bla";
         this.kind = 'org.thingpedia.builtin.thingengine.builtin';
         this.uniqueId = 'thingengine-own-global';
+    }
+
+    get_get_gps() {
+        return Promise.resolve([{
+            location: { y: 37.4275, x: -122.1697 },
+            altitude: 29,
+            bearing: 0,
+            speed: 0
+        }]); // at stanford, on the ground, facing north, standing still
     }
 }
 

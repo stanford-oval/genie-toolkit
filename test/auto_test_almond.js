@@ -217,7 +217,7 @@ const TEST_CASES = [
     [
     (almond) => almond.start(),
 `>> Hello! I'm Almond, your virtual assistant.
->> I am part of a research project of Stanford University. Would you like to contribute?
+>> I am part of a research project of Stanford University. Would you like to participate?
 >> With your consent, I will record the commands you give me for training. Recording the commands will allow me to improve my understanding of natural language.
 >> The collection is completely anonymous, and I will strip personal data (such as search queries, messages or phone numbers). The data, once collected, will be shared with our developers and researchers, and potentially other researchers working on natural language understanding.
 >> You must be 13 or older to participate. If you are not, please answer ‘No’ here. Your answer will not affect the functionality of Almond.
@@ -229,9 +229,12 @@ const TEST_CASES = [
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Thank you! If you change your mind, you can change the option from Settings.
->> Now, I will help you set up your devices and accounts.
->> To do so, try ‘configure‘ followed by the type of device or account (e.g., ‘configure twitter’ or ‘configure tv’), or try ‘discover’ and I'll take a look at what you have.
->> If you need help at any point, try ‘help’.
+>> Ok, on to what I can do: I am capable of understanding actions and events over web services and smart devices. I do not chat, and I do not understand questions very well. Please check out the Cheatsheet (from the menu) to find out what I understand, or type ‘help’.
+>> To start, how about you try one of these examples:
+>> button: get a #cat gif {"code":["now","=>","@com.giphy.get","param:tag:Entity(tt:hashtag)","=","HASHTAG_0","=>","notify"],"entities":{"HASHTAG_0":"cat"}}
+>> button: show me the weather for San Francisco {"code":["now","=>","@org.thingpedia.weather.current","param:location:Location","=","LOCATION_0","=>","notify"],"entities":{"LOCATION_0":{"latitude":37.7792808,"longitude":-122.4192363,"display":"San Francisco, San Francisco City and County, California, United States of America"}}}
+>> button: search almond recipes on bing {"code":["now","=>","@com.bing.web_search","param:query:String","=","QUOTED_STRING_0","=>","notify"],"entities":{"QUOTED_STRING_0":"almond recipes"}}
+>> button: translate a sentence to Chinese {"code":["now","=>","@com.yandex.translate.translate","param:target_language:Entity(tt:iso_lang_code)","=","GENERIC_ENTITY_tt:iso_lang_code_0","=>","notify"],"entities":{"GENERIC_ENTITY_tt:iso_lang_code_0":{"value":"zh","display":"Chinese"}}}
 >> context = null // {}
 >> ask special null
 `,
@@ -698,7 +701,8 @@ const TEST_CASES = [
     [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post'],
       entities: { USERNAME_0: 'mom' } },
-`>> You haven't configured a Matrix account yet. You need a Matrix account to let me talk to other Almonds.
+`>> You need a Matrix account: I talk to other Almonds via the secure Matrix messaging service.
+>> link: Register a new Matrix account now https://riot.im/app/#/register
 >> Insert your Matrix username:
 >> context = null // {}
 >> ask special raw_string
@@ -1021,8 +1025,8 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: the data does not contain $data {"code":["bookkeeping","filter","not","param:data:String","=~","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
 >> button: the time is before $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time","<=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
 >> button: the time is after $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time",">=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
->> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
->> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
@@ -1050,8 +1054,8 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: the data does not contain $data {"code":["bookkeeping","filter","not","param:data:String","=~","SLOT_0"],"entities":{},"slots":["data"],"slotTypes":{"data":"String"}}
 >> button: the time is before $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time","<=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
 >> button: the time is after $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time",">=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
->> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
->> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
@@ -1327,8 +1331,8 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: the alt text does not contain $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
 >> button: the time is before $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time","<=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
 >> button: the time is after $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time",">=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
->> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
->> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
@@ -1574,11 +1578,11 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     {"code":["bookkeeping","commands","communication","device:org.thingpedia.builtin.thingengine.phone"],"entities":{}},
 `>> Pick a command below.
->> button: when my location changes notify me {"example_id":1647495,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when my location changes to $p_location notify me {"example_id":1647497,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
 >> button: when i receive a sms notify me {"example_id":1647498,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.sms",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: when i receive a sms from $p_sender  notify me {"example_id":1647499,"code":["monitor","(","(","@org.thingpedia.builtin.thingengine.phone.sms",")","filter","param:sender:Entity(tt:phone_number)","==","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_sender":"Entity(tt:phone_number)"},"slots":["p_sender"]}
->> button: get my current location {"example_id":1647500,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.get_gps","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: send an sms to $p_to saying $p_message {"example_id":1647501,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.send_sms","param:message:String","=","SLOT_1","param:to:Entity(tt:phone_number)","=","SLOT_0"],"entities":{},"slotTypes":{"p_to":"Entity(tt:phone_number)","p_message":"String"},"slots":["p_to","p_message"]}
+>> button: set my phone to $p_mode {"example_id":1647504,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.set_ringer","param:mode:Enum(normal,vibrate,silent)","=","SLOT_0"],"entities":{},"slotTypes":{"p_mode":"Enum(normal,vibrate,silent)"},"slots":["p_mode"]}
+>> button: call $p_number {"example_id":1647505,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.call","param:number:Entity(tt:phone_number)","=","SLOT_0"],"entities":{},"slotTypes":{"p_number":"Entity(tt:phone_number)"},"slots":["p_number"]}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> context = null // {}
@@ -1672,16 +1676,16 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `,
     {"code":["bookkeeping","commands","communication","device:org.thingpedia.builtin.thingengine.phone"],"entities":{}},
 `>> Pick a command below.
->> button: when their location changes notify me {"example_id":1647495,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
->> button: when their location changes to $p_location notify me {"example_id":1647497,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")",")","on","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
+>> button: when their location changes notify me {"example_id":1647495,"code":["monitor","(","@org.thingpedia.builtin.thingengine.builtin.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: when their location changes to $p_location notify me {"example_id":1647497,"code":["edge","(","monitor","(","@org.thingpedia.builtin.thingengine.builtin.get_gps",")",")","on","param:location:Location","==","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_location":"Location"},"slots":["p_location"]}
 >> button: when they receive a sms notify me {"example_id":1647498,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.sms",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: when they receive a sms from $p_sender  notify me {"example_id":1647499,"code":["monitor","(","(","@org.thingpedia.builtin.thingengine.phone.sms",")","filter","param:sender:Entity(tt:phone_number)","==","SLOT_0",")","=>","notify"],"entities":{},"slotTypes":{"p_sender":"Entity(tt:phone_number)"},"slots":["p_sender"]}
->> button: get their current location {"example_id":1647500,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.get_gps","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
+>> button: get their current location {"example_id":1647500,"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.get_gps","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> ask special command
 `,
-    {"example_id":1647495,"code":["monitor","(","@org.thingpedia.builtin.thingengine.phone.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]},
+    {"example_id":1647495,"code":["monitor","(","@org.thingpedia.builtin.thingengine.builtin.get_gps",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]},
 `Clicked example 1647495
 >> Your command is: when their location changes notify me. You can add more filters or run your command if you are ready.
 >> choice 0: Choose a different command
@@ -1707,7 +1711,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
         action send (in req __principal : Entity(tt:contact), in req __program_id : Entity(tt:program_id), in req __flow : Number, in req __kindChannel : Entity(tt:function), in req location : Location, in req altitude : Measure(m), in req bearing : Number, in req speed : Measure(mps));
     }
-    monitor (@org.thingpedia.builtin.thingengine.phone.get_gps()) => @__dyn_0.send(__principal="mock-account:123456-SELF"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, location=location, altitude=altitude, bearing=bearing, speed=speed);
+    monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps()) => @__dyn_0.send(__principal="mock-account:123456-SELF"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, location=location, altitude=altitude, bearing=bearing, speed=speed);
 }`],*/
 
     /*[
@@ -1875,29 +1879,29 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> button: the alt text does not contain $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
 >> button: the time is before $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time","<=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
 >> button: the time is after $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time",">=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
->> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
->> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
-    {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}},
+    {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}},
 `>> What's the value of this filter?
->> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == undefined } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == undefined } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special location
 `,
     { code: ['bookkeeping', 'answer', 'LOCATION_0'], entities: {"LOCATION_0": {longitude:0, latitude:90, display:"North pole"}}},
 `>> Ok, so Bob Smith (dad) is allowed to read an Xkcd comic if the my location is not equal to North pole. Is that correct?
->> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == LOCATION_0 } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == LOCATION_0 } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Ok, I'll remember that.
->> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.phone.get_gps { not param:location:Location == LOCATION_0 } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == LOCATION_0 } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
 >> ask special null
 `,
 
-    `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic, @org.thingpedia.builtin.thingengine.phone.get_gps() { !(location == makeLocation(90, 0, "North pole")) } => notify;`],
+    `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic, @org.thingpedia.builtin.thingengine.builtin.get_gps() { !(location == makeLocation(90, 0, "North pole")) } => notify;`],
 
     [(almond) => {
         return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
@@ -1932,29 +1936,29 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> button: the alt text does not contain $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
 >> button: the time is before $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time","<=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
 >> button: the time is after $time {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_time","{","param:time:Time",">=","SLOT_0","}"],"entities":{},"slots":["time"],"slotTypes":{"time":"Time"}}
->> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
->> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
+>> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
-    {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.phone.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}},
+    {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}},
 `>> What's the value of this filter?
->> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.phone.get_gps { param:location:Location == undefined } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.builtin.get_gps { param:location:Location == undefined } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special location
 `,
     { code: ['bookkeeping', 'answer', 'LOCATION_0'], entities: {"LOCATION_0": {longitude:0, latitude:90, display:"North pole"}}},
 `>> Ok, so Bob Smith (dad) is allowed to read an Xkcd comic if the my location is equal to North pole. Is that correct?
->> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.phone.get_gps { param:location:Location == LOCATION_0 } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.builtin.get_gps { param:location:Location == LOCATION_0 } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Ok, I'll remember that.
->> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.phone.get_gps { param:location:Location == LOCATION_0 } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.builtin.get_gps { param:location:Location == LOCATION_0 } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
 >> ask special null
 `,
 
-    `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic, @org.thingpedia.builtin.thingengine.phone.get_gps() { location == makeLocation(90, 0, "North pole") } => notify;`],
+    `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic, @org.thingpedia.builtin.thingengine.builtin.get_gps() { location == makeLocation(90, 0, "North pole") } => notify;`],
 
     [(almond) => {
         almond.askQuestion(null, 'org.thingpedia.builtin.test', ThingTalk.Type.Number, 'What is the answer to life the universe and everything?').then((v) => {
@@ -2447,7 +2451,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@org.coinbin.get_price', 'param:currency:Entity(tt:cryptocurrency_code)', '=', '"', 'invalid', '"', '^^tt:cryptocurrency_code', '=>', 'notify'],
-`>> Sorry, I cannot find any Cryptocurrency Code matching “invalid”
+`>> Sorry, I cannot find any Cryptocurrency Code matching “invalid”.
 >> context = now => @org.coinbin.get_price param:currency:Entity(tt:cryptocurrency_code) = GENERIC_ENTITY_tt:cryptocurrency_code_0 => notify // {"GENERIC_ENTITY_tt:cryptocurrency_code_0":{"value":null,"display":"invalid"}}
 >> ask special null
 `,
@@ -3548,6 +3552,40 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     `{
   now => @org.thingpedia.weather(id="org.thingpedia.weather-46").current(location=makeLocation(-90, 0, "South pole")) => notify;
 }`],
+
+    [['now', '=>', '@org.thingpedia.weather.current', 'param:location:Location', '=', 'location:', '"', 'seattle', '"', '=>', 'notify'],
+`>> Sorry, I did not find any result for that.
+>> context = now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify // {"LOCATION_0":{"latitude":47.6038321,"longitude":-122.3300624,"display":"Seattle, King County, Washington, USA"}}
+>> ask special null
+`,
+
+    `{
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-47").current(location=makeLocation(47.6038321, -122.3300624, "Seattle, King County, Washington, USA")) => notify;
+}`],
+
+    [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
+`>> What location do you want the current weather for?
+>> context = now => @org.thingpedia.weather.current => notify // {}
+>> ask special location
+`,
+
+    { code: ['bookkeeping', 'answer', 'location:', '"', 'seattle', '"',], entities: {}},
+`>> Sorry, I did not find any result for that.
+>> context = now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify // {"LOCATION_0":{"latitude":47.6038321,"longitude":-122.3300624,"display":"Seattle, King County, Washington, USA"}}
+>> ask special null
+`,
+
+    `{
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-48").current(location=makeLocation(47.6038321, -122.3300624, "Seattle, King County, Washington, USA")) => notify;
+}`],
+
+    [['now', '=>', '@org.thingpedia.weather.current', 'param:location:Location', '=', 'location:', '"', 'invalid', '"', '=>', 'notify'],
+`>> Sorry, I cannot find any location matching “invalid”.
+>> context = now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify // {"LOCATION_0":{"latitude":null,"longitude":null,"display":"invalid"}}
+>> ask special null
+`,
+
+    null],
 ];
 
 function handleCommand(almond, input) {

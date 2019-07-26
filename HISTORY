@@ -1,3 +1,21 @@
+1.4.0
+=====
+
+* Confirmations were changed to confirm earlier if the parser is not confident
+  on a certain user input [#20, #67]
+* All handling of easter eggs was removed, and now lives in thingengine-core
+  as a builtin function [#74]
+* The semantic analyzer after parsing was updated to use ThingTalk 1.7, which
+  provides direct support for bookkeeping commands [#77]
+* Added a Stop command: same as Cancel, but quiet [#26, #81]
+* Added support for new output types in ThingTalk (map, sound effect). This
+  requires additional support in the platform, and will fallback to plain text
+  otherwise [#82]
+* The initialization dialog was improved to provide more suggestions and explain
+  how Almond should be used [#76]
+* Misc bug fixes [#72, #69 (nice), #75, #78, #79]
+* Updated dependencies
+
 1.3.1
 =====
 
