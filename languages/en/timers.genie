@@ -38,12 +38,13 @@ const AT_TIMER_SCHEMA = new Ast.FunctionDef('stream',
 
 const TIME_MORNING = new Ast.Value.Time(9, 0, 0);
 const TIME_NOON = new Ast.Value.Time(12, 0, 0);
-const TIME_EVENING = new Ast.Value.Time(21, 0, 0);
+const TIME_EVENING = new Ast.Value.Time(19, 0, 0);
 }
 
 timer = {
     ('each day' | 'every day' | 'once a day' | 'daily' | 'one time a day') 'at' time:constant_Time => new Ast.Stream.AtTimer([time], null, AT_TIMER_SCHEMA);
-    ('each day' | 'every day' | 'daily' | 'two times a day' | 'twice a day' | 'two times every day' | 'two times daily') 'at' time1:constant_Time 'and' time2:constant_Time => new Ast.Stream.AtTimer([time1, time2], AT_TIMER_SCHEMA);
+    ('each day' | 'every day' | 'daily' | 'two times a day' | 'twice a day' | 'two times every day' | 'two times daily') 'at' time1:constant_Time ('and' | ',') time2:constant_Time => new Ast.Stream.AtTimer([time1, time2], AT_TIMER_SCHEMA);
+    ('each day' | 'every day' | 'daily' | 'three times a day' | 'thrice a day' | 'three times every day' | 'three times daily') 'at' time1:constant_Time ('and' | ',') time2:constant_Time ('and' | ',') time3:constant_Time => new Ast.Stream.AtTimer([time1, time2, time3], AT_TIMER_SCHEMA);
 
     !turking {
         ('once' | 'one time' | '') ('every' | 'each') interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA);
@@ -54,9 +55,25 @@ timer = {
         ('once' | 'one time' | '') ('every' | 'each' | 'a') 'week' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA);
         ('once' | 'one time' | '') ('every' | 'each' | 'a') 'hour' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA);
 
-        ('when you get up' | 'when you wake up' | 'after getting up' | 'after waking up' | 'each morning' | 'every morning' | 'in the morning' | 'at breakfast' | 'before breakfast' | 'after breakfast') => new Ast.Stream.AtTimer([TIME_MORNING], AT_TIMER_SCHEMA);
-        ('each evening' | 'every evening' | 'in the evening' | 'at dinner' | 'before dinner' | 'after dinner' | 'at night' | 'before bed' | 'before sleeping') => new Ast.Stream.AtTimer([TIME_EVENING], AT_TIMER_SCHEMA);
-        ('in the middle of the day' | 'at noon' | 'at lunch' | 'before lunch' | 'after lunch') => new Ast.Stream.AtTimer([TIME_NOON], AT_TIMER_SCHEMA);
-        ('when you get up' | 'after getting up' | 'when you wake up' | 'after waking up' | 'each morning' | 'every morning' | 'in the morning' | 'at breakfast' | 'before breakfast' | 'after breakfast') 'and' ('in the evening' | 'at dinner' | 'before dinner' | 'after dinner' | 'at night' | 'before bed' | 'before sleeping')=> new Ast.Stream.AtTimer([TIME_MORNING, TIME_EVENING], AT_TIMER_SCHEMA);
+        ('once' | 'one time' | '') ('in the middle of the day' | 'at noon' | 'at lunch' | 'before lunch' | 'after lunch') => new Ast.Stream.AtTimer([TIME_NOON], AT_TIMER_SCHEMA);
+        ('once' | 'one time' | '') ('when you get up' | 'when you wake up' | 'after getting up' | 'after waking up') => new Ast.Stream.AtTimer([TIME_MORNING], AT_TIMER_SCHEMA);
+        ('once' | 'one time' | '') ('each morning' | 'every morning' | 'in the morning') => new Ast.Stream.AtTimer([TIME_MORNING], AT_TIMER_SCHEMA);
+        ('once' | 'one time' | '') ('at breakfast' | 'before breakfast' | 'after breakfast') => new Ast.Stream.AtTimer([TIME_MORNING], AT_TIMER_SCHEMA);
+        ('once' | 'one time' | '') ('each evening' | 'every evening' | 'in the evening') => new Ast.Stream.AtTimer([TIME_EVENING], AT_TIMER_SCHEMA);
+        ('once' | 'one time' | '') ('at dinner' | 'before dinner' | 'after dinner') => new Ast.Stream.AtTimer([TIME_EVENING], AT_TIMER_SCHEMA);
+        ('once' | 'one time' | '') ('at night' | 'every night' | 'each night' | 'in the night') => new Ast.Stream.AtTimer([TIME_EVENING], AT_TIMER_SCHEMA);
+        ('once' | 'one time' | '') ('at bedtime' | 'before bedtime' | 'before bed' | 'before you go to bed' | 'before going to bed') => new Ast.Stream.AtTimer([TIME_EVENING], AT_TIMER_SCHEMA);
+        ('once' | 'one time' | '') ('before you go to sleep' | 'before going to sleep' | 'before sleeping' | 'before you sleep') => new Ast.Stream.AtTimer([TIME_EVENING], AT_TIMER_SCHEMA);
+        ('once' | 'one time' | '') ('when you get up' | 'when you wake up' | 'after getting up' | 'after waking up' |
+          'each morning' | 'every morning' | 'in the morning' |
+          'at breakfast' | 'before breakfast' | 'after breakfast')
+          ('and' ',') ('once' | 'one time' | '') 
+          ('evening' | 'each evening' | 'every evening' | 'in the evening' |
+          'dinner' | 'at dinner' | 'before dinner' | 'after dinner' |
+          'night' | 'at night' | 'every night' | 'each night' | 'in the night' |
+          'bed' | 'at bedtime' | 'before bedtime' | 'before bed' | 'before you go to bed' | 'before going to bed' |
+          'before you go to sleep' | 'before going to sleep' | 'before sleeping' | 'before you sleep')
+          => new Ast.Stream.AtTimer([TIME_MORNING, TIME_EVENING], AT_TIMER_SCHEMA);
+        ('when you brush your teeth' | 'before brushing your teeth' | 'after brushing your teeth') => new Ast.Stream.AtTimer([TIME_MORNING, TIME_EVENING], AT_TIMER_SCHEMA);
     }
 }
