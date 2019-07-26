@@ -1,0 +1,21 @@
+dataset @org.thingpedia.everything language "en" {
+    program (p_hashtag : Entity(tt:hashtag)) := monitor(@com.twitter.home_timeline()), contains(hashtags, p_hashtag) => @com.twitter.retweet(tweet_id=tweet_id)
+    #[id=-1]
+    #_[preprocessed=["autoretweet tweets with $p_hashtag", "autoretweet $p_hashtag"]];
+
+    action () := @com.twitter.post()
+    #[id=0]
+    #_[preprocessed=["tweet something", "post on twitter"]];
+
+    action (p_status : String) := @com.twitter.post(status=p_status)
+    #[id=1]
+    #_[preprocessed=["tweet ${p_status}", "post ${p_status} on twitter"]];
+
+    query (p_query : String) := @com.bing.web_search(query=p_query)
+    #[id=2]
+    #_[preprocessed=["websites matching ${p_query}", "${p_query:const} websites", "${p_query:const} on bing"]];
+
+    query (p_query : String) := @com.bing.image_search(query=p_query)
+    #[id=3]
+    #_[preprocessed=["images matching ${p_query}", "${p_query:const} images"]];
+}
