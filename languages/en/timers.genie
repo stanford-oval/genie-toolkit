@@ -67,7 +67,7 @@ timer = {
         ('once' | 'one time' | '') ('when you get up' | 'when you wake up' | 'after getting up' | 'after waking up' |
           'each morning' | 'every morning' | 'in the morning' |
           'at breakfast' | 'before breakfast' | 'after breakfast')
-          ('and' ',') ('once' | 'one time' | '') 
+          ('and' | ',') ('once' | 'one time' | '') 
           ('evening' | 'each evening' | 'every evening' | 'in the evening' |
           'dinner' | 'at dinner' | 'before dinner' | 'after dinner' |
           'night' | 'at night' | 'every night' | 'each night' | 'in the night' |
