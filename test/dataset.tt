@@ -18,4 +18,16 @@ dataset @org.thingpedia.everything language "en" {
     query (p_query : String) := @com.bing.image_search(query=p_query)
     #[id=3]
     #_[preprocessed=["images matching ${p_query}", "${p_query:const} images"]];
+
+    query (p_query : String) := sort title asc of @com.bing.image_search(query=p_query)
+    #[id=3]
+    #_[preprocessed=["images matching ${p_query} sorted by title", "${p_query:const} images sorted by title"]];
+
+    query (p_query : String) := aggregate count of @com.bing.image_search(query=p_query)
+    #[id=4]
+    #_[preprocessed=["the number of images that match ${p_query}", "the count of images that match ${p_query:const}"]];
+
+    query (p_query : String) := [link] of @com.bing.image_search(query=p_query)
+    #[id=4]
+    #_[preprocessed=["the link to images that match ${p_query}"]];
 }
