@@ -15,10 +15,9 @@
     const Ast = ThingTalk.Ast;
     const Type = ThingTalk.Type;
     const Generate = ThingTalk.Generate;
-    const { clean } = require('../../lib/utils');
 
 // import the combinator library
-    const C = require('../../lib/sentence-generator/ast_manip');
+    const C = require('../ast_manip');
 }
 
 projection_Number = {
