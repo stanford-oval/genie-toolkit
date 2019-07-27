@@ -29,7 +29,7 @@ function addParamToAction(command, pname, joinArg) {
     if (!commandtype || !commandtype.equals(actiontype))
         return null;
 
-    let reduced = C.betaReduceAction(command.action, pname, joinArg);
+    let reduced = C.betaReduce(command.action, pname, joinArg);
     if (reduced === null)
         return null;
     return { table: command.table, action: reduced };
