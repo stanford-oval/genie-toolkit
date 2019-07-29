@@ -450,7 +450,7 @@ const TEST_CASES = [
       slots: ['title'],
       slotTypes: { title: 'String' },
       entities: {} },
-`>> What's the value of this filter?
+`>> What should the title contain?
 >> ask special raw_string
 `,
     "lol",
@@ -509,7 +509,7 @@ const TEST_CASES = [
       slots: ['title'],
       slotTypes: { title: 'String' },
       entities: {} },
-`>> What's the value of this filter?
+`>> What should the title contain?
 >> ask special raw_string
 `,
     "lol",
@@ -1114,7 +1114,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special generic
 `,
     {"program": `true : @com.xkcd.get_comic, title =~ $undefined => notify`},
-`>> What is the value of the filter on the title?
+`>> What should the title contain?
 >> ask special raw_string
 `,
     "foo",
@@ -1234,7 +1234,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> ask special generic
 `,
     {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}},
-`>> What's the value of this filter?
+`>> What should the title contain?
 >> ask special raw_string
 `,
     `pierates`,
@@ -1751,7 +1751,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special generic
 `,
     {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}},
-`>> What's the value of this filter?
+`>> What location are you interested in?
 >> ask special location
 `,
     { code: ['bookkeeping', 'answer', 'LOCATION_0'], entities: {"LOCATION_0": {longitude:0, latitude:90, display:"North pole"}}},
@@ -1803,7 +1803,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special generic
 `,
     {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}},
-`>> What's the value of this filter?
+`>> What location are you interested in?
 >> ask special location
 `,
     { code: ['bookkeeping', 'answer', 'LOCATION_0'], entities: {"LOCATION_0": {longitude:0, latitude:90, display:"North pole"}}},
@@ -2211,7 +2211,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '0'],
-`>> What is the value of the filter on the hashtags?
+`>> What should the hashtags be equal to?
 >> ask special raw_string
 `,
     {code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'lol' }},
@@ -2220,7 +2220,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
-`>> What is the value of the filter on the hashtags?
+`>> What should the hashtags be equal to?
 >> ask special raw_string
 `,
     {code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'funny' }},
@@ -3058,15 +3058,14 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
         `search hello on bing with title filter`,
         `>> Ok, so you want me to get websites matching “hello” on Bing if the title contains ____ and then notify you. Is that right?\n>> ask special yesno\n`,
         ['bookkeeping', 'special', 'special:yes'],
-        `>> What is the value of the filter on the title?
+        `>> What should the title contain?
 >> choice 0: Use the description from Bing
->> choice 1: A description of the result
->> choice 2: None of above
+>> choice 1: None of above
 >> ask special choice
 `,
-        ['bookkeeping', 'choice', '1'],
+        ['bookkeeping', 'choice', '0'],
         `>> Sorry, I did not find any result for that.\n>> ask special null\n`,
-        `{\n  now => (@com.bing(id="com.bing").web_search(query="hello")), title =~ $event => notify;\n}`
+        `{\n  now => (@com.bing(id="com.bing").web_search(query="hello")), title =~ description => notify;\n}`
     ],
 
     // confirmation: not confident, no slot, safe action
@@ -3212,6 +3211,121 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 `,
 
     null],
+
+    ['\\t attimer(time=$?) => @com.twitter.post();',
+`>> When do you want your command to run?
+>> ask special time
+`,
+    { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 7, minute: 30 }}},
+`>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '0'],
+`>> What do you want to tweet?
+>> ask special raw_string
+`,
+    `good morning`,
+`>> Ok, so you want me to tweet “good morning” every day at 7:30 AM. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+
+    `{
+  attimer(time=makeTime(7, 30)) => @com.twitter(id="twitter-foo").post(status="good morning");
+}`],
+
+    ['\\t attimer(time=[$?, $?]) => @com.twitter.post();',
+`>> What is the first time you would like your command to run?
+>> ask special time
+`,
+    { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 7, minute: 30 }}},
+`>> What is the second time you would like your command to run?
+>> ask special time
+`,
+    { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 8, minute: 30 }}},
+`>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '0'],
+`>> What do you want to tweet?
+>> ask special raw_string
+`,
+    `good morning`,
+`>> Ok, so you want me to tweet “good morning” every day at 7:30 AM and 8:30 AM. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+
+    `{
+  attimer(time=[makeTime(7, 30), makeTime(8, 30)]) => @com.twitter(id="twitter-foo").post(status="good morning");
+}`],
+
+    ['\\t attimer(time=[$?, $?], expiration_date=$?) => @com.twitter.post();',
+`>> What is the first time you would like your command to run?
+>> ask special time
+`,
+    { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 7, minute: 30 }}},
+`>> What is the second time you would like your command to run?
+>> ask special time
+`,
+    { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 8, minute: 30 }}},
+`>> When should your command stop?
+>> ask special date
+`,
+    { code: ['bookkeeping', 'answer', 'end_of', 'unit:week'], entities: {}},
+`>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '0'],
+`>> What do you want to tweet?
+>> ask special raw_string
+`,
+    `good morning`,
+`>> Ok, so you want me to tweet “good morning” every day at 7:30 AM and 8:30 AM until the end of this week. Is that right?
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> ask special null
+`,
+
+    `{
+  attimer(time=[makeTime(7, 30), makeTime(8, 30)], expiration_date=end_of(week)) => @com.twitter(id="twitter-foo").post(status="good morning");
+}`],
+
+    ['\\t now => @com.twitter.search(), hashtags == [$?,$?] => notify;',
+`>> You have multiple Twitter devices. Which one do you want to use?
+>> choice 0: Twitter Account foo
+>> choice 1: Twitter Account bar
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '0'],
+`>> What would you like the first hashtags to be?
+>> ask special raw_string
+`,
+    ['bookkeeping', 'answer', '"', 'foo', '"', '^^tt:hashtag'],
+`>> What would you like the second hashtags to be?
+>> ask special raw_string
+`,
+    ['bookkeeping', 'answer', '"', 'bar', '"', '^^tt:hashtag'],
+`>> Sorry, I did not find any result for that.
+>> ask special null
+`,
+    `{
+  now => (@com.twitter(id="twitter-foo").search()), hashtags == ["foo"^^tt:hashtag, "bar"^^tt:hashtag] => notify;
+}`]
 ];
 
 function handleCommand(almond, input) {
