@@ -16,10 +16,9 @@ const assert = require('assert');
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
-const { clean } = require('../../lib/utils');
 
 // import the combinator library
-const C = require('../../lib/sentence-generator/ast_manip');
+const C = require('../ast_manip');
 
 function addParamToAction(command, pname, joinArg) {
     let actiontype = command.action.schema.inReq[pname];

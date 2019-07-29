@@ -18,7 +18,7 @@ const Type = ThingTalk.Type;
 const { isUnaryTableToTableOp,
         isUnaryStreamToTableOp,
         isUnaryStreamToStreamOp,
-        isUnaryTableToStreamOp } = require('../utils');
+        isUnaryTableToStreamOp } = require('./utils');
 const { notifyAction } = ThingTalk.Generate;
 
 function typeToStringSafe(type) {
