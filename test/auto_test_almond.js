@@ -188,7 +188,8 @@ class TestDelegate {
         writeLine('>> button: ' + title + ' ' + JSON.stringify(json));
     }
 
-    sendAskSpecial(what) {
+    sendAskSpecial(what, code, entities, timeout) {
+        writeLine('>> context = ' + code + ' // ' + JSON.stringify(entities));
         writeLine('>> ask special ' + what);
     }
 
@@ -223,6 +224,7 @@ const TEST_CASES = [
 >> Regardless of your choice here, I will not collect or store your credentials or the results of your commands.
 >> If you would like to know more, see our privacy policy at https://almond.stanford.edu/about/privacy or contact us at <mobisocial@lists.stanford.edu>.
 >> Do you consent to recording your commands?
+>> context = null // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -233,6 +235,7 @@ const TEST_CASES = [
 >> button: show me the weather for San Francisco {"code":["now","=>","@org.thingpedia.weather.current","param:location:Location","=","LOCATION_0","=>","notify"],"entities":{"LOCATION_0":{"latitude":37.7792808,"longitude":-122.4192363,"display":"San Francisco, San Francisco City and County, California, United States of America"}}}
 >> button: search almond recipes on bing {"code":["now","=>","@com.bing.web_search","param:query:String","=","QUOTED_STRING_0","=>","notify"],"entities":{"QUOTED_STRING_0":"almond recipes"}}
 >> button: translate a sentence to Chinese {"code":["now","=>","@com.yandex.translate.translate","param:target_language:Entity(tt:iso_lang_code)","=","GENERIC_ENTITY_tt:iso_lang_code_0","=>","notify"],"entities":{"GENERIC_ENTITY_tt:iso_lang_code_0":{"value":"zh","display":"Chinese"}}}
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -250,6 +253,7 @@ const TEST_CASES = [
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     null],
@@ -259,6 +263,7 @@ const TEST_CASES = [
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = now => @com.xkcd.get_comic => @com.twitter.post_picture // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
@@ -267,20 +272,24 @@ const TEST_CASES = [
 >> choice 1: Use the alt text from Xkcd
 >> choice 2: A description of the result
 >> choice 3: None of above
+>> context = now => @com.xkcd.get_comic => @com.twitter.post_picture // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
 `>> Upload the picture now.
 >> choice 0: Use the picture url from Xkcd
 >> choice 1: None of above
+>> context = now => @com.xkcd.get_comic => @com.twitter.post_picture on param:caption:String = param:title:String // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
 `>> Ok, so you want me to get an Xkcd comic and then tweet the title with an attached picture with picture url equal to the picture url. Is that right?
+>> context = now => @com.xkcd.get_comic => @com.twitter.post_picture on param:caption:String = param:title:String on param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture) // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
+>> context = now => @com.xkcd.get_comic => @com.twitter.post_picture on param:caption:String = param:title:String on param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture) // {}
 >> ask special null
 `,
 `{
@@ -292,18 +301,22 @@ const TEST_CASES = [
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = now => @com.twitter.post // {}
 >> ask special choice
 `,
      ['bookkeeping', 'choice', 1],
 `>> What do you want to tweet?
+>> context = now => @com.twitter.post // {}
 >> ask special raw_string
 `,
      { code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'lol' } },
 `>> Ok, so you want me to tweet “lol”. Is that right?
+>> context = now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"lol"}
 >> ask special yesno
 `,
      ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
+>> context = now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"lol"}
 >> ask special null
 `,
 `{
@@ -315,10 +328,12 @@ const TEST_CASES = [
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = monitor ( @com.twitter.home_timeline ) => @com.facebook.post on param:status:String = param:text:String // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 1],
 `>> Ok, I'm going to post the text on Facebook when tweets from anyone you follow change.
+>> context = monitor ( @com.twitter.home_timeline ) => @com.facebook.post on param:status:String = param:text:String // {}
 >> ask special null
 `,
 `{
@@ -330,6 +345,7 @@ const TEST_CASES = [
 `>> rdl: River Border https://xkcd.com/1986
 >> picture: http://imgs.xkcd.com/comics/river_border.png
 >> I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.
+>> context = now => @com.xkcd.get_comic => notify // {}
 >> ask special null
 `,
 `{
@@ -341,36 +357,43 @@ const TEST_CASES = [
 `>> You have multiple Security Camera devices. Which one do you want to use?
 >> choice 0: Some Device 1
 >> choice 1: Some Device 2
+>> context = monitor ( @security-camera.current_event ) => @com.twitter.post_picture // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = monitor ( @security-camera.current_event ) => @com.twitter.post_picture // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
 `>> What caption do you want?
 >> choice 0: A description of the result
 >> choice 1: None of above
+>> context = monitor ( @security-camera.current_event ) => @com.twitter.post_picture // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 1],
 `>> What caption do you want?
+>> context = monitor ( @security-camera.current_event ) => @com.twitter.post_picture // {}
 >> ask special raw_string
 `,
     { code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'lol' } },
 `>> Upload the picture now.
 >> choice 0: Use the picture url from Security Camera
 >> choice 1: None of above
+>> context = monitor ( @security-camera.current_event ) => @com.twitter.post_picture param:caption:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"lol"}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
 `>> Ok, so you want me to tweet “lol” with an attached picture with picture url equal to the picture url when the current event detected on your security camera changes. Is that right?
+>> context = monitor ( @security-camera.current_event ) => @com.twitter.post_picture param:caption:String = QUOTED_STRING_0 on param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture) // {"QUOTED_STRING_0":"lol"}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
+>> context = monitor ( @security-camera.current_event ) => @com.twitter.post_picture param:caption:String = QUOTED_STRING_0 on param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture) // {"QUOTED_STRING_0":"lol"}
 >> ask special null
 `,
 `{
@@ -382,10 +405,12 @@ const TEST_CASES = [
 `>> You have multiple Security Camera devices. Which one do you want to use?
 >> choice 0: Some Device 1
 >> choice 1: Some Device 2
+>> context = monitor ( @security-camera.current_event ) => notify // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
     `>> Ok, I'm going to notify you when the current event detected on your security camera changes.
+>> context = monitor ( @security-camera.current_event ) => notify // {}
 >> ask special null
 `,
 `{
@@ -407,6 +432,7 @@ const TEST_CASES = [
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     ['monitor', '(', '@security-camera.current_event', ')', '=>', 'notify'],
@@ -414,6 +440,7 @@ const TEST_CASES = [
 >> choice 0: Choose a different command
 >> choice 1: Add a filter
 >> choice 2: Run it
+>> context = null // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 0],
@@ -424,6 +451,7 @@ const TEST_CASES = [
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
@@ -431,6 +459,7 @@ const TEST_CASES = [
 >> choice 0: Choose a different command
 >> choice 1: Add a filter
 >> choice 2: Run it
+>> context = null // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 1],
@@ -444,6 +473,7 @@ const TEST_CASES = [
 >> button: the alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
 >> button: the alt text does not contain $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special generic
 `,
     { code: ['bookkeeping', 'filter', 'param:title:String', '=~', 'SLOT_0'],
@@ -451,6 +481,7 @@ const TEST_CASES = [
       slotTypes: { title: 'String' },
       entities: {} },
 `>> What should the title contain?
+>> context = null // {}
 >> ask special raw_string
 `,
     "lol",
@@ -458,10 +489,12 @@ const TEST_CASES = [
 >> choice 0: Choose a different command
 >> choice 1: Add a filter
 >> choice 2: Run it
+>> context = null // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 2],
 `>> Sorry, I did not find any result for that.
+>> context = now => ( @com.xkcd.get_comic ) filter param:title:String =~ QUOTED_STRING_0 => notify // {"QUOTED_STRING_0":"lol"}
 >> ask special null
 `,
     `{
@@ -483,6 +516,7 @@ const TEST_CASES = [
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
@@ -490,6 +524,7 @@ const TEST_CASES = [
 >> choice 0: Choose a different command
 >> choice 1: Add a filter
 >> choice 2: Run it
+>> context = null // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 1],
@@ -503,6 +538,7 @@ const TEST_CASES = [
 >> button: the alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
 >> button: the alt text does not contain $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special generic
 `,
     { code: ['bookkeeping', 'filter', 'param:title:String', '=~', 'SLOT_0'],
@@ -510,6 +546,7 @@ const TEST_CASES = [
       slotTypes: { title: 'String' },
       entities: {} },
 `>> What should the title contain?
+>> context = null // {}
 >> ask special raw_string
 `,
     "lol",
@@ -517,6 +554,7 @@ const TEST_CASES = [
 >> choice 0: Choose a different command
 >> choice 1: Add a filter
 >> choice 2: Run it
+>> context = null // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 1],
@@ -530,6 +568,7 @@ const TEST_CASES = [
 >> button: the alt text contains $alt_text {"code":["bookkeeping","filter","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
 >> button: the alt text does not contain $alt_text {"code":["bookkeeping","filter","not","param:alt_text:String","=~","SLOT_0"],"entities":{},"slots":["alt_text"],"slotTypes":{"alt_text":"String"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special generic
 `,
     {"code":["bookkeeping","filter","not","param:title:String","=~","SLOT_0"],
@@ -540,10 +579,12 @@ const TEST_CASES = [
 >> choice 0: Choose a different command
 >> choice 1: Add a filter
 >> choice 2: Run it
+>> context = null // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 2],
 `>> Sorry, I did not find any result for that.
+>> context = now => ( @com.xkcd.get_comic ) filter not param:title:String =~ QUOTED_STRING_1 and param:title:String =~ QUOTED_STRING_0 => notify // {"QUOTED_STRING_0":"lol","QUOTED_STRING_1":"foo"}
 >> ask special null
 `,
     `{
@@ -565,6 +606,7 @@ const TEST_CASES = [
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
 
@@ -582,6 +624,7 @@ const TEST_CASES = [
 >> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
 
@@ -591,6 +634,7 @@ const TEST_CASES = [
 >> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
 >> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
 
@@ -608,6 +652,7 @@ const TEST_CASES = [
 >> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     {"code":["bookkeeping","special","special:more"],"entities":{}},
@@ -616,6 +661,7 @@ const TEST_CASES = [
 >> button: The Washington Post {"code":["bookkeeping","commands","media","device:com.washingtonpost"],"entities":{}}
 >> button: XKCD {"code":["bookkeeping","commands","media","device:com.xkcd"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
 
@@ -628,6 +674,7 @@ const TEST_CASES = [
 >> button: get a random xkcd {"example_id":1648628,"code":["now","=>","@com.xkcd.random_comic","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
 
@@ -637,11 +684,13 @@ const TEST_CASES = [
 >> choice 0: Choose a different command
 >> choice 1: Add a filter
 >> choice 2: Run it
+>> context = null // {}
 >> ask special choice
 `,
 
     ['bookkeeping', 'choice', 2],
 `>> Ok, I'm going to notify you when an Xkcd comic changes.
+>> context = monitor ( @com.xkcd.get_comic ) => notify // {}
 >> ask special null
 `,
 
@@ -655,28 +704,34 @@ const TEST_CASES = [
 `>> You need a Matrix account: I talk to other Almonds via the secure Matrix messaging service.
 >> link: Register a new Matrix account now https://riot.im/app/#/register
 >> Insert your Matrix username:
+>> context = null // {}
 >> ask special raw_string
 `,
     `bob`,
 `>> Insert your Matrix password:
+>> context = null // {}
 >> ask special password
 `,
     `pa55word`,
 `>> Yes or no?
+>> context = null // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> The account has been set up.
 >> What do you want to tweet?
+>> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.twitter.post // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"}}
 >> ask special raw_string
 `,
     `some tweet`,
 `>> Ok, so you want me to tell Alice Smith (mom): tweet “some tweet”. Is that right?
+>> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.twitter.post // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"}}
 >> ask special yesno
 `,
 
     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
+>> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"},"QUOTED_STRING_0":"some tweet"}
 >> ask special null
 `,
     `null
@@ -688,6 +743,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post'],
       entities: { USERNAME_0: 'invalid_user' } },
 `>> Cannot find a messaging account for Invalid User.
+>> context = executor = USERNAME_0 : now => @com.twitter.post // {"USERNAME_0":"invalid_user"}
 >> ask special null
 `,
     null],
@@ -696,6 +752,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post', 'param:status:String', '=', 'QUOTED_STRING_0'],
       entities: { USERNAME_0: 'mom', QUOTED_STRING_0: "lol" } },
 `>> Ok, so I'm going to tell Alice Smith (mom): tweet “lol”.
+>> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"},"QUOTED_STRING_0":"lol"}
 >> ask special null
 `,
     `null
@@ -707,6 +764,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
       entities: { USERNAME_0: 'mom' } },
 `>> Ok, so I'm going to tell Alice Smith (mom): get an Xkcd comic and then notify you.
+>> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"}}
 >> ask special null
 `,
     `null
@@ -717,6 +775,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.xkcd.get_comic', '=>', 'return'],
       entities: { USERNAME_0: 'mom' } },
 `>> Ok, so I'm going to tell Alice Smith (mom): get an Xkcd comic and then send it to me.
+>> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.xkcd.get_comic => return // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"}}
 >> ask special null
 `,
     `{
@@ -750,6 +809,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     { code: ['policy', 'param:source:Entity(tt:contact)', '==', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post'],
       entities: { USERNAME_0: 'mom' } },
 `>> Ok, I'm going to set: Alice Smith (mom) is allowed to tweet any status.
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @com.twitter.post // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"}}
 >> ask special null
 `,
     `source == "mock-account:MOCK1234-phone:+5556664357"^^tt:contact("Alice Smith (mom)") : now => @com.twitter.post;`],
@@ -764,6 +824,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     },
 `>> I'm going to get an Xkcd comic and then notify you (as asked by Carol Johnson).
 >> Sorry, I did not find any result for that.
+>> context = now => @com.xkcd.get_comic => notify // {}
 >> ask special null
 `,
     `{
@@ -779,14 +840,17 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
         });
     },
 `>> What do you want to search?
+>> context = now => @com.bing.web_search => notify // {}
 >> ask special raw_string
 `,
     `pizza`,
 `>> Ok, so you want me to get websites matching “pizza” on Bing and then notify you (as asked by Carol Johnson). Is that right?
+>> context = now => @com.bing.web_search param:query:String = QUOTED_STRING_0 => notify // {"QUOTED_STRING_0":"pizza"}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Sorry, I did not find any result for that.
+>> context = now => @com.bing.web_search param:query:String = QUOTED_STRING_0 => notify // {"QUOTED_STRING_0":"pizza"}
 >> ask special null
 `,
     `{
@@ -810,6 +874,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 `>> rdl: River Border https://xkcd.com/1986
 >> picture: http://imgs.xkcd.com/comics/river_border.png
 >> I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -832,6 +897,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> rdl: River Border https://xkcd.com/1986
 >> picture: http://imgs.xkcd.com/comics/river_border.png
 >> I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -845,6 +911,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
         });
     },
 `>> Xkcd ⇒ Notification had an error: Something went wrong.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -866,10 +933,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from Bob Smith (dad) (this exact request) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data filter param:data:String == QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"QUOTED_STRING_0":"foo"}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:no'],
 `>> Sorry I couldn't help on that.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -891,10 +960,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from bogus@example.com (this exact request) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"bogus@example.com\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data filter param:data:String == QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"bogus@example.com"},"QUOTED_STRING_0":"foo"}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:no'],
 `>> Sorry I couldn't help on that.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -916,10 +987,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from X1234567 (this exact request) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"X1234567\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data filter param:data:String == QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"X1234567"},"QUOTED_STRING_0":"foo"}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:no'],
 `>> Sorry I couldn't help on that.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -941,6 +1014,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from Bob Smith (dad) (this exact request) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data filter param:data:String == QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"QUOTED_STRING_0":"foo"}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:maybe'],
@@ -954,10 +1028,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
     {"code":["bookkeeping","filter","param:data:String","=~","SLOT_0"],"entities":{SLOT_0: 'oo'},"slots":["data"],"slotTypes":{"data":"String"}},
 `>> Ok, so Bob Smith (dad) is allowed to consume any data if the data contains “oo”. Is that correct?
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data filter param:data:String =~ QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"QUOTED_STRING_0":"oo"}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:no'],
@@ -967,6 +1043,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from Bob Smith (dad) (this exact request) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data filter param:data:String == QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"QUOTED_STRING_0":"foo"}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:maybe'],
@@ -980,14 +1057,17 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
     {"code":["bookkeeping","filter","param:data:String","=~","SLOT_0"],"entities":{SLOT_0: 'oo'},"slots":["data"],"slotTypes":{"data":"String"}},
 `>> Ok, so Bob Smith (dad) is allowed to consume any data if the data contains “oo”. Is that correct?
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data filter param:data:String =~ QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"QUOTED_STRING_0":"oo"}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Ok, I'll remember that.
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data filter param:data:String =~ QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"QUOTED_STRING_0":"oo"}
 >> ask special null
 `,
     `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : now => @org.thingpedia.builtin.test.eat_data, data =~ "oo";`],
@@ -1008,10 +1088,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:no'],
 `>> Sorry I couldn't help on that.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -1032,10 +1114,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:yes'],
-`>> ask special null
+`>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
+>> ask special null
 `,
     null],
 
@@ -1055,14 +1139,17 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
     {"code":["policy","true",":","@com.xkcd.get_comic","=>","notify"],"entities":{}},
 `>> Ok, so anyone is allowed to read an Xkcd comic. Is that correct?
+>> context = policy true : @com.xkcd.get_comic => notify // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Ok, I'll remember that.
+>> context = policy true : @com.xkcd.get_comic => notify // {}
 >> ask special null
 `,
     'true : @com.xkcd.get_comic => notify;'],
@@ -1083,14 +1170,17 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
     {"code":["policy","param:source:Entity(tt:contact)", "==", "USERNAME_0",":","@com.xkcd.get_comic","=>","notify"],"entities":{ "USERNAME_0": "bob" }},
 `>> Ok, so Bob Smith (dad) is allowed to read an Xkcd comic. Is that correct?
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+555123456","display":"Bob Smith (dad)"}}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Ok, I'll remember that.
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+555123456","display":"Bob Smith (dad)"}}
 >> ask special null
 `,
     'source == "mock-account:MOCK1234-phone:+555123456"^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic => notify;'],
@@ -1111,18 +1201,22 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
     {"program": `true : @com.xkcd.get_comic, title =~ $undefined => notify`},
 `>> What should the title contain?
+>> context = policy true : @com.xkcd.get_comic filter param:title:String =~ undefined => notify // {}
 >> ask special raw_string
 `,
     "foo",
 `>> Ok, so anyone is allowed to read an Xkcd comic if the title contains “foo”. Is that correct?
+>> context = policy true : @com.xkcd.get_comic filter param:title:String =~ QUOTED_STRING_0 => notify // {"QUOTED_STRING_0":"foo"}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Ok, I'll remember that.
+>> context = policy true : @com.xkcd.get_comic filter param:title:String =~ QUOTED_STRING_0 => notify // {"QUOTED_STRING_0":"foo"}
 >> ask special null
 `,
     'true : @com.xkcd.get_comic, title =~ "foo" => notify;'],
@@ -1143,14 +1237,17 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
     {"program":"true : @com.xkcd.get_comic => notify;"},
 `>> Ok, so anyone is allowed to read an Xkcd comic. Is that correct?
+>> context = policy true : @com.xkcd.get_comic => notify // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Ok, I'll remember that.
+>> context = policy true : @com.xkcd.get_comic => notify // {}
 >> ask special null
 `,
     'true : @com.xkcd.get_comic => notify;'],
@@ -1171,10 +1268,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
     {"program":"true : @com.xkcd.get_comic => notify;"},
 `>> Ok, so anyone is allowed to read an Xkcd comic. Is that correct?
+>> context = policy true : @com.xkcd.get_comic => notify // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:no'],
@@ -1183,14 +1282,17 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
     {"program":"source == \"mock-account:...\"^^tt:contact(\"Bob Smith (dad)\") : @com.xkcd.get_comic => notify;"},
 `>> Ok, so Bob Smith (dad) is allowed to read an Xkcd comic. Is that correct?
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Ok, I'll remember that.
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special null
 `,
     `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic => notify;`],
@@ -1211,6 +1313,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:maybe'],
@@ -1231,18 +1334,22 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
     {"code":["bookkeeping","filter","param:title:String","=~","SLOT_0"],"entities":{},"slots":["title"],"slotTypes":{"title":"String"}},
 `>> What should the title contain?
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter param:title:String =~ undefined => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special raw_string
 `,
     `pierates`,
 `>> Ok, so Bob Smith (dad) is allowed to read an Xkcd comic if the title contains “pierates”. Is that correct?
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter param:title:String =~ QUOTED_STRING_0 => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"QUOTED_STRING_0":"pierates"}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Ok, I'll remember that.
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter param:title:String =~ QUOTED_STRING_0 => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"QUOTED_STRING_0":"pierates"}
 >> ask special null
 `,
 
@@ -1250,10 +1357,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 
     [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
 `>> What location do you want the current weather for?
+>> context = now => @org.thingpedia.weather.current => notify // {}
 >> ask special location
 `,
     ['bookkeeping', 'answer', 'location:current_location'],
 `>> Sorry, I did not find any result for that.
+>> context = now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify // {"LOCATION_0":{"latitude":37.4275,"longitude":-122.1697,"display":null}}
 >> ask special null
 `,
 
@@ -1263,15 +1372,18 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 
     [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
 `>> What location do you want the current weather for?
+>> context = now => @org.thingpedia.weather.current => notify // {}
 >> ask special location
 `,
     ['bookkeeping', 'answer', 'location:home'],
 `>> What is your home address?
+>> context = now => @org.thingpedia.weather.current => notify // {}
 >> ask special location
 `,
 
     { code: ['bookkeeping', 'answer', 'LOCATION_0'], entities: {"LOCATION_0": {longitude:0, latitude:90, display:"North pole"}}},
 `>> Sorry, that did not work: I do not like that location.
+>> context = now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify // {"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
 >> ask special null
 `,
 
@@ -1281,10 +1393,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 
     [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
 `>> What location do you want the current weather for?
+>> context = now => @org.thingpedia.weather.current => notify // {}
 >> ask special location
 `,
     ['bookkeeping', 'answer', 'location:home'],
 `>> Sorry, I did not find any result for that.
+>> context = now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify // {"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
 >> ask special null
 `,
 
@@ -1308,6 +1422,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     {"code":["bookkeeping","category","media"],"entities":{}},
@@ -1324,6 +1439,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     {"code":["bookkeeping","commands","media","device:com.phdcomics"],"entities":{}},
@@ -1331,6 +1447,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: when there is a new post on phd comics notify me {"example_id":1645320,"code":["monitor","(","@com.phdcomics.get_post",")","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: get posts on phd comics {"example_id":1645321,"code":["now","=>","@com.phdcomics.get_post","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     {"code":["bookkeeping","special","special:back"],"entities":{}},
@@ -1347,6 +1464,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     {"code":["bookkeeping","commands","media","device:com.yahoo.finance"],"entities":{}},
@@ -1358,6 +1476,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: when the ask stock price of $p_stock_id goes below $p_ask_price notify me {"example_id":1645424,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     {"code":["bookkeeping","special","special:more"],"entities":{}},
@@ -1368,6 +1487,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: when the dividend of $p_stock_id goes above $p_value notify me {"example_id":1645431,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:value:Currency",">=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_value":"Currency"},"slots":["p_stock_id","p_value"]}
 >> button: when the dividend of $p_stock_id goes below $p_value notify me {"example_id":1645432,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_div","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:value:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_value":"Currency"},"slots":["p_stock_id","p_value"]}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     {"code":["bookkeeping","special","special:back"],"entities":{}},
@@ -1379,6 +1499,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: when the ask stock price of $p_stock_id goes below $p_ask_price notify me {"example_id":1645424,"code":["edge","(","monitor","(","@com.yahoo.finance.get_stock_quote","param:stock_id:Entity(tt:stock_id)","=","SLOT_0",")",")","on","param:ask_price:Currency","<=","SLOT_1","=>","notify"],"entities":{},"slotTypes":{"p_stock_id":"Entity(tt:stock_id)","p_ask_price":"Currency"},"slots":["p_stock_id","p_ask_price"]}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     {"code":["bookkeeping","special","special:back"],"entities":{}},
@@ -1395,6 +1516,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: The Dog API {"code":["bookkeeping","commands","media","device:uk.co.thedogapi"],"entities":{}}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     {"code":["bookkeeping","commands","media","device:gov.nasa"],"entities":{}},
@@ -1406,6 +1528,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: get $p_count pictures from curiosity rover {"example_id":1641555,"code":["now","=>","@gov.nasa.rover","param:count:Number","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_count":"Number"},"slots":["p_count"]}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     {"code":["now","=>","@gov.nasa.asteroid","=>","notify"],"entities":{},"slotTypes":{},"slots":[]},
@@ -1413,10 +1536,12 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> choice 0: Choose a different command
 >> choice 1: Add a filter
 >> choice 2: Run it
+>> context = null // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '2'],
 `>> Sorry, I did not find any result for that.
+>> context = now => @gov.nasa.asteroid => notify // {}
 >> ask special null
 `,
 
@@ -1439,6 +1564,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     {"code":["bookkeeping","category","communication"],"entities":{}},
@@ -1447,6 +1573,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Phone {"code":["bookkeeping","commands","communication","device:org.thingpedia.builtin.thingengine.phone"],"entities":{}}
 >> button: Slack {"code":["bookkeeping","commands","communication","device:com.slack"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     {"code":["bookkeeping","commands","communication","device:org.thingpedia.builtin.thingengine.phone"],"entities":{}},
@@ -1458,6 +1585,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: call $p_number {"example_id":1647505,"code":["now","=>","@org.thingpedia.builtin.thingengine.phone.call","param:number:Entity(tt:phone_number)","=","SLOT_0"],"entities":{},"slotTypes":{"p_number":"Entity(tt:phone_number)"},"slots":["p_number"]}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
 
@@ -1478,6 +1606,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     {"code":["bookkeeping","category","service"],"entities":{}},
@@ -1493,6 +1622,7 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Partner Finder {"code":["bookkeeping","commands","service","device:org.thingpedia.friendhub.partnerfinder"],"entities":{}}
 >> button: More… {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     ['bookkeeping', 'special', 'special:more'],
@@ -1506,15 +1636,18 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
 >> button: Wunderlist {"code":["bookkeeping","commands","service","device:com.wunderlist"],"entities":{}}
 >> button: Yandex Translate {"code":["bookkeeping","commands","service","device:com.yandex.translate"],"entities":{}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     ['bookkeeping', 'special', 'special:more'],
 `>> Pick a command from the following devices
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     ['bookkeeping', 'special', 'special:nevermind'],
 `>> Sorry I couldn't help on that.
+>> context = null // {}
 >> ask special null
 `,
 
@@ -1728,6 +1861,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:maybe'],
@@ -1748,18 +1882,22 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
     {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}},
 `>> What location are you interested in?
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == undefined } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special location
 `,
     { code: ['bookkeeping', 'answer', 'LOCATION_0'], entities: {"LOCATION_0": {longitude:0, latitude:90, display:"North pole"}}},
 `>> Ok, so Bob Smith (dad) is allowed to read an Xkcd comic if the my location is not equal to North pole. Is that correct?
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == LOCATION_0 } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Ok, I'll remember that.
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == LOCATION_0 } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
 >> ask special null
 `,
 
@@ -1780,6 +1918,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
     ['bookkeeping', 'special', 'special:maybe'],
@@ -1800,18 +1939,22 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> button: my location is $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: my location is not $location {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","not","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}}
 >> button: Back {"code":["bookkeeping","special","special:back"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
     {"code":["bookkeeping","filter","@org.thingpedia.builtin.thingengine.builtin.get_gps","{","param:location:Location","==","SLOT_0","}"],"entities":{},"slots":["location"],"slotTypes":{"location":"Location"}},
 `>> What location are you interested in?
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.builtin.get_gps { param:location:Location == undefined } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special location
 `,
     { code: ['bookkeeping', 'answer', 'LOCATION_0'], entities: {"LOCATION_0": {longitude:0, latitude:90, display:"North pole"}}},
 `>> Ok, so Bob Smith (dad) is allowed to read an Xkcd comic if the my location is equal to North pole. Is that correct?
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.builtin.get_gps { param:location:Location == LOCATION_0 } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Ok, I'll remember that.
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic filter @org.thingpedia.builtin.thingengine.builtin.get_gps { param:location:Location == LOCATION_0 } => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
 >> ask special null
 `,
 
@@ -1826,28 +1969,11 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
         return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
     },
 `>> What is the answer to life the universe and everything?
+>> context = null // {}
 >> ask special number
 `,
     { entities: {NUMBER_0: 42}, code: ['bookkeeping', 'answer', 'NUMBER_0'] },
-`>> ask special null
-`,
-    null],
-
-    [(almond) => {
-        almond.askQuestion(null, 'org.thingpedia.builtin.test', ThingTalk.Type.Number, 'What is the answer to life the universe and everything?').then((v) => {
-            assert.fail('expected an error');
-        }, (err) => {
-            assert.strictEqual(err.code, 'ECANCELLED');
-        });
-
-        // inject a meaningless intent so we synchronize the two concurrent tasks
-        return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
-    },
-`>> What is the answer to life the universe and everything?
->> ask special number
-`,
-    ['bookkeeping', 'special', 'special:nevermind'],
-`>> Sorry I couldn't help on that.
+`>> context = null // {}
 >> ask special null
 `,
     null],
@@ -1863,10 +1989,33 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
         return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
     },
 `>> What is the answer to life the universe and everything?
+>> context = null // {}
+>> ask special number
+`,
+    ['bookkeeping', 'special', 'special:nevermind'],
+`>> Sorry I couldn't help on that.
+>> context = null // {}
+>> ask special null
+`,
+    null],
+
+    [(almond) => {
+        almond.askQuestion(null, 'org.thingpedia.builtin.test', ThingTalk.Type.Number, 'What is the answer to life the universe and everything?').then((v) => {
+            assert.fail('expected an error');
+        }, (err) => {
+            assert.strictEqual(err.code, 'ECANCELLED');
+        });
+
+        // inject a meaningless intent so we synchronize the two concurrent tasks
+        return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+    },
+`>> What is the answer to life the universe and everything?
+>> context = null // {}
 >> ask special number
 `,
     ['bookkeeping', 'special', 'special:stop'],
-`>> ask special null
+`>> context = null // {}
+>> ask special null
 `,
     null],
 
@@ -1874,6 +2023,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     ['now', '=>', '@com.instagram.get_pictures', '=>', 'notify'],
 `>> You don't have a Instagram.
 >> link: Configure Instagram /devices/oauth2/com.instagram?name=Instagram
+>> context = now => @com.instagram.get_pictures => notify // {}
 >> ask special null
 `,
     null],
@@ -1882,6 +2032,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     ['now', '=>', '@tumblr-blog.post_text'],
 `>> You don't have a Tumblr Blog.
 >> button: Configure Tumblr Blog {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:tumblr-blog"]}
+>> context = now => @tumblr-blog.post_text // {}
 >> ask special null
 `,
     null],
@@ -1890,6 +2041,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     ['now', '=>', '@org.thingpedia.rss.get_post', '=>', 'notify'],
 `>> You don't have a RSS Feed.
 >> button: Configure RSS Feed {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:org.thingpedia.rss"]}
+>> context = now => @org.thingpedia.rss.get_post => notify // {}
 >> ask special null
 `,
     null],
@@ -1898,6 +2050,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     ['now', '=>', '@com.lg.tv.webos2.set_power'],
 `>> You don't have a LG WebOS TV.
 >> button: Configure LG WebOS TV {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:com.lg.tv.webos2"]}
+>> context = now => @com.lg.tv.webos2.set_power // {}
 >> ask special null
 `,
     null],
@@ -1909,6 +2062,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
         return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
     },
 `>> com.xkcd has been enabled successfully.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -1921,6 +2075,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     },
 `>> OK, here's the link to configure Instagram.
 >> link: Configure Instagram /devices/oauth2/com.instagram?name=Instagram
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -1932,10 +2087,12 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
         return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
     },
 `>> Please enter the Feed URL.
+>> context = null // {}
 >> ask special raw_string
 `,
     'https://example.com/rss.xml',
 `>> The account has been set up.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -1949,6 +2106,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `>> Choose one of the following to configure Tumblr Blog.
 >> link: Configure Tumblr Account /devices/oauth2/com.tumblr?name=Tumblr Account
 >> button: Configure Some other Tumblr Thing {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:com.tumblr2"]}
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -1960,18 +2118,22 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
         return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
     },
 `>> Insert your Matrix username:
+>> context = null // {}
 >> ask special raw_string
 `,
     `bob`,
 `>> Insert your Matrix password:
+>> context = null // {}
 >> ask special password
 `,
     {entities: { QUOTED_STRING_0: `pa55word` }, code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'] },
 `>> Yes or no?
+>> context = null // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> The account has been set up.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -1984,6 +2146,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     },
 `>> Searching for LG WebOS TV…
 >> Can't find any LG WebOS TV around.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -1998,10 +2161,12 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> I found the following devices. Which one do you want to set up?
 >> choice 0: Bluetooth Device foo
 >> choice 1: Bluetooth Device bar
+>> context = null // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '0'],
 `>> The device has been set up.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -2020,10 +2185,12 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> I found the following devices. Which one do you want to set up?
 >> choice 0: Bluetooth Device foo
 >> choice 1: Bluetooth Device bar
+>> context = null // {}
 >> ask special choice
 `,
     ['bookkeeping', 'special', 'special:nevermind'],
 `>> Sorry I couldn't help on that.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -2037,6 +2204,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     ['bookkeeping', 'special', 'special:back'],
@@ -2047,6 +2215,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     ['bookkeeping', 'special', 'special:empty'],
@@ -2057,6 +2226,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     ['bookkeeping', 'special', 'special:more'],
@@ -2067,6 +2237,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     ['bookkeeping', 'special', 'special:yes'],
@@ -2075,10 +2246,12 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     ['bookkeeping', 'answer', '0'],
 `>> Sorry, but that's not what I asked.
 >> I'm looking for a command.
+>> context = null // {}
 >> ask special command
 `,
     ['bookkeeping', 'special', 'special:nevermind'],
 `>> Sorry I couldn't help on that.
+>> context = null // {}
 >> ask special null
 `,
 
@@ -2087,6 +2260,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     [
     ['now', '=>', '@org.thingpedia.builtin.thingengine.home.start_playing'],
 `>> Sorry, I did not understand that. Can you rephrase it?
+>> context = now => @org.thingpedia.builtin.thingengine.home.start_playing // {}
 >> ask special null
 `,
     null],
@@ -2094,6 +2268,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     [
     ['now', '=>', '@car.honk_horn'],
 `>> You don't have a Car.
+>> context = now => @car.honk_horn // {}
 >> ask special null
 `,
     null],
@@ -2105,6 +2280,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
         return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
     },
 `>> Sorry, I don't know how to configure Home.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -2119,10 +2295,12 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = now => @com.twitter.follow param:user_name:Entity(tt:username) = USERNAME_0 // {"USERNAME_0":"bob"}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '0'],
 `>> Ok, I'm going to follow @bob on Twitter.
+>> context = now => @com.twitter.follow param:user_name:Entity(tt:username) = USERNAME_0 // {"USERNAME_0":"bob"}
 >> ask special null
 `,
     `{
@@ -2132,33 +2310,37 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     [
     {"program": `now => @com.gmail.send_email(to="bob"^^tt:username, message="foo", subject="bar");` },
 `>> Ok, I'm going to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”.
+>> context = now => @com.gmail.send_email param:message:String = QUOTED_STRING_0 param:subject:String = QUOTED_STRING_1 param:to:Entity(tt:email_address) = EMAIL_ADDRESS_0 // {"QUOTED_STRING_0":"foo","QUOTED_STRING_1":"bar","EMAIL_ADDRESS_0":"bob@smith.com"}
 >> ask special null
 `,
     `{
-  now => @com.gmail(id="com.gmail-19").send_email(to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"), message="foo", subject="bar");
+  now => @com.gmail(id="com.gmail-19").send_email(message="foo", subject="bar", to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"));
 }`],
 
     [
     {"program": `now => @com.gmail.send_email(to="dad"^^tt:username, message="foo", subject="bar");` },
 `>> Ok, I'm going to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”.
+>> context = now => @com.gmail.send_email param:message:String = QUOTED_STRING_0 param:subject:String = QUOTED_STRING_1 param:to:Entity(tt:email_address) = EMAIL_ADDRESS_0 // {"QUOTED_STRING_0":"foo","QUOTED_STRING_1":"bar","EMAIL_ADDRESS_0":"bob@smith.com"}
 >> ask special null
 `,
     `{
-  now => @com.gmail(id="com.gmail-20").send_email(to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"), message="foo", subject="bar");
+  now => @com.gmail(id="com.gmail-20").send_email(message="foo", subject="bar", to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"));
 }`],
 
     [
     {"program": `now => @com.gmail.send_email(to="missing_user"^^tt:username, message="foo", subject="bar");` },
 `>> No contact matches your search.
 >> Who do you want to contact?
+>> context = now => @com.gmail.send_email param:message:String = QUOTED_STRING_0 param:subject:String = QUOTED_STRING_1 param:to:Entity(tt:email_address) = USERNAME_0 // {"QUOTED_STRING_0":"foo","QUOTED_STRING_1":"bar","USERNAME_0":"missing_user"}
 >> ask special email_address
 `,
     {code:['bookkeeping', 'answer', 'EMAIL_ADDRESS_0'], entities:{'EMAIL_ADDRESS_0': 'bob@smith.com'}},
 `>> Ok, I'm going to send an email to bob@smith.com with subject “bar” on GMail with message equal to “foo”.
+>> context = now => @com.gmail.send_email param:message:String = QUOTED_STRING_0 param:subject:String = QUOTED_STRING_1 param:to:Entity(tt:email_address) = EMAIL_ADDRESS_0 // {"QUOTED_STRING_0":"foo","QUOTED_STRING_1":"bar","EMAIL_ADDRESS_0":"bob@smith.com"}
 >> ask special null
 `,
     `{
-  now => @com.gmail(id="com.gmail-21").send_email(to="bob@smith.com"^^tt:email_address, message="foo", subject="bar");
+  now => @com.gmail(id="com.gmail-21").send_email(message="foo", subject="bar", to="bob@smith.com"^^tt:email_address);
 }`],
 
     [
@@ -2166,6 +2348,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `>> Multiple contacts match “equal_prob”. Who do you mean?
 >> choice 0: Alice Smith (mom)
 >> choice 1: Bob Smith (dad)
+>> context = now => @com.gmail.send_email param:message:String = QUOTED_STRING_0 param:subject:String = QUOTED_STRING_1 param:to:Entity(tt:email_address) = USERNAME_0 // {"QUOTED_STRING_0":"foo","QUOTED_STRING_1":"bar","USERNAME_0":"equal_prob"}
 >> ask special choice
 `,
     {code:['bookkeeping', 'answer', 'EMAIL_ADDRESS_0'], entities:{'EMAIL_ADDRESS_0': 'bob@smith.com'}},
@@ -2173,34 +2356,38 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> Could you choose one of the following?
 >> choice 0: Alice Smith (mom)
 >> choice 1: Bob Smith (dad)
+>> context = now => @com.gmail.send_email param:message:String = QUOTED_STRING_0 param:subject:String = QUOTED_STRING_1 param:to:Entity(tt:email_address) = USERNAME_0 // {"QUOTED_STRING_0":"foo","QUOTED_STRING_1":"bar","USERNAME_0":"equal_prob"}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '1'],
 `>> Ok, I'm going to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”.
+>> context = now => @com.gmail.send_email param:message:String = QUOTED_STRING_0 param:subject:String = QUOTED_STRING_1 param:to:Entity(tt:email_address) = EMAIL_ADDRESS_0 // {"QUOTED_STRING_0":"foo","QUOTED_STRING_1":"bar","EMAIL_ADDRESS_0":"bob@smith.com"}
 >> ask special null
 `,
     `{
-  now => @com.gmail(id="com.gmail-22").send_email(to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"), message="foo", subject="bar");
+  now => @com.gmail(id="com.gmail-22").send_email(message="foo", subject="bar", to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"));
 }`],
 
     [
     {code: ['now', '=>', '@com.gmail.send_email', 'param:to:Entity(tt:email_address)', '=', 'USERNAME_0', 'param:message:String', '=', 'QUOTED_STRING_0', 'param:subject:String', '=', 'QUOTED_STRING_1'],
      entities: { USERNAME_0: 'dad', QUOTED_STRING_0: 'foo', QUOTED_STRING_1: 'bar' } },
 `>> Ok, I'm going to send an email to Bob Smith (dad) with subject “bar” on GMail with message equal to “foo”.
+>> context = now => @com.gmail.send_email param:message:String = QUOTED_STRING_0 param:subject:String = QUOTED_STRING_1 param:to:Entity(tt:email_address) = EMAIL_ADDRESS_0 // {"QUOTED_STRING_0":"foo","QUOTED_STRING_1":"bar","EMAIL_ADDRESS_0":"bob@smith.com"}
 >> ask special null
 `,
     `{
-  now => @com.gmail(id="com.gmail-23").send_email(to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"), message="foo", subject="bar");
+  now => @com.gmail(id="com.gmail-23").send_email(message="foo", subject="bar", to="bob@smith.com"^^tt:email_address("Bob Smith (dad)"));
 }`],
 
     [
     {code: ['now', '=>', '@org.thingpedia.builtin.thingengine.phone.send_sms', 'param:to:Entity(tt:phone_number)', '=', 'USERNAME_0', 'param:message:String', '=', 'QUOTED_STRING_0'],
      entities: { USERNAME_0: 'dad', QUOTED_STRING_0: 'foo', QUOTED_STRING_1: 'bar' } },
 `>> Ok, I'm going to send a message to Bob Smith (dad) containing “foo”.
+>> context = now => @org.thingpedia.builtin.thingengine.phone.send_sms param:message:String = QUOTED_STRING_0 param:to:Entity(tt:phone_number) = PHONE_NUMBER_0 // {"QUOTED_STRING_0":"foo","PHONE_NUMBER_0":"+555123456"}
 >> ask special null
 `,
     `{
-  now => @org.thingpedia.builtin.thingengine.phone(id="org.thingpedia.builtin.thingengine.phone").send_sms(to="+555123456"^^tt:phone_number("Bob Smith (dad)"), message="foo");
+  now => @org.thingpedia.builtin.thingengine.phone(id="org.thingpedia.builtin.thingengine.phone").send_sms(message="foo", to="+555123456"^^tt:phone_number("Bob Smith (dad)"));
 }`],
 
     [
@@ -2208,28 +2395,34 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) == undefined => notify // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '0'],
 `>> What should the hashtags be equal to?
+>> context = now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) == undefined => notify // {}
 >> ask special raw_string
 `,
     {code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'lol' }},
 `>> You chose #lol.
 >> Would you like to add more elements to the list?
+>> context = now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) == undefined => notify // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> What should the hashtags be equal to?
+>> context = now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) == undefined => notify // {}
 >> ask special raw_string
 `,
     {code: ['bookkeeping', 'answer', 'QUOTED_STRING_0'], entities: { QUOTED_STRING_0: 'funny' }},
 `>> You chose #lol, #funny.
 >> Would you like to add more elements to the list?
+>> context = now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) == undefined => notify // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:no'],
 `>> Sorry, I did not find any result for that.
+>> context = now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) == [ HASHTAG_0 , HASHTAG_1 ] => notify // {"HASHTAG_0":"lol","HASHTAG_1":"funny"}
 >> ask special null
 `,
     `{
@@ -2239,6 +2432,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     [
     ['now', '=>', '@org.coinbin.get_price', 'param:currency:Entity(tt:cryptocurrency_code)', '=', '"', 'bitcoin', '"', '^^tt:cryptocurrency_code', '=>', 'notify'],
 `>> Sorry, I did not find any result for that.
+>> context = now => @org.coinbin.get_price param:currency:Entity(tt:cryptocurrency_code) = GENERIC_ENTITY_tt:cryptocurrency_code_0 => notify // {"GENERIC_ENTITY_tt:cryptocurrency_code_0":{"value":"btc","display":"Bitcoin"}}
 >> ask special null
 `,
     `{
@@ -2248,6 +2442,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     [
     ['now', '=>', '@org.coinbin.get_price', 'param:currency:Entity(tt:cryptocurrency_code)', '=', '"', 'bitcoin', '"', '^^tt:cryptocurrency_code', '=>', 'notify'],
 `>> Sorry, I did not find any result for that.
+>> context = now => @org.coinbin.get_price param:currency:Entity(tt:cryptocurrency_code) = GENERIC_ENTITY_tt:cryptocurrency_code_0 => notify // {"GENERIC_ENTITY_tt:cryptocurrency_code_0":{"value":"btc","display":"Bitcoin"}}
 >> ask special null
 `,
     `{
@@ -2257,6 +2452,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     [
     ['now', '=>', '@org.coinbin.get_price', 'param:currency:Entity(tt:cryptocurrency_code)', '=', '"', 'invalid', '"', '^^tt:cryptocurrency_code', '=>', 'notify'],
 `>> Sorry, I cannot find any Cryptocurrency Code matching “invalid”.
+>> context = now => @org.coinbin.get_price param:currency:Entity(tt:cryptocurrency_code) = GENERIC_ENTITY_tt:cryptocurrency_code_0 => notify // {"GENERIC_ENTITY_tt:cryptocurrency_code_0":{"value":null,"display":"invalid"}}
 >> ask special null
 `,
     null],
@@ -2271,6 +2467,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> $$$$$$$$$$
 >> %%%%%%%%%%
 >> button: Show more result… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> context = now => @org.thingpedia.builtin.test.get_data param:count:Number = NUMBER_0 param:size:Measure(byte) = MEASURE_byte_0 => notify // {"NUMBER_0":25,"MEASURE_byte_0":{"unit":"byte","value":10}}
 >> ask special generic
 `,
     {"code":["bookkeeping","special","special:more"],"entities":{}},
@@ -2280,6 +2477,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ))))))))))
 >> **********
 >> button: Show more result… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> context = now => @org.thingpedia.builtin.test.get_data param:count:Number = NUMBER_0 param:size:Measure(byte) = MEASURE_byte_0 => notify // {"NUMBER_0":25,"MEASURE_byte_0":{"unit":"byte","value":10}}
 >> ask special generic
 `,
     {"code":["bookkeeping","special","special:more"],"entities":{}},
@@ -2289,6 +2487,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ..........
 >> //////////
 >> button: Show more result… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> context = now => @org.thingpedia.builtin.test.get_data param:count:Number = NUMBER_0 param:size:Measure(byte) = MEASURE_byte_0 => notify // {"NUMBER_0":25,"MEASURE_byte_0":{"unit":"byte","value":10}}
 >> ask special generic
 `,
     {"code":["bookkeeping","special","special:more"],"entities":{}},
@@ -2298,6 +2497,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> 3333333333
 >> 4444444444
 >> button: Show more result… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> context = now => @org.thingpedia.builtin.test.get_data param:count:Number = NUMBER_0 param:size:Measure(byte) = MEASURE_byte_0 => notify // {"NUMBER_0":25,"MEASURE_byte_0":{"unit":"byte","value":10}}
 >> ask special generic
 `,
     {"code":["bookkeeping","special","special:more"],"entities":{}},
@@ -2306,10 +2506,11 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> 7777777777
 >> 8888888888
 >> 9999999999
+>> context = now => @org.thingpedia.builtin.test.get_data param:count:Number = NUMBER_0 param:size:Measure(byte) = MEASURE_byte_0 => notify // {"NUMBER_0":25,"MEASURE_byte_0":{"unit":"byte","value":10}}
 >> ask special null
 `,
     `{
-  now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test-27").get_data(size=10byte, count=25) => notify;
+  now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test-27").get_data(count=25, size=10byte) => notify;
 }`],
 
     [
@@ -2322,13 +2523,15 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> $$$$$$$$$$
 >> %%%%%%%%%%
 >> button: Show more result… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> context = now => @org.thingpedia.builtin.test.get_data param:count:Number = NUMBER_0 param:size:Measure(byte) = MEASURE_byte_0 => notify // {"NUMBER_0":25,"MEASURE_byte_0":{"unit":"byte","value":10}}
 >> ask special generic
 `,
     {"code":["bookkeeping","special","special:nevermind"],"entities":{}},
-`>> ask special null
+`>> context = null // {}
+>> ask special null
 `,
     `{
-  now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test-28").get_data(size=10byte, count=25) => notify;
+  now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test-28").get_data(count=25, size=10byte) => notify;
 }`],
 
     [
@@ -2341,11 +2544,14 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> $$$$$$$$$$
 >> %%%%%%%%%%
 >> button: Show more result… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> context = now => @org.thingpedia.builtin.test.get_data param:count:Number = NUMBER_0 param:size:Measure(byte) = MEASURE_byte_0 => notify // {"NUMBER_0":25,"MEASURE_byte_0":{"unit":"byte","value":10}}
 >> ask special generic
 `,
     ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
-`>> ask special null
+`>> context = null // {}
+>> ask special null
 >> Sorry, I did not find any result for that.
+>> context = now => @com.xkcd.get_comic => notify // {}
 >> ask special null
 `,
     `{
@@ -2362,21 +2568,25 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> $$$$$$$$$$
 >> %%%%%%%%%%
 >> button: Show more result… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> context = now => @org.thingpedia.builtin.test.get_data param:count:Number = NUMBER_0 param:size:Measure(byte) = MEASURE_byte_0 => notify // {"NUMBER_0":25,"MEASURE_byte_0":{"unit":"byte","value":10}}
 >> ask special generic
 `,
     ['now', '=>', '@com.twitter.post'],
-`>> ask special null
+`>> context = null // {}
+>> ask special null
 >> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = now => @com.twitter.post // {}
 >> ask special choice
 `,
     ['bookkeeping', 'special', 'special:nevermind'],
 `>> Sorry I couldn't help on that.
+>> context = null // {}
 >> ask special null
 `,
     `{
-  now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test-31").get_data(size=10byte, count=25) => notify;
+  now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test-31").get_data(count=25, size=10byte) => notify;
 }`],
 
     [
@@ -2384,11 +2594,14 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = now => @com.twitter.post // {}
 >> ask special choice
 `,
     ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
-`>> ask special null
+`>> context = null // {}
+>> ask special null
 >> Sorry, I did not find any result for that.
+>> context = now => @com.xkcd.get_comic => notify // {}
 >> ask special null
 `,
     `{
@@ -2402,10 +2615,12 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = now => @com.twitter.post // {}
 >> ask special choice
 `,
     ['bookkeeping', 'special', 'special:nevermind'],
 `>> Sorry I couldn't help on that.
+>> context = null // {}
 >> ask special null
 `,
 null],
@@ -2415,6 +2630,7 @@ null],
     return almond.handleParsedCommand({ program: `now => @com.facebook.post(status="MOCK DISALLOWED PROGRAM");` });
 },
 `>> I'm sorry, you don't have permission to do that.
+>> context = null // {}
 >> ask special null
 `,
 null],
@@ -2424,10 +2640,12 @@ null],
     return almond.handleParsedCommand({ program: `now => @com.facebook.post(status=$undefined);` });
 },
 `>> What do you want to post?
+>> context = now => @com.facebook.post // {}
 >> ask special raw_string
 `,
     `MOCK DISALLOWED PROGRAM`,
 `>> I'm sorry, you don't have permission to do that.
+>> context = null // {}
 >> ask special null
 `,
 null],
@@ -2437,6 +2655,7 @@ null],
     return almond.handleParsedCommand({ program: `true : * => *;` });
 },
 `>> I'm sorry, you don't have permission to do that.
+>> context = null // {}
 >> ask special null
 `,
 null],
@@ -2446,6 +2665,7 @@ null],
     return almond.handleParsedCommand({ program: `executor = "bob"^^tt:username : now => @com.facebook.post(status=$undefined);` });
 },
 `>> I'm sorry, you don't have permission to do that.
+>> context = null // {}
 >> ask special null
 `,
 null],
@@ -2456,6 +2676,7 @@ null],
 },
 `>> This user is a demo only, and cannot perform actions. To execute this command, you must register an account for yourself.
 >> link: Register for Almond /user/register
+>> context = null // {}
 >> ask special null
 `,
 null],
@@ -2466,6 +2687,7 @@ null],
 },
 `>> This user is a demo only, and cannot enable long-running commands. To execute this command, you must register an account for yourself.
 >> link: Register for Almond /user/register
+>> context = null // {}
 >> ask special null
 `,
 null],
@@ -2475,6 +2697,7 @@ null],
     return almond.handleParsedCommand({ program: `true : * => *;` });
 },
 `>> This user is a demo only; you cannot change the permissions on it.
+>> context = null // {}
 >> ask special null
 `,
 null],
@@ -2485,6 +2708,7 @@ null],
 },
 `>> This user is a demo only, and cannot ask other users for permission. To execute this command, you must register an account for yourself.
 >> link: Register for Almond /user/register
+>> context = null // {}
 >> ask special null
 `,
 null],
@@ -2499,6 +2723,7 @@ null],
         });
     },
     `>> Ok, so I'm going to tell @slack_user_name: get the emails in your GMail inbox and then send it to me.
+>> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.gmail.inbox => return // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:123456789","display":"@slack_user_name"}}
 >> ask special null
 `,
     `{
@@ -2545,6 +2770,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
         });
     },
     `>> Ok, so I'm going to tell @slack_user_name: get the emails in your GMail inbox and then send it to me.
+>> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.gmail.inbox => return // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-email:dummy@example.com","display":"@slack_user_name"}}
 >> ask special null
 `,
     `{
@@ -2593,10 +2819,12 @@ remote mock-account:MOCK1234-email:dummy@example.com/phone:+15555555555 : uuid-X
     `>> Multiple contacts match “ABCDEFG”. Who do you mean?
 >> choice 0: Alice Smith (mom)
 >> choice 1: Bob Smith (dad)
+>> context = executor = USERNAME_0 : now => @com.gmail.inbox => return // {"USERNAME_0":"ABCDEFG"}
 >> ask special choice
 `,
     ['bookkeeping', 'special', 'special:nevermind'],
 `>> Sorry I couldn't help on that.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -2610,6 +2838,7 @@ remote mock-account:MOCK1234-email:dummy@example.com/phone:+15555555555 : uuid-X
         });
     },
     `>> Ok, so I'm going to tell @slack_user_name: get the emails in your GMail inbox and then send it to me.
+>> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.gmail.inbox => return // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:123456789","display":"@slack_user_name"}}
 >> ask special null
 `,
     `{
@@ -2656,6 +2885,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
         });
     },
     `>> Ok, so I'm going to tell Some Guy: get the emails in your GMail inbox and then send it to me.
+>> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.gmail.inbox => return // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:123456789","display":"Some Guy"}}
 >> ask special null
 `,
     `{
@@ -2699,6 +2929,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     return almond.handleParsedCommand({ program: `true : @com.xkcd.get_comic => notify;` });
 },
 `>> Sorry, this version of Almond does not support adding permissions.
+>> context = null // {}
 >> ask special null
 `,
     null
@@ -2706,6 +2937,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 
     [{program: `executor = "bob"^^tt:username : now => @com.xkcd.get_comic() => notify;` },
 `>> Sorry, this version of Almond does not support asking other users for permission.
+>> context = null // {}
 >> ask special null
 `,
     null
@@ -2713,6 +2945,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 
     [{program: `now => @com.xkcd.get_comic() => notify;` },
 `>> Sorry, I did not find any result for that.
+>> context = now => @com.xkcd.get_comic => notify // {}
 >> ask special null
 `,
 `{
@@ -2722,6 +2955,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 
     ['\\t now => @com.xkcd.get_comic() => notify;',
 `>> Sorry, I did not find any result for that.
+>> context = now => @com.xkcd.get_comic => notify // {}
 >> ask special null
 `,
 `{
@@ -2734,6 +2968,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     return almond.handleCommand('get an xkcd comic');
     },
 `>> Sorry, I did not find any result for that.
+>> context = now => @com.xkcd.get_comic => notify // {}
 >> ask special null
 `,
 `{
@@ -2743,22 +2978,27 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     [`tweet my instagram pictures`,
 `>> You don't have a Instagram.
 >> link: Configure Instagram /devices/oauth2/com.instagram?name=Instagram
+>> context = monitor ( @com.instagram.get_pictures ) => @com.twitter.post_picture on param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture) // {}
 >> ask special null
 `,
     null],
 
     [`get an xkcd comic`,
 `>> Sorry, I did not find any result for that.
+>> context = now => @com.xkcd.get_comic => notify // {}
 >> ask special null
 `,
     ['bookkeeping', 'special', 'special:train'],
-`>> ask special null
+`>> context = null // {}
+>> ask special null
 >> Did you mean get an Xkcd comic and then notify you?
+>> context = null // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Thanks, I made a note of that.
 >> You have trained me with 1 sentence.
+>> context = null // {}
 >> ask special null
 `,
     `{
@@ -2767,15 +3007,19 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 
     [`get an xkcd comic`,
 `>> Sorry, I did not find any result for that.
+>> context = now => @com.xkcd.get_comic => notify // {}
 >> ask special null
 `,
     ['bookkeeping', 'special', 'special:train'],
-`>> ask special null
+`>> context = null // {}
+>> ask special null
 >> Did you mean get an Xkcd comic and then notify you?
+>> context = null // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:no'],
 `>> Sorry I couldn't help on that.
+>> context = null // {}
 >> ask special null
 `,
     `{
@@ -2789,70 +3033,84 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 >> button: eat test data {"example_id":1,"code":["now","=>","@org.thingpedia.builtin.test.eat_data"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: get test data {"example_id":2,"code":["now","=>","@org.thingpedia.builtin.test.get_data","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: get $p_size test data {"example_id":3,"code":["now","=>","@org.thingpedia.builtin.test.get_data","param:size:Measure(byte)","=","SLOT_0","=>","notify"],"entities":{},"slotTypes":{"p_size":"Measure(byte)"},"slots":["p_size"]}
+>> context = null // {}
 >> ask special null
 `,
     null],
 
     [`!! test command always nothing !!`,
 `>> Sorry, I did not understand that. Use ‘help’ to learn what I can do for you.
+>> context = null // {}
 >> ask special null
 `,
     null],
 
     [`!! test command multiple results !!`,
 `>> Ok, so you want me to tweet ____. Is that right?
+>> context = now => @com.twitter.post // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:train'],
-`>> ask special null
+`>> context = null // {}
+>> ask special null
 >> Did you mean any of the following?
 >> choice 0: tweet ____
 >> choice 1: tweet “multiple results”
 >> choice 2: post ____ on Facebook
 >> choice 3: none of the above
+>> context = null // {}
 >> ask special choice
 `,
     ['bookkeeping', 'special', 'special:no'],
 `>> Sorry I couldn't help on that.
+>> context = null // {}
 >> ask special null
 `,
     null],
 
     [`!! test command multiple results !!`,
 `>> Ok, so you want me to tweet ____. Is that right?
+>> context = now => @com.twitter.post // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:train'],
-`>> ask special null
+`>> context = null // {}
+>> ask special null
 >> Did you mean any of the following?
 >> choice 0: tweet ____
 >> choice 1: tweet “multiple results”
 >> choice 2: post ____ on Facebook
 >> choice 3: none of the above
+>> context = null // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '1'],
 `>> Thanks, I made a note of that.
 >> You have trained me with 2 sentences.
+>> context = null // {}
 >> ask special null
 `,
     null],
 
     [`!! test command multiple results !!`,
 `>> Ok, so you want me to tweet ____. Is that right?
+>> context = now => @com.twitter.post // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:train'],
-`>> ask special null
+`>> context = null // {}
+>> ask special null
 >> Did you mean any of the following?
 >> choice 0: tweet ____
 >> choice 1: tweet “multiple results”
 >> choice 2: post ____ on Facebook
 >> choice 3: none of the above
+>> context = null // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '3'],
 `>> Sorry I couldn't help on that.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -2869,6 +3127,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 
     [`\\t now => @org.thingpedia.builtin.thingengine.builtin.configure(device="com.instagram"^^tt:device);`,
 `>> Ok, I'm going to configure a new Instagram.
+>> context = now => @org.thingpedia.builtin.thingengine.builtin.configure param:device:Entity(tt:device) = device:com.instagram // {}
 >> ask special null
 `,
     `{
@@ -2877,6 +3136,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 
     [`\\t now => @org.thingpedia.builtin.thingengine.builtin.configure(device="tumblr-blog"^^tt:device);`,
 `>> Ok, I'm going to configure a new Tumblr Blog.
+>> context = now => @org.thingpedia.builtin.thingengine.builtin.configure param:device:Entity(tt:device) = device:tumblr-blog // {}
 >> ask special null
 `,
     `{
@@ -2886,6 +3146,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     [
     ['now', '=>', '@com.bodytrace.scale.get', '=>', 'notify'],
 `>> Sorry, I don't know how to do that yet.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -2896,6 +3157,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     [
     `get the weight from my scale`,
 `>> Sorry, I don't know how to do that yet.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -2906,10 +3168,12 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     [
     `get new york times`,
 `>> Ok, so you want me to get New York Times articles and then notify you. Is that right?
+>> context = now => @com.nytimes.get_front_page => notify // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Sorry, I did not find any result for that.
+>> context = now => @com.nytimes.get_front_page => notify // {}
 >> ask special null
 `,
     `{
@@ -2919,6 +3183,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     [
     `!! test command all unsupported !!`,
 `>> Sorry, I don't know how to do that yet.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -2926,6 +3191,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     [
     `!! test command all unsupported 2 !!`,
 `>> Sorry, I don't know how to do that yet.
+>> context = null // {}
 >> ask special null
 `,
     null],
@@ -2939,30 +3205,36 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 >> button: Communication (phone, email, messenger, etc) {"code":["bookkeeping","category","communication"],"entities":{}}
 >> button: Services (weather, calendar, todo list, etc) {"code":["bookkeeping","category","service"],"entities":{}}
 >> button: Data Management (cloud drives) {"code":["bookkeeping","category","data-management"],"entities":{}}
+>> context = null // {}
 >> ask special command
 `,
     ['now', '=>', '@com.twitter.post'],
 `>> Your command is: tweet ____. You can add more filters or run your command if you are ready.
 >> choice 0: Choose a different command
 >> choice 1: Run it
+>> context = null // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 1],
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = now => @com.twitter.post // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', 1],
 `>> What do you want to tweet?
+>> context = now => @com.twitter.post // {}
 >> ask special raw_string
 `,
     '!! test command always nothing !!',
 `>> Ok, so you want me to tweet “!! test command always nothing !!”. Is that right?
+>> context = now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"!! test command always nothing !!"}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
+>> context = now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"!! test command always nothing !!"}
 >> ask special null
 `,
     `{
@@ -2971,35 +3243,53 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 
     // confirmation: confident, no slot, query
     [
-        `\\t now => @com.bing.web_search(query="hello") => notify;`,
-        `>> Sorry, I did not find any result for that.\n>> ask special null\n`,
-        `{\n  now => @com.bing(id="com.bing").web_search(query="hello") => notify;\n}`
+    `\\t now => @com.bing.web_search(query="hello") => notify;`,
+    `>> Sorry, I did not find any result for that.
+>> context = now => @com.bing.web_search param:query:String = QUOTED_STRING_0 => notify // {"QUOTED_STRING_0":"hello"}
+>> ask special null
+`,
+    `{\n  now => @com.bing(id="com.bing").web_search(query="hello") => notify;\n}`
     ],
 
     // confirmation: confident, has slot, query
     [
-        `\\t now => @com.bing.web_search() => notify;`,
-        `>> What do you want to search?\n>> ask special raw_string\n`,
-        `hello`,
-        `>> Sorry, I did not find any result for that.\n>> ask special null\n`,
-        `{\n  now => @com.bing(id="com.bing").web_search(query="hello") => notify;\n}`
+    `\\t now => @com.bing.web_search() => notify;`,
+    `>> What do you want to search?
+>> context = now => @com.bing.web_search => notify // {}
+>> ask special raw_string
+`,
+    `hello`,
+    `>> Sorry, I did not find any result for that.
+>> context = now => @com.bing.web_search param:query:String = QUOTED_STRING_0 => notify // {"QUOTED_STRING_0":"hello"}
+>> ask special null
+`,
+    `{\n  now => @com.bing(id="com.bing").web_search(query="hello") => notify;\n}`
     ],
 
     // confirmation: confident, no slot, safe action
     [
-        `\\t now => @com.spotify.play_song(toPlay = "hello");`,
-        `>> Ok, I'm going to play a song with to play equal to “hello”.\n>> ask special null\n`,
-        `{\n  now => @com.spotify(id="com.spotify-40").play_song(toPlay="hello");\n}`
+    `\\t now => @com.spotify.play_song(toPlay = "hello");`,
+    `>> Ok, I'm going to play a song with to play equal to “hello”.
+>> context = now => @com.spotify.play_song param:toPlay:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"hello"}
+>> ask special null
+`,
+    `{\n  now => @com.spotify(id="com.spotify-40").play_song(toPlay="hello");\n}`
     ],
 
 
     // confirmation: confident, has slot, safe action
     [
-        `\\t now => @com.spotify.play_song();`,
-        `>> What song would you like to play?\n>> ask special raw_string\n`,
-        `hello`,
-        `>> Ok, I'm going to play a song with to play equal to “hello”.\n>> ask special null\n`,
-        `{\n  now => @com.spotify(id="com.spotify-41").play_song(toPlay="hello");\n}`
+    `\\t now => @com.spotify.play_song();`,
+    `>> What song would you like to play?
+>> context = now => @com.spotify.play_song // {}
+>> ask special raw_string
+`,
+    `hello`,
+    `>> Ok, I'm going to play a song with to play equal to “hello”.
+>> context = now => @com.spotify.play_song param:toPlay:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"hello"}
+>> ask special null
+`,
+    `{\n  now => @com.spotify(id="com.spotify-41").play_song(toPlay="hello");\n}`
     ],
 
     // confirmation: confident, no slot, general
@@ -3008,10 +3298,14 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
         `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"hello"}
 >> ask special choice
 `,
-        ['bookkeeping', 'choice', 0],
-        `>> Ok, I'm going to tweet “hello”.\n>> ask special null\n`,
+    ['bookkeeping', 'choice', 0],
+    `>> Ok, I'm going to tweet “hello”.
+>> context = now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"hello"}
+>> ask special null
+`,
         `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
     ],
 
@@ -3022,105 +3316,172 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
         `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = now => @com.twitter.post // {}
 >> ask special choice
 `,
-        ['bookkeeping', 'choice', 0],
-        `>> What do you want to tweet?\n>> ask special raw_string\n`,
-        `hello`,
-        `>> Ok, so you want me to tweet “hello”. Is that right?\n>> ask special yesno\n`,
-        ['bookkeeping', 'special', 'special:yes'],
-        `>> Consider it done.\n>> ask special null\n`,
-        `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
+    ['bookkeeping', 'choice', 0],
+    `>> What do you want to tweet?
+>> context = now => @com.twitter.post // {}
+>> ask special raw_string
+`,
+    `hello`,
+    `>> Ok, so you want me to tweet “hello”. Is that right?
+>> context = now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"hello"}
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+    `>> Consider it done.
+>> context = now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"hello"}
+>> ask special null
+`,
+    `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
     ],
 
     // confirmation: not confident, no slot, query
     [
-        `search hello on bing`,
-        `>> Ok, so you want me to get websites matching “hello” on Bing and then notify you. Is that right?\n>> ask special yesno\n`,
-        ['bookkeeping', 'special', 'special:yes'],
-        `>> Sorry, I did not find any result for that.\n>> ask special null\n`,
+    `search hello on bing`,
+    `>> Ok, so you want me to get websites matching “hello” on Bing and then notify you. Is that right?
+>> context = now => @com.bing.web_search param:query:String = QUOTED_STRING_0 => notify // {"QUOTED_STRING_0":"hello"}
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+    `>> Sorry, I did not find any result for that.
+>> context = now => @com.bing.web_search param:query:String = QUOTED_STRING_0 => notify // {"QUOTED_STRING_0":"hello"}
+>> ask special null
+`,
         `{\n  now => @com.bing(id="com.bing").web_search(query="hello") => notify;\n}`
     ],
 
     // confirmation: not confident, has slot, query
     [
-        `search on bing`,
-        `>> Ok, so you want me to get websites matching ____ on Bing and then notify you. Is that right?\n>> ask special yesno\n`,
-        ['bookkeeping', 'special', 'special:yes'],
-        `>> What do you want to search?\n>> ask special raw_string\n`,
-        `hello`,
-        `>> Sorry, I did not find any result for that.\n>> ask special null\n`,
+    `search on bing`,
+    `>> Ok, so you want me to get websites matching ____ on Bing and then notify you. Is that right?
+>> context = now => @com.bing.web_search => notify // {}
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+    `>> What do you want to search?
+>> context = now => @com.bing.web_search => notify // {}
+>> ask special raw_string
+`,
+    `hello`,
+    `>> Sorry, I did not find any result for that.
+>> context = now => @com.bing.web_search param:query:String = QUOTED_STRING_0 => notify // {"QUOTED_STRING_0":"hello"}
+>> ask special null
+`,
         `{\n  now => @com.bing(id="com.bing").web_search(query="hello") => notify;\n}`
     ],
 
     // confirmation: not confident, has slot in filter, query
     [
-        `search hello on bing with title filter`,
-        `>> Ok, so you want me to get websites matching “hello” on Bing if the title contains ____ and then notify you. Is that right?\n>> ask special yesno\n`,
-        ['bookkeeping', 'special', 'special:yes'],
-        `>> What should the title contain?
+    `search hello on bing with title filter`,
+    `>> Ok, so you want me to get websites matching “hello” on Bing if the title contains ____ and then notify you. Is that right?
+>> context = now => ( @com.bing.web_search param:query:String = QUOTED_STRING_0 ) filter param:title:String =~ undefined => notify // {"QUOTED_STRING_0":"hello"}
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+    `>> What should the title contain?
 >> choice 0: Use the description from Bing
 >> choice 1: None of above
+>> context = now => ( @com.bing.web_search param:query:String = QUOTED_STRING_0 ) filter param:title:String =~ undefined => notify // {"QUOTED_STRING_0":"hello"}
 >> ask special choice
 `,
-        ['bookkeeping', 'choice', '0'],
-        `>> Sorry, I did not find any result for that.\n>> ask special null\n`,
-        `{\n  now => (@com.bing(id="com.bing").web_search(query="hello")), title =~ description => notify;\n}`
+    ['bookkeeping', 'choice', '0'],
+    `>> Sorry, I did not find any result for that.
+>> context = now => ( @com.bing.web_search param:query:String = QUOTED_STRING_0 ) filter param:title:String =~ param:description:String => notify // {"QUOTED_STRING_0":"hello"}
+>> ask special null
+`,
+    `{\n  now => (@com.bing(id="com.bing").web_search(query="hello")), title =~ description => notify;\n}`
     ],
 
     // confirmation: not confident, no slot, safe action
     [
-        `play hello`,
-        `>> Ok, so you want me to play a song with to play equal to “hello”. Is that right?\n>> ask special yesno\n`,
-        ['bookkeeping', 'special', 'special:yes'],
-        `>> Ok, I'm going to play a song with to play equal to “hello”.\n>> ask special null\n`,
-        `{\n  now => @com.spotify(id="com.spotify-42").play_song(toPlay="hello");\n}`
+    `play hello`,
+    `>> Ok, so you want me to play a song with to play equal to “hello”. Is that right?
+>> context = now => @com.spotify.play_song param:toPlay:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"hello"}
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+    `>> Ok, I'm going to play a song with to play equal to “hello”.
+>> context = now => @com.spotify.play_song param:toPlay:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"hello"}
+>> ask special null
+`,
+    `{\n  now => @com.spotify(id="com.spotify-42").play_song(toPlay="hello");\n}`
     ],
 
 
     // confirmation: not confident, has slot, safe action
     [
-        `play a song`,
-        `>> Ok, so you want me to play a song. Is that right?\n>> ask special yesno\n`,
-        ['bookkeeping', 'special', 'special:yes'],
-        `>> What song would you like to play?\n>> ask special raw_string\n`,
-        `hello`,
-        `>> Ok, I'm going to play a song with to play equal to “hello”.\n>> ask special null\n`,
-        `{\n  now => @com.spotify(id="com.spotify-43").play_song(toPlay="hello");\n}`
+    `play a song`,
+    `>> Ok, so you want me to play a song. Is that right?
+>> context = now => @com.spotify.play_song // {}
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+    `>> What song would you like to play?
+>> context = now => @com.spotify.play_song // {}
+>> ask special raw_string
+`,
+    `hello`,
+    `>> Ok, I'm going to play a song with to play equal to “hello”.
+>> context = now => @com.spotify.play_song param:toPlay:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"hello"}
+>> ask special null
+`,
+    `{\n  now => @com.spotify(id="com.spotify-43").play_song(toPlay="hello");\n}`
     ],
 
     // confirmation: not confident, no slot, general
     [
-        `tweet hello`,
-        `>> Ok, so you want me to tweet “hello”. Is that right?\n>> ask special yesno\n`,
-        ['bookkeeping', 'special', 'special:yes'],
-        `>> You have multiple Twitter devices. Which one do you want to use?
+    `tweet hello`,
+    `>> Ok, so you want me to tweet “hello”. Is that right?
+>> context = now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"hello"}
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+    `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"hello"}
 >> ask special choice
 `,
-        ['bookkeeping', 'choice', 0],
-        `>> Consider it done.\n>> ask special null\n`,
-        `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
+    ['bookkeeping', 'choice', 0],
+    `>> Consider it done.
+>> context = now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"hello"}
+>> ask special null
+`,
+    `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
     ],
 
 
     // confirmation: not confident, has slot, general
     [
-        `tweet`,
-        `>> Ok, so you want me to tweet ____. Is that right?\n>> ask special yesno\n`,
-        ['bookkeeping', 'special', 'special:yes'],
-        `>> You have multiple Twitter devices. Which one do you want to use?
+    `tweet`,
+    `>> Ok, so you want me to tweet ____. Is that right?
+>> context = now => @com.twitter.post // {}
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+    `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = now => @com.twitter.post // {}
 >> ask special choice
 `,
-        ['bookkeeping', 'choice', 0],
-        `>> What do you want to tweet?\n>> ask special raw_string\n`,
-        `hello`,
-        `>> Ok, so you want me to tweet “hello”. Is that right?\n>> ask special yesno\n`,
-        ['bookkeeping', 'special', 'special:yes'],
-        `>> Consider it done.\n>> ask special null\n`,
+    ['bookkeeping', 'choice', 0],
+    `>> What do you want to tweet?
+>> context = now => @com.twitter.post // {}
+>> ask special raw_string
+`,
+    `hello`,
+    `>> Ok, so you want me to tweet “hello”. Is that right?
+>> context = now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"hello"}
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+    `>> Consider it done.
+>> context = now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"QUOTED_STRING_0":"hello"}
+>> ask special null
+`,
         `{\n  now => @com.twitter(id="twitter-foo").post(status="hello");\n}`
     ],
 
@@ -3128,14 +3489,17 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     [
         '\\t now => @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=6) => notify;',
 `>> What should be the lower bound?
+>> context = now => @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 => notify // {"NUMBER_0":6}
 >> ask special number
 `,
 ['bookkeeping', 'special', 'special:help'],
 `>> Could you give me a number?
+>> context = now => @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 => notify // {"NUMBER_0":6}
 >> ask special number
 `,
         ['bookkeeping', 'answer', '0'],
 `>> Sorry, I did not find any result for that.
+>> context = now => @org.thingpedia.builtin.thingengine.builtin.get_random_between param:high:Number = NUMBER_0 param:low:Number = 0 => notify // {"NUMBER_0":6}
 >> ask special null
 `,
         `{
@@ -3147,10 +3511,12 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     [
     `\\t now => @com.facebook.post();`,
 `>> What do you want to post?
+>> context = now => @com.facebook.post // {}
 >> ask special raw_string
 `,
     ['bookkeeping', 'special', 'special:nevermind'],
 `>> Sorry I couldn't help on that.
+>> context = null // {}
 >> ask special null
 `,
     null
@@ -3159,22 +3525,26 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
     [
     `\\t now => @com.facebook.post();`,
 `>> What do you want to post?
+>> context = now => @com.facebook.post // {}
 >> ask special raw_string
 `,
     ['bookkeeping', 'special', 'special:stop'],
-`>> ask special null
+`>> context = null // {}
+>> ask special null
 `,
     null
     ],
 
     [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
 `>> What location do you want the current weather for?
+>> context = now => @org.thingpedia.weather.current => notify // {}
 >> ask special location
 `,
 
     { code: ['bookkeeping', 'answer', 'LOCATION_0'], entities: {"LOCATION_0": {longitude:0, latitude:-90, display:"South pole"}}},
 `>> Current weather for South pole: sunny, temperature 22.0 C, wind speed 0.0 m/s, humidity 75%, cloudiness 0%, fog 0%.
 >> MapFO Location: [Latitude: -90.000 deg, Longitude: 0.000 deg]
+>> context = now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify // {"LOCATION_0":{"latitude":-90,"longitude":0,"display":"South pole"}}
 >> ask special null
 `,
 
@@ -3184,6 +3554,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 
     [['now', '=>', '@org.thingpedia.weather.current', 'param:location:Location', '=', 'location:', '"', 'seattle', '"', '=>', 'notify'],
 `>> Sorry, I did not find any result for that.
+>> context = now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify // {"LOCATION_0":{"latitude":47.6038321,"longitude":-122.3300624,"display":"Seattle, King County, Washington, USA"}}
 >> ask special null
 `,
 
@@ -3193,11 +3564,13 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 
     [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
 `>> What location do you want the current weather for?
+>> context = now => @org.thingpedia.weather.current => notify // {}
 >> ask special location
 `,
 
     { code: ['bookkeeping', 'answer', 'location:', '"', 'seattle', '"',], entities: {}},
 `>> Sorry, I did not find any result for that.
+>> context = now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify // {"LOCATION_0":{"latitude":47.6038321,"longitude":-122.3300624,"display":"Seattle, King County, Washington, USA"}}
 >> ask special null
 `,
 
@@ -3207,6 +3580,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 
     [['now', '=>', '@org.thingpedia.weather.current', 'param:location:Location', '=', 'location:', '"', 'invalid', '"', '=>', 'notify'],
 `>> Sorry, I cannot find any location matching “invalid”.
+>> context = now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify // {"LOCATION_0":{"latitude":null,"longitude":null,"display":"invalid"}}
 >> ask special null
 `,
 
@@ -3214,24 +3588,29 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 
     ['\\t attimer(time=$?) => @com.twitter.post();',
 `>> When do you want your command to run?
+>> context = attimer time = undefined => @com.twitter.post // {}
 >> ask special time
 `,
     { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 7, minute: 30 }}},
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = attimer time = TIME_0 => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0}}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '0'],
 `>> What do you want to tweet?
+>> context = attimer time = TIME_0 => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0}}
 >> ask special raw_string
 `,
     `good morning`,
 `>> Ok, so you want me to tweet “good morning” every day at 7:30 AM. Is that right?
+>> context = attimer time = TIME_0 => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"TIME_0":{"hour":7,"minute":30,"second":0},"QUOTED_STRING_0":"good morning"}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
+>> context = attimer time = TIME_0 => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"TIME_0":{"hour":7,"minute":30,"second":0},"QUOTED_STRING_0":"good morning"}
 >> ask special null
 `,
 
@@ -3241,28 +3620,34 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 
     ['\\t attimer(time=[$?, $?]) => @com.twitter.post();',
 `>> What is the first time you would like your command to run?
+>> context = attimer time = [ undefined , undefined ] => @com.twitter.post // {}
 >> ask special time
 `,
     { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 7, minute: 30 }}},
 `>> What is the second time you would like your command to run?
+>> context = attimer time = [ TIME_0 , undefined ] => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0}}
 >> ask special time
 `,
-    { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 8, minute: 30 }}},
+    { code: ['bookkeeping', 'answer', 'TIME_1',], entities: { TIME_0:{ hour: 7, minute: 30, second: 0 }, TIME_1: { hour: 8, minute: 30 } }},
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = attimer time = [ TIME_0 , TIME_1 ] => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0}}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '0'],
 `>> What do you want to tweet?
+>> context = attimer time = [ TIME_0 , TIME_1 ] => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0}}
 >> ask special raw_string
 `,
     `good morning`,
 `>> Ok, so you want me to tweet “good morning” every day at 7:30 AM and 8:30 AM. Is that right?
+>> context = attimer time = [ TIME_0 , TIME_1 ] => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0},"QUOTED_STRING_0":"good morning"}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
+>> context = attimer time = [ TIME_0 , TIME_1 ] => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0},"QUOTED_STRING_0":"good morning"}
 >> ask special null
 `,
 
@@ -3272,32 +3657,39 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 
     ['\\t attimer(time=[$?, $?], expiration_date=$?) => @com.twitter.post();',
 `>> What is the first time you would like your command to run?
+>> context = attimer time = [ undefined , undefined ] expiration_date = undefined => @com.twitter.post // {}
 >> ask special time
 `,
     { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 7, minute: 30 }}},
 `>> What is the second time you would like your command to run?
+>> context = attimer time = [ TIME_0 , undefined ] expiration_date = undefined => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0}}
 >> ask special time
 `,
-    { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 8, minute: 30 }}},
+    { code: ['bookkeeping', 'answer', 'TIME_1',], entities: { TIME_0:{ hour: 7, minute: 30, second: 0 }, TIME_1: { hour: 8, minute: 30 } }},
 `>> When should your command stop?
+>> context = attimer time = [ TIME_0 , TIME_1 ] expiration_date = undefined => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0}}
 >> ask special date
 `,
     { code: ['bookkeeping', 'answer', 'end_of', 'unit:week'], entities: {}},
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = attimer time = [ TIME_0 , TIME_1 ] expiration_date = end_of unit:week => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0}}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '0'],
 `>> What do you want to tweet?
+>> context = attimer time = [ TIME_0 , TIME_1 ] expiration_date = end_of unit:week => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0}}
 >> ask special raw_string
 `,
     `good morning`,
 `>> Ok, so you want me to tweet “good morning” every day at 7:30 AM and 8:30 AM until the end of this week. Is that right?
+>> context = attimer time = [ TIME_0 , TIME_1 ] expiration_date = end_of unit:week => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0},"QUOTED_STRING_0":"good morning"}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
+>> context = attimer time = [ TIME_0 , TIME_1 ] expiration_date = end_of unit:week => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0},"QUOTED_STRING_0":"good morning"}
 >> ask special null
 `,
 
@@ -3309,18 +3701,22 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) == [ undefined , undefined ] => notify // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '0'],
 `>> What would you like the first hashtags to be?
+>> context = now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) == [ undefined , undefined ] => notify // {}
 >> ask special raw_string
 `,
     ['bookkeeping', 'answer', '"', 'foo', '"', '^^tt:hashtag'],
 `>> What would you like the second hashtags to be?
+>> context = now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) == [ HASHTAG_0 , undefined ] => notify // {"HASHTAG_0":"foo"}
 >> ask special raw_string
 `,
     ['bookkeeping', 'answer', '"', 'bar', '"', '^^tt:hashtag'],
 `>> Sorry, I did not find any result for that.
+>> context = now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) == [ HASHTAG_0 , HASHTAG_1 ] => notify // {"HASHTAG_0":"foo","HASHTAG_1":"bar"}
 >> ask special null
 `,
     `{
@@ -3369,7 +3765,7 @@ function resetOptions(almond) {
 
 let anyFailed = false;
 
-function test(script, i) {
+async function test(script, i) {
     console.error('Test Case #' + (i+1));
 
     flushBuffer();
@@ -3409,12 +3805,6 @@ function test(script, i) {
         console.error(e.stack);
         anyFailed = true;
     });
-}
-
-async function promiseDoAll(array, fn) {
-    //array = array.slice(0,16);
-    for (let i = 0; i < array.length; i++)
-        await fn(array[i], i);
 }
 
 var almond;
@@ -3480,7 +3870,7 @@ const _rssFactory = {
     "fields":[{"name":"url","label":"Feed URL","type":"text"}]
 };
 
-function main() {
+async function main(limit = Infinity) {
     var engine = Mock.createMockEngine('mock');
     engine.platform.getSharedPreferences().set('sabrina-initialized', false);
 
@@ -3521,9 +3911,7 @@ function main() {
 
     var delegate = new TestDelegate();
 
-    var sempreUrl;
-    if (process.argv[2] !== undefined && process.argv[2].startsWith('--with-sempre='))
-        sempreUrl = process.argv[2].substr('--with-sempre='.length);
+    const sempreUrl = 'https://almond-dev.stanford.edu/nnparser';
     almond = new Almond(engine, 'test', new MockUser(), delegate,
         { debug: false, sempreUrl: sempreUrl, showWelcome: true, anonymous: false,
           testMode: true });
@@ -3665,12 +4053,13 @@ function main() {
         }
     };
 
-    return promiseDoAll(TEST_CASES, test).then(() => {
-        if (anyFailed)
-            process.exit(1);
-    });
+    for (let i = 0; i < Math.min(limit, TEST_CASES.length); i++)
+        await test(TEST_CASES[i], i);
+
+    if (anyFailed)
+        throw new Error('Test failed');
 }
 if (module.parent)
     module.exports = main;
 else
-    main();
+    main(parseInt(process.argv[2]) || Infinity);
