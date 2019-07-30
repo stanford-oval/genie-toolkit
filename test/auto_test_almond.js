@@ -3388,7 +3388,7 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 `,
     ['bookkeeping', 'choice', '0'],
     `>> Sorry, I did not find any result for that.
->> context = now => ( @com.bing.web_search param:query:String = QUOTED_STRING_0 ) filter param:title:String =~ description => notify // {"QUOTED_STRING_0":"hello"}
+>> context = now => ( @com.bing.web_search param:query:String = QUOTED_STRING_0 ) filter param:title:String =~ param:description:String => notify // {"QUOTED_STRING_0":"hello"}
 >> ask special null
 `,
     `{\n  now => (@com.bing(id="com.bing").web_search(query="hello")), title =~ description => notify;\n}`
@@ -3588,24 +3588,29 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 
     ['\\t attimer(time=$?) => @com.twitter.post();',
 `>> When do you want your command to run?
+>> context = attimer time = undefined => @com.twitter.post // {}
 >> ask special time
 `,
     { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 7, minute: 30 }}},
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = attimer time = TIME_0 => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0}}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '0'],
 `>> What do you want to tweet?
+>> context = attimer time = TIME_0 => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0}}
 >> ask special raw_string
 `,
     `good morning`,
 `>> Ok, so you want me to tweet “good morning” every day at 7:30 AM. Is that right?
+>> context = attimer time = TIME_0 => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"TIME_0":{"hour":7,"minute":30,"second":0},"QUOTED_STRING_0":"good morning"}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
+>> context = attimer time = TIME_0 => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"TIME_0":{"hour":7,"minute":30,"second":0},"QUOTED_STRING_0":"good morning"}
 >> ask special null
 `,
 
@@ -3615,28 +3620,34 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 
     ['\\t attimer(time=[$?, $?]) => @com.twitter.post();',
 `>> What is the first time you would like your command to run?
+>> context = attimer time = [ undefined , undefined ] => @com.twitter.post // {}
 >> ask special time
 `,
     { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 7, minute: 30 }}},
 `>> What is the second time you would like your command to run?
+>> context = attimer time = [ TIME_0 , undefined ] => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0}}
 >> ask special time
 `,
-    { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 8, minute: 30 }}},
+    { code: ['bookkeeping', 'answer', 'TIME_1',], entities: { TIME_0:{ hour: 7, minute: 30, second: 0 }, TIME_1: { hour: 8, minute: 30 } }},
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = attimer time = [ TIME_0 , TIME_1 ] => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0}}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '0'],
 `>> What do you want to tweet?
+>> context = attimer time = [ TIME_0 , TIME_1 ] => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0}}
 >> ask special raw_string
 `,
     `good morning`,
 `>> Ok, so you want me to tweet “good morning” every day at 7:30 AM and 8:30 AM. Is that right?
+>> context = attimer time = [ TIME_0 , TIME_1 ] => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0},"QUOTED_STRING_0":"good morning"}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
+>> context = attimer time = [ TIME_0 , TIME_1 ] => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0},"QUOTED_STRING_0":"good morning"}
 >> ask special null
 `,
 
@@ -3646,32 +3657,39 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 
     ['\\t attimer(time=[$?, $?], expiration_date=$?) => @com.twitter.post();',
 `>> What is the first time you would like your command to run?
+>> context = attimer time = [ undefined , undefined ] expiration_date = undefined => @com.twitter.post // {}
 >> ask special time
 `,
     { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 7, minute: 30 }}},
 `>> What is the second time you would like your command to run?
+>> context = attimer time = [ TIME_0 , undefined ] expiration_date = undefined => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0}}
 >> ask special time
 `,
-    { code: ['bookkeeping', 'answer', 'TIME_0',], entities: { TIME_0: { hour: 8, minute: 30 }}},
+    { code: ['bookkeeping', 'answer', 'TIME_1',], entities: { TIME_0:{ hour: 7, minute: 30, second: 0 }, TIME_1: { hour: 8, minute: 30 } }},
 `>> When should your command stop?
+>> context = attimer time = [ TIME_0 , TIME_1 ] expiration_date = undefined => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0}}
 >> ask special date
 `,
     { code: ['bookkeeping', 'answer', 'end_of', 'unit:week'], entities: {}},
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = attimer time = [ TIME_0 , TIME_1 ] expiration_date = end_of unit:week => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0}}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '0'],
 `>> What do you want to tweet?
+>> context = attimer time = [ TIME_0 , TIME_1 ] expiration_date = end_of unit:week => @com.twitter.post // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0}}
 >> ask special raw_string
 `,
     `good morning`,
 `>> Ok, so you want me to tweet “good morning” every day at 7:30 AM and 8:30 AM until the end of this week. Is that right?
+>> context = attimer time = [ TIME_0 , TIME_1 ] expiration_date = end_of unit:week => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0},"QUOTED_STRING_0":"good morning"}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Consider it done.
+>> context = attimer time = [ TIME_0 , TIME_1 ] expiration_date = end_of unit:week => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0},"QUOTED_STRING_0":"good morning"}
 >> ask special null
 `,
 
@@ -3683,18 +3701,22 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
 `>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
+>> context = now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) == [ undefined , undefined ] => notify // {}
 >> ask special choice
 `,
     ['bookkeeping', 'choice', '0'],
 `>> What would you like the first hashtags to be?
+>> context = now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) == [ undefined , undefined ] => notify // {}
 >> ask special raw_string
 `,
     ['bookkeeping', 'answer', '"', 'foo', '"', '^^tt:hashtag'],
 `>> What would you like the second hashtags to be?
+>> context = now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) == [ HASHTAG_0 , undefined ] => notify // {"HASHTAG_0":"foo"}
 >> ask special raw_string
 `,
     ['bookkeeping', 'answer', '"', 'bar', '"', '^^tt:hashtag'],
 `>> Sorry, I did not find any result for that.
+>> context = now => ( @com.twitter.search ) filter param:hashtags:Array(Entity(tt:hashtag)) == [ HASHTAG_0 , HASHTAG_1 ] => notify // {"HASHTAG_0":"foo","HASHTAG_1":"bar"}
 >> ask special null
 `,
     `{
