@@ -1101,7 +1101,7 @@ lodash.uniq@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.uniq/-/lodash.uniq-4.5.0.tgz#d0225373aeb652adc1bc82e4945339a842754773"
   integrity sha1-0CJTc662Uq3BvILklFM5qEJ1R3M=
-  
+
 lodash@^4.17.12, lodash@^4.17.13, lodash@^4.17.14:
   version "4.17.15"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.15.tgz#b447f6670a0455bbfeedd11392eff330ea097548"
@@ -1854,8 +1854,8 @@ thingpedia@^2.3.3:
 
 thingtalk@^1.7.0, "thingtalk@github:stanford-oval/thingtalk":
   version "1.7.3"
-  uid d016a68784db7ce19f58bfaa7515401bbcaad62f
-  resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/d016a68784db7ce19f58bfaa7515401bbcaad62f"
+  uid dc64314055de6b9de15d2262cf491db4b5822135
+  resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/dc64314055de6b9de15d2262cf491db4b5822135"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
