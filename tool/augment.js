@@ -21,6 +21,7 @@ const BinaryPPDB = require('../lib/binary_ppdb');
 
 const StreamUtils = require('../lib/stream-utils');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
+const ProgressBar = require('./lib/progress_bar');
 
 module.exports = {
     initArgparse(subparsers) {
@@ -148,12 +149,15 @@ module.exports = {
 
     async execute(args) {
         const tpClient = new FileThingpediaClient(args);
-        const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, args.debug);
+        const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
         const constProvider = new FileParameterProvider(args.parameter_datasets);
         await constProvider.open();
 
+        const counter = new StreamUtils.CountStream();
+
         readAllLines(args.input_file)
             .pipe(new DatasetParser({ contextual: args.contextual }))
+            .pipe(counter)
             .pipe(new DatasetAugmenter(schemaRetriever, constProvider, tpClient, {
                 rng: seedrandom.alea(args.random_seed),
                 locale: args.locale,
@@ -173,6 +177,17 @@ module.exports = {
             }))
             .pipe(new DatasetStringifier())
             .pipe(args.output);
+
+        if (!args.debug) {
+            const progbar = new ProgressBar(1);
+            counter.on('progress', (value) => {
+                //console.log(value);
+                progbar.update(value);
+            });
+
+            // issue an update now to show the progress bar
+            progbar.update(0);
+        }
 
         await StreamUtils.waitFinish(args.output);
         await constProvider.close();

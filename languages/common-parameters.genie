@@ -10,7 +10,7 @@
 
 {
 // import the combinator library
-const C = require('../lib/sentence-generator/ast_manip');
+const C = require('./ast_manip');
 }
 
 out_param_Numeric = {

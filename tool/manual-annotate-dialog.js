@@ -87,6 +87,8 @@ class Annotator extends Stream.Readable {
                 this._more();
             } else if (line.startsWith('e ')) {
                 this._edit(parseInt(line.substring(2).trim()));
+            } else if (line.startsWith('t ')) {
+                this._learnThingTalk(line.substring(2)).catch((e) => this.emit('error', e));
             } else if (line === 't') {
                 this._state = 'code';
                 rl.setPrompt('TT: ');
@@ -131,7 +133,7 @@ class Annotator extends Stream.Readable {
         try {
             program = await ThingTalk.Grammar.parseAndTypecheck(code, this._schemas);
 
-            let clone = {};
+            const clone = {};
             Object.assign(clone, this._entities);
             ThingTalk.NNSyntax.toNN(program, this._preprocessed, clone);
         } catch(e) {
@@ -163,7 +165,7 @@ class Annotator extends Stream.Readable {
             return;
         }
         i -= 1;
-        const program = ThingTalk.NNSyntax.fromNN(this._candidates[i].code, this._entities);
+        const program = this._candidates[i];
         this._state = 'code';
         this._rl.setPrompt('TT: ');
         this._rl.write(program.prettyprint(true));
@@ -210,13 +212,18 @@ class Annotator extends Stream.Readable {
     }
 
     _computeAssistantAction() {
-        for (let [, slot] of this._context.iterateSlots()) {
+        for (let [schema, slot] of this._context.iterateSlots()) {
             if (slot instanceof Ast.Selector)
                 continue;
             if (slot.value.isUndefined) {
                 this._currentDialog.push(`# assistant asks for ${slot.name}`);
                 console.log(`A: asks for ${slot.name}`);
-                this._dialogState = 'slot-fill';
+
+                let argname = slot.name;
+                let type = schema.inReq[argname] || schema.inOpt[argname] || schema.out[argname];
+                if (slot instanceof Ast.BooleanExpression && slot.operator === 'contains')
+                    type = type.elem;
+                this._dialogState = type.isString ? 'raw' : 'slot-fill';
                 return;
             }
         }
@@ -259,7 +266,7 @@ class Annotator extends Stream.Readable {
             }
 
             if (newCommand.intent.isAnswer) {
-                if (this._dialogState !== 'slot-fill') {
+                if (this._dialogState !== 'slot-fill' && this._dialogState !== 'raw') {
                     console.log(`Unexpected answer`);
                     return false;
                 }
@@ -319,11 +326,29 @@ class Annotator extends Stream.Readable {
     nextTurn() {
         this._state = 'input';
         this._utterance = undefined;
+        console.log('Context: ' + (this._context ? this._context.prettyprint() : 'null'));
         this._rl.setPrompt('U: ');
         this._rl.prompt();
     }
 
     async _handleInput() {
+        if (this._dialogState === 'raw') {
+            const program = new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Answer(new Ast.Value.String(this._utterance)));
+            if (!this._applyReplyToContext(program)) {
+                this._rl.setPrompt('$ ');
+                this._rl.prompt();
+                return;
+            }
+
+            this._currentDialog.push(
+                this._preprocessed,
+                program.prettyprint()
+            );
+            this._computeAssistantAction();
+            this.nextTurn();
+            return;
+        }
+
         this._state = 'loading';
 
         let contextCode, contextEntities = {};

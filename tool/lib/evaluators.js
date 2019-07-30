@@ -376,6 +376,10 @@ class DialogEvaluatorStream extends Stream.Transform {
     }
 
     async _checkTurn(id, turn, contextCode, contextEntities, input, targetProgram) {
+        // if we're expecting a string answer, we're in raw mode so the answer will always be correct
+        if (targetProgram.isBookkeeping && targetProgram.intent.isAnswer && targetProgram.intent.value.isString)
+            return true;
+
         let tokens;
         let entities;
         if (this._tokenized) {

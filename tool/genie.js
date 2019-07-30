@@ -33,6 +33,7 @@ const subcommands = {
     'augment': require('./augment'),
     'resample': require('./resample'),
     'split-train-eval': require('./split-train-eval'),
+    'typecheck': require('./typecheck'),
 
     'train': require('./train'),
     'predict': require('./predict'),
