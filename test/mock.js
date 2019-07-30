@@ -399,7 +399,7 @@ class MockPermissionManager {
 
 var Gettext = require('node-gettext');
 var _gettext = new Gettext();
-_gettext.setLocale('en_US.utf8');
+_gettext.setLocale('en-US');
 
 const THINGPEDIA_URL = process.env.THINGPEDIA_URL || 'https://almond-dev.stanford.edu/thingpedia';
 
