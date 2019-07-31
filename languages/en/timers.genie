@@ -36,9 +36,9 @@ const AT_TIMER_SCHEMA = new Ast.FunctionDef('stream',
     {} // annotations
 );
 
-const TIME_MORNING = new Ast.Value.Time(9, 0, 0);
-const TIME_NOON = new Ast.Value.Time(12, 0, 0);
-const TIME_EVENING = new Ast.Value.Time(19, 0, 0);
+const TIME_MORNING = new Ast.Value.Time(new Ast.Time.Relative("morning"));
+const TIME_NOON = new Ast.Value.Time(new Ast.Time.Absolute(12, 0, 0));
+const TIME_EVENING = new Ast.Value.Time(new Ast.Time.Relative("evening"));
 }
 
 timer = {
