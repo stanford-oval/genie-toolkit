@@ -1,317 +1,737 @@
 {
-    "result": "ok",
-    "data": [
-        {
-            "type": "com.facebook:id",
-            "name": "Facebook post ID",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "com.gmail:email_id",
-            "name": "GMail Email ID",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "com.gmail:thread_id",
-            "name": "GMail Thread ID",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "com.google.contacts:contact_name",
-            "name": "Name of a contact in Google Contacts",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "com.google.drive:file_id",
-            "name": "Google Drive File ID",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "com.icanhazdadjoke:id",
-            "name": "Dad Joke ID",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "com.instagram:filter",
-            "name": "Instagram Filter",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "com.live.onedrive:file_id",
-            "name": "OneDrive File ID",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "com.live.onedrive:user_id",
-            "name": "OneDrive User ID",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "com.steampowered:user_id",
-            "name": "Steam User ID",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "com.thecatapi:image_id",
-            "name": "The Cat API Image ID",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "com.twitter:id",
-            "name": "Twitter API ID",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "com.youtube:channel_id",
-            "name": "YouTube Channel ID",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "com.youtube:video_id",
-            "name": "YouTube Video ID",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "dogapi:image_id",
-            "name": "The Dog API Image ID",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "gov.nasa:asteroid_id",
-            "name": "NASA Asteroid ID",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "gov.nasa:curiosity_rover_camera",
-            "name": "NASA Curiosity Rover Camera Identifier",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "imgflip:meme_id",
-            "name": "Imgflip Meme ID",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "instagram:media_id",
-            "name": "Instagram Media ID",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "omlet:feed_id",
-            "name": "Omlet Feed",
-            "is_well_known": 0,
-            "has_ner_support": 0
-        },
-        {
-            "type": "org.arxiv:category",
-            "name": "ArXiv Category",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "org.freedesktop:app_id",
-            "name": "Freedesktop App Identifier",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "sportradar:eu_soccer_team",
-            "name": "Sportradar European Soccer Team",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "sportradar:eu_tournament",
-            "name": "Sportradar EU Soccer Tournament ID",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "sportradar:mlb_team",
-            "name": "Sportradar MLB Team",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "sportradar:nba_team",
-            "name": "Sportradar NBA Team",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "sportradar:ncaafb_team",
-            "name": "Sportradar NCAA Football Team",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "sportradar:ncaambb_team",
-            "name": "Sportradar NCAA Men's Basketball Team",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "sportradar:nfl_team",
-            "name": "Sportradar NFL Team",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "sportradar:us_soccer_team",
-            "name": "Sportradar North American Soccer Team",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "sportradar:us_tournament",
-            "name": "Sportradar US Soccer Tournament ID",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "tt:country",
-            "name": "ISO 3166-1 Alpha-2 Country Code",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "tt:cryptocurrency_code",
-            "name": "Cryptocurrency Code",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "tt:currency_code",
-            "name": "Currency Code",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "tt:iso_lang_code",
-            "name": "ISO 639-1 Language Code",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "tt:mime_type",
-            "name": "Media (MIME) Type",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "tt:stock_id",
-            "name": "Company Stock ID",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "tt:test",
-            "name": "test",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "tt:test3",
-            "name": "test",
-            "is_well_known": 0,
-            "has_ner_support": 1
-        },
-        {
-            "type": "tt:contact",
-            "name": "Contact Identity",
-            "is_well_known": 1,
-            "has_ner_support": 0
-        },
-        {
-            "type": "tt:contact_name",
-            "name": "Contact Name",
-            "is_well_known": 1,
-            "has_ner_support": 0
-        },
-        {
-            "type": "tt:device",
-            "name": "Device Name",
-            "is_well_known": 1,
-            "has_ner_support": 0
-        },
-        {
-            "type": "tt:email_address",
-            "name": "Email Address",
-            "is_well_known": 1,
-            "has_ner_support": 0
-        },
-        {
-            "type": "tt:flow_token",
-            "name": "Flow Identifier",
-            "is_well_known": 1,
-            "has_ner_support": 0
-        },
-        {
-            "type": "tt:function",
-            "name": "Function Name",
-            "is_well_known": 1,
-            "has_ner_support": 0
-        },
-        {
-            "type": "tt:hashtag",
-            "name": "Hashtag",
-            "is_well_known": 1,
-            "has_ner_support": 0
-        },
-        {
-            "type": "tt:path_name",
-            "name": "Unix Path",
-            "is_well_known": 1,
-            "has_ner_support": 0
-        },
-        {
-            "type": "tt:phone_number",
-            "name": "Phone Number",
-            "is_well_known": 1,
-            "has_ner_support": 0
-        },
-        {
-            "type": "tt:picture",
-            "name": "Picture",
-            "is_well_known": 1,
-            "has_ner_support": 0
-        },
-        {
-            "type": "tt:program",
-            "name": "Program",
-            "is_well_known": 1,
-            "has_ner_support": 0
-        },
-        {
-            "type": "tt:url",
-            "name": "URL",
-            "is_well_known": 1,
-            "has_ner_support": 0
-        },
-        {
-            "type": "tt:username",
-            "name": "Username",
-            "is_well_known": 1,
-            "has_ner_support": 0
-        }
-    ]
+  "result": "ok",
+  "data": [
+    {
+      "type": "com.gmail:email_id",
+      "name": "GMail Email ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "com.gmail:thread_id",
+      "name": "GMail Thread ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "com.google.contacts:contact_name",
+      "name": "Name of a contact in Google Contacts",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "com.google.drive:file_id",
+      "name": "Google Drive File ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "com.icanhazdadjoke:id",
+      "name": "Dad Joke ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "com.instagram:filter",
+      "name": "Instagram Filter",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "com.live.onedrive:file_id",
+      "name": "OneDrive File ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "com.live.onedrive:user_id",
+      "name": "OneDrive User ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "com.steampowered:user_id",
+      "name": "Steam User ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "com.thecatapi:image_id",
+      "name": "The Cat API Image ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "com.twitter:id",
+      "name": "Twitter API ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "com.youtube:channel_id",
+      "name": "YouTube Channel ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "com.youtube:video_id",
+      "name": "YouTube Video ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "dogapi:image_id",
+      "name": "The Dog API Image ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "gov.nasa:asteroid_id",
+      "name": "NASA Asteroid ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "gov.nasa:curiosity_rover_camera",
+      "name": "NASA Curiosity Rover Camera Identifier",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "imgflip:meme_id",
+      "name": "Imgflip Meme ID",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "instagram:media_id",
+      "name": "Instagram Media ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "omlet:feed_id",
+      "name": "Omlet Feed",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.arxiv:category",
+      "name": "ArXiv Category",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "org.freedesktop:app_id",
+      "name": "Freedesktop App Identifier",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "org.wikidata:human",
+      "name": "ID of humans in wikidata (99794 persons included)",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "org.wikidatasportsskill:AAT_ID",
+      "name": "AAT ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:aat_id",
+      "name": "aat id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:afl_tables_player_id",
+      "name": "afl tables player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:athletes",
+      "name": "ID of athletes in wikidata(50724 athletes included)",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "org.wikidatasportsskill:australianfootball.com_id",
+      "name": "australianfootball.com id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:award_received",
+      "name": "ID of sports awards in wikidata",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "org.wikidatasportsskill:babelnet_id",
+      "name": "babelnet id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:baseball-reference.com_major_league_play",
+      "name": "baseball-reference.com major league player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:baseball-reference.com_minor_&_foreign_l",
+      "name": "baseball-reference.com minor & foreign league player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:basketball-reference.com_nba_player_id",
+      "name": "basketball-reference.com nba player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:commonwealth_games_federation_athlete_id",
+      "name": "commonwealth games federation athlete id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:competition_class",
+      "name": "ID of competition classes for sports in wikidata",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "org.wikidatasportsskill:country",
+      "name": "ID of countries in wikidata",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "org.wikidatasportsskill:cricketarchive_player_id",
+      "name": "cricketarchive player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:databaseolympics.com_athlete_id",
+      "name": "databaseolympics.com athlete id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:educated_at",
+      "name": "ID of high schools and colleges that athletes attended in wikidata",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "org.wikidatasportsskill:elite_prospects_player_id",
+      "name": "elite prospects player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:encyclopædia_britannica_online_id",
+      "name": "encyclopædia britannica online id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:encyclopædia_universalis_id",
+      "name": "encyclopædia universalis id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:espncricinfo.com_player_id",
+      "name": "espncricinfo.com player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:eurohockey.com_player_id",
+      "name": "eurohockey.com player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:facebook_id",
+      "name": "facebook id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:fangraphs_player_id",
+      "name": "fangraphs player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:fiba_player_id",
+      "name": "fiba player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:fifa_player_id",
+      "name": "fifa player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:fisa_rower_id",
+      "name": "fisa rower id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:footballdatabase.eu_player_id",
+      "name": "footballdatabase.eu player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:freebase_id",
+      "name": "freebase id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:gnd_id",
+      "name": "gnd id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:gtaa_id",
+      "name": "gtaa id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:hockey-reference.com_player_id",
+      "name": "hockey-reference.com player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:hockeydb.com_player_id",
+      "name": "hockeydb.com player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:home_venue",
+      "name": "ID of home venues for sports teams in wikidata",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "org.wikidatasportsskill:iaaf_athlete_id",
+      "name": "iaaf athlete id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:iab_code",
+      "name": "iab code",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:international_olympic_committee_athlete_",
+      "name": "international olympic committee athlete id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:isni",
+      "name": "isni",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:itf_player_id",
+      "name": "itf player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:jstor_topic_id",
+      "name": "jstor topic id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:league",
+      "name": "ID of sports leagues in wikidata",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "org.wikidatasportsskill:library_of_congress_authority_id",
+      "name": "library of congress authority id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:mlb.com_player_id",
+      "name": "mlb.com player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:national-football-teams.com_player_id",
+      "name": "national-football-teams.com player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:national_thesaurus_for_author_names_id",
+      "name": "national thesaurus for author names id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:ndl_auth_id",
+      "name": "ndl auth id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:nfl.com_id",
+      "name": "nfl.com id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:nhl.com_player_id",
+      "name": "nhl.com player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:nkcr_aut_id",
+      "name": "nkcr aut id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:nla_persistent_identifier",
+      "name": "nla persistent identifier",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:nndb_people_id",
+      "name": "nndb people id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:osm_tag_or_key",
+      "name": "osm tag or key",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:position_played_on_team",
+      "name": "ID of sports positions in wikidata",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "org.wikidatasportsskill:pro-football-reference.com_player_id",
+      "name": "pro-football-reference.com player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:psh_id",
+      "name": "psh id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:quora_topic_id",
+      "name": "quora topic id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:realgm_basketball_player_id",
+      "name": "realgm basketball player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:sports",
+      "name": "ID of sports in wikidata",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "org.wikidatasportsskill:sports-reference.com_college_basketball_",
+      "name": "sports-reference.com college basketball player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:sports-reference.com_olympic_athlete_id",
+      "name": "sports-reference.com olympic athlete id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:sports_discipline_competed_in",
+      "name": "ID of sports disciplines in wikidata",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "org.wikidatasportsskill:sports_teams",
+      "name": "ID of sports teams in wikidata",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "org.wikidatasportsskill:the_baseball_cube_player_id",
+      "name": "the baseball cube player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:title_of_chess_person",
+      "name": "ID of chess titles in wikidata",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "org.wikidatasportsskill:track_and_field_statistics_female_athlet",
+      "name": "track and field statistics female athlete id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:track_and_field_statistics_male_athlete_",
+      "name": "track and field statistics male athlete id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:transfermarkt_player_id",
+      "name": "transfermarkt player id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:us_national_archives_identifier",
+      "name": "us national archives identifier",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:uses",
+      "name": "ID of what tools or balls sports use in wikidata",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "org.wikidatasportsskill:viaf_id",
+      "name": "viaf id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidatasportsskill:wikitree_person_id",
+      "name": "wikitree person id",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "sportradar:eu_soccer_team",
+      "name": "Sportradar European Soccer Team",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "sportradar:eu_tournament",
+      "name": "Sportradar EU Soccer Tournament ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "sportradar:mlb_team",
+      "name": "Sportradar MLB Team",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "sportradar:nba_team",
+      "name": "Sportradar NBA Team",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "sportradar:ncaafb_team",
+      "name": "Sportradar NCAA Football Team",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "sportradar:ncaambb_team",
+      "name": "Sportradar NCAA Men's Basketball Team",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "sportradar:nfl_team",
+      "name": "Sportradar NFL Team",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "sportradar:us_soccer_team",
+      "name": "Sportradar North American Soccer Team",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "sportradar:us_tournament",
+      "name": "Sportradar US Soccer Tournament ID",
+      "is_well_known": 0,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:country",
+      "name": "ISO 3166-1 Alpha-2 Country Code",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "tt:cryptocurrency_code",
+      "name": "Cryptocurrency Code",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "tt:currency_code",
+      "name": "Currency Code",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "tt:iso_lang_code",
+      "name": "ISO 639-1 Language Code",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "tt:mime_type",
+      "name": "Media (MIME) Type",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "tt:stock_id",
+      "name": "Company Stock ID",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "tt:test",
+      "name": "test",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "tt:test3",
+      "name": "test",
+      "is_well_known": 0,
+      "has_ner_support": 1
+    },
+    {
+      "type": "tt:contact",
+      "name": "Contact Identity",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:contact_name",
+      "name": "Contact Name",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:device",
+      "name": "Device Name",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:email_address",
+      "name": "Email Address",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:flow_token",
+      "name": "Flow Identifier",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:function",
+      "name": "Function Name",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:hashtag",
+      "name": "Hashtag",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:path_name",
+      "name": "Unix Path",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:phone_number",
+      "name": "Phone Number",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:picture",
+      "name": "Picture",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:program",
+      "name": "Program",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:url",
+      "name": "URL",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:username",
+      "name": "Username",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    }
+  ]
 }

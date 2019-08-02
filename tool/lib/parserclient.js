@@ -48,6 +48,7 @@ class LocalParserClient {
             const tokenized = await this._tokenizer.tokenize(this._locale, utterance);
             Utils.renumberEntities(tokenized, contextEntities);
             tokens = tokenized.tokens;
+            entities = tokenized.entities;
         }
 
         const candidates = await this._predictor.predict(tokens, contextCode);

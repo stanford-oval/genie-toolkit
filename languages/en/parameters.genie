@@ -14,10 +14,9 @@ const assert = require('assert');
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
-const { clean } = require('../../lib/utils');
 
 // import the combinator library
-const C = require('../../lib/sentence-generator/ast_manip');
+const C = require('../ast_manip');
 }
 
 import '../common-parameters';
@@ -313,19 +312,19 @@ for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
         // replace $-placeholders with "some X" where X is based on parameter name
 
         thingpedia_query = q:thingpedia_query #('a certain ' + pcanonical) [-> pname { isUndefined: true }] =>
-            C.replacePlaceholderWithUndefined(q, pname, typestr, C.betaReduceTable);
+            C.replacePlaceholderWithUndefined(q, pname, typestr);
 
         thingpedia_get_command = q:thingpedia_get_command #('a certain ' + pcanonical) [-> pname { isUndefined: true }] =>
-            C.replacePlaceholderWithUndefined(q, pname, typestr, C.betaReduceTable);
+            C.replacePlaceholderWithUndefined(q, pname, typestr);
 
         thingpedia_stream = s:thingpedia_stream #('a certain ' + pcanonical) [-> pname { isUndefined: true }] =>
-            C.replacePlaceholderWithUndefined(s, pname, typestr, C.betaReduceStream);
+            C.replacePlaceholderWithUndefined(s, pname, typestr);
 
         thingpedia_action = a:thingpedia_action #('a certain ' + pcanonical) [-> pname { isUndefined: true }] =>
-            C.replacePlaceholderWithUndefined(a, pname, typestr, C.betaReduceAction);
+            C.replacePlaceholderWithUndefined(a, pname, typestr);
 
         thingpedia_program = p:thingpedia_program #('a certain ' + pcanonical) [-> pname { isUndefined: true }] =>
-            C.replacePlaceholderWithUndefined(p, pname, typestr, C.betaReduceProgram);
+            C.replacePlaceholderWithUndefined(p, pname, typestr);
     }
 
     // don't parameter pass booleans or enums, as that rarely makes sense
@@ -334,19 +333,19 @@ for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
             if ($options.flags.undefined_filter) {
                 // replace $-placeholders with "some X" where X is based on parameter name
                 thingpedia_query = q:thingpedia_query #('some ' + pcanonical) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(q, pname, typestr, C.betaReduceTable);
+                    C.replacePlaceholderWithUndefined(q, pname, typestr);
 
                 thingpedia_get_command = q:thingpedia_get_command #('some ' + pcanonical) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(q, pname, typestr, C.betaReduceTable);
+                    C.replacePlaceholderWithUndefined(q, pname, typestr);
 
                 thingpedia_stream = s:thingpedia_stream #('some ' + pcanonical) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(s, pname, typestr, C.betaReduceStream);
+                    C.replacePlaceholderWithUndefined(s, pname, typestr);
 
                 thingpedia_action = a:thingpedia_action #('some ' + pcanonical) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(a, pname, typestr, C.betaReduceAction);
+                    C.replacePlaceholderWithUndefined(a, pname, typestr);
 
                 thingpedia_program = p:thingpedia_program #('some ' + pcanonical) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(p, pname, typestr, C.betaReduceProgram);
+                    C.replacePlaceholderWithUndefined(p, pname, typestr);
             }
         }
 

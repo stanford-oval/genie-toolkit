@@ -1,6 +1,7 @@
 *~
 node_modules/
 coverage/
+bundle/
 .nyc_output/
 .idea/
 

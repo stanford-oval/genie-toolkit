@@ -18,7 +18,7 @@ const Type = ThingTalk.Type;
 const { isUnaryTableToTableOp,
         isUnaryStreamToTableOp,
         isUnaryStreamToStreamOp,
-        isUnaryTableToStreamOp } = require('../utils');
+        isUnaryTableToStreamOp } = require('./utils');
 const { notifyAction } = ThingTalk.Generate;
 
 function typeToStringSafe(type) {
@@ -86,106 +86,39 @@ function checkNotSelfJoinStream(stream) {
     return stream;
 }
 
-function removeInputParameter(schema, pname) {
-    return schema.removeArgument(pname);
-}
+function betaReduce(ast, pname, value) {
+    const clone = ast.clone();
 
-function betaReduceInvocation(invocation, pname, value) {
-    //console.log(`betaReduceInvocation ${pname} -> ${value}`);
-    let clone = invocation.clone();
-    for (let inParam of clone.in_params) {
-        if (inParam.value.isVarRef && inParam.value.name === pname) {
-            inParam.value = value;
-            assert(clone.schema.inReq[inParam.name] || clone.schema.inOpt[inParam.name]);
-            return [clone, inParam.name];
-        } else if (inParam.value.isArray) {
-            for (let i = 0; i < inParam.value.value.length; i++) {
-                 const el = inParam.value.value[i];
-                 if (el.isVarRef && el.name === pname) {
-                     inParam.value.value[i] = value;
-                     return [clone, inParam.name + '[' + i + ']' ];
-                 }
-            }
+    let found = false;
+    for (let slot of clone.iterateSlots2({})) {
+        if (slot instanceof Ast.Selector)
+            continue;
+
+        if (pname in slot.scope) {
+            // if the parameter is in scope of the slot, it means we're in a filter andthe same parameter name
+            // is returned by the stream/table, which shadows the example/declaration parameter we're
+            // trying to replace, hence we ignore this slot
+            continue;
+        }
+
+        const varref = slot.get();
+        if (varref.isVarRef && varref.name === pname) {
+            slot.set(value);
+            found = true;
         }
     }
-    //clone.in_params.push(new Ast.InputParam(pname, value));
-    return [invocation, null];
-}
 
-function betaReduceAction(action, pname, value) {
-    let [cloneInvocation, replaced] = betaReduceInvocation(action.invocation, pname, value);
-    if (!replaced)
-        return action;
-    return new Ast.Action.Invocation(cloneInvocation, removeInputParameter(action.schema, pname));
-}
-
-function betaReduceFilter(filter, pname, value) {
-    return (function recursiveHelper(expr) {
-        if (expr.isTrue || expr.isFalse)
-            return expr;
-        if (expr.isAnd)
-            return Ast.BooleanExpression.And(expr.operands.map(recursiveHelper));
-        if (expr.isOr)
-            return Ast.BooleanExpression.Or(expr.operands.map(recursiveHelper));
-        if (expr.isNot)
-            return Ast.BooleanExpression.Not(recursiveHelper(expr.expr));
-        if (expr.isExternal)
-            return betaReduceInvocation(expr, pname, value);
-
-        if (expr.value.isVarRef && expr.value.name === pname) {
-            let clone = expr.clone();
-            clone.value = value;
-            return clone;
-        } else {
-            return expr;
-        }
-    })(filter);
-}
-
-function betaReduceTable(table, pname, value) {
-    if (table.isInvocation) {
-        let [reduced, replaced] = betaReduceInvocation(table.invocation, pname, value);
-        return new Ast.Table.Invocation(reduced, replaced && replaced !== pname ? removeInputParameter(table.schema, pname) : table.schema);
-    } else if (table.isFilter) {
-        let reduced = betaReduceTable(table.table, pname, value);
-        return new Ast.Table.Filter(reduced, betaReduceFilter(table.filter, pname, value), removeInputParameter(table.schema, pname));
-    } else if (table.isProjection) {
-        return new Ast.Table.Projection(betaReduceTable(table.table, pname, value),
-            table.args, removeInputParameter(table.schema, pname));
+    if (found) {
+        // the parameter should not be in the schema for the table/stream, but sentence-generator/index.js
+        // messes with the schema ands adds it there (to do quick checks of parameter passing), so here
+        // we remove it again
+        clone.schema = ast.schema.removeArgument(pname);
+    } else {
+        // in case schema was not copied by .clone() (eg if ast is a Program, which does not normally have a .schema)
+        clone.schema = ast.schema;
     }
 
-    throw new Error('NOT IMPLEMENTED: ' + table);
-}
-
-function betaReduceStream(stream, pname, value) {
-    if (stream.isTimer || stream.isAtTimer)
-        throw new TypeError('Nothing to beta-reduce in a timer');
-    if (stream.isMonitor) {
-        let reduced = betaReduceTable(stream.table, pname, value);
-        return new Ast.Stream.Monitor(reduced, stream.args, removeInputParameter(stream.schema, pname));
-    }
-    if (stream.isEdgeFilter) {
-        let reduced = betaReduceStream(stream.stream, pname, value);
-        return new Ast.Stream.EdgeFilter(reduced, betaReduceFilter(stream.filter, pname, value), removeInputParameter(stream.schema, pname));
-    }
-
-    throw new Error('NOT IMPLEMENTED: ' + stream);
-}
-
-function betaReduceProgram(program, pname, value) {
-    assert(value);
-    const newrules = program.rules.map((rule) => {
-        if (rule.isAssignment)
-            return new Ast.Statement.Assignment(rule.name, betaReduceTable(rule.value, pname, value), removeInputParameter(rule.schema, pname));
-
-        const newstream = rule.stream ? betaReduceStream(rule.stream, pname, value) : null;
-        const newtable = rule.table ? betaReduceTable(rule.table, pname, value) : null;
-        const newactions = rule.actions.map((a) => betaReduceAction(a, pname, value));
-        return newstream ? new Ast.Statement.Rule(newstream, newactions) : new Ast.Statement.Command(newtable, newactions);
-    });
-    const newprogram = new Ast.Program(program.classes, program.declarations, newrules, program.principal, program.oninputs);
-    newprogram.schema = program.schema.removeArgument(pname);
-    return newprogram;
+    return clone;
 }
 
 function unassignInputParameter(schema, passign, pname) {
@@ -332,9 +265,13 @@ function addFilter(table, filter, $options, forceAdd = false) {
     // when an "unique" parameter has been used in the table
     if (table.schema.no_filter)
         return null;
-  
-    if (table.isProjection)
-        return new Ast.Table.Projection(addFilter(table.table, filter), table.args, table.schema);
+
+    if (table.isProjection) {
+        const added = addFilter(table.table, filter, $options, forceAdd);
+        if (added === null)
+            return null;
+        return new Ast.Table.Projection(added, table.args, table.schema);
+    }
 
     // under normal conditions, we don't want to add a second filter to an already
     // filtered table (= add 2 filters) for turking, because the resulting sentence
@@ -610,7 +547,7 @@ function actionReplaceParamWith(into, pname, projection) {
         return null;
 
     const replacement = joinArg === '$event' ? new Ast.Value.Event(null) : new Ast.Value.VarRef(joinArg);
-    return betaReduceAction(into, pname, replacement);
+    return betaReduce(into, pname, replacement);
 }
 
 function actionReplaceParamWithTable(into, pname, projection) {
@@ -645,7 +582,7 @@ function getDoCommand(command, pname, joinArg) {
     if (!commandtype || !commandtype.equals(actiontype))
         return null;
 
-    let reduced = betaReduceAction(command.actions[0], pname, joinArg);
+    let reduced = betaReduce(command.actions[0], pname, joinArg);
     if (reduced === null)
         return null;
     return new Ast.Statement.Command(command.table, [reduced]);
@@ -663,7 +600,7 @@ function whenDoRule(rule, pname, joinArg) {
     if (joinArg.isEvent && (rule.stream.isTimer || rule.stream.isAtTimer))
         return null;
 
-    let reduced = betaReduceAction(rule.actions[0], pname, joinArg);
+    let reduced = betaReduce(rule.actions[0], pname, joinArg);
     if (reduced === null)
         return null;
     return new Ast.Statement.Rule(rule.stream, [reduced]);
@@ -702,7 +639,7 @@ function isConstantAssignable(value, ptype) {
     return true;
 }
 
-function replacePlaceholderWithConstant(lhs, pname, value, betaReducer) {
+function replacePlaceholderWithConstant(lhs, pname, value) {
     let ptype = lhs.schema.inReq[pname];
     if (!isConstantAssignable(value, ptype))
         return null;
@@ -712,15 +649,15 @@ function replacePlaceholderWithConstant(lhs, pname, value, betaReducer) {
     //    console.log('p_low := ' + ptype + ' / ' + value.getType());
     if (value.isDate && value.value === null && value.offset === null)
         return null;
-    return betaReducer(lhs, pname, value);
+    return betaReduce(lhs, pname, value);
 }
 
-function replacePlaceholderWithUndefined(lhs, pname, typestr, betaReducer) {
+function replacePlaceholderWithUndefined(lhs, pname, typestr) {
     if (!lhs.schema.inReq[pname])
         return null;
     if (typestr !== typeToStringSafe(lhs.schema.inReq[pname]))
         return null;
-    return betaReducer(lhs, pname, new Ast.Value.Undefined(true));
+    return betaReduce(lhs, pname, new Ast.Value.Undefined(true));
 }
 
 function sayProjectionProgram($options, proj) {
@@ -862,10 +799,7 @@ module.exports = {
 
     checkNotSelfJoinStream,
 
-    betaReduceAction,
-    betaReduceTable,
-    betaReduceStream,
-    betaReduceProgram,
+    betaReduce,
     etaReduceTable,
 
     replacePlaceholderWithConstant,
