@@ -1,5 +1,13 @@
-// all tests, in batch form
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// See COPYING for details
 "use strict";
+
+// all tests, in batch form
 
 process.on('unhandledRejection', (up) => { throw up; });
 

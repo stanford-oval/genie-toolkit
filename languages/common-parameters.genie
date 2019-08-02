@@ -44,23 +44,23 @@ projection_Entity__tt__email_address = {}
 
 for (let [pname, [typestr,]] of $options.params.in.values()) {
     thingpedia_stream = {
-        s:thingpedia_stream v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(s, pname, v, C.betaReduceStream);
+        s:thingpedia_stream v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(s, pname, v);
     }
 
     thingpedia_query = {
-        q:thingpedia_query v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(q, pname, v, C.betaReduceTable);
+        q:thingpedia_query v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(q, pname, v);
     }
 
     thingpedia_get_command = {
-        q:thingpedia_get_command v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(q, pname, v, C.betaReduceTable);
+        q:thingpedia_get_command v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(q, pname, v);
     }
 
     thingpedia_action = {
-        a:thingpedia_action v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(a, pname, v, C.betaReduceAction);
+        a:thingpedia_action v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(a, pname, v);
     }
 
     thingpedia_program = {
-        p:thingpedia_program v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(p, pname, v, C.betaReduceProgram);
+        p:thingpedia_program v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(p, pname, v);
     }
 
     // don't parameter pass booleans or enums, as that rarely makes sense
@@ -69,19 +69,19 @@ for (let [pname, [typestr,]] of $options.params.in.values()) {
             if ($options.flags.undefined_filter) {
                 // replace $-placeholders with "some X" where X is based on parameter type
                 thingpedia_query = q:thingpedia_query $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(q, pname, typestr, C.betaReduceTable);
+                    C.replacePlaceholderWithUndefined(q, pname, typestr);
 
                 thingpedia_get_command = q:thingpedia_get_command $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(q, pname, typestr, C.betaReduceTable);
+                    C.replacePlaceholderWithUndefined(q, pname, typestr);
 
                 thingpedia_stream = s:thingpedia_stream $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(s, pname, typestr, C.betaReduceStream);
+                    C.replacePlaceholderWithUndefined(s, pname, typestr);
 
                 thingpedia_action = a:thingpedia_action $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(a, pname, typestr, C.betaReduceAction);
+                    C.replacePlaceholderWithUndefined(a, pname, typestr);
 
                 thingpedia_program = p:thingpedia_program $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(p, pname, typestr, C.betaReduceProgram);
+                    C.replacePlaceholderWithUndefined(p, pname, typestr);
             }
         }
     }

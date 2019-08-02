@@ -10,8 +10,6 @@ lib/genie-compiler/grammar.js
 *.tgz
 
 workdir*
-dataset.tt
-thingpedia.json
 
 *.tsv
 *.csv
