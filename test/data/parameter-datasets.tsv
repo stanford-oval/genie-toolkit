@@ -19,5 +19,6 @@ string	tt:song_name	./tt:song_name.txt
 string	tt:person_first_name	./tt:person_first_name.txt
 string	tt:path_name	./tt:path_name.txt
 string	tt:location	./tt:location.txt
+string	tt:word	./tt:word.txt
 entity	org.freedesktop:app_id	./org.freedesktop:app_id.json
 entity	tt:stock_id	./tt:stock_id.json
