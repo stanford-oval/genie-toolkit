@@ -197,7 +197,7 @@ async function testDeviceAddedRemoved(engine) {
             }
         });
 
-        const device = await devices.loadOneDevice({ kind: 'com.xkcd' }, true);
+        const device = await devices.addSerialized({ kind: 'com.xkcd' });
         assert(device);
 
         assert.strictEqual(added, SUCCESS);
@@ -239,7 +239,7 @@ async function testDeviceAddedRemoved(engine) {
             }
         });
 
-        const device = await devices.loadOneDevice({ kind: 'org.thingpedia.builtin.test.collection' }, true);
+        const device = await devices.addSerialized({ kind: 'org.thingpedia.builtin.test.collection' });
         assert(device);
 
         assert.strictEqual(added, SUCCESS);
