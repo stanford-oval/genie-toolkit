@@ -70,8 +70,8 @@ async function testLoginAsMatrixUser(engine) {
         }
     };
 
-    const factory = await engine.devices.factory.getFactory('org.thingpedia.builtin.matrix');
-    await factory.configureFromAlmond(engine, delegate);
+    const factory = await engine.devices.factory.getDeviceClass('org.thingpedia.builtin.matrix');
+    await factory.loadInteractively(engine, delegate);
     // wait a for full sync
     await delay(10000);
     await promise;

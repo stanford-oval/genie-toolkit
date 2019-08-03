@@ -2103,14 +2103,6 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-"thingpedia-client@github:stanford-oval/thingpedia-client":
-  version "0.2.5"
-  resolved "https://codeload.github.com/stanford-oval/thingpedia-client/tar.gz/fbbf84e66ff2a3114fbbe815df5c6a6165d495b0"
-  dependencies:
-    thingpedia "^2.3.0"
-    thingtalk "~1.7.0"
-    tmp "^0.1.0"
-
 thingpedia-discovery@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/thingpedia-discovery/-/thingpedia-discovery-1.0.0.tgz#8f56f22419cc20ddce638ade986410066fc707dc"
@@ -2118,16 +2110,16 @@ thingpedia-discovery@^1.0.0:
   dependencies:
     node-ssdp "^2.7.2"
 
-thingpedia@^2.2.1, thingpedia@^2.3.0:
+"thingpedia@github:stanford-oval/thingpedia-api#wip/import-tp-client":
   version "2.4.0"
-  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.4.0.tgz#a4bd953848e87fb55dfcdc56e231810c22b58bcc"
-  integrity sha512-AVgQwYBH16pU7OcE5mhsFs3oHZ9EsJG0mqGohNZWLVEHsdiWxoahaMVRQFypXpxlcyF/ksCQ8I/0U3qWmdDJXQ==
+  resolved "https://codeload.github.com/stanford-oval/thingpedia-api/tar.gz/c72f83c08de9f681506ebf536ec72d8856ff84c9"
   dependencies:
     feedparser "^2.2.9"
     ip "~1.1.0"
     oauth "~0.9.14"
     p-finally "^1.0.0"
     thingtalk "^1.7.0"
+    tmp "^0.1.0"
     xml2js "^0.4.17"
 
 thingtalk@^1.7.0, thingtalk@~1.7.0:
