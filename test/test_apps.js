@@ -101,7 +101,7 @@ async function testDoError(engine) {
 
 async function testSimpleGet(engine, icon = null) {
     const app = await engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
-        { $icon: icon }, undefined, undefined, 'some app', 'some app description', true);
+        { icon: icon }, undefined, undefined, 'some app', 'some app description', true);
     // when we get here, the app might or might not have started already
     // to be sure, we iterate its mainOutput
 
