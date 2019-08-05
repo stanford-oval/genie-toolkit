@@ -35,9 +35,12 @@ async function testSimpleDo(engine) {
 
     // the app is still running, so the engine should know about it
     assert(engine.apps.hasApp(app.uniqueId));
-    const appInfo = engine.getAppInfo(app.uniqueId);
+    const appInfo = await engine.getAppInfo(app.uniqueId);
     assert.strictEqual(appInfo.uniqueId, app.uniqueId);
     assert.strictEqual(appInfo.name, 'Test');
+
+    const infos = await engine.getAppInfos();
+    assert.deepStrictEqual(infos, [appInfo]);
 
     const what = await app.mainOutput.next();
     // there should be no result output, so we should be done immediately
@@ -645,6 +648,32 @@ async function testLoadAppTypeError(engine) {
     assert.deepStrictEqual(engine.apps.getAllApps(), []);
 }
 
+async function testLoadAppNotCompilable(engine) {
+    const assistant = engine.platform.getCapability('assistant');
+
+    assistant._setConversation({
+        notify(appId, icon, outputType, data) {
+            assert.fail('expected no result');
+        },
+
+        notifyError(appId, icon, err) {
+            assert.strictEqual(appId, 'uuid-not-compilable-err');
+            assert.strictEqual(icon, 'org.foo');
+            assert(err.message.indexOf('slot-fill') >= 0);
+        }
+    });
+
+    const app = await engine.apps.loadOneApp(`now => @com.twitter.post(status=$?);`,
+        { $icon: 'org.foo', $conversation: undefined },
+        'uuid-not-compilable-err', undefined, 'some app', 'some app description', true);
+    assert.strictEqual(app.icon, 'org.foo');
+    assert.strictEqual(app.uniqueId, 'uuid-not-compilable-err');
+    assert(!!app.error);
+
+    assert(!engine.apps.hasApp(app));
+    assert.deepStrictEqual(engine.apps.getAllApps(), []);
+}
+
 async function testGetSequence(engine, icon = null) {
     const app = await engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.next_sequence() => notify;',
         { $icon: icon }, undefined, undefined, 'some app', 'some app description', true);
@@ -744,6 +773,7 @@ module.exports = async function testApps(engine) {
 
     await testLoadAppSyntaxError(engine);
     await testLoadAppTypeError(engine);
+    await testLoadAppNotCompilable(engine);
     await testSimpleDo(engine);
     await testDoError(engine);
     await testDoSay(engine);

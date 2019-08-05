@@ -16,6 +16,18 @@ const DeviceView = require('../lib/devices/device_view');
 const SUCCESS = {};
 const FAILURE = {};
 
+function cleanInstanceID(infos) {
+    infos.sort((a, b) => a.uniqueId.localeCompare(b.uniqueId));
+
+    for (let info of infos) {
+        if (info.uniqueId.startsWith('thingengine-own-desktop:')) {
+            info.uniqueId = 'thingengine-own-desktop:XXXXXX';
+            info.name = 'Almond desktop (XXXXXX)';
+        }
+    }
+    return infos;
+}
+
 async function testLookup(engine) {
     const devices = engine.devices;
 
@@ -29,6 +41,50 @@ async function testLookup(engine) {
 
     assert.deepStrictEqual(devices.getAllDevicesOfKind('messaging'), []);
     assert.deepStrictEqual(devices.getAllDevicesOfKind('com.xkcd'), []);
+
+    assert.deepStrictEqual(cleanInstanceID(await engine.getDeviceInfos()), [
+     { uniqueId: 'org.thingpedia.builtin.test',
+       name: 'Test Device',
+       description: 'Test Almond in various ways',
+       kind: 'org.thingpedia.builtin.test',
+       version: 0,
+       class: 'system',
+       ownerTier: 'global',
+       isTransient: true },
+     { uniqueId: 'org.thingpedia.builtin.thingengine.remote',
+       name: 'Remote Almond',
+       description:
+        'A proxy device for a Almond owned by a different user. This device is created and managed automatically by the system.',
+       kind: 'org.thingpedia.builtin.thingengine.remote',
+       version: 0,
+       class: 'system',
+       ownerTier: 'global',
+       isTransient: true },
+     { uniqueId: 'org.thingpedia.builtin.thingengine.test_platform',
+       name: 'Unknown device',
+       description: 'Description not available',
+       kind: 'org.thingpedia.builtin.thingengine.test_platform',
+       version: 0,
+       class: 'data',
+       ownerTier: 'global',
+       isTransient: true },
+     { uniqueId: 'thingengine-own-desktop:XXXXXX',
+       name: 'Almond desktop (XXXXXX)',
+       description: 'This is one of your own Almond apps.',
+       kind: 'org.thingpedia.builtin.thingengine',
+       version: 0,
+       class: 'system',
+       ownerTier: 'desktop',
+       isTransient: false },
+     { uniqueId: 'thingengine-own-global',
+       name: 'Miscellaneous Interfaces',
+       description: 'Time, randomness and other non-device specific things.',
+       kind: 'org.thingpedia.builtin.thingengine.builtin',
+       version: 0,
+       class: 'data',
+       ownerTier: 'global',
+       isTransient: true }
+    ]);
 }
 
 async function testDeviceViews(engine) {
@@ -96,13 +152,11 @@ async function testDeviceViews(engine) {
 }
 
 async function testUpdateDevice(engine) {
-    const devices = engine.devices;
-
-    await devices.updateDevicesOfKind('com.xkcd');
+    await engine.upgradeDevice('com.xkcd');
 
     // should do (almost) nothing because there is no twitter configured
 
-    await devices.updateDevicesOfKind('com.twitter');
+    await engine.upgradeDevice('com.twitter');
 }
 
 async function testDeviceMethods(engine) {
