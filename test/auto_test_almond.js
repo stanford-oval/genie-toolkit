@@ -82,7 +82,8 @@ function getTestData(count, size) {
     return ret;
 }
 
-function loadOneApp(code) {
+function createApp(program) {
+    const code = program.prettyprint(false);
     app = code;
     let results = [];
     if (code === `{
@@ -121,12 +122,6 @@ function loadOneApp(code) {
 }
 function addPermission(perm) {
     permission = perm;
-}
-
-var remoteApps = '';
-function installProgramRemote(principal, identity, uniqueId, program) {
-    remoteApps += `\nremote ${principal}/${identity} : ${uniqueId} : ${program.prettyprint(false)}`;
-    return Promise.resolve();
 }
 
 function checkIcon(icon) {
@@ -725,7 +720,7 @@ const TEST_CASES = [
 `,
     `some tweet`,
 `>> Ok, so you want me to tell Alice Smith (mom): tweet “some tweet”. Is that right?
->> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.twitter.post // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"}}
+>> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"},"QUOTED_STRING_0":"some tweet"}
 >> ask special yesno
 `,
 
@@ -734,8 +729,7 @@ const TEST_CASES = [
 >> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"},"QUOTED_STRING_0":"some tweet"}
 >> ask special null
 `,
-    `null
-remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX : {
+    `executor = "mock-account:MOCK1234-phone:+5556664357"^^tt:contact("Alice Smith (mom)") : {
   now => @com.twitter.post(status="some tweet");
 }`],
 
@@ -751,58 +745,33 @@ remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX 
     [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post', 'param:status:String', '=', 'QUOTED_STRING_0'],
       entities: { USERNAME_0: 'mom', QUOTED_STRING_0: "lol" } },
-`>> Ok, so I'm going to tell Alice Smith (mom): tweet “lol”.
+`>> Ok, I'm going to tell Alice Smith (mom): tweet “lol”.
 >> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"},"QUOTED_STRING_0":"lol"}
 >> ask special null
 `,
-    `null
-remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX : {
+    `executor = "mock-account:MOCK1234-phone:+5556664357"^^tt:contact("Alice Smith (mom)") : {
   now => @com.twitter.post(status="lol");
 }`],
 
     [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
       entities: { USERNAME_0: 'mom' } },
-`>> Ok, so I'm going to tell Alice Smith (mom): get an Xkcd comic and then notify you.
+`>> Ok, I'm going to tell Alice Smith (mom): get an Xkcd comic and then notify you.
 >> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"}}
 >> ask special null
 `,
-    `null
-remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX : {
+    `executor = "mock-account:MOCK1234-phone:+5556664357"^^tt:contact("Alice Smith (mom)") : {
   now => @com.xkcd.get_comic() => notify;
 }`],
     [
     { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.xkcd.get_comic', '=>', 'return'],
       entities: { USERNAME_0: 'mom' } },
-`>> Ok, so I'm going to tell Alice Smith (mom): get an Xkcd comic and then send it to me.
+`>> Ok, I'm going to tell Alice Smith (mom): get an Xkcd comic and then send it to me.
 >> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.xkcd.get_comic => return // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"}}
 >> ask special null
 `,
-    `{
-  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-    monitorable list query receive(in req __principal: Entity(tt:contact),
-                                   in req __program_id: Entity(tt:program_id),
-                                   in req __flow: Number,
-                                   out __kindChannel: Entity(tt:function),
-                                   out title: String,
-                                   out picture_url: Entity(tt:picture),
-                                   out link: Entity(tt:url),
-                                   out alt_text: String);
-  }
-  monitor (@__dyn_0.receive(__principal="mock-account:MOCK1234-phone:+5556664357"^^tt:contact("Alice Smith (mom)"), __program_id=$event.program_id, __flow=0)) => notify;
-}
-remote mock-account:MOCK1234-phone:+5556664357/phone:+15555555555 : uuid-XXXXXX : {
-  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-    action send(in req __principal: Entity(tt:contact),
-                in req __program_id: Entity(tt:program_id),
-                in req __flow: Number,
-                in req __kindChannel: Entity(tt:function),
-                in req title: String,
-                in req picture_url: Entity(tt:picture),
-                in req link: Entity(tt:url),
-                in req alt_text: String);
-  }
-  now => @com.xkcd.get_comic() => @__dyn_0.send(__principal="mock-account:123456-SELF"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, title=title, picture_url=picture_url, link=link, alt_text=alt_text);
+    `executor = "mock-account:MOCK1234-phone:+5556664357"^^tt:contact("Alice Smith (mom)") : {
+  now => @com.xkcd.get_comic() => return;
 }`],
 
     [
@@ -2722,43 +2691,12 @@ null],
             ]
         });
     },
-    `>> Ok, so I'm going to tell @slack_user_name: get the emails in your GMail inbox and then send it to me.
+    `>> Ok, I'm going to tell @slack_user_name: get the emails in your GMail inbox and then send it to me.
 >> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.gmail.inbox => return // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:123456789","display":"@slack_user_name"}}
 >> ask special null
 `,
-    `{
-  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-    monitorable list query receive(in req __principal: Entity(tt:contact),
-                                   in req __program_id: Entity(tt:program_id),
-                                   in req __flow: Number,
-                                   out __kindChannel: Entity(tt:function),
-                                   out sender_name: String,
-                                   out sender_address: Entity(tt:email_address),
-                                   out subject: String,
-                                   out date: Date,
-                                   out labels: Array(String),
-                                   out snippet: String,
-                                   out thread_id: Entity(com.gmail:thread_id),
-                                   out email_id: Entity(com.gmail:email_id));
-  }
-  monitor (@__dyn_0.receive(__principal="mock-account:123456789"^^tt:contact("@slack_user_name"), __program_id=$event.program_id, __flow=0)) => notify;
-}
-remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
-  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-    action send(in req __principal: Entity(tt:contact),
-                in req __program_id: Entity(tt:program_id),
-                in req __flow: Number,
-                in req __kindChannel: Entity(tt:function),
-                in req sender_name: String,
-                in req sender_address: Entity(tt:email_address),
-                in req subject: String,
-                in req date: Date,
-                in req labels: Array(String),
-                in req snippet: String,
-                in req thread_id: Entity(com.gmail:thread_id),
-                in req email_id: Entity(com.gmail:email_id));
-  }
-  now => @com.gmail.inbox() => @__dyn_0.send(__principal="mock-account:123456-SELF"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, sender_name=sender_name, sender_address=sender_address, subject=subject, date=date, labels=labels, snippet=snippet, thread_id=thread_id, email_id=email_id);
+    `executor = "mock-account:123456789"^^tt:contact("@slack_user_name") : {
+  now => @com.gmail.inbox() => return;
 }`],
 
     [
@@ -2769,43 +2707,12 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
             ]
         });
     },
-    `>> Ok, so I'm going to tell @slack_user_name: get the emails in your GMail inbox and then send it to me.
+    `>> Ok, I'm going to tell @slack_user_name: get the emails in your GMail inbox and then send it to me.
 >> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.gmail.inbox => return // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-email:dummy@example.com","display":"@slack_user_name"}}
 >> ask special null
 `,
-    `{
-  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-    monitorable list query receive(in req __principal: Entity(tt:contact),
-                                   in req __program_id: Entity(tt:program_id),
-                                   in req __flow: Number,
-                                   out __kindChannel: Entity(tt:function),
-                                   out sender_name: String,
-                                   out sender_address: Entity(tt:email_address),
-                                   out subject: String,
-                                   out date: Date,
-                                   out labels: Array(String),
-                                   out snippet: String,
-                                   out thread_id: Entity(com.gmail:thread_id),
-                                   out email_id: Entity(com.gmail:email_id));
-  }
-  monitor (@__dyn_0.receive(__principal="mock-account:MOCK1234-email:dummy@example.com"^^tt:contact("@slack_user_name"), __program_id=$event.program_id, __flow=0)) => notify;
-}
-remote mock-account:MOCK1234-email:dummy@example.com/phone:+15555555555 : uuid-XXXXXX : {
-  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-    action send(in req __principal: Entity(tt:contact),
-                in req __program_id: Entity(tt:program_id),
-                in req __flow: Number,
-                in req __kindChannel: Entity(tt:function),
-                in req sender_name: String,
-                in req sender_address: Entity(tt:email_address),
-                in req subject: String,
-                in req date: Date,
-                in req labels: Array(String),
-                in req snippet: String,
-                in req thread_id: Entity(com.gmail:thread_id),
-                in req email_id: Entity(com.gmail:email_id));
-  }
-  now => @com.gmail.inbox() => @__dyn_0.send(__principal="mock-account:123456-SELF"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, sender_name=sender_name, sender_address=sender_address, subject=subject, date=date, labels=labels, snippet=snippet, thread_id=thread_id, email_id=email_id);
+    `executor = "mock-account:MOCK1234-email:dummy@example.com"^^tt:contact("@slack_user_name") : {
+  now => @com.gmail.inbox() => return;
 }`],
 
     [
@@ -2837,43 +2744,12 @@ remote mock-account:MOCK1234-email:dummy@example.com/phone:+15555555555 : uuid-X
             ]
         });
     },
-    `>> Ok, so I'm going to tell @slack_user_name: get the emails in your GMail inbox and then send it to me.
+    `>> Ok, I'm going to tell @slack_user_name: get the emails in your GMail inbox and then send it to me.
 >> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.gmail.inbox => return // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:123456789","display":"@slack_user_name"}}
 >> ask special null
 `,
-    `{
-  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-    monitorable list query receive(in req __principal: Entity(tt:contact),
-                                   in req __program_id: Entity(tt:program_id),
-                                   in req __flow: Number,
-                                   out __kindChannel: Entity(tt:function),
-                                   out sender_name: String,
-                                   out sender_address: Entity(tt:email_address),
-                                   out subject: String,
-                                   out date: Date,
-                                   out labels: Array(String),
-                                   out snippet: String,
-                                   out thread_id: Entity(com.gmail:thread_id),
-                                   out email_id: Entity(com.gmail:email_id));
-  }
-  monitor (@__dyn_0.receive(__principal="mock-account:123456789"^^tt:contact("@slack_user_name"), __program_id=$event.program_id, __flow=0)) => notify;
-}
-remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
-  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-    action send(in req __principal: Entity(tt:contact),
-                in req __program_id: Entity(tt:program_id),
-                in req __flow: Number,
-                in req __kindChannel: Entity(tt:function),
-                in req sender_name: String,
-                in req sender_address: Entity(tt:email_address),
-                in req subject: String,
-                in req date: Date,
-                in req labels: Array(String),
-                in req snippet: String,
-                in req thread_id: Entity(com.gmail:thread_id),
-                in req email_id: Entity(com.gmail:email_id));
-  }
-  now => @com.gmail.inbox() => @__dyn_0.send(__principal="mock-account:123456-SELF"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, sender_name=sender_name, sender_address=sender_address, subject=subject, date=date, labels=labels, snippet=snippet, thread_id=thread_id, email_id=email_id);
+    `executor = "mock-account:123456789"^^tt:contact("@slack_user_name") : {
+  now => @com.gmail.inbox() => return;
 }`],
 
     [
@@ -2884,43 +2760,12 @@ remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
             ]
         });
     },
-    `>> Ok, so I'm going to tell Some Guy: get the emails in your GMail inbox and then send it to me.
+    `>> Ok, I'm going to tell Some Guy: get the emails in your GMail inbox and then send it to me.
 >> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.gmail.inbox => return // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:123456789","display":"Some Guy"}}
 >> ask special null
 `,
-    `{
-  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-    monitorable list query receive(in req __principal: Entity(tt:contact),
-                                   in req __program_id: Entity(tt:program_id),
-                                   in req __flow: Number,
-                                   out __kindChannel: Entity(tt:function),
-                                   out sender_name: String,
-                                   out sender_address: Entity(tt:email_address),
-                                   out subject: String,
-                                   out date: Date,
-                                   out labels: Array(String),
-                                   out snippet: String,
-                                   out thread_id: Entity(com.gmail:thread_id),
-                                   out email_id: Entity(com.gmail:email_id));
-  }
-  monitor (@__dyn_0.receive(__principal="mock-account:123456789"^^tt:contact("Some Guy"), __program_id=$event.program_id, __flow=0)) => notify;
-}
-remote mock-account:123456789/phone:+15555555555 : uuid-XXXXXX : {
-  class @__dyn_0 extends @org.thingpedia.builtin.thingengine.remote {
-    action send(in req __principal: Entity(tt:contact),
-                in req __program_id: Entity(tt:program_id),
-                in req __flow: Number,
-                in req __kindChannel: Entity(tt:function),
-                in req sender_name: String,
-                in req sender_address: Entity(tt:email_address),
-                in req subject: String,
-                in req date: Date,
-                in req labels: Array(String),
-                in req snippet: String,
-                in req thread_id: Entity(com.gmail:thread_id),
-                in req email_id: Entity(com.gmail:email_id));
-  }
-  now => @com.gmail.inbox() => @__dyn_0.send(__principal="mock-account:123456-SELF"^^tt:contact("me"), __program_id=$event.program_id, __flow=0, __kindChannel=$event.type, sender_name=sender_name, sender_address=sender_address, subject=subject, date=date, labels=labels, snippet=snippet, thread_id=thread_id, email_id=email_id);
+    `executor = "mock-account:123456789"^^tt:contact("Some Guy") : {
+  now => @com.gmail.inbox() => return;
 }`],
 
     [(almond) => {
@@ -3771,7 +3616,6 @@ async function test(script, i) {
     flushBuffer();
     app = null;
     permission = null;
-    remoteApps = '';
 
     function step(j) {
         if (j === script.length-1)
@@ -3788,8 +3632,6 @@ async function test(script, i) {
             app = cleanToken(permission.prettyprint());
         else
             app = cleanToken(app);
-        if (remoteApps)
-            app += cleanToken(remoteApps);
         expected = cleanToken(expected);
         if (app !== expected) {
             console.error('Test Case #' + (i+1) + ': does not match what expected');
@@ -3901,10 +3743,9 @@ async function main(limit = Infinity) {
         }
         return Promise.resolve(ret);
     };
-    // intercept loadOneApp
-    engine.apps.loadOneApp = loadOneApp;
+    // intercept createApp
+    engine.apps.createApp = createApp;
     engine.permissions.addPermission = addPermission;
-    engine.remote.installProgramRemote = installProgramRemote;
     engine.messaging.isAvailable = false;
     engine.devices.factory = mockDeviceFactory;
     mockDeviceFactory._engine = engine;
