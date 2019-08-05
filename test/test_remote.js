@@ -48,6 +48,36 @@ async function testInstallProgram(engine) {
     });
 }
 
+async function testInstallProgramHighLevel(engine) {
+    const messaging = engine.messaging;
+
+    const prog1 = await parseProgram(engine, `executor = "mock-account:user2"^^tt:contact : now => @org.thingpedia.builtin.test.eat_data(data='foo');`);
+    await prog1.typecheck(engine.schemas, true);
+    await new Promise((resolve, reject) => {
+        const uniqueId = uuid.v4();
+
+        messaging.on('incoming-message', (feedId, msg) => {
+            reject(new Error(`Unexpected message from ${msg.sender}`));
+        });
+        messaging.once('outgoing-message', (feedId, msg) => {
+            assert.deepStrictEqual(feedId, 'mock:feed1');
+            assert.strictEqual(msg.sender, 'mock-account:user1');
+            assert.strictEqual(msg.type, 'app');
+            assert.deepStrictEqual(msg.json, {
+                v: 3,
+                op: 'i',
+                uuid: String(uniqueId),
+                id: 'phone:+1555123456',
+                c: `now => @org.thingpedia.builtin.test.eat_data(data="foo");`,
+            });
+            resolve();
+        });
+        setTimeout(() => reject(new Error(`timed out`)), 20000);
+
+        engine.apps.createApp(prog1, { uniqueId }).catch(reject);
+    });
+}
+
 async function testHandleInstallNoPermissionNoAssistant(engine) {
     const messaging = engine.messaging;
 
@@ -559,6 +589,7 @@ module.exports = async function testRemote(engine) {
     assert(messaging.isSelf('mock-account:user1'));
 
     await testInstallProgram(engine);
+    await testInstallProgramHighLevel(engine);
 
     await testHandleInstallNoPermissionNoAssistant(engine);
     await testHandleInstallNoPermission(engine);
