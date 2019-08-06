@@ -20,7 +20,7 @@
     "matrix-js-sdk": "0.9.2",
     "q": "^1.5.0",
     "sqlite3": "^4.0.2",
-    "thingpedia": "github:stanford-oval/thingpedia-api#wip/import-tp-client",
+    "thingpedia": "github:stanford-oval/thingpedia-api",
     "thingpedia-discovery": "^1.0.0",
     "thingtalk": "~1.7.0",
     "uuid": "^3.1.0",

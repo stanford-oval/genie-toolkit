@@ -1555,11 +1555,6 @@ osenv@^0.1.4:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.0"
 
-p-finally@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/p-finally/-/p-finally-1.0.0.tgz#3fbcfb15b899a44123b34b6dcc18b724336a2cae"
-  integrity sha1-P7z7FbiZpEEjs0ttzBi3JDNqLK4=
-
 p-limit@^2.0.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/p-limit/-/p-limit-2.2.0.tgz#417c9941e6027a9abcba5092dd2904e255b5fbc2"
@@ -2110,14 +2105,13 @@ thingpedia-discovery@^1.0.0:
   dependencies:
     node-ssdp "^2.7.2"
 
-"thingpedia@github:stanford-oval/thingpedia-api#wip/import-tp-client":
+"thingpedia@github:stanford-oval/thingpedia-api":
   version "2.4.0"
-  resolved "https://codeload.github.com/stanford-oval/thingpedia-api/tar.gz/c72f83c08de9f681506ebf536ec72d8856ff84c9"
+  resolved "https://codeload.github.com/stanford-oval/thingpedia-api/tar.gz/cdf395e87568dbb764c4acfef58ed9badcb3ee95"
   dependencies:
     feedparser "^2.2.9"
     ip "~1.1.0"
     oauth "~0.9.14"
-    p-finally "^1.0.0"
     thingtalk "^1.7.0"
     tmp "^0.1.0"
     xml2js "^0.4.17"
