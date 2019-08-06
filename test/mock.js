@@ -57,9 +57,16 @@ class MockAppDatabase {
         return this._apps[appId];
     }
 
-    loadOneApp(code, state, uniqueId, tier, name, description, addToDB) {
-        console.log('MOCK: App ' + name + ' with code ' + code + ' loaded and state ' + JSON.stringify(state));
-        this._apps[uniqueId] = { name: name, description: description, code: code, state: state, uniqueId: uniqueId };
+    createApp(program, options) {
+        const code = program.prettyprint();
+        console.log('MOCK: App ' + options.name + ' with code ' + code + ' loaded');
+        this._apps[options.uniqueId] = {
+            name: options.name,
+            description: options.description,
+            code: code,
+            state: options,
+            uniqueId: options.uniqueId
+        };
         var compiler = new ThingTalk.Compiler(this._schemas);
 
         const queue = new AsyncQueue();
