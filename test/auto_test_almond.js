@@ -3652,7 +3652,7 @@ async function test(script, i) {
 var almond;
 
 const mockMatrix = {
-    configureFromAlmond(engine, configDelegate) {
+    loadInteractively(engine, configDelegate) {
         return configDelegate.requestCode("Insert your Matrix username:").then((username) => {
             assert.strictEqual(username, 'bob');
             return configDelegate.requestCode("Insert your Matrix password:", true);
@@ -3670,14 +3670,14 @@ const mockMatrix = {
 const mockDeviceFactory = {
     _engine: null,
 
-    getFactory(f) {
+    getDeviceClass(f) {
         if (f === 'org.thingpedia.builtin.matrix')
             return Promise.resolve(mockMatrix);
         else
             return Promise.reject(new Error('no such device'));
     },
-    runInteractiveConfiguration(kind, delegate) {
-        return this.getFactory(kind).then((factory) => factory.configureFromAlmond(this._engine, delegate));
+    loadInteractively(kind, delegate) {
+        return this.getDeviceClass(kind).then((factory) => factory.loadInteractively(this._engine, delegate));
     },
 
     getManifest(what) {
@@ -3747,7 +3747,9 @@ async function main(limit = Infinity) {
     engine.apps.createApp = createApp;
     engine.permissions.addPermission = addPermission;
     engine.messaging.isAvailable = false;
-    engine.devices.factory = mockDeviceFactory;
+    engine.devices.addInteractively = async (kind, delegate) => {
+        return mockDeviceFactory.loadInteractively(kind, delegate);
+    };
     mockDeviceFactory._engine = engine;
 
     var delegate = new TestDelegate();
