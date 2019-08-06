@@ -240,7 +240,7 @@ class MockDeviceDatabase {
         this._devices['org.thingpedia.builtin.thingengine.remote'] = new MockUnknownDevice('remote');
     }
 
-    loadOneDevice(blob, save) {
+    addSerialized(blob) {
         if (blob.kind === 'com.bing') {
             console.log('MOCK: Loading bing');
             return Promise.resolve(this._devices['com.bing'] = new MockBingDevice());
@@ -248,6 +248,16 @@ class MockDeviceDatabase {
             console.log('MOCK: Loading device ' + JSON.stringify(blob));
             return Promise.resolve(new MockUnknownDevice(blob.kind));
         }
+    }
+
+    async addInteractively(kind, delegate) {
+        return new MockUnknownDevice(kind);
+    }
+
+    async completeDiscovery(instance, delegate) {
+        await instance.completeDiscovery(delegate);
+        this._devices[instance.uniqueId] = instance;
+        return instance;
     }
 
     hasDevice(id) {
