@@ -13,6 +13,9 @@ const Q = require('q');
 Q.longStackSupport = true;
 process.on('unhandledRejection', (up) => { throw up; });
 
+// require(thingpedia) to initialize the polyfill
+require('thingpedia');
+
 const assert = require('assert');
 
 const Engine = require('../lib/engine');
