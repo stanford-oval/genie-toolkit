@@ -37,11 +37,6 @@ async function testMockMessaging(messaging) {
 }
 
 async function testLoginAsMatrixUser(engine) {
-    let resolve_, reject_;
-    const promise = new Promise((resolve, reject) => {
-        resolve_ = resolve;
-        reject_ = reject;
-    });
     const delegate = {
         reply(msg) {
             console.log('>> ' + msg);
@@ -51,10 +46,9 @@ async function testLoginAsMatrixUser(engine) {
             return Promise.resolve(true);
         },
         configDone() {
-            resolve_();
         },
         configFailed(error) {
-            reject_(error);
+            throw error;
         },
         requestCode(question) {
             console.log('>= ' + question);
@@ -70,11 +64,9 @@ async function testLoginAsMatrixUser(engine) {
         }
     };
 
-    const factory = await engine.devices.factory.getFactory('org.thingpedia.builtin.matrix');
-    await factory.configureFromAlmond(engine, delegate);
+    await engine.devices.addInteractively('org.thingpedia.builtin.matrix', delegate);
     // wait a for full sync
     await delay(10000);
-    await promise;
 }
 
 async function testMatrix(engine) {

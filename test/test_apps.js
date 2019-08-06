@@ -25,14 +25,22 @@ async function testSimpleDo(engine) {
         result = SUCCESS;
     };
 
-    const app = await engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.eat_data(data="some data ");',
-        {}, undefined, undefined, 'some app', 'some app description', true);
+    const app = await engine.createApp('now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").eat_data(data="some data ");');
+
+    assert.strictEqual(app.name, 'Test');
+    assert.strictEqual(app.description, 'consume “some data ”');
 
     // when we get here, the app might or might not have started already
     // to be sure, we iterate its mainOutput
 
     // the app is still running, so the engine should know about it
     assert(engine.apps.hasApp(app.uniqueId));
+    const appInfo = await engine.getAppInfo(app.uniqueId);
+    assert.strictEqual(appInfo.uniqueId, app.uniqueId);
+    assert.strictEqual(appInfo.name, 'Test');
+
+    const infos = await engine.getAppInfos();
+    assert.deepStrictEqual(infos, [appInfo]);
 
     const what = await app.mainOutput.next();
     // there should be no result output, so we should be done immediately
@@ -96,7 +104,7 @@ async function testDoError(engine) {
 
 async function testSimpleGet(engine, icon = null) {
     const app = await engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
-        { $icon: icon }, undefined, undefined, 'some app', 'some app description', true);
+        { icon: icon }, undefined, undefined, 'some app', 'some app description', true);
     // when we get here, the app might or might not have started already
     // to be sure, we iterate its mainOutput
 
@@ -640,6 +648,32 @@ async function testLoadAppTypeError(engine) {
     assert.deepStrictEqual(engine.apps.getAllApps(), []);
 }
 
+async function testLoadAppNotCompilable(engine) {
+    const assistant = engine.platform.getCapability('assistant');
+
+    assistant._setConversation({
+        notify(appId, icon, outputType, data) {
+            assert.fail('expected no result');
+        },
+
+        notifyError(appId, icon, err) {
+            assert.strictEqual(appId, 'uuid-not-compilable-err');
+            assert.strictEqual(icon, 'org.foo');
+            assert(err.message.indexOf('slot-fill') >= 0);
+        }
+    });
+
+    const app = await engine.apps.loadOneApp(`now => @com.twitter.post(status=$?);`,
+        { $icon: 'org.foo', $conversation: undefined },
+        'uuid-not-compilable-err', undefined, 'some app', 'some app description', true);
+    assert.strictEqual(app.icon, 'org.foo');
+    assert.strictEqual(app.uniqueId, 'uuid-not-compilable-err');
+    assert(!!app.error);
+
+    assert(!engine.apps.hasApp(app));
+    assert.deepStrictEqual(engine.apps.getAllApps(), []);
+}
+
 async function testGetSequence(engine, icon = null) {
     const app = await engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.next_sequence() => notify;',
         { $icon: icon }, undefined, undefined, 'some app', 'some app description', true);
@@ -739,6 +773,7 @@ module.exports = async function testApps(engine) {
 
     await testLoadAppSyntaxError(engine);
     await testLoadAppTypeError(engine);
+    await testLoadAppNotCompilable(engine);
     await testSimpleDo(engine);
     await testDoError(engine);
     await testDoSay(engine);

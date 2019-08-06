@@ -41,11 +41,7 @@ module.exports = async function testCloudSync(engine) {
     assert.strictEqual(prefs.get('cloud-id'), undefined);
     assert(!tierManager.isConnected('cloud'));
 
-    prefs.set('cloud-id', TEST_CLOUD_ID);
-    prefs.set('auth-token', TEST_AUTH_TOKEN);
-    tierManager.addCloudConfig();
-
-    await tierManager.tryConnect('cloud');
+    engine.setCloudId(TEST_CLOUD_ID, TEST_AUTH_TOKEN);
     assert(tierManager.isConnected('cloud'));
 
     // wait 10 seconds to sync...

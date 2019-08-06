@@ -11,6 +11,7 @@
 
 // test platform
 
+const Tp = require('thingpedia');
 const Q = require('q');
 const fs = require('fs');
 const os = require('os');
@@ -19,8 +20,6 @@ const child_process = require('child_process');
 const Gettext = require('node-gettext');
 const smtlib = require('smtlib');
 const LocalCVC4Solver = smtlib.LocalCVC4Solver;
-
-const prefs = require('../lib/util/prefs');
 
 const MockMessaging = require('./mock_messaging');
 
@@ -39,7 +38,7 @@ var _unzipApi = {
     }
 };
 
-class MemoryPreferences extends prefs.Preferences {
+class MemoryPreferences extends Tp.Preferences {
     constructor() {
         super();
         this._prefs = {};
@@ -136,10 +135,11 @@ function getFilesDir() {
         return path.resolve(getUserConfigDir(), 'almond-test');
 }
 
-class Platform {
+class Platform extends Tp.BasePlatform {
     // Initialize the platform code
     // Will be called before instantiating the engine
     constructor(homedir) {
+        super();
         homedir = homedir || getFilesDir();
         this._assistant = null;
 
@@ -180,10 +180,6 @@ class Platform {
 
     get type() {
         return 'test';
-    }
-
-    get encoding() {
-        return 'utf8';
     }
 
     get locale() {
