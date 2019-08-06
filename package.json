@@ -31,7 +31,7 @@
     "pegjs": "~0.10.0"
   },
   "scripts": {
-    "regen-meta-grammar": "pegjs ./lib/genie-compiler/grammar.pegjs",
+    "regen-meta-grammar": "pegjs ./lib/sentence-generator/genie-language.pegjs",
     "lint": "eslint ./lib ./tool",
     "test": "nyc ./test/everything.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
