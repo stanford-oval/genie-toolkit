@@ -83,6 +83,12 @@ module.exports = {
             defaultValue: 4,
             help: 'Maximum depth of sentence generation',
         });
+        parser.addArgument('--algorithm', {
+            required: false,
+            defaultValue: 'bottomup',
+            choices: ['bottomup', 'topdown'],
+            help: 'Algorithm to use for generation',
+        });
 
         parser.addArgument('--debug', {
             nargs: 0,

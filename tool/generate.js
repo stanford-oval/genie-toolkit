@@ -80,6 +80,12 @@ module.exports = {
             defaultValue: 5,
             help: 'Maximum depth of sentence generation',
         });
+        parser.addArgument('--algorithm', {
+            required: false,
+            defaultValue: 'bottomup',
+            choices: ['bottomup', 'topdown'],
+            help: 'Algorithm to use for generation',
+        });
         
         parser.addArgument('--debug', {
             nargs: 0,
@@ -108,7 +114,8 @@ module.exports = {
             templateFile: args.template,
             thingpediaClient: tpClient,
             maxDepth: args.maxdepth,
-            debug: args.debug
+            debug: args.debug,
+            algorithm: args.algorithm
         };
 
         const generator = new BasicSentenceGenerator(options);
