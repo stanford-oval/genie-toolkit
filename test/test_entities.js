@@ -9,7 +9,7 @@
 // See COPYING for details
 "use strict";
 
-const TpClient = require('thingpedia-client');
+const Tp = require('thingpedia');
 
 const { getBestEntityMatch } = require('../lib/dialogs/entity_lookup');
 
@@ -21,7 +21,7 @@ const _mockPlatform = {
         return null;
     }
 };
-const _thingpediaClient = new TpClient.HttpClient(_mockPlatform, THINGPEDIA_URL);
+const _thingpediaClient = new Tp.HttpClient(_mockPlatform, THINGPEDIA_URL);
 
 
 const TEST_CASES = [
