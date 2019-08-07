@@ -13,13 +13,14 @@
   ],
   "main": "lib/almond.js",
   "resolutions": {
-    "thingtalk": "github:stanford-oval/thingtalk"
+    "thingtalk": "github:stanford-oval/thingtalk",
+    "thingpedia": "github:stanford-oval/thingpedia-api"
   },
   "dependencies": {
     "adt": "~0.7.2",
     "consumer-queue": "^1.0.0",
     "qs": "^6.7.0",
-    "thingpedia": "^2.3.0",
+    "thingpedia": "github:stanford-oval/thingpedia-api",
     "thingtalk": "github:stanford-oval/thingtalk",
     "uuid": "^3.1.0"
   },
@@ -28,8 +29,7 @@
     "coveralls": "^3.0.0",
     "eslint": "^6.0.0",
     "node-gettext": "^2.0.0",
-    "nyc": "^14.0.0",
-    "thingpedia-client": "^0.2.4"
+    "nyc": "^14.0.0"
   },
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}",

@@ -10,12 +10,11 @@
 "use strict";
 
 const ThingTalk = require('thingtalk');
-const TpClient = require('thingpedia-client');
+const Tp = require('thingpedia');
 
 const AsyncQueue = require('consumer-queue');
 
 const _mockThingpediaClient = require('./mock_schema_delegate');
-
 
 class MockPreferences {
     constructor() {
@@ -455,7 +454,7 @@ module.exports.createMockEngine = function(thingpediaUrl) {
     if (thingpediaUrl === 'mock')
         thingpedia = _mockThingpediaClient;
     else
-        thingpedia = new TpClient.HttpClient(_mockPlatform, thingpediaUrl || THINGPEDIA_URL);
+        thingpedia = new Tp.HttpClient(_mockPlatform, thingpediaUrl || THINGPEDIA_URL);
     var schemas = new ThingTalk.SchemaRetriever(thingpedia, null, true);
 
     return {
