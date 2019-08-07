@@ -2643,7 +2643,7 @@ null],
     almond._options.anonymous = true;
     return almond.handleParsedCommand({ program: `now => @com.facebook.post(status=$undefined);` });
 },
-`>> This user is a demo only, and cannot perform actions. To execute this command, you must register an account for yourself.
+`>> Sorry, to execute this command you must log in to your personal account.
 >> link: Register for Almond /user/register
 >> context = null // {}
 >> ask special null
@@ -2654,7 +2654,7 @@ null],
     almond._options.anonymous = true;
     return almond.handleParsedCommand({ program: `monitor @com.xkcd.get_comic() => notify;` });
 },
-`>> This user is a demo only, and cannot enable long-running commands. To execute this command, you must register an account for yourself.
+`>> Sorry, to execute this command you must log in to your personal account.
 >> link: Register for Almond /user/register
 >> context = null // {}
 >> ask special null
@@ -2665,7 +2665,8 @@ null],
     almond._options.anonymous = true;
     return almond.handleParsedCommand({ program: `true : * => *;` });
 },
-`>> This user is a demo only; you cannot change the permissions on it.
+`>> Sorry, to allow access to your devices you must log in to your personal account.
+>> link: Register for Almond /user/register
 >> context = null // {}
 >> ask special null
 `,
@@ -2675,7 +2676,7 @@ null],
     almond._options.anonymous = true;
     return almond.handleParsedCommand({ program: `executor = "bob"^^tt:username : now => @com.facebook.post(status=$undefined);` });
 },
-`>> This user is a demo only, and cannot ask other users for permission. To execute this command, you must register an account for yourself.
+`>> Sorry, to execute this command you must log in to your personal account.
 >> link: Register for Almond /user/register
 >> context = null // {}
 >> ask special null
