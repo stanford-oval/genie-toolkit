@@ -152,6 +152,9 @@ async function testDeviceViews(engine) {
 }
 
 async function testUpdateDevice(engine) {
+    const classes = await engine.devices.getCachedDeviceClasses();
+    assert(classes.find((cls) => cls.name === 'com.xkcd' && cls.version >= 1));
+
     await engine.upgradeDevice('com.xkcd');
 
     // should do (almost) nothing because there is no twitter configured
