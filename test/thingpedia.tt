@@ -239,7 +239,8 @@ class @org.thingpedia.builtin.thingengine.phone
 
   action set_ringer(in req mode: Enum(normal,vibrate,silent) #_[prompt="What mode to you want to set?"] #_[canonical="mode"])
   #_[canonical="set ringer on phone"]
-  #_[confirmation="set your phone to $mode"];
+  #_[confirmation="set your phone to $mode"]
+  #[confirm=false];
 }
 class @com.nest
 #_[canonical="nest account"] {
@@ -690,23 +691,28 @@ class @org.thingpedia.builtin.thingengine.builtin
 
   action configure(in req device: Entity(tt:device) #_[prompt="What device do you want to configure?"] #_[canonical="device"])
   #_[canonical="configure"]
-  #_[confirmation="configure a new $device"];
+  #_[confirmation="configure a new $device"]
+  #[confirm=false];
 
   action debug_log(in req message: String #_[prompt="What should I write in the logs?"] #_[canonical="message"])
   #_[canonical="log"]
-  #_[confirmation="write $message in the developer logs"];
+  #_[confirmation="write $message in the developer logs"]
+  #[confirm=false];
 
   action discover()
   #_[canonical="discover"]
-  #_[confirmation="search for new devices"];
+  #_[confirmation="search for new devices"]
+  #[confirm=false];
 
   action open_url(in req url: Entity(tt:url) #_[prompt="What URL do you want to open?"] #_[canonical="url"])
   #_[canonical="open url on builtin"]
-  #_[confirmation="open $url"];
+  #_[confirmation="open $url"]
+  #[confirm=false];
 
   action say(in req message: String #_[prompt="What do you want me to say?"] #_[canonical="message"])
   #_[canonical="say"]
-  #_[confirmation="send me a message $message"];
+  #_[confirmation="send me a message $message"]
+  #[confirm=false];
 }
 class @light-bulb
 #_[canonical="light bulb"] {
@@ -1095,7 +1101,8 @@ class @org.thingpedia.builtin.thingengine.gnome
   action open_app(in req app_id: Entity(org.freedesktop:app_id) #_[prompt="What app do you want to open?"] #_[canonical="app id"],
                   in opt url: Entity(tt:url) #_[prompt="What file do you want to open?"] #_[canonical="url"])
   #_[canonical="open app on laptop"]
-  #_[confirmation="open $app_id"];
+  #_[confirmation="open $app_id"]
+  #[confirm=false];
 
   action set_background(in req picture_url: Entity(tt:picture) #_[prompt="What picture do you want to use as the background?"] #_[canonical="picture url"])
   #_[canonical="set background on laptop"]
@@ -1518,74 +1525,91 @@ class @com.spotify
   action add_album_to_playlist(in req album: String #_[prompt="What album would you like to add to your playlist?"] #_[canonical="to add"] #[string_values="tt:song_name"],
                                in req playlist: String #_[prompt="What play list would you like to add to?"] #_[canonical="playlist"] #[string_values="com.spotify:playlist"])
   #_[canonical="add an album to a playlist"]
-  #_[confirmation="add the album $album to the playlist $playlist"];
+  #_[confirmation="add the album $album to the playlist $playlist"]
+  #[confirm=false];
 
   action add_songs_to_playlist(in req songs: Array(String) #_[prompt="What songs would you like to add?"] #_[canonical="to add"] #[string_values="tt:song_name"],
                                in req playlist: String #_[prompt="What playlist would you like to add to?"] #_[canonical="playlist"] #[string_values="com.spotify:playlist"])
   #_[canonical="add songs to a playlist"]
-  #_[confirmation="add the songs $songs to the playlist $playlist"];
+  #_[confirmation="add the songs $songs to the playlist $playlist"]
+  #[confirm=false];
 
   action create_new_playlist(in req title: String #_[prompt="What would you like to name your playlist?"] #_[canonical="title"] #[string_values="com.spotify:playlist"],
                              in opt description: String #_[prompt="What description would you like to give your playlist?"] #_[canonical="description"] #[string_values="tt:long_free_text"],
                              in opt isPublic: Boolean #_[prompt="Would you like your playlist to be public?"] #_[canonical="is public"])
   #_[canonical="create a new playlist"]
-  #_[confirmation="create a new playlist named $title"];
+  #_[confirmation="create a new playlist named $title"]
+  #[confirm=false];
 
   action play_album(in req album: String #_[prompt="What album would you like to play?"] #_[canonical="to play"] #[string_values="tt:song_album"])
   #_[canonical="play an album"]
-  #_[confirmation="play the album $album"];
+  #_[confirmation="play the album $album"]
+  #[confirm=false];
 
   action play_artist(in req artist: String #_[prompt="What artist would you like to play?"] #_[canonical="to play"] #[string_values="tt:song_artist"])
   #_[canonical="play an artist"]
-  #_[confirmation="play the artist $artist"];
+  #_[confirmation="play the artist $artist"]
+  #[confirm=false];
 
   action play_my_playlist(in req playlist: String #_[prompt="Which one of your playlists do you want to play?"] #_[canonical="to play"] #[string_values="com.spotify:playlist"])
   #_[canonical="play your playlist"]
-  #_[confirmation="play your playlist $playlist"];
+  #_[confirmation="play your playlist $playlist"]
+  #[confirm=false];
 
   action play_playlist(in req playlist: String #_[prompt="What playlist do you want to play?"] #_[canonical="to play"] #[string_values="com.spotify:playlist"])
   #_[canonical="play the playlist"]
-  #_[confirmation="play the playlist $playlist"];
+  #_[confirmation="play the playlist $playlist"]
+  #[confirm=false];
 
   action play_seek_seconds(in req seconds: Measure(ms) #_[prompt="What timestamp (in seconds) should we seek to?"] #_[canonical="seconds"])
   #_[canonical="seek the track in seconds"]
-  #_[confirmation="seek the track to $seconds"];
+  #_[confirmation="seek the track to $seconds"]
+  #[confirm=false];
 
   action play_songs(in req songs: Array(String) #_[prompt="List the songs you want to play, separated by comma."] #_[canonical="to play"] #[string_values="tt:song_name"])
   #_[canonical="play the song(s)"]
-  #_[confirmation="play the song(s) $songs"];
+  #_[confirmation="play the song(s) $songs"]
+  #[confirm=false];
 
   action play_song(in req toPlay: String #_[prompt="What song would you like to play?"] #_[canonical="to play"] #[string_values="tt:song_name"])
   #_[canonical="play song"]
-  #_[confirmation="play a song"];
+  #_[confirmation="play a song"]
+  #[confirm=false];
 
   action player_next()
   #_[canonical="go to the next song"]
-  #_[confirmation="go to the next song"];
+  #_[confirmation="go to the next song"]
+  #[confirm=false];
 
   action player_pause()
   #_[canonical="pause playback"]
-  #_[confirmation="pause playback"];
+  #_[confirmation="pause playback"]
+  #[confirm=false];
 
   action player_play()
   #_[canonical="resume playback"]
-  #_[confirmation="resume playback"];
+  #_[confirmation="resume playback"]
+  #[confirm=false];
 
   action player_previous()
   #_[canonical="go to the previous song"]
-  #_[confirmation="go to the previous song"];
+  #_[confirmation="go to the previous song"]
+  #[confirm=false];
 
   action player_repeat(in req repeat: Enum(track,context,off) #_[prompt="Should we set the repeat state to 'track', 'context', or 'off'?"] #_[canonical="repeat"])
   #_[canonical="set the repeat state"]
-  #_[confirmation="set repeat mode to ${repeat}"];
+  #_[confirmation="set repeat mode to ${repeat}"]
+  #[confirm=false];
 
   action player_shuffle(in req shuffle: Enum(on,off) #_[prompt="Should we set the shuffle state to 'on' or 'off'?"] #_[canonical="shuffle"])
   #_[canonical="set the shuffle state"]
-  #_[confirmation="turn shuffle ${shuffle}"];
+  #_[confirmation="turn shuffle ${shuffle}"]
+  #[confirm=false];
 
   action save_current_track()
   #_[canonical="save the currently playing track"]
-  #_[confirmation="save the currently playing track"];
+  #_[confirmation="save the currently playing track"]
+  #[confirm=false];
 }
 class @org.wikidatasportsskill
 #_[canonical="wikidata sports"] {
