@@ -411,9 +411,9 @@ core-util-is@1.0.2, core-util-is@~1.0.0:
   integrity sha1-tf1UIgqivFq1eqtxQMlAdUUDwac=
 
 coveralls@^3.0.0:
-  version "3.0.5"
-  resolved "https://registry.yarnpkg.com/coveralls/-/coveralls-3.0.5.tgz#28d7274c6c9827aa85537eab82d66e7e62d0d527"
-  integrity sha512-/KD7PGfZv/tjKB6LoW97jzIgFqem0Tu9tZL9/iwBnBd8zkIZp7vT1ZSHNvnr0GSQMV/LTMxUstWg8WcDDUVQKg==
+  version "3.0.6"
+  resolved "https://registry.yarnpkg.com/coveralls/-/coveralls-3.0.6.tgz#5c63b2759b6781118e7439bd870ba5e9ee428b25"
+  integrity sha512-Pgh4v3gCI4T/9VijVrm8Ym5v0OgjvGLKj3zTUwkvsCiwqae/p6VLzpsFNjQS2i6ewV7ef+DjFJ5TSKxYt/mCrA==
   dependencies:
     growl "~> 1.10.0"
     js-yaml "^3.13.1"
@@ -848,9 +848,9 @@ globals@^11.1.0, globals@^11.7.0:
   integrity sha512-WOBp/EEGUiIsJSp7wcv/y6MO+lV9UoncWqxuFfm8eBwzWNgyfBd6Gz+IeKQ9jCmyhoH99g15M3T+QaVHFjizVA==
 
 graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.0.tgz#8d8fdc73977cb04104721cb53666c1ca64cd328b"
-  integrity sha512-jpSvDPV4Cq/bgtpndIWbI5hmYxhQGHPC4d4cqBPb4DLniCfhJokdXhwhaDuLBGLQdvvRum/UiX6ECVIPvDXqdg==
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.1.tgz#1c1f0c364882c868f5bff6512146328336a11b1d"
+  integrity sha512-b9usnbDGnD928gJB3LrCmxoibr3VE4U2SMo5PBuBnokWyDADTqDPXg4YpwKF1trpH+UbGp7QLicO3+aWEy0+mw==
 
 greenkeeper-lockfile@^1.15.1:
   version "1.15.1"
@@ -908,9 +908,11 @@ hasha@^3.0.0:
     is-stream "^1.0.1"
 
 hosted-git-info@^2.1.4:
-  version "2.7.1"
-  resolved "https://registry.yarnpkg.com/hosted-git-info/-/hosted-git-info-2.7.1.tgz#97f236977bd6e125408930ff6de3eec6281ec047"
-  integrity sha512-7T/BxH19zbcCTa8XkMlbK5lTo1WtgkFi3GvdWEyNuc4Vex7/9Dqbnpsf4JMydcfj9HCg4zUWFTL3Za6lapg5/w==
+  version "2.8.2"
+  resolved "https://registry.yarnpkg.com/hosted-git-info/-/hosted-git-info-2.8.2.tgz#a35c3f355ac1249f1093c0c2a542ace8818c171a"
+  integrity sha512-CyjlXII6LMsPMyUzxpTt8fzh5QwzGqPmQXgY/Jyf4Zfp27t/FvfhwoE/8laaMUcMy816CkWF20I7NeQhwwY88w==
+  dependencies:
+    lru-cache "^5.1.1"
 
 http-signature@~1.2.0:
   version "1.2.0"
@@ -1237,6 +1239,13 @@ lru-cache@^4.0.1:
   dependencies:
     pseudomap "^1.0.2"
     yallist "^2.1.2"
+
+lru-cache@^5.1.1:
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-5.1.1.tgz#1da27e6710271947695daf6848e847f01d84b920"
+  integrity sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==
+  dependencies:
+    yallist "^3.0.2"
 
 make-dir@^2.0.0, make-dir@^2.1.0:
   version "2.1.0"
@@ -2107,7 +2116,7 @@ thingpedia-discovery@^1.0.0:
 
 "thingpedia@github:stanford-oval/thingpedia-api":
   version "2.4.0"
-  resolved "https://codeload.github.com/stanford-oval/thingpedia-api/tar.gz/cdf395e87568dbb764c4acfef58ed9badcb3ee95"
+  resolved "https://codeload.github.com/stanford-oval/thingpedia-api/tar.gz/79a872508fb73f73089958050aae46b3ef8323c3"
   dependencies:
     feedparser "^2.2.9"
     ip "~1.1.0"
@@ -2116,10 +2125,9 @@ thingpedia-discovery@^1.0.0:
     tmp "^0.1.0"
     xml2js "^0.4.17"
 
-thingtalk@^1.7.0, thingtalk@~1.7.0:
+thingtalk@^1.7.0, "thingtalk@github:stanford-oval/thingtalk":
   version "1.7.3"
-  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.7.3.tgz#3eae5f8f73e43a9b11dc49b79a15fa56710f27b8"
-  integrity sha512-4T7Ijm/LzL+LIEhWTmK5N3iypYdt3WsppDe8XZkpg0TcAbUnSKSqZ6teg1iyrtXc04CeLysBQ9iTnXuIln2aFg==
+  resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/7d476207bd414969a0d90cc007852398152a8dcd"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
@@ -2213,9 +2221,9 @@ uuid@^3.1.0, uuid@^3.3.2:
   integrity sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
 
 v8-compile-cache@^2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/v8-compile-cache/-/v8-compile-cache-2.0.3.tgz#00f7494d2ae2b688cfe2899df6ed2c54bef91dbe"
-  integrity sha512-CNmdbwQMBjwr9Gsmohvm0pbL954tJrNzf6gWL3K+QMQf00PF7ERGrEiLgjuU3mKreLC2MeGhUsNV9ybTbLgd3w==
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/v8-compile-cache/-/v8-compile-cache-2.1.0.tgz#e14de37b31a6d194f5690d67efc4e7f6fc6ab30e"
+  integrity sha512-usZBT3PW+LOjM25wbqIlZwPeJV+3OSz3M1k1Ws8snlW39dZyYL9lOGC5FgPVHfk0jKmjiDV8Z0mIbVQPiwFs7g==
 
 validate-npm-package-license@^3.0.1:
   version "3.0.4"
@@ -2323,7 +2331,7 @@ yallist@^2.1.2:
   resolved "https://registry.yarnpkg.com/yallist/-/yallist-2.1.2.tgz#1c11f9218f076089a47dd512f93c6699a6a81d52"
   integrity sha1-HBH5IY8HYImkfdUS+TxmmaaoHVI=
 
-yallist@^3.0.0, yallist@^3.0.3:
+yallist@^3.0.0, yallist@^3.0.2, yallist@^3.0.3:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/yallist/-/yallist-3.0.3.tgz#b4b049e314be545e3ce802236d6cd22cd91c3de9"
   integrity sha512-S+Zk8DEWE6oKpV+vI3qWkaK+jSbIK86pCwe2IF/xwIpQ8jEuxpw9NyaGjmp9+BoJv5FV2piqCDcoCtStppiq2A==
