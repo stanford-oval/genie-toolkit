@@ -1272,11 +1272,6 @@ os-tmpdir@~1.0.2:
   resolved "https://registry.yarnpkg.com/os-tmpdir/-/os-tmpdir-1.0.2.tgz#bbe67406c79aa85c5cfec766fe5734555dfa1274"
   integrity sha1-u+Z0BseaqFxc/sdm/lc0VV36EnQ=
 
-p-finally@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/p-finally/-/p-finally-1.0.0.tgz#3fbcfb15b899a44123b34b6dcc18b724336a2cae"
-  integrity sha1-P7z7FbiZpEEjs0ttzBi3JDNqLK4=
-
 p-limit@^2.0.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/p-limit/-/p-limit-2.2.0.tgz#417c9941e6027a9abcba5092dd2904e255b5fbc2"
@@ -1757,28 +1752,18 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-thingpedia-client@^0.2.4:
-  version "0.2.5"
-  resolved "https://registry.yarnpkg.com/thingpedia-client/-/thingpedia-client-0.2.5.tgz#f7b68a60fa5b6a4f44f310d88b5d66aa32752c4f"
-  integrity sha512-ExJznZ6BUsu+Y5qRmJv8yuhjgJt8LtMq6UQ9/7+sZVJpOUkKWKvB0SVq9WTR5INGdj2OWqvSwG954/+gmk4yhg==
-  dependencies:
-    thingpedia "^2.3.0"
-    thingtalk "~1.7.0"
-    tmp "^0.1.0"
-
-thingpedia@^2.3.0:
+"thingpedia@github:stanford-oval/thingpedia-api":
   version "2.4.0"
-  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.4.0.tgz#a4bd953848e87fb55dfcdc56e231810c22b58bcc"
-  integrity sha512-AVgQwYBH16pU7OcE5mhsFs3oHZ9EsJG0mqGohNZWLVEHsdiWxoahaMVRQFypXpxlcyF/ksCQ8I/0U3qWmdDJXQ==
+  resolved "https://codeload.github.com/stanford-oval/thingpedia-api/tar.gz/cdf395e87568dbb764c4acfef58ed9badcb3ee95"
   dependencies:
     feedparser "^2.2.9"
     ip "~1.1.0"
     oauth "~0.9.14"
-    p-finally "^1.0.0"
     thingtalk "^1.7.0"
+    tmp "^0.1.0"
     xml2js "^0.4.17"
 
-thingtalk@^1.7.0, "thingtalk@github:stanford-oval/thingtalk", thingtalk@~1.7.0:
+thingtalk@^1.7.0, "thingtalk@github:stanford-oval/thingtalk":
   version "1.7.3"
   uid "7da7fa1e3de5a3d30860cafdbaf179c520fd76e3"
   resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/7da7fa1e3de5a3d30860cafdbaf179c520fd76e3"

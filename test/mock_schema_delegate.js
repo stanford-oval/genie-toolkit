@@ -1,147 +1,51 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2018-2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
 "use strict";
 
-const util = require('util');
 const assert = require('assert');
-
 const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
-const TpClient = require('thingpedia-client');
-
-const Thingpedia = require('./thingpedia.json');
-const ThingpediaDeviceFactories = require('./thingpedia-device-factories.json');
+const Tp = require('thingpedia');
 const fs = require('fs');
 const path = require('path');
+const util = require('util');
+const ThingpediaDeviceFactories = require('./thingpedia-device-factories.json');
 
-// Parse the semi-obsolete JSON format for schemas used
-// by Thingpedia into a FunctionDef
-function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
-    const args = [];
-    // compat with Thingpedia API quirks
-    const types = schema.types || schema.schema;
-
-    types.forEach((type, i) => {
-        type = Type.fromString(type);
-        const argname = schema.args[i];
-        const argrequired = !!schema.required[i];
-        const arginput = !!schema.is_input[i];
-
-        let direction;
-        if (argrequired)
-            direction = Ast.ArgDirection.IN_REQ;
-        else if (arginput)
-            direction = Ast.ArgDirection.IN_OPT;
-        else
-            direction = Ast.ArgDirection.OUT;
-        const metadata = {};
-        if (isMeta) {
-            metadata.prompt = schema.questions[i] || '';
-            metadata.canonical = schema.argcanonicals[i] || argname;
-        }
-        const annotations = {};
-
-        args.push(new Ast.ArgumentDef(direction, argname,
-            type, metadata, annotations));
-    });
-
-    const metadata = {};
-    if (isMeta) {
-        metadata.canonical = schema.canonical || '';
-        metadata.confirmation = schema.confirmation || '';
-    }
-    const annotations = {};
-
-    return new Ast.FunctionDef(functionType,
-                               functionName,
-                               args,
-                               schema.is_list,
-                               schema.is_monitorable,
-                               metadata,
-                               annotations);
-}
-
-function makeSchemaClassDef(kind, schema, isMeta) {
-    const queries = {};
-    for (let name in schema.queries)
-        queries[name] = makeSchemaFunctionDef('query', name, schema.queries[name], isMeta);
-    const actions = {};
-    for (let name in schema.actions)
-        actions[name] = makeSchemaFunctionDef('action', name, schema.actions[name], isMeta);
-
-    const imports = [];
-    const metadata = {};
-    const annotations = {};
-    return new Ast.ClassDef(kind, null, queries, actions,
-                            imports, metadata, annotations);
-}
-
-class MockSchemaDelegate extends TpClient.BaseClient {
+class MockThingpediaClient extends Tp.BaseClient {
     constructor() {
-        super();
-        this._schema = {};
-        this._meta = {};
-        this._mixins = {};
+        super(null);
+        this._devices = null;
+        this._entities = null;
+
+        this._thingpediafilename = path.resolve(path.dirname(module.filename), 'thingpedia.tt');
+        this._loaded = null;
     }
 
-    // The Thingpedia APIs were changed to return ThingTalk class
-    // definitions rather than JSON
-    // We convert our JSON datafiles into ThingTalk code here
-
-    async getSchemas(kinds, useMeta) {
-        if (kinds.indexOf('org.thingpedia.test.timedout') >= 0) {
-            const e = new Error('Connection timed out');
-            e.code = 'ETIMEDOUT';
-            throw e;
-        }
-
-        const source = useMeta ? this._meta : this._schema;
-
-        const classes = [];
-        for (let kind of kinds) {
-            // emulate Thingpedia's behavior of creating an empty class
-            // for invalid/unknown/invisible devices
-            if (!source[kind])
-                source[kind] = { queries: {}, actions: {} };
-            classes.push(makeSchemaClassDef(kind, source[kind], useMeta));
-        }
-        const input = new Ast.Input.Meta(classes, []);
-        return input.prettyprint();
+    get developerKey() {
+        return null;
+    }
+    get locale() {
+        return this._locale;
     }
 
-    getDeviceCode(kind) {
-        return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), kind + '.tt'), { encoding: 'utf8' });
+    async getModuleLocation() {
+        throw new Error(`Cannot download module using MockThingpediaClient`);
+    }
+    async getKindByDiscovery(id) {
+        throw new Error(`Cannot perform device discovery using MockThingpediaClient`);
+    }
+    async clickExample() {
+        throw new Error(`Cannot click examples using MockThingpediaClient`);
     }
 
-    getDeviceList(klass, page, page_size) {
-        return Promise.resolve(ThingpediaDeviceFactories.devices.filter((d) => d.subcategory === klass).slice(page*page_size, page*page_size + page_size + 1));
-    }
-
-    getExamplesByKey(key) {
-        if (key === '!! test command always failed !!') {
-            return Promise.resolve(`dataset @org.thingpedia.generated.by_key.always_failed language "en" {
-    action := @org.thingpedia.builtin.test.eat_data()
-    #_[utterances=["eat test data"]]
-    #_[preprocessed=["eat test data"]]
-    #[id=1];
-
-    query := @org.thingpedia.builtin.test.get_data()
-    #_[utterances=["get test data"]]
-    #_[preprocessed=["get test data"]]
-    #[id=2];
-
-    query (p_size : Measure(byte)) := @org.thingpedia.builtin.test.get_data(size=p_size)
-    #_[utterances=["get ${'${p_size}'} test data"]]
-    #_[preprocessed=["get ${'${p_size}'} test data"]]
-    #[id=3];
-}`);
-        } else {
-            return Promise.resolve(`dataset @org.thingpedia.generated.by_key language "en" {}`);
-        }
-    }
-
-    getExamplesByKinds(kinds) {
-        assert.strictEqual(kinds.length, 1);
-        return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), 'examples/' + kinds[0] + '.tt'), { encoding: 'utf8' });
+    async getAllEntityTypes() {
+        throw new Error(`Cannot click examples using MockThingpediaClient`);
     }
 
     async lookupEntity(entityType, entityDisplay) {
@@ -231,25 +135,87 @@ class MockSchemaDelegate extends TpClient.BaseClient {
             throw new Error('Invalid location ' + searchKey);
         }
     }
-}
-module.exports = new MockSchemaDelegate();
-for (let dev of Thingpedia.data) {
-    module.exports._meta[dev.kind] = dev;
-    module.exports._schema[dev.kind] = {
-        queries: {},
-        actions: {}
-    };
-    for (let what of ['queries', 'actions']) {
-        for (let name in dev[what]) {
-            let from = dev[what][name];
-            module.exports._schema[dev.kind][what][name] = {
-                types: from.schema,
-                args: from.args,
-                required: from.required,
-                is_input: from.is_input,
-                is_list: from.is_list,
-                is_monitorable: from.is_monitorable
-            };
+
+    async _load() {
+        this._devices = (await util.promisify(fs.readFile)(this._thingpediafilename)).toString();
+
+        if (this._entityfilename)
+            this._entities = JSON.parse(await util.promisify(fs.readFile)(this._entityfilename)).data;
+        else
+            this._entities = null;
+    }
+
+    _ensureLoaded() {
+        if (this._loaded)
+            return this._loaded;
+        else
+            return this._loaded = this._load();
+    }
+
+    async getSchemas(kinds, useMeta) {
+        if (kinds.indexOf('org.thingpedia.test.timedout') >= 0) {
+            const e = new Error('Connection timed out');
+            e.code = 'ETIMEDOUT';
+            throw e;
+        }
+
+        await this._ensureLoaded();
+
+        // ignore kinds, just return the full file, SchemaRetriever will take care of the rest
+        return this._devices;
+    }
+
+    getDeviceCode(kind) {
+        return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), kind + '.tt'), { encoding: 'utf8' });
+    }
+
+    getDeviceList(klass, page, page_size) {
+        return Promise.resolve(ThingpediaDeviceFactories.devices.filter((d) => d.subcategory === klass).slice(page*page_size, page*page_size + page_size + 1));
+    }
+    async getAllDeviceNames() {
+        await this._ensureLoaded();
+
+        const parsed = ThingTalk.Grammar.parse(this._devices);
+        let names = [];
+        for (let classDef of parsed.classes) {
+            names.push({
+                kind: classDef.kind,
+                kind_canonical: classDef.metadata.canonical
+            });
+        }
+        return names;
+    }
+
+    getExamplesByKey(key) {
+        if (key === '!! test command always failed !!') {
+            return Promise.resolve(`dataset @org.thingpedia.generated.by_key.always_failed language "en" {
+    action := @org.thingpedia.builtin.test.eat_data()
+    #_[utterances=["eat test data"]]
+    #_[preprocessed=["eat test data"]]
+    #[id=1];
+
+    query := @org.thingpedia.builtin.test.get_data()
+    #_[utterances=["get test data"]]
+    #_[preprocessed=["get test data"]]
+    #[id=2];
+
+    query (p_size : Measure(byte)) := @org.thingpedia.builtin.test.get_data(size=p_size)
+    #_[utterances=["get ${'${p_size}'} test data"]]
+    #_[preprocessed=["get ${'${p_size}'} test data"]]
+    #[id=3];
+}`);
+        } else {
+            return Promise.resolve(`dataset @org.thingpedia.generated.by_key language "en" {}`);
         }
     }
+
+    async getExamplesByKinds(kinds) {
+        assert.strictEqual(kinds.length, 1);
+        return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), 'examples/' + kinds[0] + '.tt'), { encoding: 'utf8' });
+    }
+
+    getAllExamples() {
+        return util.promisify(fs.readFile)(this._datasetfilename, { encoding: 'utf8' });
+    }
 }
+module.exports = new MockThingpediaClient();

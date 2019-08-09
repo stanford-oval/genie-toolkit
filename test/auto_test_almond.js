@@ -1998,10 +1998,10 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
     null],
 
     [
-    ['now', '=>', '@tumblr-blog.post_text'],
+    ['now', '=>', '@com.tumblr.blog.post_text'],
 `>> You don't have a Tumblr Blog.
->> button: Configure Tumblr Blog {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:tumblr-blog"]}
->> context = now => @tumblr-blog.post_text // {}
+>> button: Configure Tumblr Blog {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:com.tumblr.blog"]}
+>> context = now => @com.tumblr.blog.post_text // {}
 >> ask special null
 `,
     null],
@@ -2068,7 +2068,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     (almond) => {
-        almond.interactiveConfigure('tumblr-blog');
+        almond.interactiveConfigure('com.tumblr.blog');
 
         return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
     },
@@ -2399,29 +2399,29 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 }`],
 
     [
-    ['now', '=>', '@org.coinbin.get_price', 'param:currency:Entity(tt:cryptocurrency_code)', '=', '"', 'bitcoin', '"', '^^tt:cryptocurrency_code', '=>', 'notify'],
+    ['now', '=>', '@com.cryptonator.get_price', 'param:currency:Entity(tt:cryptocurrency_code)', '=', '"', 'bitcoin', '"', '^^tt:cryptocurrency_code', '=>', 'notify'],
 `>> Sorry, I did not find any result for that.
->> context = now => @org.coinbin.get_price param:currency:Entity(tt:cryptocurrency_code) = GENERIC_ENTITY_tt:cryptocurrency_code_0 => notify // {"GENERIC_ENTITY_tt:cryptocurrency_code_0":{"value":"btc","display":"Bitcoin"}}
+>> context = now => @com.cryptonator.get_price param:currency:Entity(tt:cryptocurrency_code) = GENERIC_ENTITY_tt:cryptocurrency_code_0 => notify // {"GENERIC_ENTITY_tt:cryptocurrency_code_0":{"value":"btc","display":"Bitcoin"}}
 >> ask special null
 `,
     `{
-  now => @org.coinbin(id="org.coinbin-24").get_price(currency="btc"^^tt:cryptocurrency_code("Bitcoin")) => notify;
+  now => @com.cryptonator(id="com.cryptonator-24").get_price(currency="btc"^^tt:cryptocurrency_code("Bitcoin")) => notify;
 }`],
 
     [
-    ['now', '=>', '@org.coinbin.get_price', 'param:currency:Entity(tt:cryptocurrency_code)', '=', '"', 'bitcoin', '"', '^^tt:cryptocurrency_code', '=>', 'notify'],
+    ['now', '=>', '@com.cryptonator.get_price', 'param:currency:Entity(tt:cryptocurrency_code)', '=', '"', 'bitcoin', '"', '^^tt:cryptocurrency_code', '=>', 'notify'],
 `>> Sorry, I did not find any result for that.
->> context = now => @org.coinbin.get_price param:currency:Entity(tt:cryptocurrency_code) = GENERIC_ENTITY_tt:cryptocurrency_code_0 => notify // {"GENERIC_ENTITY_tt:cryptocurrency_code_0":{"value":"btc","display":"Bitcoin"}}
+>> context = now => @com.cryptonator.get_price param:currency:Entity(tt:cryptocurrency_code) = GENERIC_ENTITY_tt:cryptocurrency_code_0 => notify // {"GENERIC_ENTITY_tt:cryptocurrency_code_0":{"value":"btc","display":"Bitcoin"}}
 >> ask special null
 `,
     `{
-  now => @org.coinbin(id="org.coinbin-25").get_price(currency="btc"^^tt:cryptocurrency_code("Bitcoin")) => notify;
+  now => @com.cryptonator(id="com.cryptonator-25").get_price(currency="btc"^^tt:cryptocurrency_code("Bitcoin")) => notify;
 }`],
 
     [
-    ['now', '=>', '@org.coinbin.get_price', 'param:currency:Entity(tt:cryptocurrency_code)', '=', '"', 'invalid', '"', '^^tt:cryptocurrency_code', '=>', 'notify'],
+    ['now', '=>', '@com.cryptonator.get_price', 'param:currency:Entity(tt:cryptocurrency_code)', '=', '"', 'invalid', '"', '^^tt:cryptocurrency_code', '=>', 'notify'],
 `>> Sorry, I cannot find any Cryptocurrency Code matching “invalid”.
->> context = now => @org.coinbin.get_price param:currency:Entity(tt:cryptocurrency_code) = GENERIC_ENTITY_tt:cryptocurrency_code_0 => notify // {"GENERIC_ENTITY_tt:cryptocurrency_code_0":{"value":null,"display":"invalid"}}
+>> context = now => @com.cryptonator.get_price param:currency:Entity(tt:cryptocurrency_code) = GENERIC_ENTITY_tt:cryptocurrency_code_0 => notify // {"GENERIC_ENTITY_tt:cryptocurrency_code_0":{"value":null,"display":"invalid"}}
 >> ask special null
 `,
     null],
@@ -2643,7 +2643,7 @@ null],
     almond._options.anonymous = true;
     return almond.handleParsedCommand({ program: `now => @com.facebook.post(status=$undefined);` });
 },
-`>> This user is a demo only, and cannot perform actions. To execute this command, you must register an account for yourself.
+`>> Sorry, to execute this command you must log in to your personal account.
 >> link: Register for Almond /user/register
 >> context = null // {}
 >> ask special null
@@ -2654,7 +2654,7 @@ null],
     almond._options.anonymous = true;
     return almond.handleParsedCommand({ program: `monitor @com.xkcd.get_comic() => notify;` });
 },
-`>> This user is a demo only, and cannot enable long-running commands. To execute this command, you must register an account for yourself.
+`>> Sorry, to execute this command you must log in to your personal account.
 >> link: Register for Almond /user/register
 >> context = null // {}
 >> ask special null
@@ -2665,7 +2665,8 @@ null],
     almond._options.anonymous = true;
     return almond.handleParsedCommand({ program: `true : * => *;` });
 },
-`>> This user is a demo only; you cannot change the permissions on it.
+`>> Sorry, to allow access to your devices you must log in to your personal account.
+>> link: Register for Almond /user/register
 >> context = null // {}
 >> ask special null
 `,
@@ -2675,7 +2676,7 @@ null],
     almond._options.anonymous = true;
     return almond.handleParsedCommand({ program: `executor = "bob"^^tt:username : now => @com.facebook.post(status=$undefined);` });
 },
-`>> This user is a demo only, and cannot ask other users for permission. To execute this command, you must register an account for yourself.
+`>> Sorry, to execute this command you must log in to your personal account.
 >> link: Register for Almond /user/register
 >> context = null // {}
 >> ask special null
@@ -2979,13 +2980,13 @@ null],
   now => @org.thingpedia.builtin.thingengine.builtin(id="thingengine-own-global").configure(device="com.instagram"^^tt:device("Instagram"));
 }`],
 
-    [`\\t now => @org.thingpedia.builtin.thingengine.builtin.configure(device="tumblr-blog"^^tt:device);`,
+    [`\\t now => @org.thingpedia.builtin.thingengine.builtin.configure(device="com.tumblr.blog"^^tt:device);`,
 `>> Ok, I'm going to configure a new Tumblr Blog.
->> context = now => @org.thingpedia.builtin.thingengine.builtin.configure param:device:Entity(tt:device) = device:tumblr-blog // {}
+>> context = now => @org.thingpedia.builtin.thingengine.builtin.configure param:device:Entity(tt:device) = device:com.tumblr.blog // {}
 >> ask special null
 `,
     `{
-  now => @org.thingpedia.builtin.thingengine.builtin(id="thingengine-own-global").configure(device="tumblr-blog"^^tt:device("Tumblr Blog"));
+  now => @org.thingpedia.builtin.thingengine.builtin(id="thingengine-own-global").configure(device="com.tumblr.blog"^^tt:device("Tumblr Blog"));
 }`],
 
     [
@@ -3730,7 +3731,7 @@ async function main(limit = Infinity) {
                 ret[k] = {type: 'discovery', discoveryType: 'upnp', text: 'LG WebOS TV'};
             else if (k === 'org.thingpedia.builtin.bluetooth.generic')
                 ret[k] = {type: 'discovery', discoveryType: 'bluetooth', text: 'Generic Bluetooth Device'};
-            else if (k === 'tumblr-blog')
+            else if (k === 'com.tumblr.blog')
                 ret[k] = {type: 'multiple', choices: [{ type: 'oauth2', kind: 'com.tumblr', text: "Tumblr Account" }, { type: 'form', kind: 'com.tumblr2', text: 'Some other Tumblr Thing' }]};
             else if (k === 'com.instagram')
                 ret[k] = {type: 'oauth2', kind: 'com.instagram', text: 'Instagram'};
