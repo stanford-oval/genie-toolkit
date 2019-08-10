@@ -3736,7 +3736,7 @@ async function main(limit = Infinity) {
                 ret[k] = {type: 'oauth2', kind: 'com.instagram', text: 'Instagram'};
             else if (k === 'org.thingpedia.rss')
                 ret[k] = _rssFactory;
-            else if (k === 'org.thingpedia.builtin.thingengine.home' || k === 'org.thingpedia.builtin.thingpedia.morning' || k === 'car')
+            else if (k === 'org.thingpedia.builtin.thingengine.home' || k === 'car')
                 ret[k] = {type: 'multiple', choices: [] };
             else
                 ret[k] = {type:'none',kind:k,text: k};
