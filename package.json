@@ -12,16 +12,13 @@
     }
   ],
   "main": "lib/almond.js",
-  "resolutions": {
-    "thingtalk": "github:stanford-oval/thingtalk",
-    "thingpedia": "github:stanford-oval/thingpedia-api"
-  },
+  "resolutions": {},
   "dependencies": {
     "adt": "~0.7.2",
     "consumer-queue": "^1.0.0",
     "qs": "^6.7.0",
-    "thingpedia": "github:stanford-oval/thingpedia-api",
-    "thingtalk": "github:stanford-oval/thingtalk",
+    "thingpedia": "~2.5.0-beta.1",
+    "thingtalk": "~1.8.0-beta.1",
     "uuid": "^3.1.0"
   },
   "devDependencies": {
