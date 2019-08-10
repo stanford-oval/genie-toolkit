@@ -10,7 +10,7 @@
 "use strict";
 
 const fs = require('fs');
-const csv = require('csv');
+const csvparse = require('csv-parse');
 const byline = require('byline');
 const Stream = require('stream');
 const ThingTalk = require('thingtalk');
@@ -78,7 +78,7 @@ module.exports = {
             ['id', 'context', 'sentence', 'target_code', 'prediction'] :
             ['id', 'sentence', 'target_code', 'prediction'];
         const predictionstream = args.predictions
-            .pipe(csv.parse({ columns, delimiter: '\t', relax: true }))
+            .pipe(csvparse({ columns, delimiter: '\t', relax: true }))
             .pipe(new StreamUtils.MapAccumulator());
         const predictions = await predictionstream.read();
 

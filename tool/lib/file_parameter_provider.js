@@ -12,7 +12,7 @@
 const util = require('util');
 const fs = require('fs');
 const byline = require('byline');
-const csv = require('csv');
+const csvparse = require('csv-parse');
 const path = require('path');
 
 // Load strings and entities from files
@@ -64,7 +64,7 @@ module.exports = class FileParameterProvider {
 
         const strings = [];
         const input = fs.createReadStream(filepath)
-            .pipe(csv.parse({ delimiter: '\t', relax: true }));
+            .pipe(csvparse({ delimiter: '\t', relax: true }));
 
         input.on('data', (line) => {
             let preprocessed, weight;

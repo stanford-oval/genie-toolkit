@@ -11,7 +11,7 @@
 
 const fs = require('fs');
 const events = require('events');
-const csv = require('csv');
+const csvparse = require('csv-parse');
 const readline = require('readline');
 
 const ParserClient = require('./lib/parserclient');
@@ -276,7 +276,7 @@ module.exports = {
 
         let lines = [];
         args.input.setEncoding('utf8');
-        const input = args.input.pipe(csv.parse({ columns: true, relax: true, delimiter: '\t' }));
+        const input = args.input.pipe(csvparse({ columns: true, relax: true, delimiter: '\t' }));
         input.on('data', (line) => {
             lines.push(line);
         });

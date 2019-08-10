@@ -11,7 +11,7 @@
 
 const fs = require('fs');
 const Stream = require('stream');
-const csv = require('csv');
+const csvparse = require('csv-parse');
 const csvstringify = require('csv-stringify');
 const ThingTalk = require('thingtalk');
 
@@ -121,7 +121,7 @@ module.exports = {
             if (!args.validation_input)
                 throw new Error(`Argument --validation-input is required when performing manual validation`);
             const validationInput = fs.createReadStream(args.validation_input)
-                .pipe(csv.parse({
+                .pipe(csvparse({
                     columns: true,
                     delimiter: ',',
                     relax_column_count: true
@@ -149,7 +149,7 @@ module.exports = {
         }
 
         const rejectedPara = fs.createReadStream(args.paraphrasing_input)
-            .pipe(csv.parse({
+            .pipe(csvparse({
                 columns: true,
                 delimiter: ',',
                 relax_column_count: true

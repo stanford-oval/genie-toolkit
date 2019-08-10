@@ -12,7 +12,8 @@
 
 const fs = require('fs');
 const Stream = require('stream');
-const csv = require('csv');
+const csvparse = require('csv-parse');
+const csvstringify = require('csv-stringify');
 const seedrandom = require('seedrandom');
 const shuffle = require('shuffle-array');
 const ThingTalk = require('thingtalk');
@@ -195,7 +196,7 @@ module.exports = {
         // so we can sample a fake one to choose
 
         const accumulator = new ArrayAccumulator();
-        process.stdin.pipe(csv.parse({
+        process.stdin.pipe(csvparse({
                 columns: true,
                 delimiter: ',',
                 relax_column_count: true
@@ -220,7 +221,7 @@ module.exports = {
                 debug: args.debug,
                 rng: rng
             }))
-            .pipe(csv.stringify({ header: true, delimiter: ',' }))
+            .pipe(csvstringify({ header: true, delimiter: ',' }))
             .pipe(args.output);
 
         await waitFinish(args.output);

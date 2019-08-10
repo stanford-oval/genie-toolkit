@@ -12,7 +12,7 @@
 const Stream = require('stream');
 const seedrandom = require('seedrandom');
 const fs = require('fs');
-const csv = require('csv');
+const csvstringify = require('csv-stringify');
 
 const ThingTalk = require('thingtalk');
 const Type = ThingTalk.Type;
@@ -307,7 +307,7 @@ module.exports = {
                 }
             }))
             .pipe(new SentenceSampler(constants, options))
-            .pipe(csv.stringify({ header: true, delimiter: ',' }))
+            .pipe(csvstringify({ header: true, delimiter: ',' }))
             .pipe(args.output);
 
         return new Promise((resolve, reject) => {
