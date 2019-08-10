@@ -14,7 +14,7 @@
     "argparse": "^1.0.10",
     "byline": "^5.0.0",
     "csv-parse": "^4.4.5",
-    "csv-stringify": "5.3.0",
+    "csv-stringify": "5.3.3",
     "mmap-io": "^1.1.7",
     "qs": "^6.7.0",
     "seedrandom": "^3.0.0",
