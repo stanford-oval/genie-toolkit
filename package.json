@@ -11,10 +11,7 @@
       "email": "gcampagn@cs.stanford.edu"
     }
   ],
-  "resolutions": {
-    "thingpedia": "github:stanford-oval/thingpedia-api",
-    "thingtalk": "github:stanford-oval/thingtalk"
-  },
+  "resolutions": {},
   "main": "lib/engine.js",
   "dependencies": {
     "adt": "^0.7.2",
@@ -24,9 +21,9 @@
     "matrix-js-sdk": "0.9.2",
     "q": "^1.5.0",
     "sqlite3": "^4.0.2",
-    "thingpedia": "github:stanford-oval/thingpedia-api",
+    "thingpedia": "~2.5.0-beta.1",
     "thingpedia-discovery": "^1.0.0",
-    "thingtalk": "github:stanford-oval/thingtalk",
+    "thingtalk": "~1.8.0-beta.1",
     "uuid": "^3.1.0",
     "ws": "^7.0.0"
   },

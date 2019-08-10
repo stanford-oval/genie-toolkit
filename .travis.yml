@@ -13,7 +13,6 @@ before_install:
 - export PATH="`pwd`/cvc4:$PATH"
 - yarn global add greenkeeper-lockfile@1
 before_script:
-- (cd node_modules/thingtalk; yarn)
 - greenkeeper-lockfile-update
 after_script: greenkeeper-lockfile-upload
 script:
