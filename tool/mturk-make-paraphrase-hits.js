@@ -11,7 +11,8 @@
 
 const fs = require('fs');
 const Stream = require('stream');
-const csv = require('csv');
+const csvparse = require('csv-parse');
+const csvstringify = require('csv-stringify');
 
 const StreamUtils = require('../lib/stream-utils');
 const { NUM_SENTENCES_PER_TASK } = require('./lib/constants');
@@ -84,9 +85,9 @@ module.exports = {
     async execute(args) {
         process.stdin.setEncoding('utf8');
         process.stdin
-            .pipe(csv.parse({ columns: true, delimiter: '\t' }))
+            .pipe(csvparse({ columns: true, delimiter: '\t' }))
             .pipe(new ParaphraseHITCreator(args.sentences_per_task))
-            .pipe(csv.stringify({ header: true, delimiter: ',' }))
+            .pipe(csvstringify({ header: true, delimiter: ',' }))
             .pipe(args.output);
 
         return StreamUtils.waitFinish(args.output);

@@ -10,7 +10,6 @@ before_install:
 - sudo apt-get install -y realpath
 before_script:
 - greenkeeper-lockfile-update
-- (cd node_modules/thingtalk ; yarn)
 after_script: greenkeeper-lockfile-upload
 script:
 - yarn lint

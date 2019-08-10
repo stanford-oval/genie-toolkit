@@ -12,7 +12,7 @@
 const seedrandom = require('seedrandom');
 const fs = require('fs');
 const byline = require('byline');
-const csv = require('csv');
+const csvstringify = require('csv-stringify');
 const Stream = require('stream');
 const ThingTalk = require('thingtalk');
 
@@ -293,7 +293,7 @@ module.exports = {
         readAllLines(args.input_file)
             .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true }))
             .pipe(new SentenceSampler(schemaRetriever, constants, options))
-            .pipe(csv.stringify({ header: true, delimiter: '\t' }))
+            .pipe(csvstringify({ header: true, delimiter: '\t' }))
             .pipe(args.output);
 
         return new Promise((resolve, reject) => {

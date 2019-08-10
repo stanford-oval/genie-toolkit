@@ -9,20 +9,19 @@
   "bin": {
     "genie": "./tool/genie.js"
   },
-  "resolutions": {
-    "thingtalk": "github:stanford-oval/thingtalk"
-  },
+  "resolutions": {},
   "dependencies": {
     "argparse": "^1.0.10",
     "byline": "^5.0.0",
-    "csv": "^5.0.0",
+    "csv-parse": "^4.4.5",
+    "csv-stringify": "5.3.0",
     "mmap-io": "^1.1.7",
     "qs": "^6.7.0",
     "seedrandom": "^3.0.0",
     "shuffle-array": "^1.0.1",
     "sockaddr": "^1.0.1",
-    "thingpedia": "^2.3.3",
-    "thingtalk": "github:stanford-oval/thingtalk"
+    "thingpedia": "~2.5.0-beta.1",
+    "thingtalk": "~1.8.0-beta.1"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
