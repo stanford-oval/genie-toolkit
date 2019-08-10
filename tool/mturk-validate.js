@@ -12,6 +12,7 @@
 const fs = require('fs');
 const Stream = require('stream');
 const csv = require('csv');
+const csvstringify = require('csv-stringify');
 const ThingTalk = require('thingtalk');
 
 const { ParaphraseValidatorFilter } = require('../lib/validator');
@@ -131,7 +132,7 @@ module.exports = {
 
             if (args.validation_rejects) {
                 validationRejects = StreamUtils.waitFinish(validationInput
-                    .pipe(csv.stringify({ header: true, delimiter: ',' }))
+                    .pipe(csvstringify({ header: true, delimiter: ',' }))
                     .pipe(fs.createWriteStream(args.validation_rejects)));
             }
 
@@ -163,7 +164,7 @@ module.exports = {
         let paraphrasingRejects;
         if (args.paraphrasing_rejects) {
             paraphrasingRejects = StreamUtils.waitFinish(rejectedPara
-                .pipe(csv.stringify({ header: true, delimiter: ',' }))
+                .pipe(csvstringify({ header: true, delimiter: ',' }))
                 .pipe(fs.createWriteStream(args.paraphrasing_rejects)));
         } else {
             paraphrasingRejects = Promise.resolve();
