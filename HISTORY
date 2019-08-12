@@ -1,3 +1,23 @@
+1.6.0-beta.1
+============
+
+* Version was bumped to 1.6 (skipping the 1.5 series) to match the rest of
+  the Almond platform (thingengine-core, almond-cloud, almond-cmdline)
+* Added experimental support for contextual inference: tracking of contexts,
+  passing contexts to the server [#83]
+* Implemented support for unresolved locations [#94, #95]
+* Impleemnted support for relative time values (morning, evening)
+  [Ricky Grannis-Vu; #103]
+* Added a link to register a Matrix account when there is no Matrix account
+  (because users might not have the account in the first place) [#89]
+* Added support for `#[confirm]` annotations to decide whether an action is
+  safe or not [#102]
+* The wording of anonymous mode error messages was improved [#102]
+* Fixed displaying of contact names in permission requests [#91]
+* Fixed builtin location functions [#92]
+* Updated to use the new thingtalk and thingengine-core APIs [#98, #99, #100]
+* Updated dependencies [#90, #104]
+
 1.4.0
 =====
 
