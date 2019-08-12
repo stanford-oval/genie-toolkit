@@ -10,6 +10,11 @@ lib/genie-compiler/grammar.js
 *.tgz
 
 workdir*
+dataset.tt
+thingpedia.json
+entities.json
+thingpedia.tt
+decanlp/
 
 *.tsv
 *.csv
@@ -24,4 +29,3 @@ workdir*
 !test/data/synthetic-context-source.tsv
 !test/data/easy-hard-functions.tsv
 !test/data/parameter-datasets.tsv
-
