@@ -1,3 +1,57 @@
+0.4.0-beta.1
+============
+
+Contextual support [#57, #62]:
+* Added API to predict based on context.
+* Added contextual templates for follow ups, incrementally adding filters, and
+  answering slot-filling questions.
+* Contextual sentence generation now runs in parallel using multiple threads.
+  This requires a version of node compiled with worker support.
+* Slot-filling answer in the templates use `bookkeeping(answer())` forms instead
+  of generating new programs with the parameter slot-filled.
+* Contextual evaluation now tracks "raw" string answers correctly.
+* The `sample` and `mturk-validate` commands can now operate in contextual mode,
+  to paraphrase contextual datasets.
+* New command line tool `manual-annotate-dialog` to interactively annotate dialog
+  datasets, while tracking context and answers correctly.
+* New command line tool `typecheck` to typecheck a dataset, and optionally interactively
+  correct it. The tool is mostly useful when the Thingpedia signatures change.
+* Added MTurk template for contextual paraphrasing.
+
+Question-Answering support [#61, #65]:
+* The templates now include programs with projections, and the projections are
+  preserved.
+* Templates now honor the new `#[unique]` parameter annotation in ThingTalk.
+* Added support for different grammatical forms of parameter `#_[canonical]` annotation.
+* Added experimental templates for "who" questions, based on Wikidata.
+* Added several new flags to the templates: `timer`, `projection`, `undefined_filter`,
+  `projection_with_filter`, `extended_timers`.
+
+General enhancements:
+* The tokenizer client was updated to pass the full locale tag. This requires a recent
+  version of almond-tokenizer, and enables distinguishing Simplified and Traditional
+  Chinese [#70].
+* Templates can now be packed in a self-contained ZIP file, suitable to upload
+  to an instance of almond-cloud with enabled luinet. This allows one-click
+  generation, training & deployment of Genie/LUInet models [#67].
+* Added experimental templates for richer timers. These templates are behind a flag,
+  `extended_timers`. [Ricky Grannis-Vu, #66].
+* All commands now expect a `thingpedia.tt` file instead of a `thingpedia.json`
+  file. The `download-snapshot` command has been updated to download the snapshot
+  in ThingTalk format. Entities must be provided separately to the commands that
+  need them [#58].
+* Augmentation and generation now can track progress, and show a progress bar
+  when called without debugging from the command line.
+* Added parameter expansion for LOCATION, which soon will not be preprocessed by
+  almond-tokenizer [#54].
+* Added a new augmentation pass for commands that use a single device, which are
+  prefixed with the device name, like in Alexa [#55].
+* Fixed location of Los Angeles in the default constant file.
+* Fixed parameter expansion to handle joins correctly [#69].
+* Fixed support for primitive templates that include projections, aggregations
+  and other complex ThingTalk operators [#68].
+* Updated dependencies [#56, #59, #60, #63, #71, #79].
+
 0.3.3
 =====
 
