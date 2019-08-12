@@ -18,7 +18,6 @@
     "mmap-io": "^1.1.7",
     "qs": "^6.7.0",
     "seedrandom": "^3.0.0",
-    "shuffle-array": "^1.0.1",
     "sockaddr": "^1.0.1",
     "thingpedia": "~2.5.0-beta.1",
     "thingtalk": "~1.8.0-beta.1"

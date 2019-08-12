@@ -15,7 +15,6 @@ const Stream = require('stream');
 const csvparse = require('csv-parse');
 const csvstringify = require('csv-stringify');
 const seedrandom = require('seedrandom');
-const shuffle = require('shuffle-array');
 const ThingTalk = require('thingtalk');
 
 const { ParaphraseValidatorFilter } = require('../lib/validator');
@@ -24,6 +23,7 @@ const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const TokenizerService = require('../lib/tokenizer');
 const { ParaphrasingParser, ParaphrasingAccumulator } = require('./lib/mturk-parsers');
 const { ArrayAccumulator, ArrayStream, waitFinish } = require('../lib/stream-utils');
+const { shuffle } = require('../lib/random');
 
 const { NUM_SENTENCES_PER_TASK, NUM_PARAPHRASES_PER_SENTENCE, NUM_SUBMISSIONS_PER_TASK } = require('./lib/constants');
 
@@ -106,7 +106,7 @@ class ValidationHITCreator extends Stream.Transform {
             paraphrase: fakeDifferent,
         }].concat(row.paraphrases);
 
-        shuffle(paraphrases, { rng: this._rng });
+        shuffle(paraphrases, this._rng);
         this._buffer[`index_same${i}`] = 1 + paraphrases.findIndex((el) => el.id === '-same');
         this._buffer[`index_diff${i}`] = 1 + paraphrases.findIndex((el) => el.id === '-different');
 
