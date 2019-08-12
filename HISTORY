@@ -1,3 +1,13 @@
+1.6.0-beta.1
+============
+
+* Added support for `attimer()` with multiple timers and expiration date [#71]
+* Added support for functions with `handle_thingtalk` annotation [#75, #78]
+* Added a new high-level ThingTalk execution API to AppDatabase [#74]
+* Added multiple new high-level APIs to Engine, wrapping and sealing some low-level
+  APIs exposed by the Engine modules [#73, #76, #77]
+* Updated dependencies and adapted to the new version of the thingpedia SDK [#69, #72, #73, #79]
+
 1.5.0
 =====
 
