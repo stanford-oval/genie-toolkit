@@ -17,6 +17,7 @@ const argparse = require('argparse');
 const subcommands = {
     'download-snapshot': require('./download-snapshot'),
     'download-dataset': require('./download-dataset'),
+    'sample-constants': require('./sample-constants'),
 
     'generate': require('./generate'),
     'generate-contextual': require('./generate-contextual'),
