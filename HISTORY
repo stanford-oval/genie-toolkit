@@ -1,3 +1,11 @@
+1.6.0
+=====
+
+* Added `#[confirm]` annotation to builtin functions [#81].
+
+Please see the beta version release notes for the full list of changes and new features
+in this release.
+
 1.6.0-beta.1
 ============
 
