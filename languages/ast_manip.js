@@ -664,7 +664,7 @@ function sayProjectionProgram($options, proj) {
     if (proj.args[0] === 'picture_url')
         return null;
     let outParams = Object.keys(proj.table.schema.out);
-    if (outParams.length === 1 && $options.flags.turking)
+    if (outParams.length === 1 || $options.flags.turking)
         return null;
     if ($options.flags.projection && !proj.table.isAggregation) {
         let projection = new Ast.Table.Projection(proj.table, proj.args, proj.table.schema);
