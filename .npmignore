@@ -9,6 +9,8 @@ coverage/
 dataset.tt
 thingpedia.json
 
+/*.tt
+/*.txt
 *.tsv
 *.csv
 *.bin
