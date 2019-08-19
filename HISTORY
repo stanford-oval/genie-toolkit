@@ -1,3 +1,11 @@
+0.4.0
+=====
+
+* Added a tool to sample constants from string & entity datasets.
+
+Please see the beta version release notes for the full list of changes and
+new features in this release.
+
 0.4.0-beta.1
 ============
 
