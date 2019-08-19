@@ -19,8 +19,8 @@
     "qs": "^6.7.0",
     "seedrandom": "^3.0.0",
     "sockaddr": "^1.0.1",
-    "thingpedia": "~2.5.0-beta.1",
-    "thingtalk": "~1.8.0-beta.1"
+    "thingpedia": "~2.5.0",
+    "thingtalk": "~1.8.0"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
