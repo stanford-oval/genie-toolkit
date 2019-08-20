@@ -29,3 +29,4 @@ decanlp/
 !test/data/synthetic-context-source.tsv
 !test/data/easy-hard-functions.tsv
 !test/data/parameter-datasets.tsv
+!test/data/thingpedia.tt
