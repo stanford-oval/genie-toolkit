@@ -664,7 +664,11 @@ function sayProjectionProgram($options, proj) {
     if (proj.args[0] === 'picture_url')
         return null;
     let outParams = Object.keys(proj.table.schema.out);
-    if (outParams.length === 1 || $options.flags.turking)
+    // if the function only contains one parameter, do not generate projection for it
+    // since this function is also used for aggregation, exclude the cases where proj is aggregation for this check
+    if (!proj.isAggregation && outParams.length === 1)
+        return null;
+    if ($options.flags.turking)
         return null;
     if ($options.flags.projection && !proj.table.isAggregation) {
         let projection = new Ast.Table.Projection(proj.table, proj.args, proj.table.schema);
