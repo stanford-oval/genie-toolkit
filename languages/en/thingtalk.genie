@@ -160,7 +160,7 @@ when_get_stream = {
         if (proj.args[0] === 'picture_url')
             return null;
         let outParams = Object.keys(proj.table.schema.out);
-        if (outParams.length === 1 && $options.flags.turking && !proj.table.isAggregation)
+        if (proj.table.isProjection && outParams.length === 1 && $options.flags.turking)
             return null;
 
         return C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj.table, [], proj.table.schema));
@@ -172,7 +172,7 @@ when_get_stream = {
         if (proj.args[0] === 'picture_url')
             return null;
         let outParams = Object.keys(proj.table.schema.out);
-        if (outParams.length === 1 && $options.flags.turking && !proj.table.isAggregation)
+        if (proj.table.isProjection && outParams.length === 1 && $options.flags.turking)
             return null;
 
         return C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj.table, [], proj.table.schema));
