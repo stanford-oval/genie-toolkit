@@ -157,25 +157,31 @@ when_get_stream = {
     stream:stream table:thingpedia_get_command => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
     stream:stream ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') table:thingpedia_query => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
     stream:stream ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') ('' | 'what is') proj:projection_Any => {
-        if (proj.args[0] === 'picture_url')
-            return null;
-        let outParams = Object.keys(proj.table.schema.out);
-        if (proj.table.isProjection && outParams.length === 1 && $options.flags.turking)
-            return null;
-
-        return C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj.table, [], proj.table.schema));
+        if (proj.isProjection) {
+            if (!$options.flags.projection)
+                return null;
+            if (proj.args[0] === 'picture_url')
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            if (outParams.length === 1)
+                return null;
+        }
+        return C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj, [], proj.schema));
     };
 
     table:thingpedia_get_command stream:stream => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
     ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') table:thingpedia_query stream:stream => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
     ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') proj:projection_Any stream:stream => {
-        if (proj.args[0] === 'picture_url')
-            return null;
-        let outParams = Object.keys(proj.table.schema.out);
-        if (proj.table.isProjection && outParams.length === 1 && $options.flags.turking)
-            return null;
-
-        return C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj.table, [], proj.table.schema));
+        if (proj.isProjection) {
+            if (!$options.flags.projection)
+                return null;
+            if (proj.args[0] === 'picture_url')
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            if (outParams.length === 1)
+                return null;
+        }
+        return C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj, [], proj.schema));
     };
 }
 complete_when_get_stream = {
