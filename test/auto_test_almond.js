@@ -3567,7 +3567,35 @@ null],
 `,
     `{
   now => (@com.twitter(id="twitter-foo").search()), hashtags == ["foo"^^tt:hashtag, "bar"^^tt:hashtag] => notify;
-}`]
+}`],
+
+    [
+    ['now', '=>', '@com.cryptonator.get_price', '=>', 'notify'],
+`>> What crypto currency do you want to check?
+>> context = now => @com.cryptonator.get_price => notify // {}
+>> ask special raw_string
+`,
+    `bitcoin`,
+`>> Sorry, I did not find any result for that.
+>> context = now => @com.cryptonator.get_price param:currency:Entity(tt:cryptocurrency_code) = GENERIC_ENTITY_tt:cryptocurrency_code_0 => notify // {"GENERIC_ENTITY_tt:cryptocurrency_code_0":{"value":"btc","display":"Bitcoin"}}
+>> ask special null
+`,
+    `{
+  now => @com.cryptonator(id="com.cryptonator-50").get_price(currency="btc"^^tt:cryptocurrency_code("Bitcoin")) => notify;
+}`],
+
+    [
+    ['now', '=>', '@com.cryptonator.get_price', '=>', 'notify'],
+`>> What crypto currency do you want to check?
+>> context = now => @com.cryptonator.get_price => notify // {}
+>> ask special raw_string
+`,
+    `invalid`,
+`>> Sorry, I cannot find any Cryptocurrency Code matching “invalid”.
+>> context = now => @com.cryptonator.get_price => notify // {}
+>> ask special null
+`,
+    null],
 ];
 
 function handleCommand(almond, input) {
