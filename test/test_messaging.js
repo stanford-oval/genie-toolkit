@@ -209,6 +209,18 @@ async function cleanup(engine) {
         await engine.devices.removeDevice(d);
 }
 
+async function testMessagingInvalidToken(engine) {
+    await engine.devices.addSerialized({
+        kind: 'org.thingpedia.builtin.matrix',
+        identities: ['email:testuser@camembert.stanford.edu'],
+        userId: '@testuser@camembert.stanford.edu',
+        accessToken: 'invalid-access-token',
+        refreshToken: 'invalid-refresh-token',
+        deviceId: '12345678',
+        storage: {}
+    })
+}
+
 module.exports = async function testRemote(engine) {
     try {
         const messaging = engine.messaging;
@@ -224,4 +236,6 @@ module.exports = async function testRemote(engine) {
     } finally {
         await cleanup(engine);
     }
+
+    await testMessagingInvalidToken(engine);
 };
