@@ -661,21 +661,17 @@ function replacePlaceholderWithUndefined(lhs, pname, typestr) {
 }
 
 function sayProjectionProgram($options, proj) {
-    if (proj.args[0] === 'picture_url')
-        return null;
-    let outParams = Object.keys(proj.table.schema.out);
-    // if the function only contains one parameter, do not generate projection for it
-    // since this function is also used for aggregation, exclude the cases where proj is aggregation for this check
-    if (!proj.isAggregation && outParams.length === 1)
-        return null;
-    if ($options.flags.turking)
-        return null;
-    if ($options.flags.projection && !proj.table.isAggregation) {
-        let projection = new Ast.Table.Projection(proj.table, proj.args, proj.table.schema);
-        return makeProgram(new Ast.Statement.Command(projection, [notifyAction()]));
-    } else {
-        return makeProgram(new Ast.Statement.Command(proj.table, [notifyAction()]));
+    // this function is also used for aggregation
+    if (proj.isProjection) {
+        if (proj.args[0] === 'picture_url')
+            return null;
+        // if the function only contains one parameter, do not generate projection for it
+        if (Object.keys(proj.table.schema.out).length === 1)
+            return null;
+        if (!$options.flags.projection)
+            return null;
     }
+    return makeProgram(new Ast.Statement.Command(proj, [notifyAction()]));
 }
 
 function isQueryProgram(program) {
