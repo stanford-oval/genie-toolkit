@@ -122,7 +122,7 @@ apv_filtered_table = {
 
 arg_min_max_table = {
     ?aggregation {
-    'the' ('maximum' | 'highest') p:out_param_Number 'of' t:complete_table => {
+    t:complete_table ('with' | 'which has') 'the' ('maximum' | 'highest') p:out_param_Number => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
@@ -131,7 +131,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
     };
 
-    'the' ('minimum' | 'lowest') p:out_param_Number 'of' t:complete_table => {
+    t:complete_table ('with' | 'which has') 'the' ('minimum' | 'lowest') p:out_param_Number => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
@@ -140,7 +140,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
     };
 
-    'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency 'of' t:complete_table => {
+    t:complete_table ('with' | 'which has') 'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
@@ -149,7 +149,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
     };
 
-    'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency 'of' t:complete_table => {
+    t:complete_table ('with' | 'which has') 'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
@@ -158,7 +158,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
     };
 
-    'the latest' p:out_param_Measure_ms 'of' t:complete_table => {
+    t:complete_table ('with' | 'which has') 'the latest' p:out_param_Measure_ms => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
@@ -167,7 +167,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
     };
 
-    'the earliest' p:out_param_Measure_ms 'of' t:complete_table => {
+    t:complete_table ('with' | 'which has') 'the earliest' p:out_param_Measure_ms => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
@@ -176,7 +176,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
     };
 
-    'the' ('maximum' | 'largest') p:out_param_Measure_byte 'of' t:complete_table => {
+    t:complete_table ('with' | 'which has') 'the' ('maximum' | 'largest') p:out_param_Measure_byte => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
@@ -185,7 +185,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
     };
 
-    'the' ('minimum' | 'smallest') p:out_param_Measure_byte 'of' t:complete_table => {
+    t:complete_table ('with' | 'which has') 'the' ('minimum' | 'smallest') p:out_param_Measure_byte => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
@@ -194,7 +194,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
     };
 
-    'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg 'of' t:complete_table => {
+    t:complete_table ('with' | 'which has') 'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
@@ -203,7 +203,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
     };
 
-    'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg 'of' t:complete_table => {
+    t:complete_table ('with' | 'which has') 'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
@@ -212,7 +212,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
     };
     
-    'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C 'of' t:complete_table => {
+    t:complete_table ('with' | 'which has') 'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
@@ -221,7 +221,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
     };
 
-    'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C 'of' t:complete_table => {
+    t:complete_table ('with' | 'which has') 'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
@@ -230,7 +230,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
     };
 
-    'the' ('farthest' | 'most distant') p:out_param_Measure_m 'of' t:complete_table => {
+    t:complete_table ('with' | 'which has') 'the' ('farthest' | 'most distant') p:out_param_Measure_m => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
@@ -239,7 +239,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
     };
 
-    'the' ('nearest' | 'closest') p:out_param_Measure_m 'of' t:complete_table => {
+    t:complete_table ('with' | 'which has') 'the' ('nearest' | 'closest') p:out_param_Measure_m => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
@@ -248,7 +248,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
     };
 
-    'the' ('fastest' | 'quickest') p:out_param_Measure_mps 'of' t:complete_table => {
+    t:complete_table ('with' | 'which has') 'the' ('fastest' | 'quickest') p:out_param_Measure_mps => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
@@ -257,7 +257,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
     };
 
-    'the' ('slowest' | 'most slowly') p:out_param_Measure_mps 'of' t:complete_table => {
+    t:complete_table ('with' | 'which has') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
