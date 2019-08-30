@@ -30,4 +30,5 @@ seq([
     ('./test_augment'),
     ('./test_i18n_chinese'),
     ('./test_random'),
+    ('./test_tokenizer')
 ]);
