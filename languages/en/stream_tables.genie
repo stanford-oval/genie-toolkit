@@ -120,6 +120,155 @@ apv_filtered_table = {
     };
 }
 
+arg_min_max_table = {
+    ?aggregation {
+    'the' ('maximum' | 'highest') p:out_param_Number 'of' t:complete_table => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
+    };
+
+    'the' ('minimum' | 'lowest') p:out_param_Number 'of' t:complete_table => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
+    };
+
+    'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency 'of' t:complete_table => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
+    };
+
+    'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency 'of' t:complete_table => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
+    };
+
+    'the latest' p:out_param_Measure_ms 'of' t:complete_table => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
+    };
+
+    'the earliest' p:out_param_Measure_ms 'of' t:complete_table => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
+    };
+
+    'the' ('maximum' | 'largest') p:out_param_Measure_byte 'of' t:complete_table => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
+    };
+
+    'the' ('minimum' | 'smallest') p:out_param_Measure_byte 'of' t:complete_table => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
+    };
+
+    'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg 'of' t:complete_table => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
+    };
+
+    'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg 'of' t:complete_table => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
+    };
+    
+    'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C 'of' t:complete_table => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
+    };
+
+    'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C 'of' t:complete_table => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
+    };
+
+    'the' ('farthest' | 'most distant') p:out_param_Measure_m 'of' t:complete_table => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
+    };
+
+    'the' ('nearest' | 'closest') p:out_param_Measure_m 'of' t:complete_table => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
+    };
+
+    'the' ('fastest' | 'quickest') p:out_param_Measure_mps 'of' t:complete_table => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
+    };
+
+    'the' ('slowest' | 'most slowly') p:out_param_Measure_mps 'of' t:complete_table => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(0)], t.schema);
+    };
+
+    }
+}
+
 edge_stream = {
     !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => {
          if (x.getType().isString)
