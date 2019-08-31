@@ -1,3 +1,12 @@
+1.6.1
+=====
+
+* Slot filling of entities now uses display names instead of IDs, which
+  improves usability [#87, #110]
+* Improved error handling of network failures when talking to the user [#105]
+* Fixed bug with remote programs that do not return a result [#107]
+* Misc fixes [#108, #109]
+
 1.6.0
 =====
 
