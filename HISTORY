@@ -1,3 +1,12 @@
+0.4.1
+=====
+
+* DatasetSplitter introduced a specific flag to choose which sentences are
+  suitable for evaluation [#84]
+* Fixed templates for projections and aggregations [#76, #82, #83]
+* Fixed handling of tokenizer disconnections [#86]
+* Misc fixes [#77]
+
 0.4.0
 =====
 
