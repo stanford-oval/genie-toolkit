@@ -57,6 +57,14 @@ class MockAppDatabase {
     }
 
     createApp(program, options) {
+        if (program.principal !== null) {
+            if (!(program.rules[0].actions.length > 0 &&
+                  program.rules[0].actions[0].isInvocation &&
+                  program.rules[0].actions[0].invocation.selector.isBuiltin &&
+                  program.rules[0].actions[0].invocation.channel === 'return'))
+                return null;
+        }
+
         const code = program.prettyprint();
         console.log('MOCK: App ' + options.name + ' with code ' + code + ' loaded');
         this._apps[options.uniqueId] = {

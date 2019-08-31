@@ -85,6 +85,12 @@ function getTestData(count, size) {
 function createApp(program) {
     const code = program.prettyprint(false);
     app = code;
+
+    if (program.principal !== null) {
+        if (program.rules[0].actions.length < 0 || !program.rules[0].actions[0].isInvocation
+            || !program.rules[0].actions[0].invocation.selector.isBuiltin)
+            return null;
+    }
     let results = [];
     if (code === `{
   now => @com.xkcd(id="com.xkcd-8").get_comic() => notify;
@@ -2769,6 +2775,28 @@ null],
   now => @com.gmail.inbox() => return;
 }`],
 
+    [
+    { code: ['executor', '=', 'USERNAME_0', ':', 'now', '=>', '@com.bing.web_search', '=>', 'notify'],
+      entities: { USERNAME_0: 'mom' } },
+`>> What do you want to search?
+>> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.bing.web_search => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"}}
+>> ask special raw_string
+`,
+    `some tweet`,
+`>> Ok, so you want me to tell Alice Smith (mom): get websites matching “some tweet” on Bing and then notify you. Is that right?
+>> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.bing.web_search param:query:String = QUOTED_STRING_0 => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"},"QUOTED_STRING_0":"some tweet"}
+>> ask special yesno
+`,
+
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Consider it done.
+>> context = executor = GENERIC_ENTITY_tt:contact_0 : now => @com.bing.web_search param:query:String = QUOTED_STRING_0 => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"},"QUOTED_STRING_0":"some tweet"}
+>> ask special null
+`,
+    `executor = "mock-account:MOCK1234-phone:+5556664357"^^tt:contact("Alice Smith (mom)") : {
+  now => @com.bing.web_search(query="some tweet") => notify;
+}`],
+
     [(almond) => {
     almond._engine.permissions = null;
     almond._engine.remote = null;
@@ -3567,7 +3595,7 @@ null],
 `,
     `{
   now => (@com.twitter(id="twitter-foo").search()), hashtags == ["foo"^^tt:hashtag, "bar"^^tt:hashtag] => notify;
-}`]
+}`],
 ];
 
 function handleCommand(almond, input) {
