@@ -30,11 +30,14 @@ module.exports = class FileThingpediaClient {
         this._locale = args.locale;
         this._devices = null;
         this._entities = null;
+        this._examples = null;
+        this._datasets = null;
 
         this._thingpediafilename = args.thingpedia;
         this._entityfilename = args.entities;
         this._datasetfilename = args.dataset;
         this._loaded = null;
+
     }
 
     get developerKey() {
@@ -62,9 +65,6 @@ module.exports = class FileThingpediaClient {
     async getExamplesByKey() {
         throw new Error(`Cannot search examples using FileThingpediaClient`);
     }
-    async getExamplesByKinds() {
-        throw new Error(`Cannot search examples using FileThingpediaClient`);
-    }
     async clickExample() {
         throw new Error(`Cannot click examples using FileThingpediaClient`);
     }
@@ -79,6 +79,9 @@ module.exports = class FileThingpediaClient {
             this._entities = JSON.parse(await util.promisify(fs.readFile)(this._entityfilename)).data;
         else
             this._entities = null;
+
+        this._examples = await util.promisify(fs.readFile)(this._datasetfilename, { encoding: 'utf8' });
+        this._datasets = await Grammar.parse(this._examples).datasets;
     }
 
     _ensureLoaded() {
@@ -108,8 +111,16 @@ module.exports = class FileThingpediaClient {
         return Promise.resolve({});
     }
 
-    getAllExamples() {
-        return util.promisify(fs.readFile)(this._datasetfilename, { encoding: 'utf8' });
+    async getAllExamples() {
+        await this._ensureLoaded();
+        return this._examples;
+    }
+
+    async getExamplesByKinds(kind) {
+        if (kind.includes(','))
+            throw new Error(`Cannot get examples for multiple devices using FileThingpediaClient`);
+        await this._ensureLoaded();
+        return this._datasets.find((d) => d.name === kind || d.name === '@' + kind);
     }
 
     async getAllDeviceNames() {
@@ -148,7 +159,7 @@ module.exports = class FileThingpediaClient {
             return a.name.localeCompare(b.name);
         });
 
-        let parsedExamples = (await Grammar.parse(await this.getAllExamples())).datasets[0].examples;
+        let parsedExamples = this._datasets[0].examples;
         const examples = parsedExamples.map((e) => {
             let kind;
             for (let [, invocation] of e.iteratePrimitives())
