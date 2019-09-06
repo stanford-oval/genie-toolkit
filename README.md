@@ -103,7 +103,7 @@ genie download-dataset -o dataset.tt
 ```
 
 The resulting `synthesized.tsv` file can be used to train directly. To do so, skip to Step 4, Dataset preprocessing. If you wish instead to paraphrase, you'll probably want to restrict the synthesized set
-to paraphrase-friendly construct templates, by passing `--flag-set turking` on the command line.
+to paraphrase-friendly construct templates, by passing `--set-flag turking` on the command line.
 
 NOTE: the `generate` command can require significant amounts of memory. If you experience out of memory,
 it can help to invoke `node` as:
