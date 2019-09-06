@@ -18,7 +18,7 @@ const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
 const { ParaphraseValidatorFilter } = require('../lib/validator');
-const { ValidationHITCreator } = require('../lib/validation');
+const ValidationHITCreator = require('../lib/validation');
 
 const TokenizerService = require('../lib/tokenizer');
 const { ParaphrasingParser, ParaphrasingAccumulator } = require('./lib/mturk-parsers');
