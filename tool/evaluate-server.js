@@ -15,7 +15,7 @@ const ThingTalk = require('thingtalk');
 const { DatasetParser } = require('../lib/dataset-parsers');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('./lib/parserclient');
-const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('./lib/evaluators');
+const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('../lib/evaluators');
 
 module.exports = {
     initArgparse(subparsers) {

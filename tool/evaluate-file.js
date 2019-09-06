@@ -17,7 +17,7 @@ const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
 const { DatasetParser } = require('../lib/dataset-parsers');
-const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('./lib/evaluators');
+const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('../lib/evaluators');
 const StreamUtils = require('../lib/stream-utils');
 
 module.exports = {

@@ -15,7 +15,7 @@ const ThingTalk = require('thingtalk');
 const { DialogParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('./lib/parserclient');
-const { DialogEvaluatorStream, CollectDialogStatistics } = require('./lib/evaluators');
+const { DialogEvaluatorStream, CollectDialogStatistics } = require('../lib/evaluators');
 
 module.exports = {
     initArgparse(subparsers) {
