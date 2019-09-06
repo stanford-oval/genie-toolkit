@@ -12,6 +12,7 @@
 const seedrandom = require('seedrandom');
 const fs = require('fs');
 const Stream = require('stream');
+const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
 const { DatasetParser } = require('../lib/dataset-parsers');
@@ -20,7 +21,6 @@ const { ENTITIES } = require('../lib/utils');
 
 const StreamUtils = require('../lib/stream-utils');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const FileThingpediaClient = require('./lib/file_thingpedia_client');
 
 async function normalize(schemas, code) {
     try {
@@ -87,7 +87,7 @@ module.exports = {
 
     async execute(args) {
         const rng = seedrandom.alea(args.random_seed);
-        const tpClient = new FileThingpediaClient(args);
+        const tpClient = new Tp.FileClient(args);
         const schemas = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
 
         let allprograms = await readAllLines(args.input_file)

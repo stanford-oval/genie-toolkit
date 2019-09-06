@@ -13,9 +13,9 @@ const fs = require('fs');
 const csvparse = require('csv-parse');
 const byline = require('byline');
 const Stream = require('stream');
+const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
-const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const { DatasetParser } = require('../lib/dataset-parsers');
 const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('./lib/evaluators');
 const StreamUtils = require('../lib/stream-utils');
@@ -71,7 +71,7 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new FileThingpediaClient(args);
+        const tpClient = new Tp.FileClient(args);
         const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
         const columns = args.contextual ?

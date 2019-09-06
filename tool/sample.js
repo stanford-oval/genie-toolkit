@@ -14,6 +14,7 @@ const fs = require('fs');
 const byline = require('byline');
 const csvstringify = require('csv-stringify');
 const Stream = require('stream');
+const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
 const { DatasetParser } = require('../lib/dataset-parsers');
@@ -21,7 +22,6 @@ const SentenceSampler = require('../lib/sampler');
 const StreamUtils = require('../lib/stream-utils');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const { parseConstantFile } = require('./lib/constant-file');
-const FileThingpediaClient = require('./lib/file_thingpedia_client');
 
 function parseSamplingControlFile(filename) {
     const functionBlackList = new Set;
@@ -271,7 +271,7 @@ module.exports = {
         const [functionBlackList, deviceBlackList, functionHighValueList, functionWhiteList, deviceWhiteList] =
             await parseSamplingControlFile(args.sampling_control);
 
-        const tpClient = new FileThingpediaClient(args.locale, args.thingpedia, null);
+        const tpClient = new Tp.FileClient(args.locale, args.thingpedia, null);
         const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
 
         const options = {

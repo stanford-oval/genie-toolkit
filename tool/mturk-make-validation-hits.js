@@ -15,11 +15,11 @@ const Stream = require('stream');
 const csvparse = require('csv-parse');
 const csvstringify = require('csv-stringify');
 const seedrandom = require('seedrandom');
+const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
 const { ParaphraseValidatorFilter } = require('../lib/validator');
 
-const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const TokenizerService = require('../lib/tokenizer');
 const { ParaphrasingParser, ParaphrasingAccumulator } = require('./lib/mturk-parsers');
 const { ArrayAccumulator, ArrayStream, waitFinish } = require('../lib/stream-utils');
@@ -185,7 +185,7 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new FileThingpediaClient(args);
+        const tpClient = new Tp.FileClient(args);
         const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
         const tokenizer = TokenizerService.get(process.env.GENIE_USE_TOKENIZER, true);
         const rng = seedrandom.alea(args.random_seed);
