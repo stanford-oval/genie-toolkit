@@ -158,7 +158,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
     };
 
-    t:complete_table ('with' | 'which has') 'the latest' p:out_param_Measure_ms => {
+    t:complete_table ('with' | 'which has') 'the' ('longest' | 'most lasting') p:out_param_Measure_ms => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list || t.isIndex)
@@ -167,7 +167,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
     };
 
-    t:complete_table ('with' | 'which has') 'the' ('soonest' | 'earliest') p:out_param_Measure_ms => {
+    t:complete_table ('with' | 'which has') 'the shortest' p:out_param_Measure_ms => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list || t.isIndex)
@@ -259,6 +259,40 @@ arg_min_max_table = {
 
     t:complete_table ('with' | 'which has') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the latest' p:out_param_Date => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isDate())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+    t:complete_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Date => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isDate())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the latest' p:out_param_Time => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isTime())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+    t:complete_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Time => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isTime())
             return null;
         if (!t.schema.is_list || t.isIndex)
             return null;
