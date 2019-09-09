@@ -267,7 +267,7 @@ arg_min_max_table = {
     };
 
     t:complete_table ('with' | 'which has') 'the latest' p:out_param_Date => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isDate())
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isDate)
             return null;
         if (!t.schema.is_list || t.isIndex)
             return null;
@@ -275,7 +275,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
     };
     t:complete_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Date => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isDate())
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isDate)
             return null;
         if (!t.schema.is_list || t.isIndex)
             return null;
@@ -284,7 +284,7 @@ arg_min_max_table = {
     };
 
     t:complete_table ('with' | 'which has') 'the latest' p:out_param_Time => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isTime())
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isTime)
             return null;
         if (!t.schema.is_list || t.isIndex)
             return null;
@@ -292,7 +292,7 @@ arg_min_max_table = {
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
     };
     t:complete_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Time => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isTime())
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isTime)
             return null;
         if (!t.schema.is_list || t.isIndex)
             return null;
