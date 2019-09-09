@@ -54,7 +54,7 @@ atom_filter = {
     p:out_param_Number 'is' ('greater than' | 'higher than' | 'larger than' | 'more than' | 'at least' | 'not less than') x:constant_Number => C.makeFilter($options, p, '>=', x);
     p:out_param_Number 'is' ('smaller than' | 'lower than' | 'less than' | 'at most' | 'not more than') x:constant_Number  => C.makeFilter($options, p, '<=', x);
 
-    p:out_param_Currency 'is' ('more expensive' | 'more costly' | 'more'）'than' x:constant_Currency => C.makeFilter($options, p, '>=', x);
+    p:out_param_Currency 'is' ('more expensive' | 'more costly' | 'more') 'than' x:constant_Currency => C.makeFilter($options, p, '>=', x);
     p:out_param_Currency 'is' ('less expensive' | 'cheaper' | 'less') 'than' x:constant_Currency  => C.makeFilter($options, p, '<=', x);
 
     p:out_param_Measure_ms 'is' 'longer than' x:constant_Measure_ms => C.makeFilter($options, p, '>=', x);
@@ -109,7 +109,7 @@ edge_filter = {
     p:out_param_Number ('is now' | 'becomes' | 'goes') ('greater than' | 'higher than' | 'larger than' | 'more than' | 'at least' | 'not less than') x:constant_Number => C.makeFilter($options, p, '>=', x);
     p:out_param_Number ('is now' | 'becomes' | 'goes') ('smaller than' | 'lower than' | 'less than' | 'at most' | 'not more than') x:constant_Number  => C.makeFilter($options, p, '<=', x);
 
-    p:out_param_Currency ('is now' | 'becomes' | 'goes') ('more expensive' | 'more costly' | 'more'）'than' x:constant_Currency => C.makeFilter($options, p, '>=', x);
+    p:out_param_Currency ('is now' | 'becomes' | 'goes') ('more expensive' | 'more costly' | 'more') 'than' x:constant_Currency => C.makeFilter($options, p, '>=', x);
     p:out_param_Currency ('is now' | 'becomes' | 'goes') ('less expensive' | 'cheaper' | 'less') 'than' x:constant_Currency  => C.makeFilter($options, p, '<=', x);
 
     p:out_param_Measure_ms ('is now' | 'becomes' | 'goes') 'longer than' x:constant_Measure_ms => C.makeFilter($options, p, '>=', x);
@@ -220,7 +220,7 @@ with_filter = {
     p:out_param_Number ('greater than' | 'higher than' | 'larger than' | 'more than' | 'at least' | 'not less than') x:constant_Number => C.makeFilter($options, p, '>=', x);
     p:out_param_Number ('smaller than' | 'lower than' | 'less than' | 'at most' | 'not more than') x:constant_Number  => C.makeFilter($options, p, '<=', x);
 
-    p:out_param_Currency ('more expensive' | 'more costly' | 'more'）'than' x:constant_Currency => C.makeFilter($options, p, '>=', x);
+    p:out_param_Currency ('more expensive' | 'more costly' | 'more') 'than' x:constant_Currency => C.makeFilter($options, p, '>=', x);
     p:out_param_Currency ('less expensive' | 'cheaper' | 'less') 'than' x:constant_Currency  => C.makeFilter($options, p, '<=', x);
 
     p:out_param_Measure_ms 'longer than' x:constant_Measure_ms => C.makeFilter($options, p, '>=', x);
@@ -251,7 +251,7 @@ with_filter = {
     ('greater' | 'higher' | 'larger' | 'more') p:out_param_Number 'than' x:constant_Number => C.makeFilter($options, p, '>=', x);
     ('smaller' | 'lower' | 'less') p:out_param_Number 'than' x:constant_Number  => C.makeFilter($options, p, '<=', x);
 
-    ('more expensive' | 'more costly' | 'more'）p:out_param_Currency 'than' x:constant_Currency => C.makeFilter($options, p, '>=', x);
+    ('more expensive' | 'more costly' | 'more') p:out_param_Currency 'than' x:constant_Currency => C.makeFilter($options, p, '>=', x);
     ('less expensive' | 'cheaper' | 'less') p:out_param_Currency 'than' x:constant_Currency  => C.makeFilter($options, p, '<=', x);
 
     'longer' p:out_param_Measure_ms 'than' x:constant_Measure_ms => C.makeFilter($options, p, '>=', x);
