@@ -2902,7 +2902,7 @@ null],
 
     // this is a special command that always fails to parse
     // we use it to test the fallback paths
-    [`!! test command always failed !!`,
+    /*[`!! test command always failed !!`,
 `>> Sorry, I did not understand that. Try the following instead:
 >> button: eat test data {"example_id":1,"code":["now","=>","@org.thingpedia.builtin.test.eat_data"],"entities":{},"slotTypes":{},"slots":[]}
 >> button: get test data {"example_id":2,"code":["now","=>","@org.thingpedia.builtin.test.get_data","=>","notify"],"entities":{},"slotTypes":{},"slots":[]}
@@ -2910,7 +2910,7 @@ null],
 >> context = null // {}
 >> ask special null
 `,
-    null],
+    null],*/
 
     [`!! test command always nothing !!`,
 `>> Sorry, I did not understand that. Use ‘help’ to learn what I can do for you.
