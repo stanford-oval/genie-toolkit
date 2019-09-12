@@ -9,13 +9,13 @@
 // See COPYING for details
 "use strict";
 
+const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
-const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const { DialogParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('./lib/parserclient');
-const { DialogEvaluatorStream, CollectDialogStatistics } = require('./lib/evaluators');
+const { DialogEvaluatorStream, CollectDialogStatistics } = require('../lib/evaluators');
 
 module.exports = {
     initArgparse(subparsers) {
@@ -74,7 +74,7 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new FileThingpediaClient(args);
+        const tpClient = new Tp.FileClient(args);
         const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
         const parser = ParserClient.get(args.url, args.locale);
         await parser.start();

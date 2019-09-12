@@ -12,8 +12,8 @@
 const seedrandom = require('seedrandom');
 const fs = require('fs');
 const argparse = require('argparse');
+const Tp = require('thingpedia');
 
-const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const { BasicSentenceGenerator } = require('../lib/sentence-generator');
 const { DatasetStringifier } = require('../lib/dataset-parsers');
 const ProgressBar = require('./lib/progress_bar');
@@ -100,7 +100,7 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new FileThingpediaClient(args);
+        const tpClient = new Tp.FileClient(args);
         const options = {
             rng: seedrandom.alea(args.random_seed),
             locale: args.locale,

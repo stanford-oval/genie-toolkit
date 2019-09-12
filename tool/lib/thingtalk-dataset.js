@@ -10,12 +10,12 @@
 "use strict";
 
 const fs = require('fs');
-
+const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const Grammar = ThingTalk.Grammar;
 const Library = ThingTalk.Ast.Input.Library;
+
 const ProgressBar = require('./progress_bar');
-const FileThingpediaClient = require('./file_thingpedia_client');
 const TokenizerService = require('../../lib/tokenizer');
 const { tokenizeExample } = require('../../lib/utils');
 
@@ -36,7 +36,7 @@ module.exports = class ThingTalkDataset {
     }
 
     async read(locale, thingpedia, dataset) {
-        const tpClient = new FileThingpediaClient({ locale, thingpedia, dataset });
+        const tpClient = new Tp.FileClient({ locale, thingpedia, dataset });
         const parsed = await this._loadDataset(tpClient);
 
         if (this._options.debug)

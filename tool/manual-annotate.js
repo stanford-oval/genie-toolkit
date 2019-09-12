@@ -13,9 +13,9 @@ const fs = require('fs');
 const events = require('events');
 const csvparse = require('csv-parse');
 const readline = require('readline');
+const Tp = require('thingpedia');
 
 const ParserClient = require('./lib/parserclient');
-const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const { DatasetStringifier } = require('../lib/dataset-parsers');
 
 const ThingTalk = require('thingtalk');
@@ -39,7 +39,7 @@ class Trainer extends events.EventEmitter {
 
         this._rl = rl;
 
-        const tpClient = new FileThingpediaClient(options);
+        const tpClient = new Tp.FileClient(options);
         this._schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
         this._parser = ParserClient.get(options.server, 'en-US');
 

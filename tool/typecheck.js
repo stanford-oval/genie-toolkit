@@ -12,6 +12,7 @@
 const fs = require('fs');
 const Stream = require('stream');
 const readline = require('readline');
+const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const util = require('util');
 
@@ -19,7 +20,6 @@ const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const StreamUtils = require('../lib/stream-utils');
 const Utils = require('../lib/utils');
-const FileThingpediaClient = require('./lib/file_thingpedia_client');
 
 class CacheParser extends Stream.Transform {
     constructor() {
@@ -247,7 +247,7 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new FileThingpediaClient(args);
+        const tpClient = new Tp.FileClient(args);
         const schemas = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
 
         let cache, cacheOut;
