@@ -15,6 +15,7 @@ const argparse = require('argparse');
 const { DatasetStringifier } = require('../lib/dataset-parsers');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const parallelize = require('../lib/parallelize');
+const StreamUtils = require('../lib/stream-utils');
 
 class ActionSetFlag extends argparse.Action {
     call(parser, namespace, values) {
@@ -114,10 +115,10 @@ module.exports = {
 
         delete args.input_file;
         delete args.output;
-        const output = inputFile
+        inputFile
             .pipe(parallelize(args.parallelize, require.resolve('./workers/generate-contextual-worker.js'), args))
             .pipe(new DatasetStringifier())
             .pipe(outputFile);
-        output.on('finish', () => process.exit());
+        await StreamUtils.waitFinish(outputFile);
     }
 };
