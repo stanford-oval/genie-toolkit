@@ -209,6 +209,28 @@ async function cleanup(engine) {
         await engine.devices.removeDevice(d);
 }
 
+async function testMessagingInvalidToken(engine) {
+    await engine.devices.addSerialized({
+        kind: 'org.thingpedia.builtin.matrix',
+        identities: ['email:testuserbad@camembert.stanford.edu'],
+        userId: '@testuserbad@camembert.stanford.edu',
+        accessToken: 'invalid-access-token',
+        refreshToken: 'invalid-refresh-token',
+        deviceId: '12345678',
+        storage: {}
+    });
+
+    assert(engine.devices.hasDevice('org.thingpedia.builtin.matrix-@testuserbad@camembert.stanford.edu'));
+    for (let attempts = 10; attempts >= 0; attempts--) {
+        if (!engine.devices.hasDevice('org.thingpedia.builtin.matrix-@testuserbad@camembert.stanford.edu'))
+            return;
+
+        await delay(5000);
+    }
+
+    assert.fail(`Expected the device to remove itself`);
+}
+
 module.exports = async function testRemote(engine) {
     try {
         const messaging = engine.messaging;
@@ -224,4 +246,6 @@ module.exports = async function testRemote(engine) {
     } finally {
         await cleanup(engine);
     }
+
+    await testMessagingInvalidToken(engine);
 };
