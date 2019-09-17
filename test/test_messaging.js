@@ -212,13 +212,23 @@ async function cleanup(engine) {
 async function testMessagingInvalidToken(engine) {
     await engine.devices.addSerialized({
         kind: 'org.thingpedia.builtin.matrix',
-        identities: ['email:testuser@camembert.stanford.edu'],
-        userId: '@testuser@camembert.stanford.edu',
+        identities: ['email:testuserbad@camembert.stanford.edu'],
+        userId: '@testuserbad@camembert.stanford.edu',
         accessToken: 'invalid-access-token',
         refreshToken: 'invalid-refresh-token',
         deviceId: '12345678',
         storage: {}
-    })
+    });
+
+    assert(engine.devices.hasDevice('org.thingpedia.builtin.matrix-@testuserbad@camembert.stanford.edu'));
+    for (let attempts = 10; attempts >= 0; attempts--) {
+        if (!engine.devices.hasDevice('org.thingpedia.builtin.matrix-@testuserbad@camembert.stanford.edu'))
+            return;
+
+        await delay(5000);
+    }
+
+    assert.fail(`Expected the device to remove itself`);
 }
 
 module.exports = async function testRemote(engine) {
