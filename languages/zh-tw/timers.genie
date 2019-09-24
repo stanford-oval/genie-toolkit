@@ -14,6 +14,7 @@ const Ast = ThingTalk.Ast;
 
 const TIMER_SCHEMA = new Ast.FunctionDef('stream',
     'timer',
+    [], // extends
     [], // args,
     false, // is_list
     true,  // is_monitorable
@@ -26,6 +27,7 @@ const TIMER_SCHEMA = new Ast.FunctionDef('stream',
 
 const AT_TIMER_SCHEMA = new Ast.FunctionDef('stream',
     'attimer',
+    [], // extends
     [], // args,
     false, // is_list
     true,  // is_monitorable
