@@ -10,7 +10,8 @@
     "genie": "./tool/genie.js"
   },
   "resolutions": {
-    "thingpedia": "github:stanford-oval/thingpedia-api"
+    "thingpedia": "github:stanford-oval/thingpedia-api",
+    "thingtalk": "github:stanford-oval/thingtalk"
   },
   "dependencies": {
     "argparse": "^1.0.10",
@@ -22,7 +23,7 @@
     "seedrandom": "^3.0.0",
     "sockaddr": "^1.0.1",
     "thingpedia": "github:stanford-oval/thingpedia-api",
-    "thingtalk": "~1.8.0"
+    "thingtalk": "github:stanford-oval/thingtalk"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
