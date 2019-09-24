@@ -352,15 +352,15 @@ timer = {
          'every day at' time:constant_Time => new Ast.Stream.AtTimer([time], null, AT_TIMER_SCHEMA);
 
         !turking {
-            'every' interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA);
-            'once in' interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA);
-            'every day' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
-            'daily' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
-            'everyday' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
-            'once a day' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA);
-            'once a month' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), TIMER_SCHEMA);
-            'once a week' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA);
-            'once an hour' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA);
+            'every' interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, null,  TIMER_SCHEMA);
+            'once in' interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, null, TIMER_SCHEMA);
+            'every day' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), null, TIMER_SCHEMA);
+            'daily' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), null, TIMER_SCHEMA);
+            'everyday' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), null, TIMER_SCHEMA);
+            'once a day' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), null, TIMER_SCHEMA);
+            'once a month' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), null, TIMER_SCHEMA);
+            'once a week' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), null, TIMER_SCHEMA);
+            'once an hour' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), null, TIMER_SCHEMA);
             'daily at' time:constant_Time => new Ast.Stream.AtTimer([time], null, AT_TIMER_SCHEMA);
         }
     }
@@ -371,14 +371,14 @@ timer = {
         thrice_per_day 'at' time1:constant_Time and time2:constant_Time and time3:constant_Time => new Ast.Stream.AtTimer([time1, time2, time3], null, AT_TIMER_SCHEMA);
 
         !turking {
-            optional_once each interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA);
+            optional_once each interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, null, TIMER_SCHEMA);
             once_per_day => new Ast.Stream.AtTimer([TIME_MORNING], null, AT_TIMER_SCHEMA);
             twice_per_day => new Ast.Stream.AtTimer([TIME_MORNING, TIME_EVENING], null, AT_TIMER_SCHEMA);
             thrice_per_day => new Ast.Stream.AtTimer([TIME_MORNING, TIME_NOON, TIME_EVENING], null, AT_TIMER_SCHEMA);
-            optional_once each 'year' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'year'), TIMER_SCHEMA);
-            optional_once each 'month' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), TIMER_SCHEMA);
-            optional_once each 'week' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA);
-            optional_once each 'hour' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA);
+            optional_once each 'year' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'year'), null, TIMER_SCHEMA);
+            optional_once each 'month' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), null, TIMER_SCHEMA);
+            optional_once each 'week' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), null, TIMER_SCHEMA);
+            optional_once each 'hour' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), null, TIMER_SCHEMA);
 
             optional_once optional_emphasis at_noon => new Ast.Stream.AtTimer([TIME_NOON], null, AT_TIMER_SCHEMA);
             optional_once optional_emphasis at_morning => new Ast.Stream.AtTimer([TIME_MORNING], null, AT_TIMER_SCHEMA);
