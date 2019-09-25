@@ -9,7 +9,10 @@
   "bin": {
     "genie": "./tool/genie.js"
   },
-  "resolutions": {},
+  "resolutions": {
+    "thingpedia": "github:stanford-oval/thingpedia-api",
+    "thingtalk": "github:stanford-oval/thingtalk"
+  },
   "dependencies": {
     "argparse": "^1.0.10",
     "byline": "^5.0.0",
@@ -19,8 +22,8 @@
     "qs": "^6.7.0",
     "seedrandom": "^3.0.0",
     "sockaddr": "^1.0.1",
-    "thingpedia": "~2.5.0",
-    "thingtalk": "~1.8.0"
+    "thingpedia": "github:stanford-oval/thingpedia-api",
+    "thingtalk": "github:stanford-oval/thingtalk"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",

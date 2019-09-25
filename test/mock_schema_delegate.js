@@ -8,10 +8,9 @@
 "use strict";
 
 const path = require('path');
+const Tp = require('thingpedia');
 
-const FileThingpediaClient = require('../tool/lib/file_thingpedia_client');
-
-module.exports = new FileThingpediaClient({
+module.exports = new Tp.FileClient({
     locale: 'en',
     thingpedia: path.resolve(path.dirname(module.filename), './thingpedia.tt'),
     entities: path.resolve(path.dirname(module.filename), './entities.json'),

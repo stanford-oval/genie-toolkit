@@ -11,36 +11,14 @@
 
 const seedrandom = require('seedrandom');
 const fs = require('fs');
-const Stream = require('stream');
+const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
 const { DatasetParser } = require('../lib/dataset-parsers');
-const { shuffle } = require('../lib/random');
-const { ENTITIES } = require('../lib/utils');
+const ContextExtractor = require('../lib/context-extractor');
 
 const StreamUtils = require('../lib/stream-utils');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const FileThingpediaClient = require('./lib/file_thingpedia_client');
-
-async function normalize(schemas, code) {
-    try {
-        const program = ThingTalk.NNSyntax.fromNN(code.split(' '), (entity) => {
-            if (entity in ENTITIES)
-                return ENTITIES[entity];
-            else if (entity.startsWith('GENERIC_ENTITY_'))
-                return { value: entity, display: entity };
-            else
-                throw new TypeError(`Unrecognized entity ${entity}`);
-        });
-        await program.typecheck(schemas, false);
-
-        const entities = {};
-        return ThingTalk.NNSyntax.toNN(program, '', entities, { allocateEntities: true }).join(' ');
-    } catch(e) {
-        console.error(code);
-        throw e;
-    }
-}
 
 module.exports = {
     initArgparse(subparsers) {
@@ -87,27 +65,14 @@ module.exports = {
 
     async execute(args) {
         const rng = seedrandom.alea(args.random_seed);
-        const tpClient = new FileThingpediaClient(args);
+        const tpClient = new Tp.FileClient(args);
         const schemas = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
 
         let allprograms = await readAllLines(args.input_file)
             .pipe(new DatasetParser())
-            .pipe(new Stream.Transform({
-                objectMode: true,
-
-                transform(ex, encoding, callback) {
-                    normalize(schemas, ex.target_code).then((code) => callback(null, code), callback);
-                },
-
-                flush(callback) {
-                    process.nextTick(callback);
-                }
-            }))
-            .pipe(new StreamUtils.SetAccumulator())
+            .pipe(new ContextExtractor(schemas, rng))
             .read();
-        allprograms = Array.from(allprograms);
 
-        shuffle(allprograms, rng);
         for (let prog of allprograms) {
             args.output.write(prog);
             args.output.write('\n');

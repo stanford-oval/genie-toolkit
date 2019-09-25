@@ -11,11 +11,11 @@
 
 const fs = require('fs');
 const seedrandom = require('seedrandom');
+const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
-const StreamUtils = require('../lib/stream-utils');
 
+const StreamUtils = require('../lib/stream-utils');
 const ConstantSampler = require('./lib/constants-sampler');
-const FileThingpediaClient = require('./lib/file_thingpedia_client');
 
 const DEFAULT_THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 
@@ -70,7 +70,7 @@ module.exports = {
             devices: args.devices,
             sample_size: args.sample_size
         };
-        const tpClient = new FileThingpediaClient(args);
+        const tpClient = new Tp.FileClient(args);
         const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
         const sampler = new ConstantSampler(schemaRetriever, options);
         const constants = await sampler.sample();

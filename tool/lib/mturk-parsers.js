@@ -340,7 +340,7 @@ class ParaphrasingRejecter extends Stream.Transform {
 
     async _validate(paraobj) {
         const paraphrase = new ParaphraseValidator(this._schemas, this._tokenizer, this._locale,
-            this._counter, paraobj);
+            paraobj, this._counter);
 
         try {
             await paraphrase.clean();

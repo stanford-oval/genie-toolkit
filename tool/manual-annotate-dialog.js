@@ -12,9 +12,9 @@
 const fs = require('fs');
 const readline = require('readline');
 const Stream = require('stream');
+const Tp = require('thingpedia');
 
 const ParserClient = require('./lib/parserclient');
-const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const { DialogSerializer } = require('./lib/dialog_parser');
 const StreamUtils = require('../lib/stream-utils');
 
@@ -27,7 +27,7 @@ class Annotator extends Stream.Readable {
 
         this._rl = rl;
 
-        const tpClient = new FileThingpediaClient(options);
+        const tpClient = new Tp.FileClient(options);
         this._schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
         this._parser = ParserClient.get(options.server, 'en-US');
 

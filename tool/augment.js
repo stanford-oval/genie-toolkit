@@ -9,11 +9,11 @@
 // See COPYING for details
 "use strict";
 
+const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const seedrandom = require('seedrandom');
 const fs = require('fs');
 
-const FileThingpediaClient = require('./lib/file_thingpedia_client');
 const DatasetAugmenter = require('../lib/dataset_augmenter');
 const FileParameterProvider = require('./lib/file_parameter_provider');
 const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
@@ -148,7 +148,7 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new FileThingpediaClient(args);
+        const tpClient = new Tp.FileClient(args);
         const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
         const constProvider = new FileParameterProvider(args.parameter_datasets);
         await constProvider.open();

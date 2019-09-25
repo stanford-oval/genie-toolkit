@@ -340,6 +340,12 @@ $root = {
         return C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     };
 
+    // now => get => notify (argmin, argmax)
+    (
+          ('hey almond' | '') ('search' | 'find' | 'retrieve' | 'tell me' |'show me' | 'present') table:arg_min_max_table
+        | ('hey almond' | '') 'what is' table:arg_min_max_table ('' | '?')
+    ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
+
     // now => get => notify (who questions)
     !turking (
           ('hey almond' | '') ('who' | 'which person' | 'which individual')  ('has' | 'got' | 'has got' ) table:who_npp_filtered_table ('' | '?')

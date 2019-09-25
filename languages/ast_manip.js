@@ -489,22 +489,23 @@ function mergeSchemas(functionType, lhsSchema, rhsSchema, passign) {
     // handle parameter name conflicts by having the second primitive win
     const newArgNames = new Set;
     const newArgs = [];
-    for (let argname of rhsSchema.args) {
-        if (argname === passign)
+    for (let arg of rhsSchema.iterateArguments()) {
+        if (arg.name === passign)
             continue;
-        newArgNames.add(argname);
-        newArgs.push(rhsSchema.getArgument(argname));
+        newArgNames.add(arg.name);
+        newArgs.push(arg);
     }
-    for (let argname of lhsSchema.args) {
-        if (newArgNames.has(argname))
+    for (let arg of lhsSchema.iterateArguments()) {
+        if (newArgNames.has(arg.name))
             continue;
-        if (!lhsSchema.isArgInput(argname))
+        if (!lhsSchema.isArgInput(arg.name))
             continue;
-        newArgNames.add(argname);
-        newArgs.push(lhsSchema.getArgument(argname));
+        newArgNames.add(arg.name);
+        newArgs.push(arg);
     }
 
     return new Ast.ExpressionSignature(functionType,
+        [], // extends
         newArgs, // args
         lhsSchema.is_list || rhsSchema.is_list, // is_list
         lhsSchema.is_monitorable && rhsSchema.is_monitorable // is_monitorable

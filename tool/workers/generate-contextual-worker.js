@@ -9,12 +9,12 @@
 // See COPYING for details
 "use strict";
 
+const Tp = require('thingpedia');
 const seedrandom = require('seedrandom');
-const FileThingpediaClient = require('../lib/file_thingpedia_client');
 const { ContextualSentenceGenerator } = require('../../lib/sentence-generator');
 
 module.exports = function worker(args, shard) {
-    const tpClient = new FileThingpediaClient(args);
+    const tpClient = new Tp.FileClient(args);
     const options = {
         rng: seedrandom.alea(args.random_seed + ':' + shard),
         idPrefix: shard + ':',
