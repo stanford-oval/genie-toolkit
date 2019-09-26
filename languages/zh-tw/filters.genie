@@ -79,7 +79,7 @@ either_filter = {
         let vtype = v1.getType();
         if (vtype.isBoolean) // "is equal to true or false" does not make sense
             return null;
-        if (!$options.allOutParams.has(param.name + '+' + vtype))
+        if (!$options.params.out.has(param.name + '+' + vtype))
             return null;
         return new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2]));
     };
@@ -96,7 +96,7 @@ either_filter = {
         let vtype = v1.getType();
         if (vtype.isBoolean) // "is neither true nor false" does not make sense
             return null;
-        if (!$options.allOutParams.has(param.name + '+' + vtype))
+        if (!$options.params.out.has(param.name + '+' + vtype))
             return null;
         return new Ast.BooleanExpression.Not(new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2])));
     };
