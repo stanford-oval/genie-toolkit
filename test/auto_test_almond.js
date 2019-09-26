@@ -3811,7 +3811,7 @@ async function main(limit = Infinity) {
 
     var delegate = new TestDelegate();
 
-    const sempreUrl = 'https://almond-dev.stanford.edu/nnparser';
+    const sempreUrl = 'https://nlp-staging.almond.stanford.edu';
     almond = new Almond(engine, 'test', new MockUser(), delegate,
         { debug: false, sempreUrl: sempreUrl, showWelcome: true, anonymous: false,
           testMode: true });

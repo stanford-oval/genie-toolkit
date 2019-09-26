@@ -79,7 +79,7 @@ function main() {
     if (process.argv[2] !== undefined && process.argv[2].startsWith('--with-sempre='))
         sempreUrl = process.argv[2].substr('--with-sempre='.length);
     else
-        sempreUrl = 'https://almond-dev.stanford.edu/nnparser';
+        sempreUrl = 'https://nlp-staging.almond.stanford.edu';
     var almond = new Almond(engine, 'test', new MockUser(), delegate,
         { debug: false, sempreUrl: sempreUrl, showWelcome: true });
 
