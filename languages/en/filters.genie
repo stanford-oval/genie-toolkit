@@ -282,7 +282,16 @@ with_filter = {
         'no' param:out_param_Number => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0));
         'zero' param:out_param_Number => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0));
     }
+
+    //aggregate filters
+    'no' p:out_param_Array__Any => C.makeAggregateFilter($options, p, 'count', '*', '==', Ast.Value.Number(0));
+    'zero' p:out_param_Array__Any => C.makeAggregateFilter($options, p, 'count', '*', '==', Ast.Value.Number(0));
+    x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter($options, p, 'count', '*', '==', x);
+
+    ('more than' | 'at least' | 'no fewer than') x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter($options, p, 'count', '*', '>=', x);
+    ('fewer than' | 'at most' | 'no more than') x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter($options, p, 'count', '*', '<=', x);
 }
+
 range_with_filter = {
     param:out_param_Numeric range:range => {
         const [v1, v2] = range;
