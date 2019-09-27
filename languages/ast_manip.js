@@ -187,7 +187,15 @@ function makeAggregateFilter($options, param, aggregationOp, field, op, value) {
         const agg = new Ast.ScalarExpression.Aggregation(aggregationOp, field, list);
         return new Ast.BooleanExpression.Compute(agg, op, value);
     } else if (['sum', 'avg', 'max', 'min'].includes(aggregationOp)) {
-        return null;
+        if (field) {
+            // TODO: aggregate filter for array of compounds
+        } else {
+            const vtype = value.getType();
+            if (!$options.params.out.has(`${param.name}+Array(${vtype})`))
+                return null;
+            const agg = new Ast.ScalarExpression.Aggregation(aggregationOp, field, list);
+            return new Ast.BooleanExpression.Compute(agg, op, value);
+        }
     }
     return null;
 }
@@ -248,11 +256,14 @@ function checkFilter(table, filter) {
         if (!table.schema.out[name])
             return false;
 
+        ptype = table.schema.out[name];
+        if (!ptype.isArray)
+            return false;
+
         if (filter.lhs.operator === 'count') {
             vtype = Type.Number;
         } else {
-            ptype = table.schema.out[name];
-            ftype = filter.lhs.field ? ptype.fields[filter.lhs.field].type : ptype;
+            ftype = filter.lhs.field ? ptype.elem.fields[filter.lhs.field].type : ptype.elem;
             vtype = ftype;
         }
         return filter.rhs.getType().equals(vtype);

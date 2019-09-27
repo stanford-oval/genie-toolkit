@@ -283,13 +283,26 @@ with_filter = {
         'zero' param:out_param_Number => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0));
     }
 
-    //aggregate filters
+    // aggregate filters - count
     'no' p:out_param_Array__Any => C.makeAggregateFilter($options, p, 'count', '*', '==', Ast.Value.Number(0));
     'zero' p:out_param_Array__Any => C.makeAggregateFilter($options, p, 'count', '*', '==', Ast.Value.Number(0));
     x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter($options, p, 'count', '*', '==', x);
 
     ('more than' | 'at least' | 'no fewer than') x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter($options, p, 'count', '*', '>=', x);
     ('fewer than' | 'at most' | 'no more than') x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter($options, p, 'count', '*', '<=', x);
+
+    // aggregate filters - sum
+    ('total' | 'sum') p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter($options, p, 'sum', null, '==', x);
+
+    // aggregate filters - avg
+    'average' p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter($options, p, 'avg', null, '==', x);
+
+    // aggregate filters - max
+    ('maximum' | 'highest') p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter($options, p, 'max', null, '==', x);
+
+    // aggregate filters - min
+    ('minimum' | 'lowest') p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter($options, p, 'min', null, '==', x);
+
 }
 
 range_with_filter = {
