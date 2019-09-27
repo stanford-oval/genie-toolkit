@@ -37,6 +37,31 @@ out_param_Measure_C    = {}
 out_param_Measure_m    = {}
 out_param_Measure_mps  = {}
 
+out_param_Array__Numeric = {
+    out_param_Array__Number;
+    out_param_Array__Currency;
+    out_param_Array__Measure_ms;
+    out_param_Array__Measure_byte;
+    out_param_Array__Measure_kg;
+    out_param_Array__Measure_C;
+    out_param_Array__Measure_m;
+    out_param_Array__Measure_mps;
+}
+
+out_param_Array__String   = {}
+out_param_Array__Number   = {}
+out_param_Array__Currency = {}
+out_param_Array__Time     = {}
+out_param_Array__Date     = {}
+out_param_Array__Location = {}
+out_param_Array__Measure_ms   = {}
+out_param_Array__Measure_byte = {}
+out_param_Array__Measure_kg   = {}
+out_param_Array__Measure_C    = {}
+out_param_Array__Measure_m    = {}
+out_param_Array__Measure_mps  = {}
+out_param_Array__Compound = {}  // used for aggregate filter only
+
 // empty defaults for certain parameter types in case we don't have devices with
 // those parameters
 projection_Entity__tt__username = {}
