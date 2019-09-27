@@ -179,6 +179,19 @@ function makeFilter($options, param, op, value, negate = false) {
         return f;
 }
 
+function makeAggregateFilter($options, param, aggregationOp, field, op, value) {
+    const list = new Ast.ListExpression(param.name, null);
+    if (aggregationOp === 'count') {
+        if (!value.isNumber)
+            return null;
+        const agg = new Ast.ScalarExpression.Aggregation(aggregationOp, field, list);
+        return new Ast.BooleanExpression.Compute(agg, op, value);
+    } else if (['sum', 'avg', 'max', 'min'].includes(aggregationOp)) {
+        return null;
+    }
+    return null;
+}
+
 function makeEdgeFilterStream(proj, op, value, $options) {
     if (proj.table.isAggregation)
         return null;
@@ -226,22 +239,41 @@ function checkFilter(table, filter) {
     if (filter.isExternal)
         return true;
 
-    if (!table.schema.out[filter.name])
-        return false;
+    let vtype, ptype, ftype;
 
-    let ptype = table.schema.out[filter.name];
-    let vtype = ptype;
-    if (filter.operator === 'contains') {
-        if (!vtype.isArray)
+    if (filter.isCompute) {
+        if (!filter.lhs.isAggregation)
             return false;
-        vtype = ptype.elem;
-    } else if (filter.operator === 'in_array') {
-        vtype = Type.Array(ptype);
-    }
-    if (!filter.value.getType().equals(vtype))
-        return false;
+        let name = filter.lhs.list.name;
+        if (!table.schema.out[name])
+            return false;
 
-    return true;
+        if (filter.lhs.operator === 'count') {
+            vtype = Type.Number;
+        } else {
+            ptype = table.schema.out[name];
+            ftype = filter.lhs.field ? ptype.fields[filter.lhs.field].type : ptype;
+            vtype = ftype;
+        }
+        return filter.rhs.getType().equals(vtype);
+    } else if (filter.isAtom) {
+        if (!table.schema.out[filter.name])
+            return false;
+
+        ptype = table.schema.out[filter.name];
+        vtype = ptype;
+        if (filter.operator === 'contains') {
+            if (!vtype.isArray)
+                return false;
+            vtype = ptype.elem;
+        } else if (filter.operator === 'in_array') {
+            vtype = Type.Array(ptype);
+        }
+        return filter.value.getType().equals(vtype);
+    } else {
+        return false;
+    }
+
 }
 
 function checkFilterUniqueness(table, filter) {
@@ -256,6 +288,9 @@ function checkFilterUniqueness(table, filter) {
         filter = filter.expr;
 
     if (filter.isTrue || filter.isFalse)
+        return false;
+
+    if (filter.isCompute)
         return false;
 
     return table.schema.getArgument(filter.name).unique;
@@ -813,6 +848,7 @@ module.exports = {
     whenGetStream,
 
     makeFilter,
+    makeAggregateFilter,
     makeEdgeFilterStream,
     checkFilter,
     addFilter,
