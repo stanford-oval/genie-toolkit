@@ -93,6 +93,13 @@ module.exports = {
             dest: 'debug',
             help: 'Disable debugging.',
         });
+        parser.addArgument('--no-progress', {
+            nargs: 0,
+            action: 'storeFalse',
+            dest: 'progress',
+            defaultValue: true,
+            help: 'Disable the progress bar (implied if --debug is passed).',
+        });
         parser.addArgument('--random-seed', {
             defaultValue: 'almond is awesome',
             help: 'Random seed'
@@ -115,7 +122,7 @@ module.exports = {
         generator.pipe(new DatasetStringifier()).pipe(args.output);
         args.output.on('finish', () => process.exit());
 
-        if (!args.debug) {
+        if (!args.debug && args.progress) {
             const progbar = new ProgressBar(1);
             generator.on('progress', (value) => {
                 //console.log(value);
