@@ -1923,18 +1923,19 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-"thingpedia@github:stanford-oval/thingpedia-api":
-  version "2.5.2"
-  resolved "https://codeload.github.com/stanford-oval/thingpedia-api/tar.gz/f8d0d9f4bc072b593be04b087e5f91693df60565"
+thingpedia@~2.6.0-alpha.1:
+  version "2.6.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.6.0-alpha.1.tgz#bd49a6b68df29646840477e33402038df0edfd61"
+  integrity sha512-kw3qZKaseH8xf5f5Ss/3HulK/M4r88s60tMnS+bRIS0eLHJdqNP+YKNmT4IiEOvYlT/iV1yUYON5iDYE9z1vZA==
   dependencies:
     feedparser "^2.2.9"
     ip "~1.1.0"
     oauth "~0.9.14"
-    thingtalk "~1.8.0"
+    thingtalk "~1.9.0-alpha.1"
     tmp "^0.1.0"
     xml2js "^0.4.17"
 
-thingtalk@1.9.0-alpha.1, thingtalk@~1.8.0:
+thingtalk@~1.9.0-alpha.1:
   version "1.9.0-alpha.1"
   resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.9.0-alpha.1.tgz#5aaef6728b3a9b6a0bc254d3e8f0007b32f40c1c"
   integrity sha512-sUKKYnfZoZHEdxbiiNDJil/KWNzH3XGDAF93qRdSOELefRDPozFGgDHQQIMkrebDhvvKatt93dJIAao9mLcYqQ==
