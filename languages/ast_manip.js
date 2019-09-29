@@ -187,15 +187,16 @@ function makeAggregateFilter($options, param, aggregationOp, field, op, value) {
         const agg = new Ast.ScalarExpression.Aggregation(aggregationOp, field, list);
         return new Ast.BooleanExpression.Compute(agg, op, value);
     } else if (['sum', 'avg', 'max', 'min'].includes(aggregationOp)) {
+        const vtype = value.getType();
         if (field) {
-            // TODO: aggregate filter for array of compounds
+            if (!$options.params.out.has(`${field.name}+${vtype}`))
+                return null;
         } else {
-            const vtype = value.getType();
             if (!$options.params.out.has(`${param.name}+Array(${vtype})`))
                 return null;
-            const agg = new Ast.ScalarExpression.Aggregation(aggregationOp, field, list);
-            return new Ast.BooleanExpression.Compute(agg, op, value);
         }
+        const agg = new Ast.ScalarExpression.Aggregation(aggregationOp, field ? field.name : null, list);
+        return new Ast.BooleanExpression.Compute(agg, op, value);
     }
     return null;
 }
@@ -263,7 +264,10 @@ function checkFilter(table, filter) {
         if (filter.lhs.operator === 'count') {
             vtype = Type.Number;
         } else {
-            ftype = filter.lhs.field ? ptype.elem.fields[filter.lhs.field].type : ptype.elem;
+            if (filter.lhs.field && filter.lhs.field in ptype.elem.fields)
+                ftype = ptype.elem.fields[filter.lhs.field].type;
+            else
+                ftype = ptype.elem;
             vtype = ftype;
         }
         return filter.rhs.getType().equals(vtype);
