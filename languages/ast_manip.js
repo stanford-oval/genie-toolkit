@@ -179,10 +179,28 @@ function makeFilter($options, param, op, value, negate = false) {
         return f;
 }
 
-function makeAggregateFilter($options, param, aggregationOp, field, op, value) {
-    const list = new Ast.ListExpression(param.name, null);
+function makeAggregateFilter($options, param, filter, aggregationOp, field, op, value) {
+    if (filter) {
+        // TODO: handle more complicated filters
+        if (!filter.isAtom)
+            return null;
+        if (filter.name === 'value') {
+            if ($options.params.out.has(`${param.name}+Array(Compound)`))
+                return null;
+        } else {
+            if (!(param.name in $options.compoundArrays))
+                return null;
+            const type = $options.compoundArrays[param.name];
+            if (!(filter.name in type.fields))
+                return null;
+        }
+        let vtype = filter.value.getType();
+        if (!$options.params.out.has(`${filter.name}+${vtype}`))
+            return null;
+    }
+    const list = new Ast.ListExpression(param.name, filter);
     if (aggregationOp === 'count') {
-        if (!value.isNumber)
+        if (!value.getType().isNumber)
             return null;
         const agg = new Ast.ScalarExpression.Aggregation(aggregationOp, field, list);
         return new Ast.BooleanExpression.Compute(agg, op, value);
