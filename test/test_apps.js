@@ -766,6 +766,26 @@ function testTimerSequence(engine, conversation) {
     });
 }
 
+async function testGetContext(engine, icon = null) {
+    const app = await engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.dup_data(data_in=$context.selection: String) => notify;',
+        { $icon: icon }, undefined, undefined, 'some app', 'some app description', true);
+    // when we get here, the app might or might not have started already
+    // to be sure, we iterate its mainOutput
+
+    // the app is still running, so the engine should know about it
+    assert(engine.apps.hasApp(app.uniqueId));
+
+    let what = await app.mainOutput.next();
+    assert(what.item.isNotification);
+    what.resolve();
+    assert.strictEqual(what.item.icon, icon);
+    assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test:dup_data');
+    assert.deepStrictEqual(what.item.outputValue, { data_out: 'Selected textSelected text', data_in: 'Selected text' });
+
+    what = await app.mainOutput.next();
+    assert(what.item.isDone);
+    what.resolve();
+}
 
 
 module.exports = async function testApps(engine) {
@@ -789,6 +809,8 @@ module.exports = async function testApps(engine) {
     await testWhenRestart(engine);
     await testWhenErrorInit(engine);
     await testWhenErrorAsync(engine);
+
+    await testGetContext(engine);
 
     // these three must be exactly in this order
     await testGetSequence(engine);
