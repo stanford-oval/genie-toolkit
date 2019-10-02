@@ -58,7 +58,10 @@ const BUILTIN_TYPEMAP = {
 };
 
 const BLACKLISTED_TYPES = new Set([
-    'QualitativeValue', 'PropertyValue', 'BedType'
+    'QualitativeValue', 'PropertyValue', 'BedType',
+
+    // buggy, causes Audience to turn into an enum
+    'Researcher',
 ]);
 
 const STRUCTURED_HIERARCHIES = [
@@ -293,6 +296,9 @@ async function main() {
             if (getId(triple['@id']) in BUILTIN_TYPEMAP)
                 continue;
 
+            if (BLACKLISTED_TYPES.has(getId(triple['@id'])))
+                continue;
+
             if (triple['@type'].startsWith('http://schema.org/')) {
                 // an enum declaration
                 const enumtype = getId(triple['@type']);
@@ -329,8 +335,6 @@ async function main() {
             }
             case 'rdfs:Class': {
                 const name = getId(triple['@id']);
-                if (BLACKLISTED_TYPES.has(name))
-                    continue;
                 const comment = triple['rdfs:comment'];
                 const _extends = getIncludes(triple['rdfs:subClassOf'] || []);
                 ensureType(name);
@@ -451,6 +455,9 @@ async function main() {
             continue;
         toposort(type);
     }
+
+    console.log(typeHierarchy['Audience']);
+    assert(order.has('Audience'));
 
     const queries = {};
     for (let typename of order) {
