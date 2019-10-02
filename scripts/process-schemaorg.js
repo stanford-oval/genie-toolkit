@@ -57,6 +57,13 @@ const BUILTIN_TYPEMAP = {
     QuantitativeValue: Type.Any
 };
 
+const KEYWORDS = [
+    'let', 'now', 'new', 'as', 'of', 'in', 'out', 'req', 'opt', 'notify', 'return',
+    'join', 'edge', 'monitor', 'class', 'extends', 'mixin', 'this', 'import', 'null',
+    'enum', 'aggregate', 'dataset', 'oninput', 'sort', 'asc', 'desc', 'bookkeeping',
+    'compute', 'true', 'false'
+];
+
 const BLACKLISTED_TYPES = new Set([
     'QualitativeValue', 'PropertyValue', 'BedType',
 
@@ -469,6 +476,8 @@ async function main() {
             if (!type)
                 continue;
 
+            if (KEYWORDS.includes(propertyname))
+                propertyname = '_' + propertyname;
             args.push(
                 new Ast.ArgumentDef(Ast.ArgDirection.OUT, propertyname, type, {}, {
                     'org_schema_type': Ast.Value.String(schemaOrgType),
@@ -477,6 +486,8 @@ async function main() {
             );
         }
 
+        if (KEYWORDS.includes(typename))
+            typename = '_' + typename;
         const querydef = new Ast.FunctionDef('query', typename, typedef.extends, args, true, false, {}, {
             'org_schema_comment': Ast.Value.String(typedef.comment),
         });
