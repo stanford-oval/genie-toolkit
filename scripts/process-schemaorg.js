@@ -456,9 +456,6 @@ async function main() {
         toposort(type);
     }
 
-    console.log(typeHierarchy['Audience']);
-    assert(order.has('Audience'));
-
     const queries = {};
     for (let typename of order) {
         const typedef = typeHierarchy[typename];
