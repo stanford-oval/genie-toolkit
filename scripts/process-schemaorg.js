@@ -65,7 +65,7 @@ const KEYWORDS = [
 ];
 
 const BLACKLISTED_TYPES = new Set([
-    'QualitativeValue', 'PropertyValue', 'BedType',
+    'QualitativeValue', 'PropertyValue', 'BedType', 'MedicalBusiness',
 
     // buggy, causes Audience to turn into an enum
     'Researcher',
