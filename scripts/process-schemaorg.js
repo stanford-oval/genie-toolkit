@@ -51,8 +51,15 @@ const BUILTIN_TYPEMAP = {
     Distance: Type.Measure('m'),
     Duration: Type.Measure('ms'),
 
-    GeoCoordinates: Type.Location
+    GeoCoordinates: Type.Location,
+    MonetaryAmount: Type.Currency,
+
+    QuantitativeValue: Type.Any
 };
+
+const BLACKLISTED_TYPES = new Set([
+    'QualitativeValue', 'PropertyValue', 'BedType'
+]);
 
 const STRUCTURED_HIERARCHIES = [
     'StructuredValue', 'Rating',
@@ -70,7 +77,9 @@ const NON_STRUCT_TYPES = new Set([
 const PROPERTY_TYPE_OVERRIDE = {
     'telephone': Type.Entity('tt:phone_number'),
     'checkinTime': Type.Time,
-    'checkoutTime': Type.Time
+    'checkoutTime': Type.Time,
+    'weight': Type.Measure('ms'),
+    'depth': Type.Measure('m')
 };
 
 // HACK: certain structured types want to get the name & description property from Thing
@@ -84,7 +93,7 @@ function typeToThingTalk(typename, typeHierarchy) {
 
     if (typeHierarchy[typename].isItemList)
         return Type.Array(typeToThingTalk(typeHierarchy[typename].itemType, typeHierarchy));
-    if (typeHierarchy[typename].isEnum)
+    if (typeHierarchy[typename].isEnum && typeHierarchy[typename].enum.length > 0)
         return Type.Enum(typeHierarchy[typename].enum);
     if (typeHierarchy[typename].representAsStruct)
         return makeCompoundType(typename, typeHierarchy[typename], typeHierarchy);
@@ -92,7 +101,7 @@ function typeToThingTalk(typename, typeHierarchy) {
     return Type.Entity('org.schema:' + typename);
 }
 
-function getBestPropertyType(property, typeHierarchy) {
+function getBestPropertyType(propname, property, typeHierarchy) {
     let best = undefined, bestScore = -Infinity;
 
     // if the property is defined as taking ItemList and something else, we make an array of that something else
@@ -138,13 +147,23 @@ function getBestPropertyType(property, typeHierarchy) {
     if (bestScore < 0)
         return [undefined, undefined];
 
-    if (property in PROPERTY_TYPE_OVERRIDE)
-        return [best, PROPERTY_TYPE_OVERRIDE[property]];
+    if (propname in PROPERTY_TYPE_OVERRIDE)
+        return [best, PROPERTY_TYPE_OVERRIDE[propname]];
 
     // if we chose an item list as the best type, don't wrap into a further array
     if (typeHierarchy[best] && typeHierarchy[best].isItemList)
         isArray = false;
 
+    // HACK
+    if (best === 'QuantitativeValue') {
+        if (/number/i.test(propname) || /level/i.test(propname) || /quantity/i.test(propname))
+            return [best, Type.Number];
+        if (/duration/i.test(propname))
+            return [best, Type.Measure('ms')];
+
+        console.error(`Cannot guess the correct type of ${propname} of type QuantitativeValue, assuming Number`);
+        return [best, Type.Number];
+    }
 
     let tttype = typeToThingTalk(best, typeHierarchy);
     if (!tttype)
@@ -192,7 +211,7 @@ function makeCompoundType(startingTypename, typedef, typeHierarchy) {
 
     let anyfield = false;
     for (let [propertyname, propertydef] of allproperties) {
-        const [schemaOrgType, ttType] = getBestPropertyType(propertydef, typeHierarchy);
+        const [schemaOrgType, ttType] = getBestPropertyType(propertyname, propertydef, typeHierarchy);
         if (!ttType)
             continue;
 
@@ -297,6 +316,8 @@ async function main() {
                 for (let domain of domains) {
                     if (domain in BUILTIN_TYPEMAP)
                         continue;
+                    if (BLACKLISTED_TYPES.has(domain))
+                        continue;
 
                     ensureType(domain);
                     typeHierarchy[domain].properties[name] = {
@@ -308,10 +329,14 @@ async function main() {
             }
             case 'rdfs:Class': {
                 const name = getId(triple['@id']);
+                if (BLACKLISTED_TYPES.has(name))
+                    continue;
                 const comment = triple['rdfs:comment'];
                 const _extends = getIncludes(triple['rdfs:subClassOf'] || []);
                 ensureType(name);
-                typeHierarchy[name].extends = _extends;
+                typeHierarchy[name].extends = _extends.filter((ex) => !BLACKLISTED_TYPES.has(ex));
+                if (typeHierarchy[name].extends.length === 0 && name !== 'Thing')
+                    typeHierarchy[name].extends = ['Thing'];
                 typeHierarchy[name].comment = comment;
                 break;
             }
@@ -436,7 +461,7 @@ async function main() {
         ];
         for (let propertyname in typedef.properties) {
             const propertydef = typedef.properties[propertyname];
-            const [schemaOrgType, type] = getBestPropertyType(propertydef, typeHierarchy);
+            const [schemaOrgType, type] = getBestPropertyType(propertyname, propertydef, typeHierarchy);
             if (!type)
                 continue;
 
