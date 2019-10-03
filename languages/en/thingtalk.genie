@@ -25,6 +25,7 @@ import './timers';
 import './filters';
 import './parameters';
 import './aggregation';
+import './computation';
 import './who_questions';
 import './schema.org';
 
@@ -351,7 +352,7 @@ $root = {
 
     // now => get => notify (argmin, argmax)
     (
-          ('search' | 'find' | 'retrieve' | 'tell me' |'show me' | 'present') table:with_arg_min_max_table
+          ('search' | 'find' | 'retrieve' | 'tell me' |'show me' | 'present') 'the' table:with_arg_min_max_table
         | ('what' | 'which') 'is the' table:with_arg_min_max_table ('' | '?')
         | 'which' table:have_arg_min_max_table ('' | '?')
     ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
@@ -406,6 +407,7 @@ $root = {
         | 'who is' proj:projection_Entity__tt__email_address ('' | '?')
     ) => C.sayProjectionProgram($options, proj);
     !turking proj:projection_Any => C.sayProjectionProgram($options, proj);
+    table:compute_question => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
 
     // now => do
     (

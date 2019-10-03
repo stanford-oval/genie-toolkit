@@ -180,7 +180,7 @@ function makeFilter($options, param, op, value, negate = false) {
         return f;
 }
 
-function makeAggregateFilter($options, param, filter, aggregationOp, field, op, value) {
+function makeListExpression($options, param, filter) {
     if (filter) {
         // TODO: handle more complicated filters
         if (!filter.isAtom)
@@ -199,7 +199,13 @@ function makeAggregateFilter($options, param, filter, aggregationOp, field, op, 
         if (!$options.params.out.has(`${filter.name}+${vtype}`))
             return null;
     }
-    const list = new Ast.ListExpression(param.name, filter);
+    return new Ast.ListExpression(param.name, filter);
+}
+
+function makeAggregateFilter($options, param, filter, aggregationOp, field, op, value) {
+    const list = makeListExpression($options, param, filter);
+    if (!list)
+        return null;
     if (aggregationOp === 'count') {
         if (!value.getType().isNumber)
             return null;
@@ -1003,6 +1009,7 @@ module.exports = {
 
     makeFilter,
     makeAggregateFilter,
+    makeListExpression,
     makeEdgeFilterStream,
     checkFilter,
     addFilter,
