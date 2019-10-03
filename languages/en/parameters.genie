@@ -143,8 +143,12 @@ for (let [typestr, type] of $options.types.all) {
             } else {
                 $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:with_filtered_table => {
                     const name = outParam.name;
-                    if (name === 'id' && $options.flags.schema_org)
-                        return null;
+                    if ($options.flags.schema_org) {
+                        if (name === 'id')
+                            return null;
+                        if (!table.isFilter)
+                            return null;
+                    }
                     if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
                         return null;
                     if (name === 'picture_url' && $options.flags.turking)
@@ -154,8 +158,12 @@ for (let [typestr, type] of $options.types.all) {
                 };
                 $('stream_projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of new' table:with_filtered_table => {
                     const name = outParam.name;
-                    if (name === 'id' && $options.flags.schema_org)
-                        return null;
+                    if ($options.flags.schema_org) {
+                        if (name === 'id')
+                            return null;
+                        if (!table.isFilter)
+                            return null;
+                    }
                     if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
                         return null;
                     if (!table.schema.is_monitorable)
