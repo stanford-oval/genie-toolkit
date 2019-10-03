@@ -67,7 +67,7 @@
 }
 
 projection_Measure_m = {
-    'the distance' ('of' | 'to') table:with_filter_table => {
+    'the distance' ('of' | 'to') table:with_filtered_table => {
         // the position of a place in schema.org is called "geo" - for speed
         // we hardcode the parameter name here
 
@@ -78,14 +78,14 @@ projection_Measure_m = {
 
     // these form sentences like "tell me how far X is", which is grammatical but
     // clunky, so we !turking them
-    !turking 'how' ('far' | 'near' | 'close') table:with_filter_table 'is' => {
+    !turking 'how' ('far' | 'near' | 'close') table:with_filtered_table 'is' => {
         if (!table.schema.out.geo || table.schema.out.geo.isLocation)
             return null;
         return makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
     };
 
-    ( 'the distance' ('of' | 'to') table:with_filter_table 'from' place:constant_Location
-    | 'the distance from' place:constant_Location ('of' | 'to') table:with_filter_table
+    ( 'the distance' ('of' | 'to') table:with_filtered_table 'from' place:constant_Location
+    | 'the distance from' place:constant_Location ('of' | 'to') table:with_filtered_table
     ) => {
         if (!table.schema.out.geo || table.schema.out.geo.isLocation)
             return null;
@@ -93,8 +93,8 @@ projection_Measure_m = {
     };
 
     !turking {
-    ( 'how' ('far' | 'near' | 'close') 'from' place:constant_Location table:with_filter_table 'is'
-    | 'how' ('far' | 'near' | 'close') table:with_filter_table 'is from' place:constant_Location
+    ( 'how' ('far' | 'near' | 'close') 'from' place:constant_Location table:with_filtered_table 'is'
+    | 'how' ('far' | 'near' | 'close') table:with_filtered_table 'is from' place:constant_Location
     ) => {
         if (!table.schema.out.geo || table.schema.out.geo.isLocation)
             return null;
@@ -102,13 +102,13 @@ projection_Measure_m = {
     };
     }
 
-    'the number of' p:out_param_Array__Any ('of' | 'in' | 'in the') table:with_filter_table => {
+    'the number of' p:out_param_Array__Any ('of' | 'in' | 'in the') table:with_filtered_table => {
         if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
             return null;
         return makeAggComputeProjExpression(table, 'count', null, new Ast.ListExpression(p.name, null), Type.Number);
     };
 
-    'the number of' p:out_param_Array__Any 'with' filter:with_filter ('of' | 'in' | 'in the') table:with_filter_table => {
+    'the number of' p:out_param_Array__Any 'with' filter:with_filter ('of' | 'in' | 'in the') table:with_filtered_table => {
         if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray || filter.isAtom)
             return null;
         const elementType = table.schema.out[p.name].elem;
@@ -122,30 +122,30 @@ projection_Measure_m = {
 }
 
 compute_question = {
-    'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filter_table '?' => {
+    'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filtered_table '?' => {
         if (!table.schema.out.geo || table.schema.out.geo.isLocation)
             return null;
         return makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
     };
 
-    'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filter_table ('from' | 'to') place:constant_Location '?' => {
+    'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filtered_table ('from' | 'to') place:constant_Location '?' => {
         if (!table.schema.out.geo || table.schema.out.geo.isLocation)
             return null;
         return makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'));
     };
 
-    ( 'how many' p:out_param_Array__Any ('does' | 'do') table:with_filter_table 'have ?'
-    | 'how many' p:out_param_Array__Any ('in a' | 'in' | 'in the') table:with_filter_table '?'
-    | 'how many' p:out_param_Array__Any 'are there' ('in a' | 'in' | 'in the') table:with_filter_table '?'
+    ( 'how many' p:out_param_Array__Any ('does' | 'do') table:with_filtered_table 'have ?'
+    | 'how many' p:out_param_Array__Any ('in a' | 'in' | 'in the') table:with_filtered_table '?'
+    | 'how many' p:out_param_Array__Any 'are there' ('in a' | 'in' | 'in the') table:with_filtered_table '?'
     ) => {
         if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
             return null;
         return makeAggComputeProjExpression(table, 'count', null, new Ast.ListExpression(p.name, null), Type.Number);
     };
 
-    ( 'how many' p:out_param_Array__Any 'with' filter:with_filter ('does' | 'do') table:with_filter_table 'have ?'
-    | 'how many' p:out_param_Array__Any 'with' filter:with_filter ('in a' | 'in' | 'in the') table:with_filter_table '?'
-    | 'how many' p:out_param_Array__Any 'with' filter:with_filter 'are there' ('in a' | 'in' | 'in the') table:with_filter_table '?'
+    ( 'how many' p:out_param_Array__Any 'with' filter:with_filter ('does' | 'do') table:with_filtered_table 'have ?'
+    | 'how many' p:out_param_Array__Any 'with' filter:with_filter ('in a' | 'in' | 'in the') table:with_filtered_table '?'
+    | 'how many' p:out_param_Array__Any 'with' filter:with_filter 'are there' ('in a' | 'in' | 'in the') table:with_filtered_table '?'
     ) => {
         if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
             return null;
@@ -160,8 +160,8 @@ compute_question = {
 
     // aggregation questions
     ?aggregation {
-    ( 'how many' table:with_filter_table 'are there ?'
-    | ('please' | '') 'count the' table:with_filter_table
+    ( 'how many' table:with_filtered_table 'are there ?'
+    | ('please' | '') 'count the' table:with_filtered_table
     ) => {
         if (!table.schema.is_list)
             return null;
@@ -171,8 +171,8 @@ compute_question = {
         return new Ast.Table.Projection(agg, ['count'], newSchema);
     };
 
-    ( 'how many' p:out_param_Numeric 'are' ('in' | 'in the') t:with_filter_table '?'
-    | 'how many' p:out_param_Numeric ('do' | 'does') t:with_filter_table 'have ?'
+    ( 'how many' p:out_param_Numeric 'are' ('in' | 'in the') t:with_filtered_table '?'
+    | 'how many' p:out_param_Numeric ('do' | 'does') t:with_filtered_table 'have ?'
     ) => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
@@ -187,41 +187,41 @@ compute_question = {
 }
 
 with_arg_min_max_table = {
-    ('nearest' | 'closest') table:with_filter_table => {
+    ('nearest' | 'closest') table:with_filtered_table => {
         if (!table.schema.out.geo || table.schema.out.geo.isLocation)
             return null;
         return makeComputeArgMinMaxExpression(table, 'distance', Ast.Value.VarRef('geo'), HERE, Type.Measure('m'), 'asc');
     };
 
-    ('farthest' | 'most far away') table:with_filter_table => {
+    ('farthest' | 'most far away') table:with_filtered_table => {
         if (!table.schema.out.geo || table.schema.out.geo.isLocation)
             return null;
         return makeComputeArgMinMaxExpression(table, 'distance', Ast.Value.VarRef('geo'), HERE, Type.Measure('m'), 'desc');
     };
 
-    ( ('nearest' | 'closest') table:with_filter_table 'to' place:constant_Location
-    | table:with_filter_table ('that is' | 'which is') ('nearest' | 'closest') 'to' place:constant_Location
+    ( ('nearest' | 'closest') table:with_filtered_table 'to' place:constant_Location
+    | table:with_filtered_table ('that is' | 'which is') ('nearest' | 'closest') 'to' place:constant_Location
     ) => {
         if (!table.schema.out.geo || table.schema.out.geo.isLocation)
             return null;
         return makeComputeArgMinMaxExpression(table, 'distance', Ast.Value.VarRef('geo'), place, Type.Measure('m'), 'asc');
     };
 
-    ( ('farthest' | 'most far away') table:with_filter_table 'from' place:constant_Location
-    | table:with_filter_table ('that is' | 'which is') ('farthest' | 'most far away') 'from' place:constant_Location)
+    ( ('farthest' | 'most far away') table:with_filtered_table 'from' place:constant_Location
+    | table:with_filtered_table ('that is' | 'which is') ('farthest' | 'most far away') 'from' place:constant_Location)
     => {
         if (!table.schema.out.geo || table.schema.out.geo.isLocation)
             return null;
         return makeComputeArgMinMaxExpression(table, 'distance', Ast.Value.VarRef('geo'), place, Type.Measure('m'), 'desc');
     };
 
-    table:with_filter_table 'with the' ('most' | 'highest number' | 'largest number' | 'largest count') 'of' p:out_param_Array__Any => {
+    table:with_filtered_table 'with the' ('most' | 'highest number' | 'largest number' | 'largest count') 'of' p:out_param_Array__Any => {
         if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
             return null;
         return makeAggComputeArgMinMaxExpression(table, 'count', null, new Ast.ListExpression(p.name, null), Type.Number, 'desc');
     };
 
-    table:with_filter_table 'with the' ('least' | 'smallest number' | 'tiniest number' | 'smallest count') 'of' p:out_param_Array__Any => {
+    table:with_filtered_table 'with the' ('least' | 'smallest number' | 'tiniest number' | 'smallest count') 'of' p:out_param_Array__Any => {
         if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
             return null;
         return makeAggComputeArgMinMaxExpression(table, 'count', null, new Ast.ListExpression(p.name, null), Type.Number, 'asc');
