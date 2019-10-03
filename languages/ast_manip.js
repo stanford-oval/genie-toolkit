@@ -931,6 +931,48 @@ function makeExampleFromAction(a) {
     );
 }
 
+function makeArgCanonicals(name) {
+    const canonicals = [];
+
+    function cleanName(name) {
+        if (name.endsWith(' value'))
+            return name.substring(0, name.length - ' value'.length);
+        return name;
+    }
+
+    if (!name.includes('.')) {
+        canonicals.push(cleanName(name));
+    } else  if (name.split('.').length === 2) {
+        const [lhs, rhs] = name.split('.').map(cleanName);
+
+        if (rhs.includes(lhs)) {
+            canonicals.push(rhs);
+        } else if (lhs.includes(rhs)) {
+            canonicals.push(lhs);
+        } else {
+            let lhs_words = lhs.split(' ');
+            let rhs_words = rhs.split(' ');
+
+            for (let word of rhs_words) {
+                if (lhs_words.includes('lhs'))
+                    rhs_words = rhs_words.filter((w) => w === word);
+            }
+
+            if (rhs_words.length === 0) {
+                canonicals.push(lhs);
+            } else {
+                canonicals.push(`${rhs_words.join(' ')} of ${lhs}`);
+                canonicals.push(`${rhs_words.join(' ')} in ${lhs}`);
+            }
+        }
+    }
+
+    if (canonicals.length === 0)
+        canonicals.push(name);
+
+    return canonicals;
+}
+
 module.exports = {
     typeToStringSafe,
     findFunctionNameTable,
@@ -988,5 +1030,6 @@ module.exports = {
 
     //schema.org specific
     filterTableJoin,
-    arrayFilterTableJoin
+    arrayFilterTableJoin,
+    makeArgCanonicals,
 };
