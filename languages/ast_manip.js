@@ -20,6 +20,7 @@ const { isUnaryTableToTableOp,
         isUnaryStreamToStreamOp,
         isUnaryTableToStreamOp } = require('./utils');
 const { notifyAction } = ThingTalk.Generate;
+const { clean } = require('../lib/utils');
 
 function typeToStringSafe(type) {
     if (type.isArray)
@@ -851,6 +852,35 @@ function fillNextSlot(program, newValue) {
     return null;
 }
 
+function makeExampleFromQuery(q) {
+    const device = new Ast.Selector.Device(q.class.name, null, null);
+    const invocation = new Ast.Invocation(device, q.name, [], q);
+    const canonical = invocation.canonical ? invocation.canonical : clean(q.name);
+    return new Ast.Example(
+        -1,
+        'query',
+        {},
+        new Ast.Table.Invocation(invocation, q),
+        [canonical],
+        [canonical],
+        {}
+    );
+}
+
+function makeExampleFromAction(a) {
+    const device = new Ast.Selector.Device(a.class.name, null, null);
+    const invocation = new Ast.Invocation(device, a.name, [], a);
+    const canonical = invocation.canonical ? invocation.canonical : clean(a.name);
+    return new Ast.Example(
+        -1,
+        'action',
+        {},
+        new Ast.Action.Invocation(invocation, a),
+        [canonical],
+        [canonical],
+        {}
+    );
+}
 
 module.exports = {
     typeToStringSafe,
@@ -887,6 +917,9 @@ module.exports = {
     addFilter,
     hasGetPredicate,
     makeGetPredicate,
+
+    makeExampleFromAction,
+    makeExampleFromQuery,
 
     tableToStream,
 
