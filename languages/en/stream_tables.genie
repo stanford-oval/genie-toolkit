@@ -73,6 +73,30 @@ two_with_filter_table = {
     };
 }
 
+have_filtered_table = {
+    complete_table;
+    one_have_filter_table;
+    !turking two_have_filter_table;
+}
+
+one_have_filter_table = {
+    !nofilter table:complete_table ('have' | 'get') filter:with_filter => {
+        if (!table.schema.is_list)
+            return null;
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+two_have_filter_table = {
+    !nofilter table:one_have_filter_table 'and' filter:with_filter => {
+        if (!table.schema.is_list)
+            return null;
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
 
 npi_filtered_table = {
     !nofilter table:complete_table ('that' | 'which') 'is the' filter:npi_filter => {
