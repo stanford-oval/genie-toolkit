@@ -581,6 +581,55 @@ function mergeSchemas(functionType, lhsSchema, rhsSchema, passign) {
     );
 }
 
+function filterTableJoin(into, filteredTable) {
+    if (filteredTable === null)
+        return null;
+    if (!filteredTable.isFilter)
+        return null;
+    let tableName;
+    for (let [, invocation] of filteredTable.iteratePrimitives())
+        tableName = invocation.channel;
+    let passign;
+    for (let arg of into.schema.iterateArguments()) {
+        if (arg.name !== 'id' && arg.type.isEntity && arg.type.type.substring('org.schema:'.length) === tableName)
+            passign = arg;
+    }
+    if (!passign)
+        return null;
+
+    const newSchema = mergeSchemas('query', filteredTable.schema, into.schema, '');
+
+    const join = new Ast.Table.Join(filteredTable, into, [], newSchema);
+    const filter = new Ast.BooleanExpression.Atom(
+        passign.name, '==', new Ast.Value.VarRef('id')
+    );
+    return new Ast.Table.Filter(join, filter, newSchema);
+}
+
+function arrayFilterTableJoin(into, filteredTable) {
+    if (filteredTable === null)
+        return null;
+    if (!filteredTable.isFilter)
+        return null;
+    let tableName;
+    for (let [, invocation] of filteredTable.iteratePrimitives())
+        tableName = invocation.channel;
+    let passign;
+    for (let arg of into.schema.iterateArguments()) {
+        if (arg.type.isArray && arg.type.elem.isEntity && arg.type.elem.type.substring('org.schema:'.length) === tableName)
+            passign = arg;
+    }
+    if (!passign)
+        return null;
+
+    const newSchema = mergeSchemas('query', filteredTable.schema, into.schema, '');
+
+    const join = new Ast.Table.Join(filteredTable, into, [], newSchema);
+    const filter = new Ast.BooleanExpression.Atom(
+        passign.name, 'contains', new Ast.Value.VarRef('id')
+    );
+    return new Ast.Table.Filter(join, filter, newSchema);
+}
 
 function tableJoinReplacePlaceholder(into, pname, projection) {
     if (projection === null)
@@ -936,4 +985,8 @@ module.exports = {
     addFilterToProgram,
     addFilterToPolicy,
     makeMonitor,
+
+    //schema.org specific
+    filterTableJoin,
+    arrayFilterTableJoin
 };

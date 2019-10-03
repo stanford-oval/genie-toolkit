@@ -26,6 +26,7 @@ import './filters';
 import './parameters';
 import './aggregation';
 import './who_questions';
+import './schema.org';
 
 if ($options.flags.bookkeeping)
     import './bookkeeping';
@@ -340,6 +341,13 @@ $root = {
             return null;
         return C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     };
+
+    // now => get => notify with join
+    (
+          'get' table:schema_with_filtered_table_join
+        | ('what' | 'which') 'are' ('the' | '') table:schema_with_filtered_table_join
+        | ('what' | 'which') table:schema_have_filtered_table_join
+    ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
 
     // now => get => notify (argmin, argmax)
     (

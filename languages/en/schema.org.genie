@@ -1,0 +1,45 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Silei Xu <silei@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+const assert = require('assert');
+
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
+
+// import the combinator library
+const C = require('../ast_manip');
+
+}
+
+schema_with_filtered_table_join = {
+    ?filter_join (
+        t1:complete_table 'whose' t2:have_filtered_table
+      | t1:with_filtered_table 'whose' t2:have_filtered_table
+    ) => C.filterTableJoin(t1, t2);
+
+    ?filter_join (
+        t1:complete_table ('with' | 'which have') t2:with_filtered_table
+      | t1:with_filtered_table ('with' | 'which have') t2:with_filtered_table
+    ) => C.arrayFilterTableJoin(t1, t2);
+}
+
+schema_have_filtered_table_join = {
+    ?filter_join (
+        t1:complete_table ('have' | 'get') t2:with_filtered_table
+      | t1:with_filtered_table ('have' | 'get') t2:with_filtered_table
+    ) => C.filterTableJoin(t1, t2);
+
+    ?filter_join (
+        t1:complete_table ('have' | 'get') t2:with_filtered_table
+      | t1:with_filtered_table ('have' | 'get') t2:with_filtered_table
+    ) => C.arrayFilterTableJoin(t1, t2);
+}
