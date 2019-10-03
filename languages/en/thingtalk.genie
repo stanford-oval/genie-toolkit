@@ -343,8 +343,9 @@ $root = {
 
     // now => get => notify (argmin, argmax)
     (
-          ('search' | 'find' | 'retrieve' | 'tell me' |'show me' | 'present') table:arg_min_max_table
-        | 'what is' table:arg_min_max_table ('' | '?')
+          ('search' | 'find' | 'retrieve' | 'tell me' |'show me' | 'present') table:with_arg_min_max_table
+        | ('what' | 'which') 'is the' table:with_arg_min_max_table ('' | '?')
+        | 'which' table:have_arg_min_max_table ('' | '?')
     ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
 
     // now => get => notify (who questions)

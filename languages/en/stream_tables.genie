@@ -144,7 +144,7 @@ apv_filtered_table = {
     };
 }
 
-arg_min_max_table = {
+with_arg_min_max_table = {
     ?aggregation {
     t:complete_table ('with' | 'which has') 'the' ('maximum' | 'highest') p:out_param_Number => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
@@ -321,6 +321,189 @@ arg_min_max_table = {
         if (!t.schema.is_list || t.isIndex)
             return null;
         const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    }
+}
+
+have_arg_min_max_table = {
+    ?aggregation {
+    t:complete_table ('has' | 'gets') 'the' ('maximum' | 'highest') p:out_param_Number => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex) //avoid conflict with primitives
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the' ('minimum' | 'lowest') p:out_param_Number => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the' ('longest' | 'most lasting') p:out_param_Measure_ms => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the shortest' p:out_param_Measure_ms => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the' ('maximum' | 'largest') p:out_param_Measure_byte => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the' ('minimum' | 'smallest') p:out_param_Measure_byte => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the' ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the' ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the' ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the latest' p:out_param_Date => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isDate)
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+    t:complete_table ('has' | 'gets') 'the' ('earliest' | 'soonest') p:out_param_Date => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isDate)
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('has' | 'gets') 'the latest' p:out_param_Time => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isTime)
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+    t:complete_table ('has' | 'gets') 'the' ('earliest' | 'soonest') p:out_param_Time => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isTime)
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);
         return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
     };
 
