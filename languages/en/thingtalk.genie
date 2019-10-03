@@ -325,8 +325,8 @@ $root = {
     // now => get => notify
     (
           table:complete_get_command
-        | 'get' table:complete_table
-        | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table
+        | 'get' table:with_filtered_table
+        | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:with_filtered_table
         | ('search' | 'find' | 'i want' | 'i need') table:with_filtered_table
         | ('what' | 'which') table:have_filtered_table ('' | '?')
         | ('what' | 'which') 'are' ('the' | '') table:with_filtered_table ('' | '?')

@@ -29,7 +29,7 @@ complete_get_command = {
     thingpedia_get_command if complete;
 }
 if_filtered_table = {
-    complete_table;
+    !always_filter complete_table;
     one_if_filter_table;
     !turking two_if_filter_table;
 }
@@ -49,7 +49,7 @@ two_if_filter_table = {
     };
 }
 with_filtered_table = {
-    complete_table;
+    !always_filter complete_table;
     one_with_filter_table;
     !turking two_with_filter_table;
 }
@@ -74,7 +74,7 @@ two_with_filter_table = {
 }
 
 have_filtered_table = {
-    complete_table;
+    !always_filter complete_table;
     one_have_filter_table;
     !turking two_have_filter_table;
 }
