@@ -327,12 +327,12 @@ $root = {
         | 'get' table:complete_table
         | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table
         | ('search' | 'find' | 'i want' | 'i need') table:with_filtered_table
-        | 'what are' table:with_filtered_table ('' | '?')
-        | 'what are' table:pvp_filtered_table ('' | '?')
-        | 'what are' table:avp_filtered_table ('' | '?')
-        | 'what are' table:npi_filtered_table ('' | '?')
-        | 'what are' table:npv_filtered_table ('' | '?')
-        | 'what are' table:apv_filtered_table ('' | '?')
+        | ('what' | 'which') 'are' ('the' | '') table:with_filtered_table ('' | '?')
+        | ('what' | 'which') 'are' ('the' | '') table:pvp_filtered_table ('' | '?')
+        | ('what' | 'which') 'are' ('the' | '') table:avp_filtered_table ('' | '?')
+        | ('what' | 'which') 'are' ('the' | '') table:npi_filtered_table ('' | '?')
+        | ('what' | 'which') 'are' ('the' | '') table:npv_filtered_table ('' | '?')
+        | ('what' | 'which') 'are' ('the' | '') table:apv_filtered_table ('' | '?')
     ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     ( 'please' | '') ('list' | 'enumerate') table:with_filtered_table => {
         if (!table.schema.is_list)
