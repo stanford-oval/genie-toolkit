@@ -46,6 +46,7 @@ const BUILTIN_TYPEMAP = {
     DataType: Type.Any,
     URL: Type.Entity('tt:url'),
     ImageObject: Type.Entity('tt:picture'),
+    Barcode: Type.Entity('tt:picture'),
 
     Mass: Type.Measure('kg'),
     Energy: Type.Measure('kcal'),
