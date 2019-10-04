@@ -16,15 +16,14 @@
 # are ignored
 
 # generic types
-String	i'm happy
-String	you would never believe what happened
-String	merry christmas
-String	love you
-Number	42
-Number	7
-Number	14
-Number	11
-Number	55
+String	X
+String	Y
+String	Z
+Number	2
+Number	4
+Number	3
+Number	1
+Number	5
 Measure(C)	73F
 Measure(C)	75F
 Measure(C)	80F
@@ -187,3 +186,32 @@ param:@com.spotify.*:toPlay:String	California Girls
 param:@com.spotify.*:toAdd:String	Hey Jude
 param:@com.spotify.*:toAdd:String	California Girls
 param:@com.spotify.*:key:String	A Major
+
+
+param:@org.schema.*:addressCountry:String	US
+param:@org.schema.*:addressCountry:String	China
+param:@org.schema.*:addressCountry:String	Italy
+param:@org.schema.*:addressCountry:String	Hong Kong
+param:@org.schema.*:addressRegion:String	California
+param:@org.schema.*:addressRegion:String	Washington
+param:@org.schema.*:addressRegion:String	Florida
+param:@org.schema.*:addressRegion:String	Arizona
+param:@org.schema.*:addressLocality:String	Seattle
+param:@org.schema.*:addressLocality:String	San Francisco
+param:@org.schema.*:addressLocality:String	Chicago
+param:@org.schema.*:addressLocality:String	Miami
+
+param:@org.schema.Restaurant:name:String	Wendy's
+param:@org.schema.Restaurant:name:String	steakhouse
+param:@org.schema.Restaurant:name:String	Starbucks
+param:@org.schema.Restaurant:name:String	Subway
+param:@org.schema.Restaurant:servesCuisine:String	Chinese
+param:@org.schema.Restaurant:servesCuisine:String	Mexican
+param:@org.schema.Restaurant:servesCuisine:String	Seafood
+param:@org.schema.Restaurant:servesCuisine:String	Italian
+
+param:@org.schema.Person:name:String	Bob
+param:@org.schema.Person:name:String	John
+param:@org.schema.Person:name:String	Jack
+param:@org.schema.Person:name:String	Alice
+
