@@ -214,6 +214,8 @@ with_filter = {
     };
     !turking p:out_param_String ('containing' | 'including') x:constant_String => C.makeFilter($options, p, '=~', x);
     !turking x:constant_String ('in the' | 'in its' | 'in their') p:out_param_String => C.makeFilter($options, p, '=~', x);
+    ?schema_org p:out_param_String ('being' | 'containing' ) x:constant_String => C.makeFilter($options, p, '=~', x);
+    ?schema_org x:constant_String ('as' | 'in the' ) p:out_param_String => C.makeFilter($options, p, '=~', x);
 
     //p:out_param_Numeric ('higher' | 'larger' | 'bigger') 'than' x:constant_Numeric => C.makeFilter($options, p, '>=', x);
     //p:out_param_Numeric ('smaller' | 'lower') 'than' x:constant_Numeric => C.makeFilter($options, p, '<=', x);
