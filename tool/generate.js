@@ -104,6 +104,10 @@ module.exports = {
             defaultValue: 'almond is awesome',
             help: 'Random seed'
         });
+        parser.addArgument('--white-list', {
+            required: false,
+            help: `List of functions to include, split by comma (no space).`
+        });
     },
 
     async execute(args) {
@@ -115,7 +119,8 @@ module.exports = {
             templateFile: args.template,
             thingpediaClient: tpClient,
             maxDepth: args.maxdepth,
-            debug: args.debug
+            debug: args.debug,
+            whiteList: args.white_list
         };
 
         const generator = new BasicSentenceGenerator(options);
