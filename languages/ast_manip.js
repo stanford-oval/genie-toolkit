@@ -1010,11 +1010,12 @@ function makeArgCanonicals(name, ptype) {
             }
         } else {
             const [, rhs] = name.split('.');
-            canonicals.push(pluralize(cleanName(rhs)));
+            canonicals.push(ptype.isArray ? pluralize(rhs) : rhs);
         }
     } else if (heuristics === 2) {
         const words = name.split('.');
-        canonicals.push(pluralize(cleanName(words[words.length - 1])))
+        const lastword = clean(words[words.length - 1]);
+        canonicals.push(ptype.isArray ? pluralize(lastword) : lastword);
     }
 
     if (canonicals.length === 0)
@@ -1083,4 +1084,5 @@ module.exports = {
     filterTableJoin,
     arrayFilterTableJoin,
     makeArgCanonicals,
+    pluralize
 };
