@@ -215,3 +215,21 @@ param:@org.schema.Person:name:String	John
 param:@org.schema.Person:name:String	Jack
 param:@org.schema.Person:name:String	Alice
 
+Entity(org.schema:Person)	bob	Bob
+Entity(org.schema:Person)	john	John
+Entity(org.schema:Person)	jack	Jack
+Entity(org.schema:Person)	alice	Alice
+
+Entity(org.schema:Restaurant)	wen	Wendy's
+Entity(org.schema:Restaurant)	ste	steakhouse
+Entity(org.schema:Restaurant)	sta	Starbucks
+Entity(org.schema:Restaurant)	sub	Subway
+
+Entity(org.schema:Review)	x	X
+Entity(org.schema:Review)	y	Y
+Entity(org.schema:Review)	z	Z
+
+Entity(org.schema:Brand)	x	X
+Entity(org.schema:Brand)	y	Y
+Entity(org.schema:Brand)	z	Z
+
