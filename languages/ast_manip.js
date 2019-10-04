@@ -973,32 +973,48 @@ function makeArgCanonicals(name, ptype) {
         return name;
     }
 
+    // heuristics choice
+    // 0: just reverse components and join with `of`
+    // 1: some tweaks based on 0
+    // 2: drop everything before the last dot
+    const heuristics = 2;
+
     if (!name.includes('.')) {
         canonicals.push(ptype.isArray ? pluralize(cleanName(name)) : cleanName(name));
     } else  if (name.split('.').length === 2) {
-        const [lhs, rhs] = name.split('.').map(cleanName);
+        if (heuristics === 0) {
+            canonicals.push(name.split(' ').reverse().join(' of '));
+        } else if (heuristics === 1) {
+            const [lhs, rhs] = name.split('.').map(cleanName);
 
-        if (rhs.includes(lhs)) {
-            canonicals.push(ptype.isArray ? pluralize(rhs) : rhs);
-        } else if (lhs.includes(rhs)) {
-            canonicals.push(ptype.isArray ? pluralize(lhs) : lhs);
-        } else {
-            let lhs_words = lhs.split(' ');
-            let rhs_words = rhs.split(' ');
-
-            for (let word of rhs_words) {
-                if (lhs_words.includes('lhs'))
-                    rhs_words = rhs_words.filter((w) => w === word);
-            }
-
-            if (rhs_words.length === 0) {
+            if (rhs.includes(lhs)) {
+                canonicals.push(ptype.isArray ? pluralize(rhs) : rhs);
+            } else if (lhs.includes(rhs)) {
                 canonicals.push(ptype.isArray ? pluralize(lhs) : lhs);
             } else {
-                let field = ptype.isArray ? pluralize(rhs_words.join(' ')) : rhs_words.join(' ');
-                canonicals.push(`${field} of ${lhs}`);
-                canonicals.push(`${field} in ${lhs}`);
+                let lhs_words = lhs.split(' ');
+                let rhs_words = rhs.split(' ');
+
+                for (let word of rhs_words) {
+                    if (lhs_words.includes('lhs'))
+                        rhs_words = rhs_words.filter((w) => w === word);
+                }
+
+                if (rhs_words.length === 0) {
+                    canonicals.push(ptype.isArray ? pluralize(lhs) : lhs);
+                } else {
+                    let field = ptype.isArray ? pluralize(rhs_words.join(' ')) : rhs_words.join(' ');
+                    canonicals.push(`${field} of ${lhs}`);
+                    canonicals.push(`${field} in ${lhs}`);
+                }
             }
+        } else {
+            const [, rhs] = name.split('.');
+            canonicals.push(pluralize(cleanName(rhs)));
         }
+    } else if (heuristics === 2) {
+        const words = name.split('.');
+        canonicals.push(pluralize(cleanName(words[words.length - 1])))
     }
 
     if (canonicals.length === 0)
