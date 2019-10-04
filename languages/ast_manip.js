@@ -10,6 +10,8 @@
 "use strict";
 
 const assert = require('assert');
+const Inflectors = require('en-inflectors').Inflectors;
+const Tag = require('en-pos').Tag;
 
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
@@ -911,13 +913,17 @@ function makeExampleFromQuery(q) {
     const device = new Ast.Selector.Device(q.class.name, null, null);
     const invocation = new Ast.Invocation(device, q.name, [], q);
     const canonical = invocation.canonical ? invocation.canonical : clean(q.name);
+    const canonicals = [canonical];
+    const pluralized = pluralize(canonical);
+    if (pluralized !== canonical)
+        canonicals.push(pluralized);
     return new Ast.Example(
         -1,
         'query',
         {},
         new Ast.Table.Invocation(invocation, q),
-        [canonical],
-        [canonical],
+        canonicals,
+        canonicals,
         {}
     );
 }
@@ -925,19 +931,40 @@ function makeExampleFromQuery(q) {
 function makeExampleFromAction(a) {
     const device = new Ast.Selector.Device(a.class.name, null, null);
     const invocation = new Ast.Invocation(device, a.name, [], a);
-    const canonical = invocation.canonical ? invocation.canonical : clean(a.name);
+    const canonical = invocation.canonical ? invocation.canonical : clean(q.name);
+    const canonicals = [canonical];
+    const pluralized = pluralize(canonical);
+    if (pluralized !== canonical)
+        canonicals.push(pluralized);
     return new Ast.Example(
         -1,
         'action',
         {},
         new Ast.Action.Invocation(invocation, a),
-        [canonical],
-        [canonical],
+        canonicals,
+        canonicals,
         {}
     );
 }
 
-function makeArgCanonicals(name) {
+function pluralize(name) {
+    if (!name.includes(' ')) {
+        if (new Tag([name]).initial().tags[0] === 'NN')
+            return new Inflectors(name).toPlural();
+        return name;
+    } else {
+        const words = name.split(' ');
+        const tags = new Tag(words).initial().tags;
+        if (tags[tags.length - 1] !== 'NN')
+            return name;
+        else if (['VB', 'VBP', 'VBZ', 'VBD'].includes(tags[0]))
+            return name;
+        words[words.length - 1] = pluralize(words[words.length - 1]);
+        return words.join(' ');
+    }
+}
+
+function makeArgCanonicals(name, ptype) {
     const canonicals = [];
 
     function cleanName(name) {
@@ -947,14 +974,14 @@ function makeArgCanonicals(name) {
     }
 
     if (!name.includes('.')) {
-        canonicals.push(cleanName(name));
+        canonicals.push(ptype.isArray ? pluralize(cleanName(name)) : cleanName(name));
     } else  if (name.split('.').length === 2) {
         const [lhs, rhs] = name.split('.').map(cleanName);
 
         if (rhs.includes(lhs)) {
-            canonicals.push(rhs);
+            canonicals.push(ptype.isArray ? pluralize(rhs) : rhs);
         } else if (lhs.includes(rhs)) {
-            canonicals.push(lhs);
+            canonicals.push(ptype.isArray ? pluralize(lhs) : lhs);
         } else {
             let lhs_words = lhs.split(' ');
             let rhs_words = rhs.split(' ');
@@ -965,10 +992,11 @@ function makeArgCanonicals(name) {
             }
 
             if (rhs_words.length === 0) {
-                canonicals.push(lhs);
+                canonicals.push(ptype.isArray ? pluralize(lhs) : lhs);
             } else {
-                canonicals.push(`${rhs_words.join(' ')} of ${lhs}`);
-                canonicals.push(`${rhs_words.join(' ')} in ${lhs}`);
+                let field = ptype.isArray ? pluralize(rhs_words.join(' ')) : rhs_words.join(' ');
+                canonicals.push(`${field} of ${lhs}`);
+                canonicals.push(`${field} in ${lhs}`);
             }
         }
     }

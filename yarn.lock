@@ -268,6 +268,11 @@ chardet@^0.7.0:
   resolved "https://registry.yarnpkg.com/chardet/-/chardet-0.7.0.tgz#90094849f0937f2eedc2425d0d28a9e5f0cbad9e"
   integrity sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==
 
+cities-list@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/cities-list/-/cities-list-1.0.3.tgz#cb217d19ea1f355fc833d173a752ad9992f1240c"
+  integrity sha1-yyF9GeofNV/IM9Fzp1KtmZLxJAw=
+
 cli-cursor@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/cli-cursor/-/cli-cursor-2.1.0.tgz#b35dac376479facc3e94747d41d0d0f5238ffcb5"
@@ -456,6 +461,35 @@ emoji-regex@^7.0.1:
   version "7.0.3"
   resolved "https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-7.0.3.tgz#933a04052860c85e83c122479c4748a8e4c72156"
   integrity sha512-CwBLREIQ7LvYFB0WyRvwhq5N5qPhc6PMjD6bYggFlI5YyDgl+0vxq5VHbMOFqLg7hfWzmu8T5Z1QofhmTIhItA==
+
+en-inflectors@^1.0.12, en-inflectors@^1.0.7:
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/en-inflectors/-/en-inflectors-1.0.12.tgz#fd334776608a021cb4202157f20d52ab934af78a"
+  integrity sha1-/TNHdmCKAhy0ICFX8g1Sq5NK94o=
+  dependencies:
+    en-stemmer "^1.0.2"
+
+en-lexicon@^1.0.8:
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/en-lexicon/-/en-lexicon-1.0.11.tgz#3f4da8a9cca9a906f510b8ece11631be3fd1105f"
+  integrity sha1-P02oqcypqQb1ELjs4RYxvj/REF8=
+  dependencies:
+    en-inflectors "^1.0.7"
+
+en-pos@^1.0.16:
+  version "1.0.16"
+  resolved "https://registry.yarnpkg.com/en-pos/-/en-pos-1.0.16.tgz#5b6ee67eed52a8e11267f3d15fa7501101123fb0"
+  integrity sha1-W27mfu1SqOESZ/PRX6dQEQESP7A=
+  dependencies:
+    cities-list "^1.0.3"
+    en-inflectors "^1.0.7"
+    en-lexicon "^1.0.8"
+    humannames "^1.0.5"
+
+en-stemmer@^1.0.2:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/en-stemmer/-/en-stemmer-1.0.3.tgz#2d22fb5db9005a88d6fc58026b38a831c8bc7c19"
+  integrity sha1-LSL7XbkAWojW/FgCazioMci8fBk=
 
 errno@*:
   version "0.1.7"
@@ -854,6 +888,11 @@ http-signature@~1.2.0:
     assert-plus "^1.0.0"
     jsprim "^1.2.2"
     sshpk "^1.7.0"
+
+humannames@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/humannames/-/humannames-1.0.5.tgz#a4d60d4168df8737f4b262efd23f2ee32974f1c5"
+  integrity sha1-pNYNQWjfhzf0smLv0j8u4yl08cU=
 
 iconv-lite@^0.4.24:
   version "0.4.24"
