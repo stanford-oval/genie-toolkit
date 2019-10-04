@@ -20,6 +20,8 @@ const Ast = ThingTalk.Ast;
 const fs = require('fs');
 const util = require('util');
 
+const { clean } = require('../lib/utils');
+
 const URL = 'https://schema.org/version/3.9/schema.jsonld';
 
 function getId(id) {
@@ -491,13 +493,22 @@ async function main() {
 
         if (KEYWORDS.includes(typename))
             typename = '_' + typename;
-        const querydef = new Ast.FunctionDef('query', typename, typedef.extends, args, true, false, {}, {
+        const querydef = new Ast.FunctionDef('query', typename, typedef.extends, args, true, false, {
+            'confirmation': clean(typename),
+        }, {
             'org_schema_comment': Ast.Value.String(typedef.comment),
+            'confirm': Ast.Value.Boolean(false)
         });
         queries[typename] = querydef;
     }
 
-    const classdef = new Ast.ClassDef('org.schema', [], queries, {} /* actions */, [] /* imports */, {}, {}, false);
+    const classdef = new Ast.ClassDef('org.schema', [], queries, {} /* actions */, [
+        new Ast.ImportStmt.Mixin(['loader'], 'org.thingpedia.v2', []),
+        new Ast.ImportStmt.Mixin(['config'], 'org.thingpedia.config.none', [])
+    ], {
+        name: 'Schema.org',
+        description: 'Scraped data from websites that support schema.org'
+    }, {}, false);
 
     console.log(classdef.prettyprint());
 }
