@@ -61,9 +61,21 @@
         const compute = makeAggComputeExpression(table, operation, field, list, resultType);
         const sort = new Ast.Table.Sort(compute, operation, direction, compute.schema);
         return new Ast.Table.Index(sort, [new Ast.Value.Number(1)], compute.schema);
+
+    }
+
+    function makeProjectTable(table, pname) {
+        const projectSchema = table.schema.filterArguments((arg) => arg.name === pname);
+        return new Ast.Table.Projection(table, [pname], projectSchema);
+    }
+
+    function makeArgMinMaxTable(table, pname, direction = 'desc') {
+        const sort = new Ast.Table.Sort(table, pname, direction, table.schema.clone());
+        return new Ast.Table.Index(sort, [new Ast.Value.Number(1)], sort.schema);
     }
 
     const HERE = Ast.Value.Location(Ast.Location.Relative('current_location'));
+
 }
 
 projection_Measure_m = {
@@ -105,6 +117,9 @@ projection_Measure_m = {
     'the number of' p:out_param_Array__Any ('of' | 'in' | 'in the') table:with_filtered_table => {
         if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
             return null;
+        const conflictParam = C.hasConflictParam(table, p.name, 'count');
+        if (conflictParam)
+            return makeProjectTable(table, conflictParam);
         return makeAggComputeProjExpression(table, 'count', null, new Ast.ListExpression(p.name, null), Type.Number);
     };
 
@@ -140,6 +155,9 @@ compute_question = {
     ) => {
         if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
             return null;
+        const conflictParam = C.hasConflictParam(table, p.name, 'count');
+        if (conflictParam)
+            return makeProjectTable(table, conflictParam);
         return makeAggComputeProjExpression(table, 'count', null, new Ast.ListExpression(p.name, null), Type.Number);
     };
 
@@ -220,12 +238,18 @@ with_arg_min_max_table = {
     table:with_filtered_table 'with the' ('most' | 'highest number of' | 'largest number of' | 'largest count of') p:out_param_Array__Any => {
         if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
             return null;
+        const conflictParam = C.hasConflictParam(table, p.name, 'count');
+        if (conflictParam)
+            return makeArgMinMaxTable(table, conflictParam, 'desc');
         return makeAggComputeArgMinMaxExpression(table, 'count', null, new Ast.ListExpression(p.name, null), Type.Number, 'desc');
     };
 
     table:with_filtered_table 'with the' ('least' | 'smallest number of' | 'tiniest number of' | 'smallest count of') p:out_param_Array__Any => {
         if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
             return null;
+        const conflictParam = C.hasConflictParam(table, p.name, 'count');
+        if (conflictParam)
+            return makeArgMinMaxTable(table, conflictParam, 'asc');
         return makeAggComputeArgMinMaxExpression(table, 'count', null, new Ast.ListExpression(p.name, null), Type.Number, 'asc');
     };
 }

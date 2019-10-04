@@ -973,6 +973,13 @@ function makeArgCanonicals(name, ptype) {
         return name;
     }
 
+    let plural;
+    if (ptype && ptype.isArray)
+        plural = true;
+    else
+        plural = false;
+
+
     // heuristics choice
     // 0: just reverse components and join with `of`
     // 1: some tweaks based on 0
@@ -980,7 +987,7 @@ function makeArgCanonicals(name, ptype) {
     const heuristics = 2;
 
     if (!name.includes('.')) {
-        canonicals.push(ptype.isArray ? pluralize(cleanName(name)) : cleanName(name));
+        canonicals.push(plural ? pluralize(cleanName(name)) : cleanName(name));
     } else  if (name.split('.').length === 2) {
         if (heuristics === 0) {
             canonicals.push(name.split(' ').reverse().join(' of '));
@@ -988,9 +995,9 @@ function makeArgCanonicals(name, ptype) {
             const [lhs, rhs] = name.split('.').map(cleanName);
 
             if (rhs.includes(lhs)) {
-                canonicals.push(ptype.isArray ? pluralize(rhs) : rhs);
+                canonicals.push(plural ? pluralize(rhs) : rhs);
             } else if (lhs.includes(rhs)) {
-                canonicals.push(ptype.isArray ? pluralize(lhs) : lhs);
+                canonicals.push(plural ? pluralize(lhs) : lhs);
             } else {
                 let lhs_words = lhs.split(' ');
                 let rhs_words = rhs.split(' ');
@@ -1001,27 +1008,38 @@ function makeArgCanonicals(name, ptype) {
                 }
 
                 if (rhs_words.length === 0) {
-                    canonicals.push(ptype.isArray ? pluralize(lhs) : lhs);
+                    canonicals.push(plural ? pluralize(lhs) : lhs);
                 } else {
-                    let field = ptype.isArray ? pluralize(rhs_words.join(' ')) : rhs_words.join(' ');
+                    let field = plural ? pluralize(rhs_words.join(' ')) : rhs_words.join(' ');
                     canonicals.push(`${field} of ${lhs}`);
                     canonicals.push(`${field} in ${lhs}`);
                 }
             }
         } else {
             const [, rhs] = name.split('.');
-            canonicals.push(ptype.isArray ? pluralize(rhs) : rhs);
+            canonicals.push(plural ? pluralize(rhs) : rhs);
         }
     } else if (heuristics === 2) {
         const words = name.split('.');
         const lastword = clean(words[words.length - 1]);
-        canonicals.push(ptype.isArray ? pluralize(lastword) : lastword);
+        canonicals.push(plural ? pluralize(lastword) : lastword);
     }
 
     if (canonicals.length === 0)
         canonicals.push(name);
 
     return canonicals;
+}
+
+function hasConflictParam(table, pname, operation) {
+    const pcanonical = makeArgCanonicals(table.schema.getArgCanonical(pname))[0];
+    for (let arg in table.schema.out) {
+        if (!table.schema.out[arg].isNumber)
+            continue;
+        if (makeArgCanonicals(table.schema.getArgCanonical(arg))[0] === `${pcanonical} ${operation}`)
+            return arg;
+    }
+    return false;
 }
 
 module.exports = {
@@ -1084,5 +1102,6 @@ module.exports = {
     filterTableJoin,
     arrayFilterTableJoin,
     makeArgCanonicals,
-    pluralize
+    pluralize,
+    hasConflictParam
 };
