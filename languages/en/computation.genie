@@ -189,7 +189,8 @@ compute_question = {
         return new Ast.Table.Projection(agg, ['count'], newSchema);
     };
 
-    ( 'how many' p:out_param_Numeric 'are' ('in' | 'in the') t:with_filtered_table '?'
+
+    !schema_org ( 'how many' p:out_param_Numeric 'are' ('in' | 'in the') t:with_filtered_table '?'
     | 'how many' p:out_param_Numeric ('do' | 'does') t:with_filtered_table 'have ?'
     ) => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())

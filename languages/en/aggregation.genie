@@ -33,7 +33,7 @@ projection_Number = {
 
 projection_Any = {
     ?aggregation {
-    'the' 'total' p:out_param_Numeric 'of' t:complete_table => {
+    !schema_org 'the' 'total' p:out_param_Numeric 'of' t:complete_table => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
