@@ -1,3 +1,13 @@
+0.5.0-alpha.1
+=============
+
+* Added construct templates for argmin/argmax [Jian Li; #85]
+* Added type-specific construct templates for measurements [Jian Li; #90]
+* Expanded the set of APIs, making Genie more usable as a library [#87]
+* Updated templates for the new features in ThingTalk 1.9 [#92, #93]
+* Misc bug fixes [#91, #94]
+* Build and dependency fixes [#95]
+
 0.4.1
 =====
 
