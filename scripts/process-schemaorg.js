@@ -38,7 +38,7 @@ const BUILTIN_TYPEMAP = {
     Time: Type.Time,
     Number: Type.Number,
     Float: Type.Number,
-    Integer: Type.Integer,
+    Integer: Type.Number,
     Text: Type.String,
     Boolean: Type.Boolean,
     DateTime: Type.Date,
