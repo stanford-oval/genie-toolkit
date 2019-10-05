@@ -4,6 +4,9 @@ coverage/
 bundle/
 .nyc_output/
 .idea/
+.DS_Store
+*.pyc
+__pycache__
 
 lib/genie-compiler/grammar.js
 
