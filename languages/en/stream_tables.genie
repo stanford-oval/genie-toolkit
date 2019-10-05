@@ -24,6 +24,11 @@ const C = require('../ast_manip');
 complete_table = {
     thingpedia_query if complete;
     !primonly table_join_replace_placeholder if complete;
+    filter:apv_filter q:thingpedia_query if complete => {
+        if (!C.checkFilter(q, filter))
+            return null;
+        return C.addFilter(q, filter, $options);
+    };
 }
 complete_get_command = {
     thingpedia_get_command if complete;
@@ -128,10 +133,22 @@ pvp_filtered_table = {
             return null;
         return C.addFilter(table, filter, $options);
     };
+
+    !nofilter table:one_with_filter_table filter:pvp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
 }
 
 verb_pvp_filtered_table = {
     !nofilter table:complete_table ('is' | 'are') filter:pvp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+
+    !nofilter table:one_with_filter_table ('is' | 'are') filter:pvp_filter => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
@@ -153,7 +170,7 @@ with_avp_filtered_table = {
         return C.addFilter(table, filter, $options);
     };
 
-    !nofilter table:with_filtered_table ('that' | 'which') filter:avp_filter => {
+    !nofilter table:one_with_filter_table ('that' | 'which') filter:avp_filter => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
@@ -166,7 +183,7 @@ verb_avp_filtered_table = {
             return null;
         return C.addFilter(table, filter, $options);
     };
-    !nofilter table:with_filtered_table filter:avp_filter => {
+    !nofilter table:one_with_filter_table filter:avp_filter => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
@@ -194,13 +211,13 @@ apv_filtered_table = {
         return C.addFilter(table, filter, $options);
     };
 
-    !nofilter table:with_filtered_table ('that' | 'which') 'is' filter:apv_filter => {
+    !nofilter table:one_with_filter_table ('that' | 'which') 'is' filter:apv_filter => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
     };
 
-    !nofilter filter:apv_filter table:with_filtered_table => {
+    !nofilter filter:one_with_filter_table table:with_filtered_table => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
