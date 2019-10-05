@@ -172,6 +172,8 @@ function makeFilter($options, param, op, value, negate = false) {
         vtype = Type.Array(vtype);
     if (!$options.params.out.has(param.name + '+' + vtype))
         return null;
+    if ($options.params.blacklist.has(param.name + '+' + vtype))
+        return null;
 
     let f = new Ast.BooleanExpression.Atom(param.name, op, value);
     if (negate)
