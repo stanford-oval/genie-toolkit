@@ -56,7 +56,8 @@ two_if_filter_table = {
 with_filtered_table = {
     !always_filter complete_table;
     one_with_filter_table;
-    !turking two_with_filter_table;
+    two_with_filter_table;
+    !turking three_with_filter_table;
 
     // they are both here and under one_with_filter_table on purpose
     with_avp_filtered_table;
@@ -86,11 +87,21 @@ two_with_filter_table = {
         return C.addFilter(table, filter, $options);
     };
 }
+three_with_filter_table = {
+    !nofilter table:two_with_filter_table 'and' filter:with_filter => {
+        if (!table.schema.is_list)
+            return null;
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
 
 have_filtered_table = {
     !always_filter complete_table;
     one_have_filter_table;
-    !turking two_have_filter_table;
+    two_have_filter_table;
+    !turking three_have_filter_table;
 
     // they are both here and under one_with_filter_table on purpose
     verb_avp_filtered_table;
@@ -111,6 +122,15 @@ one_have_filter_table = {
 }
 two_have_filter_table = {
     !nofilter table:one_have_filter_table 'and' filter:with_filter => {
+        if (!table.schema.is_list)
+            return null;
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+three_have_filter_table = {
+    !nofilter table:two_have_filter_table 'and' filter:with_filter => {
         if (!table.schema.is_list)
             return null;
         if (!C.checkFilter(table, filter))
