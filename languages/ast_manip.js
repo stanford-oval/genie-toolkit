@@ -907,7 +907,8 @@ function fillNextSlot(program, newValue) {
     return null;
 }
 
-function makeExampleFromQuery(q) {
+function makeExampleFromQuery(id, q) {
+    const examples = [];
     const device = new Ast.Selector.Device(q.class.name, null, null);
     const invocation = new Ast.Invocation(device, q.name, [], q);
     const canonical = invocation.canonical ? invocation.canonical : clean(q.name);
@@ -915,18 +916,33 @@ function makeExampleFromQuery(q) {
     const pluralized = pluralize(canonical);
     if (pluralized !== canonical)
         canonicals.push(pluralized);
-    return new Ast.Example(
+    const table = new Ast.Table.Invocation(invocation, q);
+    examples.push(new Ast.Example(
         -1,
         'query',
         {},
-        new Ast.Table.Invocation(invocation, q),
+        table,
         canonicals,
         canonicals,
         {}
-    );
+    ));
+    if (id && id.has_ner_support === 1) {
+        const filter = new Ast.BooleanExpression.Atom('id', '==', new Ast.Value.VarRef('p_id'));
+        examples.push(new Ast.Example(
+            -1,
+            'query',
+            { p_id: Type.Entity(id.type) },
+            new Ast.Table.Filter(table, filter, q),
+            [`\${p_id}`],
+            [`\${p_id}`],
+            {}
+        ));
+    }
+    return examples;
 }
 
 function makeExampleFromAction(a) {
+    const examples = [];
     const device = new Ast.Selector.Device(a.class.name, null, null);
     const invocation = new Ast.Invocation(device, a.name, [], a);
     const canonical = invocation.canonical ? invocation.canonical : clean(q.name);
@@ -934,7 +950,7 @@ function makeExampleFromAction(a) {
     const pluralized = pluralize(canonical);
     if (pluralized !== canonical)
         canonicals.push(pluralized);
-    return new Ast.Example(
+    examples.push(new Ast.Example(
         -1,
         'action',
         {},
@@ -942,7 +958,8 @@ function makeExampleFromAction(a) {
         canonicals,
         canonicals,
         {}
-    );
+    ));
+    return examples;
 }
 
 function hasConflictParam(table, pname, operation) {

@@ -30,6 +30,7 @@ complete_table = {
         return C.addFilter(q, filter, $options);
     };
 }
+
 complete_get_command = {
     thingpedia_get_command if complete;
 }
