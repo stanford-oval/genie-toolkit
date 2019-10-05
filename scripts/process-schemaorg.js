@@ -91,6 +91,7 @@ const NON_STRUCT_TYPES = new Set([
 const PROPERTY_TYPE_OVERRIDE = {
     'telephone': Type.Entity('tt:phone_number'),
     'email': Type.Entity('tt:email_address'),
+    'image': Type.Entity('tt:picture'),
     'checkinTime': Type.Time,
     'checkoutTime': Type.Time,
     'weight': Type.Measure('ms'),
