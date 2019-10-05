@@ -6,7 +6,7 @@ import json
 from w3lib.html import get_base_url
 
 
-file_list = ["yelp1.htm", "SF.htm", "LA.htm", "MI.htm", "NY.htm", "BO.htm", "CH.htm"]
+file_list = ["SF.htm", "LA.htm"]
 restaurant_links = []
 restaurant_json = []
 

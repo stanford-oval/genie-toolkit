@@ -1,0 +1,71 @@
+"Boston restaurants" 3440000
+"Palo Alto restaurants" 431000
+"Miami restaurants" 2140000
+"New York restaurants" 14300000
+"Boston restaurants" 3440000
+"Palo Alto restaurants" 431000
+"San Francisco restaurants" 7390000
+"New York restaurants" 14300000
+"New York restaurants" 14300000
+"Los Angeles restaurants" 6620000
+"restaurants with Boston" 86
+"restaurants with Palo Alto" 91
+"restaurants with Miami" 21600
+"restaurants with New York" 31400000
+"restaurants with Boston" 86
+"restaurants with Palo Alto" 91
+"restaurants with San Francisco" 8250000
+"restaurants with New York" 31400000
+"restaurants with New York" 31400000
+"restaurants with Los Angeles" 35100000
+"restaurants with Boston city" 33
+"restaurants with Palo Alto city" 14
+"restaurants with Miami city" 53
+"restaurants with New York city" 13900000
+"restaurants with Boston city" 33
+"restaurants with Palo Alto city" 14
+"restaurants with San Francisco city" 25
+"restaurants with New York city" 13900000
+"restaurants with New York city" 13900000
+"restaurants with Los Angeles city" 15
+"restaurants city Boston" 911
+"restaurants city Palo Alto" 24500
+"restaurants city Miami" 59
+"restaurants city New York" 1650000
+"restaurants city Boston" 6020
+"restaurants city Palo Alto" 24500
+"restaurants city San Francisco" 226000
+"restaurants city New York" 1650000
+"restaurants city New York" 1650000
+"restaurants city Los Angeles" 950000
+"Boston city restaurants" 757
+"Palo Alto city restaurants" 56
+"Miami city restaurants" 602
+"New York city restaurants" 58300000
+"Boston city restaurants" 757
+"Palo Alto city restaurants" 56
+"San Francisco city restaurants" 3380000
+"New York city restaurants" 58300000
+"New York city restaurants" 58300000
+"Los Angeles city restaurants" 91
+"restaurants in Boston" 22900000
+"restaurants in Palo Alto" 13500000
+"restaurants in Miami" 25900000
+"restaurants in New York" 194000000
+"restaurants in Boston" 22900000
+"restaurants in Palo Alto" 13500000
+"restaurants in San Francisco" 57300000
+"restaurants in New York" 194000000
+"restaurants in New York" 194000000
+"restaurants in Los Angeles" 78100000
+"restaurants in Boston city" 64
+"restaurants in Palo Alto city" 11
+"restaurants in Miami city" 893000
+"restaurants in New York city" 79500000
+"restaurants in Boston city" 64
+"restaurants in Palo Alto city" 11
+"restaurants in San Francisco city" 47
+"restaurants in New York city" 79500000
+"restaurants in New York city" 79500000
+"restaurants in Los Angeles city" 45
+[('restaurants in Boston city', 2393932420000), ('restaurants in Boston', 816100000000), ('restaurants with Boston city', 417001870000), ('Boston city restaurants', 178282319000)]
