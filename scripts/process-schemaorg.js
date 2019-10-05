@@ -20,7 +20,7 @@ const Ast = ThingTalk.Ast;
 const fs = require('fs');
 const util = require('util');
 
-const { clean } = require('../lib/utils');
+const { clean, pluralize } = require('../lib/utils');
 
 const URL = 'https://schema.org/version/3.9/schema.jsonld';
 
@@ -231,7 +231,9 @@ function makeCompoundType(startingTypename, typedef, typeHierarchy) {
         if (!ttType)
             continue;
 
-        fields[propertyname] = new Ast.ArgumentDef(undefined, propertyname, ttType, {}, {
+        fields[propertyname] = new Ast.ArgumentDef(undefined, propertyname, ttType, {
+            'canonical': makeArgCanonical(propertyname, ttType)
+        }, {
             'org_schema_type': Ast.Value.String(schemaOrgType),
             'org_schema_comment': Ast.Value.String(propertydef.comment)
         });
@@ -241,6 +243,23 @@ function makeCompoundType(startingTypename, typedef, typeHierarchy) {
         throw new Error(`Struct type ${startingTypename} has no fields`);
 
     return Type.Compound(startingTypename, fields);
+}
+
+function makeArgCanonical(name, ptype) {
+    function cleanName(name) {
+        if (name.endsWith(' value'))
+            return name.substring(0, name.length - ' value'.length);
+        return name;
+    }
+
+    let plural = ptype && ptype.isArray;
+    name = clean(name);
+    if (!name.includes('.'))
+        return plural ? pluralize(cleanName(name)) : cleanName(name);
+
+    const components = name.split('.');
+    const last = components[components.length - 1];
+    return plural ? pluralize(last) : last;
 }
 
 function getItemType(typename, typeHierarchy) {
@@ -485,9 +504,11 @@ async function main() {
             if (KEYWORDS.includes(propertyname))
                 propertyname = '_' + propertyname;
             args.push(
-                new Ast.ArgumentDef(Ast.ArgDirection.OUT, propertyname, type, {}, {
+                new Ast.ArgumentDef(Ast.ArgDirection.OUT, propertyname, type, {
+                    'canonical': makeArgCanonical(propertyname, type)
+                }, {
                     'org_schema_type': Ast.Value.String(schemaOrgType),
-                    'org_schema_comment': Ast.Value.String(propertydef.comment),
+                    'org_schema_comment': Ast.Value.String(propertydef.comment)
                 })
             );
         }

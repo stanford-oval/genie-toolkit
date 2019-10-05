@@ -10,8 +10,6 @@
 "use strict";
 
 const assert = require('assert');
-const Inflectors = require('en-inflectors').Inflectors;
-const Tag = require('en-pos').Tag;
 
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
@@ -22,7 +20,7 @@ const { isUnaryTableToTableOp,
         isUnaryStreamToStreamOp,
         isUnaryTableToStreamOp } = require('./utils');
 const { notifyAction } = ThingTalk.Generate;
-const { clean } = require('../lib/utils');
+const { clean, pluralize } = require('../lib/utils');
 
 function typeToStringSafe(type) {
     if (type.isArray)
@@ -947,96 +945,22 @@ function makeExampleFromAction(a) {
     );
 }
 
-function pluralize(name) {
-    if (!name.includes(' ')) {
-        if (new Tag([name]).initial().tags[0] === 'NN')
-            return new Inflectors(name).toPlural();
-        return name;
-    } else {
-        const words = name.split(' ');
-        const tags = new Tag(words).initial().tags;
-        if (tags[tags.length - 1] !== 'NN')
-            return name;
-        else if (['VB', 'VBP', 'VBZ', 'VBD'].includes(tags[0]))
-            return name;
-        words[words.length - 1] = pluralize(words[words.length - 1]);
-        return words.join(' ');
-    }
-}
-
-function makeArgCanonicals(name, ptype) {
-    const canonicals = [];
-
+function hasConflictParam(table, pname, operation) {
     function cleanName(name) {
         if (name.endsWith(' value'))
-            return name.substring(0, name.length - ' value'.length);
-        return name;
-    }
-
-    let plural;
-    if (ptype && ptype.isArray)
-        plural = true;
-    else
-        plural = false;
-
-
-    // heuristics choice
-    // 0: just reverse components and join with `of`
-    // 1: some tweaks based on 0
-    // 2: drop everything before the last dot
-    const heuristics = 2;
-
-    if (!name.includes('.')) {
-        canonicals.push(plural ? pluralize(cleanName(name)) : cleanName(name));
-    } else  if (name.split('.').length === 2) {
-        if (heuristics === 0) {
-            canonicals.push(name.split(' ').reverse().join(' of '));
-        } else if (heuristics === 1) {
-            const [lhs, rhs] = name.split('.').map(cleanName);
-
-            if (rhs.includes(lhs)) {
-                canonicals.push(plural ? pluralize(rhs) : rhs);
-            } else if (lhs.includes(rhs)) {
-                canonicals.push(plural ? pluralize(lhs) : lhs);
-            } else {
-                let lhs_words = lhs.split(' ');
-                let rhs_words = rhs.split(' ');
-
-                for (let word of rhs_words) {
-                    if (lhs_words.includes('lhs'))
-                        rhs_words = rhs_words.filter((w) => w === word);
-                }
-
-                if (rhs_words.length === 0) {
-                    canonicals.push(plural ? pluralize(lhs) : lhs);
-                } else {
-                    let field = plural ? pluralize(rhs_words.join(' ')) : rhs_words.join(' ');
-                    canonicals.push(`${field} of ${lhs}`);
-                    canonicals.push(`${field} in ${lhs}`);
-                }
-            }
-        } else {
-            const [, rhs] = name.split('.');
-            canonicals.push(plural ? pluralize(rhs) : rhs);
+            name = name.substring(0, name.length - ' value'.length);
+        if (name.includes('.')) {
+            const components = name.split('.');
+            name = components[components.length - 1];
         }
-    } else if (heuristics === 2) {
-        const words = name.split('.');
-        const lastword = clean(words[words.length - 1]);
-        canonicals.push(plural ? pluralize(lastword) : lastword);
+        return name;
+
     }
-
-    if (canonicals.length === 0)
-        canonicals.push(name);
-
-    return canonicals;
-}
-
-function hasConflictParam(table, pname, operation) {
-    const pcanonical = makeArgCanonicals(table.schema.getArgCanonical(pname))[0];
+    const pcleaned = cleanName(pname);
     for (let arg in table.schema.out) {
         if (!table.schema.out[arg].isNumber)
             continue;
-        if (makeArgCanonicals(table.schema.getArgCanonical(arg))[0] === `${pcanonical} ${operation}`)
+        if (cleanName(table.schema.getArgCanonical(arg)) === `${pcleaned} ${operation}`)
             return arg;
     }
     return false;
@@ -1101,7 +1025,5 @@ module.exports = {
     //schema.org specific
     filterTableJoin,
     arrayFilterTableJoin,
-    makeArgCanonicals,
-    pluralize,
     hasConflictParam
 };
