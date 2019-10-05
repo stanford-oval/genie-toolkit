@@ -52,6 +52,11 @@ with_filtered_table = {
     !always_filter complete_table;
     one_with_filter_table;
     !turking two_with_filter_table;
+
+    // they are both here and under one_with_filter_table on purpose
+    with_avp_filtered_table;
+    apv_filtered_table;
+    pvp_filtered_table;
 }
 
 one_with_filter_table = {
@@ -62,6 +67,10 @@ one_with_filter_table = {
             return null;
         return C.addFilter(table, filter, $options);
     };
+
+    with_avp_filtered_table;
+    apv_filtered_table;
+    pvp_filtered_table;
 }
 two_with_filter_table = {
     !nofilter table:one_with_filter_table 'and' filter:with_filter => {
@@ -77,6 +86,10 @@ have_filtered_table = {
     !always_filter complete_table;
     one_have_filter_table;
     !turking two_have_filter_table;
+
+    // they are both here and under one_with_filter_table on purpose
+    verb_avp_filtered_table;
+    verb_pvp_filtered_table;
 }
 
 one_have_filter_table = {
@@ -87,6 +100,9 @@ one_have_filter_table = {
             return null;
         return C.addFilter(table, filter, $options);
     };
+
+    verb_avp_filtered_table;
+    verb_pvp_filtered_table;
 }
 two_have_filter_table = {
     !nofilter table:one_have_filter_table 'and' filter:with_filter => {
@@ -114,8 +130,43 @@ pvp_filtered_table = {
     };
 }
 
+verb_pvp_filtered_table = {
+    !nofilter table:complete_table ('is' | 'are') filter:pvp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
 avp_filtered_table = {
     !nofilter table:complete_table ('that' | 'which' | '') filter:avp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+with_avp_filtered_table = {
+    !nofilter table:complete_table ('that' | 'which') filter:avp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+
+    !nofilter table:with_filtered_table ('that' | 'which') filter:avp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+verb_avp_filtered_table = {
+    !nofilter table:complete_table filter:avp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+    !nofilter table:with_filtered_table filter:avp_filter => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
@@ -138,6 +189,18 @@ apv_filtered_table = {
     };
 
     !nofilter filter:apv_filter table:complete_table => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+
+    !nofilter table:with_filtered_table ('that' | 'which') 'is' filter:apv_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+
+    !nofilter filter:apv_filter table:with_filtered_table => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
