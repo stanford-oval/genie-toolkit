@@ -38,4 +38,4 @@ def bing_search(query, value_list):
 
 
 if __name__ == "__main__":
-	j = bing_search_query(sys.argv[1])
+    j = bing_search_query(sys.argv[1])

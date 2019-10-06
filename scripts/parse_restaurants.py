@@ -3,45 +3,54 @@
 import extruct
 import requests
 import json
+import sys
+import urllib.parse
+from bs4 import BeautifulSoup
+
 from w3lib.html import get_base_url
 
+def navigate(initial, urlpatterns, output, limit=10):
+    queue = [initial]
+    visited = set()
 
-file_list = ["SF.htm", "LA.htm"]
-restaurant_links = []
-restaurant_json = []
+    while len(queue) > 0 and len(visited) < limit:
+        next = queue.pop()
+        if next in visited:
+            continue
 
-for file in file_list:
-	with open(file, 'r') as f:
-		lines = f.readlines()
-		for line in lines:
-			line = line.strip().split()
+        visited.add(next)
+        print(f'Calling {next}', file=sys.stderr)
+        response = requests.get(next)
+        base_url = get_base_url(response.text, response.url)
 
-			for string in line:
-				if string.startswith('href="https://www.yelp.com/biz') and (string.find('?') == -1) and (string.find(':platform') == -1) and string.endswith('"'):
-					restaurant_links.append(string[5:])
+        data = extruct.extract(response.text, base_url=base_url, syntaxes=['json-ld'])
+        if len(data['json-ld']) > 0:
+            output.append(data['json-ld'][0])
 
+        soup = BeautifulSoup(response.text, 'html5lib')
 
-unique_restaurants = list()
-for link in restaurant_links:
-	if link not in unique_restaurants:
-		unique_restaurants.append(link)
+        for link in soup.find_all('a'):
+            if not 'href' in link.attrs:
+                continue
+            linkurl = urllib.parse.urljoin(base_url, link['href'])
+            if linkurl in visited:
+                continue
 
+            for pat in urlpatterns:
+                if pat(linkurl):
+                    queue.append(linkurl)
+                    break
 
-for link in unique_restaurants:
-	r = requests.get(link.strip('"'))
-	base_url = get_base_url(r.text, r.url)
-	data = extruct.extract(r.text, base_url=base_url, syntaxes=['json-ld'])
-	
-	if len(data['json-ld']) > 0:
-		restaurant_json.append(data['json-ld'][0])
-	else:
-		print (link)
-	
-	print (len(restaurant_json))
+def main():
+    output = []
+    for initial in [
+        'https://www.yelp.com/search?cflt=restaurants&find_loc=San%20Francisco%2C%20CA',
+        'https://www.yelp.com/search?cflt=restaurants&find_loc=Los%20Angeles%2C%20CA',
+        'https://www.yelp.com/search?cflt=restaurants&find_loc=Seattle%20WA',
+    ]:
+        navigate(initial, [
+            lambda url: url.startswith('https://www.yelp.com/biz/') and (url.find('?') == -1) and (url.find(':platform') == -1)
+        ], output, limit=50)
 
-
-with open("restaurants.json", 'w') as f_out:
-	json.dump(restaurant_json, f_out, indent=4, ensure_ascii=False)
-
-
-	
+    json.dump(output, sys.stdout, indent=2, ensure_ascii=False)
+main()
