@@ -59,8 +59,8 @@ Measure(ms)	3day	3 days
 Currency	100usd	$100
 Currency	15usd	15 dollars
 Currency	3.5usd	$ 3.50
-Location	37.442156,-122.1634471	Palo Alto, California
-Location	34.0543942,-118.2439408	Los Angeles, California
+Location	40.7590,73.9845	Time Square
+Location	34.0430,118.2673	Staples Center
 Date	2017-02-14T00:00:00-08:00	Feb 14 2017
 Date	2016-05-04T00:00:00-07:00	May 4th, 2016
 Date	2017-08-02T00:00:00-07:00	August 2nd 2017
@@ -159,6 +159,7 @@ param:sender_name:String	alice
 param:sender_name:String	charlie
 param:blog_name:String	government secret
 param:description:String	christmas
+param:description:String	wine
 param:organizer:String	stanford
 param:user:String	bob
 param:positions:String	ceo
@@ -188,18 +189,16 @@ param:@com.spotify.*:toAdd:String	California Girls
 param:@com.spotify.*:key:String	A Major
 
 
-param:@org.schema.*:addressCountry:String	US
-param:@org.schema.*:addressCountry:String	China
-param:@org.schema.*:addressCountry:String	Italy
-param:@org.schema.*:addressCountry:String	Hong Kong
-param:@org.schema.*:addressRegion:String	California
-param:@org.schema.*:addressRegion:String	Washington
-param:@org.schema.*:addressRegion:String	Florida
-param:@org.schema.*:addressRegion:String	Arizona
-param:@org.schema.*:addressLocality:String	Seattle
-param:@org.schema.*:addressLocality:String	San Francisco
-param:@org.schema.*:addressLocality:String	Chicago
-param:@org.schema.*:addressLocality:String	Miami
+param:@org.schema.*:address.addressCountry:String	US
+param:@org.schema.*:address.addressCountry:String	Canada
+param:@org.schema.*:address.addressRegion:String	California
+param:@org.schema.*:address.addressRegion:String	Washington
+param:@org.schema.*:address.addressRegion:String	Florida
+param:@org.schema.*:address.addressRegion:String	Arizona
+param:@org.schema.*:address.addressLocality:String	Seattle
+param:@org.schema.*:address.addressLocality:String	San Francisco
+param:@org.schema.*:address.addressLocality:String	Chicago
+param:@org.schema.*:address.addressLocality:String	Miami
 
 param:@org.schema.Restaurant:name:String	Wendy's
 param:@org.schema.Restaurant:name:String	steakhouse
