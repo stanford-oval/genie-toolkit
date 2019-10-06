@@ -95,7 +95,8 @@ const PROPERTY_TYPE_OVERRIDE = {
     'checkinTime': Type.Time,
     'checkoutTime': Type.Time,
     'weight': Type.Measure('ms'),
-    'depth': Type.Measure('m')
+    'depth': Type.Measure('m'),
+    'description': Type.String
 };
 
 // HACK: certain structured types want to get the name & description property from Thing
