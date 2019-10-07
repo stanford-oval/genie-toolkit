@@ -65,6 +65,12 @@ function parseMeasure(str) {
     return ThingTalk.Units.transformToBaseUnit(parseFloat(value), unit);
 }
 
+// maps old name to new name
+const PROPERTY_RENAMES = {
+    'checkInTime': 'checkinTime',
+    'checkOutTime': 'checkoutTime',
+    'AggregateRating': 'aggregateRating',
+};
 
 class Normalizer {
     constructor() {
@@ -73,12 +79,16 @@ class Normalizer {
 
         // the normalized file
         this.output = {};
+
+        // deduplication of warnings
+        this._warnings = new Set;
     }
 
     async init(thingpedia) {
         const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
         assert(library.isLibrary && library.classes.length === 1 && library.classes[0].kind === 'org.schema');
         const classDef = library.classes[0];
+        this._classDef = classDef;
 
         for (let fn in classDef.queries) {
             const fndef = classDef.queries[fn];
@@ -86,6 +96,41 @@ class Normalizer {
                 extends: fndef.extends,
                 fields: makeMetadata(fndef.args.map((argname) => fndef.getArgument(argname)))
             };
+        }
+    }
+
+    _applyPropertyRenames(obj) {
+        for (let prop in obj) {
+            let renamed = PROPERTY_RENAMES[prop];
+            if (renamed && !Object.prototype.hasOwnProperty.call(obj, renamed)) {
+                obj[renamed] = obj[prop];
+                delete obj[prop];
+            }
+        }
+    }
+
+    _warnField(path, fieldname) {
+        path = path.join('.');
+        const key = path + '.' + fieldname;
+        if (this._warnings.has(key))
+            return;
+        this._warnings.add(key);
+        console.log(`${path} has unexpected field ${fieldname}`);
+    }
+
+    _checkUnexpectedFields(obj, type) {
+        const querydef = this._classDef.queries[type];
+        if (!querydef)
+            return;
+
+        for (let field in obj) {
+            if (field === '@id' || field === '@type' || field === '@context')
+                continue;
+
+            if (!querydef.hasArgument(field)) {
+                this._warnField([type], field);
+                delete obj[field];
+            }
         }
     }
 
@@ -224,6 +269,8 @@ class Normalizer {
                         // add a type and hope for the best
                         nestedtype = value['@type'] = expectedType.type;
                     }
+                    this._applyPropertyRenames(value);
+                    this._checkUnexpectedFields(value, nestedtype);
                     return this._processObject(value, nestedtype);
                 } else {
                     value = String(value);
@@ -250,6 +297,17 @@ class Normalizer {
                     return undefined;
             }
 
+            this._applyPropertyRenames(value);
+            for (let field in value) {
+                if (field === '@id' || field === '@type' || field === '@context')
+                    continue;
+
+                if (!(field in expectedType.type)) {
+                    this._warnField(path, field);
+                    delete value[field];
+                }
+            }
+
             for (let field in expectedType.type) {
                 path.push(field);
                 value[field] = this._processField(value[field], path, expectedType.type[field]);
@@ -274,6 +332,8 @@ class Normalizer {
                 console.error(`Top-level object has no @type`, value);
                 continue;
             }
+            this._applyPropertyRenames(value);
+            this._checkUnexpectedFields(value, type);
             this._processObject(value, type);
         }
     }

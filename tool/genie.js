@@ -50,7 +50,8 @@ const subcommands = {
     'webqa-process-schemaorg': require('./webqa-process-schemaorg'),
     'webqa-auto-primitive': require('./webqa-auto-primitive'),
     'webqa-normalize-data': require('./webqa-normalize-data'),
-    'webqa-make-string-datasets': require('./webqa-make-string-datasets')
+    'webqa-make-string-datasets': require('./webqa-make-string-datasets'),
+    'webqa-trim-class': require('./webqa-trim-class')
 };
 
 async function main() {
