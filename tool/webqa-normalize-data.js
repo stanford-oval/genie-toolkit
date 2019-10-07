@@ -20,11 +20,7 @@ const uuid = require('uuid');
 const deq = require('deep-equal');
 
 const StreamUtils = require('../lib/stream-utils');
-
-const LOCATION_TYPE = {
-    latitude: { isArray: false, type: 'tt:Number' },
-    longitude: { isArray: false, type: 'tt:Number' }
-};
+const { makeMetadata } = require('./lib/webqa-metadata');
 
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
@@ -69,46 +65,6 @@ function parseMeasure(str) {
     return ThingTalk.Units.transformToBaseUnit(parseFloat(value), unit);
 }
 
-function makeMetadata(args) {
-    const meta = {};
-
-    for (let arg of args) {
-        const type = arg.type;
-        const name = arg.name;
-        if (name === 'id')
-            continue;
-        if (name.indexOf('.') >= 0)
-            continue;
-
-        let ptype = type;
-        if (type.isArray)
-            ptype = type.elem;
-        assert(!ptype.isArray);
-
-        let typemeta;
-        if (ptype.isEntity && ptype.type.startsWith('org.schema:'))
-            typemeta = ptype.type.substring('org.schema:'.length);
-        else if (ptype.isEntity)
-            typemeta = 'tt:Entity';
-        else if (ptype.isMeasure && ptype.unit === 'ms')
-            typemeta = 'tt:Duration';
-        else if (ptype.isMeasure)
-            typemeta = 'tt:Measure';
-        else if (ptype.isCompound)
-            typemeta = makeMetadata(Object.values(ptype.fields));
-        else if (ptype.isLocation)
-            typemeta = LOCATION_TYPE;
-        else
-            typemeta = 'tt:' + ptype;
-
-        meta[name] = {
-            isArray: type.isArray,
-            type: typemeta
-        };
-    }
-
-    return meta;
-}
 
 class Normalizer {
     constructor() {
@@ -136,7 +92,8 @@ class Normalizer {
     _processObject(value, type, visitedTypes = new Set) {
         const typemeta = this._meta[type];
         if (!typemeta) {
-            console.error(`Unrecognized object type ${type}`);
+            if (!type.endsWith('Action'))
+                console.error(`Unrecognized object type ${type}`);
             return undefined;
         }
 
