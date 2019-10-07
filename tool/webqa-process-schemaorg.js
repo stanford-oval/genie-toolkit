@@ -549,14 +549,33 @@ async function main(args) {
 
             const canonical = makeArgCanonical(propertyname, type);
 
-            args.push(
-                new Ast.ArgumentDef(Ast.ArgDirection.OUT, propertyname, type, {
-                    'canonical': canonical["default"] === "npp" ? canonical["npp"][0] : canonical
-                }, {
-                    'org_schema_type': Ast.Value.String(schemaOrgType),
-                    'org_schema_comment': Ast.Value.String(propertydef.comment)
-                })
-            );
+            const arg = new Ast.ArgumentDef(Ast.ArgDirection.OUT, propertyname, type, {
+                'canonical': canonical["default"] === "npp" ? canonical["npp"][0] : canonical
+            }, {
+                'org_schema_type': Ast.Value.String(schemaOrgType),
+                'org_schema_comment': Ast.Value.String(propertydef.comment),
+            });
+
+            (function recursiveAddStringValues(arg, fileId) {
+                let type = arg.type;
+                while (type.isArray)
+                    type = type.elem;
+
+                if (type.isString) {
+                    arg.annotations['string_values'] = Ast.Value.String(fileId);
+                    return;
+                }
+
+                if (type.isCompound) {
+                    for (let field in type.fields) {
+                        if (field.indexOf('.') >= 0)
+                            continue;
+                        recursiveAddStringValues(type.fields[field], fileId + '_' + field);
+                    }
+                }
+            })(arg, 'org.schema:' + typename + '_' + propertyname);
+
+            args.push(arg);
         }
 
         if (KEYWORDS.includes(typename))
