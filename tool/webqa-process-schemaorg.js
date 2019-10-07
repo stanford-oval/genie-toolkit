@@ -295,7 +295,13 @@ function makeArgCanonical(name, ptype) {
         } else if (npp.endsWith(' of')) {
             canonical["npi"] = [npp];
             canonical["default"] = "npi";
+        } else if (['VBN', 'JJ', 'JJR'].includes(tags[0]) && !['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
+            // this one is actually somewhat problematic
+            // e.g., all non-words are recognized as JJ, including issn, dateline, funder
+            canonical["pvp"] = [npp];
+            canonical["default"] = "pvp";
         }
+
     }
 
     canonical["npp"] = [npp];
