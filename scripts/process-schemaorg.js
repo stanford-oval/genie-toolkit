@@ -13,6 +13,7 @@
 process.on('uncaughtRejection', (up) => { throw up; });
 
 const assert = require('assert');
+const POS = require("en-pos");
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const Type = ThingTalk.Type;
@@ -232,8 +233,10 @@ function makeCompoundType(startingTypename, typedef, typeHierarchy) {
         if (!ttType)
             continue;
 
+        const canonical = makeArgCanonical(propertyname, ttType);
+
         fields[propertyname] = new Ast.ArgumentDef(undefined, propertyname, ttType, {
-            'canonical': makeArgCanonical(propertyname, ttType)
+            'canonical': canonical["default"] === "npp" ? canonical["npp"][0] : canonical
         }, {
             'org_schema_type': Ast.Value.String(schemaOrgType),
             'org_schema_comment': Ast.Value.String(propertydef.comment)
@@ -246,6 +249,13 @@ function makeCompoundType(startingTypename, typedef, typeHierarchy) {
     return Type.Compound(startingTypename, fields);
 }
 
+function posTag(tokens) {
+    return new POS.Tag(tokens)
+        .initial() // initial dictionary and pattern based tagging
+        .smooth() // further context based smoothing
+        .tags;
+}
+
 function makeArgCanonical(name, ptype) {
     function cleanName(name) {
         if (name.endsWith(' value'))
@@ -253,14 +263,46 @@ function makeArgCanonical(name, ptype) {
         return name;
     }
 
+    let canonical = {};
+    let npp;
     let plural = ptype && ptype.isArray;
     name = clean(name);
-    if (!name.includes('.'))
-        return plural ? pluralize(cleanName(name)) : cleanName(name);
+    if (!name.includes('.')) {
+        npp = plural ? pluralize(cleanName(name)) : cleanName(name);
+    } else {
+        const components = name.split('.');
+        const last = components[components.length - 1];
+        npp = plural ? pluralize(last) : last;
+    }
 
-    const components = name.split('.');
-    const last = components[components.length - 1];
-    return plural ? pluralize(last) : last;
+    if (npp.startsWith('has ')) {
+        npp = npp.substring('has '.length);
+    } else if (npp.startsWith('is ')) {
+        npp = npp.substring('is '.length);
+        let tags = posTag(npp.split(' '));
+
+        if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
+            canonical["npi"] = [npp];
+            canonical["default"] = "npi";
+        }
+        else if (['VBN', 'JJ', 'JJR'].includes(tags[0])) {
+            canonical["pvp"] = [npp];
+            canonical["default"] = "pvp";
+        }
+
+    } else {
+        let tags = posTag(npp.split(' '));
+        if (['VBP', 'VBZ', 'VBD'].includes(tags[0])) {
+            canonical["avp"] = [npp];
+            canonical["default"] = "avp";
+        }
+    }
+
+    canonical["npp"] = [npp];
+    if (!("default" in canonical))
+        canonical["default"] = "npp";
+
+    return canonical;
 }
 
 function getItemType(typename, typeHierarchy) {
@@ -504,9 +546,12 @@ async function main() {
 
             if (KEYWORDS.includes(propertyname))
                 propertyname = '_' + propertyname;
+
+            const canonical = makeArgCanonical(propertyname, type);
+
             args.push(
                 new Ast.ArgumentDef(Ast.ArgDirection.OUT, propertyname, type, {
-                    'canonical': makeArgCanonical(propertyname, type)
+                    'canonical': canonical["default"] === "npp" ? canonical["npp"][0] : canonical
                 }, {
                     'org_schema_type': Ast.Value.String(schemaOrgType),
                     'org_schema_comment': Ast.Value.String(propertydef.comment)
