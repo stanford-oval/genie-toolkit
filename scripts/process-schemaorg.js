@@ -275,13 +275,14 @@ function makeArgCanonical(name, ptype) {
         npp = plural ? pluralize(last) : last;
     }
 
+
     if (npp.startsWith('has ')) {
         npp = npp.substring('has '.length);
     } else if (npp.startsWith('is ')) {
         npp = npp.substring('is '.length);
         let tags = posTag(npp.split(' '));
 
-        if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
+        if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1]) || npp.endsWith(' of')) {
             canonical["npi"] = [npp];
             canonical["default"] = "npi";
         }
@@ -292,9 +293,12 @@ function makeArgCanonical(name, ptype) {
 
     } else {
         let tags = posTag(npp.split(' '));
-        if (['VBP', 'VBZ', 'VBD'].includes(tags[0])) {
+        if (['VBP', 'VBZ'].includes(tags[0])) {
             canonical["avp"] = [npp];
             canonical["default"] = "avp";
+        } else if (npp.endsWith(' of')) {
+            canonical["npi"] = [npp];
+            canonical["default"] = "npi";
         }
     }
 
