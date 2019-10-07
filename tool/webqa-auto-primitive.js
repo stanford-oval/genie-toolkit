@@ -324,6 +324,10 @@ module.exports = {
             defaultValue: './auto-primitive-cache.json',
             help: 'Cache results of Bing search in this file.'
         });
+        parser.addArgument('--random-seed', {
+            defaultValue: 'almond is awesome',
+            help: 'Random seed'
+        });
     },
 
     execute: main,

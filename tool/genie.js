@@ -49,6 +49,7 @@ const subcommands = {
 
     'webqa-process-schemaorg': require('./webqa-process-schemaorg'),
     'webqa-auto-primitive': require('./webqa-auto-primitive'),
+    'webqa-normalize-data': require('./webqa-normalize-data'),
 };
 
 async function main() {
