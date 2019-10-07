@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
@@ -24,6 +23,7 @@ const Ast = ThingTalk.Ast;
 
 const { choose } = require('../lib/random');
 const { clean } = require('../lib/utils');
+const StreamUtils = require('../lib/stream-utils');
 //const Tokenizer = require('../lib/tokenizer');
 
 function* get(obj, propertyList, offset) {
@@ -118,7 +118,10 @@ function phraseStartWithVerb(propertyCanonical) {
 
 const DO_THE_SEARCH = true;
 
-async function bingSearchSingle(query) {
+async function bingSearchSingle(query, cache) {
+    if (query in cache)
+        return cache[query];
+
     if (DO_THE_SEARCH) {
         const url = 'https://api.cognitive.microsoft.com/bing/v5.0/search';
         const payload = {'q': '"' + query + '"'};
@@ -128,7 +131,7 @@ async function bingSearchSingle(query) {
         const response = JSON.parse(await Tp.Helpers.Http.get(url + '?' + qs.stringify(payload), {
             extraHeaders: headers
         }));
-        return (response.webPages || {}).totalEstimatedMatches || 0;
+        return cache[query] = (response.webPages || {}).totalEstimatedMatches || 0;
     } else {
         console.log(`would search for ${query}`);
 
@@ -136,13 +139,13 @@ async function bingSearchSingle(query) {
     }
 }
 
-async function bingSearch(query, valueList) {
+async function bingSearch(query, valueList, cache) {
     let tot = 0;
     for (const value of valueList) {
         assert(typeof value === 'string');
         const newQuery = query.replace('${value}', value); //'
 
-        let result = await bingSearchSingle(newQuery);
+        let result = await bingSearchSingle(newQuery, cache);
         result = result * Math.pow(10, query.split(/\s+/g).length); // length factor
 
         tot += result;
@@ -199,7 +202,7 @@ const COMPARATIVE_LESS_PATTERNS = [
 
 const THRESHOLD = 10000;
 
-async function applyPatterns(functionDef, argDef, valueList, patternList, operator, dataset) {
+async function applyPatterns(functionDef, argDef, valueList, patternList, operator, dataset, cache) {
     /*if (propertyName === 'name')
         return [['value', 2], ['value_table', 1]];
 
@@ -232,7 +235,7 @@ async function applyPatterns(functionDef, argDef, valueList, patternList, operat
 
         return {
             template: pattern.replace('${value}', '${p_' + propertyName + '}'),
-            score: await bingSearch(pattern, valueList)
+            score: await bingSearch(pattern, valueList, cache)
         };
     }))).filter((pattern) => pattern !== null && pattern.score >= THRESHOLD);
 
@@ -249,26 +252,25 @@ async function applyPatterns(functionDef, argDef, valueList, patternList, operat
     ), patterns.slice(0, 4).map((p) => p.template), [] /* preprocessed */, {}));
 }
 
-async function main() {
-    //table = 'restaurants'
-    //table_file = 'restaurants.json'
-    if (process.argv.length < 5) {
-        console.error(`usage: node scripts/auto-primitive.js <path-to-schema.tt> <path-to-data.json> <cache-json> <table-name>`);
-        return;
+async function main(args) {
+    const table = args.table_name;
+
+    let cache = {};
+    try {
+        cache = JSON.parse(await util.promisify(fs.readFile)(args.cache, { encoding: 'utf8' }));
+    } catch(e) {
+        if (e.name !== 'SyntaxError' && e.code !== 'ENOENT')
+            throw e;
     }
 
-    const schemafile = process.argv[2];
-    const datafile = process.argv[3];
-    const table = process.argv[4];
-
-    const data = JSON.parse(await util.promisify(fs.readFile)(datafile, { encoding: 'utf8' }));
-    const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(schemafile, { encoding: 'utf8' }));
+    const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));
+    const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(args.thingpedia, { encoding: 'utf8' }));
     assert(library.isLibrary && library.classes.length === 1 && library.classes[0].kind === 'org.schema');
 
     const classDef = library.classes[0];
     const queryDef = classDef.queries[table];
-    const rng = seedrandom.alea('almond is awesome');
-    const dataset = new Ast.Dataset('org.schema.from_bing', 'en', [], {});
+    const rng = seedrandom.alea(args.random_seed);
+    const dataset = new Ast.Dataset('org.schema.' + table, 'en', [], {});
 
     const seen = new Set;
     for (const argDef of queryDef.iterateArguments()) {
@@ -283,13 +285,46 @@ async function main() {
         if (valueList.length === 0)
             continue;
 
-        await applyPatterns(queryDef, argDef, valueList, EQUAL_PATTERNS, '==', dataset);
+        await applyPatterns(queryDef, argDef, valueList, EQUAL_PATTERNS, '==', dataset, cache);
         if (argDef.type.isNumeric()) {
-            await applyPatterns(queryDef, argDef, valueList, COMPARATIVE_MORE_PATTERNS, '>=', dataset);
-            await applyPatterns(queryDef, argDef, valueList, COMPARATIVE_LESS_PATTERNS, '<=', dataset);
+            await applyPatterns(queryDef, argDef, valueList, COMPARATIVE_MORE_PATTERNS, '>=', dataset, cache);
+            await applyPatterns(queryDef, argDef, valueList, COMPARATIVE_LESS_PATTERNS, '<=', dataset, cache);
         }
     }
 
-    console.log(dataset.prettyprint());
+    await util.promisify(fs.writeFile)(args.cache, JSON.stringify(cache), { encoding: 'utf8' });
+
+    args.output.end(dataset.prettyprint());
+    await StreamUtils.waitFinish(args.output);
 }
-main();
+module.exports = {
+    initArgparse(subparsers) {
+        const parser = subparsers.addParser('webqa-auto-primitive', {
+            addHelp: true,
+            description: "Automatically generate primitive templates for schema.org classes based on Bing search results."
+        });
+        parser.addArgument(['-o', '--output'], {
+            required: true,
+            type: fs.createWriteStream
+        });
+        parser.addArgument('--thingpedia', {
+            required: true,
+            help: 'Path to ThingTalk file containing class definitions.'
+        });
+        parser.addArgument('--table-name', {
+            required: true,
+            help: 'Name of the schema.org table to generate primitive templates for.'
+        });
+        parser.addArgument('--data', {
+            required: true,
+            help: 'Path to JSON file with normalized schema.org data.'
+        });
+        parser.addArgument('--cache', {
+            required: false,
+            defaultValue: './auto-primitive-cache.json',
+            help: 'Cache results of Bing search in this file.'
+        });
+    },
+
+    execute: main,
+};

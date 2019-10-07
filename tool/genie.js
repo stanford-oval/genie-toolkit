@@ -48,6 +48,7 @@ const subcommands = {
     'dataset': require('./dataset'),
 
     'webqa-process-schemaorg': require('./webqa-process-schemaorg'),
+    'webqa-auto-primitive': require('./webqa-auto-primitive'),
 };
 
 async function main() {
