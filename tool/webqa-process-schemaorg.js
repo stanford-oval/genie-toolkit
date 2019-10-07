@@ -10,8 +10,6 @@
 // See COPYING for details
 "use strict";
 
-process.on('uncaughtRejection', (up) => { throw up; });
-
 const assert = require('assert');
 const POS = require("en-pos");
 const Tp = require('thingpedia');
@@ -22,8 +20,7 @@ const fs = require('fs');
 const util = require('util');
 
 const { clean, pluralize } = require('../lib/utils');
-
-const URL = 'https://schema.org/version/3.9/schema.jsonld';
+const StreamUtils = require('../lib/stream-utils');
 
 function getId(id) {
     assert(id.startsWith('http://schema.org/'));
@@ -326,13 +323,13 @@ function getItemType(typename, typeHierarchy) {
     return 'Thing';
 }
 
-async function main() {
+async function main(args) {
     let schemajsonld;
-    if (await util.promisify(fs.exists)('./schema.jsonld')) {
-        schemajsonld = await util.promisify(fs.readFile)('./schema.jsonld', { encoding: 'utf8' });
+    if (await util.promisify(fs.exists)(args.cache_file)) {
+        schemajsonld = await util.promisify(fs.readFile)(args.cache_file, { encoding: 'utf8' });
     } else {
-        schemajsonld = await Tp.Helpers.Http.get(URL);
-        await util.promisify(fs.writeFile)('./schema.jsonld', schemajsonld);
+        schemajsonld = await Tp.Helpers.Http.get(args.url);
+        await util.promisify(fs.writeFile)(args.cache_file, schemajsonld);
     }
 
     // type_name -> {
@@ -582,6 +579,30 @@ async function main() {
         description: 'Scraped data from websites that support schema.org'
     }, {}, false);
 
-    console.log(classdef.prettyprint());
+    args.output.end(classdef.prettyprint());
+    await StreamUtils.waitFinish(args.output);
 }
-main();
+module.exports = {
+    initArgparse(subparsers) {
+        const parser = subparsers.addParser('webqa-process-schemaorg', {
+            addHelp: true,
+            description: "Process a schema.org JSON+LD definition into a Thingpedia class."
+        });
+        parser.addArgument(['-o', '--output'], {
+            required: true,
+            type: fs.createWriteStream
+        });
+        parser.addArgument(['--url'], {
+            required: false,
+            defaultValue: './schema.jsonld',
+            help: 'Path to a cache file containing the schema.org definitions.'
+        });
+        parser.addArgument(['--cache-file'], {
+            required: false,
+            defaultValue: 'https://schema.org/version/3.9/schema.jsonld',
+            help: 'The schema.org URL to retrieve the definitions from.'
+        });
+    },
+
+    execute: main
+};

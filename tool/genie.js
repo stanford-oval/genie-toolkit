@@ -46,6 +46,8 @@ const subcommands = {
     'dialog-to-contextual': require('./dialog-to-contextual'),
 
     'dataset': require('./dataset'),
+
+    'webqa-process-schemaorg': require('./webqa-process-schemaorg'),
 };
 
 async function main() {
