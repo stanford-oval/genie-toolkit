@@ -591,12 +591,12 @@ module.exports = {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument(['--url'], {
+        parser.addArgument(['--cache-file'], {
             required: false,
             defaultValue: './schema.jsonld',
             help: 'Path to a cache file containing the schema.org definitions.'
         });
-        parser.addArgument(['--cache-file'], {
+        parser.addArgument(['--url'], {
             required: false,
             defaultValue: 'https://schema.org/version/3.9/schema.jsonld',
             help: 'The schema.org URL to retrieve the definitions from.'
