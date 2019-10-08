@@ -545,7 +545,8 @@ async function main(args) {
 
         const args = [
             new Ast.ArgumentDef(Ast.ArgDirection.OUT, 'id', Type.Entity('org.schema:' + typename), {}, {
-                'unique': new Ast.Value.Boolean(true)
+                'unique': new Ast.Value.Boolean(true),
+                'genie': new Ast.Value.Boolean(false) // no filter on id, if it has ner support, we'll generate prim for it
             })
         ];
         for (let propertyname in typedef.properties) {
