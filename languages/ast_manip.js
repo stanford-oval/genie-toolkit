@@ -288,6 +288,32 @@ function makeArgMaxMinTable(table, pname, direction) {
 }
 
 function makeProgram(rule, principal = null) {
+    // FIXME: A hack for schema.org only to drop certain programs
+    let table = rule.table;
+    if (table) {
+        // projection won't help here
+        if (table.isProjection)
+            table = table.table;
+
+        // if a table is just a plain invocation, drop it
+        if (table.isInvocation)
+            return null;
+
+        if (table.isFilter) {
+            let filteredOnName = false;
+            let filteredOthers = false;
+            for (let [, filter] of iterateFilters(table)) {
+                for (let field of iterateField(filter)) {
+                    if (field === 'name')
+                        filteredOnName = true;
+                    else
+                        filteredOthers = true;
+                }
+            }
+            if (filteredOnName && !filteredOthers)
+                return null;
+        }
+    }
     return new Ast.Program([], [], [rule], principal);
 }
 
@@ -1021,7 +1047,7 @@ function makeExampleFromQuery(id, q) {
             [`\${p_id}`],
             {}
         ));
-        const namefilter = new Ast.BooleanExpression.Atom('name', '==', new Ast.Value.VarRef('p_name'));
+        const namefilter = new Ast.BooleanExpression.Atom('name', '=~', new Ast.Value.VarRef('p_name'));
         examples.push(new Ast.Example(
             -1,
             'query',
