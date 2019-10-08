@@ -38,6 +38,12 @@
     function makeComputeArgMinMaxExpression(table, operation, operands, resultType, direction = 'desc') {
         if (C.hasUniqueFilter(table))
             return null;
+        for (let [, filter] of C.iterateFilters(table)) {
+            for (let field of C.iterateFields(filter)) {
+                if (field === operands[0].name)
+                    return null;
+            }
+        }
         const compute = makeComputeExpression(table, operation, operands, resultType);
         const projSchema = compute.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === operation);
         const sort = new Ast.Table.Sort(compute, operation, direction, compute.schema);

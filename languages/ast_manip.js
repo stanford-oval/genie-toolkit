@@ -361,7 +361,7 @@ function makeProgram(rule, principal = null) {
             let filteredOnName = false;
             let filteredOthers = false;
             for (let [, filter] of iterateFilters(table)) {
-                for (let field of iterateField(filter)) {
+                for (let field of iterateFields(filter)) {
                     if (field === 'name')
                         filteredOnName = true;
                     else
@@ -448,12 +448,12 @@ function *iterateFilters(table) {
     }
 }
 
-function *iterateField(filter) {
+function *iterateFields(filter) {
     if (filter.isAnd) {
         for (let operand of filter.operands)
-            yield *iterateField(operand);
+            yield *iterateFields(operand);
     } else if (filter.isNot) {
-        yield *iterateField(filter.expr);
+        yield *iterateFields(filter.expr);
     } else if (filter.isAtom) {
         yield filter.name;
     }
@@ -461,7 +461,7 @@ function *iterateField(filter) {
 
 function hasUniqueFilter(table) {
     for (let [schema, filter] of iterateFilters(table)) {
-        for (let field of iterateField(filter)) {
+        for (let field of iterateFields(filter)) {
             if (schema.getArgument(field).unique)
                 return true;
         }
@@ -1226,5 +1226,8 @@ module.exports = {
     //schema.org specific
     filterTableJoin,
     arrayFilterTableJoin,
-    hasConflictParam
+    hasConflictParam,
+
+    iterateFilters,
+    iterateFields,
 };
