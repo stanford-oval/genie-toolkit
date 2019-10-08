@@ -81,8 +81,9 @@ class Trainer extends events.EventEmitter {
                 rl.setPrompt('TT: ');
                 rl.prompt();
             } else {
-                console.log('Invalid command');
-                rl.prompt();
+                //console.log('Invalid command');
+                //rl.prompt();
+                this._learnThingTalk(line).catch((e) => this.emit('error', e));
             }
         });
     }
@@ -94,11 +95,9 @@ class Trainer extends events.EventEmitter {
         await this._parser.stop();
     }
 
-    async _learnThingTalk(code) {
+    async _learnProgram(program) {
         let targetCode;
         try {
-            let program = await ThingTalk.Grammar.parseAndTypecheck(code, this._schemas);
-
             let clone = {};
             Object.assign(clone, this._entities);
             targetCode = ThingTalk.NNSyntax.toNN(program, this._preprocessed, clone).join(' ');
@@ -118,6 +117,19 @@ class Trainer extends events.EventEmitter {
         this.next();
     }
 
+    async _learnThingTalk(code) {
+        let program;
+        try {
+            program = await ThingTalk.Grammar.parseAndTypecheck(code, this._schemas);
+        } catch(e) {
+            console.log(`${e.name}: ${e.message}`);
+            this._rl.setPrompt('TT: ');
+            this._rl.prompt();
+            return;
+        }
+        this._learnProgram(program);
+    }
+
     _edit(i) {
         if (Number.isNaN(i) || i < 1 || i > this._candidates.length) {
             console.log('Invalid number');
@@ -126,7 +138,7 @@ class Trainer extends events.EventEmitter {
             return;
         }
         i -= 1;
-        const program = ThingTalk.NNSyntax.fromNN(this._candidates[i].code, this._entities);
+        const program = this._candidates[i];
         this._state = 'code';
         this._rl.setPrompt('TT: ');
         this._rl.write(program.prettyprint(true));
@@ -141,12 +153,7 @@ class Trainer extends events.EventEmitter {
             return;
         }
         i -= 1;
-        this.emit('learned', {
-            id: this._id,
-            flags: {},
-            preprocessed: this._preprocessed,
-            target_code: this._candidates[i].code.join(' ')
-        });
+        this._learnProgram(this._candidates[i]);
         this.next();
     }
 
@@ -209,7 +216,7 @@ class Trainer extends events.EventEmitter {
             try {
                 const program = ThingTalk.NNSyntax.fromNN(cand.code, parsed.entities);
                 await program.typecheck(this._schemas);
-                return cand;
+                return program;
             } catch(e) {
                 return null;
             }
@@ -217,7 +224,7 @@ class Trainer extends events.EventEmitter {
 
         console.log(`Sentence #${this._serial+1} (${this._id}): ${utterance}`);
         for (var i = 0; i < 3 && i < this._candidates.length; i++)
-            console.log(`${i+1}) ${this._candidates[i].code.join(' ')}`);
+            console.log(`${i+1}) ${this._candidates[i].prettyprint()}`);
         this._rl.setPrompt('$ ');
         this._rl.prompt();
     }
