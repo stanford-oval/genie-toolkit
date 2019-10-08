@@ -105,7 +105,7 @@ the_out_param_Array__Any = {
 projection_Any = {
     ('both' | '') 'the' outParam1:out_param_Any 'and' outParam2:out_param_Any 'of' table:complete_table => C.makeMultiFieldProjection($options, 'table', table, [outParam1, outParam2]);
     ?projection_with_filter ('both' | '') 'the' outParam1:out_param_Any 'and' outParam2:out_param_Any 'of' table:complete_table => C.makeMultiFieldProjection($options, 'table', table, [outParam1, outParam2]);
-    ?projection_with_filter ('both' | '') 'the' outParam1:out_param_Any 'and' outParam2:out_param_Any 'of' table:with_arg_min_max_table => C.makeMultiFieldProjection($options, 'table', table, [outParam1, outParam2]);
+    ?projection_with_filter ('both' | '') 'the' outParam1:out_param_Any 'and' outParam2:out_param_Any 'of the' table:with_arg_min_max_table => C.makeMultiFieldProjection($options, 'table', table, [outParam1, outParam2]);
 }
 
 for (let [typestr, type] of $options.types.all) {
@@ -127,9 +127,9 @@ for (let [typestr, type] of $options.types.all) {
                 $('stream_projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of new' table:complete_table => C.makeSingleFieldProjection($options, 'stream', type, table, outParam);
             } else {
                 $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:with_filtered_table => C.makeSingleFieldProjection($options, 'table', type, table, outParam);
-                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:with_arg_min_max_table => C.makeSingleFieldProjection($options, 'table', type, table, outParam);
+                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of the' table:with_arg_min_max_table => C.makeSingleFieldProjection($options, 'table', type, table, outParam);
                 $('stream_projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of new' table:with_filtered_table => C.makeSingleFieldProjection($options, 'stream', type, table, outParam);
-                $('stream_projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of new' table:with_arg_min_max_table => C.makeSingleFieldProjection($options, 'stream', type, table, outParam);
+                $('stream_projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of the new' table:with_arg_min_max_table => C.makeSingleFieldProjection($options, 'stream', type, table, outParam);
             }
 
             projection_Any = $('projection_' + typestr);
