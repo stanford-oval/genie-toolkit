@@ -275,6 +275,18 @@ function addUnit(unit, num) {
     }
 }
 
+function makeArgMaxMinTable(table, pname, direction) {
+    if (!table.schema.out[pname] || !table.schema.out[pname].isNumeric())
+        return null;
+    if (!table.schema.is_list || table.isIndex) //avoid conflict with primitives
+        return null;
+    if (hasUniqueFilter(table))
+        return null;
+
+    const t_sort = new Ast.Table.Sort(table, pname, direction, table.schema);
+    return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], table.schema);
+}
+
 function makeProgram(rule, principal = null) {
     return new Ast.Program([], [], [rule], principal);
 }
@@ -1098,6 +1110,7 @@ module.exports = {
     makeOrFilter,
     makeAggregateFilter,
     makeListExpression,
+    makeArgMaxMinTable,
     makeEdgeFilterStream,
     checkFilter,
     addFilter,
