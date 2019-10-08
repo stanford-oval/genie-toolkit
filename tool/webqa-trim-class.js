@@ -17,6 +17,22 @@ const util = require('util');
 
 const StreamUtils = require('../lib/stream-utils');
 
+const DEFAULT_ENTITIES = [
+    {"type":"tt:contact","name":"Contact Identity","is_well_known":1,"has_ner_support":0},
+    {"type":"tt:contact_name","name":"Contact Name","is_well_known":1,"has_ner_support":0},
+    {"type":"tt:device","name":"Device Name","is_well_known":1,"has_ner_support":0},
+    {"type":"tt:email_address","name":"Email Address","is_well_known":1,"has_ner_support":0},
+    {"type":"tt:flow_token","name":"Flow Identifier","is_well_known":1,"has_ner_support":0},
+    {"type":"tt:function","name":"Function Name","is_well_known":1,"has_ner_support":0},
+    {"type":"tt:hashtag","name":"Hashtag","is_well_known":1,"has_ner_support":0},
+    {"type":"tt:path_name","name":"Unix Path","is_well_known":1,"has_ner_support":0},
+    {"type":"tt:phone_number","name":"Phone Number","is_well_known":1,"has_ner_support":0},
+    {"type":"tt:picture","name":"Picture","is_well_known":1,"has_ner_support":0},
+    {"type":"tt:program","name":"Program","is_well_known":1,"has_ner_support":0},
+    {"type":"tt:url","name":"URL","is_well_known":1,"has_ner_support":0},
+    {"type":"tt:username","name":"Username","is_well_known":1,"has_ner_support":0}
+];
+
 async function loadClassDef(thingpedia) {
     const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
     assert(library.isLibrary && library.classes.length === 1 && library.classes[0].kind === 'org.schema');
@@ -115,12 +131,28 @@ function removeFieldsWithoutData(arg) {
     }
 }
 
-function removeArgumentsWithoutData(classDef, tablename) {
+function titleCase(str) {
+    return str.split(' ').map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
+}
+
+function removeArgumentsWithoutData(entities, classDef, tablename) {
     let tabledef = classDef.queries[tablename];
     if (!tabledef.annotations['org_schema_has_data'] || !tabledef.annotations['org_schema_has_data'].value) {
+        entities.push({
+            type: 'org.schema:' + tablename,
+            name: titleCase(tabledef.canonical),
+            is_well_known: false,
+            has_ner_support: false
+        });
         delete classDef.queries[tablename];
         return;
     }
+    entities.push({
+        type: 'org.schema:' + tablename,
+        name: titleCase(tabledef.canonical),
+        is_well_known: false,
+        has_ner_support: true
+    });
 
     let newArgs = [];
     for (let argname of tabledef.args) {
@@ -153,6 +185,10 @@ module.exports = {
             required: true,
             type: fs.createWriteStream
         });
+        parser.addArgument(['--entities'], {
+            required: true,
+            help: 'Where to store the generated entities.json file',
+        });
         parser.addArgument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
@@ -180,13 +216,18 @@ module.exports = {
         const classDef = await loadClassDef(args.thingpedia);
         const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));
 
+        const entities = DEFAULT_ENTITIES.slice();
         for (let tablename in classDef.queries)
             maybeMarkTableWithData(classDef.queries[tablename], data);
 
         for (let tablename in classDef.queries)
-            removeArgumentsWithoutData(classDef, tablename);
+            removeArgumentsWithoutData(entities, classDef, tablename);
 
         args.output.end(classDef.prettyprint());
         await StreamUtils.waitFinish(args.output);
+        await util.promisify(fs.writeFile)(args.entities, JSON.stringify({
+            result: 'ok',
+            data: entities
+        }, undefined, 2));
     }
 };

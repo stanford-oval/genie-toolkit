@@ -599,6 +599,7 @@ async function main(args) {
         if (KEYWORDS.includes(typename))
             typename = '_' + typename;
         const querydef = new Ast.FunctionDef('query', typename, typedef.extends, args, true, false, {
+            'canonical': clean(typename),
             'confirmation': clean(typename),
         }, keepAnnotation ? {
             'org_schema_comment': Ast.Value.String(typedef.comment),
