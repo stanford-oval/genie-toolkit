@@ -236,7 +236,9 @@ function makeCompoundType(startingTypename, typedef, typeHierarchy) {
         const annotation = keepAnnotation ? {
             'org_schema_type': Ast.Value.String(schemaOrgType),
             'org_schema_comment': Ast.Value.String(propertydef.comment)
-        } : {};
+        } : {
+            'org_schema_type': Ast.Value.String(schemaOrgType)
+        };
 
         fields[propertyname] = new Ast.ArgumentDef(undefined, propertyname, ttType, metadata, annotation);
         anyfield = true;
@@ -563,7 +565,12 @@ async function main(args) {
             const annotation = keepAnnotation ? {
                 'org_schema_type': Ast.Value.String(schemaOrgType),
                 'org_schema_comment': Ast.Value.String(propertydef.comment)
-            } : {};
+            } : {
+                'org_schema_type': Ast.Value.String(schemaOrgType)
+            };
+
+            if (propertyname === 'name')
+                annotation['genie'] = new Ast.Value.Boolean(false); // no filter on name, if the id has ner support, we'll generate prim for it
 
             const arg = new Ast.ArgumentDef(Ast.ArgDirection.OUT, propertyname, type, metadata, annotation);
 
