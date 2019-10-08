@@ -21,6 +21,8 @@ const util = require('util');
 const { clean, pluralize } = require('../lib/utils');
 const StreamUtils = require('../lib/stream-utils');
 
+const keepAnnotation = false;
+
 function getId(id) {
     assert(id.startsWith('http://schema.org/'));
     return id.substring('http://schema.org/'.length);
@@ -230,13 +232,13 @@ function makeCompoundType(startingTypename, typedef, typeHierarchy) {
             continue;
 
         const canonical = makeArgCanonical(propertyname, ttType);
-
-        fields[propertyname] = new Ast.ArgumentDef(undefined, propertyname, ttType, {
-            'canonical': canonical["default"] === "npp" ? canonical["npp"][0] : canonical
-        }, {
+        const metadata = { 'canonical': canonical["default"] === "npp" ? canonical["npp"][0] : canonical };
+        const annotation = keepAnnotation ? {
             'org_schema_type': Ast.Value.String(schemaOrgType),
             'org_schema_comment': Ast.Value.String(propertydef.comment)
-        });
+        } : {};
+
+        fields[propertyname] = new Ast.ArgumentDef(undefined, propertyname, ttType, metadata, annotation);
         anyfield = true;
     }
     if (!anyfield)
@@ -554,13 +556,13 @@ async function main(args) {
                 propertyname = '_' + propertyname;
 
             const canonical = makeArgCanonical(propertyname, type);
-
-            const arg = new Ast.ArgumentDef(Ast.ArgDirection.OUT, propertyname, type, {
-                'canonical': canonical["default"] === "npp" ? canonical["npp"][0] : canonical
-            }, {
+            const metadata = { 'canonical': canonical["default"] === "npp" ? canonical["npp"][0] : canonical };
+            const annotation = keepAnnotation ? {
                 'org_schema_type': Ast.Value.String(schemaOrgType),
-                'org_schema_comment': Ast.Value.String(propertydef.comment),
-            });
+                'org_schema_comment': Ast.Value.String(propertydef.comment)
+            } : {};
+
+            const arg = new Ast.ArgumentDef(Ast.ArgDirection.OUT, propertyname, type, metadata, annotation);
 
             (function recursiveAddStringValues(arg, fileId) {
                 let type = arg.type;
@@ -588,10 +590,12 @@ async function main(args) {
             typename = '_' + typename;
         const querydef = new Ast.FunctionDef('query', typename, typedef.extends, args, true, false, {
             'confirmation': clean(typename),
-        }, {
+        }, keepAnnotation ? {
             'org_schema_comment': Ast.Value.String(typedef.comment),
             'confirm': Ast.Value.Boolean(false)
-        });
+        } : {
+            'confirm': Ast.Value.Boolean(false)
+        } );
         queries[typename] = querydef;
     }
 
