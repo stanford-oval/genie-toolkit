@@ -369,7 +369,7 @@ function *iterateField(filter) {
         for (let operand of filter.operands)
             yield *iterateField(operand);
     } else if (filter.isNot) {
-        yield *iterateField(filter.expr)
+        yield *iterateField(filter.expr);
     } else if (filter.isAtom) {
         yield filter.name;
     }
@@ -1025,7 +1025,7 @@ function makeExampleFromQuery(id, q) {
         examples.push(new Ast.Example(
             -1,
             'query',
-            { p_name: String },
+            { p_name: Type.String },
             new Ast.Table.Filter(table, namefilter, q),
             [`\${p_name}`],
             [`\${p_name}`],
