@@ -102,6 +102,11 @@ the_out_param_Array__Any = {
     }
 }
 
+projection_Any = {
+    ('both' | '') 'the' outParam1:out_param_Any 'and' outParam2:out_param_Any 'of' table:complete_table => C.makeMultiFieldProjection($options, 'table', table, [outParam1, outParam2]);
+    ?projection_with_filter ('both' | '') 'the' outParam1:out_param_Any 'and' outParam2:out_param_Any 'of' table:complete_table => C.makeMultiFieldProjection($options, 'table', table, [outParam1, outParam2]);
+}
+
 for (let [typestr, type] of $options.types.all) {
     // don't access booleans or enums out arguments generically, as that rarely makes sense
     // (and when it does, you probably want a macro and maybe and edge trigger)
@@ -117,61 +122,11 @@ for (let [typestr, type] of $options.types.all) {
 
         if (!$options.types.id.has(typestr)) {
             if (!$options.flags.projection_with_filter) {
-                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:complete_table => {
-                    const name = outParam.name;
-                    if (name === 'id' && $options.flags.schema_org)
-                        return null;
-                    if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
-                        return null;
-                    if (name === 'picture_url' && $options.flags.turking)
-                        return null;
-                    const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
-                    return new Ast.Table.Projection(table, [name], newSchema);
-                };
-                $('stream_projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of new' table:complete_table => {
-                    const name = outParam.name;
-                    if (name === 'id' && $options.flags.schema_org)
-                        return null;
-                    if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
-                        return null;
-                    if (!table.schema.is_monitorable)
-                        return null;
-                    const stream = new Ast.Stream.Monitor(table, null, table.schema);
-                    const newSchema = stream.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
-                    return new Ast.Stream.Projection(stream, [name], newSchema);
-                };
+                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:complete_table => C.makeSingleFieldProjection($options, 'table', type, table, outParam);
+                $('stream_projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of new' table:complete_table => C.makeSingleFieldProjection($options, 'stream', type, table, outParam);
             } else {
-                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:with_filtered_table => {
-                    const name = outParam.name;
-                    if ($options.flags.schema_org) {
-                        if (name === 'id')
-                            return null;
-                        if (!table.isFilter)
-                            return null;
-                    }
-                    if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
-                        return null;
-                    if (name === 'picture_url' && $options.flags.turking)
-                        return null;
-                    const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
-                    return new Ast.Table.Projection(table, [name], newSchema);
-                };
-                $('stream_projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of new' table:with_filtered_table => {
-                    const name = outParam.name;
-                    if ($options.flags.schema_org) {
-                        if (name === 'id')
-                            return null;
-                        if (!table.isFilter)
-                            return null;
-                    }
-                    if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
-                        return null;
-                    if (!table.schema.is_monitorable)
-                        return null;
-                    const stream = new Ast.Stream.Monitor(table, null, table.schema);
-                    const newSchema = stream.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
-                    return new Ast.Stream.Projection(stream, [name], newSchema);
-                };
+                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:with_filtered_table => C.makeSingleFieldProjection($options, 'table', type, table, outParam);
+                $('stream_projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of new' table:with_filtered_table => C.makeSingleFieldProjection($options, 'stream', type, table, outParam);
             }
 
             projection_Any = $('projection_' + typestr);

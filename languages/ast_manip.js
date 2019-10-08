@@ -275,6 +275,68 @@ function addUnit(unit, num) {
     }
 }
 
+function makeSingleFieldProjection($options, ftype, ptype, table, outParam) {
+    assert(ftype === 'table' || ftype === 'stream');
+
+    const name = outParam.name;
+    if ($options.flags.schema_org) {
+        if (name === 'id')
+            return null;
+        if (!table.isFilter)
+            return null;
+    }
+    if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], ptype))
+        return null;
+
+    if (ftype === 'table') {
+        if (name === 'picture_url' && $options.flags.turking)
+            return null;
+        const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
+        return new Ast.Table.Projection(table, [name], newSchema);
+    } else {
+        if (!table.schema.is_monitorable)
+            return null;
+        const stream = new Ast.Stream.Monitor(table, null, table.schema);
+        const newSchema = stream.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
+        return new Ast.Stream.Projection(stream, [name], newSchema);
+    }
+}
+
+
+function makeMultiFieldProjection($options, ftype, table, outParams) {
+    const names = [];
+    for (let outParam of outParams) {
+        const name = outParam.name;
+        if ($options.flags.schema_org) {
+            if (name === 'id')
+                return null;
+            if (!table.isFilter)
+                return null;
+        }
+        if (!table.schema.out[name])
+            return null;
+
+        if (ftype === 'table') {
+            if (name === 'picture_url' && $options.flags.turking)
+                return null;
+        } else {
+            if (!table.schema.is_monitorable)
+                return null;
+        }
+
+        names.push(name);
+    }
+
+    if (ftype === 'table') {
+        const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || names.includes(arg.name));
+        return new Ast.Table.Projection(table, names, newSchema);
+    } else {
+        const stream = new Ast.Stream.Monitor(table, null, table.schema);
+        const newSchema = stream.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || names.includes(arg.name));
+        return new Ast.Stream.Projection(stream, names, newSchema);
+    }
+}
+
 function makeArgMaxMinTable(table, pname, direction) {
     if (!table.schema.out[pname] || !table.schema.out[pname].isNumeric())
         return null;
@@ -1138,6 +1200,8 @@ module.exports = {
     makeAggregateFilter,
     makeListExpression,
     makeArgMaxMinTable,
+    makeSingleFieldProjection,
+    makeMultiFieldProjection,
     makeEdgeFilterStream,
     checkFilter,
     addFilter,
