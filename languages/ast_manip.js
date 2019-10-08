@@ -338,6 +338,41 @@ function checkFilter(table, filter) {
     }
 }
 
+function *iterateFilters(table) {
+    if (table.isInvocation || table.isVarRef || table.isResultRef)
+        return;
+
+    if (table.isFilter) {
+        yield [table.schema, table.filter];
+    } else if (table.isJoin) {
+        yield *table.lhs.iterateFilters();
+        yield *table.rhs.iterateFilters();
+    } else {
+        yield *table.table.iterateFilters();
+    }
+}
+
+function *iterateField(filter) {
+    if (filter.isAnd) {
+        for (let operand of filter.operands)
+            yield *iterateField(operand);
+    } else if (filter.isNot) {
+        yield *iterateField(filter.expr)
+    } else if (filter.isAtom) {
+        yield filter.name;
+    }
+}
+
+function hasUniqueFilter(table) {
+    for (let [schema, filter] of iterateFilters(table)) {
+        for (let field of iterateField(filter)) {
+            if (schema.getArgument(field).unique)
+                return true;
+        }
+    }
+    return false;
+}
+
 function checkFilterUniqueness(table, filter) {
     // FIXME (thingtalk issue #105)
     if (filter.isAnd || filter.isOr)
@@ -388,6 +423,9 @@ function addFilter(table, filter, $options, forceAdd = false) {
              return null;
 
         if (checkFilterUniqueness(table, filter))
+            return null;
+
+        if (hasUniqueFilter(table))
             return null;
 
         let existing = table.filter;
