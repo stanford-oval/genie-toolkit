@@ -134,6 +134,11 @@ function removeArgumentsWithoutData(classDef, tablename) {
         newArgs.push(arg);
     }
 
+    if (tabledef.args.includes('geo') && newArgs.includes('address') && !newArgs.includes('geo'))
+        newArgs.push('geo');
+    if (tabledef.args.includes('address') && newArgs.includes('geo') && !newArgs.includes('address'))
+        newArgs.push('address');
+
     classDef.queries[tablename] = new Ast.FunctionDef('query', tablename, tabledef.extends, newArgs, tabledef.is_list, tabledef.is_monitorable,
         tabledef.metadata, tabledef.annotations, classDef);
 }
