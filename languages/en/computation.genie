@@ -36,6 +36,8 @@
     }
 
     function makeComputeArgMinMaxExpression(table, operation, operands, resultType, direction = 'desc') {
+        if (C.hasUniqueFilter(table))
+            return null;
         const compute = makeComputeExpression(table, operation, operands, resultType);
         const projSchema = compute.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === operation);
         const sort = new Ast.Table.Sort(compute, operation, direction, compute.schema);
@@ -43,6 +45,8 @@
     }
 
     function makeAggComputeExpression(table, operation, field, list, resultType) {
+        if (C.hasUniqueFilter(table))
+            return null;
         const computeSchema = table.schema.addArguments([
             new Ast.ArgumentDef(Ast.ArgDirection.OUT, operation, resultType, {}, {})]);
         const expression = new Ast.ScalarExpression.Aggregation(operation, field, list);
@@ -58,6 +62,8 @@
     }
 
     function makeAggComputeArgMinMaxExpression(table, operation, field, list, resultType, direction = 'desc') {
+        if (C.hasUniqueFilter(table))
+            return null;
         const compute = makeAggComputeExpression(table, operation, field, list, resultType);
         const sort = new Ast.Table.Sort(compute, operation, direction, compute.schema);
         return new Ast.Table.Index(sort, [new Ast.Value.Number(1)], compute.schema);
@@ -70,6 +76,8 @@
     }
 
     function makeArgMinMaxTable(table, pname, direction = 'desc') {
+        if (C.hasUniqueFilter(table))
+            return null;
         const sort = new Ast.Table.Sort(table, pname, direction, table.schema.clone());
         return new Ast.Table.Index(sort, [new Ast.Value.Number(1)], sort.schema);
     }
@@ -206,6 +214,12 @@ compute_question = {
 }
 
 with_arg_min_max_table = {
+    ('nearest' | 'closest') table:complete_table => {
+        if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
+            return null;
+        return makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'asc');
+    };
+
     ('nearest' | 'closest') table:with_filtered_table => {
         if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
             return null;
@@ -216,6 +230,15 @@ with_arg_min_max_table = {
         if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
             return null;
         return makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'desc');
+    };
+
+    ( ('nearest' | 'closest') table:complete_table 'to' place:constant_Location
+    | table:complete_table ('that is' | 'which is') ('nearest' | 'closest') 'to' place:constant_Location
+    | table:complete_table ('nearest' | 'closest') 'to' place:constant_Location
+    ) => {
+        if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
+            return null;
+        return makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'asc');
     };
 
     ( ('nearest' | 'closest') table:with_filtered_table 'to' place:constant_Location

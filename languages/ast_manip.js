@@ -1131,6 +1131,7 @@ module.exports = {
     whenDoRule,
     whenGetStream,
 
+    hasUniqueFilter,
     makeFilter,
     makeAndFilter,
     makeOrFilter,
