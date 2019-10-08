@@ -282,8 +282,6 @@ function makeSingleFieldProjection($options, ftype, ptype, table, outParam) {
     if ($options.flags.schema_org) {
         if (name === 'id')
             return null;
-        if (!table.isFilter)
-            return null;
     }
     if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], ptype))
         return null;
@@ -309,8 +307,6 @@ function makeMultiFieldProjection($options, ftype, table, outParams) {
         const name = outParam.name;
         if ($options.flags.schema_org) {
             if (name === 'id')
-                return null;
-            if (!table.isFilter)
                 return null;
         }
         if (!table.schema.out[name])
