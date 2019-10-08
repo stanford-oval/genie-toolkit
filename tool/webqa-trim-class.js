@@ -53,6 +53,15 @@ function markTableHasData(tabledef) {
         markTableHasData(tabledef.class.queries[_extend]);
 }
 
+function markTableHasName(tabledef) {
+    if (!tabledef.annotations.org_schema_has_name)
+        tabledef.annotations.org_schema_has_name = new Ast.Value.Boolean(true);
+
+    // if a table has data, then recursively all parents have data (= they should be included)
+    for (let _extend of tabledef.extends)
+        markTableHasName(tabledef.class.queries[_extend]);
+}
+
 function markArgumentHasData(arg, value) {
     if (value === null || value === undefined ||
         (Array.isArray(value) && value.length === 0))
@@ -92,6 +101,8 @@ function markObjectHasData(tabledef, obj) {
     for (let key in obj) {
         if (key === '@id' || key === '@type' || key === '@context')
             continue;
+        if (key === 'name' && obj[key] && obj[key].length)
+            markTableHasName(tabledef);
 
         const arg = tabledef.getArgument(key);
         if (!arg)
@@ -147,11 +158,12 @@ function removeArgumentsWithoutData(entities, classDef, tablename) {
         delete classDef.queries[tablename];
         return;
     }
+
     entities.push({
         type: 'org.schema:' + tablename,
         name: titleCase(tabledef.canonical),
         is_well_known: false,
-        has_ner_support: true
+        has_ner_support: tabledef.annotations['org_schema_has_name'] && tabledef.annotations['org_schema_has_name'].value
     });
 
     let newArgs = [];
@@ -159,7 +171,7 @@ function removeArgumentsWithoutData(entities, classDef, tablename) {
         if (argname.indexOf('.') >= 0)
             continue;
         const arg = tabledef.getArgument(argname);
-        if (!arg.annotations['org_schema_has_data'] || !arg.annotations['org_schema_has_data'].value)
+        if (!(arg.annotations['org_schema_has_data'] && arg.annotations['org_schema_has_data'].value))
             continue;
 
         removeFieldsWithoutData(arg);
