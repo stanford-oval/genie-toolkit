@@ -429,6 +429,7 @@ for (let pname in $options.compoundArrays) {
     }
 }
 
+
 range_with_filter = {
     param:out_param_Numeric range:range => {
         const [v1, v2] = range;
@@ -479,6 +480,14 @@ pvp_filter = {
     p:out_param_pvp x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
+
+    ('here' | 'around here' | 'near here') => C.makeFilter($options, { name: "geo" }, '==', Ast.Value.Location(Ast.Location.Relative('current_location')));
+    ('nearby' | 'around me' | 'in this area') => C.makeFilter($options, { name: "geo" }, '==', Ast.Value.Location(Ast.Location.Relative('current_location')));
+    ('here' | 'around here' | 'near here') => C.makeFilter($options, { name: "location" }, '==', Ast.Value.Location(Ast.Location.Relative('current_location')));
+    ('nearby' | 'around me' | 'in this area') => C.makeFilter($options, { name: "location" }, '==', Ast.Value.Location(Ast.Location.Relative('current_location')));
+
+    ('in' | 'around' | 'near') x:constant_Location=> C.makeFilter($options, { name: "geo" }, '==', x);
+    ('in' | 'around' | 'near') x:constant_Location=> C.makeFilter($options, { name: "location" }, '==',x);
 }
 
 // filters on avp parameters
