@@ -336,7 +336,6 @@ function checkFilter(table, filter) {
     } else {
         return false;
     }
-
 }
 
 function checkFilterUniqueness(table, filter) {
@@ -958,6 +957,28 @@ function makeExampleFromQuery(id, q) {
             new Ast.Table.Filter(table, filter, q),
             [`\${p_id}`],
             [`\${p_id}`],
+            {}
+        ));
+    }
+    if (id && id.has_ner_support === 1) {
+        const idfilter = new Ast.BooleanExpression.Atom('id', '==', new Ast.Value.VarRef('p_id'));
+        examples.push(new Ast.Example(
+            -1,
+            'query',
+            { p_id: Type.Entity(id.type) },
+            new Ast.Table.Filter(table, idfilter, q),
+            [`\${p_id}`],
+            [`\${p_id}`],
+            {}
+        ));
+        const namefilter = new Ast.BooleanExpression.Atom('name', '==', new Ast.Value.VarRef('p_name'));
+        examples.push(new Ast.Example(
+            -1,
+            'query',
+            { p_name: String },
+            new Ast.Table.Filter(table, namefilter, q),
+            [`\${p_name}`],
+            [`\${p_name}`],
             {}
         ));
     }
