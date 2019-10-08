@@ -544,7 +544,9 @@ async function main(args) {
         const typedef = typeHierarchy[typename];
 
         const args = [
-            new Ast.ArgumentDef(Ast.ArgDirection.OUT, 'id', Type.Entity('org.schema:' + typename), {}, {})
+            new Ast.ArgumentDef(Ast.ArgDirection.OUT, 'id', Type.Entity('org.schema:' + typename), {}, {
+                'unique': new Ast.Value.Boolean(true)
+            })
         ];
         for (let propertyname in typedef.properties) {
             const propertydef = typedef.properties[propertyname];
