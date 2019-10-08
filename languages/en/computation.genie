@@ -87,8 +87,8 @@
 }
 
 projection_Measure_m = {
-    ( 'the distance' ('of' | 'to') table:with_filtered_table
-    | 'the distance' ('of' | 'to') 'the' table:with_arg_min_max_table )=> {
+    ( 'the distance' ('of' | 'to') table:with_filtered_table ('from here' | '')
+    | 'the distance' ('of' | 'to') 'the' table:with_arg_min_max_table ('from here' | ''))=> {
         // the position of a place in schema.org is called "geo" - for speed
         // we hardcode the parameter name here
 
@@ -99,8 +99,8 @@ projection_Measure_m = {
 
     // these form sentences like "tell me how far X is", which is grammatical but
     // clunky, so we !turking them
-    !turking ( 'how' ('far' | 'near' | 'close') table:with_filtered_table 'is'
-    | 'how' ('far' | 'near' | 'close') 'the' table:with_arg_min_max_table 'is'
+    !turking ( 'how' ('far' | 'near' | 'close') table:with_filtered_table 'is' ('from here' | '')
+    | 'how' ('far' | 'near' | 'close') 'the' table:with_arg_min_max_table 'is' ('from here' | '')
     ) => {
         if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
             return null;
@@ -154,16 +154,16 @@ projection_Measure_m = {
 }
 
 compute_question = {
-    ( 'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filtered_table '?'
-    | 'how' ('far' | 'near' | 'close') ('is' | 'are') 'the' table:with_arg_min_max_table '?'
+    ( 'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filtered_table ('from here' | '') ('?'|'')
+    | 'how' ('far' | 'near' | 'close') ('is' | 'are') 'the' table:with_arg_min_max_table ('from here' | '') ('?'|'')
     )=> {
         if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
             return null;
         return makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
     };
 
-    ( 'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filtered_table ('from' | 'to') place:constant_Location '?'
-    | 'how' ('far' | 'near' | 'close') ('is' | 'are') 'the' table:with_arg_min_max_table ('from' | 'to') place:constant_Location '?'
+    ( 'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filtered_table ('from' | 'to') place:constant_Location ('?'|'')
+    | 'how' ('far' | 'near' | 'close') ('is' | 'are') 'the' table:with_arg_min_max_table ('from' | 'to') place:constant_Location ('?'|'')
     ) => {
         if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
             return null;
@@ -233,7 +233,7 @@ compute_question = {
 }
 
 with_arg_min_max_table = {
-    ('nearest' | 'closest') table:complete_table => {
+    ('nearest' | 'closest') table:complete_table ('' | 'from here' | 'to here' | 'to me')  => {
         if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
             return null;
         return makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'asc');
