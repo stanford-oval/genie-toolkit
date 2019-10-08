@@ -408,6 +408,7 @@ $root = {
     ) => C.sayProjectionProgram($options, proj);
     !turking proj:projection_Any => C.sayProjectionProgram($options, proj);
     table:compute_question => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
+    table:where_question => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
 
     // now => do
     (
