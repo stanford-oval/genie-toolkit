@@ -182,6 +182,27 @@ function makeFilter($options, param, op, value, negate = false) {
         return f;
 }
 
+function makeAndFilter($options, param, op, values, negate=false) {
+    const operands  = values.map((v) => makeFilter($options, param, op, v));
+    if (operands.includes(null))
+        return null;
+    const f = new Ast.BooleanExpression.And(operands);
+    if (negate)
+        return new Ast.BooleanExpression.Not(f);
+    return f;
+}
+
+function makeOrFilter($options, param, op, values, negate=false) {
+    const operands  = values.map((v) => makeFilter($options, param, op, v, negate));
+    if (operands.includes(null))
+        return null;
+    const f = new Ast.BooleanExpression.Or(operands);
+    if (negate)
+        return new Ast.BooleanExpression.Not(f);
+    return f;
+}
+
+
 function makeListExpression($options, param, filter) {
     if (filter) {
         // TODO: handle more complicated filters
@@ -1014,6 +1035,8 @@ module.exports = {
     whenGetStream,
 
     makeFilter,
+    makeAndFilter,
+    makeOrFilter,
     makeAggregateFilter,
     makeListExpression,
     makeEdgeFilterStream,
