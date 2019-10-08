@@ -25,17 +25,17 @@ schema_with_filtered_table_join = {
     table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') get_predicate_table:with_filtered_table
         => C.addGetPredicateJoin(table, get_predicate_table, null, $options);
 
-    ( table:with_filter_table 'with' p:out_param_Any get_predicate_table:with_filter_table
-    | table:with_filter_table p:out_param_pvp get_predicate_table:with_filter_table
-    | table:with_filter_table ('who' | 'which' | 'that') p:out_param_avp get_predicate_table:with_filter_table
+    ( table:with_filtered_table 'with' p:out_param_Any get_predicate_table:with_filtered_table
+    | table:with_filtered_table p:out_param_pvp get_predicate_table:with_filtered_table
+    | table:with_filtered_table ('who' | 'which' | 'that') p:out_param_avp get_predicate_table:with_filtered_table
     ) => C.addGetPredicateJoin(table, get_predicate_table, p.name, $options);
 
     // join form of join
 
-    rhs:with_filter_table ('of' | 'for' | 'in') lhs:with_filter_table
+    rhs:with_filtered_table ('of' | 'for' | 'in') lhs:with_filtered_table
         => C.addArrayJoin(lhs, rhs);
 
-    !turking lhs:with_filter_table '\'s' rhs:with_filter_table
+    !turking lhs:with_filtered_table '\'s' rhs:with_filtered_table
         => C.addArrayJoin(lhs, rhs);
 }
 

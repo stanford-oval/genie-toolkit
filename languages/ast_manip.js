@@ -729,8 +729,8 @@ function mergeSchemas(functionType, lhsSchema, rhsSchema, passign) {
     for (let arg of lhsSchema.iterateArguments()) {
         if (newArgNames.has(arg.name))
             continue;
-        if (!lhsSchema.isArgInput(arg.name))
-            continue;
+        /*if (!lhsSchema.isArgInput(arg.name))
+            continue;*/
         newArgNames.add(arg.name);
         newArgs.push(arg);
     }
@@ -1170,7 +1170,7 @@ function maybeGetIdFilter(filter) {
 }
 
 function addGetPredicateJoin(table, get_predicate_table, pname, $options) {
-    if (!get_predicate_table.isFilter && get_predicate_table.table.isInvocation)
+    if (!get_predicate_table.isFilter || !get_predicate_table.table.isInvocation)
         return null;
 
 
@@ -1180,6 +1180,8 @@ function addGetPredicateJoin(table, get_predicate_table, pname, $options) {
     let lhsArg = undefined;
     if (pname) {
         lhsArg = table.schema.getArgument(pname);
+        if (!lhsArg)
+            return null;
         if (!(lhsArg.type.equals(idType) ||
             (lhsArg.type.isArray && lhsArg.type.elem.equals(idType))))
             return null;
@@ -1195,6 +1197,8 @@ function addGetPredicateJoin(table, get_predicate_table, pname, $options) {
         if (!lhsArg)
             return null;
     }
+    if (lhsArg.name === 'id')
+        return null;
 
     const idFilter = maybeGetIdFilter(get_predicate_table.filter);
     if (idFilter) {
@@ -1207,13 +1211,16 @@ function addGetPredicateJoin(table, get_predicate_table, pname, $options) {
         get_predicate_table.table.invocation.channel,
         get_predicate_table.table.invocation.in_params,
         Ast.BooleanExpression.And([get_predicate_table.filter,
-            Ast.BooleanExpression.Atom('id', (lhsArg.type.isArray ? 'in_array' : '=='), lhsArg.name)]),
+            Ast.BooleanExpression.Atom('id', (lhsArg.type.isArray ? 'in_array' : '=='), new Ast.Value.VarRef(lhsArg.name))]),
         get_predicate_table.table.invocation.schema
     );
     return addFilter(table, get_predicate, $options);
 }
 
 function addArrayJoin(lhs, rhs, $options) {
+    if (!lhs.isFilter)
+        return null;
+
     const idType = rhs.schema.getArgType('id');
     if (!idType || !idType.isEntity)
         return null;
@@ -1227,11 +1234,13 @@ function addArrayJoin(lhs, rhs, $options) {
     }
     if (!lhsArg)
         return null;
+    if (lhsArg.name === 'id')
+        return null;
 
     const newSchema = mergeSchemas('query', lhs.schema, rhs.schema, null);
     return new Ast.Table.Filter(
         new Ast.Table.Join(lhs, rhs, [], newSchema),
-        new Ast.BooleanExpression.Atom('id', (lhsArg.type.isArray ? 'in_array' : '=='), lhsArg.name),
+        new Ast.BooleanExpression.Atom('id', (lhsArg.type.isArray ? 'in_array' : '=='), new Ast.Value.VarRef(lhsArg.name)),
         newSchema);
 }
 
