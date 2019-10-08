@@ -361,8 +361,8 @@ function makeProgram(rule, principal = null) {
             let filteredOnName = false;
             let filteredOthers = false;
             for (let [, filter] of iterateFilters(table)) {
-                for (let field of iterateFields(filter)) {
-                    if (field === 'name')
+                for (let atom of iterateFields(filter)) {
+                    if (atom.name === 'name')
                         filteredOnName = true;
                     else
                         filteredOthers = true;
@@ -455,14 +455,14 @@ function *iterateFields(filter) {
     } else if (filter.isNot) {
         yield *iterateFields(filter.expr);
     } else if (filter.isAtom) {
-        yield filter.name;
+        yield filter;
     }
 }
 
 function hasUniqueFilter(table) {
     for (let [schema, filter] of iterateFilters(table)) {
-        for (let field of iterateFields(filter)) {
-            if (schema.getArgument(field).unique)
+        for (let atom of iterateFields(filter)) {
+            if (schema.getArgument(atom.name).unique)
                 return true;
         }
     }
@@ -1161,6 +1161,80 @@ function hasConflictParam(table, pname, operation) {
     return false;
 }
 
+function maybeGetIdFilter(filter) {
+    for (let atom of iterateFields(filter)) {
+        if (atom.name === 'id')
+            return atom.value;
+    }
+    return undefined;
+}
+
+function addGetPredicateJoin(table, get_predicate_table, pname, $options) {
+    if (!get_predicate_table.isFilter && get_predicate_table.table.isInvocation)
+        return null;
+
+
+    const idType = get_predicate_table.schema.getArgType('id');
+    if (!idType || !idType.isEntity)
+        return null;
+    let lhsArg = undefined;
+    if (pname) {
+        lhsArg = table.schema.getArgument(pname);
+        if (!(lhsArg.type.equals(idType) ||
+            (lhsArg.type.isArray && lhsArg.type.elem.equals(idType))))
+            return null;
+
+    } else {
+        for (let arg of table.schema.iterateArguments()) {
+            if (arg.type.equals(idType) ||
+                (arg.type.isArray && arg.type.elem.equals(idType))) {
+                lhsArg = arg;
+                break;
+            }
+        }
+        if (!lhsArg)
+            return null;
+    }
+
+    const idFilter = maybeGetIdFilter(get_predicate_table.filter);
+    if (idFilter) {
+        return addFilter(table, new Ast.BooleanExpression.Atom(lhsArg.name,
+            lhsArg.type.isArray ? 'contains': '==', idFilter), $options);
+    }
+
+    const get_predicate = new Ast.BooleanExpression.External(
+        get_predicate_table.table.invocation.selector,
+        get_predicate_table.table.invocation.channel,
+        get_predicate_table.table.invocation.in_params,
+        Ast.BooleanExpression.And([get_predicate_table.filter,
+            Ast.BooleanExpression.Atom('id', (lhsArg.type.isArray ? 'in_array' : '=='), lhsArg.name)]),
+        get_predicate_table.table.invocation.schema
+    );
+    return addFilter(table, get_predicate, $options);
+}
+
+function addArrayJoin(lhs, rhs, $options) {
+    const idType = rhs.schema.getArgType('id');
+    if (!idType || !idType.isEntity)
+        return null;
+    let lhsArg = undefined;
+    for (let arg of lhs.schema.iterateArguments()) {
+        if (arg.type.equals(idType) ||
+            (arg.type.isArray && arg.type.elem.equals(idType))) {
+            lhsArg = arg;
+            break;
+        }
+    }
+    if (!lhsArg)
+        return null;
+
+    const newSchema = mergeSchemas('query', lhs.schema, rhs.schema, null);
+    return new Ast.Table.Filter(
+        new Ast.Table.Join(lhs, rhs, [], newSchema),
+        new Ast.BooleanExpression.Atom('id', (lhsArg.type.isArray ? 'in_array' : '=='), lhsArg.name),
+        newSchema);
+}
+
 module.exports = {
     typeToStringSafe,
     findFunctionNameTable,
@@ -1230,4 +1304,7 @@ module.exports = {
 
     iterateFilters,
     iterateFields,
+
+    addGetPredicateJoin,
+    addArrayJoin
 };

@@ -39,8 +39,8 @@
         if (C.hasUniqueFilter(table))
             return null;
         for (let [, filter] of C.iterateFilters(table)) {
-            for (let field of C.iterateFields(filter)) {
-                if (field === operands[0].name)
+            for (let atom of C.iterateFields(filter)) {
+                if (atom.name === operands[0].name)
                     return null;
             }
         }
