@@ -98,6 +98,10 @@ const PROPERTY_TYPE_OVERRIDE = {
     'description': Type.String
 };
 
+const PROPERTY_CANONICAL_OVERRIDE = {
+    'geo': { default:"npp", npp:['location'] }
+};
+
 // HACK: certain structured types want to get the name & description property from Thing
 const STRUCT_INCLUDE_THING_PROPERTIES = new Set([
     'LocationFeatureSpecification'
@@ -262,6 +266,9 @@ function makeArgCanonical(name, ptype) {
             return name.substring(0, name.length - ' value'.length);
         return name;
     }
+
+    if (name in PROPERTY_CANONICAL_OVERRIDE)
+        return PROPERTY_CANONICAL_OVERRIDE[name];
 
     let canonical = {};
     let npp;
