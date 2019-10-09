@@ -87,6 +87,10 @@ const NON_STRUCT_TYPES = new Set([
     'GeoShape'
 ]);
 
+const PROPERTY_FORCE_ARRAY = new Set([
+    'worksFor',
+]);
+
 const PROPERTY_TYPE_OVERRIDE = {
     'telephone': Type.Entity('tt:phone_number'),
     'email': Type.Entity('tt:email_address'),
@@ -109,10 +113,52 @@ const PROPERTY_CANONICAL_OVERRIDE = {
 };
 
 const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
+    // restaurants
     'datePublished': { default:"avp", avp:["published on", "written on"], npp:["date published"] },
     'ratingValue': { default:"pvp", pvp:["rated #star"], npp:["rating"] },
     'telephone': { default:"npp", npp:["telephone", "phone number"] },
     'servesCuisine': { default:"apv", apv:true, avp:["serves #cuisine", "serves #food", "offer #cuisine", "offer #food", "serves", "offers"], npp:["cuisine", "food type"] },
+
+    // linkedin
+    alumniOf: {
+        default: 'npi',
+        npi: [
+        // who is an alumnus of Stanford
+        "alumni of", "alumnus of", "alumna of",
+        // who is a Stanford alumnus
+        "#alumnus", "#alumni"],
+        avp: [
+        // who was educated at Stanford
+        "was educated at", "graduated from"],
+        pvp: [
+        // what person educated at Stanford ...
+        "educated at"
+        ],
+        npp: [
+        // who has alma mater ...
+        "alma mater"
+        ]
+    },
+    award: {
+        default: 'avp',
+        npi: [
+            // who is a nobel prize winner
+            'winner of', 'recipient of',
+            '#winner', '#awardee', '#recipient', '#holder',
+        ],
+        avp: [
+        "has the award", "has received the #award", "won the award for", "won the #award",
+        "received the #award", "received the", "won the", "holds the award for", "holds the #award"
+        ],
+        npp: ['awards', 'awards received']
+    },
+    affiliation: {
+        default: 'npi',
+        npi: [
+            'affiliated with', 'affiliated to', 'member of'
+        ],
+        npp: ['affiliation']
+    }
 };
 
 const PROPERTIES_NO_FILTER = [
@@ -151,6 +197,8 @@ function getBestPropertyType(propname, property, typeHierarchy, manualAnnotation
     // this is a pretty coarse heuristic, but it works sometimes...
 
     if (/^an? /i.test(property.comment))
+        isArray = true;
+    if (PROPERTY_FORCE_ARRAY.has(propname))
         isArray = true;
 
     // prefer enum if possible

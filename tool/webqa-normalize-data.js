@@ -70,6 +70,7 @@ const PROPERTY_RENAMES = {
     'checkInTime': 'checkinTime',
     'checkOutTime': 'checkoutTime',
     'AggregateRating': 'aggregateRating',
+    'awards': 'award'
 };
 
 class Normalizer {
@@ -236,6 +237,11 @@ class Normalizer {
                 if (typeof value === 'object') {
                     if (expectedType.type === 'tt:Entity' && value.url)
                         return String(value.url);
+
+                    if (expectedType.type === 'tt:Entity' &&
+                        value['@type'] === 'ImageObject' &&
+                        value.contentUrl)
+                        return String(value.contentUrl);
 
                     console.error(`Unexpected object in ${path.join('.')}, expected a ${expectedType.type}`);
                     console.error(value);
