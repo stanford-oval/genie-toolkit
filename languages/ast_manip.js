@@ -21,6 +21,7 @@ const { isUnaryTableToTableOp,
         isUnaryTableToStreamOp } = require('./utils');
 const { notifyAction } = ThingTalk.Generate;
 const { clean, pluralize } = require('../lib/utils');
+const { coin } = require('../lib/random');
 
 function typeToStringSafe(type) {
     if (type.isArray)
@@ -302,6 +303,8 @@ function makeSingleFieldProjection($options, ftype, ptype, table, outParam) {
 
 
 function makeMultiFieldProjection($options, ftype, table, outParams) {
+    if (coin(0.9998, $options.rng))
+        return null;
     const names = [];
     for (let outParam of outParams) {
         const name = outParam.name;
