@@ -441,10 +441,10 @@ function *iterateFilters(table) {
     if (table.isFilter) {
         yield [table.schema, table.filter];
     } else if (table.isJoin) {
-        yield *table.lhs.iterateFilters();
-        yield *table.rhs.iterateFilters();
+        yield *iterateFilters(table.lhs);
+        yield *iterateFilters(table.rhs);
     } else {
-        yield *table.table.iterateFilters();
+        yield *iterateFilters(table.table);
     }
 }
 
