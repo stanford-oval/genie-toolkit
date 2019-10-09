@@ -74,6 +74,10 @@ const BLACKLISTED_TYPES = new Set([
     'Researcher',
 ]);
 
+const BLACKLISTED_PROPERTIES = new Set([
+    'sameAs',
+]);
+
 const STRUCTURED_HIERARCHIES = [
     'StructuredValue', 'Rating',
 
@@ -158,6 +162,17 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
             'affiliated with', 'affiliated to', 'member of'
         ],
         npp: ['affiliation']
+    },
+    worksFor: {
+        default: 'avp',
+        npi: [
+            'employee of', '#employee'
+        ],
+        avp: ['works for', 'works at'],
+        pvp: [
+            'employed at', 'employed by',
+        ],
+        npp: ['employer']
     }
 };
 
@@ -187,6 +202,9 @@ function typeToThingTalk(typename, typeHierarchy, manualAnnotation) {
 }
 
 function getBestPropertyType(propname, property, typeHierarchy, manualAnnotation) {
+    if (BLACKLISTED_PROPERTIES.has(propname))
+        return [undefined, undefined];
+
     let best = undefined, bestScore = -Infinity;
 
     // if the property is defined as taking ItemList and something else, we make an array of that something else
