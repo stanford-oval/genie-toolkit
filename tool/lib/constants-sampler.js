@@ -30,7 +30,7 @@ module.exports = class ConstantSampler {
 
     _sampleEntities(data) {
         const sampled = choose(data, this._options.sample_size, this._options.rng);
-        return sampled.filter((entity) => /^[a-zA-Z0-9- .]*$/.test(entity.name)).map((entity) => {
+        return sampled.filter((entity) => /^[a-zA-Z0-9 .]*$/.test(entity.name)).map((entity) => {
             return {
                 value: entity.value,
                 display: entity.name
@@ -40,7 +40,7 @@ module.exports = class ConstantSampler {
 
     _sampleStrings(data) {
         const sampled = choose(data, this._options.sample_size, this._options.rng);
-        return sampled.filter((string) => /^[a-zA-Z0-9- .]*$/.test(string.preprocessed)).map((string) => string.preprocessed);
+        return sampled.filter((string) => /^[a-zA-Z0-9 .]*$/.test(string.value)).map((string) => string.value);
     }
 
 
@@ -50,6 +50,8 @@ module.exports = class ConstantSampler {
             return this._cached[key];
 
         const data = await this._constProvider.get(type, name);
+        if (data.length === 0)
+            return [];
         const sampled = type === 'string' ? this._sampleStrings(data) : this._sampleEntities(data);
         this._cached[key] = sampled;
         return sampled;
@@ -65,7 +67,9 @@ module.exports = class ConstantSampler {
                 const arg = argument.name;
                 const string_values = argument.getAnnotation('string_values');
                 if (string_values) {
-                    const samples = await this._retrieveSamples('string', string_values);
+                    let samples = await this._retrieveSamples('string', `org.schema:${f}_${arg}`);
+                    if (samples.length === 0)
+                        samples = await this._retrieveSamples('string', string_values);
                     samples.forEach((sample) => {
                         constants.push([`param:@${device}.${f}:${arg}:String`, sample]);
                     });
