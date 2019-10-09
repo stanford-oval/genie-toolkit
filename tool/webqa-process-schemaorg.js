@@ -108,6 +108,13 @@ const PROPERTY_CANONICAL_OVERRIDE = {
     'addressLocality': { default:"npp", npp:['city'] }
 };
 
+const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
+    'datePublished': { default:"avp", avp:["published on", "written on"], npp:["date published"] },
+    'ratingValue': { default:"pvp", pvp:["rated #star"], npp:["rating"] },
+    'telephone': { default:"npp", npp:["telephone", "phone number"] },
+    'servesCuisine': { default:"apv", apv:true, avp:["serves #cuisine", "serves #food", "offer #cuisine", "offer #food", "serves", "offers"], npp:["cuisine", "food type"] },
+};
+
 const PROPERTIES_NO_FILTER = [
     'name', // no filter on name, if the id has ner support, we'll generate prim for it
     'streetAddress', // street address and address locality should be handled by geo
@@ -119,21 +126,21 @@ const STRUCT_INCLUDE_THING_PROPERTIES = new Set([
     'LocationFeatureSpecification'
 ]);
 
-function typeToThingTalk(typename, typeHierarchy) {
+function typeToThingTalk(typename, typeHierarchy, manualAnnotation) {
     if (typename in BUILTIN_TYPEMAP)
         return BUILTIN_TYPEMAP[typename];
 
     if (typeHierarchy[typename].isItemList)
-        return Type.Array(typeToThingTalk(typeHierarchy[typename].itemType, typeHierarchy));
+        return Type.Array(typeToThingTalk(typeHierarchy[typename].itemType, typeHierarchy, manualAnnotation));
     if (typeHierarchy[typename].isEnum && typeHierarchy[typename].enum.length > 0)
         return Type.Enum(typeHierarchy[typename].enum);
     if (typeHierarchy[typename].representAsStruct)
-        return makeCompoundType(typename, typeHierarchy[typename], typeHierarchy);
+        return makeCompoundType(typename, typeHierarchy[typename], typeHierarchy, manualAnnotation);
 
     return Type.Entity('org.schema:' + typename);
 }
 
-function getBestPropertyType(propname, property, typeHierarchy) {
+function getBestPropertyType(propname, property, typeHierarchy, manualAnnotation) {
     let best = undefined, bestScore = -Infinity;
 
     // if the property is defined as taking ItemList and something else, we make an array of that something else
@@ -197,7 +204,7 @@ function getBestPropertyType(propname, property, typeHierarchy) {
         return [best, Type.Number];
     }
 
-    let tttype = typeToThingTalk(best, typeHierarchy);
+    let tttype = typeToThingTalk(best, typeHierarchy, manualAnnotation);
     if (!tttype)
         return [undefined, undefined];
 
@@ -210,7 +217,7 @@ function getBestPropertyType(propname, property, typeHierarchy) {
     return [best, tttype];
 }
 
-function makeCompoundType(startingTypename, typedef, typeHierarchy) {
+function makeCompoundType(startingTypename, typedef, typeHierarchy, manualAnnotation) {
     const fields = {};
 
     // collect all properties of this type (incl. inherited ones)
@@ -243,11 +250,11 @@ function makeCompoundType(startingTypename, typedef, typeHierarchy) {
 
     let anyfield = false;
     for (let [propertyname, propertydef] of allproperties) {
-        const [schemaOrgType, ttType] = getBestPropertyType(propertyname, propertydef, typeHierarchy);
+        const [schemaOrgType, ttType] = getBestPropertyType(propertyname, propertydef, typeHierarchy, manualAnnotation);
         if (!ttType)
             continue;
 
-        const canonical = makeArgCanonical(propertyname, ttType);
+        const canonical = makeArgCanonical(propertyname, ttType, manualAnnotation);
         const metadata = { 'canonical': canonical["default"] === "npp" && canonical["npp"].length === 1 ? canonical["npp"][0] : canonical };
         const annotation = keepAnnotation ? {
             'org_schema_type': Ast.Value.String(schemaOrgType),
@@ -274,7 +281,7 @@ function posTag(tokens) {
         .tags;
 }
 
-function makeArgCanonical(name, ptype) {
+function makeArgCanonical(name, ptype, manualAnnotation) {
     function cleanName(name) {
         if (name.endsWith(' value'))
             return name.substring(0, name.length - ' value'.length);
@@ -283,6 +290,8 @@ function makeArgCanonical(name, ptype) {
 
     if (name in PROPERTY_CANONICAL_OVERRIDE)
         return PROPERTY_CANONICAL_OVERRIDE[name];
+    if (manualAnnotation && name in MANUAL_PROPERTY_CANONICAL_OVERRIDE)
+        return MANUAL_PROPERTY_CANONICAL_OVERRIDE[name];
 
     let canonical = {};
     let npp;
@@ -361,6 +370,8 @@ async function main(args) {
         schemajsonld = await Tp.Helpers.Http.get(args.url);
         await util.promisify(fs.writeFile)(args.cache_file, schemajsonld);
     }
+
+    const manualAnnotation = args.manual;
 
     // type_name -> {
     //    extends: [type_name],
@@ -574,14 +585,14 @@ async function main(args) {
         ];
         for (let propertyname in typedef.properties) {
             const propertydef = typedef.properties[propertyname];
-            const [schemaOrgType, type] = getBestPropertyType(propertyname, propertydef, typeHierarchy);
+            const [schemaOrgType, type] = getBestPropertyType(propertyname, propertydef, typeHierarchy, manualAnnotation);
             if (!type)
                 continue;
 
             if (KEYWORDS.includes(propertyname))
                 propertyname = '_' + propertyname;
 
-            const canonical = makeArgCanonical(propertyname, type);
+            const canonical = makeArgCanonical(propertyname, type, manualAnnotation);
             const metadata = { 'canonical': canonical["default"] === "npp" && canonical["npp"].length === 1 ? canonical["npp"][0] : canonical };
             const annotation = keepAnnotation ? {
                 'org_schema_type': Ast.Value.String(schemaOrgType),
@@ -661,6 +672,12 @@ module.exports = {
             required: false,
             defaultValue: 'https://schema.org/version/3.9/schema.jsonld',
             help: 'The schema.org URL to retrieve the definitions from.'
+        });
+        parser.addArgument('--manual', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Enable debugging.',
+            defaultValue: false
         });
     },
 
