@@ -31,6 +31,13 @@ module.exports = {
             defaultValue: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
+        parser.addArgument('--include-all', {
+            required: false,
+            nargs: 0,
+            action: 'storeTrue',
+            defaultValue: false,
+            help: `Include phrase-level PPDB, syntactic PPDB, and dubious paraphrases`
+        });
         parser.addArgument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
@@ -49,7 +56,7 @@ module.exports = {
             word = word.trim();
             paraphrase = paraphrase.trim();
 
-            if (!langPack.isValidParaphrasePair(word, paraphrase))
+            if (!args.include_all && langPack.isValidParaphrasePair(word, paraphrase))
                 return;
 
             entail = entail.trim();
@@ -61,6 +68,7 @@ module.exports = {
 
         return new Promise((resolve, reject) => {
             input.on('end', () => {
+                console.log(`Found ${builder.size} paraphrase pairs`);
                 resolve(util.promisify(fs.writeFile)(args.output, builder.serialize()));
             });
             input.on('error', reject);
