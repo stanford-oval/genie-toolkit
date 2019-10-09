@@ -50,7 +50,7 @@ module.exports = class ConstantSampler {
             return this._cached[key];
 
         const data = await this._constProvider.get(type, name);
-        const sampled = type === 'strings' ? this._sampleStrings(data) : this._sampleEntities(data);
+        const sampled = type === 'string' ? this._sampleStrings(data) : this._sampleEntities(data);
         this._cached[key] = sampled;
         return sampled;
     }
