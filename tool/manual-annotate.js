@@ -12,6 +12,7 @@
 const fs = require('fs');
 const events = require('events');
 const csvparse = require('csv-parse');
+const csvstringify = require('csv-stringify');
 const readline = require('readline');
 const Tp = require('thingpedia');
 
@@ -49,6 +50,7 @@ class Trainer extends events.EventEmitter {
         this._candidates = undefined;
         this._utterance = undefined;
         this._preprocessed = undefined;
+        this._comment = undefined;
         this._entities = undefined;
         this._serial = options.offset - 2;
         this._id = undefined;
@@ -60,7 +62,11 @@ class Trainer extends events.EventEmitter {
             }
 
             if (line === 'd' || line.startsWith('d ')) {
-                this.emit('dropped', { id: this._id, utterance: this._utterance, comment: line.substring(2).trim() });
+                let comment = line.substring(2).trim();
+                if (!comment && this._comment)
+                    comment = this._comment;
+
+                this.emit('dropped', { id: this._id, utterance: this._utterance, comment });
                 this.next();
                 return;
             }
@@ -154,7 +160,6 @@ class Trainer extends events.EventEmitter {
         }
         i -= 1;
         this._learnProgram(this._candidates[i]);
-        this.next();
     }
 
     _more() {
@@ -186,7 +191,7 @@ class Trainer extends events.EventEmitter {
         }
 
         this._state = 'loading';
-        let { id, utterance, preprocessed, target_code: oldTargetCode } = line;
+        let { id, utterance, preprocessed, target_code: oldTargetCode, comment } = line;
         this._utterance = utterance;
         if (!oldTargetCode)
             oldTargetCode = preprocessed;
@@ -210,6 +215,7 @@ class Trainer extends events.EventEmitter {
 
         this._state = 'top3';
         this._id = id;
+        this._comment = comment;
         this._preprocessed = parsed.tokens.join(' ');
         this._entities = parsed.entities;
         this._candidates = (await Promise.all(parsed.candidates.map(async (cand) => {
@@ -223,6 +229,8 @@ class Trainer extends events.EventEmitter {
         }))).filter((c) => c !== null);
 
         console.log(`Sentence #${this._serial+1} (${this._id}): ${utterance}`);
+        if (this._comment)
+            console.log(`(previously dropped as "${this._comment}")`);
         for (var i = 0; i < 3 && i < this._candidates.length; i++)
             console.log(`${i+1}) ${this._candidates[i].prettyprint()}`);
         this._rl.setPrompt('$ ');
@@ -279,7 +287,9 @@ module.exports = {
     async execute(args) {
         const learned = new DatasetStringifier();
         learned.pipe(fs.createWriteStream(args.annotated, { flags: (args.offset > 0 ? 'a' : 'w') }));
-        const dropped = fs.createWriteStream(args.dropped, { flags: (args.offset > 0 ? 'a' : 'w') });
+        const droppedfile = fs.createWriteStream(args.dropped, { flags: (args.offset > 0 ? 'a' : 'w') });
+        const dropped = csvstringify({ header: true, delimiter: '\t' });
+        dropped.pipe(droppedfile);
 
         let lines = [];
         args.input.setEncoding('utf8');
@@ -309,8 +319,8 @@ module.exports = {
         trainer.on('learned', (ex) => {
             learned.write(ex);
         });
-        trainer.on('dropped', ({ id, utterance, comment }) => {
-            dropped.write(id + '\t' + utterance + '\t' + comment + '\n');
+        trainer.on('dropped', (row) => {
+            dropped.write(row);
         });
         rl.on('SIGINT', quit);
         await trainer.start();
@@ -319,7 +329,7 @@ module.exports = {
 
         await Promise.all([
             waitFinish(learned),
-            waitFinish(dropped),
+            waitFinish(droppedfile),
         ]);
 
         await trainer.stop();
