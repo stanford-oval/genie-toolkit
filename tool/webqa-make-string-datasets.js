@@ -50,9 +50,12 @@ class ParamDatasetGenerator {
 
         for (let fn in classDef.queries) {
             const fndef = classDef.queries[fn];
+            const args = [];
+            for (let arg of fndef.iterateArguments())
+                args.push(arg);
             this._meta[fn] = {
                 extends: fndef.extends,
-                fields: makeMetadata(fndef.args.map((argname) => fndef.getArgument(argname)))
+                fields: makeMetadata(args)
             };
         }
     }
@@ -96,7 +99,7 @@ class ParamDatasetGenerator {
             // entity of builtin type
 
             const key = path[path.length-1];
-            if (key === 'name' || key === 'description')
+            if (key === 'description')
                 return;
 
             if (expectedType.type === 'tt:String') {
