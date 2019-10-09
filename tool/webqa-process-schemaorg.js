@@ -101,10 +101,10 @@ const PROPERTY_TYPE_OVERRIDE = {
 };
 
 const PROPERTY_CANONICAL_OVERRIDE = {
-    'geo': { default:"npp", npp:['location'] },
+    'geo': { default:"npp", npp:['location', 'address'] },
     'streetAddress': { default:"npp", npp:['street'] },
-    'addressCountry': { default:"npp", npp:['country'] },
-    'addressRegion': { default:"npp", npp:['state'] },
+    'addressCountry': { default:"pvp", pvp:["in"], npp:["country"] },
+    'addressRegion': { default:"pvp", pvp:["in"], npp:["state"] },
     'addressLocality': { default:"npp", npp:['city'] }
 };
 
@@ -248,13 +248,15 @@ function makeCompoundType(startingTypename, typedef, typeHierarchy) {
             continue;
 
         const canonical = makeArgCanonical(propertyname, ttType);
-        const metadata = { 'canonical': canonical["default"] === "npp" ? canonical["npp"][0] : canonical };
+        const metadata = { 'canonical': canonical["default"] === "npp" && canonical["npp"].length === 1 ? canonical["npp"][0] : canonical };
         const annotation = keepAnnotation ? {
             'org_schema_type': Ast.Value.String(schemaOrgType),
             'org_schema_comment': Ast.Value.String(propertydef.comment)
         } : {
             'org_schema_type': Ast.Value.String(schemaOrgType)
         };
+        if (PROPERTIES_NO_FILTER.includes(propertyname))
+            annotation['genie'] = new Ast.Value.Boolean(false);
 
         fields[propertyname] = new Ast.ArgumentDef(undefined, propertyname, ttType, metadata, annotation);
         anyfield = true;
@@ -580,7 +582,7 @@ async function main(args) {
                 propertyname = '_' + propertyname;
 
             const canonical = makeArgCanonical(propertyname, type);
-            const metadata = { 'canonical': canonical["default"] === "npp" ? canonical["npp"][0] : canonical };
+            const metadata = { 'canonical': canonical["default"] === "npp" && canonical["npp"].length === 1 ? canonical["npp"][0] : canonical };
             const annotation = keepAnnotation ? {
                 'org_schema_type': Ast.Value.String(schemaOrgType),
                 'org_schema_comment': Ast.Value.String(propertydef.comment)

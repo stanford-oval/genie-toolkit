@@ -188,7 +188,9 @@ function removeArgumentsWithoutData(entities, classDef, tablename) {
 
     if (tabledef.args.includes('geo') && hasAddress && !hasGeo) {
         newArgs.push(new Ast.ArgumentDef(
-            'out', 'geo', Type.Location, { canonical: "location" }, {
+            'out', 'geo', Type.Location, {
+                canonical: { default:"npp", npp:["location", "address"] }
+            }, {
                 org_schema_type: new Ast.Value.String('GeoCoordinates'),
                 org_schema_has_data: new Ast.Value.Boolean(false)
             }
