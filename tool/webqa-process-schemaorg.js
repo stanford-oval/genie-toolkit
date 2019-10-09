@@ -75,7 +75,7 @@ const BLACKLISTED_TYPES = new Set([
 ]);
 
 const BLACKLISTED_PROPERTIES = new Set([
-    'sameAs',
+    'sameAs', 'affiliation'
 ]);
 
 const STRUCTURED_HIERARCHIES = [
