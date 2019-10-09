@@ -95,12 +95,24 @@ const PROPERTY_TYPE_OVERRIDE = {
     'checkoutTime': Type.Time,
     'weight': Type.Measure('ms'),
     'depth': Type.Measure('m'),
-    'description': Type.String
+    'description': Type.String,
+    'addressCountry': Type.Entity('tt:country'),
+    'addressRegion': Type.Entity('tt:us_state')
 };
 
 const PROPERTY_CANONICAL_OVERRIDE = {
-    'geo': { default:"npp", npp:['location'] }
+    'geo': { default:"npp", npp:['location'] },
+    'streetAddress': { default:"npp", npp:['street'] },
+    'addressCountry': { default:"npp", npp:['country'] },
+    'addressRegion': { default:"npp", npp:['state'] },
+    'addressLocality': { default:"npp", npp:['city'] }
 };
+
+const PROPERTIES_NO_FILTER = [
+    'name', // no filter on name, if the id has ner support, we'll generate prim for it
+    'streetAddress', // street address and address locality should be handled by geo
+    'addressLocality'
+];
 
 // HACK: certain structured types want to get the name & description property from Thing
 const STRUCT_INCLUDE_THING_PROPERTIES = new Set([
@@ -576,8 +588,8 @@ async function main(args) {
                 'org_schema_type': Ast.Value.String(schemaOrgType)
             };
 
-            if (propertyname === 'name')
-                annotation['genie'] = new Ast.Value.Boolean(false); // no filter on name, if the id has ner support, we'll generate prim for it
+            if (PROPERTIES_NO_FILTER.includes(propertyname))
+                annotation['genie'] = new Ast.Value.Boolean(false);
 
             const arg = new Ast.ArgumentDef(Ast.ArgDirection.OUT, propertyname, type, metadata, annotation);
 

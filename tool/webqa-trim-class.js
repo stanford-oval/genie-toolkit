@@ -190,7 +190,7 @@ function removeArgumentsWithoutData(entities, classDef, tablename) {
         newArgs.push(new Ast.ArgumentDef(
             'out', 'geo', Type.Location, { canonical: "location" }, {
                 org_schema_type: new Ast.Value.String('GeoCoordinates'),
-                org_schema_has_data: new Ast.Value.Boolean(true)
+                org_schema_has_data: new Ast.Value.Boolean(false)
             }
         ));
     }
