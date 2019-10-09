@@ -9,8 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Tp = require('thingpedia');
-
 const { choose } = require('../../lib/random');
 
 function getEntityType(type) {
@@ -21,17 +19,13 @@ function getEntityType(type) {
     return null;
 }
 
+
 module.exports = class ConstantSampler {
-    constructor(schemaRetriever, options) {
+    constructor(schemaRetriever, constProvider, options) {
         this._schemaRetriever = schemaRetriever;
+        this._constProvider = constProvider;
         this._options = options;
         this._cached = {};
-    }
-
-    _endpoint(api) {
-        return this._options.thingpedia_url + api
-            + '?locale=' + this._options.locale
-            + '&developer_key=' + this._options.developer_key;
     }
 
     _sampleEntities(data) {
@@ -50,15 +44,12 @@ module.exports = class ConstantSampler {
     }
 
 
-
     async _retrieveSamples(type, name) {
         const key = type + '+' + name;
         if (key in this._cached)
             return this._cached[key];
 
-        const url = this._endpoint(`/api/v3/${type}/list/${name}`);
-        const response = await Tp.Helpers.Http.get(url);
-        const data = JSON.parse(response).data;
+        const data = await this._constProvider.get(type, name);
         const sampled = type === 'strings' ? this._sampleStrings(data) : this._sampleEntities(data);
         this._cached[key] = sampled;
         return sampled;
@@ -74,14 +65,14 @@ module.exports = class ConstantSampler {
                 const argument = functionDef.getArgument(arg);
                 const string_values = argument.getAnnotation('string_values');
                 if (string_values) {
-                    const samples = await this._retrieveSamples('strings', string_values);
+                    const samples = await this._retrieveSamples('string', string_values);
                     samples.forEach((sample) => {
                         constants.push([`param:@${device}.${f}:${arg}:String`, sample]);
                     });
                 }
                 const entityType = getEntityType(functionDef.getArgType(arg));
                 if (entityType) {
-                    const samples = await this._retrieveSamples('entities', entityType);
+                    const samples = await this._retrieveSamples('entity', entityType);
                     samples.forEach((sample) => {
                         constants.push([
                             `param:@${device}.${f}:${arg}:Entity(${entityType})`,

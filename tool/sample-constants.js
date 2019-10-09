@@ -16,8 +16,8 @@ const ThingTalk = require('thingtalk');
 
 const StreamUtils = require('../lib/stream-utils');
 const ConstantSampler = require('./lib/constants-sampler');
+const FileParameterProvider = require('./lib/file_parameter_provider');
 
-const DEFAULT_THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 
 module.exports = {
     initArgparse(subparsers) {
@@ -29,22 +29,18 @@ module.exports = {
             required: true,
             type: fs.createWriteStream
         });
+        parser.addArgument(['-l', '--locale'], {
+            required: false,
+            defaultValue: 'en-US',
+            help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
+        });
         parser.addArgument('--thingpedia', {
             required: true,
             help: 'Path to .tt file containing signature, type and mixin definitions.'
         });
-        parser.addArgument('--thingpedia-url', {
-            required: false,
-            defaultValue: DEFAULT_THINGPEDIA_URL,
-            help: `base URL of Thingpedia server to contact; defaults to '${DEFAULT_THINGPEDIA_URL}'`
-        });
-        parser.addArgument(['-l', '--locale'], {
-            defaultValue: 'en-US',
-            help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
-        });
-        parser.addArgument('--developer-key', {
+        parser.addArgument('--parameter-datasets', {
             required: true,
-            help: `developer key to use when contacting Thingpedia.`
+            help: 'TSV file containing the paths to datasets for strings and entity types.'
         });
         parser.addArgument('--random-seed', {
             defaultValue: 'almond is awesome',
@@ -58,24 +54,28 @@ module.exports = {
             required: true,
             help: `The list of devices to sample, separated by comma`
         });
+
     },
 
 
     async execute(args) {
         const options = {
-            locale: args.locale,
-            rng: seedrandom.alea(args.random_seed),
-            thingpedia_url: args.thingpedia_url,
-            developer_key: args.developer_key,
             devices: args.devices,
-            sample_size: args.sample_size
+            sample_size: args.sample_size,
+            rng: seedrandom.alea(args.random_seed),
+            locale: args.locale
         };
         const tpClient = new Tp.FileClient(args);
         const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
-        const sampler = new ConstantSampler(schemaRetriever, options);
+        const constProvider = new FileParameterProvider(args.parameter_datasets);
+        await constProvider.open();
+
+        const sampler = new ConstantSampler(schemaRetriever, constProvider, options);
+
         const constants = await sampler.sample();
         args.output.end(constants.map((c) => c.join('\t')).join('\n'));
 
         StreamUtils.waitFinish(args.output);
+        await constProvider.close();
     }
 };
