@@ -49,6 +49,10 @@ function parseDuration(form) {
     return value;
 }
 
+const MEASURE_UNIT_REMAP = {
+    'calories': 'kcal',
+};
+
 function parseMeasure(str) {
     const match = /^(-?(?:(?:0|[1-9][0-9]*)\.[0-9]*(?:[eE][+-]?[0-9]+)?|\.[0-9]+(?:[eE][+-]?[0-9]+)?|(?:0|[1-9][0-9]*)(?:[eE][+-]?[0-9]+)?))\s+([a-zA-Z]+)$/.exec(str);
     if (!match) {
@@ -56,7 +60,10 @@ function parseMeasure(str) {
         return undefined;
     }
 
-    const [, value, unit] = match;
+    let [, value, unit] = match;
+    if (MEASURE_UNIT_REMAP[unit])
+        unit = MEASURE_UNIT_REMAP[unit];
+
     if (!ThingTalk.Units.UnitsToBaseUnit[unit]) {
         console.error(`Invalid measurement unit ${unit}`);
         return undefined;
@@ -73,6 +80,13 @@ const PROPERTY_RENAMES = {
     'awards': 'award'
 };
 
+function ensureArray(value) {
+    if (Array.isArray(value))
+        return value;
+    else
+        return [value];
+}
+
 class Normalizer {
     constructor() {
         // metadata for each schema.org type
@@ -80,6 +94,9 @@ class Normalizer {
 
         // the normalized file
         this.output = {};
+
+        // deduplicate according to sameAs
+        this._sameAsMap = new Map;
 
         // deduplication of warnings
         this._warnings = new Set;
@@ -125,13 +142,31 @@ class Normalizer {
             return;
 
         for (let field in obj) {
-            if (field === '@id' || field === '@type' || field === '@context')
+            if (field === '@id' || field === '@type' || field === '@context' || field === 'sameAs')
                 continue;
 
             if (!querydef.hasArgument(field)) {
                 this._warnField([type], field);
                 delete obj[field];
             }
+        }
+    }
+
+    _mergeObject(into, value) {
+        for (let prop in value) {
+            if (prop === '@id' || prop === '@type' || prop === '@context' || prop === 'sameAs')
+                continue;
+            if (!value[prop])
+                continue;
+            if (Array.isArray(value[prop]) && value[prop].length === 0)
+                continue;
+
+            if (Array.isArray(value[prop]))
+                into[prop] = value[prop];
+            else if (into[prop] && typeof value[prop] === 'object')
+                this._mergeObject(into[prop], value[prop]);
+            else
+                into[prop] = value[prop];
         }
     }
 
@@ -165,9 +200,29 @@ class Normalizer {
             if (!this.output[type])
                 this.output[type] = {};
 
+            // if we don't have an ID, but we have a string sameAs, we treat it as the ID
+            if (!value['@id'] && typeof value.sameAs === 'string')
+                value['@id'] = value.sameAs;
+
+            // if we don't have an ID, but we have a string url, we treat it as the ID
+            if (!value['@id'] && typeof value.url === 'string')
+                value['@id'] = value.url;
+
             // if we already have an ID, we're done
             if (value['@id']) {
+                const existing = this._sameAsMap.get(value['@id']);
+                if (existing) {
+                    this._mergeObject(existing, value);
+                    return value['@id'];
+                }
+
                 this.output[type][value['@id']] = value;
+                this._sameAsMap.set(value['@id'], value);
+                if (value.sameAs) {
+                    for (let sameAs of ensureArray(value.sameAs))
+                        this._sameAsMap.set(sameAs, value);
+                }
+                delete value.sameAs;
                 //console.error((output['Restaurant'] || []).length);
                 return value['@id'];
             }
@@ -175,6 +230,16 @@ class Normalizer {
             // otherwise we're going to make one up
             //
             // see if we already have an object that is identical to this one
+
+            if (value.sameAs) {
+                for (let sameAs of ensureArray(value.sameAs)) {
+                    const existing = this._sameAsMap.get(sameAs);
+                    if (existing) {
+                        this._mergeObject(existing, value);
+                        return existing['@id'];
+                    }
+                }
+            }
 
             value['@id'] = undefined;
             if (type !== 'Review' && type !== 'Person') { // but now for review or person, there are too many and it's slow
@@ -192,6 +257,12 @@ class Normalizer {
             // nope, make up a new object
             value['@id'] = 'https://thingpedia.stanford.edu/ns/uuid/' + type + '/' + uuid.v4();
             this.output[type][value['@id']] = value;
+            this._sameAsMap.set(value['@id'], value);
+            if (value.sameAs) {
+                for (let sameAs of ensureArray(value.sameAs))
+                    this._sameAsMap.set(sameAs, value);
+            }
+            delete value.sameAs;
 
             return value['@id'];
         }
@@ -242,6 +313,11 @@ class Normalizer {
                         value['@type'] === 'ImageObject' &&
                         value.contentUrl)
                         return String(value.contentUrl);
+
+                    if (expectedType.type === 'tt:String' &&
+                        value['@type'] === 'HowToStep' &&
+                        value.text)
+                        return String(value.text);
 
                     console.error(`Unexpected object in ${path.join('.')}, expected a ${expectedType.type}`);
                     console.error(value);

@@ -75,7 +75,12 @@ const BLACKLISTED_TYPES = new Set([
 ]);
 
 const BLACKLISTED_PROPERTIES = new Set([
-    'sameAs', 'affiliation'
+    'sameAs', 'affiliation', 'mainEntityOfPage',
+    'embedUrl',
+
+    // FIXME we want to black-list aggregateRating.itemReviewed but not Review.itemReviewed...
+    'itemReviewed'
+
 ]);
 
 const STRUCTURED_HIERARCHIES = [
@@ -93,19 +98,32 @@ const NON_STRUCT_TYPES = new Set([
 
 const PROPERTY_FORCE_ARRAY = new Set([
     'worksFor',
+
+    'recipeCuisine',
+    'recipeCategory',
 ]);
 
 const PROPERTY_TYPE_OVERRIDE = {
     'telephone': Type.Entity('tt:phone_number'),
     'email': Type.Entity('tt:email_address'),
     'image': Type.Entity('tt:picture'),
+    'logo': Type.Entity('tt:picture'),
     'checkinTime': Type.Time,
     'checkoutTime': Type.Time,
     'weight': Type.Measure('ms'),
     'depth': Type.Measure('m'),
     'description': Type.String,
     'addressCountry': Type.Entity('tt:country'),
-    'addressRegion': Type.Entity('tt:us_state')
+    'addressRegion': Type.Entity('tt:us_state'),
+
+    // we want to prefer VideoObject to the default Clip
+    'video': Type.Entity('org.schema:VideoObject'),
+
+    // we want to prefer Organization to the default Person
+    'publisher': Type.Entity('org.schema:Organization'),
+
+    // weird number like things, but mostly text
+    'recipeYield': Type.String
 };
 
 const PROPERTY_CANONICAL_OVERRIDE = {
@@ -122,12 +140,24 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         default: 'npp',
         npp: ['url', 'link']
     },
+    name: {
+        default: 'npp',
+        pvp: ['called'],
+        npp: ['name']
+    },
+    description: {
+        default: 'npp',
+        //avp: ['is about'],
+        npp: ['description', 'summary']
+    },
 
     // restaurants
-    'datePublished': { default:"avp", avp:["published on", "written on"], npp:["date published"] },
+    'datePublished': { default:"pvp", pvp:["published on", "written on"], npp:["date published"] },
     'ratingValue': { default:"pvp", pvp:["rated #star"], npp:["rating"] },
+    'reviewRating': { default:"npp", npp:["rating"] },
     'telephone': { default:"npp", npp:["telephone", "phone number"] },
-    'servesCuisine': { default:"apv", apv:true, avp:["serves #cuisine", "serves #food", "offer #cuisine", "offer #food", "serves", "offers"], npp:["cuisine", "food type"] },
+    'servesCuisine': { default:"apv", apv:true, avp:["serves #cuisine", "serves #food", "offer #cuisine", "offer #food", "serves", "offers"],
+        npp:["cuisine", "food type", "specialty", "served cuisine"] },
 
     // linkedin
     alumniOf: {
@@ -179,6 +209,78 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
             'employed at', 'employed by',
         ],
         npp: ['employer']
+    },
+
+    // recipes
+    author: {
+        default: 'pvp',
+        avp: [
+            'was written by', 'was submitted by',
+        ],
+        pvp: [
+            'by', 'made by', 'written by', 'created by', 'authored by', 'uploaded by', 'submitted by'
+        ],
+        npp: ['author', 'creator']
+    },
+    publisher: {
+        default: 'pvp',
+        avp: [
+            'was published by', 'was submitted by'
+        ],
+        pvp: [
+            'by', 'made by', 'published by'
+        ],
+        npp: ['publisher']
+    },
+
+    prepTime: {
+        default: 'npp',
+        avp: ['takes #to_prepare', 'needs #to_prepare'],
+        npp: ['prep time', 'preparation time', 'time to prep', 'time to prepare']
+    },
+    cookTime: {
+        default: 'npp',
+        avp: ['takes #to_cook', 'needs #to_cook'],
+        npp: ['cook time', 'cooking time', 'time to cook']
+    },
+    totalTime: {
+        default: 'avp',
+        avp: ['takes', 'requires', 'needs', 'uses', 'consumes'],
+        npp: ['total time', 'time in total', 'time to make']
+    },
+    recipeYield: {
+        default: 'avp',
+        avp: ['yields', 'feeds', 'produces', 'results in', 'is good for'],
+        pvp: ['yielding'],
+        npp: ['yield amount', 'yield size']
+    },
+    recipeCategory: {
+        default: 'npp',
+        npp: ['category']
+    },
+    recipeIngredient: {
+        default: 'npp',
+        avp: ['contains', 'uses', 'has'],
+        pvp: ['containing', 'using'],
+        npp: ['ingredients']
+    },
+    recipeInstructions: {
+        default: 'npp',
+        npp: ['instructions']
+    },
+    recipeCuisines: {
+        default: 'avp',
+        apv: true,
+        avp: ['belongs to the #cuisine'],
+        npp: ['cuisine']
+    },
+    reviewBody: {
+        default: 'npp',
+        npp: ['body', 'text', 'content']
+    },
+    saturatedFatContent: {
+        default: 'npp',
+        npp: ['saturated fat content', 'saturated fat amount', 'saturated fat', 'trans far']
     }
 };
 
@@ -377,6 +479,15 @@ function makeArgCanonical(name, ptype, manualAnnotation) {
         npp = plural ? pluralize(last) : last;
     }
 
+    if (npp.endsWith(' content') && ptype.isMeasure) {
+        npp = npp.substring(0, npp.length - ' content'.length);
+        canonical = {
+            default: 'npp',
+            avp: ['contains #' + npp.replace(/ /g, '_')],
+            npp: [npp + ' content', npp, npp + ' amount']
+        };
+        return canonical;
+    }
 
     if (npp.startsWith('has ')) {
         npp = npp.substring('has '.length);

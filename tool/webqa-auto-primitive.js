@@ -66,7 +66,10 @@ function sample(table, data, propertyChain, propertyType, rng) {
             } else if (value) {
                 if (typeof value === 'string' && value.startsWith('http'))
                     continue;
-                valueList.add(value);
+                if (propertyType.isString)
+                    valueList.add(value.split(' ').slice(0, 4).join(' '));
+                else
+                    valueList.add(value);
             }
         }
     }
@@ -143,10 +146,15 @@ async function bingSearchSingle(query, cache) {
         const key = process.env.BING_KEY;
         const headers = {'Ocp-Apim-Subscription-Key': key};
 
-        const response = JSON.parse(await Tp.Helpers.Http.get(url + '?' + qs.stringify(payload), {
-            extraHeaders: headers
-        }));
-        return cache[completeQuery] = (response.webPages || {}).totalEstimatedMatches || 0;
+        try {
+            const response = JSON.parse(await Tp.Helpers.Http.get(url + '?' + qs.stringify(payload), {
+                extraHeaders: headers
+            }));
+            return cache[completeQuery] = (response.webPages || {}).totalEstimatedMatches || 0;
+        } catch(e) {
+            console.error(url + '?' + qs.stringify(payload));
+            throw e;
+        }
     } else {
         console.log(`would search for ${query}`);
 
@@ -182,7 +190,9 @@ const EQUAL_PATTERNS = [
     ['${value} ${propEd} ${table}'],
 
     ['${table} ${propIng} ${value}'],
-    ['${value} ${propIng} ${value}'],
+    ['${value} ${propIng} ${table}'],
+    ['${table} containing ${value}'],
+    ['${value} in ${table}'],
 
     ['${table} ${propVerb} ${value}'],
     ['${table} with ${value} ${propNoun}'],
@@ -317,8 +327,6 @@ async function applyPatterns(ppdb, functionDef, argDef, valueList, patternList, 
 }
 
 async function main(args) {
-    const table = args.table_name;
-
     let cache = {};
     try {
         cache = JSON.parse(await util.promisify(fs.readFile)(args.cache, { encoding: 'utf8' }));
@@ -332,36 +340,43 @@ async function main(args) {
         const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(args.thingpedia, { encoding: 'utf8' }));
         assert(library.isLibrary && library.classes.length === 1 && library.classes[0].kind === 'org.schema');
 
-        const classDef = library.classes[0];
-        const queryDef = classDef.queries[table];
         const rng = seedrandom.alea(args.random_seed);
-        const dataset = new Ast.Dataset('org.schema.' + table, 'en', [], {});
-        const ppdb = args.ppdb ? await BinaryPPDB.mapFile(args.ppdb) : null;
+        const dataset = new Ast.Dataset('@org.schema', 'en', [], {});
 
-        const seen = new Set;
-        for (const argDef of queryDef.iterateArguments()) {
-            if (argDef.name === 'name')
-                continue;
-            if (argDef.type.isCompound)
-                continue;
-            if (seen.has(argDef.name))
-                continue;
-            seen.add(argDef.name);
-            const valueList = sample(table, data, argDef.name, argDef.type, rng);
-            if (valueList.length === 0)
-                continue;
-
-            await applyPatterns(ppdb, queryDef, argDef, valueList, EQUAL_PATTERNS, '==', dataset, cache);
-            if (argDef.type.isNumeric()) {
-                await applyPatterns(ppdb, queryDef, argDef, valueList, COMPARATIVE_MORE_PATTERNS, '>=', dataset, cache);
-                await applyPatterns(ppdb, queryDef, argDef, valueList, COMPARATIVE_LESS_PATTERNS, '<=', dataset, cache);
-            }
-        }
+        const tables = args.table_name;
+        for (let table of tables)
+            await processTable(data, library, dataset, table, args, rng, cache);
 
         args.output.end(dataset.prettyprint());
         await StreamUtils.waitFinish(args.output);
     } finally {
         await util.promisify(fs.writeFile)(args.cache, JSON.stringify(cache, undefined, 2), { encoding: 'utf8' });
+    }
+}
+
+async function processTable(data, library, dataset, table, args, rng, cache) {
+    const classDef = library.classes[0];
+    const queryDef = classDef.queries[table];
+    const ppdb = args.ppdb ? await BinaryPPDB.mapFile(args.ppdb) : null;
+
+    const seen = new Set;
+    for (const argDef of queryDef.iterateArguments()) {
+        if (argDef.name === 'name')
+            continue;
+        if (argDef.type.isCompound)
+            continue;
+        if (seen.has(argDef.name))
+            continue;
+        seen.add(argDef.name);
+        const valueList = sample(table, data, argDef.name, argDef.type, rng);
+        if (valueList.length === 0)
+            continue;
+
+        await applyPatterns(ppdb, queryDef, argDef, valueList, EQUAL_PATTERNS, '==', dataset, cache);
+        if (argDef.type.isNumeric()) {
+            await applyPatterns(ppdb, queryDef, argDef, valueList, COMPARATIVE_MORE_PATTERNS, '>=', dataset, cache);
+            await applyPatterns(ppdb, queryDef, argDef, valueList, COMPARATIVE_LESS_PATTERNS, '<=', dataset, cache);
+        }
     }
 }
 
@@ -381,6 +396,8 @@ module.exports = {
         });
         parser.addArgument('--table-name', {
             required: true,
+            action: 'append',
+            defaultValue: [],
             help: 'Name of the schema.org table to generate primitive templates for.'
         });
         parser.addArgument('--data', {
