@@ -117,6 +117,12 @@ const PROPERTY_CANONICAL_OVERRIDE = {
 };
 
 const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
+    // thing
+    url: {
+        default: 'npp',
+        npp: ['url', 'link']
+    },
+
     // restaurants
     'datePublished': { default:"avp", avp:["published on", "written on"], npp:["date published"] },
     'ratingValue': { default:"pvp", pvp:["rated #star"], npp:["rating"] },

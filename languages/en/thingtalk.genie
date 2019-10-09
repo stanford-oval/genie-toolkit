@@ -364,7 +364,7 @@ $root = {
         | 'whose' table:whose_npp_filtered_table ('' | '?')
         | ('who' | 'which person' | 'which individual') 'is' table:who_pvp_filtered_table ('' | '?')
         | ('who is the person' | 'who is the one' | 'who is the individual') table:who_pvp_filtered_table ('' | '?')
-        | ('who' | 'which person' | 'which individual' | 'who is the person' | 'who is the one' | 'who is the individual') table:who_avp_filtered_table ('' | '?')
+        | ('who' | 'which person' | 'which individual') table:who_avp_filtered_table ('' | '?')
         | ('who' | 'which person' | 'which individual') 'is the' table:who_npi_filtered_table ('' | '?')
         | ('who' | 'which person' | 'which individual') 'is a' table:who_npv_filtered_table ('' | '?')
         | ('who' | 'which person' | 'which individual') 'is' table:who_apv_filtered_table ('' | '?')
