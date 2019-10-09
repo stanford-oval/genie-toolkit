@@ -30,7 +30,7 @@ module.exports = class ConstantSampler {
 
     _sampleEntities(data) {
         const sampled = choose(data, this._options.sample_size, this._options.rng);
-        return sampled.map((entity) => {
+        return sampled.filter((entity) => /^[a-zA-Z0-9- .]*$/.test(entity.name)).map((entity) => {
             return {
                 value: entity.value,
                 display: entity.name
@@ -40,7 +40,7 @@ module.exports = class ConstantSampler {
 
     _sampleStrings(data) {
         const sampled = choose(data, this._options.sample_size, this._options.rng);
-        return sampled.map((string) => string.preprocessed);
+        return sampled.filter((string) => /^[a-zA-Z0-9- .]*$/.test(string.preprocessed)).map((string) => string.preprocessed);
     }
 
 
