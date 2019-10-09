@@ -106,7 +106,7 @@ module.exports = class FileParameterProvider {
 
         const parsed = JSON.parse(await util.promisify(fs.readFile)(filepath));
         return parsed.data.map((e) => {
-            return { preprocessed: e.canonical, weight: 1.0 };
+            return { preprocessed: e.canonical, weight: 1.0, value:e.value, name:e.name };
         });
     }
 
