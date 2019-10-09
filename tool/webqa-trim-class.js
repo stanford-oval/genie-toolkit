@@ -12,6 +12,7 @@
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
 const fs = require('fs');
 const util = require('util');
 
@@ -167,6 +168,8 @@ function removeArgumentsWithoutData(entities, classDef, tablename) {
     });
 
     let newArgs = [];
+    let hasAddress = false;
+    let hasGeo = false;
     for (let argname of tabledef.args) {
         if (argname.indexOf('.') >= 0)
             continue;
@@ -176,12 +179,21 @@ function removeArgumentsWithoutData(entities, classDef, tablename) {
 
         removeFieldsWithoutData(arg);
         newArgs.push(arg);
+
+        if (argname === 'address')
+            hasAddress = arg;
+        if (argname === 'geo')
+            hasGeo = arg;
     }
 
-    if (tabledef.args.includes('geo') && newArgs.includes('address') && !newArgs.includes('geo'))
-        newArgs.push('geo');
-    if (tabledef.args.includes('address') && newArgs.includes('geo') && !newArgs.includes('address'))
-        newArgs.push('address');
+    if (tabledef.args.includes('geo') && hasAddress && !hasGeo) {
+        newArgs.push(new Ast.ArgumentDef(
+            'out', 'geo', Type.Location, { canonical: "location" }, {
+                org_schema_type: new Ast.Value.String('GeoCoordinates'),
+                org_schema_has_data: new Ast.Value.Boolean(true)
+            }
+        ));
+    }
 
     classDef.queries[tablename] = new Ast.FunctionDef('query', tablename, tabledef.extends, newArgs, tabledef.is_list, tabledef.is_monitorable,
         tabledef.metadata, tabledef.annotations, classDef);
