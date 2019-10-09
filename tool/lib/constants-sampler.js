@@ -61,8 +61,8 @@ module.exports = class ConstantSampler {
         const constants = [];
         for (let f in functions) {
             const functionDef = functions[f];
-            for (let arg of functionDef.args) {
-                const argument = functionDef.getArgument(arg);
+            for (let argument of functionDef.iterateArguments()) {
+                const arg = argument.name;
                 const string_values = argument.getAnnotation('string_values');
                 if (string_values) {
                     const samples = await this._retrieveSamples('string', string_values);
