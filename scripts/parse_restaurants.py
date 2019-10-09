@@ -23,9 +23,12 @@ def navigate(initial, urlpatterns, output, limit=10):
         response = requests.get(next)
         base_url = get_base_url(response.text, response.url)
 
-        data = extruct.extract(response.text, base_url=base_url, syntaxes=['json-ld'])
-        if len(data['json-ld']) > 0:
-            output.append(data['json-ld'][0])
+        try:
+            data = extruct.extract(response.text, base_url=base_url, syntaxes=['json-ld'])
+            if len(data['json-ld']) > 0:
+                output.append(data['json-ld'][0])
+        except Exception as e:
+            print(e, file=sys.stderr)
 
         soup = BeautifulSoup(response.text, 'html5lib')
 
@@ -36,21 +39,19 @@ def navigate(initial, urlpatterns, output, limit=10):
             if linkurl in visited:
                 continue
 
-            for pat in urlpatterns:
-                if pat(linkurl):
-                    queue.append(linkurl)
-                    break
+            if urlpatterns:
+                for pat in urlpatterns:
+                    if pat(linkurl):
+                        queue.insert(0, linkurl)
+                        break
+            elif linkurl.startswith(base_url):
+                queue.insert(0, linkurl)
 
 def main():
     output = []
-    for initial in [
-        'https://www.yelp.com/search?cflt=restaurants&find_loc=San%20Francisco%2C%20CA',
-        'https://www.yelp.com/search?cflt=restaurants&find_loc=Los%20Angeles%2C%20CA',
-        'https://www.yelp.com/search?cflt=restaurants&find_loc=Seattle%20WA',
-    ]:
-        navigate(initial, [
-            lambda url: url.startswith('https://www.yelp.com/biz/') and (url.find('?') == -1) and (url.find(':platform') == -1)
-        ], output, limit=50)
+
+    for initial in sys.argv[1:]:
+        navigate(initial, None, output, limit=100)
 
     json.dump(output, sys.stdout, indent=2, ensure_ascii=False)
 main()
