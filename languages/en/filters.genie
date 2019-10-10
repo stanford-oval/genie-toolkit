@@ -309,14 +309,14 @@ with_filter = {
     'either' x:constant_Any 'or' y:constant_Any 'in' p:the_out_param_Array__Any => C.makeOrFilter($options, p, 'contains', [x, y]);
 
     // aggregate filters - count
-    ('no' | 'zero') p:out_param_Array__Any => C.makeAggregateFilter($options, p, null, 'count', '*', '==', Ast.Value.Number(0));
+    !turking ('no' | 'zero') p:out_param_Array__Any => C.makeAggregateFilter($options, p, null, 'count', '*', '==', Ast.Value.Number(0));
     x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter($options, p, null, 'count', '*', '==', x);
 
-    ('no' | 'zero') p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
+    !turking ('no' | 'zero') p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
         const filter = new Ast.BooleanExpression.Atom(f.name, '<=', x);
         return C.makeAggregateFilter($options, p, filter, 'count', '*', '==', new Ast.Value.Number(0));
     };
-    ('no' | 'zero') p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
+    !turking ('no' | 'zero') p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
         const filter = new Ast.BooleanExpression.Atom(f.name, '>=', x);
         return C.makeAggregateFilter($options, p, filter, 'count', '*', '==', new Ast.Value.Number(0));
     };
