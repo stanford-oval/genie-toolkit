@@ -1,0 +1,95 @@
+<style type="text/css"> #Survey {
+    width: 70%;
+    margin: 0 auto;
+}
+</style>
+
+<section class="container" id="Survey">
+    <h3> Instructions </h3>
+    <p>
+        We have a database containing information about hotels (like those on the Booking.com website), we would like you to help us come up with questions to query against it.
+    </p>
+    <p>
+        The database contains the following properties for each hotel:
+    </p>
+    <ul>
+        <li><b>Name</b>: the name of the hotel.</li>
+        <li><b>Brand</b>: the brand of the hotel <font color="grey">(e.g., Hyatt Place)</font>.</li>
+        <li><b>Description</b>: the description of the hotel.</li>
+        <li><b>Telephone</b>: the telephone number of the hotel.</li>
+        <li><b>Rating</b>: the overall rating of the hotel, in range 0-5.  </li>
+        <li><b>Review_number</b>: the number of reviews posted about the hotel.</li>
+        <li><b>Check_in_time</b>: the earliest checkin time of the hotel <font color="grey">(e.g., 03:00 PM)</font>.</li>
+        <li><b>Check_out_time</b>: the latest checkout time of the hotel <font color="grey">(e.g., 11:00 AM)</font>.</li>
+        <li><b>Location</b>: the address and location of the hotel <font color="grey">(including postal code, street name and number, city, state, conuntry)</font>.</li>
+        <li><b>Services</b>: the characteristics or services provided by the hotel <font color="grey">(e.g., Free Internet Access, Free Parking, Free Breakfast, Fitness Center)</font>.</li>
+    </ul>
+    <p>Please come up with 5 examples of questions to search/find/query hotels from our database according to <b>certain properties</b>.
+    In each of your question, please include <br>
+    <b>exactly two</b> properties. Besides, the last one of your questions should be a <b>ranking</b> question (see Example 5).
+    </p>
+    <h3> Examples: </h3>
+    Example 1:
+    <ul>
+        <li><em>What is the rating of Hotel Zephyr San Francisco?</em></li>
+        (two properties: Name, Rating)
+    </ul>
+
+    Example 2:
+    <ul>
+        <li><em>Search for Hyatt hotels with at least 100 reviews.</em></li>
+        (two properties: Brand, Review_number)
+    </ul>
+
+    Example 3:
+    <ul>
+        <li><em>Search for 5-star hotels nearby.</em></li>
+        (two properties: Rating, Address)
+    </ul>
+
+    Example 4:
+    <ul>
+        <li><em>Show me all the hotels which provide free breakfast and the checkin time is earlier than 3 PM.</em></li>
+        (two properties: Services, Check_in_time)
+    </ul>
+
+    Example 5 (ranking):
+    <ul>
+        <li><em>Show me the description of the <b>nearest</b> hotel?</em></li>
+        (two properties: Description, Address)
+    </ul>
+
+    <h3> Your turn now </h3>
+    <p>
+        When writing your questions,
+        remeber to include at least 2 properties as in the above examples.
+        <b>If more than 2 questions you wrote fail to meet the criteria, your answer might be rejected</b>.
+    </p>
+    <p>
+        You can answer this task for multiple times. <b>However, multiple submissions must have all different answers, otherwise your submissions will be rejected</b>.
+    </p>
+
+
+    <div id="command-form">
+        <label>Question 1</label>
+        <div class="form-group"><textarea class="form-control" cols="120" how="" id="command-1" name="command-1" required="" rows="3"></textarea></div>
+        <br>
+
+        <label>Question 2</label>
+        <div class="form-group"><textarea class="form-control" cols="120" how="" id="command-2" name="command-2" required="" rows="3"></textarea></div>
+        <br>
+
+        <label>Question 3</label>
+        <div class="form-group"><textarea class="form-control" cols="120" how="" id="command-3" name="command-3" required="" rows="3"></textarea></div>
+        <br>
+
+        <label>Question 4</label>
+        <div class="form-group"><textarea class="form-control" cols="120" how="" id="command-4" name="command-4" required="" rows="3"></textarea></div>
+        <br>
+
+        <label>Question 5</label>
+        <div class="form-group"><textarea class="form-control" cols="120" how="" id="command-5" name="command-5" required="" rows="3"></textarea></div>
+        <br>
+    </div>
+
+</section>

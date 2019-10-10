@@ -29,6 +29,7 @@ const subcommands = {
     'mturk-make-paraphrase-hits': require('./mturk-make-paraphrase-hits'),
     'mturk-make-validation-hits': require('./mturk-make-validation-hits'),
     'mturk-validate': require('./mturk-validate'),
+    'mturk-process-eval-data': require('./mturk-process-eval-data'),
 
     'compile-ppdb': require('./compile-ppdb'),
     'augment': require('./augment'),
