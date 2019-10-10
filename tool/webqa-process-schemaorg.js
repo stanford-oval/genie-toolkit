@@ -81,8 +81,11 @@ const BLACKLISTED_PROPERTIES = new Set([
     // FIXME we want to black-list aggregateRating.itemReviewed but not Review.itemReviewed...
     'itemReviewed',
 
+     // This is used as the range of rating
+    'bestRating', 'worstRating',
+
     // renamed to description during normalization
-    'reviewBody',
+    'reviewBody'
 ]);
 
 const STRUCTURED_HIERARCHIES = [
