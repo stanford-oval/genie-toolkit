@@ -258,7 +258,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
     recipeCategory: {
         default: 'npp',
-        npp: ['category']
+        npp: ['categories']
     },
     recipeIngredient: {
         default: 'npp',
@@ -274,7 +274,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         default: 'avp',
         apv: true,
         avp: ['belongs to the #cuisine'],
-        npp: ['cuisine']
+        npp: ['cuisines']
     },
     reviewBody: {
         default: 'npp',
