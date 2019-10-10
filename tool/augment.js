@@ -9,15 +9,10 @@
 // See COPYING for details
 "use strict";
 
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
-const seedrandom = require('seedrandom');
 const fs = require('fs');
 
-const DatasetAugmenter = require('../lib/dataset_augmenter');
-const FileParameterProvider = require('./lib/file_parameter_provider');
 const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
-const BinaryPPDB = require('../lib/binary_ppdb');
+const parallelize = require('../lib/parallelize');
 
 const StreamUtils = require('../lib/stream-utils');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
@@ -145,38 +140,28 @@ module.exports = {
             defaultValue: 'almond is awesome',
             help: 'Random seed'
         });
+        parser.addArgument('--parallelize', {
+            type: Number,
+            help: 'Run N threads in parallel (requires --experimental-worker support)',
+            metavar: 'N',
+            defaultValue: 1,
+        });
     },
 
     async execute(args) {
-        const tpClient = new Tp.FileClient(args);
-        const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
-        const constProvider = new FileParameterProvider(args.parameter_datasets);
-        await constProvider.open();
+        const inputFile = readAllLines(args.input_file);
+        const outputFile = args.output;
 
         const counter = new StreamUtils.CountStream();
 
-        readAllLines(args.input_file)
+        delete args.input_file;
+        delete args.output;
+        inputFile
             .pipe(new DatasetParser({ contextual: args.contextual }))
             .pipe(counter)
-            .pipe(new DatasetAugmenter(schemaRetriever, constProvider, tpClient, {
-                rng: seedrandom.alea(args.random_seed),
-                locale: args.locale,
-                debug: args.debug,
-
-                ppdbFile: args.ppdb ? await BinaryPPDB.mapFile(args.ppdb) : null,
-                ppdbProbabilitySynthetic: args.ppdb_synthetic_fraction,
-                ppdbProbabilityParaphrase: args.ppdb_paraphrase_fraction,
-                quotedProbability: args.quoted_fraction,
-                untypedStringProbability: args.untyped_string_probability,
-                maxSpanLength: args.max_span_length,
-                syntheticExpandFactor: args.synthetic_expand_factor,
-                paraphrasingExpandFactor: args.quoted_paraphrasing_expand_factor,
-                noQuoteExpandFactor: args.no_quote_paraphrasing_expand_factor,
-                singleDeviceExpandFactor: args.single_device_expand_factor,
-                replaceLocations: args.replace_locations,
-            }))
+            .pipe(await parallelize(args.parallelize, require.resolve('./workers/augment-worker'), args))
             .pipe(new DatasetStringifier())
-            .pipe(args.output);
+            .pipe(outputFile);
 
         if (!args.debug) {
             const progbar = new ProgressBar(1);
@@ -189,7 +174,6 @@ module.exports = {
             progbar.update(0);
         }
 
-        await StreamUtils.waitFinish(args.output);
-        await constProvider.close();
+        await StreamUtils.waitFinish(outputFile);
     }
 };
