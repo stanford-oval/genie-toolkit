@@ -401,11 +401,27 @@ $root = {
     // don't merge these, the output sizes are too small
     (
           ('get' | 'show me' | 'give me' | 'tell me' | 'say') proj:projection_Any
-        | 'what is' proj:projection_Any ('' | '?')
         | ('show me' | 'tell me' | 'say') 'what is' proj:projection_Any
+    ) => C.sayProjectionProgram($options, proj);
+    (
+        'what is' proj:projection_Any ('' | '?')
         | 'who is' proj:projection_Entity__tt__username ('' | '?')
         | 'who is' proj:projection_Entity__tt__email_address ('' | '?')
-    ) => C.sayProjectionProgram($options, proj);
+    ) => {
+        if (proj.schema.getArgType(proj.args[0]).isArray)
+            return null;
+        return C.sayProjectionProgram($options, proj);
+    };
+    (
+        'what are' proj:projection_Any ('' | '?')
+        | 'who are' proj:projection_Entity__tt__username ('' | '?')
+        | 'who are' proj:projection_Entity__tt__email_address ('' | '?')
+    ) => {
+        if (!proj.schema.getArgType(proj.args[0]).isArray)
+            return null;
+        return C.sayProjectionProgram($options, proj);
+    };
+
     !turking proj:projection_Any => C.sayProjectionProgram($options, proj);
     table:compute_question => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     table:where_question => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));

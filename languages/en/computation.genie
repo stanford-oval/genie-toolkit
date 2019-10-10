@@ -293,7 +293,15 @@ with_arg_min_max_table = {
         return makeAggComputeArgMinMaxExpression(table, 'count', null, new Ast.ListExpression(p.name, null), Type.Number, 'desc');
     };
 
-    table:with_filtered_table 'with the' ('least' | 'smallest number of' | 'tiniest number of' | 'smallest count of') p:out_param_Array__Any => {
+    !turking table:with_filtered_table 'with the' ('least' | 'smallest number of' | 'tiniest number of' | 'smallest count of') p:out_param_Array__Any => {
+        if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
+            return null;
+        const conflictParam = C.hasConflictParam(table, p.name, 'count');
+        if (conflictParam)
+            return makeArgMinMaxTable(table, conflictParam, 'asc');
+        return makeAggComputeArgMinMaxExpression(table, 'count', null, new Ast.ListExpression(p.name, null), Type.Number, 'asc');
+    };
+    ?turking table:with_filtered_table 'with the' ('least' | 'smallest number of') p:out_param_Array__Any => {
         if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
             return null;
         const conflictParam = C.hasConflictParam(table, p.name, 'count');

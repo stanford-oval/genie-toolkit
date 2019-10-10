@@ -14,6 +14,7 @@ const fs = require('fs');
 const util = require('util');
 const path = require('path');
 const ThingTalk = require('thingtalk');
+const csvstringify = require('csv-stringify');
 
 const Tokenizer = require('../lib/tokenizer');
 const StreamUtils = require('../lib/stream-utils');
@@ -125,7 +126,13 @@ class ParamDatasetGenerator {
     }
 
     async _tokenizeAll(strings) {
-        return Promise.all(strings.map((str) => this._tokenizer.tokenize(this._locale, str)));
+        let output = [];
+        for (let i = 0; i < strings.length; i += 100) {
+            const slice = strings.slice(i, i+100);
+            const tokenized = await Promise.all(slice.map((str) => this._tokenizer.tokenize(this._locale, str)));
+            output.push(...tokenized);
+        }
+        return output;
     }
 
     async output(outputDir, manifestFile, appendManifest) {
@@ -165,7 +172,9 @@ class ParamDatasetGenerator {
                 if (this._debug)
                     console.log(`Found ${fileContent.file.size} examples for string file ${fileId}`);
 
-                const output = fs.createWriteStream(outputpath);
+                const outputfile = fs.createWriteStream(outputpath);
+                const output = csvstringify({ header: false, delimiter: '\t' });
+                output.pipe(outputfile);
 
                 const strings = Array.from(fileContent.file.keys());
                 const weights = Array.from(fileContent.file.values());
@@ -181,7 +190,7 @@ class ParamDatasetGenerator {
                     if (tokens.some((tok) => /^[A-Z]/.test(tok)))
                         continue;
 
-                    output.write(`${value}\t${tokens.join(' ')}\t${weight}\n`);
+                    output.write([value, tokens.join(' '), weight]);
                 }
 
                 output.end();

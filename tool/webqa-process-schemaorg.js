@@ -79,8 +79,10 @@ const BLACKLISTED_PROPERTIES = new Set([
     'embedUrl',
 
     // FIXME we want to black-list aggregateRating.itemReviewed but not Review.itemReviewed...
-    'itemReviewed'
+    'itemReviewed',
 
+    // renamed to description during normalization
+    'reviewBody',
 ]);
 
 const STRUCTURED_HIERARCHIES = [
@@ -176,7 +178,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         ],
         npp: [
         // who has alma mater ...
-        "alma mater"
+        'colleges', 'universities', "alma maters"
         ]
     },
     award: {
@@ -197,7 +199,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         npi: [
             'affiliated with', 'affiliated to', 'member of'
         ],
-        npp: ['affiliation']
+        npp: ['affiliations']
     },
     worksFor: {
         default: 'avp',
@@ -208,7 +210,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         pvp: [
             'employed at', 'employed by',
         ],
-        npp: ['employer']
+        npp: ['jobs', 'employers']
     },
 
     // recipes

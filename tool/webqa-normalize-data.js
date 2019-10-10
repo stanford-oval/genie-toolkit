@@ -77,7 +77,10 @@ const PROPERTY_RENAMES = {
     'checkInTime': 'checkinTime',
     'checkOutTime': 'checkoutTime',
     'AggregateRating': 'aggregateRating',
-    'awards': 'award'
+    'awards': 'award',
+
+    // clean up property ambiguity by consolidating to one property
+    'reviewBody': 'description',
 };
 
 function ensureArray(value) {

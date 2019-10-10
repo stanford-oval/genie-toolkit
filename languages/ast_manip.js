@@ -344,6 +344,13 @@ function makeArgMaxMinTable(table, pname, direction) {
     if (hasUniqueFilter(table))
         return null;
 
+    for (let [,filter] of iterateFilters(table)) {
+        for (let atom of iterateFields(filter)) {
+            if (atom.name === pname)
+                return null;
+        }
+    }
+
     const t_sort = new Ast.Table.Sort(table, pname, direction, table.schema);
     return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], table.schema);
 }

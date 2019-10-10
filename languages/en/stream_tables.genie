@@ -110,13 +110,24 @@ have_filtered_table = {
 }
 
 one_have_filter_table = {
-    !nofilter table:complete_table ('have' | 'get') filter:with_filter => {
-        if (!table.schema.is_list)
-            return null;
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, $options);
-    };
+    !turking {
+        !nofilter table:complete_table ('have' | 'get') filter:with_filter => {
+            if (!table.schema.is_list)
+                return null;
+            if (!C.checkFilter(table, filter))
+                return null;
+            return C.addFilter(table, filter, $options);
+        };
+    }
+    ?turking {
+        !nofilter table:complete_table 'have' filter:with_filter => {
+            if (!table.schema.is_list)
+                return null;
+            if (!C.checkFilter(table, filter))
+                return null;
+            return C.addFilter(table, filter, $options);
+        };
+    }
 
     verb_avp_filtered_table;
     verb_pvp_filtered_table;
