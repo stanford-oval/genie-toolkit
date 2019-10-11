@@ -961,8 +961,12 @@ function sayProjectionProgram($options, proj) {
             return null;
         if (!$options.flags.projection)
             return null;
-        if (proj.args.length === 1 && proj.args[0] === 'name')
-            proj = proj.table;
+        if (proj.args.includes('name')) {
+            if (proj.args.length === 1)
+                proj = proj.table;
+            else
+                proj.args = proj.args.filter((a) => a !== 'name');
+        }
     }
     return makeProgram(new Ast.Statement.Command(proj, [notifyAction()]));
 }
