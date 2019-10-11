@@ -29,7 +29,7 @@ module.exports = class ConstantSampler {
     }
 
     _sampleEntities(data) {
-        const sampled = choose(data, this._options.sample_size, this._options.rng);
+        const sampled = choose(data.filter((entity) => entity.name.length < 20), this._options.sample_size, this._options.rng);
         return sampled.filter((entity) => /^[a-zA-Z0-9 .]*$/.test(entity.name)).map((entity) => {
             return {
                 value: entity.value,
@@ -39,7 +39,7 @@ module.exports = class ConstantSampler {
     }
 
     _sampleStrings(data) {
-        const sampled = choose(data, this._options.sample_size, this._options.rng);
+        const sampled = choose(data.filter((string) => string.length < 20), this._options.sample_size, this._options.rng);
         return sampled.filter((string) => /^[a-zA-Z0-9 .]*$/.test(string.value)).map((string) => string.value);
     }
 

@@ -73,7 +73,7 @@ module.exports = {
         const sampler = new ConstantSampler(schemaRetriever, constProvider, options);
 
         const constants = await sampler.sample();
-        args.output.end(constants.map((c) => c.join('\t')).join('\n'));
+        args.output.end(constants.map((c) => c.join('\t')).join('\n') + '\n');
 
         StreamUtils.waitFinish(args.output);
         await constProvider.close();
