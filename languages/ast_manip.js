@@ -954,13 +954,15 @@ function replacePlaceholderWithUndefined(lhs, pname, typestr) {
 function sayProjectionProgram($options, proj) {
     // this function is also used for aggregation
     if (proj.isProjection) {
-        if (proj.args[0] === 'picture_url')
+        if (proj.args.length === 1 && proj.args[0] === 'picture_url')
             return null;
         // if the function only contains one parameter, do not generate projection for it
         if (Object.keys(proj.table.schema.out).length === 1)
             return null;
         if (!$options.flags.projection)
             return null;
+        if (proj.args.length === 1 && proj.args[0] === 'name')
+            proj = proj.table;
     }
     return makeProgram(new Ast.Statement.Command(proj, [notifyAction()]));
 }
