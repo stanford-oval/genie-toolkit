@@ -197,3 +197,12 @@ param:@com.spotify.*:toAdd:String	Hey Jude
 param:@com.spotify.*:toAdd:String	California Girls
 param:@com.spotify.*:key:String	A Major
 
+param:cookTime:Measure(ms)	10min	10 minutes
+param:cookTime:Measure(ms)	20min	20 minutes
+param:cookTime:Measure(ms)	5min	5 minutes
+param:prepTime:Measure(ms)	10min	10 minutes
+param:prepTime:Measure(ms)	20min	20 minutes
+param:prepTime:Measure(ms)	5min	5 minutes
+param:totalTime:Measure(ms)	25min	25 minutes
+param:totalTime:Measure(ms)	45min	45 minutes
+param:totalTime:Measure(ms)	20min	20 minutes
