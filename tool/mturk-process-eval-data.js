@@ -36,7 +36,7 @@ class Parser extends Stream.Transform {
 
             this.push({
                 id: this._id++,
-                utterance: sentence
+                utterance: sentence.replace(/\n/g, ' ').replace(/"/g, '')
             });
         }
         callback();
@@ -64,13 +64,18 @@ module.exports = {
             help: "Number of sentences in each HIT"
         });
         parser.addArgument('input_file', {
-            help: 'MTurk result file to choose contexts from'
+            nargs: '+',
+            help: 'MTurk result file to choose contexts from, split'
         });
     },
 
     async execute(args) {
-        await StreamUtils.waitFinish(fs.createReadStream(args.input_file, { encoding: 'utf8' })
-            .pipe(csvparse({ columns: true, delimiter: ',', relax_column_count: true }))
+        const inputs = args.input_file.map((file) => {
+            return fs.createReadStream(file, { encoding: 'utf8' })
+                .pipe(csvparse({ columns: true, delimiter: ',', relax_column_count: true }));
+        });
+
+        await StreamUtils.waitFinish(StreamUtils.chain(inputs, { objectMode: true })
             .pipe(new Parser({ sentencesPerTask: args.sentences_per_task }))
             .pipe(csvstringify({ header: true, delimiter: '\t' }))
             .pipe(args.output));
