@@ -128,6 +128,7 @@ class ParamDatasetGenerator {
     async _tokenizeAll(strings) {
         let output = [];
         for (let i = 0; i < strings.length; i += 100) {
+            console.log(`${i}/${strings.length}`);
             const slice = strings.slice(i, i+100);
             const tokenized = await Promise.all(slice.map((str) => this._tokenizer.tokenize(this._locale, str)));
             output.push(...tokenized);
@@ -196,7 +197,8 @@ class ParamDatasetGenerator {
                 output.end();
                 manifest.write(`string\torg.schema:${fileId}\t${path.relative(manifestDir, outputpath)}\n`);
 
-                await StreamUtils.waitFinish(output);
+                //await StreamUtils.waitFinish(output);
+                console.log(`completed ${fileId}`);
             }
         }
 

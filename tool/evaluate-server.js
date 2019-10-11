@@ -17,6 +17,28 @@ const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('./lib/parserclient');
 const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('../lib/evaluators');
 
+function csvDisplay(args, complexity, result) {
+    let buffer = '';
+    if (args.csv_prefix)
+        buffer = args.csv_prefix + ',';
+
+    if (complexity === null) {
+        buffer += 'all,';
+        buffer += String(result.total);
+    } else {
+        if (!result[`complexity_${complexity}/total`])
+            return;
+        buffer += String(complexity) + ',' + result[`complexity_${complexity}/total`];
+    }
+    for (let key of ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax']) {
+        const fullkey = complexity === null ? key : `complexity_${complexity}/${key}`;
+        result[fullkey].length = parseInt(process.env.CSV_LENGTH || 1);
+        buffer += ',';
+        buffer += String(result[fullkey]);
+    }
+    console.log(buffer);
+}
+
 module.exports = {
     initArgparse(subparsers) {
         const parser = subparsers.addParser('evaluate-server', {
@@ -77,6 +99,11 @@ module.exports = {
             action: 'storeTrue',
             help: 'Output a single CSV line',
         });
+        parser.addArgument('--csv-prefix', {
+            required: false,
+            defaultValue: '',
+            help: `Prefix all output lines with this string`
+        });
     },
 
     async execute(args) {
@@ -93,14 +120,9 @@ module.exports = {
         const result = await output.read();
 
         if (args.csv) {
-            let buffer = String(result.total);
-            for (let key of ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax']) {
-                result[key].length = parseInt(process.env.CSV_LENGTH || 1);
-                if (buffer)
-                    buffer += ',';
-                buffer += String(result[key]);
-            }
-            console.log(buffer);
+            csvDisplay(args, null, result);
+            for (let complexity = 0; complexity < 10; complexity++)
+                csvDisplay(args, complexity, result);
         } else {
             for (let key in result) {
                 if (Array.isArray(result[key]))
