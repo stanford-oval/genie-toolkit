@@ -1133,7 +1133,7 @@ function makeExampleFromAction(a) {
     const examples = [];
     const device = new Ast.Selector.Device(a.class.name, null, null);
     const invocation = new Ast.Invocation(device, a.name, [], a);
-    const canonical = invocation.canonical ? invocation.canonical : clean(q.name);
+    const canonical = invocation.canonical ? invocation.canonical : clean(a.name);
     const canonicals = [canonical];
     const pluralized = pluralize(canonical);
     if (pluralized !== canonical)
