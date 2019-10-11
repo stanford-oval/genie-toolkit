@@ -291,6 +291,10 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
 
 const PROPERTIES_NO_FILTER = [
     'name', // no filter on name, if the id has ner support, we'll generate prim for it
+
+];
+
+const PROPERTIES_NO_FILTER_WITH_GEO = [
     'streetAddress', // street address and address locality should be handled by geo
     'addressLocality'
 ];
@@ -300,237 +304,13 @@ const STRUCT_INCLUDE_THING_PROPERTIES = new Set([
     'LocationFeatureSpecification'
 ]);
 
-function typeToThingTalk(typename, typeHierarchy, manualAnnotation) {
-    if (typename in BUILTIN_TYPEMAP)
-        return BUILTIN_TYPEMAP[typename];
 
-    if (typeHierarchy[typename].isItemList)
-        return Type.Array(typeToThingTalk(typeHierarchy[typename].itemType, typeHierarchy, manualAnnotation));
-    if (typeHierarchy[typename].isEnum && typeHierarchy[typename].enum.length > 0)
-        return Type.Enum(typeHierarchy[typename].enum);
-    if (typeHierarchy[typename].representAsStruct)
-        return makeCompoundType(typename, typeHierarchy[typename], typeHierarchy, manualAnnotation);
-
-    return Type.Entity('org.schema:' + typename);
-}
-
-function getBestPropertyType(propname, property, typeHierarchy, manualAnnotation) {
-    if (BLACKLISTED_PROPERTIES.has(propname))
-        return [undefined, undefined];
-
-    let best = undefined, bestScore = -Infinity;
-
-    // if the property is defined as taking ItemList and something else, we make an array of that something else
-    let isArray = property.types.some((type) => typeHierarchy[type] && typeHierarchy[type].isItemList);
-
-    // if the property comment starts with "A " or "An ", we assume there can be multiple values
-    // because if it starts with "The ", we assume it can only have one value
-    // this is a pretty coarse heuristic, but it works sometimes...
-
-    if (/^an? /i.test(property.comment))
-        isArray = true;
-    if (PROPERTY_FORCE_ARRAY.has(propname))
-        isArray = true;
-
-    // prefer enum if possible
-    // then specific data types
-    // then fallback to a struct type if one is listed
-    // then fallback to text if it's explicitly listed as one of the types
-    // then fallback to an entity type
-
-    for (let type of property.types) {
-        let score;
-        if (typeHierarchy[type] && typeHierarchy[type].isEnum)
-            score = 5;
-        else if (type === 'Text')
-            score = 2;
-        else if (type in BUILTIN_TYPEMAP)
-            score = 4;
-        else if (!typeHierarchy[type])
-            score = -1;
-        else if (typeHierarchy.isItemList) // ItemList and subclasses are useless
-            score = 0;
-        else if (typeHierarchy[type].representAsStruct)
-            score = 3;
-        else
-            score = 1;
-
-        if (score > bestScore) {
-            best = type;
-            bestScore = score;
-        }
-    }
-
-    // if we didn't find a type we like, return nothing
-    if (bestScore < 0)
-        return [undefined, undefined];
-
-    if (propname in PROPERTY_TYPE_OVERRIDE)
-        return [best, PROPERTY_TYPE_OVERRIDE[propname]];
-
-    // if we chose an item list as the best type, don't wrap into a further array
-    if (typeHierarchy[best] && typeHierarchy[best].isItemList)
-        isArray = false;
-
-    // HACK
-    if (best === 'QuantitativeValue') {
-        if (/number/i.test(propname) || /level/i.test(propname) || /quantity/i.test(propname))
-            return [best, Type.Number];
-        if (/duration/i.test(propname))
-            return [best, Type.Measure('ms')];
-
-        console.error(`Cannot guess the correct type of ${propname} of type QuantitativeValue, assuming Number`);
-        return [best, Type.Number];
-    }
-
-    let tttype = typeToThingTalk(best, typeHierarchy, manualAnnotation);
-    if (!tttype)
-        return [undefined, undefined];
-
-    // an array of booleans or enums does not make much sense
-    if (tttype.isBoolean || tttype.isEnum)
-        isArray = false;
-
-    if (isArray)
-        tttype = Type.Array(tttype);
-    return [best, tttype];
-}
-
-function makeCompoundType(startingTypename, typedef, typeHierarchy, manualAnnotation) {
-    const fields = {};
-
-    // collect all properties of this type (incl. inherited ones)
-    let allproperties = new Map;
-    function recursiveCollectProperties(typename) {
-        //console.error(typename);
-        const typedef = typeHierarchy[typename];
-        if (!typedef)
-            return;
-        // if something is a subclass of both a struct and non-struct,
-        // we ignore the properties coming from the non-struct side
-        // (unless the leaf type name we're starting from is explicitly
-        // marking as going all the way up)
-        if (!STRUCT_INCLUDE_THING_PROPERTIES.has(startingTypename) && !typeHierarchy[typename].isStructSubType)
-            return;
-        for (let propertyname in typedef.properties) {
-            const propertydef = typedef.properties[propertyname];
-            if (allproperties.has(propertyname))
-                continue;
-            allproperties.set(propertyname, propertydef);
-        }
-        // stop at the base struct types (so we don't include Thing properties)
-        if (!STRUCT_INCLUDE_THING_PROPERTIES.has(startingTypename) && STRUCTURED_HIERARCHIES.indexOf(typename) >= 0)
-            return;
-
-        for (let _extends of typeHierarchy[typename].extends)
-            recursiveCollectProperties(_extends);
-    }
-    recursiveCollectProperties(startingTypename);
-
-    let anyfield = false;
-    for (let [propertyname, propertydef] of allproperties) {
-        const [schemaOrgType, ttType] = getBestPropertyType(propertyname, propertydef, typeHierarchy, manualAnnotation);
-        if (!ttType)
-            continue;
-
-        const canonical = makeArgCanonical(propertyname, ttType, manualAnnotation);
-        const metadata = { 'canonical': canonical["default"] === "npp" && canonical["npp"].length === 1 ? canonical["npp"][0] : canonical };
-        const annotation = keepAnnotation ? {
-            'org_schema_type': Ast.Value.String(schemaOrgType),
-            'org_schema_comment': Ast.Value.String(propertydef.comment)
-        } : {
-            'org_schema_type': Ast.Value.String(schemaOrgType)
-        };
-        if (PROPERTIES_NO_FILTER.includes(propertyname))
-            annotation['genie'] = new Ast.Value.Boolean(false);
-
-        fields[propertyname] = new Ast.ArgumentDef(undefined, propertyname, ttType, metadata, annotation);
-        anyfield = true;
-    }
-    if (!anyfield)
-        throw new Error(`Struct type ${startingTypename} has no fields`);
-
-    return Type.Compound(startingTypename, fields);
-}
 
 function posTag(tokens) {
     return new POS.Tag(tokens)
         .initial() // initial dictionary and pattern based tagging
         .smooth() // further context based smoothing
         .tags;
-}
-
-function makeArgCanonical(name, ptype, manualAnnotation) {
-    function cleanName(name) {
-        if (name.endsWith(' value'))
-            return name.substring(0, name.length - ' value'.length);
-        return name;
-    }
-
-    if (name in PROPERTY_CANONICAL_OVERRIDE)
-        return PROPERTY_CANONICAL_OVERRIDE[name];
-    if (manualAnnotation && name in MANUAL_PROPERTY_CANONICAL_OVERRIDE)
-        return MANUAL_PROPERTY_CANONICAL_OVERRIDE[name];
-
-    let canonical = {};
-    let npp;
-    let plural = ptype && ptype.isArray;
-    name = clean(name);
-    if (!name.includes('.')) {
-        npp = plural ? pluralize(cleanName(name)) : cleanName(name);
-    } else {
-        const components = name.split('.');
-        const last = components[components.length - 1];
-        npp = plural ? pluralize(last) : last;
-    }
-
-    if (npp.endsWith(' content') && ptype.isMeasure) {
-        npp = npp.substring(0, npp.length - ' content'.length);
-        canonical = {
-            default: 'npp',
-            avp: ['contains #' + npp.replace(/ /g, '_')],
-            npp: [npp + ' content', npp, npp + ' amount']
-        };
-        return canonical;
-    }
-
-    if (npp.startsWith('has ')) {
-        npp = npp.substring('has '.length);
-    } else if (npp.startsWith('is ')) {
-        npp = npp.substring('is '.length);
-        let tags = posTag(npp.split(' '));
-
-        if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1]) || npp.endsWith(' of')) {
-            canonical["npi"] = [npp];
-            canonical["default"] = "npi";
-        }
-        else if (['VBN', 'JJ', 'JJR'].includes(tags[0])) {
-            canonical["pvp"] = [npp];
-            canonical["default"] = "pvp";
-        }
-
-    } else {
-        let tags = posTag(npp.split(' '));
-        if (['VBP', 'VBZ'].includes(tags[0])) {
-            canonical["avp"] = [npp];
-            canonical["default"] = "avp";
-        } else if (npp.endsWith(' of')) {
-            canonical["npi"] = [npp];
-            canonical["default"] = "npi";
-        } else if (['VBN', 'JJ', 'JJR'].includes(tags[0]) && !['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
-            // this one is actually somewhat problematic
-            // e.g., all non-words are recognized as JJ, including issn, dateline, funder
-            canonical["pvp"] = [npp];
-            canonical["default"] = "pvp";
-        }
-
-    }
-
-    canonical["npp"] = [npp];
-    if (!("default" in canonical))
-        canonical["default"] = "npp";
-
-    return canonical;
 }
 
 function getItemType(typename, typeHierarchy) {
@@ -550,237 +330,151 @@ function getItemType(typename, typeHierarchy) {
     return 'Thing';
 }
 
-async function main(args) {
-    let schemajsonld;
-    if (await util.promisify(fs.exists)(args.cache_file)) {
-        schemajsonld = await util.promisify(fs.readFile)(args.cache_file, { encoding: 'utf8' });
-    } else {
-        schemajsonld = await Tp.Helpers.Http.get(args.url);
-        await util.promisify(fs.writeFile)(args.cache_file, schemajsonld);
+
+
+class SchemaProcessor {
+    constructor(args) {
+        this._output = args.output;
+        this._cache = args.cache_file;
+        this._url = args.url;
+        this._manual = args.manual;
+        this._hasGeo = false;
     }
 
-    const manualAnnotation = args.manual;
+    typeToThingTalk(typename, typeHierarchy, manualAnnotation) {
+        if (typename in BUILTIN_TYPEMAP)
+            return BUILTIN_TYPEMAP[typename];
 
-    // type_name -> {
-    //    extends: [type_name],
-    //    properties: { name -> { types: [type], comment: ... } },
-    //    comment: ...
-    // }
-    const typeHierarchy = {};
-    function ensureType(typename) {
-        if (typeHierarchy[typename])
-            return;
-        typeHierarchy[typename] = {
-            extends: [],
-            properties: {},
-            comment: ''
-        };
-    }
-    function isSubClass(typename, subtypeof) {
-        for (let _extend of typeHierarchy[typename].extends) {
-            if (_extend === subtypeof)
-                return true;
-
-            if (!typeHierarchy[_extend])
-                continue;
-            if (isSubClass(_extend, subtypeof))
-                return true;
-        }
-        return false;
-    }
-
-    const enums = {};
-    function ensureEnum(enumname) {
-        if (enums[enumname])
-            return;
-        enums[enumname] = [];
-    }
-
-    for (let triple of JSON.parse(schemajsonld)['@graph']) {
-        try {
-            if (getId(triple['@id']) in BUILTIN_TYPEMAP)
-                continue;
-
-            if (BLACKLISTED_TYPES.has(getId(triple['@id'])))
-                continue;
-
-            if (triple['@type'].startsWith('http://schema.org/')) {
-                // an enum declaration
-                const enumtype = getId(triple['@type']);
-                const enumvalue = getId(triple['@id']);
-                ensureEnum(enumtype);
-                enums[enumtype].push(enumvalue);
-                continue;
-            }
-
-            switch (triple['@type']) {
-            case 'rdf:Property': {
-                // ignore deprecated stuff
-                if (triple['http://schema.org/supersededBy'])
-                    continue;
-
-                const domains = getIncludes(triple['http://schema.org/domainIncludes']);
-                const ranges = getIncludes(triple['http://schema.org/rangeIncludes']);
-                const name = getId(triple['@id']);
-                const comment = triple['rdfs:comment'];
-
-                for (let domain of domains) {
-                    if (domain in BUILTIN_TYPEMAP)
-                        continue;
-                    if (BLACKLISTED_TYPES.has(domain))
-                        continue;
-
-                    ensureType(domain);
-                    typeHierarchy[domain].properties[name] = {
-                        types: ranges,
-                        comment
-                    };
-                }
-                break;
-            }
-            case 'rdfs:Class': {
-                const name = getId(triple['@id']);
-                const comment = triple['rdfs:comment'];
-                const _extends = getIncludes(triple['rdfs:subClassOf'] || []);
-                ensureType(name);
-                typeHierarchy[name].extends = _extends.filter((ex) => !BLACKLISTED_TYPES.has(ex));
-                if (typeHierarchy[name].extends.length === 0 && name !== 'Thing')
-                    typeHierarchy[name].extends = ['Thing'];
-                typeHierarchy[name].comment = comment;
-                break;
-            }
-
-            default:
-                throw new Error(`don't know how to handle a triple of type ${triple['@type']}`); //'
-            }
-        } catch(e) {
-            console.error('Triple failed');
-            console.error(triple);
-            throw e;
-        }
-    }
-
-
-    for (let type in typeHierarchy) {
-        typeHierarchy[type].isAction = isSubClass(type, 'Action');
-        typeHierarchy[type].isEnum = !!enums[type] || isSubClass(type, 'Enumeration');
-        if (typeHierarchy[type].isEnum)
-            typeHierarchy[type].enum = enums[type] || [];
-
-        typeHierarchy[type].isItemList = isSubClass(type, 'ItemList');
-        if (typeHierarchy[type].isItemList)
-            typeHierarchy[type].itemType = getItemType(type, typeHierarchy);
-
-        if (STRUCTURED_HIERARCHIES.indexOf(type) >= 0) {
-            typeHierarchy[type].isStructSubType = true;
-            typeHierarchy[type].representAsStruct = true;
-        } else {
-            for (let structBase of STRUCTURED_HIERARCHIES) {
-                if (isSubClass(type, structBase)) {
-                    typeHierarchy[type].isStructSubType = true;
-                    typeHierarchy[type].representAsStruct = true;
-                    break;
-                }
-            }
-        }
-
-        if (NON_STRUCT_TYPES.has(type)) {
-            typeHierarchy[type].isStructSubType = false;
-            typeHierarchy[type].representAsStruct = false;
-        }
-    }
-
-    function findCycle(typename, lookfor, visited) {
-        if (visited.has(typename))
-            return typename === lookfor;
-        visited.add(typename);
-
-        for (let propname in typeHierarchy[typename].properties) {
-            let propdef = typeHierarchy[typename].properties[propname];
-            for (let type of propdef.types) {
-                if (type in BUILTIN_TYPEMAP)
-                    continue;
-                if (!typeHierarchy[type] || !typeHierarchy[type].representAsStruct)
-                    continue;
-                if (findCycle(type, lookfor, visited))
-                    return true;
-            }
-        }
-        return false;
-    }
-
-    // check all types - if they form a cycle, we cannot represent them as structs
-    for (let typename in typeHierarchy) {
-        if (typeHierarchy[typename].isEnum)
-            continue;
-        if (!typeHierarchy[typename].representAsStruct)
-            continue;
-        if (findCycle(typename, typename, new Set))
-            typeHierarchy[typename].representAsStruct = false;
-    }
-
-    // check all types - all parents of non-struct types must also be non-struct types,
-    // recursively
-    function recursiveMakeNonStruct(typename) {
-        typeHierarchy[typename].representAsStruct = false;
-        for (let _extend of typeHierarchy[typename].extends) {
-            if (!typeHierarchy[_extend])
-                continue;
-            recursiveMakeNonStruct(_extend);
-        }
-    }
-
-    for (let typename in typeHierarchy) {
-        if (typeHierarchy[typename].isEnum)
-            continue;
+        if (typeHierarchy[typename].isItemList)
+            return Type.Array(this.typeToThingTalk(typeHierarchy[typename].itemType, typeHierarchy, manualAnnotation));
+        if (typeHierarchy[typename].isEnum && typeHierarchy[typename].enum.length > 0)
+            return Type.Enum(typeHierarchy[typename].enum);
         if (typeHierarchy[typename].representAsStruct)
-            continue;
-        recursiveMakeNonStruct(typename);
+            return this.makeCompoundType(typename, typeHierarchy[typename], typeHierarchy, manualAnnotation);
+
+        return Type.Entity('org.schema:' + typename);
     }
 
-    //console.log(JSON.stringify(typeHierarchy, undefined, 2));
+    getBestPropertyType(propname, property, typeHierarchy, manualAnnotation) {
+        if (BLACKLISTED_PROPERTIES.has(propname))
+            return [undefined, undefined];
 
-    const order = new Set;
+        let best = undefined, bestScore = -Infinity;
 
-    function toposort(typename) {
-        if (typeHierarchy[typename].isAction || typeHierarchy[typename].isEnum ||
-            typeHierarchy[typename].representAsStruct)
-            return;
+        // if the property is defined as taking ItemList and something else, we make an array of that something else
+        let isArray = property.types.some((type) => typeHierarchy[type] && typeHierarchy[type].isItemList);
 
-        for (let _extend of typeHierarchy[typename].extends) {
-            if (!typeHierarchy[_extend])
-                continue;
-            toposort(_extend);
+        // if the property comment starts with "A " or "An ", we assume there can be multiple values
+        // because if it starts with "The ", we assume it can only have one value
+        // this is a pretty coarse heuristic, but it works sometimes...
+
+        if (/^an? /i.test(property.comment))
+            isArray = true;
+        if (PROPERTY_FORCE_ARRAY.has(propname))
+            isArray = true;
+
+        // prefer enum if possible
+        // then specific data types
+        // then fallback to a struct type if one is listed
+        // then fallback to text if it's explicitly listed as one of the types
+        // then fallback to an entity type
+
+        for (let type of property.types) {
+            let score;
+            if (typeHierarchy[type] && typeHierarchy[type].isEnum)
+                score = 5;
+            else if (type === 'Text')
+                score = 2;
+            else if (type in BUILTIN_TYPEMAP)
+                score = 4;
+            else if (!typeHierarchy[type])
+                score = -1;
+            else if (typeHierarchy.isItemList) // ItemList and subclasses are useless
+                score = 0;
+            else if (typeHierarchy[type].representAsStruct)
+                score = 3;
+            else
+                score = 1;
+
+            if (score > bestScore) {
+                best = type;
+                bestScore = score;
+            }
         }
 
-        order.add(typename);
-    }
-    for (let type in typeHierarchy) {
-        if (order.has(type))
-            continue;
-        toposort(type);
+        // if we didn't find a type we like, return nothing
+        if (bestScore < 0)
+            return [undefined, undefined];
+
+        if (propname in PROPERTY_TYPE_OVERRIDE)
+            return [best, PROPERTY_TYPE_OVERRIDE[propname]];
+
+        // if we chose an item list as the best type, don't wrap into a further array
+        if (typeHierarchy[best] && typeHierarchy[best].isItemList)
+            isArray = false;
+
+        // HACK
+        if (best === 'QuantitativeValue') {
+            if (/number/i.test(propname) || /level/i.test(propname) || /quantity/i.test(propname))
+                return [best, Type.Number];
+            if (/duration/i.test(propname))
+                return [best, Type.Measure('ms')];
+
+            console.error(`Cannot guess the correct type of ${propname} of type QuantitativeValue, assuming Number`);
+            return [best, Type.Number];
+        }
+
+        let tttype = this.typeToThingTalk(best, typeHierarchy, manualAnnotation);
+        if (!tttype)
+            return [undefined, undefined];
+
+        // an array of booleans or enums does not make much sense
+        if (tttype.isBoolean || tttype.isEnum)
+            isArray = false;
+
+        if (isArray)
+            tttype = Type.Array(tttype);
+        return [best, tttype];
     }
 
-    const queries = {};
-    for (let typename of order) {
-        const typedef = typeHierarchy[typename];
+    makeCompoundType(startingTypename, typedef, typeHierarchy) {
+        const fields = {};
 
-        const args = [
-            new Ast.ArgumentDef(Ast.ArgDirection.OUT, 'id', Type.Entity('org.schema:' + typename), {}, {
-                'unique': new Ast.Value.Boolean(true),
-                'genie': new Ast.Value.Boolean(false) // no filter on id, if it has ner support, we'll generate prim for it
-            })
-        ];
-        for (let propertyname in typedef.properties) {
-            const propertydef = typedef.properties[propertyname];
-            const [schemaOrgType, type] = getBestPropertyType(propertyname, propertydef, typeHierarchy, manualAnnotation);
-            if (!type)
+        // collect all properties of this type (incl. inherited ones)
+        let allproperties = new Map;
+        function recursiveCollectProperties(typename) {
+            //console.error(typename);
+            const typedef = typeHierarchy[typename];
+            if (!typedef)
+                return;
+            // if something is a subclass of both a struct and non-struct,
+            // we ignore the properties coming from the non-struct side
+            // (unless the leaf type name we're starting from is explicitly
+            // marking as going all the way up)
+            if (!STRUCT_INCLUDE_THING_PROPERTIES.has(startingTypename) && !typeHierarchy[typename].isStructSubType)
+                return;
+            for (let propertyname in typedef.properties) {
+                const propertydef = typedef.properties[propertyname];
+                if (allproperties.has(propertyname))
+                    continue;
+                allproperties.set(propertyname, propertydef);
+            }
+            // stop at the base struct types (so we don't include Thing properties)
+            if (!STRUCT_INCLUDE_THING_PROPERTIES.has(startingTypename) && STRUCTURED_HIERARCHIES.indexOf(typename) >= 0)
+                return;
+
+            for (let _extends of typeHierarchy[typename].extends)
+                recursiveCollectProperties(_extends);
+        }
+        recursiveCollectProperties(startingTypename);
+
+        let anyfield = false;
+        for (let [propertyname, propertydef] of allproperties) {
+            const [schemaOrgType, ttType] = this.getBestPropertyType(propertyname, propertydef, typeHierarchy);
+            if (!ttType)
                 continue;
 
-            if (KEYWORDS.includes(propertyname))
-                propertyname = '_' + propertyname;
-
-            const canonical = makeArgCanonical(propertyname, type, manualAnnotation);
+            const canonical = this.makeArgCanonical(propertyname, ttType);
             const metadata = { 'canonical': canonical["default"] === "npp" && canonical["npp"].length === 1 ? canonical["npp"][0] : canonical };
             const annotation = keepAnnotation ? {
                 'org_schema_type': Ast.Value.String(schemaOrgType),
@@ -791,56 +485,386 @@ async function main(args) {
 
             if (PROPERTIES_NO_FILTER.includes(propertyname))
                 annotation['genie'] = new Ast.Value.Boolean(false);
+            else if (this._hasGeo && PROPERTIES_NO_FILTER_WITH_GEO.includes(propertyname))
+                annotation['genie'] = new Ast.Value.Boolean(false);
 
-            const arg = new Ast.ArgumentDef(Ast.ArgDirection.OUT, propertyname, type, metadata, annotation);
-
-            (function recursiveAddStringValues(arg, fileId) {
-                let type = arg.type;
-                while (type.isArray)
-                    type = type.elem;
-
-                if (type.isString) {
-                    arg.annotations['string_values'] = Ast.Value.String(fileId);
-                    return;
-                }
-
-                if (type.isCompound) {
-                    for (let field in type.fields) {
-                        if (field.indexOf('.') >= 0)
-                            continue;
-                        recursiveAddStringValues(type.fields[field], fileId + '_' + field);
-                    }
-                }
-            })(arg, 'org.schema:' + typename + '_' + propertyname);
-
-            args.push(arg);
+            fields[propertyname] = new Ast.ArgumentDef(undefined, propertyname, ttType, metadata, annotation);
+            anyfield = true;
         }
+        if (!anyfield)
+            throw new Error(`Struct type ${startingTypename} has no fields`);
 
-        if (KEYWORDS.includes(typename))
-            typename = '_' + typename;
-        const querydef = new Ast.FunctionDef('query', typename, typedef.extends, args, true, false, {
-            'canonical': clean(typename),
-            'confirmation': clean(typename),
-        }, keepAnnotation ? {
-            'org_schema_comment': Ast.Value.String(typedef.comment),
-            'confirm': Ast.Value.Boolean(false)
-        } : {
-            'confirm': Ast.Value.Boolean(false)
-        } );
-        queries[typename] = querydef;
+        return Type.Compound(startingTypename, fields);
     }
 
-    const classdef = new Ast.ClassDef('org.schema', [], queries, {} /* actions */, [
-        new Ast.ImportStmt.Mixin(['loader'], 'org.thingpedia.v2', []),
-        new Ast.ImportStmt.Mixin(['config'], 'org.thingpedia.config.none', [])
-    ], {
-        name: 'Schema.org',
-        description: 'Scraped data from websites that support schema.org'
-    }, {}, false);
+    makeArgCanonical(name, ptype) {
+        function cleanName(name) {
+            if (name.endsWith(' value'))
+                return name.substring(0, name.length - ' value'.length);
+            return name;
+        }
 
-    args.output.end(classdef.prettyprint());
-    await StreamUtils.waitFinish(args.output);
+        if (name in PROPERTY_CANONICAL_OVERRIDE)
+            return PROPERTY_CANONICAL_OVERRIDE[name];
+        if (this._manual && name in MANUAL_PROPERTY_CANONICAL_OVERRIDE)
+            return MANUAL_PROPERTY_CANONICAL_OVERRIDE[name];
+
+        let canonical = {};
+        let npp;
+        let plural = ptype && ptype.isArray;
+        name = clean(name);
+        if (!name.includes('.')) {
+            npp = plural ? pluralize(cleanName(name)) : cleanName(name);
+        } else {
+            const components = name.split('.');
+            const last = components[components.length - 1];
+            npp = plural ? pluralize(last) : last;
+        }
+
+        if (npp.endsWith(' content') && ptype.isMeasure) {
+            npp = npp.substring(0, npp.length - ' content'.length);
+            canonical = {
+                default: 'npp',
+                avp: ['contains #' + npp.replace(/ /g, '_')],
+                npp: [npp + ' content', npp, npp + ' amount']
+            };
+            return canonical;
+        }
+
+        if (npp.startsWith('has ')) {
+            npp = npp.substring('has '.length);
+        } else if (npp.startsWith('is ')) {
+            npp = npp.substring('is '.length);
+            let tags = posTag(npp.split(' '));
+
+            if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1]) || npp.endsWith(' of')) {
+                canonical["npi"] = [npp];
+                canonical["default"] = "npi";
+            }
+            else if (['VBN', 'JJ', 'JJR'].includes(tags[0])) {
+                canonical["pvp"] = [npp];
+                canonical["default"] = "pvp";
+            }
+
+        } else {
+            let tags = posTag(npp.split(' '));
+            if (['VBP', 'VBZ'].includes(tags[0])) {
+                canonical["avp"] = [npp];
+                canonical["default"] = "avp";
+            } else if (npp.endsWith(' of')) {
+                canonical["npi"] = [npp];
+                canonical["default"] = "npi";
+            } else if (['VBN', 'JJ', 'JJR'].includes(tags[0]) && !['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
+                // this one is actually somewhat problematic
+                // e.g., all non-words are recognized as JJ, including issn, dateline, funder
+                canonical["pvp"] = [npp];
+                canonical["default"] = "pvp";
+            }
+
+        }
+
+        canonical["npp"] = [npp];
+        if (!("default" in canonical))
+            canonical["default"] = "npp";
+
+        return canonical;
+    }
+
+    async run() {
+        let schemajsonld;
+        if (await util.promisify(fs.exists)(this._cache)) {
+            schemajsonld = await util.promisify(fs.readFile)(this._cache, { encoding: 'utf8' });
+        } else {
+            schemajsonld = await Tp.Helpers.Http.get(this._url);
+            await util.promisify(fs.writeFile)(this._cache, schemajsonld);
+        }
+
+        // type_name -> {
+        //    extends: [type_name],
+        //    properties: { name -> { types: [type], comment: ... } },
+        //    comment: ...
+        // }
+        const typeHierarchy = {};
+        function ensureType(typename) {
+            if (typeHierarchy[typename])
+                return;
+            typeHierarchy[typename] = {
+                extends: [],
+                properties: {},
+                comment: ''
+            };
+        }
+        function isSubClass(typename, subtypeof) {
+            for (let _extend of typeHierarchy[typename].extends) {
+                if (_extend === subtypeof)
+                    return true;
+
+                if (!typeHierarchy[_extend])
+                    continue;
+                if (isSubClass(_extend, subtypeof))
+                    return true;
+            }
+            return false;
+        }
+
+        const enums = {};
+        function ensureEnum(enumname) {
+            if (enums[enumname])
+                return;
+            enums[enumname] = [];
+        }
+
+        for (let triple of JSON.parse(schemajsonld)['@graph']) {
+            try {
+                if (getId(triple['@id']) in BUILTIN_TYPEMAP)
+                    continue;
+
+                if (BLACKLISTED_TYPES.has(getId(triple['@id'])))
+                    continue;
+
+                if (triple['@type'].startsWith('http://schema.org/')) {
+                    // an enum declaration
+                    const enumtype = getId(triple['@type']);
+                    const enumvalue = getId(triple['@id']);
+                    ensureEnum(enumtype);
+                    enums[enumtype].push(enumvalue);
+                    continue;
+                }
+
+                switch (triple['@type']) {
+                case 'rdf:Property': {
+                    // ignore deprecated stuff
+                    if (triple['http://schema.org/supersededBy'])
+                        continue;
+
+                    const domains = getIncludes(triple['http://schema.org/domainIncludes']);
+                    const ranges = getIncludes(triple['http://schema.org/rangeIncludes']);
+                    const name = getId(triple['@id']);
+                    const comment = triple['rdfs:comment'];
+
+                    for (let domain of domains) {
+                        if (domain in BUILTIN_TYPEMAP)
+                            continue;
+                        if (BLACKLISTED_TYPES.has(domain))
+                            continue;
+
+                        ensureType(domain);
+                        typeHierarchy[domain].properties[name] = {
+                            types: ranges,
+                            comment
+                        };
+                    }
+                    break;
+                }
+                case 'rdfs:Class': {
+                    const name = getId(triple['@id']);
+                    const comment = triple['rdfs:comment'];
+                    const _extends = getIncludes(triple['rdfs:subClassOf'] || []);
+                    ensureType(name);
+                    typeHierarchy[name].extends = _extends.filter((ex) => !BLACKLISTED_TYPES.has(ex));
+                    if (typeHierarchy[name].extends.length === 0 && name !== 'Thing')
+                        typeHierarchy[name].extends = ['Thing'];
+                    typeHierarchy[name].comment = comment;
+                    break;
+                }
+
+                default:
+                    throw new Error(`don't know how to handle a triple of type ${triple['@type']}`); //'
+                }
+            } catch(e) {
+                console.error('Triple failed');
+                console.error(triple);
+                throw e;
+            }
+        }
+
+
+        for (let type in typeHierarchy) {
+            typeHierarchy[type].isAction = isSubClass(type, 'Action');
+            typeHierarchy[type].isEnum = !!enums[type] || isSubClass(type, 'Enumeration');
+            if (typeHierarchy[type].isEnum)
+                typeHierarchy[type].enum = enums[type] || [];
+
+            typeHierarchy[type].isItemList = isSubClass(type, 'ItemList');
+            if (typeHierarchy[type].isItemList)
+                typeHierarchy[type].itemType = getItemType(type, typeHierarchy);
+
+            if (STRUCTURED_HIERARCHIES.indexOf(type) >= 0) {
+                typeHierarchy[type].isStructSubType = true;
+                typeHierarchy[type].representAsStruct = true;
+            } else {
+                for (let structBase of STRUCTURED_HIERARCHIES) {
+                    if (isSubClass(type, structBase)) {
+                        typeHierarchy[type].isStructSubType = true;
+                        typeHierarchy[type].representAsStruct = true;
+                        break;
+                    }
+                }
+            }
+
+            if (NON_STRUCT_TYPES.has(type)) {
+                typeHierarchy[type].isStructSubType = false;
+                typeHierarchy[type].representAsStruct = false;
+            }
+        }
+
+        function findCycle(typename, lookfor, visited) {
+            if (visited.has(typename))
+                return typename === lookfor;
+            visited.add(typename);
+
+            for (let propname in typeHierarchy[typename].properties) {
+                let propdef = typeHierarchy[typename].properties[propname];
+                for (let type of propdef.types) {
+                    if (type in BUILTIN_TYPEMAP)
+                        continue;
+                    if (!typeHierarchy[type] || !typeHierarchy[type].representAsStruct)
+                        continue;
+                    if (findCycle(type, lookfor, visited))
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        // check all types - if they form a cycle, we cannot represent them as structs
+        for (let typename in typeHierarchy) {
+            if (typeHierarchy[typename].isEnum)
+                continue;
+            if (!typeHierarchy[typename].representAsStruct)
+                continue;
+            if (findCycle(typename, typename, new Set))
+                typeHierarchy[typename].representAsStruct = false;
+        }
+
+        // check all types - all parents of non-struct types must also be non-struct types,
+        // recursively
+        function recursiveMakeNonStruct(typename) {
+            typeHierarchy[typename].representAsStruct = false;
+            for (let _extend of typeHierarchy[typename].extends) {
+                if (!typeHierarchy[_extend])
+                    continue;
+                recursiveMakeNonStruct(_extend);
+            }
+        }
+
+        for (let typename in typeHierarchy) {
+            if (typeHierarchy[typename].isEnum)
+                continue;
+            if (typeHierarchy[typename].representAsStruct)
+                continue;
+            recursiveMakeNonStruct(typename);
+        }
+
+        //console.log(JSON.stringify(typeHierarchy, undefined, 2));
+
+        const order = new Set;
+
+        function toposort(typename) {
+            if (typeHierarchy[typename].isAction || typeHierarchy[typename].isEnum ||
+                typeHierarchy[typename].representAsStruct)
+                return;
+
+            for (let _extend of typeHierarchy[typename].extends) {
+                if (!typeHierarchy[_extend])
+                    continue;
+                toposort(_extend);
+            }
+
+            order.add(typename);
+        }
+        for (let type in typeHierarchy) {
+            if (order.has(type))
+                continue;
+            toposort(type);
+        }
+
+        const queries = {};
+        for (let typename of order) {
+            const typedef = typeHierarchy[typename];
+
+            const args = [
+                new Ast.ArgumentDef(Ast.ArgDirection.OUT, 'id', Type.Entity('org.schema:' + typename), {}, {
+                    'unique': new Ast.Value.Boolean(true),
+                    'genie': new Ast.Value.Boolean(false) // no filter on id, if it has ner support, we'll generate prim for it
+                })
+            ];
+
+            this._hasGeo = 'geo' in typedef.properties;
+            for (let propertyname in typedef.properties) {
+                const propertydef = typedef.properties[propertyname];
+                const [schemaOrgType, type] = this.getBestPropertyType(propertyname, propertydef, typeHierarchy);
+                if (!type)
+                    continue;
+
+                if (KEYWORDS.includes(propertyname))
+                    propertyname = '_' + propertyname;
+
+                const canonical = this.makeArgCanonical(propertyname, type);
+                const metadata = { 'canonical': canonical["default"] === "npp" && canonical["npp"].length === 1 ? canonical["npp"][0] : canonical };
+                const annotation = keepAnnotation ? {
+                    'org_schema_type': Ast.Value.String(schemaOrgType),
+                    'org_schema_comment': Ast.Value.String(propertydef.comment)
+                } : {
+                    'org_schema_type': Ast.Value.String(schemaOrgType)
+                };
+
+                if (PROPERTIES_NO_FILTER.includes(propertyname))
+                    annotation['genie'] = new Ast.Value.Boolean(false);
+
+                const arg = new Ast.ArgumentDef(Ast.ArgDirection.OUT, propertyname, type, metadata, annotation);
+
+                (function recursiveAddStringValues(arg, fileId) {
+                    let type = arg.type;
+                    while (type.isArray)
+                        type = type.elem;
+
+                    if (type.isString) {
+                        arg.annotations['string_values'] = Ast.Value.String(fileId);
+                        return;
+                    }
+
+                    if (type.isCompound) {
+                        for (let field in type.fields) {
+                            if (field.indexOf('.') >= 0)
+                                continue;
+                            recursiveAddStringValues(type.fields[field], fileId + '_' + field);
+                        }
+                    }
+                })(arg, 'org.schema:' + typename + '_' + propertyname);
+
+                args.push(arg);
+            }
+
+            if (KEYWORDS.includes(typename))
+                typename = '_' + typename;
+            const querydef = new Ast.FunctionDef('query', typename, typedef.extends, args, true, false, {
+                'canonical': clean(typename),
+                'confirmation': clean(typename),
+            }, keepAnnotation ? {
+                'org_schema_comment': Ast.Value.String(typedef.comment),
+                'confirm': Ast.Value.Boolean(false)
+            } : {
+                'confirm': Ast.Value.Boolean(false)
+            } );
+            queries[typename] = querydef;
+        }
+
+        const classdef = new Ast.ClassDef('org.schema', [], queries, {} /* actions */, [
+            new Ast.ImportStmt.Mixin(['loader'], 'org.thingpedia.v2', []),
+            new Ast.ImportStmt.Mixin(['config'], 'org.thingpedia.config.none', [])
+        ], {
+            name: 'Schema.org',
+            description: 'Scraped data from websites that support schema.org'
+        }, {}, false);
+
+        this._output.end(classdef.prettyprint());
+        await StreamUtils.waitFinish(this._output);
+    }
+
 }
+
+
 module.exports = {
     initArgparse(subparsers) {
         const parser = subparsers.addParser('webqa-process-schemaorg', {
@@ -869,5 +893,8 @@ module.exports = {
         });
     },
 
-    execute: main
+    async execute(args) {
+        const schemaProcessor = new SchemaProcessor(args);
+        schemaProcessor.run();
+    }
 };
