@@ -408,6 +408,9 @@ $root = {
         | 'who is' proj:projection_Entity__tt__username ('' | '?')
         | 'who is' proj:projection_Entity__tt__email_address ('' | '?')
     ) => {
+        // FIXME: this should not happen
+        if (proj.args.length === 0)
+            return null;
         if (proj.schema.getArgType(proj.args[0]).isArray)
             return null;
         return C.sayProjectionProgram($options, proj);
@@ -417,6 +420,9 @@ $root = {
         | 'who are' proj:projection_Entity__tt__username ('' | '?')
         | 'who are' proj:projection_Entity__tt__email_address ('' | '?')
     ) => {
+        // FIXME: this should not happen
+        if (proj.args.length === 0)
+            return null;
         if (!proj.schema.getArgType(proj.args[0]).isArray)
             return null;
         return C.sayProjectionProgram($options, proj);
