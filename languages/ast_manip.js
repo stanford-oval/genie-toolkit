@@ -1180,6 +1180,8 @@ function maybeGetIdFilter(filter) {
 }
 
 function addGetPredicateJoin(table, get_predicate_table, pname, $options) {
+    if (coin(0.9, $options.rng))
+        return null;
     if (!get_predicate_table.isFilter || !get_predicate_table.table.isInvocation)
         return null;
 
@@ -1228,6 +1230,9 @@ function addGetPredicateJoin(table, get_predicate_table, pname, $options) {
 }
 
 function addArrayJoin(lhs, rhs, $options) {
+    if (coin(0.9, $options.rng))
+        return null;
+
     if (!lhs.isFilter)
         return null;
 

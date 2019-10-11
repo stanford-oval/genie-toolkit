@@ -33,10 +33,10 @@ schema_with_filtered_table_join = {
     // join form of join
 
     rhs:with_filtered_table ('of' | 'for' | 'in') lhs:with_filtered_table
-        => C.addArrayJoin(lhs, rhs);
+        => C.addArrayJoin(lhs, rhs, $options);
 
     !turking lhs:with_filtered_table '\'s' rhs:with_filtered_table
-        => C.addArrayJoin(lhs, rhs);
+        => C.addArrayJoin(lhs, rhs, $options);
 }
 
 schema_have_filtered_table_join = {
