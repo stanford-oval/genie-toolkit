@@ -361,6 +361,8 @@ async function processTable(data, library, dataset, table, args, rng, cache) {
 
     const seen = new Set;
     for (const argDef of queryDef.iterateArguments()) {
+        if (argDef.name === 'id')
+            continue;
         if (argDef.name === 'name')
             continue;
         if (argDef.type.isCompound)
