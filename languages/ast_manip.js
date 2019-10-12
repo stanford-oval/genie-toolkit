@@ -516,13 +516,23 @@ function checkFilterUniqueness(table, filter) {
         return false;
 
     if (filter.isNot)
-        filter = filter.expr;
+        return checkFilterUniqueness(table, filter.expr);
 
     if (filter.isTrue || filter.isFalse)
         return false;
 
     if (filter.isCompute)
         return false;
+
+    /*if (!table.schema.hasArgument(filter.name)) {
+        console.log('AFTER:');
+        console.log(filter.name)
+        console.log(filter.isAnd)
+        console.log(filter.isOr)
+        console.log(filter)
+        console.log('********************')
+        console.dir(table.schema)
+    }*/
 
     return table.schema.getArgument(filter.name).unique;
 }
