@@ -330,6 +330,12 @@ $root = {
         | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:with_filtered_table
         | ('search' | 'find' | 'i want' | 'i need') table:with_filtered_table
         | ('what' | 'which') table:verb_filtered_table ('' | '?')
+        | ('what' | 'which') table:one_be_filter_table ('' | '?')
+        | ('what' | 'which') table:one_have_filter_table ('' | '?')
+        | ('what' | 'which') table:one_verb_filter_table ('' | '?')
+        | ('what' | 'which') table:two_be_filter_table ('' | '?')
+        | ('what' | 'which') table:two_have_filter_table ('' | '?')
+        | ('what' | 'which') table:two_verb_filter_table ('' | '?')
         | ('what' | 'which') 'are' ('the' | '') table:with_filtered_table ('' | '?')
         | ('what' | 'which') 'are' ('the' | '') table:one_with_filter_table ('' | '?')
         | ('what' | 'which') 'are' ('the' | '') table:one_which_filter_table ('' | '?')
