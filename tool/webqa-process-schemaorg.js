@@ -337,6 +337,30 @@ const STRING_FILE_OVERRIDES = {
     'org.schema:Person_name': 'tt:person_full_name',
 };
 
+function recursiveAddStringValues(arg, fileId) {
+    let type = arg.type;
+    while (type.isArray)
+        type = type.elem;
+
+    if (type.isEntity && STRING_FILE_OVERRIDES[fileId]) {
+        arg.annotations['string_values'] = Ast.Value.String(STRING_FILE_OVERRIDES[fileId]);
+        return;
+    }
+
+    if (type.isString) {
+        arg.annotations['string_values'] = Ast.Value.String(STRING_FILE_OVERRIDES[fileId] || fileId);
+        return;
+    }
+
+    if (type.isCompound) {
+        for (let field in type.fields) {
+            if (field.indexOf('.') >= 0)
+                continue;
+            recursiveAddStringValues(type.fields[field], fileId + '_' + field);
+        }
+    }
+}
+
 class SchemaProcessor {
     constructor(args) {
         this._output = args.output;
@@ -798,6 +822,16 @@ class SchemaProcessor {
                     'genie': new Ast.Value.Boolean(false) // no filter on id, if it has ner support, we'll generate prim for it
                 })
             ];
+            recursiveAddStringValues(args[0], 'org.schema:' + typename + '_name');
+            if (typename !== 'Thing') {
+                // override name so we can apply a custom string_values annotation
+                const arg = new Ast.ArgumentDef(Ast.ArgDirection.OUT, 'name', Type.String, {}, {
+                    'org_schema_type': new Ast.Value.String('Text'),
+                    'genie': new Ast.Value.Boolean(false) // no filter on name, if it has ner support, we'll generate prim for it
+                });
+                recursiveAddStringValues(arg, 'org.schema:' + typename + '_name');
+                args.push(arg);
+            }
 
             this._hasGeo = 'geo' in typedef.properties;
             for (let propertyname in typedef.properties) {
@@ -822,25 +856,7 @@ class SchemaProcessor {
                     annotation['genie'] = new Ast.Value.Boolean(false);
 
                 const arg = new Ast.ArgumentDef(Ast.ArgDirection.OUT, propertyname, type, metadata, annotation);
-
-                (function recursiveAddStringValues(arg, fileId) {
-                    let type = arg.type;
-                    while (type.isArray)
-                        type = type.elem;
-
-                    if (type.isString) {
-                        arg.annotations['string_values'] = Ast.Value.String(STRING_FILE_OVERRIDES[fileId] || fileId);
-                        return;
-                    }
-
-                    if (type.isCompound) {
-                        for (let field in type.fields) {
-                            if (field.indexOf('.') >= 0)
-                                continue;
-                            recursiveAddStringValues(type.fields[field], fileId + '_' + field);
-                        }
-                    }
-                })(arg, 'org.schema:' + typename + '_' + propertyname);
+                recursiveAddStringValues(arg, 'org.schema:' + typename + '_' + propertyname);
 
                 args.push(arg);
             }
