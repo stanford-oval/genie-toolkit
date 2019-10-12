@@ -332,7 +332,10 @@ function getItemType(typename, typeHierarchy) {
     return 'Thing';
 }
 
-
+const STRING_FILE_OVERRIDES = {
+    'org.schema:Restaurant_name': 'gov.data:restaurant_name',
+    'org.schema:Person_name': 'tt:person_full_name',
+};
 
 class SchemaProcessor {
     constructor(args) {
@@ -826,7 +829,7 @@ class SchemaProcessor {
                         type = type.elem;
 
                     if (type.isString) {
-                        arg.annotations['string_values'] = Ast.Value.String(fileId);
+                        arg.annotations['string_values'] = Ast.Value.String(STRING_FILE_OVERRIDES[fileId] || fileId);
                         return;
                     }
 
