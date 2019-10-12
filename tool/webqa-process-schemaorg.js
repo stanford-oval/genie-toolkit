@@ -171,13 +171,15 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         // who is an alumnus of Stanford
         "alumni of", "alumnus of", "alumna of",
         // who is a Stanford alumnus
-        "#alumnus", "#alumni"],
+        "#alumnus", "#alumni", "#grad", "#gradudate"
+        ],
         avp: [
         // who was educated at Stanford
-        "was educated at", "graduated from"],
+        "was educated at", "is graduated from", "was studied at", "went to", "graduated from"
+        ],
         pvp: [
         // what person educated at Stanford ...
-        "educated at"
+        "educated at", "graduated from", "studied at"
         ],
         npp: [
         // who has alma mater ...
@@ -209,7 +211,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         npi: [
             'employee of', '#employee'
         ],
-        avp: ['works for', 'works at'],
+        avp: ['works for', 'works at', 'worked at', 'worked for'],
         pvp: [
             'employed at', 'employed by',
         ],
