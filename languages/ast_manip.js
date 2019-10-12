@@ -401,6 +401,13 @@ function checkFilter(table, filter) {
         filter = filter.expr;
     if (filter.isExternal)
         return true;
+    if (filter.isAnd || filter.isOr ) {
+        for (let operands of filter.operands) {
+            if (!checkFilter(table, operands))
+                return false;
+        }
+        return true;
+    }
 
     let vtype, ptype, ftype;
 

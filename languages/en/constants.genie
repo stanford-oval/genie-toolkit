@@ -122,3 +122,7 @@ constant_Location = {
     'work'                    => new Ast.Value.Location(Ast.Location.Relative('work'));
 }
 
+constant_pairs = {
+    c1:constant_Any 'and' c2:constant_Any => [c1, c2];
+}
+

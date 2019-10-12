@@ -313,8 +313,8 @@ with_filter = {
     x:constant_Any 'in' p:the_out_param_Array__Any => C.makeFilter($options, p, 'contains', x);
 
     // array contain and
-    p:out_param_Array__Any 'containing both' x:constant_Any 'and' y:constant_Any => C.makeAndFilter($options, p, 'contains', [x, y]);
-    'both' x:constant_Any 'and' y:constant_Any 'in' p:the_out_param_Array__Any => C.makeAndFilter($options, p, 'contains', [x, y]);
+    !turking p:out_param_Array__Any 'containing both' x:constant_Any 'and' y:constant_Any => C.makeAndFilter($options, p, 'contains', [x, y]);
+    !turking 'both' x:constant_Any 'and' y:constant_Any 'in' p:the_out_param_Array__Any => C.makeAndFilter($options, p, 'contains', [x, y]);
 
     // array contain or
     p:out_param_Array__Any 'containing either' x:constant_Any 'or' y:constant_Any => C.makeOrFilter($options, p, 'contains', [x, y]);
@@ -485,6 +485,10 @@ npi_filter = {
     !turking p:out_param_npi ('' | 'a' | 'the') x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
+
+    p:out_param_pvp ('both' | '') x:constant_pairs => {
+        return C.makeAndFilter($options, p, 'contains', x);
+    };
 }
 
 // filters on pvp parameters
@@ -505,6 +509,10 @@ pvp_filter = {
     };
     !turking p:out_param_pvp ('' | 'a' | 'an' | 'the') x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
+    };
+
+    p:out_param_pvp ('both' | '') x:constant_pairs => {
+        return C.makeAndFilter($options, p, 'contains', x);
     };
 
     // FIXME: smarter way to get location-type params
@@ -536,6 +544,10 @@ avp_filter = {
     !turking p:out_param_avp ('' | 'a' | 'an' | 'the') x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
+
+    p:out_param_avp ('both' | '') x:constant_pairs => {
+        return C.makeAndFilter($options, p, 'contains', x);
+    };
 }
 
 // filters on npv parameters
@@ -557,6 +569,10 @@ npv_filter = {
     !turking p:out_param_npv ('the' | 'a' | 'an' | '') x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
+
+    p:out_param_npv ('both' | '') x:constant_pairs => {
+        return C.makeAndFilter($options, p, 'contains', x);
+    };
 }
 
 // filters on apv parameter
@@ -570,6 +586,10 @@ apv_filter = {
 
     p:out_param_apv x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
+    };
+
+    p:out_param_apv ('both' | '') x:constant_pairs => {
+        return C.makeAndFilter($options, p, 'contains', x);
     };
 }
 
