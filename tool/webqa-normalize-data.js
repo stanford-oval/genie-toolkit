@@ -16,8 +16,7 @@ const fs = require('fs');
 const util = require('util');
 //const assert = require('assert');
 const ThingTalk = require('thingtalk');
-const uuid = require('uuid');
-const deq = require('deep-equal');
+const crypto = require('crypto');
 
 const StreamUtils = require('../lib/stream-utils');
 const { makeMetadata } = require('./lib/webqa-metadata');
@@ -88,6 +87,13 @@ function ensureArray(value) {
         return value;
     else
         return [value];
+}
+
+function hash(obj) {
+    const str = JSON.stringify(obj);
+    const hasher = crypto.createHash('sha1');
+    hasher.update(str);
+    return hasher.digest().toString('hex');
 }
 
 class Normalizer {
@@ -211,6 +217,13 @@ class Normalizer {
             if (!value['@id'] && typeof value.url === 'string')
                 value['@id'] = value.url;
 
+            if (type === 'Restaurant') {
+                // dedupe restaurants by name
+                const sameAs = ensureArray(value.sameAs || []);
+                sameAs.push('Restaurant/name:' + value.name);
+                value.sameAs = sameAs;
+            }
+
             // if we already have an ID, we're done
             if (value['@id']) {
                 const existing = this._sameAsMap.get(value['@id']);
@@ -245,20 +258,17 @@ class Normalizer {
             }
 
             value['@id'] = undefined;
-            if (type !== 'Review' && type !== 'Person') { // but now for review or person, there are too many and it's slow
-                for (let candidateId in this.output[type]) {
-                    const candidate = this.output[type][candidateId];
-                    // ignore the ID in comparison
-                    candidate['@id'] = undefined;
-                    const good = deq(candidate, value, { strict: true });
-                    candidate['@id'] = candidateId;
-                    if (good)
-                        return candidateId;
+            const hashId = 'https://thingpedia.stanford.edu/ns/uuid/' + type + '/' + hash(value);
+            if (this._sameAsMap.has(hashId)) {
+                const existing = this._sameAsMap.get(hashId);
+                if (existing) {
+                    this._mergeObject(existing, value);
+                    return existing['@id'];
                 }
             }
 
             // nope, make up a new object
-            value['@id'] = 'https://thingpedia.stanford.edu/ns/uuid/' + type + '/' + uuid.v4();
+            value['@id'] = hashId;
             this.output[type][value['@id']] = value;
             this._sameAsMap.set(value['@id'], value);
             if (value.sameAs) {
@@ -301,6 +311,7 @@ class Normalizer {
                     newArray.push(newValue);
                 path.pop();
             }
+
             return newArray;
         }
 
