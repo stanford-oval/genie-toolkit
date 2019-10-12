@@ -150,9 +150,7 @@ either_filter = {
         let vtype = v1.getType();
         if (vtype.isBoolean) // "is equal to true or false" does not make sense
             return null;
-        if (!$options.params.out.has(param.name + '+' + vtype))
-            return null;
-        return new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2]));
+        return C.makeFilter($options, param, 'in_array', Ast.Value.Array([v1, v2]));
     };
     'the' param:out_param_Any 'is' ('not' | 'neither') v1:constant_Any 'nor' v2:constant_Any => {
         // param is a Value.VarRef
@@ -167,9 +165,7 @@ either_filter = {
         let vtype = v1.getType();
         if (vtype.isBoolean) // "is neither true nor false" does not make sense
             return null;
-        if (!$options.params.out.has(param.name + '+' + vtype))
-            return null;
-        return new Ast.BooleanExpression.Not(new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2])));
+        return C.makeFilter($options, param, 'in_array', Ast.Value.Array([v1, v2]), true);
     };
 }
 
@@ -198,10 +194,9 @@ range = {
 range_filter = {
     param:the_out_param_Numeric 'is' range:range => {
         const [v1, v2] = range;
-        return new Ast.BooleanExpression.And([
-            Ast.BooleanExpression.Atom(param.name, '>=', v1),
-            Ast.BooleanExpression.Atom(param.name, '<=', v2)
-        ]);
+        const f1 = C.makeFilter($options, param, '>=', v1);
+        const f2 = C.makeFilter($options, param, '<=', v2);
+        return f1 && f2 ? new Ast.BooleanExpression.And([f1, f2]) : null;
     };
 }
 
@@ -305,8 +300,8 @@ with_filter = {
 
     !turking {
         f:range_with_filter => f;
-        'no' param:out_param_Number => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0));
-        'zero' param:out_param_Number => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0));
+        'no' param:out_param_Number => C.makeFilter($options, param, '==', Ast.Value.Number(0));
+        'zero' param:out_param_Number => C.makeFilter($options, param, '==', Ast.Value.Number(0));
     }
 
     // array
@@ -327,99 +322,100 @@ with_filter = {
     !turking p:out_param_String ('containing' | 'including') x:constant_String ('but not'| 'without' | 'but no') y:constant_String => C.makeButFilter($options, p, 'contains', [x, y]);
 
     // aggregate filters - count
-    !turking ('no' | 'zero') p:out_param_Array__Any => C.makeAggregateFilter($options, p, null, 'count', '*', '==', Ast.Value.Number(0));
-    x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter($options, p, null, 'count', '*', '==', x);
+    !turking ('no' | 'zero') p:out_param_Array__Any => C.makeAggregateFilter($options, p, 'count', '*', '==', Ast.Value.Number(0));
+    x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter($options, p, 'count', '*', '==', x);
 
     !turking ('no' | 'zero') p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
-        const filter = new Ast.BooleanExpression.Atom(f.name, '<=', x);
-        return C.makeAggregateFilter($options, p, filter, 'count', '*', '==', new Ast.Value.Number(0));
+        const filter =  C.makeFilter($options, f, '<=', x);
+        return C.makeAggregateFilterWithFilter($options, p, filter, 'count', '*', '==', new Ast.Value.Number(0));
     };
     !turking ('no' | 'zero') p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
-        const filter = new Ast.BooleanExpression.Atom(f.name, '>=', x);
-        return C.makeAggregateFilter($options, p, filter, 'count', '*', '==', new Ast.Value.Number(0));
+        const filter = C.makeFilter($options, f, '>=', x);
+        return C.makeAggregateFilterWithFilter($options, p, filter, 'count', '*', '==', new Ast.Value.Number(0));
     };
 
     p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
-        const filter = new Ast.BooleanExpression.Atom(f.name, '<=', x);
-        return C.makeAggregateFilter($options, p, filter, 'count', '*', '>=', new Ast.Value.Number(1));
+        const filter = C.makeFilter($options, f, '<=', x);
+        return C.makeAggregateFilterWithFilter($options, p, filter, 'count', '*', '>=', new Ast.Value.Number(1));
+
     };
 
     p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
-        const filter = new Ast.BooleanExpression.Atom(f.name, '>=', x);
-        return C.makeAggregateFilter($options, p, filter, 'count', '*', '>=', new Ast.Value.Number(1));
+        const filter = C.makeFilter($options, f, '>=', x);
+        return C.makeAggregateFilterWithFilter($options, p, filter, 'count', '*', '>=', new Ast.Value.Number(1));
     };
 
     p:out_param_Array__Compound ('with' | 'having') f:with_filter => {
-        return C.makeAggregateFilter($options, p, f, 'count', '*', '>=', new Ast.Value.Number(1));
+        return C.makeAggregateFilterWithFilter($options, p, f, 'count', '*', '>=', new Ast.Value.Number(1));
     };
 
     v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
-        const filter = new Ast.BooleanExpression.Atom(f.name, '<=', x);
-        return C.makeAggregateFilter($options, p, filter, 'count', '*', '==', v);
+        const filter = C.makeFilter($options, f, '<=', x);
+        return C.makeAggregateFilterWithFilter($options, p, filter, 'count', '*', '==', v);
     };
 
-    ('more than' | 'at least' | 'no fewer than') x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter($options, p, null, 'count', '*', '>=', x);
-    ('fewer than' | 'at most' | 'no more than') x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter($options, p, null, 'count', '*', '<=', x);
+    ('more than' | 'at least' | 'no fewer than') x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter($options, p, 'count', '*', '>=', x);
+    ('fewer than' | 'at most' | 'no more than') x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter($options, p, 'count', '*', '<=', x);
 
     // do not merge
     'no more than' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
-        const filter = new Ast.BooleanExpression.Atom(f.name, '<=', x);
-        return C.makeAggregateFilter($options, p, filter, 'count', '*', '<=', v);
+        const filter = C.makeFilter($options, f, '<=', x);
+        return C.makeAggregateFilterWithFilter($options, p, filter, 'count', '*', '<=', v);
     };
     'at most' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
-        const filter = new Ast.BooleanExpression.Atom(f.name, '<=', x);
-        return C.makeAggregateFilter($options, p, filter, 'count', '*', '<=', v);
+        const filter = C.makeFilter($options, f, '<=', x);
+        return C.makeAggregateFilterWithFilter($options, p, filter, 'count', '*', '<=', v);
     };
     'fewer than' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
-        const filter = new Ast.BooleanExpression.Atom(f.name, '<=', x);
-        return C.makeAggregateFilter($options, p, filter, 'count', '*', '<=', v);
+        const filter = C.makeFilter($options, f, '<=', x);
+        return C.makeAggregateFilterWithFilter($options, p, filter, 'count', '*', '<=', v);
     };
 
     // do not merge
     'more than' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
-        const filter = new Ast.BooleanExpression.Atom(f.name, '>=', x);
-        return C.makeAggregateFilter($options, p, filter, 'count', '*', '>=', v);
+        const filter = C.makeFilter($options, f, '>=', x);
+        return C.makeAggregateFilterWithFilter($options, p, filter, 'count', '*', '>=', v);
     };
     'at least' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
-        const filter = new Ast.BooleanExpression.Atom(f.name, '>=', x);
-        return C.makeAggregateFilter($options, p, filter, 'count', '*', '>=', v);
+        const filter = C.makeFilter($options, f, '>=', x);
+        return C.makeAggregateFilterWithFilter($options, p, filter, 'count', '*', '>=', v);
     };
 
     // aggregate filters - sum
-    ('total' | 'sum') p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'sum', null, '==', x);
-    ('total' | 'sum') p:out_param_Array__Numeric ('greater than' | 'more than' | 'above' ) x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'sum', null, '>=', x);
-    ('total' | 'sum') p:out_param_Array__Numeric ('lower than' | 'less than' | 'below' ) x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'sum', null, '<=', x);
+    ('total' | 'sum') p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter($options, p, 'sum', null, '==', x);
+    ('total' | 'sum') p:out_param_Array__Numeric ('greater than' | 'more than' | 'above' ) x:constant_Numeric => C.makeAggregateFilter($options, p, 'sum', null, '>=', x);
+    ('total' | 'sum') p:out_param_Array__Numeric ('lower than' | 'less than' | 'below' ) x:constant_Numeric => C.makeAggregateFilter($options, p, 'sum', null, '<=', x);
 
-    !turking ('total' | 'sum') f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'sum', f, '==', x);
-    !turking ('total' | 'sum') f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'sum', f, '>=', x);
-    !turking ('total' | 'sum') f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'sum', f, '>=', x);
+    !turking ('total' | 'sum') f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, p, 'sum', f, '==', x);
+    !turking ('total' | 'sum') f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, p, 'sum', f, '>=', x);
+    !turking ('total' | 'sum') f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, p, 'sum', f, '>=', x);
 
     // aggregate filters - avg
-    'average' p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'avg', null, '==', x);
-    'average' p:out_param_Array__Numeric ('greater than' | 'more than' | 'above') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'avg', null, '>=', x);
-    'average' p:out_param_Array__Numeric ('lower than' | 'less than' | 'below') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'avg', null, '<=', x);
+    'average' p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter($options, p, 'avg', null, '==', x);
+    'average' p:out_param_Array__Numeric ('greater than' | 'more than' | 'above') x:constant_Numeric => C.makeAggregateFilter($options, p, 'avg', null, '>=', x);
+    'average' p:out_param_Array__Numeric ('lower than' | 'less than' | 'below') x:constant_Numeric => C.makeAggregateFilter($options, p, 'avg', null, '<=', x);
 
-    !turking 'average' f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'avg', f, '==', x);
-    !turking 'average' f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'avg', f, '>=', x);
-    !turking 'average' f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'avg', f, '>=', x);
+    !turking 'average' f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, p, 'avg', f, '==', x);
+    !turking 'average' f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, p, 'avg', f, '>=', x);
+    !turking 'average' f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, p, 'avg', f, '>=', x);
 
     // aggregate filters - max
-    ('maximum' | 'highest') p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'max', null, '==', x);
-    ('maximum' | 'highest') p:out_param_Array__Numeric ('greater than' | 'more than' | 'above') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'max', null, '>=', x);
-    ('maximum' | 'highest') p:out_param_Array__Numeric ('lower than' | 'less than' | 'below') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'max', null, '<=', x);
+    ('maximum' | 'highest') p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter($options, p, 'max', null, '==', x);
+    ('maximum' | 'highest') p:out_param_Array__Numeric ('greater than' | 'more than' | 'above') x:constant_Numeric => C.makeAggregateFilter($options, p, 'max', null, '>=', x);
+    ('maximum' | 'highest') p:out_param_Array__Numeric ('lower than' | 'less than' | 'below') x:constant_Numeric => C.makeAggregateFilter($options, p, 'max', null, '<=', x);
 
-    !turking ('maximum' | 'highest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'max', f, '==', x);
-    !turking ('maximum' | 'highest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'max', f, '>=', x);
-    !turking ('maximum' | 'highest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'max', f, '>=', x);
+    !turking ('maximum' | 'highest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, p, 'max', f, '==', x);
+    !turking ('maximum' | 'highest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, p, 'max', f, '>=', x);
+    !turking ('maximum' | 'highest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, p, 'max', f, '>=', x);
 
     // aggregate filters - min
-    ('minimum' | 'lowest') p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'min', null, '==', x);
-    ('minimum' | 'lowest') p:out_param_Array__Numeric ('greater than' | 'more than' | 'above') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'min', null, '>=', x);
-    ('minimum' | 'lowest') p:out_param_Array__Numeric ('lower than' | 'less than' | 'below') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'min', null, '<=', x);
+    ('minimum' | 'lowest') p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter($options, p, 'min', null, '==', x);
+    ('minimum' | 'lowest') p:out_param_Array__Numeric ('greater than' | 'more than' | 'above') x:constant_Numeric => C.makeAggregateFilter($options, p, 'min', null, '>=', x);
+    ('minimum' | 'lowest') p:out_param_Array__Numeric ('lower than' | 'less than' | 'below') x:constant_Numeric => C.makeAggregateFilter($options, p, 'min', null, '<=', x);
 
-    !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'min', f, '==', x);
-    !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'min', f, '>=', x);
-    !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, p, null, 'min', f, '>=', x);
+    !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, p, 'min', f, '==', x);
+    !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, p, 'min', f, '>=', x);
+    !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, p, 'min', f, '>=', x);
 
 }
 
@@ -427,21 +423,21 @@ for (let pname in $options.compoundArrays) {
     for (let fname in $options.compoundArrays[pname].fields) {
         if ($options.compoundArrays[pname].fields[fname].type.isNumeric()) {
             with_filter = {
-                ('total' | 'sum') f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), null, 'sum', f, '==', x);
-                ('total' | 'sum') f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), null, 'sum', f, '>=', x);
-                ('total' | 'sum') f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), null, 'sum', f, '>=', x);
+                ('total' | 'sum') f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), 'sum', f, '==', x);
+                ('total' | 'sum') f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), 'sum', f, '>=', x);
+                ('total' | 'sum') f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), 'sum', f, '>=', x);
 
-                'average' f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), null, 'avg', f, '==', x);
-                'average' f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), null, 'avg', f, '>=', x);
-                'average' f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), null, 'avg', f, '>=', x);
+                'average' f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), 'avg', f, '==', x);
+                'average' f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), 'avg', f, '>=', x);
+                'average' f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), 'avg', f, '>=', x);
 
-                ('maximum' | 'highest') f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), null, 'max', f, '==', x);
-                ('maximum' | 'highest') f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), null, 'max', f, '>=', x);
-                ('maximum' | 'highest') f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), null, 'max', f, '>=', x);
+                ('maximum' | 'highest') f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), 'max', f, '==', x);
+                ('maximum' | 'highest') f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), 'max', f, '>=', x);
+                ('maximum' | 'highest') f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), 'max', f, '>=', x);
 
-                ('minimum' | 'lowest') f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), null, 'min', f, '==', x);
-                ('minimum' | 'lowest') f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), null, 'min', f, '>=', x);
-                ('minimum' | 'lowest') f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), null, 'min', f, '>=', x);
+                ('minimum' | 'lowest') f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), 'min', f, '==', x);
+                ('minimum' | 'lowest') f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), 'min', f, '>=', x);
+                ('minimum' | 'lowest') f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, new Ast.Value.VarRef(pname), 'min', f, '>=', x);
             }
         }
     }
@@ -451,10 +447,9 @@ for (let pname in $options.compoundArrays) {
 range_with_filter = {
     param:out_param_Numeric range:range => {
         const [v1, v2] = range;
-        return new Ast.BooleanExpression.And([
-            Ast.BooleanExpression.Atom(param.name, '>=', v1),
-            Ast.BooleanExpression.Atom(param.name, '<=', v2)
-        ]);
+        const f1 = C.makeFilter($options, param, '>=', v1);
+        const f2 = C.makeFilter($options, param, '<=', v2);
+        return f1 && f2 ? new Ast.BooleanExpression.And([f1, f2]) : null;
     };
 }
 

@@ -225,7 +225,7 @@ function makeButFilter($options, param, op, values) {
     return new Ast.BooleanExpression.And(operands);
 }
 
-function makeListExpression($options, param, filter) {
+function makeListExpression($options, param, filter=null) {
     if (filter) {
         // TODO: handle more complicated filters
         if (!filter.isAtom)
@@ -247,7 +247,33 @@ function makeListExpression($options, param, filter) {
     return new Ast.ListExpression(param.name, filter);
 }
 
-function makeAggregateFilter($options, param, filter, aggregationOp, field, op, value) {
+function makeAggregateFilter($options, param, aggregationOp, field, op, value) {
+    const list = makeListExpression($options, param);
+    if (!list)
+        return null;
+    if (aggregationOp === 'count') {
+        if (!value.getType().isNumber)
+            return null;
+        const agg = new Ast.ScalarExpression.Aggregation(aggregationOp, field, list);
+        return new Ast.BooleanExpression.Compute(agg, op, value);
+    } else if (['sum', 'avg', 'max', 'min'].includes(aggregationOp)) {
+        const vtype = value.getType();
+        if (field) {
+            if (!$options.params.out.has(`${field.name}+${vtype}`))
+                return null;
+        } else {
+            if (!$options.params.out.has(`${param.name}+Array(${vtype})`))
+                return null;
+        }
+        const agg = new Ast.ScalarExpression.Aggregation(aggregationOp, field ? field.name : null, list);
+        return new Ast.BooleanExpression.Compute(agg, op, value);
+    }
+    return null;
+}
+
+function makeAggregateFilterWithFilter($options, param, filter, aggregationOp, field, op, value) {
+    if (filter === null)
+        return null;
     const list = makeListExpression($options, param, filter);
     if (!list)
         return null;
@@ -523,16 +549,6 @@ function checkFilterUniqueness(table, filter) {
 
     if (filter.isCompute)
         return false;
-
-    /*if (!table.schema.hasArgument(filter.name)) {
-        console.log('AFTER:');
-        console.log(filter.name)
-        console.log(filter.isAnd)
-        console.log(filter.isOr)
-        console.log(filter)
-        console.log('********************')
-        console.dir(table.schema)
-    }*/
 
     return table.schema.getArgument(filter.name).unique;
 }
@@ -1345,6 +1361,7 @@ module.exports = {
     makeOrFilter,
     makeButFilter,
     makeAggregateFilter,
+    makeAggregateFilterWithFilter,
     makeListExpression,
     makeArgMaxMinTable,
     makeSingleFieldProjection,
