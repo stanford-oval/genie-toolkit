@@ -1146,7 +1146,7 @@ function makeExampleFromQuery(id, q) {
             {}
         ));
     }
-    if (id && id.has_ner_support === 1) {
+    if (id && id.has_ner_support) {
         const idfilter = new Ast.BooleanExpression.Atom('id', '==', new Ast.Value.VarRef('p_id'));
         examples.push(new Ast.Example(
             -1,
