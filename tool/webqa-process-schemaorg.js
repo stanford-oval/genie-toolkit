@@ -333,8 +333,9 @@ function getItemType(typename, typeHierarchy) {
 }
 
 const STRING_FILE_OVERRIDES = {
-    'org.schema:Restaurant_name': 'gov.data:restaurant_name',
+    'org.schema:Restaurant_name': 'gov.data:restaurant_names',
     'org.schema:Person_name': 'tt:person_full_name',
+    'org.schema:Person_alumniOf': 'tt:university_names'
 };
 
 function recursiveAddStringValues(arg, fileId) {
