@@ -227,7 +227,7 @@ with_filter = {
     !turking 'either' x:constant_String 'or' y:constant_String 'in' p:the_out_param_String => C.makeOrFilter($options, p, '=~', [x, y]);
 
     // substring but
-    !turking p:out_out_param_String ('containing' | 'including') x:constant_String ('but not'| 'without' | 'but no') y:constant_String => C.makeButFilter($options, p, '=~', [x, y]);
+    !turking p:the_out_param_String ('containing' | 'including') x:constant_String ('but not'| 'without' | 'but no') y:constant_String => C.makeButFilter($options, p, '=~', [x, y]);
 
     //p:out_param_Numeric ('higher' | 'larger' | 'bigger') 'than' x:constant_Numeric => C.makeFilter($options, p, '>=', x);
     //p:out_param_Numeric ('smaller' | 'lower') 'than' x:constant_Numeric => C.makeFilter($options, p, '<=', x);
@@ -324,7 +324,7 @@ with_filter = {
     'either' x:constant_Any 'or' y:constant_Any 'in' p:the_out_param_Array__Any => C.makeOrFilter($options, p, 'contains', [x, y]);
 
     // array but
-    !turking p:out_out_param_String ('containing' | 'including') x:constant_String ('but not'| 'without' | 'but no') y:constant_String => C.makeButFilter($options, p, 'contains', [x, y]);
+    !turking p:out_param_String ('containing' | 'including') x:constant_String ('but not'| 'without' | 'but no') y:constant_String => C.makeButFilter($options, p, 'contains', [x, y]);
 
     // aggregate filters - count
     !turking ('no' | 'zero') p:out_param_Array__Any => C.makeAggregateFilter($options, p, null, 'count', '*', '==', Ast.Value.Number(0));
