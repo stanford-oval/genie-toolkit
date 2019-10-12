@@ -162,7 +162,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     'reviewRating': { default:"npp", npp:["rating"] },
     'telephone': { default:"npp", npp:["telephone", "phone number"] },
     'servesCuisine': { default:"apv", apv:true, avp:["serves #cuisine", "serves #food", "offer #cuisine", "offer #food", "serves", "offers"],
-        npp:["cuisine", "food type", "specialty", "served cuisine"] },
+        npp:["cuisine", "food type", "served cuisine"] },
 
     // linkedin
     alumniOf: {
@@ -293,7 +293,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
 
 const PROPERTIES_NO_FILTER = [
     'name', // no filter on name, if the id has ner support, we'll generate prim for it
-
+    'priceRange'
 ];
 
 const PROPERTIES_NO_FILTER_WITH_GEO = [
