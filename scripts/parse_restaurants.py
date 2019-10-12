@@ -48,24 +48,21 @@ def navigate(initial, urlpatterns, output, limit=10):
         except Exception as e:
             print(e, file=sys.stderr)
 
-cities = [
-    'Vancouver', 'Toronto', 'Mountain View', 'San Diego', 'Portland', 'Phoenix',
-    'Miami', 'New Orleans', 'Honolulu', 'Seattle', 'Tucson', 'Las Vegas', 'Denver',
-    'Salt Lake City', 'Kansas City', 'Minneapolis', 'Chicago', 'Austin', 'Houston',
-    'Cleveland', 'Nashville', 'Atlanta', 'Houston', 'Lincoln'
-]
-
 def main():
     output = []
 
-    initials = []
-    for city in cities:
-        initials.append('https://www.yelp.com/search?find_desc=Restaurants&find_loc=' + city)
-    for initial in initials:
-        navigate(initial, [
-            lambda url: url.startswith('https://www.yelp.com/biz/'),
-        ], output, limit=1000)
+    outputfile = '__'.join(x.replace(' ', '_') for x in sys.argv[1:]) + '.json'
 
-    json.dump(output, sys.stdout, indent=2, ensure_ascii=False)
+    try:
+        initials = []
+        for city in sys.argv[1:]:
+            initials.append('https://www.yelp.com/search?find_desc=Restaurants&find_loc=' + city)
+        for initial in initials:
+            navigate(initial, [
+                lambda url: url.startswith('https://www.yelp.com/biz/'),
+            ], output, limit=1000)
+    finally:
+        with open(outputfile, 'w') as fp:
+            json.dump(output, fp, indent=2, ensure_ascii=False)
 
 main()
