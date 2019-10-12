@@ -49,7 +49,7 @@ who_two_with_filter_table = {}
 who_two_which_filter_table = {}
 who_two_clean_filter_table = {}
 
-if (!$options.flags.turking.nofilter) {
+if (!$options.flags.nofilter) {
     who_one_with_filter_table = {
         table:thingpedia_who_question ('with' | 'having') filter:with_filter => C.checkAndAddFitlter(table, filter, $options);
     }
@@ -110,7 +110,7 @@ who_two_have_filter_table = {}
 who_two_verb_filter_table = {}
 whose_filtered_table = {}
 
-if (!$options.flags.turking.nofilter) {
+if (!$options.flags.nofilter) {
     who_one_be_filter_table = {
         ?turking table:who_complete_table ('is' | 'are') filter:npi_filter => C.checkAndAddFitlter(table, filter, $options);
         table:who_complete_table ('is' | 'are') filter:pvp_filter => C.checkAndAddFitlter(table, filter, $options);
