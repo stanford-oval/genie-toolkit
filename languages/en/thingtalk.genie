@@ -329,13 +329,14 @@ $root = {
         | 'get' table:with_filtered_table
         | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:with_filtered_table
         | ('search' | 'find' | 'i want' | 'i need') table:with_filtered_table
-        | ('what' | 'which') table:have_filtered_table ('' | '?')
+        | ('what' | 'which') table:verb_filtered_table ('' | '?')
         | ('what' | 'which') 'are' ('the' | '') table:with_filtered_table ('' | '?')
-        | ('what' | 'which') 'are' ('the' | '') table:pvp_filtered_table ('' | '?')
-        | ('what' | 'which') 'are' ('the' | '') table:avp_filtered_table ('' | '?')
-        | ('what' | 'which') 'are' ('the' | '') table:npi_filtered_table ('' | '?')
-        | ('what' | 'which') 'are' ('the' | '') table:npv_filtered_table ('' | '?')
-        | ('what' | 'which') 'are' ('the' | '') table:apv_filtered_table ('' | '?')
+        | ('what' | 'which') 'are' ('the' | '') table:one_with_filter_table ('' | '?')
+        | ('what' | 'which') 'are' ('the' | '') table:one_which_filter_table ('' | '?')
+        | ('what' | 'which') 'are' ('the' | '') table:one_clean_filter_table ('' | '?')
+        | ('what' | 'which') 'are' ('the' | '') table:two_with_filter_table ('' | '?')
+        | ('what' | 'which') 'are' ('the' | '') table:two_which_filter_table ('' | '?')
+        | ('what' | 'which') 'are' ('the' | '') table:two_clean_filter_table ('' | '?')
     ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     ( 'please' | '') ('list' | 'enumerate') table:with_filtered_table => {
         if (!table.schema.is_list)

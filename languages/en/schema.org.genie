@@ -41,6 +41,6 @@ schema_with_filtered_table_join = {
 
 schema_have_filtered_table_join = {
     // get-predicate form of join
-    table:have_filtered_table ('and' | 'and have' | 'and also' | 'and in addition' | 'but also') get_predicate_table:with_filtered_table
+    table:verb_filtered_table ('and' | 'and have' | 'and also' | 'and in addition' | 'but also') get_predicate_table:with_filtered_table
         => C.addGetPredicateJoin(table, get_predicate_table, null, $options);
 }
