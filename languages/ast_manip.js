@@ -184,6 +184,10 @@ function makeFilter($options, param, op, value, negate = false) {
 }
 
 function makeAndFilter($options, param, op, values, negate=false) {
+    if (values.length !== 2)
+        return null;
+    if (values[0].name === values[1].name)
+        return null;
     const operands  = values.map((v) => makeFilter($options, param, op, v));
     if (operands.includes(null))
         return null;
@@ -194,6 +198,10 @@ function makeAndFilter($options, param, op, values, negate=false) {
 }
 
 function makeOrFilter($options, param, op, values, negate=false) {
+    if (values.length !== 2)
+        return null;
+    if (values[0].name === values[1].name)
+        return null;
     const operands  = values.map((v) => makeFilter($options, param, op, v, negate));
     if (operands.includes(null))
         return null;
@@ -202,7 +210,6 @@ function makeOrFilter($options, param, op, values, negate=false) {
         return new Ast.BooleanExpression.Not(f);
     return f;
 }
-
 
 function makeListExpression($options, param, filter) {
     if (filter) {
