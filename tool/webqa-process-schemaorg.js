@@ -785,6 +785,10 @@ class SchemaProcessor {
         for (let typename of order) {
             const typedef = typeHierarchy[typename];
 
+            // do not generate a class for ItemList and subclasses
+            if (typename === 'ItemList' || typedef.isItemList)
+                continue;
+
             const args = [
                 new Ast.ArgumentDef(Ast.ArgDirection.OUT, 'id', Type.Entity('org.schema:' + typename), {}, {
                     'unique': new Ast.Value.Boolean(true),
