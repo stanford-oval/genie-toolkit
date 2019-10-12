@@ -198,7 +198,7 @@ const EQUAL_PATTERNS = [
     ['${table} with ${value} ${propNoun}'],
     ['${table} with ${value} ${propPlural}'],
     ['${table} ${propVerb} ${value} ${propNoun}'],
-    ['${table} ${propNoun} ${table}'],
+    ['${table} ${propNoun} ${value}'],
 
     ['${table} in ${value}', (table, propertyName, propertyType) => /^address\.?/.test(propertyName)],
     ['${table} in ${value} ${property}', (table, propertyName, propertyType) => /^address\.?/.test(propertyName)],
@@ -228,21 +228,24 @@ const COMPARATIVE_LESS_PATTERNS = [
     ['${table} ${propIng} less than ${value}'],
 ];
 
-function getPPDBCandidates(ppdb, canonical) {
+function getPPDBCandidates(ppdb, canonicals) {
     if (!ppdb)
-        return [canonical];
+        return Array.from(canonicals);
 
-    const words = canonical.split(' ');
-    const output = [canonical];
+    const output = [...canonicals];
 
-    for (let i = 0; i < words.length; i++) {
-        for (let j = i+1; j <= words.length; j++) {
-            const span = words.slice(i, j).join(' ');
-            const paraphrases = ppdb.get(span);
-            console.error(`ppdb ${span}:`, paraphrases);
-            if (paraphrases) {
-                for (let paraphrase of paraphrases)
-                    output.push([...words.slice(0, i), paraphrase, ...words.slice(j)].join(' '));
+    for (let canonical of canonicals) {
+        const words = canonical.split(' ');
+
+        for (let i = 0; i < words.length; i++) {
+            for (let j = i+1; j <= words.length; j++) {
+                const span = words.slice(i, j).join(' ');
+                const paraphrases = ppdb.get(span);
+                console.error(`ppdb ${span}:`, paraphrases);
+                if (paraphrases) {
+                    for (let paraphrase of paraphrases)
+                        output.push([...words.slice(0, i), paraphrase, ...words.slice(j)].join(' '));
+                }
             }
         }
     }
@@ -250,7 +253,30 @@ function getPPDBCandidates(ppdb, canonical) {
     return output;
 }
 
-const THRESHOLD = 500000;
+function *getAllCanonicals(argDef) {
+    if (!argDef.metadata.canonical) {
+        yield argDef.canonical;
+        return;
+    }
+    if (typeof argDef.metadata.canonical === 'string') {
+        yield argDef.canonical;
+        return;
+    }
+
+    for (const pos in argDef.metadata.canonical) {
+        if (pos === 'default')
+            continue;
+        if (typeof argDef.metadata.canonical[pos] === 'boolean')
+            continue;
+
+        if (typeof argDef.metadata.canonical[pos] === 'string')
+            yield argDef.metadata.canonical[pos].replace(/#/g, '').replace(/_/g, ' ');
+        else
+            yield* (argDef.metadata.canonical[pos].map((str) => str.replace(/#/g, '').replace(/_/g, ' ')));
+    }
+}
+
+const THRESHOLD = 1000;
 
 async function applyPatterns(ppdb, functionDef, argDef, valueList, patternList, operator, dataset, cache) {
     /*if (propertyName === 'name')
@@ -259,10 +285,10 @@ async function applyPatterns(ppdb, functionDef, argDef, valueList, patternList, 
     if (propertyName === 'geo')
         return [['table_near_value', 2], ['table_around_value', 1]];*/
 
-    const tableCanonicals = getPPDBCandidates(ppdb, functionDef.canonical || clean(functionDef.name));
+    const tableCanonicals = getPPDBCandidates(ppdb, [functionDef.canonical || clean(functionDef.name)]);
     const propertyName = argDef.name;
     const propertyType = argDef.type;
-    const propertyCanonicals = getPPDBCandidates(ppdb, argDef.canonical);
+    const propertyCanonicals = getPPDBCandidates(ppdb, getAllCanonicals(argDef));
 
     // special properties we don't want to handle
     if (propertyName === 'name' || propertyName === 'geo' || /^address\.?/.test(propertyName))
