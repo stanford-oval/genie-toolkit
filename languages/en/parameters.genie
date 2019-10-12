@@ -103,7 +103,11 @@ the_out_param_Array__Any = {
 }
 
 the_out_param_pair = {
-    'the' p1:out_param_Any 'and' p2:out_param_Any => [p1, p2];
+    'the' p1:out_param_Any 'and' p2:out_param_Any => {
+        if (p1.name !== p2.name)
+            return [p1, p2];
+        return null;
+    };
 }
 
 projection_Any = {
