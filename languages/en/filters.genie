@@ -470,12 +470,19 @@ npp_filter = {
 // npi: Noun-phrase parameter for Identity of the subejct
 // e.g.: "owner of <company>", "student in <university>"
 npi_filter = {
-    p:out_param_npi x:constant_Any => {
+    ?turking p:out_param_npi x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    !turking p:out_param_npi ('' | 'a' | 'the') x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
 
-    p:out_param_npi x:constant_Any => {
+    ?turking p:out_param_npi x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+    !turking p:out_param_npi ('' | 'a' | 'the') x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }
@@ -484,12 +491,19 @@ npi_filter = {
 // pvp: Passive-Verb Phrase parameter
 // e.g.: "called <nickname>", "born on <date>"
 pvp_filter = {
-    p:out_param_pvp x:constant_Any => {
+    ?turking p:out_param_pvp x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    !turking p:out_param_pvp ('' | 'a' | 'an' | 'the') x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
 
-    p:out_param_pvp x:constant_Any => {
+    ?turking p:out_param_pvp x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+    !turking p:out_param_pvp ('' | 'a' | 'an' | 'the') x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 
@@ -507,12 +521,19 @@ pvp_filter = {
 // avp: Active-Verb Phrase parameter
 // e.g.: "owns <company>", "studied in <university>"
 avp_filter = {
-    p:out_param_avp x:constant_Any => {
+    ?turking p:out_param_avp x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    !turking p:out_param_avp ('' | 'a' | 'an' | 'the') x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
 
-    p:out_param_avp x:constant_Any => {
+    ?turking p:out_param_avp x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+    !turking p:out_param_avp ('' | 'a' | 'an' | 'the') x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }
@@ -521,12 +542,19 @@ avp_filter = {
 // npv: implicit parameter with Noun-Phrase Value, i.e., the parameter itself will not appear in the sentence
 // e.g.: "Bob is a PhD", the parameter `academic_degree` is implicit, and should be inferred by the value "PhD"
 npv_filter = {
-    p:out_param_npv x:constant_Any => {
+    ?turking p:out_param_npv x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    !turking p:out_param_npv ('the' | 'a' | 'an' | '') x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
 
-    p:out_param_npv x:constant_Any => {
+    ?turking p:out_param_npv x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+    !turking p:out_param_npv ('the' | 'a' | 'an' | '') x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }
