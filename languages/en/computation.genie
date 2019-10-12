@@ -53,6 +53,14 @@
     function makeAggComputeExpression(table, operation, field, list, resultType) {
         if (C.hasUniqueFilter(table))
             return null;
+        let name = list.name;
+        let canonical = table.schema.getArgCanonical(name);
+        for (let p of table.schema.iterateArguments()) {
+            if (p.name === name + 'Count' || p.canonical === canonical + 'count' || p.canonical === canonical.slice(0,-1) + ' count') {
+                const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+                return new Ast.Table.Projection(table, [p.name], newSchema);
+            }
+        }
         const computeSchema = table.schema.addArguments([
             new Ast.ArgumentDef(Ast.ArgDirection.OUT, operation, resultType, {}, {})]);
         const expression = new Ast.ScalarExpression.Aggregation(operation, field, list);

@@ -471,6 +471,13 @@ function checkFilter(table, filter) {
 
         if (filter.lhs.operator === 'count') {
             vtype = Type.Number;
+            let canonical = table.schema.getArgCanonical(name);
+            for (let p of table.schema.iterateArguments()) {
+                if (p.name === name + 'Count')
+                    return false;
+                if (p.canonical === canonical + 'count' || p.canonical === canonical.slice(0,-1) + ' count')
+                    return false;
+            }
         } else {
             if (filter.lhs.field && filter.lhs.field in ptype.elem.fields)
                 ftype = ptype.elem.fields[filter.lhs.field].type;
