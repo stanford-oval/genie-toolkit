@@ -211,6 +211,20 @@ function makeOrFilter($options, param, op, values, negate=false) {
     return f;
 }
 
+function makeButFilter($options, param, op, values) {
+    if (values.length !== 2)
+        return null;
+    if (values[0].name === values[1].name)
+        return null;
+    const operands  = [
+        makeFilter($options, param, op, values[0]),
+        makeFilter($options, param, op, values[1], true)
+    ];
+    if (operands.includes(null))
+        return null;
+    return new Ast.BooleanExpression.And(operands);
+}
+
 function makeListExpression($options, param, filter) {
     if (filter) {
         // TODO: handle more complicated filters
@@ -1319,6 +1333,7 @@ module.exports = {
     makeFilter,
     makeAndFilter,
     makeOrFilter,
+    makeButFilter,
     makeAggregateFilter,
     makeListExpression,
     makeArgMaxMinTable,
