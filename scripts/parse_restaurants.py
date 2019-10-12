@@ -51,7 +51,9 @@ def main():
     output = []
 
     for initial in sys.argv[1:]:
-        navigate(initial, None, output, limit=100)
+        navigate(initial, [
+            lambda url: url.startswith('https://www.yelp.com/biz')
+        ], output, limit=1000)
 
     json.dump(output, sys.stdout, indent=2, ensure_ascii=False)
 main()
