@@ -96,6 +96,7 @@
 projection_Measure_m = {}
 compute_question = {}
 with_arg_min_max_table = {}
+
 if (!$options.flags.turking) {
     projection_Measure_m = {
         ( 'the distance' ('of' | 'to') table:with_filtered_table ('from here' | '')

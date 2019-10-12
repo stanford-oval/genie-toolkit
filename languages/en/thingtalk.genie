@@ -418,6 +418,14 @@ $root = {
         return C.sayProjectionProgram($options, proj);
     };
 
+    // now => get => say(...) (where questions)
+    ?turking 'where is the' table:with_filtered_table => {
+        C.makeSingleFieldProjection($options, 'table', Type.Location, table, new Ast.Value.VarRef('geo'));
+    };
+    !turking 'where' ('is' | 'are') ('' | 'the') table:with_filtered_table => {
+        C.makeSingleFieldProjection($options, 'table', Type.Location, table, new Ast.Value.VarRef('geo'));
+    };
+
     !turking proj:projection_Any => C.sayProjectionProgram($options, proj);
     table:compute_question => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     table:where_question => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
