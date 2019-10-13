@@ -115,10 +115,11 @@ function parseConstant(locale, type, valueString, display) {
     } else if (type.startsWith('Entity(')) {
         if (!display)
             throw new Error(`display field is required for constant of type ${type}`);
+        const key = valueString === `null` ? null : valueString;
         return {
-            key: valueString,
+            key: key,
             value: {
-                value: valueString,
+                value: key,
                 display
             },
             display
