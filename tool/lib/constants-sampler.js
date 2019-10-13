@@ -66,16 +66,21 @@ module.exports = class ConstantSampler {
             for (let argument of functionDef.iterateArguments()) {
                 const arg = argument.name;
                 const string_values = argument.getAnnotation('string_values');
+                const entityType = getEntityType(functionDef.getArgType(arg));
                 if (string_values) {
                     let samples = await this._retrieveSamples('string', `org.schema:${f}_${arg}`);
                     if (samples.length === 0)
                         samples = await this._retrieveSamples('string', string_values);
-                    samples.forEach((sample) => {
-                        constants.push([`param:@${device}.${f}:${arg}:String`, sample]);
-                    });
-                }
-                const entityType = getEntityType(functionDef.getArgType(arg));
-                if (entityType) {
+                    if (entityType) {
+                        samples.forEach((sample) => {
+                            constants.push([`param:@${device}.${f}:${arg}:Entity(${entityType})`, `null`, sample]);
+                        });
+                    } else if (argument.type.isString) {
+                        samples.forEach((sample) => {
+                            constants.push([`param:@${device}.${f}:${arg}:String`, sample]);
+                        });
+                    }
+                } else if (entityType) {
                     const samples = await this._retrieveSamples('entity', entityType);
                     samples.forEach((sample) => {
                         constants.push([
