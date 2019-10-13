@@ -33,6 +33,7 @@ const subcommands = {
 
     'compile-ppdb': require('./compile-ppdb'),
     'augment': require('./augment'),
+    'requote': require('./requote'),
     'resample': require('./resample'),
     'split-train-eval': require('./split-train-eval'),
     'typecheck': require('./typecheck'),
