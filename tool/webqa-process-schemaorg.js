@@ -305,7 +305,7 @@ const PROPERTIES_NO_FILTER = [
     'priceRange'
 ];
 
-const PROPERTIES_NO_FILTER_WITH_GEO = [
+const PROPERTIES_DROP_WITH_GEO = [
     'streetAddress', // street address and address locality should be handled by geo
     'addressLocality'
 ];
@@ -514,7 +514,7 @@ class SchemaProcessor {
                 continue;
 
             const canonical = this.makeArgCanonical(propertyname, ttType);
-            const metadata = { 'canonical': canonical["default"] === "npp" && canonical["npp"].length === 1 ? canonical["npp"][0] : canonical };
+            const metadata = {'canonical': canonical["default"] === "npp" && canonical["npp"].length === 1 ? canonical["npp"][0] : canonical};
             const annotation = keepAnnotation ? {
                 'org_schema_type': Ast.Value.String(schemaOrgType),
                 'org_schema_comment': Ast.Value.String(propertydef.comment)
@@ -522,10 +522,12 @@ class SchemaProcessor {
                 'org_schema_type': Ast.Value.String(schemaOrgType)
             };
 
-            if (PROPERTIES_NO_FILTER.includes(propertyname))
+            if (PROPERTIES_NO_FILTER.includes(propertyname)) {
                 annotation['genie'] = new Ast.Value.Boolean(false);
-            else if (this._hasGeo && PROPERTIES_NO_FILTER_WITH_GEO.includes(propertyname))
+            } else if (this._hasGeo && PROPERTIES_DROP_WITH_GEO.includes(propertyname)) {
                 annotation['genie'] = new Ast.Value.Boolean(false);
+                annotation['drop'] = new Ast.Value.Boolean(true);
+            }
 
             fields[propertyname] = new Ast.ArgumentDef(undefined, propertyname, ttType, metadata, annotation);
             anyfield = true;
