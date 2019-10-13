@@ -175,11 +175,11 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         ],
         avp: [
         // who was educated at Stanford
-        "was educated at", "is graduated from", "was studied at", "went to", "graduated from"
+        "was educated at", "is graduated from", "was studied at", "went to", "graduated from", "attended"
         ],
         pvp: [
         // what person educated at Stanford ...
-        "educated at", "graduated from", "studied at"
+        "educated at", "graduated from", "studied at", "attended"
         ],
         npp: [
         // who has alma mater ...
@@ -195,9 +195,12 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         ],
         avp: [
         "has the award", "has received the #award", "won the award for", "won the #award",
-        "received the #award", "received the", "won the", "holds the award for", "holds the #award"
+        "received the #award", "received the", "won the", "won", "holds the award for", "holds the #award"
         ],
-        npp: ['awards', 'awards received']
+        pvp: [
+            "received"
+        ],
+        npp: ['awards']
     },
     affiliation: {
         default: 'npi',
@@ -216,6 +219,12 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
             'employed at', 'employed by',
         ],
         npp: ['jobs', 'employers']
+    },
+    addressLocality: {
+        default: 'avp',
+        npp: ['city'],
+        avp: ['lives in', 'lived in'],
+        pvp: ['from', 'in']
     },
 
     // recipes
