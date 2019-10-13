@@ -70,6 +70,8 @@
 
     function makeAggComputeProjExpression(table, operation, field, list, resultType) {
         const compute = makeAggComputeExpression(table, operation, field, list, resultType);
+        if (!compute)
+            return null;
         const projSchema = compute.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === operation);
 
         return new Ast.Table.Projection(compute, [operation], projSchema);
@@ -79,6 +81,8 @@
         if (C.hasUniqueFilter(table))
             return null;
         const compute = makeAggComputeExpression(table, operation, field, list, resultType);
+        if (!compute)
+            return null;
         const sort = new Ast.Table.Sort(compute, operation, direction, compute.schema);
         return new Ast.Table.Index(sort, [new Ast.Value.Number(1)], compute.schema);
 
