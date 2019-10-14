@@ -327,6 +327,10 @@ class Normalizer {
                         value['@type'] === 'ImageObject' &&
                         value.contentUrl)
                         return String(value.contentUrl);
+                    if (expectedType.type === 'tt:Entity' &&
+                        (value['@type'] === 'ImageObject' || value['@type'] === 'Photograph') &&
+                        value.thumbnailUrl)
+                        return String(value.thumbnailUrl);
 
                     if (expectedType.type === 'tt:String' &&
                         value['@type'] === 'HowToStep' &&
@@ -359,11 +363,16 @@ class Normalizer {
             } else {
                 if (typeof value === 'object') {
                     let nestedtype = value['@type'];
-                    if (!nestedtype) {
+                    if (typeof nestedtype !== 'string' || !nestedtype) {
                         //console.error(`Nested object has no @type in ${path.join('.')}, assuming ${expectedType.type}`);
 
                         // add a type and hope for the best
-                        nestedtype = value['@type'] = expectedType.type;
+                        if (typeof value.type === 'string' && value.type) {
+                             nestedtype = value['@type'] = value.type;
+                             delete value.type;
+                        } else {
+                             nestedtype = value['@type'] = expectedType.type;
+                        }
                     }
                     this._applyPropertyRenames(value);
                     this._checkUnexpectedFields(value, nestedtype);
@@ -423,14 +432,23 @@ class Normalizer {
             input = [input];
 
         for (let value of input) {
-            const type = value['@type'];
-            if (!type) {
-                console.error(`Top-level object has no @type`, value);
-                continue;
+            if (!Array.isArray(value))
+                value = [value];
+            for (let elem of value) {
+                let type = elem['@type'];
+                if (typeof type !== 'string' || !type) {
+                    if (typeof elem.type === 'string' && elem.type) {
+                        type = elem['@type'] = elem.type;
+                        delete elem.type;
+                    } else {
+                        console.error(`Top-level object has no @type`, elem);
+                        continue;
+                    }
+                }
+                this._applyPropertyRenames(elem);
+                this._checkUnexpectedFields(elem, type);
+                this._processObject(elem, type);
             }
-            this._applyPropertyRenames(value);
-            this._checkUnexpectedFields(value, type);
-            this._processObject(value, type);
         }
     }
 }
