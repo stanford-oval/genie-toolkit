@@ -53,7 +53,8 @@ const subcommands = {
     'webqa-auto-primitive': require('./webqa-auto-primitive'),
     'webqa-normalize-data': require('./webqa-normalize-data'),
     'webqa-make-string-datasets': require('./webqa-make-string-datasets'),
-    'webqa-trim-class': require('./webqa-trim-class')
+    'webqa-trim-class': require('./webqa-trim-class'),
+    'webqa-paraphrase-transfer': require('./webqa-paraphrase-transfer')
 };
 
 async function main() {
