@@ -1254,7 +1254,44 @@ function maybeGetIdFilter(filter) {
     return undefined;
 }
 
-function addGetPredicateJoin(table, get_predicate_table, pname, $options) {
+function addReverseGetPredicateJoin(table, get_predicate_table, pname, $options, negate = false) {
+    /*if (coin(0.9, $options.rng))
+        return null;*/
+    if (!get_predicate_table.isInvocation &&
+        !(get_predicate_table.isFilter && get_predicate_table.table.isInvocation))
+        return null;
+
+
+    const idType = table.schema.getArgType('id');
+    if (!idType || !idType.isEntity)
+        return null;
+    let lhsArg = undefined;
+    assert(pname);
+    lhsArg = get_predicate_table.schema.getArgument(pname);
+    if (!lhsArg)
+        return null;
+    if (!(lhsArg.type.equals(idType) ||
+        (lhsArg.type.isArray && lhsArg.type.elem.equals(idType))))
+        return null;
+    if (lhsArg.name === 'id')
+        return null;
+
+    let invocation = get_predicate_table.isFilter ? get_predicate_table.table.invocation : get_predicate_table.invocation;
+
+    let newAtom = Ast.BooleanExpression.Atom(pname, (lhsArg.type.isArray ? 'contains' : '=='), new Ast.Value.VarRef('id'));
+    let get_predicate = new Ast.BooleanExpression.External(
+        invocation.selector,
+        invocation.channel,
+        invocation.in_params,
+        Ast.BooleanExpression.And([get_predicate_table.isFilter ? get_predicate_table.filter : Ast.BooleanExpression.True, newAtom]),
+        invocation.schema
+    );
+    if (negate)
+        get_predicate = new Ast.BooleanExpression.Not(get_predicate);
+    return addFilter(table, get_predicate, $options);
+}
+
+function addGetPredicateJoin(table, get_predicate_table, pname, $options, negate = false) {
     if (coin(0.9, $options.rng))
         return null;
     if (!get_predicate_table.isFilter || !get_predicate_table.table.isInvocation)
@@ -1289,16 +1326,22 @@ function addGetPredicateJoin(table, get_predicate_table, pname, $options) {
 
     const idFilter = maybeGetIdFilter(get_predicate_table.filter);
     if (idFilter) {
-        return addFilter(table, new Ast.BooleanExpression.Atom(lhsArg.name,
-            lhsArg.type.isArray ? 'contains': '==', idFilter), $options);
+        let newAtom = new Ast.BooleanExpression.Atom(lhsArg.name,
+            lhsArg.type.isArray ? 'contains': '==', idFilter);
+        if (negate)
+            newAtom = new Ast.BooleanExpression.Not(newAtom);
+
+        return addFilter(table, newAtom, $options);
     }
 
+    let newAtom = Ast.BooleanExpression.Atom('id', (lhsArg.type.isArray ? 'in_array' : '=='), new Ast.Value.VarRef(lhsArg.name));
+    if (negate)
+        newAtom = new Ast.BooleanExpression.Not(newAtom);
     const get_predicate = new Ast.BooleanExpression.External(
         get_predicate_table.table.invocation.selector,
         get_predicate_table.table.invocation.channel,
         get_predicate_table.table.invocation.in_params,
-        Ast.BooleanExpression.And([get_predicate_table.filter,
-            Ast.BooleanExpression.Atom('id', (lhsArg.type.isArray ? 'in_array' : '=='), new Ast.Value.VarRef(lhsArg.name))]),
+        Ast.BooleanExpression.And([get_predicate_table.filter, newAtom]),
         get_predicate_table.table.invocation.schema
     );
     return addFilter(table, get_predicate, $options);
@@ -1408,5 +1451,6 @@ module.exports = {
     iterateFields,
 
     addGetPredicateJoin,
+    addReverseGetPredicateJoin,
     addArrayJoin
 };
