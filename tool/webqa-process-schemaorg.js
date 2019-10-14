@@ -345,7 +345,8 @@ const STRING_FILE_OVERRIDES = {
     'org.schema:Restaurant_name': 'com.yelp:restaurant_names',
     'org.schema:Person_name': 'tt:person_full_name',
     'org.schema:Person_alumniOf': 'tt:university_names',
-    'org.schema:Person_worksFor': 'tt:company_name'
+    'org.schema:Person_worksFor': 'tt:company_name',
+    'org.schema:Hotel_name': 'tt:hotel_name'
 };
 
 function recursiveAddStringValues(arg, fileId) {
