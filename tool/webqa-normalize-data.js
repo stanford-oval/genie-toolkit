@@ -357,6 +357,8 @@ class Normalizer {
                         return undefined;
                     }
                     return value;
+                } else if (expectedType.type === 'tt:EntityLower') {
+                    return String(value).toLowerCase();
                 } else {
                     return String(value);
                 }
