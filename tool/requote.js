@@ -154,7 +154,11 @@ function requoteSentence(id, sentence, program) {
             const currentSpan = spansByProgramPos[programSpanIndex];
             assert(currentSpan.mapTo);
             newProgram.push(currentSpan.mapTo);
-        } else if (token === 'location:' || token.startsWith('^^')) {
+            continue;
+        }
+        if (in_string) continue;
+
+        if (token === 'location:' || token.startsWith('^^')) {
             continue;
         } else if (ENTITY_MATCH_REGEX.test(token)) {
             assert(entityRemap[token]);
