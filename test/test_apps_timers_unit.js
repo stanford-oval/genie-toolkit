@@ -16,9 +16,9 @@ function testTimer_setTimems() {
 	let timer = new timers.Timer(null, null);
 	let tests = [
 		{
-			date: 1546329600000, // Date.parse("1 Jan 2019")
+			date: Date.parse("1 Jan 2019"), //1546329600000, // Date.parse("1 Jan 2019")
 			timems: 0, // 00:00:00
-			expected: 1546329600000, // Date.parse("1 Jan 2019")
+			expected: Date.parse("1 Jan 2019"), //1546329600000, // Date.parse("1 Jan 2019")
 		},
 		{
 			date: 1546374896000, // Date.parse("1 Jan 2019 12:34:56")
