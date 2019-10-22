@@ -305,7 +305,7 @@ $root = {
         let stream = C.tableToStream(table, null);
         if (!stream)
             return null;
-        return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
+        return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]), principal);
     };
     !nofilter ('if' | 'when') filter:atom_filter 'in' table:complete_table ('for' | 'of') principal:constant_Entity__tt__username 'then' ('alert me' | 'tell me' | 'notify me' | 'let me know')  => {
         if (C.hasGetPredicate(filter))
@@ -320,7 +320,7 @@ $root = {
         let stream = C.tableToStream(table, null);
         if (!stream)
             return null;
-        return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
+        return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]), principal);
     };
     !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:atom_filter 'in' table:complete_table => {
         if (C.hasGetPredicate(filter))
