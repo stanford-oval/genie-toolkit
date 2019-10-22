@@ -164,6 +164,21 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     'servesCuisine': { default:"apv", apv:true, avp:["serves #cuisine", "serves #food", "offer #cuisine", "offer #food", "serves", "offers"],
         npp:["cuisine", "food type", "served cuisine"] },
 
+    // hotels
+    'amenityFeature': {
+        default: 'nnp',
+        npp: ['amenity', 'amenity feature'],
+        avp: ['offers', 'offer', 'has', 'have'],
+    },
+    'checkinTime': {
+        default: 'npp',
+        npp: ['checkin time', 'check in time', 'check-in time']
+    },
+    'checkoutTime': {
+        default: 'npp',
+        npp: ['checkout time', 'check out time', 'check-out time']
+    },
+
     // linkedin
     alumniOf: {
         default: 'npi',
