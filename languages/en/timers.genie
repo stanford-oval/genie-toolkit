@@ -349,7 +349,7 @@ when_brushing_teeth = {
 
 on = {
   'on' => 'on';
-  'when it\'s' => 'when it\'s';
+  'when it \'s' => 'when it \'s';
   'when it is' => 'when it is';
 }
 
@@ -380,8 +380,8 @@ timer = {
             optional_once each interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, null, TIMER_SCHEMA);
             once_per_day => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), null, TIMER_SCHEMA);
             // twice_per_day and thrice_per_day still need to be AtTimer until we can explicitly set the frequency param in Timer
-            twice_per_day => new Ast.Stream.AtTimer([TIME_MORNING, TIME_EVENING], null, AT_TIMER_SCHEMA);
-            thrice_per_day => new Ast.Stream.AtTimer([TIME_MORNING, TIME_NOON, TIME_EVENING], null, AT_TIMER_SCHEMA);
+            // twice_per_day => new Ast.Stream.AtTimer([TIME_MORNING, TIME_EVENING], null, AT_TIMER_SCHEMA);
+            // thrice_per_day => new Ast.Stream.AtTimer([TIME_MORNING, TIME_NOON, TIME_EVENING], null, AT_TIMER_SCHEMA);
             optional_once each 'year' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'year'), null, TIMER_SCHEMA);
             optional_once each 'month' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), null, TIMER_SCHEMA);
             optional_once each 'week' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), null, TIMER_SCHEMA);

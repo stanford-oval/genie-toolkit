@@ -292,6 +292,36 @@ $root = {
         // note that we intentionally don't use tableToStream here, because we don't want to introduce edge filters
         return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), [C.notifyAction()]));
     };
+    !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:atom_filter 'in' table:complete_table ('for' | 'of') principal:constant_Entity__tt__username => {
+        if (C.hasGetPredicate(filter))
+            return null;
+        if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
+            return null;
+        if ($options.flags.turking && table.schema.is_list)
+            return null;
+        table = C.addFilter(table, filter, $options);
+        if (!table)
+            return null;
+        let stream = C.tableToStream(table, null);
+        if (!stream)
+            return null;
+        return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
+    };
+    !nofilter ('if' | 'when') filter:atom_filter 'in' table:complete_table ('for' | 'of') principal:constant_Entity__tt__username 'then' ('alert me' | 'tell me' | 'notify me' | 'let me know')  => {
+        if (C.hasGetPredicate(filter))
+            return null;
+        if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
+            return null;
+        if ($options.flags.turking && table.schema.is_list)
+            return null;
+        table = C.addFilter(table, filter, $options);
+        if (!table)
+            return null;
+        let stream = C.tableToStream(table, null);
+        if (!stream)
+            return null;
+        return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
+    };
     !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:atom_filter 'in' table:complete_table => {
         if (C.hasGetPredicate(filter))
             return null;
@@ -447,7 +477,6 @@ $root = {
                 ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' action:thingpedia_action stream:timer
                 | ('tell' | 'command' | 'order' | 'request' | 'inform') principal:constant_Entity__tt__username 'that' ('he needs' | 'she needs' | 'i need him' | 'i need her') 'to' action:thingpedia_action stream:timer
             ) if complete => C.makeProgram(new Ast.Statement.Rule(stream, [action]), principal);
-            ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' ('let me know' | 'inform me' | 'notify me' | 'alert me') stream:timer => C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction('return')]), principal);
         }
     }
 
