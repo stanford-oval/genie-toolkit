@@ -36,8 +36,10 @@ function testTimer_setTimems() {
 			expected: 1546416000000 // "Wed Jan 02 2019 00:00:00 GMT-0800 (Pacific Standard Time)"
 		},
 	]
-	tests.forEach(test => {
+	console.log("Testing _setTimems...");
+	tests.forEach((test, i) => {
 		assert(timer._setTimems(test.date, test.timems) === test.expected);
+		console.log(`#${i} passed`);
 	})
 }
 
@@ -61,8 +63,10 @@ function testTimer_getTimems() {
 			expected: 0, // 00:00:00
 		},
 	]
-	tests.forEach(test => {
+	console.log("Testing _getTimems...");
+	tests.forEach((test, i) => {
 		assert(timer._getTimems(test.date) === test.expected);
+		console.log(`#${i} passed`);
 	})
 }
 
@@ -93,8 +97,10 @@ function testTimer_splitDay() {
 			expected: [32400000, 38571429, 44742857, 50914286, 57085714, 63257143, 69428571, 75600000], // 09:00:00, 10:42:51, 12:25:42, 14:08:34, 15:51:25, 17:34:17, 19:17:08, 21:00:00
 		},
 	]
-	tests.forEach(test => {
+	console.log("Testing _splitDay...");
+	tests.forEach((test, i) => {
 		assert(JSON.stringify(timer._splitDay(test.frequency)) === JSON.stringify(test.expected));
+		console.log(`#${i} passed`);
 	})
 }
 
@@ -125,8 +131,10 @@ function testTimer_getEarliest() {
 			expected: 1546448400000 // "Wed Jan 02 2019 09:00:00 GMT-0800 (Pacific Standard Time)"
 		},
 	]
-	tests.forEach(test => {
+	console.log("Testing _getEarliest...");
+	tests.forEach((test, i) => {
 		assert(timer._getEarliest(test.base, test.timings) === test.expected);
+		console.log(`#${i} passed`);
 	})
 }
 
@@ -425,12 +433,13 @@ function testTimer_nextTimeout() {
 			expected: 50429 // 50.429s
 		},
 	]
-	tests.forEach(test => {
+	console.log("Testing _nextTimeout...");
+	tests.forEach((test, i) => {
 		timer._base = test._base;
 		timer._interval = test._interval;
 		timer._frequency = test._frequency;
-		console.log(timer._nextTimeout(test._now))
 		assert(timer._nextTimeout(test._now) === test.expected);
+		console.log(`#${i} passed`);
 	})
 }
 
