@@ -38,7 +38,8 @@ function testTimer_setTimems() {
 	]
 	console.log("Testing _setTimems...");
 	tests.forEach((test, i) => {
-		assert(timer._setTimems(test.date, test.timems) === test.expected);
+		console.log(Date.parse("1 Jan 2019"));
+		assert.strictEqual(timer._setTimems(test.date, test.timems), test.expected);
 		console.log(`#${i} passed`);
 	})
 }
@@ -65,7 +66,7 @@ function testTimer_getTimems() {
 	]
 	console.log("Testing _getTimems...");
 	tests.forEach((test, i) => {
-		assert(timer._getTimems(test.date) === test.expected);
+		assert.strictEqual(timer._getTimems(test.date), test.expected);
 		console.log(`#${i} passed`);
 	})
 }
@@ -99,7 +100,7 @@ function testTimer_splitDay() {
 	]
 	console.log("Testing _splitDay...");
 	tests.forEach((test, i) => {
-		assert(JSON.stringify(timer._splitDay(test.frequency)) === JSON.stringify(test.expected));
+		assert.deepStrictEqual(timer._splitDay(test.frequency), test.expected);
 		console.log(`#${i} passed`);
 	})
 }
@@ -133,7 +134,7 @@ function testTimer_getEarliest() {
 	]
 	console.log("Testing _getEarliest...");
 	tests.forEach((test, i) => {
-		assert(timer._getEarliest(test.base, test.timings) === test.expected);
+		assert.strictEqual(timer._getEarliest(test.base, test.timings), test.expected);
 		console.log(`#${i} passed`);
 	})
 }
@@ -438,7 +439,7 @@ function testTimer_nextTimeout() {
 		timer._base = test._base;
 		timer._interval = test._interval;
 		timer._frequency = test._frequency;
-		assert(timer._nextTimeout(test._now) === test.expected);
+		assert.strictEqual(timer._nextTimeout(test._now), test.expected);
 		console.log(`#${i} passed`);
 	})
 }
