@@ -166,7 +166,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
 
     // hotels
     'amenityFeature': {
-        default: 'nnp',
+        default: 'npp',
         npp: ['amenity', 'amenity feature'],
         avp: ['offers', 'offer', 'has', 'have'],
     },
@@ -392,6 +392,7 @@ class SchemaProcessor {
     constructor(args) {
         this._output = args.output;
         this._cache = args.cache_file;
+        this._className = args.class_name;
         this._url = args.url;
         this._manual = args.manual;
         this._hasGeo = false;
@@ -892,7 +893,7 @@ class SchemaProcessor {
 
             if (KEYWORDS.includes(typename))
                 typename = '_' + typename;
-            const querydef = new Ast.FunctionDef('query', typename, typedef.extends, args, true, false, {
+            queries[typename] = new Ast.FunctionDef('query', typename, typedef.extends, args, true, false, {
                 'canonical': clean(typename),
                 'confirmation': clean(typename),
             }, keepAnnotation ? {
@@ -900,15 +901,16 @@ class SchemaProcessor {
                 'confirm': Ast.Value.Boolean(false)
             } : {
                 'confirm': Ast.Value.Boolean(false)
-            } );
-            queries[typename] = querydef;
+            });
         }
 
-        const classdef = new Ast.ClassDef('org.schema', [], queries, {} /* actions */, [
+        const classdef = new Ast.ClassDef(
+            `org.schema${this._className ? '.' + this._className : ''}`,
+            [], queries, {} /* actions */, [
             new Ast.ImportStmt.Mixin(['loader'], 'org.thingpedia.v2', []),
             new Ast.ImportStmt.Mixin(['config'], 'org.thingpedia.config.none', [])
         ], {
-            name: 'Schema.org',
+            name: `${this._className ? this._className + ' in ' : ''}Schema.org`,
             description: 'Scraped data from websites that support schema.org'
         }, {}, false);
 
@@ -944,6 +946,10 @@ module.exports = {
             action: 'storeTrue',
             help: 'Enable debugging.',
             defaultValue: false
+        });
+        parser.addArgument('--class-name', {
+            required: false,
+            help: 'The name of the generated class, this will also affect the entity names'
         });
     },
 

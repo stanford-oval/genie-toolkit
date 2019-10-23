@@ -278,7 +278,7 @@ function *getAllCanonicals(argDef) {
 
 const THRESHOLD = 1000;
 
-async function applyPatterns(ppdb, functionDef, argDef, valueList, patternList, operator, dataset, cache) {
+async function applyPatterns(className, ppdb, functionDef, argDef, valueList, patternList, operator, dataset, cache) {
     /*if (propertyName === 'name')
         return [['value', 2], ['value_table', 1]];
 
@@ -347,7 +347,7 @@ async function applyPatterns(ppdb, functionDef, argDef, valueList, patternList, 
         return;
 
     dataset.examples.push(new Ast.Example(-1, 'query', { ['p_' + lastProp]: propertyType }, new Ast.Table.Filter(
-        new Ast.Table.Invocation(new Ast.Invocation(new Ast.Selector.Device('org.schema', null, null), functionDef.name, [], functionDef), functionDef),
+        new Ast.Table.Invocation(new Ast.Invocation(new Ast.Selector.Device(className, null, null), functionDef.name, [], functionDef), functionDef),
         new Ast.BooleanExpression.Atom(propertyName, operator === '==' && propertyType.isString ? '=~' : operator, Ast.Value.VarRef('p_' + lastProp)), null
     ), patterns.slice(0, 4).map((p) => p.template), [] /* preprocessed */, {}));
 }
@@ -367,11 +367,12 @@ async function main(args) {
         assert(library.isLibrary && library.classes.length === 1 && library.classes[0].kind === 'org.schema');
 
         const rng = seedrandom.alea(args.random_seed);
-        const dataset = new Ast.Dataset('@org.schema', 'en', [], {});
+        const className = args.class_name ? '@org.schema.' + args.class_name : '@org.schema';
+        const dataset = new Ast.Dataset(className, 'en', [], {});
 
         const tables = args.table_name;
         for (let table of tables)
-            await processTable(data, library, dataset, table, args, rng, cache);
+            await processTable(className, data, library, dataset, table, args, rng, cache);
 
         args.output.end(dataset.prettyprint());
         await StreamUtils.waitFinish(args.output);
@@ -380,7 +381,7 @@ async function main(args) {
     }
 }
 
-async function processTable(data, library, dataset, table, args, rng, cache) {
+async function processTable(className, data, library, dataset, table, args, rng, cache) {
     const classDef = library.classes[0];
     const queryDef = classDef.queries[table];
     const ppdb = args.ppdb ? await BinaryPPDB.mapFile(args.ppdb) : null;
@@ -400,10 +401,10 @@ async function processTable(data, library, dataset, table, args, rng, cache) {
         if (valueList.length === 0)
             continue;
 
-        await applyPatterns(ppdb, queryDef, argDef, valueList, EQUAL_PATTERNS, '==', dataset, cache);
+        await applyPatterns(className, ppdb, queryDef, argDef, valueList, EQUAL_PATTERNS, '==', dataset, cache);
         if (argDef.type.isNumeric()) {
-            await applyPatterns(ppdb, queryDef, argDef, valueList, COMPARATIVE_MORE_PATTERNS, '>=', dataset, cache);
-            await applyPatterns(ppdb, queryDef, argDef, valueList, COMPARATIVE_LESS_PATTERNS, '<=', dataset, cache);
+            await applyPatterns(className, ppdb, queryDef, argDef, valueList, COMPARATIVE_MORE_PATTERNS, '>=', dataset, cache);
+            await applyPatterns(className, ppdb, queryDef, argDef, valueList, COMPARATIVE_LESS_PATTERNS, '<=', dataset, cache);
         }
     }
 }
@@ -444,6 +445,10 @@ module.exports = {
         parser.addArgument('--random-seed', {
             defaultValue: 'almond is awesome',
             help: 'Random seed'
+        });
+        parser.addArgument('--class-name', {
+            required: false,
+            help: 'The name of the generated class, this will also affect the entity names'
         });
     },
 

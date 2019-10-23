@@ -113,7 +113,7 @@ class Normalizer {
 
     async init(thingpedia) {
         const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
-        assert(library.isLibrary && library.classes.length === 1 && library.classes[0].kind === 'org.schema');
+        assert(library.isLibrary && library.classes.length === 1 && library.classes[0].kind.startsWith('org.schema'));
         const classDef = library.classes[0];
         this._classDef = classDef;
 
