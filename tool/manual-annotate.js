@@ -12,6 +12,7 @@
 const fs = require('fs');
 const events = require('events');
 const csvparse = require('csv-parse');
+const csvstringify = require('csv-stringify');
 const readline = require('readline');
 const Tp = require('thingpedia');
 
@@ -49,6 +50,7 @@ class Trainer extends events.EventEmitter {
         this._candidates = undefined;
         this._utterance = undefined;
         this._preprocessed = undefined;
+        this._comment = undefined;
         this._entities = undefined;
         this._serial = options.offset - 2;
         this._id = undefined;
@@ -60,7 +62,11 @@ class Trainer extends events.EventEmitter {
             }
 
             if (line === 'd' || line.startsWith('d ')) {
-                this.emit('dropped', { id: this._id, utterance: this._utterance, comment: line.substring(2).trim() });
+                let comment = line.substring(2).trim();
+                if (!comment && this._comment)
+                    comment = this._comment;
+
+                this.emit('dropped', { id: this._id, utterance: this._utterance, comment });
                 this.next();
                 return;
             }
@@ -81,8 +87,9 @@ class Trainer extends events.EventEmitter {
                 rl.setPrompt('TT: ');
                 rl.prompt();
             } else {
-                console.log('Invalid command');
-                rl.prompt();
+                //console.log('Invalid command');
+                //rl.prompt();
+                this._learnThingTalk(line).catch((e) => this.emit('error', e));
             }
         });
     }
@@ -94,11 +101,9 @@ class Trainer extends events.EventEmitter {
         await this._parser.stop();
     }
 
-    async _learnThingTalk(code) {
+    async _learnProgram(program) {
         let targetCode;
         try {
-            let program = await ThingTalk.Grammar.parseAndTypecheck(code, this._schemas);
-
             let clone = {};
             Object.assign(clone, this._entities);
             targetCode = ThingTalk.NNSyntax.toNN(program, this._preprocessed, clone).join(' ');
@@ -118,6 +123,19 @@ class Trainer extends events.EventEmitter {
         this.next();
     }
 
+    async _learnThingTalk(code) {
+        let program;
+        try {
+            program = await ThingTalk.Grammar.parseAndTypecheck(code, this._schemas);
+        } catch(e) {
+            console.log(`${e.name}: ${e.message}`);
+            this._rl.setPrompt('TT: ');
+            this._rl.prompt();
+            return;
+        }
+        this._learnProgram(program);
+    }
+
     _edit(i) {
         if (Number.isNaN(i) || i < 1 || i > this._candidates.length) {
             console.log('Invalid number');
@@ -126,7 +144,7 @@ class Trainer extends events.EventEmitter {
             return;
         }
         i -= 1;
-        const program = ThingTalk.NNSyntax.fromNN(this._candidates[i].code, this._entities);
+        const program = this._candidates[i];
         this._state = 'code';
         this._rl.setPrompt('TT: ');
         this._rl.write(program.prettyprint(true));
@@ -141,13 +159,7 @@ class Trainer extends events.EventEmitter {
             return;
         }
         i -= 1;
-        this.emit('learned', {
-            id: this._id,
-            flags: {},
-            preprocessed: this._preprocessed,
-            target_code: this._candidates[i].code.join(' ')
-        });
-        this.next();
+        this._learnProgram(this._candidates[i]);
     }
 
     _more() {
@@ -179,7 +191,7 @@ class Trainer extends events.EventEmitter {
         }
 
         this._state = 'loading';
-        let { id, utterance, preprocessed, target_code: oldTargetCode } = line;
+        let { id, utterance, preprocessed, target_code: oldTargetCode, comment } = line;
         this._utterance = utterance;
         if (!oldTargetCode)
             oldTargetCode = preprocessed;
@@ -203,21 +215,24 @@ class Trainer extends events.EventEmitter {
 
         this._state = 'top3';
         this._id = id;
+        this._comment = comment;
         this._preprocessed = parsed.tokens.join(' ');
         this._entities = parsed.entities;
         this._candidates = (await Promise.all(parsed.candidates.map(async (cand) => {
             try {
                 const program = ThingTalk.NNSyntax.fromNN(cand.code, parsed.entities);
                 await program.typecheck(this._schemas);
-                return cand;
+                return program;
             } catch(e) {
                 return null;
             }
         }))).filter((c) => c !== null);
 
         console.log(`Sentence #${this._serial+1} (${this._id}): ${utterance}`);
+        if (this._comment)
+            console.log(`(previously dropped as "${this._comment}")`);
         for (var i = 0; i < 3 && i < this._candidates.length; i++)
-            console.log(`${i+1}) ${this._candidates[i].code.join(' ')}`);
+            console.log(`${i+1}) ${this._candidates[i].prettyprint()}`);
         this._rl.setPrompt('$ ');
         this._rl.prompt();
     }
@@ -272,7 +287,9 @@ module.exports = {
     async execute(args) {
         const learned = new DatasetStringifier();
         learned.pipe(fs.createWriteStream(args.annotated, { flags: (args.offset > 0 ? 'a' : 'w') }));
-        const dropped = fs.createWriteStream(args.dropped, { flags: (args.offset > 0 ? 'a' : 'w') });
+        const droppedfile = fs.createWriteStream(args.dropped, { flags: (args.offset > 0 ? 'a' : 'w') });
+        const dropped = csvstringify({ header: true, delimiter: '\t' });
+        dropped.pipe(droppedfile);
 
         let lines = [];
         args.input.setEncoding('utf8');
@@ -302,8 +319,8 @@ module.exports = {
         trainer.on('learned', (ex) => {
             learned.write(ex);
         });
-        trainer.on('dropped', ({ id, utterance, comment }) => {
-            dropped.write(id + '\t' + utterance + '\t' + comment + '\n');
+        trainer.on('dropped', (row) => {
+            dropped.write(row);
         });
         rl.on('SIGINT', quit);
         await trainer.start();
@@ -312,7 +329,7 @@ module.exports = {
 
         await Promise.all([
             waitFinish(learned),
-            waitFinish(dropped),
+            waitFinish(droppedfile),
         ]);
 
         await trainer.stop();
