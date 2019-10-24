@@ -84,7 +84,7 @@ module.exports = {
             defaultValue: 4,
             help: 'Maximum depth of sentence generation',
         });
-        parser.addArgument('--target-gen-size', {
+        parser.addArgument('--target-pruning-size', {
             required: false,
             type: Number,
             defaultValue: 10000,

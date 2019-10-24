@@ -80,7 +80,7 @@ module.exports = {
             defaultValue: 5,
             help: 'Maximum depth of sentence generation',
         });
-        parser.addArgument('--target-gen-size', {
+        parser.addArgument('--target-pruning-size', {
             required: false,
             type: Number,
             defaultValue: 100000,
@@ -120,7 +120,7 @@ module.exports = {
             flags: args.flags || {},
             templateFile: args.template,
             thingpediaClient: tpClient,
-            targetGenSize: args.target_gen_size,
+            targetPruningSize: args.target_pruning_size,
             maxDepth: args.maxdepth,
             debug: args.debug
         };
