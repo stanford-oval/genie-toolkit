@@ -832,7 +832,7 @@ function filterTableJoin(into, filteredTable) {
         tableName = invocation.channel;
     let passign;
     for (let arg of into.schema.iterateArguments()) {
-        if (arg.name !== 'id' && arg.type.isEntity && arg.type.type.substring('org.schema:'.length) === tableName)
+        if (arg.name !== 'id' && arg.type.isEntity && arg.type.type.substring(arg.type.type.indexOf(':') + 1) === tableName)
             passign = arg;
     }
     if (!passign)
@@ -857,7 +857,7 @@ function arrayFilterTableJoin(into, filteredTable) {
         tableName = invocation.channel;
     let passign;
     for (let arg of into.schema.iterateArguments()) {
-        if (arg.type.isArray && arg.type.elem.isEntity && arg.type.elem.type.substring('org.schema:'.length) === tableName)
+        if (arg.type.isArray && arg.type.elem.isEntity && arg.type.elem.type.substring(arg.type.type.indexOf(':') + 1) === tableName)
             passign = arg;
     }
     if (!passign)
