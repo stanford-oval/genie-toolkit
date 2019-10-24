@@ -86,7 +86,7 @@ function* timerTest(__builtin,env) {
 
 function doTest(fn, engine) {
     let env = new ExecWrapper(engine, { icon: 'org.foo' }, {
-        functions: [{ selector: Ast.Selector.Device('org.thingpedia.builtin.test', 'org.thingpedia.builtin.test', null), channel: 'get_data', type: 'query', }],
+        functions: [{ selector: new Ast.Selector.Device('org.thingpedia.builtin.test', 'org.thingpedia.builtin.test', null), channel: 'get_data', type: 'query', }],
         states: 0
     }, {
         output(icon, outputType, outputvalue) {
