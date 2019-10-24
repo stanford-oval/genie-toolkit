@@ -23,6 +23,7 @@ module.exports = function worker(args, shard) {
         templateFile: args.template,
         thingpediaClient: tpClient,
         maxDepth: args.maxdepth,
+        targetGenSize: args.target_gen_size,
         debug: args.debug,
     };
     return new ContextualSentenceGenerator(options);
