@@ -33,8 +33,8 @@ function makeMetadata(args) {
         assert(!ptype.isArray);
 
         let typemeta;
-        if (ptype.isEntity && ptype.type.startsWith('org.schema:'))
-            typemeta = ptype.type.substring('org.schema:'.length);
+        if (ptype.isEntity && ptype.type.startsWith('org.schema.'))
+            typemeta = ptype.type.substring(ptype.type.indexOf(':') + 1);
         else if (ptype.isEntity && ptype.type === 'tt:country')
             typemeta = 'tt:EntityLower';
         else if (ptype.isEntity)

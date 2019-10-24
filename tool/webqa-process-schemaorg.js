@@ -396,6 +396,7 @@ class SchemaProcessor {
         this._url = args.url;
         this._manual = args.manual;
         this._hasGeo = false;
+        this._prefix = args.class_name ? `org.schema.${args.class_name}:` : `org.schema:`;
     }
 
     typeToThingTalk(typename, typeHierarchy, manualAnnotation) {
@@ -409,7 +410,7 @@ class SchemaProcessor {
         if (typeHierarchy[typename].representAsStruct)
             return this.makeCompoundType(typename, typeHierarchy[typename], typeHierarchy, manualAnnotation);
 
-        return Type.Entity('org.schema:' + typename);
+        return Type.Entity(this._prefix + typename);
     }
 
     getBestPropertyType(propname, property, typeHierarchy, manualAnnotation) {
@@ -847,19 +848,19 @@ class SchemaProcessor {
                 continue;
 
             const args = [
-                new Ast.ArgumentDef(Ast.ArgDirection.OUT, 'id', Type.Entity('org.schema:' + typename), {}, {
+                new Ast.ArgumentDef(Ast.ArgDirection.OUT, 'id', Type.Entity(this._prefix + typename), {}, {
                     'unique': new Ast.Value.Boolean(true),
                     'genie': new Ast.Value.Boolean(false) // no filter on id, if it has ner support, we'll generate prim for it
                 })
             ];
-            recursiveAddStringValues(args[0], 'org.schema:' + typename + '_name');
+            recursiveAddStringValues(args[0], this._prefix + typename + '_name');
             if (typename !== 'Thing') {
                 // override name so we can apply a custom string_values annotation
                 const arg = new Ast.ArgumentDef(Ast.ArgDirection.OUT, 'name', Type.String, {}, {
                     'org_schema_type': new Ast.Value.String('Text'),
                     'genie': new Ast.Value.Boolean(false) // no filter on name, if it has ner support, we'll generate prim for it
                 });
-                recursiveAddStringValues(arg, 'org.schema:' + typename + '_name');
+                recursiveAddStringValues(arg, this._prefix + typename + '_name');
                 args.push(arg);
             }
 
@@ -886,7 +887,7 @@ class SchemaProcessor {
                     annotation['genie'] = new Ast.Value.Boolean(false);
 
                 const arg = new Ast.ArgumentDef(Ast.ArgDirection.OUT, propertyname, type, metadata, annotation);
-                recursiveAddStringValues(arg, 'org.schema:' + typename + '_' + propertyname);
+                recursiveAddStringValues(arg, this._prefix + typename + '_' + propertyname);
 
                 args.push(arg);
             }

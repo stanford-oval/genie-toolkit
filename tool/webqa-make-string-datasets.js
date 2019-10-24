@@ -21,9 +21,10 @@ const StreamUtils = require('../lib/stream-utils');
 const { makeMetadata } = require('./lib/webqa-metadata');
 
 class ParamDatasetGenerator {
-    constructor(locale, debug) {
+    constructor(locale, debug, className) {
         this._locale = locale;
         this._debug = debug;
+        this._prefix = className ? `org.schema.${className}:` : `org.schema:`;
 
         this._meta = {};
         this._stringFiles = new Map;
@@ -143,7 +144,7 @@ class ParamDatasetGenerator {
         const manifest = fs.createWriteStream(manifestFile, { flags: appendManifest ? 'a' : 'w' });
 
         for (let [fileId, fileContent] of this._stringFiles) {
-            const outputpath = path.resolve(outputDir, 'org.schema:' + fileId + (fileContent.isEntity ? '.json' : '.tsv'));
+            const outputpath = path.resolve(outputDir, this._prefix + fileId + (fileContent.isEntity ? '.json' : '.tsv'));
 
             if (fileContent.isEntity) {
                 if (this._debug)
@@ -168,7 +169,7 @@ class ParamDatasetGenerator {
                     result: 'ok', data
                 }, undefined, 2), { encoding: 'utf8' });
 
-                manifest.write(`entity\torg.schema:${fileId}\t${path.relative(manifestDir, outputpath)}\n`);
+                manifest.write(`entity\t${this._prefix}${fileId}\t${path.relative(manifestDir, outputpath)}\n`);
             } else {
                 if (this._debug)
                     console.log(`Found ${fileContent.file.size} examples for string file ${fileId}`);
@@ -195,7 +196,7 @@ class ParamDatasetGenerator {
                 }
 
                 output.end();
-                manifest.write(`string\torg.schema:${fileId}\t${path.relative(manifestDir, outputpath)}\n`);
+                manifest.write(`string\t${this._prefix}${fileId}\t${path.relative(manifestDir, outputpath)}\n`);
 
                 //await StreamUtils.waitFinish(output);
                 console.log(`completed ${fileId}`);
@@ -252,10 +253,14 @@ module.exports = {
             dest: 'debug',
             help: 'Disable debugging.',
         });
+        parser.addArgument('--class-name', {
+            required: false,
+            help: 'The name of the generated class, this will also affect the entity names'
+        });
     },
 
     async execute(args) {
-        const generator = new ParamDatasetGenerator(args.locale, args.debug);
+        const generator = new ParamDatasetGenerator(args.locale, args.debug, args.class_name);
         await generator.init(args.thingpedia);
 
         const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));
