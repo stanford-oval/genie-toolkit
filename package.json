@@ -10,7 +10,6 @@
     "genie": "./tool/genie.js"
   },
   "dependencies": {
-    "adt": "^0.7.2",
     "argparse": "^1.0.10",
     "byline": "^5.0.0",
     "csv-parse": "^4.4.5",

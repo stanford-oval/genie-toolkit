@@ -104,7 +104,7 @@ addressparser@^1.0.1:
   resolved "https://registry.yarnpkg.com/addressparser/-/addressparser-1.0.1.tgz#47afbe1a2a9262191db6838e4fd1d39b40821746"
   integrity sha1-R6++GiqSYhkdtoOOT9HTm0CCF0Y=
 
-adt@^0.7.2, adt@~0.7.2:
+adt@~0.7.2:
   version "0.7.2"
   resolved "https://registry.yarnpkg.com/adt/-/adt-0.7.2.tgz#824bb725fe3632c8c35ec24985df610f97d98244"
   integrity sha1-gku3Jf42MsjDXsJJhd9hD5fZgkQ=
