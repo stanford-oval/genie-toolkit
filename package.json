@@ -1,6 +1,6 @@
 {
   "name": "thingengine-core",
-  "version": "1.6.1",
+  "version": "1.7.0-alpha.1",
   "description": "The core runtime system of the Almond virtual assistant",
   "author": "Stanford University Mobile and Social Computing Lab",
   "repository": "https://github.com/stanford-oval/thingengine-core",
