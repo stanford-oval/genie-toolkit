@@ -144,14 +144,14 @@ async function testGetGet(engine, icon = null) {
     what.resolve();
     assert.strictEqual(what.item.icon, icon);
     assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test:get_data+org.thingpedia.builtin.test:dup_data');
-    assert.deepStrictEqual(what.item.outputValue, { data: '!!!!!!!!!!', count: 2, size: 10, data_in: '!!!!!!!!!!', data_out: '!!!!!!!!!!!!!!!!!!!!',});
+    assert.deepStrictEqual(what.item.outputValue, { __response: undefined, data: '!!!!!!!!!!', count: 2, size: 10, data_in: '!!!!!!!!!!', data_out: '!!!!!!!!!!!!!!!!!!!!',});
 
     what = await app.mainOutput.next();
     assert(what.item.isNotification);
     what.resolve();
     assert.strictEqual(what.item.icon, icon);
     assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test:get_data+org.thingpedia.builtin.test:dup_data');
-    assert.deepStrictEqual(what.item.outputValue, { data: '""""""""""', count: 2, size: 10, data_in: '""""""""""', data_out: '""""""""""""""""""""', });
+    assert.deepStrictEqual(what.item.outputValue, { __response: undefined, data: '""""""""""', count: 2, size: 10, data_in: '""""""""""', data_out: '""""""""""""""""""""', });
 
     what = await app.mainOutput.next();
     assert(what.item.isDone);
@@ -489,10 +489,10 @@ function testWhenGet(engine, conversation) {
                 //assert(data.hasOwnProperty('__timestamp'));
                 //delete data.__timestamp;
                 if (count === 0) {
-                    assert.deepStrictEqual(data, { count: 2, size: 10, data: '!!!!!!!!!!', data_in: '!!!!!!!!!!', data_out: '!!!!!!!!!!!!!!!!!!!!' });
+                    assert.deepStrictEqual(data, { __response: undefined, count: 2, size: 10, data: '!!!!!!!!!!', data_in: '!!!!!!!!!!', data_out: '!!!!!!!!!!!!!!!!!!!!' });
                     count++;
                 } else if (count === 1) {
-                    assert.deepStrictEqual(data, { count: 2, size: 10, data: '""""""""""', data_in: '""""""""""', data_out: '""""""""""""""""""""' });
+                    assert.deepStrictEqual(data, { __response: undefined, count: 2, size: 10, data: '""""""""""', data_in: '""""""""""', data_out: '""""""""""""""""""""' });
                     engine.apps.removeApp(app);
                     count++;
                     resolve();
@@ -537,9 +537,9 @@ function testTimer(engine, conversation) {
                 delete data.__timestamp;
                 if (count < 4) {
                     if (count % 2)
-                        assert.deepStrictEqual(data, { count: 2, size: 10, data: '""""""""""' });
+                        assert.deepStrictEqual(data, { __response: undefined, count: 2, size: 10, data: '""""""""""' });
                     else
-                        assert.deepStrictEqual(data, { count: 2, size: 10, data: '!!!!!!!!!!' });
+                        assert.deepStrictEqual(data, { __response: undefined, count: 2, size: 10, data: '!!!!!!!!!!' });
                     count++;
                     if (count === 4) {
                         engine.apps.removeApp(app);
@@ -737,7 +737,7 @@ function testTimerSequence(engine, conversation) {
                 assert.strictEqual(appId, 'uuid-timer-sequence');
                 delete data.__timestamp;
                 if (count < 3) {
-                    assert.deepStrictEqual(data, { number: 2 + count });
+                    assert.deepStrictEqual(data, { __response: undefined, number: 2 + count });
                     count++;
                     if (count === 3) {
                         engine.apps.removeApp(app);
@@ -766,6 +766,58 @@ function testTimerSequence(engine, conversation) {
     });
 }
 
+async function testGetContext(engine, icon = null) {
+    const app = await engine.apps.loadOneApp('now => @org.thingpedia.builtin.test.dup_data(data_in=$context.selection: String) => notify;',
+        { $icon: icon }, undefined, undefined, 'some app', 'some app description', true);
+    // when we get here, the app might or might not have started already
+    // to be sure, we iterate its mainOutput
+
+    // the app is still running, so the engine should know about it
+    assert(engine.apps.hasApp(app.uniqueId));
+
+    let what = await app.mainOutput.next();
+    assert(what.item.isNotification);
+    what.resolve();
+    assert.strictEqual(what.item.icon, icon);
+    assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test:dup_data');
+    assert.deepStrictEqual(what.item.outputValue, {
+        data_out: 'Selected textSelected text',
+        data_in: 'Selected text'
+    });
+
+    what = await app.mainOutput.next();
+    assert(what.item.isDone);
+    what.resolve();
+}
+
+function delay(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+
+async function testSayContext(engine, icon = null) {
+    const app = await engine.apps.loadOneApp('now => @org.thingpedia.builtin.thingengine.builtin.say(message=$context.selection: String);',
+        { $icon: icon }, undefined, undefined, 'some app', 'some app description', true);
+    // when we get here, the app might or might not have started already
+    // to be sure, we iterate its mainOutput
+
+    // the app is still running, so the engine should know about it
+    assert(engine.apps.hasApp(app.uniqueId));
+
+    let what = await app.mainOutput.next();
+    assert(what.item.isNotification);
+    what.resolve();
+    assert.strictEqual(what.item.icon, icon);
+    assert.strictEqual(what.item.outputType, null);
+    assert.deepStrictEqual(what.item.outputValue, 'Selected text');
+
+    what = await app.mainOutput.next();
+    assert(what.item.isDone);
+    what.resolve();
+
+    await delay(1000);
+}
 
 
 module.exports = async function testApps(engine) {
@@ -790,10 +842,14 @@ module.exports = async function testApps(engine) {
     await testWhenErrorInit(engine);
     await testWhenErrorAsync(engine);
 
+    await testGetContext(engine);
+
     // these three must be exactly in this order
     await testGetSequence(engine);
     await testGetGetSequence(engine);
     await testTimerSequence(engine);
+
+    await testSayContext(engine);
 
     const assistant = engine.platform.getCapability('assistant');
     assistant._setConversation(null);

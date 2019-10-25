@@ -383,6 +383,14 @@ class Platform extends Tp.BasePlatform {
         this._prefs.set('auth-token', authToken);
         return true;
     }
+
+    loadContext(info) {
+        if (info === "selection")
+            return "Selected text";
+        else
+            return "Undefined context";
+
+    }
 }
 
 module.exports = {
