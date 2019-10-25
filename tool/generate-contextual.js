@@ -84,6 +84,12 @@ module.exports = {
             defaultValue: 4,
             help: 'Maximum depth of sentence generation',
         });
+        parser.addArgument('--target-pruning-size', {
+            required: false,
+            type: Number,
+            defaultValue: 10000,
+            help: 'Approximate target size of the generate dataset, for each $root rule and each depth',
+        });
 
         parser.addArgument('--debug', {
             nargs: 0,
@@ -116,7 +122,7 @@ module.exports = {
         delete args.input_file;
         delete args.output;
         inputFile
-            .pipe(parallelize(args.parallelize, require.resolve('./workers/generate-contextual-worker.js'), args))
+            .pipe(await parallelize(args.parallelize, require.resolve('./workers/generate-contextual-worker.js'), args))
             .pipe(new DatasetStringifier())
             .pipe(outputFile);
         await StreamUtils.waitFinish(outputFile);

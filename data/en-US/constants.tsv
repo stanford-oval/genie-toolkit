@@ -119,6 +119,10 @@ Entity(tt:mime_type)	application/pdf	PDF documents
 Entity(tt:mime_type)	image/jpeg	JPEG pictures
 Entity(tt:mime_type)	application/vnd.openxmlformats-officedocument.wordprocessingml.document	Word documents
 Entity(tt:mime_type)	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	Excel spreadsheets
+Entity(tt:us_state)	ca	California
+Entity(tt:us_state)	wa	Washington
+Entity(tt:us_state)	ny	New York
+Entity(tt:us_state)	fl	Florida
 Entity(tt:country)	us	United States
 Entity(tt:country)	it	Italy
 Entity(tt:country)	gb	United Kingdom
