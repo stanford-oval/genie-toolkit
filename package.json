@@ -9,10 +9,6 @@
   "bin": {
     "genie": "./tool/genie.js"
   },
-  "resolutions": {
-    "thingpedia": "~2.6.0-alpha.1",
-    "thingtalk": "github:stanford-oval/thingtalk#wip/context-values"
-  },
   "dependencies": {
     "adt": "^0.7.2",
     "argparse": "^1.0.10",
@@ -24,7 +20,7 @@
     "seedrandom": "^3.0.0",
     "sockaddr": "^1.0.1",
     "thingpedia": "~2.6.0-alpha.1",
-    "thingtalk": "github:stanford-oval/thingtalk#wip/context-values"
+    "thingtalk": "~1.9.0-alpha.4"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
