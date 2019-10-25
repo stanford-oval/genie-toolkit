@@ -2261,10 +2261,10 @@ thingpedia@~2.6.0-alpha.1:
     tmp "^0.1.0"
     xml2js "^0.4.17"
 
-thingtalk@~1.9.0-alpha.1, thingtalk@~1.9.0-alpha.3:
-  version "1.9.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.9.0-alpha.3.tgz#5fe95e4535884577ed0477616aef021524d88072"
-  integrity sha512-cSUTKFUlMKtX8FcCiGOH5F+ezp1XCJ2f/bzSdssIRY1pewHri94UXxwt+NrXk5+PWtd1kV/FCKGULIQ6/WIWjA==
+thingtalk@~1.9.0-alpha.1, thingtalk@~1.9.0-alpha.4:
+  version "1.9.0-alpha.4"
+  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.9.0-alpha.4.tgz#dbb0d4d05a9fcf24be874a8c2e283fa618a4fb49"
+  integrity sha512-0Tm5fOJZxqnQgMBuRF6zPWZWg0xvVevSJiwtiF1RxS/XsAjESVpO7QZXlILrkvkx8GfMz0/KJxyh8RpvJ97Hpg==
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
