@@ -11,9 +11,10 @@
   },
   "resolutions": {
     "thingpedia": "~2.6.0-alpha.1",
-    "thingtalk": "~1.9.0-alpha.1"
+    "thingtalk": "github:stanford-oval/thingtalk#wip/context-values"
   },
   "dependencies": {
+    "adt": "^0.7.2",
     "argparse": "^1.0.10",
     "byline": "^5.0.0",
     "csv-parse": "^4.4.5",
@@ -23,7 +24,7 @@
     "seedrandom": "^3.0.0",
     "sockaddr": "^1.0.1",
     "thingpedia": "~2.6.0-alpha.1",
-    "thingtalk": "~1.9.0-alpha.1"
+    "thingtalk": "github:stanford-oval/thingtalk#wip/context-values"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
