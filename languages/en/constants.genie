@@ -122,3 +122,8 @@ constant_Location = {
     'work'                    => new Ast.Value.Location(Ast.Location.Relative('work'));
 }
 
+constant_String = {
+    ( 'this'
+    | 'the selection on the screen'
+    ) => new Ast.Value.ContextRef('selection', Type.String);
+}
