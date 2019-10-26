@@ -559,7 +559,7 @@ function testTimer(engine, conversation) {
             }
         });
 
-        engine.apps.loadOneApp('timer(base=makeDate(),interval=2s) join @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        engine.apps.loadOneApp('timer(base=makeDate(),interval=3s) join @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
             { $icon: 'org.foo', $conversation: conversation ? 'mock' : undefined },
             'uuid-timer-foo', undefined, 'some app', 'some app description', true).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
@@ -757,7 +757,7 @@ function testTimerSequence(engine, conversation) {
             }
         });
 
-        engine.apps.loadOneApp('timer(base=makeDate(),interval=2s) join @org.thingpedia.builtin.test.next_sequence() => notify;',
+        engine.apps.loadOneApp('timer(base=makeDate(),interval=3s) join @org.thingpedia.builtin.test.next_sequence() => notify;',
             { $icon: 'org.foo', $conversation: conversation ? 'mock' : undefined },
             'uuid-timer-sequence', undefined, 'some app', 'some app description', true).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
@@ -848,6 +848,7 @@ module.exports = async function testApps(engine) {
     await testGetSequence(engine);
     await testGetGetSequence(engine);
     await testTimerSequence(engine);
+    
 
     await testSayContext(engine);
 
