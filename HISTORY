@@ -1,3 +1,10 @@
+1.7.0-alpha.1
+=============
+
+* Implement frequency-based interval timers [Ricky Grannis-Vu, Lim Swee Kiat; #86]
+* Implement accessing the current selection from ThingTalk programs [Jackie Yang; #94]
+* Misc bug fixes [#89, #93]
+
 1.6.1
 =====
 
