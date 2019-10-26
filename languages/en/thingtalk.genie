@@ -39,6 +39,7 @@ forward_get_do_command = {
     ('get' | 'take' | 'retrieve') table:if_filtered_table ('and then' | 'then') action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
     table:complete_get_command ('and then' | 'then' | ',') action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
     'after' ('you get' | 'taking' | 'getting' | 'retrieving') table:with_filtered_table action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
+    ('get' | 'take' | 'retrieve') table:with_filtered_table ('and then' | 'then') action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
 
     // use X to do Y would be good sometimes but it gets confusing quickly
     //['${(get|use)} ${with_filtered_table} to ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))]

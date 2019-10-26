@@ -116,6 +116,11 @@ projection_Any = {
     ?projection_with_filter ('both' | '') outParams:the_out_param_pair 'of the' table:with_arg_min_max_table => C.makeMultiFieldProjection($options, 'table', table, outParams);
 }
 
+// when there is a name field, do a implicit projection on name when refer to the table
+projection_String = !turking table:with_filtered_table => {
+    return C.makeSingleFieldProjection($options, 'table', Type.String, table, new Ast.Value.VarRef('name'));
+};
+
 where_question = {}
 
 for (let [typestr, type] of $options.types.all) {
