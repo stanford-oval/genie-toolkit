@@ -251,6 +251,7 @@ async function main() {
             projection: true,
             projection_with_filter: true
         },
+        targetPruningSize: 10000,
         maxDepth: 6,
         debug: true
     };
