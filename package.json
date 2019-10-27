@@ -1,6 +1,6 @@
 {
   "name": "genie-toolkit",
-  "version": "0.5.0-alpha.1",
+  "version": "0.5.0-alpha.4",
   "description": "A Generator of Natural Language Parsers for Compositional Virtual Assistants",
   "main": "lib/index.js",
   "repository": "https://github.com/stanford-oval/genie-toolkit.git",
@@ -8,10 +8,6 @@
   "license": "GPL-3.0+",
   "bin": {
     "genie": "./tool/genie.js"
-  },
-  "resolutions": {
-    "thingpedia": "~2.6.0-alpha.1",
-    "thingtalk": "~1.9.0-alpha.1"
   },
   "dependencies": {
     "argparse": "^1.0.10",
@@ -26,7 +22,7 @@
     "seedrandom": "^3.0.0",
     "sockaddr": "^1.0.1",
     "thingpedia": "~2.6.0-alpha.1",
-    "thingtalk": "~1.9.0-alpha.1"
+    "thingtalk": "~1.9.0-alpha.4"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",

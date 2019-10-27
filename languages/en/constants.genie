@@ -126,3 +126,8 @@ constant_pairs = {
     c1:constant_Any 'and' c2:constant_Any => [c1, c2];
 }
 
+constant_String = {
+    ( 'this'
+    | 'the selection on the screen'
+    ) => new Ast.Value.ContextRef('selection', Type.String);
+}

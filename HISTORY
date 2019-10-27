@@ -1,3 +1,31 @@
+0.5.0-alpha.4
+=============
+
+* Added templates for contextual references [Jackie Yang; #105]
+
+0.5.0-alpha.3
+=============
+
+* manual-annotate now consistently uses surface syntax, and also allows typing
+  the code without pressing `t` first [#103].
+* evaluation now separates sentences by complexity, in addition to prim vs compound [#103].
+* Added an option to generate and generate-contextual to control the pruning size
+  of the dataset [#104].
+* Added more constants in the example data file, and fixed several bugs in the
+  constant sampler [#103].
+* Fixed progress bar during generation [#103].
+* Misc bug fixes [#103].
+
+0.5.0-alpha.2
+=============
+
+* Added the ability to expand primitive templates with more filters
+  by matching the canonical form in the utterance [#89].
+* Dataset augmentation now runs multiple threads in parallel [#97].
+* The timer templates were expanded and are now enabled by default [#79, #98, #101].
+* Misc bug fixes [#100].
+* Build and dependency fixes [#99].
+
 0.5.0-alpha.1
 =============
 
