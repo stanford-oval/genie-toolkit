@@ -126,8 +126,9 @@ constant_pairs = {
     c1:constant_Any 'and' c2:constant_Any => [c1, c2];
 }
 
-constant_String = {
-    ( 'this'
-    | 'the selection on the screen'
-    ) => new Ast.Value.ContextRef('selection', Type.String);
+// ContextRef is not a constant, it needs special templates
+// e.g., if this is `constant_String`, then we will generate:
+// $cuisine restaurant -> "this"/"the selection on the screen" restaurant
+constant_String_ContextRef = {
+    ?context_ref ( 'this' | 'the selection on the screen') => new Ast.Value.ContextRef('selection', Type.String);
 }

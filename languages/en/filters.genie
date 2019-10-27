@@ -212,6 +212,13 @@ with_filter = {
     ?schema_org p:out_param_String ('being' | 'containing' ) x:constant_String => C.makeFilter($options, p, '=~', x);
     ?schema_org x:constant_String ('as' | 'in the' ) p:out_param_String => C.makeFilter($options, p, '=~', x);
 
+    // context reference filters
+    p:out_param_String 'equal to' x:constant_String_ContextRef => C.makeFilter($options, p, '=~', x);
+    !turking p:out_param_String ('containing' | 'including') x:constant_String_ContextRef => C.makeFilter($options, p, '=~', x);
+    !turking x:constant_String_ContextRef ('in the' | 'in its' | 'in their') p:out_param_String => C.makeFilter($options, p, '=~', x);
+    ?schema_org p:out_param_String ('being' | 'containing' ) x:constant_String_ContextRef => C.makeFilter($options, p, '=~', x);
+    ?schema_org x:constant_String_ContextRef ('as' | 'in the' ) p:out_param_String => C.makeFilter($options, p, '=~', x);
+
     // substring and
     !turking p:out_param_String 'containing both' x:constant_String 'and' y:constant_String => C.makeAndFilter($options, p, '=~', [x, y]);
     !turking p:the_out_param_String 'containing neither' x:constant_String 'nor' y:constant_String => C.makeAndFilter($options, p, '=~', [x, y], true);
@@ -416,7 +423,6 @@ with_filter = {
     !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter($options, p, 'min', f, '==', x);
     !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter($options, p, 'min', f, '>=', x);
     !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter($options, p, 'min', f, '>=', x);
-
 }
 
 for (let pname in $options.compoundArrays) {
