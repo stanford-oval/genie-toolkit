@@ -56,7 +56,7 @@ single_projection_String = table:complete_table => {
     }
     return new Ast.Table.Projection(table, ['$event'], table.schema);
 };
-single_stream_projection_String = 'new' table:complete_table => {
+single_stream_projection_String = !no_stream 'new' table:complete_table => {
     if (!table.schema.is_monitorable)
         return null;
     let outParams = Object.keys(table.schema.out);
@@ -78,7 +78,7 @@ single_projection_Entity__tt__picture = table:complete_table => {
         return null;
     return new Ast.Table.Projection(table, ['picture_url'], table.schema);
 };
-single_stream_projection_Entity__tt__picture = 'new' table:complete_table => {
+single_stream_projection_Entity__tt__picture = !no_stream 'new' table:complete_table => {
     if (!table.schema.out['picture_url'])
         return null;
     if (!table.schema.is_monitorable)
@@ -139,7 +139,7 @@ for (let [typestr, type] of $options.types.all) {
         if (!$options.types.id.has(typestr)) {
             if (!$options.flags.projection_with_filter) {
                 $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:complete_table => C.makeSingleFieldProjection($options, 'table', type, table, outParam);
-                $('stream_projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of new' table:complete_table => C.makeSingleFieldProjection($options, 'stream', type, table, outParam);
+                $('stream_projection_' + typestr) = !no_stream outParam:$('the_out_param_' + typestr) 'of new' table:complete_table => C.makeSingleFieldProjection($options, 'stream', type, table, outParam);
                 if (typestr === 'Location') {
                     //FIXME: choose outParam name in a more smart way
                     $('where_question') = 'where is' table:complete_table => C.makeSingleFieldProjection($options, 'table', type, table, { name: 'geo' });
@@ -147,8 +147,8 @@ for (let [typestr, type] of $options.types.all) {
             } else {
                 $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:with_filtered_table => C.makeSingleFieldProjection($options, 'table', type, table, outParam);
                 $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of the' table:with_arg_min_max_table => C.makeSingleFieldProjection($options, 'table', type, table, outParam);
-                $('stream_projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of new' table:with_filtered_table => C.makeSingleFieldProjection($options, 'stream', type, table, outParam);
-                $('stream_projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of the new' table:with_arg_min_max_table => C.makeSingleFieldProjection($options, 'stream', type, table, outParam);
+                $('stream_projection_' + typestr) = !no_stream outParam:$('the_out_param_' + typestr) 'of new' table:with_filtered_table => C.makeSingleFieldProjection($options, 'stream', type, table, outParam);
+                $('stream_projection_' + typestr) = !no_stream outParam:$('the_out_param_' + typestr) 'of the new' table:with_arg_min_max_table => C.makeSingleFieldProjection($options, 'stream', type, table, outParam);
 
                 if (typestr === 'Location') {
                     //FIXME: choose outParam name in a more smart way
@@ -170,7 +170,7 @@ for (let [typestr, type] of $options.types.all) {
                     return null;
                 };
 
-                $('single_stream_projection_' + typestr) = 'new' table:complete_table => {
+                $('single_stream_projection_' + typestr) = !no_stream 'new' table:complete_table => {
                     if (!table.schema.is_monitorable)
                         return null;
                     for (let pname in table.schema.out) {
@@ -188,7 +188,7 @@ for (let [typestr, type] of $options.types.all) {
                     return null;
                 };
 
-                $('single_stream_projection_' + typestr) = 'new' table:with_filtered_table => {
+                $('single_stream_projection_' + typestr) = !no_stream 'new' table:with_filtered_table => {
                     if (!table.schema.is_monitorable)
                         return null;
                     for (let pname in table.schema.out) {
@@ -206,7 +206,7 @@ for (let [typestr, type] of $options.types.all) {
                 return new Ast.Table.Projection(table, [outParams[0]], table.schema);
             };
 
-            $('single_stream_projection_' + typestr) = 'new' table:complete_table => {
+            $('single_stream_projection_' + typestr) = !no_stream 'new' table:complete_table => {
                 let outParams = Object.keys(table.schema.out);
                 if (outParams.length !== 1 || !type.equals(table.schema.out[outParams[0]]))
                     return null;
