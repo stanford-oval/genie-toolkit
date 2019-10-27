@@ -402,7 +402,7 @@ function makeArgMaxMinTable(table, pname, direction) {
     return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], table.schema);
 }
 
-function makeProgram(rule, principal = null) {
+function makeProgram($options, rule, principal = null) {
     // FIXME: A hack for schema.org only to drop certain programs
     let table = rule.table;
     if (table) {
@@ -428,6 +428,10 @@ function makeProgram(rule, principal = null) {
             if (filteredOnName && !filteredOthers)
                 return null;
         }
+    }
+    if (rule.stream) {
+        if ($options.flags.no_stream)
+            return null;
     }
     return new Ast.Program([], [], [rule], principal);
 }
@@ -1037,7 +1041,7 @@ function sayProjectionProgram($options, proj) {
                 proj.args = proj.args.filter((a) => a !== 'name');
         }
     }
-    return makeProgram(new Ast.Statement.Command(proj, [notifyAction()]));
+    return makeProgram($options, new Ast.Statement.Command(proj, [notifyAction()]));
 }
 
 function isQueryProgram(program) {
