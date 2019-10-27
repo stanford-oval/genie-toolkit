@@ -428,6 +428,14 @@ function testTimer_nextTimeout() {
 			_now: Date.parse("5 Jan 2019 12:34:57"),
 			expected: 50429 // 50.429s
 		},
+		// If frequency = 0, return 0
+		{
+			_base: Date.parse("5 Jan 2019 12:34:56"),
+			_interval: 60000,
+			_frequency: 0,
+			_now: Date.parse("5 Jan 2019 12:34:57"),
+			expected: 0
+		},
 	]
 	console.log("Testing _nextTimeout...");
 	tests.forEach((test, i) => {
@@ -439,10 +447,52 @@ function testTimer_nextTimeout() {
 	})
 }
 
+function testTimer_splitWeek_error() {
+	let timer = new timers.Timer(null, null);
+	let tests = [
+		{
+			frequency: 10
+		},
+	]
+	console.log("Testing _splitWeek error...");
+	tests.forEach((test, i) => {
+		assert.throws(() => {timer._splitWeek(test.frequency)}, {
+			name: "Error",
+			message: "Invalid frequency for _splitWeek",
+		});
+		console.log(`#${i} passed`);
+	})
+}
+
+function testTimer_nextTimeout_error() {
+	let timer = new timers.Timer(null, null);
+	let tests = [
+		{
+			_base: Date.parse("1 Jan 2019 12:34:56"),
+			_interval: 1000,
+			_frequency: 1,
+			_now: Date.parse("1 Jan 2019 12:34:57")
+		},
+	]
+	console.log("Testing _nextTimeout error...");
+	tests.forEach((test, i) => {
+		timer._base = test._base;
+		timer._interval = test._interval;
+		timer._frequency = test._frequency;
+		assert.throws(() => {timer._nextTimeout(test._now)}, {
+			name: "Error",
+			message: `Timer with total interval ${test._interval} and frequency ${test._frequency} will have intervals of ${test._interval / test._frequency}. Minimum interval is 2 seconds.`,
+		});
+		console.log(`#${i} passed`);
+	})
+}
+
 module.exports = function testUnits() {
     testTimer_setTimems();
     testTimer_getTimems();
     testTimer_splitDay();
     testTimer_getEarliest();
     testTimer_nextTimeout();
+    testTimer_splitWeek_error();
+    testTimer_nextTimeout_error();
 };
