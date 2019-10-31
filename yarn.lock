@@ -1957,7 +1957,7 @@ thingpedia@~2.6.0-alpha.1:
     tmp "^0.1.0"
     xml2js "^0.4.17"
 
-thingtalk@~1.9.0-alpha.1:
+thingtalk@~1.9.0-alpha.1, thingtalk@~1.9.0-alpha.4:
   version "1.9.0-alpha.4"
   resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.9.0-alpha.4.tgz#dbb0d4d05a9fcf24be874a8c2e283fa618a4fb49"
   integrity sha512-0Tm5fOJZxqnQgMBuRF6zPWZWg0xvVevSJiwtiF1RxS/XsAjESVpO7QZXlILrkvkx8GfMz0/KJxyh8RpvJ97Hpg==
@@ -2029,9 +2029,9 @@ type-fest@^0.5.2:
   integrity sha512-DWkS49EQKVX//Tbupb9TFa19c7+MK1XmzkrZUR8TAktmE/DizXoaoJV6TZ/tSIPXipqNiRI6CyAe7x69Jb6RSw==
 
 uglify-js@^3.1.4:
-  version "3.6.5"
-  resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.6.5.tgz#b0ee796d2ae7e25672e04f65629b997cd4b30bd6"
-  integrity sha512-7L3W+Npia1OCr5Blp4/Vw83tK1mu5gnoIURtT1fUVfQ3Kf8WStWV6NJz0fdoBJZls0KlweruRTLVe6XLafmy5g==
+  version "3.6.4"
+  resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.6.4.tgz#88cc880c6ed5cf9868fdfa0760654e7bed463f1d"
+  integrity sha512-9Yc2i881pF4BPGhjteCXQNaXx1DCwm3dtOyBaG2hitHjLWOczw/ki8vD1bqyT3u6K0Ms/FpCShkmfg+FtlOfYA==
   dependencies:
     commander "~2.20.3"
     source-map "~0.6.1"

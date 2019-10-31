@@ -1,3 +1,21 @@
+0.5.0-alpha.4
+=============
+
+* Added templates for contextual references [Jackie Yang; #105]
+
+0.5.0-alpha.3
+=============
+
+* manual-annotate now consistently uses surface syntax, and also allows typing
+  the code without pressing `t` first [#103].
+* evaluation now separates sentences by complexity, in addition to prim vs compound [#103].
+* Added an option to generate and generate-contextual to control the pruning size
+  of the dataset [#104].
+* Added more constants in the example data file, and fixed several bugs in the
+  constant sampler [#103].
+* Fixed progress bar during generation [#103].
+* Misc bug fixes [#103].
+
 0.5.0-alpha.2
 =============
 

@@ -67,7 +67,8 @@ module.exports = class FileParameterProvider {
             .pipe(csvparse({ delimiter: '\t', relax: true }));
 
         input.on('data', (line) => {
-            let preprocessed, weight;
+            let value, preprocessed, weight;
+            value = line[0];
             if (line.length === 1) {
                 preprocessed = line[0];
                 weight = 1.0;
@@ -86,7 +87,7 @@ module.exports = class FileParameterProvider {
             if (!(weight > 0.0))
                 weight = 1.0;
 
-            strings.push({ preprocessed, weight });
+            strings.push({ value, preprocessed, weight });
         });
 
         return new Promise((resolve, reject) => {
@@ -106,7 +107,7 @@ module.exports = class FileParameterProvider {
 
         const parsed = JSON.parse(await util.promisify(fs.readFile)(filepath));
         return parsed.data.map((e) => {
-            return { preprocessed: e.canonical, weight: 1.0 };
+            return { preprocessed: e.canonical, weight: 1.0, value:e.value, name:e.name };
         });
     }
 

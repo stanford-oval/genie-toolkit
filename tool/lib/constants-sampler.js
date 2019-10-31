@@ -9,8 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Tp = require('thingpedia');
-
 const { choose } = require('../../lib/random');
 
 function getEntityType(type) {
@@ -21,22 +19,18 @@ function getEntityType(type) {
     return null;
 }
 
+
 module.exports = class ConstantSampler {
-    constructor(schemaRetriever, options) {
+    constructor(schemaRetriever, constProvider, options) {
         this._schemaRetriever = schemaRetriever;
+        this._constProvider = constProvider;
         this._options = options;
         this._cached = {};
     }
 
-    _endpoint(api) {
-        return this._options.thingpedia_url + api
-            + '?locale=' + this._options.locale
-            + '&developer_key=' + this._options.developer_key;
-    }
-
     _sampleEntities(data) {
         const sampled = choose(data, this._options.sample_size, this._options.rng);
-        return sampled.map((entity) => {
+        return sampled.filter((entity) => /^[a-zA-Z0-9 .]*$/.test(entity.name)).map((entity) => {
             return {
                 value: entity.value,
                 display: entity.name
@@ -46,9 +40,8 @@ module.exports = class ConstantSampler {
 
     _sampleStrings(data) {
         const sampled = choose(data, this._options.sample_size, this._options.rng);
-        return sampled.map((string) => string.preprocessed);
+        return sampled.filter((string) => /^[a-zA-Z0-9 .]*$/.test(string.value)).map((string) => string.value);
     }
-
 
 
     async _retrieveSamples(type, name) {
@@ -56,10 +49,10 @@ module.exports = class ConstantSampler {
         if (key in this._cached)
             return this._cached[key];
 
-        const url = this._endpoint(`/api/v3/${type}/list/${name}`);
-        const response = await Tp.Helpers.Http.get(url);
-        const data = JSON.parse(response).data;
-        const sampled = type === 'strings' ? this._sampleStrings(data) : this._sampleEntities(data);
+        const data = await this._constProvider.get(type, name);
+        if (data.length === 0)
+            return [];
+        const sampled = type === 'string' ? this._sampleStrings(data) : this._sampleEntities(data);
         this._cached[key] = sampled;
         return sampled;
     }
@@ -70,18 +63,20 @@ module.exports = class ConstantSampler {
         const constants = [];
         for (let f in functions) {
             const functionDef = functions[f];
-            for (let arg of functionDef.args) {
-                const argument = functionDef.getArgument(arg);
+            for (let argument of functionDef.iterateArguments()) {
+                const arg = argument.name;
                 const string_values = argument.getAnnotation('string_values');
                 if (string_values) {
-                    const samples = await this._retrieveSamples('strings', string_values);
+                    let samples = await this._retrieveSamples('string', `org.schema:${f}_${arg}`);
+                    if (samples.length === 0)
+                        samples = await this._retrieveSamples('string', string_values);
                     samples.forEach((sample) => {
                         constants.push([`param:@${device}.${f}:${arg}:String`, sample]);
                     });
                 }
                 const entityType = getEntityType(functionDef.getArgType(arg));
                 if (entityType) {
-                    const samples = await this._retrieveSamples('entities', entityType);
+                    const samples = await this._retrieveSamples('entity', entityType);
                     samples.forEach((sample) => {
                         constants.push([
                             `param:@${device}.${f}:${arg}:Entity(${entityType})`,
