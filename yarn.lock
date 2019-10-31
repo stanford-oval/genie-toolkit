@@ -810,9 +810,9 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2:
   integrity sha512-qBr4OuELkhPenW6goKVXiv47US3clb3/IbuWF9KNKEijAy9oeHxU9IgzjvJhHkUzhaj7rOUD7+YGWqUjLp5oSA==
 
 handlebars@^4.1.2:
-  version "4.4.5"
-  resolved "https://registry.yarnpkg.com/handlebars/-/handlebars-4.4.5.tgz#1b1f94f9bfe7379adda86a8b73fb570265a0dddd"
-  integrity sha512-0Ce31oWVB7YidkaTq33ZxEbN+UDxMMgThvCe8ptgQViymL5DPis9uLdTA13MiRPhgvqyxIegugrP97iK3JeBHg==
+  version "4.5.1"
+  resolved "https://registry.yarnpkg.com/handlebars/-/handlebars-4.5.1.tgz#8a01c382c180272260d07f2d1aa3ae745715c7ba"
+  integrity sha512-C29UoFzHe9yM61lOsIlCE5/mQVGrnIOrOq7maQl76L7tYPCgC1og0Ajt6uWnX4ZTxBPnjw+CUvawphwCfJgUnA==
   dependencies:
     neo-async "^2.6.0"
     optimist "^0.6.1"
@@ -1946,9 +1946,9 @@ text-table@^0.2.0:
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
 thingpedia@~2.6.0-alpha.1:
-  version "2.6.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.6.0-alpha.1.tgz#bd49a6b68df29646840477e33402038df0edfd61"
-  integrity sha512-kw3qZKaseH8xf5f5Ss/3HulK/M4r88s60tMnS+bRIS0eLHJdqNP+YKNmT4IiEOvYlT/iV1yUYON5iDYE9z1vZA==
+  version "2.6.0-alpha.2"
+  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.6.0-alpha.2.tgz#c54636c2c5ca96504eb9bcd489dc6f66996f4371"
+  integrity sha512-2E8Du8Ev6XU0p9vZljmalAsLnE5mvMHoOc7WNMSAEap8aW1sHe+sxwvkuHnu3z14VlCeMFNi7iZ3hwlW/44Fdg==
   dependencies:
     feedparser "^2.2.9"
     ip "~1.1.0"
