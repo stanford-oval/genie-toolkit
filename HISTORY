@@ -1,3 +1,9 @@
+0.5.0-alpha.5
+=============
+
+* Fix how we use the ThingpediaClient API to be compatible with the latest version
+  of the Thingpedia SDK [#102]
+
 0.5.0-alpha.4
 =============
 
