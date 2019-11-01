@@ -238,6 +238,7 @@ async function main() {
         rng: seedrandom.alea('almond is awesome'),
         locale: 'en-US',
         templateFile: path.resolve(path.dirname(module.filename), '../languages/thingtalk/en/thingtalk.genie'),
+        targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,
         flags: {
             turking: false,

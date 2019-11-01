@@ -42,6 +42,12 @@ module.exports = {
             defaultValue: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
+        parser.addArgument(['-t', '--target-language'], {
+            required: false,
+            defaultValue: 'thingtalk',
+            choices: ['thingtalk'],
+            help: `The programming language to generate`
+        });
         parser.addArgument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
@@ -119,6 +125,7 @@ module.exports = {
             locale: args.locale,
             flags: args.flags || {},
             templateFile: args.template,
+            targetLanguage: args.target_language,
             thingpediaClient: tpClient,
             targetPruningSize: args.target_pruning_size,
             maxDepth: args.maxdepth,
