@@ -41,7 +41,7 @@ async function main() {
     const generatorOptions = {
         rng,
         locale: 'en-US',
-        templateFile: path.resolve(path.dirname(module.filename), '../languages/en/thingtalk.genie'),
+        templateFile: path.resolve(path.dirname(module.filename), '../languages/thingtalk/en/thingtalk.genie'),
         thingpediaClient: _tpClient,
         flags: {
             turking: false,
