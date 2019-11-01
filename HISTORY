@@ -1,3 +1,12 @@
+1.7.0-beta.1
+============
+
+* Added support for referring to devices by name [#119]
+* Fallback no longer displays suggestions, as they are too unreliable [#111]
+* Improved replies to sound better with voice [Lim Swee-Kiat; #118]
+* Fixed support for async questions [Lim Swee-Kiat; #118]
+* Build system fixes and dependency updates [#115, #116, #117]
+
 1.6.1
 =====
 
