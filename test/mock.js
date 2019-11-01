@@ -230,6 +230,15 @@ class MockUnknownDevice {
     }
 }
 
+class MockLightbulb {
+    constructor(uniqueId, name) {
+        this.name = name;
+        this.description = "Lights in the " + name;
+        this.kind = 'light-bulb';
+        this.uniqueId = 'light-bulb-' + uniqueId;
+    }
+}
+
 class MockDeviceDatabase {
     constructor() {
         this._devices = {};
@@ -241,7 +250,14 @@ class MockDeviceDatabase {
         this._devices['security-camera-foo'] = new MockUnknownDevice('security-camera');
         this._devices['security-camera-bar'] = new MockUnknownDevice('security-camera');
         this._devices['instagram-1'] = new MockUnknownDevice('instagram');
-        this._devices['light-bulb-1'] = new MockUnknownDevice('light-bulb');
+
+        this._devices['light-bulb-bed1'] = new MockLightbulb('bed1', 'Bed Light 1');
+        this._devices['light-bulb-bed2'] = new MockLightbulb('bed2', 'Bed Light 2');
+        this._devices['light-bulb-kitchen'] = new MockLightbulb('kitchen', 'Kitchen Lights');
+        this._devices['light-bulb-ceiling'] = new MockLightbulb('ceiling', 'Ceiling Lights');
+        // increase cnt so the tests don't fail
+        _cnt++;
+
         this._devices['org.thingpedia.builtin.thingengine.phone'] = new MockPhoneDevice();
         this._devices['thingengine-own-global'] = new MockBuiltinDevice();
         this._devices['org.thingpedia.builtin.thingengine.remote'] = new MockUnknownDevice('remote');
