@@ -440,7 +440,7 @@ function locationGetPredicate($options, loc, negate = false) {
     if (negate)
         filter = Ast.BooleanExpression.Not(filter);
 
-    return new Ast.BooleanExpression.External(Ast.Selector.Device('org.thingpedia.builtin.thingengine.builtin',null,null),'get_gps', [], filter,
+    return new Ast.BooleanExpression.External(new Ast.Selector.Device('org.thingpedia.builtin.thingengine.builtin',null,null),'get_gps', [], filter,
         $options.standardSchemas.get_gps);
 }
 
@@ -452,7 +452,7 @@ function timeGetPredicate($options, low, high) {
     if (high)
         operands.push(Ast.BooleanExpression.Atom('time', '<=', high));
     const filter = Ast.BooleanExpression.And(operands);
-    return new Ast.BooleanExpression.External(Ast.Selector.Device('org.thingpedia.builtin.thingengine.builtin',null,null),'get_time', [], filter,
+    return new Ast.BooleanExpression.External(new Ast.Selector.Device('org.thingpedia.builtin.thingengine.builtin',null,null),'get_time', [], filter,
         $options.standardSchemas.get_time);
 }
 
