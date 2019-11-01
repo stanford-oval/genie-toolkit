@@ -29,7 +29,7 @@
   },
   "scripts": {
     "regen-meta-grammar": "pegjs ./lib/genie-compiler/grammar.pegjs",
-    "lint": "eslint ./lib ./tool",
+    "lint": "eslint ./lib ./tool ./languages",
     "test": "nyc ./test/everything.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "prepare": "yarn regen-meta-grammar"
