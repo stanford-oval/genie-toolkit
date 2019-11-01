@@ -103,6 +103,10 @@ function betaReduce(ast, pname, value) {
 
         const varref = slot.get();
         if (varref.isVarRef && varref.name === pname) {
+            // no parameter passing into device attributes
+            if (value.isVarRef && slot.tag.startsWith('attribute.'))
+                return null;
+
             slot.set(value);
             found = true;
         }
@@ -391,6 +395,9 @@ function inParamsToFilters(in_params) {
 }
 
 function makePolicy(principal, table, action) {
+    if (action && action.invocation && action.invocation.selector.attributes.length)
+        return null;
+
     const policyAction = action ?
         new Ast.PermissionFunction.Specified(action.invocation.selector.kind, action.invocation.channel, inParamsToFilters(action.invocation.in_params), action.invocation.schema) :
         Ast.PermissionFunction.Builtin;
@@ -401,10 +408,16 @@ function makePolicy(principal, table, action) {
             return null;*/
 
         if (table.isFilter && table.table.isInvocation) {
+            if (table.table.invocation.selector.attributes.length)
+                return null;
+
             const queryfilter = Ast.BooleanExpression.And([inParamsToFilters(table.table.invocation.in_params), table.filter]);
             policyQuery = new Ast.PermissionFunction.Specified(table.table.invocation.selector.kind, table.table.invocation.channel, queryfilter,
                 table.table.invocation.schema);
         } else if (table.isInvocation) {
+            if (table.invocation.selector.attributes.length)
+                return null;
+
             const queryfilter = inParamsToFilters(table.invocation.in_params);
             policyQuery = new Ast.PermissionFunction.Specified(table.invocation.selector.kind, table.invocation.channel, queryfilter,
                 table.invocation.schema);
