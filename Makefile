@@ -1,6 +1,6 @@
-bundle/%: languages/%/*.genie languages/*.genie languages/*.js
+bundle/%: languages/thingtalk/%/*.genie languages/thingtalk/*.genie languages/thingtalk/*.js
 	mkdir -p $@
-	cp -r languages/$* languages/*.genie languages/*.js $@
+	cp -r languages/thingtalk/$* languages/thingtalk/*.genie languages/thingtalk/*.js $@
 	echo "import '$*/thingtalk.genie';" > $@/index.genie
 	echo "import '$*/contextual.genie';" > $@/contextual.genie
 	touch $@
