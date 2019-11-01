@@ -221,8 +221,11 @@ async function processOne(id, sentence, code) {
     const usedEntities = new Set;
     for (let token of sentence.split(' ')) {
         if (/^[A-Z]/.test(token)) { // entity
-            if (!assignedEntities[token])
+            if (!assignedEntities[token]) {
+                console.error(sentence);
+                console.error(code);
                 throw new Error(`Missing entity ${token} (present in the sentence, not in the code)`);
+            }
             usedEntities.add(token);
         }
     }

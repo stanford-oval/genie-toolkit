@@ -103,6 +103,10 @@ function betaReduce(ast, pname, value) {
 
         const varref = slot.get();
         if (varref.isVarRef && varref.name === pname) {
+            // no parameter passing into device attributes
+            if (value.isVarRef && slot.tag.startsWith('attribute.'))
+                return null;
+
             slot.set(value);
             found = true;
         }
@@ -391,6 +395,9 @@ function inParamsToFilters(in_params) {
 }
 
 function makePolicy(principal, table, action) {
+    if (action && action.invocation && action.invocation.selector.attributes.length)
+        return null;
+
     const policyAction = action ?
         new Ast.PermissionFunction.Specified(action.invocation.selector.kind, action.invocation.channel, inParamsToFilters(action.invocation.in_params), action.invocation.schema) :
         Ast.PermissionFunction.Builtin;
@@ -401,10 +408,16 @@ function makePolicy(principal, table, action) {
             return null;*/
 
         if (table.isFilter && table.table.isInvocation) {
+            if (table.table.invocation.selector.attributes.length)
+                return null;
+
             const queryfilter = Ast.BooleanExpression.And([inParamsToFilters(table.table.invocation.in_params), table.filter]);
             policyQuery = new Ast.PermissionFunction.Specified(table.table.invocation.selector.kind, table.table.invocation.channel, queryfilter,
                 table.table.invocation.schema);
         } else if (table.isInvocation) {
+            if (table.invocation.selector.attributes.length)
+                return null;
+
             const queryfilter = inParamsToFilters(table.invocation.in_params);
             policyQuery = new Ast.PermissionFunction.Specified(table.invocation.selector.kind, table.invocation.channel, queryfilter,
                 table.invocation.schema);
@@ -440,7 +453,7 @@ function locationGetPredicate($options, loc, negate = false) {
     if (negate)
         filter = Ast.BooleanExpression.Not(filter);
 
-    return new Ast.BooleanExpression.External(Ast.Selector.Device('org.thingpedia.builtin.thingengine.builtin',null,null),'get_gps', [], filter,
+    return new Ast.BooleanExpression.External(new Ast.Selector.Device('org.thingpedia.builtin.thingengine.builtin',null,null),'get_gps', [], filter,
         $options.standardSchemas.get_gps);
 }
 
@@ -452,7 +465,7 @@ function timeGetPredicate($options, low, high) {
     if (high)
         operands.push(Ast.BooleanExpression.Atom('time', '<=', high));
     const filter = Ast.BooleanExpression.And(operands);
-    return new Ast.BooleanExpression.External(Ast.Selector.Device('org.thingpedia.builtin.thingengine.builtin',null,null),'get_time', [], filter,
+    return new Ast.BooleanExpression.External(new Ast.Selector.Device('org.thingpedia.builtin.thingengine.builtin',null,null),'get_time', [], filter,
         $options.standardSchemas.get_time);
 }
 
