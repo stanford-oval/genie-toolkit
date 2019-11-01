@@ -21,6 +21,7 @@ module.exports = function worker(args, shard) {
         locale: args.locale,
         flags: args.flags || {},
         templateFile: args.template,
+        targetLanguage: args.targetLanguage,
         thingpediaClient: tpClient,
         maxDepth: args.maxdepth,
         targetPruningSize: args.target_pruning_size,

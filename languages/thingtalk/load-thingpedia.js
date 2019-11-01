@@ -31,7 +31,9 @@ class ThingpediaLoader {
         this._grammar = grammar;
 
         this._tpClient = options.thingpediaClient;
-        this._schemas = options.schemaRetriever || new SchemaRetriever(this._tpClient, null, !options.debug);
+        if (!options.schemaRetriever)
+            options.schemaRetriever = new SchemaRetriever(this._tpClient, null, !options.debug);
+        this._schemas = options.schemaRetriever;
 
         this._options = options;
 
