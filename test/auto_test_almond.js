@@ -3624,6 +3624,77 @@ null],
 >> ask special null
 `,
     null],
+
+    [
+    {program: `now => @light-bulb.set_power(power=enum(on));`},
+    `>> You have multiple Light Bulb devices. Which one do you want to use?
+>> choice 0: Bed Light 1
+>> choice 1: Bed Light 2
+>> choice 2: Kitchen Lights
+>> choice 3: Ceiling Lights
+>> context = now => @light-bulb.set_power param:power:Enum(on,off) = enum:on // {}
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '0'],
+`>> Okay, I'm going to turn on your Bed Light 1.
+>> context = now => @light-bulb.set_power param:power:Enum(on,off) = enum:on // {}
+>> ask special null
+`,
+    `{
+  now => @light-bulb(id="light-bulb-bed1").set_power(power=enum(on));
+}`,
+    ],
+
+    [
+    {program: `now => @light-bulb(all=true).set_power(power=enum(on));`},
+    `>> Okay, I'm going to turn on all your light bulb.
+>> context = now => @light-bulb.set_power attribute:all:Boolean = true param:power:Enum(on,off) = enum:on // {}
+>> ask special null
+`,
+    `{
+  now => @light-bulb(all=true).set_power(power=enum(on));
+}`,
+    ],
+
+    [
+    {program: `now => @light-bulb(name="kitchen").set_power(power=enum(on));`},
+    `>> Okay, I'm going to turn on your Kitchen Lights.
+>> context = now => @light-bulb.set_power attribute:name:String = QUOTED_STRING_0 param:power:Enum(on,off) = enum:on // {"QUOTED_STRING_0":"kitchen"}
+>> ask special null
+`,
+    `{
+  now => @light-bulb(id="light-bulb-kitchen", name="kitchen").set_power(power=enum(on));
+}`,
+    ],
+
+    [
+    {program: `now => @light-bulb(name="bed").set_power(power=enum(on));`},
+    `>> You have multiple “bed” Light Bulb devices. Which one do you want to use?
+>> choice 0: Bed Light 1
+>> choice 1: Bed Light 2
+>> context = now => @light-bulb.set_power attribute:name:String = QUOTED_STRING_0 param:power:Enum(on,off) = enum:on // {"QUOTED_STRING_0":"bed"}
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '1'],
+`>> Okay, I'm going to turn on your Bed Light 2.
+>> context = now => @light-bulb.set_power attribute:name:String = QUOTED_STRING_0 param:power:Enum(on,off) = enum:on // {"QUOTED_STRING_0":"bed"}
+>> ask special null
+`,
+    `{
+  now => @light-bulb(id="light-bulb-bed2", name="bed").set_power(power=enum(on));
+}`,
+    ],
+
+    [
+    {program: `now => @light-bulb(name="bed", all=true).set_power(power=enum(on));`},
+    `>> Okay, I'm going to turn on all your “bed” light bulb.
+>> context = now => @light-bulb.set_power attribute:all:Boolean = true attribute:name:String = QUOTED_STRING_0 param:power:Enum(on,off) = enum:on // {"QUOTED_STRING_0":"bed"}
+>> ask special null
+`,
+    `{
+  now => @light-bulb(all=true, name="bed").set_power(power=enum(on));
+}`,
+    ],
 ];
 
 function handleCommand(almond, input) {

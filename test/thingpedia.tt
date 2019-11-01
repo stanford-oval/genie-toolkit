@@ -718,15 +718,15 @@ class @light-bulb
 #_[canonical="light bulb"] {
   action alert_long()
   #_[canonical="flash alert lights on light bulb"]
-  #_[confirmation="flash alerts on your lightbulb"];
+  #_[confirmation="flash alerts on $__device"];
 
   action color_loop()
   #_[canonical="color loop lights on light bulb"]
-  #_[confirmation="loop colors on your lightbulb"];
+  #_[confirmation="loop colors on $__device"];
 
   action set_power(in req power: Enum(on,off) #_[prompt="Do you want to turn it on or off?"] #_[canonical="power"])
   #_[canonical="set power on light bulb"]
-  #_[confirmation="turn $power your lightbulb"];
+  #_[confirmation="turn $power $__device"];
 }
 class @com.hue
 #_[canonical="philips hue"] {
