@@ -28,6 +28,14 @@ dataset @org.thingpedia.everything language "en" {
     #_[preprocessed=["the number of images that match ${p_query}", "the count of images that match ${p_query:const}"]];
 
     query (p_query : String) := [link] of @com.bing.image_search(query=p_query)
-    #[id=4]
+    #[id=5]
     #_[preprocessed=["the link to images that match ${p_query}"]];
+    
+    action := @light-bulb.set_power(power=enum(on))
+    #[id=6]
+    #_[preprocessed=["turn on my lights"]];
+    
+    action (p_name : String) := @light-bulb(name=p_name).set_power(power=enum(on))
+    #[id=7]
+    #_[preprocessed=["turn on my $p_name lights"]];
 }
