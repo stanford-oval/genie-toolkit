@@ -18,8 +18,11 @@ const Type = ThingTalk.Type;
 // import the combinator library
 const C = require('../ast_manip');
 
+// import thingpedia info
+const _tpLoader = require('../load-thingpedia');
 }
 
+import '../common';
 import './constants';
 import './timers';
 import './filters';
@@ -43,14 +46,14 @@ one_filter_table = {
     table:complete_table '其中' filter:atom_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 two_filter_table = {
     table:one_filter_table '而且' filter:atom_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -60,9 +63,9 @@ with_filtered_table = {
 }
 
 edge_stream = {
-    !turking ('當' | '如果' | '等') p:projection_Any ('變成' | '變為' | '是' | '為') x:constant_Any => C.makeEdgeFilterStream(p, '==', x, $options);
-    ('當' | '如果' | '等') 'the' p:projection_Numeric ('變得' | '變成') '比' x:constant_Numeric ('大' | '多') => C.makeEdgeFilterStream(p, '>=', x, $options);
-    ('當' | '如果' | '等') 'the' p:projection_Numeric ('變得' | '變成') '比' x:constant_Numeric ('小' | '少') => C.makeEdgeFilterStream(p, '<=', x, $options);
+    !turking ('當' | '如果' | '等') p:projection_Any ('變成' | '變為' | '是' | '為') x:constant_Any => C.makeEdgeFilterStream(p, '==', x, _tpLoader);
+    ('當' | '如果' | '等') 'the' p:projection_Numeric ('變得' | '變成') '比' x:constant_Numeric ('大' | '多') => C.makeEdgeFilterStream(p, '>=', x, _tpLoader);
+    ('當' | '如果' | '等') 'the' p:projection_Numeric ('變得' | '變成') '比' x:constant_Numeric ('小' | '少') => C.makeEdgeFilterStream(p, '<=', x, _tpLoader);
 }
 
 stream = {
@@ -76,7 +79,7 @@ stream = {
                 return null;
             let outParams = Object.keys(proj.table.schema.out);
             let stream;
-            if (outParams.length === 1 && $options.flags.turking)
+            if (outParams.length === 1 && _tpLoader.flags.turking)
                 return null;
             if (outParams.length === 1)
                 stream = C.tableToStream(proj.table, null);
@@ -91,7 +94,7 @@ stream = {
                 return null;
             let outParams = Object.keys(proj.table.schema.out);
             let stream;
-            if (outParams.length === 1 && $options.flags.turking)
+            if (outParams.length === 1 && _tpLoader.flags.turking)
                 return null;
             if (outParams.length === 1)
                 stream = C.tableToStream(proj.table, null);
@@ -106,7 +109,7 @@ stream = {
                 return null;
             let outParams = Object.keys(proj.table.schema.out);
             let stream;
-            if (outParams.length === 1 && $options.flags.turking)
+            if (outParams.length === 1 && _tpLoader.flags.turking)
                 return null;
             if (outParams.length === 1)
                 stream = C.tableToStream(proj.table, null);
@@ -118,7 +121,7 @@ stream = {
     '當' table:complete_table ('變' | '改變' | '不一樣') '了' ('而且' | '且') filter:edge_filter ('時' | '的 時候') => {
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter) || table.schema.is_list)
             return null;
-        table = C.addFilter(table, filter, $options);
+        table = C.addFilter(table, filter, _tpLoader);
         if (!table)
             return null;
         return C.tableToStream(table, null);
@@ -126,9 +129,9 @@ stream = {
     '當' table:complete_table ('變' | '改變' | '不一樣') '了' ('而且' | '且') filter:atom_filter ('時' | '的 時候') => {
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
             return null;
-        if ($options.flags.turking && table.schema.is_list)
+        if (_tpLoader.flags.turking && table.schema.is_list)
             return null;
-        table = C.addFilter(table, filter, $options);
+        table = C.addFilter(table, filter, _tpLoader);
         if (!table)
             return null;
         return C.tableToStream(table, null);
@@ -199,7 +202,7 @@ when_get_stream = {
         if (proj.args[0] === 'picture_url')
             return null;
         let outParams = Object.keys(proj.table.schema.out);
-        if (outParams.length === 1 && $options.flags.turking && !proj.table.isAggregation)
+        if (outParams.length === 1 && _tpLoader.flags.turking && !proj.table.isAggregation)
             return null;
 
         return C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj.table, [], proj.table.schema));
@@ -215,9 +218,9 @@ when_get_do_rule = {
 
 $root = {
     // when => notify
-    //stream:stream ('通知 我' | '告知 我' | '讓 我 知道' | '提醒 我' | '跟 我 說') => C.makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction($options) : C.notifyAction()]));
-    //stream:timer ('通知 我' | '告知 我' | '讓 我 知道' | '提醒 我' | '跟 我 說') => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options)]));
-    // stream:timer ('傳' | '送' | '傳送') constant:constant_String ('' | '給 我') => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
+    //stream:stream ('通知 我' | '告知 我' | '讓 我 知道' | '提醒 我' | '跟 我 說') => C.makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction(_tpLoader) : C.notifyAction()]));
+    //stream:timer ('通知 我' | '告知 我' | '讓 我 知道' | '提醒 我' | '跟 我 說') => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction(_tpLoader)]));
+    // stream:timer ('傳' | '送' | '傳送') constant:constant_String ('' | '給 我') => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction(_tpLoader, constant)]));
 
     '當' table:if_filtered_table ('變' | '改變' | '不一樣') '了' ('時' | '的 時候' | '') ('，' | '') ('通知 我' | '告知 我' | '讓 我 知道' | '提醒 我' | '跟 我 說') => {
         let stream = C.tableToStream(table, null);
@@ -239,7 +242,7 @@ $root = {
         if (proj.table.isAggregation)
             return null;
         let outParams = Object.keys(proj.table.schema.out);
-        if (outParams.length === 1 && $options.flags.turking)
+        if (outParams.length === 1 && _tpLoader.flags.turking)
             return null;
         // note that we intentionally don't use tableToStream here, because we don't want to introduce edge filters
         return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), [C.notifyAction()]));
@@ -251,7 +254,7 @@ $root = {
         if (proj.table.isAggregation)
             return null;
         let outParams = Object.keys(proj.table.schema.out);
-        if (outParams.length === 1 && $options.flags.turking)
+        if (outParams.length === 1 && _tpLoader.flags.turking)
             return null;
         // note that we intentionally don't use tableToStream here, because we don't want to introduce edge filters
         return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), [C.notifyAction()]));
@@ -262,9 +265,9 @@ $root = {
             return null;
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
             return null;
-        if ($options.flags.turking && table.schema.is_list)
+        if (_tpLoader.flags.turking && table.schema.is_list)
             return null;
-        table = C.addFilter(table, filter, $options);
+        table = C.addFilter(table, filter, _tpLoader);
         if (!table)
             return null;
         let stream = C.tableToStream(table, null);
@@ -277,7 +280,7 @@ $root = {
             return null;
         if (!table.schema.is_monitorable || table.schema.is_list || !C.checkFilter(table, filter))
             return null;
-        table = C.addFilter(table, filter, $options);
+        table = C.addFilter(table, filter, _tpLoader);
         if (!table)
             return null;
         let stream = C.tableToStream(table, null);
@@ -304,7 +307,7 @@ $root = {
         | '誰 的 信箱 是' proj:projection_Entity__tt__email_address ('' | '?')
         | proj:projection_Entity__tt__email_address '是 誰 的 信箱' ('' | '?')
         | proj:projection_Any
-    ) => C.sayProjectionProgram($options, proj);
+    ) => C.sayProjectionProgram(_tpLoader, proj);
 
     // now => do
     (
