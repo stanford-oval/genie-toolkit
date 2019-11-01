@@ -13,6 +13,17 @@
 const C = require('./ast_manip');
 }
 
+import './common-constants';
+
+// Thingpedia Grammar Rules
+
+thingpedia_query = {}
+thingpedia_get_command = {}
+thingpedia_stream = {}
+thingpedia_action = {}
+thingpedia_program = {}
+thingpedia_who_question = {}
+
 out_param_Numeric = {
     out_param_Number;
     out_param_Currency;
@@ -24,6 +35,14 @@ out_param_Numeric = {
     out_param_Measure_mps;
 }
 
+out_param_Any = {}
+out_param_Array__Any = {}
+out_param_npp = {}
+out_param_npi = {}
+out_param_avp = {}
+out_param_pvp = {}
+out_param_npv = {}
+out_param_apv = {}
 out_param_String   = {}
 out_param_Number   = {}
 out_param_Currency = {}
@@ -62,12 +81,17 @@ out_param_Array__Measure_m    = {}
 out_param_Array__Measure_mps  = {}
 out_param_Array__Compound = {}  // used for aggregate filter only
 
+{
+const _tpLoader = require('./load-thingpedia');
+await _tpLoader.init($runtime, $grammar, $options);
+}
+
 // empty defaults for certain parameter types in case we don't have devices with
 // those parameters
 projection_Entity__tt__username = {}
 projection_Entity__tt__email_address = {}
 
-for (let [pname, [typestr,]] of $options.params.in.values()) {
+for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
     thingpedia_stream = {
         s:thingpedia_stream v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(s, pname, v);
     }

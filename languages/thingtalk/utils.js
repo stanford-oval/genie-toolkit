@@ -11,7 +11,28 @@
 // See COPYING for details
 "use strict";
 
+function typeToStringSafe(type) {
+    if (type.isArray)
+        return 'Array__' + typeToStringSafe(type.elem);
+    else if (type.isEntity)
+        return 'Entity__' + type.type.replace(':', '__');
+    else if (type.isMeasure)
+        return 'Measure_' + type.unit;
+    else if (type.isEnum)
+        return 'Enum__' + type.entries.join('__');
+    else
+        return String(type);
+}
+
+function clean(name) {
+    if (/^[vwgp]_/.test(name))
+        name = name.substr(2);
+    return name.replace(/_/g, ' ').replace(/([^A-Z ])([A-Z])/g, '$1 $2').toLowerCase();
+}
+
 module.exports = {
+    clean,
+
     isUnaryTableToTableOp(table) {
         return table.isFilter ||
             table.isProjection ||
@@ -37,5 +58,7 @@ module.exports = {
     },
     isUnaryTableToStreamOp(stream) {
         return stream.isMonitor;
-    }
+    },
+
+    typeToStringSafe,
 };
