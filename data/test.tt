@@ -38,4 +38,11 @@ class @org.thingpedia.builtin.test
   #_[confirmation_remote="consume $data on $__person's Almond"]
   #[doc="consume some data, do nothing"]
   #[confirm=true];
+
+  action ask(in req question: String #_[prompt="What do you want me to ask?"])
+  #_[canonical="say"]
+  #_[confirmation="ask me a question $question"]
+  #_[confirmation_remote="ask $__person question $question"]
+  #[doc="makes Almond ask something"]
+  #[confirm=false];
 }

@@ -72,6 +72,34 @@ async function testDoSay(engine) {
     what.resolve();
 }
 
+function testDoAskQuestion(engine, conversation) {
+    const assistant = engine.platform.getCapability('assistant');
+
+    return new Promise((resolve, reject) => {
+        setTimeout(() => reject(new Error('Timed out while waiting for data to appear')), 10000).unref();
+
+        assistant._setConversation({
+            askQuestion(appId, icon, outputType, data) {
+                const app = engine.apps.getApp(appId);
+                assert(app.isEnabled);
+                assert(app.isRunning);
+                assert.strictEqual(icon, 'org.foo');
+                assert.strictEqual(appId, 'uuid-timer-foo');
+                assert.deepStrictEqual(data, "What is the answer?");
+                engine.apps.removeApp(app);
+                resolve();
+            }
+        });
+
+        engine.apps.loadOneApp('timer(base=makeDate(),interval=2s) => @org.thingpedia.builtin.test.ask(question="What is the answer?");',
+            { $icon: 'org.foo', $conversation: conversation ? 'mock' : undefined },
+            'uuid-timer-foo', undefined, 'some app', 'some app description', true).then((app) => {
+            assert.strictEqual(app.icon, 'org.foo');
+            assert.strictEqual(app.uniqueId, 'uuid-timer-foo');
+        }).catch(reject);
+    });
+}
+
 async function testDoError(engine) {
     const test = engine.devices.getDevice('org.thingpedia.builtin.test');
     const originaldo = test.do_eat_data;
@@ -829,6 +857,7 @@ module.exports = async function testApps(engine) {
     await testSimpleDo(engine);
     await testDoError(engine);
     await testDoSay(engine);
+    await testDoAskQuestion(engine, true);
     await testSimpleGet(engine);
     await testSimpleGet(engine, 'org.foo');
     await testGetGet(engine);
