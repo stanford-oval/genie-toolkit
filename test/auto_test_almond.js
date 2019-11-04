@@ -220,10 +220,10 @@ const TEST_CASES = [
 `>> Hello! I'm Almond, your virtual assistant.
 >> I am part of a research project of Stanford University. Would you like to participate?
 >> With your consent, I will record the commands you give me for training. Recording the commands will allow me to improve my understanding of natural language.
->> The collection is completely anonymous, and I will strip personal data (such as search queries, messages or phone numbers). The data, once collected, will be shared with our developers and researchers, and potentially other researchers working on natural language understanding.
->> You must be 13 or older to participate. If you are not, please answer ‘No’ here. Your answer will not affect the functionality of Almond.
+>> The collection is completely anonymous, and I will strip personal data (such as search queries, messages or phone numbers). The data, once collected, will be shared only with our developers and researchers.
+>> You must be 18 or older to participate. If you are not, please answer ‘No’ here. Your answer will not affect the functionality of Almond.
 >> Regardless of your choice here, I will not collect or store your credentials or the results of your commands.
->> If you would like to know more, see our privacy policy at https://almond.stanford.edu/about/privacy or contact us at <mobisocial@lists.stanford.edu>.
+>> If you would like to know more, see our privacy policy at https://almond.stanford.edu/about/privacy or contact us at <thingpedia-admins@lists.stanford.edu>.
 >> Do you consent to recording your commands?
 >> context = null // {}
 >> ask special yesno
