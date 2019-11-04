@@ -10,5 +10,6 @@ po/tmp
 
 yarn-error.log
 .nyc_output/
+out/
 
 home*
