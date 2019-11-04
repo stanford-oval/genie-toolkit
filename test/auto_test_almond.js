@@ -218,8 +218,19 @@ const TEST_CASES = [
     [
     (almond) => almond.start(),
 `>> Hello! I'm Almond, your virtual assistant.
->> I am part of a research project of Stanford University. I am capable of understanding actions and events over web services and smart devices.
->> Please keep in mind: I do not chat, and I do not understand questions very well. Please check out the Thingpedia to find out what I understand, or type ‘help’.
+>> I am part of a research project of Stanford University. Would you like to participate?
+>> With your consent, I will record the commands you give me for training. Recording the commands will allow me to improve my understanding of natural language.
+>> The collection is completely anonymous, and I will strip personal data (such as search queries, messages or phone numbers). The data, once collected, will be shared with our developers and researchers, and potentially other researchers working on natural language understanding.
+>> You must be 13 or older to participate. If you are not, please answer ‘No’ here. Your answer will not affect the functionality of Almond.
+>> Regardless of your choice here, I will not collect or store your credentials or the results of your commands.
+>> If you would like to know more, see our privacy policy at https://almond.stanford.edu/about/privacy or contact us at <mobisocial@lists.stanford.edu>.
+>> Do you consent to recording your commands?
+>> context = null // {}
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Thank you! If you change your mind, you can change the option from Settings.
+>> Okay, on to what I can do: I am capable of understanding actions and events over web services and smart devices. I do not chat, and I do not understand questions very well. Please check out the Cheatsheet (from the menu) to find out what I understand, or type ‘help’.
 >> To start, how about you try one of these examples:
 >> button: get a #cat gif {"code":["now","=>","@com.giphy.get","param:tag:Entity(tt:hashtag)","=","HASHTAG_0","=>","notify"],"entities":{"HASHTAG_0":"cat"}}
 >> button: show me the weather for San Francisco {"code":["now","=>","@org.thingpedia.weather.current","param:location:Location","=","LOCATION_0","=>","notify"],"entities":{"LOCATION_0":{"latitude":37.7792808,"longitude":-122.4192363,"display":"San Francisco, San Francisco City and County, California, United States of America"}}}
