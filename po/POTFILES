@@ -30,7 +30,6 @@ lib/messaging/communication_manager.js
 lib/messaging/device_manager.js
 lib/messaging/remote_program_executor.js
 lib/permissions/permission_manager.js
-lib/polyfill.js
 lib/tiers/paired.js
 lib/tiers/protocol.js
 lib/tiers/tier_connections.js
@@ -39,7 +38,6 @@ lib/util/array_set.js
 lib/util/ip_address.js
 lib/util/prefs.js
 lib/util/rate_limiter.js
-lib/util/ref_counted.js
 lib/util/timed_ref.js
 po/tmp/bluetooth.generic.js
 po/tmp/matrix.js
