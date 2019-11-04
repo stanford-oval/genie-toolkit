@@ -1996,8 +1996,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@com.instagram.get_pictures', '=>', 'notify'],
-`>> You don't have a Instagram.
->> link: Configure Instagram /devices/oauth2/com.instagram?name=Instagram
+`>> Sorry, I did not understand that. You might need to enable a new skill before I understand that command.
+>> link: Configure a new skill /devices/create
 >> context = now => @com.instagram.get_pictures => notify // {}
 >> ask special null
 `,
@@ -2005,8 +2005,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@com.tumblr.blog.post_text'],
-`>> You don't have a Tumblr Blog.
->> button: Configure Tumblr Blog {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:com.tumblr.blog"]}
+`>> Sorry, I did not understand that. You might need to enable a new skill before I understand that command.
+>> link: Configure a new skill /devices/create
 >> context = now => @com.tumblr.blog.post_text // {}
 >> ask special null
 `,
@@ -2014,8 +2014,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@org.thingpedia.rss.get_post', '=>', 'notify'],
-`>> You don't have a RSS Feed.
->> button: Configure RSS Feed {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:org.thingpedia.rss"]}
+`>> Sorry, I did not understand that. You might need to enable a new skill before I understand that command.
+>> link: Configure a new skill /devices/create
 >> context = now => @org.thingpedia.rss.get_post => notify // {}
 >> ask special null
 `,
@@ -2023,8 +2023,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@com.lg.tv.webos2.set_power'],
-`>> You don't have a LG WebOS TV.
->> button: Configure LG WebOS TV {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:com.lg.tv.webos2"]}
+`>> Sorry, I did not understand that. You might need to enable a new skill before I understand that command.
+>> link: Configure a new skill /devices/create
 >> context = now => @com.lg.tv.webos2.set_power // {}
 >> ask special null
 `,
@@ -2234,7 +2234,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@org.thingpedia.builtin.thingengine.home.start_playing'],
-`>> Sorry, I did not understand that. Can you rephrase it?
+`>> Sorry, I did not understand that. You might need to enable a new skill before I understand that command.
+>> link: Configure a new skill /devices/create
 >> context = now => @org.thingpedia.builtin.thingengine.home.start_playing // {}
 >> ask special null
 `,
@@ -2242,7 +2243,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@car.honk_horn'],
-`>> You don't have a Car.
+`>> Sorry, I did not understand that. You might need to enable a new skill before I understand that command.
+>> link: Configure a new skill /devices/create
 >> context = now => @car.honk_horn // {}
 >> ask special null
 `,
@@ -2850,8 +2852,8 @@ null],
 }`],
 
     [`tweet my instagram pictures`,
-`>> You don't have a Instagram.
->> link: Configure Instagram /devices/oauth2/com.instagram?name=Instagram
+`>> Sorry, I did not understand that. You might need to enable a new skill before I understand that command.
+>> link: Configure a new skill /devices/create
 >> context = monitor ( @com.instagram.get_pictures ) => @com.twitter.post_picture on param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture) // {}
 >> ask special null
 `,
