@@ -1,3 +1,11 @@
+1.7.0-beta.1
+============
+
+* Added support to select devices by name [#98]
+* Added minimal jsdoc covering the Engine API [#101]
+* Misc bug fixes [Lim Swee Kiat; #95, #96, #97]
+* Updated translation: Italian [#100]
+
 1.7.0-alpha.1
 =============
 
