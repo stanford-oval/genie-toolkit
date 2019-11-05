@@ -15,7 +15,6 @@ lib/dialogs/notifications.js
 lib/dialogs/permission_grant.js
 lib/dialogs/permission_rule.js
 lib/dialogs/rule.js
-lib/dialogs/setup.js
 lib/dialogs/slot_filling.js
 lib/dialogs/user_context.js
 lib/dispatcher.js
