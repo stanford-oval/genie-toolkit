@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: almond 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-03 22:16-0800\n"
-"PO-Revision-Date: 2019-11-03 22:16-0800\n"
+"POT-Creation-Date: 2019-11-05 13:46-0800\n"
+"PO-Revision-Date: 2019-11-05 13:49-0800\n"
 "Last-Translator: Giovanni Campagna <scampa.giovanni@gmail.com>\n"
 "Language-Team: Italian <it@li.org>\n"
 "Language: it\n"
@@ -51,7 +51,7 @@ msgid "Sorry, to enable %s, you must log in to your personal account."
 msgstr ""
 "Mi dispiace, ma per abilitare %s devi fare il login al tuo account personale."
 
-#: lib/dialogs/config.js:53 lib/dialogs/device_choice.js:30
+#: lib/dialogs/config.js:53 lib/dialogs/device_choice.js:28
 #: lib/dialogs/discovery.js:37 lib/dialogs/permission_rule.js:28
 #: lib/dialogs/rule.js:84 lib/dialogs/rule.js:207
 msgid "Register for Almond"
@@ -67,28 +67,32 @@ msgstr "Mi dispiace, ma non riesco a trovare %s nel mio database."
 msgid "%s has been enabled successfully."
 msgstr "%s è stato abilitato con successo."
 
-#: lib/dialogs/config.js:70
+#: lib/dialogs/config.js:73
 #, javascript-format
 msgid "Choose one of the following to configure %s."
 msgstr "Scegli uno dei seguenti per configurare %s."
 
-#: lib/dialogs/config.js:74 lib/dialogs/config.js:78 lib/dialogs/config.js:95
-#: lib/dialogs/device_choice.js:54 lib/dialogs/device_choice.js:58
+#: lib/dialogs/config.js:77 lib/dialogs/config.js:81 lib/dialogs/config.js:103
 #, javascript-format
 msgid "Configure %s"
 msgstr "Configura %s"
 
-#: lib/dialogs/config.js:85
+#: lib/dialogs/config.js:88
 #, javascript-format
 msgid "Sorry, I don't know how to configure %s."
 msgstr "Mi dispiace, ma non so come configurare %s."
 
-#: lib/dialogs/config.js:94
+#: lib/dialogs/config.js:98
+#, javascript-format
+msgid "I'm sorry, but %s is not supported on this version of Almond."
+msgstr "Mi dispiace, ma %s non è supportato in questa versione di Almond."
+
+#: lib/dialogs/config.js:102
 #, javascript-format
 msgid "OK, here's the link to configure %s."
 msgstr "Ok, ecco il link per configurare %s."
 
-#: lib/dialogs/config.js:100
+#: lib/dialogs/config.js:108
 #, javascript-format
 msgid "I'm sorry, I don't know how to configure %s."
 msgstr "Mi dispiace, ma non so come configurare %s."
@@ -122,41 +126,44 @@ msgstr "Sono d'accordo, ma... su cosa?"
 msgid "No way!"
 msgstr "Non esiste!"
 
-#: lib/dialogs/default.js:117 lib/dialogs/init.js:56
+#: lib/dialogs/default.js:117 lib/dialogs/init.js:57
 #, javascript-format
 msgid "Sorry, that did not work: %s"
 msgstr "Mi dispiace, ma c'è stato un errore: %s."
 
-#: lib/dialogs/device_choice.js:28
-#, javascript-format
-msgid "Sorry, to use %s, you must log in to your personal account."
-msgstr "Mi dispiace, ma per usare %s devi fare login al tuo account personale."
-
-#: lib/dialogs/device_choice.js:34
-#, javascript-format
+#: lib/dialogs/device_choice.js:27
 msgid ""
-"%s is not configured. You must ask the administrator of this Almond to "
-"enable it before using it."
+"Sorry, I did not understand that. You might need to enable a new skill "
+"before I understand that command. To do so, please log in to your personal "
+"account."
 msgstr ""
-"%s non è configurato. Devi chiedere all'amministratore di questo Almond di "
-"abilitarlo prima di utilizzarlo."
+"Mi dispiace, ma non ho capito. È possibile che tu debba abilitare una nuova "
+"skill prima che io capisca quel comando. Per farlo, per favore entra nel tuo "
+"account personale."
 
-#: lib/dialogs/device_choice.js:48
-#, javascript-format
-msgid "You don't have a %s."
-msgstr "Non hai un %s."
+#: lib/dialogs/device_choice.js:30
+msgid ""
+"Sorry, I did not understand that. You might need to enable a new skill "
+"before I understand that command."
+msgstr ""
+"Mi dispiace, ma non ho capito. È possibile che tu debba abilitare una nuova "
+"skill prima che io capisca quel comando."
 
-#: lib/dialogs/device_choice.js:91
+#: lib/dialogs/device_choice.js:31
+msgid "Configure a new skill"
+msgstr "Configura una nuova skill"
+
+#: lib/dialogs/device_choice.js:59
 msgid "Remote devices are not supported in this version of Almond."
 msgstr "Dispositivi remoti non sono supportati in questa versione di Almond."
 
-#: lib/dialogs/device_choice.js:125
+#: lib/dialogs/device_choice.js:93
 #, javascript-format
 msgid "You have multiple “%s” %s devices. Which one do you want to use?"
 msgstr ""
 "Hai più dispositivi di tipo %2$s che si chiamano “%1$s”. Quale vuoi usare?"
 
-#: lib/dialogs/device_choice.js:127
+#: lib/dialogs/device_choice.js:95
 #, javascript-format
 msgid "You have multiple %s devices. Which one do you want to use?"
 msgstr "Hai più dispositivi di tipo %s. Quale vuoi usare?"
@@ -274,11 +281,11 @@ msgid_plural "You have trained me with %d sentences."
 msgstr[0] "Mi hai insegnato %d frase."
 msgstr[1] "Mi hai insegnato %d frasi."
 
-#: lib/dialogs/init.js:24 lib/dialogs/init.js:62
+#: lib/dialogs/init.js:25 lib/dialogs/init.js:63
 msgid "Hello! I'm Almond, your virtual assistant."
 msgstr "Ciao! Mi chiamo Almond e sono il tuo assistente virtuale."
 
-#: lib/dialogs/init.js:25
+#: lib/dialogs/init.js:26 lib/dialogs/init.js:66
 msgid ""
 "I am part of a research project of Stanford University. I am capable of "
 "understanding actions and events over web services."
@@ -286,7 +293,7 @@ msgstr ""
 "Sono parte di un progetto di ricerca di Stanford University. Sono in grado "
 "di comprendere azioni ed eventi applicabili a servizi web."
 
-#: lib/dialogs/init.js:27 lib/dialogs/init.js:65
+#: lib/dialogs/init.js:28 lib/dialogs/init.js:67
 msgid ""
 "Please keep in mind: I do not chat, and I do not understand questions very "
 "well. Please check out the Thingpedia to find out what I understand, or type "
@@ -296,26 +303,76 @@ msgstr ""
 "domande. Dai un'occhiata a Thingpedia per scoprire cosa capisco, o digita "
 "‘aiuto’."
 
-#: lib/dialogs/init.js:28 lib/dialogs/init.js:68
+#: lib/dialogs/init.js:29 lib/dialogs/init.js:99
 msgid "To start, how about you try one of these examples:"
 msgstr "Per iniziare, che ne dici di provare uno di questi esempi:"
 
-#: lib/dialogs/init.js:47
+#: lib/dialogs/init.js:48
 msgid "Welcome back!"
 msgstr "Bentornato!"
 
-#: lib/dialogs/init.js:57
+#: lib/dialogs/init.js:58
 msgid "You should try again later."
 msgstr "Riprova più tardi."
 
-#: lib/dialogs/init.js:64
+#: lib/dialogs/init.js:70
 msgid ""
-"I am part of a research project of Stanford University. I am capable of "
-"understanding actions and events over web services and smart devices."
+"I am part of a research project of Stanford University. Would you like to "
+"participate?"
 msgstr ""
-"Sono parte di un progetto di ricerca di Stanford University. Sono in grado "
-"di comprendere azioni ed eventi applicabili a servizi web e dispositivi "
-"smart."
+"Sono parte di un progetto di ricerca di Stanford University. Vuoi "
+"partecipare?"
+
+#: lib/dialogs/init.js:71
+msgid ""
+"With your consent, I will record the commands you give me for training. "
+"Recording the commands will allow me to improve my understanding of natural "
+"language. I will collect what you type, not your data, or what I reply."
+msgstr ""
+"Con il tuo consenso, registrerò i comandi che inserisci. Registrare i "
+"comandi mi consente di migliorare la mia comprensione della lingua. "
+"Raccoglierò solo quello che digiti, non i tuoi dati, o le mie risposte."
+
+#: lib/dialogs/init.js:72
+msgid ""
+"If you would like to participate, please review our consent form, and keep "
+"it for your records:"
+msgstr ""
+"Se vuoi partecipare, per favore leggi il nostro modulo di consenso, e "
+"salvane una copia personale."
+
+#: lib/dialogs/init.js:74
+msgid "Consent Form"
+msgstr "Modulo di Consenso"
+
+#: lib/dialogs/init.js:81
+msgid "Do you consent to recording your commands?"
+msgstr "Consenti alla raccolta dei tuoi comandi?"
+
+#: lib/dialogs/init.js:89
+msgid ""
+"Thank you! If you change your mind, you can change the option from Settings."
+msgstr "Grazie! Se cambi idea, puoi modificare l'opzione dalle Impostazioni."
+
+#: lib/dialogs/init.js:91
+msgid ""
+"Okay, I will not store any command from this Almond. If you change your "
+"mind, you can change the option from Settings."
+msgstr ""
+"Okay, non memorizzerò i comandi da questo Almond. Se cambi idea, puoi "
+"modificare l'opzione dalle Impostazioni."
+
+#: lib/dialogs/init.js:93
+msgid ""
+"Okay, on to what I can do: I am capable of understanding actions and events "
+"over web services and smart devices. I do not chat, and I do not understand "
+"questions very well. Please check out the Cheatsheet (from the menu) to find "
+"out what I understand, or type ‘help’."
+msgstr ""
+"Okay, continuando con cosa sono in grado di fare: sono capace di comprendere "
+"azioni ed eventi applicabili a servizi online e dispositivi smart. Non "
+"chiacchero, e non capisco molto bene le domande. Dai un'occhiata al Bigino "
+"(dal menù) per scopire cosa capisco, o digita ‘aiuto’."
 
 #: lib/dialogs/make.js:32
 msgid "Media (news, comics, meme, etc)"
@@ -670,23 +727,23 @@ msgstr "Usa il %s da %s"
 msgid "None of above"
 msgstr "Nessuno di questi"
 
-#: lib/dialogs/user_context.js:78
+#: lib/dialogs/user_context.js:74
 msgid "Where are you now?"
 msgstr "Dove sei ora?"
 
-#: lib/dialogs/user_context.js:82
+#: lib/dialogs/user_context.js:78
 msgid "What is your home address?"
 msgstr "Qual è il tuo indirizzo di casa?"
 
-#: lib/dialogs/user_context.js:87
+#: lib/dialogs/user_context.js:83
 msgid "What is your work address?"
 msgstr "Qual è il tuo indirizzo di lavoro?"
 
-#: lib/dialogs/user_context.js:92
+#: lib/dialogs/user_context.js:88
 msgid "What time does your morning begin?"
 msgstr "A che ora inizia la tua mattina?"
 
-#: lib/dialogs/user_context.js:97
+#: lib/dialogs/user_context.js:93
 msgid "What time does your evening begin?"
 msgstr "A che ora inizia la sera per te?"
 
@@ -834,20 +891,30 @@ msgstr "Sì cosa?"
 msgid "Please click on one of the provided choices."
 msgstr "Per favore clicca su una delle scelte visualizzate."
 
-#~ msgid ""
-#~ "I am part of a research project of Stanford University. Would you like to "
-#~ "participate?"
+#, javascript-format
+#~ msgid "Sorry, to use %s, you must log in to your personal account."
 #~ msgstr ""
-#~ "Sono parte di un progetto di ricerca di Stanford University. Vuoi "
-#~ "partecipare?"
+#~ "Mi dispiace, ma per usare %s devi fare login al tuo account personale."
+
+#, javascript-format
+#~ msgid ""
+#~ "%s is not configured. You must ask the administrator of this Almond to "
+#~ "enable it before using it."
+#~ msgstr ""
+#~ "%s non è configurato. Devi chiedere all'amministratore di questo Almond "
+#~ "di abilitarlo prima di utilizzarlo."
+
+#, javascript-format
+#~ msgid "You don't have a %s."
+#~ msgstr "Non hai un %s."
 
 #~ msgid ""
-#~ "With your consent, I will record the commands you give me for training. "
-#~ "Recording the commands will allow me to improve my understanding of "
-#~ "natural language."
+#~ "I am part of a research project of Stanford University. I am capable of "
+#~ "understanding actions and events over web services and smart devices."
 #~ msgstr ""
-#~ "Con il tuo consenso, registrerò i comandi che inserisci. Registrare i "
-#~ "comandi mi consente di migliorare la mia comprensione della lingua."
+#~ "Sono parte di un progetto di ricerca di Stanford University. Sono in "
+#~ "grado di comprendere azioni ed eventi applicabili a servizi web e "
+#~ "dispositivi smart."
 
 #~ msgid ""
 #~ "The collection is completely anonymous, and I will strip personal data "
@@ -884,34 +951,6 @@ msgstr "Per favore clicca su una delle scelte visualizzate."
 #~ "Se vuoi saperne di più, visita la nostra politica della privacy a https://"
 #~ "almond.stanford.edu/about/privacy o contattaci a <mobisocial@lists."
 #~ "stanford.edu>."
-
-#~ msgid "Do you consent to recording your commands?"
-#~ msgstr "Consenti alla raccolta dei tuoi comandi?"
-
-#~ msgid ""
-#~ "Thank you! If you change your mind, you can change the option from "
-#~ "Settings."
-#~ msgstr ""
-#~ "Grazie! Se cambi idea, puoi modificare l'opzione dalle Impostazioni."
-
-#~ msgid ""
-#~ "Okay, I will not store any command from this Almond. If you change your "
-#~ "mind, you can change the option from Settings."
-#~ msgstr ""
-#~ "Okay, non memorizzerò i comandi da questo Almond. Se cambi idea, puoi "
-#~ "modificare l'opzione dalle Impostazioni."
-
-#~ msgid ""
-#~ "Okay, on to what I can do: I am capable of understanding actions and "
-#~ "events over web services and smart devices. I do not chat, and I do not "
-#~ "understand questions very well. Please check out the Cheatsheet (from the "
-#~ "menu) to find out what I understand, or type ‘help’."
-#~ msgstr ""
-#~ "Okay, continuando con cosa sono in grado di fare: sono capace di "
-#~ "comprendere azioni ed eventi applicabili a servizi online e dispositivi "
-#~ "smart. Non chiacchero, e non capisco molto bene le domande. Dai "
-#~ "un'occhiata al Bigino (dal menù) per scopire cosa capisco, o digita "
-#~ "‘aiuto’."
 
 #, javascript-format
 #~ msgid ""
