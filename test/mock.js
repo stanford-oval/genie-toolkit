@@ -206,15 +206,6 @@ class MockBuiltinDevice {
         this.kind = 'org.thingpedia.builtin.thingengine.builtin';
         this.uniqueId = 'thingengine-own-global';
     }
-
-    get_get_gps() {
-        return Promise.resolve([{
-            location: { y: 37.4275, x: -122.1697 },
-            altitude: 29,
-            bearing: 0,
-            speed: 0
-        }]); // at stanford, on the ground, facing north, standing still
-    }
 }
 
 var _cnt = 0;
@@ -443,6 +434,19 @@ _gettext.setLocale('en-US');
 
 const THINGPEDIA_URL = process.env.THINGPEDIA_URL || 'https://almond-dev.stanford.edu/thingpedia';
 
+const _gpsApi = {
+    async getCurrentLocation() {
+        // at stanford, on the ground, facing north, standing still
+        return {
+            latitude: 37.4275,
+            longitude: -122.1697,
+            altitude: 29,
+            bearing: 0,
+            speed: 0
+        };
+    }
+};
+
 const _mockPlatform = {
     _prefs: new MockPreferences(),
 
@@ -458,7 +462,7 @@ const _mockPlatform = {
     type: 'test',
 
     hasCapability(cap) {
-        return cap === 'gettext' || cap === 'contacts';
+        return cap === 'gettext' || cap === 'contacts' || cap === 'gps';
     },
 
     getCapability(cap) {
@@ -467,6 +471,8 @@ const _mockPlatform = {
             return _gettext;
         case 'contacts':
             return new MockAddressBook();
+        case 'gps':
+            return _gpsApi;
         default:
             return null;
         }
