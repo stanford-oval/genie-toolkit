@@ -1,3 +1,12 @@
+1.7.0-beta.2
+============
+
+* The data collection consent prompt has been improved [#119, #123]
+* Configuration of OAuth devices is now disabled in almond-server, because
+  it doesn't work [#123]
+* Misc bug fixes [#123, #124]
+* Translation Updates: Italian [#121, #125]
+
 1.7.0-beta.1
 ============
 
