@@ -218,8 +218,17 @@ const TEST_CASES = [
     [
     (almond) => almond.start(),
 `>> Hello! I'm Almond, your virtual assistant.
->> I am part of a research project of Stanford University. I am capable of understanding actions and events over web services and smart devices.
->> Please keep in mind: I do not chat, and I do not understand questions very well. Please check out the Thingpedia to find out what I understand, or type ‘help’.
+>> I am part of a research project of Stanford University. Would you like to participate?
+>> With your consent, I will record the commands you give me for training. Recording the commands will allow me to improve my understanding of natural language. I will collect what you type, not your data, or what I reply.
+>> If you would like to participate, please review our consent form, and keep it for your records:
+>> rdl: Consent Form https://oval.cs.stanford.edu/almond-consent-form.html
+>> Do you consent to recording your commands?
+>> context = null // {}
+>> ask special yesno
+`,
+    ['bookkeeping', 'special', 'special:yes'],
+`>> Thank you! If you change your mind, you can change the option from Settings.
+>> Okay, on to what I can do: I am capable of understanding actions and events over web services and smart devices. I do not chat, and I do not understand questions very well. Please check out the Cheatsheet (from the menu) to find out what I understand, or type ‘help’.
 >> To start, how about you try one of these examples:
 >> button: get a #cat gif {"code":["now","=>","@com.giphy.get","param:tag:Entity(tt:hashtag)","=","HASHTAG_0","=>","notify"],"entities":{"HASHTAG_0":"cat"}}
 >> button: show me the weather for San Francisco {"code":["now","=>","@org.thingpedia.weather.current","param:location:Location","=","LOCATION_0","=>","notify"],"entities":{"LOCATION_0":{"latitude":37.7792808,"longitude":-122.4192363,"display":"San Francisco, San Francisco City and County, California, United States of America"}}}
@@ -1985,8 +1994,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@com.instagram.get_pictures', '=>', 'notify'],
-`>> You don't have a Instagram.
->> link: Configure Instagram /devices/oauth2/com.instagram?name=Instagram
+`>> Sorry, I did not understand that. You might need to enable a new skill before I understand that command.
+>> link: Configure a new skill /devices/create
 >> context = now => @com.instagram.get_pictures => notify // {}
 >> ask special null
 `,
@@ -1994,8 +2003,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@com.tumblr.blog.post_text'],
-`>> You don't have a Tumblr Blog.
->> button: Configure Tumblr Blog {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:com.tumblr.blog"]}
+`>> Sorry, I did not understand that. You might need to enable a new skill before I understand that command.
+>> link: Configure a new skill /devices/create
 >> context = now => @com.tumblr.blog.post_text // {}
 >> ask special null
 `,
@@ -2003,8 +2012,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@org.thingpedia.rss.get_post', '=>', 'notify'],
-`>> You don't have a RSS Feed.
->> button: Configure RSS Feed {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:org.thingpedia.rss"]}
+`>> Sorry, I did not understand that. You might need to enable a new skill before I understand that command.
+>> link: Configure a new skill /devices/create
 >> context = now => @org.thingpedia.rss.get_post => notify // {}
 >> ask special null
 `,
@@ -2012,8 +2021,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@com.lg.tv.webos2.set_power'],
-`>> You don't have a LG WebOS TV.
->> button: Configure LG WebOS TV {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:com.lg.tv.webos2"]}
+`>> Sorry, I did not understand that. You might need to enable a new skill before I understand that command.
+>> link: Configure a new skill /devices/create
 >> context = now => @com.lg.tv.webos2.set_power // {}
 >> ask special null
 `,
@@ -2223,7 +2232,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@org.thingpedia.builtin.thingengine.home.start_playing'],
-`>> Sorry, I did not understand that. Can you rephrase it?
+`>> Sorry, I did not understand that. You might need to enable a new skill before I understand that command.
+>> link: Configure a new skill /devices/create
 >> context = now => @org.thingpedia.builtin.thingengine.home.start_playing // {}
 >> ask special null
 `,
@@ -2231,7 +2241,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 
     [
     ['now', '=>', '@car.honk_horn'],
-`>> You don't have a Car.
+`>> Sorry, I did not understand that. You might need to enable a new skill before I understand that command.
+>> link: Configure a new skill /devices/create
 >> context = now => @car.honk_horn // {}
 >> ask special null
 `,
@@ -2839,8 +2850,8 @@ null],
 }`],
 
     [`tweet my instagram pictures`,
-`>> You don't have a Instagram.
->> link: Configure Instagram /devices/oauth2/com.instagram?name=Instagram
+`>> Sorry, I did not understand that. You might need to enable a new skill before I understand that command.
+>> link: Configure a new skill /devices/create
 >> context = monitor ( @com.instagram.get_pictures ) => @com.twitter.post_picture on param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture) // {}
 >> ask special null
 `,
