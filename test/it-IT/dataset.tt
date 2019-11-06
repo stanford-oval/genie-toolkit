@@ -1,0 +1,37 @@
+dataset @org.thingpedia.dynamic.everything language "it" {
+    query (p_query :String)  := @com.bing.web_search(query=p_query)
+    #_[utterances=["${p_query:const} su bing","bing $p_query","siti web che corrispondono a $p_query"]]
+    #_[preprocessed=["${p_query:const} su bing","bing $p_query","siti web che corrispondono a $p_query"]]
+    #[id=48846292] #[click_count=1] #[like_count=0]
+    #[name="WebSearchWithQuery"];
+    query (p_query :String)  := @com.bing.image_search(query=p_query)
+    #_[utterances=["immagini ${p_query:const} su bing","immagini che corrispondono a $p_query su bing"]]
+    #_[preprocessed=["immagini ${p_query:const} su bing","immagini che corrispondono a $p_query su bing"]]
+    #[id=48846295] #[click_count=1] #[like_count=0]
+    #[name="ImageSearchWithQuery"];
+    query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width == p_width && height == p_height)
+    #_[utterances=["immagini da bing che corrispondono a $p_query con dimensione $p_width x $p_height"]]
+    #_[preprocessed=["immagini da bing che corrispondono a $p_query con dimensione $p_width x $p_height"]]
+    #[id=48846297] #[click_count=1] #[like_count=0]
+    #[name="ImageSearchWithQueryByWidthAndByHeight"];
+    query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width >= p_width && height >= p_height)
+    #_[utterances=["immagini da bing che corrispondono a $p_query più grandi di $p_width x $p_height","immagini da bing che corrispondono a $p_query più grandi $p_width x $p_height in entrambe le dimensioni"]]
+    #_[preprocessed=["immagini da bing che corrispondono a $p_query più grandi di $p_width x $p_height _","immagini da bing che corrispondono a $p_query più grandi $p_width x $p_height in entrambe le dimensioni"]]
+    #[id=48846298] #[click_count=1] #[like_count=0]
+    #[name="ImageSearchWithQueryByWidthGreaterThanAndByHeightGreaterThan"];
+    query (p_query :String, p_width :Number)  := (@com.bing.image_search(query=p_query)), width >= p_width
+    #_[utterances=["immagini da bing che corrispondono a $p_query più larghe di $p_width"]]
+    #_[preprocessed=["immagini da bing che corrispondono a $p_query più larghe di $p_width"]]
+    #[id=48846300] #[click_count=1] #[like_count=0]
+    #[name="ImageSearchWithQueryByWidthGreaterThan"];
+    query (p_query :String, p_height :Number)  := (@com.bing.image_search(query=p_query)), height >= p_height
+    #_[utterances=["immagini da bing che corrispondono a $p_query più alte di $p_height","immagini da bing che corrispondono a $p_query più lunghe di $p_height"]]
+    #_[preprocessed=["immagini da bing che corrispondono a $p_query più alte di $p_height","immagini da bing che corrispondono a $p_query più lunghe di $p_height"]]
+    #[id=48846301] #[click_count=1] #[like_count=0]
+    #[name="ImageSearchWithQueryByHeightGreaterThan"];
+    query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width <= p_width && height <= p_height)
+    #_[utterances=["immagini da bing che corrispondono a $p_query più piccole di $p_width x $p_height"]]
+    #_[preprocessed=["immagini da bing che corrispondono a $p_query più piccole di $p_width x $p_height"]]
+    #[id=48846303] #[click_count=1] #[like_count=0]
+    #[name="ImageSearchWithQueryByWidthLessThanAndByHeightLessThan"];
+}
