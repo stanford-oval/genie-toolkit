@@ -104,7 +104,7 @@ function betaReduce(ast, pname, value) {
         const varref = slot.get();
         if (varref.isVarRef && varref.name === pname) {
             // no parameter passing into device attributes
-            if (value.isVarRef && slot.tag.startsWith('attribute.'))
+            if (value.isVarRef && !value.name.startsWith('__const') && slot.tag.startsWith('attribute.'))
                 return null;
 
             slot.set(value);
