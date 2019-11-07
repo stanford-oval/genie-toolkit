@@ -3695,6 +3695,26 @@ null],
   now => @light-bulb(all=true, name="bed").set_power(power=enum(on));
 }`,
     ],
+
+    [
+    {program: `now => @light-bulb(name="invalid").set_power(power=enum(on));`},
+    `>> I cannot find any “invalid” device. Which Light Bulb do you want to use?
+>> choice 0: Bed Light 1
+>> choice 1: Bed Light 2
+>> choice 2: Kitchen Lights
+>> choice 3: Ceiling Lights
+>> context = now => @light-bulb.set_power attribute:name:String = QUOTED_STRING_0 param:power:Enum(on,off) = enum:on // {"QUOTED_STRING_0":"invalid"}
+>> ask special choice
+`,
+    ['bookkeeping', 'choice', '1'],
+`>> Okay, I'm going to turn on your Bed Light 2.
+>> context = now => @light-bulb.set_power param:power:Enum(on,off) = enum:on // {}
+>> ask special null
+`,
+    `{
+  now => @light-bulb(id="light-bulb-bed2").set_power(power=enum(on));
+}`,
+    ],
 ];
 
 function handleCommand(almond, input) {
