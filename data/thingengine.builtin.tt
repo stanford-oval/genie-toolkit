@@ -31,8 +31,8 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[doc="get the current date; this is equivalent to $now() and exists mostly so that Sabrina can codegen it; also equivalent to get_time() but the default formatting is different"]
   #[confirm=false];
 
-  query get_random_between(in req low: Number #_[prompt="What should be the lower bound?"],
-                           in req high: Number #_[prompt="What should be the upper bound?"],
+  query get_random_between(in opt low: Number #_[prompt="What should be the lower bound?"],
+                           in opt high: Number #_[prompt="What should be the upper bound?"],
                            out random: Number)
   #_[canonical="get random integer"]
   #_[confirmation="a random integer between $low and $high"]
