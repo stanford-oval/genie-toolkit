@@ -1,0 +1,363 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+const assert = require('assert');
+
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
+
+// import the combinator library
+const C = require('../ast_manip');
+
+}
+
+
+complete_table = {
+    thingpedia_query if complete;
+    !primonly table_join_replace_placeholder if complete;
+}
+complete_get_command = {
+    thingpedia_get_command if complete;
+}
+if_filtered_table = {
+    complete_table;
+    one_if_filter_table;
+    !turking two_if_filter_table;
+}
+
+one_if_filter_table = {
+    !nofilter table:complete_table 'if' filter:atom_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+two_if_filter_table = {
+    !nofilter table:one_if_filter_table 'and' filter:atom_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+with_filtered_table = {
+    complete_table;
+    one_with_filter_table;
+    !turking two_with_filter_table;
+}
+
+one_with_filter_table = {
+    !nofilter table:complete_table ('with' | 'having') filter:with_filter => {
+        if (!table.schema.is_list)
+            return null;
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+two_with_filter_table = {
+    !nofilter table:one_with_filter_table 'and' filter:with_filter => {
+        if (!table.schema.is_list)
+            return null;
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+
+npi_filtered_table = {
+    !nofilter table:complete_table ('that' | 'which') 'is the' filter:npi_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+pvp_filtered_table = {
+    !nofilter table:complete_table filter:pvp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+avp_filtered_table = {
+    !nofilter table:complete_table ('that' | 'which' | '') filter:avp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+npv_filtered_table = {
+    !nofilter table:complete_table ('that' | 'which') 'is a' filter:npv_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+apv_filtered_table = {
+    !nofilter table:complete_table ('that' | 'which') 'is' filter:apv_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+
+    !nofilter filter:apv_filter table:complete_table => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+arg_min_max_table = {
+    ?aggregation {
+    t:complete_table ('with' | 'which has') 'the' ('maximum' | 'highest') p:out_param_Number => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex) //avoid conflict with primitives
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the' ('minimum' | 'lowest') p:out_param_Number => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the' ('longest' | 'most lasting') p:out_param_Measure_ms => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the shortest' p:out_param_Measure_ms => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the' ('maximum' | 'largest') p:out_param_Measure_byte => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the' ('minimum' | 'smallest') p:out_param_Measure_byte => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+    
+    t:complete_table ('with' | 'which has') 'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the' ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the' ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the' ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the latest' p:out_param_Date => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isDate)
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+    t:complete_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Date => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isDate)
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    t:complete_table ('with' | 'which has') 'the latest' p:out_param_Time => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isTime)
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+    t:complete_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Time => {
+        if (!t.schema.out[p.name] || !t.schema.out[p.name].isTime)
+            return null;
+        if (!t.schema.is_list || t.isIndex)
+            return null;
+        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
+        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
+    };
+
+    }
+}
+
+edge_stream = {
+    !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => {
+         if (x.getType().isString)
+             return C.makeEdgeFilterStream(p, '=~', x, $options);
+         else
+             return C.makeEdgeFilterStream(p, '==', x, $options);
+    };
+    ('when' | 'if') 'the' p:projection_Numeric ('becomes greater than' | 'becomes higher than' | 'goes above' | 'increases above') x:constant_Numeric => C.makeEdgeFilterStream(p, '>=', x, $options);
+    ('when' | 'if') 'the' p:projection_Numeric ('becomes smaller than' | 'becomes lower than' | 'goes below' | 'decreases below') x:constant_Numeric => C.makeEdgeFilterStream(p, '<=', x, $options);
+}
+
+stream = {
+    thingpedia_stream if complete;
+    !turking {
+        ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:with_filtered_table ('change' | 'update') => C.tableToStream(table, null);
+    }
+    ?turking ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:with_filtered_table 'update' => C.tableToStream(table, null);
+
+    !turking {
+        ('in case of changes' | 'in case of variations' | 'in case of updates' | 'if something changes' | 'when something changes' | 'if there are changes' | 'if there are updates') 'in' table:with_filtered_table => C.tableToStream(table, null);
+
+        ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'anytime') proj:projection_Any 'changes' => {
+            if (proj.args[0] === 'picture_url')
+                return null;
+            if (proj.table.isAggregation)
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            let stream;
+            if (outParams.length === 1 && $options.flags.turking)
+                return null;
+            if (outParams.length === 1)
+                stream = C.tableToStream(proj.table, null);
+            else
+                stream = C.tableToStream(proj.table, proj.args);
+            return stream;
+        };
+    }
+    !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:edge_filter => {
+        if (!table.schema.is_monitorable || !C.checkFilter(table, filter) || table.schema.is_list)
+            return null;
+        table = C.addFilter(table, filter, $options);
+        if (!table)
+            return null;
+        return C.tableToStream(table, null);
+    };
+    !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:atom_filter => {
+        if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
+            return null;
+        if ($options.flags.turking && table.schema.is_list)
+            return null;
+        table = C.addFilter(table, filter, $options);
+        if (!table)
+            return null;
+        return C.tableToStream(table, null);
+    };
+    !nofilter edge_stream;
+    ?timer timer;
+}

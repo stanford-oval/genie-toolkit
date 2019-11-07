@@ -32,4 +32,11 @@ decanlp/
 !test/data/synthetic-context-source.tsv
 !test/data/easy-hard-functions.tsv
 !test/data/parameter-datasets.tsv
+
+# there are two copies of thingpedia.tt for English
+# because different tests expect different content
 !test/data/thingpedia.tt
+!test/thingpedia.tt
+!test/dataset.tt
+!test/it-IT/thingpedia.tt
+!test/it-IT/dataset.tt

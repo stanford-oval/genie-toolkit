@@ -1,0 +1,167 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+const assert = require('assert');
+
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
+
+// import the combinator library
+const C = require('../ast_manip');
+
+function special(specialType) {
+    return new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Special(specialType));
+}
+
+}
+
+command_category = {
+    ('notizie' | 'giornali' | 'media' | 'fumetti' | 'fumetti web' | 'web comics' | 'meme' | 'barzellette') => 'media';
+    ('social network' | 'social' | 'social media') => 'social-network';
+    ('comunicazione' | 'messaggistica') => 'communication';
+    ('casa' | 'automazione' | 'automazione per la casa' | 'domotica' | 'home entertainment' | 'internet of things' | 'iot') => 'home';
+    ('dati' | 'cloud' | 'gestioni dati' | 'file storage' | 'gestione file') => 'data-management';
+    ('salute' | 'fitness' | 'salute e fitness' | 'controllo salute') => 'media';
+    ('servizi' | 'altro' | 'miscellanea') => 'service';
+}
+
+$root = {
+    ('sì'
+    | 'assolutamente'
+    | 'assolutamente sì',
+    | 'certo'
+    | 'sicuro'
+    | 'sicuramente'
+    | 'chiaro'
+    | 'affermativo'
+    | 'ok'
+    | 'okay'
+    | 'va bene'
+    | 'per me va bene'
+    ) => special('yes');
+
+     ('no'
+    | 'non esiste !'
+    | 'proprio no'
+    | 'assolutamente no'
+    | 'niente affatto'
+    | 'negativo'
+    | 'per favore no'
+    | 'non va bene'
+    | 'non è corretto'
+    | 'non è giusto'
+    | 'stai sbagliando'
+    | 'hai sbagliato'
+    | 'è sbagliato'
+    | 'sbagliato'
+    | 'non farlo'
+    | 'no non farlo'
+    | 'no non voglio quella cosa lì'
+    | 'no non va bene'
+    ) => special('no');
+
+     ('indietro'
+    | 'torna indietro'
+    | 'pagina precedente'
+    | 'mostrami la pagina precedente'
+    | 'vai alla pagina precedente'
+    ) => special('back');
+
+     ('ancora'
+    | 'di più'
+    | 'mostrami di più'
+    | 'mostrami più risultati'
+    | 'pagina successiva'
+    | 'mostrami la pagina successiva'
+    | 'vai alla pagina successiva'
+    | 'vai alla prossima pagina dei risultati'
+    ) => special('more');
+
+    'debug' => special('debug');
+
+     ('annulla'
+    | 'non importa'
+    | 'reset'
+    | 'resettati'
+    | 'inizia da capo'
+    | 'inizia d\' accapo'
+    | 'ricomincia'
+    | 'torna all\' inizio'
+    | 'annulla tutto'
+    ) => special('nevermind');
+
+     ('fermati'
+    |  'stop'
+    |  'zitto'
+    |  'zitta'
+    |  'silenzio'
+    |  'fai silenzio'
+    |  'smettila'
+    |  'chiudi'
+    |  'chiuditi'
+    ) => special('stop');
+
+     ('help'
+    | 'help me'
+    | 'what can you do ?'
+    | 'list commands'
+    | 'show me commands'
+    | 'show me what you can do'
+    | 'what commands can i say ?'
+    | 'what can i say ?'
+    | 'what do you understand ?'
+    | 'show me the list of all commands'
+    | 'what skills do you have ?'
+    | 'what devices do you have ?'
+    | 'what devices do you support ?'
+    | 'what skills can i use ?'
+    | 'what devices are available ?'
+    | 'what is available ?'
+    ) => special('help');
+
+     ('make a command'
+    | 'make a rule'
+    | 'make a new command'
+    | 'create a command'
+    | 'help me make a command'
+    | 'create a compound command'
+    | 'help me do a command'
+    | 'do a command for me'
+    ) => special('makerule');
+
+     ('wake up'
+    | 'hey almond'
+    ) => special('wakeup');
+
+    !no_contextual_bookkeeping {
+         ('get' c:command_category 'commands'
+        | 'list commands in' c:command_category
+        | 'list devices in' c:command_category
+        | 'list' c:command_category 'devices'
+        ) => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.CommandList(new Ast.Value.Undefined(true), c));
+
+         ( c:constant_Any
+        | 'the answer is' c:constant_Any
+        | 'use' c:constant_Any
+        | 'i want' c:constant_Any
+        ) => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Answer(c));
+    }
+
+    // NOTE: the following bookkeeping commands have no template:
+    // - failed: it's a placeholder for OOD/invalid command
+    // - train: must be activated from the UI (any natural language would override the training)
+    // - empty: not a real command, just the absence of one (used for makerule)
+    // - maybe: also not a real command; used from permission grant
+    // - choice: no general language exists, MultipleChoice is handled by the server instead
+    // - commandlist with specified device: it will go into @builtin.get_commands instead
+    // - predicate: needs to be handled as a contextual template
+}

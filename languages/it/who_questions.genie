@@ -1,0 +1,179 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Silei Xu <silei@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+const assert = require('assert');
+
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
+
+// import the combinator library
+const C = require('../ast_manip');
+
+}
+
+// an empty string for the table
+who_complete_table = {
+    thingpedia_who_question if complete;
+}
+
+// for who question with a single npp filter
+who_npp_filtered_table = {
+    !nofilter table:who_complete_table filter:npp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+// for whose question
+whose_npp_filtered_table = {
+    !nofilter table:who_complete_table filter:whose_npp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+// for who question with a single pvp filter
+who_pvp_filtered_table = {
+    !nofilter table:who_complete_table filter:pvp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+// for who question with a single pvp filter
+who_avp_filtered_table = {
+    !nofilter table:who_complete_table filter:avp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+// for who question with a single npi filter
+who_npi_filtered_table = {
+    !nofilter table:who_complete_table filter:npi_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+// for who question with a single npv filter
+who_npv_filtered_table = {
+    !nofilter table:who_complete_table filter:npv_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+// for who question with a single apv filter
+who_apv_filtered_table = {
+    !nofilter table:who_complete_table filter:apv_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+// for who question with a single generic filter
+who_generic_filtered_table = {
+    !nofilter table:who_complete_table filter:who_generic_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+// for who question with two generic filters
+who_two_generic_filtered_table = {
+    !nofilter table:who_generic_filtered_table 'and' filter:who_generic_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+// for who question with one npi filter and another filter in other category
+who_npi_generic_filtered_table = {
+    !nofilter table:who_npi_filtered_table filter:who_generic_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+// for who question with one npv filter and another filter in other category
+who_npv_generic_filtered_table = {
+    !nofilter table:who_npv_filtered_table filter:who_generic_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+// for who question with one npi filter and one npv filter
+who_apv_npv_filtered_table = {
+    !nofilter table:who_apv_filtered_table filter:npv_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+// for who question with one apv filter and one npi filter
+who_apv_npi_filtered_table = {
+    !nofilter table:who_apv_filtered_table filter:npi_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+// for who question with two npp filters
+who_npp_npp_filtered_table = {
+    !nofilter table:who_npp_filtered_table 'and' filter:npp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+// for who question with two npi filters
+who_npi_npi_filtered_table = {
+    !nofilter table:who_npp_filtered_table 'and the' filter:npp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+// for who question with one npi filter and one pvp filter
+who_npi_pvp_filtered_table = {
+    !nofilter 'the' table:who_npi_filtered_table filter:pvp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
+
+// for who question with one nnp filter and another filter in other category
+who_generic_npp_filtered_table = {
+    !nofilter table:who_generic_filtered_table 'with' filter:npp_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, $options);
+    };
+}
