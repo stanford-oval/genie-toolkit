@@ -1,3 +1,8 @@
+1.7.1
+=====
+
+* Fixed the welcome screen to use better commands (that actually work) [#127]
+
 1.7.0
 =====
 
