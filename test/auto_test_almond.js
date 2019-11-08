@@ -230,10 +230,10 @@ const TEST_CASES = [
 `>> Thank you! If you change your mind, you can change the option from Settings.
 >> Okay, on to what I can do: I am capable of understanding actions and events over web services and smart devices. I do not chat, and I do not understand questions very well. Please check out the Cheatsheet (from the menu) to find out what I understand, or type ‘help’.
 >> To start, how about you try one of these examples:
->> button: get a #cat gif {"code":["now","=>","@com.giphy.get","param:tag:Entity(tt:hashtag)","=","HASHTAG_0","=>","notify"],"entities":{"HASHTAG_0":"cat"}}
->> button: show me the weather for San Francisco {"code":["now","=>","@org.thingpedia.weather.current","param:location:Location","=","LOCATION_0","=>","notify"],"entities":{"LOCATION_0":{"latitude":37.7792808,"longitude":-122.4192363,"display":"San Francisco, San Francisco City and County, California, United States of America"}}}
->> button: search almond recipes on bing {"code":["now","=>","@com.bing.web_search","param:query:String","=","QUOTED_STRING_0","=>","notify"],"entities":{"QUOTED_STRING_0":"almond recipes"}}
->> button: translate a sentence to Chinese {"code":["now","=>","@com.yandex.translate.translate","param:target_language:Entity(tt:iso_lang_code)","=","GENERIC_ENTITY_tt:iso_lang_code_0","=>","notify"],"entities":{"GENERIC_ENTITY_tt:iso_lang_code_0":{"value":"zh","display":"Chinese"}}}
+>> button: Get a #cat gif {"code":["now","=>","@com.giphy.get","param:tag:Entity(tt:hashtag)","=","HASHTAG_0","=>","notify"],"entities":{"HASHTAG_0":"cat"}}
+>> button: Show me the weather for San Francisco {"code":["now","=>","@org.thingpedia.weather.current","param:location:Location","=","location:","\\"","san","francisco","\\"","=>","notify"],"entities":{}}
+>> button: Show me the New York Times {"code":["now","=>","@com.nytimes.get_front_page","=>","notify"],"entities":{}}
+>> button: What's the stock price of Google? {"code":["now","=>","@co.alphavantage.get_price","param:company:Entity(tt:stock_id)","=","\\"","google","\\"","^^tt:stock_id","=>","notify"],"entities":{}}
 >> context = null // {}
 >> ask special null
 `,
