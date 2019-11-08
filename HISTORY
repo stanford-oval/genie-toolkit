@@ -1,3 +1,11 @@
+1.7.0
+=====
+
+* Range is now optional for the `get_random_number` builtin function [#102].
+
+Please see the previous release notes for the full list of changes and new features
+in this release series.
+
 1.7.0-beta.1
 ============
 
