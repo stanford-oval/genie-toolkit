@@ -40,5 +40,11 @@
       "test/**",
       "coverage/**"
     ]
+  },
+  "greenkeeper": {
+    "ignore": [
+      "thingtalk",
+      "thingpedia"
+    ]
   }
 }
