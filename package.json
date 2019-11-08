@@ -13,19 +13,19 @@
     "argparse": "^1.0.10",
     "byline": "^5.0.0",
     "csv-parse": "^4.4.5",
-    "csv-stringify": "5.3.0",
+    "csv-stringify": "^5.3.0",
     "mmap-io": "^1.1.7",
     "qs": "^6.7.0",
     "seedrandom": "^3.0.0",
     "sockaddr": "^1.0.1",
-    "thingpedia": "~2.6.0-alpha.1",
-    "thingtalk": "~1.9.0-alpha.4"
+    "thingpedia": "~2.6.0",
+    "thingtalk": "~1.9.0"
   },
   "devDependencies": {
     "coveralls": "^3.0.0",
     "eslint": "^6.0.0",
     "nyc": "^14.0.0",
-    "pegjs": "~0.10.0"
+    "pegjs": "^0.10.0"
   },
   "scripts": {
     "regen-meta-grammar": "pegjs ./lib/genie-compiler/grammar.pegjs",
