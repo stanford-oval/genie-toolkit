@@ -1738,4 +1738,14 @@ class @com.tumblr.blog
   #_[canonical="post on tumblr blog"]
   #_[confirmation="post $title with body $body in your Tumblr"];
 }
-
+class @co.alphavantage
+#_[name="Alpha Vantage"]
+#_[description="Alpha Vantage APIs for stock data"]
+#_[canonical="alpha vantage"] {
+  monitorable query get_price(in req company: Entity(tt:stock_id) #_[prompt="What company do you want to check?"] #_[canonical="company"],
+                              out price: Currency #_[canonical="price"] #[json_key="Global Quote.05\\. price"],
+                              out change: Number #_[canonical="change"] #[json_key="Global Quote.10\\. change percent"])
+  #_[canonical="get stock price"]
+  #_[confirmation="stock price of ${company}"]
+  #_[formatted=[{type="text",text="The current stock price of ${company} is ${price}."}]];
+}
