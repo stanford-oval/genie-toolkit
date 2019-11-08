@@ -42,5 +42,11 @@
     "node-gettext": "^2.0.0",
     "nyc": "^14.0.0",
     "smtlib": "^0.1.1"
+  },
+  "greenkeeper": {
+    "ignore": [
+      "thingtalk",
+      "thingpedia"
+    ]
   }
 }
