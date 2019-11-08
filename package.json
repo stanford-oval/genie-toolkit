@@ -14,11 +14,11 @@
   "main": "lib/almond.js",
   "resolutions": {},
   "dependencies": {
-    "adt": "~0.7.2",
+    "adt": "^0.7.2",
     "consumer-queue": "^1.0.0",
     "qs": "^6.7.0",
-    "thingpedia": "~2.6.0-alpha.1",
-    "thingtalk": "~1.9.0-beta.1",
+    "thingpedia": "~2.6.0",
+    "thingtalk": "~1.9.0",
     "uuid": "^3.1.0"
   },
   "devDependencies": {
