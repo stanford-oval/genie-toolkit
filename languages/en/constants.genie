@@ -123,7 +123,7 @@ constant_Location = {
 }
 
 constant_String = {
-    ( 'this'
+    ?screen_selection ( 'this'
     | 'the selection on the screen'
     ) => new Ast.Value.ContextRef('selection', Type.String);
 }
