@@ -40,18 +40,18 @@ const AT_TIMER_SCHEMA = new Ast.FunctionDef('stream',
 }
 
 timer = {
-    '每天 的' time:constant_Time => new Ast.Stream.AtTimer(time, null, AT_TIMER_SCHEMA);
-    '每天 在' time:constant_Time '的 时候' => new Ast.Stream.AtTimer(time, null, AT_TIMER_SCHEMA);
+    '每天 的' time:constant_Time => new Ast.Stream.AtTimer([time], null, AT_TIMER_SCHEMA);
+    '每天 在' time:constant_Time '的 时候' => new Ast.Stream.AtTimer([time], null, AT_TIMER_SCHEMA);
 
     !turking {
         '每' interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, null, TIMER_SCHEMA);
-        '每天' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), null, TIMER_SCHEMA);
-        '一 天 一 次' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), null, TIMER_SCHEMA);
+        ('每天' | '每 一天') => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), null, TIMER_SCHEMA);
+        '一天 一次' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), null, TIMER_SCHEMA);
         '每月' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), null, TIMER_SCHEMA);
         '每 个 月' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), null, TIMER_SCHEMA);
-        '一 个 月 一次' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), null, TIMER_SCHEMA);
+        '每月 一次' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), null, TIMER_SCHEMA);
         '每周' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), null, TIMER_SCHEMA);
-        '一 周 一 次' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), null, TIMER_SCHEMA);
+        '每周 一次' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), null, TIMER_SCHEMA);
         '每 小 时' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), null, TIMER_SCHEMA);
         '每 一 小 时' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), null, TIMER_SCHEMA);
         '每 小 时 一 次' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), null, TIMER_SCHEMA);
