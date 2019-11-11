@@ -21,7 +21,7 @@
 }
 
 projection_Number = {
-    t:complete_table '的' ('数量' | '数目' | '笔数') => {
+    t:complete_table '的' ('数量' | '数目' | '总数') => {
         if (!t.schema.is_list)
             return null;
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT)
@@ -32,7 +32,7 @@ projection_Number = {
 }
 
 projection_Any = {
-    t:complete_table p:out_param_Numeric '的' ('和' | '总和') => {
+    t:complete_table p:out_param_Numeric '的' ('和' | '总和' | '总数') => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
@@ -43,7 +43,7 @@ projection_Any = {
         return new Ast.Table.Projection(agg, [p.name], newSchema);
     };
 
-    t:complete_table '的' p:out_param_Numeric '的' ('和' | '总和') => {
+    t:complete_table '的' p:out_param_Numeric '的' ('和' | '总和' | '总数') => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)

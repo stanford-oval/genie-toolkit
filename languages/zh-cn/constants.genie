@@ -42,10 +42,10 @@ constant_date_point = {
 
     !turking {
     '明天'            => new Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
-    '今天 以前'         => new Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
-    '这 星期 以前'       => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
-    '这周 以前'         => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
-    '这 礼拜 以前' => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
+    '今天 以后'         => new Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
+    '这 星期 以后'       => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
+    '这周 以后'         => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
+    '这 礼拜 以后' => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
     '上 星期'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
     '上周'             => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
     '上 礼拜'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
@@ -60,14 +60,14 @@ constant_date_point = {
 
 constant_Date = {
     !turking {
-    duration:constant_Measure_ms '以内' => new Ast.Value.Date(null, '+', duration);
-    duration:constant_Measure_ms '之内' => new Ast.Value.Date(null, '+', duration);
+    duration:constant_Measure_ms '以后' => new Ast.Value.Date(null, '+', duration);
+    duration:constant_Measure_ms '之后' => new Ast.Value.Date(null, '+', duration);
     duration:constant_Measure_ms '以前' => new Ast.Value.Date(null, '-', duration);
     duration:constant_Measure_ms '之前' => new Ast.Value.Date(null, '-', duration);
-    duration:constant_Measure_ms pt:constant_date_point '以后' => new Ast.Value.Date(pt.value, '+', duration);
-    duration:constant_Measure_ms pt:constant_date_point '之后' => new Ast.Value.Date(pt.value, '+', duration);
-    duration:constant_Measure_ms pt:constant_date_point '以前' => new Ast.Value.Date(pt.value, '-', duration);
-    duration:constant_Measure_ms pt:constant_date_point '之前' => new Ast.Value.Date(pt.value, '-', duration);
+    '在' pt:constant_date_point '以后' duration:constant_Measure_ms => new Ast.Value.Date(pt.value, '+', duration);
+    '在' pt:constant_date_point '之后' duration:constant_Measure_ms => new Ast.Value.Date(pt.value, '+', duration);
+    '在' pt:constant_date_point '以前' duration:constant_Measure_ms => new Ast.Value.Date(pt.value, '-', duration);
+    '在' pt:constant_date_point '之前' duration:constant_Measure_ms => new Ast.Value.Date(pt.value, '-', duration);
     }
 }
 
@@ -84,8 +84,9 @@ constant_Measure_byte = {
 }
 
 constant_Measure_kg = {
-    !turking num:constant_Number '公克' => C.addUnit('g', num);
+    !turking num:constant_Number '克' => C.addUnit('g', num);
     num:constant_Number '公斤' => C.addUnit('kg', num);
+    num:constant_Number '千克' => C.addUnit('kg', num);
     num:constant_Number '磅'   => C.addUnit('lb', num);
     num:constant_Number '盎司' => C.addUnit('oz', num);
 }
@@ -103,11 +104,10 @@ constant_Measure_m = {
     !turking num:constant_Number '米' => C.addUnit('m', num);
     num:constant_Number '公尺' => C.addUnit('m', num);
     num:constant_Number '公里' => C.addUnit('km', num);
-    num:constant_Number '公里' => C.addUnit('km', num);
+    num:constant_Number '千米' => C.addUnit('km', num);
     num:constant_Number '英里' => C.addUnit('mi', num);
-    num:constant_Number '英里' => C.addUnit('mi', num);
+    num:constant_Number '迈' => C.addUnit('mi', num);
     num:constant_Number '英尺' => C.addUnit('ft', num);
-    num:constant_Number '英寸' => C.addUnit('in', num);
     num:constant_Number '英寸' => C.addUnit('in', num);
     num:constant_Number '公分' => C.addUnit('cm', num);
     num:constant_Number '厘米' => C.addUnit('cm', num);
@@ -117,8 +117,8 @@ constant_Measure_mps = {
     num:constant_Number 'mph' => C.addUnit('mph', num);
     !turking num:constant_Number 'm/s' => C.addUnit('mps', num);
     num:constant_Number 'kph' => C.addUnit('kmph', num);
-    num:constant_Number 'miles per hour' => C.addUnit('mph', num);
-    num:constant_Number 'kilometers per hour' => C.addUnit('kmph', num);
+    num:constant_Number '每 小时 英里 数' => C.addUnit('mph', num);
+    num:constant_Number '每 小时 公里 数' => C.addUnit('kmph', num);
     num:constant_Number 'km/h' => C.addUnit('kmph', num);
 }
 
