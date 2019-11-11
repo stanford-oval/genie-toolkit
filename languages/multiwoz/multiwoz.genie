@@ -1,0 +1,161 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+    const ontology = require('./ontology');
+    const Ast = require('../../lib/languages/multidst/ast');
+
+    for (let slot_key in ontology) {
+        slot_key = slot_key.replace(/[ -]/g, '_');
+        $grammar.declareSymbol('constant_' + slot_key);
+        $grammar.addRule('constant_' + slot_key, ['SLOT_' + slot_key], $runtime.simpleCombine(() => new Ast.SlotValue('SLOT_' + slot_key)));
+    }
+
+    class Slot {
+        constructor(key, value) {
+            this.key = key;
+            this.value = value;
+            this.domain = key.split('-')[0];
+        }
+    }
+
+    function checkAndAddSlot(np, slot) {
+        if (np.domain !== null && np.domain !== slot.domain)
+            return null;
+        if (np.has(slot.key))
+            return null;
+        const clone = np.clone();
+        clone.set(slot.key, slot.value);
+        return clone;
+    }
+}
+
+base_noun_phrase = {
+    // restaurant
+    'restaurant' => new Ast.DialogState('restaurant');
+    'place to eat' => new Ast.DialogState('restaurant');
+    'food place' => new Ast.DialogState('restaurant');
+}
+
+// npp: Noun-Phrase of Property
+// "X that have $npp_slot" or "X with $npp_slot"
+npp_slot = {
+    // restaurant
+    ( v:constant_restaurant_food 'cuisine'
+    | v:constant_restaurant_food 'food'
+    ) => new Slot('restaurant-food', v);
+
+}
+
+// npi: Noun-Phrase of Identity
+// "X that is $npi_slot", where npi is a noun-phrase (not a passive-verb-phrase)
+npi_slot = {
+}
+
+// pvp: Passive-Verb Phrase
+// "X $pvp_slot" or "X that is $pvp_slot" - where $pvp_slot is a verb phrase in -ed or -ing form
+// eg. "train leaving from cambridge"
+pvp_slot = {
+    // restaurant
+    ( 'serving' v:constant_restaurant_food
+    | 'serving' v:constant_restaurant_food 'food'
+    | 'serving' v:constant_restaurant_food 'cuisine'
+    ) => new Slot('restaurant-food', v);
+}
+
+// avp: Active-Verb Phrase
+// "X that $apv_slot" where $apv_slot is a verb phrase in active form, with X as subject
+avp_slot = {
+    // restaurant
+    ( 'serves' v:constant_restaurant_food
+    | 'serves' v:constant_restaurant_food 'food'
+    | 'serves' v:constant_restaurant_food 'cuisine'
+    ) => new Slot('restaurant-food', v);
+}
+
+// apv: Adjective-Phrase Value
+// "$apv_slot X" where $apv_slot is an adjective phrase
+// e.g.: "cheap restaurant", "5-star hotel"
+apv_slot = {
+    v:constant_restaurant_food => new Slot('restaurant-food', v);
+}
+
+// the rest is domain-independent
+
+noun_phrase = {
+    // no slot
+    base_noun_phrase;
+
+    // one slot
+    one_with_slot_phrase;
+    one_which_slot_phrase;
+    one_clean_slot_phrase;
+
+    // two slots
+    two_with_slot_phrase;
+    two_which_slot_phrase;
+    two_clean_slot_phrase;
+}
+
+one_with_slot_phrase = {
+    !noslot phrase:base_noun_phrase ('with' | 'having') slot:npp_slot => checkAndAddSlot(phrase, slot);
+}
+
+one_which_slot_phrase = {
+    !noslot phrase:base_noun_phrase ('which' | 'that') ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    !noslot phrase:base_noun_phrase ('which' | 'that') slot:avp_slot => checkAndAddSlot(phrase, slot);
+    !noslot phrase:base_noun_phrase ('which' | 'that') ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+}
+
+one_clean_slot_phrase = {
+    !noslot slot:apv_slot phrase:base_noun_phrase => checkAndAddSlot(phrase, slot);
+    !noslot phrase:base_noun_phrase slot:pvp_slot => checkAndAddSlot(phrase, slot);
+}
+
+two_with_slot_phrase = {
+    !noslot phrase:one_with_slot_phrase 'and' slot:npp_slot => checkAndAddSlot(phrase, slot);
+    !noslot phrase:one_which_slot_phrase ('and having' | 'and with' | ', with') slot:npp_slot => checkAndAddSlot(phrase, slot);
+    !noslot phrase:one_clean_slot_phrase ('with' | 'having') slot:npp_slot => checkAndAddSlot(phrase, slot);
+
+    !noslot slot:apv_slot phrase:one_with_slot_phrase => checkAndAddSlot(phrase, slot);
+}
+
+two_which_slot_phrase = {
+    !noslot phrase:one_with_slot_phrase ('which' | 'that') ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    !noslot phrase:one_with_slot_phrase ('which' | 'that') slot:avp_slot => checkAndAddSlot(phrase, slot);
+    !noslot phrase:one_with_slot_phrase ('which' | 'that') ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+
+    !noslot phrase:one_which_slot_phrase 'and' ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    !noslot phrase:one_which_slot_phrase 'and' slot:avp_slot => checkAndAddSlot(phrase, slot);
+    !noslot phrase:one_which_slot_phrase 'and' ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+
+    !noslot phrase:one_clean_slot_phrase ('which' | 'that') ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    !noslot phrase:one_clean_slot_phrase ('which' | 'that') slot:avp_slot => checkAndAddSlot(phrase, slot);
+    !noslot phrase:one_clean_slot_phrase ('which' | 'that') ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+
+    !noslot slot:apv_slot phrase:one_which_slot_phrase => checkAndAddSlot(phrase, slot);
+}
+
+two_clean_slot_phrase = {
+    !noslot slot:apv_slot phrase:one_clean_slot_phrase => checkAndAddSlot(phrase, slot);
+    !noslot phrase:one_clean_slot_phrase slot:pvp_slot => checkAndAddSlot(phrase, slot);
+}
+
+preamble = {
+    'hello ! i am looking for a';
+    'hello , i am looking for a';
+    'i am looking for a';
+    'i would like a';
+    'i want a';
+}
+
+$root = {
+    preamble dialogue:noun_phrase => dialogue;
+}
