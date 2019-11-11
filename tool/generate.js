@@ -41,15 +41,15 @@ module.exports = {
             help: `The programming language to generate`
         });
         parser.addArgument('--thingpedia', {
-            required: true,
+            required: false,
             help: 'Path to ThingTalk file containing class definitions.'
         });
         parser.addArgument('--entities', {
-            required: true,
+            required: false,
             help: 'Path to JSON file containing entity type definitions.'
         });
         parser.addArgument('--dataset', {
-            required: true,
+            required: false,
             help: 'Path to file containing primitive templates, in ThingTalk syntax.'
         });
         parser.addArgument('--template', {
@@ -112,7 +112,9 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new Tp.FileClient(args);
+        let tpClient = null;
+        if (args.thingpedia)
+            tpClient = new Tp.FileClient(args);
         const options = {
             rng: seedrandom.alea(args.random_seed),
             locale: args.locale,
