@@ -310,7 +310,7 @@ placeholder_Entity__tt__url = {
 for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
     if (typestr.startsWith('Enum__')) {
         // replace $-placeholders with "some X" where X is based on parameter name
-        if (pname !== 'power' || pname !== 'state') {
+        if (pname !== 'power' && pname !== 'state' && pname !== 'p_power' && pname !== 'p_state') {
             thingpedia_query = q:thingpedia_query #('a certain ' + pcanonical) [-> pname { isUndefined: true }] =>
                 C.replacePlaceholderWithUndefined(q, pname, typestr);
 
