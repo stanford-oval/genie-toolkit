@@ -217,13 +217,8 @@ timer_rule = {
 
 if ($options.standardSchemas.say) {
      $root = {
-        (
-             'notify me' stream:stream
-           | ('alert me' | 'inform me' | 'let me know' | 'i get notified' | 'i get alerted') stream:stream
-           | 'send me' ('a message' | 'an alert' | 'a notification' | 'a pop up notification' | 'a popup notification') stream:stream
-        ) => C.makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction($options) : C.notifyAction()]));
-        'send me a reminder' stream:timer => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options)]));
-        'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
+        ?timer 'send me a reminder' stream:timer => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options)]));
+        ?timer 'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
         !turking {
             (
                   'alert me' stream:stream ('saying' | 'with the text') constant:constant_String
@@ -241,9 +236,15 @@ if ($options.standardSchemas.say) {
 }
 
 $root = {
-    !primonly thingpedia_program if complete;
+    thingpedia_program if complete;
 
     // when => notify
+    (
+         'notify me' stream:stream
+       | ('alert me' | 'inform me' | 'let me know' | 'i get notified' | 'i get alerted') stream:stream
+       | 'send me' ('a message' | 'an alert' | 'a notification' | 'a pop up notification' | 'a popup notification') stream:stream
+    ) => C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
+
     ('monitor' | 'watch') table:with_filtered_table => {
         if (!table.schema.is_monitorable)
             return null;
