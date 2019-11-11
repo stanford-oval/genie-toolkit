@@ -116,8 +116,8 @@ filter = {
 }
 
 filtered_table = {
-    t:table f:filter => C.checkAndAddFitlter(t, f, $options);
-    t:filtered_table 'and' f:filter => C.checkAndAddFitlter(t, f, $options);
+    t:table f:filter => C.checkAndAddFilter(t, f, $options);
+    t:filtered_table 'and' f:filter => C.checkAndAddFilter(t, f, $options);
 
     // noun reverse
     ( t1:table 'that is' p:out_param_Any 'of' t2:table

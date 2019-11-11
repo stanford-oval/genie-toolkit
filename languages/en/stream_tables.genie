@@ -62,7 +62,7 @@ two_if_filter_table = {
 // (3) "clean" filtered (i.e., no which/with): chinese restaurants, reviews written by bob
 with_filtered_table = {
     // no filter
-    !aways_filter complete_table;
+    !always_filter complete_table;
 
     // one filter
     one_with_filter_table;
@@ -76,51 +76,51 @@ with_filtered_table = {
 }
 
 one_with_filter_table = {
-    !nofilter table:complete_table ('with' | 'having') filter:with_filter => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter table:complete_table ('with' | 'having') filter:with_filter => C.checkAndAddFilter(table, filter, $options);
 }
 
 one_which_filter_table = {
-    !nofilter table:complete_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:complete_table ('which' | 'that') filter:avp_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:complete_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:complete_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter table:complete_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:complete_table ('which' | 'that') filter:avp_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:complete_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:complete_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, $options);
 }
 
 one_clean_filter_table = {
-    !nofilter filter:apv_filter table:complete_table => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:complete_table filter:pvp_filter => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter filter:apv_filter table:complete_table => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:complete_table filter:pvp_filter => C.checkAndAddFilter(table, filter, $options);
 }
 
 two_with_filter_table = {
-    !nofilter table:one_with_filter_table 'and' filter:with_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_which_filter_table ('and having' | 'and with' | ', with') filter:with_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_clean_filter_table ('with' | 'having') filter:with_filter => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter table:one_with_filter_table 'and' filter:with_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_which_filter_table ('and having' | 'and with' | ', with') filter:with_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_clean_filter_table ('with' | 'having') filter:with_filter => C.checkAndAddFilter(table, filter, $options);
 
-    !nofilter filter:apv_filter table:one_with_filter_table => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter filter:apv_filter table:one_with_filter_table => C.checkAndAddFilter(table, filter, $options);
 }
 
 two_which_filter_table = {
-    !nofilter table:one_with_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_with_filter_table ('which' | 'that') filter:avp_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_with_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_with_filter_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter table:one_with_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_with_filter_table ('which' | 'that') filter:avp_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_with_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_with_filter_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, $options);
 
-    !nofilter table:one_which_filter_table 'and' ('is' | 'are') filter:npi_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_which_filter_table 'and' filter:avp_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_which_filter_table 'and' ('is' | 'are') filter:apv_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_which_filter_table 'and' ('is' | 'are') filter:npv_filter => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter table:one_which_filter_table 'and' ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_which_filter_table 'and' filter:avp_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_which_filter_table 'and' ('is' | 'are') filter:apv_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_which_filter_table 'and' ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, $options);
 
-    !nofilter table:one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_clean_filter_table ('which' | 'that') filter:avp_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter table:one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_clean_filter_table ('which' | 'that') filter:avp_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, $options);
 
-    !nofilter filter:apv_filter table:one_which_filter_table => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter filter:apv_filter table:one_which_filter_table => C.checkAndAddFilter(table, filter, $options);
 }
 
 two_clean_filter_table = {
-    !nofilter filter:apv_filter table:one_clean_filter_table => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_clean_filter_table filter:pvp_filter => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter filter:apv_filter table:one_clean_filter_table => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_clean_filter_table filter:pvp_filter => C.checkAndAddFilter(table, filter, $options);
 }
 
 
@@ -141,47 +141,47 @@ verb_filtered_table = {
 }
 
 one_be_filter_table = {
-    !nofilter table:complete_table ('is' | 'are') filter:npi_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:complete_table ('is' | 'are') filter:pvp_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:complete_table ('is' | 'are') filter:apv_filter  => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:complete_table ('is' | 'are') filter:npv_filter => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter table:complete_table ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:complete_table ('is' | 'are') filter:pvp_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:complete_table ('is' | 'are') filter:apv_filter  => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:complete_table ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, $options);
 }
 
 one_have_filter_table = {
-    !nofilter table:complete_table ('get' | 'have') filter:with_filter => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter table:complete_table ('get' | 'have') filter:with_filter => C.checkAndAddFilter(table, filter, $options);
 }
 
 one_verb_filter_table = {
-    !nofilter table:complete_table filter:avp_filter => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter table:complete_table filter:avp_filter => C.checkAndAddFilter(table, filter, $options);
 }
 
 two_be_filter_table = {
-    !nofilter table:one_be_filter_table 'and' filter:npi_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_be_filter_table 'and' filter:pvp_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_be_filter_table 'and' filter:apv_filter  => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_be_filter_table 'and' filter:npv_filter => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter table:one_be_filter_table 'and' filter:npi_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_be_filter_table 'and' filter:pvp_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_be_filter_table 'and' filter:apv_filter  => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_be_filter_table 'and' filter:npv_filter => C.checkAndAddFilter(table, filter, $options);
 
-    !nofilter table:one_have_filter_table 'and' ('is' | 'are') filter:npi_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_have_filter_table 'and' ('is' | 'are') filter:pvp_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_have_filter_table 'and' ('is' | 'are') filter:apv_filter  => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_have_filter_table 'and' ('is' | 'are') filter:npv_filter => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter table:one_have_filter_table 'and' ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_have_filter_table 'and' ('is' | 'are') filter:pvp_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_have_filter_table 'and' ('is' | 'are') filter:apv_filter  => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_have_filter_table 'and' ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, $options);
 
-    !nofilter table:one_verb_filter_table 'and' ('is' | 'are') filter:npi_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_verb_filter_table 'and' ('is' | 'are') filter:pvp_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_verb_filter_table 'and' ('is' | 'are') filter:apv_filter  => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_verb_filter_table 'and' ('is' | 'are') filter:npv_filter => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter table:one_verb_filter_table 'and' ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_verb_filter_table 'and' ('is' | 'are') filter:pvp_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_verb_filter_table 'and' ('is' | 'are') filter:apv_filter  => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_verb_filter_table 'and' ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, $options);
 }
 
 two_have_filter_table = {
-    !nofilter table:one_be_filter_table 'and' ('get' | 'have') filter:with_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_have_filter_table 'and' filter:with_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_verb_filter_table 'and' ('get' | 'have') filter:with_filter => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter table:one_be_filter_table 'and' ('get' | 'have') filter:with_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_have_filter_table 'and' filter:with_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_verb_filter_table 'and' ('get' | 'have') filter:with_filter => C.checkAndAddFilter(table, filter, $options);
 }
 
 two_verb_filter_table = {
-    !nofilter table:one_be_filter_table 'and' filter:avp_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_have_filter_table 'and' filter:avp_filter => C.checkAndAddFitlter(table, filter, $options);
-    !nofilter table:one_verb_filter_table 'and' filter:avp_filter => C.checkAndAddFitlter(table, filter, $options);
+    !nofilter table:one_be_filter_table 'and' filter:avp_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_have_filter_table 'and' filter:avp_filter => C.checkAndAddFilter(table, filter, $options);
+    !nofilter table:one_verb_filter_table 'and' filter:avp_filter => C.checkAndAddFilter(table, filter, $options);
 }
 
 

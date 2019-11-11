@@ -626,7 +626,7 @@ function addFilter(table, filter, $options, forceAdd = false) {
     return new Ast.Table.Filter(table, filter, schema);
 }
 
-function checkAndAddFitlter(table, filter, $options) {
+function checkAndAddFilter(table, filter, $options) {
     if (!table.schema.is_list)
         return null;
     if (!checkFilter(table, filter))
@@ -1423,7 +1423,7 @@ module.exports = {
     makeEdgeFilterStream,
     checkFilter,
     addFilter,
-    checkAndAddFitlter,
+    checkAndAddFilter,
     hasGetPredicate,
     makeGetPredicate,
 
