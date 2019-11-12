@@ -1,3 +1,9 @@
+1.7.2
+=====
+
+* Fixed setting home/work locations [#130]
+* Return the nearest location if the location name is ambiguous [#130]
+
 1.7.1
 =====
 
