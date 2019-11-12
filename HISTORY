@@ -1,3 +1,10 @@
+0.5.1
+=====
+
+* Fixed augmentation to exclude evaluation sentences [#117]
+* Fixed evaluation to exclude augmented sentences [#117]
+* Misc template fixes [#114, #115]
+
 0.5.0
 =====
 
