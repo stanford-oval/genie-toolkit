@@ -115,16 +115,16 @@ constant_Measure_m = {
 
 constant_Measure_mps = {
     num:constant_Number 'mph' => C.addUnit('mph', num);
-    !turking num:constant_Number 'm/s' => C.addUnit('mps', num);
+    !turking num:constant_Number '米 每秒' => C.addUnit('mps', num);
     num:constant_Number 'kph' => C.addUnit('kmph', num);
-    num:constant_Number '每 小时 英里 数' => C.addUnit('mph', num);
-    num:constant_Number '每 小时 公里 数' => C.addUnit('kmph', num);
+    num:constant_Number '英里 每 小时' => C.addUnit('mph', num);
+    num:constant_Number '公里 每 小时' => C.addUnit('kmph', num);
     num:constant_Number 'km/h' => C.addUnit('kmph', num);
 }
 
 constant_Location = {
     '这里'                    => new Ast.Value.Location(Ast.Location.Relative('current_location'));
-    !turking '我 在 哪里' => new Ast.Value.Location(Ast.Location.Relative('current_location'));
+    !turking '我的 当下 位置' => new Ast.Value.Location(Ast.Location.Relative('current_location'));
     '家里'                    => new Ast.Value.Location(Ast.Location.Relative('home'));
     '办公室'                  => new Ast.Value.Location(Ast.Location.Relative('work'));
 }
