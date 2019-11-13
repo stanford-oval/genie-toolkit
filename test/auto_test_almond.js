@@ -3715,6 +3715,36 @@ null],
   now => @light-bulb(id="light-bulb-bed2").set_power(power=enum(on));
 }`,
     ],
+
+    [(almond) => {
+    almond.platform.disableGPS = true;
+    return almond.handleThingTalk(`now => @org.thingpedia.weather.current() => notify;`);
+},
+    `>> What location do you want the current weather for?
+>> context = now => @org.thingpedia.weather.current => notify // {}
+>> ask special location
+`,
+    'here',
+`>> Where are you now?
+>> context = now => @org.thingpedia.weather.current => notify // {}
+>> ask special location
+`,
+
+    'work',
+    `>> What is your work address?
+>> context = now => @org.thingpedia.weather.current => notify // {}
+>> ask special location
+`,
+
+    'home',
+    `>> Sorry, I did not find any result for that.
+>> context = now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify // {"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
+>> ask special null
+`,
+    `{
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-52").current(location=makeLocation(90, 0, "North pole")) => notify;
+}`
+    ],
 ];
 
 function handleCommand(almond, input) {
