@@ -77,10 +77,6 @@ constant_Measure_byte = {
     num:constant_Number 'mb' => C.addUnit('MB', num);
     num:constant_Number 'gb' => C.addUnit('GB', num);
     num:constant_Number 'tb' => C.addUnit('TB', num);
-    num:constant_Number 'kilobytes' => C.addUnit('KB', num);
-    num:constant_Number 'megabytes' => C.addUnit('MB', num);
-    num:constant_Number 'gigabytes' => C.addUnit('GB', num);
-    num:constant_Number 'terabytes' => C.addUnit('TB', num);
 }
 
 constant_Measure_kg = {
@@ -114,9 +110,7 @@ constant_Measure_m = {
 }
 
 constant_Measure_mps = {
-    num:constant_Number 'mph' => C.addUnit('mph', num);
     !turking num:constant_Number '米 每秒' => C.addUnit('mps', num);
-    num:constant_Number 'kph' => C.addUnit('kmph', num);
     num:constant_Number '英里 每 小时' => C.addUnit('mph', num);
     num:constant_Number '公里 每 小时' => C.addUnit('kmph', num);
     num:constant_Number 'km/h' => C.addUnit('kmph', num);
