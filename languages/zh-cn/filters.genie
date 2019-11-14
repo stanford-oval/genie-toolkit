@@ -2,9 +2,9 @@
 //
 // This file is part of ThingTalk
 //
-// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University, National Taiwan University
+// Copyright 2017-2019 The Board of Trustees of the Leland Stanford Junior University
 //
-// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>, Johnny Hsu <johnny.chhsu01@gmail.com>
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>, Jian Li <jianli19@cs.stanford.edu>
 //
 // See COPYING for details
 
@@ -20,39 +20,25 @@ const C = require('../ast_manip');
 }
 
 atom_filter = {
-    // t1:constant_Time '之前' => C.timeGetPredicate($options, null, t1);
-    // t2:constant_Time '之後' => C.timeGetPredicate($options, t2, null);
-    // t1:constant_Time '和' t2:constant_Time '之間' => C.timeGetPredicate($options, t1, t2);
-    // '從' t1:constant_Time '到' t2:constant_Time => C.timeGetPredicate($options, t1, t2);
-    // '從' t1:constant_Time '到' t2:constant_Time '之間' => C.timeGetPredicate($options, t1, t2);
-    // '從' t1:constant_Time '開始 到' t2:constant_Time '結束' => C.timeGetPredicate($options, t1, t2);
-
-    // '我 在' loc:constant_Location     => C.locationGetPredicate($options, loc);
-    // '我 不 在' loc:constant_Location   => C.locationGetPredicate($options, loc, true);
-
-    // What is projection here?
-    // proj:projection_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any        => C.makeGetPredicate(proj, '==', x);
-    // proj:projection_Any ('is not' | 'is n\'t' | 'is different than') x:constant_Any => C.makeGetPredicate(proj, '==', x, true);
-
-    p:out_param_Any ('是' | '為') x:constant_Any                      => {
+    p:out_param_Any ('是' | '为') x:constant_Any                      => {
         if (x.getType().isString)
             return C.makeFilter($options, p, '=~', x);
         else
             return C.makeFilter($options, p, '==', x);
     };
-    p:out_param_Any ('和' | '跟') x:constant_Any ('一樣' | '相同')     => {
+    p:out_param_Any ('和' | '跟') x:constant_Any ('一样' | '相同')     => {
         if (x.getType().isString)
             return C.makeFilter($options, p, '=~', x);
         else
             return C.makeFilter($options, p, '==', x);
     };
-    p:out_param_Any ('不是' | '不為') x:constant_Any                   => {
+    p:out_param_Any ('不是' | '不为') x:constant_Any                   => {
         if (x.getType().isString)
             return C.makeFilter($options, p, '=~', x, true);
         else
             return C.makeFilter($options, p, '==', x, true);
     };
-    p:out_param_Any ('和' | '跟') x:constant_Any ('不一樣' | '不 相同') => {
+    p:out_param_Any ('和' | '跟') x:constant_Any ('不一样' | '不 相同') => {
         if (x.getType().isString)
             return C.makeFilter($options, p, '=~', x, true);
         else
@@ -60,49 +46,43 @@ atom_filter = {
     };
 
     p:the_out_param_Numeric '比' x:constant_Numeric ('大' | '多') => C.makeFilter($options, p, '>=', x);
-    p:the_out_param_Numeric '大於' x:constant_Numeric => C.makeFilter($options, p, '>=', x);
+    p:the_out_param_Numeric '大于' x:constant_Numeric => C.makeFilter($options, p, '>=', x);
     p:the_out_param_Numeric '比' x:constant_Numeric ('小' | '少') => C.makeFilter($options, p, '<=', x);
-    p:the_out_param_Numeric '小於' x:constant_Numeric => C.makeFilter($options, p, '<=', x);
+    p:the_out_param_Numeric '小于' x:constant_Numeric => C.makeFilter($options, p, '<=', x);
 
     !turking {
-        p:out_param_Date '在' x:constant_Date '之後' => C.makeFilter($options, p, '>=', x);
+        p:out_param_Date '在' x:constant_Date '之后' => C.makeFilter($options, p, '>=', x);
         p:out_param_Date '在' x:constant_Date '之前' => C.makeFilter($options, p, '<=', x);
-        p:out_param_Time '在' x:constant_Time '之後' => C.makeFilter($options, p, '>=', x);
+        p:out_param_Time '在' x:constant_Time '之后' => C.makeFilter($options, p, '>=', x);
         p:out_param_Time '在' x:constant_Time '之前' => C.makeFilter($options, p, '<=', x);
     }
 
-    p:the_out_param_Array__Any ('有' | '包含' | '擁有' | '含有') x:constant_Any            => C.makeFilter($options, p, 'contains', x);
-    x:constant_Any ('存在' | '在' | '存在 於') p:the_out_param_Array__Any ('之中' | '裡面') => C.makeFilter($options, p, 'contains', x);
-    p:the_out_param_Array__Any ('沒有' | '不 包含' | '沒 擁有' | '不 含有') x:constant_Any         => C.makeFilter($options, p, 'contains', x, true);
-    x:constant_Any ('不 存在' | '不在' | '不 存在 於') p:the_out_param_Array__Any ('之中' | '裡面') => C.makeFilter($options, p, 'contains', x, true);
+    p:the_out_param_Array__Any ('有' | '包含' | '拥有' | '含有') x:constant_Any            => C.makeFilter($options, p, 'contains', x);
+    x:constant_Any ('存在' | '在' | '存在 于') p:the_out_param_Array__Any ('之中' | '里面') => C.makeFilter($options, p, 'contains', x);
+    p:the_out_param_Array__Any ('没有' | '不 包含' | '不 含有') x:constant_Any         => C.makeFilter($options, p, 'contains', x, true);
+    x:constant_Any ('不 存在' | '不在' | '不 存在 于') p:the_out_param_Array__Any ('之中' | '里面') => C.makeFilter($options, p, 'contains', x, true);
 
     p:the_out_param_String ('包含' | '含有') x:constant_String => C.makeFilter($options, p, '=~', x);
     p:the_out_param_String ('不 包含' | '不 含有') x:constant_String => C.makeFilter($options, p, '=~', x, true);
-    x:constant_String ('存在' | '在' | '存在 於') p:the_out_param_String ('之中' | '裡面') => C.makeFilter($options, p, '=~', x);
+    x:constant_String ('存在' | '在' | '存在 于') p:the_out_param_String ('之中' | '里面') => C.makeFilter($options, p, '=~', x);
 
     !turking range_filter;
     //!turking f:either_filter => f;
 }
 
 edge_filter = {
-    !turking '當' p:out_param_Any ('跟' | '和') x:constant_Any ('一樣' | '相同') ('時' | '的 時候') => {
+    !turking '当' p:out_param_Any ('变得' | '变成' | '') ('跟' | '和') x:constant_Any ('一样' | '相同') ('时' | '的 时候') => {
         if (x.getType().isString)
             return C.makeFilter($options, p, '=~', x);
         else
             return C.makeFilter($options, p, '==', x);
     };
-    !turking '當' p:out_param_Any ('變得' | '變成') ('和' | '跟') x:constant_Any ('一樣' | '相同') ('時' | '的 時候') => {
-        if (x.getType().isString)
-            return C.makeFilter($options, p, '=~', x);
-        else
-            return C.makeFilter($options, p, '==', x);
-    };
-    '當' p:the_out_param_Numeric ('比' | '變得 比') x:constant_Numeric ('大' | '多') ('時' | '的 時候') => C.makeFilter($options, p, '>=', x);
-    '當' p:the_out_param_Numeric ('比' | '變得 比') x:constant_Numeric ('小' | '少') ('時' | '的 時候') => C.makeFilter($options, p, '<=', x);
+    '当' p:the_out_param_Numeric ('比' | '变得 比') x:constant_Numeric ('大' | '多') ('' | '时' | '的 时候') => C.makeFilter($options, p, '>=', x);
+    '当' p:the_out_param_Numeric ('比' | '变得 比') x:constant_Numeric ('小' | '少') ('' | '时' | '的 时候') => C.makeFilter($options, p, '<=', x);
 }
 
 either_filter = {
-    param:out_param_Any ('等於' | '相等於' | '是') v1:constant_Any ('或' | '或是' | '或者是') v2:constant_Any => {
+    param:out_param_Any ('等于' | '相等于' | '是') v1:constant_Any ('或' | '或是' | '或者 是') v2:constant_Any => {
         // param is a Value.VarRef
         //console.log('param: ' + param.name);
         if (!v1.getType().equals(v2.getType()))
@@ -139,7 +119,7 @@ either_filter = {
 }
 
 range = {
-    v1:constant_Numeric ('和' | '跟' | '到') v2:constant_Numeric '之間'=> {
+    ('' | '在') v1:constant_Numeric ('和' | '跟' | '到') v2:constant_Numeric ('之间' | '范围 内')=> {
         if (!v1.getType().equals(v2.getType()))
             return null;
         if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
@@ -152,7 +132,7 @@ range = {
 }
 
 range_filter = {
-    param:the_out_param_Numeric '在' range:range => {
+    param:the_out_param_Numeric '在' range:range ('' | '之间' | '内')=> {
         const [v1, v2] = range;
         return new Ast.BooleanExpression.And([
             Ast.BooleanExpression.Atom(param.name, '>=', v1),

@@ -40,8 +40,8 @@ const AT_TIMER_SCHEMA = new Ast.FunctionDef('stream',
 }
 
 timer = {
-    '每天 的' time:constant_Time => new Ast.Stream.AtTimer(time, null, AT_TIMER_SCHEMA);
-    '每天 在' time:constant_Time '的 時候' => new Ast.Stream.AtTimer(time, null, AT_TIMER_SCHEMA);
+    '每天 的' time:constant_Time => new Ast.Stream.AtTimer([time], null, AT_TIMER_SCHEMA);
+    '每天 在' time:constant_Time '的 時候' => new Ast.Stream.AtTimer([time], null, AT_TIMER_SCHEMA);
 
     !turking {
         '每' interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, null, TIMER_SCHEMA);
