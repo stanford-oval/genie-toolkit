@@ -3715,6 +3715,109 @@ null],
   now => @light-bulb(id="light-bulb-bed2").set_power(power=enum(on));
 }`,
     ],
+
+    /*
+    [(almond) => {
+    almond.platform.disableGPS = true;
+    return almond.handleThingTalk(`now => @org.thingpedia.weather.current() => notify;`);
+},
+    `>> What location do you want the current weather for?
+>> context = now => @org.thingpedia.weather.current => notify // {}
+>> ask special location
+`,
+    'here',
+`>> Where are you now?
+>> context = now => @org.thingpedia.weather.current => notify // {}
+>> ask special location
+`,
+
+    'seattle',
+    `>> Sorry, I did not find any result for that.
+>> context = now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify // {"LOCATION_0":{"latitude":37.5311901,"longitude":-84.6618876,"display":"Stanford, Lincoln County, Kentucky, United States of America"}}
+>> ask special null
+`,
+    `{
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-6").current(location=makeLocation(37.5311901, -84.6618876, "Stanford, Lincoln County, Kentucky, United States of America")) => notify;
+}`
+    ],*/
+
+    [(almond) => {
+    almond.platform.disableGPS = true;
+    return almond.handleThingTalk(`now => @org.thingpedia.weather.current() => notify;`);
+},
+    `>> What location do you want the current weather for?
+>> context = now => @org.thingpedia.weather.current => notify // {}
+>> ask special location
+`,
+    'here',
+`>> Where are you now?
+>> context = now => @org.thingpedia.weather.current => notify // {}
+>> ask special location
+`,
+
+    'work',
+    `>> What is your work address?
+>> context = now => @org.thingpedia.weather.current => notify // {}
+>> ask special location
+`,
+
+    'home',
+    `>> Sorry, I did not find any result for that.
+>> context = now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify // {"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
+>> ask special null
+`,
+    `{
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-52").current(location=makeLocation(90, 0, "North pole")) => notify;
+}`
+    ],
+
+    [(almond) => {
+    almond.platform.disableGPS = true;
+    return almond.handleThingTalk(`now => @org.thingpedia.weather.current() => notify;`);
+},
+    `>> What location do you want the current weather for?
+>> context = now => @org.thingpedia.weather.current => notify // {}
+>> ask special location
+`,
+    'here',
+`>> Where are you now?
+>> context = now => @org.thingpedia.weather.current => notify // {}
+>> ask special location
+`,
+
+    'work',
+    `>> Sorry, I did not find any result for that.
+>> context = now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify // {"LOCATION_0":{"latitude":90,"longitude":0,"display":"North pole"}}
+>> ask special null
+`,
+    `{
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-53").current(location=makeLocation(90, 0, "North pole")) => notify;
+}`
+    ],
+
+    [(almond) => {
+    almond.platform.disableGPS = true;
+    return almond.handleThingTalk(`now => @org.thingpedia.weather.current() => notify;`);
+},
+    `>> What location do you want the current weather for?
+>> context = now => @org.thingpedia.weather.current => notify // {}
+>> ask special location
+`,
+    'here',
+`>> Where are you now?
+>> context = now => @org.thingpedia.weather.current => notify // {}
+>> ask special location
+`,
+
+    'seattle',
+    `>> Sorry, I did not find any result for that.
+>> context = now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify // {"LOCATION_0":{"latitude":47.6038321,"longitude":-122.3300624,"display":"Seattle, King County, Washington, USA"}}
+>> ask special null
+`,
+    `{
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-54").current(location=makeLocation(47.6038321, -122.3300624, "Seattle, King County, Washington, USA")) => notify;
+}`
+    ],
 ];
 
 function handleCommand(almond, input) {

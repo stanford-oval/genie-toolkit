@@ -460,6 +460,7 @@ const _mockPlatform = {
     locale: 'en-US',
     //locale: 'it',
     type: 'test',
+    disableGPS: false,
 
     hasCapability(cap) {
         return cap === 'gettext' || cap === 'contacts' || cap === 'gps';
@@ -472,7 +473,8 @@ const _mockPlatform = {
         case 'contacts':
             return new MockAddressBook();
         case 'gps':
-            return _gpsApi;
+            if (!this.disableGPS)
+                return _gpsApi;
         default:
             return null;
         }
