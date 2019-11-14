@@ -1,0 +1,4 @@
+en:
+  all: nofilter primonly policies remote_commands aggregation bookkeeping triple_commands configure_actions timer projection undefined_filter projection_with_filter extended_timers screen_selection
+  default: policies remote_commands aggregation bookkeeping triple_commands configure_actions timer projection undefined_filter
+  developer: policies remote_commands aggregation bookkeeping triple_commands configure_actions timer projection undefined_filter projection_with_filter screen_selection

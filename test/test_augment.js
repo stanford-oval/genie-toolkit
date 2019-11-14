@@ -45,7 +45,7 @@ async function main() {
         thingpediaClient: _tpClient,
         flags: {
             turking: false,
-            remote_programs: true,
+            remote_commands: true,
             policies: true,
             aggregation: true,
             bookkeeping: true,
