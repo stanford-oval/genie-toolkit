@@ -25,7 +25,8 @@ const BinaryPPDB = require('../lib/binary_ppdb');
 const { choose } = require('../lib/random');
 const { clean } = require('../lib/utils');
 const StreamUtils = require('../lib/stream-utils');
-//const Tokenizer = require('../lib/tokenizer');
+const TokenizerService = require('../lib/tokenizer');
+const { tokenizeExample } = require('../lib/utils');
 
 function* get(obj, propertyList, offset) {
     if (offset === propertyList.length) {
@@ -135,7 +136,7 @@ const DO_THE_SEARCH = true;
 async function bingSearchSingle(query, cache) {
 
     if (DO_THE_SEARCH) {
-        const url = 'https://api.cognitive.microsoft.com/bing/v5.0/search';
+        const url = 'https://almondbingsearch.cognitiveservices.azure.com/bing/v7.0/search';
         const completeQuery = '\'"' + query + '"\'';
         //const completeQuery = 'inbody:' + query.split(/\s+/g).join('+');
 
@@ -278,7 +279,7 @@ function *getAllCanonicals(argDef) {
 
 const THRESHOLD = 1000;
 
-async function applyPatterns(ppdb, functionDef, argDef, valueList, patternList, operator, dataset, cache) {
+async function applyPatterns(ppdb, functionDef, argDef, valueList, patternList, operator, dataset, cache, tokenizer) {
     /*if (propertyName === 'name')
         return [['value', 2], ['value_table', 1]];
 
@@ -346,10 +347,23 @@ async function applyPatterns(ppdb, functionDef, argDef, valueList, patternList, 
     if (patterns.length === 0)
         return;
 
-    dataset.examples.push(new Ast.Example(-1, 'query', { ['p_' + lastProp]: propertyType }, new Ast.Table.Filter(
-        new Ast.Table.Invocation(new Ast.Invocation(new Ast.Selector.Device('org.schema', null, null), functionDef.name, [], functionDef), functionDef),
-        new Ast.BooleanExpression.Atom(propertyName, operator === '==' && propertyType.isString ? '=~' : operator, Ast.Value.VarRef('p_' + lastProp)), null
-    ), patterns.slice(0, 4).map((p) => p.template), [] /* preprocessed */, {}));
+    const utterances = patterns.slice(0, 4).map((p) => p.template);
+    const preprocessed = [];
+    for (let u of utterances)
+        preprocessed.push(await tokenizeExample(tokenizer, u, -1, 'en'));
+
+    dataset.examples.push(new Ast.Example(
+        -1, // id
+        'query', // type
+        { ['p_' + lastProp]: propertyType }, //args
+        new Ast.Table.Filter(
+            new Ast.Table.Invocation(new Ast.Invocation(new Ast.Selector.Device('org.schema', null, null), functionDef.name, [], functionDef), functionDef),
+            new Ast.BooleanExpression.Atom(propertyName, operator === '==' && propertyType.isString ? '=~' : operator, Ast.Value.VarRef('p_' + lastProp)), null
+        ), // value
+        utterances,
+        preprocessed,
+        {} // annotations
+    ));
 }
 
 async function main(args) {
@@ -361,6 +375,8 @@ async function main(args) {
             throw e;
     }
 
+    const tokenizer = TokenizerService.get(process.env.GENIE_USE_TOKENIZER, true);
+
     try {
         const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));
         const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(args.thingpedia, { encoding: 'utf8' }));
@@ -371,16 +387,17 @@ async function main(args) {
 
         const tables = args.table_name;
         for (let table of tables)
-            await processTable(data, library, dataset, table, args, rng, cache);
+            await processTable(data, library, dataset, table, args, rng, cache, tokenizer);
 
         args.output.end(dataset.prettyprint());
         await StreamUtils.waitFinish(args.output);
     } finally {
         await util.promisify(fs.writeFile)(args.cache, JSON.stringify(cache, undefined, 2), { encoding: 'utf8' });
+        tokenizer.end();
     }
 }
 
-async function processTable(data, library, dataset, table, args, rng, cache) {
+async function processTable(data, library, dataset, table, args, rng, cache, tokenizer) {
     const classDef = library.classes[0];
     const queryDef = classDef.queries[table];
     const ppdb = args.ppdb ? await BinaryPPDB.mapFile(args.ppdb) : null;
@@ -400,10 +417,10 @@ async function processTable(data, library, dataset, table, args, rng, cache) {
         if (valueList.length === 0)
             continue;
 
-        await applyPatterns(ppdb, queryDef, argDef, valueList, EQUAL_PATTERNS, '==', dataset, cache);
+        await applyPatterns(ppdb, queryDef, argDef, valueList, EQUAL_PATTERNS, '==', dataset, cache, tokenizer);
         if (argDef.type.isNumeric()) {
-            await applyPatterns(ppdb, queryDef, argDef, valueList, COMPARATIVE_MORE_PATTERNS, '>=', dataset, cache);
-            await applyPatterns(ppdb, queryDef, argDef, valueList, COMPARATIVE_LESS_PATTERNS, '<=', dataset, cache);
+            await applyPatterns(ppdb, queryDef, argDef, valueList, COMPARATIVE_MORE_PATTERNS, '>=', dataset, cache, tokenizer);
+            await applyPatterns(ppdb, queryDef, argDef, valueList, COMPARATIVE_LESS_PATTERNS, '<=', dataset, cache, tokenizer);
         }
     }
 }
