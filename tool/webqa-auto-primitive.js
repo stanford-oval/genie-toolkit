@@ -292,7 +292,7 @@ async function applyPatterns(ppdb, functionDef, argDef, valueList, patternList, 
     const propertyCanonicals = getPPDBCandidates(ppdb, getAllCanonicals(argDef));
 
     // special properties we don't want to handle
-    if (propertyName === 'name' || propertyName === 'geo' || /^address\.?/.test(propertyName))
+    if (propertyName === 'name' || propertyName === 'description' || propertyName === 'geo' || /^address\.?/.test(propertyName))
         return;
 
     const dot = propertyName.lastIndexOf('.');
