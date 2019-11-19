@@ -1,0 +1,196 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+    const Ast = require('../../lib/languages/multidst/ast');
+    const { init, Slot, checkAndAddSlot } = require('./ast_utils');
+    init($grammar, $runtime);
+}
+
+import './shared.genie';
+
+// any context goes in the same bin really
+context ctx = true;
+
+// domain specific stuff
+param_noun_phrase = {
+    // restaurant
+    ( 'cuisine'
+    | 'food'
+    | 'type of food'
+    ) => 'restaurant-food';
+
+    'price range' => 'restaurant-price-range';
+
+    ( 'area'
+    | 'area of the city') => 'restaurant-area';
+
+    // train
+    ( 'destination'
+    | 'destination station'
+    | 'arrival'
+    ) => 'train-destination';
+}
+
+direct_question = {
+    // restaurant
+    ( 'what time is your reservation for ?'
+    | 'what time do you need your reservation for ?'
+    | 'at what time is your reservation ?'
+    | 'at what time ?') => 'restaurant-book-time';
+
+    ( 'what day is your reservation for ?'
+    | 'what day do you need your reservation for ?'
+    | 'on which day do you want your reservation ?'
+    | 'on which day ?') => 'restaurant-day';
+
+    ( 'how many people is your reservation for ?'
+    | 'for how many people do you need a reservation ?'
+    | 'how many people ?') => 'restaurant-book-people';
+
+
+    // train
+
+    ( 'where are you going ?'
+    | 'what is your destination ?'
+    | 'where are you travelling to ?'
+    | 'where to ?'
+    ) => 'train-destination';
+
+    ( 'where are you departing from ?'
+    | 'what is your departure ?'
+    | 'where are you travelling from ?'
+    ) => 'train-departure';
+
+    ( 'when are you travelling ?'
+    | 'what day are you travelling ?'
+    ) => 'train-day';
+
+    ( 'when do you want to leave ?'
+    | 'what time do you want to leave ?'
+    ) => 'train-leave-at';
+
+    ( 'when do you want to arrive ?'
+    | 'what time do you want to arrive ?'
+    ) => 'train-arrive-by';
+
+    ( 'how many people is your reservation for ?'
+    | 'for how many people do you need a reservation ?'
+    | 'how many people ?') => 'train-book-people';
+}
+
+generic_answer = {
+    // "i want to book for 3 people", "I want to book at ..."
+    'i want to book ' slot:pvp_slot => slot;
+
+    'i want to leave ' slot:pvp_slot => {
+        if (!slot.key.endsWith('-departure') && !slot.key.endsWith('-leave-at'))
+            return null;
+        return slot;
+    };
+    'i want to arrive ' slot:pvp_slot => {
+        if (!slot.key.endsWith('-destination') && !slot.key.endsWith('-arrive-by'))
+            return null;
+        return slot;
+    };
+}
+
+// domain-independent stuff
+
+answer_noun_phrase = {
+    // one slot
+    one_with_slot_phrase;
+    one_which_slot_phrase;
+    one_clean_slot_phrase;
+}
+
+precise_answer = {
+    // complete answer, like "I am looking for a bla restaurant"
+    domains:generic_preamble dialogue:answer_noun_phrase => {
+        if (domains.length > 0 || dialogue.size !== 1)
+            return null;
+        for (let [key, value] of dialogue)
+            return new Slot(key, value);
+        return null;
+    };
+}
+
+generic_answer = {
+    ( domains:generic_preamble constant:constant_Any
+    | domains:generic_preamble 'something' constant:constant_Any
+    ) => {
+        if (domains.length > 0)
+            return null;
+        return constant;
+    };
+}
+
+question_preamble = {
+    ( 'there are many' base:base_noun_phrase '.'
+    | 'there are more than' random_number base:base_noun_phrase '.'
+    | 'i can see many' base:base_noun_phrase '.'
+    | 'there are many' base:base_noun_phrase ' matching your request .'
+    | 'there are more than' random_number base:base_noun_phrase ' that correspond to your specifications .'
+    | 'i can see many' base:base_noun_phrase ' matching your constraints .'
+    | 'i can see many' base:base_noun_phrase ' with those characteristics .'
+    ) => base.domain;
+}
+
+direct_question = {
+    ( 'what' p:param_noun_phrase 'do you want ?'
+    | 'what' p:param_noun_phrase 'would you prefer ?'
+    | 'what' p:param_noun_phrase 'would you like ?'
+    | 'what' p:param_noun_phrase 'are you interested in ?'
+    | 'what' p:param_noun_phrase 'are you looking for ?')
+    => p;
+
+    ( 'are you looking for a ' proposal:answer_noun_phrase '?'
+    | 'how about the ' proposal:answer_noun_phrase '?'
+    ) => {
+        if (proposal.size !== 1)
+            return null;
+        for (let [key, value] of proposal)
+            return key;
+        return null;
+    };
+}
+generic_question = {
+    dom:question_preamble q:direct_question => {
+        if (!q.startsWith(dom + '-'))
+            return null;
+        return [dom, q];
+    };
+    dom:question_preamble 'which one would like ?' => {
+        return [dom, null];
+    };
+}
+
+question_answer_pair = {
+    ( q:direct_question '<sep>' a:precise_answer
+    | q:direct_question '<sep>' a:generic_answer
+    ) => {
+        if (a.key == q)
+            return a;
+        else
+            return null;
+    };
+
+    q:generic_question '<sep>' a:precise_answer => {
+        const [dom, slot] = q;
+
+        if (a.domain !== dom || (slot !== null && a.key !== slot))
+            return null;
+        return a;
+    };
+}
+
+$root = {
+    ctx:ctx qa:question_answer_pair => checkAndAddSlot(ctx, qa);
+}
