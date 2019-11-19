@@ -16,6 +16,7 @@ const { DatasetStringifier } = require('../lib/dataset-parsers');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const parallelize = require('../lib/parallelize');
 const StreamUtils = require('../lib/stream-utils');
+const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 
 class ActionSetFlag extends argparse.Action {
     call(parser, namespace, values) {
@@ -49,19 +50,19 @@ module.exports = {
         parser.addArgument(['-t', '--target-language'], {
             required: false,
             defaultValue: 'thingtalk',
-            choices: ['thingtalk'],
+            choices: AVAILABLE_LANGUAGES,
             help: `The programming language to generate`
         });
         parser.addArgument('--thingpedia', {
-            required: true,
+            required: false,
             help: 'Path to ThingTalk file containing class definitions.'
         });
         parser.addArgument('--entities', {
-            required: true,
+            required: false,
             help: 'Path to JSON file containing entity type definitions.'
         });
         parser.addArgument('--dataset', {
-            required: true,
+            required: false,
             help: 'Path to file containing primitive templates, in ThingTalk syntax.'
         });
         parser.addArgument('--template', {

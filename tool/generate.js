@@ -17,6 +17,7 @@ const Tp = require('thingpedia');
 const { BasicSentenceGenerator } = require('../lib/sentence-generator');
 const { DatasetStringifier } = require('../lib/dataset-parsers');
 const ProgressBar = require('./lib/progress_bar');
+const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 
 class ActionSetFlag extends argparse.Action {
     call(parser, namespace, values) {
@@ -45,7 +46,7 @@ module.exports = {
         parser.addArgument(['-t', '--target-language'], {
             required: false,
             defaultValue: 'thingtalk',
-            choices: ['thingtalk', 'multidst'],
+            choices: AVAILABLE_LANGUAGES,
             help: `The programming language to generate`
         });
         parser.addArgument('--thingpedia', {
