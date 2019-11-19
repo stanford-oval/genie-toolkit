@@ -299,6 +299,7 @@ async function applyPatterns(ppdb, functionDef, argDef, valueList, patternList, 
     const lastProp = propertyName.substring(dot+1);
 
     const patterns = [];
+    const added = new Set();
     await Promise.all(patternList.map(async ([pattern, condition]) => {
         if (condition && !condition(functionDef.name, propertyName, propertyType))
             return;
@@ -334,10 +335,11 @@ async function applyPatterns(ppdb, functionDef, argDef, valueList, patternList, 
                 if (score < THRESHOLD)
                     continue;
 
-                patterns.push({
-                    template: searchQuery.replace('${value}', '${p_' + lastProp + '}').replace(/ +/g, ' '),
-                    score
-                });
+                let template = searchQuery.replace('${value}', '${p_' + lastProp + '}').replace(/ +/g, ' ');
+                if (!added.has(template)) {
+                    patterns.push({template, score});
+                    added.add(template);
+                }
             }
         }
     }));
