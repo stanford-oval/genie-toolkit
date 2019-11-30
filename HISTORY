@@ -1,3 +1,10 @@
+0.5.2
+=====
+
+* Added support for the measurement units added in ThingTalk 1.9.2
+* Updated and documented the default flags for ThingTalk [#118]
+* Updated Simplified Chinese templates [Jian Li; #116]
+
 0.5.1
 =====
 
