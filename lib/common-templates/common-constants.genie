@@ -45,6 +45,11 @@ constant_Measure_m = {}
 constant_Measure_mps = {}
 constant_Measure_Pa = {}
 constant_Measure_kcal = {}
+constant_Measure_W = {}
+constant_Measure_lx = {}
+constant_Measure_lm = {}
+constant_Measure_dB = {}
+constant_Measure_dBm = {}
 
 // this is used for equality filtering, so !turking anything that is weird when equality compared
 constant_Any = {
@@ -71,6 +76,11 @@ constant_Any = {
         constant_Measure_kg;
         constant_Measure_Pa;
         constant_Measure_kcal;
+        constant_Measure_W;
+        constant_Measure_lx;
+        constant_Measure_lm;
+        constant_Measure_dB;
+        constant_Measure_dBm;
         constant_Boolean;
     }
 }
@@ -85,4 +95,9 @@ constant_Numeric = {
     constant_Measure_kg;
     constant_Measure_Pa;
     constant_Measure_kcal;
+    constant_Measure_W;
+    constant_Measure_lx;
+    constant_Measure_lm;
+    constant_Measure_dB;
+    constant_Measure_dBm;
 }
