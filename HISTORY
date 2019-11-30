@@ -1,3 +1,9 @@
+1.7.3
+=====
+
+* Fixed resolving home/work locations again [#131]
+* Misc bug fixes [#132]
+
 1.7.2
 =====
 
