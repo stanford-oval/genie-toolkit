@@ -115,6 +115,26 @@ constant_Measure_mps = {
     num:constant_Number 'km/h' => C.addUnit('kmph', num);
 }
 
+constant_Measure_W = {
+    num:constant_Number 'w' => C.addUnit('W', num);
+    num:constant_Number 'watt' => C.addUnit('W', num);
+    num:constant_Number 'kw' => C.addUnit('kW', num);
+    num:constant_Number 'kilowatt' => C.addUnit('W', num);
+}
+constant_Measure_lx = {
+    num:constant_Number 'lx' => C.addUnit('lx', num);
+}
+constant_Measure_lm = {
+    num:constant_Number 'lm' => C.addUnit('lm', num);
+}
+constant_Measure_dB = {
+    num:constant_Number 'db' => C.addUnit('dB', num);
+    num:constant_Number 'decibels' => C.addUnit('dB', num);
+}
+constant_Measure_dBm = {
+    num:constant_Number 'dbm' => C.addUnit('dBm', num);
+}
+
 constant_Location = {
     'here'                    => new Ast.Value.Location(Ast.Location.Relative('current_location'));
     !turking 'where i am now' => new Ast.Value.Location(Ast.Location.Relative('current_location'));
