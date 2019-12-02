@@ -797,6 +797,112 @@ function fillNextSlot(program, newValue) {
 }
 
 
+function makeSingleStringProjection($options, table) {
+    let outParams = Object.keys(table.schema.out);
+    if (outParams.length === 1 && table.schema.out[outParams[0]].isString)
+        return new Ast.Table.Projection(table, [outParams[0]], table.schema);
+
+    for (let pname in table.schema.out) {
+        if (pname === 'picture_url')
+            return null;
+        let ptype = table.schema.out[pname];
+        if ($options.types.id.has(typeToStringSafe(ptype)))
+            return null;
+    }
+    return new Ast.Table.Projection(table, ['$event'], table.schema);
+}
+
+function makeSingleProjection($options, table, type, isIdType) {
+    if (type.isString)
+        return makeSingleStringProjection($options, table);
+
+    if (type.isEntity && type.type === 'tt:picture') {
+        if (!table.schema.out['picture_url'])
+            return null;
+        return new Ast.Table.Projection(table, ['picture_url'], table.schema);
+    }
+
+    if (isIdType) {
+        for (let pname in table.schema.out) {
+            if (table.schema.out[pname].equals(type))
+                return new Ast.Table.Projection(table, [pname], table.schema);
+        }
+        return null;
+    } else {
+        let outParams = Object.keys(table.schema.out);
+        if (outParams.length !== 1 || !type.equals(table.schema.out[outParams[0]]))
+            return null;
+        return new Ast.Table.Projection(table, [outParams[0]], table.schema);
+    }
+}
+
+function makeSingleStringStreamProjection($options, table) {
+    if (!table.schema.is_monitorable)
+        return null;
+    let outParams = Object.keys(table.schema.out);
+    if (outParams.length === 1 && table.schema.out[outParams[0]].isString)
+        return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), [outParams[0]], table.schema);
+
+    for (let pname in table.schema.out) {
+        if (pname === 'picture_url')
+            return null;
+        let ptype = table.schema.out[pname];
+        if ($options.types.id.has(typeToStringSafe(ptype)))
+            return null;
+    }
+    return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), ['$event'], table.schema);
+}
+
+function makeSingleStreamProjection($options, table, type, isIdType) {
+    if (type.isString)
+        return makeSingleStringStreamProjection($options, table);
+
+    if (type.isEntity && type.type === 'tt:picture') {
+        if (!table.schema.out['picture_url'])
+            return null;
+        if (!table.schema.is_monitorable)
+            return null;
+        return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), ['picture_url'], table.schema);
+    }
+
+    if (isIdType) {
+        if (!table.schema.is_monitorable)
+            return null;
+        for (let pname in table.schema.out) {
+            if (table.schema.out[pname].equals(type))
+                return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), [pname], table.schema);
+        }
+        return null;
+    } else {
+        let outParams = Object.keys(table.schema.out);
+        if (outParams.length !== 1 || !type.equals(table.schema.out[outParams[0]]))
+            return null;
+        if (!table.schema.is_monitorable)
+            return null;
+        return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), [outParams[0]], table.schema);
+    }
+}
+
+function makeProjection($options, table, type, outParam) {
+    const name = outParam.name;
+    if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
+        return null;
+    if (name === 'picture_url' && $options.flags.turking)
+        return null;
+    const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
+    return new Ast.Table.Projection(table, [name], newSchema);
+}
+function makeStreamProjection($options, table, type, outParam) {
+    const name = outParam.name;
+    if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
+        return null;
+    if (!table.schema.is_monitorable)
+        return null;
+    const stream = new Ast.Stream.Monitor(table, null, table.schema);
+    const newSchema = stream.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
+    return new Ast.Stream.Projection(stream, [name], newSchema);
+}
+
 module.exports = {
     typeToStringSafe,
     findFunctionNameTable,
@@ -847,4 +953,9 @@ module.exports = {
     addFilterToProgram,
     addFilterToPolicy,
     makeMonitor,
+
+    makeSingleProjection,
+    makeSingleStreamProjection,
+    makeProjection,
+    makeStreamProjection
 };
