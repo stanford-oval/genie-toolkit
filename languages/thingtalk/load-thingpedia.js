@@ -130,6 +130,27 @@ class ThingpediaLoader {
         }
     }
 
+
+    _normalizeGender(canonical) {
+        const match = /^G=([a-z]+)\s+(.*)/.exec(canonical);
+        if (match === null)
+            return [this._langPack.DEFAULT_GRAMMATICAL_GENDER, canonical];
+
+        // if the langpack has no genders, ignore the specified gender
+        // (this is so we can run old Genie without some lang pack against
+        // a new Thingpedia that has gender annotation)
+        if (this._langPack.GRAMMATICAL_GENDERS.length === 0)
+            return [this._langPack.DEFAULT_GRAMMATICAL_GENDER, match[2]];
+
+        const gender = match[1];
+        // allow specifying gender as "m" / "f" instead of the full string
+        for (let candidate of this._langPack.GRAMMATICAL_GENDERS) {
+            if (candidate.startsWith(gender))
+                return [candidate, match[2]];
+        }
+        return [gender, match[2]];
+    }
+
     _recordType(type) {
         if (type.isCompound) {
             for (let field in type.fields)
@@ -143,8 +164,29 @@ class ThingpediaLoader {
             return typestr;
         this._allTypes.set(typestr, type);
 
-        this._grammar.declareSymbol('out_param_' + typestr);
         this._grammar.declareSymbol('placeholder_' + typestr);
+
+        if (this._langPack.GRAMMATICAL_GENDERS.length > 0) {
+            for (let gender of this._langPack.GRAMMATICAL_GENDERS) {
+                this._grammar.declareSymbol('out_param_' + typestr + '_' + gender);
+                if (type.isArray) {
+                    this._grammar.addRule('out_param_Array__Any' + '_' + gender,  [new this._runtime.NonTerminal('out_param_' + typestr + '_' + gender)],
+                        this._runtime.simpleCombine(identity));
+                } else {
+                    this._grammar.addRule('out_param_Any_' + gender,  [new this._runtime.NonTerminal('out_param_' + typestr + '_' + gender)],
+                        this._runtime.simpleCombine(identity));
+                }
+            }
+        } else {
+            this._grammar.declareSymbol('out_param_' + typestr);
+            if (type.isArray) {
+                this._grammar.addRule('out_param_Array__Any',  [new this._runtime.NonTerminal('out_param_' + typestr)],
+                    this._runtime.simpleCombine(identity));
+            } else {
+                this._grammar.addRule('out_param_Any',  [new this._runtime.NonTerminal('out_param_' + typestr)],
+                    this._runtime.simpleCombine(identity));
+            }
+        }
 
         if (!this._grammar.hasSymbol('constant_' + typestr)) {
             if (!type.isEnum && !type.isEntity && !type.isArray)
@@ -256,8 +298,14 @@ class ThingpediaLoader {
                 attributes.priority += 1;
 
             for (let form of annotvalue) {
+                let gender;
+                [gender, form] = this._normalizeGender(form);
+
                 if (cat === 'base') {
-                    this._grammar.addRule('input_param', [form], this._runtime.simpleCombine(() => pname), attributes);
+                    if (gender)
+                        this._grammar.addRule('input_param_' + gender, [form], this._runtime.simpleCombine(() => pname), attributes);
+                    else
+                        this._grammar.addRule('input_param', [form], this._runtime.simpleCombine(() => pname), attributes);
                 } else {
                     let [before, after] = form.split('#');
                     before = (before || '').trim();
@@ -277,8 +325,14 @@ class ThingpediaLoader {
                         expansion = ['', constant, ''];
                         corefexpansion = ['', corefconst, ''];
                     }
-                    this._grammar.addRule(cat + '_input_param', expansion, this._runtime.simpleCombine((_1, value, _2) => new Ast.InputParam(null, pname, value)), attributes);
-                    this._grammar.addRule('coref_' + cat + '_input_param', corefexpansion, this._runtime.simpleCombine((_1, value, _2) => new Ast.InputParam(null, pname, value)), attributes);
+
+                    if (gender) {
+                        this._grammar.addRule(cat + '_input_param_' + gender, expansion, this._runtime.simpleCombine((_1, value, _2) => new Ast.InputParam(null, pname, value)), attributes);
+                        this._grammar.addRule('coref_' + cat + '_input_param_' + gender, corefexpansion, this._runtime.simpleCombine((_1, value, _2) => new Ast.InputParam(null, pname, value)), attributes);
+                    } else {
+                        this._grammar.addRule(cat + '_input_param', expansion, this._runtime.simpleCombine((_1, value, _2) => new Ast.InputParam(null, pname, value)), attributes);
+                        this._grammar.addRule('coref_' + cat + '_input_param', corefexpansion, this._runtime.simpleCombine((_1, value, _2) => new Ast.InputParam(null, pname, value)), attributes);
+                    }
                 }
             }
         }
@@ -327,8 +381,15 @@ class ThingpediaLoader {
             if (cat === canonical['default'])
                 attributes.priority += 1;
 
-            for (let form of annotvalue)
-                 this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, '==', value, false)), attributes);
+            for (let form of annotvalue) {
+                let gender;
+                [gender, form] = this._normalizeGender(form);
+
+                if (gender)
+                    this._grammar.addRule(cat + '_filter_' + gender, [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, '==', value, false)), attributes);
+                else
+                    this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, '==', value, false)), attributes);
+            }
         }
     }
 
@@ -468,31 +529,59 @@ class ThingpediaLoader {
                     if (!Array.isArray(forms))
                         forms = [forms];
                     const value = new Ast.Value.Enum(enumerand);
-                    for (let form of forms)
-                        this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, op, value, false)), attributes);
+                    for (let form of forms) {
+                        let gender;
+                        [gender, form] = this._normalizeGender(form);
+
+                        if (gender)
+                            this._grammar.addRule(cat + '_filter_' + gender, [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, op, value, false)), attributes);
+                        else
+                            this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, op, value, false)), attributes);
+                    }
                 }
             } else if (argMinMax) {
                 if (!Array.isArray(annotvalue))
                     annotvalue = [annotvalue];
 
-                for (let form of annotvalue)
-                    this._grammar.addRule(cat + '_argminmax', [form], this._runtime.simpleCombine(() => [pvar, argMinMax]), attributes);
+                for (let form of annotvalue) {
+                    let gender;
+                    [gender, form] = this._normalizeGender(form);
+
+                    if (gender)
+                        this._grammar.addRule(cat + '_argminmax_' + gender, [form], this._runtime.simpleCombine(() => [pvar, argMinMax]), attributes);
+                    else
+                        this._grammar.addRule(cat + '_argminmax', [form], this._runtime.simpleCombine(() => [pvar, argMinMax]), attributes);
+                }
             } else {
                 if (!Array.isArray(annotvalue))
                     annotvalue = [annotvalue];
 
                 for (let form of annotvalue) {
+                    let gender;
+                    [gender, form] = this._normalizeGender(form);
+
                     if (cat === 'base') {
                         this._addOutParam(functionName, pname, ptype, typestr, form.trim());
                         if (!canonical.npp && !canonical.property) {
                             const expansion = [form, constant];
-                            this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((_, value) => makeFilter(this, pvar, op, value, false)));
                             const corefexpansion = [form, corefconst];
-                            this._grammar.addRule('coref_npp_filter', corefexpansion, this._runtime.simpleCombine((_, value) => makeFilter(this, pvar, op, value, false)), attributes);
 
-                            if (canUseBothForm) {
-                                const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
-                                this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values) => makeAndFilter(this, pvar, op, values, false)), attributes);
+                            if (gender) {
+                                this._grammar.addRule('npp_filter_' + gender, expansion, this._runtime.simpleCombine((_, value) => makeFilter(this, pvar, op, value, false)));
+                                this._grammar.addRule('coref_npp_filter_' + gender, corefexpansion, this._runtime.simpleCombine((_, value) => makeFilter(this, pvar, op, value, false)), attributes);
+
+                                if (canUseBothForm) {
+                                    const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                                    this._grammar.addRule('npp_filter_' + gender, pairexpansion, this._runtime.simpleCombine((_1, _2, values) => makeAndFilter(this, pvar, op, values, false)), attributes);
+                                }
+                            } else {
+                                this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((_, value) => makeFilter(this, pvar, op, value, false)));
+                                this._grammar.addRule('coref_npp_filter', corefexpansion, this._runtime.simpleCombine((_, value) => makeFilter(this, pvar, op, value, false)), attributes);
+
+                                if (canUseBothForm) {
+                                    const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                                    this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values) => makeAndFilter(this, pvar, op, values, false)), attributes);
+                                }
                             }
                         }
                     } else {
@@ -549,10 +638,18 @@ class ThingpediaLoader {
                             corefexpansion = ['', corefconst, ''];
                             pairexpansion = ['', new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), ''];
                         }
-                        this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((_1, value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
-                        this._grammar.addRule('coref_' + cat + '_filter', corefexpansion, this._runtime.simpleCombine((_1, value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
-                        if (canUseBothForm)
-                            this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values, _3) => makeAndFilter(this, pvar, op, values, false)), attributes);
+
+                        if (gender) {
+                            this._grammar.addRule(cat + '_filter_' + gender, expansion, this._runtime.simpleCombine((_1, value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
+                            this._grammar.addRule('coref_' + cat + '_filter_' + gender, corefexpansion, this._runtime.simpleCombine((_1, value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
+                            if (canUseBothForm)
+                                this._grammar.addRule(cat + '_filter_' + gender, pairexpansion, this._runtime.simpleCombine((_1, _2, values, _3) => makeAndFilter(this, pvar, op, values, false)), attributes);
+                        } else {
+                            this._grammar.addRule(cat + '_filter_' + gender, expansion, this._runtime.simpleCombine((_1, value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
+                            this._grammar.addRule('coref_' + cat + '_filter_' + gender, corefexpansion, this._runtime.simpleCombine((_1, value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
+                            if (canUseBothForm)
+                                this._grammar.addRule(cat + '_filter_' + gender, pairexpansion, this._runtime.simpleCombine((_1, _2, values, _3) => makeAndFilter(this, pvar, op, values, false)), attributes);
+                        }
                     }
                 }
             }
@@ -697,6 +794,13 @@ class ThingpediaLoader {
 
             if (this._options.debug >= this._runtime.LogLevel.INFO && preprocessed[0].startsWith(','))
                 console.log(`WARNING: template ${ex.id} starts with , but is not a query`);
+
+            if (grammarCat === 'thingpedia_query') {
+                let gender;
+                [gender, preprocessed] = this._normalizeGender(preprocessed);
+                if (gender !== null)
+                    grammarCat += '_' + gender;
+            }
 
             const chunks = this._addPrimitiveTemplate(grammarCat, preprocessed, ex.value);
             rules.push({ category: grammarCat, expansion: chunks, example: ex });
