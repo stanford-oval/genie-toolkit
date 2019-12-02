@@ -86,10 +86,10 @@ chain_action = {
 chain_query = {
     (
           q:complete_query_program rhs:thingpedia_get_command
-        | q:complete_query_program 'get' rhs:thingpedia_query
-        | q:complete_query_program ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') rhs:thingpedia_query
-        | q:complete_query_program ('search' | 'find' | 'i want' | 'i need') rhs:thingpedia_query
-        | q:complete_query_program 'what are' rhs:thingpedia_query '?'
+        | q:complete_query_program 'recupera' rhs:thingpedia_query
+        | q:complete_query_program ('dimmi' | 'dammi' | 'mostrami' | 'presenta' | 'recupera') rhs:thingpedia_query
+        | q:complete_query_program ('cerca' | 'trova' | 'voglio' | 'ho bisogno di') rhs:thingpedia_query
+        | q:complete_query_program 'cosa sono' rhs:thingpedia_query '?'
     ) if !complete => {
         // make up a structure containing both the output parameters
         assert(q.rules.length === 1 && q.rules[0].table);
@@ -106,7 +106,7 @@ for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
     // don't parameter pass booleans or enums, as that rarely makes sense
     if (typestr !== 'Boolean' && !typestr.startsWith('Enum__')) {
         if ($options.types.id.has(typestr)) {
-            chain_action = command:chain_action ('it' | 'that' | 'them') [-> pname] => {
+            chain_action = command:chain_action ('-lo' | '-la' | '-le' | '-li' | 'quello' | 'quella' | 'quelle' | 'quegli') [-> pname] => {
                 for (let joinArg in command.table.schema.out) {
                     if (typestr === C.typeToStringSafe(command.table.schema.out[joinArg]))
                         return addParamToAction(command, pname, new Ast.Value.VarRef(joinArg));
@@ -114,7 +114,7 @@ for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
                 return null;
             };
 
-            chain_query = command:chain_query ('it' | 'that' | 'them') [-> pname] => {
+            chain_query = command:chain_query ('-lo' | '-la' | '-le' | '-li' | 'quello' | 'quella' | 'quelle' | 'quegli') [-> pname] => {
                 for (let joinArg in command.lhs.schema.out) {
                     if (typestr === C.typeToStringSafe(command.lhs.schema.out[joinArg]))
                         return addParamToQuery(command, pname, new Ast.Value.VarRef(joinArg));
@@ -127,12 +127,12 @@ for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
         }
 
         if (pname === 'p_picture_url') {
-            chain_action = command:chain_action ('it' | 'that' | 'them') [-> pname] => addParamToAction(command, pname, new Ast.Value.VarRef('picture_url'));
-            chain_query = command:chain_query ('it' | 'that' | 'them') [-> pname] => addParamToQuery(command, pname, new Ast.Value.VarRef('picture_url'));
+            chain_action = command:chain_action ('-lo' | '-la' | '-le' | '-li' | 'quello' | 'quella' | 'quelle' | 'quegli') [-> pname] => addParamToAction(command, pname, new Ast.Value.VarRef('picture_url'));
+            chain_query = command:chain_query ('-lo' | '-la' | '-le' | '-li' | 'quello' | 'quella' | 'quelle' | 'quegli') [-> pname] => addParamToQuery(command, pname, new Ast.Value.VarRef('picture_url'));
         }
 
         if (typestr === 'String' && ['p_body', 'p_message', 'p_caption', 'p_status', 'p_text'].indexOf(pname) >= 0) {
-            chain_action = command:chain_action ('it' | 'that' | 'them') [-> pname] => {
+            chain_action = command:chain_action ('-lo' | '-la' | '-le' | '-li' | 'quello' | 'quella' | 'quelle' | 'quegli') [-> pname] => {
                 for (let pname in command.table.schema.out) {
                     if (pname === 'picture_url')
                         return null;
@@ -142,7 +142,7 @@ for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
                 }
                 return addParamToAction(command, pname, new Ast.Value.Event(null));
             };
-            chain_query = command:chain_query ('it' | 'that' | 'them') [-> pname] => {
+            chain_query = command:chain_query ('-lo' | '-la' | '-le' | '-li' | 'quello' | 'quella' | 'quelle' | 'quegli') [-> pname] => {
                 for (let pname in command.lhs.schema.out) {
                     if (pname === 'picture_url')
                         return null;
@@ -191,52 +191,51 @@ $root = {
         }
     };
 
-     ( q:complete_query_program 'how about' p:constant_Any '?'
-    |  q:complete_query_program 'show me' p:constant_Any 'instead'
+     ( q:complete_query_program 'mostrami' p:constant_Any 'invece'
     ) => C.replaceAnyParameterFromContext(q, p);
 
-    p:complete_query_program ('do it again' | 'again' | 'another one' | 'run it again') => {
+    p:complete_query_program ('fallo di nuovo' | 'di nuovo' | 'un altro' | 'un\' altra' | 'eseguilo di nuovo' | 'esegui di nuovo') => {
         if (p.rules[0].table.schema.is_monitorable)
             return null;
         return p;
     };
 
-    prog:immediate_program ('do this' | 'do it' | 'repeat this command' | 'set this to run') t:timer => C.addTimerToProgram(prog, t);
-    prog:complete_query_program ('send this to me' | 'send it to me' | 'i want to see this' | 'i want this' | 'send this') t:timer => C.addTimerToProgram(prog, t);
+    prog:immediate_program ('fai questo' | 'fallo' | 'ripeti questo comando' | 'imposta che questo si esegua') t:timer => C.addTimerToProgram(prog, t);
+    prog:complete_query_program ('mandamelo' | 'mandami questo' | 'voglio vederlo' | 'lo voglio' | 'voglio questo' | 'manda questo') t:timer => C.addTimerToProgram(prog, t);
     
-    prog:immediate_program ('do this' | 'do it' | 'do it automatically') stream:stream => C.addTimerToProgram(prog, stream);
-    prog:complete_query_program ('send this to me' | 'send this to me' | 'i want to see this' | 'i want this' | 'send this') stream:stream => C.addTimerToProgram(prog, stream);
+    prog:immediate_program ('fai questo' | 'fallo' | 'fallo automaticamente') stream:stream => C.addTimerToProgram(prog, stream);
+    prog:complete_query_program ('mandamelo' | 'mandami questo' | 'voglio vederlo' | 'lo voglio' | 'voglio questo' | 'manda questo') stream:stream => C.addTimerToProgram(prog, stream);
 
-    prog:complete_query_program ('ok , notify me when it changes' | 'notify me when it changes' | 'subscribe to changes' | 'let me know of changes' | 'notify me of this' | 'subscribe to this') => {
+    prog:complete_query_program ('ok , notificami quando cambia' | 'notificami quando cambia' | 'fammi sapere se ci sono cambiamenti' | 'fammi sapere se qualcosa cambia' | 'notificami di questo' | 'abbonati a questo') => {
         if (prog.rules.length > 1 || !prog.rules[0].table || !prog.rules[0].table.schema.is_monitorable)
             return null;
         return C.makeMonitor(prog);
     };
 
-    !turking prog:incomplete_program ('' | 'the answer is' | 'use' | 'i want') param:constant_Any => C.fillNextSlot(prog, param);
+    !turking prog:incomplete_program ('' | 'la risposta è' | 'usa' | 'voglio') param:constant_Any => C.fillNextSlot(prog, param);
 
-    q:complete_query_program ('only those with' | 'only those having' |
-        'only with' | 'only if they have' | 'filter to those with' | 'show me those with') filter:with_filter => {
+    q:complete_query_program ('solo quelli con' | 'solo quelli che hanno' |
+        'solo con' | 'solo se hanno' | 'filtra quelli con' | 'mostrami solo quelli con') filter:with_filter => {
         if (!q.rules[0].table.schema.is_list)
             return null;
         return C.addFilterToProgram(q, filter, $options);
     };
-    !turking q:complete_query_program ('show me if' | 'only if') filter:atom_filter => {
+    !turking q:complete_query_program ('mostrami se' | 'solo se') filter:atom_filter => {
         if (!q.rules[0].table.schema.is_list)
             return null;
         return C.addFilterToProgram(q, filter, $options);
     };
 
-    prog:when_program ('only if' | 'do this only if' | 'and only when' | 'only when') filter:atom_filter => C.addFilterToProgram(prog, filter, $options);
-    prog:when_program ('only if' | 'do this only if' | 'and only when' | 'only when') filter:get_predicate_filter => C.addFilterToProgram(prog, filter, $options);
+    prog:when_program ('solo se' | 'fallo solo se' | 'e solo quando' | 'solo quando') filter:atom_filter => C.addFilterToProgram(prog, filter, $options);
+    prog:when_program ('solo se' | 'fallo solo se' | 'e solo quando' | 'solo quando') filter:get_predicate_filter => C.addFilterToProgram(prog, filter, $options);
 
-    prog:when_program ('only those with' | 'only those having' |
-        'only with' | 'only if they have' | 'filter to those with' | 'show me those with') filter:with_filter => {
+    prog:when_program ('solo quelli con' | 'solo quelli che hanno' |
+        'solo con' | 'solo se hanno' | 'filtra quelli con' | 'mostrami solo quelli con') filter:with_filter => {
         if (!prog.rules[0].stream.schema.is_list)
             return null;
         return C.addFilterToProgram(prog, filter, $options);
     };
 
-    prog:policy ('only if' | 'do this only if' | 'and only when' | 'only when') filter:atom_filter => C.addFilterToPolicy(prog, filter, $options);
-    prog:policy ('only if' | 'do this only if' | 'and only when' | 'only when') filter:get_predicate_filter => C.addFilterToPolicy(prog, filter, $options);
+    prog:policy ('solo se' | 'fallo solo se' | 'e solo quando' | 'solo quando') filter:atom_filter => C.addFilterToPolicy(prog, filter, $options);
+    prog:policy ('solo se' | 'fallo solo se' | 'e solo quando' | 'solo quando') filter:get_predicate_filter => C.addFilterToPolicy(prog, filter, $options);
 }

@@ -33,8 +33,6 @@ constant_Boolean = {}
 
 constant_Number = const(NUMBER, Type.Number);
 constant_Currency = const(CURRENCY, Type.Currency);
-constant_Time = const(TIME, Type.Time);
-constant_Date = const(DATE, Type.Date);
 constant_Location = const(LOCATION, Type.Location);
 
 constant_Measure_ms = const(DURATION, Type.Measure('ms'));

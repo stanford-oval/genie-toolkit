@@ -13,7 +13,7 @@
 const C = require('./ast_manip');
 }
 
-out_param_Numeric = {
+out_param_Numeric_masculine = {
     out_param_Number;
     out_param_Currency;
     out_param_Measure_ms;

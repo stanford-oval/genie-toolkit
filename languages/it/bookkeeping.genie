@@ -110,49 +110,61 @@ $root = {
     |  'chiuditi'
     ) => special('stop');
 
-     ('help'
-    | 'help me'
-    | 'what can you do ?'
-    | 'list commands'
-    | 'show me commands'
-    | 'show me what you can do'
-    | 'what commands can i say ?'
-    | 'what can i say ?'
-    | 'what do you understand ?'
-    | 'show me the list of all commands'
-    | 'what skills do you have ?'
-    | 'what devices do you have ?'
-    | 'what devices do you support ?'
-    | 'what skills can i use ?'
-    | 'what devices are available ?'
-    | 'what is available ?'
+     ('aiuto'
+    | 'aiutami'
+    | 'cosa puoi fare ?'
+    | 'cosa sei in grado di fare ?'
+    | 'cosa sei capace di fare ?'
+    | 'lista comandi'
+    | 'elenca i comandi'
+    | 'mostrami i comandi'
+    | 'mostrami cosa sai fare'
+    | 'quali comandi posso dire ?'
+    | 'quali comandi posso usare ?'
+    | 'che comandi posso usare ?'
+    | 'cosa posso dire ?'
+    | 'cosa posso scrivere ?'
+    | 'cosa capisci ?'
+    | 'che comandi capisci ?'
+    | 'mostrami la lista di tutti i comandi'
+    | 'quali skill hai ?'
+    | 'quali abilità hai ?'
+    | 'che dispositivi hai ?'
+    | 'che dispositivi supporti ?'
+    | 'quali skills posso usare ?'
+    | 'che skills posso usare ?'
+    | 'che abilità posso usare ?'
+    | 'quali dispositivi sono disponibili ?'
+    | 'quali servizi sono disponibili ?'
+    | "cos' è disponibile ?"
     ) => special('help');
 
-     ('make a command'
-    | 'make a rule'
-    | 'make a new command'
-    | 'create a command'
-    | 'help me make a command'
-    | 'create a compound command'
-    | 'help me do a command'
-    | 'do a command for me'
+     ('crea un comando'
+    | 'crea una regola'
+    | 'crea un nuovo comando'
+    | 'crea un comando nuovo'
+    | 'aiutami a creare un comando'
+    | 'crea un comando composito'
+    | 'aiutami a fare un comando'
+    | 'fa un comando per me'
+    | 'fa\' un comando per me'
     ) => special('makerule');
 
-     ('wake up'
-    | 'hey almond'
+     ('sveglia'
+    | 'svegliati'
+    | 'ehi almond'
     ) => special('wakeup');
 
     !no_contextual_bookkeeping {
-         ('get' c:command_category 'commands'
-        | 'list commands in' c:command_category
-        | 'list devices in' c:command_category
-        | 'list' c:command_category 'devices'
+         ('recupera comandi' c:command_category
+        | 'recupera i comandi in' c:command_category
+        | 'elenca i dispositivi' c:command_category
         ) => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.CommandList(new Ast.Value.Undefined(true), c));
 
          ( c:constant_Any
-        | 'the answer is' c:constant_Any
-        | 'use' c:constant_Any
-        | 'i want' c:constant_Any
+        | 'la risposta è' c:constant_Any
+        | 'usa' c:constant_Any
+        | 'voglio' c:constant_Any
         ) => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Answer(c));
     }
 

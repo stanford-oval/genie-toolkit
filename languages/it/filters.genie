@@ -21,123 +21,161 @@ const C = require('../ast_manip');
 
 // generic filters (npp)
 get_predicate_filter = {
-    'before' t1:constant_Time => C.timeGetPredicate($options, null, t1);
-    'after' t2:constant_Time  => C.timeGetPredicate($options, t2, null);
-    'between' t1:constant_Time 'and' t2:constant_Time => C.timeGetPredicate($options, t1, t2);
+    'prima di' t1:constant_Time => C.timeGetPredicate($options, null, t1);
+    'dopo' t2:constant_Time  => C.timeGetPredicate($options, t2, null);
+    ('tra' | 'fra') t1:constant_Time 'e' t2:constant_Time => C.timeGetPredicate($options, t1, t2);
 
-    'my location is' loc:constant_Location     => C.locationGetPredicate($options, loc);
-    'my location is not' loc:constant_Location => C.locationGetPredicate($options, loc, true);
-    'i am at' loc:constant_Location            => C.locationGetPredicate($options, loc);
-    'i am not at' loc:constant_Location        => C.locationGetPredicate($options, loc, true);
+    'la mia posizione è' loc:constant_Location     => C.locationGetPredicate($options, loc);
+    'la mia posizione non è' loc:constant_Location => C.locationGetPredicate($options, loc, true);
+    'sono a' loc:constant_Location            => C.locationGetPredicate($options, loc);
+    'non sono a' loc:constant_Location        => C.locationGetPredicate($options, loc, true);
     
-    proj:projection_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any        => C.makeGetPredicate(proj, '==', x);
-    proj:projection_Any ('is not' | 'is n\'t' | 'is different than') x:constant_Any => C.makeGetPredicate(proj, '==', x, true);
+    ( proj:projection_Any_masculine ('è' | 'è esattamente' | 'è uguale a') x:constant_Any
+    | proj:projection_Any_feminine ('è' | 'è esattamente' | 'è uguale a') x:constant_Any
+    ) => C.makeGetPredicate(proj, '==', x);
+    ( proj:projection_Any ('non è' | 'è diverso da') x:constant_Any
+    | proj:projection_Any ('non è' | 'è diversa da') x:constant_Any
+    ) => C.makeGetPredicate(proj, '==', x, true);
 }
 
 atom_filter = {
-    'the' p:out_param_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any        => {
+    ( 'il' p:out_param_Any_masculine ('è' | 'è esattamente' | 'è uguale a') x:constant_Any
+    | 'la' p:out_param_Any_feminine ('è' | 'è esattamente' | 'è uguale a') x:constant_Any ) => {
         if (x.getType().isString)
             return C.makeFilter($options, p, '=~', x);
         else
             return C.makeFilter($options, p, '==', x);
     };
-    'the' p:out_param_Any ('is not' | 'is n\'t' | 'is different than') x:constant_Any => {
+    ( 'il' p:out_param_Any_masculine ('non è' | 'è diverso da') x:constant_Any |
+    | 'la' p:out_param_Any_feminine ('non è' | 'è diversa da') x:constant_Any ) => {
         if (x.getType().isString)
             return C.makeFilter($options, p, '=~', x, true);
         else
             return C.makeFilter($options, p, '==', x, true);
     };
 
-    //p:the_out_param_Numeric 'is' ('greater' | 'higher' | 'bigger' | 'more' | 'at least' | 'not less than') x:constant_Numeric => C.makeFilter($options, p, '>=', x);
-    //p:the_out_param_Numeric 'is' ('smaller' | 'lower' | 'less' | 'at most' | 'not more than') x:constant_Numeric             => C.makeFilter($options, p, '<=', x);
+    //p:the_out_param_Numeric 'è' ('greater' | 'higher' | 'bigger' | 'more' | 'at least' | 'not less than') x:constant_Numeric => C.makeFilter($options, p, '>=', x);
+    //p:the_out_param_Numeric 'è' ('smaller' | 'lower' | 'less' | 'at most' | 'not more than') x:constant_Numeric             => C.makeFilter($options, p, '<=', x);
     
-    p:out_param_Number 'is' ('greater than' | 'higher than' | 'larger than' | 'more than' | 'at least' | 'not less than') x:constant_Number => C.makeFilter($options, p, '>=', x);
-    p:out_param_Number 'is' ('smaller than' | 'lower than' | 'less than' | 'at most' | 'not more than') x:constant_Number  => C.makeFilter($options, p, '<=', x);
+    // >=
+    ( 'il' p:out_param_Number_masculine 'è' ('più grande di' | 'superiore a' | 'più alto di' | 'più di' | 'almeno' | 'non meno di') x:constant_Number
+    | 'la' p:out_param_Number_feminine 'è' ('più grande di' | 'superiore a' | 'più alta di' | 'più di' | 'almeno' | 'non meno di') x:constant_Number
 
-    p:out_param_Currency 'is' ('more expensive' | 'more costly' | 'more') 'than' x:constant_Currency => C.makeFilter($options, p, '>=', x);
-    p:out_param_Currency 'is' ('less expensive' | 'cheaper' | 'less') 'than' x:constant_Currency  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Currency_masculine 'è' ('più caro' | 'più costoso' | 'più') 'di' x:constant_Currency
+    | 'la' p:out_param_Currency_feminine 'è' ('più cara' | 'più costosa' | 'più') 'di' x:constant_Currency
 
-    p:out_param_Measure_ms 'is' 'longer than' x:constant_Measure_ms => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_ms 'is' 'shorter than' x:constant_Measure_ms  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_ms_masculine 'è più lungo di' x:constant_Measure_ms
+    | 'la' p:out_param_Measure_ms_feminine 'è più lunga di' x:constant_Measure_ms
 
-    p:out_param_Measure_byte 'is' ('larger' | 'more') 'than' x:constant_Measure_byte => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_byte 'is' ('smaller' | 'less') 'than' x:constant_Measure_byte  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_byte_masculine 'è' ('più grande' | 'più') 'di' x:constant_Measure_byte
+    | 'la' p:out_param_Measure_byte_feminine 'è' ('più grande' | 'più') 'di' x:constant_Measure_byte
 
-    p:out_param_Measure_kg 'is' ('heavier' | 'larger') 'than' x:constant_Measure_kg => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_kg 'is' ('lighter' | 'smaller') 'than' x:constant_Measure_kg  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_kg_masculine 'è' ('più pesante' | 'più grande' | 'più') 'di' x:constant_Measure_kg
+    | 'la' p:out_param_Measure_kg_feminine 'è' ('più pesante' | 'più grande' | 'più') 'di' x:constant_Measure_kg
 
-    p:out_param_Measure_C 'is' ('hotter' | 'higher') 'than' x:constant_Measure_C => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_C 'is' ('cooler' | 'colder' | 'lower') 'than' x:constant_Measure_C  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_C_masculine 'è' ('più caldo' | 'più alto') 'di' x:constant_Measure_C
+    | 'la' p:out_param_Measure_C_feminine 'è' ('più calda' | 'più alta') 'di' x:constant_Measure_C
 
-    p:out_param_Measure_m 'is' ('farther' | 'more distant' | 'longer') 'than' x:constant_Measure_m => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_m 'is' ('nearer' | 'closer' | 'shorter') 'than' x:constant_Measure_m  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_m_masculine 'è' ('più distante' | 'più lontano' | 'più lungo') 'di' x:constant_Measure_m
+    | 'la' p:out_param_Measure_m_feminine 'è' ('più distante' | 'più lontana' | 'più lunga') 'di' x:constant_Measure_m
 
-    p:out_param_Measure_mps 'is' ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_mps 'is' ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_mps_masculine 'è più veloce di' x:constant_Measure_mps
+    | 'il' p:out_param_Measure_mps_feminine 'è più veloce di' x:constant_Measure_mps
+
+    ) => C.makeFilter($options, p, '>=', x);
+
+    // <=
+    ( 'il' p:out_param_Number_masculine 'è' ('più piccolo di' | 'inferiore a' | 'meno di' | 'al più' | 'non più di') x:constant_Number
+    | 'la' p:out_param_Number_feminine 'è' ('più piccola di' | 'inferiore a' | 'meno di' | 'al più' | 'non più di') x:constant_Number
+
+    | 'il' p:out_param_Currency_masculine 'è' ('meno caro' | 'meno costoso' | 'meno') 'di' x:constant_Currency
+    | 'la' p:out_param_Currency_feminine 'è' ('meno cara' | 'meno costosa' | 'meno') 'di' x:constant_Currency
+
+    | 'il' p:out_param_Measure_ms_masculine 'è più' ('corto' | 'breve') 'di' x:constant_Measure_ms
+    | 'la' p:out_param_Measure_ms_feminine 'è più' ('corta' | 'breve') 'di' x:constant_Measure_ms
+
+    | 'il' p:out_param_Measure_byte_masculine 'è' ('più piccolo' | 'meno') 'di' x:constant_Measure_byte
+    | 'la' p:out_param_Measure_byte_feminine 'è' ('più piccola' | 'meno') 'di' x:constant_Measure_byte
+
+    | 'il' p:out_param_Measure_kg_masculine 'è' ('più leggero' | 'più piccolo') 'di' x:constant_Measure_kg
+    | 'la' p:out_param_Measure_kg_feminine 'è' ('più leggera' | 'più piccola') 'di' x:constant_Measure_kg
+
+    | 'il' p:out_param_Measure_C_masculine 'è' ('più freddo' | 'meno') 'di' x:constant_Measure_C
+    | 'la' p:out_param_Measure_C_feminine 'è' ('più fredda' | 'meno') 'di' x:constant_Measure_C
+
+    | 'il' p:out_param_Measure_m_masculine 'è' ('più vicino' | 'più corto' | 'più breve') 'di' x:constant_Measure_m
+    | 'la' p:out_param_Measure_m_feminine 'è' ('più vicina' | 'più corta' | 'più breve') 'di' x:constant_Measure_m
+
+    | 'il' p:out_param_Measure_mps_masculine 'è' ('più lento' | 'meno') 'di' x:constant_Measure_mps
+    | 'la' p:out_param_Measure_mps_feminine 'è' ('più lenta' | 'meno') 'di' x:constant_Measure_mps
+
+    ) => C.makeFilter($options, p, '<=', x);
+
 
     !turking {
-        p:out_param_Date 'is' ('after' | 'later than') x:constant_Date => C.makeFilter($options, p, '>=', x);
-        p:out_param_Date 'is' ('before' | 'earlier than' | 'sooner than') x:constant_Date => C.makeFilter($options, p, '<=', x);
-        p:out_param_Time 'is' ('after' | 'later than') x:constant_Time => C.makeFilter($options, p, '>=', x);
-        p:out_param_Time 'is' ('before' | 'earlier than' | 'sooner than') x:constant_Time => C.makeFilter($options, p, '<=', x);
+        ( 'il' p:out_param_Date_masculine 'è' ('dopo' | 'più tardi di') x:constant_Date
+        | 'la' p:out_param_Date_feminine 'è' ('dopo' | 'più tardi di') x:constant_Date
+
+        | 'il' p:out_param_Time_masculine 'è' ('after' | 'later than') x:constant_Time
+        | 'la' p:out_param_Time_feminine 'è' ('dopo' | 'più tardi di') x:constant_Time
+        ) => C.makeFilter($options, p, '>=', x);
+
+        ( 'il' p:out_param_Date_masculine 'è' 'prima di' x:constant_Date
+        | 'la' p:out_param_Date_feminine 'è' 'prima di' x:constant_Date
+
+        | 'il' p:out_param_Time_masculine 'è' 'prima di' x:constant_Time
+        | 'la' p:out_param_Time_feminine 'è' 'prima di' x:constant_Time
+        ) => C.makeFilter($options, p, '<=', x);
     }
 
-    // there are too few arrays, so keep both
-    p:the_out_param_Array__Any 'contain' x:constant_Any => C.makeFilter($options, p, 'contains', x);
-    p:the_out_param_Array__Any 'do not contain' x:constant_Any => C.makeFilter($options, p, 'contains', x, true);
-    p:the_out_param_Array__Any 'include' x:constant_Any => C.makeFilter($options, p, 'contains', x);
-    p:the_out_param_Array__Any 'do not include' x:constant_Any => C.makeFilter($options, p, 'contains', x, true);
+    ( 'i' p:the_out_param_Array__Any_masculine 'contengono' x:constant_Any
+    | 'le' p:the_out_param_Array__Any_feminine 'contengono' x:constant_Any
+    ) => C.makeFilter($options, p, 'contains', x);
+    ( 'i' p:the_out_param_Array__Any_masculine 'non contengono' x:constant_Any
+    | 'le' p:the_out_param_Array__Any_feminine 'non contengono' x:constant_Any
+    ) => C.makeFilter($options, p, 'contains', x, true);
 
-    p:the_out_param_String ('contains' | 'includes') x:constant_String => C.makeFilter($options, p, '=~', x);
-    p:the_out_param_String 'does not' ('contain' | 'include') x:constant_String => C.makeFilter($options, p, '=~', x, true);
-    x:constant_String 'is in' p:the_out_param_String => C.makeFilter($options, p, '=~', x);
+    ( 'il' p:the_out_param_String_masculine ('contiene' | 'include') x:constant_String
+    | 'la' p:the_out_param_String_feminine ('contiene' | 'include') x:constant_String
+    ) => C.makeFilter($options, p, '=~', x);
+    ( 'il' p:the_out_param_String_masculine 'non' ('contiene' | 'include') x:constant_String
+    | 'la' p:the_out_param_String_feminine 'non' ('contiene' | 'include') x:constant_String
+    ) => C.makeFilter($options, p, '=~', x, true);
+
+    // "in il" / "in la" will be postprocessed (this way, we can postprocess to "nell'" or "nello"
+    // if necessary)
+    ( x:constant_String 'è in il' p:the_out_param_String_masculine
+    | x:constant_String 'è in la' p:the_out_param_String_feminine
+    ) => C.makeFilter($options, p, '=~', x);
 
     !turking range_filter;
     //!turking f:either_filter => f;
 }
 
 edge_filter = {
-    !turking 'the' p:out_param_Any ('becomes' | 'becomes equal to') x:constant_Any => {
+    !turking
+    ( 'il' p:out_param_Any_masculine ('diventa' | 'diventa uguale a') x:constant_Any
+    | 'la' p:out_param_Any_feminine ('diventa' | 'diventa uguale a') x:constant_Any
+    ) => {
         if (x.getType().isString)
             return C.makeFilter($options, p, '=~', x);
         else
             return C.makeFilter($options, p, '==', x);
     };
-    //p:the_out_param_Numeric ('is now greater than' | 'becomes greater than' | 'becomes higher than' | 'goes above' | 'increases above' | 'goes over' | 'rises above') x:constant_Numeric => C.makeFilter($options, p, '>=', x);
-    //p:the_out_param_Numeric ('is now smaller than' | 'becomes smaller than' | 'becomes lower than' | 'goes below' | 'decreases below' | 'goes under') x:constant_Numeric => C.makeFilter($options, p, '<=', x);
 
-    p:out_param_Number ('is now' | 'becomes' | 'goes') ('greater than' | 'higher than' | 'larger than' | 'more than' | 'at least' | 'not less than') x:constant_Number => C.makeFilter($options, p, '>=', x);
-    p:out_param_Number ('is now' | 'becomes' | 'goes') ('smaller than' | 'lower than' | 'less than' | 'at most' | 'not more than') x:constant_Number  => C.makeFilter($options, p, '<=', x);
+    ( p:the_out_param_Numeric_masculine ('ora è maggiore di' | 'diventa maggiore di' | 'diventa più grande di' | 'cresce sopra' | 'sale sopra' | 'oltrepassa') x:constant_Numeric
+    | p:the_out_param_Numeric_feminine ('ora è maggiore di' | 'diventa maggiore di' | 'diventa più grande di' | 'cresce sopra' | 'sale sopra' | 'oltrepassa') x:constant_Numeric
+     )=> C.makeFilter($options, p, '>=', x);
 
-    p:out_param_Currency ('is now' | 'becomes' | 'goes') ('more expensive' | 'more costly' | 'more') 'than' x:constant_Currency => C.makeFilter($options, p, '>=', x);
-    p:out_param_Currency ('is now' | 'becomes' | 'goes') ('less expensive' | 'cheaper' | 'less') 'than' x:constant_Currency  => C.makeFilter($options, p, '<=', x);
-
-    p:out_param_Measure_ms ('is now' | 'becomes' | 'goes') 'longer than' x:constant_Measure_ms => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_ms ('is now' | 'becomes' | 'goes') 'shorter than' x:constant_Measure_ms  => C.makeFilter($options, p, '<=', x);
-
-    p:out_param_Measure_byte ('is now' | 'becomes' | 'goes') ('larger' | 'more') 'than' x:constant_Measure_byte => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_byte ('is now' | 'becomes' | 'goes') ('smaller' | 'less') 'than' x:constant_Measure_byte  => C.makeFilter($options, p, '<=', x);
-
-    p:out_param_Measure_kg ('is now' | 'becomes' | 'goes') ('heavier' | 'larger') 'than' x:constant_Measure_kg => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_kg ('is now' | 'becomes' | 'goes') ('lighter' | 'smaller') 'than' x:constant_Measure_kg  => C.makeFilter($options, p, '<=', x);
-
-    p:out_param_Measure_C ('is now' | 'becomes' | 'goes') ('hotter' | 'higher') 'than' x:constant_Measure_C => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_C ('is now' | 'becomes' | 'goes') ('cooler' | 'colder' | 'lower') 'than' x:constant_Measure_C  => C.makeFilter($options, p, '<=', x);
-
-    p:out_param_Measure_m ('is now' | 'becomes' | 'goes') ('farther' | 'more distant' | 'longer') 'than' x:constant_Measure_m => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_m ('is now' | 'becomes' | 'goes') ('nearer' | 'closer' | 'shorter') 'than' x:constant_Measure_m  => C.makeFilter($options, p, '<=', x);
-
-    p:out_param_Measure_mps ('is now' | 'becomes' | 'goes') ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_mps ('is now' | 'becomes' | 'goes') ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter($options, p, '<=', x);
-
-    p:out_param_Date ('is now' | 'becomes' | 'goes') ('after' | 'later than') x:constant_Date => C.makeFilter($options, p, '>=', x);
-    p:out_param_Date ('is now' | 'becomes' | 'goes') ('before' | 'earlier than' | 'sooner than') x:constant_Date => C.makeFilter($options, p, '<=', x);
-    p:out_param_Time ('is now' | 'becomes' | 'goes') ('after' | 'later than') x:constant_Time => C.makeFilter($options, p, '>=', x);
-    p:out_param_Time ('is now' | 'becomes' | 'goes') ('before' | 'earlier than' | 'sooner than') x:constant_Time => C.makeFilter($options, p, '<=', x);
+    ( p:the_out_param_Numeric_masculine ('ora è minore di' | 'diventa minore di' | 'diventa più piccolo di' | 'scende sotto' | 'cala sotto') x:constant_Numeric
+    | p:the_out_param_Numeric_feminine ('ora è minore di' | 'diventa minore di' | 'diventa più piccola di' | 'scende sotto' | 'cala sotto') x:constant_Numeric
+    ) => C.makeFilter($options, p, '<=', x);
 }
 
 either_filter = {
-    'the' param:out_param_Any ('is' | 'is equal to' | 'is one of' | 'is either') v1:constant_Any 'or' v2:constant_Any => {
+    ( 'il' param:out_param_Any_masculine ('è' | 'è uguale a' | 'è uno di') v1:constant_Any ('o' | 'oppure') v2:constant_Any
+    | 'la' param:out_param_Any_feminine ('è' | 'è uguale a' | 'è uno di') v1:constant_Any ('o' | 'oppure') v2:constant_Any
+    ) => {
         // param is a Value.VarRef
         //console.log('param: ' + param.name);
         if (!v1.getType().equals(v2.getType()))
@@ -154,7 +192,13 @@ either_filter = {
             return null;
         return new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2]));
     };
-    'the' param:out_param_Any 'is' ('not' | 'neither') v1:constant_Any 'nor' v2:constant_Any => {
+
+    // XXX: to support typing, we might want to normalize acute accents to grave accents
+    // because the Italian keyboard has acute accents behind Shift, so nobody types the right accent...
+    // (voice and mobile keyboard should do the right thing here)
+    ( 'il' param:out_param_Any_masculine ('non è' | 'non è né') v1:constant_Any 'né' v2:constant_Any
+    | 'la' param:out_param_Any_feminine ('non è' | 'non è né') v1:constant_Any 'né' v2:constant_Any
+    ) => {
         // param is a Value.VarRef
         //console.log('param: ' + param.name);
         if (!v1.getType().equals(v2.getType()))
@@ -174,7 +218,7 @@ either_filter = {
 }
 
 range = {
-    'between' v1:constant_Numeric 'and' v2:constant_Numeric => {
+    'tra' v1:constant_Numeric 'e' v2:constant_Numeric => {
         if (!v1.getType().equals(v2.getType()))
             return null;
         if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
@@ -184,7 +228,7 @@ range = {
             return null;
         return [v1, v2];
     };
-    'in the range from' v1:constant_Numeric 'to' v2:constant_Numeric => {
+    'nell\' intervallo da' v1:constant_Numeric 'a' v2:constant_Numeric => {
         if (!v1.getType().equals(v2.getType()))
             return null;
         if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
@@ -196,7 +240,9 @@ range = {
     };
 }
 range_filter = {
-    param:the_out_param_Numeric 'is' range:range => {
+    ( param:the_out_param_Numeric_masculine 'è' range:range
+    | param:the_out_param_Numeric_feminine 'è' range:range
+    ) => {
         const [v1, v2] = range;
         return new Ast.BooleanExpression.And([
             Ast.BooleanExpression.Atom(param.name, '>=', v1),
@@ -206,81 +252,89 @@ range_filter = {
 }
 
 with_filter = {
-    p:out_param_Any 'equal to' x:constant_Any => {
+    ( p:out_param_Any_masculine 'uguale a' x:constant_Any
+    | p:out_param_Any_feminine 'uguale a' x:constant_Any
+    ) => {
         if (x.getType().isString)
             return C.makeFilter($options, p, '=~', x);
         else
             return C.makeFilter($options, p, '==', x);
     };
-    !turking p:out_param_String ('containing' | 'including') x:constant_String => C.makeFilter($options, p, '=~', x);
-    !turking x:constant_String ('in the' | 'in its' | 'in their') p:out_param_String => C.makeFilter($options, p, '=~', x);
+    !turking
+    ( p:out_param_String_masculine ('contenente' | 'che contiene' | 'che include') x:constant_String
+    | p:out_param_String_feminine ('contenente' | 'che contiene' | 'che include') x:constant_String
+    ) => C.makeFilter($options, p, '=~', x);
+    !turking
+    ( x:constant_String ('in il' | 'in il suo') p:out_param_String_masculine
+    | x:constant_String ('in la' | 'in la sua') p:out_param_String_feminine
+    ) => C.makeFilter($options, p, '=~', x);
 
-    //p:out_param_Numeric ('higher' | 'larger' | 'bigger') 'than' x:constant_Numeric => C.makeFilter($options, p, '>=', x);
-    //p:out_param_Numeric ('smaller' | 'lower') 'than' x:constant_Numeric => C.makeFilter($options, p, '<=', x);
-    p:out_param_Number ('greater than' | 'higher than' | 'larger than' | 'more than' | 'at least' | 'not less than') x:constant_Number => C.makeFilter($options, p, '>=', x);
-    p:out_param_Number ('smaller than' | 'lower than' | 'less than' | 'at most' | 'not more than') x:constant_Number  => C.makeFilter($options, p, '<=', x);
+    // >=
+    ( 'il' p:out_param_Number_masculine ('più grande di' | 'superiore a' | 'più alto di' | 'maggiore di') x:constant_Number
+    | 'la' p:out_param_Number_feminine ('più grande di' | 'superiore a' | 'più alta di' | 'maggiore di') x:constant_Number
 
-    p:out_param_Currency ('more expensive' | 'more costly' | 'more') 'than' x:constant_Currency => C.makeFilter($options, p, '>=', x);
-    p:out_param_Currency ('less expensive' | 'cheaper' | 'less') 'than' x:constant_Currency  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Currency_masculine ('più caro' | 'più costoso' | 'maggiore') 'di' x:constant_Currency
+    | 'la' p:out_param_Currency_feminine ('più cara' | 'più costosa' | 'maggiore') 'di' x:constant_Currency
 
-    p:out_param_Measure_ms 'longer than' x:constant_Measure_ms => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_ms 'shorter than' x:constant_Measure_ms  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_ms_masculine ('più lungo' | 'maggiore') 'di' x:constant_Measure_ms
+    | 'la' p:out_param_Measure_ms_feminine ('più lunga' | 'maggiore') 'di' x:constant_Measure_ms
 
-    p:out_param_Measure_byte ('larger' | 'more') 'than' x:constant_Measure_byte => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_byte ('smaller' | 'less') 'than' x:constant_Measure_byte  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_byte_masculine ('più grande' | 'maggiore') 'di' x:constant_Measure_byte
+    | 'la' p:out_param_Measure_byte_feminine ('più grande' | 'maggiore') 'di' x:constant_Measure_byte
 
-    p:out_param_Measure_kg ('heavier' | 'larger') 'than' x:constant_Measure_kg => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_kg ('lighter' | 'smaller') 'than' x:constant_Measure_kg  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_kg_masculine ('più pesante' | 'più grande' | 'maggiore') 'di' x:constant_Measure_kg
+    | 'la' p:out_param_Measure_kg_feminine ('più pesante' | 'più grande' | 'maggiore') 'di' x:constant_Measure_kg
 
-    p:out_param_Measure_C ('hotter' | 'higher') 'than' x:constant_Measure_C => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_C ('cooler' | 'colder' | 'lower') 'than' x:constant_Measure_C  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_C_masculine ('più caldo' | 'più alto' | 'maggiore') 'di' x:constant_Measure_C
+    | 'la' p:out_param_Measure_C_feminine ('più calda' | 'più alta' | 'maggiore') 'di' x:constant_Measure_C
 
-    p:out_param_Measure_m ('farther' | 'more distant' | 'longer') 'than' x:constant_Measure_m => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_m ('nearer' | 'closer' | 'shorter') 'than' x:constant_Measure_m  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_m_masculine ('più distante' | 'più lontano' | 'più lungo' | 'maggiore') 'di' x:constant_Measure_m
+    | 'la' p:out_param_Measure_m_feminine ('più distante' | 'più lontana' | 'più lunga' | 'maggiore') 'di' x:constant_Measure_m
 
-    p:out_param_Measure_mps ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter($options, p, '>=', x);
-    p:out_param_Measure_mps ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_mps_masculine ('più veloce' | 'maggiore') 'di' x:constant_Measure_mps
+    | 'il' p:out_param_Measure_mps_feminine ('più veloce' | 'maggiore') 'di' x:constant_Measure_mps
 
-    p:out_param_Date ('after' | 'later than') x:constant_Date => C.makeFilter($options, p, '>=', x);
-    p:out_param_Date ('before' | 'earlier than' | 'sooner than') x:constant_Date => C.makeFilter($options, p, '<=', x);
-    p:out_param_Time ('after' | 'later than') x:constant_Time => C.makeFilter($options, p, '>=', x);
-    p:out_param_Time ('before' | 'earlier than' | 'sooner than') x:constant_Time => C.makeFilter($options, p, '<=', x);
+    ) => C.makeFilter($options, p, '>=', x);
 
-    //('higher' | 'larger' | 'bigger') p:out_param_Numeric 'than' x:constant_Numeric => C.makeFilter($options, p, '>=', x);
-    //('smaller' | 'lower') p:out_param_Numeric 'than' x:constant_Numeric => C.makeFilter($options, p, '<=', x);
-    ('greater' | 'higher' | 'larger' | 'more') p:out_param_Number 'than' x:constant_Number => C.makeFilter($options, p, '>=', x);
-    ('smaller' | 'lower' | 'less') p:out_param_Number 'than' x:constant_Number  => C.makeFilter($options, p, '<=', x);
+    // <=
+    ( 'il' p:out_param_Number_masculine ('più piccolo di' | 'inferiore a' | 'minore di') x:constant_Number
+    | 'la' p:out_param_Number_feminine ('più piccola di' | 'inferiore a' | 'minore di') x:constant_Number
 
-    ('more expensive' | 'more costly' | 'more') p:out_param_Currency 'than' x:constant_Currency => C.makeFilter($options, p, '>=', x);
-    ('less expensive' | 'cheaper' | 'less') p:out_param_Currency 'than' x:constant_Currency  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Currency_masculine ('meno caro' | 'meno costoso' | 'minore') 'di' x:constant_Currency
+    | 'la' p:out_param_Currency_feminine ('meno cara' | 'meno costosa' | 'minore') 'di' x:constant_Currency
 
-    'longer' p:out_param_Measure_ms 'than' x:constant_Measure_ms => C.makeFilter($options, p, '>=', x);
-    'shorter' p:out_param_Measure_ms 'than' x:constant_Measure_ms  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_ms_masculine ('più corto' | 'breve' | 'minore') 'di' x:constant_Measure_ms
+    | 'la' p:out_param_Measure_ms_feminine 'più' ('corta' | 'breve' | 'minore') 'di' x:constant_Measure_ms
 
-    ('larger' | 'more') p:out_param_Measure_byte 'than' x:constant_Measure_byte => C.makeFilter($options, p, '>=', x);
-    ('smaller' | 'less') p:out_param_Measure_byte 'than' x:constant_Measure_byte  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_byte_masculine ('più piccolo' | 'minore') 'di' x:constant_Measure_byte
+    | 'la' p:out_param_Measure_byte_feminine ('più piccola' | 'minore') 'di' x:constant_Measure_byte
 
-    ('heavier' | 'larger') p:out_param_Measure_kg 'than' x:constant_Measure_kg => C.makeFilter($options, p, '>=', x);
-    ('lighter' | 'smaller') p:out_param_Measure_kg 'than' x:constant_Measure_kg  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_kg_masculine ('più leggero' | 'più piccolo' | 'minore') 'di' x:constant_Measure_kg
+    | 'la' p:out_param_Measure_kg_feminine ('più leggera' | 'più piccola' | 'minore') 'di' x:constant_Measure_kg
 
-    ('hotter' | 'higher') p:out_param_Measure_C 'than' x:constant_Measure_C => C.makeFilter($options, p, '>=', x);
-    ('cooler' | 'colder' | 'lower') p:out_param_Measure_C 'than' x:constant_Measure_C  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_C_masculine ('più freddo' | 'minore') 'di' x:constant_Measure_C
+    | 'la' p:out_param_Measure_C_feminine ('più fredda' | 'minore') 'di' x:constant_Measure_C
 
-    ('farther' | 'more distant' | 'longer') p:out_param_Measure_m 'than' x:constant_Measure_m => C.makeFilter($options, p, '>=', x);
-    ('nearer' | 'closer' | 'shorter') p:out_param_Measure_m 'than' x:constant_Measure_m  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_m_masculine ('più vicino' | 'più corto' | 'più breve' | 'minore') 'di' x:constant_Measure_m
+    | 'la' p:out_param_Measure_m_feminine ('più vicina' | 'più corta' | 'più breve' | 'minore') 'di' x:constant_Measure_m
 
-    ('faster' | 'quicker' | 'speedier') p:out_param_Measure_mps 'than' x:constant_Measure_mps => C.makeFilter($options, p, '>=', x);
-    ('slower' | 'more slowly') p:out_param_Measure_mps 'than' x:constant_Measure_mps  => C.makeFilter($options, p, '<=', x);
+    | 'il' p:out_param_Measure_mps_masculine ('più lento' | 'minore') 'di' x:constant_Measure_mps
+    | 'la' p:out_param_Measure_mps_feminine ('più lenta' | 'minore') 'di' x:constant_Measure_mps
 
-    'later' p:out_param_Date 'than' x:constant_Date => C.makeFilter($options, p, '>=', x);
-    ('earlier' | 'sooner') p:out_param_Date 'than' x:constant_Date => C.makeFilter($options, p, '<=', x);
-    'later' p:out_param_Time 'than' x:constant_Time => C.makeFilter($options, p, '>=', x);
-    ('earlier' | 'sooner') p:out_param_Time 'than' x:constant_Time => C.makeFilter($options, p, '<=', x);
+    ) => C.makeFilter($options, p, '<=', x);
+
+    // "maggior temperatura di ..." is too poetic/uncommon to be meaningful
+    //('greater' | 'higher' | 'larger' | 'more') p:out_param_Number 'di' x:constant_Number => C.makeFilter($options, p, '>=', x);
+    //('smaller' | 'lower' | 'less') p:out_param_Number 'di' x:constant_Number  => C.makeFilter($options, p, '<=', x);
 
     !turking {
         f:range_with_filter => f;
-        'no' param:out_param_Number => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0));
-        'zero' param:out_param_Number => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0));
+
+        ( 'nessun' param:out_param_Number_masculine
+        | 'nessuna' param:out_param_Number_feminine
+        | 'zero' param:out_param_Number_masculine
+        | 'zero' param:out_param_Number_feminine
+        ) => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0));
     }
 }
 range_with_filter = {
@@ -297,12 +351,16 @@ range_with_filter = {
 // nnp: Noun-Phrase parameter for Property of the subject
 // e.g.: "name", "date of birth"
 npp_filter = {
-    p:out_param_npp x:constant_Any => {
+    ( p:out_param_npp_masculine x:constant_Any
+    | p:out_param_npp_feminine x:constant_Any
+    ) => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
 
-    p:out_param_npp x:constant_Any => {
+    ( p:out_param_npp_masculine x:constant_Any
+    | p:out_param_npp_feminine x:constant_Any
+    ) => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }
@@ -310,13 +368,21 @@ npp_filter = {
 // filters on npi parameters
 // npi: Noun-phrase parameter for Identity of the subejct
 // e.g.: "owner of <company>", "student in <university>"
-npi_filter = {
-    p:out_param_npi x:constant_Any => {
+npi_filter_masculine = {
+    p:out_param_npi_masculine x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
-
-    p:out_param_npi x:constant_Any => {
+    p:out_param_npi_masculine x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+}
+npi_filter_feminine = {
+    p:out_param_npi_feminine x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    p:out_param_npi_feminine x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }
@@ -324,13 +390,21 @@ npi_filter = {
 // filters on pvp parameters
 // pvp: Passive-Verb Phrase parameter
 // e.g.: "called <nickname>", "born on <date>"
-pvp_filter = {
-    p:out_param_pvp x:constant_Any => {
+pvp_filter_masculine = {
+    p:out_param_pvp_masculine x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
-
-    p:out_param_pvp x:constant_Any => {
+    p:out_param_pvp_masculine x:constant_Any => {
+        return C.makeFilter($options, p, 'contains', x);
+    };
+}
+pvp_filter_feminine = {
+    p:out_param_pvp_feminine x:constant_Any => {
+        const op = x.getType().isString ? '=~' : '==';
+        return C.makeFilter($options, p, op, x);
+    };
+    p:out_param_pvp_feminine x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }
@@ -339,25 +413,39 @@ pvp_filter = {
 // avp: Active-Verb Phrase parameter
 // e.g.: "owns <company>", "studied in <university>"
 avp_filter = {
-    p:out_param_avp x:constant_Any => {
+    // avp is a verb so does not distinguish masculine/feminine,
+    // but we have both forms to simplify the code in SentenceGenerator
+    ( p:out_param_avp_masculine x:constant_Any
+    | p:out_param_avp_feminine x:constant_Any
+    )  => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
-
-    p:out_param_avp x:constant_Any => {
+    ( p:out_param_avp_masculine x:constant_Any
+    | p:out_param_avp_feminine x:constant_Any
+    ) => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }
 
+
+// NOTE: npv & apv are not gendered (because out_param_* is the empty string)
+//
+// enum constants might need to be gendered to generate the correct sentence
+// "Bob è mancino" vs "Alice è mancina" ("Bob/Alice is left-handed")
+// but that would require a lot of pain to carry gender across constant_Any so we don't do it
+//
+// string constants are even worse, because we replace them much later
+// we'll just train randomly, and hope for the best
+
 // filters on npv parameters
 // npv: implicit parameter with Noun-Phrase Value, i.e., the parameter itself will not appear in the sentence
-// e.g.: "Bob is a PhD", the parameter `academic_degree` is implicit, and should be inferred by the value "PhD"
+// e.g.: "Bob is a doctor", the parameter `academic_degree` (or `jobTitle`) is implicit, and should be inferred by the value "doctor"
 npv_filter = {
     p:out_param_npv x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
-
     p:out_param_npv x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
@@ -371,48 +459,46 @@ apv_filter = {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
-
     p:out_param_apv x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }
 
 // filters on npp parameter for "whose" question
-// e.g.: whose nickname is boogie?
+// e.g.: "boogie è il soprannome di chi?" (="whose nickname is boogie?")
 whose_npp_filter = {
-    p:out_param_npp 'is' x:constant_Any => {
+    ( x:constant_Any 'è il' p:out_param_npp_masculine
+    | x:constant_Any 'è la' p:out_param_npp_feminine
+    ) => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
-
-    p:out_param_npp 'is' x:constant_Any => {
+    ( x:constant_Any 'è il' p:out_param_npp_masculine
+    | x:constant_Any 'è la' p:out_param_npp_feminine
+    ) => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }
 
 // generic filters on parameters in all 6 grammar categories for "who" questions
-who_generic_filter = {
-    !turking ('has' | 'got' | 'has got') p:out_param_npp x:constant_Any => {
+who_generic_filter_masculine = {
+    ( 'ha' p:out_param_npp_masculine x:constant_Any
+    | 'ha' p:out_param_npp_feminine x:constant_Any
+    ) => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
-    !turking ('has' | 'got' | 'has got') p:out_param_npp x:constant_Any => {
+    ( 'ha' p:out_param_npp_masculine x:constant_Any
+    | 'ha' p:out_param_npp_feminine x:constant_Any
+    ) => {
         return C.makeFilter($options, p, 'contains', x);
     };
 
-    ?turking 'has' p:out_param_npp x:constant_Any => {
+    'è il' p:out_param_npi_masculine x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
-    ?turking 'has' p:out_param_npp x:constant_Any => {
-        return C.makeFilter($options, p, 'contains', x);
-    };
-
-    'is the' p:out_param_npi x:constant_Any => {
-        const op = x.getType().isString ? '=~' : '==';
-        return C.makeFilter($options, p, op, x);
-    };
-    'is the' p:out_param_npi x:constant_Any => {
+    'è il' p:out_param_npi_masculine x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 
@@ -420,31 +506,31 @@ who_generic_filter = {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
-    p:out_param_apv x:constant_Any => {
+    p:out_param_avp x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 
-    'is' p:out_param_pvp x:constant_Any => {
+    'è' p:out_param_pvp_masculine x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
-    'is' p:out_param_pvp x:constant_Any => {
+    'è' p:out_param_pvp_masculine x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 
-    'is a' p:out_param_npv x:constant_Any => {
+    'è un' p:out_param_npv x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
-    'is a' p:out_param_npv x:constant_Any => {
+    'è un' p:out_param_npv x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 
-    'is' p:out_param_apv x:constant_Any => {
+    'è' p:out_param_apv x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
-    'is' p:out_param_apv x:constant_Any => {
+    'è' p:out_param_apv x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 }

@@ -20,42 +20,57 @@ const C = require('../ast_manip');
 
 }
 
+thingpedia_query_masculine = {}
+thingpedia_query_feminine = {}
 
-complete_table = {
-    thingpedia_query if complete;
-    !primonly table_join_replace_placeholder if complete;
+complete_table_masculine = {
+    thingpedia_query_masculine if complete;
+    !primonly table_join_replace_placeholder_masculine if complete;
+}
+complete_table_feminine = {
+    thingpedia_query_feminine if complete;
+    !primonly table_join_replace_placeholder_feminine if complete;
 }
 complete_get_command = {
     thingpedia_get_command if complete;
 }
 if_filtered_table = {
-    complete_table;
+    complete_table_masculine;
+    complete_table_feminine;
     one_if_filter_table;
     !turking two_if_filter_table;
 }
 
 one_if_filter_table = {
-    !nofilter table:complete_table 'if' filter:atom_filter => {
+    !nofilter
+    ( table:complete_table_masculine 'se' filter:atom_filter
+    | table:complete_table_feminine 'se' filter:atom_filter
+    ) => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
     };
 }
 two_if_filter_table = {
-    !nofilter table:one_if_filter_table 'and' filter:atom_filter => {
+    !nofilter table:one_if_filter_table 'e' filter:atom_filter => {
         if (!C.checkFilter(table, filter))
             return null;
         return C.addFilter(table, filter, $options);
     };
 }
-with_filtered_table = {
-    complete_table;
-    one_with_filter_table;
-    !turking two_with_filter_table;
+with_filtered_table_masculine = {
+    complete_table_masculine;
+    one_with_filter_table_masculine;
+    !turking two_with_filter_table_masculine;
+}
+with_filtered_table_feminine = {
+    complete_table_feminine;
+    one_with_filter_table_feminine;
+    !turking two_with_filter_table_feminine;
 }
 
 one_with_filter_table = {
-    !nofilter table:complete_table ('with' | 'having') filter:with_filter => {
+    !nofilter table:complete_table ('con' | 'che ha') filter:with_filter => {
         if (!table.schema.is_list)
             return null;
         if (!C.checkFilter(table, filter))

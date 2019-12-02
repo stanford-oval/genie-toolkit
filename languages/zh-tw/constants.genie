@@ -19,6 +19,9 @@ const Type = ThingTalk.Type;
 const C = require('../ast_manip');
 }
 
+constant_Time = const(TIME, Type.Time);
+constant_Date = const(DATE, Type.Date);
+
 constant_Number = {
     // `turking` is a flags that controls a group of grammar rules
     // syntax is ?flag to enable the rule (or group of rules) only if the flag is set, !flag to disable the

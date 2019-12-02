@@ -19,6 +19,9 @@ const Type = ThingTalk.Type;
 const C = require('../ast_manip');
 }
 
+constant_Time = const(TIME, Type.Time, 'le');
+constant_Date = const(DATE, Type.Date, 'il');
+
 constant_Number = {
     // `turking` is a flags that controls a group of grammar rules
     // syntax is ?flag to enable the rule (or group of rules) only if the flag is set, !flag to disable the
@@ -34,31 +37,33 @@ constant_Number = {
 }
 
 constant_date_point = {
-    'now'                 => new Ast.Value.Date(null, '+', null);
-    'today'               => new Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '+', null);
-    'yesterday'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '-', Ast.Value.Measure(1, 'day'));
-    'this week'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '+', null);
+    'ora'                     => new Ast.Value.Date(null, '+', null);
+    'adesso'                  => new Ast.Value.Date(null, '+', null);
+    'oggi'                    => new Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '+', null);
+    'ieri'                    => new Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '-', Ast.Value.Measure(1, 'day'));
+    'questa settimana'        => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '+', null);
 
     !turking {
-    'tomorrow'            => new Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
-    'the end of the day'  => new Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
-    'the end of the week' => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
-    'last week'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
-    'this month'          => new Ast.Value.Date(Ast.DateEdge('start_of', 'mon'), '+', null);
-    'this year'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'year'), '+', null);
-    'next month'          => new Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '+', null);
-    'next year'           => new Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '+', null);
-    'last month'          => new Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '-', Ast.Value.Measure(1, 'mon'));
-    'last year'           => new Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '-', Ast.Value.Measure(1, 'year'));
+    'domani'                  => new Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
+    'la fine della giornata'  => new Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
+    'la fine della settimana' => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
+    'la settimana scorsa'        => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
+    'questo mese'             => new Ast.Value.Date(Ast.DateEdge('start_of', 'mon'), '+', null);
+    'quest\' anno'            => new Ast.Value.Date(Ast.DateEdge('start_of', 'year'), '+', null);
+    'il mese prossimo'        => new Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '+', null);
+    'l\' anno prossimo'       => new Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '+', null);
+    'il mese scorso'          => new Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '-', Ast.Value.Measure(1, 'mon'));
+    'l\' altr\' anno'         => new Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '-', Ast.Value.Measure(1, 'year'));
+    'l\' anno scorso'         => new Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '-', Ast.Value.Measure(1, 'year'));
     }
 }
 
 constant_Date = {
     !turking {
-    duration:constant_Measure_ms 'from now' => new Ast.Value.Date(null, '+', duration);
-    duration:constant_Measure_ms 'ago'      => new Ast.Value.Date(null, '-', duration);
-    duration:constant_Measure_ms 'after' pt:constant_date_point  => new Ast.Value.Date(pt.value, '+', duration);
-    duration:constant_Measure_ms 'before' pt:constant_date_point => new Ast.Value.Date(pt.value, '-', duration);
+    duration:constant_Measure_ms 'da adesso' => new Ast.Value.Date(null, '+', duration);
+    duration:constant_Measure_ms 'fa'      => new Ast.Value.Date(null, '-', duration);
+    duration:constant_Measure_ms 'dopo' pt:constant_date_point  => new Ast.Value.Date(pt.value, '+', duration);
+    duration:constant_Measure_ms 'prima di' pt:constant_date_point => new Ast.Value.Date(pt.value, '-', duration);
     }
 }
 
@@ -68,63 +73,72 @@ constant_Measure_byte = {
     num:constant_Number 'mb' => C.addUnit('MB', num);
     num:constant_Number 'gb' => C.addUnit('GB', num);
     num:constant_Number 'tb' => C.addUnit('TB', num);
-    num:constant_Number 'kilobytes' => C.addUnit('KB', num);
-    num:constant_Number 'megabytes' => C.addUnit('MB', num);
-    num:constant_Number 'gigabytes' => C.addUnit('GB', num);
-    num:constant_Number 'terabytes' => C.addUnit('TB', num);
+    num:constant_Number 'kilobyte' => C.addUnit('KB', num);
+    num:constant_Number 'megabyte' => C.addUnit('MB', num);
+    num:constant_Number 'gigabyte' => C.addUnit('GB', num);
+    num:constant_Number 'terabyte' => C.addUnit('TB', num);
 }
 
 constant_Measure_kg = {
-    !turking num:constant_Number 'grams' => C.addUnit('g', num);
-    num:constant_Number 'kilograms' => C.addUnit('kg', num);
+    !turking num:constant_Number 'grammi' => C.addUnit('g', num);
+    num:constant_Number 'chili' => C.addUnit('kg', num);
+    num:constant_Number 'chilogrammi' => C.addUnit('kg', num);
     num:constant_Number 'kg' => C.addUnit('kg', num);
-    num:constant_Number 'pounds' => C.addUnit('lb', num);
-    num:constant_Number 'lbs' => C.addUnit('lb', num);
-    num:constant_Number 'ounces' => C.addUnit('oz', num);
-    num:constant_Number 'oz' => C.addUnit('oz', num);
+
+    !turking {
+        num:constant_Number 'libbre' => C.addUnit('lb', num);
+        num:constant_Number 'once' => C.addUnit('oz', num);
+        num:constant_Number 'oz' => C.addUnit('oz', num);
+    }
 }
 
 constant_Measure_C = {
+    num:constant_Number 'c' => C.addUnit('C', num);
+    num:constant_Number 'centigradi' => C.addUnit('C', num);
+    num:constant_Number 'celsius' => C.addUnit('C', num);
     !turking {
-        num:constant_Number 'c' => C.addUnit('C', num);
-        num:constant_Number 'centigrade' => C.addUnit('C', num);
+        num:constant_Number 'f' => C.addUnit('F', num);
+        num:constant_Number 'fahrenheit' => C.addUnit('F', num);
     }
-    num:constant_Number 'f' => C.addUnit('F', num);
-    num:constant_Number 'fahrenheit' => C.addUnit('F', num);
-    num:constant_Number 'degrees' => C.addUnit('F', num);
+
+    // note: the default temperature unit is different here!
+    num:constant_Number 'gradi' => C.addUnit('C', num);
 }
 
 constant_Measure_m = {
-    !turking num:constant_Number 'm' => C.addUnit('m', num);
-    num:constant_Number 'meters' => C.addUnit('m', num);
+    num:constant_Number 'm' => C.addUnit('m', num);
+    num:constant_Number 'metri' => C.addUnit('m', num);
     num:constant_Number 'km' => C.addUnit('km', num);
-    num:constant_Number 'kilometers' => C.addUnit('km', num);
-    num:constant_Number 'mi' => C.addUnit('mi', num);
-    num:constant_Number 'miles' => C.addUnit('mi', num);
-    num:constant_Number 'ft' => C.addUnit('ft', num);
-    num:constant_Number 'in' => C.addUnit('in', num);
-    num:constant_Number 'inches' => C.addUnit('in', num);
-    num:constant_Number 'cm' => C.addUnit('cm', num);
+    num:constant_Number 'chilometri' => C.addUnit('km', num);
+    !turking {
+        num:constant_Number 'mi' => C.addUnit('mi', num);
+        num:constant_Number 'miglia' => C.addUnit('mi', num);
+        num:constant_Number 'ft' => C.addUnit('ft', num);
+        num:constant_Number 'piedi' => C.addUnit('ft', num);
+        num:constant_Number 'in' => C.addUnit('in', num);
+        num:constant_Number 'pollici' => C.addUnit('in', num);
+        num:constant_Number 'cm' => C.addUnit('cm', num);
+    }
 }
 
 constant_Measure_mps = {
-    num:constant_Number 'mph' => C.addUnit('mph', num);
-    !turking num:constant_Number 'm/s' => C.addUnit('mps', num);
-    num:constant_Number 'kph' => C.addUnit('kmph', num);
-    num:constant_Number 'miles per hour' => C.addUnit('mph', num);
-    num:constant_Number 'kilometers per hour' => C.addUnit('kmph', num);
-    num:constant_Number 'km/h' => C.addUnit('kmph', num);
+    !turking num:constant_Number 'm / s' => C.addUnit('mps', num);
+    !turking num:constant_Number 'miglia orarie' => C.addUnit('mph', num);
+    num:constant_Number 'chilometri orari' => C.addUnit('kmph', num);
+    num:constant_Number 'chilometri all\' ora' => C.addUnit('kmph', num);
+    num:constant_Number 'km / h' => C.addUnit('kmph', num);
 }
 
 constant_Location = {
-    'here'                    => new Ast.Value.Location(Ast.Location.Relative('current_location'));
-    !turking 'where i am now' => new Ast.Value.Location(Ast.Location.Relative('current_location'));
-    'home'                    => new Ast.Value.Location(Ast.Location.Relative('home'));
-    'work'                    => new Ast.Value.Location(Ast.Location.Relative('work'));
+    'qui'                    => new Ast.Value.Location(Ast.Location.Relative('current_location'));
+    'qua'                    => new Ast.Value.Location(Ast.Location.Relative('current_location'));
+    !turking 'dove sono ora' => new Ast.Value.Location(Ast.Location.Relative('current_location'));
+    'casa'                   => new Ast.Value.Location(Ast.Location.Relative('home'));
+    'lavoro'                 => new Ast.Value.Location(Ast.Location.Relative('work'));
 }
 
 constant_String = {
-    ( 'this'
-    | 'the selection on the screen'
+    ( 'questo'
+    | 'la selezione sullo schermo'
     ) => new Ast.Value.ContextRef('selection', Type.String);
 }
