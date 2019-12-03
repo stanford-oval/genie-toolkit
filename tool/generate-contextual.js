@@ -17,6 +17,7 @@ const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const parallelize = require('../lib/parallelize');
 const StreamUtils = require('../lib/stream-utils');
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
+const ProgressBar = require('./lib/progress_bar');
 
 class ActionSetFlag extends argparse.Action {
     call(parser, namespace, values) {
@@ -126,12 +127,28 @@ module.exports = {
         const inputFile = readAllLines(args.input_file);
         const outputFile = args.output;
 
+        const counter = new StreamUtils.CountStream();
+        const promise = StreamUtils.waitFinish(outputFile);
+
         delete args.input_file;
         delete args.output;
         inputFile
+            .pipe(counter)
             .pipe(await parallelize(args.parallelize, require.resolve('./workers/generate-contextual-worker.js'), args))
             .pipe(new DatasetStringifier())
             .pipe(outputFile);
-        await StreamUtils.waitFinish(outputFile);
+
+        if (!args.debug) {
+            const progbar = new ProgressBar(1);
+            counter.on('progress', (value) => {
+                //console.log(value);
+                progbar.update(value);
+            });
+
+            // issue an update now to show the progress bar
+            progbar.update(0);
+        }
+
+        await promise;
     }
 };

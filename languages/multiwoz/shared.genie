@@ -102,9 +102,8 @@ npp_slot = {
     'parking' => new Slot('hotel-parking', new Ast.TristateValue('yes'));
     'parking available' => new Slot('hotel-parking', new Ast.TristateValue('yes'));
     'no parking' => new Slot('hotel-parking', new Ast.TristateValue('no'));
-    // XXX the ontology includes "free" as a valid value for parking, but I suspect "free parking" should be marked as "parking = yes"?
-    'free parking' => new Slot('hotel-parking', new Ast.ConstantValue('free'));
-    'free parking available' => new Slot('hotel-parking', new Ast.ConstantValue('free'));
+    'free parking' => new Slot('hotel-parking', new Ast.TristateValue('yes'));
+    'free parking available' => new Slot('hotel-parking', new Ast.TristateValue('yes'));
 
     'internet' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
     'no internet' => new Slot('hotel-internet', new Ast.TristateValue('no'));
