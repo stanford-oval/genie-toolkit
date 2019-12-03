@@ -10,7 +10,7 @@
 
 {
     const Ast = require('../../lib/languages/multidst/ast');
-    const { Slot, EmptySlot, checkAndAddSlot } = require('./ast_utils');
+    const { Slot, EmptySlot, checkAndAddSlot, SEARCH_SLOTS } = require('./ast_utils');
 }
 
 random_number = {
@@ -24,12 +24,12 @@ random_number = {
 }
 
 generic_preamble = {
-    'i am looking for a' => [];
-    'i am looking for the' => [];
-    'i would like a' => [];
-    'i would like the' => [];
-    'i want a' => [];
-    'i need a' => [];
+    'i am looking for' => [];
+    'i am looking for' => [];
+    'i would like' => [];
+    'i would like' => [];
+    'i want' => [];
+    'i need' => [];
 }
 
 preamble = {
@@ -39,15 +39,20 @@ preamble = {
     'hello , i am looking for the' => [];
     'i am looking for information about the' => [];
     'i am looking for informating regarding a' => [];
+    'i am looking to get some information on the' => [];
 
     'i am also looking for a' => [];
     'i am also looking for the' => [];
     'i also want a' => [];
     'i also need a' => [];
+    'i want a' => [];
+    'i need a' => [];
     'can you help me with a' => [];
     'can you help me with information about a' => [];
     'can you help with info regarding the' => [];
+    'can you help with information regarding the' => [];
     'can you help me find info about the' => [];
+    'can you help me find a' => [];
 
     'i would like to book a' => ['train', 'hotel', 'taxi'];
     'i need to book a' => ['train', 'hotel', 'taxi'];
@@ -58,6 +63,113 @@ preamble = {
     'i would like a reservation for a' => ['hotel', 'restaurant'];
     'can you help me with a reservation for a' => ['hotel', 'restaurant'];
     'can you help me book a' => ['train', 'hotel', 'taxi'];
+}
+
+param_noun_phrase = {
+    // restaurant
+    ( 'cuisine'
+    | 'food'
+    | 'type of food'
+    ) => 'restaurant-food';
+
+    ( 'restaurant'
+    | 'place'
+    | 'name'
+    ) => 'restaurant-name';
+
+    'price range' => 'restaurant-price-range';
+
+    ( 'area'
+    | 'area of the city') => 'restaurant-area';
+
+    'number of people' => 'restaurant-book-people';
+
+    ( 'day'
+    | 'date'
+    ) => 'restaurant-book-day';
+
+    'time' => 'restaurant-book-time';
+
+    // hotel
+    ( 'hotel'
+    | 'place'
+    | 'name'
+    ) => 'hotel-name';
+
+    'price range' => 'hotel-price-range';
+
+    ( 'area'
+    | 'area of the city') => 'hotel-area';
+
+    'number of people' => 'hotel-book-people';
+
+    ( 'day'
+    | 'date'
+    ) => 'hotel-book-day';
+
+    ( 'duration'
+    | 'length of stay'
+    ) => 'hotel-book-stay';
+
+    // attraction
+
+    ( 'attraction type'
+    | 'attraction'
+    | 'type'
+    | 'type of attraction'
+    ) => 'attraction-type';
+
+    ( 'attraction'
+    | 'place'
+    | 'name'
+    ) => 'attraction-name';
+
+    ( 'area'
+    | 'area of the city') => 'attraction-area';
+
+    // train
+    ( 'destination'
+    | 'destination station'
+    | 'arrival'
+    ) => 'train-destination';
+
+    ( 'departure'
+    | 'departure station'
+    ) => 'train-departure';
+
+    ( 'time'
+    | 'departure time'
+    ) => 'train-leave-at';
+    'arrival time' => 'train-arrive-by';
+
+    ( 'day'
+    | 'date'
+    ) => 'train-book-day';
+
+    // taxi
+    ( 'destination'
+    | 'destination address'
+    | 'arrival'
+    ) => 'taxi-destination';
+
+    ( 'departure'
+    | 'departure address'
+    | 'pickup'
+    ) => 'taxi-departure';
+
+    ( 'day'
+    | 'date'
+    ) => 'taxi-book-day';
+
+    ( 'time'
+    | 'departure time'
+    | 'pickup time'
+    ) => 'taxi-leave-at';
+    ( 'arrival time'
+    | 'dropoff time'
+    ) => 'taxi-arrive-by';
+
+    'number of people' => 'taxi-book-people';
 }
 
 base_noun_phrase = {
@@ -102,14 +214,17 @@ npp_slot = {
     'parking' => new Slot('hotel-parking', new Ast.TristateValue('yes'));
     'parking available' => new Slot('hotel-parking', new Ast.TristateValue('yes'));
     'no parking' => new Slot('hotel-parking', new Ast.TristateValue('no'));
-    // XXX the ontology includes "free" as a valid value for parking, but I suspect "free parking" should be marked as "parking = yes"?
-    'free parking' => new Slot('hotel-parking', new Ast.ConstantValue('free'));
-    'free parking available' => new Slot('hotel-parking', new Ast.ConstantValue('free'));
+    'free parking' => new Slot('hotel-parking', new Ast.TristateValue('yes'));
+    'free parking available' => new Slot('hotel-parking', new Ast.TristateValue('yes'));
 
     'internet' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
     'no internet' => new Slot('hotel-internet', new Ast.TristateValue('no'));
     'free internet' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
     'free internet available' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
+    'wifi' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
+    'no wifi' => new Slot('hotel-internet', new Ast.TristateValue('no'));
+    'free wifi' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
+    'free wifi available' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
 
     'name' v:constant_hotel_name => new Slot('hotel-name', v);
 
@@ -185,6 +300,8 @@ pvp_slot = {
     ( 'arriving at' v:constant_train_destination
     | 'to' v:constant_train_destination
     | 'arriving to' v:constant_train_destination
+    | 'going to' v:constant_train_destination
+    | 'going into' v:constant_train_destination
     ) => new Slot('train-destination', v);
 
     ( 'arriving at' v:constant_train_arrive_by
@@ -265,10 +382,12 @@ pvp_slot = {
 avp_slot = {
     // train
     ( 'departs from' v:constant_train_departure
+    | 'should depart from' v:constant_train_departure
     | 'departs at' v:constant_train_departure
     ) => new Slot('train-departure', v);
 
     ( 'arrives at' v:constant_train_destination
+    | 'should arrive at' v:constant_train_destination
     | 'arrives to' v:constant_train_destination
     ) => new Slot('train-destination', v);
 
@@ -289,12 +408,14 @@ avp_slot = {
 
     // taxi
     ( 'departs from' v:constant_taxi_departure
+    | 'should depart from' v:constant_taxi_departure
     | 'departs at' v:constant_taxi_departure
     | 'picks me up at' v:constant_taxi_departure
     ) => new Slot('taxi-departure', v);
 
     ( 'arrives at' v:constant_taxi_destination
     | 'arrives to' v:constant_taxi_destination
+    | 'should arrive to' v:constant_taxi_destination
     | 'drops me off at' v:constant_taxi_destination
     ) => new Slot('taxi-destination', v);
 
@@ -322,6 +443,28 @@ apv_slot = {
     v:constant_restaurant_food => new Slot('restaurant-food', v);
 }
 
+generic_answer = {
+    // "i want to book for 3 people", "I want to book at ..."
+    'i want to book' slot:pvp_slot => checkAndAddSlot(new Ast.DialogState, slot);
+
+    'i want to leave' slot:pvp_slot => {
+        if (!slot.key.endsWith('-departure') && !slot.key.endsWith('-leave-at'))
+            return null;
+        return checkAndAddSlot(new Ast.DialogState, slot);
+    };
+    'i want to arrive' slot:pvp_slot => {
+        if (!slot.key.endsWith('-destination') && !slot.key.endsWith('-arrive-by'))
+            return null;
+        return checkAndAddSlot(new Ast.DialogState, slot);
+    };
+
+    'i am travelling' slot:pvp_slot => {
+        if (slot.key !== 'train-book-day' && slot.key !== 'taxi-book-day')
+            return null;
+        return checkAndAddSlot(new Ast.DialogState, slot);
+    };
+}
+
 // the rest is domain-independent
 
 noun_phrase = {
@@ -337,6 +480,45 @@ noun_phrase = {
     two_with_slot_phrase;
     two_which_slot_phrase;
     two_clean_slot_phrase;
+}
+
+generic_anything_noun_phrase = {
+    'anything' => new Ast.DialogState;
+    'something' => new Ast.DialogState;
+}
+
+generic_base_noun_phrase = {
+    'listing' => new Ast.DialogState;
+    'place' => new Ast.DialogState('hotel');
+}
+
+anything_phrase = {
+    anything_with_slot_phrase;
+    anything_which_slot_phrase;
+    anything_clean_slot_phrase;
+}
+
+anything_with_slot_phrase = {
+    ('any' | 'some') phrase:generic_base_noun_phrase ('with' | 'having') slot:npp_slot => checkAndAddSlot(phrase, slot);
+    phrase:generic_anything_noun_phrase ('with' | 'having') slot:npp_slot => checkAndAddSlot(phrase, slot);
+}
+
+anything_which_slot_phrase = {
+    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('has' | 'have') slot:npp_slot => checkAndAddSlot(phrase, slot);
+    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') slot:avp_slot => checkAndAddSlot(phrase, slot);
+    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+    phrase:generic_anything_noun_phrase ('which' | 'that') ('has' | 'have') slot:npp_slot => checkAndAddSlot(phrase, slot);
+    phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    phrase:generic_anything_noun_phrase ('which' | 'that') slot:avp_slot => checkAndAddSlot(phrase, slot);
+    phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+}
+
+anything_clean_slot_phrase = {
+    ('any' | 'some') slot:apv_slot phrase:generic_base_noun_phrase => checkAndAddSlot(phrase, slot);
+    ('any' | 'some') phrase:generic_base_noun_phrase slot:pvp_slot => checkAndAddSlot(phrase, slot);
+    phrase:generic_anything_noun_phrase slot:apv_slot => checkAndAddSlot(phrase, slot);
+    phrase:generic_anything_noun_phrase slot:pvp_slot => checkAndAddSlot(phrase, slot);
 }
 
 one_with_slot_phrase = {
@@ -382,4 +564,74 @@ two_which_slot_phrase = {
 two_clean_slot_phrase = {
     slot:apv_slot phrase:one_clean_slot_phrase => checkAndAddSlot(phrase, slot);
     phrase:one_clean_slot_phrase slot:pvp_slot => checkAndAddSlot(phrase, slot);
+}
+
+three_with_slot_phrase = {
+    phrase:two_with_slot_phrase 'and' slot:npp_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_which_slot_phrase ('and having' | 'and with' | ', with') slot:npp_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_clean_slot_phrase ('with' | 'having') slot:npp_slot => checkAndAddSlot(phrase, slot);
+
+    slot:apv_slot phrase:two_with_slot_phrase => checkAndAddSlot(phrase, slot);
+}
+
+three_which_slot_phrase = {
+    phrase:two_with_slot_phrase ('which' | 'that') ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_with_slot_phrase ('which' | 'that') slot:avp_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_with_slot_phrase ('which' | 'that') ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+
+    phrase:two_which_slot_phrase 'and' ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_which_slot_phrase 'and' slot:avp_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_which_slot_phrase 'and' ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+
+    phrase:two_clean_slot_phrase ('which' | 'that') ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_clean_slot_phrase ('which' | 'that') slot:avp_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_clean_slot_phrase ('which' | 'that') ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+
+    slot:apv_slot phrase:two_which_slot_phrase => checkAndAddSlot(phrase, slot);
+}
+
+three_clean_slot_phrase = {
+    slot:apv_slot phrase:two_clean_slot_phrase => checkAndAddSlot(phrase, slot);
+    phrase:two_clean_slot_phrase slot:pvp_slot => checkAndAddSlot(phrase, slot);
+}
+
+user_initial_request = {
+    ( domains:preamble dialogue:noun_phrase
+    | domains:generic_preamble ('a' | 'the') dialogue:noun_phrase
+    ) => {
+        if (domains.length > 0 && !domains.includes(dialogue.domain))
+            return null;
+        dialogue.intent = 'init_request';
+        return dialogue;
+    };
+}
+
+imprecise_answer = {
+    constant:constant_Any ('please' | '') '.' => constant;
+
+    domains:generic_preamble constant:constant_Any '.' => {
+        if (domains.length > 0)
+            return null;
+        return constant;
+    };
+}
+
+generic_answer = {
+    domains:generic_preamble req:anything_phrase => {
+        if (domains.length > 0)
+            return null;
+        for (let key of req) {
+            if (!SEARCH_SLOTS.has(key))
+                return null;
+        }
+        return req;
+    };
+
+    ( 'i do not care about' key:param_noun_phrase
+    | 'i have no preference for' key:param_noun_phrase
+    ) => {
+        if (!SEARCH_SLOTS.has(key))
+            return null;
+        return checkAndAddSlot(new Ast.DialogState, new Slot(key, new Ast.TristateValue('dontcare')));
+    };
 }

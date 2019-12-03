@@ -1,0 +1,44 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+    const Ast = require('../../lib/languages/multidst/ast');
+    const { init, checkAndAddSlot } = require('./ast_utils');
+    init($grammar, $runtime);
+}
+
+import './shared.genie';
+
+greeting = {
+    'hello !';
+    'hi !';
+}
+
+$root = {
+    greeting => {
+        const state = new Ast.DialogState();
+        state.intent = 'greet';
+        return state;
+    };
+
+    user_initial_request;
+
+    req:user_initial_request ('' | '.') ans:generic_answer => {
+        if (ans.domain !== null && req.domain !== null && ans.domain !== req.domain)
+            return null;
+        const clone = req.clone();
+        for (let [key, value] of ans) {
+            if (clone.has(key))
+                return null;
+            clone.set(key, value);
+        }
+        return clone;
+    };
+}

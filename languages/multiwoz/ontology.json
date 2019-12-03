@@ -10,8 +10,7 @@
     ],
     "hotel-parking": [
         "yes",
-        "no",
-        "free"
+        "no"
     ],
     "hotel-book stay": [
         "2",
@@ -41,9 +40,7 @@
         "4",
         "2",
         "8",
-        "7",
-        "six",
-        "3."
+        "7"
     ],
     "hotel-area": [
         "east",
@@ -147,7 +144,6 @@
         "cambrid",
         "arbu",
         "aylesbray lodge guest",
-        "alpha-milton",
         "london",
         "hamilton lodge",
         "duxford",
@@ -921,7 +917,6 @@
         "rosa's bed and breakfast",
         "home from home",
         "avalon",
-        "alpha-milton guest house",
         "alexander bed and breakfast",
         "cityroomz",
         "limehouse",
@@ -1268,7 +1263,6 @@
         "mahal of cambridge",
         "pizza hut city centre",
         "golden house",
-        "alpha-milton guest house",
         "regency gallery",
         "darrys cookhouse and wine shop",
         "cityroomz",
@@ -1389,7 +1383,6 @@
         "alexander bed and breakfast",
         "cityroomz",
         "hamilton lodge",
-        "alpha-milton guest house",
         "el shaddai",
         "restaurant alimentum",
         "allenbell",
