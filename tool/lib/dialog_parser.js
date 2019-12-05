@@ -68,7 +68,11 @@ class DialogParser extends Stream.Transform {
         }
 
         let interaction;
-        if (line.startsWith('U:')) {
+        if (line.startsWith('S:')) {
+            // system utterance, ignore
+            callback();
+            return;
+        } else if (line.startsWith('U:')) {
             line = line.substring(2).trim();
             interaction = 0;
         } else if (line.startsWith('A:')) {

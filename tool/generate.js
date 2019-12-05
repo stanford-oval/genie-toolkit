@@ -11,22 +11,13 @@
 
 const seedrandom = require('seedrandom');
 const fs = require('fs');
-const argparse = require('argparse');
 const Tp = require('thingpedia');
 
 const { BasicSentenceGenerator } = require('../lib/sentence-generator');
 const { DatasetStringifier } = require('../lib/dataset-parsers');
-const ProgressBar = require('./lib/progress_bar');
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
-
-class ActionSetFlag extends argparse.Action {
-    call(parser, namespace, values) {
-        if (!namespace.flags)
-            namespace.set('flags', {});
-        for (let value of values)
-            namespace.flags[value] = this.constant;
-    }
-}
+const ProgressBar = require('./lib/progress_bar');
+const { ActionSetFlag } = require('./lib/argutils');
 
 module.exports = {
     initArgparse(subparsers) {
