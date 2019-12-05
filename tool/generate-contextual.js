@@ -10,23 +10,13 @@
 "use strict";
 
 const fs = require('fs');
-const argparse = require('argparse');
 
 const { DatasetStringifier } = require('../lib/dataset-parsers');
-const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
+const { ActionSetFlag, maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const parallelize = require('../lib/parallelize');
 const StreamUtils = require('../lib/stream-utils');
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 const ProgressBar = require('./lib/progress_bar');
-
-class ActionSetFlag extends argparse.Action {
-    call(parser, namespace, values) {
-        if (!namespace.flags)
-            namespace.set('flags', {});
-        for (let value of values)
-            namespace.flags[value] = this.constant;
-    }
-}
 
 module.exports = {
     initArgparse(subparsers) {
