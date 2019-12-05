@@ -124,7 +124,7 @@ module.exports = {
         delete args.output;
         inputFile
             .pipe(counter)
-            .pipe(await parallelize(args.parallelize, require.resolve('./workers/generate-contextual-worker.js'), args))
+            .pipe(parallelize(args.parallelize, require.resolve('./workers/generate-contextual-worker.js'), args))
             .pipe(new DatasetStringifier())
             .pipe(outputFile);
 
