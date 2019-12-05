@@ -10,35 +10,23 @@
 
 {
     const Ast = require('../../lib/languages/multidst/ast');
-    const { init, Slot, checkAndAddSlot } = require('./ast_utils');
-    init($grammar, $runtime);
+    const Utils = require('./ast_utils');
+    const { Slot, checkAndAddSlot, propose, NAME_SLOTS, PROPOSABLE_SLOTS, SEARCH_SLOTS } = Utils;
+    Utils.init($grammar, $runtime);
 }
 
 import './shared.genie';
 
-// any context goes in the same bin really
-context ctx = true;
+context intent_request_any = $.intent === 'init_request' || $.intent === 'second_request';
+context intent_request_initial = $.intent === 'init_request';
+context intent_info_request = $.intent === 'init_request' && Utils.searchIsComplete($);
+context intent_search_request = ($.intent === 'init_request' || $.intent === 'second_request') && !Utils.searchIsComplete($);
+context intent_complete_request = (($.intent === 'init_request' || $.intent === 'second_request') && Utils.searchIsComplete($)) || $.intent === 'accept';
+context intent_greet = $.intent === 'greet';
+context intent_insist = $.intent === 'insist';
+context intent_cancel = $.intent === 'cancel';
 
 // domain specific stuff
-param_noun_phrase = {
-    // restaurant
-    ( 'cuisine'
-    | 'food'
-    | 'type of food'
-    ) => 'restaurant-food';
-
-    'price range' => 'restaurant-price-range';
-
-    ( 'area'
-    | 'area of the city') => 'restaurant-area';
-
-    // train
-    ( 'destination'
-    | 'destination station'
-    | 'arrival'
-    ) => 'train-destination';
-}
-
 direct_question = {
     // restaurant
     ( 'what time is your reservation for ?'
@@ -86,22 +74,6 @@ direct_question = {
     | 'how many people ?') => 'train-book-people';
 }
 
-generic_answer = {
-    // "i want to book for 3 people", "I want to book at ..."
-    'i want to book ' slot:pvp_slot => slot;
-
-    'i want to leave ' slot:pvp_slot => {
-        if (!slot.key.endsWith('-departure') && !slot.key.endsWith('-leave-at'))
-            return null;
-        return slot;
-    };
-    'i want to arrive ' slot:pvp_slot => {
-        if (!slot.key.endsWith('-destination') && !slot.key.endsWith('-arrive-by'))
-            return null;
-        return slot;
-    };
-}
-
 // domain-independent stuff
 
 answer_noun_phrase = {
@@ -109,26 +81,21 @@ answer_noun_phrase = {
     one_with_slot_phrase;
     one_which_slot_phrase;
     one_clean_slot_phrase;
+
+    // two slot
+    two_with_slot_phrase;
+    two_which_slot_phrase;
+    two_clean_slot_phrase;
 }
 
 precise_answer = {
     // complete answer, like "I am looking for a bla restaurant"
-    domains:generic_preamble dialogue:answer_noun_phrase => {
+    domains:generic_preamble ('a' | 'the') dialogue:answer_noun_phrase => {
         if (domains.length > 0 || dialogue.size !== 1)
             return null;
         for (let [key, value] of dialogue)
             return new Slot(key, value);
         return null;
-    };
-}
-
-generic_answer = {
-    ( domains:generic_preamble constant:constant_Any
-    | domains:generic_preamble 'something' constant:constant_Any
-    ) => {
-        if (domains.length > 0)
-            return null;
-        return constant;
     };
 }
 
@@ -150,16 +117,6 @@ direct_question = {
     | 'what' p:param_noun_phrase 'are you interested in ?'
     | 'what' p:param_noun_phrase 'are you looking for ?')
     => p;
-
-    ( 'are you looking for a ' proposal:answer_noun_phrase '?'
-    | 'how about the ' proposal:answer_noun_phrase '?'
-    ) => {
-        if (proposal.size !== 1)
-            return null;
-        for (let [key, value] of proposal)
-            return key;
-        return null;
-    };
 }
 generic_question = {
     dom:question_preamble q:direct_question => {
@@ -174,12 +131,24 @@ generic_question = {
 
 question_answer_pair = {
     ( q:direct_question '<sep>' a:precise_answer
-    | q:direct_question '<sep>' a:generic_answer
+    | q:direct_question '<sep>' a:imprecise_answer
     ) => {
-        if (a.key == q)
+        if (a.key === q)
             return a;
         else
             return null;
+    };
+
+    q:direct_question '<sep>' a:generic_answer => {
+        if (a.size !== 1)
+            return null;
+        for (let [key, value] of a) {
+            if (q.key === key)
+                return new Slot(key, value);
+            else
+                return null;
+        }
+        return null;
     };
 
     q:generic_question '<sep>' a:precise_answer => {
@@ -191,6 +160,343 @@ question_answer_pair = {
     };
 }
 
+info_noun_phrase = {
+    // one, two or three slots
+    one_with_slot_phrase;
+    one_which_slot_phrase;
+    one_clean_slot_phrase;
+
+    two_with_slot_phrase;
+    two_which_slot_phrase;
+    two_clean_slot_phrase;
+
+    two_with_slot_phrase;
+    two_which_slot_phrase;
+    two_clean_slot_phrase;
+}
+
+system_proposal = {
+
+    // direct proposal
+    'how about the' proposal:constant_name '?' => checkAndAddSlot(new Ast.DialogState, proposal);
+
+    'how about the' proposal:constant_name '? it is a ' info:info_noun_phrase '.' => {
+        proposal = checkAndAddSlot(info, proposal);
+        if (proposal)
+            return propose(proposal);
+        else
+            return null;
+    };
+
+    // generic proposal
+    ( 'are you looking for a' proposal:answer_noun_phrase '?'
+    | 'how about' ('a' | 'the') proposal:answer_noun_phrase '?'
+    ) => propose(proposal);
+}
+
+negative_proposal_answer_preamble = {
+    'no i need';
+    'i was thinking more of';
+    'i would like';
+    'no , i would like';
+    'i am looking for';
+    'do you have';
+    'can you find';
+    'is there';
+}
+
+generic_negative_proposal = {
+    'i do not like that';
+    'i do not like that , do you have any other option ?';
+}
+
+accept_phrase = {
+    'i like that';
+    'yes i like that';
+    'sounds good';
+}
+
+proposal_reply_pair = {
+    ( prop:system_proposal '<sep>' negative_proposal_answer_preamble ('a' | 'any') req:answer_noun_phrase
+    | prop:system_proposal '<sep>' negative_proposal_answer_preamble req:anything_phrase
+    ) => {
+        if (!Utils.compatibleDomains(req, prop))
+            return null;
+        for (let key of req.keys()) {
+            if (!SEARCH_SLOTS.has(key))
+                return null;
+        }
+        return [prop, req];
+    };
+    prop:system_proposal '<sep>' ('no ,' | '') req:generic_answer => {
+        if (prop.domain !== null && req.domain !== null && prop.domain !== req.domain)
+            return null;
+        return [prop, req];
+    };
+
+    prop:system_proposal '<sep>' generic_negative_proposal => {
+        return [prop, new Ast.DialogState];
+    };
+
+    prop:system_proposal '<sep>' accept_phrase => {
+        return [prop, prop];
+    };
+}
+
+try_different_phrase = {
+    'would you like to try a different';
+    'how about a different';
+    'can i suggest another';
+}
+
+cannot_find_phrase = {
+    'i cannot find any';
+    'there are no';
+    'there is no';
+    'there does not seem any';
+    'i do not see a';
+}
+
+sorry_preamble = {
+    'sorry';
+    'sorry ,';
+    'i am sorry';
+    '';
+}
+
+notfound_error = {
+    sorry_preamble cannot_find_phrase error:info_noun_phrase => {
+        for (let key of error.keys()) {
+            if (!SEARCH_SLOTS.has(key))
+                return null;
+        }
+        return error;
+    };
+    sorry_preamble cannot_find_phrase error:info_noun_phrase ('.' | ',') try_different_phrase p:param_noun_phrase => {
+        for (let key of error.keys()) {
+            if (!SEARCH_SLOTS.has(key))
+                return null;
+        }
+        if (!error.has(p))
+            return null;
+
+        return error;
+    };
+}
+
+counter_proposal_answer_preamble = {
+    'how about';
+    'do you have';
+    'can you find';
+    'can you check for';
+    'is there';
+}
+
+insist_generic_answer = {
+    'i really want that , can you check again ?' => null;
+    'are you sure ?' => null;
+    'are you sure there is no' domain:base_noun_phrase '?' => domain.domain;
+    'no i really need that , please check again' => null;
+    'check again' => null;
+}
+
+insist_specific_preamble = {
+    'that is unfortunate';
+    'too bad';
+    'i am sorry';
+    'can you check again ?';
+    'are you sure ?';
+}
+
+error_reply_pair = {
+    ( error:notfound_error '<sep>' counter_proposal_answer_preamble req:answer_noun_phrase
+    | error:notfound_error '<sep>' counter_proposal_answer_preamble req:anything_phrase ) => {
+        if (!Utils.compatibleDomains(req, error))
+            return null;
+        return [error, req, 'second_request'];
+    };
+
+    error:notfound_error '<sep>' dom:insist_generic_answer => {
+        if (dom !== null && error.domain !== null && dom !== error.domain)
+            return null;
+        return [error, new Ast.DialogState, 'insist'];
+    };
+
+    error:notfound_error '<sep>' insist_specific_preamble ('i really need' | 'i really want') 'a' req:answer_noun_phrase => {
+        if (!Utils.compatibleDomains(req, error))
+            return null;
+        for (let [key, value] of req) {
+            if (!error.has(key) || !error.get(key).equals(value))
+                return null;
+        }
+        return [error, req, 'insist'];
+    };
+
+    error:notfound_error '<sep>' insist_specific_preamble ('i really need' | 'i really want') slot:constant_Any => {
+        if (slot.key === null || !error.has(slot.key) || !error.get(slot.key).equals(slot.value))
+            return null;
+
+        return [error, checkAndAddSlot(new Ast.DialogState, slot), 'insist'];
+    };
+}
+
+insist_cannot_find_phrase = {
+    'i really cannot find';
+    'please do not insist , there is no';
+    'there really are no';
+    'there really is no';
+}
+
+never_mind_phrase = {
+    'never mind then';
+    'ok never mind';
+    'ok too bad';
+}
+
+ok_thanks_phrase = {
+    'ok thank you that is all i need';
+    'ok thanks that is all i need';
+}
+thanks_phrase = {
+    'thank you , this is good for now';
+    'thank you this is what i need';
+    'thanks , this is good for now';
+    'thanks this is what i need';
+}
+no_thanks_phrase = {
+    'no thank you , this is good for now';
+    'no thank you this is what i need';
+    'no thanks , this is good for now';
+    'no thanks this is what i need';
+    'no thanks that will be it';
+    'no thank you that will be it for now';
+}
+yes_please_phrase = {
+    'yes please';
+    'sure go ahead';
+    'sure';
+    'sure thank you';
+    'yes please , thank you';
+}
+
+insist_notfound_error = {
+    sorry_preamble insist_cannot_find_phrase error:info_noun_phrase => {
+        for (let key of error.keys()) {
+            if (!SEARCH_SLOTS.has(key))
+                return null;
+        }
+        return error;
+    };
+}
+
+insist_reply_pair = {
+    ( error:insist_notfound_error '<sep>' counter_proposal_answer_preamble req:answer_noun_phrase
+    | error:insist_notfound_error '<sep>' counter_proposal_answer_preamble req:anything_phrase ) => {
+        if (!Utils.compatibleDomains(req, error))
+            return null;
+        return [error, req, 'second_request'];
+    };
+
+    error:insist_notfound_error '<sep>' never_mind_phrase => {
+        return [error, new Ast.DialogState, 'cancel'];
+    };
+}
+
+info_sentence = {
+    ('sure' | 'of course' | '') name:constant_name 'is a' info:info_noun_phrase => {
+        if (name.domain !== info.domain)
+            return null;
+        return info;
+    };
+}
+
+reservation_request = {
+    'would you like a reservation ?';
+    'would you like to make you a reservation ?';
+    'would you like to book it ?';
+}
+
+info_provide_pair = {
+    // if the user says thanks / no thanks, either end now, or give the agent a chance to ask for anything else
+    ( info:info_sentence '<sep>' thanks_phrase
+    | info:info_sentence '<sep>' ok_thanks_phrase
+    | info:info_sentence ('.' | ',' | '') reservation_request '<sep>' thanks_phrase
+    | info:info_sentence ('.' | ',' | '') reservation_request '<sep>' no_thanks_phrase
+    ) => [info, 'end'];
+    ( info:info_sentence '<sep>' thanks_phrase
+    | info:info_sentence '<sep>' ok_thanks_phrase
+    | info:info_sentence ('.' | ',' | '') reservation_request '<sep>' thanks_phrase
+    | info:info_sentence ('.' | ',' | '') reservation_request '<sep>' no_thanks_phrase
+    ) => [info, 'cancel'];
+
+    info:info_sentence ('.' | ',' | '') reservation_request '<sep>' yes_please_phrase => [info, 'accept'];
+}
+
+make_reservation_confirm_pair = {
+    ( reservation_request '<sep>' thanks_phrase
+    | reservation_request '<sep>' no_thanks_phrase
+    ) => 'end';
+    ( reservation_request '<sep>' thanks_phrase
+    | reservation_request '<sep>' no_thanks_phrase
+    ) => 'cancel';
+
+    reservation_request '<sep>' yes_please_phrase => 'accept';
+}
+
+greeting_reply = {
+    'hello !';
+    'hello , how can i help you ?';
+    'how can i help you ?';
+    'what are you interested in ?';
+}
+
+anything_else_phrase = {
+    'is there anything else i can help you ?';
+    'can i help you with anything else ?';
+    'do you need anything else ?';
+}
+
 $root = {
-    ctx:ctx qa:question_answer_pair => checkAndAddSlot(ctx, qa);
+    ctx:intent_greet greeting_reply '<sep>' req:user_initial_request => req;
+
+    ctx:intent_search_request pair:proposal_reply_pair => {
+        const [proposal, counterrequest] = pair;
+        if (!Utils.proposalIsCompatible(proposal, ctx))
+            return null;
+
+        return Utils.counterRequest(ctx, counterrequest, 'second_request');
+    };
+
+    ctx:intent_search_request pair:error_reply_pair => {
+        const [error, counterrequest, intent] = pair;
+        if (!Utils.infoIsCompatible(error, ctx))
+            return null;
+
+        return Utils.counterRequest(ctx, counterrequest, intent, /* allow override ctx */ true);
+    };
+
+    ctx:intent_search_request qa:question_answer_pair => checkAndAddSlot(ctx, qa);
+
+    ctx:intent_info_request pair:info_provide_pair => {
+        const [info, intent] = pair;
+        if (!Utils.infoIsCompatible(info, ctx))
+            return null;
+        return null;
+    };
+
+    ctx:intent_complete_request intent:make_reservation_confirm_pair => {
+        if (ctx.intent === 'accept')
+            return null;
+        const clone = ctx.clone();
+        clone.intent = intent;
+        return clone;
+    };
+
+    ( ctx:intent_cancel anything_else_phrase '<sep>' thanks_phrase
+    | ctx:intent_cancel anything_else_phrase '<sep>' thanks_phrase
+    ) => {
+        const clone = ctx.clone();
+        clone.intent = 'end';
+        return clone;
+    };
 }
