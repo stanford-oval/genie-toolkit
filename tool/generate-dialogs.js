@@ -12,10 +12,8 @@
 const fs = require('fs');
 const JSONStream = require('JSONStream');
 const Stream = require('stream');
-const seedrandom = require('seedrandom');
-const Tp = require('thingpedia');
 
-const { DialogGenerator } = require('../lib/sentence-generator');
+const parallelize = require('../lib/parallelize');
 const { DatasetParser } = require('../lib/dataset-parsers');
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 
@@ -208,34 +206,31 @@ module.exports = {
             defaultValue: 'almond is awesome',
             help: 'Random seed'
         });
+        parser.addArgument('--parallelize', {
+            type: Number,
+            help: 'Run N threads in parallel (requires --experimental-worker support)',
+            metavar: 'N',
+            defaultValue: 1,
+        });
     },
 
     async execute(args) {
-        let tpClient = null;
-        if (args.thingpedia)
-            tpClient = new Tp.FileClient(args);
-        const counter = new SimpleCountStream(args.target_size);
+        const inputFile = readAllLines(args.input_file);
+        const outputFile = args.output;
 
-        const output = readAllLines(args.input_file)
+        // divide target size for each thread
+        args.target_size = Math.floor(args.target_size / args.parallelize);
+        const counter = new SimpleCountStream(args.target_size * args.parallelize);
+
+
+        delete args.input_file;
+        delete args.output;
+        inputFile
             .pipe(new DatasetParser())
-            .pipe(new DialogGenerator({
-                locale: args.locale,
-                flags: args.flags || {},
-                templateFile: args.template,
-                targetLanguage: args.target_language,
-                thingpediaClient: tpClient,
-                maxDepth: args.maxdepth,
-                targetPruningSize: args.target_pruning_size,
-                targetSize: args.target_size,
-                maxTurns: args.max_turns,
-                minibatchSize: args.minibatch_size,
-
-                rng: seedrandom.alea(args.random_seed),
-                debug: args.debug,
-            }))
+            .pipe(parallelize(args.parallelize, require.resolve('./workers/generate-dialogs-worker.js'), args))
             .pipe(counter)
             .pipe(DIALOG_SERIALIZERS[args.output_format.replace('-', '_')]())
-            .pipe(args.output);
+            .pipe(outputFile);
 
         if (!args.debug) {
             const progbar = new ProgressBar(1);
@@ -248,6 +243,6 @@ module.exports = {
             progbar.update(0);
         }
 
-        await StreamUtils.waitFinish(output);
+        await StreamUtils.waitFinish(outputFile);
     }
 };
