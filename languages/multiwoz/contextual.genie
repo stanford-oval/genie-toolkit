@@ -192,17 +192,17 @@ question_answer_pair = {
 
 info_noun_phrase = {
     // one, two or three slots
-    one_with_slot_phrase;
-    one_which_slot_phrase;
-    one_clean_slot_phrase;
+    info:one_with_slot_phrase => Utils.checkInfoNounPhrase(info);
+    info:one_which_slot_phrase => Utils.checkInfoNounPhrase(info);
+    info:one_clean_slot_phrase => Utils.checkInfoNounPhrase(info);
 
-    two_with_slot_phrase;
-    two_which_slot_phrase;
-    two_clean_slot_phrase;
+    info:two_with_slot_phrase => Utils.checkInfoNounPhrase(info);
+    info:two_which_slot_phrase => Utils.checkInfoNounPhrase(info);
+    info:two_clean_slot_phrase => Utils.checkInfoNounPhrase(info);
 
-    three_with_slot_phrase;
-    three_which_slot_phrase;
-    three_clean_slot_phrase;
+    info:three_with_slot_phrase => Utils.checkInfoNounPhrase(info);
+    info:three_which_slot_phrase => Utils.checkInfoNounPhrase(info);
+    info:three_clean_slot_phrase => Utils.checkInfoNounPhrase(info);
 }
 
 system_direct_proposal = {
@@ -347,6 +347,8 @@ proposal_reply_pair = {
             return null;
         for (let key of req.keys()) {
             if (!SEARCH_SLOTS.has(key))
+                return null;
+            if (!prop.has(key))
                 return null;
         }
         return [prop, req];
@@ -749,13 +751,19 @@ $root = {
 
     ctx:intent_search_request pair:error_reply_pair => {
         const [error, counterrequest, intent] = pair;
-        if (!Utils.infoIsCompatible(error, ctx))
+        if (!Utils.errorIsCompatible(error, ctx))
             return null;
 
         return Utils.counterRequest(ctx, counterrequest, intent, /* allow override ctx */ true);
     };
 
-    ctx:intent_search_request qa:question_answer_pair => checkAndAddSlot(ctx, qa);
+    ctx:intent_search_request qa:question_answer_pair => {
+        const clone = checkAndAddSlot(ctx, qa);
+        if (clone === null)
+            return null;
+        clone.intent = 'second_request';
+        return clone;
+    };
 
     ( ctx:intent_info_request pair:info_provide_pair
     | ctx:intent_info_question pair:info_provide_pair

@@ -257,6 +257,16 @@ function proposalIsCompatible(proposal, ctx) {
     return true;
 }
 
+function errorIsCompatible(error, ctx) {
+    if (!compatibleDomains(error, ctx))
+        return false;
+    for (let [key, value] of error) {
+        if (!ctx.has(key) || !ctx.get(key).equals(value))
+            return false;
+    }
+    return true;
+}
+
 function infoIsCompatible(info, ctx) {
     if (!compatibleDomains(info, ctx))
         return false;
@@ -270,6 +280,14 @@ function infoIsCompatible(info, ctx) {
         }
     }
     return true;
+}
+
+function checkInfoNounPhrase(info) {
+    for (let key of info.keys()) {
+        if (!REQUESTABLE_SEARCH_SLOTS.has(key))
+            return null;
+    }
+    return info;
 }
 
 function counterRequest(ctx, counterrequest, intent, allowOverride = false) {
@@ -353,7 +371,9 @@ module.exports = {
     proposalIsCompatible,
     PROPOSABLE_SLOTS,
     counterRequest,
+    checkInfoNounPhrase,
 
+    errorIsCompatible,
     infoIsCompatible,
     userAskQuestions,
     systemAnswerInfo,
