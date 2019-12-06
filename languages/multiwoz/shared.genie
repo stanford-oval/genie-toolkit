@@ -75,6 +75,7 @@ param_noun_phrase = {
     ( 'restaurant'
     | 'place'
     | 'name'
+    | 'name of the restaurant'
     ) => 'restaurant-name';
 
     'price range' => 'restaurant-price-range';
@@ -94,6 +95,7 @@ param_noun_phrase = {
     ( 'hotel'
     | 'place'
     | 'name'
+    | 'name of the hotel'
     ) => 'hotel-name';
 
     'price range' => 'hotel-price-range';
@@ -170,6 +172,39 @@ param_noun_phrase = {
     ) => 'taxi-arrive-by';
 
     'number of people' => 'taxi-book-people';
+}
+
+sys_param_noun_phrase = {
+    'address' => 'attraction-system-address';
+    'post code' => 'attraction-system-post';
+    'phone number' => 'attraction-system-phone';
+    'opening hours' => 'attraction-system-open';
+    ( 'entrance fee'
+    | 'ticket cost'
+    ) => 'attraction-system-fee';
+
+    'address' => 'hotel-system-address';
+    'post code' => 'hotel-system-post';
+    'phone number' => 'hotel-system-phone';
+    ( 'reference number'
+    | 'booking reference'
+    ) => 'hotel-system-ref';
+
+    'address' => 'restaurant-system-address';
+    'post code' => 'restaurant-system-post';
+    'phone number' => 'restaurant-system-phone';
+    ( 'reference number'
+    | 'booking reference'
+    ) => 'restaurant-system-ref';
+
+    ( 'car'
+    | 'type of car'
+    ) => 'taxi-system-car';
+    ( 'reference number'
+    | 'booking reference'
+    ) => 'taxi-system-ref';
+
+    'train number' => 'train-system-id';
 }
 
 base_noun_phrase = {
@@ -265,11 +300,10 @@ npp_slot = {
 npi_slot = {
 }
 
-// pvp: Passive-Verb Phrase
-// "X $pvp_slot" or "X that is $pvp_slot" - where $pvp_slot is a verb phrase in -ed or -ing form
-// eg. "train leaving from cambridge"
-// pvp_slot is also used for prepositional phrases
-pvp_slot = {
+// prep: Preposition
+// "X $prep_slot" or "X that <verb> $prep_slot" - where $prep_slot starts with a preposition
+// eg. "train to cambridge"
+prep_slot = {
     // hotel
     ( 'in' v:constant_hotel_area
     | 'in the' v:constant_hotel_area 'area'
@@ -287,18 +321,59 @@ pvp_slot = {
     | 'for' v:constant_hotel_book_people
     ) => new Slot('hotel-book-people', v);
 
+    // train
+    'from' v:constant_train_departure => new Slot('train-departure', v);
+
+    'to' v:constant_train_destination => new Slot('train-destination', v);
+
+    ( 'for' v:constant_train_day
+    | 'on' v:constant_train_day
+    ) => new Slot('train-day', v);
+
+    ( 'for' v:constant_train_book_people 'people'
+    | 'for' v:constant_train_book_people
+    ) => new Slot('train-book-people', v);
+
+    // restaurant
+    'at' v:constant_restaurant_book_time => new Slot('restaurant-book-time', v);
+
+    ( 'for' v:constant_restaurant_book_people 'people'
+    | 'for' v:constant_restaurant_book_people
+    ) => new Slot('restaurant-book-people', v);
+
+    ( 'for' v:constant_restaurant_book_day
+    | 'on' v:constant_restaurant_book_day
+    ) => new Slot('restaurant-book-day', v);
+
+    // taxi
+    'from' v:constant_taxi_departure => new Slot('taxi-departure', v);
+
+    'to' v:constant_taxi_destination => new Slot('taxi-destination', v);
+
+    // attraction
+    ( 'in the' v:constant_attraction_area
+    | 'in the' v:constant_attraction_area 'area'
+    | 'near the' v:constant_attraction_area 'area'
+    | 'around the' v:constant_attraction_area 'area'
+    ) => new Slot('attraction-area', v);
+}
+
+// pvp: Passive-Verb Phrase
+// "X $pvp_slot" or "X that is $pvp_slot" - where $pvp_slot is a verb phrase in -ed or -ing form
+// eg. "train leaving from cambridge"
+// pvp_slot is also used for prepositional phrases
+pvp_slot = {
+    // hotel
     'called' v:constant_hotel_name => new Slot('hotel-name', v);
 
     // train
     ( 'leaving' v:constant_train_departure
-    | 'from' v:constant_train_departure
     | 'leaving from' v:constant_train_departure
     | 'departing from' v:constant_train_departure
     | 'departing at' v:constant_train_departure
     ) => new Slot('train-departure', v);
 
     ( 'arriving at' v:constant_train_destination
-    | 'to' v:constant_train_destination
     | 'arriving to' v:constant_train_destination
     | 'going to' v:constant_train_destination
     | 'going into' v:constant_train_destination
@@ -313,15 +388,9 @@ pvp_slot = {
     | 'leaving after' v:constant_train_leave_at
     ) => new Slot('train-leave-at', v);
 
-    ( 'for' v:constant_train_day
-    | 'on' v:constant_train_day
-    | 'leaving on' v:constant_train_day
+    ( 'leaving on' v:constant_train_day
     | 'arriving on' v:constant_train_day
     ) => new Slot('train-day', v);
-
-    ( 'for' v:constant_train_book_people 'people'
-    | 'for' v:constant_train_book_people
-    ) => new Slot('train-book-people', v);
 
     // restaurant
     ( 'serving' v:constant_restaurant_food
@@ -329,21 +398,10 @@ pvp_slot = {
     | 'serving' v:constant_restaurant_food 'cuisine'
     ) => new Slot('restaurant-food', v);
 
-    'at' v:constant_restaurant_book_time => new Slot('restaurant-book-time', v);
-
-    ( 'for' v:constant_restaurant_book_people 'people'
-    | 'for' v:constant_restaurant_book_people
-    ) => new Slot('restaurant-book-people', v);
-
-    ( 'for' v:constant_restaurant_book_day
-    | 'on' v:constant_restaurant_book_day
-    ) => new Slot('restaurant-book-day', v);
-
     'called' v:constant_restaurant_name => new Slot('restaurant-name', v);
 
     // taxi
     ( 'leaving' v:constant_taxi_departure
-    | 'from' v:constant_taxi_departure
     | 'leaving from' v:constant_taxi_departure
     | 'departing from' v:constant_taxi_departure
     | 'departing at' v:constant_taxi_departure
@@ -351,7 +409,6 @@ pvp_slot = {
     ) => new Slot('taxi-departure', v);
 
     ( 'arriving at' v:constant_taxi_destination
-    | 'to' v:constant_taxi_destination
     | 'arriving to' v:constant_taxi_destination
     | 'dropping me off at' v:constant_taxi_destination
     ) => new Slot('taxi-destination', v);
@@ -369,12 +426,6 @@ pvp_slot = {
 
     // attraction
     'called' v:constant_attraction_name => new Slot('attraction-name', v);
-
-    ( 'in the' v:constant_attraction_area
-    | 'in the' v:constant_attraction_area 'area'
-    | 'near the' v:constant_attraction_area 'area'
-    | 'around the' v:constant_attraction_area 'area'
-    ) => new Slot('attraction-area', v);
 }
 
 // avp: Active-Verb Phrase
@@ -445,24 +496,32 @@ apv_slot = {
 
 generic_answer = {
     // "i want to book for 3 people", "I want to book at ..."
-    'i want to book' slot:pvp_slot => checkAndAddSlot(new Ast.DialogState, slot);
+    'i' ('want' | 'need') 'to book' slot:prep_slot => checkAndAddSlot(new Ast.DialogState, slot);
 
-    'i want to leave' slot:pvp_slot => {
+    'i' ('want' | 'need') 'to leave' slot:prep_slot => {
         if (!slot.key.endsWith('-departure') && !slot.key.endsWith('-leave-at'))
             return null;
         return checkAndAddSlot(new Ast.DialogState, slot);
     };
-    'i want to arrive' slot:pvp_slot => {
+    'i' ('want' | 'need') 'to arrive' slot:prep_slot => {
         if (!slot.key.endsWith('-destination') && !slot.key.endsWith('-arrive-by'))
             return null;
         return checkAndAddSlot(new Ast.DialogState, slot);
     };
 
-    'i am travelling' slot:pvp_slot => {
-        if (slot.key !== 'train-book-day' && slot.key !== 'taxi-book-day')
+    'i am travelling' slot:prep_slot => {
+        if (slot.domain !== 'train' && slot.domain !== 'taxi')
             return null;
         return checkAndAddSlot(new Ast.DialogState, slot);
     };
+}
+
+imprecise_answer = {
+    'i need parking .' => new Slot('hotel-parking', new Ast.TristateValue('yes'));
+    'i do not need parking .' => new Slot('hotel-parking', new Ast.TristateValue('no'));
+
+    'i need wifi .' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
+    'i do not need wifi .' => new Slot('hotel-internet', new Ast.TristateValue('no'));
 }
 
 // the rest is domain-independent
@@ -517,8 +576,10 @@ anything_which_slot_phrase = {
 anything_clean_slot_phrase = {
     ('any' | 'some') slot:apv_slot phrase:generic_base_noun_phrase => checkAndAddSlot(phrase, slot);
     ('any' | 'some') phrase:generic_base_noun_phrase slot:pvp_slot => checkAndAddSlot(phrase, slot);
+    ('any' | 'some') phrase:generic_base_noun_phrase slot:prep_slot => checkAndAddSlot(phrase, slot);
     phrase:generic_anything_noun_phrase slot:apv_slot => checkAndAddSlot(phrase, slot);
     phrase:generic_anything_noun_phrase slot:pvp_slot => checkAndAddSlot(phrase, slot);
+    phrase:generic_anything_noun_phrase slot:prep_slot => checkAndAddSlot(phrase, slot);
 }
 
 one_with_slot_phrase = {
@@ -535,6 +596,7 @@ one_which_slot_phrase = {
 one_clean_slot_phrase = {
     slot:apv_slot phrase:base_noun_phrase => checkAndAddSlot(phrase, slot);
     phrase:base_noun_phrase slot:pvp_slot => checkAndAddSlot(phrase, slot);
+    phrase:base_noun_phrase slot:prep_slot => checkAndAddSlot(phrase, slot);
 }
 
 two_with_slot_phrase = {
@@ -564,6 +626,7 @@ two_which_slot_phrase = {
 two_clean_slot_phrase = {
     slot:apv_slot phrase:one_clean_slot_phrase => checkAndAddSlot(phrase, slot);
     phrase:one_clean_slot_phrase slot:pvp_slot => checkAndAddSlot(phrase, slot);
+    phrase:one_clean_slot_phrase slot:prep_slot => checkAndAddSlot(phrase, slot);
 }
 
 three_with_slot_phrase = {
@@ -593,6 +656,7 @@ three_which_slot_phrase = {
 three_clean_slot_phrase = {
     slot:apv_slot phrase:two_clean_slot_phrase => checkAndAddSlot(phrase, slot);
     phrase:two_clean_slot_phrase slot:pvp_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_clean_slot_phrase slot:prep_slot => checkAndAddSlot(phrase, slot);
 }
 
 user_initial_request = {

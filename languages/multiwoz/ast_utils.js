@@ -11,6 +11,7 @@
 
 const assert = require('assert');
 const ontology = require('./ontology');
+const systemOntology = require('./system-ontology');
 const Ast = require('../../lib/languages/multidst/ast');
 
 const ALL_SLOTS = new Set;
@@ -52,6 +53,20 @@ const SEARCH_SLOTS = new Set([
     'train-destination',
     'train-leave-at'
 ]);
+const REQUESTABLE_SEARCH_SLOTS = new Set([
+    'restaurant-food',
+    'restaurant-area',
+    'restaurant-price-range',
+    'hotel-area',
+    'hotel-type',
+    'hotel-price-range',
+    'hotel-parking',
+    'hotel-stars',
+    'hotel-internet',
+    'attraction-area',
+    'attraction-type',
+]);
+
 const TRANSACTION_REQUIRED_SLOTS = {
     attraction: new Set(),
     hotel: new Set([
@@ -79,6 +94,37 @@ const TRANSACTION_REQUIRED_SLOTS = {
         'train-leave-at'
     ])
 };
+const SYSTEM_SLOTS = {
+    attraction: new Set([
+        'addr',
+        'post',
+        'phone',
+        'open',
+        'fee'
+    ]),
+    hotel: new Set([
+        'addr',
+        'post',
+        'phone',
+        'ref',
+    ]),
+    restaurant: new Set([
+        'addr',
+        'post',
+        'phone',
+        'ref',
+    ]),
+    taxi: new Set([
+        'car',
+        'ref'
+    ]),
+    train: new Set([
+        'id'
+    ])
+};
+const ALL_SYSTEM_SLOTS = new Set;
+const NON_REQUESTABLE_SYSTEM_SLOTS = new Set(['hotel-system-ref', 'restaurant-system-ref', 'taxi-system-ref', 'train-system-id']);
+
 function searchIsComplete(ctx) {
     for (let key of NAME_SLOTS) {
         if (ctx.has(key))
@@ -100,6 +146,7 @@ function searchIsComplete(ctx) {
 
 function init($grammar, $runtime) {
     $grammar.declareSymbol('constant_Any');
+    $grammar.declareSymbol('constant_Any_system');
     $grammar.declareSymbol('constant_name');
     for (let slot_key in ontology) {
         const normalized_slot_key = slot_key.replace(/ /g, '-');
@@ -119,12 +166,36 @@ function init($grammar, $runtime) {
             }));
         }
     }
+
+    for (let domain in SYSTEM_SLOTS) {
+        for (let slot_name of SYSTEM_SLOTS[domain]) {
+            const slot_key = domain + '-system-' + slot_name;
+            ALL_SYSTEM_SLOTS.add(slot_key);
+            const ident_slot_key = slot_key.replace(/[ -]/g, '_');
+            $grammar.declareSymbol('constant_' + ident_slot_key);
+
+            for (let value of systemOntology[slot_name])
+                $grammar.addRule('constant_' + ident_slot_key, value.split(' '), $runtime.simpleCombine(() => new Ast.ConstantValue(value)));
+
+            $grammar.addRule('constant_Any_system', [new $runtime.NonTerminal('constant_' + ident_slot_key)], $runtime.simpleCombine((v) => {
+                return new SystemSlot(slot_key, v);
+            }));
+        }
+    }
 }
 
 
 class Slot {
     constructor(key, value) {
         assert(ALL_SLOTS.has(key));
+        this.key = key;
+        this.value = value;
+        this.domain = key.split('-')[0];
+    }
+}
+class SystemSlot {
+    constructor(key, value) {
+        assert(ALL_SYSTEM_SLOTS.has(key));
         this.key = key;
         this.value = value;
         this.domain = key.split('-')[0];
@@ -190,8 +261,13 @@ function infoIsCompatible(info, ctx) {
     if (!compatibleDomains(info, ctx))
         return false;
     for (let [key, value] of info) {
-        if (!ctx.has(key)|| !ctx.get(key).equals(value))
+        if (ctx.has(key)) {
+            const ctxvalue = ctx.get(key);
+            if (ctxvalue !== Ast.QUESTION && !ctxvalue.equals(value))
+                return false;
+        } else if (NAME_SLOTS.has(key)) {
             return false;
+        }
     }
     return true;
 }
@@ -218,10 +294,55 @@ function counterRequest(ctx, counterrequest, intent, allowOverride = false) {
     return clone;
 }
 
+function userAskQuestions(proposal, params) {
+    const state = new Ast.DialogState;
+    for (let param of params) {
+        const domain = param.split('-')[0];
+        if (proposal.domain !== null && domain !== proposal.domain)
+            return null;
+        if (proposal.has(param))
+            return null;
+
+        state.set(param, Ast.QUESTION);
+    }
+
+    return state;
+}
+
+function systemAnswerInfo(ctx, [info, intent]) {
+    if (!infoIsCompatible(info, ctx))
+        return null;
+
+    for (let [key, value] of ctx) {
+        if (value === Ast.QUESTION && !info.has(key))
+            return null;
+    }
+    for (let [key,] of info) {
+        if (ALL_SYSTEM_SLOTS.has(key) && !ctx.has(key))
+            return null;
+        if (NON_REQUESTABLE_SYSTEM_SLOTS.has(key))
+            return null;
+    }
+
+    const clone = ctx.clone();
+    for (let [key, value] of ctx.keys()) {
+        if (value === Ast.QUESTION)
+            clone.delete(key);
+    }
+    for (let [key, value] of info) {
+        if (ALL_SYSTEM_SLOTS.has(key))
+            continue;
+        clone.set(key, value);
+    }
+    clone.intent = intent;
+    return clone;
+}
+
 module.exports = {
     init,
 
     Slot,
+    SystemSlot,
     EmptySlot,
     checkAndAddSlot,
     compatibleDomains,
@@ -234,8 +355,13 @@ module.exports = {
     counterRequest,
 
     infoIsCompatible,
+    userAskQuestions,
+    systemAnswerInfo,
 
+    ALL_SYSTEM_SLOTS,
     NAME_SLOTS,
     SEARCH_SLOTS,
     TRANSACTION_REQUIRED_SLOTS,
+    REQUESTABLE_SEARCH_SLOTS,
+    NON_REQUESTABLE_SYSTEM_SLOTS
 };
