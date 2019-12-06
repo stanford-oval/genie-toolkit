@@ -54,6 +54,7 @@ module.exports = {
         });
         parser.addArgument('--template', {
             required: true,
+            nargs: '+',
             help: 'Path to file containing construct templates, in Genie syntax.'
         });
         parser.addArgument('--set-flag', {
@@ -118,7 +119,7 @@ module.exports = {
             rng: seedrandom.alea(args.random_seed),
             locale: args.locale,
             flags: args.flags || {},
-            templateFile: args.template,
+            templateFiles: args.template,
             targetLanguage: args.target_language,
             thingpediaClient: tpClient,
             targetPruningSize: args.target_pruning_size,
