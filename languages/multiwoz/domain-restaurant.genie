@@ -1,0 +1,140 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+    const assert = require('assert');
+    const Ast = require('../../lib/languages/multidst/ast');
+    const { Slot, checkAndAddSlot } = require('./ast_utils');
+}
+
+direct_question = {
+    ( 'what time is your reservation for ?'
+    | 'what time do you need your reservation for ?'
+    | 'at what time is your reservation ?'
+    | 'at what time ?'
+    ) => 'restaurant-book-time';
+
+    ( 'what day is your reservation for ?'
+    | 'what day do you need your reservation for ?'
+    | 'on which day do you want your reservation ?'
+    | 'on which day ?'
+    ) => 'restaurant-day';
+
+    ( 'how many people is your reservation for ?'
+    | 'for how many people do you need a reservation ?'
+    | 'how many people ?'
+    ) => 'restaurant-book-people';
+}
+
+user_one_slot_domain_question = {
+    ( 'how expensive is it ?'
+    | 'how pricey is it ?'
+    ) => ['restaurant-price-range'];
+}
+
+param_noun_phrase = {
+    ( 'cuisine'
+    | 'food'
+    | 'type of food'
+    ) => 'restaurant-food';
+
+    ( 'restaurant'
+    | 'place'
+    | 'name'
+    | 'name of the restaurant'
+    ) => 'restaurant-name';
+
+    'price range' => 'restaurant-price-range';
+
+    ( 'area'
+    | 'area of the city') => 'restaurant-area';
+
+    'number of people' => 'restaurant-book-people';
+
+    ( 'day'
+    | 'date'
+    ) => 'restaurant-book-day';
+
+    'time' => 'restaurant-book-time';
+}
+
+sys_param_noun_phrase = {
+    'address' => 'restaurant-system-address';
+    'post code' => 'restaurant-system-post';
+    'phone number' => 'restaurant-system-phone';
+    ( 'reference number'
+    | 'booking reference'
+    ) => 'restaurant-system-ref';
+}
+
+base_noun_phrase = {
+    'restaurant' => new Ast.DialogState('restaurant');
+    'place to eat' => new Ast.DialogState('restaurant');
+    'food place' => new Ast.DialogState('restaurant');
+}
+
+// npp: Noun-Phrase of Property
+// "X that have $npp_slot" or "X with $npp_slot"
+npp_slot = {
+    ( v:constant_restaurant_food 'cuisine'
+    | v:constant_restaurant_food 'food'
+    ) => new Slot('restaurant-food', v);
+
+    'name' v:constant_restaurant_name => new Slot('restaurant-name', v);
+}
+
+// npi: Noun-Phrase of Identity
+// "X that is $npi_slot", where npi is a noun-phrase (not a passive-verb-phrase)
+npi_slot = {
+}
+
+// prep: Preposition
+// "X $prep_slot" or "X that <verb> $prep_slot" - where $prep_slot starts with a preposition
+// eg. "train to cambridge"
+prep_slot = {
+    'at' v:constant_restaurant_book_time => new Slot('restaurant-book-time', v);
+
+    ( 'for' v:constant_restaurant_book_people 'people'
+    | 'for' v:constant_restaurant_book_people
+    ) => new Slot('restaurant-book-people', v);
+
+    ( 'for' v:constant_restaurant_book_day
+    | 'on' v:constant_restaurant_book_day
+    ) => new Slot('restaurant-book-day', v);
+}
+
+// pvp: Passive-Verb Phrase
+// "X $pvp_slot" or "X that is $pvp_slot" - where $pvp_slot is a verb phrase in -ed or -ing form
+// eg. "train leaving from cambridge"
+// pvp_slot is also used for prepositional phrases
+pvp_slot = {
+    ( 'serving' v:constant_restaurant_food
+    | 'serving' v:constant_restaurant_food 'food'
+    | 'serving' v:constant_restaurant_food 'cuisine'
+    ) => new Slot('restaurant-food', v);
+
+    'called' v:constant_restaurant_name => new Slot('restaurant-name', v);
+}
+
+// avp: Active-Verb Phrase
+// "X that $apv_slot" where $apv_slot is a verb phrase in active form, with X as subject
+avp_slot = {
+    ( 'serves' v:constant_restaurant_food
+    | 'serves' v:constant_restaurant_food 'food'
+    | 'serves' v:constant_restaurant_food 'cuisine'
+    ) => new Slot('restaurant-food', v);
+}
+
+// apv: Adjective-Phrase Value
+// "$apv_slot X" where $apv_slot is an adjective phrase
+// e.g.: "cheap restaurant", "5-star hotel"
+apv_slot = {
+    v:constant_restaurant_food => new Slot('restaurant-food', v);
+}
