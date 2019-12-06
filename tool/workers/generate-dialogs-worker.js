@@ -23,7 +23,7 @@ module.exports = function worker(args, shard) {
 
         locale: args.locale,
         flags: args.flags || {},
-        templateFile: args.template,
+        templateFiles: args.template,
         targetLanguage: args.target_language,
         thingpediaClient: tpClient,
         maxDepth: args.maxdepth,

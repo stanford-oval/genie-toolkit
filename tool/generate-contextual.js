@@ -58,6 +58,7 @@ module.exports = {
         });
         parser.addArgument('--template', {
             required: true,
+            nargs: '+',
             help: 'Path to file containing construct templates, in Genie syntax.'
         });
         parser.addArgument('--set-flag', {
