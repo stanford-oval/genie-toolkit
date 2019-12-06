@@ -119,7 +119,8 @@ const SYSTEM_SLOTS = {
         'ref'
     ]),
     train: new Set([
-        'id'
+        'id',
+        'ticket'
     ])
 };
 const ALL_SYSTEM_SLOTS = new Set;

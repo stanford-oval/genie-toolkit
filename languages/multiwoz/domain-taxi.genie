@@ -1,0 +1,170 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+    const assert = require('assert');
+    const Ast = require('../../lib/languages/multidst/ast');
+    const { Slot, checkAndAddSlot } = require('./ast_utils');
+}
+
+direct_question = {
+    ( 'where are you going ?'
+    | 'what is your destination ?'
+    | 'where are you travelling to ?'
+    | 'where to ?'
+    | 'where do you want to be dropped off ?'
+    ) => 'taxi-destination';
+
+    ( 'where are you departing from ?'
+    | 'what is your departure ?'
+    | 'where are you travelling from ?'
+    | 'where do you want to be picked up ?'
+    ) => 'taxi-departure';
+
+    ( 'when do you want to leave ?'
+    | 'what time do you want to leave ?'
+    ) => 'taxi-leave-at';
+
+    ( 'when do you want to arrive ?'
+    | 'what time do you want to arrive ?'
+    ) => 'taxi-arrive-by';
+}
+
+user_one_slot_domain_question = {
+}
+
+param_noun_phrase = {
+    ( 'destination'
+    | 'destination address'
+    | 'arrival'
+    ) => 'taxi-destination';
+
+    ( 'departure'
+    | 'departure address'
+    | 'pickup'
+    ) => 'taxi-departure';
+
+    ( 'day'
+    | 'date'
+    ) => 'taxi-book-day';
+
+    ( 'time'
+    | 'departure time'
+    | 'pickup time'
+    ) => 'taxi-leave-at';
+    ( 'arrival time'
+    | 'dropoff time'
+    ) => 'taxi-arrive-by';
+
+    'number of people' => 'taxi-book-people';
+}
+
+sys_param_noun_phrase = {
+    ( 'car'
+    | 'type of car'
+    ) => 'taxi-system-car';
+    ( 'reference number'
+    | 'booking reference'
+    ) => 'taxi-system-ref';
+}
+
+base_noun_phrase = {
+    'taxi' => new Ast.DialogState('taxi');
+    'taxi ride' => new Ast.DialogState('taxi');
+}
+
+// npp: Noun-Phrase of Property
+// "X that have $npp_slot" or "X with $npp_slot"
+npp_slot = {
+    ( 'departure' v:constant_taxi_departure
+    | 'pick up at' v:constant_taxi_departure
+    ) => new Slot('taxi-departure', v);
+
+    ( 'destination' v:constant_taxi_destination
+    | 'arrival' v:constant_taxi_destination
+    | 'drop off at' v:constant_taxi_destination
+    ) => new Slot('taxi-destination', v);
+}
+
+// npi: Noun-Phrase of Identity
+// "X that is $npi_slot", where npi is a noun-phrase (not a passive-verb-phrase)
+npi_slot = {
+}
+
+// prep: Preposition
+// "X $prep_slot" or "X that <verb> $prep_slot" - where $prep_slot starts with a preposition
+// eg. "train to cambridge"
+prep_slot = {
+    'from' v:constant_taxi_departure => new Slot('taxi-departure', v);
+
+    'to' v:constant_taxi_destination => new Slot('taxi-destination', v);
+}
+
+// pvp: Passive-Verb Phrase
+// "X $pvp_slot" or "X that is $pvp_slot" - where $pvp_slot is a verb phrase in -ed or -ing form
+// eg. "train leaving from cambridge"
+// pvp_slot is also used for prepositional phrases
+pvp_slot = {
+    ( 'leaving' v:constant_taxi_departure
+    | 'leaving from' v:constant_taxi_departure
+    | 'departing from' v:constant_taxi_departure
+    | 'departing at' v:constant_taxi_departure
+    | 'picking me up at' v:constant_taxi_departure
+    ) => new Slot('taxi-departure', v);
+
+    ( 'arriving at' v:constant_taxi_destination
+    | 'arriving to' v:constant_taxi_destination
+    | 'dropping me off at' v:constant_taxi_destination
+    ) => new Slot('taxi-destination', v);
+
+    ( 'arriving at' v:constant_taxi_arrive_by
+    | 'arriving by' v:constant_taxi_arrive_by
+    | 'arriving before' v:constant_taxi_arrive_by
+    | 'dropping me off at' v:constant_taxi_arrive_by
+    | 'dropping me off by' v:constant_taxi_arrive_by
+    ) => new Slot('taxi-arrive-by', v);
+
+    ( 'leaving at' v:constant_taxi_leave_at
+    | 'leaving after' v:constant_taxi_leave_at
+    ) => new Slot('taxi-leave-at', v);
+}
+
+// avp: Active-Verb Phrase
+// "X that $apv_slot" where $apv_slot is a verb phrase in active form, with X as subject
+avp_slot = {
+    ( 'departs from' v:constant_taxi_departure
+    | 'should depart from' v:constant_taxi_departure
+    | 'departs at' v:constant_taxi_departure
+    | 'picks me up at' v:constant_taxi_departure
+    ) => new Slot('taxi-departure', v);
+
+    ( 'arrives at' v:constant_taxi_destination
+    | 'arrives to' v:constant_taxi_destination
+    | 'should arrive to' v:constant_taxi_destination
+    | 'drops me off at' v:constant_taxi_destination
+    ) => new Slot('taxi-destination', v);
+
+    ( 'arrives at' v:constant_taxi_arrive_by
+    | 'arrives by' v:constant_taxi_arrive_by
+    | 'arrives before' v:constant_taxi_arrive_by
+    | 'drops me off at' v:constant_taxi_arrive_by
+    ) => new Slot('taxi-arrive-by', v);
+
+    ( 'leaves at' v:constant_taxi_leave_at
+    | 'leaves after' v:constant_taxi_leave_at
+    | 'picks me up at' v:constant_taxi_leave_at
+    ) => new Slot('taxi-leave-at', v);
+}
+
+// apv: Adjective-Phrase Value
+// "$apv_slot X" where $apv_slot is an adjective phrase
+// e.g.: "cheap restaurant", "5-star hotel"
+apv_slot = {
+}
