@@ -47,13 +47,7 @@
         "north",
         "centre",
         "south",
-        "west",
-        "southern aylesbray",
-        "cambridge",
-        "el shaddai",
-        "stevenage",
-        "peterborough",
-        "bishops stortford"
+        "west"
     ],
     "hotel-stars": [
         "4",
@@ -409,8 +403,7 @@
         "west",
         "north",
         "south",
-        "east",
-        "cambridge"
+        "east"
     ],
     "restaurant-food": [
         "turkish",

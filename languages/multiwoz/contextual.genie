@@ -9,19 +9,23 @@
 // See COPYING for details
 
 {
+    const assert = require('assert');
     const Ast = require('../../lib/languages/multidst/ast');
     const Utils = require('./ast_utils');
-    const { Slot, checkAndAddSlot, propose, NAME_SLOTS, PROPOSABLE_SLOTS, SEARCH_SLOTS } = Utils;
+    const { Slot, SystemSlot, checkAndAddSlot, propose, NAME_SLOTS, PROPOSABLE_SLOTS, SEARCH_SLOTS,
+            REQUESTABLE_SEARCH_SLOTS, NON_REQUESTABLE_SYSTEM_SLOTS, ALL_SYSTEM_SLOTS } = Utils;
     Utils.init($grammar, $runtime);
 }
 
 import './shared.genie';
 
-context intent_request_any = $.intent === 'init_request' || $.intent === 'second_request';
+context intent_request_any = ($.intent === 'init_request' || $.intent === 'second_request');
 context intent_request_initial = $.intent === 'init_request';
 context intent_info_request = $.intent === 'init_request' && Utils.searchIsComplete($);
 context intent_search_request = ($.intent === 'init_request' || $.intent === 'second_request') && !Utils.searchIsComplete($);
 context intent_complete_request = (($.intent === 'init_request' || $.intent === 'second_request') && Utils.searchIsComplete($)) || $.intent === 'accept';
+context intent_slot_question = $.intent === 'slot_question';
+context intent_info_question = $.intent === 'info_question';
 context intent_greet = $.intent === 'greet';
 context intent_insist = $.intent === 'insist';
 context intent_cancel = $.intent === 'cancel';
@@ -32,16 +36,19 @@ direct_question = {
     ( 'what time is your reservation for ?'
     | 'what time do you need your reservation for ?'
     | 'at what time is your reservation ?'
-    | 'at what time ?') => 'restaurant-book-time';
+    | 'at what time ?'
+    ) => 'restaurant-book-time';
 
     ( 'what day is your reservation for ?'
     | 'what day do you need your reservation for ?'
     | 'on which day do you want your reservation ?'
-    | 'on which day ?') => 'restaurant-day';
+    | 'on which day ?'
+    ) => 'restaurant-day';
 
     ( 'how many people is your reservation for ?'
     | 'for how many people do you need a reservation ?'
-    | 'how many people ?') => 'restaurant-book-people';
+    | 'how many people ?'
+    ) => 'restaurant-book-people';
 
 
     // train
@@ -71,7 +78,30 @@ direct_question = {
 
     ( 'how many people is your reservation for ?'
     | 'for how many people do you need a reservation ?'
-    | 'how many people ?') => 'train-book-people';
+    | 'how many people ?'
+    ) => 'train-book-people';
+}
+
+user_one_slot_domain_question = {
+    ( 'does it have parking ?'
+    | 'does it come with free parking ?'
+    | 'does it offer parking ?') => ['hotel-parking'];
+
+    ( 'does it have wifi ?'
+    | 'does it come with free wifi ?'
+    | 'does it offer free wifi ?'
+    | 'does it offer free internet ?') => ['hotel-internet'];
+
+    'how many stars does it have ?' => ['hotel-parking'];
+
+    ( 'how expensive is it ?'
+    | 'how pricey is it ?'
+    ) => ['hotel-price-range'];
+    ( 'how expensive is it ?'
+    | 'how pricey is it ?'
+    ) => ['restaurant-price-range'];
+
+    'is it a' constant_attraction_type '?' => ['attraction-type'];
 }
 
 // domain-independent stuff
@@ -170,25 +200,30 @@ info_noun_phrase = {
     two_which_slot_phrase;
     two_clean_slot_phrase;
 
-    two_with_slot_phrase;
-    two_which_slot_phrase;
-    two_clean_slot_phrase;
+    three_with_slot_phrase;
+    three_which_slot_phrase;
+    three_clean_slot_phrase;
 }
 
-system_proposal = {
+system_direct_proposal = {
+    ( 'how about the' proposal:constant_name '?'
+    | 'i' ('recommend' | 'suggest') 'the' proposal:constant_name '.'
+    | 'i' ('have' | 'see') 'the' proposal:constant_name '.'
+    ) => checkAndAddSlot(new Ast.DialogState, proposal);
 
-    // direct proposal
-    'how about the' proposal:constant_name '?' => checkAndAddSlot(new Ast.DialogState, proposal);
-
-    'how about the' proposal:constant_name '? it is a ' info:info_noun_phrase '.' => {
+    ( 'how about the' proposal:constant_name '? it is a ' info:info_noun_phrase '.'
+    | 'i' ('recommend' | 'suggest') 'the' proposal:constant_name '. it is a ' info:info_noun_phrase '.'
+    | 'i' ('have' | 'see') 'the' proposal:constant_name '. it is a ' info:info_noun_phrase '.'
+    ) => {
         proposal = checkAndAddSlot(info, proposal);
         if (proposal)
             return propose(proposal);
         else
             return null;
     };
+}
 
-    // generic proposal
+system_generic_proposal = {
     ( 'are you looking for a' proposal:answer_noun_phrase '?'
     | 'how about' ('a' | 'the') proposal:answer_noun_phrase '?'
     ) => propose(proposal);
@@ -216,9 +251,97 @@ accept_phrase = {
     'sounds good';
 }
 
+user_composable_one_slot_question = {
+    ( 'what is the' p:param_noun_phrase
+    | 'what is its' p:param_noun_phrase
+    | 'i will also need the' p:param_noun_phrase
+    | 'i will also need to know the' p:param_noun_phrase
+    | 'i will need to know the' p:param_noun_phrase
+    | 'i want to know the' p:param_noun_phrase
+    ) => {
+        if (!REQUESTABLE_SEARCH_SLOTS.has(p))
+            return null;
+        return [p];
+    };
+}
+
+user_one_slot_question = {
+    q:user_composable_one_slot_question '?' => q;
+
+    ( 'what' p:param_noun_phrase 'does it have ?'
+    | 'what' p:param_noun_phrase 'does it offer ?'
+    ) => {
+        if (!REQUESTABLE_SEARCH_SLOTS.has(p))
+            return null;
+        return [p];
+    };
+}
+
+user_two_slot_question = {
+    p1:user_composable_one_slot_question 'and the' p2:param_noun_phrase '?' => {
+        if (!REQUESTABLE_SEARCH_SLOTS.has(p2))
+            return null;
+        const d1 = p1[0].split('-')[0];
+        const d2 = p2.split('-')[0];
+        if (d1 !== d2)
+            return null;
+        if (p1.some((p) => p === p2))
+            return null;
+        return p1.concat([p2]);
+    };
+}
+
+user_composable_sys_slot_question = {
+    ( 'what is the' p:sys_param_noun_phrase
+    | 'what is its' p:sys_param_noun_phrase
+    | 'i will also need the' p:sys_param_noun_phrase
+    | 'i will also need to know the' p:sys_param_noun_phrase
+    ) => {
+        if (NON_REQUESTABLE_SYSTEM_SLOTS.has(p))
+            return null;
+        return [p];
+    };
+}
+
+user_one_sys_slot_question = {
+    q:user_composable_sys_slot_question '?' => q;
+
+    ( 'what' p:sys_param_noun_phrase 'does it have ?'
+    | 'what' p:sys_param_noun_phrase 'does it offer ?'
+    ) => {
+        if (NON_REQUESTABLE_SYSTEM_SLOTS.has(p))
+            return null;
+        return [p];
+    };
+}
+
+user_two_sys_slot_question = {
+    p1:user_composable_sys_slot_question 'and the' p2:sys_param_noun_phrase => {
+        if (NON_REQUESTABLE_SYSTEM_SLOTS.has(p2))
+            return null;
+        const d1 = p1[0].split('-')[0];
+        const d2 = p2.split('-')[0];
+        if (d1 !== d2)
+            return null;
+        return p1.concat([p2]);
+    };
+}
+
+user_value_question = {
+    ( 'is it a' val:apv_slot base:base_noun_phrase '?'
+    | 'is the' base:base_noun_phrase ('a'|'') val:apv_slot '?'
+    ) => {
+        if (val.key === null || !SEARCH_SLOTS.has(val.key) || val.domain !== base.domain)
+            return null;
+        return [val.key];
+    };
+}
+
 proposal_reply_pair = {
-    ( prop:system_proposal '<sep>' negative_proposal_answer_preamble ('a' | 'any') req:answer_noun_phrase
-    | prop:system_proposal '<sep>' negative_proposal_answer_preamble req:anything_phrase
+    ( prop:system_direct_proposal '<sep>' negative_proposal_answer_preamble ('a' | 'any') req:answer_noun_phrase
+    | prop:system_direct_proposal '<sep>' negative_proposal_answer_preamble req:anything_phrase
+    | prop:system_generic_proposal '<sep>' negative_proposal_answer_preamble ('a' | 'any') req:answer_noun_phrase
+    | prop:system_generic_proposal '<sep>' negative_proposal_answer_preamble req:anything_phrase
     ) => {
         if (!Utils.compatibleDomains(req, prop))
             return null;
@@ -228,18 +351,44 @@ proposal_reply_pair = {
         }
         return [prop, req];
     };
-    prop:system_proposal '<sep>' ('no ,' | '') req:generic_answer => {
+    ( prop:system_direct_proposal '<sep>' ('no ,' | '') req:generic_answer
+    | prop:system_generic_proposal '<sep>' ('no ,' | '') req:generic_answer
+    ) => {
         if (prop.domain !== null && req.domain !== null && prop.domain !== req.domain)
             return null;
         return [prop, req];
     };
 
-    prop:system_proposal '<sep>' generic_negative_proposal => {
+    prop:system_direct_proposal '<sep>' generic_negative_proposal => {
         return [prop, new Ast.DialogState];
     };
 
-    prop:system_proposal '<sep>' accept_phrase => {
+    prop:system_direct_proposal '<sep>' accept_phrase => {
         return [prop, prop];
+    };
+}
+
+proposal_slot_question_pair = {
+    ( prop:system_direct_proposal '<sep>' question:user_one_slot_question
+    | prop:system_direct_proposal '<sep>' question:user_two_slot_question
+    | prop:system_direct_proposal '<sep>' question:user_value_question
+    | prop:system_direct_proposal '<sep>' question:user_one_slot_domain_question
+    ) => {
+        const state = Utils.userAskQuestions(prop, question);
+        if (state === null)
+            return null;
+        return [prop, state];
+    };
+}
+
+proposal_info_question_pair = {
+    ( prop:system_direct_proposal '<sep>' question:user_one_sys_slot_question
+    | prop:system_direct_proposal '<sep>' question:user_two_sys_slot_question
+    ) => {
+        const state = Utils.userAskQuestions(prop, question);
+        if (state === null)
+            return null;
+        return [prop, state];
     };
 }
 
@@ -359,6 +508,8 @@ ok_thanks_phrase = {
 }
 thanks_phrase = {
     'thank you , this is good for now';
+    'thank you , that will be all';
+    'thank you , that will be all for now';
     'thank you this is what i need';
     'thanks , this is good for now';
     'thanks this is what i need';
@@ -369,7 +520,10 @@ no_thanks_phrase = {
     'no thanks , this is good for now';
     'no thanks this is what i need';
     'no thanks that will be it';
+    'no thanks this will do';
     'no thank you that will be it for now';
+    'no thanks this will do for now';
+    'no thank you that will be all';
 }
 yes_please_phrase = {
     'yes please';
@@ -402,11 +556,85 @@ insist_reply_pair = {
     };
 }
 
+system_one_info_clause = {
+    param:sys_param_noun_phrase 'is' value:constant_Any_system => {
+        if (value.key !== param)
+            return null;
+        return [value];
+    };
+}
+system_two_info_clause = {
+    c1:system_one_info_clause 'and' ('the' | 'its') c2:system_one_info_clause => {
+        if (c1[0].domain !== c2[0].domain)
+            return null;
+        if (c1[0].key === c2[0].key)
+            return null;
+        return c1.concat(c2);
+    };
+}
+
+one_info_clause = {
+    param:param_noun_phrase 'is' value:constant_Any => {
+        if (value.key !== param)
+            return null;
+        return [value];
+    };
+}
+two_info_clause = {
+    c1:one_info_clause 'and' ('the' | 'its') c2:one_info_clause => {
+        if (c1[0].domain !== c2[0].domain)
+            return null;
+        if (c1[0].key === c2[0].key)
+            return null;
+        return c1.concat(c2);
+    };
+}
+
 info_sentence = {
     ('sure' | 'of course' | '') name:constant_name 'is a' info:info_noun_phrase => {
-        if (name.domain !== info.domain)
-            return null;
-        return info;
+        return checkAndAddSlot(info, name);
+    };
+
+    ( ('sure' | 'of course' | '') ('the' | 'its') info:system_one_info_clause
+    | ('sure' | 'of course' | '') ('the' | 'its') info:system_two_info_clause
+    ) => {
+        const state = new Ast.DialogState;
+        for (let slot of info)
+            state.set(slot.key, slot.value);
+        return state;
+    };
+
+    ( ('sure' | 'of course' | '') name:constant_name '\'s' info:system_one_info_clause
+    | ('sure' | 'of course' | '') name:constant_name '\'s' info:system_two_info_clause
+    ) => {
+        const state = new Ast.DialogState;
+        for (let slot of info)
+            state.set(slot.key, slot.value);
+        return checkAndAddSlot(state, name);
+    };
+}
+
+info_answer_sentence = {
+    ( ('the' | 'its') info:system_one_info_clause
+    | ('the' | 'its') info:system_two_info_clause
+    | ('the' | 'its') info:one_info_clause
+    | ('the' | 'its') info:two_info_clause
+    ) => {
+        const state = new Ast.DialogState;
+        for (let slot of info)
+            state.set(slot.key, slot.value);
+        return state;
+    };
+
+    ( name:constant_name '\'s' info:system_one_info_clause
+    | name:constant_name '\'s' info:system_two_info_clause
+    | name:constant_name '\'s' info:one_info_clause
+    | name:constant_name '\'s' info:two_info_clause
+    ) => {
+        const state = new Ast.DialogState;
+        for (let slot of info)
+            state.set(slot.key, slot.value);
+        return checkAndAddSlot(state, name);
     };
 }
 
@@ -430,6 +658,22 @@ info_provide_pair = {
     ) => [info, 'cancel'];
 
     info:info_sentence ('.' | ',' | '') reservation_request '<sep>' yes_please_phrase => [info, 'accept'];
+}
+
+info_answer_provide_pair = {
+    // if the user says thanks / no thanks, either end now, or give the agent a chance to ask for anything else
+    ( info:info_answer_sentence '<sep>' thanks_phrase
+    | info:info_answer_sentence '<sep>' ok_thanks_phrase
+    | info:info_answer_sentence ('.' | ',' | '') reservation_request '<sep>' thanks_phrase
+    | info:info_answer_sentence ('.' | ',' | '') reservation_request '<sep>' no_thanks_phrase
+    ) => [info, 'end'];
+    ( info:info_answer_sentence '<sep>' thanks_phrase
+    | info:info_answer_sentence '<sep>' ok_thanks_phrase
+    | info:info_answer_sentence ('.' | ',' | '') reservation_request '<sep>' thanks_phrase
+    | info:info_answer_sentence ('.' | ',' | '') reservation_request '<sep>' no_thanks_phrase
+    ) => [info, 'cancel'];
+
+    info:info_answer_sentence ('.' | ',' | '') reservation_request '<sep>' yes_please_phrase => [info, 'accept'];
 }
 
 make_reservation_confirm_pair = {
@@ -467,6 +711,42 @@ $root = {
         return Utils.counterRequest(ctx, counterrequest, 'second_request');
     };
 
+    ctx:intent_search_request pair:proposal_slot_question_pair => {
+        const [proposal, question] = pair;
+
+        if (!Utils.proposalIsCompatible(proposal, ctx))
+            return null;
+
+        const clone = ctx.clone();
+        for (let [key, value] of question) {
+            if (clone.has(key))
+                return null;
+            clone.set(key, value);
+        }
+        clone.intent = 'slot_question';
+        assert(clone.hasQuestion());
+        return clone;
+    };
+    ctx:intent_search_request pair:proposal_info_question_pair => {
+        const [proposal, question] = pair;
+
+        if (!Utils.proposalIsCompatible(proposal, ctx))
+            return null;
+
+        const clone = ctx.clone();
+        // if the user is asking for info, they are implicitly accepting the proposal
+        for (let [key, value] of proposal)
+            clone.set(key, value);
+        for (let [key, value] of question) {
+            if (clone.has(key))
+                return null;
+            clone.set(key, value);
+        }
+        clone.intent = 'info_question';
+        assert(clone.hasQuestion());
+        return clone;
+    };
+
     ctx:intent_search_request pair:error_reply_pair => {
         const [error, counterrequest, intent] = pair;
         if (!Utils.infoIsCompatible(error, ctx))
@@ -477,12 +757,16 @@ $root = {
 
     ctx:intent_search_request qa:question_answer_pair => checkAndAddSlot(ctx, qa);
 
-    ctx:intent_info_request pair:info_provide_pair => {
-        const [info, intent] = pair;
-        if (!Utils.infoIsCompatible(info, ctx))
-            return null;
-        return null;
-    };
+    ( ctx:intent_info_request pair:info_provide_pair
+    | ctx:intent_info_question pair:info_provide_pair
+    | ctx:intent_info_question pair:info_answer_provide_pair
+    | ctx:intent_slot_question pair:info_answer_provide_pair
+
+    // FIXME two copies to double the sampling...
+    | ctx:intent_info_question pair:info_provide_pair
+    | ctx:intent_info_question pair:info_answer_provide_pair
+    | ctx:intent_slot_question pair:info_answer_provide_pair
+    ) => Utils.systemAnswerInfo(ctx, pair);
 
     ctx:intent_complete_request intent:make_reservation_confirm_pair => {
         if (ctx.intent === 'accept')

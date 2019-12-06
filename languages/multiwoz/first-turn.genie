@@ -31,6 +31,10 @@ $root = {
     user_initial_request;
 
     req:user_initial_request ('' | '.') ans:generic_answer => {
+        if (ans.size === 0)
+            throw new Error('????');
+        if (ans.size === 0)
+            return null;
         if (ans.domain !== null && req.domain !== null && ans.domain !== req.domain)
             return null;
         const clone = req.clone();
