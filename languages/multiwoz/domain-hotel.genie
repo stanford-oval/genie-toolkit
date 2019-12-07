@@ -17,6 +17,14 @@
 direct_question = {
 }
 
+imprecise_answer = {
+    'i need parking .' => new Slot('hotel-parking', new Ast.TristateValue('yes'));
+    'i do not need parking .' => new Slot('hotel-parking', new Ast.TristateValue('no'));
+
+    'i need wifi .' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
+    'i do not need wifi .' => new Slot('hotel-internet', new Ast.TristateValue('no'));
+}
+
 user_one_slot_domain_question = {
     ( 'does it have parking ?'
     | 'does it come with free parking ?'

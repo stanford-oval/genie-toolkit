@@ -32,6 +32,18 @@ generic_preamble = {
     'i need' => [];
 }
 
+second_request_preamble = {
+    'i am looking for' => [];
+    'i am looking for' => [];
+    'i would like' => [];
+    'i would like' => [];
+    'i want' => [];
+    'i need' => [];
+    'can i book that' => [];
+    'can you book that' => [];
+    'can you book me' => [];
+}
+
 preamble = {
     'hello ! i am looking for a' => [];
     'hello ! i am looking for the' => [];
@@ -65,34 +77,69 @@ preamble = {
     'can you help me book a' => ['train', 'hotel', 'taxi'];
 }
 
+prep_leave_slot = {}
+prep_arrive_slot = {}
+
 generic_answer = {
     // "i want to book for 3 people", "I want to book at ..."
-    'i' ('want' | 'need') 'to book' slot:prep_slot => checkAndAddSlot(new Ast.DialogState, slot);
-
-    'i' ('want' | 'need') 'to leave' slot:prep_slot => {
-        if (!slot.key.endsWith('-departure') && !slot.key.endsWith('-leave-at'))
-            return null;
-        return checkAndAddSlot(new Ast.DialogState, slot);
-    };
-    'i' ('want' | 'need') 'to arrive' slot:prep_slot => {
-        if (!slot.key.endsWith('-destination') && !slot.key.endsWith('-arrive-by'))
-            return null;
-        return checkAndAddSlot(new Ast.DialogState, slot);
+    'i' ('want' | 'need') 'to book' slot:prep_slot => {
+        const state = new Ast.DialogState;
+        state.set(slot.key, slot.value);
+        return state;
     };
 
-    'i am travelling' slot:prep_slot => {
+    'i' ('want' | 'need') 'to leave' slot:prep_leave_slot => {
+        const state = new Ast.DialogState;
+        state.set(slot.key, slot.value);
+        return state;
+    };
+    'i' ('want to arrive' | 'need to arrive' | 'am going' | 'am headed') slot:prep_arrive_slot => {
+        const state = new Ast.DialogState;
+        state.set(slot.key, slot.value);
+        return state;
+    };
+
+    'i' ('want' | 'need') 'to leave' s1:prep_leave_slot s2:prep_leave_slot => {
+        if (s1.domain !== s2.domain)
+            return null;
+        if (s1.key === s2.key)
+            return null;
+        const state = new Ast.DialogState;
+        state.set(s1.key, s1.value);
+        state.set(s2.key, s2.value);
+        return state;
+    };
+    'i' ('want to arrive' | 'need to arrive' | 'am going' | 'am headed') s1:prep_arrive_slot s2:prep_arrive_slot => {
+        if (s1.domain !== s2.domain)
+            return null;
+        if (s1.key === s2.key)
+            return null;
+        const state = new Ast.DialogState;
+        state.set(s1.key, s1.value);
+        state.set(s2.key, s2.value);
+        return state;
+    };
+
+    ( 'i am travelling' | 'i will be travelling' | 'i am going' ) slot:prep_slot => {
         if (slot.domain !== 'train' && slot.domain !== 'taxi')
             return null;
-        return checkAndAddSlot(new Ast.DialogState, slot);
+        const state = new Ast.DialogState;
+        state.set(slot.key, slot.value);
+        return state;
     };
-}
+    ( 'i am travelling' | 'i will be travelling' | 'i am going' ) s1:prep_slot s2:prep_slot => {
+        if (s1.domain !== 'train' && s1.domain !== 'taxi')
+            return null;
+        if (s1.domain !== s2.domain)
+            return null;
+        if (s1.key === s2.key)
+            return null;
 
-imprecise_answer = {
-    'i need parking .' => new Slot('hotel-parking', new Ast.TristateValue('yes'));
-    'i do not need parking .' => new Slot('hotel-parking', new Ast.TristateValue('no'));
-
-    'i need wifi .' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
-    'i do not need wifi .' => new Slot('hotel-internet', new Ast.TristateValue('no'));
+        const state = new Ast.DialogState;
+        state.set(s1.key, s1.value);
+        state.set(s2.key, s2.value);
+        return state;
+    };
 }
 
 // the rest is domain-independent
@@ -114,12 +161,16 @@ noun_phrase = {
 
 generic_anything_noun_phrase = {
     'anything' => new Ast.DialogState;
+    // this looks weird due to preprocessing...
+    '1' => new Ast.DialogState;
     'something' => new Ast.DialogState;
 }
 
 generic_base_noun_phrase = {
     'listing' => new Ast.DialogState;
     'place' => new Ast.DialogState('hotel');
+    'option' => new Ast.DialogState;
+    'choice' => new Ast.DialogState;
 }
 
 anything_phrase = {
@@ -241,13 +292,38 @@ user_initial_request = {
     };
 }
 
-imprecise_answer = {
-    constant:constant_Any ('please' | '') '.' => constant;
+user_second_request = {
+    domains:generic_preamble ('a' | 'the') dialogue:noun_phrase => {
+        if (domains.length > 0 && !domains.includes(dialogue.domain))
+            return null;
 
-    domains:generic_preamble constant:constant_Any '.' => {
+        for (let key of dialogue) {
+            if (SEARCH_SLOTS.has(key))
+                return null;
+        }
+        return dialogue;
+    };
+}
+
+imprecise_answer_phrase = {
+    ( slot:constant_Any
+    | slot:avp_slot
+    | slot:pvp_slot
+    | slot:prep_slot
+    ) => {
+        const state = new Ast.DialogState;
+        state.set(slot.key, slot.value);
+        return state;
+    };
+}
+
+imprecise_answer = {
+    ans:imprecise_answer_phrase ('please' | '') '.' => ans;
+
+    domains:generic_preamble ans:imprecise_answer_phrase '.' => {
         if (domains.length > 0)
             return null;
-        return constant;
+        return ans;
     };
 }
 

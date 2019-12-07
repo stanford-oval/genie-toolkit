@@ -41,6 +41,7 @@ user_one_slot_domain_question = {
 
 param_noun_phrase = {
     ( 'cuisine'
+    | 'type of cuisine'
     | 'food'
     | 'type of food'
     ) => 'restaurant-food';
@@ -54,7 +55,8 @@ param_noun_phrase = {
     'price range' => 'restaurant-price-range';
 
     ( 'area'
-    | 'area of the city') => 'restaurant-area';
+    | 'area of the city'
+    | 'part of town' ) => 'restaurant-area';
 
     'number of people' => 'restaurant-book-people';
 
@@ -77,6 +79,7 @@ sys_param_noun_phrase = {
 base_noun_phrase = {
     'restaurant' => new Ast.DialogState('restaurant');
     'place to eat' => new Ast.DialogState('restaurant');
+    'place to dine' => new Ast.DialogState('restaurant');
     'food place' => new Ast.DialogState('restaurant');
 }
 
@@ -100,6 +103,20 @@ npi_slot = {
 // eg. "train to cambridge"
 prep_slot = {
     'at' v:constant_restaurant_book_time => new Slot('restaurant-book-time', v);
+
+    ( 'in' v:constant_restaurant_area
+    | 'in the' v:constant_restaurant_area 'area'
+    | 'in the' v:constant_restaurant_area 'part of town'
+    | 'near' v:constant_restaurant_area
+    | 'near the' v:constant_restaurant_area 'area'
+    | 'near the' v:constant_restaurant_area 'part of town'
+    | 'around' v:constant_restaurant_area
+    | 'around the' v:constant_restaurant_area 'area'
+    | 'around the' v:constant_restaurant_area 'part of town'
+    ) => new Slot('restaurant-area', v);
+    ( 'in the city centre'
+    | 'in the city center'
+    ) => new Slot('restaurant-area', new Ast.ConstantValue('centre'));
 
     ( 'for' v:constant_restaurant_book_people 'people'
     | 'for' v:constant_restaurant_book_people
@@ -137,4 +154,9 @@ avp_slot = {
 // e.g.: "cheap restaurant", "5-star hotel"
 apv_slot = {
     v:constant_restaurant_food => new Slot('restaurant-food', v);
+    v:constant_restaurant_food 'food' => new Slot('restaurant-food', v);
+
+    v:constant_restaurant_price_range => new Slot('restaurant-price-range', v);
+    v:constant_restaurant_price_range '-ly priced' => new Slot('restaurant-price-range', v);
+    v:constant_restaurant_price_range 'price' => new Slot('restaurant-price-range', v);
 }
