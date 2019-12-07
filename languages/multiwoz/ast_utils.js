@@ -145,6 +145,14 @@ function searchIsComplete(ctx) {
     return false;
 }
 
+const ENUM_SYNONYMS = {
+    'price-range/expensive': ['expensive', 'upscale'],
+    'price-range/cheap': ['cheap', 'inexpensive'],
+    'area/centre': ['centre', 'center'],
+    'area/north': ['north', 'northern'],
+    'area/south': ['south', 'southern'],
+};
+
 function init($grammar, $runtime) {
     $grammar.declareSymbol('constant_Any');
     $grammar.declareSymbol('constant_Any_system');
@@ -155,8 +163,12 @@ function init($grammar, $runtime) {
         const ident_slot_key = slot_key.replace(/[ -]/g, '_');
         $grammar.declareSymbol('constant_' + ident_slot_key);
 
-        for (let value of ontology[slot_key])
-            $grammar.addRule('constant_' + ident_slot_key, value.split(' '), $runtime.simpleCombine(() => new Ast.ConstantValue(value)));
+        const slot_name = normalized_slot_key.split('-').slice(1).join('-');
+        for (let value of ontology[slot_key]) {
+            const canonicals = ENUM_SYNONYMS[slot_name + '/' + value] || [value];
+            for (let canonical of canonicals)
+                $grammar.addRule('constant_' + ident_slot_key, canonical.split(' '), $runtime.simpleCombine(() => new Ast.ConstantValue(value)));
+        }
 
         $grammar.addRule('constant_Any', [new $runtime.NonTerminal('constant_' + ident_slot_key)], $runtime.simpleCombine((v) => {
             return new Slot(normalized_slot_key, v);
@@ -344,16 +356,53 @@ function systemAnswerInfo(ctx, [info, intent]) {
     }
 
     const clone = ctx.clone();
-    for (let [key, value] of ctx.keys()) {
+    for (let [key, value] of ctx) {
         if (value === Ast.QUESTION)
             clone.delete(key);
     }
+    /* XXX convention
     for (let [key, value] of info) {
         if (ALL_SYSTEM_SLOTS.has(key))
             continue;
         clone.set(key, value);
     }
+    */
     clone.intent = intent;
+    return clone;
+}
+
+function systemAnswerInfoWithRequest(ctx, [info, request]) {
+    if (!infoIsCompatible(info, ctx))
+        return null;
+
+    for (let [key, value] of ctx) {
+        if (value === Ast.QUESTION && !info.has(key))
+            return null;
+    }
+    for (let [key,] of info) {
+        if (ALL_SYSTEM_SLOTS.has(key) && !ctx.has(key))
+            return null;
+        if (NON_REQUESTABLE_SYSTEM_SLOTS.has(key))
+            return null;
+    }
+
+    const clone = ctx.clone();
+    for (let [key, value] of ctx) {
+        if (value === Ast.QUESTION)
+            clone.delete(key);
+    }
+    for (let [key, value] of request) {
+        if (SEARCH_SLOTS.has(key) || ctx.has(key))
+            return null;
+        clone.set(key, value);
+    }
+    /* XXX convention
+    for (let [key, value] of info) {
+        if (ALL_SYSTEM_SLOTS.has(key))
+            continue;
+        clone.set(key, value);
+    } */
+    clone.intent = 'accept';
     return clone;
 }
 
@@ -378,6 +427,7 @@ module.exports = {
     infoIsCompatible,
     userAskQuestions,
     systemAnswerInfo,
+    systemAnswerInfoWithRequest,
 
     ALL_SYSTEM_SLOTS,
     NAME_SLOTS,

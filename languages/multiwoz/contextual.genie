@@ -46,13 +46,7 @@ answer_noun_phrase = {
 
 precise_answer = {
     // complete answer, like "I am looking for a bla restaurant"
-    domains:generic_preamble ('a' | 'the') dialogue:answer_noun_phrase => {
-        if (domains.length > 0 || dialogue.size !== 1)
-            return null;
-        for (let [key, value] of dialogue)
-            return new Slot(key, value);
-        return null;
-    };
+    domains:generic_preamble ('a' | 'the') dialogue:answer_noun_phrase => dialogue;
 }
 
 question_preamble = {
@@ -86,16 +80,11 @@ generic_question = {
 }
 
 question_answer_pair = {
-    ( q:direct_question '<sep>' a:precise_answer
+    ( q:direct_question '<sep>' a:generic_answer
     | q:direct_question '<sep>' a:imprecise_answer
+    | q:direct_question '<sep>' a:precise_answer
+    | q:generic_question '<sep>' a:precise_answer
     ) => {
-        if (a.key === q)
-            return a;
-        else
-            return null;
-    };
-
-    q:direct_question '<sep>' a:generic_answer => {
         if (a.size !== 1)
             return null;
         for (let [key, value] of a) {
@@ -105,14 +94,6 @@ question_answer_pair = {
                 return null;
         }
         return null;
-    };
-
-    q:generic_question '<sep>' a:precise_answer => {
-        const [dom, slot] = q;
-
-        if (a.domain !== dom || (slot !== null && a.key !== slot))
-            return null;
-        return a;
     };
 }
 
@@ -349,12 +330,22 @@ notfound_error = {
         }
         return error;
     };
-    sorry_preamble cannot_find_phrase error:info_noun_phrase ('.' | ',') try_different_phrase p:param_noun_phrase => {
+    sorry_preamble cannot_find_phrase error:info_noun_phrase ('.' | ',') try_different_phrase p:param_noun_phrase '?' => {
         for (let key of error.keys()) {
             if (!SEARCH_SLOTS.has(key))
                 return null;
         }
         if (!error.has(p))
+            return null;
+
+        return error;
+    };
+    sorry_preamble cannot_find_phrase error:info_noun_phrase ('.' | ',') try_different_phrase p1:param_noun_phrase 'or' p2:param_noun_phrase '?' => {
+        for (let key of error.keys()) {
+            if (!SEARCH_SLOTS.has(key))
+                return null;
+        }
+        if (!error.has(p1) || !error.has(p2))
             return null;
 
         return error;
@@ -386,7 +377,8 @@ insist_specific_preamble = {
 }
 
 error_reply_pair = {
-    ( error:notfound_error '<sep>' counter_proposal_answer_preamble req:answer_noun_phrase
+    ( error:notfound_error '<sep>' counter_proposal_answer_preamble 'a' req:answer_noun_phrase
+    | error:notfound_error '<sep>' counter_proposal_answer_preamble req:imprecise_answer_phrase
     | error:notfound_error '<sep>' counter_proposal_answer_preamble req:anything_phrase ) => {
         if (!Utils.compatibleDomains(req, error))
             return null;
@@ -399,7 +391,9 @@ error_reply_pair = {
         return [error, new Ast.DialogState, 'insist'];
     };
 
-    error:notfound_error '<sep>' insist_specific_preamble ('i really need' | 'i really want') 'a' req:answer_noun_phrase => {
+    ( error:notfound_error '<sep>' insist_specific_preamble ('i really need' | 'i really want') 'a' req:answer_noun_phrase
+    | error:notfound_error '<sep>' insist_specific_preamble ('i really need' | 'i really want') req:imprecise_answer_phrase
+    ) => {
         if (!Utils.compatibleDomains(req, error))
             return null;
         for (let [key, value] of req) {
@@ -604,6 +598,12 @@ info_answer_provide_pair = {
     info:info_answer_sentence ('.' | ',' | '') reservation_request '<sep>' yes_please_phrase => [info, 'accept'];
 }
 
+info_request_reservation = {
+    ( info:info_answer_sentence ('.' | ',' | '') '<sep>' ('yes , ' | 'perfect ,' | 'great ,' | '') req:user_second_request
+    | info:info_answer_sentence ('.' | ',' | '') reservation_request '<sep>' ('yes , ' | 'perfect ,' | 'great ,' | '') req:user_second_request
+    ) => [info, req];
+}
+
 make_reservation_confirm_pair = {
     ( reservation_request '<sep>' thanks_phrase
     | reservation_request '<sep>' no_thanks_phrase
@@ -662,9 +662,10 @@ $root = {
             return null;
 
         const clone = ctx.clone();
-        // if the user is asking for info, they are implicitly accepting the proposal
+        /* // if the user is asking for info, they are implicitly accepting the proposal
         for (let [key, value] of proposal)
             clone.set(key, value);
+        */
         for (let [key, value] of question) {
             if (clone.has(key))
                 return null;
@@ -701,6 +702,15 @@ $root = {
     | ctx:intent_info_question pair:info_answer_provide_pair
     | ctx:intent_slot_question pair:info_answer_provide_pair
     ) => Utils.systemAnswerInfo(ctx, pair);
+
+    ( ctx:intent_info_request pair:info_request_reservation
+    | ctx:intent_info_question pair:info_request_reservation
+    | ctx:intent_slot_question pair:info_request_reservation
+
+    | ctx:intent_info_request pair:info_request_reservation
+    | ctx:intent_info_question pair:info_request_reservation
+    | ctx:intent_slot_question pair:info_request_reservation
+    ) => Utils.systemAnswerInfoWithRequest(ctx, pair);
 
     ctx:intent_complete_request intent:make_reservation_confirm_pair => {
         if (ctx.intent === 'accept')
