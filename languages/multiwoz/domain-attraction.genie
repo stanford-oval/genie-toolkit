@@ -38,7 +38,7 @@ param_noun_phrase = {
 }
 
 sys_param_noun_phrase = {
-    'address' => 'attraction-system-address';
+    'address' => 'attraction-system-addr';
     'post code' => 'attraction-system-post';
     'phone number' => 'attraction-system-phone';
     'opening hours' => 'attraction-system-open';
