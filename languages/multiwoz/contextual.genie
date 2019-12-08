@@ -674,8 +674,8 @@ info_answer_provide_pair = {
 }
 
 info_request_reservation = {
-    ( info:info_answer_sentence ('.' | ',' | '') '<sep>' ('yes , ' | 'perfect ,' | 'great ,' | '') req:user_second_request
-    | info:info_answer_sentence ('.' | ',' | '') reservation_request '<sep>' ('yes , ' | 'perfect ,' | 'great ,' | '') req:user_second_request
+    ( info:info_answer_sentence ('.' | ',' | '') '<sep>' ('yes ,' | 'perfect ,' | 'great ,' | '') req:user_second_request
+    | info:info_answer_sentence ('.' | ',' | '') reservation_request '<sep>' ('yes ,' | 'perfect ,' | 'great ,' | '') req:user_second_request
     ) => [info, req];
 }
 
