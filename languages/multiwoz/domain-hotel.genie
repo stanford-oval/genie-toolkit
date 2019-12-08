@@ -18,11 +18,27 @@ direct_question = {
 }
 
 imprecise_answer = {
-    'i need parking .' => new Slot('hotel-parking', new Ast.TristateValue('yes'));
-    'i do not need parking .' => new Slot('hotel-parking', new Ast.TristateValue('no'));
+    'i need parking .' => {
+        const state = new Ast.DialogState;
+        state.set('hotel-parking', new Ast.TristateValue('yes'));
+        return state;
+    };
+    'i do not need parking .' => {
+        const state = new Ast.DialogState;
+        state.set('hotel-parking', new Ast.TristateValue('no'));
+        return state;
+    };
 
-    'i need wifi .' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
-    'i do not need wifi .' => new Slot('hotel-internet', new Ast.TristateValue('no'));
+    'i need wifi .' => {
+        const state = new Ast.DialogState;
+        state.set('hotel-internet', new Ast.TristateValue('yes'));
+        return state;
+    };
+    'i do not need wifi .' => {
+        const state = new Ast.DialogState;
+        state.set('hotel-internet', new Ast.TristateValue('no'));
+        return state;
+    };
 }
 
 user_one_slot_domain_question = {
