@@ -344,27 +344,6 @@ proposal_info_question_pair = {
     };
 }
 
-try_different_phrase = {
-    'would you like to try a different';
-    'how about a different';
-    'can i suggest another';
-}
-
-cannot_find_phrase = {
-    'i cannot find any';
-    'there are no';
-    'there is no';
-    'there does not seem any';
-    'i do not see a';
-}
-
-sorry_preamble = {
-    'sorry';
-    'sorry ,';
-    'i am sorry';
-    '';
-}
-
 generic_cannot_find_phrase = {
     ( 'there are no ' base:base_noun_phrase '.'
     | 'i cannot find any' base:base_noun_phrase '.'
@@ -387,13 +366,13 @@ param_noun_phrase_pair = {
 }
 
 notfound_error = {
-    sorry_preamble dom:generic_cannot_find_phrase => new Ast.DialogState(dom);
-    sorry_preamble cannot_find_phrase dom:generic_cannot_find_phrase ('.' | ',') try_different_phrase p:param_noun_phrase '?' => {
+    ('sorry' | 'sorry ,' | 'i am sorry' | '') dom:generic_cannot_find_phrase => new Ast.DialogState(dom);
+    ('sorry' | 'sorry ,' | 'i am sorry' | '') dom:generic_cannot_find_phrase ('.' | ',') ('would you like to try a different' | 'how about a different' | 'can i suggest another') p:param_noun_phrase '?' => {
         if (!p.startsWith(dom + '-'))
             return null;
         return new Ast.DialogState(dom);
     };
-    sorry_preamble cannot_find_phrase dom:generic_cannot_find_phrase ('.' | ',') try_different_phrase pair:param_noun_phrase_pair '?' => {
+    ('sorry' | 'sorry ,' | 'i am sorry' | '') dom:generic_cannot_find_phrase ('.' | ',') ('would you like to try a different' | 'how about a different' | 'can i suggest another') pair:param_noun_phrase_pair '?' => {
         const [p1, p2] = pair;
         if (!p1.startsWith(dom + '-') || !p2.startsWith(dom + '-'))
             return null;
@@ -401,14 +380,14 @@ notfound_error = {
         return new Ast.DialogState(dom);
     };
 
-    sorry_preamble cannot_find_phrase error:info_noun_phrase => {
+    ('sorry' | 'sorry ,' | 'i am sorry' | '') ('i cannot find any' | 'there are no' | 'there is no' | 'there does not seem any' | 'i do not see a') error:info_noun_phrase => {
         for (let key of error.keys()) {
             if (!SEARCH_SLOTS.has(key))
                 return null;
         }
         return error;
     };
-    sorry_preamble cannot_find_phrase error:info_noun_phrase ('.' | ',') try_different_phrase p:param_noun_phrase '?' => {
+    ('sorry' | 'sorry ,' | 'i am sorry' | '') ('i cannot find any' | 'there are no' | 'there is no' | 'there does not seem any' | 'i do not see a') error:info_noun_phrase ('.' | ',') ('would you like to try a different' | 'how about a different' | 'can i suggest another') p:param_noun_phrase '?' => {
         for (let key of error.keys()) {
             if (!SEARCH_SLOTS.has(key))
                 return null;
@@ -418,7 +397,7 @@ notfound_error = {
 
         return error;
     };
-    sorry_preamble cannot_find_phrase error:info_noun_phrase ('.' | ',') try_different_phrase pair:param_noun_phrase_pair '?' => {
+    ('sorry' | 'sorry ,' | 'i am sorry' | '') ('i cannot find any' | 'there are no' | 'there is no' | 'there does not seem any' | 'i do not see a') error:info_noun_phrase ('.' | ',') ('would you like to try a different' | 'how about a different' | 'can i suggest another') pair:param_noun_phrase_pair '?' => {
         for (let key of error.keys()) {
             if (!SEARCH_SLOTS.has(key))
                 return null;
@@ -431,15 +410,6 @@ notfound_error = {
     };
 }
 
-counter_proposal_answer_preamble = {
-    'how about';
-    'do you have';
-    'can you find';
-    'can you check for';
-    'is there';
-    'are there';
-}
-
 insist_generic_answer = {
     'i really want that , can you check again ?' => null;
     'are you sure ?' => null;
@@ -448,18 +418,10 @@ insist_generic_answer = {
     'check again' => null;
 }
 
-insist_specific_preamble = {
-    'that is unfortunate';
-    'too bad';
-    'i am sorry';
-    'can you check again ?';
-    'are you sure ?';
-}
-
 error_reply_pair = {
-    ( error:notfound_error '<sep>' counter_proposal_answer_preamble 'a' req:answer_noun_phrase
-    | error:notfound_error '<sep>' counter_proposal_answer_preamble req:imprecise_answer_phrase
-    | error:notfound_error '<sep>' counter_proposal_answer_preamble req:anything_phrase ) => {
+    ( error:notfound_error '<sep>' ('how about' | 'do you have' | 'can you find' | 'can you check for' | 'is there' | 'are there') ('a' | 'any') req:answer_noun_phrase
+    | error:notfound_error '<sep>' ('how about' | 'do you have' | 'can you find' | 'can you check for' | 'is there' | 'are there') req:imprecise_answer_phrase
+    | error:notfound_error '<sep>' ('how about' | 'do you have' | 'can you find' | 'can you check for' | 'is there' | 'are there') req:anything_phrase ) => {
         if (!Utils.compatibleDomains(req, error))
             return null;
         return [error, req, 'second_request'];
@@ -471,8 +433,8 @@ error_reply_pair = {
         return [error, new Ast.DialogState, 'insist'];
     };
 
-    ( error:notfound_error '<sep>' insist_specific_preamble ('i really need' | 'i really want') 'a' req:answer_noun_phrase
-    | error:notfound_error '<sep>' insist_specific_preamble ('i really need' | 'i really want') req:imprecise_answer_phrase
+    ( error:notfound_error '<sep>' ('that is unfortunate' | 'too bad' | 'i am sorry' | 'can you check again ?' | 'are you sure ?') ('i really need' | 'i really want') 'a' req:answer_noun_phrase
+    | error:notfound_error '<sep>' ('that is unfortunate' | 'too bad' | 'i am sorry' | 'can you check again ?' | 'are you sure ?') ('i really need' | 'i really want') req:imprecise_answer_phrase
     ) => {
         if (!Utils.compatibleDomains(req, error))
             return null;
@@ -531,7 +493,7 @@ yes_please_phrase = {
 }
 
 insist_notfound_error = {
-    sorry_preamble insist_cannot_find_phrase error:info_noun_phrase => {
+    ('sorry' | 'sorry ,' | 'i am sorry' | '') insist_cannot_find_phrase error:info_noun_phrase => {
         for (let key of error.keys()) {
             if (!SEARCH_SLOTS.has(key))
                 return null;
@@ -541,8 +503,8 @@ insist_notfound_error = {
 }
 
 insist_reply_pair = {
-    ( error:insist_notfound_error '<sep>' counter_proposal_answer_preamble req:answer_noun_phrase
-    | error:insist_notfound_error '<sep>' counter_proposal_answer_preamble req:anything_phrase ) => {
+    ( error:insist_notfound_error '<sep>' ('how about' | 'do you have' | 'can you find' | 'can you check for' | 'is there' | 'are there') ('a' | 'any') req:answer_noun_phrase
+    | error:insist_notfound_error '<sep>' ('how about' | 'do you have' | 'can you find' | 'can you check for' | 'is there' | 'are there') req:anything_phrase ) => {
         if (!Utils.compatibleDomains(req, error))
             return null;
         return [error, req, 'second_request'];
