@@ -271,6 +271,8 @@ user_two_sys_slot_question = {
         const d2 = p2.split('-')[0];
         if (d1 !== d2)
             return null;
+        if (p1[0] === p2)
+            return null;
         return p1.concat([p2]);
     };
 }
@@ -367,12 +369,12 @@ param_noun_phrase_pair = {
 
 notfound_error = {
     ('sorry' | 'sorry ,' | 'i am sorry' | '') dom:generic_cannot_find_phrase => new Ast.DialogState(dom);
-    ('sorry' | 'sorry ,' | 'i am sorry' | '') dom:generic_cannot_find_phrase ('.' | ',') ('would you like to try a different' | 'how about a different' | 'can i suggest another') p:param_noun_phrase '?' => {
+    ('sorry' | 'sorry ,' | 'i am sorry' | '') dom:generic_cannot_find_phrase ('would you like to try a different' | 'how about a different' | 'can i suggest another') p:param_noun_phrase '?' => {
         if (!p.startsWith(dom + '-'))
             return null;
         return new Ast.DialogState(dom);
     };
-    ('sorry' | 'sorry ,' | 'i am sorry' | '') dom:generic_cannot_find_phrase ('.' | ',') ('would you like to try a different' | 'how about a different' | 'can i suggest another') pair:param_noun_phrase_pair '?' => {
+    ('sorry' | 'sorry ,' | 'i am sorry' | '') dom:generic_cannot_find_phrase ('would you like to try a different' | 'how about a different' | 'can i suggest another') pair:param_noun_phrase_pair '?' => {
         const [p1, p2] = pair;
         if (!p1.startsWith(dom + '-') || !p2.startsWith(dom + '-'))
             return null;

@@ -307,7 +307,7 @@ user_second_request = {
 
 imprecise_answer_phrase = {
     ( slot:constant_Any
-    | slot:avp_slot
+    | slot:apv_slot
     | slot:pvp_slot
     | slot:prep_slot
     ) => {
