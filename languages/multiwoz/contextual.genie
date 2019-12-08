@@ -383,7 +383,7 @@ param_noun_phrase_pair = {
         if (d1 !== d2)
             return null;
         return [p1, p2];
-    }
+    };
 }
 
 notfound_error = {
