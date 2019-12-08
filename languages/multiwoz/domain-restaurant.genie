@@ -68,7 +68,7 @@ param_noun_phrase = {
 }
 
 sys_param_noun_phrase = {
-    'address' => 'restaurant-system-address';
+    'address' => 'restaurant-system-addr';
     'post code' => 'restaurant-system-post';
     'phone number' => 'restaurant-system-phone';
     ( 'reference number'

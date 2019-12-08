@@ -80,7 +80,7 @@ preamble = {
 prep_leave_slot = {}
 prep_arrive_slot = {}
 
-generic_answer = {
+generic_domain_answer = {
     // "i want to book for 3 people", "I want to book at ..."
     'i' ('want' | 'need') 'to book' slot:prep_slot => {
         const state = new Ast.DialogState;
@@ -340,6 +340,8 @@ generic_answer = {
 
     ( 'i do not care about' key:param_noun_phrase
     | 'i have no preference for' key:param_noun_phrase
+    | key:param_noun_phrase 'does not matter'
+    | 'any' key:param_noun_phrase 'is the same to me'
     ) => {
         if (!SEARCH_SLOTS.has(key))
             return null;

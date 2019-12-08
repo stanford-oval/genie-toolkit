@@ -30,7 +30,9 @@ $root = {
 
     user_initial_request;
 
-    req:user_initial_request ('' | '.') ans:generic_answer => {
+    ( req:user_initial_request (',' | '.') ans:generic_answer
+    | req:user_initial_request (',' | '.') ans:generic_domain_answer
+    ) => {
         if (ans.size === 0)
             throw new Error('????');
         if (ans.size === 0)

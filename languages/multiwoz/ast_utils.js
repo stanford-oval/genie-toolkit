@@ -146,7 +146,7 @@ function searchIsComplete(ctx) {
 }
 
 const ENUM_SYNONYMS = {
-    'price-range/expensive': ['expensive', 'upscale'],
+    'price-range/expensive': ['expensive', 'upscale', 'pricey'],
     'price-range/cheap': ['cheap', 'inexpensive'],
     'area/centre': ['centre', 'center'],
     'area/north': ['north', 'northern'],
@@ -303,6 +303,17 @@ function checkInfoNounPhrase(info) {
     return info;
 }
 
+function insist(ctx, counterrequest) {
+    for (let [key, value] of counterrequest) {
+        if (!ctx.has(key) || !ctx.get(key).equals(value))
+            return null;
+    }
+
+    const clone = ctx.clone();
+    clone.intent = 'insist';
+    return clone;
+}
+
 function counterRequest(ctx, counterrequest, intent, allowOverride = false) {
     const clone = ctx.clone();
     // override all slots based on the counterrequest
@@ -421,6 +432,7 @@ module.exports = {
     proposalIsCompatible,
     PROPOSABLE_SLOTS,
     counterRequest,
+    insist,
     checkInfoNounPhrase,
 
     errorIsCompatible,

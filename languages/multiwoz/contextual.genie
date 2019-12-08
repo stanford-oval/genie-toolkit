@@ -50,13 +50,14 @@ precise_answer = {
 }
 
 question_preamble = {
-    ( 'there are many' base:base_noun_phrase '.'
+    ( 'there are' ('many' | 'several') base:base_noun_phrase '.'
     | 'there are more than' random_number base:base_noun_phrase '.'
-    | 'i can see many' base:base_noun_phrase '.'
-    | 'there are many' base:base_noun_phrase ' matching your request .'
+    | 'i can see' ('many' | 'several') base:base_noun_phrase '.'
+    | 'i can recommend' ('many' | 'several') base:base_noun_phrase '.'
+    | 'there are' ('many' | 'several') base:base_noun_phrase ' matching your request .'
     | 'there are more than' random_number base:base_noun_phrase ' that correspond to your specifications .'
-    | 'i can see many' base:base_noun_phrase ' matching your constraints .'
-    | 'i can see many' base:base_noun_phrase ' with those characteristics .'
+    | 'i can see' ('many' | 'several') base:base_noun_phrase ' matching your constraints .'
+    | 'i can see' ('many' | 'several') base:base_noun_phrase ' with those characteristics .'
     ) => base.domain;
 }
 
@@ -65,11 +66,22 @@ direct_question = {
     | 'what' p:param_noun_phrase 'would you prefer ?'
     | 'what' p:param_noun_phrase 'would you like ?'
     | 'what' p:param_noun_phrase 'are you interested in ?'
-    | 'what' p:param_noun_phrase 'are you looking for ?')
-    => p;
+    | 'what' p:param_noun_phrase 'are you looking for ?'
+    ) => p;
+}
+
+yesno_direct_question = {
+    ( 'any preference of' p:param_noun_phrase '?'
+    | 'do you have a specific' p:param_noun_phrase 'in mind?'
+    | 'do you have a preference of' p:param_noun_phrase '?'
+    | 'do you have a preferred' p:param_noun_phrase '?'
+    | 'are you looking for a specific' p:param_noun_phrase '?'
+    ) => p;
 }
 generic_question = {
-    dom:question_preamble q:direct_question => {
+    ( dom:question_preamble q:direct_question
+    | dom:question_preamble q:yesno_direct_question
+    ) => {
         if (!q.startsWith(dom + '-'))
             return null;
         return [dom, q];
@@ -81,19 +93,48 @@ generic_question = {
 
 question_answer_pair = {
     ( q:direct_question '<sep>' a:generic_answer
+    | q:direct_question '<sep>' a:generic_domain_answer
     | q:direct_question '<sep>' a:imprecise_answer
     | q:direct_question '<sep>' a:precise_answer
-    | q:generic_question '<sep>' a:precise_answer
+    | q:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') a:generic_answer
+    | q:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') a:generic_domain_answer
+    | q:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') a:imprecise_answer
+    | q:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') a:precise_answer
+    | q:generic_question '<sep>' ('yes' | 'yes ,' | '') a:precise_answer
     ) => {
-        if (a.size !== 1)
+        if (!a.has(q.key))
             return null;
-        for (let [key, value] of a) {
-            if (q.key === key)
-                return new Slot(key, value);
-            else
+        return a;
+    };
+
+    ( q:direct_question '<sep>' 'it does not matter .'
+    | q:direct_question '<sep>' 'it does not matter . can you suggest one ?'
+    | q:direct_question '<sep>' 'i have no preference .'
+    | q:direct_question '<sep>' 'i have no preference . what do you recommend ?'
+    | q:direct_question '<sep>' 'i have no preference . please make a recommendation .'
+    | q:yesno_direct_question '<sep>' ('no' | 'no ,' | '') 'it does not matter .'
+    | q:yesno_direct_question '<sep>' ('no' | 'no ,' | '') 'it does not matter . can you suggest one ?'
+    | q:yesno_direct_question '<sep>' ('no' | 'no ,' | '') 'i have no preference .'
+    | q:yesno_direct_question '<sep>' ('no' | 'no ,' | '') ('i have no preference .' | '') 'what do you recommend ?'
+    | q:yesno_direct_question '<sep>' ('no' | 'no ,' | '') ('i have no preference .' | '') 'please make a recommendation .'
+    ) => {
+        if (!SEARCH_SLOTS.has(q.key))
+            return null;
+        const state = new Ast.DialogState;
+        state.set(q.key, new Ast.TristateValue('dontcare'));
+        return state;
+    };
+
+    qa:question_answer_pair info:generic_domain_answer => {
+        if (qa.domain !== info.domain)
+            return null;
+        const clone = qa.clone();
+        for (let [key, value] of info) {
+            if (clone.has(key))
                 return null;
+            clone.set(key, value);
         }
-        return null;
+        return clone;
     };
 }
 
@@ -261,7 +302,9 @@ proposal_reply_pair = {
         return [prop, req];
     };
     ( prop:system_direct_proposal '<sep>' ('no ,' | '') req:generic_answer
+    | prop:system_direct_proposal '<sep>' ('no ,' | '') req:generic_domain_answer
     | prop:system_generic_proposal '<sep>' ('no ,' | '') req:generic_answer
+    | prop:system_generic_proposal '<sep>' ('no ,' | '') req:generic_domain_answer
     ) => {
         if (prop.domain !== null && req.domain !== null && prop.domain !== req.domain)
             return null;
@@ -322,7 +365,30 @@ sorry_preamble = {
     '';
 }
 
+generic_cannot_find_phrase = {
+    ( 'there are no ' base:base_noun_phrase '.'
+    | 'i cannot find any' base:base_noun_phrase '.'
+    | 'there are no' base:base_noun_phrase ' matching your request .'
+    | 'i cannot find any' base:base_noun_phrase ' matching your constraints .'
+    | 'i cannot find any' base:base_noun_phrase ' with those characteristics .'
+    ) => base.domain;
+}
+
 notfound_error = {
+    sorry_preamble dom:generic_cannot_find_phrase => new Ast.DialogState(dom);
+    sorry_preamble cannot_find_phrase dom:generic_cannot_find_phrase ('.' | ',') try_different_phrase p:param_noun_phrase '?' => {
+        if (!p.startsWith(dom + '-'))
+            return null;
+        return new Ast.DialogState(dom);
+    };
+    sorry_preamble cannot_find_phrase dom:generic_cannot_find_phrase ('.' | ',') try_different_phrase p1:param_noun_phrase 'or' p2:param_noun_phrase '?' => {
+        if (!p1.startsWith(dom + '-') || !p2.startsWith(dom + '-'))
+            return null;
+        if (p1 === p2)
+            return null;
+        return new Ast.DialogState(dom);
+    };
+
     sorry_preamble cannot_find_phrase error:info_noun_phrase => {
         for (let key of error.keys()) {
             if (!SEARCH_SLOTS.has(key))
@@ -345,7 +411,7 @@ notfound_error = {
             if (!SEARCH_SLOTS.has(key))
                 return null;
         }
-        if (!error.has(p1) || !error.has(p2))
+        if (!error.has(p1) || !error.has(p2) || p1 === p2)
             return null;
 
         return error;
@@ -358,6 +424,7 @@ counter_proposal_answer_preamble = {
     'can you find';
     'can you check for';
     'is there';
+    'are there';
 }
 
 insist_generic_answer = {
@@ -396,18 +463,13 @@ error_reply_pair = {
     ) => {
         if (!Utils.compatibleDomains(req, error))
             return null;
+        if (error.size === 0)
+            return [error, req, 'insist'];
         for (let [key, value] of req) {
             if (!error.has(key) || !error.get(key).equals(value))
                 return null;
         }
         return [error, req, 'insist'];
-    };
-
-    error:notfound_error '<sep>' insist_specific_preamble ('i really need' | 'i really want') slot:constant_Any => {
-        if (slot.key === null || !error.has(slot.key) || !error.get(slot.key).equals(slot.value))
-            return null;
-
-        return [error, checkAndAddSlot(new Ast.DialogState, slot), 'insist'];
     };
 }
 
@@ -681,13 +743,21 @@ $root = {
         if (!Utils.errorIsCompatible(error, ctx))
             return null;
 
+        if (intent === 'insist')
+            return Utils.insist(ctx, counterrequest);
+
         return Utils.counterRequest(ctx, counterrequest, intent, /* allow override ctx */ true);
     };
 
     ctx:intent_search_request qa:question_answer_pair => {
-        const clone = checkAndAddSlot(ctx, qa);
-        if (clone === null)
+        if (qa.domain !== ctx.domain)
             return null;
+        const clone = ctx.clone();
+        for (let [key, value] of qa) {
+            if (clone.has(key))
+                return null;
+            clone.set(key, value);
+        }
         clone.intent = 'second_request';
         return clone;
     };
