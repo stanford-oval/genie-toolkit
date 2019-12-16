@@ -903,6 +903,22 @@ function makeStreamProjection($options, table, type, outParam) {
     return new Ast.Stream.Projection(stream, [name], newSchema);
 }
 
+function makeArgMinMaxTable(table, param, type, direction) {
+    if (!table.schema.out[param.name])
+        return null;
+    if (type !== null) {
+        if (!table.schema.out[param.name].equals(type))
+            return null;
+    } else {
+        if (!table.schema.out[param.name].isNumeric())
+            return null;
+    }
+    if (!table.schema.is_list || table.isIndex) //avoid conflict with primitives
+        return null;
+    const t_sort = new Ast.Table.Sort(table, param.name, direction, table.schema);
+    return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], table.schema);
+}
+
 module.exports = {
     typeToStringSafe,
     findFunctionNameTable,
@@ -957,5 +973,6 @@ module.exports = {
     makeSingleProjection,
     makeSingleStreamProjection,
     makeProjection,
-    makeStreamProjection
+    makeStreamProjection,
+    makeArgMinMaxTable
 };

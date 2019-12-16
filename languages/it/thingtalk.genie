@@ -34,9 +34,11 @@ import './stream_tables';
 // FIXME add more...
 
 forward_get_do_command = {
-    ('get' | 'take' | 'retrieve') table:if_filtered_table ('and then' | 'then') action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
-    table:complete_get_command ('and then' | 'then' | ',') action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
-    'after' ('you get' | 'taking' | 'getting' | 'retrieving') table:with_filtered_table action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
+    ('ottieni' | 'recupera') table:if_filtered_table ('e poi' | 'poi') action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
+    table:complete_get_command ('e poi' | 'poi' | ',') action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
+    ( 'dopo' ('che ottieni' | 'che recuperi' | 'aver recuperato') table:with_filtered_table_masculine
+    | 'dopo' ('che ottieni' | 'che recuperi' | 'aver recuperato') table:with_filtered_table_feminine
+    ) action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
 
     // use X to do Y would be good sometimes but it gets confusing quickly
     //['${(get|use)} ${with_filtered_table} to ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))]
@@ -45,24 +47,30 @@ forward_get_do_command = {
 complete_forward_get_do_command = {
     forward_get_do_command if complete;
 
-    !turking command:complete_forward_get_do_command ('with the same' | 'with identical' | 'using the same') joinArg:out_param_Any => {
-        let actiontype = command.actions[0].schema.inReq[joinArg.name];
-        if (!actiontype)
-            return null;
-        if (command.actions[0].in_params.some((p) => p.name === joinArg.name))
-            return null;
-        let commandtype = command.table.schema.out[joinArg.name];
-        if (!commandtype || !Type.isAssignable(commandtype, actiontype))
-            return null;
+    !turking {
+        ( command:complete_forward_get_do_command ('con lo stesso' | 'con identico' | 'usando lo stesso') joinArg:out_param_Any_masculine
+        | command:complete_forward_get_do_command ('con la stessa' | 'con identica' | 'usando la stessa') joinArg:out_param_Any_feminine
+        ) => {
+            let actiontype = command.actions[0].schema.inReq[joinArg.name];
+            if (!actiontype)
+                return null;
+            if (command.actions[0].in_params.some((p) => p.name === joinArg.name))
+                return null;
+            let commandtype = command.table.schema.out[joinArg.name];
+            if (!commandtype || !Type.isAssignable(commandtype, actiontype))
+                return null;
 
-        let clone = command.actions[0].clone();
-        clone.invocation.in_params.push(new Ast.InputParam(joinArg.name, joinArg));
-        return new Ast.Statement.Command(command.table, [clone]);
-    };
+            let clone = command.actions[0].clone();
+            clone.invocation.in_params.push(new Ast.InputParam(joinArg.name, joinArg));
+            return new Ast.Statement.Command(command.table, [clone]);
+        };
+    }
 }
 
 backward_get_do_command = {
-    action:thingpedia_action 'after' ('getting' | 'taking' | 'you get' | 'you retrieve') table:with_filtered_table if !complete => new Ast.Statement.Command(table, [action]);
+    ( action:thingpedia_action 'dopo' ('aver recuperato' | 'aver recuperato' | 'che recuperi') table:with_filtered_table if !complete
+    | action:thingpedia_action 'dopo' ('aver recuperato' | 'aver recuperato' | 'che recuperi') table:with_filtered_table if !complete
+    ) => new Ast.Statement.Command(table, [action]);
 }
 
 complete_get_do_command = {
@@ -73,16 +81,21 @@ complete_get_do_command = {
 
 forward_when_do_rule = {
     // pp from when to do (optional)
-    stream:stream action:thingpedia_action ('' | '.') => new Ast.Statement.Rule(stream, [action]);
+    stream:stream ('' | 'allora') action:thingpedia_action '.' => new Ast.Statement.Rule(stream, [action]);
 
     // pp from when to do (required)
     // this is because "monitor X and then Y" makes sense only if X flows into Y
-    ('monitor' | 'watch') table:with_filtered_table ('and then' | 'then') action:thingpedia_action ('' | '.') if !complete => {
+    ( ('osserva' | 'controlla') table:with_filtered_table_masculine ('e poi' | 'poi') action:thingpedia_action '.'
+    | ('osserva' | 'controlla') table:with_filtered_table_masculine ('e poi' | 'poi') action:thingpedia_action '.'
+    ) if !complete => {
         if (!table.schema.is_monitorable)
             return null;
         return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
     };
-    !turking ('monitor' | 'watch') proj:projection_Any ('and then' | 'then') action:thingpedia_action ('' | '.') if !complete => {
+    !turking
+    ( ('osserva' | 'controlla') proj:projection_Any_masculine ('e poi' | 'poi') action:thingpedia_action '.'
+    | ('osserva' | 'controlla') proj:projection_Any_feminine ('e poi' | 'poi') action:thingpedia_action '.'
+    ) if !complete => {
         if (!proj.schema.is_monitorable)
             return null;
         if (proj.table.isAggregation)
@@ -102,8 +115,10 @@ forward_when_do_rule = {
         return new Ast.Statement.Rule(stream, [action]);
     };
 
-    'check for new' table:complete_table ('and then' | 'then') action:thingpedia_action ('' | '.') if !complete => {
-        if (!table.schema.is_monitorable)
+    ( 'controlla se ci sono nuovi' table:complete_table_masculine ('e poi' | 'poi') action:thingpedia_action '.'
+    | 'controlla se ci sono nuove' table:complete_table_feminine ('e poi' | 'poi') action:thingpedia_action '.'
+    ) if !complete => {
+        if (!table.schema.is_monitorable || !table.schema.is_list)
             return null;
         return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
     };
@@ -112,7 +127,10 @@ forward_when_do_rule = {
 complete_forward_when_do_rule = {
     forward_when_do_rule if complete;
 
-    !turking rule:complete_forward_when_do_rule ('with the same' | 'with identical' | 'using the same') joinArg:out_param_Any => {
+    !turking
+    ( rule:complete_forward_when_do_rule ('con lo stesso' | 'con identico' | 'usando lo stesso') joinArg:out_param_Any_masculine
+    | rule:complete_forward_when_do_rule ('con la stessa' | 'con identica' | 'usando la stessa') joinArg:out_param_Any_feminine
+    ) => {
         //if (rule.actions.length !== 1 || rule.actions[0].selector.isBuiltin)
         //    throw new TypeError('???');
         let actiontype = rule.actions[0].schema.inReq[joinArg.name];
@@ -136,8 +154,10 @@ complete_forward_when_do_rule = {
 backward_when_do_rule = {
     action:thingpedia_action stream:stream ('' | '.') => new Ast.Statement.Rule(stream, [action]);
 
-    action:thingpedia_action 'after checking for new' table:complete_table ('' | '.') if !complete => {
-        if (!table.schema.is_monitorable)
+    ( action:thingpedia_action 'dopo aver controllato se ci sono nuovi' table:complete_table_masculine '.'
+    | action:thingpedia_action 'dopo aver controllato se ci sono nuove' table:complete_table_feminine '.'
+    ) if !complete => {
+        if (!table.schema.is_monitorable || !table.schema.is_list)
             return null;
         return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
     };
@@ -146,8 +166,8 @@ complete_when_do_rule = {
     complete_forward_when_do_rule;
     backward_when_do_rule if complete;
 
-    !turking ('auto' | 'automatically' | 'continuously') stream:action_replace_param_with_stream if complete => stream;
-    ?turking 'automatically' stream:action_replace_param_with_stream if complete => stream;
+    !turking stream:action_replace_param_with_stream ('automaticamente' | 'continuamente') if complete => stream;
+    ?turking stream:action_replace_param_with_stream 'automaticamente' if complete => stream;
 }
 
 when_get_stream = {
@@ -155,8 +175,12 @@ when_get_stream = {
     // NOTE: the schema is not quite right but it's ok because the stream is complete
     // and the table is what we care about
     stream:stream table:thingpedia_get_command => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
-    stream:stream ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') table:thingpedia_query => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
-    stream:stream ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') ('' | 'what is') proj:projection_Any => {
+    ( stream:stream ('ottieni' | 'mostrami' | 'dammi' | 'dimmi' | 'recupera') table:thingpedia_query_masculine
+    | stream:stream ('ottieni' | 'mostrami' | 'dammi' | 'dimmi' | 'recupera') table:thingpedia_query_feminine
+    ) => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
+    ( stream:stream ('ottieni' | 'mostrami' | 'dammi' | 'dimmi' | 'recupera') ('' | 'qual è') proj:projection_Any_masculine
+    | stream:stream ('ottieni' | 'mostrami' | 'dammi' | 'dimmi' | 'recupera') ('' | 'qual è') proj:projection_Any_masculine
+    ) => {
         if (proj.isProjection) {
             if (!$options.flags.projection)
                 return null;
@@ -170,8 +194,8 @@ when_get_stream = {
     };
 
     table:thingpedia_get_command stream:stream => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
-    ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') table:thingpedia_query stream:stream => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
-    ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') proj:projection_Any stream:stream => {
+    ('ottieni' | 'mostrami' | 'dammi' | 'dimmi' | 'recupera') table:thingpedia_query stream:stream => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
+    ('ottieni' | 'mostrami' | 'dammi' | 'dimmi' | 'recupera') proj:projection_Any stream:stream => {
         if (proj.isProjection) {
             if (!$options.flags.projection)
                 return null;
@@ -197,10 +221,10 @@ timer_rule = {
     // timer => get => notify
     (
           timer:timer table:complete_get_command
-        | timer:timer 'get' table:complete_table
-        | 'get' table:complete_table timer:timer
-        | timer:timer ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table
-        | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table timer:timer
+        | timer:timer 'recupera' table:complete_table
+        | 'recupera' table:complete_table timer:timer
+        | timer:timer ('ottieni' | 'mostrami' | 'dammi' | 'dimmi' | 'recupera') table:complete_table
+        | ('ottieni' | 'mostrami' | 'dammi' | 'dimmi' | 'recupera') table:complete_table timer:timer
     ) => new Ast.Statement.Rule(new Ast.Stream.Join(timer, table, [], table.schema), [C.notifyAction()]);
     // timer => do
     (
@@ -218,24 +242,24 @@ timer_rule = {
 if ($options.standardSchemas.say) {
      $root = {
         (
-             'notify me' stream:stream
-           | ('alert me' | 'inform me' | 'let me know' | 'i get notified' | 'i get alerted') stream:stream
-           | 'send me' ('a message' | 'an alert' | 'a notification' | 'a pop up notification' | 'a popup notification') stream:stream
+             'notificami' stream:stream
+           | ('avvisami' | 'informami' | 'fammi sapere' | 'mi arriva una notifica' | 'mi notifichi' | 'mi avvisi' | 'mandami un messaggio' | 'mandami un avviso' | 'mandami una notifica' | 'mostrami un popup' | 'mi arriva un messaggio' | 'mi arriva una notifica') stream:stream
         ) => C.makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction($options) : C.notifyAction()]));
-        'send me a reminder' stream:timer => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options)]));
-        'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
+        ('mandami un messaggio' | 'mandami un avviso' | 'mandami una notifica') stream:timer => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options)]));
+        ('mandami un messaggio' | 'mandami un avviso' | 'mandami una notifica') stream:timer ('dicendo' | 'che abbia testo' | 'con il testo') constant:constant_String => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
         !turking {
             (
-                  'alert me' stream:stream ('saying' | 'with the text') constant:constant_String
-                | 'show' ('the notification' | 'the message' | 'a popup notification that says' | 'a popup containing') constant:constant_String stream:stream
+                  'avvisami' stream:stream ('dicendo' | 'con il testo') constant:constant_String
+                | 'mostrami' ('la notifica' | 'il messaggio' | 'il popup che dice' | 'un popup che contiene') constant:constant_String stream:stream
              ) => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
         }
 
         // now => say
         (
-              'say' c:constant_String
-            | 'send me a message saying' c:constant_String
-            | 'show a popup that says' c:constant_String
+            // di without apostrophe is incorrect, but people get that wrong...
+              ('di' | "di'") c:constant_String
+            | 'mandami un messaggio che dice' c:constant_String
+            | 'mostrami un popup che dice' c:constant_String
         ) => C.makeProgram(new Ast.Statement.Command(null, [C.builtinSayAction($options, c)]));
     }
 }
@@ -244,12 +268,17 @@ $root = {
     !primonly thingpedia_program if complete;
 
     // when => notify
-    ('monitor' | 'watch') table:with_filtered_table => {
+    ( ('osserva' | 'controlla') table:with_filtered_table_masculine
+    | ('osserva' | 'controlla') table:with_filtered_table_feminine
+    )  => {
         if (!table.schema.is_monitorable)
             return null;
         return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [C.notifyAction()]));
     };
-    !turking ('monitor' | 'watch') proj:projection_Any => {
+    !turking
+    ( ('osserva' | 'controlla') proj:projection_Any_masculine
+    | ('osserva' | 'controlla') proj:projection_Any_feminine
+    ) => {
         if (!proj.schema.is_monitorable)
             return null;
         if (proj.table.isAggregation)
@@ -262,13 +291,16 @@ $root = {
             return null;
         return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
-    ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' table:if_filtered_table => {
+    ('fammi sapere' | 'notificami') ('di' | 'riguardo a') ('cambiamenti' | 'aggiornamenti') 'in' table:if_filtered_table => {
         let stream = C.tableToStream(table, null);
         if (!stream)
             return null;
         return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
-    !nofilter ('monitor' | 'watch') table:complete_table 'and' ('alert me' | 'notify me' | 'inform me' | 'warn me') ('if' | 'when') filter:atom_filter => {
+    !nofilter
+    ( ('osserva' | 'controlla') table:complete_table_masculine 'e' ('avvisami' | 'notificami' | 'informami') ('se' | 'quando') filter:atom_filter
+    | ('osserva' | 'controlla') table:complete_table_feminine 'e' ('avvisami' | 'notificami' | 'informami') ('se' | 'quando') filter:atom_filter
+    ) => {
         if (C.hasGetPredicate(filter))
             return null;
         if (table.schema.is_list || !C.checkFilter(table, filter))
@@ -281,7 +313,10 @@ $root = {
             return null;
         return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
-    !turking ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' proj:projection_Any => {
+    !turking
+    ( ('fammi sapere' | 'notificami') ('di' | 'riguardo a') ('cambiamenti' | 'aggiornamenti') 'in' proj:projection_Any_masculine
+    | ('fammi sapere' | 'notificami') ('di' | 'riguardo a') ('cambiamenti' | 'aggiornamenti') 'in' proj:projection_Any_feminine
+    ) => {
         if (!proj.schema.is_monitorable)
             return null;
         if (proj.table.isAggregation)
@@ -292,7 +327,30 @@ $root = {
         // note that we intentionally don't use tableToStream here, because we don't want to introduce edge filters
         return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), [C.notifyAction()]));
     };
-    !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:atom_filter 'in' table:complete_table ('for' | 'of') principal:constant_Entity__tt__username => {
+    !nofilter {
+        ?remote_commands
+        ( ('avvisami' | 'informami' | 'notificami' | 'fammi sapere') ('se' | 'quando') filter:atom_filter 'in' table:complete_table_masculine ('per' | 'di') principal:constant_Entity__tt__username
+        | ('avvisami' | 'informami' | 'notificami' | 'fammi sapere') ('se' | 'quando') filter:atom_filter 'in' table:complete_table_feminine ('per' | 'di') principal:constant_Entity__tt__username
+        ) => {
+            if (C.hasGetPredicate(filter))
+                return null;
+            if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
+                return null;
+            if ($options.flags.turking && table.schema.is_list)
+                return null;
+            table = C.addFilter(table, filter, $options);
+            if (!table)
+                return null;
+            let stream = C.tableToStream(table, null);
+            if (!stream)
+                return null;
+            return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]), principal);
+        };
+
+        ?remote_commands
+        ( ('se' | 'quando') filter:atom_filter 'in' table:complete_table_masculine ('per' | 'di') principal:constant_Entity__tt__username 'allora' ('avvisami' | 'informami' | 'notificami' | 'fammi sapere')
+        | ('se' | 'quando') filter:atom_filter 'in' table:complete_table_feminine ('per' | 'di') principal:constant_Entity__tt__username 'allora' ('avvisami' | 'informami' | 'notificami' | 'fammi sapere')
+        ) => {
         if (C.hasGetPredicate(filter))
             return null;
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
@@ -307,22 +365,10 @@ $root = {
             return null;
         return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]), principal);
     };
-    !nofilter ('if' | 'when') filter:atom_filter 'in' table:complete_table ('for' | 'of') principal:constant_Entity__tt__username 'then' ('alert me' | 'tell me' | 'notify me' | 'let me know')  => {
-        if (C.hasGetPredicate(filter))
-            return null;
-        if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
-            return null;
-        if ($options.flags.turking && table.schema.is_list)
-            return null;
-        table = C.addFilter(table, filter, $options);
-        if (!table)
-            return null;
-        let stream = C.tableToStream(table, null);
-        if (!stream)
-            return null;
-        return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]), principal);
-    };
-    !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:atom_filter 'in' table:complete_table => {
+    !nofilter
+    ( ('avvisami' | 'informami' | 'notificami' | 'fammi sapere') ('se' | 'quando') filter:atom_filter 'in' table:complete_table_masculine
+    | ('avvisami' | 'informami' | 'notificami' | 'fammi sapere') ('se' | 'quando') filter:atom_filter 'in' table:complete_table_feminine
+    ) => {
         if (C.hasGetPredicate(filter))
             return null;
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
@@ -337,7 +383,10 @@ $root = {
             return null;
         return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
-    !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:edge_filter 'in' table:complete_table => {
+    !nofilter
+    ( ('avvisami' | 'informami' | 'notificami' | 'fammi sapere') ('se' | 'quando') filter:edge_filter 'in' table:complete_table_masculine
+    | ('avvisami' | 'informami' | 'notificami' | 'fammi sapere') ('se' | 'quando') filter:edge_filter 'in' table:complete_table_feminine
+    ) => {
         if (C.hasGetPredicate(filter))
             return null;
         if (!table.schema.is_monitorable || table.schema.is_list || !C.checkFilter(table, filter))
@@ -354,17 +403,22 @@ $root = {
     // now => get => notify
     (
           table:complete_get_command
-        | 'get' table:complete_table
-        | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table
-        | ('hey almond' | '') ('search' | 'find' | 'i want' | 'i need') table:with_filtered_table
-        | ('hey almond' | '') 'what are' table:with_filtered_table ('' | '?')
-        | ('hey almond' | '') 'what are' table:pvp_filtered_table ('' | '?')
-        | ('hey almond' | '') 'what are' table:avp_filtered_table ('' | '?')
-        | ('hey almond' | '') 'what are' table:npi_filtered_table ('' | '?')
-        | ('hey almond' | '') 'what are' table:npv_filtered_table ('' | '?')
-        | ('hey almond' | '') 'what are' table:apv_filtered_table ('' | '?')
+        | 'recupera' table:complete_table_masculine
+        | 'ottieni' table:complete_table_masculine
+        | 'recupera' table:complete_table_feminine
+        | 'ottieni' table:complete_table_feminine
+        | ('mostrami' | 'dammi' | 'dimmi') table:complete_table_masculine
+        | ('mostrami' | 'dammi' | 'dimmi') table:complete_table_feminine
+        | ('cerca' | 'trova' | 'voglio' | 'ho bisogno di') table:with_filtered_table_masculine
+        | ('cerca' | 'trova' | 'voglio' | 'ho bisogno di') table:with_filtered_table_feminine
+        | 'quali sono' table:with_filtered_table ('' | '?')
+        | 'quali sono' table:pvp_filtered_table ('' | '?')
+        | 'quali sono' table:avp_filtered_table ('' | '?')
+        | 'quali sono' table:npi_filtered_table ('' | '?')
+        | 'quali sono' table:npv_filtered_table ('' | '?')
+        | 'quali sono' table:apv_filtered_table ('' | '?')
     ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
-    ('hey almond' | 'please' | '') ('list' | 'enumerate') table:with_filtered_table => {
+    ('elenca' | 'lista') table:with_filtered_table => {
         if (!table.schema.is_list)
             return null;
         return C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
@@ -372,69 +426,76 @@ $root = {
 
     // now => get => notify (argmin, argmax)
     (
-          ('hey almond' | '') ('search' | 'find' | 'retrieve' | 'tell me' |'show me' | 'present') table:arg_min_max_table
-        | ('hey almond' | '') 'what is' table:arg_min_max_table ('' | '?')
+          ('cerca' | 'trova' | 'recupera' | 'ottieni' | 'mostrami' | 'dammi' | 'dimmi') table:arg_min_max_table
+        | 'quali sono' table:arg_min_max_table ('' | '?')
     ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
 
     // now => get => notify (who questions)
     !turking (
-          ('hey almond' | '') ('who' | 'which person' | 'which individual')  ('has' | 'got' | 'has got' ) table:who_npp_filtered_table ('' | '?')
-        | ('hey almond' | '') ('who is the person' | 'who is the one' | 'who is the individual') ('with' | 'has' | 'got' | 'has got') table:who_npp_filtered_table ('' | '?')
-        | ('hey almond' | '') 'whose' table:whose_npp_filtered_table ('' | '?')
-        | ('hey almond' | '') ('who' | 'which person' | 'which individual') 'is' table:who_pvp_filtered_table ('' | '?')
-        | ('hey almond' | '') ('who is the person' | 'who is the one' | 'who is the individual') table:who_pvp_filtered_table ('' | '?')
-        | ('hey almond' | '') ('who' | 'which person' | 'which individual' | 'who is the person' | 'who is the one' | 'who is the individual') table:who_avp_filtered_table ('' | '?')
-        | ('hey almond' | '') ('who' | 'which person' | 'which individual') 'is the' table:who_npi_filtered_table ('' | '?')
-        | ('hey almond' | '') ('who' | 'which person' | 'which individual') 'is a' table:who_npv_filtered_table ('' | '?')
-        | ('hey almond' | '') ('who' | 'which person' | 'which individual') 'is' table:who_apv_filtered_table ('' | '?')
-        | ('hey almond' | '') 'which' table:who_npi_generic_filtered_table ('' | '?')
-        | ('hey almond' | '') 'which' table:who_npv_generic_filtered_table ('' | '?')
-        | ('hey almond' | '') ('who' | 'which person' | 'which individual') 'is a' table:who_apv_npv_filtered_table ('' | '?')
-        | ('hey almond' | '') ('who' | 'which person' | 'which individual') 'is a' table:who_apv_npi_filtered_table ('' | '?')
-        | ('hey almond' | '') ('who' | 'which person' | 'which individual') ('has' | 'got' | 'has got') table:who_npp_npp_filtered_table ('' | '?')
-        | ('hey almond' | '') ('who is the person' | 'who is the one' | 'who is the individual') ('with' | 'has' | 'got' | 'has got') table:who_npp_npp_filtered_table ('' | '?')
-        | ('hey almond' | '') ('who' | 'which person' | 'which individual') 'is' table:who_npi_npi_filtered_table ('' | '?')
-        | ('hey almond' | '') ('who' | 'which person' | 'which individual') 'is' table:who_npi_pvp_filtered_table ('' | '?')
-        | ('hey almond' | '') ('who' | 'which person' | 'which individual') table:who_generic_npp_filtered_table ('' | '?')
+          ('chi' | 'quale persona' | 'quale individuo') 'ha' table:who_npp_filtered_table ('' | '?')
+        | ('chi è la persona' | 'chi è quello' | "chi è l' individuo") ('con' | 'che ha') table:who_npp_filtered_table ('' | '?')
+        | table:whose_npp_filtered_table 'di chi' ('' | '?')
+        | ('chi' | 'quale persona' | 'quale individuo') 'è' table:who_pvp_filtered_table ('' | '?')
+        | ('chi è la persona' | 'chi è quello' | "chi è l'individuo") table:who_pvp_filtered_table ('' | '?')
+        | ('chi' | 'quale persona' | 'quale individuo' | 'che è la persona che' | 'chi è quello che' | "chi è l' individuo che") table:who_avp_filtered_table ('' | '?')
+        | ('chi' | 'quale persona' | 'quale individuo') 'è il' table:who_npi_filtered_table_masculine ('' | '?')
+        | ('chi' | 'quale persona' | 'quale individuo') 'è la' table:who_npi_filtered_table_feminine ('' | '?')
+        | ('chi' | 'quale persona' | 'quale individuo') 'è un' table:who_npv_filtered_table_masculine ('' | '?')
+        | ('chi' | 'quale persona' | 'quale individuo') 'è una' table:who_npv_filtered_table_feminine ('' | '?')
+        | ('chi' | 'quale persona' | 'quale individuo') 'è' table:who_apv_filtered_table ('' | '?')
+        | 'quale' table:who_npi_generic_filtered_table ('' | '?')
+        | 'quale' table:who_npv_generic_filtered_table ('' | '?')
+        | ('chi' | 'quale persona' | 'quale individuo') 'è un' table:who_apv_npv_filtered_table_masculine ('' | '?')
+        | ('chi' | 'quale persona' | 'quale individuo') 'è una' table:who_apv_npv_filtered_table_feminine ('' | '?')
+        | ('chi' | 'quale persona' | 'quale individuo') 'è un' table:who_apv_npi_filtered_table_masculine ('' | '?')
+        | ('chi' | 'quale persona' | 'quale individuo') 'è una' table:who_apv_npi_filtered_table_feminine ('' | '?')
+        | ('chi' | 'quale persona' | 'quale individuo') 'ha' table:who_npp_npp_filtered_table ('' | '?')
+        | ('chi è la persona' | 'chi è quello' | "chi è l' individuo") ('con' | 'che ha') table:who_npp_npp_filtered_table ('' | '?')
+        | ('chi' | 'quale persona' | 'quale individuo') 'è' table:who_npi_npi_filtered_table ('' | '?')
+        | ('chi' | 'quale persona' | 'quale individuo') 'è' table:who_npi_pvp_filtered_table ('' | '?')
+        | ('chi' | 'quale persona' | 'quale individuo') table:who_generic_npp_filtered_table ('' | '?')
     ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     ?turking (
-          'who has' table:who_npp_filtered_table ('' | '?')
-        | ('who is the one' | 'who is the person') 'with' table:who_npp_filtered_table ('' | '?')
-        | 'whose' table:whose_npp_filtered_table ('' | '?')
-        | 'who is' table:who_pvp_filtered_table ('' | '?')
-        | 'who' table:who_avp_filtered_table ('' | '?')
-        | 'who is the' table:who_npi_filtered_table ('' | '?')
-        | 'who is a' table:who_npv_filtered_table ('' | '?')
-        | 'who is' table:who_apv_filtered_table ('' | '?')
-        | 'which' table:who_npi_generic_filtered_table ('' | '?')
-        | 'which' table:who_npv_generic_filtered_table ('' | '?')
-        | 'who is a' table:who_apv_npv_filtered_table ('' | '?')
-        | 'who is a' table:who_apv_npi_filtered_table ('' | '?')
-        | 'who has' table:who_npp_npp_filtered_table ('' | '?')
-        | 'who is' table:who_npi_npi_filtered_table ('' | '?')
-        | 'who is' table:who_npi_pvp_filtered_table ('' | '?')
-        | 'who' table:who_generic_npp_filtered_table ('' | '?')
+          'chi ha' table:who_npp_filtered_table ('' | '?')
+        | ('chi è quello' | 'qual è la persona') 'che ha' table:who_npp_filtered_table ('' | '?')
+        | table:whose_npp_filtered_table 'di chi' ('' | '?')
+        | 'chi è' table:who_pvp_filtered_table ('' | '?')
+        | 'chi' table:who_avp_filtered_table ('' | '?')
+        | 'chi è il' table:who_npi_filtered_table_masculine ('' | '?')
+        | 'chi è la' table:who_npi_filtered_table_feminine ('' | '?')
+        | 'chi è un' table:who_npv_filtered_table_masculine ('' | '?')
+        | 'chi è una' table:who_npv_filtered_table_feminine ('' | '?')
+        | 'chi è' table:who_apv_filtered_table ('' | '?')
+        | 'quale' table:who_npi_generic_filtered_table ('' | '?')
+        | 'quale' table:who_npv_generic_filtered_table ('' | '?')
+        | 'chi è un' table:who_apv_npv_filtered_table_masculine ('' | '?')
+        | 'chi è una' table:who_apv_npv_filtered_table_feminine ('' | '?')
+        | 'chi è un' table:who_apv_npi_filtered_table_masculine ('' | '?')
+        | 'chi è una' table:who_apv_npi_filtered_table_feminine ('' | '?')
+        | 'chi ha' table:who_npp_npp_filtered_table ('' | '?')
+        | 'chi è' table:who_npi_npi_filtered_table ('' | '?')
+        | 'chi è' table:who_npi_pvp_filtered_table ('' | '?')
+        | 'chi' table:who_generic_npp_filtered_table ('' | '?')
     ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
 
     // now => get => say(...)
     // don't merge these, the output sizes are too small
     (
-          ('hey almond' | '') ('get' | 'show me' | 'give me' | 'tell me' | 'say') proj:projection_Any
-        | ('hey almond' | '') 'what is' proj:projection_Any ('' | '?')
-        | ('show me' | 'tell me' | 'say') 'what is' proj:projection_Any
-        | 'who is' proj:projection_Entity__tt__username ('' | '?')
-        | 'who is' proj:projection_Entity__tt__email_address ('' | '?')
+          ('recupera' | 'ottieni' | 'mostrami' | 'dammi' | 'dimmi') proj:projection_Any
+        | 'qual è' proj:projection_Any ('' | '?')
+        | ('mostrami' | 'dammi' | 'dimmi') 'qual è' proj:projection_Any
+        | 'chi è' proj:projection_Entity__tt__username ('' | '?')
+        | 'chi è' proj:projection_Entity__tt__email_address ('' | '?')
     ) => C.sayProjectionProgram($options, proj);
     !turking proj:projection_Any => C.sayProjectionProgram($options, proj);
 
     // now => do
     (
           action:thingpedia_action
-        | 'please' action:thingpedia_action
-        | 'i need you to' action:thingpedia_action
-        | 'i want to' action:thingpedia_action
-        | 'i \'d like to' action:thingpedia_action
-        | ('hey' | '') 'almond' action:thingpedia_action
+        | action:thingpedia_action
+        | ('ho bisogno' | 'mi serve') 'che tu' action:thingpedia_action
+        | 'voglio che tu' action:thingpedia_action
+        | 'vorrei che tu' action:thingpedia_action
     ) if complete => C.makeProgram(new Ast.Statement.Command(null, [action]));
 
     // now => get => do
@@ -460,8 +521,8 @@ $root = {
     // setup commands
     ?remote_commands {
         (
-              ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' action:thingpedia_action
-            | ('tell' | 'command' | 'order' | 'request' | 'inform') principal:constant_Entity__tt__username 'that' ('he needs' | 'she needs' | 'i need him' | 'i need her') 'to' action:thingpedia_action
+              ("di' a" | "chiedi a" | "ordina") principal:constant_Entity__tt__username 'che' action:thingpedia_action
+            | ("di' a" | "informa") principal:constant_Entity__tt__username 'che' ('ho bisogno' | 'mi serve') 'che' action:thingpedia_action
         ) if complete => C.makeProgram(new Ast.Statement.Command(null, [action]), principal);
         (
               ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table 'and send it to me'
