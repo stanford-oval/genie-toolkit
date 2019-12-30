@@ -11,14 +11,15 @@
 
 const assert = require('assert');
 
-const IpAddress = require('../lib/util/ip_address');
+const IpAddress = require('../../lib/util/ip_address');
 
-module.exports = async function testUtil(engine) {
+async function main() {
     const addresses = await IpAddress.getServerAddresses();
     addresses.forEach((address) => {
         assert(/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|[0-9a-fA-F:]+)$/.test(address));
     });
     await IpAddress.getServerName();
-};
+}
+module.exports = main;
 if (!module.parent)
-    module.exports();
+    main();

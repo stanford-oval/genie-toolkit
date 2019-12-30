@@ -10,7 +10,7 @@
 "use strict";
 
 const assert = require('assert');
-const timers = require('../lib/apps/timers');
+const timers = require('../../lib/apps/timers');
 
 function testTimer_setTimems() {
 	let timer = new timers.Timer(null, null);
@@ -35,12 +35,12 @@ function testTimer_setTimems() {
 			timems: 86400000, // 1 day
 			expected: Date.parse("2 Jan 2019"),
 		},
-	]
+	];
 	console.log("Testing _setTimems...");
 	tests.forEach((test, i) => {
 		assert.strictEqual(timer._setTimems(test.date, test.timems), test.expected);
 		console.log(`#${i} passed`);
-	})
+	});
 }
 
 function testTimer_getTimems() {
@@ -58,17 +58,17 @@ function testTimer_getTimems() {
 			date: Date.parse("1 Jan 2019 12:34:56"),
 			expected: 45296000, // 12:34:56
 		},
-	]
+	];
 	console.log("Testing _getTimems...");
 	tests.forEach((test, i) => {
 		assert.strictEqual(timer._getTimems(test.date), test.expected);
 		console.log(`#${i} passed`);
-	})
+	});
 }
 
 function testTimer_splitDay() {
-	// Expected values here need to be changed if we change hardcoded values 
-	// TIME_12PM, REASONABLE_START_TIME and REASONABLE_INTERVAL in the 
+	// Expected values here need to be changed if we change hardcoded values
+	// TIME_12PM, REASONABLE_START_TIME and REASONABLE_INTERVAL in the
 	// function
 	let timer = new timers.Timer(null, null);
 	let tests = [
@@ -92,17 +92,17 @@ function testTimer_splitDay() {
 			frequency: 8,
 			expected: [32400000, 38571429, 44742857, 50914286, 57085714, 63257143, 69428571, 75600000], // 09:00:00, 10:42:51, 12:25:42, 14:08:34, 15:51:25, 17:34:17, 19:17:08, 21:00:00
 		},
-	]
+	];
 	console.log("Testing _splitDay...");
 	tests.forEach((test, i) => {
 		assert.deepStrictEqual(timer._splitDay(test.frequency), test.expected);
 		console.log(`#${i} passed`);
-	})
+	});
 }
 
 function testTimer_getEarliest() {
-	// Expected values here need to be changed if we change hardcoded values 
-	// TIME_12PM, REASONABLE_START_TIME and REASONABLE_INTERVAL in the 
+	// Expected values here need to be changed if we change hardcoded values
+	// TIME_12PM, REASONABLE_START_TIME and REASONABLE_INTERVAL in the
 	// function
 	let timer = new timers.Timer(null, null);
 	let tests = [
@@ -126,12 +126,12 @@ function testTimer_getEarliest() {
 			timings: [32400000, 75600000], // 9AM, 9PM
 			expected: Date.parse("2 Jan 2019 09:00:00"),
 		},
-	]
+	];
 	console.log("Testing _getEarliest...");
 	tests.forEach((test, i) => {
 		assert.strictEqual(timer._getEarliest(test.base, test.timings), test.expected);
 		console.log(`#${i} passed`);
-	})
+	});
 }
 
 function testTimer_nextTimeout() {
@@ -152,7 +152,7 @@ function testTimer_nextTimeout() {
 			_now: Date.parse("1 Jan 2019 00:00:00"),
 			expected: 43200000 // 12h
 		},
-		{	
+		{
 			_base: Date.parse("1 Jan 2019 00:00:00"),
 			_interval: 86400000,
 			_frequency: 1,
@@ -436,7 +436,7 @@ function testTimer_nextTimeout() {
 			_now: Date.parse("5 Jan 2019 12:34:57"),
 			expected: 0
 		},
-	]
+	];
 	console.log("Testing _nextTimeout...");
 	tests.forEach((test, i) => {
 		timer._base = test._base;
@@ -444,7 +444,7 @@ function testTimer_nextTimeout() {
 		timer._frequency = test._frequency;
 		assert.strictEqual(timer._nextTimeout(test._now), test.expected);
 		console.log(`#${i} passed`);
-	})
+	});
 }
 
 function testTimer_splitWeek_error() {
@@ -453,15 +453,15 @@ function testTimer_splitWeek_error() {
 		{
 			frequency: 10
 		},
-	]
+	];
 	console.log("Testing _splitWeek error...");
 	tests.forEach((test, i) => {
-		assert.throws(() => {timer._splitWeek(test.frequency)}, {
+		assert.throws(() => timer._splitWeek(test.frequency), {
 			name: "Error",
 			message: "Invalid frequency for _splitWeek",
 		});
 		console.log(`#${i} passed`);
-	})
+	});
 }
 
 function testTimer_nextTimeout_error() {
@@ -473,21 +473,21 @@ function testTimer_nextTimeout_error() {
 			_frequency: 1,
 			_now: Date.parse("1 Jan 2019 12:34:57")
 		},
-	]
+	];
 	console.log("Testing _nextTimeout error...");
 	tests.forEach((test, i) => {
 		timer._base = test._base;
 		timer._interval = test._interval;
 		timer._frequency = test._frequency;
-		assert.throws(() => {timer._nextTimeout(test._now)}, {
+		assert.throws(() => {timer._nextTimeout(test._now);}, {
 			name: "Error",
 			message: `Timer with total interval ${test._interval} and frequency ${test._frequency} will have intervals of ${test._interval / test._frequency}. Minimum interval is 2 seconds.`,
 		});
 		console.log(`#${i} passed`);
-	})
+	});
 }
 
-module.exports = function testUnits() {
+function main() {
     testTimer_setTimems();
     testTimer_getTimems();
     testTimer_splitDay();
@@ -495,4 +495,7 @@ module.exports = function testUnits() {
     testTimer_nextTimeout();
     testTimer_splitWeek_error();
     testTimer_nextTimeout_error();
-};
+}
+module.exports = main;
+if (!module.parent)
+    main();

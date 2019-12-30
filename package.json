@@ -30,7 +30,7 @@
     "update-pot": "./po/update-pot.sh",
     "update-po": "./po/update-po.sh",
     "lint": "eslint ./lib",
-    "test": "nyc node test",
+    "test": "nyc ./test/everything.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "prepare": "make",
     "doc": "jsdoc -c jsdoc.json --readme README.md --package package.json --verbose -r lib/"

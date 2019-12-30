@@ -11,7 +11,7 @@
 
 const assert = require('assert');
 
-const DeviceView = require('../lib/devices/device_view');
+const DeviceView = require('../../lib/devices/device_view');
 
 const SUCCESS = {};
 const FAILURE = {};
