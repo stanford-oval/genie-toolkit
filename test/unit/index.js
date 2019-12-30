@@ -13,4 +13,8 @@ async function seq(array) {
 seq([
     ('./test_timers'),
     ('./test_util'),
+    ('./test_array_set'),
+    ('./test_linked_list'),
+    ('./test_timed_reference'),
+    ('./test_protocol')
 ]);
