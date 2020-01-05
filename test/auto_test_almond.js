@@ -12,6 +12,7 @@
 require('./polyfill');
 
 const assert = require('assert');
+const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const AsyncQueue = require('consumer-queue');
 
@@ -103,14 +104,14 @@ function createApp(program) {
                 alt_text: `I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.` //'
             } }];
     } else if (code === `{
-  now => @org.thingpedia.weather(id="org.thingpedia.weather-14").current(location=makeLocation(90, 0, "North pole")) => notify;
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-14").current(location=new Location(90, 0, "North pole")) => notify;
 }`) {
         results = [{ isError: true, icon: 'org.thingpedia.weather',  error: new Error('I do not like that location') }];
     } else if (code === `{
-  now => @org.thingpedia.weather(id="org.thingpedia.weather-46").current(location=makeLocation(-90, 0, "South pole")) => notify;
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-46").current(location=new Location(-90, 0, "South pole")) => notify;
 }`) {
         results = [{ isNotification: true, icon: 'org.thingpedia.weather', outputType: 'org.thingpedia.weather:current', outputValue: {
-            location: { y: -90, x: 0, display: "South pole" },
+            location: new Tp.Value.Location(-90, 0, "South pole"),
             temperature: 22, // Measure(C),
             wind_speed: 0, // Measure(mps),
             humidity: 75, // Number,
@@ -195,7 +196,7 @@ class TestDelegate {
     }
 
     sendResult(msg, icon) {
-        writeLine(`>> ${msg.constructor.name} ${msg.toLocaleString()}`);
+        writeLine(`>> ${msg.constructor.name} ${msg.toLocaleString('en-US')}`);
     }
 }
 
@@ -1340,7 +1341,7 @@ const TEST_CASES = [
 `,
 
     `{
-  now => @org.thingpedia.weather(id="org.thingpedia.weather-13").current(location=makeLocation(37.4275, -122.1697)) => notify;
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-13").current(location=new Location(37.4275, -122.1697)) => notify;
 }`],
 
     [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
@@ -1361,7 +1362,7 @@ const TEST_CASES = [
 `,
 
     `{
-  now => @org.thingpedia.weather(id="org.thingpedia.weather-14").current(location=makeLocation(90, 0, "North pole")) => notify;
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-14").current(location=new Location(90, 0, "North pole")) => notify;
 }`],
 
     [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
@@ -1376,7 +1377,7 @@ const TEST_CASES = [
 `,
 
     `{
-  now => @org.thingpedia.weather(id="org.thingpedia.weather-15").current(location=makeLocation(90, 0, "North pole")) => notify;
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-15").current(location=new Location(90, 0, "North pole")) => notify;
 }`],
 
 
@@ -1874,7 +1875,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
 
-    `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic, @org.thingpedia.builtin.thingengine.builtin.get_gps() { !(location == makeLocation(90, 0, "North pole")) } => notify;`],
+    `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic, @org.thingpedia.builtin.thingengine.builtin.get_gps() { !(location == new Location(90, 0, "North pole")) } => notify;`],
 
     [(almond) => {
         return Promise.resolve(ThingTalk.Grammar.parseAndTypecheck(`now => @com.xkcd.get_comic() => notify;`, almond.schemas, true).then((prog) => {
@@ -1931,7 +1932,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special null
 `,
 
-    `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic, @org.thingpedia.builtin.thingengine.builtin.get_gps() { location == makeLocation(90, 0, "North pole") } => notify;`],
+    `source == "mock-account:..."^^tt:contact("Bob Smith (dad)") : @com.xkcd.get_comic, @org.thingpedia.builtin.thingengine.builtin.get_gps() { location == new Location(90, 0, "North pole") } => notify;`],
 
     [(almond) => {
         almond.askQuestion(null, 'org.thingpedia.builtin.test', ThingTalk.Type.Number, 'What is the answer to life the universe and everything?').then((v) => {
@@ -3249,7 +3250,7 @@ null],
     // confirmation: not confident, has slot in filter, query
     [
     `search hello on bing with title filter`,
-    `>> Okay, so you want me to get websites matching “hello” on Bing if the title contains ____ and then notify you. Is that right?
+    `>> Okay, so you want me to get websites matching “hello” on Bing such that the title contains ____ and then notify you. Is that right?
 >> context = now => ( @com.bing.web_search param:query:String = QUOTED_STRING_0 ) filter param:title:String =~ undefined => notify // {"QUOTED_STRING_0":"hello"}
 >> ask special yesno
 `,
@@ -3416,14 +3417,14 @@ null],
 `,
 
     { code: ['bookkeeping', 'answer', 'LOCATION_0'], entities: {"LOCATION_0": {longitude:0, latitude:-90, display:"South pole"}}},
-`>> Current weather for South pole: sunny, temperature 22.0 C, wind speed 0.0 m/s, humidity 75%, cloudiness 0%, fog 0%.
->> MapFO Location: [Latitude: -90.000 deg, Longitude: 0.000 deg]
+`>> Current weather for South pole: sunny, temperature 22 C, wind speed 0 m/s, humidity 75%, cloudiness 0%, fog 0%.
+>> MapFO Location: [Latitude: -90 deg, Longitude: 0 deg]
 >> context = now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify // {"LOCATION_0":{"latitude":-90,"longitude":0,"display":"South pole"}}
 >> ask special null
 `,
 
     `{
-  now => @org.thingpedia.weather(id="org.thingpedia.weather-46").current(location=makeLocation(-90, 0, "South pole")) => notify;
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-46").current(location=new Location(-90, 0, "South pole")) => notify;
 }`],
 
     [['now', '=>', '@org.thingpedia.weather.current', 'param:location:Location', '=', 'location:', '"', 'seattle', '"', '=>', 'notify'],
@@ -3433,7 +3434,7 @@ null],
 `,
 
     `{
-  now => @org.thingpedia.weather(id="org.thingpedia.weather-47").current(location=makeLocation(47.6038321, -122.3300624, "Seattle, King County, Washington, USA")) => notify;
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-47").current(location=new Location(47.6038321, -122.3300624, "Seattle, King County, Washington, USA")) => notify;
 }`],
 
     [['now', '=>', '@org.thingpedia.weather.current', '=>', 'notify'],
@@ -3449,7 +3450,7 @@ null],
 `,
 
     `{
-  now => @org.thingpedia.weather(id="org.thingpedia.weather-48").current(location=makeLocation(47.6038321, -122.3300624, "Seattle, King County, Washington, USA")) => notify;
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-48").current(location=new Location(47.6038321, -122.3300624, "Seattle, King County, Washington, USA")) => notify;
 }`],
 
     [['now', '=>', '@org.thingpedia.weather.current', 'param:location:Location', '=', 'location:', '"', 'invalid', '"', '=>', 'notify'],
@@ -3489,7 +3490,7 @@ null],
 `,
 
     `{
-  attimer(time=makeTime(7, 30)) => @com.twitter(id="twitter-foo").post(status="good morning");
+  attimer(time=new Time(7, 30)) => @com.twitter(id="twitter-foo").post(status="good morning");
 }`],
 
     ['\\t attimer(time=[$?, $?]) => @com.twitter.post();',
@@ -3515,7 +3516,7 @@ null],
 >> ask special raw_string
 `,
     `good morning`,
-`>> Okay, so you want me to tweet “good morning” every day at 7:30 AM and 8:30 AM. Is that right?
+`>> Okay, so you want me to tweet “good morning” every day at 7:30 AM, 8:30 AM. Is that right?
 >> context = attimer time = [ TIME_0 , TIME_1 ] => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0},"QUOTED_STRING_0":"good morning"}
 >> ask special yesno
 `,
@@ -3526,7 +3527,7 @@ null],
 `,
 
     `{
-  attimer(time=[makeTime(7, 30), makeTime(8, 30)]) => @com.twitter(id="twitter-foo").post(status="good morning");
+  attimer(time=[new Time(7, 30), new Time(8, 30)]) => @com.twitter(id="twitter-foo").post(status="good morning");
 }`],
 
     ['\\t attimer(time=[$?, $?], expiration_date=$?) => @com.twitter.post();',
@@ -3557,7 +3558,7 @@ null],
 >> ask special raw_string
 `,
     `good morning`,
-`>> Okay, so you want me to tweet “good morning” every day at 7:30 AM and 8:30 AM until the end of this week. Is that right?
+`>> Okay, so you want me to tweet “good morning” every day at 7:30 AM, 8:30 AM until the end of this week. Is that right?
 >> context = attimer time = [ TIME_0 , TIME_1 ] expiration_date = end_of unit:week => @com.twitter.post param:status:String = QUOTED_STRING_0 // {"TIME_0":{"hour":7,"minute":30,"second":0},"TIME_1":{"hour":8,"minute":30,"second":0},"QUOTED_STRING_0":"good morning"}
 >> ask special yesno
 `,
@@ -3568,7 +3569,7 @@ null],
 `,
 
     `{
-  attimer(time=[makeTime(7, 30), makeTime(8, 30)], expiration_date=end_of(week)) => @com.twitter(id="twitter-foo").post(status="good morning");
+  attimer(time=[new Time(7, 30), new Time(8, 30)], expiration_date=end_of(week)) => @com.twitter(id="twitter-foo").post(status="good morning");
 }`],
 
     ['\\t now => @com.twitter.search(), hashtags == [$?,$?] => notify;',
@@ -3737,7 +3738,7 @@ null],
 >> ask special null
 `,
     `{
-  now => @org.thingpedia.weather(id="org.thingpedia.weather-6").current(location=makeLocation(37.5311901, -84.6618876, "Stanford, Lincoln County, Kentucky, United States of America")) => notify;
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-6").current(location=new Location(37.5311901, -84.6618876, "Stanford, Lincoln County, Kentucky, United States of America")) => notify;
 }`
     ],*/
 
@@ -3767,7 +3768,7 @@ null],
 >> ask special null
 `,
     `{
-  now => @org.thingpedia.weather(id="org.thingpedia.weather-52").current(location=makeLocation(90, 0, "North pole")) => notify;
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-52").current(location=new Location(90, 0, "North pole")) => notify;
 }`
     ],
 
@@ -3791,7 +3792,7 @@ null],
 >> ask special null
 `,
     `{
-  now => @org.thingpedia.weather(id="org.thingpedia.weather-53").current(location=makeLocation(90, 0, "North pole")) => notify;
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-53").current(location=new Location(90, 0, "North pole")) => notify;
 }`
     ],
 
@@ -3815,7 +3816,7 @@ null],
 >> ask special null
 `,
     `{
-  now => @org.thingpedia.weather(id="org.thingpedia.weather-54").current(location=makeLocation(47.6038321, -122.3300624, "Seattle, King County, Washington, USA")) => notify;
+  now => @org.thingpedia.weather(id="org.thingpedia.weather-54").current(location=new Location(47.6038321, -122.3300624, "Seattle, King County, Washington, USA")) => notify;
 }`
     ],
 ];
@@ -3862,7 +3863,7 @@ function resetOptions(almond) {
 let anyFailed = false;
 
 async function test(script, i) {
-    console.error('Test Case #' + (i+1));
+    console.log('Test Case #' + (i+1));
 
     flushBuffer();
     app = null;
@@ -3890,7 +3891,7 @@ async function test(script, i) {
             console.error('Generated: ' + app);
             anyFailed = true;
         } else {
-            console.error('Test Case #' + (i+1) + ' passed');
+            console.log('Test Case #' + (i+1) + ' passed');
         }
     }).catch((e) => {
         console.error('Test Case #' + (i+1) + ': failed with exception');
