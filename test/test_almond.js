@@ -9,8 +9,6 @@
 // See COPYING for details
 "use strict";
 
-require('./polyfill');
-
 const readline = require('readline');
 
 const Almond = require('../lib/almond');

@@ -9,7 +9,6 @@
 // See COPYING for details
 "use strict";
 
-require('./polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
 
 const Almond = require('../lib/almond');

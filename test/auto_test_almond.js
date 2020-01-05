@@ -9,8 +9,6 @@
 // See COPYING for details
 "use strict";
 
-require('./polyfill');
-
 const assert = require('assert');
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
@@ -782,7 +780,7 @@ const TEST_CASES = [
     [
     { code: ['policy', 'param:source:Entity(tt:contact)', '==', 'USERNAME_0', ':', 'now', '=>', '@com.twitter.post'],
       entities: { USERNAME_0: 'mom' } },
-`>> Okay, I'm going to set: Alice Smith (mom) is allowed to tweet any status.
+`>> Okay, I'm going to remember: Alice Smith (mom) is allowed to tweet any status.
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @com.twitter.post // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:MOCK1234-phone:+5556664357","display":"Alice Smith (mom)"}}
 >> ask special null
 `,
@@ -2078,7 +2076,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
         return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
     },
 `>> Choose one of the following to configure Tumblr Blog.
->> link: Configure Tumblr Account /devices/oauth2/com.tumblr?name=Tumblr Account
+>> link: Configure Tumblr Account /devices/oauth2/com.tumblr?name=Tumblr%20Account
 >> button: Configure Some other Tumblr Thing {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:com.tumblr2"]}
 >> context = null // {}
 >> ask special null
@@ -3819,6 +3817,25 @@ null],
   now => @org.thingpedia.weather(id="org.thingpedia.weather-54").current(location=new Location(47.6038321, -122.3300624, "Seattle, King County, Washington, USA")) => notify;
 }`
     ],
+
+    [{ program: `now => @org.thingpedia.weather.current(location=new Location(90, 0, 'North Pole')), temperature >= $? => notify;` },
+`>> What should the temperature be greater than?
+>> context = now => ( @org.thingpedia.weather.current param:location:Location = LOCATION_0 ) filter param:temperature:Measure(C) >= undefined => notify // {"LOCATION_0":{"latitude":90,"longitude":0,"display":"North Pole"}}
+>> ask special generic
+`,
+    ['bookkeeping', 'special', 'special:help'],
+`>> I'm looking for a temperature in any of the supported units (C, F, K).
+>> context = now => ( @org.thingpedia.weather.current param:location:Location = LOCATION_0 ) filter param:temperature:Measure(C) >= undefined => notify // {"LOCATION_0":{"latitude":90,"longitude":0,"display":"North Pole"}}
+>> ask special generic
+`,
+    { program: 'bookkeeping(answer(50C));' },
+`>> Sorry, I did not find any result for that.
+>> context = now => ( @org.thingpedia.weather.current param:location:Location = LOCATION_0 ) filter param:temperature:Measure(C) >= MEASURE_C_0 => notify // {"LOCATION_0":{"latitude":90,"longitude":0,"display":"North Pole"},"MEASURE_C_0":{"unit":"C","value":50}}
+>> ask special null
+`,
+    `{
+  now => (@org.thingpedia.weather(id="org.thingpedia.weather-55").current(location=new Location(90, 0, "North Pole"))), temperature >= 50C => notify;
+}`]
 ];
 
 function handleCommand(almond, input) {
