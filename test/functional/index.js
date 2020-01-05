@@ -18,7 +18,7 @@ require('thingpedia');
 
 const assert = require('assert');
 
-const Engine = require('../lib/engine');
+const Engine = require('../../lib/engine');
 
 class MockAssistant {
     constructor() {
@@ -46,7 +46,7 @@ const THINGENGINE_URL = 'https://almond-dev.stanford.edu';
 
 async function runTests(engine, limitTo) {
     try {
-        for (let x of ['devices', 'apps', 'apps_timers_unit', 'database', 'http_client', 'util', 'builtins', 'permissions', 'remote', 'messaging', 'cloud_sync']) {
+        for (let x of ['devices', 'apps', 'database', 'http_client', 'builtins', 'permissions', 'remote', 'messaging', 'cloud_sync']) {
             if (limitTo !== undefined && x !== limitTo)
                 continue;
             console.log(`Running ${x} tests`);
@@ -61,7 +61,7 @@ async function runTests(engine, limitTo) {
 }
 
 async function main() {
-    const platform = require('./test_platform').newInstance();
+    const platform = require('./platform').newInstance();
     platform.setAssistant(new MockAssistant());
 
     const engine = new Engine(platform, {
