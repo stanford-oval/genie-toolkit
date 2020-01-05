@@ -221,9 +221,9 @@ ansi-styles@^3.2.0, ansi-styles@^3.2.1:
     color-convert "^1.9.0"
 
 ansi-styles@^4.0.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-4.2.0.tgz#5681f0dcf7ae5880a7841d8831c4724ed9cc0172"
-  integrity sha512-7kFQgnEaMdRtwf6uSfUnVr9gSGC7faurn+J/Mv90/W+iTtN0405/nLdopfMWwchyxhbGYl6TC4Sccn9TUkGAgg==
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-4.2.1.tgz#90ae75c424d008d2624c5bf29ead3177ebfcf359"
+  integrity sha512-9VGjrMsG1vePxcSweQsN20KY/c4zN0h9fLjqAbwbPfahM3t+NL+M9HC8xeXG2I8pX5NoamTGNuomEUFI7fcUjA==
   dependencies:
     "@types/color-name" "^1.1.1"
     color-convert "^2.0.1"
@@ -1129,9 +1129,9 @@ ini@~1.3.0:
   integrity sha512-RZY5huIKCMRWDUqZlEi72f/lmXKMvuszcMBduliQ3nnWbx9X/ZBQO7DijMEYS9EhHBb2qacRUMtC7svLwe0lcw==
 
 inquirer@^7.0.0:
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/inquirer/-/inquirer-7.0.1.tgz#13f7980eedc73c689feff3994b109c4e799c6ebb"
-  integrity sha512-V1FFQ3TIO15det8PijPLFR9M9baSlnRs9nL7zWu1MNVA2T9YVl9ZbrHJhYs7e9X8jeMZ3lr2JH/rdHFgNCBdYw==
+  version "7.0.2"
+  resolved "https://registry.yarnpkg.com/inquirer/-/inquirer-7.0.2.tgz#b39b205b95c9424839a1fd991d60426cf9bbc0e9"
+  integrity sha512-cZGvHaHwcR9E3xK9EGO5pHKELU+yaeJO7l2qGKIbqk4bCuDuAn15LCoUTS2nSkfv9JybFlnAGrOcVpCDZZOLhw==
   dependencies:
     ansi-escapes "^4.2.1"
     chalk "^2.4.2"
@@ -1855,9 +1855,9 @@ osenv@^0.1.4:
     os-tmpdir "^1.0.0"
 
 p-limit@^2.2.0:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/p-limit/-/p-limit-2.2.1.tgz#aa07a788cc3151c939b5131f63570f0dd2009537"
-  integrity sha512-85Tk+90UCVWvbDavCLKPOLC9vvY8OwEX/RtKF+/1OADJMVlFfEHOiMTPVyxg7mk/dKa+ipdHm0OUkTvCpMTuwg==
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/p-limit/-/p-limit-2.2.2.tgz#61279b67721f5287aa1c13a9a7fbbc48c9291b1e"
+  integrity sha512-WGR+xHecKTr7EbUEhyLSh5Dube9JtdiG78ufaeLxTgpudf/20KqyMioIUZJAezlTIi6evxuoUs9YXc11cU+yzQ==
   dependencies:
     p-try "^2.0.0"
 
@@ -1957,9 +1957,9 @@ progress@^2.0.0:
   integrity sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==
 
 psl@^1.1.24:
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/psl/-/psl-1.6.0.tgz#60557582ee23b6c43719d9890fb4170ecd91e110"
-  integrity sha512-SYKKmVel98NCOYXpkwUqZqh0ahZeeKfmisiLIcEZdsb+WbLv02g/dI5BUmZnIyOe7RzZtLax81nnb2HbvC2tzA==
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/psl/-/psl-1.7.0.tgz#f1c4c47a8ef97167dea5d6bbf4816d736e884a3c"
+  integrity sha512-5NsSEDv8zY70ScRnOTn7bK7eanl2MvFrOrS/R6x+dBt5g1ghnj9Zv90kO8GwT8gxcu2ANyFprnFYB85IogIJOQ==
 
 punycode@^1.4.1:
   version "1.4.1"
@@ -2126,9 +2126,9 @@ run-async@^2.2.0:
     is-promise "^2.1.0"
 
 rxjs@^6.5.3:
-  version "6.5.3"
-  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-6.5.3.tgz#510e26317f4db91a7eb1de77d9dd9ba0a4899a3a"
-  integrity sha512-wuYsAYYFdWTAnAaPoKGNhfpWwKZbJW+HgAJ+mImp+Epl7BG8oNWBCTyRM8gba9k4lk8BgWdoYm21Mo/RYhhbgA==
+  version "6.5.4"
+  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-6.5.4.tgz#e0777fe0d184cec7872df147f303572d414e211c"
+  integrity sha512-naMQXcgEo3csAEGvw/NydRA0fuS2nDZJiw1YUWFKU7aPPAPGZEsD4Iimit96qwCieH6y614MCLYwdkrWx7z/7Q==
   dependencies:
     tslib "^1.9.0"
 
@@ -2270,6 +2270,13 @@ sshpk@^1.7.0:
     jsbn "~0.1.0"
     safer-buffer "^2.0.2"
     tweetnacl "~0.14.0"
+
+string-interp@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/string-interp/-/string-interp-0.1.0.tgz#d1501e268ffcf4723ac15ea9f14486870bed92b7"
+  integrity sha512-IpdjjxHgiO+AKlhmeUSl4U/M/vLf/Qy5t5MwG/Ij8+l8yNBemLgjgtn13WCKaw78FrKi1DDKrs0gnDJnMiUgBw==
+  dependencies:
+    thingtalk-units "^0.1.0"
 
 string-width@^1.0.1:
   version "1.0.2"
@@ -2435,27 +2442,35 @@ thingpedia-discovery@^1.0.0:
   dependencies:
     node-ssdp "^2.7.2"
 
-thingpedia@~2.6.0:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.6.0.tgz#b948c22265d65ebd655a3f1c8d3401ef351bcce8"
-  integrity sha512-nICn8qQTl52wuMMehuYqjW51Q0aFAZKjfoKzu32D0KtHl85BNLb8TI39vI5qHY5iF/YIwYNtPlfrcZvCsAAg2g==
+thingpedia@~2.7.0-alpha.1:
+  version "2.7.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.7.0-alpha.1.tgz#8dd6ffc0cfa57dd3425958a31dd153ac41554fd6"
+  integrity sha512-gQIwZpG5/VVdxAmQUPZA5Ve5BzDeu3aIAPSA9om5FU6EYaNVG24esIxnN37XaA9FySMb3HsvZdC6xGBUEDRDNA==
   dependencies:
     feedparser "^2.2.9"
     ip "^1.1.0"
     oauth "^0.9.14"
-    thingtalk "~1.9.0"
+    string-interp "^0.1.0"
+    thingtalk "~1.10.0-alpha.1"
     tmp "^0.1.0"
     xml2js "^0.4.17"
 
-thingtalk@~1.9.0:
-  version "1.9.2"
-  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.9.2.tgz#3e8e5746a6a021134bb5125f39d63aa58f76cd00"
-  integrity sha512-cWWIfyJU7To1khT9i/C2/6r82m7cd+VBwWgDfLu/uAhAdSDXY9jT0M8xzA4Gfh70xKS6e1Tq3G90nxMCvtpdag==
+thingtalk-units@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/thingtalk-units/-/thingtalk-units-0.1.0.tgz#c3b69bc0c7d0a3ba5bfad3ccf02dc1c291d1abc8"
+  integrity sha512-rV5/jZw9fBk3OgYi/HrA1LsTmD5w0gYDlsc1US3/ePR5szaUxwMUtN8UAPYaUorOiW0Qcjm1plvssOC97EkedQ==
+
+thingtalk@~1.10.0-alpha.1:
+  version "1.10.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.10.0-alpha.1.tgz#4961d8051df3f74fd3626b76d0d4c8825993fe4c"
+  integrity sha512-XJulv/APx+Y2EYmh+4kke+tFF4Tp3Avti7egOUIqo4Zg8iXwxBW5wtWq5EjLueLeHuetPxYldMZB5MFeoINKQQ==
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
     consumer-queue "^1.0.0"
     smtlib "^0.1.1"
+    string-interp "^0.1.0"
+    thingtalk-units "^0.1.0"
 
 through@^2.3.6:
   version "2.3.8"
@@ -2691,9 +2706,9 @@ yargs-parser@^16.1.0:
     decamelize "^1.2.0"
 
 yargs@^15.0.2:
-  version "15.0.2"
-  resolved "https://registry.yarnpkg.com/yargs/-/yargs-15.0.2.tgz#4248bf218ef050385c4f7e14ebdf425653d13bd3"
-  integrity sha512-GH/X/hYt+x5hOat4LMnCqMd8r5Cv78heOMIJn1hr7QPPBqfeC6p89Y78+WB9yGDvfpCvgasfmWLzNzEioOUD9Q==
+  version "15.1.0"
+  resolved "https://registry.yarnpkg.com/yargs/-/yargs-15.1.0.tgz#e111381f5830e863a89550bd4b136bb6a5f37219"
+  integrity sha512-T39FNN1b6hCW4SOIk1XyTOWxtXdcen0t+XYrysQmChzSipvhBO8Bj0nK1ozAasdk24dNWuMZvr4k24nz+8HHLg==
   dependencies:
     cliui "^6.0.0"
     decamelize "^1.2.0"
