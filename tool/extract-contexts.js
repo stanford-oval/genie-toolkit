@@ -46,6 +46,12 @@ module.exports = {
             required: false,
             help: 'Path to ThingTalk file containing class definitions.'
         });
+        parser.addArgument('--contextual', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'The passed in dataset is also contextual.',
+            defaultValue: false
+        });
         parser.addArgument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
@@ -79,7 +85,7 @@ module.exports = {
         }
 
         let allprograms = await readAllLines(args.input_file)
-            .pipe(new DatasetParser())
+            .pipe(new DatasetParser({ contextual: args.contextual }))
             .pipe(new ContextExtractor({
                 targetLanguage: args.target_language,
                 schemaRetriever: schemas,
