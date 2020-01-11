@@ -251,7 +251,7 @@ async function main() {
     const options = {
         rng: seedrandom.alea('almond is awesome'),
         locale: 'en-US',
-        templateFile: path.resolve(path.dirname(module.filename), '../languages/thingtalk/en/thingtalk.genie'),
+        templateFiles: [path.resolve(path.dirname(module.filename), '../languages/thingtalk/en/thingtalk.genie')],
         targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,
         flags: {
