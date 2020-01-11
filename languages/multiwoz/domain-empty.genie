@@ -1,0 +1,64 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+}
+
+direct_question = {
+}
+
+imprecise_answer = {
+}
+
+user_one_slot_domain_question = {
+}
+
+param_noun_phrase = {
+}
+
+sys_param_noun_phrase = {
+}
+
+base_noun_phrase = {
+}
+
+// npp: Noun-Phrase of Property
+// "X that have $npp_slot" or "X with $npp_slot"
+npp_slot = {
+}
+
+// npi: Noun-Phrase of Identity
+// "X that is $npi_slot", where npi is a noun-phrase (not a passive-verb-phrase)
+npi_slot = {
+}
+
+// prep: Preposition
+// "X $prep_slot" or "X that <verb> $prep_slot" - where $prep_slot starts with a preposition
+// eg. "train to cambridge"
+prep_slot = {
+}
+
+// pvp: Passive-Verb Phrase
+// "X $pvp_slot" or "X that is $pvp_slot" - where $pvp_slot is a verb phrase in -ed or -ing form
+// eg. "train leaving from cambridge"
+// pvp_slot is also used for prepositional phrases
+pvp_slot = {
+}
+
+// avp: Active-Verb Phrase
+// "X that $apv_slot" where $apv_slot is a verb phrase in active form, with X as subject
+avp_slot = {
+}
+
+// apv: Adjective-Phrase Value
+// "$apv_slot X" where $apv_slot is an adjective phrase
+// e.g.: "cheap restaurant", "5-star hotel"
+apv_slot = {
+}
