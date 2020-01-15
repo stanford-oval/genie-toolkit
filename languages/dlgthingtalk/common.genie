@@ -1,0 +1,137 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+// import the combinator library
+const C = require('./ast_manip');
+}
+
+import './common-constants';
+
+// Thingpedia Grammar Rules
+
+thingpedia_query = {}
+thingpedia_get_command = {}
+thingpedia_stream = {}
+thingpedia_action = {}
+thingpedia_program = {}
+thingpedia_who_question = {}
+
+out_param_Numeric = {
+    out_param_Number;
+    out_param_Currency;
+    out_param_Measure_ms;
+    out_param_Measure_byte;
+    out_param_Measure_kg;
+    out_param_Measure_C;
+    out_param_Measure_m;
+    out_param_Measure_mps;
+}
+
+out_param_Any = {}
+out_param_Array__Any = {}
+out_param_npp = {}
+out_param_npi = {}
+out_param_avp = {}
+out_param_pvp = {}
+out_param_npv = {}
+out_param_apv = {}
+out_param_String   = {}
+out_param_Number   = {}
+out_param_Currency = {}
+out_param_Time     = {}
+out_param_Date     = {}
+out_param_Location = {}
+out_param_Measure_ms   = {}
+out_param_Measure_byte = {}
+out_param_Measure_kg   = {}
+out_param_Measure_C    = {}
+out_param_Measure_m    = {}
+out_param_Measure_mps  = {}
+
+out_param_Array__Numeric = {
+    out_param_Array__Number;
+    out_param_Array__Currency;
+    out_param_Array__Measure_ms;
+    out_param_Array__Measure_byte;
+    out_param_Array__Measure_kg;
+    out_param_Array__Measure_C;
+    out_param_Array__Measure_m;
+    out_param_Array__Measure_mps;
+}
+
+out_param_Array__String   = {}
+out_param_Array__Number   = {}
+out_param_Array__Currency = {}
+out_param_Array__Time     = {}
+out_param_Array__Date     = {}
+out_param_Array__Location = {}
+out_param_Array__Measure_ms   = {}
+out_param_Array__Measure_byte = {}
+out_param_Array__Measure_kg   = {}
+out_param_Array__Measure_C    = {}
+out_param_Array__Measure_m    = {}
+out_param_Array__Measure_mps  = {}
+out_param_Array__Compound = {}  // used for aggregate filter only
+
+{
+const _tpLoader = require('./load-thingpedia');
+await _tpLoader.init($runtime, $grammar, $options);
+}
+
+// empty defaults for certain parameter types in case we don't have devices with
+// those parameters
+projection_Entity__tt__username = {}
+projection_Entity__tt__email_address = {}
+
+for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
+    thingpedia_stream = {
+        s:thingpedia_stream v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(s, pname, v);
+    }
+
+    thingpedia_query = {
+        q:thingpedia_query v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(q, pname, v);
+    }
+
+    thingpedia_get_command = {
+        q:thingpedia_get_command v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(q, pname, v);
+    }
+
+    thingpedia_action = {
+        a:thingpedia_action v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(a, pname, v);
+    }
+
+    thingpedia_program = {
+        p:thingpedia_program v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(p, pname, v);
+    }
+
+    // don't parameter pass booleans or enums, as that rarely makes sense
+    if (typestr !== 'Boolean' && !typestr.startsWith('Enum__')) {
+        if (pname !== 'count' && pname !== 'p_count') {
+            if ($options.flags.undefined_filter) {
+                // replace $-placeholders with "some X" where X is based on parameter type
+                thingpedia_query = q:thingpedia_query $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(q, pname, typestr);
+
+                thingpedia_get_command = q:thingpedia_get_command $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(q, pname, typestr);
+
+                thingpedia_stream = s:thingpedia_stream $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(s, pname, typestr);
+
+                thingpedia_action = a:thingpedia_action $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(a, pname, typestr);
+
+                thingpedia_program = p:thingpedia_program $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(p, pname, typestr);
+            }
+        }
+    }
+}

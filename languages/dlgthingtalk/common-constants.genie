@@ -1,0 +1,103 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+const ThingTalk = require('thingtalk');
+const Type = ThingTalk.Type;
+}
+
+constant_String                    = const(QUOTED_STRING, Type.String);
+
+constant_Entity__tt__url           = const(URL, Type.Entity('tt:url'));
+
+constant_Entity__tt__username      = const(USERNAME, Type.Entity('tt:username'));
+constant_Entity__tt__hashtag       = const(HASHTAG, Type.Entity('tt:hashtag'));
+constant_Entity__tt__phone_number  = const(PHONE_NUMBER, Type.Entity('tt:phone_number'));
+constant_Entity__tt__email_address = const(EMAIL_ADDRESS, Type.Entity('tt:email_address'));
+constant_Entity__tt__path_name     = {
+    const(QUOTED_STRING, Type.Entity('tt:path_name'));
+    const(PATH_NAME, Type.Entity('tt:path_name'));
+}
+constant_Entity__tt__picture  = {}
+constant_Entity__tt__function = {}
+constant_Entity__tt__program  = {}
+constant_Entity__tt__device   = {}
+constant_Boolean = {}
+
+constant_Number = const(NUMBER, Type.Number);
+constant_Currency = const(CURRENCY, Type.Currency);
+constant_Time = const(TIME, Type.Time);
+constant_Date = const(DATE, Type.Date);
+constant_Location = const(LOCATION, Type.Location);
+
+constant_Measure_ms = const(DURATION, Type.Measure('ms'));
+constant_Measure_byte = {}
+constant_Measure_kg = {}
+constant_Measure_C = {}
+constant_Measure_m = {}
+constant_Measure_mps = {}
+constant_Measure_Pa = {}
+constant_Measure_kcal = {}
+constant_Measure_W = {}
+constant_Measure_lx = {}
+constant_Measure_lm = {}
+constant_Measure_dB = {}
+constant_Measure_dBm = {}
+
+// this is used for equality filtering, so !turking anything that is weird when equality compared
+constant_Any = {
+    constant_String;
+    constant_Entity__tt__picture;
+    constant_Entity__tt__username;
+    constant_Entity__tt__hashtag;
+    constant_Entity__tt__phone_number;
+    constant_Entity__tt__email_address;
+    constant_Entity__tt__path_name;
+    constant_Number;
+    constant_Time;
+    constant_Location;
+    constant_Currency;
+
+    !turking {
+        constant_Entity__tt__url;
+        constant_Date;
+        constant_Measure_ms;
+        constant_Measure_byte;
+        constant_Measure_mps;
+        constant_Measure_m;
+        constant_Measure_C;
+        constant_Measure_kg;
+        constant_Measure_Pa;
+        constant_Measure_kcal;
+        constant_Measure_W;
+        constant_Measure_lx;
+        constant_Measure_lm;
+        constant_Measure_dB;
+        constant_Measure_dBm;
+        constant_Boolean;
+    }
+}
+constant_Numeric = {
+    constant_Number;
+    constant_Currency;
+    constant_Measure_ms;
+    constant_Measure_byte;
+    constant_Measure_mps;
+    constant_Measure_m;
+    constant_Measure_C;
+    constant_Measure_kg;
+    constant_Measure_Pa;
+    constant_Measure_kcal;
+    constant_Measure_W;
+    constant_Measure_lx;
+    constant_Measure_lm;
+    constant_Measure_dB;
+    constant_Measure_dBm;
+}
