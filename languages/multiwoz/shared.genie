@@ -1,0 +1,350 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+    const Ast = require('../../lib/languages/multidst/ast');
+    const { Slot, EmptySlot, checkAndAddSlot, SEARCH_SLOTS } = require('./ast_utils');
+}
+
+random_number = {
+    '10';
+    '20';
+    '30';
+    '100';
+    '1000';
+    '2000';
+    '5000';
+}
+
+generic_preamble = {
+    'i am looking for' => [];
+    'i am looking for' => [];
+    'i would like' => [];
+    'i would like' => [];
+    'i want' => [];
+    'i need' => [];
+}
+
+second_request_preamble = {
+    'i am looking for' => [];
+    'i am looking for' => [];
+    'i would like' => [];
+    'i would like' => [];
+    'i want' => [];
+    'i need' => [];
+    'can i book that' => [];
+    'can you book that' => [];
+    'can you book me' => [];
+}
+
+preamble = {
+    'hello ! i am looking for a' => [];
+    'hello ! i am looking for the' => [];
+    'hello , i am looking for a' => [];
+    'hello , i am looking for the' => [];
+    'i am looking for information about the' => [];
+    'i am looking for informating regarding a' => [];
+    'i am looking to get some information on the' => [];
+
+    'i am also looking for a' => [];
+    'i am also looking for the' => [];
+    'i also want a' => [];
+    'i also need a' => [];
+    'i want a' => [];
+    'i need a' => [];
+    'can you help me with a' => [];
+    'can you help me with information about a' => [];
+    'can you help with info regarding the' => [];
+    'can you help with information regarding the' => [];
+    'can you help me find info about the' => [];
+    'can you help me find a' => [];
+
+    'i would like to book a' => ['train', 'hotel', 'taxi'];
+    'i need to book a' => ['train', 'hotel', 'taxi'];
+    'i need to make a reservation for a' => ['hotel', 'restaurant'];
+    'i need to make a reservation at a' => ['hotel', 'restaurant'];
+    'i need to book a reservation for a' => ['hotel', 'restaurant'];
+    'i need to book a reservation at a' => ['hotel', 'restaurant'];
+    'i would like a reservation for a' => ['hotel', 'restaurant'];
+    'can you help me with a reservation for a' => ['hotel', 'restaurant'];
+    'can you help me book a' => ['train', 'hotel', 'taxi'];
+}
+
+prep_leave_slot = {}
+prep_arrive_slot = {}
+
+generic_domain_answer = {
+    // "i want to book for 3 people", "I want to book at ..."
+    'i' ('want' | 'need') 'to book' slot:prep_slot => {
+        const state = new Ast.DialogState;
+        state.set(slot.key, slot.value);
+        return state;
+    };
+
+    'i' ('want' | 'need') 'to leave' slot:prep_leave_slot => {
+        const state = new Ast.DialogState;
+        state.set(slot.key, slot.value);
+        return state;
+    };
+    'i' ('want to arrive' | 'need to arrive' | 'am going' | 'am headed') slot:prep_arrive_slot => {
+        const state = new Ast.DialogState;
+        state.set(slot.key, slot.value);
+        return state;
+    };
+
+    'i' ('want' | 'need') 'to leave' s1:prep_leave_slot s2:prep_leave_slot => {
+        if (s1.domain !== s2.domain)
+            return null;
+        if (s1.key === s2.key)
+            return null;
+        const state = new Ast.DialogState;
+        state.set(s1.key, s1.value);
+        state.set(s2.key, s2.value);
+        return state;
+    };
+    'i' ('want to arrive' | 'need to arrive' | 'am going' | 'am headed') s1:prep_arrive_slot s2:prep_arrive_slot => {
+        if (s1.domain !== s2.domain)
+            return null;
+        if (s1.key === s2.key)
+            return null;
+        const state = new Ast.DialogState;
+        state.set(s1.key, s1.value);
+        state.set(s2.key, s2.value);
+        return state;
+    };
+
+    ( 'i am travelling' | 'i will be travelling' | 'i am going' ) slot:prep_slot => {
+        if (slot.domain !== 'train' && slot.domain !== 'taxi')
+            return null;
+        const state = new Ast.DialogState;
+        state.set(slot.key, slot.value);
+        return state;
+    };
+    ( 'i am travelling' | 'i will be travelling' | 'i am going' ) s1:prep_slot s2:prep_slot => {
+        if (s1.domain !== 'train' && s1.domain !== 'taxi')
+            return null;
+        if (s1.domain !== s2.domain)
+            return null;
+        if (s1.key === s2.key)
+            return null;
+
+        const state = new Ast.DialogState;
+        state.set(s1.key, s1.value);
+        state.set(s2.key, s2.value);
+        return state;
+    };
+}
+
+// the rest is domain-independent
+
+noun_phrase = {
+    // no slot
+    base_noun_phrase;
+
+    // one slot
+    one_with_slot_phrase;
+    one_which_slot_phrase;
+    one_clean_slot_phrase;
+
+    // two slots
+    two_with_slot_phrase;
+    two_which_slot_phrase;
+    two_clean_slot_phrase;
+}
+
+generic_anything_noun_phrase = {
+    'anything' => new Ast.DialogState;
+    // this looks weird due to preprocessing...
+    '1' => new Ast.DialogState;
+    'something' => new Ast.DialogState;
+}
+
+generic_base_noun_phrase = {
+    'listing' => new Ast.DialogState;
+    'place' => new Ast.DialogState('hotel');
+    'option' => new Ast.DialogState;
+    'choice' => new Ast.DialogState;
+}
+
+anything_phrase = {
+    anything_with_slot_phrase;
+    anything_which_slot_phrase;
+    anything_clean_slot_phrase;
+}
+
+anything_with_slot_phrase = {
+    ('any' | 'some') phrase:generic_base_noun_phrase ('with' | 'having') slot:npp_slot => checkAndAddSlot(phrase, slot);
+    phrase:generic_anything_noun_phrase ('with' | 'having') slot:npp_slot => checkAndAddSlot(phrase, slot);
+}
+
+anything_which_slot_phrase = {
+    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('has' | 'have') slot:npp_slot => checkAndAddSlot(phrase, slot);
+    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') slot:avp_slot => checkAndAddSlot(phrase, slot);
+    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+    phrase:generic_anything_noun_phrase ('which' | 'that') ('has' | 'have') slot:npp_slot => checkAndAddSlot(phrase, slot);
+    phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    phrase:generic_anything_noun_phrase ('which' | 'that') slot:avp_slot => checkAndAddSlot(phrase, slot);
+    phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+}
+
+anything_clean_slot_phrase = {
+    ('any' | 'some') slot:apv_slot phrase:generic_base_noun_phrase => checkAndAddSlot(phrase, slot);
+    ('any' | 'some') phrase:generic_base_noun_phrase slot:pvp_slot => checkAndAddSlot(phrase, slot);
+    ('any' | 'some') phrase:generic_base_noun_phrase slot:prep_slot => checkAndAddSlot(phrase, slot);
+    phrase:generic_anything_noun_phrase slot:apv_slot => checkAndAddSlot(phrase, slot);
+    phrase:generic_anything_noun_phrase slot:pvp_slot => checkAndAddSlot(phrase, slot);
+    phrase:generic_anything_noun_phrase slot:prep_slot => checkAndAddSlot(phrase, slot);
+}
+
+one_with_slot_phrase = {
+    phrase:base_noun_phrase ('with' | 'having') slot:npp_slot => checkAndAddSlot(phrase, slot);
+}
+
+one_which_slot_phrase = {
+    phrase:base_noun_phrase ('which' | 'that') ('has' | 'have') slot:npp_slot => checkAndAddSlot(phrase, slot);
+    phrase:base_noun_phrase ('which' | 'that') ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    phrase:base_noun_phrase ('which' | 'that') slot:avp_slot => checkAndAddSlot(phrase, slot);
+    phrase:base_noun_phrase ('which' | 'that') ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+}
+
+one_clean_slot_phrase = {
+    slot:apv_slot phrase:base_noun_phrase => checkAndAddSlot(phrase, slot);
+    phrase:base_noun_phrase slot:pvp_slot => checkAndAddSlot(phrase, slot);
+    phrase:base_noun_phrase slot:prep_slot => checkAndAddSlot(phrase, slot);
+}
+
+two_with_slot_phrase = {
+    phrase:one_with_slot_phrase 'and' slot:npp_slot => checkAndAddSlot(phrase, slot);
+    phrase:one_which_slot_phrase ('and having' | 'and with' | ', with') slot:npp_slot => checkAndAddSlot(phrase, slot);
+    phrase:one_clean_slot_phrase ('with' | 'having') slot:npp_slot => checkAndAddSlot(phrase, slot);
+
+    slot:apv_slot phrase:one_with_slot_phrase => checkAndAddSlot(phrase, slot);
+}
+
+two_which_slot_phrase = {
+    phrase:one_with_slot_phrase ('which' | 'that') ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    phrase:one_with_slot_phrase ('which' | 'that') slot:avp_slot => checkAndAddSlot(phrase, slot);
+    phrase:one_with_slot_phrase ('which' | 'that') ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+
+    phrase:one_which_slot_phrase 'and' ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    phrase:one_which_slot_phrase 'and' slot:avp_slot => checkAndAddSlot(phrase, slot);
+    phrase:one_which_slot_phrase 'and' ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+
+    phrase:one_clean_slot_phrase ('which' | 'that') ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    phrase:one_clean_slot_phrase ('which' | 'that') slot:avp_slot => checkAndAddSlot(phrase, slot);
+    phrase:one_clean_slot_phrase ('which' | 'that') ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+
+    slot:apv_slot phrase:one_which_slot_phrase => checkAndAddSlot(phrase, slot);
+}
+
+two_clean_slot_phrase = {
+    slot:apv_slot phrase:one_clean_slot_phrase => checkAndAddSlot(phrase, slot);
+    phrase:one_clean_slot_phrase slot:pvp_slot => checkAndAddSlot(phrase, slot);
+    phrase:one_clean_slot_phrase slot:prep_slot => checkAndAddSlot(phrase, slot);
+}
+
+three_with_slot_phrase = {
+    phrase:two_with_slot_phrase 'and' slot:npp_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_which_slot_phrase ('and having' | 'and with' | ', with') slot:npp_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_clean_slot_phrase ('with' | 'having') slot:npp_slot => checkAndAddSlot(phrase, slot);
+
+    slot:apv_slot phrase:two_with_slot_phrase => checkAndAddSlot(phrase, slot);
+}
+
+three_which_slot_phrase = {
+    phrase:two_with_slot_phrase ('which' | 'that') ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_with_slot_phrase ('which' | 'that') slot:avp_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_with_slot_phrase ('which' | 'that') ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+
+    phrase:two_which_slot_phrase 'and' ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_which_slot_phrase 'and' slot:avp_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_which_slot_phrase 'and' ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+
+    phrase:two_clean_slot_phrase ('which' | 'that') ('is' | 'are') slot:npi_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_clean_slot_phrase ('which' | 'that') slot:avp_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_clean_slot_phrase ('which' | 'that') ('is' | 'are') slot:apv_slot => checkAndAddSlot(phrase, slot);
+
+    slot:apv_slot phrase:two_which_slot_phrase => checkAndAddSlot(phrase, slot);
+}
+
+three_clean_slot_phrase = {
+    slot:apv_slot phrase:two_clean_slot_phrase => checkAndAddSlot(phrase, slot);
+    phrase:two_clean_slot_phrase slot:pvp_slot => checkAndAddSlot(phrase, slot);
+    phrase:two_clean_slot_phrase slot:prep_slot => checkAndAddSlot(phrase, slot);
+}
+
+user_initial_request = {
+    ( domains:preamble dialogue:noun_phrase
+    | domains:generic_preamble ('a' | 'the') dialogue:noun_phrase
+    ) => {
+        if (domains.length > 0 && !domains.includes(dialogue.domain))
+            return null;
+        dialogue.intent = 'init_request';
+        return dialogue;
+    };
+}
+
+user_second_request = {
+    domains:generic_preamble ('a' | 'the') dialogue:noun_phrase => {
+        if (domains.length > 0 && !domains.includes(dialogue.domain))
+            return null;
+
+        for (let key of dialogue) {
+            if (SEARCH_SLOTS.has(key))
+                return null;
+        }
+        return dialogue;
+    };
+}
+
+imprecise_answer_phrase = {
+    ( slot:constant_Any
+    | slot:apv_slot
+    | slot:pvp_slot
+    | slot:prep_slot
+    ) => {
+        const state = new Ast.DialogState;
+        state.set(slot.key, slot.value);
+        return state;
+    };
+}
+
+imprecise_answer = {
+    ans:imprecise_answer_phrase ('please' | '') '.' => ans;
+
+    domains:generic_preamble ans:imprecise_answer_phrase '.' => {
+        if (domains.length > 0)
+            return null;
+        return ans;
+    };
+}
+
+generic_answer = {
+    domains:generic_preamble req:anything_phrase => {
+        if (domains.length > 0)
+            return null;
+        for (let key of req) {
+            if (!SEARCH_SLOTS.has(key))
+                return null;
+        }
+        return req;
+    };
+
+    ( 'i do not care about' key:param_noun_phrase
+    | 'i have no preference for' key:param_noun_phrase
+    | key:param_noun_phrase 'does not matter'
+    | 'any' key:param_noun_phrase 'is the same to me'
+    ) => {
+        if (!SEARCH_SLOTS.has(key))
+            return null;
+        return checkAndAddSlot(new Ast.DialogState, new Slot(key, new Ast.TristateValue('dontcare')));
+    };
+}
