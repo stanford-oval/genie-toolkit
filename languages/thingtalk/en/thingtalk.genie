@@ -18,8 +18,11 @@ const Type = ThingTalk.Type;
 // import the combinator library
 const C = require('../ast_manip');
 
+// import thingpedia info
+const _tpLoader = require('../load-thingpedia');
 }
 
+import '../common';
 import './constants';
 import './timers';
 import './filters';
@@ -27,7 +30,7 @@ import './parameters';
 import './aggregation';
 import './who_questions';
 
-if ($options.flags.bookkeeping)
+if (_tpLoader.flags.bookkeeping)
     import './bookkeeping';
 import './stream_tables';
 
@@ -91,7 +94,7 @@ forward_when_do_rule = {
             return null;
         let outParams = Object.keys(proj.table.schema.out);
         let stream;
-        if (outParams.length === 1 && $options.flags.turking)
+        if (outParams.length === 1 && _tpLoader.flags.turking)
             return null;
         if (outParams.length === 1)
             stream = C.tableToStream(proj.table, null);
@@ -158,7 +161,7 @@ when_get_stream = {
     stream:stream ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') table:thingpedia_query => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
     stream:stream ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') ('' | 'what is') proj:projection_Any => {
         if (proj.isProjection) {
-            if (!$options.flags.projection)
+            if (!_tpLoader.flags.projection)
                 return null;
             if (proj.args[0] === 'picture_url')
                 return null;
@@ -173,7 +176,7 @@ when_get_stream = {
     ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') table:thingpedia_query stream:stream => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
     ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') proj:projection_Any stream:stream => {
         if (proj.isProjection) {
-            if (!$options.flags.projection)
+            if (!_tpLoader.flags.projection)
                 return null;
             if (proj.args[0] === 'picture_url')
                 return null;
@@ -215,15 +218,15 @@ timer_rule = {
     ) => new Ast.Statement.Rule(new Ast.Stream.Join(timer, command.table, [], command.table.schema), command.actions);
 }
 
-if ($options.standardSchemas.say) {
+if (_tpLoader.standardSchemas.say) {
      $root = {
-        ?timer 'send me a reminder' stream:timer => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options)]));
-        ?timer 'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
+        ?timer 'send me a reminder' stream:timer => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction(_tpLoader)]));
+        ?timer 'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction(_tpLoader, constant)]));
         !turking {
             (
                   'alert me' stream:stream ('saying' | 'with the text') constant:constant_String
                 | 'show' ('the notification' | 'the message' | 'a popup notification that says' | 'a popup containing') constant:constant_String stream:stream
-             ) => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
+             ) => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction(_tpLoader, constant)]));
         }
 
         // now => say
@@ -231,7 +234,7 @@ if ($options.standardSchemas.say) {
               'say' c:constant_String
             | 'send me a message saying' c:constant_String
             | 'show a popup that says' c:constant_String
-        ) => C.makeProgram(new Ast.Statement.Command(null, [C.builtinSayAction($options, c)]));
+        ) => C.makeProgram(new Ast.Statement.Command(null, [C.builtinSayAction(_tpLoader, c)]));
     }
 }
 
@@ -259,7 +262,7 @@ $root = {
         if (!stream)
             return null;
         let outParams = Object.keys(proj.table.schema.out);
-        if (outParams.length === 1 && $options.flags.turking)
+        if (outParams.length === 1 && _tpLoader.flags.turking)
             return null;
         return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
@@ -274,7 +277,7 @@ $root = {
             return null;
         if (table.schema.is_list || !C.checkFilter(table, filter))
             return null;
-        table = C.addFilter(table, filter, $options);
+        table = C.addFilter(table, filter, _tpLoader);
         if (!table)
             return null;
         let stream = C.tableToStream(table, null);
@@ -288,7 +291,7 @@ $root = {
         if (proj.table.isAggregation)
             return null;
         let outParams = Object.keys(proj.table.schema.out);
-        if (outParams.length === 1 && $options.flags.turking)
+        if (outParams.length === 1 && _tpLoader.flags.turking)
             return null;
         // note that we intentionally don't use tableToStream here, because we don't want to introduce edge filters
         return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), [C.notifyAction()]));
@@ -298,9 +301,9 @@ $root = {
             return null;
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
             return null;
-        if ($options.flags.turking && table.schema.is_list)
+        if (_tpLoader.flags.turking && table.schema.is_list)
             return null;
-        table = C.addFilter(table, filter, $options);
+        table = C.addFilter(table, filter, _tpLoader);
         if (!table)
             return null;
         let stream = C.tableToStream(table, null);
@@ -313,7 +316,7 @@ $root = {
             return null;
         if (!table.schema.is_monitorable || table.schema.is_list || !C.checkFilter(table, filter))
             return null;
-        table = C.addFilter(table, filter, $options);
+        table = C.addFilter(table, filter, _tpLoader);
         if (!table)
             return null;
         let stream = C.tableToStream(table, null);
@@ -395,8 +398,8 @@ $root = {
         | ('show me' | 'tell me' | 'say') 'what is' proj:projection_Any
         | 'who is' proj:projection_Entity__tt__username ('' | '?')
         | 'who is' proj:projection_Entity__tt__email_address ('' | '?')
-    ) => C.sayProjectionProgram($options, proj);
-    !turking proj:projection_Any => C.sayProjectionProgram($options, proj);
+    ) => C.sayProjectionProgram(_tpLoader, proj);
+    !turking proj:projection_Any => C.sayProjectionProgram(_tpLoader, proj);
 
     // now => do
     (
@@ -434,9 +437,9 @@ $root = {
                 return null;
             if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
                 return null;
-            if ($options.flags.turking && table.schema.is_list)
+            if (_tpLoader.flags.turking && table.schema.is_list)
                 return null;
-            table = C.addFilter(table, filter, $options);
+            table = C.addFilter(table, filter, _tpLoader);
             if (!table)
                 return null;
             let stream = C.tableToStream(table, null);
@@ -449,9 +452,9 @@ $root = {
                 return null;
             if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
                 return null;
-            if ($options.flags.turking && table.schema.is_list)
+            if (_tpLoader.flags.turking && table.schema.is_list)
                 return null;
-            table = C.addFilter(table, filter, $options);
+            table = C.addFilter(table, filter, _tpLoader);
             if (!table)
                 return null;
             let stream = C.tableToStream(table, null);

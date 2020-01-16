@@ -11,21 +11,13 @@
 
 const seedrandom = require('seedrandom');
 const fs = require('fs');
-const argparse = require('argparse');
 const Tp = require('thingpedia');
 
 const { BasicSentenceGenerator } = require('../lib/sentence-generator');
 const { DatasetStringifier } = require('../lib/dataset-parsers');
+const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 const ProgressBar = require('./lib/progress_bar');
-
-class ActionSetFlag extends argparse.Action {
-    call(parser, namespace, values) {
-        if (!namespace.flags)
-            namespace.set('flags', {});
-        for (let value of values)
-            namespace.flags[value] = this.constant;
-    }
-}
+const { ActionSetFlag } = require('./lib/argutils');
 
 module.exports = {
     initArgparse(subparsers) {
@@ -42,6 +34,12 @@ module.exports = {
             defaultValue: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
+        parser.addArgument(['-t', '--target-language'], {
+            required: false,
+            defaultValue: 'thingtalk',
+            choices: AVAILABLE_LANGUAGES,
+            help: `The programming language to generate`
+        });
         parser.addArgument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
@@ -56,6 +54,7 @@ module.exports = {
         });
         parser.addArgument('--template', {
             required: true,
+            nargs: '+',
             help: 'Path to file containing construct templates, in Genie syntax.'
         });
         parser.addArgument('--set-flag', {
@@ -118,7 +117,8 @@ module.exports = {
             rng: seedrandom.alea(args.random_seed),
             locale: args.locale,
             flags: args.flags || {},
-            templateFile: args.template,
+            templateFiles: args.template,
+            targetLanguage: args.target_language,
             thingpediaClient: tpClient,
             targetPruningSize: args.target_pruning_size,
             maxDepth: args.maxdepth,

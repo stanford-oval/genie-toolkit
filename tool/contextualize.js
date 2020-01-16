@@ -34,7 +34,7 @@ module.exports = {
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
         parser.addArgument(['-c', '--context'], {
-            required: true,
+            required: false,
             action: 'append',
             type: fs.createReadStream,
             help: `Context files to use`,
@@ -63,9 +63,14 @@ module.exports = {
     async execute(args) {
         const rng = seedrandom.alea(args.random_seed);
 
-        let allprograms = await readAllLines(args.context)
-            .pipe(new StreamUtils.ArrayAccumulator())
-            .read();
+        let allprograms;
+        if (args.null_only) {
+            allprograms = [];
+        } else {
+            allprograms = await readAllLines(args.context)
+                .pipe(new StreamUtils.ArrayAccumulator())
+                .read();
+        }
 
         await StreamUtils.waitFinish(
             readAllLines(args.input_file)

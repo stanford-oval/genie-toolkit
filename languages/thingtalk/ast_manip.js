@@ -18,21 +18,9 @@ const Type = ThingTalk.Type;
 const { isUnaryTableToTableOp,
         isUnaryStreamToTableOp,
         isUnaryStreamToStreamOp,
-        isUnaryTableToStreamOp } = require('./utils');
+        isUnaryTableToStreamOp,
+        typeToStringSafe } = require('./utils');
 const { notifyAction } = ThingTalk.Generate;
-
-function typeToStringSafe(type) {
-    if (type.isArray)
-        return 'Array__' + typeToStringSafe(type.elem);
-    else if (type.isEntity)
-        return 'Entity__' + type.type.replace(':', '__');
-    else if (type.isMeasure)
-        return 'Measure_' + type.unit;
-    else if (type.isEnum)
-        return 'Enum__' + type.entries.join('__');
-    else
-        return String(type);
-}
 
 function findFunctionNameTable(table) {
     if (table.isInvocation)

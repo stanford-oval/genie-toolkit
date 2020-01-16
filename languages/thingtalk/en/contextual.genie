@@ -20,6 +20,9 @@ const Type = ThingTalk.Type;
 // import the combinator library
 const C = require('../ast_manip');
 
+// import thingpedia info
+const _tpLoader = require('../load-thingpedia');
+
 function addParamToAction(command, pname, joinArg) {
     let actiontype = command.action.schema.inReq[pname];
     if (!actiontype)
@@ -59,6 +62,7 @@ function addParamToQuery(command, pname, joinArg) {
 
 }
 
+import '../common';
 import './constants';
 import './timers';
 import './filters';
@@ -102,10 +106,10 @@ chain_query = {
     };
 }
 
-for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
+for (let [pname, [typestr, pcanonical]] of _tpLoader.params.in.values()) {
     // don't parameter pass booleans or enums, as that rarely makes sense
     if (typestr !== 'Boolean' && !typestr.startsWith('Enum__')) {
-        if ($options.types.id.has(typestr)) {
+        if (_tpLoader.types.id.has(typestr)) {
             chain_action = command:chain_action ('it' | 'that' | 'them') [-> pname] => {
                 for (let joinArg in command.table.schema.out) {
                     if (typestr === C.typeToStringSafe(command.table.schema.out[joinArg]))
@@ -137,7 +141,7 @@ for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
                     if (pname === 'picture_url')
                         return null;
                     let ptype = command.table.schema.out[pname];
-                    if ($options.types.id.has(C.typeToStringSafe(ptype)))
+                    if (_tpLoader.types.id.has(C.typeToStringSafe(ptype)))
                         return null;
                 }
                 return addParamToAction(command, pname, new Ast.Value.Event(null));
@@ -147,7 +151,7 @@ for (let [pname, [typestr, pcanonical]] of $options.params.in.values()) {
                     if (pname === 'picture_url')
                         return null;
                     let ptype = command.lhs.schema.out[pname];
-                    if ($options.types.id.has(C.typeToStringSafe(ptype)))
+                    if (_tpLoader.types.id.has(C.typeToStringSafe(ptype)))
                         return null;
                 }
                 return addParamToQuery(command, pname, new Ast.Value.Event(null));
@@ -219,24 +223,24 @@ $root = {
         'only with' | 'only if they have' | 'filter to those with' | 'show me those with') filter:with_filter => {
         if (!q.rules[0].table.schema.is_list)
             return null;
-        return C.addFilterToProgram(q, filter, $options);
+        return C.addFilterToProgram(q, filter, _tpLoader);
     };
     !turking q:complete_query_program ('show me if' | 'only if') filter:atom_filter => {
         if (!q.rules[0].table.schema.is_list)
             return null;
-        return C.addFilterToProgram(q, filter, $options);
+        return C.addFilterToProgram(q, filter, _tpLoader);
     };
 
-    prog:when_program ('only if' | 'do this only if' | 'and only when' | 'only when') filter:atom_filter => C.addFilterToProgram(prog, filter, $options);
-    prog:when_program ('only if' | 'do this only if' | 'and only when' | 'only when') filter:get_predicate_filter => C.addFilterToProgram(prog, filter, $options);
+    prog:when_program ('only if' | 'do this only if' | 'and only when' | 'only when') filter:atom_filter => C.addFilterToProgram(prog, filter, _tpLoader);
+    prog:when_program ('only if' | 'do this only if' | 'and only when' | 'only when') filter:get_predicate_filter => C.addFilterToProgram(prog, filter, _tpLoader);
 
     prog:when_program ('only those with' | 'only those having' |
         'only with' | 'only if they have' | 'filter to those with' | 'show me those with') filter:with_filter => {
         if (!prog.rules[0].stream.schema.is_list)
             return null;
-        return C.addFilterToProgram(prog, filter, $options);
+        return C.addFilterToProgram(prog, filter, _tpLoader);
     };
 
-    prog:policy ('only if' | 'do this only if' | 'and only when' | 'only when') filter:atom_filter => C.addFilterToPolicy(prog, filter, $options);
-    prog:policy ('only if' | 'do this only if' | 'and only when' | 'only when') filter:get_predicate_filter => C.addFilterToPolicy(prog, filter, $options);
+    prog:policy ('only if' | 'do this only if' | 'and only when' | 'only when') filter:atom_filter => C.addFilterToPolicy(prog, filter, _tpLoader);
+    prog:policy ('only if' | 'do this only if' | 'and only when' | 'only when') filter:get_predicate_filter => C.addFilterToPolicy(prog, filter, _tpLoader);
 }

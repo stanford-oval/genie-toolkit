@@ -17,54 +17,57 @@ const Type = ThingTalk.Type;
 
 // import the combinator library
 const C = require('../ast_manip');
+
+// import thingpedia info
+const _tpLoader = require('../load-thingpedia');
 }
 
 atom_filter = {
     p:out_param_Any ('是' | '为') x:constant_Any                      => {
         if (x.getType().isString)
-            return C.makeFilter($options, p, '=~', x);
+            return C.makeFilter(_tpLoader, p, '=~', x);
         else
-            return C.makeFilter($options, p, '==', x);
+            return C.makeFilter(_tpLoader, p, '==', x);
     };
     p:out_param_Any ('和' | '跟') x:constant_Any ('一样' | '相同')     => {
         if (x.getType().isString)
-            return C.makeFilter($options, p, '=~', x);
+            return C.makeFilter(_tpLoader, p, '=~', x);
         else
-            return C.makeFilter($options, p, '==', x);
+            return C.makeFilter(_tpLoader, p, '==', x);
     };
     p:out_param_Any ('不是' | '不为') x:constant_Any                   => {
         if (x.getType().isString)
-            return C.makeFilter($options, p, '=~', x, true);
+            return C.makeFilter(_tpLoader, p, '=~', x, true);
         else
-            return C.makeFilter($options, p, '==', x, true);
+            return C.makeFilter(_tpLoader, p, '==', x, true);
     };
     p:out_param_Any ('和' | '跟') x:constant_Any ('不一样' | '不 相同') => {
         if (x.getType().isString)
-            return C.makeFilter($options, p, '=~', x, true);
+            return C.makeFilter(_tpLoader, p, '=~', x, true);
         else
-            return C.makeFilter($options, p, '==', x, true);
+            return C.makeFilter(_tpLoader, p, '==', x, true);
     };
 
-    p:the_out_param_Numeric '比' x:constant_Numeric ('大' | '多') => C.makeFilter($options, p, '>=', x);
-    p:the_out_param_Numeric '大于' x:constant_Numeric => C.makeFilter($options, p, '>=', x);
-    p:the_out_param_Numeric '比' x:constant_Numeric ('小' | '少') => C.makeFilter($options, p, '<=', x);
-    p:the_out_param_Numeric '小于' x:constant_Numeric => C.makeFilter($options, p, '<=', x);
+    p:the_out_param_Numeric '比' x:constant_Numeric ('大' | '多') => C.makeFilter(_tpLoader, p, '>=', x);
+    p:the_out_param_Numeric '大于' x:constant_Numeric => C.makeFilter(_tpLoader, p, '>=', x);
+    p:the_out_param_Numeric '比' x:constant_Numeric ('小' | '少') => C.makeFilter(_tpLoader, p, '<=', x);
+    p:the_out_param_Numeric '小于' x:constant_Numeric => C.makeFilter(_tpLoader, p, '<=', x);
 
     !turking {
-        p:out_param_Date '在' x:constant_Date '之后' => C.makeFilter($options, p, '>=', x);
-        p:out_param_Date '在' x:constant_Date '之前' => C.makeFilter($options, p, '<=', x);
-        p:out_param_Time '在' x:constant_Time '之后' => C.makeFilter($options, p, '>=', x);
-        p:out_param_Time '在' x:constant_Time '之前' => C.makeFilter($options, p, '<=', x);
+        p:out_param_Date '在' x:constant_Date '之后' => C.makeFilter(_tpLoader, p, '>=', x);
+        p:out_param_Date '在' x:constant_Date '之前' => C.makeFilter(_tpLoader, p, '<=', x);
+        p:out_param_Time '在' x:constant_Time '之后' => C.makeFilter(_tpLoader, p, '>=', x);
+        p:out_param_Time '在' x:constant_Time '之前' => C.makeFilter(_tpLoader, p, '<=', x);
     }
 
-    p:the_out_param_Array__Any ('有' | '包含' | '拥有' | '含有') x:constant_Any            => C.makeFilter($options, p, 'contains', x);
-    x:constant_Any ('存在' | '在' | '存在 于') p:the_out_param_Array__Any ('之中' | '里面') => C.makeFilter($options, p, 'contains', x);
-    p:the_out_param_Array__Any ('没有' | '不 包含' | '不 含有') x:constant_Any         => C.makeFilter($options, p, 'contains', x, true);
-    x:constant_Any ('不 存在' | '不在' | '不 存在 于') p:the_out_param_Array__Any ('之中' | '里面') => C.makeFilter($options, p, 'contains', x, true);
+    p:the_out_param_Array__Any ('有' | '包含' | '拥有' | '含有') x:constant_Any            => C.makeFilter(_tpLoader, p, 'contains', x);
+    x:constant_Any ('存在' | '在' | '存在 于') p:the_out_param_Array__Any ('之中' | '里面') => C.makeFilter(_tpLoader, p, 'contains', x);
+    p:the_out_param_Array__Any ('没有' | '不 包含' | '不 含有') x:constant_Any         => C.makeFilter(_tpLoader, p, 'contains', x, true);
+    x:constant_Any ('不 存在' | '不在' | '不 存在 于') p:the_out_param_Array__Any ('之中' | '里面') => C.makeFilter(_tpLoader, p, 'contains', x, true);
 
-    p:the_out_param_String ('包含' | '含有') x:constant_String => C.makeFilter($options, p, '=~', x);
-    p:the_out_param_String ('不 包含' | '不 含有') x:constant_String => C.makeFilter($options, p, '=~', x, true);
-    x:constant_String ('存在' | '在' | '存在 于') p:the_out_param_String ('之中' | '里面') => C.makeFilter($options, p, '=~', x);
+    p:the_out_param_String ('包含' | '含有') x:constant_String => C.makeFilter(_tpLoader, p, '=~', x);
+    p:the_out_param_String ('不 包含' | '不 含有') x:constant_String => C.makeFilter(_tpLoader, p, '=~', x, true);
+    x:constant_String ('存在' | '在' | '存在 于') p:the_out_param_String ('之中' | '里面') => C.makeFilter(_tpLoader, p, '=~', x);
 
     !turking range_filter;
     //!turking f:either_filter => f;
@@ -73,12 +76,12 @@ atom_filter = {
 edge_filter = {
     !turking '当' p:out_param_Any ('变得' | '变成' | '') ('跟' | '和') x:constant_Any ('一样' | '相同') ('时' | '的 时候') => {
         if (x.getType().isString)
-            return C.makeFilter($options, p, '=~', x);
+            return C.makeFilter(_tpLoader, p, '=~', x);
         else
-            return C.makeFilter($options, p, '==', x);
+            return C.makeFilter(_tpLoader, p, '==', x);
     };
-    '当' p:the_out_param_Numeric ('比' | '变得 比') x:constant_Numeric ('大' | '多') ('' | '时' | '的 时候') => C.makeFilter($options, p, '>=', x);
-    '当' p:the_out_param_Numeric ('比' | '变得 比') x:constant_Numeric ('小' | '少') ('' | '时' | '的 时候') => C.makeFilter($options, p, '<=', x);
+    '当' p:the_out_param_Numeric ('比' | '变得 比') x:constant_Numeric ('大' | '多') ('' | '时' | '的 时候') => C.makeFilter(_tpLoader, p, '>=', x);
+    '当' p:the_out_param_Numeric ('比' | '变得 比') x:constant_Numeric ('小' | '少') ('' | '时' | '的 时候') => C.makeFilter(_tpLoader, p, '<=', x);
 }
 
 either_filter = {
@@ -95,7 +98,7 @@ either_filter = {
         let vtype = v1.getType();
         if (vtype.isBoolean) // "is equal to true or false" does not make sense
             return null;
-        if (!$options.params.out.has(param.name + '+' + vtype))
+        if (!_tpLoader.params.out.has(param.name + '+' + vtype))
             return null;
         return new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2]));
     };
@@ -112,7 +115,7 @@ either_filter = {
         let vtype = v1.getType();
         if (vtype.isBoolean) // "is neither true nor false" does not make sense
             return null;
-        if (!$options.params.out.has(param.name + '+' + vtype))
+        if (!_tpLoader.params.out.has(param.name + '+' + vtype))
             return null;
         return new Ast.BooleanExpression.Not(new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2])));
     };

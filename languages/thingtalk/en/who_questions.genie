@@ -18,6 +18,8 @@ const Type = ThingTalk.Type;
 // import the combinator library
 const C = require('../ast_manip');
 
+// import thingpedia info
+const _tpLoader = require('../load-thingpedia');
 }
 
 // an empty string for the table
@@ -30,7 +32,7 @@ who_npp_filtered_table = {
     !nofilter table:who_complete_table filter:npp_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -39,7 +41,7 @@ whose_npp_filtered_table = {
     !nofilter table:who_complete_table filter:whose_npp_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -48,7 +50,7 @@ who_pvp_filtered_table = {
     !nofilter table:who_complete_table filter:pvp_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -57,7 +59,7 @@ who_avp_filtered_table = {
     !nofilter table:who_complete_table filter:avp_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -66,7 +68,7 @@ who_npi_filtered_table = {
     !nofilter table:who_complete_table filter:npi_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -75,7 +77,7 @@ who_npv_filtered_table = {
     !nofilter table:who_complete_table filter:npv_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -84,7 +86,7 @@ who_apv_filtered_table = {
     !nofilter table:who_complete_table filter:apv_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -93,7 +95,7 @@ who_generic_filtered_table = {
     !nofilter table:who_complete_table filter:who_generic_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -102,7 +104,7 @@ who_two_generic_filtered_table = {
     !nofilter table:who_generic_filtered_table 'and' filter:who_generic_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -111,7 +113,7 @@ who_npi_generic_filtered_table = {
     !nofilter table:who_npi_filtered_table filter:who_generic_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -120,7 +122,7 @@ who_npv_generic_filtered_table = {
     !nofilter table:who_npv_filtered_table filter:who_generic_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -129,7 +131,7 @@ who_apv_npv_filtered_table = {
     !nofilter table:who_apv_filtered_table filter:npv_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -138,7 +140,7 @@ who_apv_npi_filtered_table = {
     !nofilter table:who_apv_filtered_table filter:npi_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -147,7 +149,7 @@ who_npp_npp_filtered_table = {
     !nofilter table:who_npp_filtered_table 'and' filter:npp_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -156,7 +158,7 @@ who_npi_npi_filtered_table = {
     !nofilter table:who_npp_filtered_table 'and the' filter:npp_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -165,7 +167,7 @@ who_npi_pvp_filtered_table = {
     !nofilter 'the' table:who_npi_filtered_table filter:pvp_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }
 
@@ -174,6 +176,6 @@ who_generic_npp_filtered_table = {
     !nofilter table:who_generic_filtered_table 'with' filter:npp_filter => {
         if (!C.checkFilter(table, filter))
             return null;
-        return C.addFilter(table, filter, $options);
+        return C.addFilter(table, filter, _tpLoader);
     };
 }

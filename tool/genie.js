@@ -23,6 +23,7 @@ const subcommands = {
     'generate-contextual': require('./generate-contextual'),
     'extract-contexts': require('./extract-contexts'),
     'contextualize': require('./contextualize'),
+    'generate-dialogs': require('./generate-dialogs'),
 
     'sample': require('./sample'),
     'contextual-prepare-turk': require('./contextual-prepare-turk'),

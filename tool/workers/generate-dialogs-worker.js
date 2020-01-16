@@ -11,7 +11,7 @@
 
 const Tp = require('thingpedia');
 const seedrandom = require('seedrandom');
-const { ContextualSentenceGenerator } = require('../../lib/sentence-generator');
+const { DialogGenerator } = require('../../lib/sentence-generator');
 
 module.exports = function worker(args, shard) {
     let tpClient = null;
@@ -20,6 +20,7 @@ module.exports = function worker(args, shard) {
     const options = {
         rng: seedrandom.alea(args.random_seed + ':' + shard),
         idPrefix: shard + ':',
+
         locale: args.locale,
         flags: args.flags || {},
         templateFiles: args.template,
@@ -27,7 +28,11 @@ module.exports = function worker(args, shard) {
         thingpediaClient: tpClient,
         maxDepth: args.maxdepth,
         targetPruningSize: args.target_pruning_size,
+        targetSize: args.target_size,
+        maxTurns: args.max_turns,
+        minibatchSize: args.minibatch_size,
+
         debug: args.debug,
     };
-    return new ContextualSentenceGenerator(options);
+    return new DialogGenerator(options);
 };
