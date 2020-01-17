@@ -12,8 +12,10 @@
 
 const fs = require('fs');
 const util = require('util');
-const Tp = require('thingpedia');
-const qs = require('qs');
+//const Tp = require('thingpedia');
+//const qs = require('qs');
+const child_process = require('child_process');
+const path = require('path');
 const assert = require('assert');
 const seedrandom = require('seedrandom');
 const POS = require("en-pos");
@@ -78,14 +80,18 @@ function sample(table, data, propertyChain, propertyType, rng) {
     return chosen.map((c) => String(c));
 }
 
+function toPlural(word) {
+    const inflector = new Inflectors(word);
+    const plural = inflector.toPlural();
+    return plural;
+}
+
 function getPlural(propertyCanonical) {
     const words = propertyCanonical.split(' ');
     if (words.length !== 2 || words[1] !== 'count')
         return null;
 
-    const inflector = new Inflectors(words[0]);
-    const plural = inflector.toPlural();
-    return plural;
+    return toPlural(words[0]);
 }
 
 function getEdIng(propertyCanonical) {
@@ -130,49 +136,31 @@ function phraseStartWithVerb(propertyCanonical) {
     return [propVerb, propNoun];
 }
 
-const DO_THE_SEARCH = true;
+async function gptQuery(query, valueList, cache) {
+    if (query in cache)
+        return cache[query];
 
-async function bingSearchSingle(query, cache) {
+    const child = child_process.spawn('python3',
+        [path.resolve(path.dirname(module.filename), '../scripts/score_sentence.py')],
+        { stdio: ['pipe', 'pipe', 'inherit'] });
 
-    if (DO_THE_SEARCH) {
-        const url = 'https://api.cognitive.microsoft.com/bing/v5.0/search';
-        const completeQuery = '\'"' + query + '"\'';
-        //const completeQuery = 'inbody:' + query.split(/\s+/g).join('+');
+    const stdout = await new Promise((resolve, reject) => {
+        for (let value of valueList)
+            child.stdin.write(query.replace('${value}', value) + '\n');
+        child.stdin.end();
+        child.on('error', reject);
+        child.stdout.on('error', reject);
+        child.stdout.setEncoding('utf8');
+        let buffer = '';
+        child.stdout.on('data', (data) => {
+            buffer += data;
+        });
+        child.stdout.on('end', () => resolve(buffer));
+    });
 
-        if (completeQuery in cache)
-            return cache[completeQuery];
-
-        const payload = {'q': completeQuery };
-        const key = process.env.BING_KEY;
-        const headers = {'Ocp-Apim-Subscription-Key': key};
-
-        try {
-            const response = JSON.parse(await Tp.Helpers.Http.get(url + '?' + qs.stringify(payload), {
-                extraHeaders: headers
-            }));
-            return cache[completeQuery] = (response.webPages || {}).totalEstimatedMatches || 0;
-        } catch(e) {
-            console.error(url + '?' + qs.stringify(payload));
-            throw e;
-        }
-    } else {
-        console.log(`would search for ${query}`);
-
-        return 100000 + Math.random() * 50000;
-    }
-}
-
-async function bingSearch(query, valueList, cache) {
-    let tot = 0;
-    for (const value of valueList) {
-        assert(typeof value === 'string');
-        const newQuery = query.replace('${value}', value); //'
-
-        let result = await bingSearchSingle(newQuery, cache);
-        result = result * Math.pow(2, query.split(/\s+/g).length); // length factor
-
-        tot += result;
-    }
+    let tot = stdout.trim().split('\n').map((line) => parseFloat(line)).reduce((x, y) => x + y, 0);
+    tot /= valueList.length;
+    cache[query] = tot;
     console.error(`search ${query}: ${tot}`);
     return tot;
 }
@@ -183,8 +171,8 @@ const EQUAL_PATTERNS = [
     ['${table} with ${value}', (table, propertyName, propertyType) => !propertyType.isNumeric()],
 
     ['${table} with ${value} ${property}'],
-    ['${table} ${property} ${value}'],
-    ['${value} ${property} ${table}'],
+    ['${table} that ${property} ${value}'],
+    ['${value} that ${property} ${table}'],
 
     ['${table} ${propEd} ${value}'],
     ['${value} ${propEd} ${table}'],
@@ -194,10 +182,10 @@ const EQUAL_PATTERNS = [
     ['${table} containing ${value}'],
     ['${value} in ${table}'],
 
-    ['${table} ${propVerb} ${value}'],
+    ['${table} that ${propVerb} ${value}'],
     ['${table} with ${value} ${propNoun}'],
     ['${table} with ${value} ${propPlural}'],
-    ['${table} ${propVerb} ${value} ${propNoun}'],
+    ['${table} that ${propVerb} ${value} ${propNoun}'],
     ['${table} ${propNoun} ${value}'],
 
     ['${table} in ${value}', (table, propertyName, propertyType) => /^address\.?/.test(propertyName)],
@@ -276,7 +264,7 @@ function *getAllCanonicals(argDef) {
     }
 }
 
-const THRESHOLD = 1000;
+const THRESHOLD = 100;
 
 async function applyPatterns(className, ppdb, functionDef, argDef, valueList, patternList, operator, dataset, cache) {
     /*if (propertyName === 'name')
@@ -285,7 +273,7 @@ async function applyPatterns(className, ppdb, functionDef, argDef, valueList, pa
     if (propertyName === 'geo')
         return [['table_near_value', 2], ['table_around_value', 1]];*/
 
-    const tableCanonicals = getPPDBCandidates(ppdb, [functionDef.canonical || clean(functionDef.name)]);
+    const tableCanonicals = getPPDBCandidates(ppdb, [functionDef.canonical || clean(functionDef.name)]).map(toPlural);
     const propertyName = argDef.name;
     const propertyType = argDef.type;
     const propertyCanonicals = getPPDBCandidates(ppdb, getAllCanonicals(argDef));
@@ -298,9 +286,9 @@ async function applyPatterns(className, ppdb, functionDef, argDef, valueList, pa
     const lastProp = propertyName.substring(dot+1);
 
     const patterns = [];
-    await Promise.all(patternList.map(async ([pattern, condition]) => {
+    for (let [pattern, condition] of patternList) {
         if (condition && !condition(functionDef.name, propertyName, propertyType))
-            return;
+            continue;
 
         for (let tableCanonical of tableCanonicals) {
             for (let propertyCanonical of propertyCanonicals) {
@@ -329,8 +317,8 @@ async function applyPatterns(className, ppdb, functionDef, argDef, valueList, pa
                 if (!ok)
                     continue;
 
-                const score = await bingSearch(searchQuery, valueList, cache);
-                if (score < THRESHOLD)
+                const score = await gptQuery(searchQuery, valueList, cache);
+                if (score > THRESHOLD)
                     continue;
 
                 patterns.push({
@@ -339,12 +327,12 @@ async function applyPatterns(className, ppdb, functionDef, argDef, valueList, pa
                 });
             }
         }
-    }));
-
-    patterns.sort((p1, p2) => p2.score - p1.score);
+    }
 
     if (patterns.length === 0)
         return;
+
+    patterns.sort((p1, p2) => p1.score - p2.score);
 
     dataset.examples.push(new Ast.Example(-1, 'query', { ['p_' + lastProp]: propertyType }, new Ast.Table.Filter(
         new Ast.Table.Invocation(new Ast.Invocation(new Ast.Selector.Device(className, null, null), functionDef.name, [], functionDef), functionDef),
@@ -364,7 +352,7 @@ async function main(args) {
     try {
         const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));
         const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(args.thingpedia, { encoding: 'utf8' }));
-        assert(library.isLibrary && library.classes.length === 1 && library.classes[0].kind === 'org.schema');
+        assert(library.isLibrary && library.classes.length === 1 && library.classes[0].kind.startsWith('org.schema'));
 
         const rng = seedrandom.alea(args.random_seed);
         const className = args.class_name ? '@org.schema.' + args.class_name : '@org.schema';
