@@ -82,6 +82,22 @@ const PROPERTY_RENAMES = {
     'reviewBody': 'description',
 };
 
+// enum normalization
+const ENUM_VALUE_NORMALIZE = {
+    'itemCondition': {
+        'New': 'NewCondition',
+        'BrandNew': 'NewCondition',
+        'NewWithBox': 'NewCondition',
+        'NewWithTags': 'NewCondition',
+        'NewWithoutTags': 'UsedCondition',
+        'OpenBox': 'UsedCondition',
+        'Used': 'UsedCondition',
+        'ManufacturerRefurbished': 'RefurbishedCondition',
+        'SellerRefurbished': 'RefurbishedCondition',
+        '--notSpecified': undefined
+    }
+};
+
 function ensureArray(value) {
     if (Array.isArray(value))
         return value;
@@ -283,7 +299,7 @@ class Normalizer {
         return true;
     }
 
-    _processField(value, path, expectedType) {
+    _processField(value, path, expectedType, parent) {
         if (value === null || value === undefined) {
             if (expectedType.isArray)
                 return [];
@@ -306,7 +322,7 @@ class Normalizer {
             const newArray = [];
             for (let i = 0; i < value.length; i++) {
                 path.push(i);
-                const newValue = this._processField(value[i], path, innerExpected);
+                const newValue = this._processField(value[i], path, innerExpected, parent);
                 if (newValue !== undefined)
                     newArray.push(newValue);
                 path.pop();
@@ -344,7 +360,17 @@ class Normalizer {
                     return undefined;
                 }
 
-                if (expectedType.type === 'tt:Number') {
+                if (expectedType.type === 'tt:Currency') {
+                    if (/^\s*(?:[0-9]+|\.[0-9]+)\s+[a-zA-Z]+/.test(String(value))) {
+                        const [, num, currency] = /^\s*(?:[0-9]+|\.[0-9]+)\s+[a-zA-Z]+/.exec(String(value));
+                        return { value: num, code: currency.toLowerCase() };
+                    }
+                    const prop = path[path.length-1];
+                    if (parent && (prop + 'Currency') in parent)
+                        return { value: parseFloat(value), code: parent[prop + 'Currency'].toLowerCase() };
+
+                    return { value: parseFloat(value), code: 'usd' };
+                } else if (expectedType.type === 'tt:Number') {
                     return parseFloat(value);
                 } else if (expectedType.type === 'tt:Duration') {
                     return parseDuration(value);
@@ -352,6 +378,17 @@ class Normalizer {
                     return parseMeasure(value);
                 } else if (expectedType.type.startsWith('tt:Enum(')) {
                     const enumerands = expectedType.type.substring('tt:Enum('.length, expectedType.type.length-1).split(/,/g);
+                    // remove https://schema.org/ prefix from enumerated value, if present
+                    value = value.replace(/^https?:\/\/schema\.org\/?/, '');
+                    // camelcase the value
+                    value = value.replace(/(?:^|\s+)[A-Za-z]/g, (letter) => letter.trim().toUpperCase());
+
+                    const prop = path[path.length-1];
+                    if (prop in ENUM_VALUE_NORMALIZE && value in ENUM_VALUE_NORMALIZE[prop])
+                        value = ENUM_VALUE_NORMALIZE[prop][value];
+                    if (value === undefined)
+                        return undefined;
+
                     if (!enumerands.includes(value)) {
                         console.error(`Expected enumerated value in ${path.join('.')}, got`, value);
                         return undefined;
@@ -417,7 +454,7 @@ class Normalizer {
 
             for (let field in expectedType.type) {
                 path.push(field);
-                value[field] = this._processField(value[field], path, expectedType.type[field]);
+                value[field] = this._processField(value[field], path, expectedType.type[field], value);
                 path.pop();
             }
 

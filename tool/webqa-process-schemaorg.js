@@ -85,20 +85,28 @@ const BLACKLISTED_PROPERTIES = new Set([
     'bestRating', 'worstRating',
 
     // renamed to description during normalization
-    'reviewBody'
+    'reviewBody',
+
+    // this causes a loop in PriceSpecification, which turns PriceSpecification into an Entity and that sucks
+    'eligibleTransactionVolume',
+    // same thing, causes a loop in Offer which is bad
+    'addOn',
+
+    // not particularly useful, and kind of confusing
+    'areaServed',
+
+    // handled specially by normalization
+    'priceCurrency'
 ]);
 
 const STRUCTURED_HIERARCHIES = [
-    'StructuredValue', 'Rating',
+    'StructuredValue', 'Rating', 'Offer',
 
     // FIXME Review is too messy to represent as a structured value, either you lose info or you get cycles
     // 'Review'
 ];
 
-// HACK: GeoShape has a loop through address@GeoShape : PostalAddress -> areaServed@ContactPoint : GeoShape
-// but we fail to detect it
 const NON_STRUCT_TYPES = new Set([
-    'GeoShape'
 ]);
 
 const PROPERTY_FORCE_ARRAY = new Set([
@@ -108,6 +116,10 @@ const PROPERTY_FORCE_ARRAY = new Set([
     'recipeCategory',
 ]);
 
+const PROPERTY_FORCE_NOT_ARRAY = new Set([
+    'offers'
+]);
+
 const PROPERTY_TYPE_OVERRIDE = {
     'telephone': Type.Entity('tt:phone_number'),
     'email': Type.Entity('tt:email_address'),
@@ -115,6 +127,8 @@ const PROPERTY_TYPE_OVERRIDE = {
     'logo': Type.Entity('tt:picture'),
     'checkinTime': Type.Time,
     'checkoutTime': Type.Time,
+    'price': Type.Currency,
+
     'weight': Type.Measure('ms'),
     'depth': Type.Measure('m'),
     'description': Type.String,
@@ -312,12 +326,23 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     saturatedFatContent: {
         default: 'npp',
         npp: ['saturated fat content', 'saturated fat amount', 'saturated fat', 'trans far']
+    },
+
+    // product
+    mpn: {
+        default: 'npp',
+        npp: ['manufacturer part number']
     }
 };
 
 const PROPERTIES_NO_FILTER = [
     'name', // no filter on name, if the id has ner support, we'll generate prim for it
-    'priceRange'
+    'priceRange',
+
+    // ID properties or opaque strings
+    'gtin13',
+    'productID',
+    'mpn'
 ];
 
 const PROPERTIES_DROP_WITH_GEO = [
@@ -430,6 +455,8 @@ class SchemaProcessor {
             isArray = true;
         if (PROPERTY_FORCE_ARRAY.has(propname))
             isArray = true;
+        if (PROPERTY_FORCE_NOT_ARRAY.has(propname))
+            isArray = false;
 
         // prefer enum if possible
         // then specific data types
@@ -697,10 +724,14 @@ class SchemaProcessor {
                     if (triple['http://schema.org/supersededBy'])
                         continue;
 
+
                     const domains = getIncludes(triple['http://schema.org/domainIncludes']);
                     const ranges = getIncludes(triple['http://schema.org/rangeIncludes']);
                     const name = getId(triple['@id']);
                     const comment = triple['rdfs:comment'];
+
+                    if (BLACKLISTED_PROPERTIES.has(name))
+                        continue;
 
                     for (let domain of domains) {
                         if (domain in BUILTIN_TYPEMAP)
@@ -768,9 +799,12 @@ class SchemaProcessor {
             }
         }
 
-        function findCycle(typename, lookfor, visited) {
-            if (visited.has(typename))
+        function findCycle(typename, lookfor, visited, cycle = []) {
+            if (visited.has(typename)) {
+                if (typename === lookfor)
+                    console.error('Found cycle for ' + typename, cycle, visited);
                 return typename === lookfor;
+            }
             visited.add(typename);
 
             for (let propname in typeHierarchy[typename].properties) {
@@ -780,8 +814,10 @@ class SchemaProcessor {
                         continue;
                     if (!typeHierarchy[type] || !typeHierarchy[type].representAsStruct)
                         continue;
-                    if (findCycle(type, lookfor, visited))
+                    cycle.push(propname);
+                    if (findCycle(type, lookfor, visited, cycle))
                         return true;
+                    cycle.pop();
                 }
             }
             return false;
