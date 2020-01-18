@@ -355,8 +355,8 @@ async function main(args) {
         assert(library.isLibrary && library.classes.length === 1 && library.classes[0].kind.startsWith('org.schema'));
 
         const rng = seedrandom.alea(args.random_seed);
-        const className = args.class_name ? '@org.schema.' + args.class_name : '@org.schema';
-        const dataset = new Ast.Dataset(className, 'en', [], {});
+        const className = args.class_name ? 'org.schema.' + args.class_name : 'org.schema';
+        const dataset = new Ast.Dataset('@' + className, 'en', [], {});
 
         const tables = args.table_name;
         for (let table of tables)
