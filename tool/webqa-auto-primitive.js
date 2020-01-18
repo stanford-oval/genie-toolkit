@@ -337,7 +337,7 @@ async function applyPatterns(className, ppdb, functionDef, argDef, valueList, pa
     dataset.examples.push(new Ast.Example(-1, 'query', { ['p_' + lastProp]: propertyType }, new Ast.Table.Filter(
         new Ast.Table.Invocation(new Ast.Invocation(new Ast.Selector.Device(className, null, null), functionDef.name, [], functionDef), functionDef),
         new Ast.BooleanExpression.Atom(propertyName, operator === '==' && propertyType.isString ? '=~' : operator, Ast.Value.VarRef('p_' + lastProp)), null
-    ), patterns.slice(0, 4).map((p) => p.template), [] /* preprocessed */, {}));
+    ), patterns.slice(0, 4).map((p) => p.template), patterns.slice(0, 4).map((p) => p.template), {}));
 }
 
 async function main(args) {
