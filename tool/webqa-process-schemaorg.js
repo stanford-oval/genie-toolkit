@@ -382,11 +382,11 @@ function getItemType(typename, typeHierarchy) {
 }
 
 const STRING_FILE_OVERRIDES = {
-    'org.schema:Restaurant_name': 'com.yelp:restaurant_names',
-    'org.schema:Person_name': 'tt:person_full_name',
-    'org.schema:Person_alumniOf': 'tt:university_names',
-    'org.schema:Person_worksFor': 'tt:company_name',
-    'org.schema:Hotel_name': 'tt:hotel_name'
+    'org.schema.Restaurant:Restaurant_name': 'com.yelp:restaurant_names',
+    'org.schema.Person:Person_name': 'tt:person_full_name',
+    'org.schema.Person:Person_alumniOf': 'tt:university_names',
+    'org.schema.Person:Person_worksFor': 'tt:company_name',
+    'org.schema.Hotel:Hotel_name': 'tt:hotel_name'
 };
 
 function recursiveAddStringValues(arg, fileId) {
