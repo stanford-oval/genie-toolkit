@@ -24,6 +24,7 @@ class Parser extends Stream.Transform {
         });
 
         this._sentencesPerTask = options.sentencesPerTask;
+        this._idPrefix = options.idPrefix;
 
         this._id = 0;
     }
@@ -35,7 +36,7 @@ class Parser extends Stream.Transform {
                 continue;
 
             this.push({
-                id: this._id++,
+                id: this._idPrefix + String(this._id++),
                 utterance: sentence.replace(/\n/g, ' ').replace(/"/g, '')
             });
         }
@@ -63,6 +64,11 @@ module.exports = {
             defaultValue: 5,
             help: "Number of sentences in each HIT"
         });
+        parser.addArgument('--id-prefix', {
+            required: false,
+            defaultValue: '',
+            help: "Prefix for all sentence IDs (to distinguish batches)"
+        });
         parser.addArgument('input_file', {
             nargs: '+',
             help: 'MTurk result file to choose contexts from, split'
@@ -76,7 +82,7 @@ module.exports = {
         });
 
         await StreamUtils.waitFinish(StreamUtils.chain(inputs, { objectMode: true })
-            .pipe(new Parser({ sentencesPerTask: args.sentences_per_task }))
+            .pipe(new Parser({ sentencesPerTask: args.sentences_per_task, idPrefix: args.id_prefix }))
             .pipe(csvstringify({ header: true, delimiter: '\t' }))
             .pipe(args.output));
     }
