@@ -137,9 +137,17 @@ function requoteSentence(id, sentence, program) {
             current_span.mapTo = newEntity;
             newSentence.push(newEntity);
         } else if (i >= current_span.end) {
-            newSentence.push(word);
             current_span_idx += 1;
             current_span = current_span_idx < spansBySentencePos.length ? spansBySentencePos[current_span_idx] : null;
+
+            const entityMatch = ENTITY_MATCH_REGEX.exec(word);
+            if (entityMatch !== null) {
+                const newEntity = entityMatch[1] + '_' + getEntityNumber(entityMatch[1]);
+                entityRemap[word] = newEntity;
+                newSentence.push(newEntity);
+            } else {
+                newSentence.push(word);
+            }
         }
     }
 
@@ -161,6 +169,8 @@ function requoteSentence(id, sentence, program) {
         if (token === 'location:' || token.startsWith('^^')) {
             continue;
         } else if (ENTITY_MATCH_REGEX.test(token)) {
+            if (!entityRemap[token])
+                console.error(id, token, program, sentence);
             assert(entityRemap[token]);
             newProgram.push(entityRemap[token]);
         } else {
