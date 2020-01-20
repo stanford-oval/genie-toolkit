@@ -162,6 +162,7 @@ function requoteSentence(id, sentence, program) {
             const currentSpan = spansByProgramPos[programSpanIndex];
             assert(currentSpan.mapTo);
             newProgram.push(currentSpan.mapTo);
+            programSpanIndex ++;
             continue;
         }
         if (in_string) continue;
