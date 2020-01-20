@@ -506,7 +506,7 @@ pvp_filter = {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
-    !turking p:out_param_pvp ('' | 'a' | 'an' | 'the') x:constant_Any => {
+    !turking p:out_param_pvp ('' | 'a' | 'the') x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
@@ -514,7 +514,7 @@ pvp_filter = {
     ?turking p:out_param_pvp x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
-    !turking p:out_param_pvp ('' | 'a' | 'an' | 'the') x:constant_Any => {
+    !turking p:out_param_pvp ('' | 'a' | 'the') x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 
@@ -540,7 +540,7 @@ avp_filter = {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
-    !turking p:out_param_avp ('' | 'a' | 'an' | 'the') x:constant_Any => {
+    !turking p:out_param_avp ('' | 'a'| 'the') x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
@@ -548,7 +548,7 @@ avp_filter = {
     ?turking p:out_param_avp x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
-    !turking p:out_param_avp ('' | 'a' | 'an' | 'the') x:constant_Any => {
+    !turking p:out_param_avp ('' | 'a' | 'the') x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 
@@ -565,7 +565,7 @@ npv_filter = {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
-    !turking p:out_param_npv ('the' | 'a' | 'an' | '') x:constant_Any => {
+    !turking p:out_param_npv ('the' | 'a' | '') x:constant_Any => {
         const op = x.getType().isString ? '=~' : '==';
         return C.makeFilter($options, p, op, x);
     };
@@ -573,7 +573,7 @@ npv_filter = {
     ?turking p:out_param_npv x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
-    !turking p:out_param_npv ('the' | 'a' | 'an' | '') x:constant_Any => {
+    !turking p:out_param_npv ('the' | 'a' | '') x:constant_Any => {
         return C.makeFilter($options, p, 'contains', x);
     };
 
