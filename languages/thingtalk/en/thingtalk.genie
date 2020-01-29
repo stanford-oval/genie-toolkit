@@ -256,7 +256,7 @@ $root = {
          'notify me' stream:stream
        | ('alert me' | 'inform me' | 'let me know' | 'i get notified' | 'i get alerted') stream:stream
        | 'send me' ('a message' | 'an alert' | 'a notification' | 'a pop up notification' | 'a popup notification') stream:stream
-    ) => C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
+    ) => C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]));
 
     ('monitor' | 'watch') table:with_filtered_table => {
         if (!table.schema.is_monitorable)
@@ -492,7 +492,7 @@ $root = {
             let stream = C.tableToStream(table, null);
             if (!stream)
                 return null;
-            return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]), principal);
+            return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]), principal);
         };
         !nofilter ('if' | 'when') filter:atom_filter 'in' table:complete_table ('for' | 'of') principal:constant_Entity__tt__username 'then' ('alert me' | 'tell me' | 'notify me' | 'let me know')  => {
             if (C.hasGetPredicate(filter))
@@ -507,7 +507,7 @@ $root = {
             let stream = C.tableToStream(table, null);
             if (!stream)
                 return null;
-            return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]), principal);
+            return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]), principal);
         };
 
         (
