@@ -1,0 +1,156 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+const assert = require('assert');
+
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
+
+// import the combinator library
+const C = require('../ast_manip');
+}
+
+constant_Number = {
+    // `turking` is a flags that controls a group of grammar rules
+    // syntax is ?flag to enable the rule (or group of rules) only if the flag is set, !flag to disable the
+    // rule if the flag is set
+
+    !turking {
+    '0'    => new Ast.Value.Number(0);
+    'zero' => new Ast.Value.Number(0);
+    '1'    => new Ast.Value.Number(1);
+    'one'  => new Ast.Value.Number(1);
+    }
+}
+
+constant_date_point = {
+    'now'                 => new Ast.Value.Date(null, '+', null);
+    'today'               => new Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '+', null);
+    'yesterday'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '-', Ast.Value.Measure(1, 'day'));
+    'this week'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '+', null);
+
+    !turking {
+    'tomorrow'            => new Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
+    'the end of the day'  => new Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
+    'the end of the week' => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
+    'last week'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
+    'this month'          => new Ast.Value.Date(Ast.DateEdge('start_of', 'mon'), '+', null);
+    'this year'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'year'), '+', null);
+    'next month'          => new Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '+', null);
+    'next year'           => new Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '+', null);
+    'last month'          => new Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '-', Ast.Value.Measure(1, 'mon'));
+    'last year'           => new Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '-', Ast.Value.Measure(1, 'year'));
+    }
+}
+
+constant_Date = {
+    !turking {
+    duration:constant_Measure_ms 'from now' => new Ast.Value.Date(null, '+', duration);
+    duration:constant_Measure_ms 'ago'      => new Ast.Value.Date(null, '-', duration);
+    duration:constant_Measure_ms 'after' pt:constant_date_point  => new Ast.Value.Date(pt.value, '+', duration);
+    duration:constant_Measure_ms 'before' pt:constant_date_point => new Ast.Value.Date(pt.value, '-', duration);
+    }
+}
+
+constant_Measure_byte = {
+    !turking num:constant_Number 'byte' => C.addUnit('byte', num);
+    num:constant_Number 'kb' => C.addUnit('KB', num);
+    num:constant_Number 'mb' => C.addUnit('MB', num);
+    num:constant_Number 'gb' => C.addUnit('GB', num);
+    num:constant_Number 'tb' => C.addUnit('TB', num);
+    num:constant_Number 'kilobytes' => C.addUnit('KB', num);
+    num:constant_Number 'megabytes' => C.addUnit('MB', num);
+    num:constant_Number 'gigabytes' => C.addUnit('GB', num);
+    num:constant_Number 'terabytes' => C.addUnit('TB', num);
+}
+
+constant_Measure_kg = {
+    !turking num:constant_Number 'grams' => C.addUnit('g', num);
+    num:constant_Number 'kilograms' => C.addUnit('kg', num);
+    num:constant_Number 'kg' => C.addUnit('kg', num);
+    num:constant_Number 'pounds' => C.addUnit('lb', num);
+    num:constant_Number 'lbs' => C.addUnit('lb', num);
+    num:constant_Number 'ounces' => C.addUnit('oz', num);
+    num:constant_Number 'oz' => C.addUnit('oz', num);
+}
+
+constant_Measure_C = {
+    !turking {
+        num:constant_Number 'c' => C.addUnit('C', num);
+        num:constant_Number 'centigrade' => C.addUnit('C', num);
+    }
+    num:constant_Number 'f' => C.addUnit('F', num);
+    num:constant_Number 'fahrenheit' => C.addUnit('F', num);
+    num:constant_Number 'degrees' => C.addUnit('F', num);
+}
+
+constant_Measure_m = {
+    !turking num:constant_Number 'm' => C.addUnit('m', num);
+    num:constant_Number 'meters' => C.addUnit('m', num);
+    num:constant_Number 'km' => C.addUnit('km', num);
+    num:constant_Number 'kilometers' => C.addUnit('km', num);
+    num:constant_Number 'mi' => C.addUnit('mi', num);
+    num:constant_Number 'miles' => C.addUnit('mi', num);
+    num:constant_Number 'ft' => C.addUnit('ft', num);
+    num:constant_Number 'in' => C.addUnit('in', num);
+    num:constant_Number 'inches' => C.addUnit('in', num);
+    num:constant_Number 'cm' => C.addUnit('cm', num);
+}
+
+constant_Measure_mps = {
+    num:constant_Number 'mph' => C.addUnit('mph', num);
+    !turking num:constant_Number 'm/s' => C.addUnit('mps', num);
+    num:constant_Number 'kph' => C.addUnit('kmph', num);
+    num:constant_Number 'miles per hour' => C.addUnit('mph', num);
+    num:constant_Number 'kilometers per hour' => C.addUnit('kmph', num);
+    num:constant_Number 'km/h' => C.addUnit('kmph', num);
+}
+
+constant_Measure_W = {
+    num:constant_Number 'w' => C.addUnit('W', num);
+    num:constant_Number 'watt' => C.addUnit('W', num);
+    num:constant_Number 'kw' => C.addUnit('kW', num);
+    num:constant_Number 'kilowatt' => C.addUnit('W', num);
+}
+constant_Measure_lx = {
+    num:constant_Number 'lx' => C.addUnit('lx', num);
+}
+constant_Measure_lm = {
+    num:constant_Number 'lm' => C.addUnit('lm', num);
+}
+constant_Measure_dB = {
+    num:constant_Number 'db' => C.addUnit('dB', num);
+    num:constant_Number 'decibels' => C.addUnit('dB', num);
+}
+constant_Measure_dBm = {
+    num:constant_Number 'dbm' => C.addUnit('dBm', num);
+}
+
+constant_Location = {
+    'here'                    => new Ast.Value.Location(Ast.Location.Relative('current_location'));
+    !turking 'where i am now' => new Ast.Value.Location(Ast.Location.Relative('current_location'));
+    'home'                    => new Ast.Value.Location(Ast.Location.Relative('home'));
+    'work'                    => new Ast.Value.Location(Ast.Location.Relative('work'));
+}
+
+constant_pairs = {
+    c1:constant_Any 'and' c2:constant_Any => [c1, c2];
+}
+
+// ContextRef is not a constant, it needs special templates
+// e.g., if this is `constant_String`, then we will generate:
+// $cuisine restaurant -> "this"/"the selection on the screen" restaurant
+constant_String_ContextRef = {
+    ?screen_selection ( 'this'
+    | 'the selection on the screen'
+    ) => new Ast.Value.ContextRef('selection', Type.String);
+}

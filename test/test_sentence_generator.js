@@ -232,8 +232,11 @@ async function processOne(id, sentence, code) {
     const usedEntities = new Set;
     for (let token of sentence.split(' ')) {
         if (/^[A-Z]/.test(token)) { // entity
-            if (!assignedEntities[token])
+            if (!assignedEntities[token]) {
+                console.error(sentence);
+                console.error(code);
                 throw new Error(`Missing entity ${token} (present in the sentence, not in the code)`);
+            }
             usedEntities.add(token);
         }
     }
@@ -248,11 +251,12 @@ async function main() {
     const options = {
         rng: seedrandom.alea('almond is awesome'),
         locale: 'en-US',
-        templateFile: path.resolve(path.dirname(module.filename), '../languages/en/thingtalk.genie'),
+        templateFiles: [path.resolve(path.dirname(module.filename), '../languages/thingtalk/en/thingtalk.genie')],
+        targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,
         flags: {
             turking: false,
-            remote_programs: true,
+            remote_commands: true,
             policies: true,
             aggregation: true,
             bookkeeping: true,

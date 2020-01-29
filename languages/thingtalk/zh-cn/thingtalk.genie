@@ -1,0 +1,428 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>, Jian Li <jianli19@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+const assert = require('assert');
+
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
+
+// import the combinator library
+const C = require('../ast_manip');
+
+// import thingpedia info
+const _tpLoader = require('../load-thingpedia');
+}
+
+import './constants';
+import './timers';
+import './filters';
+import './parameters';
+import './aggregation';
+
+complete_table = {
+    thingpedia_query if complete;
+    table_join_replace_placeholder if complete;
+}
+complete_get_command = {
+    thingpedia_get_command if complete;
+}
+if_filtered_table = {
+    complete_table;
+    one_if_filter_table;
+    !turking two_if_filter_table;
+}
+
+one_if_filter_table = {
+    table:complete_table '其中' filter:atom_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, _tpLoader);
+    };
+}
+two_if_filter_table = {
+    table:one_if_filter_table '而且' filter:atom_filter => {
+        if (!C.checkFilter(table, filter))
+            return null;
+        return C.addFilter(table, filter, _tpLoader);
+    };
+}
+
+// FIXME delete all with_filtered table in this file
+with_filtered_table = {
+
+}
+
+edge_stream = {
+    !turking ('当' | '如果' | '等') p:projection_Any ('变成' | '变为' | '是' | '为') x:constant_Any => {
+        if (x.getType().isString)
+             return C.makeEdgeFilterStream(p, '=~', x, _tpLoader);
+         else
+             return C.makeEdgeFilterStream(p, '==', x, _tpLoader);
+    };
+    ('当' | '如果' | '等') p:projection_Numeric ('变得' | '变成') '比' x:constant_Numeric ('大' | '多') => C.makeEdgeFilterStream(p, '>=', x, _tpLoader);
+    ('当' | '如果' | '等') p:projection_Numeric ('变得' | '变成') '比' x:constant_Numeric ('小' | '少') => C.makeEdgeFilterStream(p, '<=', x, _tpLoader);
+}
+
+stream = {
+    thingpedia_stream if complete;
+
+    !turking {
+        '当' proj:projection_Any ('改变' | '变化') ('时' | '的 时候') => {
+            if (proj.args[0] === 'picture_url')
+                return null;
+            if (proj.table.isAggregation)
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            let stream;
+            if (outParams.length === 1 && _tpLoader.flags.turking)
+                return null;
+            if (outParams.length === 1)
+                stream = C.tableToStream(proj.table, null);
+            else
+                stream = C.tableToStream(proj.table, proj.args);
+            return stream;
+        };
+        ('假如' | '如果') proj:projection_Any ('改变' | '变' | '不一样') '了' => {
+            if (proj.args[0] === 'picture_url')
+                return null;
+            if (proj.table.isAggregation)
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            let stream;
+            if (outParams.length === 1 && _tpLoader.flags.turking)
+                return null;
+            if (outParams.length === 1)
+                stream = C.tableToStream(proj.table, null);
+            else
+                stream = C.tableToStream(proj.table, proj.args);
+            return stream;
+        };
+        ('假如' | '如果') proj:projection_Any '变得' '不一样 了' => {
+            if (proj.args[0] === 'picture_url')
+                return null;
+            if (proj.table.isAggregation)
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            let stream;
+            if (outParams.length === 1 && _tpLoader.flags.turking)
+                return null;
+            if (outParams.length === 1)
+                stream = C.tableToStream(proj.table, null);
+            else
+                stream = C.tableToStream(proj.table, proj.args);
+            return stream;
+        };
+    }
+    ('当' | '如果' | '任何 时候') table:complete_table ('变' | '改变' | '不一样') '了' ('而且' | '并且') filter:edge_filter ('时' | '的 时候') => {
+        if (!table.schema.is_monitorable || !C.checkFilter(table, filter) || table.schema.is_list)
+            return null;
+        table = C.addFilter(table, filter, _tpLoader);
+        if (!table)
+            return null;
+        return C.tableToStream(table, null);
+    };
+    ('当' | '如果' | '任何 时候') table:complete_table ('变' | '改变' | '不一样') '了' ('而且' | '并且') filter:atom_filter ('时' | '的 时候') => {
+        if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
+            return null;
+        if (_tpLoader.flags.turking && table.schema.is_list)
+            return null;
+        table = C.addFilter(table, filter, _tpLoader);
+        if (!table)
+            return null;
+        return C.tableToStream(table, null);
+    };
+    edge_stream;
+    timer;
+}
+
+// FIXME add more...
+
+forward_get_do_command = {
+    ('给我' | '检索' | '取得') table:if_filtered_table ('然后' | '接着' | '，') action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
+    table:complete_get_command ('然后' | '接着' | '，') action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
+    table:complete_get_command '，' action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
+    '在' ('检索' | '取得' | '获得') table:if_filtered_table '之后，' action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
+}
+
+complete_forward_get_do_command = {
+    forward_get_do_command if complete;
+}
+
+backward_get_do_command = {
+    action:thingpedia_action '当' ('拿到' | '取得' | '得到') table:if_filtered_table ('时' | '的 时候' | '之后') if !complete => new Ast.Statement.Command(table, [action]);
+}
+
+complete_get_do_command = {
+    complete_forward_get_do_command;
+    !turking backward_get_do_command if complete;
+    action_replace_param_with_table if complete;
+}
+
+forward_when_do_rule = {
+    // pp from when to do (optional)
+    stream:stream action:thingpedia_action ('' | '。') => new Ast.Statement.Rule(stream, [action]);
+
+    ('如果' | '假如') ('有' | '出现') ('新' | '新的') table:if_filtered_table ('' | '，' | '就') action:thingpedia_action if !complete => {
+        if (!table.schema.is_monitorable)
+            return null;
+        return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
+    };
+}
+
+complete_forward_when_do_rule = {
+    forward_when_do_rule if complete;
+}
+
+backward_when_do_rule = {
+    action:thingpedia_action stream:stream => new Ast.Statement.Rule(stream, [action]);
+
+    action:thingpedia_action ('如果' | '假如') ('有' | '出现') ('新' | '新的') table:complete_table if !complete => {
+        if (!table.schema.is_monitorable)
+            return null;
+        return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
+    };
+}
+complete_when_do_rule = {
+    complete_forward_when_do_rule;
+    backward_when_do_rule if complete;
+}
+
+when_get_stream = {
+    // pp from when to get (optional)
+    // NOTE: the schema is not quite right but it's ok because the stream is complete
+    // and the table is what we care about
+    stream:stream table:thingpedia_get_command => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
+    stream:stream ('给我' | '取得' | '检索' | '传给 我') table:thingpedia_query => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
+    stream:stream ('给我' | '取得' | '检索' | '传给 我') proj:projection_Any => {
+        if (proj.isProjection) {
+            if (!_tpLoader.flags.projection)
+                return null;
+            if (proj.args[0] === 'picture_url')
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            if (outParams.length === 1)
+                return null;
+        }
+        return C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj, [], proj.schema));
+    };
+
+    table:thingpedia_get_command stream:stream => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
+}
+complete_when_get_stream = {
+    when_get_stream if complete;
+}
+
+when_get_do_rule = {
+    stream:stream command:complete_get_do_command => C.combineStreamCommand(stream, command);
+    command:complete_get_do_command stream:stream => C.combineStreamCommand(stream, command);
+}
+
+time_rule = {
+    // timer => get => notify
+    (
+          timer:timer table:complete_get_command
+        | timer:timer ('给我' | '取得' | '检索' | '传给 我') table:complete_table
+        | ('给我' | '取得' | '检索' | '传给 我') table:complete_table timer:timer
+    ) => new Ast.Statement.Rule(new Ast.Stream.Join(timer, table, [], table.schema), [C.notifyAction()]);
+    // timer => do
+    (
+          timer:timer action:thingpedia_action
+        | action:thingpedia_action timer:timer
+        | ('我要' | '我 想要') action:thingpedia_action timer:timer
+    ) if complete => new Ast.Statement.Rule(timer, [action]);
+    // timer => get => do
+    !primonly (
+          timer:timer command:complete_get_do_command
+        | command:complete_get_do_command timer:timer
+    ) => new Ast.Statement.Rule(new Ast.Stream.Join(timer, command.table, [], command.table.schema), command.actions);
+}
+
+$root = {
+    !primonly thingpedia_program if complete;
+
+    // when => notify
+    //stream:stream ('通知 我' | '告知 我' | '让 我 知道' | '提醒 我' | '跟 我 说') => C.makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction(_tpLoader) : C.notifyAction()]));
+    //stream:timer ('通知 我' | '告知 我' | '让 我 知道' | '提醒 我' | '跟 我 说') => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction(_tpLoader)]));
+    //stream:timer ('传' | '送' | '传送') constant:constant_String ('' | '给 我') => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction(_tpLoader, constant)]));
+
+    '当' table:if_filtered_table ('变' | '改变' | '不一样') '了' ('时' | '的 时候' | '') ('，' | '') ('通知 我' | '告知 我' | '让 我 知道' | '提醒 我' | '跟 我 说') => {
+        let stream = C.tableToStream(table, null);
+        if (!stream)
+            return null;
+        return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
+    };
+
+    table:if_filtered_table ('有变化' | '改变' | '不一样') ('时' | '的 时候' | '') ('，' | '') ('通知 我' | '告知 我' | '让 我 知道' | '提醒 我' | '跟 我 说') => {
+        let stream = C.tableToStream(table, null);
+        if (!stream)
+            return null;
+        return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
+    };
+
+    !turking '当' proj:projection_Any ('变' | '改变' | '不一样') '了' ('时' | '的 时候' | '') ('，' | '') ('通知 我' | '告知 我' | '让 我 知道' | '提醒 我' | '跟 我 说')=> {
+        if (!proj.schema.is_monitorable)
+            return null;
+        if (proj.table.isAggregation)
+            return null;
+        let outParams = Object.keys(proj.table.schema.out);
+        if (outParams.length === 1 && _tpLoader.flags.turking)
+            return null;
+        // note that we intentionally don't use tableToStream here, because we don't want to introduce edge filters
+        return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), [C.notifyAction()]));
+    };
+
+    !turking proj:projection_Any ('有变化' | '改变' | '不一样') ('时' | '的 时候' | '') ('，' | '') ('通知 我' | '告知 我' | '让 我 知道' | '提醒 我' | '跟 我 说')=> {
+        if (!proj.schema.is_monitorable)
+            return null;
+        if (proj.table.isAggregation)
+            return null;
+        let outParams = Object.keys(proj.table.schema.out);
+        if (outParams.length === 1 && _tpLoader.flags.turking)
+            return null;
+        // note that we intentionally don't use tableToStream here, because we don't want to introduce edge filters
+        return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), [C.notifyAction()]));
+    };
+
+    ('当' | '') table:complete_table filter:atom_filter ('时' | '的 时候') ('通知 我' | '告知 我' | '让 我 知道' | '提醒 我' | '跟 我 说') => {
+        if (C.hasGetPredicate(filter))
+            return null;
+        if (table.schema.is_list || !C.checkFilter(table, filter))
+            return null;
+        table = C.addFilter(table, filter, _tpLoader);
+        if (!table)
+            return null;
+        let stream = C.tableToStream(table, null);
+        if (!stream)
+            return null;
+        return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
+    };
+    ('当' | '') table:complete_table filter:edge_filter ('时' | '的 时候') ('通知 我' | '告知 我' | '让 我 知道' | '提醒 我' | '跟 我 说') => {
+        if (C.hasGetPredicate(filter))
+            return null;
+        if (!table.schema.is_monitorable || table.schema.is_list || !C.checkFilter(table, filter))
+            return null;
+        table = C.addFilter(table, filter, _tpLoader);
+        if (!table)
+            return null;
+        let stream = C.tableToStream(table, null);
+        if (!stream)
+            return null;
+        return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
+    };
+
+    // now => get => notify
+    (
+          table:complete_get_command
+        | ('给我' | '取得' | '下载' | '传给 我' | '检索' | '获得') table:complete_table
+        | ('嗨 almond' | '哈喽 almond' | '') ('给我' | '我要' | '我 需要' | '传给 我' | '展示') table:if_filtered_table
+    ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
+
+    // now => get => say(...)
+    // don't merge these, the output sizes are too small
+    (
+          ('嗨 almond' | '哈喽 almond' | '') ('给我' | '我要' | '我 需要' | '传给 我' | '检索') proj:projection_Any
+        | ('嗨 almond' | '哈喽 almond' | '') proj:projection_Any ('是 什么 ?' | '?')
+        | ('告诉 我' | '跟 我 说' | '展示 给我') '什么是' proj:projection_Any
+        | '谁 是' proj:projection_Entity__tt__username ('' | '?')
+        | proj:projection_Entity__tt__username '是 谁' ('' | '?')
+        | '谁 的 信箱 是' proj:projection_Entity__tt__email_address ('' | '?')
+        | proj:projection_Entity__tt__email_address '是 谁 的 信箱' ('' | '?')
+        | proj:projection_Any
+    ) => C.sayProjectionProgram(_tpLoader, proj);
+
+    // now => do
+    (
+          action:thingpedia_action
+        | ('请' | '请你') action:thingpedia_action
+        | ('我要' | '我 想 要') action:thingpedia_action
+        | ('嗨 almond' | '哈喽 almond') ('请' | '请你' | '') action:thingpedia_action
+    ) if complete => C.makeProgram(new Ast.Statement.Command(null, [action]));
+
+    // now => get => do
+    command:complete_get_do_command => C.makeProgram(command);
+
+    // when join get => notify/say(...)
+    stream:complete_when_get_stream => {
+        assert(stream.isJoin, `unexpected stream in when_get, found ${stream}`);
+        if (stream.table.isProjection)
+            return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Join(stream.stream, stream.table.table, stream.in_params, stream.schema), [C.notifyAction()]));
+        else
+            return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
+    };
+
+    // rule:timer_rule => C.makeProgram(rule);
+
+    // when => do
+    rule:complete_when_do_rule => C.makeProgram(rule);
+
+    // when => get => do
+    rule:when_get_do_rule => C.makeProgram(rule);
+
+    // setup commands
+    ?remote_commands {
+        ('叫' | '请' | '要') principal:constant_Entity__tt__username ('去' | '') action:thingpedia_action if complete => C.makeProgram(new Ast.Statement.Command(null, [action]), principal);
+        (
+              ('叫' | '请' | '要') principal:constant_Entity__tt__username '把' table:complete_table ('传给 我' | '给我' | '寄给 我')
+            | ('叫' | '请' | '要') principal:constant_Entity__tt__username ('传给 我' | '给我' | '寄给 我') table:complete_table
+            | ('给我' | '我要') principal:constant_Entity__tt__username ('他' | '她') '的' table:complete_table
+            | ('给我' | '我要') principal:constant_Entity__tt__username '的' table:complete_table
+        ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction('return')]), principal);
+        ('叫' | '请' | '要') principal:constant_Entity__tt__username stream:stream ('通知 我' | '告知 我' | '让 我 知道' | '提醒 我' | '跟 我 说') => C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction('return')]), principal);
+        stream:stream ('叫' | '请' | '要') principal:constant_Entity__tt__username ('通知 我' | '告知 我' | '让 我 知道' | '提醒 我' | '跟 我 说') => C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction('return')]), principal);
+    }
+
+    // policies
+    ?policies {
+        ('每 个 人' | '所有人' | '全部 的 人' | '任何 人') '都 可以' action:thingpedia_action if complete => C.makePolicy(null, null, action);
+        ('允许' | '授权' | '让') ('每 个 人' | '所有人' | '全部 的 人' | '任何 人') '都 可以' action:thingpedia_action if complete => C.makePolicy(null, null, action);
+        ('每个' | '所有' | '全部 的' | '任何') filter:atom_filter '的 人' '都 可以' action:thingpedia_action if complete => {
+            if (!filter.isExternal)
+                return null;
+            let policy = C.makePolicy(null, null, action);
+            if (!policy)
+                return null;
+            policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
+            return policy;
+        };
+        ('允许' | '授权' | '让') ('每个' | '所有' | '全部 的' | '任何') filter:atom_filter '的 人' '都 可以' action:thingpedia_action if complete => {
+            if (!filter.isExternal)
+                return null;
+            let policy = C.makePolicy(null, null, action);
+            if (!policy)
+                return null;
+            policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
+            return policy;
+        };
+        ('每 个 人' | '所有人' | '全部 的 人' | '任何 人') '都 可以' ('看' | '查看' | '存取' | '取得' | '读取' | '读' | '拿') table:if_filtered_table => C.makePolicy(null, table, null);
+        source:constant_Entity__tt__username '可以' action:thingpedia_action if complete => C.makePolicy(source, null, action);
+        ('允许' | '授权' | '让') source:constant_Entity__tt__username ('可以' | '') action:thingpedia_action if complete => C.makePolicy(source, null, action);
+        ('允许' | '授权' | '让') source:constant_Entity__tt__username ('可以' | '') action:thingpedia_action '如果' filter:atom_filter if complete => {
+            if (!filter.isExternal)
+                return null;
+            let policy = C.makePolicy(source, null, action);
+            if (!policy)
+                return null;
+            policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
+            return policy;
+        };
+        '如果' filter:atom_filter ('允许' | '授权' | '让') source:constant_Entity__tt__username ('可以' | '') action:thingpedia_action if complete => {
+            if (!filter.isExternal)
+                return null;
+            let policy = C.makePolicy(source, null, action);
+            if (!policy)
+                return null;
+            policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
+            return policy;
+        };
+        ('允许' | '授权' | '让') source:constant_Entity__tt__username ('可以' | '') ('看' | '查看' | '存取' | '取得' | '读取' | '读' | '拿') table:if_filtered_table => C.makePolicy(source, table, null);
+    }
+}

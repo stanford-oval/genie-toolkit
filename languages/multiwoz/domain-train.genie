@@ -1,0 +1,202 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+    const assert = require('assert');
+    const Ast = require('../../lib/languages/multidst/ast');
+    const { Slot, checkAndAddSlot } = require('./ast_utils');
+}
+
+direct_question = {
+    ( 'where are you going ?'
+    | 'what is your destination ?'
+    | 'where are you travelling to ?'
+    | 'where will you be travelling to ?'
+    | 'where to ?'
+    ) => 'train-destination';
+
+    ( 'where are you departing from ?'
+    | 'where will you be departing from ?'
+    | 'what is your departure ?'
+    | 'where are you travelling from ?'
+    ) => 'train-departure';
+
+    ( 'when are you travelling ?'
+    | 'what day are you travelling ?'
+    ) => 'train-day';
+
+    ( 'when do you want to leave ?'
+    | 'what time do you want to leave ?'
+    | 'do you need to leave after a certain time ?'
+    ) => 'train-leave-at';
+
+    ( 'when do you want to arrive ?'
+    | 'what time do you want to arrive ?'
+    | 'by what time do you need to arrive ?'
+    | 'do you need to arrive by a certain time ?'
+    ) => 'train-arrive-by';
+
+    ( 'how many people is your reservation for ?'
+    | 'for how many people do you need a reservation ?'
+    | 'how many people ?'
+    | 'how many tickets do you need ?'
+    | 'how many people are travelling ?'
+    ) => 'train-book-people';
+}
+
+user_one_slot_domain_question = {
+    ( 'how expensive is it ?'
+    | 'how much is it ?'
+    | 'how much is the ticket ?'
+    | 'how much is the fare ?'
+    ) => ['train-ticket'];
+}
+
+param_noun_phrase = {
+    ( 'destination'
+    | 'destination station'
+    | 'arrival'
+    ) => 'train-destination';
+
+    ( 'departure'
+    | 'departure station'
+    ) => 'train-departure';
+
+    ( 'time'
+    | 'departure time'
+    ) => 'train-leave-at';
+    'arrival time' => 'train-arrive-by';
+
+    ( 'day'
+    | 'date'
+    ) => 'train-book-day';
+}
+
+sys_param_noun_phrase = {
+    'train number' => 'train-system-id';
+
+    ( 'fare'
+    | 'fare price'
+    | 'ticket price'
+    | 'ticket'
+    | 'cost' ) => 'train-system-ticket';
+}
+
+base_noun_phrase = {
+    'train' => new Ast.DialogState('train');
+    'train ride' => new Ast.DialogState('train');
+    'train ticket' => new Ast.DialogState('train');
+    'ticket for a train' => new Ast.DialogState('train');
+}
+
+// npp: Noun-Phrase of Property
+// "X that have $npp_slot" or "X with $npp_slot"
+npp_slot = {
+    ( 'departure' v:constant_train_departure
+    | 'departure station' v:constant_train_departure
+    ) => new Slot('train-departure', v);
+
+    ( 'destination' v:constant_train_destination
+    | 'destination station' v:constant_train_destination
+    | 'arrival' v:constant_train_destination
+    ) => new Slot('train-destination', v);
+}
+
+// npi: Noun-Phrase of Identity
+// "X that is $npi_slot", where npi is a noun-phrase (not a passive-verb-phrase)
+npi_slot = {
+}
+
+// prep: Preposition
+// "X $prep_slot" or "X that <verb> $prep_slot" - where $prep_slot starts with a preposition
+// eg. "train to cambridge"
+prep_slot = {
+    'from' v:constant_train_departure => new Slot('train-departure', v);
+
+    'to' v:constant_train_destination => new Slot('train-destination', v);
+
+    ( 'for' v:constant_train_day
+    | 'on' v:constant_train_day
+    ) => new Slot('train-day', v);
+
+    ( 'for' v:constant_train_book_people
+    | 'for' v:constant_train_book_people 'people'
+    ) => new Slot('train-book-people', v);
+}
+
+prep_leave_slot = {
+    'from' v:constant_train_departure => new Slot('train-departure', v);
+    ('at' | 'after') v:constant_train_leave_at => new Slot('train-leave-at', v);
+}
+prep_arrive_slot = {
+    ('to' | 'in') v:constant_train_destination => new Slot('train-destination', v);
+    ('at' | 'by' | 'before') v:constant_train_arrive_by => new Slot('train-arrive-by', v);
+}
+
+// pvp: Passive-Verb Phrase
+// "X $pvp_slot" or "X that is $pvp_slot" - where $pvp_slot is a verb phrase in -ed or -ing form
+// eg. "train leaving from cambridge"
+// pvp_slot is also used for prepositional phrases
+pvp_slot = {
+    ( 'leaving' v:constant_train_departure
+    | 'leaving from' v:constant_train_departure
+    | 'departing from' v:constant_train_departure
+    | 'departing at' v:constant_train_departure
+    ) => new Slot('train-departure', v);
+
+    ( 'arriving at' v:constant_train_destination
+    | 'arriving to' v:constant_train_destination
+    | 'arriving in' v:constant_train_destination
+    | 'going to' v:constant_train_destination
+    | 'going into' v:constant_train_destination
+    ) => new Slot('train-destination', v);
+
+    ( 'arriving at' v:constant_train_arrive_by
+    | 'arriving by' v:constant_train_arrive_by
+    | 'arriving before' v:constant_train_arrive_by
+    ) => new Slot('train-arrive-by', v);
+
+    ( 'leaving at' v:constant_train_leave_at
+    | 'leaving after' v:constant_train_leave_at
+    ) => new Slot('train-leave-at', v);
+
+    ( 'leaving on' v:constant_train_day
+    | 'arriving on' v:constant_train_day
+    ) => new Slot('train-day', v);
+}
+
+// avp: Active-Verb Phrase
+// "X that $apv_slot" where $apv_slot is a verb phrase in active form, with X as subject
+avp_slot = {
+    ( 'departs from' v:constant_train_departure
+    | 'should depart from' v:constant_train_departure
+    | 'departs at' v:constant_train_departure
+    ) => new Slot('train-departure', v);
+
+    ( 'arrives at' v:constant_train_destination
+    | 'should arrive at' v:constant_train_destination
+    | 'arrives to' v:constant_train_destination
+    ) => new Slot('train-destination', v);
+
+    ( 'arrives at' v:constant_train_arrive_by
+    | 'arrives by' v:constant_train_arrive_by
+    | 'arrives before' v:constant_train_arrive_by
+    ) => new Slot('train-arrive-by', v);
+
+    ( 'leaves at' v:constant_train_leave_at
+    | 'leaves after' v:constant_train_leave_at
+    ) => new Slot('train-leave-at', v);
+}
+
+// apv: Adjective-Phrase Value
+// "$apv_slot X" where $apv_slot is an adjective phrase
+// e.g.: "cheap restaurant", "5-star hotel"
+apv_slot = {
+}

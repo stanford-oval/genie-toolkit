@@ -14,13 +14,16 @@ const seedrandom = require('seedrandom');
 const { ContextualSentenceGenerator } = require('../../lib/sentence-generator');
 
 module.exports = function worker(args, shard) {
-    const tpClient = new Tp.FileClient(args);
+    let tpClient = null;
+    if (args.thingpedia)
+        tpClient = new Tp.FileClient(args);
     const options = {
         rng: seedrandom.alea(args.random_seed + ':' + shard),
         idPrefix: shard + ':',
         locale: args.locale,
         flags: args.flags || {},
-        templateFile: args.template,
+        templateFiles: args.template,
+        targetLanguage: args.target_language,
         thingpediaClient: tpClient,
         maxDepth: args.maxdepth,
         targetPruningSize: args.target_pruning_size,

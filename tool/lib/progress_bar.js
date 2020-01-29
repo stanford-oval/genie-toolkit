@@ -28,6 +28,7 @@ module.exports = class ProgressBar {
         this.verbose = verbose;
 
         this._isatty = process.stderr.isTTY;
+        this._previous_pct = 0;
     }
 
     update(current, values=[], exact=[]) {
@@ -47,8 +48,14 @@ module.exports = class ProgressBar {
         }
         this.seen_so_far = current;
 
-        if (!this._isatty)
+        if (!this._isatty) {
+            const current_pct = Math.floor(current * 100 / this.target);
+            if (current_pct > this._previous_pct) {
+                console.error(`Progress: ${current_pct}%`);
+                this._previous_pct = current_pct;
+            }
             return;
+        }
 
         const now = new Date;
         if (this.verbose === 1) {

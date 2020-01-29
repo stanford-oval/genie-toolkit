@@ -1,0 +1,777 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+    const assert = require('assert');
+    const Ast = require('../../lib/languages/multidst/ast');
+    const Utils = require('./ast_utils');
+    const { Slot, SystemSlot, checkAndAddSlot, propose, NAME_SLOTS, PROPOSABLE_SLOTS, SEARCH_SLOTS,
+            REQUESTABLE_SEARCH_SLOTS, NON_REQUESTABLE_SYSTEM_SLOTS, ALL_SYSTEM_SLOTS } = Utils;
+    Utils.init($grammar, $runtime);
+}
+
+import './shared.genie';
+
+context intent_request_any = ($.intent === 'init_request' || $.intent === 'second_request');
+context intent_request_initial = $.intent === 'init_request';
+context intent_info_request = $.intent === 'init_request' && Utils.searchIsComplete($);
+context intent_search_request = ($.intent === 'init_request' || $.intent === 'second_request') && !Utils.searchIsComplete($);
+context intent_complete_request = (($.intent === 'init_request' || $.intent === 'second_request') && Utils.searchIsComplete($)) || $.intent === 'accept';
+context intent_slot_question = $.intent === 'slot_question';
+context intent_info_question = $.intent === 'info_question';
+context intent_greet = $.intent === 'greet';
+context intent_insist = $.intent === 'insist';
+context intent_cancel = $.intent === 'cancel';
+
+// domain-independent stuff
+
+answer_noun_phrase = {
+    // one slot
+    one_with_slot_phrase;
+    one_which_slot_phrase;
+    one_clean_slot_phrase;
+
+    // two slot
+    two_with_slot_phrase;
+    two_which_slot_phrase;
+    two_clean_slot_phrase;
+}
+
+precise_answer = {
+    // complete answer, like "I am looking for a bla restaurant"
+    domains:generic_preamble ('a' | 'the') dialogue:answer_noun_phrase => dialogue;
+}
+
+question_preamble = {
+    ( 'there are' ('many' | 'several') base:base_noun_phrase '.'
+    | 'there are more than' random_number base:base_noun_phrase '.'
+    | 'i can see' ('many' | 'several') base:base_noun_phrase '.'
+    | 'i can recommend' ('many' | 'several') base:base_noun_phrase '.'
+    | 'there are' ('many' | 'several') base:base_noun_phrase ' matching your request .'
+    | 'there are more than' random_number base:base_noun_phrase ' that correspond to your specifications .'
+    | 'i can see' ('many' | 'several') base:base_noun_phrase ' matching your constraints .'
+    | 'i can see' ('many' | 'several') base:base_noun_phrase ' with those characteristics .'
+    ) => base.domain;
+}
+
+direct_question = {
+    ( 'what' p:param_noun_phrase 'do you want ?'
+    | 'what' p:param_noun_phrase 'would you prefer ?'
+    | 'what' p:param_noun_phrase 'would you like ?'
+    | 'what' p:param_noun_phrase 'are you interested in ?'
+    | 'what' p:param_noun_phrase 'are you looking for ?'
+    ) => p;
+}
+
+yesno_direct_question = {
+    ( 'any preference of' p:param_noun_phrase '?'
+    | 'do you have a specific' p:param_noun_phrase 'in mind?'
+    | 'do you have a preference of' p:param_noun_phrase '?'
+    | 'do you have a preferred' p:param_noun_phrase '?'
+    | 'are you looking for a specific' p:param_noun_phrase '?'
+    ) => p;
+}
+generic_question = {
+    ( dom:question_preamble q:direct_question
+    | dom:question_preamble q:yesno_direct_question
+    ) => {
+        if (!q.startsWith(dom + '-'))
+            return null;
+        return [dom, q];
+    };
+    dom:question_preamble 'which one would like ?' => {
+        return [dom, null];
+    };
+}
+
+question_answer_pair = {
+    ( q:direct_question '<sep>' a:generic_answer
+    | q:direct_question '<sep>' a:generic_domain_answer
+    | q:direct_question '<sep>' a:imprecise_answer
+    | q:direct_question '<sep>' a:precise_answer
+    | q:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') a:generic_answer
+    | q:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') a:generic_domain_answer
+    | q:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') a:imprecise_answer
+    | q:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') a:precise_answer
+    | q:generic_question '<sep>' ('yes' | 'yes ,' | '') a:precise_answer
+    ) => {
+        if (!a.has(q.key))
+            return null;
+        return a;
+    };
+
+    ( q:direct_question '<sep>' 'it does not matter .'
+    | q:direct_question '<sep>' 'it does not matter . can you suggest one ?'
+    | q:direct_question '<sep>' 'i have no preference .'
+    | q:direct_question '<sep>' 'i have no preference . what do you recommend ?'
+    | q:direct_question '<sep>' 'i have no preference . please make a recommendation .'
+    | q:yesno_direct_question '<sep>' ('no' | 'no ,' | '') 'it does not matter .'
+    | q:yesno_direct_question '<sep>' ('no' | 'no ,' | '') 'it does not matter . can you suggest one ?'
+    | q:yesno_direct_question '<sep>' ('no' | 'no ,' | '') 'i have no preference .'
+    | q:yesno_direct_question '<sep>' ('no' | 'no ,' | '') ('i have no preference .' | '') 'what do you recommend ?'
+    | q:yesno_direct_question '<sep>' ('no' | 'no ,' | '') ('i have no preference .' | '') 'please make a recommendation .'
+    ) => {
+        if (!SEARCH_SLOTS.has(q.key))
+            return null;
+        const state = new Ast.DialogState;
+        state.set(q.key, new Ast.TristateValue('dontcare'));
+        return state;
+    };
+
+    qa:question_answer_pair info:generic_domain_answer => {
+        if (qa.domain !== info.domain)
+            return null;
+        const clone = qa.clone();
+        for (let [key, value] of info) {
+            if (clone.has(key))
+                return null;
+            clone.set(key, value);
+        }
+        return clone;
+    };
+}
+
+info_noun_phrase = {
+    // one, two or three slots
+    info:one_with_slot_phrase => Utils.checkInfoNounPhrase(info);
+    info:one_which_slot_phrase => Utils.checkInfoNounPhrase(info);
+    info:one_clean_slot_phrase => Utils.checkInfoNounPhrase(info);
+
+    info:two_with_slot_phrase => Utils.checkInfoNounPhrase(info);
+    info:two_which_slot_phrase => Utils.checkInfoNounPhrase(info);
+    info:two_clean_slot_phrase => Utils.checkInfoNounPhrase(info);
+
+    info:three_with_slot_phrase => Utils.checkInfoNounPhrase(info);
+    info:three_which_slot_phrase => Utils.checkInfoNounPhrase(info);
+    info:three_clean_slot_phrase => Utils.checkInfoNounPhrase(info);
+}
+
+system_direct_proposal = {
+    ( 'how about the' proposal:constant_name '?'
+    | 'i' ('recommend' | 'suggest') 'the' proposal:constant_name '.'
+    | 'i' ('have' | 'see') 'the' proposal:constant_name '.'
+    ) => checkAndAddSlot(new Ast.DialogState, proposal);
+
+    ( 'how about the' proposal:constant_name '? it is a ' info:info_noun_phrase '.'
+    | 'i' ('recommend' | 'suggest') 'the' proposal:constant_name '. it is a ' info:info_noun_phrase '.'
+    | 'i' ('have' | 'see') 'the' proposal:constant_name '. it is a ' info:info_noun_phrase '.'
+    ) => {
+        proposal = checkAndAddSlot(info, proposal);
+        if (proposal)
+            return propose(proposal);
+        else
+            return null;
+    };
+}
+
+system_generic_proposal = {
+    ( 'are you looking for a' proposal:answer_noun_phrase '?'
+    | 'how about' ('a' | 'the') proposal:answer_noun_phrase '?'
+    ) => propose(proposal);
+}
+
+negative_proposal_answer_preamble = {
+    'no i need';
+    'i was thinking more of';
+    'i would like';
+    'no , i would like';
+    'i am looking for';
+    'do you have';
+    'can you find';
+    'is there';
+}
+
+generic_negative_proposal = {
+    'i do not like that';
+    'i do not like that , do you have any other option ?';
+}
+
+accept_phrase = {
+    'i like that';
+    'yes i like that';
+    'sounds good';
+}
+
+user_composable_one_slot_question = {
+    ( 'what is the' p:param_noun_phrase
+    | 'what is its' p:param_noun_phrase
+    | 'i will also need the' p:param_noun_phrase
+    | 'i will also need to know the' p:param_noun_phrase
+    | 'i will need to know the' p:param_noun_phrase
+    | 'i want to know the' p:param_noun_phrase
+    ) => {
+        if (!REQUESTABLE_SEARCH_SLOTS.has(p))
+            return null;
+        return [p];
+    };
+}
+
+user_one_slot_question = {
+    q:user_composable_one_slot_question '?' => q;
+
+    ( 'what' p:param_noun_phrase 'does it have ?'
+    | 'what' p:param_noun_phrase 'does it offer ?'
+    ) => {
+        if (!REQUESTABLE_SEARCH_SLOTS.has(p))
+            return null;
+        return [p];
+    };
+}
+
+user_two_slot_question = {
+    p1:user_composable_one_slot_question 'and the' p2:param_noun_phrase '?' => {
+        if (!REQUESTABLE_SEARCH_SLOTS.has(p2))
+            return null;
+        const d1 = p1[0].split('-')[0];
+        const d2 = p2.split('-')[0];
+        if (d1 !== d2)
+            return null;
+        if (p1.some((p) => p === p2))
+            return null;
+        return p1.concat([p2]);
+    };
+}
+
+user_composable_sys_slot_question = {
+    ( 'what is the' p:sys_param_noun_phrase
+    | 'what is its' p:sys_param_noun_phrase
+    | 'i will also need the' p:sys_param_noun_phrase
+    | 'i will also need to know the' p:sys_param_noun_phrase
+    ) => {
+        if (NON_REQUESTABLE_SYSTEM_SLOTS.has(p))
+            return null;
+        return [p];
+    };
+}
+
+user_one_sys_slot_question = {
+    q:user_composable_sys_slot_question '?' => q;
+
+    ( 'what' p:sys_param_noun_phrase 'does it have ?'
+    | 'what' p:sys_param_noun_phrase 'does it offer ?'
+    ) => {
+        if (NON_REQUESTABLE_SYSTEM_SLOTS.has(p))
+            return null;
+        return [p];
+    };
+}
+
+user_two_sys_slot_question = {
+    p1:user_composable_sys_slot_question 'and the' p2:sys_param_noun_phrase => {
+        if (NON_REQUESTABLE_SYSTEM_SLOTS.has(p2))
+            return null;
+        const d1 = p1[0].split('-')[0];
+        const d2 = p2.split('-')[0];
+        if (d1 !== d2)
+            return null;
+        if (p1[0] === p2)
+            return null;
+        return p1.concat([p2]);
+    };
+}
+
+user_value_question = {
+    ( 'is it a' val:apv_slot base:base_noun_phrase '?'
+    | 'is the' base:base_noun_phrase ('a'|'') val:apv_slot '?'
+    ) => {
+        if (val.key === null || !SEARCH_SLOTS.has(val.key) || val.domain !== base.domain)
+            return null;
+        return [val.key];
+    };
+}
+
+proposal_reply_pair = {
+    ( prop:system_direct_proposal '<sep>' negative_proposal_answer_preamble ('a' | 'any') req:answer_noun_phrase
+    | prop:system_direct_proposal '<sep>' negative_proposal_answer_preamble req:anything_phrase
+    | prop:system_generic_proposal '<sep>' negative_proposal_answer_preamble ('a' | 'any') req:answer_noun_phrase
+    | prop:system_generic_proposal '<sep>' negative_proposal_answer_preamble req:anything_phrase
+    ) => {
+        if (!Utils.compatibleDomains(req, prop))
+            return null;
+        for (let key of req.keys()) {
+            if (!SEARCH_SLOTS.has(key))
+                return null;
+            if (!prop.has(key))
+                return null;
+        }
+        return [prop, req];
+    };
+    ( prop:system_direct_proposal '<sep>' ('no ,' | '') req:generic_answer
+    | prop:system_direct_proposal '<sep>' ('no ,' | '') req:generic_domain_answer
+    | prop:system_generic_proposal '<sep>' ('no ,' | '') req:generic_answer
+    | prop:system_generic_proposal '<sep>' ('no ,' | '') req:generic_domain_answer
+    ) => {
+        if (prop.domain !== null && req.domain !== null && prop.domain !== req.domain)
+            return null;
+        return [prop, req];
+    };
+
+    prop:system_direct_proposal '<sep>' generic_negative_proposal => {
+        return [prop, new Ast.DialogState];
+    };
+
+    prop:system_direct_proposal '<sep>' accept_phrase => {
+        return [prop, prop];
+    };
+}
+
+proposal_slot_question_pair = {
+    ( prop:system_direct_proposal '<sep>' question:user_one_slot_question
+    | prop:system_direct_proposal '<sep>' question:user_two_slot_question
+    | prop:system_direct_proposal '<sep>' question:user_value_question
+    | prop:system_direct_proposal '<sep>' question:user_one_slot_domain_question
+    ) => {
+        const state = Utils.userAskQuestions(prop, question);
+        if (state === null)
+            return null;
+        return [prop, state];
+    };
+}
+
+proposal_info_question_pair = {
+    ( prop:system_direct_proposal '<sep>' question:user_one_sys_slot_question
+    | prop:system_direct_proposal '<sep>' question:user_two_sys_slot_question
+    ) => {
+        const state = Utils.userAskQuestions(prop, question);
+        if (state === null)
+            return null;
+        return [prop, state];
+    };
+}
+
+generic_cannot_find_phrase = {
+    ( 'there are no ' base:base_noun_phrase '.'
+    | 'i cannot find any' base:base_noun_phrase '.'
+    | 'there are no' base:base_noun_phrase ' matching your request .'
+    | 'i cannot find any' base:base_noun_phrase ' matching your constraints .'
+    | 'i cannot find any' base:base_noun_phrase ' with those characteristics .'
+    ) => base.domain;
+}
+
+param_noun_phrase_pair = {
+    p1:param_noun_phrase 'or' p2:param_noun_phrase => {
+        if (p1 === p2)
+            return null;
+        const d1 = p1.split('-')[0];
+        const d2 = p2.split('-')[0];
+        if (d1 !== d2)
+            return null;
+        return [p1, p2];
+    };
+}
+
+notfound_error = {
+    ('sorry' | 'sorry ,' | 'i am sorry' | '') dom:generic_cannot_find_phrase => new Ast.DialogState(dom);
+    ('sorry' | 'sorry ,' | 'i am sorry' | '') dom:generic_cannot_find_phrase ('would you like to try a different' | 'how about a different' | 'can i suggest another') p:param_noun_phrase '?' => {
+        if (!p.startsWith(dom + '-'))
+            return null;
+        return new Ast.DialogState(dom);
+    };
+    ('sorry' | 'sorry ,' | 'i am sorry' | '') dom:generic_cannot_find_phrase ('would you like to try a different' | 'how about a different' | 'can i suggest another') pair:param_noun_phrase_pair '?' => {
+        const [p1, p2] = pair;
+        if (!p1.startsWith(dom + '-') || !p2.startsWith(dom + '-'))
+            return null;
+
+        return new Ast.DialogState(dom);
+    };
+
+    ('sorry' | 'sorry ,' | 'i am sorry' | '') ('i cannot find any' | 'there are no' | 'there is no' | 'there does not seem any' | 'i do not see a') error:info_noun_phrase => {
+        for (let key of error.keys()) {
+            if (!SEARCH_SLOTS.has(key))
+                return null;
+        }
+        return error;
+    };
+    ('sorry' | 'sorry ,' | 'i am sorry' | '') ('i cannot find any' | 'there are no' | 'there is no' | 'there does not seem any' | 'i do not see a') error:info_noun_phrase ('.' | ',') ('would you like to try a different' | 'how about a different' | 'can i suggest another') p:param_noun_phrase '?' => {
+        for (let key of error.keys()) {
+            if (!SEARCH_SLOTS.has(key))
+                return null;
+        }
+        if (!error.has(p))
+            return null;
+
+        return error;
+    };
+    ('sorry' | 'sorry ,' | 'i am sorry' | '') ('i cannot find any' | 'there are no' | 'there is no' | 'there does not seem any' | 'i do not see a') error:info_noun_phrase ('.' | ',') ('would you like to try a different' | 'how about a different' | 'can i suggest another') pair:param_noun_phrase_pair '?' => {
+        for (let key of error.keys()) {
+            if (!SEARCH_SLOTS.has(key))
+                return null;
+        }
+        const [p1, p2] = pair;
+        if (!error.has(p1) || !error.has(p2))
+            return null;
+
+        return error;
+    };
+}
+
+insist_generic_answer = {
+    'i really want that , can you check again ?' => null;
+    'are you sure ?' => null;
+    'are you sure there is no' domain:base_noun_phrase '?' => domain.domain;
+    'no i really need that , please check again' => null;
+    'check again' => null;
+}
+
+error_reply_pair = {
+    ( error:notfound_error '<sep>' ('how about' | 'do you have' | 'can you find' | 'can you check for' | 'is there' | 'are there') ('a' | 'any') req:answer_noun_phrase
+    | error:notfound_error '<sep>' ('how about' | 'do you have' | 'can you find' | 'can you check for' | 'is there' | 'are there') req:imprecise_answer_phrase
+    | error:notfound_error '<sep>' ('how about' | 'do you have' | 'can you find' | 'can you check for' | 'is there' | 'are there') req:anything_phrase ) => {
+        if (!Utils.compatibleDomains(req, error))
+            return null;
+        return [error, req, 'second_request'];
+    };
+
+    error:notfound_error '<sep>' dom:insist_generic_answer => {
+        if (dom !== null && error.domain !== null && dom !== error.domain)
+            return null;
+        return [error, new Ast.DialogState, 'insist'];
+    };
+
+    ( error:notfound_error '<sep>' ('that is unfortunate' | 'too bad' | 'i am sorry' | 'can you check again ?' | 'are you sure ?') ('i really need' | 'i really want') 'a' req:answer_noun_phrase
+    | error:notfound_error '<sep>' ('that is unfortunate' | 'too bad' | 'i am sorry' | 'can you check again ?' | 'are you sure ?') ('i really need' | 'i really want') req:imprecise_answer_phrase
+    ) => {
+        if (!Utils.compatibleDomains(req, error))
+            return null;
+        if (error.size === 0)
+            return [error, req, 'insist'];
+        for (let [key, value] of req) {
+            if (!error.has(key) || !error.get(key).equals(value))
+                return null;
+        }
+        return [error, req, 'insist'];
+    };
+}
+
+insist_cannot_find_phrase = {
+    'i really cannot find';
+    'please do not insist , there is no';
+    'there really are no';
+    'there really is no';
+}
+
+never_mind_phrase = {
+    'never mind then';
+    'ok never mind';
+    'ok too bad';
+}
+
+ok_thanks_phrase = {
+    'ok thank you that is all i need';
+    'ok thanks that is all i need';
+}
+thanks_phrase = {
+    'thank you , this is good for now';
+    'thank you , that will be all';
+    'thank you , that will be all for now';
+    'thank you this is what i need';
+    'thanks , this is good for now';
+    'thanks this is what i need';
+}
+no_thanks_phrase = {
+    'no thank you , this is good for now';
+    'no thank you this is what i need';
+    'no thanks , this is good for now';
+    'no thanks this is what i need';
+    'no thanks that will be it';
+    'no thanks this will do';
+    'no thank you that will be it for now';
+    'no thanks this will do for now';
+    'no thank you that will be all';
+}
+yes_please_phrase = {
+    'yes please';
+    'sure go ahead';
+    'sure';
+    'sure thank you';
+    'yes please , thank you';
+}
+
+insist_notfound_error = {
+    ('sorry' | 'sorry ,' | 'i am sorry' | '') insist_cannot_find_phrase error:info_noun_phrase => {
+        for (let key of error.keys()) {
+            if (!SEARCH_SLOTS.has(key))
+                return null;
+        }
+        return error;
+    };
+}
+
+insist_reply_pair = {
+    ( error:insist_notfound_error '<sep>' ('how about' | 'do you have' | 'can you find' | 'can you check for' | 'is there' | 'are there') ('a' | 'any') req:answer_noun_phrase
+    | error:insist_notfound_error '<sep>' ('how about' | 'do you have' | 'can you find' | 'can you check for' | 'is there' | 'are there') req:anything_phrase ) => {
+        if (!Utils.compatibleDomains(req, error))
+            return null;
+        return [error, req, 'second_request'];
+    };
+
+    error:insist_notfound_error '<sep>' never_mind_phrase => {
+        return [error, new Ast.DialogState, 'cancel'];
+    };
+}
+
+system_one_info_clause = {
+    param:sys_param_noun_phrase 'is' value:constant_Any_system => {
+        if (value.key !== param)
+            return null;
+        return [value];
+    };
+}
+system_two_info_clause = {
+    c1:system_one_info_clause 'and' ('the' | 'its') c2:system_one_info_clause => {
+        if (c1[0].domain !== c2[0].domain)
+            return null;
+        if (c1[0].key === c2[0].key)
+            return null;
+        return c1.concat(c2);
+    };
+}
+
+one_info_clause = {
+    param:param_noun_phrase 'is' value:constant_Any => {
+        if (value.key !== param)
+            return null;
+        return [value];
+    };
+}
+two_info_clause = {
+    c1:one_info_clause 'and' ('the' | 'its') c2:one_info_clause => {
+        if (c1[0].domain !== c2[0].domain)
+            return null;
+        if (c1[0].key === c2[0].key)
+            return null;
+        return c1.concat(c2);
+    };
+}
+
+info_sentence = {
+    ('sure' | 'of course' | '') name:constant_name 'is a' info:info_noun_phrase => {
+        return checkAndAddSlot(info, name);
+    };
+
+    ( ('sure' | 'of course' | '') ('the' | 'its') info:system_one_info_clause
+    | ('sure' | 'of course' | '') ('the' | 'its') info:system_two_info_clause
+    ) => {
+        const state = new Ast.DialogState;
+        for (let slot of info)
+            state.set(slot.key, slot.value);
+        return state;
+    };
+
+    ( ('sure' | 'of course' | '') name:constant_name '\'s' info:system_one_info_clause
+    | ('sure' | 'of course' | '') name:constant_name '\'s' info:system_two_info_clause
+    ) => {
+        const state = new Ast.DialogState;
+        for (let slot of info)
+            state.set(slot.key, slot.value);
+        return checkAndAddSlot(state, name);
+    };
+}
+
+info_answer_sentence = {
+    ( ('the' | 'its') info:system_one_info_clause
+    | ('the' | 'its') info:system_two_info_clause
+    | ('the' | 'its') info:one_info_clause
+    | ('the' | 'its') info:two_info_clause
+    ) => {
+        const state = new Ast.DialogState;
+        for (let slot of info)
+            state.set(slot.key, slot.value);
+        return state;
+    };
+
+    ( name:constant_name '\'s' info:system_one_info_clause
+    | name:constant_name '\'s' info:system_two_info_clause
+    | name:constant_name '\'s' info:one_info_clause
+    | name:constant_name '\'s' info:two_info_clause
+    ) => {
+        const state = new Ast.DialogState;
+        for (let slot of info)
+            state.set(slot.key, slot.value);
+        return checkAndAddSlot(state, name);
+    };
+}
+
+reservation_request = {
+    'would you like a reservation ?';
+    'would you like to make you a reservation ?';
+    'would you like to book it ?';
+}
+
+info_provide_pair = {
+    // if the user says thanks / no thanks, either end now, or give the agent a chance to ask for anything else
+    ( info:info_sentence '<sep>' thanks_phrase
+    | info:info_sentence '<sep>' ok_thanks_phrase
+    | info:info_sentence ('.' | ',' | '') reservation_request '<sep>' thanks_phrase
+    | info:info_sentence ('.' | ',' | '') reservation_request '<sep>' no_thanks_phrase
+    ) => [info, 'end'];
+    ( info:info_sentence '<sep>' thanks_phrase
+    | info:info_sentence '<sep>' ok_thanks_phrase
+    | info:info_sentence ('.' | ',' | '') reservation_request '<sep>' thanks_phrase
+    | info:info_sentence ('.' | ',' | '') reservation_request '<sep>' no_thanks_phrase
+    ) => [info, 'cancel'];
+
+    info:info_sentence ('.' | ',' | '') reservation_request '<sep>' yes_please_phrase => [info, 'accept'];
+}
+
+info_answer_provide_pair = {
+    // if the user says thanks / no thanks, either end now, or give the agent a chance to ask for anything else
+    ( info:info_answer_sentence '<sep>' thanks_phrase
+    | info:info_answer_sentence '<sep>' ok_thanks_phrase
+    | info:info_answer_sentence ('.' | ',' | '') reservation_request '<sep>' thanks_phrase
+    | info:info_answer_sentence ('.' | ',' | '') reservation_request '<sep>' no_thanks_phrase
+    ) => [info, 'end'];
+    ( info:info_answer_sentence '<sep>' thanks_phrase
+    | info:info_answer_sentence '<sep>' ok_thanks_phrase
+    | info:info_answer_sentence ('.' | ',' | '') reservation_request '<sep>' thanks_phrase
+    | info:info_answer_sentence ('.' | ',' | '') reservation_request '<sep>' no_thanks_phrase
+    ) => [info, 'cancel'];
+
+    info:info_answer_sentence ('.' | ',' | '') reservation_request '<sep>' yes_please_phrase => [info, 'accept'];
+}
+
+info_request_reservation = {
+    ( info:info_answer_sentence ('.' | ',' | '') '<sep>' ('yes ,' | 'perfect ,' | 'great ,' | '') req:user_second_request
+    | info:info_answer_sentence ('.' | ',' | '') reservation_request '<sep>' ('yes ,' | 'perfect ,' | 'great ,' | '') req:user_second_request
+    ) => [info, req];
+}
+
+make_reservation_confirm_pair = {
+    ( reservation_request '<sep>' thanks_phrase
+    | reservation_request '<sep>' no_thanks_phrase
+    ) => 'end';
+    ( reservation_request '<sep>' thanks_phrase
+    | reservation_request '<sep>' no_thanks_phrase
+    ) => 'cancel';
+
+    reservation_request '<sep>' yes_please_phrase => 'accept';
+}
+
+greeting_reply = {
+    'hello !';
+    'hello , how can i help you ?';
+    'how can i help you ?';
+    'what are you interested in ?';
+}
+
+anything_else_phrase = {
+    'is there anything else i can help you ?';
+    'can i help you with anything else ?';
+    'do you need anything else ?';
+}
+
+$root = {
+    ctx:intent_greet greeting_reply '<sep>' req:user_initial_request => req;
+
+    ctx:intent_search_request pair:proposal_reply_pair => {
+        const [proposal, counterrequest] = pair;
+        if (!Utils.proposalIsCompatible(proposal, ctx))
+            return null;
+
+        return Utils.counterRequest(ctx, counterrequest, 'second_request');
+    };
+
+    ctx:intent_search_request pair:proposal_slot_question_pair => {
+        const [proposal, question] = pair;
+
+        if (!Utils.proposalIsCompatible(proposal, ctx))
+            return null;
+
+        const clone = ctx.clone();
+        for (let [key, value] of question) {
+            if (clone.has(key))
+                return null;
+            clone.set(key, value);
+        }
+        clone.intent = 'slot_question';
+        assert(clone.hasQuestion());
+        return clone;
+    };
+    ctx:intent_search_request pair:proposal_info_question_pair => {
+        const [proposal, question] = pair;
+
+        if (!Utils.proposalIsCompatible(proposal, ctx))
+            return null;
+
+        const clone = ctx.clone();
+        /* // if the user is asking for info, they are implicitly accepting the proposal
+        for (let [key, value] of proposal)
+            clone.set(key, value);
+        */
+        for (let [key, value] of question) {
+            if (clone.has(key))
+                return null;
+            clone.set(key, value);
+        }
+        clone.intent = 'info_question';
+        assert(clone.hasQuestion());
+        return clone;
+    };
+
+    ctx:intent_search_request pair:error_reply_pair => {
+        const [error, counterrequest, intent] = pair;
+        if (!Utils.errorIsCompatible(error, ctx))
+            return null;
+
+        if (intent === 'insist')
+            return Utils.insist(ctx, counterrequest);
+
+        return Utils.counterRequest(ctx, counterrequest, intent, /* allow override ctx */ true);
+    };
+
+    ctx:intent_search_request qa:question_answer_pair => {
+        if (qa.domain !== ctx.domain)
+            return null;
+        const clone = ctx.clone();
+        for (let [key, value] of qa) {
+            if (clone.has(key))
+                return null;
+            clone.set(key, value);
+        }
+        clone.intent = 'second_request';
+        return clone;
+    };
+
+    ( ctx:intent_info_request pair:info_provide_pair
+    | ctx:intent_info_question pair:info_provide_pair
+    | ctx:intent_info_question pair:info_answer_provide_pair
+    | ctx:intent_slot_question pair:info_answer_provide_pair
+
+    // FIXME two copies to double the sampling...
+    | ctx:intent_info_question pair:info_provide_pair
+    | ctx:intent_info_question pair:info_answer_provide_pair
+    | ctx:intent_slot_question pair:info_answer_provide_pair
+    ) => Utils.systemAnswerInfo(ctx, pair);
+
+    ( ctx:intent_info_request pair:info_request_reservation
+    | ctx:intent_info_question pair:info_request_reservation
+    | ctx:intent_slot_question pair:info_request_reservation
+
+    | ctx:intent_info_request pair:info_request_reservation
+    | ctx:intent_info_question pair:info_request_reservation
+    | ctx:intent_slot_question pair:info_request_reservation
+    ) => Utils.systemAnswerInfoWithRequest(ctx, pair);
+
+    ctx:intent_complete_request intent:make_reservation_confirm_pair => {
+        if (ctx.intent === 'accept')
+            return null;
+        const clone = ctx.clone();
+        clone.intent = intent;
+        return clone;
+    };
+
+    ( ctx:intent_cancel anything_else_phrase '<sep>' thanks_phrase
+    | ctx:intent_cancel anything_else_phrase '<sep>' thanks_phrase
+    ) => {
+        const clone = ctx.clone();
+        clone.intent = 'end';
+        return clone;
+    };
+}

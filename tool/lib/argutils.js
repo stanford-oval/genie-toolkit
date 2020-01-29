@@ -11,6 +11,7 @@
 
 const fs = require('fs');
 const byline = require('byline');
+const argparse = require('argparse');
 
 const StreamUtils = require('../../lib/stream-utils');
 
@@ -25,7 +26,17 @@ function readAllLines(files, separator = '') {
     return StreamUtils.chain(files.map((s) => s.setEncoding('utf8').pipe(byline())), { objectMode: true, separator });
 }
 
+class ActionSetFlag extends argparse.Action {
+    call(parser, namespace, values) {
+        if (!namespace.flags)
+            namespace.set('flags', {});
+        for (let value of values)
+            namespace.flags[value] = this.constant;
+    }
+}
+
 module.exports = {
+    ActionSetFlag,
     maybeCreateReadStream,
     readAllLines
 };

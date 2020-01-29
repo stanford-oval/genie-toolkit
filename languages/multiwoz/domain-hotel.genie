@@ -1,0 +1,173 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+    const assert = require('assert');
+    const Ast = require('../../lib/languages/multidst/ast');
+    const { Slot, checkAndAddSlot } = require('./ast_utils');
+}
+
+direct_question = {
+}
+
+imprecise_answer = {
+    'i need parking .' => {
+        const state = new Ast.DialogState;
+        state.set('hotel-parking', new Ast.TristateValue('yes'));
+        return state;
+    };
+    'i do not need parking .' => {
+        const state = new Ast.DialogState;
+        state.set('hotel-parking', new Ast.TristateValue('no'));
+        return state;
+    };
+
+    'i need wifi .' => {
+        const state = new Ast.DialogState;
+        state.set('hotel-internet', new Ast.TristateValue('yes'));
+        return state;
+    };
+    'i do not need wifi .' => {
+        const state = new Ast.DialogState;
+        state.set('hotel-internet', new Ast.TristateValue('no'));
+        return state;
+    };
+}
+
+user_one_slot_domain_question = {
+    ( 'does it have parking ?'
+    | 'does it come with free parking ?'
+    | 'does it offer parking ?') => ['hotel-parking'];
+
+    ( 'does it have wifi ?'
+    | 'does it come with free wifi ?'
+    | 'does it offer free wifi ?'
+    | 'does it offer free internet ?') => ['hotel-internet'];
+
+    'how many stars does it have ?' => ['hotel-parking'];
+
+    ( 'how expensive is it ?'
+    | 'how pricey is it ?'
+    ) => ['hotel-price-range'];
+}
+
+param_noun_phrase = {
+    ( 'hotel'
+    | 'place'
+    | 'name'
+    | 'name of the hotel'
+    ) => 'hotel-name';
+
+    'price range' => 'hotel-price-range';
+
+    ( 'area'
+    | 'area of the city') => 'hotel-area';
+
+    'number of people' => 'hotel-book-people';
+
+    ( 'day'
+    | 'date'
+    ) => 'hotel-book-day';
+
+    ( 'duration'
+    | 'length of stay'
+    ) => 'hotel-book-stay';
+}
+
+sys_param_noun_phrase = {
+    'address' => 'hotel-system-addr';
+    'post code' => 'hotel-system-post';
+    'phone number' => 'hotel-system-phone';
+    ( 'reference number'
+    | 'booking reference'
+    ) => 'hotel-system-ref';
+}
+
+base_noun_phrase = {
+    'hotel' => new Ast.DialogState('hotel');
+    'hotel -s' => new Ast.DialogState('hotel');
+    'guest house' => checkAndAddSlot(new Ast.DialogState('hotel'), new Slot('hotel-type', new Ast.ConstantValue('guest house')));
+    'place to stay' => new Ast.DialogState('hotel');
+    'place to sleep' => new Ast.DialogState('hotel');
+}
+
+// npp: Noun-Phrase of Property
+// "X that have $npp_slot" or "X with $npp_slot"
+npp_slot = {
+    ( v:constant_hotel_price_range 'price'
+    | v:constant_hotel_price_range 'price range'
+    ) => new Slot('hotel-price-range', v);
+
+    v:constant_hotel_stars 'stars' => new Slot('hotel-stars', v);
+
+    'parking' => new Slot('hotel-parking', new Ast.TristateValue('yes'));
+    'parking available' => new Slot('hotel-parking', new Ast.TristateValue('yes'));
+    'no parking' => new Slot('hotel-parking', new Ast.TristateValue('no'));
+    'free parking' => new Slot('hotel-parking', new Ast.TristateValue('yes'));
+    'free parking available' => new Slot('hotel-parking', new Ast.TristateValue('yes'));
+
+    'internet' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
+    'no internet' => new Slot('hotel-internet', new Ast.TristateValue('no'));
+    'free internet' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
+    'free internet available' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
+    'wifi' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
+    'no wifi' => new Slot('hotel-internet', new Ast.TristateValue('no'));
+    'free wifi' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
+    'free wifi available' => new Slot('hotel-internet', new Ast.TristateValue('yes'));
+
+    'name' v:constant_hotel_name => new Slot('hotel-name', v);
+}
+
+// npi: Noun-Phrase of Identity
+// "X that is $npi_slot", where npi is a noun-phrase (not a passive-verb-phrase)
+npi_slot = {
+}
+
+// prep: Preposition
+// "X $prep_slot" or "X that <verb> $prep_slot" - where $prep_slot starts with a preposition
+// eg. "train to cambridge"
+prep_slot = {
+    ( 'in' v:constant_hotel_area
+    | 'in the' v:constant_hotel_area 'area'
+    | 'near' v:constant_hotel_area
+    | 'near the' v:constant_hotel_area 'area'
+    | 'around' v:constant_hotel_area
+    | 'around the' v:constant_hotel_area 'area'
+    ) => new Slot('hotel-area', v);
+
+    ( 'for' v:constant_hotel_book_day
+    | 'on' v:constant_hotel_book_day
+    ) => new Slot('hotel-book-day', v);
+
+    ( 'for' v:constant_hotel_book_people 'people'
+    | 'for' v:constant_hotel_book_people
+    ) => new Slot('hotel-book-people', v);
+}
+
+// pvp: Passive-Verb Phrase
+// "X $pvp_slot" or "X that is $pvp_slot" - where $pvp_slot is a verb phrase in -ed or -ing form
+// eg. "train leaving from cambridge"
+// pvp_slot is also used for prepositional phrases
+pvp_slot = {
+    'called' v:constant_hotel_name => new Slot('hotel-name', v);
+}
+
+// avp: Active-Verb Phrase
+// "X that $apv_slot" where $apv_slot is a verb phrase in active form, with X as subject
+avp_slot = {
+}
+
+// apv: Adjective-Phrase Value
+// "$apv_slot X" where $apv_slot is an adjective phrase
+// e.g.: "cheap restaurant", "5-star hotel"
+apv_slot = {
+    v:constant_hotel_price_range => new Slot('hotel-price-range', v);
+    v:constant_hotel_stars 'star' => new Slot('hotel-stars', v);
+}

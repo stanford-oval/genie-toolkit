@@ -72,9 +72,15 @@ module.exports = class ConstantSampler {
                     if (samples.length === 0)
                         samples = await this._retrieveSamples('string', string_values);
                     if (entityType) {
-                        samples.forEach((sample) => {
-                            constants.push([`param:@${device}.${f}:${arg}:Entity(${entityType})`, `null`, sample]);
-                        });
+                        if (['tt:hashtag', 'tt:username'].includes(entityType)) {
+                            samples.forEach((sample) => {
+                                constants.push([`param:@${device}.${f}:${arg}:Entity(${entityType})`, sample]);
+                            });
+                        } else {
+                            samples.forEach((sample) => {
+                                constants.push([`param:@${device}.${f}:${arg}:Entity(${entityType})`, `null`, sample]);
+                            });
+                        }
                     } else if (argument.type.isString) {
                         samples.forEach((sample) => {
                             constants.push([`param:@${device}.${f}:${arg}:String`, sample]);

@@ -10,21 +10,13 @@
 "use strict";
 
 const fs = require('fs');
-const argparse = require('argparse');
 
 const { DatasetStringifier } = require('../lib/dataset-parsers');
-const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
+const { ActionSetFlag, maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const parallelize = require('../lib/parallelize');
 const StreamUtils = require('../lib/stream-utils');
-
-class ActionSetFlag extends argparse.Action {
-    call(parser, namespace, values) {
-        if (!namespace.flags)
-            namespace.set('flags', {});
-        for (let value of values)
-            namespace.flags[value] = this.constant;
-    }
-}
+const { AVAILABLE_LANGUAGES } = require('../lib/languages');
+const ProgressBar = require('./lib/progress_bar');
 
 module.exports = {
     initArgparse(subparsers) {
@@ -46,20 +38,27 @@ module.exports = {
             defaultValue: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
+        parser.addArgument(['-t', '--target-language'], {
+            required: false,
+            defaultValue: 'thingtalk',
+            choices: AVAILABLE_LANGUAGES,
+            help: `The programming language to generate`
+        });
         parser.addArgument('--thingpedia', {
-            required: true,
+            required: false,
             help: 'Path to ThingTalk file containing class definitions.'
         });
         parser.addArgument('--entities', {
-            required: true,
+            required: false,
             help: 'Path to JSON file containing entity type definitions.'
         });
         parser.addArgument('--dataset', {
-            required: true,
+            required: false,
             help: 'Path to file containing primitive templates, in ThingTalk syntax.'
         });
         parser.addArgument('--template', {
             required: true,
+            nargs: '+',
             help: 'Path to file containing construct templates, in Genie syntax.'
         });
         parser.addArgument('--set-flag', {
@@ -119,12 +118,28 @@ module.exports = {
         const inputFile = readAllLines(args.input_file);
         const outputFile = args.output;
 
+        const counter = new StreamUtils.CountStream();
+        const promise = StreamUtils.waitFinish(outputFile);
+
         delete args.input_file;
         delete args.output;
         inputFile
-            .pipe(await parallelize(args.parallelize, require.resolve('./workers/generate-contextual-worker.js'), args))
+            .pipe(counter)
+            .pipe(parallelize(args.parallelize, require.resolve('./workers/generate-contextual-worker.js'), args))
             .pipe(new DatasetStringifier())
             .pipe(outputFile);
-        await StreamUtils.waitFinish(outputFile);
+
+        if (!args.debug) {
+            const progbar = new ProgressBar(1);
+            counter.on('progress', (value) => {
+                //console.log(value);
+                progbar.update(value);
+            });
+
+            // issue an update now to show the progress bar
+            progbar.update(0);
+        }
+
+        await promise;
     }
 };
