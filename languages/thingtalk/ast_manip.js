@@ -21,7 +21,6 @@ const { isUnaryTableToTableOp,
         isUnaryTableToStreamOp,
         typeToStringSafe } = require('./utils');
 const { notifyAction } = ThingTalk.Generate;
-const { coin } = require('../lib/random');
 
 function findFunctionNameTable(table) {
     if (table.isInvocation)
@@ -341,8 +340,6 @@ function makeSingleFieldProjection($options, ftype, ptype, table, outParam) {
 
 
 function makeMultiFieldProjection($options, ftype, table, outParams) {
-    if (coin(0.9998, $options.rng))
-        return null;
     const names = [];
     for (let outParam of outParams) {
         const name = outParam.name;
@@ -1182,8 +1179,6 @@ function maybeGetIdFilter(filter) {
 }
 
 function addReverseGetPredicateJoin(table, get_predicate_table, pname, $options, negate = false) {
-    /*if (coin(0.9, $options.rng))
-        return null;*/
     if (!get_predicate_table.isInvocation &&
         !(get_predicate_table.isFilter && get_predicate_table.table.isInvocation))
         return null;
@@ -1219,8 +1214,6 @@ function addReverseGetPredicateJoin(table, get_predicate_table, pname, $options,
 }
 
 function addGetPredicateJoin(table, get_predicate_table, pname, $options, negate = false) {
-    if (coin(0.9, $options.rng))
-        return null;
     if (!get_predicate_table.isFilter || !get_predicate_table.table.isInvocation)
         return null;
 
@@ -1275,9 +1268,6 @@ function addGetPredicateJoin(table, get_predicate_table, pname, $options, negate
 }
 
 function addArrayJoin(lhs, rhs, $options) {
-    if (coin(0.9, $options.rng))
-        return null;
-
     if (!lhs.isFilter)
         return null;
 
