@@ -10,17 +10,10 @@
 "use strict";
 
 const fs = require('fs');
-const csvparse = require('csv-parse');
-const csvstringify = require('csv-stringify');
 const Stream = require('stream');
 const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
-const ThingTalk = require('thingtalk');
-const Tp = require('thingpedia');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
-const Utils = require('../lib/utils');
 const StreamUtils = require('../lib/stream-utils');
 
 
@@ -62,7 +55,8 @@ function transfer(utterance, code) {
     if (utterance.includes('food'))
         return null;
 
-    code = code.replace(/org.schema:Restaurant/g, 'org.schema:Hotel')
+    code = code.replace(/org.schema.Restaurant:Restaurant/g, 'org.schema.Hotel:Hotel')
+        .replace(/org.schema.Restaurant.Restaurant/g, 'org.schema.Hotel.Hotel')
         .replace(/org.schema.Restaurant/g, 'org.schema.Hotel');
 
     return [utterance, code];
@@ -91,22 +85,12 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new Tp.FileClient(args);
-        const schemas = new ThingTalk.SchemaRetriever(tpClient, null);
-
         readAllLines(args.input_file)
             .pipe(new DatasetParser())
             .pipe(new Stream.Transform({
                 objectMode: true,
 
                 transform(ex, encoding, callback) {
-                    //console.log(ex);
-                    //const entities = Utils.makeDummyEntities(utterance);
-                    //console.log(ex);
-                    //console.log(code);
-                    //const parsed = ThingTalk.NNSyntax.fromNN(code.split(' '), entities);
-                    //console.log(parsed);
-                    //process.exit()
                     const result = transfer(ex.preprocessed, ex.target_code);
                     if (result) {
                         const [utterance, code] = result;
