@@ -103,9 +103,10 @@ function makeExampleFromAction(a) {
 }
 
 class ThingpediaLoader {
-    async init(runtime, grammar, options) {
+    async init(runtime, grammar, langPack, options) {
         this._runtime = runtime;
         this._grammar = grammar;
+        this._langPack = langPack;
 
         this._tpClient = options.thingpediaClient;
         if (!options.schemaRetriever)
