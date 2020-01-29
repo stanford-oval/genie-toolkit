@@ -27,155 +27,140 @@ who_complete_table = {
     thingpedia_who_question if complete;
 }
 
-// for who question with a single npp filter
-who_npp_filtered_table = {
-    !nofilter table:who_complete_table filter:npp_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
+
+who_with_filtered_table = {
+    // no filter
+    !aways_filter who_complete_table;
+
+    // one filter
+    who_one_with_filter_table;
+    who_one_which_filter_table;
+    who_one_clean_filter_table;
+
+    // two filters
+    who_two_with_filter_table;
+    who_two_which_filter_table;
+    who_two_clean_filter_table;
 }
 
-// for whose question
-whose_npp_filtered_table = {
-    !nofilter table:who_complete_table filter:whose_npp_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
+who_one_with_filter_table = {}
+who_one_which_filter_table = {}
+who_one_clean_filter_table = {}
+who_two_with_filter_table = {}
+who_two_which_filter_table = {}
+who_two_clean_filter_table = {}
+
+if (!_tpLoader.flags.nofilter) {
+    who_one_with_filter_table = {
+        table:thingpedia_who_question ('with' | 'having') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    }
+
+    who_one_which_filter_table = {
+        table:thingpedia_who_question ('which' | 'that') ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:thingpedia_who_question ('which' | 'that') filter:avp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:thingpedia_who_question ('which' | 'that') ('is' | 'are') filter:apv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:thingpedia_who_question ('which' | 'that') ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    }
+
+    who_one_clean_filter_table = {
+        table:thingpedia_who_question filter:pvp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    }
+
+    who_two_with_filter_table = {
+        table:who_one_with_filter_table 'and' filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_which_filter_table ('and having' | 'and with' | ', with') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_clean_filter_table ('with' | 'having') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    }
+
+    who_two_which_filter_table = {
+        table:who_one_with_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_with_filter_table ('which' | 'that') filter:avp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_with_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_with_filter_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+
+        table:who_one_which_filter_table 'and' ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_which_filter_table 'and' filter:avp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_which_filter_table 'and' ('is' | 'are') filter:apv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_which_filter_table 'and' ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+
+        table:who_one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_clean_filter_table ('which' | 'that') filter:avp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    }
 }
 
-// for who question with a single pvp filter
-who_pvp_filtered_table = {
-    !nofilter table:who_complete_table filter:pvp_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
+
+who_verb_filtered_table = {
+    // one filter
+    who_one_be_filter_table;
+    who_one_have_filter_table;
+    who_one_verb_filter_table;
+
+    // two filters
+    who_two_be_filter_table;
+    who_two_have_filter_table;
+    who_two_verb_filter_table;
 }
 
-// for who question with a single pvp filter
-who_avp_filtered_table = {
-    !nofilter table:who_complete_table filter:avp_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
-}
+who_one_be_filter_table = {}
+who_one_have_filter_table = {}
+who_one_verb_filter_table = {}
+who_two_be_filter_table = {}
+who_two_have_filter_table = {}
+who_two_verb_filter_table = {}
+whose_filtered_table = {}
 
-// for who question with a single npi filter
-who_npi_filtered_table = {
-    !nofilter table:who_complete_table filter:npi_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
-}
+if (!_tpLoader.flags.nofilter) {
+    who_one_be_filter_table = {
+        ?turking table:who_complete_table ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_complete_table ('is' | 'are') filter:pvp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_complete_table ('is' | 'are') filter:apv_filter  => C.checkAndAddFilter(table, filter, _tpLoader);
+        ?turking table:who_complete_table ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
 
-// for who question with a single npv filter
-who_npv_filtered_table = {
-    !nofilter table:who_complete_table filter:npv_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
-}
+        !turking table:who_complete_table ('is' | 'are') ('' | 'a' | 'the' | 'an') filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        !turking table:who_complete_table ('is' | 'are') ('' | 'a' | 'the' | 'an') filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    }
 
-// for who question with a single apv filter
-who_apv_filtered_table = {
-    !nofilter table:who_complete_table filter:apv_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
-}
+    who_one_have_filter_table = {
+        table:who_complete_table ('get' | 'have' | 'gets' | 'has') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    }
 
-// for who question with a single generic filter
-who_generic_filtered_table = {
-    !nofilter table:who_complete_table filter:who_generic_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
-}
+    who_one_verb_filter_table = {
+        table:who_complete_table filter:avp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    }
 
-// for who question with two generic filters
-who_two_generic_filtered_table = {
-    !nofilter table:who_generic_filtered_table 'and' filter:who_generic_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
-}
+    who_two_be_filter_table = {
+        table:who_one_be_filter_table 'and' filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_be_filter_table 'and' filter:pvp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_be_filter_table 'and' filter:apv_filter  => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_be_filter_table 'and' filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
 
-// for who question with one npi filter and another filter in other category
-who_npi_generic_filtered_table = {
-    !nofilter table:who_npi_filtered_table filter:who_generic_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
-}
+        table:who_one_have_filter_table 'and' ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_have_filter_table 'and' ('is' | 'are') filter:pvp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_have_filter_table 'and' ('is' | 'are') filter:apv_filter  => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_have_filter_table 'and' ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
 
-// for who question with one npv filter and another filter in other category
-who_npv_generic_filtered_table = {
-    !nofilter table:who_npv_filtered_table filter:who_generic_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
-}
+        table:who_one_verb_filter_table 'and' ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_verb_filter_table 'and' ('is' | 'are') filter:pvp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_verb_filter_table 'and' ('is' | 'are') filter:apv_filter  => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_verb_filter_table 'and' ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    }
 
-// for who question with one npi filter and one npv filter
-who_apv_npv_filtered_table = {
-    !nofilter table:who_apv_filtered_table filter:npv_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
-}
+    who_two_have_filter_table = {
+        table:who_one_be_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_have_filter_table 'and' filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_verb_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    }
 
-// for who question with one apv filter and one npi filter
-who_apv_npi_filtered_table = {
-    !nofilter table:who_apv_filtered_table filter:npi_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
-}
+    who_two_verb_filter_table = {
+        table:who_one_be_filter_table 'and' filter:avp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_have_filter_table 'and' filter:avp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_verb_filter_table 'and' filter:avp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    }
 
-// for who question with two npp filters
-who_npp_npp_filtered_table = {
-    !nofilter table:who_npp_filtered_table 'and' filter:npp_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
-}
+    whose_filtered_table = {
+        table:who_complete_table filter:whose_filtered_table => C.checkAndAddFilter(table, filter, _tpLoader);
+    }
 
-// for who question with two npi filters
-who_npi_npi_filtered_table = {
-    !nofilter table:who_npp_filtered_table 'and the' filter:npp_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
-}
-
-// for who question with one npi filter and one pvp filter
-who_npi_pvp_filtered_table = {
-    !nofilter 'the' table:who_npi_filtered_table filter:pvp_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
-}
-
-// for who question with one nnp filter and another filter in other category
-who_generic_npp_filtered_table = {
-    !nofilter table:who_generic_filtered_table 'with' filter:npp_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
 }

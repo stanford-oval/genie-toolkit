@@ -1,0 +1,43 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+
+const TIMER_SCHEMA = new Ast.FunctionDef('stream',
+    'timer',
+    [],
+    [], // args,
+    false, // is_list
+    true,  // is_monitorable
+    {
+    canonical: 'every fixed interval',
+    confirmation: 'every ${interval}',
+    },
+    {} // annotations
+);
+
+const AT_TIMER_SCHEMA = new Ast.FunctionDef('stream',
+    'attimer',
+    [],
+    [], // args,
+    false, // is_list
+    true,  // is_monitorable
+    {
+    canonical: 'every day',
+    confirmation: 'every day at ${interval}',
+    },
+    {} // annotations
+);
+}
+
+timer = {
+}

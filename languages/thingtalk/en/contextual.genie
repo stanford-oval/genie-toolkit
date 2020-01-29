@@ -166,14 +166,14 @@ $root = {
 
         // if the table is monitorable, run it again
         if (table.schema.is_monitorable) {
-            return C.makeProgram(new Ast.Statement.Command(table, [action]))
+            return C.makeProgram($options, new Ast.Statement.Command(table, [action]))
         } else {
             // otherwise, make a result() expression referring to the last type involved
 
             const functionNames = C.findFunctionNameTable(table);
             const [kind, fname] = functionNames[functionNames.length-1].split(':');
             table = new Ast.Table.ResultRef(kind, fname, new Ast.Value.Number(-1), table.schema);
-            return C.makeProgram(new Ast.Statement.Command(table, [action]));
+            return C.makeProgram($options, new Ast.Statement.Command(table, [action]));
         }
     };
     command:chain_query if complete => {
@@ -181,7 +181,7 @@ $root = {
 
         // if the previous command is monitorable, run it again
         if (lhs.schema.is_monitorable) {
-            return C.makeProgram(new Ast.Statement.Command(
+            return C.makeProgram($options, new Ast.Statement.Command(
                 new Ast.Table.Join(lhs, rhs, args, rhs.schema), [
                 C.notifyAction()]))
         } else {
@@ -190,7 +190,7 @@ $root = {
             const functionNames = C.findFunctionNameTable(lhs);
             const [kind, fname] = functionNames[functionNames.length-1].split(':');
             const ref = new Ast.Table.ResultRef(kind, fname, new Ast.Value.Number(-1), lhs.schema);
-            return C.makeProgram(new Ast.Statement.Command(
+            return C.makeProgram($options, new Ast.Statement.Command(
                 new Ast.Table.Join(ref, rhs, args, rhs.schema), [C.notifyAction()]));
         }
     };

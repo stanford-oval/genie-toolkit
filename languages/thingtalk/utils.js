@@ -11,6 +11,9 @@
 // See COPYING for details
 "use strict";
 
+const Inflectors = require('en-inflectors').Inflectors;
+const Tag = require('en-pos').Tag;
+
 function typeToStringSafe(type) {
     if (type.isArray)
         return 'Array__' + typeToStringSafe(type.elem);
@@ -30,8 +33,27 @@ function clean(name) {
     return name.replace(/_/g, ' ').replace(/([^A-Z ])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
+// FIXME do not duplicate this, and also this needs to be moved inside lib/i18n/
+function pluralize(name) {
+    if (!name.includes(' ')) {
+        if (new Tag([name]).initial().tags[0] === 'NN')
+            return new Inflectors(name).toPlural();
+        return name;
+    } else {
+        const words = name.split(' ');
+        const tags = new Tag(words).initial().tags;
+        if (tags[tags.length - 1] !== 'NN')
+            return name;
+        else if (['VB', 'VBP', 'VBZ', 'VBD'].includes(tags[0]))
+            return name;
+        words[words.length - 1] = pluralize(words[words.length - 1]);
+        return words.join(' ');
+    }
+}
+
 module.exports = {
     clean,
+    pluralize,
 
     isUnaryTableToTableOp(table) {
         return table.isFilter ||

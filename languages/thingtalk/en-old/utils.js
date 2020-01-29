@@ -11,10 +11,6 @@
 // See COPYING for details
 "use strict";
 
-const assert = require('assert');
-const Inflectors = require('en-inflectors').Inflectors;
-const Tag = require('en-pos').Tag;
-
 class ValidationError extends Error {
     constructor(message) {
         super(message);
@@ -26,23 +22,6 @@ function clean(name) {
     if (/^[vwgp]_/.test(name))
         name = name.substr(2);
     return name.replace(/_/g, ' ').replace(/([^A-Z ])([A-Z])/g, '$1 $2').toLowerCase();
-}
-
-function pluralize(name) {
-    if (!name.includes(' ')) {
-        if (new Tag([name]).initial().tags[0] === 'NN')
-            return new Inflectors(name).toPlural();
-        return name;
-    } else {
-        const words = name.split(' ');
-        const tags = new Tag(words).initial().tags;
-        if (tags[tags.length - 1] !== 'NN')
-            return name;
-        else if (['VB', 'VBP', 'VBZ', 'VBD'].includes(tags[0]))
-            return name;
-        words[words.length - 1] = pluralize(words[words.length - 1]);
-        return words.join(' ');
-    }
 }
 
 const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})/;
@@ -66,19 +45,57 @@ function* split(pattern, regexp) {
 }
 
 const ENTITIES = {
-    DURATION: (idx) => ({ value: idx + 2, unit: 'ms' }),
-    NUMBER: (idx) => idx + 2,
-    DATE: (idx) => ({ day: idx + 1, month: 1, year: 2018 }),
-    TIME: (idx) => ({ hour: 0, minute: idx + 1, second: 0 }),
-    CURRENCY: (idx) => ({ value: idx + 2, unit: 'usd' }),
-    LOCATION: (idx) => ({ latitude: idx + 2, longitude: idx + 2 }),
-    QUOTED_STRING: (idx) => `"${idx}"`,
-    PATH_NAME: (idx) => `foo/${idx}.png`,
-    URL: (idx) => `https://${idx}.com`,
-    PHONE_NUMBER: (idx) => `+1${idx+1}`,
-    EMAIL_ADDRESS: (idx) => `${idx+1}@foo.com`,
-    USERNAME: (idx) => `@${idx+1}`,
-    HASHTAG: (idx) => `#${idx+1}`,
+    DURATION_0: { value: 2, unit: 'ms' },
+    DURATION_1: { value: 3, unit: 'ms' },
+    DURATION_3: { value: 4, unit: 'ms' },
+    NUMBER_0: 2,
+    NUMBER_1: 3,
+    NUMBER_2: 4,
+    NUMBER_3: 5,
+    DATE_0: { day: 1, month: 1, year: 2018 },
+    DATE_1: { day: 2, month: 1, year: 2018 },
+    DATE_2: { day: 3, month: 1, year: 2018 },
+    DATE_3: { day: 4, month: 1, year: 2018 },
+    TIME_0: { hour: 0, minute: 1, second: 0 },
+    TIME_1: { hour: 0, minute: 2, second: 0  },
+    TIME_2: { hour: 0, minute: 3, second: 0  },
+    TIME_3: { hour: 0, minute: 4, second: 0  },
+    CURRENCY_0: { value: 2, unit: 'usd' },
+    CURRENCY_1: { value: 3, unit: 'usd' },
+    CURRENCY_2: { value: 4, unit: 'usd' },
+    CURRENCY_3: { value: 5, unit: 'usd' },
+    LOCATION_0: { latitude: 2, longitude: 2 },
+    LOCATION_1: { latitude: 3, longitude: 3 },
+    LOCATION_2: { latitude: 4, longitude: 4 },
+    LOCATION_3: { latitude: 5, longitude: 5 },
+    QUOTED_STRING_0: '"0"',
+    QUOTED_STRING_1: '"1"',
+    QUOTED_STRING_2: '"2"',
+    QUOTED_STRING_3: '"3"',
+    PATH_NAME_0: 'foo/0.png',
+    PATH_NAME_1: 'foo/1.png',
+    PATH_NAME_2: 'foo/2.png',
+    PATH_NAME_3: 'foo/3.png',
+    URL_0: 'https://0.com',
+    URL_1: 'https://1.com',
+    URL_2: 'https://2.com',
+    URL_3: 'https://3.com',
+    PHONE_NUMBER_0: '+11',
+    PHONE_NUMBER_1: '+12',
+    PHONE_NUMBER_2: '+13',
+    PHONE_NUMBER_3: '+14',
+    EMAIL_ADDRESS_0: '1@foo',
+    EMAIL_ADDRESS_1: '2@foo',
+    EMAIL_ADDRESS_2: '3@foo',
+    EMAIL_ADDRESS_3: '4@foo',
+    USERNAME_0: '@1',
+    USERNAME_1: '@2',
+    USERNAME_2: '@3',
+    USERNAME_3: '@4',
+    HASHTAG_0: '#0',
+    HASHTAG_1: '#1',
+    HASHTAG_2: '#2',
+    HASHTAG_3: '#3',
 };
 Object.freeze(ENTITIES);
 
@@ -204,35 +221,26 @@ async function tokenizeExample(tokenizer, utterance, id, language) {
     return preprocessed;
 }
 
-const ENTITY_MATCH_REGEX = /^([A-Z].*)_([0-9]+)$/;
-
-function makeDummyEntity(token) {
-    const [,entityType,entityIndex] = ENTITY_MATCH_REGEX.exec(token);
-    assert(!Number.isNaN(Number(entityIndex)), token);
-
-    if (entityType.startsWith('MEASURE_'))
-        return makeDummyMeasure(token);
-    else if (entityType.startsWith('GENERIC_ENTITY_'))
-        return { value: token, display: token };
-    else if (!(entityType in ENTITIES))
-        throw new Error(`missing entity ${token}`);
-    else
-        return ENTITIES[entityType](Number(entityIndex));
-}
-
 module.exports = {
     splitParams,
     split,
     clean,
-    pluralize,
     tokenizeExample,
 
-    makeDummyEntity,
+    ENTITIES,
     makeDummyEntities(preprocessed) {
         const entities = {};
         for (let token of preprocessed.split(' ')) {
-            if (/^[A-Z]/.test(token))
-                entities[token] = makeDummyEntity(token);
+            if (/^[A-Z]/.test(token)) {
+                if (token.startsWith('MEASURE_'))
+                    entities[token] = makeDummyMeasure(token);
+                else if (token.startsWith('GENERIC_ENTITY_'))
+                    entities[token] = { value: token, display: token };
+                else if (!(token in ENTITIES))
+                    throw new Error(`missing entity ${token}`);
+                else
+                    entities[token] = ENTITIES[token];
+            }
         }
         return entities;
     },
@@ -288,5 +296,30 @@ module.exports = {
         }
 
         tokenized.entities = out;
+    },
+
+    isUnaryTableToTableOp(table) {
+        return table.isFilter ||
+            table.isProjection ||
+            table.isCompute ||
+            table.isAlias ||
+            table.isAggregation ||
+            table.isArgMinMax ||
+            table.isSequence ||
+            table.isHistory;
+    },
+    isUnaryStreamToTableOp(table) {
+        return table.isWindow || table.isTimeSeries;
+    },
+    isUnaryStreamToStreamOp(stream) {
+        return stream.isEdgeNew ||
+            stream.isEdgeFilter ||
+            stream.isFilter ||
+            stream.isProjection ||
+            stream.isCompute ||
+            stream.isAlias;
+    },
+    isUnaryTableToStreamOp(stream) {
+        return stream.isMonitor;
     }
 };

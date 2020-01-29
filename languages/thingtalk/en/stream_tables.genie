@@ -22,16 +22,23 @@ const C = require('../ast_manip');
 const _tpLoader = require('../load-thingpedia');
 }
 
-
 complete_table = {
     thingpedia_query if complete;
     !primonly table_join_replace_placeholder if complete;
+    filter:apv_filter q:thingpedia_query if complete => {
+        if (!C.checkFilter(q, filter))
+            return null;
+        return C.addFilter(q, filter, _tpLoader);
+    };
 }
+
 complete_get_command = {
     thingpedia_get_command if complete;
 }
+
+// if filter: if it rains (used for stream only)
 if_filtered_table = {
-    complete_table;
+    !always_filter complete_table;
     one_if_filter_table;
     !turking two_if_filter_table;
 }
@@ -43,6 +50,7 @@ one_if_filter_table = {
         return C.addFilter(table, filter, _tpLoader);
     };
 }
+
 two_if_filter_table = {
     !nofilter table:one_if_filter_table 'and' filter:atom_filter => {
         if (!C.checkFilter(table, filter))
@@ -50,260 +58,231 @@ two_if_filter_table = {
         return C.addFilter(table, filter, _tpLoader);
     };
 }
+
+// non-verb filter:
+// (1) with filtered: restaurants with name bla
+// (2) which filtered: restaurants which have name bla
+// (3) "clean" filtered (i.e., no which/with): chinese restaurants, reviews written by bob
 with_filtered_table = {
-    complete_table;
+    // no filter
+    !always_filter complete_table;
+
+    // one filter
     one_with_filter_table;
-    !turking two_with_filter_table;
+    one_which_filter_table;
+    one_clean_filter_table;
+
+    // two filters
+    two_with_filter_table;
+    two_which_filter_table;
+    two_clean_filter_table;
 }
 
 one_with_filter_table = {
-    !nofilter table:complete_table ('with' | 'having') filter:with_filter => {
-        if (!table.schema.is_list)
-            return null;
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
+    !nofilter table:complete_table ('with' | 'having') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
 }
+
+one_which_filter_table = {
+    !nofilter table:complete_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:complete_table ('which' | 'that') filter:avp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:complete_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:complete_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+}
+
+one_clean_filter_table = {
+    !nofilter filter:apv_filter table:complete_table => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:complete_table filter:pvp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+}
+
 two_with_filter_table = {
-    !nofilter table:one_with_filter_table 'and' filter:with_filter => {
-        if (!table.schema.is_list)
-            return null;
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
+    !nofilter table:one_with_filter_table 'and' filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_which_filter_table ('and having' | 'and with' | ', with') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_clean_filter_table ('with' | 'having') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+
+    !nofilter filter:apv_filter table:one_with_filter_table => C.checkAndAddFilter(table, filter, _tpLoader);
+}
+
+two_which_filter_table = {
+    !nofilter table:one_with_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_with_filter_table ('which' | 'that') filter:avp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_with_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_with_filter_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+
+    !nofilter table:one_which_filter_table 'and' ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_which_filter_table 'and' filter:avp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_which_filter_table 'and' ('is' | 'are') filter:apv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_which_filter_table 'and' ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+
+    !nofilter table:one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_clean_filter_table ('which' | 'that') filter:avp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+
+    !nofilter filter:apv_filter table:one_which_filter_table => C.checkAndAddFilter(table, filter, _tpLoader);
+}
+
+two_clean_filter_table = {
+    !nofilter filter:apv_filter table:one_clean_filter_table => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_clean_filter_table filter:pvp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
 }
 
 
-npi_filtered_table = {
-    !nofilter table:complete_table ('that' | 'which') 'is the' filter:npi_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
+// verb filter:
+// (1) be filter: reviews are written by bob
+// (2) have: restaurants have panda in name
+// (3) verb: restaurants serve chinese food
+verb_filtered_table = {
+    // one filter
+    one_be_filter_table;
+    one_have_filter_table;
+    one_verb_filter_table;
+
+    // two filters
+    two_be_filter_table;
+    two_have_filter_table;
+    two_verb_filter_table;
 }
 
-pvp_filtered_table = {
-    !nofilter table:complete_table filter:pvp_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
+one_be_filter_table = {
+    !nofilter table:complete_table ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:complete_table ('is' | 'are') filter:pvp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:complete_table ('is' | 'are') filter:apv_filter  => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:complete_table ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
 }
 
-avp_filtered_table = {
-    !nofilter table:complete_table ('that' | 'which' | '') filter:avp_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
+one_have_filter_table = {
+    !nofilter table:complete_table ('get' | 'have') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
 }
 
-npv_filtered_table = {
-    !nofilter table:complete_table ('that' | 'which') 'is a' filter:npv_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
+one_verb_filter_table = {
+    !nofilter table:complete_table filter:avp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
 }
 
-apv_filtered_table = {
-    !nofilter table:complete_table ('that' | 'which') 'is' filter:apv_filter => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
+two_be_filter_table = {
+    !nofilter table:one_be_filter_table 'and' filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_be_filter_table 'and' filter:pvp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_be_filter_table 'and' filter:apv_filter  => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_be_filter_table 'and' filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
 
-    !nofilter filter:apv_filter table:complete_table => {
-        if (!C.checkFilter(table, filter))
-            return null;
-        return C.addFilter(table, filter, _tpLoader);
-    };
+    !nofilter table:one_have_filter_table 'and' ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_have_filter_table 'and' ('is' | 'are') filter:pvp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_have_filter_table 'and' ('is' | 'are') filter:apv_filter  => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_have_filter_table 'and' ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+
+    !nofilter table:one_verb_filter_table 'and' ('is' | 'are') filter:npi_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_verb_filter_table 'and' ('is' | 'are') filter:pvp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_verb_filter_table 'and' ('is' | 'are') filter:apv_filter  => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_verb_filter_table 'and' ('is' | 'are') filter:npv_filter => C.checkAndAddFilter(table, filter, _tpLoader);
 }
 
-arg_min_max_table = {
+two_have_filter_table = {
+    !nofilter table:one_be_filter_table 'and' ('get' | 'have') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_have_filter_table 'and' filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_verb_filter_table 'and' ('get' | 'have') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+}
+
+two_verb_filter_table = {
+    !nofilter table:one_be_filter_table 'and' filter:avp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_have_filter_table 'and' filter:avp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_verb_filter_table 'and' filter:avp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+}
+
+
+// arg min max
+with_arg_min_max_table = {
     ?aggregation {
-    t:complete_table ('with' | 'which has') 'the' ('maximum' | 'highest') p:out_param_Number => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
-            return null;
-        if (!t.schema.is_list || t.isIndex) //avoid conflict with primitives
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
+    t:complete_table ('with' | 'which has') 'the' ('maximum' | 'highest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('minimum' | 'lowest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('longest' | 'most lasting') p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the shortest' p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('maximum' | 'largest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('minimum' | 'smallest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('latest'| 'most recent') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('latest'| 'most recent') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'asc');
 
-    t:complete_table ('with' | 'which has') 'the' ('minimum' | 'lowest') p:out_param_Number => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-
-    t:complete_table ('with' | 'which has') 'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-
-    t:complete_table ('with' | 'which has') 'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-
-    t:complete_table ('with' | 'which has') 'the' ('longest' | 'most lasting') p:out_param_Measure_ms => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-
-    t:complete_table ('with' | 'which has') 'the shortest' p:out_param_Measure_ms => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-
-    t:complete_table ('with' | 'which has') 'the' ('maximum' | 'largest') p:out_param_Measure_byte => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-
-    t:complete_table ('with' | 'which has') 'the' ('minimum' | 'smallest') p:out_param_Measure_byte => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-
-    t:complete_table ('with' | 'which has') 'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-
-    t:complete_table ('with' | 'which has') 'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-    
-    t:complete_table ('with' | 'which has') 'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-
-    t:complete_table ('with' | 'which has') 'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-
-    t:complete_table ('with' | 'which has') 'the' ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-
-    t:complete_table ('with' | 'which has') 'the' ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-
-    t:complete_table ('with' | 'which has') 'the' ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-
-    t:complete_table ('with' | 'which has') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-
-    t:complete_table ('with' | 'which has') 'the latest' p:out_param_Date => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isDate)
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-    t:complete_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Date => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isDate)
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-
-    t:complete_table ('with' | 'which has') 'the latest' p:out_param_Time => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isTime)
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'desc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-    t:complete_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Time => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isTime)
-            return null;
-        if (!t.schema.is_list || t.isIndex)
-            return null;
-        const t_sort = new Ast.Table.Sort(t, p.name, 'asc', t.schema);        
-        return new Ast.Table.Index(t_sort, [new Ast.Value.Number(1)], t.schema);
-    };
-
+    t:with_filtered_table ('with' | 'which has') 'the' ('maximum' | 'highest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('minimum' | 'lowest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('longest' | 'most lasting') p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the shortest' p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('maximum' | 'largest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('minimum' | 'smallest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('latest'| 'most recent') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('latest'| 'most recent') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'asc');
     }
 }
+
+have_arg_min_max_table = {
+    ?aggregation {
+    t:complete_table ('has' | 'gets') 'the' ('maximum' | 'highest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('minimum' | 'lowest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('longest' | 'most lasting') p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the shortest' p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('maximum' | 'largest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('minimum' | 'smallest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('latest'| 'most recent') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('earliest' | 'soonest') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('latest'| 'most recent') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('earliest' | 'soonest') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'asc');
+    }
+
+    ?aggregation {
+    t:with_filtered_table ('has' | 'gets') 'the' ('maximum' | 'highest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('minimum' | 'lowest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('longest' | 'most lasting') p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the shortest' p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('maximum' | 'largest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('minimum' | 'smallest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('latest'| 'most recent') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('earliest' | 'soonest') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('latest'| 'most recent') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('earliest' | 'soonest') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'asc');
+    }
+}
+
 
 edge_stream = {
     !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => {

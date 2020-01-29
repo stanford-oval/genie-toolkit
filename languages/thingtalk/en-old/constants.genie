@@ -14,9 +14,10 @@ const assert = require('assert');
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
+const { clean } = require('../../lib/utils');
 
 // import the combinator library
-const C = require('../ast_manip');
+const C = require('./ast_manip');
 }
 
 constant_Number = {
@@ -115,26 +116,6 @@ constant_Measure_mps = {
     num:constant_Number 'km/h' => C.addUnit('kmph', num);
 }
 
-constant_Measure_W = {
-    num:constant_Number 'w' => C.addUnit('W', num);
-    num:constant_Number 'watt' => C.addUnit('W', num);
-    num:constant_Number 'kw' => C.addUnit('kW', num);
-    num:constant_Number 'kilowatt' => C.addUnit('W', num);
-}
-constant_Measure_lx = {
-    num:constant_Number 'lx' => C.addUnit('lx', num);
-}
-constant_Measure_lm = {
-    num:constant_Number 'lm' => C.addUnit('lm', num);
-}
-constant_Measure_dB = {
-    num:constant_Number 'db' => C.addUnit('dB', num);
-    num:constant_Number 'decibels' => C.addUnit('dB', num);
-}
-constant_Measure_dBm = {
-    num:constant_Number 'dbm' => C.addUnit('dBm', num);
-}
-
 constant_Location = {
     'here'                    => new Ast.Value.Location(Ast.Location.Relative('current_location'));
     !turking 'where i am now' => new Ast.Value.Location(Ast.Location.Relative('current_location'));
@@ -142,15 +123,3 @@ constant_Location = {
     'work'                    => new Ast.Value.Location(Ast.Location.Relative('work'));
 }
 
-constant_pairs = {
-    c1:constant_Any 'and' c2:constant_Any => [c1, c2];
-}
-
-// ContextRef is not a constant, it needs special templates
-// e.g., if this is `constant_String`, then we will generate:
-// $cuisine restaurant -> "this"/"the selection on the screen" restaurant
-constant_String_ContextRef = {
-    ?screen_selection ( 'this'
-    | 'the selection on the screen'
-    ) => new Ast.Value.ContextRef('selection', Type.String);
-}

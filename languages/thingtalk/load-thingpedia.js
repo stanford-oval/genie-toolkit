@@ -19,16 +19,94 @@ const Grammar = ThingTalk.Grammar;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 const Units = ThingTalk.Units;
 
-const { clean, typeToStringSafe } = require('./utils');
+const { clean, pluralize, typeToStringSafe } = require('./utils');
 
 function identity(x) {
     return x;
 }
 
+function makeExampleFromQuery(id, q) {
+    const examples = [];
+    const device = new Ast.Selector.Device(q.class.name, null, null);
+    const invocation = new Ast.Invocation(device, q.name, [], q);
+    const canonical = invocation.canonical ? invocation.canonical : clean(q.name);
+    const canonicals = [canonical];
+    const pluralized = pluralize(canonical);
+    if (pluralized !== canonical)
+        canonicals.push(pluralized);
+    const table = new Ast.Table.Invocation(invocation, q);
+    examples.push(new Ast.Example(
+        -1,
+        'query',
+        {},
+        table,
+        canonicals,
+        canonicals,
+        {}
+    ));
+    if (id && id.has_ner_support === 1) {
+        const filter = new Ast.BooleanExpression.Atom('id', '==', new Ast.Value.VarRef('p_id'));
+        examples.push(new Ast.Example(
+            -1,
+            'query',
+            { p_id: Type.Entity(id.type) },
+            new Ast.Table.Filter(table, filter, q),
+            [`\${p_id}`],
+            [`\${p_id}`],
+            {}
+        ));
+    }
+    if (id && id.has_ner_support) {
+        const idfilter = new Ast.BooleanExpression.Atom('id', '==', new Ast.Value.VarRef('p_id'));
+        examples.push(new Ast.Example(
+            -1,
+            'query',
+            { p_id: Type.Entity(id.type) },
+            new Ast.Table.Filter(table, idfilter, q),
+            [`\${p_id}`],
+            [`\${p_id}`],
+            {}
+        ));
+        const namefilter = new Ast.BooleanExpression.Atom('name', '=~', new Ast.Value.VarRef('p_name'));
+        examples.push(new Ast.Example(
+            -1,
+            'query',
+            { p_name: Type.String },
+            new Ast.Table.Filter(table, namefilter, q),
+            [`\${p_name}`],
+            [`\${p_name}`],
+            {}
+        ));
+    }
+    return examples;
+}
+
+function makeExampleFromAction(a) {
+    const examples = [];
+    const device = new Ast.Selector.Device(a.class.name, null, null);
+    const invocation = new Ast.Invocation(device, a.name, [], a);
+    const canonical = invocation.canonical ? invocation.canonical : clean(a.name);
+    const canonicals = [canonical];
+    const pluralized = pluralize(canonical);
+    if (pluralized !== canonical)
+        canonicals.push(pluralized);
+    examples.push(new Ast.Example(
+        -1,
+        'action',
+        {},
+        new Ast.Action.Invocation(invocation, a),
+        canonicals,
+        canonicals,
+        {}
+    ));
+    return examples;
+}
+
 class ThingpediaLoader {
-    async init(runtime, grammar, options) {
+    async init(runtime, grammar, langPack, options) {
         this._runtime = runtime;
         this._grammar = grammar;
+        this._langPack = langPack;
 
         this._tpClient = options.thingpediaClient;
         if (!options.schemaRetriever)
@@ -36,19 +114,28 @@ class ThingpediaLoader {
         this._schemas = options.schemaRetriever;
 
         this._options = options;
+        this.rng = options.rng;
 
         this._allTypes = new Map;
         this._idTypes = new Set;
         this._nonConstantTypes = new Set;
+        this._entities = new Map;
         this.types = {
             all: this._allTypes,
             id: this._idTypes,
             nonConstant: this._nonConstantTypes,
+            entities: this._entities
         };
         this.params = {
             in: new Map,
             out: new Set,
+            blacklist: new Set,
         };
+        this.compoundArrays = new Map;
+        if (this._options.white_list)
+            this.whiteList = this._options.white_list.toLowerCase().split(',');
+        else
+            this.whiteList = null;
 
         const [say, get_gps, get_time] = await Promise.all([
             this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'action', 'say'),
@@ -81,8 +168,13 @@ class ThingpediaLoader {
     }
 
     _recordType(type) {
-        if (type.isCompound)
+        if (type.isCompound) {
+            for (let field in type.fields)
+                this._recordType(type.fields[field].type);
             return null;
+        }
+        if (type.isArray)
+            this._recordType(type.elem);
         const typestr = typeToStringSafe(type);
         if (this._allTypes.has(typestr))
             return typestr;
@@ -135,10 +227,19 @@ class ThingpediaLoader {
     }
 
     _recordOutputParam(pname, ptype, arg) {
+        const drop = arg.getAnnotation('drop');
+        if (drop)
+            return;
+
         const key = pname + '+' + ptype;
         if (this.params.out.has(key))
             return;
         this.params.out.add(key);
+
+        const useGenie = arg.getAnnotation('genie');
+        if (useGenie !== undefined && !useGenie)
+            this.params.blacklist.add(key);
+
         const typestr = this._recordType(ptype);
 
         if (ptype.isCompound)
@@ -147,17 +248,20 @@ class ThingpediaLoader {
         if (ptype.isBoolean)
             return;
 
-        let expansion;
+        if (ptype.isArray && ptype.elem.isCompound) {
+            this.compoundArrays[pname] = ptype.elem;
+            for (let field in ptype.elem.fields) {
+                let arg = ptype.elem.fields[field];
+                this._recordOutputParam(field, arg.type, arg);
+            }
+        }
 
-        /** FIXME loading of language packs...
+        let expansion;
         const argNameOverrides = this._langPack.ARGUMENT_NAME_OVERRIDES;
         if (pname in argNameOverrides)
             expansion = argNameOverrides[pname];
-        else*/
-        if (!arg.metadata.canonical)
-            expansion = [clean(pname)];
-        else if (typeof arg.metadata.canonical === 'string')
-            expansion = [arg.metadata.canonical];
+        else if (typeof arg.metadata.canonical !== 'object')
+            expansion = [arg.canonical];
 
         if (expansion) {
             this._addOutParam(pname, typestr, 'npp', expansion);
@@ -170,6 +274,14 @@ class ThingpediaLoader {
 
     }
 
+    _isHumanEntity(type) {
+        if (['tt:contact', 'tt:username', 'org.wikidata:human'].includes(type))
+            return true;
+        if (type.startsWith('org.schema') && type.endsWith(':Person'))
+            return true;
+        return false;
+    }
+
     async _loadTemplate(ex) {
         // return grammar rules added
         const rules = [];
@@ -178,7 +290,7 @@ class ThingpediaLoader {
             await ex.typecheck(this._schemas, true);
         } catch(e) {
             if (!e.message.startsWith('Invalid kind '))
-            console.error(`Failed to load example ${ex.id}: ${e.message}`);
+                console.error(`Failed to load example ${ex.id}: ${e.message}`);
             return [];
         }
 
@@ -246,13 +358,11 @@ class ThingpediaLoader {
         }
 
         if (ex.type === 'query') {
-            const human_entity_types = ['tt:contact', 'tt:username', 'org.wikidata:human'];
-            if (ex.value.schema.hasArgument('id')) {
+            if (Object.keys(ex.args).length === 0 && ex.value.schema.hasArgument('id')) {
                 let type = ex.value.schema.getArgument('id').type;
-                if (type.isEntity && human_entity_types.includes(type.type)) {
+                if (type.isEntity && this._isHumanEntity(type.type)) {
                     let grammarCat = 'thingpedia_who_question';
                     this._grammar.addRule(grammarCat, [''], this._runtime.simpleCombine(() => ex.value));
-                    return [];
                 }
             }
         }
@@ -290,9 +400,31 @@ class ThingpediaLoader {
         return rules;
     }
 
-    _loadDevice(device) {
+    async _loadDevice(device) {
         this._grammar.addRule('constant_Entity__tt__device', [device.kind_canonical],
             this._runtime.simpleCombine(() => new Ast.Value.Entity(device.kind, 'tt:device', null)));
+        if (this._options.flags.schema_org) {
+            const code = await this._tpClient.getDeviceCode(device.kind);
+            const parsed = await Grammar.parse(code);
+            const classDef = parsed.classes[0];
+            await Promise.all([
+                Promise.all(Object.values(classDef.queries).map(async (q) => {
+                    if (this._options.whiteList && this._options.whiteList.includes(q.name.toLowerCase())) {
+                        const id = this._entities[`${classDef.name}:${q.name}`];
+                        const examples = makeExampleFromQuery(id, q);
+                        for (let ex of examples)
+                            await this._loadTemplate(ex);
+                    }
+                })),
+                Promise.all(Object.values(classDef.actions).map(async (a) => {
+                    if (this._options.whiteList && this._options.whiteList.includes(a.name.toLowerCase())) {
+                        const examples = makeExampleFromAction(a);
+                        for (let ex of examples)
+                            await this._loadTemplate(ex);
+                    }
+                })),
+            ]);
+        }
     }
 
     _loadIdType(idType) {
@@ -317,6 +449,8 @@ class ThingpediaLoader {
     }
 
     async _loadCanonical(kind) {
+        if (kind.startsWith('org.thingpedia.dynamic.by_kinds.'))
+            kind = kind.substring('org.thingpedia.dynamic.by_kinds.'.length);
         try {
             const classDef = await this._schemas.getFullMeta(kind);
             const canonicals = {};
@@ -388,8 +522,9 @@ class ThingpediaLoader {
         await Promise.all(rules.map((rule) =>  {
             if (rule.category !== 'thingpedia_query')
                 return;
-            if (expander.example.id === rule.example.id)
+            if (expander.example.id !== -1 && expander.example.id === rule.example.id)
                 return;
+
 
             // skip rules with filter on the same parameter
             // TODO: replace this with more robust check and move to _conflictExample
@@ -480,7 +615,6 @@ class ThingpediaLoader {
         datasets = datasets.filter((d) => !!d);
         if (datasets.length === 0) {
             const code = await this._tpClient.getAllExamples();
-            console.log(code);
             datasets = await Grammar.parse(code).datasets;
         }
 
@@ -489,6 +623,8 @@ class ThingpediaLoader {
             console.log('Loaded ' + devices.length + ' devices');
             console.log('Loaded ' + countTemplates + ' templates');
         }
+
+        idTypes.forEach((entity) => this._entities[entity.type] = entity);
         idTypes.forEach(this._loadIdType, this);
         await Promise.all([
             Promise.all(devices.map(this._loadDevice, this)),

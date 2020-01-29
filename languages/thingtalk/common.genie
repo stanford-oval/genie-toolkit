@@ -83,7 +83,7 @@ out_param_Array__Compound = {}  // used for aggregate filter only
 
 {
 const _tpLoader = require('./load-thingpedia');
-await _tpLoader.init($runtime, $grammar, $options);
+await _tpLoader.init($runtime, $grammar, $locale, $options);
 }
 
 // empty defaults for certain parameter types in case we don't have devices with

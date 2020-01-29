@@ -16,15 +16,14 @@
 # are ignored
 
 # generic types
-String	i'm happy
-String	you would never believe what happened
-String	merry christmas
-String	love you
-Number	42
-Number	7
-Number	14
-Number	11
-Number	55
+String	X
+String	Y
+String	Z
+Number	2
+Number	4
+Number	3
+#Number	1
+Number	5
 Measure(C)	73F
 Measure(C)	75F
 Measure(C)	80F
@@ -38,12 +37,21 @@ Measure(byte)	2GB
 Measure(byte)	3GB
 Measure(byte)	1.5TB
 Measure(byte)	2TB
-Measure(kg)	75kg
-Measure(kg)	81kg
-Measure(kg)	88kg
-Measure(kg)	150lb
-Measure(kg)	180lb
-Measure(kg)	239lb
+#Measure(kg)	75kg
+#Measure(kg)	81kg
+#Measure(kg)	88kg
+Measure(kg)	5kg
+Measure(kg)	3kg
+#Measure(kg)	150lb
+#Measure(kg)	180lb
+#Measure(kg)	239lb
+Measure(kg)	5oz
+Measure(kg)	12oz
+Measure(kg)	3oz
+Measure(kg)	2lb
+Measure(kg)	3lb
+Measure(kg)	500g
+Measure(kg)	250g
 Measure(m)	800m
 Measure(m)	1500m
 Measure(m)	23km
@@ -60,8 +68,8 @@ Measure(ms)	3day	3 days
 Currency	100usd	$100
 Currency	15usd	15 dollars
 Currency	3.5usd	$ 3.50
-Location	37.442156,-122.1634471	Palo Alto, California
-Location	34.0543942,-118.2439408	Los Angeles, California
+Location	40.7590,73.9845	Time Square
+Location	34.0430,118.2673	Staples Center
 Date	2017-02-14T00:00:00-08:00	Feb 14 2017
 Date	2016-05-04T00:00:00-07:00	May 4th, 2016
 Date	2017-08-02T00:00:00-07:00	August 2nd 2017
@@ -160,6 +168,7 @@ param:sender_name:String	alice
 param:sender_name:String	charlie
 param:blog_name:String	government secret
 param:description:String	christmas
+param:description:String	wine
 param:organizer:String	stanford
 param:user:String	bob
 param:positions:String	ceo
@@ -187,3 +196,13 @@ param:@com.spotify.*:toPlay:String	California Girls
 param:@com.spotify.*:toAdd:String	Hey Jude
 param:@com.spotify.*:toAdd:String	California Girls
 param:@com.spotify.*:key:String	A Major
+
+param:cookTime:Measure(ms)	10min	10 minutes
+param:cookTime:Measure(ms)	20min	20 minutes
+param:cookTime:Measure(ms)	5min	5 minutes
+param:prepTime:Measure(ms)	10min	10 minutes
+param:prepTime:Measure(ms)	20min	20 minutes
+param:prepTime:Measure(ms)	5min	5 minutes
+param:totalTime:Measure(ms)	25min	25 minutes
+param:totalTime:Measure(ms)	45min	45 minutes
+param:totalTime:Measure(ms)	20min	20 minutes

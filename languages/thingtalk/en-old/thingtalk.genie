@@ -16,23 +16,17 @@ const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 
 // import the combinator library
-const C = require('../ast_manip');
+const C = require('./ast_manip');
 
-// import thingpedia info
-const _tpLoader = require('../load-thingpedia');
 }
 
-import '../common';
 import './constants';
 import './timers';
 import './filters';
 import './parameters';
 import './aggregation';
-import './computation';
-import './who_questions';
-import './schema.org';
 
-if (_tpLoader.flags.bookkeeping)
+if ($options.flags.bookkeeping)
     import './bookkeeping';
 import './stream_tables';
 
@@ -42,7 +36,6 @@ forward_get_do_command = {
     ('get' | 'take' | 'retrieve') table:if_filtered_table ('and then' | 'then') action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
     table:complete_get_command ('and then' | 'then' | ',') action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
     'after' ('you get' | 'taking' | 'getting' | 'retrieving') table:with_filtered_table action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
-    ('get' | 'take' | 'retrieve') table:with_filtered_table ('and then' | 'then') action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
 
     // use X to do Y would be good sometimes but it gets confusing quickly
     //['${(get|use)} ${with_filtered_table} to ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))]
@@ -97,7 +90,7 @@ forward_when_do_rule = {
             return null;
         let outParams = Object.keys(proj.table.schema.out);
         let stream;
-        if (outParams.length === 1 && _tpLoader.flags.turking)
+        if (outParams.length === 1 && $options.flags.turking)
             return null;
         if (outParams.length === 1)
             stream = C.tableToStream(proj.table, null);
@@ -163,31 +156,25 @@ when_get_stream = {
     stream:stream table:thingpedia_get_command => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
     stream:stream ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') table:thingpedia_query => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
     stream:stream ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') ('' | 'what is') proj:projection_Any => {
-        if (proj.isProjection) {
-            if (!_tpLoader.flags.projection)
-                return null;
-            if (proj.args[0] === 'picture_url')
-                return null;
-            let outParams = Object.keys(proj.table.schema.out);
-            if (outParams.length === 1)
-                return null;
-        }
-        return C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj, [], proj.schema));
+        if (proj.args[0] === 'picture_url')
+            return null;
+        let outParams = Object.keys(proj.table.schema.out);
+        if (outParams.length === 1 && $options.flags.turking && !proj.table.isAggregation)
+            return null;
+
+        return C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj.table, [], proj.table.schema));
     };
 
     table:thingpedia_get_command stream:stream => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
     ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') table:thingpedia_query stream:stream => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
     ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') proj:projection_Any stream:stream => {
-        if (proj.isProjection) {
-            if (!_tpLoader.flags.projection)
-                return null;
-            if (proj.args[0] === 'picture_url')
-                return null;
-            let outParams = Object.keys(proj.table.schema.out);
-            if (outParams.length === 1)
-                return null;
-        }
-        return C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj, [], proj.schema));
+        if (proj.args[0] === 'picture_url')
+            return null;
+        let outParams = Object.keys(proj.table.schema.out);
+        if (outParams.length === 1 && $options.flags.turking && !proj.table.isAggregation)
+            return null;
+
+        return C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj.table, [], proj.table.schema));
     };
 }
 complete_when_get_stream = {
@@ -221,22 +208,20 @@ timer_rule = {
     ) => new Ast.Statement.Rule(new Ast.Stream.Join(timer, command.table, [], command.table.schema), command.actions);
 }
 
-if (_tpLoader.standardSchemas.say) {
+if ($options.standardSchemas.say) {
      $root = {
         (
              'notify me' stream:stream
            | ('alert me' | 'inform me' | 'let me know' | 'i get notified' | 'i get alerted') stream:stream
            | 'send me' ('a message' | 'an alert' | 'a notification' | 'a pop up notification' | 'a popup notification') stream:stream
-        ) => C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction(_tpLoader) : C.notifyAction()]));
-        ?timer 'send me a reminder' stream:timer => C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.builtinSayAction(_tpLoader)]));
-        ?timer 'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification')
-               stream:timer ('saying' | 'with the text') constant:constant_String
-               => C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.builtinSayAction(_tpLoader, constant)]));
+        ) => C.makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction($options) : C.notifyAction()]));
+        'send me a reminder' stream:timer => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options)]));
+        'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
         !turking {
             (
                   'alert me' stream:stream ('saying' | 'with the text') constant:constant_String
                 | 'show' ('the notification' | 'the message' | 'a popup notification that says' | 'a popup containing') constant:constant_String stream:stream
-             ) => C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.builtinSayAction(_tpLoader, constant)]));
+             ) => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction($options, constant)]));
         }
 
         // now => say
@@ -244,24 +229,18 @@ if (_tpLoader.standardSchemas.say) {
               'say' c:constant_String
             | 'send me a message saying' c:constant_String
             | 'show a popup that says' c:constant_String
-        ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, [C.builtinSayAction(_tpLoader, c)]));
+        ) => C.makeProgram(new Ast.Statement.Command(null, [C.builtinSayAction($options, c)]));
     }
 }
 
 $root = {
-    thingpedia_program if complete;
+    !primonly thingpedia_program if complete;
 
     // when => notify
-    (
-         'notify me' stream:stream
-       | ('alert me' | 'inform me' | 'let me know' | 'i get notified' | 'i get alerted') stream:stream
-       | 'send me' ('a message' | 'an alert' | 'a notification' | 'a pop up notification' | 'a popup notification') stream:stream
-    ) => C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]));
-
     ('monitor' | 'watch') table:with_filtered_table => {
         if (!table.schema.is_monitorable)
             return null;
-        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [C.notifyAction()]));
+        return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [C.notifyAction()]));
     };
     !turking ('monitor' | 'watch') proj:projection_Any => {
         if (!proj.schema.is_monitorable)
@@ -272,28 +251,28 @@ $root = {
         if (!stream)
             return null;
         let outParams = Object.keys(proj.table.schema.out);
-        if (outParams.length === 1 && _tpLoader.flags.turking)
+        if (outParams.length === 1 && $options.flags.turking)
             return null;
-        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]));
+        return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
     ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' table:if_filtered_table => {
         let stream = C.tableToStream(table, null);
         if (!stream)
             return null;
-        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]));
+        return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
     !nofilter ('monitor' | 'watch') table:complete_table 'and' ('alert me' | 'notify me' | 'inform me' | 'warn me') ('if' | 'when') filter:atom_filter => {
         if (C.hasGetPredicate(filter))
             return null;
         if (table.schema.is_list || !C.checkFilter(table, filter))
             return null;
-        table = C.addFilter(table, filter, _tpLoader);
+        table = C.addFilter(table, filter, $options);
         if (!table)
             return null;
         let stream = C.tableToStream(table, null);
         if (!stream)
             return null;
-        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]));
+        return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
     !turking ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' proj:projection_Any => {
         if (!proj.schema.is_monitorable)
@@ -301,152 +280,64 @@ $root = {
         if (proj.table.isAggregation)
             return null;
         let outParams = Object.keys(proj.table.schema.out);
-        if (outParams.length === 1 && _tpLoader.flags.turking)
+        if (outParams.length === 1 && $options.flags.turking)
             return null;
         // note that we intentionally don't use tableToStream here, because we don't want to introduce edge filters
-        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), [C.notifyAction()]));
+        return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), [C.notifyAction()]));
     };
     !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:atom_filter 'in' table:complete_table => {
         if (C.hasGetPredicate(filter))
             return null;
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
             return null;
-        if (_tpLoader.flags.turking && table.schema.is_list)
+        if ($options.flags.turking && table.schema.is_list)
             return null;
-        table = C.addFilter(table, filter, _tpLoader);
+        table = C.addFilter(table, filter, $options);
         if (!table)
             return null;
         let stream = C.tableToStream(table, null);
         if (!stream)
             return null;
-        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]));
+        return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
     !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:edge_filter 'in' table:complete_table => {
         if (C.hasGetPredicate(filter))
             return null;
         if (!table.schema.is_monitorable || table.schema.is_list || !C.checkFilter(table, filter))
             return null;
-        table = C.addFilter(table, filter, _tpLoader);
+        table = C.addFilter(table, filter, $options);
         if (!table)
             return null;
         let stream = C.tableToStream(table, null);
         if (!stream)
             return null;
-        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]));
+        return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
 
     // now => get => notify
     (
           table:complete_get_command
-        | 'get' table:with_filtered_table
-        | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:with_filtered_table
-        | ('search' | 'find' | 'i want' | 'i need') table:with_filtered_table
-        | ('what' | 'which') table:verb_filtered_table ('' | '?')
-        | ('what' | 'which') table:one_be_filter_table ('' | '?')
-        | ('what' | 'which') table:one_have_filter_table ('' | '?')
-        | ('what' | 'which') table:one_verb_filter_table ('' | '?')
-        | ('what' | 'which') table:two_be_filter_table ('' | '?')
-        | ('what' | 'which') table:two_have_filter_table ('' | '?')
-        | ('what' | 'which') table:two_verb_filter_table ('' | '?')
-        | ('what' | 'which') 'are' ('the' | '') table:with_filtered_table ('' | '?')
-        | ('what' | 'which') 'are' ('the' | '') table:one_with_filter_table ('' | '?')
-        | ('what' | 'which') 'are' ('the' | '') table:one_which_filter_table ('' | '?')
-        | ('what' | 'which') 'are' ('the' | '') table:one_clean_filter_table ('' | '?')
-        | ('what' | 'which') 'are' ('the' | '') table:two_with_filter_table ('' | '?')
-        | ('what' | 'which') 'are' ('the' | '') table:two_which_filter_table ('' | '?')
-        | ('what' | 'which') 'are' ('the' | '') table:two_clean_filter_table ('' | '?')
-    ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction()]));
-    ( 'please' | '') ('list' | 'enumerate') table:with_filtered_table => {
+        | 'get' table:complete_table
+        | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table
+        | ('hey almond' | '') ('search' | 'find' | 'i want' | 'i need') table:with_filtered_table
+        | ('hey almond' | '') 'what are' table:with_filtered_table ('' | '?')
+    ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
+    ('hey almond' | 'please' | '') ('list' | 'enumerate') table:with_filtered_table => {
         if (!table.schema.is_list)
             return null;
-        return C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction()]));
+        return C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction()]));
     };
-
-    // now => get => notify with join
-    (
-          'get' table:schema_with_filtered_table_join
-        | ('what' | 'which') 'are' ('the' | '') table:schema_with_filtered_table_join
-        | ('what' | 'which') table:schema_have_filtered_table_join
-    ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction()]));
-
-    // now => get => notify (argmin, argmax)
-    (
-          ('search' | 'find' | 'retrieve' | 'tell me' |'show me' | 'present') 'the' table:with_arg_min_max_table
-        | ('what' | 'which') 'is the' table:with_arg_min_max_table ('' | '?')
-        | 'which' table:have_arg_min_max_table ('' | '?')
-    ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction()]));
-
-    // now => get => notify (who questions)
-    !turking (
-          ('who' | 'which person' | 'which individual') table:who_verb_filtered_table ('' | '?')
-        | ('who' | 'which person' | 'which individual') table:who_one_be_filter_table ('' | '?')
-        | ('who' | 'which person' | 'which individual') table:who_one_have_filter_table ('' | '?')
-        | ('who' | 'which person' | 'which individual') table:who_one_verb_filter_table ('' | '?')
-        | ('who' | 'which person' | 'which individual') table:who_two_be_filter_table ('' | '?')
-        | ('who' | 'which person' | 'which individual') table:who_two_have_filter_table ('' | '?')
-        | ('who' | 'which person' | 'which individual') table:who_two_verb_filter_table ('' | '?')
-        | ('who is the person' | 'who is the one' | 'who is the individual') table:who_with_filtered_table ('' | '?')
-        | ('who is the person' | 'who is the one' | 'who is the individual') table:who_one_with_filter_table ('' | '?')
-        | ('who is the person' | 'who is the one' | 'who is the individual') table:who_one_which_filter_table ('' | '?')
-        | ('who is the person' | 'who is the one' | 'who is the individual') table:who_one_clean_filter_table ('' | '?')
-        | ('who is the person' | 'who is the one' | 'who is the individual') table:who_two_with_filter_table ('' | '?')
-        | ('who is the person' | 'who is the one' | 'who is the individual') table:who_two_which_filter_table ('' | '?')
-        | ('who is the person' | 'who is the one' | 'who is the individual') table:who_two_clean_filter_table ('' | '?')
-        | 'whose' table:whose_filtered_table ('' | '?')
-    ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction()]));
-    ?turking (
-          'who' table:who_verb_filtered_table ('' | '?')
-        | 'who' table:who_one_be_filter_table ('' | '?')
-        | 'who' table:who_one_have_filter_table ('' | '?')
-        | 'who' table:who_one_verb_filter_table ('' | '?')
-        | 'who' table:who_two_be_filter_table ('' | '?')
-        | 'who' table:who_two_have_filter_table ('' | '?')
-        | 'who' table:who_two_verb_filter_table ('' | '?')
-        | 'whose' table:whose_filtered_table ( '' | '?')
-    ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction()]));
 
     // now => get => say(...)
     // don't merge these, the output sizes are too small
     (
-          ('get' | 'show me' | 'give me' | 'tell me' | 'say') proj:projection_Any
+          ('hey almond' | '') ('get' | 'show me' | 'give me' | 'tell me' | 'say') proj:projection_Any
+        | ('hey almond' | '') 'what is' proj:projection_Any ('' | '?')
         | ('show me' | 'tell me' | 'say') 'what is' proj:projection_Any
-    ) => C.sayProjectionProgram(_tpLoader, proj);
-    (
-        'what is' proj:projection_Any ('' | '?')
         | 'who is' proj:projection_Entity__tt__username ('' | '?')
         | 'who is' proj:projection_Entity__tt__email_address ('' | '?')
-    ) => {
-        // FIXME: this should not happen
-        if (proj.args.length === 0)
-            return null;
-        if (proj.schema.getArgType(proj.args[0]).isArray)
-            return null;
-        return C.sayProjectionProgram(_tpLoader, proj);
-    };
-    (
-        'what are' proj:projection_Any ('' | '?')
-        | 'who are' proj:projection_Entity__tt__username ('' | '?')
-        | 'who are' proj:projection_Entity__tt__email_address ('' | '?')
-    ) => {
-        // FIXME: this should not happen
-        if (proj.args.length === 0)
-            return null;
-        if (!proj.schema.getArgType(proj.args[0]).isArray)
-            return null;
-        return C.sayProjectionProgram(_tpLoader, proj);
-    };
-
-    // now => get => say(...) (where questions)
-    ?turking 'where is the' table:with_filtered_table => {
-        C.makeSingleFieldProjection(_tpLoader, 'table', Type.Location, table, new Ast.Value.VarRef('geo'));
-    };
-    !turking 'where' ('is' | 'are') ('' | 'the') table:with_filtered_table => {
-        C.makeSingleFieldProjection(_tpLoader, 'table', Type.Location, table, new Ast.Value.VarRef('geo'));
-    };
-
-    !turking proj:projection_Any => C.sayProjectionProgram(_tpLoader, proj);
-    table:compute_question => C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction()]));
-    table:where_question => C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction()]));
+    ) => C.sayProjectionProgram($options, proj);
+    !turking proj:projection_Any => C.sayProjectionProgram($options, proj);
 
     // now => do
     (
@@ -455,80 +346,43 @@ $root = {
         | 'i need you to' action:thingpedia_action
         | 'i want to' action:thingpedia_action
         | 'i \'d like to' action:thingpedia_action
-    ) if complete => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, [action]));
+        | ('hey' | '') 'almond' action:thingpedia_action
+    ) if complete => C.makeProgram(new Ast.Statement.Command(null, [action]));
 
     // now => get => do
-    !primonly command:complete_get_do_command => C.makeProgram(_tpLoader, command);
+    !primonly command:complete_get_do_command => C.makeProgram(command);
 
     // when join get => notify/say(...)
     !primonly stream:complete_when_get_stream => {
         assert(stream.isJoin, `unexpected stream in when_get, found ${stream}`);
         if (stream.table.isProjection)
-            return C.makeProgram(_tpLoader, new Ast.Statement.Rule(new Ast.Stream.Join(stream.stream, stream.table.table, stream.in_params, stream.schema), [C.notifyAction()]));
+            return C.makeProgram(new Ast.Statement.Rule(new Ast.Stream.Join(stream.stream, stream.table.table, stream.in_params, stream.schema), [C.notifyAction()]));
         else
-            return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]));
+            return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]));
     };
 
-    ?timer rule:timer_rule => C.makeProgram(_tpLoader, rule);
+    rule:timer_rule => C.makeProgram(rule);
 
     // when => do
-    !primonly rule:complete_when_do_rule => C.makeProgram(_tpLoader, rule);
+    !primonly rule:complete_when_do_rule => C.makeProgram(rule);
 
     // when => get => do
-    ?triple_commands rule:when_get_do_rule => C.makeProgram(_tpLoader, rule);
+    ?triple_commands rule:when_get_do_rule => C.makeProgram(rule);
 
     // setup commands
     ?remote_commands {
-        !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:atom_filter 'in' table:complete_table ('for' | 'of') principal:constant_Entity__tt__username => {
-            if (C.hasGetPredicate(filter))
-                return null;
-            if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
-                return null;
-            if (_tpLoader.flags.turking && table.schema.is_list)
-                return null;
-            table = C.addFilter(table, filter, _tpLoader);
-            if (!table)
-                return null;
-            let stream = C.tableToStream(table, null);
-            if (!stream)
-                return null;
-            return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]), principal);
-        };
-        !nofilter ('if' | 'when') filter:atom_filter 'in' table:complete_table ('for' | 'of') principal:constant_Entity__tt__username 'then' ('alert me' | 'tell me' | 'notify me' | 'let me know')  => {
-            if (C.hasGetPredicate(filter))
-                return null;
-            if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
-                return null;
-            if (_tpLoader.flags.turking && table.schema.is_list)
-                return null;
-            table = C.addFilter(table, filter, _tpLoader);
-            if (!table)
-                return null;
-            let stream = C.tableToStream(table, null);
-            if (!stream)
-                return null;
-            return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]), principal);
-        };
-
         (
               ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' action:thingpedia_action
             | ('tell' | 'command' | 'order' | 'request' | 'inform') principal:constant_Entity__tt__username 'that' ('he needs' | 'she needs' | 'i need him' | 'i need her') 'to' action:thingpedia_action
-        ) if complete => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, [action]), principal);
+        ) if complete => C.makeProgram(new Ast.Statement.Command(null, [action]), principal);
         (
               ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table 'and send it to me'
             | ('request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table
             | ('show me' | 'get') table:complete_table 'from' principal:constant_Entity__tt__username
             | ('show me' | 'get' | 'what is') principal:constant_Entity__tt__username '\'s' table:complete_table
             | ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to send me' table:complete_table
-        ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction('return')]), principal);
-        ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' ('let me know' | 'inform me' | 'notify me' | 'alert me') stream:stream => C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction('return')]), principal);
-
-        ?extended_timers {
-            (
-                ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' action:thingpedia_action stream:timer
-                | ('tell' | 'command' | 'order' | 'request' | 'inform') principal:constant_Entity__tt__username 'that' ('he needs' | 'she needs' | 'i need him' | 'i need her') 'to' action:thingpedia_action stream:timer
-            ) if complete => C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [action]), principal);
-        }
+        ) => C.makeProgram(new Ast.Statement.Command(table, [C.notifyAction('return')]), principal);
+        ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' ('let me know' | 'inform me' | 'notify me' | 'alert me') stream:stream => C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction('return')]), principal);
     }
 
     // policies

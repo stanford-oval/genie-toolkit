@@ -15,9 +15,10 @@
     const Ast = ThingTalk.Ast;
     const Type = ThingTalk.Type;
     const Generate = ThingTalk.Generate;
+    const { clean } = require('../../lib/utils');
 
 // import the combinator library
-    const C = require('../ast_manip');
+    const C = require('./ast_manip');
 }
 
 projection_Number = {
@@ -33,7 +34,7 @@ projection_Number = {
 
 projection_Any = {
     ?aggregation {
-    !schema_org 'the' 'total' p:out_param_Numeric 'of' t:complete_table => {
+    'the' 'total' p:out_param_Numeric 'of' t:complete_table => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
             return null;
         if (!t.schema.is_list)
