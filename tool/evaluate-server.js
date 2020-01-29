@@ -111,6 +111,12 @@ module.exports = {
             defaultValue: '',
             help: `Prefix all output lines with this string`
         });
+        parser.addArgument('--max-complexity', {
+            required: false,
+            type: Number,
+            defaultValue: '',
+            help: 'Collapse all examples of complexity greater or equal to this',
+        });
     },
 
     async execute(args) {
@@ -122,14 +128,20 @@ module.exports = {
         const output = readAllLines(args.input_file)
             .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true }))
             .pipe(new SentenceEvaluatorStream(parser, schemas, args.tokenized, args.debug))
-            .pipe(new CollectSentenceStatistics());
+            .pipe(new CollectSentenceStatistics({ maxComplexity: args.max_complexity }));
 
         const result = await output.read();
 
         if (args.csv) {
             csvDisplay(args, null, result);
-            for (let complexity = 0; complexity < 10; complexity++)
-                csvDisplay(args, complexity, result);
+            if (args.max_complexity) {
+                for (let complexity = 0; complexity < args.max_complexity; complexity++)
+                    csvDisplay(args, complexity, result);
+                csvDisplay(args, '>=' + args.max_complexity, result);
+            } else {
+                for (let complexity = 0; complexity < 10; complexity++)
+                    csvDisplay(args, complexity, result);
+            }
         } else {
             for (let key in result) {
                 if (Array.isArray(result[key]))
