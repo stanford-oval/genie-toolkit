@@ -20,9 +20,10 @@
     "matrix-js-sdk": "0.9.2",
     "q": "^1.5.0",
     "sqlite3": "^4.0.2",
-    "thingpedia": "~2.6.0",
+    "string-interp": "^0.1.0",
+    "thingpedia": "~2.7.0-alpha.2",
     "thingpedia-discovery": "^1.0.0",
-    "thingtalk": "~1.9.0",
+    "thingtalk": "~1.10.0-alpha.2",
     "uuid": "^3.1.0",
     "ws": "^7.0.0"
   },
