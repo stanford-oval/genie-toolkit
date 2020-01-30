@@ -46,7 +46,7 @@ projection_Numeric = {
 single_projection_String = table:complete_table => {
     let outParams = Object.keys(table.schema.out);
     if (outParams.length === 1 && table.schema.out[outParams[0]].isString)
-        return new Ast.Table.Projection(table, [outParams[0]], table.schema);
+        return new Ast.Table.Projection(null, table, [outParams[0]], table.schema);
 
     for (let pname in table.schema.out) {
         if (pname === 'picture_url')
@@ -55,14 +55,14 @@ single_projection_String = table:complete_table => {
         if (_tpLoader.types.id.has(C.typeToStringSafe(ptype)))
             return null;
     }
-    return new Ast.Table.Projection(table, ['$event'], table.schema);
+    return new Ast.Table.Projection(null, table, ['$event'], table.schema);
 };
 single_stream_projection_String = !no_stream 'new' table:complete_table => {
     if (!table.schema.is_monitorable)
         return null;
     let outParams = Object.keys(table.schema.out);
     if (outParams.length === 1 && table.schema.out[outParams[0]].isString)
-        return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), [outParams[0]], table.schema);
+        return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), [outParams[0]], table.schema);
 
     for (let pname in table.schema.out) {
         if (pname === 'picture_url')
@@ -71,7 +71,7 @@ single_stream_projection_String = !no_stream 'new' table:complete_table => {
         if (_tpLoader.types.id.has(C.typeToStringSafe(ptype)))
             return null;
     }
-    return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), ['$event'], table.schema);
+    return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), ['$event'], table.schema);
 };
 
 single_projection_Entity__tt__picture = table:complete_table => {
@@ -84,7 +84,7 @@ single_stream_projection_Entity__tt__picture = !no_stream 'new' table:complete_t
         return null;
     if (!table.schema.is_monitorable)
         return null;
-    return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), ['picture_url'], table.schema);
+    return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), ['picture_url'], table.schema);
 };
 
 
@@ -166,7 +166,7 @@ for (let [typestr, type] of _tpLoader.types.all) {
                 $('single_projection_' + typestr) = table:complete_table => {
                     for (let pname in table.schema.out) {
                         if (table.schema.out[pname].equals(type))
-                            return new Ast.Table.Projection(table, [pname], table.schema);
+                            return new Ast.Table.Projection(null, table, [pname], table.schema);
                     }
                     return null;
                 };
@@ -176,7 +176,7 @@ for (let [typestr, type] of _tpLoader.types.all) {
                         return null;
                     for (let pname in table.schema.out) {
                         if (table.schema.out[pname].equals(type))
-                            return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), [pname], table.schema);
+                            return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), [pname], table.schema);
                     }
                     return null;
                 };
@@ -184,7 +184,7 @@ for (let [typestr, type] of _tpLoader.types.all) {
                 $('single_projection_' + typestr) = table:with_filtered_table => {
                     for (let pname in table.schema.out) {
                         if (table.schema.out[pname].equals(type))
-                            return new Ast.Table.Projection(table, [pname], table.schema);
+                            return new Ast.Table.Projection(null, table, [pname], table.schema);
                     }
                     return null;
                 };
@@ -194,7 +194,7 @@ for (let [typestr, type] of _tpLoader.types.all) {
                         return null;
                     for (let pname in table.schema.out) {
                         if (table.schema.out[pname].equals(type))
-                            return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), [pname], table.schema);
+                            return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), [pname], table.schema);
                     }
                     return null;
                 };
@@ -204,7 +204,7 @@ for (let [typestr, type] of _tpLoader.types.all) {
                 let outParams = Object.keys(table.schema.out);
                 if (outParams.length !== 1 || !type.equals(table.schema.out[outParams[0]]))
                     return null;
-                return new Ast.Table.Projection(table, [outParams[0]], table.schema);
+                return new Ast.Table.Projection(null, table, [outParams[0]], table.schema);
             };
 
             $('single_stream_projection_' + typestr) = !no_stream 'new' table:complete_table => {
@@ -213,7 +213,7 @@ for (let [typestr, type] of _tpLoader.types.all) {
                     return null;
                 if (!table.schema.is_monitorable)
                     return null;
-                return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), [outParams[0]], table.schema);
+                return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), [outParams[0]], table.schema);
             };
         }
     }

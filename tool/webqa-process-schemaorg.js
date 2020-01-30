@@ -944,8 +944,8 @@ class SchemaProcessor {
         const classdef = new Ast.ClassDef(
             `org.schema${this._className ? '.' + this._className : ''}`,
             [], queries, {} /* actions */, [
-            new Ast.ImportStmt.Mixin(['loader'], 'org.thingpedia.v2', []),
-            new Ast.ImportStmt.Mixin(['config'], 'org.thingpedia.config.none', [])
+            new Ast.ImportStmt.Mixin(null, ['loader'], 'org.thingpedia.v2', []),
+            new Ast.ImportStmt.Mixin(null, ['config'], 'org.thingpedia.config.none', [])
         ], {
             name: `${this._className ? this._className + ' in ' : ''}Schema.org`,
             description: 'Scraped data from websites that support schema.org'

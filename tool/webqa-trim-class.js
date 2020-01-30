@@ -209,7 +209,7 @@ class SchemaTrimmer {
         }
 
         if (tabledef.args.includes('geo') && hasAddress && !hasGeo) {
-            newArgs.push(new Ast.ArgumentDef(
+            newArgs.push(new Ast.ArgumentDef(null,
                 'out', 'geo', Type.Location, {
                     canonical: { default:"npp", npp:["location", "address"] }
                 }, {
@@ -219,7 +219,7 @@ class SchemaTrimmer {
             ));
         }
 
-        this._classDef.queries[tablename] = new Ast.FunctionDef('query', tablename, tabledef.extends, newArgs, tabledef.is_list, tabledef.is_monitorable,
+        this._classDef.queries[tablename] = new Ast.FunctionDef(null, 'query', tablename, tabledef.extends, newArgs, tabledef.is_list, tabledef.is_monitorable,
             tabledef.metadata, tabledef.annotations, this._classDef);
     }
 

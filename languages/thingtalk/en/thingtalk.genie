@@ -39,10 +39,10 @@ import './stream_tables';
 // FIXME add more...
 
 forward_get_do_command = {
-    ('get' | 'take' | 'retrieve') table:if_filtered_table ('and then' | 'then') action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
-    table:complete_get_command ('and then' | 'then' | ',') action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
-    'after' ('you get' | 'taking' | 'getting' | 'retrieving') table:with_filtered_table action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
-    ('get' | 'take' | 'retrieve') table:with_filtered_table ('and then' | 'then') action:thingpedia_action if !complete => new Ast.Statement.Command(table, [action]);
+    ('get' | 'take' | 'retrieve') table:if_filtered_table ('and then' | 'then') action:thingpedia_action if !complete => new Ast.Statement.Command(null, table, [action]);
+    table:complete_get_command ('and then' | 'then' | ',') action:thingpedia_action if !complete => new Ast.Statement.Command(null, table, [action]);
+    'after' ('you get' | 'taking' | 'getting' | 'retrieving') table:with_filtered_table action:thingpedia_action if !complete => new Ast.Statement.Command(null, table, [action]);
+    ('get' | 'take' | 'retrieve') table:with_filtered_table ('and then' | 'then') action:thingpedia_action if !complete => new Ast.Statement.Command(null, table, [action]);
 
     // use X to do Y would be good sometimes but it gets confusing quickly
     //['${(get|use)} ${with_filtered_table} to ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))]
@@ -62,13 +62,13 @@ complete_forward_get_do_command = {
             return null;
 
         let clone = command.actions[0].clone();
-        clone.invocation.in_params.push(new Ast.InputParam(joinArg.name, joinArg));
-        return new Ast.Statement.Command(command.table, [clone]);
+        clone.invocation.in_params.push(new Ast.InputParam(null, joinArg.name, joinArg));
+        return new Ast.Statement.Command(null, command.table, [clone]);
     };
 }
 
 backward_get_do_command = {
-    action:thingpedia_action 'after' ('getting' | 'taking' | 'you get' | 'you retrieve') table:with_filtered_table if !complete => new Ast.Statement.Command(table, [action]);
+    action:thingpedia_action 'after' ('getting' | 'taking' | 'you get' | 'you retrieve') table:with_filtered_table if !complete => new Ast.Statement.Command(null, table, [action]);
 }
 
 complete_get_do_command = {
@@ -86,7 +86,7 @@ forward_when_do_rule = {
     ('monitor' | 'watch') table:with_filtered_table ('and then' | 'then') action:thingpedia_action ('' | '.') if !complete => {
         if (!table.schema.is_monitorable)
             return null;
-        return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
+        return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, table, null, table.schema), [action]);
     };
     !turking ('monitor' | 'watch') proj:projection_Any ('and then' | 'then') action:thingpedia_action ('' | '.') if !complete => {
         if (!proj.schema.is_monitorable)
@@ -105,13 +105,13 @@ forward_when_do_rule = {
             stream = C.tableToStream(proj.table, proj.args);
         if (!stream)
             return null;
-        return new Ast.Statement.Rule(stream, [action]);
+        return new Ast.Statement.Rule(null, stream, [action]);
     };
 
     'check for new' table:complete_table ('and then' | 'then') action:thingpedia_action ('' | '.') if !complete => {
         if (!table.schema.is_monitorable)
             return null;
-        return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
+        return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, table, null, table.schema), [action]);
     };
 }
 
@@ -134,8 +134,8 @@ complete_forward_when_do_rule = {
             return null;
 
         let clone = rule.actions[0].clone();
-        clone.invocation.in_params.push(new Ast.InputParam(joinArg.name, joinArg));
-        return new Ast.Statement.Rule(rule.stream, [clone]);
+        clone.invocation.in_params.push(new Ast.InputParam(null, joinArg.name, joinArg));
+        return new Ast.Statement.Rule(null, rule.stream, [clone]);
     };
 }
 
@@ -145,7 +145,7 @@ backward_when_do_rule = {
     action:thingpedia_action 'after checking for new' table:complete_table ('' | '.') if !complete => {
         if (!table.schema.is_monitorable)
             return null;
-        return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
+        return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, table, null, table.schema), [action]);
     };
 }
 complete_when_do_rule = {
@@ -172,11 +172,11 @@ when_get_stream = {
             if (outParams.length === 1)
                 return null;
         }
-        return C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj, [], proj.schema));
+        return C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, proj, [], proj.schema));
     };
 
-    table:thingpedia_get_command stream:stream => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
-    ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') table:thingpedia_query stream:stream => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
+    table:thingpedia_get_command stream:stream => C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, table, [], table.schema));
+    ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') table:thingpedia_query stream:stream => C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, table, [], table.schema));
     ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') proj:projection_Any stream:stream => {
         if (proj.isProjection) {
             if (!_tpLoader.flags.projection)
@@ -187,7 +187,7 @@ when_get_stream = {
             if (outParams.length === 1)
                 return null;
         }
-        return C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj, [], proj.schema));
+        return C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, proj, [], proj.schema));
     };
 }
 complete_when_get_stream = {
@@ -207,18 +207,18 @@ timer_rule = {
         | 'get' table:complete_table timer:timer
         | timer:timer ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table
         | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table timer:timer
-    ) => new Ast.Statement.Rule(new Ast.Stream.Join(timer, table, [], table.schema), [C.notifyAction()]);
+    ) => new Ast.Statement.Rule(null, new Ast.Stream.Join(null, timer, table, [], table.schema), [C.notifyAction()]);
     // timer => do
     (
           timer:timer action:thingpedia_action
         | action:thingpedia_action timer:timer
         | 'i want to' action:thingpedia_action timer:timer
-    ) if complete => new Ast.Statement.Rule(timer, [action]);
+    ) if complete => new Ast.Statement.Rule(null, timer, [action]);
     // timer => get => do
     !primonly (
           timer:timer command:complete_get_do_command
         | command:complete_get_do_command timer:timer
-    ) => new Ast.Statement.Rule(new Ast.Stream.Join(timer, command.table, [], command.table.schema), command.actions);
+    ) => new Ast.Statement.Rule(null, new Ast.Stream.Join(null, timer, command.table, [], command.table.schema), command.actions);
 }
 
 if (_tpLoader.standardSchemas.say) {
@@ -227,16 +227,16 @@ if (_tpLoader.standardSchemas.say) {
              'notify me' stream:stream
            | ('alert me' | 'inform me' | 'let me know' | 'i get notified' | 'i get alerted') stream:stream
            | 'send me' ('a message' | 'an alert' | 'a notification' | 'a pop up notification' | 'a popup notification') stream:stream
-        ) => C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction(_tpLoader) : C.notifyAction()]));
-        ?timer 'send me a reminder' stream:timer => C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.builtinSayAction(_tpLoader)]));
+        ) => C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, stream, [stream.isTimer || stream.isAtTimer ? C.builtinSayAction(_tpLoader) : C.notifyAction()]));
+        ?timer 'send me a reminder' stream:timer => C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, stream, [C.builtinSayAction(_tpLoader)]));
         ?timer 'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification')
                stream:timer ('saying' | 'with the text') constant:constant_String
-               => C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.builtinSayAction(_tpLoader, constant)]));
+               => C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, stream, [C.builtinSayAction(_tpLoader, constant)]));
         !turking {
             (
                   'alert me' stream:stream ('saying' | 'with the text') constant:constant_String
                 | 'show' ('the notification' | 'the message' | 'a popup notification that says' | 'a popup containing') constant:constant_String stream:stream
-             ) => C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.builtinSayAction(_tpLoader, constant)]));
+             ) => C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, stream, [C.builtinSayAction(_tpLoader, constant)]));
         }
 
         // now => say
@@ -244,7 +244,7 @@ if (_tpLoader.standardSchemas.say) {
               'say' c:constant_String
             | 'send me a message saying' c:constant_String
             | 'show a popup that says' c:constant_String
-        ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, [C.builtinSayAction(_tpLoader, c)]));
+        ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, null, [C.builtinSayAction(_tpLoader, c)]));
     }
 }
 
@@ -256,12 +256,12 @@ $root = {
          'notify me' stream:stream
        | ('alert me' | 'inform me' | 'let me know' | 'i get notified' | 'i get alerted') stream:stream
        | 'send me' ('a message' | 'an alert' | 'a notification' | 'a pop up notification' | 'a popup notification') stream:stream
-    ) => C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]));
+    ) => C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, stream, [C.notifyAction()]));
 
     ('monitor' | 'watch') table:with_filtered_table => {
         if (!table.schema.is_monitorable)
             return null;
-        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [C.notifyAction()]));
+        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, table, null, table.schema), [C.notifyAction()]));
     };
     !turking ('monitor' | 'watch') proj:projection_Any => {
         if (!proj.schema.is_monitorable)
@@ -274,13 +274,13 @@ $root = {
         let outParams = Object.keys(proj.table.schema.out);
         if (outParams.length === 1 && _tpLoader.flags.turking)
             return null;
-        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]));
+        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, stream, [C.notifyAction()]));
     };
     ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' table:if_filtered_table => {
         let stream = C.tableToStream(table, null);
         if (!stream)
             return null;
-        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]));
+        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, stream, [C.notifyAction()]));
     };
     !nofilter ('monitor' | 'watch') table:complete_table 'and' ('alert me' | 'notify me' | 'inform me' | 'warn me') ('if' | 'when') filter:atom_filter => {
         if (C.hasGetPredicate(filter))
@@ -293,7 +293,7 @@ $root = {
         let stream = C.tableToStream(table, null);
         if (!stream)
             return null;
-        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]));
+        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, stream, [C.notifyAction()]));
     };
     !turking ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' proj:projection_Any => {
         if (!proj.schema.is_monitorable)
@@ -304,7 +304,7 @@ $root = {
         if (outParams.length === 1 && _tpLoader.flags.turking)
             return null;
         // note that we intentionally don't use tableToStream here, because we don't want to introduce edge filters
-        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), [C.notifyAction()]));
+        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, proj.table, null, proj.table.schema), [C.notifyAction()]));
     };
     !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:atom_filter 'in' table:complete_table => {
         if (C.hasGetPredicate(filter))
@@ -319,7 +319,7 @@ $root = {
         let stream = C.tableToStream(table, null);
         if (!stream)
             return null;
-        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]));
+        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, stream, [C.notifyAction()]));
     };
     !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:edge_filter 'in' table:complete_table => {
         if (C.hasGetPredicate(filter))
@@ -332,7 +332,7 @@ $root = {
         let stream = C.tableToStream(table, null);
         if (!stream)
             return null;
-        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]));
+        return C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, stream, [C.notifyAction()]));
     };
 
     // now => get => notify
@@ -355,11 +355,11 @@ $root = {
         | ('what' | 'which') 'are' ('the' | '') table:two_with_filter_table ('' | '?')
         | ('what' | 'which') 'are' ('the' | '') table:two_which_filter_table ('' | '?')
         | ('what' | 'which') 'are' ('the' | '') table:two_clean_filter_table ('' | '?')
-    ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction()]));
+    ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, table, [C.notifyAction()]));
     ( 'please' | '') ('list' | 'enumerate') table:with_filtered_table => {
         if (!table.schema.is_list)
             return null;
-        return C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction()]));
+        return C.makeProgram(_tpLoader, new Ast.Statement.Command(null, table, [C.notifyAction()]));
     };
 
     // now => get => notify with join
@@ -367,14 +367,14 @@ $root = {
           'get' table:schema_with_filtered_table_join
         | ('what' | 'which') 'are' ('the' | '') table:schema_with_filtered_table_join
         | ('what' | 'which') table:schema_have_filtered_table_join
-    ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction()]));
+    ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, table, [C.notifyAction()]));
 
     // now => get => notify (argmin, argmax)
     (
           ('search' | 'find' | 'retrieve' | 'tell me' |'show me' | 'present') 'the' table:with_arg_min_max_table
         | ('what' | 'which') 'is the' table:with_arg_min_max_table ('' | '?')
         | 'which' table:have_arg_min_max_table ('' | '?')
-    ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction()]));
+    ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, table, [C.notifyAction()]));
 
     // now => get => notify (who questions)
     !turking (
@@ -393,7 +393,7 @@ $root = {
         | ('who is the person' | 'who is the one' | 'who is the individual') table:who_two_which_filter_table ('' | '?')
         | ('who is the person' | 'who is the one' | 'who is the individual') table:who_two_clean_filter_table ('' | '?')
         | 'whose' table:whose_filtered_table ('' | '?')
-    ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction()]));
+    ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, table, [C.notifyAction()]));
     ?turking (
           'who' table:who_verb_filtered_table ('' | '?')
         | 'who' table:who_one_be_filter_table ('' | '?')
@@ -403,7 +403,7 @@ $root = {
         | 'who' table:who_two_have_filter_table ('' | '?')
         | 'who' table:who_two_verb_filter_table ('' | '?')
         | 'whose' table:whose_filtered_table ( '' | '?')
-    ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction()]));
+    ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, table, [C.notifyAction()]));
 
     // now => get => say(...)
     // don't merge these, the output sizes are too small
@@ -445,8 +445,8 @@ $root = {
     };
 
     !turking proj:projection_Any => C.sayProjectionProgram(_tpLoader, proj);
-    table:compute_question => C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction()]));
-    table:where_question => C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction()]));
+    table:compute_question => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, table, [C.notifyAction()]));
+    table:where_question => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, table, [C.notifyAction()]));
 
     // now => do
     (
@@ -455,7 +455,7 @@ $root = {
         | 'i need you to' action:thingpedia_action
         | 'i want to' action:thingpedia_action
         | 'i \'d like to' action:thingpedia_action
-    ) if complete => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, [action]));
+    ) if complete => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, null, [action]));
 
     // now => get => do
     !primonly command:complete_get_do_command => C.makeProgram(_tpLoader, command);
@@ -464,9 +464,9 @@ $root = {
     !primonly stream:complete_when_get_stream => {
         assert(stream.isJoin, `unexpected stream in when_get, found ${stream}`);
         if (stream.table.isProjection)
-            return C.makeProgram(_tpLoader, new Ast.Statement.Rule(new Ast.Stream.Join(stream.stream, stream.table.table, stream.in_params, stream.schema), [C.notifyAction()]));
+            return C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, new Ast.Stream.Join(null, stream.stream, stream.table.table, stream.in_params, stream.schema), [C.notifyAction()]));
         else
-            return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]));
+            return C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, stream, [C.notifyAction()]));
     };
 
     ?timer rule:timer_rule => C.makeProgram(_tpLoader, rule);
@@ -492,7 +492,7 @@ $root = {
             let stream = C.tableToStream(table, null);
             if (!stream)
                 return null;
-            return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]), principal);
+            return C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, stream, [C.notifyAction()]), principal);
         };
         !nofilter ('if' | 'when') filter:atom_filter 'in' table:complete_table ('for' | 'of') principal:constant_Entity__tt__username 'then' ('alert me' | 'tell me' | 'notify me' | 'let me know')  => {
             if (C.hasGetPredicate(filter))
@@ -507,27 +507,27 @@ $root = {
             let stream = C.tableToStream(table, null);
             if (!stream)
                 return null;
-            return C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction()]), principal);
+            return C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, stream, [C.notifyAction()]), principal);
         };
 
         (
               ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' action:thingpedia_action
             | ('tell' | 'command' | 'order' | 'request' | 'inform') principal:constant_Entity__tt__username 'that' ('he needs' | 'she needs' | 'i need him' | 'i need her') 'to' action:thingpedia_action
-        ) if complete => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, [action]), principal);
+        ) if complete => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, null, [action]), principal);
         (
               ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table 'and send it to me'
             | ('request' | 'ask') principal:constant_Entity__tt__username 'to get' table:complete_table
             | ('show me' | 'get') table:complete_table 'from' principal:constant_Entity__tt__username
             | ('show me' | 'get' | 'what is') principal:constant_Entity__tt__username '\'s' table:complete_table
             | ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to send me' table:complete_table
-        ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(table, [C.notifyAction('return')]), principal);
+        ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, table, [C.notifyAction('return')]), principal);
         ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' ('let me know' | 'inform me' | 'notify me' | 'alert me') stream:stream => C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction('return')]), principal);
 
         ?extended_timers {
             (
                 ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' action:thingpedia_action stream:timer
                 | ('tell' | 'command' | 'order' | 'request' | 'inform') principal:constant_Entity__tt__username 'that' ('he needs' | 'she needs' | 'i need him' | 'i need her') 'to' action:thingpedia_action stream:timer
-            ) if complete => C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [action]), principal);
+            ) if complete => C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, stream, [action]), principal);
         }
     }
 
@@ -540,7 +540,7 @@ $root = {
             let policy = C.makePolicy(null, null, action);
             if (!policy)
                 return null;
-            policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
+            policy.action.filter = new Ast.BooleanExpression.And(null, [policy.action.filter, filter]);
             return policy;
         };
         ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') ('get' | 'see' | 'access' | 'monitor' | 'read') table:if_filtered_table => C.makePolicy(null, table, null);
@@ -551,7 +551,7 @@ $root = {
             let policy = C.makePolicy(source, null, action);
             if (!policy)
                 return null;
-            policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
+            policy.action.filter = new Ast.BooleanExpression.And(null, [policy.action.filter, filter]);
             return policy;
         };
         source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') ('get' | 'see' | 'access' | 'monitor' | 'read') table:if_filtered_table => C.makePolicy(source, table, null);

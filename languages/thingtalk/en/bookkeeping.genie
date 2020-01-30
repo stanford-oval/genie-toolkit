@@ -19,7 +19,7 @@ const Type = ThingTalk.Type;
 const C = require('../ast_manip');
 
 function special(specialType) {
-    return new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Special(specialType));
+    return new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Special(null, specialType));
 }
 
 }
@@ -135,13 +135,13 @@ $root = {
         | 'list commands in' c:command_category
         | 'list devices in' c:command_category
         | 'list' c:command_category 'devices'
-        ) => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.CommandList(new Ast.Value.Undefined(true), c));
+        ) => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.CommandList(null, new Ast.Value.Undefined(true), c));
 
          ( c:constant_Any
         | 'the answer is' c:constant_Any
         | 'use' c:constant_Any
         | 'i want' c:constant_Any
-        ) => new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Answer(c));
+        ) => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Answer(null, c));
     }
 
     // NOTE: the following bookkeeping commands have no template:
