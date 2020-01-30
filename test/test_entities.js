@@ -59,8 +59,8 @@ const TEST_CASES = [
     ['tt:country', 'america', 'us', 'United States of America'],
     ['tt:country', 'italy', 'it', 'Italy'],
 
-    ['com.instagram:filter', 'sierra', 'sierra', 'Sierra'],
-    ['com.instagram:filter', 'lo-fi', 'lo-fi', 'Lo-Fi'],
+    ['com.instagram:filter_', 'sierra', 'sierra', 'Sierra'],
+    ['com.instagram:filter_', 'lo-fi', 'lo-fi', 'Lo-Fi'],
 
     ['gov.nasa:curiosity_rover_camera', 'front camera', 'FHAZ', 'Front Hazard Avoidance Camera'],
 
