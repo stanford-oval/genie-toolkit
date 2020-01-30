@@ -28,7 +28,12 @@ function makeDate(base, operator, offset) {
     if (offset === null)
         return base;
 
-    return new Ast.Value.Computation('+', [base, offset]);
+    const value = new Ast.Value.Computation('+', [base, offset]);
+    // HACK
+    value.getType = function() {
+        return Type.Date;
+    };
+    return value;
 }
 
 function findFunctionNameTable(table) {
@@ -131,7 +136,7 @@ function unassignInputParameter(schema, passign, pname) {
 // perform eta reduction
 // (turn (\(x) -> f(x)) into just f
 function etaReduceInvocation(invocation, pname) {
-    let clone = new Ast.Invocation(invocation.selector, invocation.channel,
+    let clone = new Ast.Invocation(null, invocation.selector, invocation.channel,
         Array.from(invocation.in_params), null);
     let passign;
     for (let i = 0; i < clone.in_params.length; i++) {
@@ -245,14 +250,11 @@ function makeListExpression($options, param, filter) {
 }
 
 function makeAggregateFilter($options, param, aggregationOp, field, op, value) {
-    const list = makeListExpression($options, param);
-    if (!list)
-        return null;
     if (aggregationOp === 'count') {
         if (!value.getType().isNumber)
             return null;
         assert(field === null);
-        const agg = new Ast.Value.Computation(aggregationOp, [list]);
+        const agg = new Ast.Value.Computation(aggregationOp, [param]);
         return new Ast.BooleanExpression.Compute(null, agg, op, value);
     } else if (['sum', 'avg', 'max', 'min'].includes(aggregationOp)) {
         const vtype = value.getType();
@@ -264,7 +266,7 @@ function makeAggregateFilter($options, param, aggregationOp, field, op, value) {
                 return null;
         }
         const agg = new Ast.Value.Computation(aggregationOp, [
-            field ? new Ast.Value.ArrayField(list, field.name) : list
+            param ? new Ast.Value.ArrayField(param, field.name) : param
         ]);
         return new Ast.BooleanExpression.Compute(null, agg, op, value);
     }
@@ -1109,7 +1111,7 @@ function addTimerToProgram(program, timer) {
         if (r.isAssignment)
             return r;
         if (r.table)
-            return new Ast.Statement.Rule(null, new Ast.Stream.Join(timer, r.table, [], r.table.schema), r.actions);
+            return new Ast.Statement.Rule(null, new Ast.Stream.Join(null, timer, r.table, [], r.table.schema), r.actions);
         else
             return new Ast.Statement.Rule(null, timer, r.actions);
     });
