@@ -1917,6 +1917,13 @@ sshpk@^1.7.0:
     safer-buffer "^2.0.2"
     tweetnacl "~0.14.0"
 
+string-interp@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/string-interp/-/string-interp-0.1.0.tgz#d1501e268ffcf4723ac15ea9f14486870bed92b7"
+  integrity sha512-IpdjjxHgiO+AKlhmeUSl4U/M/vLf/Qy5t5MwG/Ij8+l8yNBemLgjgtn13WCKaw78FrKi1DDKrs0gnDJnMiUgBw==
+  dependencies:
+    thingtalk-units "^0.1.0"
+
 string-width@^3.0.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-3.1.0.tgz#22767be21b62af1081574306f69ac51b62203961"
@@ -2020,27 +2027,35 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-thingpedia@~2.6.0:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.6.0.tgz#b948c22265d65ebd655a3f1c8d3401ef351bcce8"
-  integrity sha512-nICn8qQTl52wuMMehuYqjW51Q0aFAZKjfoKzu32D0KtHl85BNLb8TI39vI5qHY5iF/YIwYNtPlfrcZvCsAAg2g==
+thingpedia@~2.7.0-alpha.1:
+  version "2.7.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.7.0-alpha.1.tgz#8dd6ffc0cfa57dd3425958a31dd153ac41554fd6"
+  integrity sha512-gQIwZpG5/VVdxAmQUPZA5Ve5BzDeu3aIAPSA9om5FU6EYaNVG24esIxnN37XaA9FySMb3HsvZdC6xGBUEDRDNA==
   dependencies:
     feedparser "^2.2.9"
     ip "^1.1.0"
     oauth "^0.9.14"
-    thingtalk "~1.9.0"
+    string-interp "^0.1.0"
+    thingtalk "~1.10.0-alpha.1"
     tmp "^0.1.0"
     xml2js "^0.4.17"
 
-thingtalk@~1.9.0:
-  version "1.9.2"
-  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.9.2.tgz#3e8e5746a6a021134bb5125f39d63aa58f76cd00"
-  integrity sha512-cWWIfyJU7To1khT9i/C2/6r82m7cd+VBwWgDfLu/uAhAdSDXY9jT0M8xzA4Gfh70xKS6e1Tq3G90nxMCvtpdag==
+thingtalk-units@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/thingtalk-units/-/thingtalk-units-0.1.0.tgz#c3b69bc0c7d0a3ba5bfad3ccf02dc1c291d1abc8"
+  integrity sha512-rV5/jZw9fBk3OgYi/HrA1LsTmD5w0gYDlsc1US3/ePR5szaUxwMUtN8UAPYaUorOiW0Qcjm1plvssOC97EkedQ==
+
+thingtalk@~1.10.0-alpha.1:
+  version "1.10.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.10.0-alpha.1.tgz#4961d8051df3f74fd3626b76d0d4c8825993fe4c"
+  integrity sha512-XJulv/APx+Y2EYmh+4kke+tFF4Tp3Avti7egOUIqo4Zg8iXwxBW5wtWq5EjLueLeHuetPxYldMZB5MFeoINKQQ==
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
     consumer-queue "^1.0.0"
     smtlib "^0.1.1"
+    string-interp "^0.1.0"
+    thingtalk-units "^0.1.0"
 
 "through@>=2.2.7 <3", through@^2.3.6:
   version "2.3.8"
