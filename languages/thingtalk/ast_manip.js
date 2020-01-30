@@ -827,12 +827,10 @@ function mergeSchemas(functionType, lhsSchema, rhsSchema, passign) {
         newArgs.push(arg);
     }
 
-    return new Ast.ExpressionSignature(null, functionType,
-        [], // extends
-        newArgs, // args
-        lhsSchema.is_list || rhsSchema.is_list, // is_list
-        lhsSchema.is_monitorable && rhsSchema.is_monitorable // is_monitorable
-    );
+    return new Ast.ExpressionSignature(null, functionType, null /* class */, [] /* extends */, newArgs, {
+        is_list: lhsSchema.is_list || rhsSchema.is_list,
+        is_monitorable: lhsSchema.is_monitorable && rhsSchema.is_monitorable
+    });
 }
 
 function filterTableJoin(into, filteredTable) {

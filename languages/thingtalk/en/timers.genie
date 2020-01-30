@@ -12,30 +12,42 @@
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 
-const TIMER_SCHEMA = new Ast.FunctionDef('stream',
+const TIMER_SCHEMA = new Ast.FunctionDef(null,
+    'stream',
+    null, // class
     'timer',
     [], // extends
-    [], // args,
-    false, // is_list
-    true,  // is_monitorable
     {
-    canonical: 'every fixed interval',
-    confirmation: 'every ${interval}',
+        is_list: false,
+        is_monitorable: true
     },
-    {} // annotations
+    [], // args,
+    {
+        nl: {
+            canonical: 'every fixed interval',
+            confirmation: 'every ${interval}',
+        },
+        impl: {}
+    }
 );
 
-const AT_TIMER_SCHEMA = new Ast.FunctionDef('stream',
+const AT_TIMER_SCHEMA = new Ast.FunctionDef(null,
+    'stream',
+    null, // class
     'attimer',
     [], // extends
-    [], // args,
-    false, // is_list
-    true,  // is_monitorable
     {
-    canonical: 'every day',
-    confirmation: 'every day at ${interval}',
+        is_list: false,
+        is_monitorable: true
     },
-    {} // annotations
+    [], // args,
+    {
+        nl: {
+            canonical: 'every day',
+            confirmation: 'every day at ${interval}',
+        },
+        impl: {}
+    }
 );
 
 const TIME_MORNING = new Ast.Value.Time(new Ast.Time.Relative("morning"));

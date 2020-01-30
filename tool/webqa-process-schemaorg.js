@@ -575,7 +575,10 @@ class SchemaProcessor {
                 annotation['drop'] = new Ast.Value.Boolean(true);
             }
 
-            fields[propertyname] = new Ast.ArgumentDef(undefined, propertyname, ttType, metadata, annotation);
+            fields[propertyname] = new Ast.ArgumentDef(null, undefined, propertyname, ttType, {
+                nl: metadata,
+                impl: annotation
+            });
             anyfield = true;
         }
         if (!anyfield)
@@ -884,17 +887,23 @@ class SchemaProcessor {
                 continue;
 
             const args = [
-                new Ast.ArgumentDef(Ast.ArgDirection.OUT, 'id', Type.Entity(this._prefix + typename), {}, {
-                    'unique': new Ast.Value.Boolean(true),
-                    'genie': new Ast.Value.Boolean(false) // no filter on id, if it has ner support, we'll generate prim for it
+                new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'id', Type.Entity(this._prefix + typename), {
+                    nl: {},
+                    impl: {
+                        'unique': new Ast.Value.Boolean(true),
+                        'genie': new Ast.Value.Boolean(false) // no filter on id, if it has ner support, we'll generate prim for it
+                    }
                 })
             ];
             recursiveAddStringValues(args[0], this._prefix + typename + '_name');
             if (typename !== 'Thing') {
                 // override name so we can apply a custom string_values annotation
-                const arg = new Ast.ArgumentDef(Ast.ArgDirection.OUT, 'name', Type.String, {}, {
-                    'org_schema_type': new Ast.Value.String('Text'),
-                    'genie': new Ast.Value.Boolean(false) // no filter on name, if it has ner support, we'll generate prim for it
+                const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'name', Type.String, {
+                    nl: {},
+                    impl: {
+                        'org_schema_type': new Ast.Value.String('Text'),
+                        'genie': new Ast.Value.Boolean(false) // no filter on name, if it has ner support, we'll generate prim for it
+                    }
                 });
                 recursiveAddStringValues(arg, this._prefix + typename + '_name');
                 args.push(arg);
@@ -922,7 +931,10 @@ class SchemaProcessor {
                 if (PROPERTIES_NO_FILTER.includes(propertyname))
                     annotation['genie'] = new Ast.Value.Boolean(false);
 
-                const arg = new Ast.ArgumentDef(Ast.ArgDirection.OUT, propertyname, type, metadata, annotation);
+                const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, propertyname, type, {
+                    nl: metadata,
+                    impl: annotation
+                });
                 recursiveAddStringValues(arg, this._prefix + typename + '_' + propertyname);
 
                 args.push(arg);
@@ -930,26 +942,38 @@ class SchemaProcessor {
 
             if (KEYWORDS.includes(typename))
                 typename = '_' + typename;
-            queries[typename] = new Ast.FunctionDef('query', typename, typedef.extends, args, true, false, {
-                'canonical': clean(typename),
-                'confirmation': clean(typename),
-            }, keepAnnotation ? {
-                'org_schema_comment': Ast.Value.String(typedef.comment),
-                'confirm': Ast.Value.Boolean(false)
-            } : {
-                'confirm': Ast.Value.Boolean(false)
-            });
+            queries[typename] = new Ast.FunctionDef(null, 'query', null /* class */, typename,
+                typedef.extends, {
+                    is_list: true,
+                    is_monitorable: false,
+                }, args, {
+                    nl: {
+                        'canonical': clean(typename),
+                        'confirmation': clean(typename),
+                    },
+                    impl: keepAnnotation ? {
+                        'org_schema_comment': Ast.Value.String(typedef.comment),
+                        'confirm': Ast.Value.Boolean(false)
+                    } : {
+                        'confirm': Ast.Value.Boolean(false)
+                    }
+                });
         }
 
-        const classdef = new Ast.ClassDef(
+        const classdef = new Ast.ClassDef(null,
             `org.schema${this._className ? '.' + this._className : ''}`,
             [], queries, {} /* actions */, [
             new Ast.ImportStmt.Mixin(null, ['loader'], 'org.thingpedia.v2', []),
             new Ast.ImportStmt.Mixin(null, ['config'], 'org.thingpedia.config.none', [])
         ], {
-            name: `${this._className ? this._className + ' in ' : ''}Schema.org`,
-            description: 'Scraped data from websites that support schema.org'
-        }, {}, false);
+            nl: {
+                name: `${this._className ? this._className + ' in ' : ''}Schema.org`,
+                description: 'Scraped data from websites that support schema.org'
+            },
+            impl: {}
+        }, {
+            is_abstract: false
+        });
 
         this._output.end(classdef.prettyprint());
         await StreamUtils.waitFinish(this._output);

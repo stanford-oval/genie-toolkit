@@ -209,18 +209,22 @@ class SchemaTrimmer {
         }
 
         if (tabledef.args.includes('geo') && hasAddress && !hasGeo) {
-            newArgs.push(new Ast.ArgumentDef(null,
-                'out', 'geo', Type.Location, {
+            newArgs.push(new Ast.ArgumentDef(null, 'out', 'geo', Type.Location, {
+                nl: {
                     canonical: { default:"npp", npp:["location", "address"] }
-                }, {
+                },
+                impl: {
                     org_schema_type: new Ast.Value.String('GeoCoordinates'),
                     org_schema_has_data: new Ast.Value.Boolean(false)
                 }
-            ));
+            }));
         }
 
-        this._classDef.queries[tablename] = new Ast.FunctionDef(null, 'query', tablename, tabledef.extends, newArgs, tabledef.is_list, tabledef.is_monitorable,
-            tabledef.metadata, tabledef.annotations, this._classDef);
+        this._classDef.queries[tablename] = new Ast.FunctionDef(null, 'query', this._classDef,
+            tablename, tabledef.extends, tabledef.qualifiers, newArgs, {
+                nl: tabledef.metadata,
+                impl: tabledef.annotations,
+            });
     }
 
 }

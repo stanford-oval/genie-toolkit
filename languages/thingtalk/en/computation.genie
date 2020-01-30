@@ -22,7 +22,7 @@
 
     function makeComputeExpression(table, operation, operands, resultType) {
         const computeSchema = table.schema.addArguments([
-            new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType, {}, {})]);
+            new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType)]);
         const expression = new Ast.Value.Computation(operation, operands);
 
         return new Ast.Table.Compute(null, table, expression, null, computeSchema);
@@ -68,7 +68,7 @@
             }
         }
         const computeSchema = table.schema.addArguments([
-            new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType, {}, {})]);
+            new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType)]);
         const expression = new Ast.Value.Computation(operation, [new Ast.Value.ArrayField(list, field)]);
 
         return new Ast.Table.Compute(null, table, expression, null, computeSchema);
