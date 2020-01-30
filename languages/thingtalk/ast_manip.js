@@ -22,6 +22,15 @@ const { isUnaryTableToTableOp,
         typeToStringSafe } = require('./utils');
 const { notifyAction } = ThingTalk.Generate;
 
+function makeDate(base, operator, offset) {
+    if (!(base instanceof Ast.Value))
+        base = new Ast.Value.Date(base);
+    if (offset === null)
+        return base;
+
+    return new Ast.Value.Computation('+', [base, offset]);
+}
+
 function findFunctionNameTable(table) {
     if (table.isInvocation)
         return [table.invocation.selector.kind + ':' + table.invocation.channel];
@@ -1365,6 +1374,7 @@ module.exports = {
     tableToStream,
 
     addUnit,
+    makeDate,
 
     sayProjectionProgram,
 

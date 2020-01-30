@@ -33,31 +33,31 @@ constant_Number = {
 }
 
 constant_date_point = {
-    'now'                 => new Ast.Value.Date(null, '+', null);
-    'today'               => new Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '+', null);
-    'yesterday'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '-', Ast.Value.Measure(1, 'day'));
-    'this week'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '+', null);
+    'now'                 => C.makeDate(null, '+', null);
+    'today'               => C.makeDate(Ast.DateEdge('start_of', 'day'), '+', null);
+    'yesterday'           => C.makeDate(Ast.DateEdge('start_of', 'day'), '-', Ast.Value.Measure(1, 'day'));
+    'this week'           => C.makeDate(Ast.DateEdge('start_of', 'week'), '+', null);
 
     !turking {
-    'tomorrow'            => new Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
-    'the end of the day'  => new Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
-    'the end of the week' => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
-    'last week'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
-    'this month'          => new Ast.Value.Date(Ast.DateEdge('start_of', 'mon'), '+', null);
-    'this year'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'year'), '+', null);
-    'next month'          => new Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '+', null);
-    'next year'           => new Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '+', null);
-    'last month'          => new Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '-', Ast.Value.Measure(1, 'mon'));
-    'last year'           => new Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '-', Ast.Value.Measure(1, 'year'));
+    'tomorrow'            => C.makeDate(Ast.DateEdge('end_of', 'day'), '+', null);
+    'the end of the day'  => C.makeDate(Ast.DateEdge('end_of', 'day'), '+', null);
+    'the end of the week' => C.makeDate(Ast.DateEdge('end_of', 'week'), '+', null);
+    'last week'           => C.makeDate(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
+    'this month'          => C.makeDate(Ast.DateEdge('start_of', 'mon'), '+', null);
+    'this year'           => C.makeDate(Ast.DateEdge('start_of', 'year'), '+', null);
+    'next month'          => C.makeDate(Ast.DateEdge('end_of', 'mon'), '+', null);
+    'next year'           => C.makeDate(Ast.DateEdge('end_of', 'year'), '+', null);
+    'last month'          => C.makeDate(Ast.DateEdge('end_of', 'mon'), '-', Ast.Value.Measure(1, 'mon'));
+    'last year'           => C.makeDate(Ast.DateEdge('end_of', 'year'), '-', Ast.Value.Measure(1, 'year'));
     }
 }
 
 constant_Date = {
     !turking {
-    duration:constant_Measure_ms 'from now' => new Ast.Value.Date(null, '+', duration);
-    duration:constant_Measure_ms 'ago'      => new Ast.Value.Date(null, '-', duration);
-    duration:constant_Measure_ms 'after' pt:constant_date_point  => new Ast.Value.Date(pt.value, '+', duration);
-    duration:constant_Measure_ms 'before' pt:constant_date_point => new Ast.Value.Date(pt.value, '-', duration);
+    duration:constant_Measure_ms 'from now' => C.makeDate(null, '+', duration);
+    duration:constant_Measure_ms 'ago'      => C.makeDate(null, '-', duration);
+    duration:constant_Measure_ms 'after' pt:constant_date_point  => C.makeDate(pt, '+', duration);
+    duration:constant_Measure_ms 'before' pt:constant_date_point => C.makeDate(pt, '-', duration);
     }
 }
 
