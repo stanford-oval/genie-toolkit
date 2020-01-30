@@ -79,7 +79,7 @@ complete_get_do_command = {
 
 forward_when_do_rule = {
     // pp from when to do (optional)
-    stream:stream action:thingpedia_action ('' | '.') => new Ast.Statement.Rule(stream, [action]);
+    stream:stream action:thingpedia_action ('' | '.') => new Ast.Statement.Rule(null, stream, [action]);
 
     // pp from when to do (required)
     // this is because "monitor X and then Y" makes sense only if X flows into Y
@@ -140,7 +140,7 @@ complete_forward_when_do_rule = {
 }
 
 backward_when_do_rule = {
-    action:thingpedia_action stream:stream ('' | '.') => new Ast.Statement.Rule(stream, [action]);
+    action:thingpedia_action stream:stream ('' | '.') => new Ast.Statement.Rule(null, stream, [action]);
 
     action:thingpedia_action 'after checking for new' table:complete_table ('' | '.') if !complete => {
         if (!table.schema.is_monitorable)
@@ -160,8 +160,8 @@ when_get_stream = {
     // pp from when to get (optional)
     // NOTE: the schema is not quite right but it's ok because the stream is complete
     // and the table is what we care about
-    stream:stream table:thingpedia_get_command => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
-    stream:stream ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') table:thingpedia_query => C.checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema));
+    stream:stream table:thingpedia_get_command => C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, table, [], table.schema));
+    stream:stream ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') table:thingpedia_query => C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, table, [], table.schema));
     stream:stream ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') ('' | 'what is') proj:projection_Any => {
         if (proj.isProjection) {
             if (!_tpLoader.flags.projection)
@@ -521,7 +521,7 @@ $root = {
             | ('show me' | 'get' | 'what is') principal:constant_Entity__tt__username '\'s' table:complete_table
             | ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to send me' table:complete_table
         ) => C.makeProgram(_tpLoader, new Ast.Statement.Command(null, table, [C.notifyAction('return')]), principal);
-        ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' ('let me know' | 'inform me' | 'notify me' | 'alert me') stream:stream => C.makeProgram(_tpLoader, new Ast.Statement.Rule(stream, [C.notifyAction('return')]), principal);
+        ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' ('let me know' | 'inform me' | 'notify me' | 'alert me') stream:stream => C.makeProgram(_tpLoader, new Ast.Statement.Rule(null, stream, [C.notifyAction('return')]), principal);
 
         ?extended_timers {
             (

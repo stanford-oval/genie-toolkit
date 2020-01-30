@@ -434,7 +434,7 @@ function makeProgram($options, rule, principal = null) {
         if ($options.flags.no_stream)
             return null;
     }
-    return new Ast.Program([], [], [rule], principal);
+    return new Ast.Program(null, [], [], [rule], principal);
 }
 
 function combineStreamCommand(stream, command) {
@@ -740,7 +740,8 @@ function makePolicy(principal, table, action) {
     }
 
     const sourcepredicate = principal ?
-        Ast.BooleanExpression.Atom('source', '==', principal) : Ast.BooleanExpression.True;
+        new Ast.BooleanExpression.Atom(null, 'source', '==', principal) :
+        Ast.BooleanExpression.True;
 
     return new Ast.PermissionRule(null, sourcepredicate, policyQuery, policyAction);
 }
