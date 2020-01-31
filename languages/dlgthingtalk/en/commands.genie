@@ -557,12 +557,8 @@ policy_command = {
     source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') ('get' | 'see' | 'access' | 'monitor' | 'read') table:if_filtered_table => C.makePolicy(source, table, null);
 }
 
-compound_command = {
-
-}
-
+// stuff I am not completely sure of...
 initial_program = {
-    // stuff I am not completely sure of...
     thingpedia_program if complete;
     ?remote_commands remote_command;
     ?policies policy_command;
@@ -574,9 +570,4 @@ initial_program = {
     !nostream {
         stmt:when_command => C.makeProgram(stmt);
     }
-
-    ( stmt:action_command
-    | stmt:complete_initial_question
-    | stmt:projection_question
-    ) => C.makeProgram(stmt);
 }

@@ -12,6 +12,8 @@
     const ThingTalk = require('thingtalk');
     const Ast = ThingTalk.Ast;
     const DlgAst = require('../../../lib/languages/dlgthingtalk/ast');
+
+    const C = require('../ast_manip');
 }
 
 import '../common';
@@ -31,9 +33,62 @@ greeting = {
 }
 
 $root = {
-    greeting => new DlgAst.DialogueState('transaction', 'greet', [], []);
+    greeting => new DlgAst.DialogueState('transaction', 'greet', [], null, null);
 
     ( prog:initial_program
     | greeting prog:initial_program
-    ) => new DlgAst.DialogueState('transaction', 'program', [], [prog]);
+    ) => new DlgAst.DialogueState('transaction', 'program', [], prog, null);
+
+    ( stmt:action_command
+    | stmt:complete_initial_question
+    | stmt:projection_question
+    | greeting stmt:action_command
+    | greeting stmt:complete_initial_question
+    | greeting stmt:projection_question
+    ) => {
+        let current = null, next = null;
+
+        if (stmt.table && stmt.actions.length > 0) {
+            // split into two statements, one getting the data, and the other using it
+
+            const queryStmt = new Ast.Statement.Command(stmt.table, [C.notifyAction()]);
+            current = C.makeProgram(queryStmt);
+            if (current == null)
+                return null;
+
+            const newActions = stmt.actions.map((a) => a.clone());
+            let allBuiltin = true;
+            for (let action of newActions) {
+                if (!action.isInvocation)
+                    throw new TypeError('???');
+                if (action.invocation.selector.isBuiltin)
+                    continue;
+                allBuiltin = false;
+
+                const in_params = action.invocation.in_params;
+                for (let in_param of in_params) {
+                    if (!in_param.value.isVarRef)
+                        continue;
+                    if (in_param.value.name.startsWith('__const_'))
+                        continue;
+
+                    // parameter passing
+                    // FIXME we need a new ThingTalk value type...
+                    in_param.value = new Ast.Value.Undefined(true);
+                }
+            }
+            if (!allBuiltin) {
+                const actionStmt = new Ast.Statement.Command(null, newActions);
+                next = C.makeProgram(actionStmt);
+                if (next == null)
+                    return null;
+            }
+        } else {
+            current = C.makeProgram(stmt);
+            if (current === null)
+                return null;
+        }
+
+        return new DlgAst.DialogueState('transaction', 'program', [], current, next);
+    };
 }
