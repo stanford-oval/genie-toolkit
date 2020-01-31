@@ -25,9 +25,9 @@ projection_Number = {
         if (!t.schema.is_list)
             return null;
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT)
-            .addArguments([new Ast.ArgumentDef(Ast.ArgDirection.OUT, 'count', Type.Number)]);
-        const agg = new Ast.Table.Aggregation(t, '*', 'count', null, newSchema);
-        return new Ast.Table.Projection(agg, ['count'], newSchema);
+            .addArguments([new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'count', Type.Number)]);
+        const agg = new Ast.Table.Aggregation(null, t, '*', 'count', null, newSchema);
+        return new Ast.Table.Projection(null, agg, ['count'], newSchema);
     };
 }
 
@@ -40,8 +40,8 @@ projection_Any = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-        const agg = new Ast.Table.Aggregation(t, p.name, 'sum', null, newSchema);
-        return new Ast.Table.Projection(agg, [p.name], newSchema);
+        const agg = new Ast.Table.Aggregation(null, t, p.name, 'sum', null, newSchema);
+        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
 
     !turking 'the' ('average' | 'mean') p:out_param_Numeric 'of' t:complete_table => {
@@ -51,8 +51,8 @@ projection_Any = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-        const agg = new Ast.Table.Aggregation(t, p.name, 'avg', null, newSchema);
-        return new Ast.Table.Projection(agg, [p.name], newSchema);
+        const agg = new Ast.Table.Aggregation(null, t, p.name, 'avg', null, newSchema);
+        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
     ?turking 'the' 'average' p:out_param_Numeric 'of' t:complete_table => {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
@@ -61,8 +61,8 @@ projection_Any = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-        const agg = new Ast.Table.Aggregation(t, p.name, 'avg', null, newSchema);
-        return new Ast.Table.Projection(agg, [p.name], newSchema);
+        const agg = new Ast.Table.Aggregation(null, t, p.name, 'avg', null, newSchema);
+        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
 
     'the' ('minimum' | 'lowest') p:out_param_Numeric 'of' t:complete_table => {
@@ -72,8 +72,8 @@ projection_Any = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-        const agg = new Ast.Table.Aggregation(t, p.name, 'min', null, newSchema);
-        return new Ast.Table.Projection(agg, [p.name], newSchema);
+        const agg = new Ast.Table.Aggregation(null, t, p.name, 'min', null, newSchema);
+        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
 
     'the' ('maximum' | 'highest') p:out_param_Numeric 'of' t:complete_table => {
@@ -83,8 +83,8 @@ projection_Any = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-        const agg = new Ast.Table.Aggregation(t, p.name, 'max', null, newSchema);
-        return new Ast.Table.Projection(agg, [p.name], newSchema);
+        const agg = new Ast.Table.Aggregation(null, t, p.name, 'max', null, newSchema);
+        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
     }
 }

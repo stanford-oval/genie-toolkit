@@ -473,6 +473,7 @@ class ThingpediaLoader {
 
     makeExample(type, args, value, preprocessed) {
         return new Ast.Example(
+            null,
             -1,
             type,
             args,

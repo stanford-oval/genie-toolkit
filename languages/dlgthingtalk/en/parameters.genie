@@ -51,14 +51,14 @@ single_stream_projection_String = !no_stream 'new' table:complete_table => C.mak
 single_projection_Entity__tt__picture = table:complete_table => {
     if (!table.schema.out['picture_url'])
         return null;
-    return new Ast.Table.Projection(table, ['picture_url'], table.schema);
+    return new Ast.Table.Projection(null, table, ['picture_url'], table.schema);
 };
 single_stream_projection_Entity__tt__picture = !no_stream 'new' table:complete_table => {
     if (!table.schema.out['picture_url'])
         return null;
     if (!table.schema.is_monitorable)
         return null;
-    return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), ['picture_url'], table.schema);
+    return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), ['picture_url'], table.schema);
 };
 
 

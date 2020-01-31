@@ -51,9 +51,9 @@ function makeFilter(loader, pname, op, value, negate = false) {
     if (loader.flags.turking && value.isEnum)
         return null;
 
-    let f = new Ast.BooleanExpression.Atom(pname, op, value);
+    let f = new Ast.BooleanExpression.Atom(null, pname, op, value);
     if (negate)
-        return new Ast.BooleanExpression.Not(f);
+        return new Ast.BooleanExpression.Not(null, f);
     else
         return f;
 }

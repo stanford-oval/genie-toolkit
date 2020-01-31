@@ -246,7 +246,7 @@ function makeListExpression($options, param, filter) {
     let vtype = filter.value.getType();
     if (!$options.params.out.has(`${filter.name}+${vtype}`))
         return null;
-    return new Ast.Value.Filter(null, param, filter);
+    return new Ast.Value.Filter(param, filter);
 }
 
 function makeAggregateFilter($options, param, aggregationOp, field, op, value) {
@@ -306,7 +306,7 @@ function makeEdgeFilterStream(proj, op, value, $options) {
     if (proj.table.isAggregation)
         return null;
 
-    let f = new Ast.BooleanExpression.Atom(proj.args[0], op, value);
+    let f = new Ast.BooleanExpression.Atom(null, proj.args[0], op, value);
     if (!checkFilter(proj.table, f))
         return null;
     if (!proj.schema.is_monitorable || proj.schema.is_list)

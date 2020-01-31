@@ -51,7 +51,7 @@ $root = {
         if (stmt.table && stmt.actions.length > 0) {
             // split into two statements, one getting the data, and the other using it
 
-            const queryStmt = new Ast.Statement.Command(stmt.table, [C.notifyAction()]);
+            const queryStmt = new Ast.Statement.Command(null, stmt.table, [C.notifyAction()]);
             current = C.makeProgram(queryStmt);
             if (current == null)
                 return null;
@@ -78,7 +78,7 @@ $root = {
                 }
             }
             if (!allBuiltin) {
-                const actionStmt = new Ast.Statement.Command(null, newActions);
+                const actionStmt = new Ast.Statement.Command(null, null, newActions);
                 next = C.makeProgram(actionStmt);
                 if (next == null)
                     return null;

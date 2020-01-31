@@ -195,7 +195,7 @@ range_filter = {
         const [v1, v2] = range;
         const f1 = C.makeFilter(param, '>=', v1);
         const f2 = C.makeFilter(param, '<=', v2);
-        return f1 && f2 ? new Ast.BooleanExpression.And([f1, f2]) : null;
+        return f1 && f2 ? new Ast.BooleanExpression.And(null, [f1, f2]) : null;
     };
 }
 
@@ -449,7 +449,7 @@ range_with_filter = {
         const [v1, v2] = range;
         const f1 = C.makeFilter(param, '>=', v1);
         const f2 = C.makeFilter(param, '<=', v2);
-        return f1 && f2 ? new Ast.BooleanExpression.And([f1, f2]) : null;
+        return f1 && f2 ? new Ast.BooleanExpression.And(null, [f1, f2]) : null;
     };
 }
 
