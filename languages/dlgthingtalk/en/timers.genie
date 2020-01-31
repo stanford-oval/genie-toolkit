@@ -1,0 +1,398 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+
+const TIMER_SCHEMA = new Ast.FunctionDef('stream',
+    'timer',
+    [], // extends
+    [], // args,
+    false, // is_list
+    true,  // is_monitorable
+    {
+    canonical: 'every fixed interval',
+    confirmation: 'every ${interval}',
+    },
+    {} // annotations
+);
+
+const AT_TIMER_SCHEMA = new Ast.FunctionDef('stream',
+    'attimer',
+    [], // extends
+    [], // args,
+    false, // is_list
+    true,  // is_monitorable
+    {
+    canonical: 'every day',
+    confirmation: 'every day at ${interval}',
+    },
+    {} // annotations
+);
+
+const TIME_MORNING = new Ast.Value.Time(new Ast.Time.Relative("morning"));
+const TIME_NOON = new Ast.Value.Time(new Ast.Time.Absolute(12, 0, 0));
+const TIME_EVENING = new Ast.Value.Time(new Ast.Time.Relative("evening"));
+}
+
+optional_comma = {
+  ',' => ',';
+  '' => '';
+}
+
+per_day = {
+  'each day' => 'each day';
+  'every day' => 'every day';
+  'daily' => 'daily';
+  'a day' => 'a day';
+  'per day' => 'per day';
+}
+
+optional_per_day = {
+  'each day' => 'each day';
+  'every day' => 'every day';
+  'daily' => 'daily';
+  'a day' => 'a day';
+  'per day' => 'per day';
+  '' => '';
+}
+
+once_per_day = {
+  'each day' => 'each day';
+  'every day' => 'every day';
+  'daily' => 'daily';
+  'a day' => 'a day';
+  'per day' => 'per day';
+  'once a day' => 'once a day';
+  'once per day' => 'once per day';
+  'once daily' => 'once daily';
+  'one time a day' => 'one time a day';
+  'one time per day' => 'one time per day';
+  'one time daily' => 'one time daily';
+}
+
+twice_per_day = {
+  'twice a day' => 'twice a day';
+  'twice per day' => 'twice per day';
+  'twice daily' => 'twice daily';
+  'two times a day' => 'two times a day';
+  'two times per day' => 'two times per day';
+  'two times daily' => 'two times daily';
+}
+
+thrice_per_day = {
+  'thrice a day' => 'thrice a day';
+  'thrice per day' => 'thrice per day';
+  'thrice daily' => 'thrice daily';
+  'three times a day' => 'three times a day';
+  'three times per day' => 'three times per day';
+  'three times daily' => 'three times daily';
+}
+
+optional_once = {
+  'once' => 'once';
+  'one time' => 'one time';
+  '' => '';
+}
+
+optional_twice = {
+  'twice' => 'twice';
+  'two times' => 'two times';
+  '' => '';
+}
+
+each = {
+  'each' => 'each';
+  'every' => 'every';
+  'per' => 'per';
+  'a' => 'a';
+}
+
+and = {
+  'and' => 'and';
+  'and also' => 'and also';
+  'plus' => 'plus';
+  'in addition to' => 'in addition to';
+  ',' => ',';
+}
+
+optional_first = {
+  'one' => 'one';
+  'once' => 'once';
+  'one time' => 'one time';
+  'first' => 'first';
+  'the first' => 'the first';
+  'the first one' => 'the first one';
+  '' => '';
+}
+
+optional_second = {
+  'one' => 'one';
+  'once' => 'once';
+  'one time' => 'one time';
+  'one more' => 'one more';
+  'once more' => 'once more';
+  'one more time' => 'one more time';
+  'again' => 'again';
+  'once again' => 'once again';
+  'another' => 'another';
+  'another time' => 'another time';
+  'another one' => 'another one';
+  'second' => 'second';
+  'a second' => 'a second';
+  'a second one' => 'a second one';
+  'the second' => 'the second';
+  'the second one' => 'the second one';
+  '' => '';
+}
+
+optional_emphasis = {
+  'just' => 'just';
+  'right' => 'right';
+  '' => '';
+}
+
+at_noon = {
+  'at noon' => 'at noon';
+  'in the middle of the day' => 'in the middle of the day';
+  'at lunch' => 'at lunch';
+}
+
+at_morning = {
+  'when i get up' => 'when i get up';
+  'when i wake up' => 'when i wake up';
+  'after getting up' => 'after getting up';
+  'after i get up' => 'after i get up';
+  'after waking up' => 'after waking up';
+  'after i wake up' => 'after i wake up';
+  'during the morning' => 'during the morning';
+  'each morning' => 'each morning';
+  'every morning' => 'every morning';
+  'in the morning' => 'in the morning';
+  'at breakfast' => 'at breakfast';
+  'with breakfast' => 'with breakfast';
+  'during breakfast' => 'during breakfast';
+  'before breakfast' => 'before breakfast';
+  'before eating breakfast' => 'before eating breakfast';
+  'before i eat breakfast' => 'before i eat breakfast';
+  'after breakfast' => 'after breakfast';
+  'after eating breakfast' => 'after eating breakfast';
+  'after i eat breakfast' => 'after i eat breakfast';
+  'when i eat breakfast' => 'when i eat breakfast';
+  'while i eat breakfast' => 'while i eat breakfast';
+  'before school' => 'before school';
+  'before going to school' => 'before going to school';
+  'before i go to school' => 'before i go to school';
+  'before leaving for school' => 'before leaving for school';
+  'before i leave for school' => 'before i leave for school';
+  'before heading to school' => 'before heading to school';
+  'before i head to school' => 'before i head to school';
+  'when i go to school' => 'when i go to school';
+  'when i leave for school' => 'when i leave for school';
+  'when i head to school' => 'when i head to school';
+  'before work' => 'before work';
+  'before going to work' => 'before going to work';
+  'before i go to work' => 'before i go to work';
+  'before leaving for work' => 'before leaving for work';
+  'before i leave for work' => 'before i leave for work';
+  'before heading to work' => 'before heading to work';
+  'before i head to work' => 'before i head to work';
+  'when i go to work' => 'when i go to work';
+  'when i leave for work' => 'when i leave for work';
+  'when i head to work' => 'when i head to work';
+}
+
+at_evening = {
+  'during the evening' => 'during the evening';
+  'each evening' => 'each evening';
+  'every evening' => 'every evening';
+  'in the evening' => 'in the evening';
+  'during the night' => 'during the night';
+  'each night' => 'each night';
+  'every night' => 'every night';
+  'in the night' => 'in the night';
+  'at night' => 'at night';
+  'at dinner' => 'at dinner';
+  'with dinner' => 'with dinner';
+  'during dinner' => 'during dinner';
+  'before dinner' => 'before dinner';
+  'before eating dinner' => 'before eating dinner';
+  'before i eat dinner' => 'before i eat dinner';
+  'after dinner' => 'after dinner';
+  'after eating dinner' => 'after eating dinner';
+  'after i eat dinner' => 'after i eat dinner';
+  'when i eat dinner' => 'when i eat dinner';
+  'while i eat dinner' => 'while i eat dinner';
+  'after school' => 'after school';
+  'after getting back from school' => 'after getting back from school';
+  'after returning from school' => 'after returning from school';
+  'after coming home from school' => 'after coming home from school';
+  'after i get back from school' => 'after i get back from school';
+  'after i return from school' => 'after i return from school';
+  'after i come home from school' => 'after i come home from school';
+  'when i get back from school' => 'when i get back from school';
+  'when i return from school' => 'when i return from school';
+  'when i come home from school' => 'when i come home from school';
+  'after work' => 'after work';
+  'after getting back from work' => 'after getting back from work';
+  'after returning from work' => 'after returning from work';
+  'after coming home from work' => 'after coming home from work';
+  'after i get back from work' => 'after i get back from work';
+  'after i return from work' => 'after i return from work';
+  'after i come home from work' => 'after i come home from work';
+  'when i get back from work' => 'when i get back from work';
+  'when i return from work' => 'when i return from work';
+  'when i come home from work' => 'when i come home from work';
+  'before bed' => 'before bed';
+  'before going to bed' => 'before going to bed';
+  'before i go to bed' => 'before i go to bed';
+  'before leaving for bed' => 'before leaving for bed';
+  'before i leave for bed' => 'before i leave for bed';
+  'before heading to bed' => 'before heading to bed';
+  'before i head to bed' => 'before i head to bed';
+  'when i go to bed' => 'when i go to bed';
+  'when i leave for bed' => 'when i leave for bed';
+  'when i head to bed' => 'when i head to bed';
+  'at bedtime' => 'at bedtime';
+  'before bedtime' => 'before bedtime';
+  'before i go to sleep' => 'before i go to sleep';
+  'before going to sleep' => 'before going to sleep';
+  'before sleeping' => 'before sleeping';
+  'before i sleep' => 'before i sleep';
+  'before i fall asleep' => 'before i fall asleep';
+  'before falling asleep' => 'before falling asleep';
+}
+
+at_evening_second = {
+  'evening' => 'evening';
+  'work' => 'work';
+  'school' => 'school';
+  'dinner' => 'dinner';
+  'night' => 'night';
+  'bed' => 'bed';
+  'during the evening' => 'during the evening';
+  'each evening' => 'each evening';
+  'every evening' => 'every evening';
+  'in the evening' => 'in the evening';
+  'during the night' => 'during the night';
+  'each night' => 'each night';
+  'every night' => 'every night';
+  'in the night' => 'in the night';
+  'at night' => 'at night';
+  'at dinner' => 'at dinner';
+  'with dinner' => 'with dinner';
+  'during dinner' => 'during dinner';
+  'before dinner' => 'before dinner';
+  'before eating dinner' => 'before eating dinner';
+  'before i eat dinner' => 'before i eat dinner';
+  'after dinner' => 'after dinner';
+  'after eating dinner' => 'after eating dinner';
+  'after i eat dinner' => 'after i eat dinner';
+  'when i eat dinner' => 'when i eat dinner';
+  'while i eat dinner' => 'while i eat dinner';
+  'after school' => 'after school';
+  'after getting back from school' => 'after getting back from school';
+  'after returning from school' => 'after returning from school';
+  'after coming home from school' => 'after coming home from school';
+  'after i get back from school' => 'after i get back from school';
+  'after i return from school' => 'after i return from school';
+  'after i come home from school' => 'after i come home from school';
+  'when i get back from school' => 'when i get back from school';
+  'when i return from school' => 'when i return from school';
+  'when i come home from school' => 'when i come home from school';
+  'after work' => 'after work';
+  'after getting back from work' => 'after getting back from work';
+  'after returning from work' => 'after returning from work';
+  'after coming home from work' => 'after coming home from work';
+  'after i get back from work' => 'after i get back from work';
+  'after i return from work' => 'after i return from work';
+  'after i come home from work' => 'after i come home from work';
+  'when i get back from work' => 'when i get back from work';
+  'when i return from work' => 'when i return from work';
+  'when i come home from work' => 'when i come home from work';
+  'before bed' => 'before bed';
+  'before going to bed' => 'before going to bed';
+  'before i go to bed' => 'before i go to bed';
+  'before leaving for bed' => 'before leaving for bed';
+  'before i leave for bed' => 'before i leave for bed';
+  'before heading to bed' => 'before heading to bed';
+  'before i head to bed' => 'before i head to bed';
+  'when i go to bed' => 'when i go to bed';
+  'when i leave for bed' => 'when i leave for bed';
+  'when i head to bed' => 'when i head to bed';
+  'at bedtime' => 'at bedtime';
+  'before bedtime' => 'before bedtime';
+  'before i go to sleep' => 'before i go to sleep';
+  'before going to sleep' => 'before going to sleep';
+  'before sleeping' => 'before sleeping';
+  'before i sleep' => 'before i sleep';
+  'before i fall asleep' => 'before i fall asleep';
+  'before falling asleep' => 'before falling asleep';
+}
+
+when_brushing_teeth = {
+  'when i brush my teeth' => 'when i brush my teeth';
+  'when brushing my teeth' => 'when brushing my teeth';
+  'before brushing my teeth' => 'before brushing my teeth';
+  'before i brush my teeth' => 'before i brush my teeth';
+  'after brushing my teeth' => 'after brushing my teeth';
+  'after i brush my teeth' => 'after i brush my teeth';
+}
+
+on = {
+  'on' => 'on';
+  'when it \'s' => 'when it \'s';
+  'when it is' => 'when it is';
+}
+
+timer = {
+    ?extended_timers {
+        // this noon one can be removed since noon maps to TIME_0?
+        optional_once optional_emphasis at_noon => new Ast.Stream.AtTimer([TIME_NOON], null, AT_TIMER_SCHEMA);
+        optional_once optional_emphasis at_morning => new Ast.Stream.AtTimer([TIME_MORNING], null, AT_TIMER_SCHEMA);
+        optional_once optional_emphasis at_evening => new Ast.Stream.AtTimer([TIME_EVENING], null, AT_TIMER_SCHEMA);
+        optional_twice optional_per_day optional_comma optional_first optional_emphasis at_morning and optional_second optional_emphasis at_evening_second => new Ast.Stream.AtTimer([TIME_MORNING, TIME_EVENING], null, AT_TIMER_SCHEMA);
+        when_brushing_teeth => new Ast.Stream.AtTimer([TIME_MORNING, TIME_EVENING], null, AT_TIMER_SCHEMA);
+    }
+
+    once_per_day 'at' time:constant_Time => new Ast.Stream.AtTimer([time], null, AT_TIMER_SCHEMA);
+    twice_per_day 'at' time1:constant_Time and time2:constant_Time => new Ast.Stream.AtTimer([time1, time2], null, AT_TIMER_SCHEMA);
+    thrice_per_day 'at' time1:constant_Time and time2:constant_Time and time3:constant_Time => new Ast.Stream.AtTimer([time1, time2, time3], null, AT_TIMER_SCHEMA);
+
+    !turking {
+        optional_once each interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, null, TIMER_SCHEMA);
+        once_per_day => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), null, TIMER_SCHEMA);
+        // twice_per_day and thrice_per_day still need to be AtTimer until we can explicitly set the frequency param in Timer
+        // twice_per_day => new Ast.Stream.AtTimer([TIME_MORNING, TIME_EVENING], null, AT_TIMER_SCHEMA);
+        // thrice_per_day => new Ast.Stream.AtTimer([TIME_MORNING, TIME_NOON, TIME_EVENING], null, AT_TIMER_SCHEMA);
+        optional_once each 'year' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'year'), null, TIMER_SCHEMA);
+        optional_once each 'month' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), null, TIMER_SCHEMA);
+        optional_once each 'week' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), null, TIMER_SCHEMA);
+        optional_once each 'hour' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), null, TIMER_SCHEMA);
+
+        // FREQ times per minute
+        freq:constant_Number 'times' each 'minute' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'min'), freq, TIMER_SCHEMA);
+        // FREQ times per hour
+        freq:constant_Number 'times' each 'hour' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), freq, TIMER_SCHEMA);
+        // FREQ times per day
+        freq:constant_Number 'times' each 'day' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), freq, TIMER_SCHEMA);
+        // FREQ times per week
+        freq:constant_Number 'times' each 'week' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), freq, TIMER_SCHEMA);
+        // FREQ times per month
+        freq:constant_Number 'times' each 'month' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), freq, TIMER_SCHEMA);
+        // FREQ times per year
+        freq:constant_Number 'times' each 'year' => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'year'), freq, TIMER_SCHEMA);
+        // FREQ 'times' every INTERVAL
+        freq:constant_Number 'times' each interval:constant_Measure_ms => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, freq, TIMER_SCHEMA);
+        // FREQ 'times' on DATE (requires expiry on Timer)
+        // freq:constant_Number 'times' on date:constant_Date => new Ast.Stream.Timer(date, new Ast.Value.Measure(1, 'day'), freq, TIMER_SCHEMA);
+    }
+}

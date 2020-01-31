@@ -409,7 +409,7 @@ class ThingpediaLoader {
             const classDef = parsed.classes[0];
             await Promise.all([
                 Promise.all(Object.values(classDef.queries).map(async (q) => {
-                    if (this._options.whiteList && this._options.whiteList.includes(q.name.toLowerCase())) {
+                    if (this.whiteList && this.whiteList.includes(q.name.toLowerCase())) {
                         const id = this._entities[`${classDef.name}:${q.name}`];
                         const examples = makeExampleFromQuery(id, q);
                         for (let ex of examples)
@@ -417,7 +417,7 @@ class ThingpediaLoader {
                     }
                 })),
                 Promise.all(Object.values(classDef.actions).map(async (a) => {
-                    if (this._options.whiteList && this._options.whiteList.includes(a.name.toLowerCase())) {
+                    if (this.whiteList && this.whiteList.includes(a.name.toLowerCase())) {
                         const examples = makeExampleFromAction(a);
                         for (let ex of examples)
                             await this._loadTemplate(ex);

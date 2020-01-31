@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -    *- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -19,16 +19,75 @@ const Grammar = ThingTalk.Grammar;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 const Units = ThingTalk.Units;
 
-const { clean, typeToStringSafe, makeFilter } = require('./utils');
+const { clean, pluralize, typeToStringSafe, makeFilter } = require('./utils');
 
 function identity(x) {
     return x;
 }
 
+function makeExampleFromQuery(id, q) {
+    const examples = [];
+    const device = new Ast.Selector.Device(q.class.name, null, null);
+    const invocation = new Ast.Invocation(device, q.name, [], q);
+
+    let canonical = q.canonical ? q.canonical : clean(q.name);
+    if (!Array.isArray(canonical))
+        canonical = [canonical];
+
+    for (let form of canonical) {
+        const pluralized = pluralize(form);
+        if (pluralized !== form)
+            canonical.push(pluralized);
+    }
+    const table = new Ast.Table.Invocation(invocation, q);
+    examples.push(new Ast.Example(
+        -1,
+        'query',
+        {},
+        table,
+        canonical,
+        canonical,
+        {}
+    ));
+    if (id && id.has_ner_support) {
+        const idfilter = new Ast.BooleanExpression.Atom('id', '==', new Ast.Value.VarRef('p_id'));
+        examples.push(new Ast.Example(
+            -1,
+            'query',
+            { p_id: Type.Entity(id.type) },
+            new Ast.Table.Filter(table, idfilter, q),
+            [`\${p_id}`],
+            [`\${p_id}`],
+            {}
+        ));
+        const namefilter = new Ast.BooleanExpression.Atom('name', '=~', new Ast.Value.VarRef('p_name'));
+        examples.push(new Ast.Example(
+            -1,
+            'query',
+            { p_name: Type.String },
+            new Ast.Table.Filter(table, namefilter, q),
+            [`\${p_name}`],
+            [`\${p_name}`],
+            {}
+        ));
+    }
+    return examples;
+}
+
+const ANNOTATION_RENAME = {
+    'property': 'npp',
+    'reverse_property': 'npi',
+    'verb': 'avp',
+    'passive_verb': 'pvp',
+    'adjective': 'apv',
+    'implicit_identity': 'npv',
+};
+
 class ThingpediaLoader {
-    async init(runtime, grammar, options) {
+    async init(runtime, grammar, langPack, options) {
         this._runtime = runtime;
         this._grammar = grammar;
+        this._langPack = langPack;
 
         this._tpClient = options.thingpediaClient;
         if (!options.schemaRetriever)
@@ -40,16 +99,23 @@ class ThingpediaLoader {
         this._allTypes = new Map;
         this._idTypes = new Set;
         this._nonConstantTypes = new Set;
+        this._entities = new Map;
         this.types = {
             all: this._allTypes,
             id: this._idTypes,
             nonConstant: this._nonConstantTypes,
+            entities: this._entities
         };
         this.params = {
             in: new Map,
             out: new Set,
+            blacklist: new Set,
         };
         this.compoundArrays = new Map;
+        if (this._options.white_list)
+            this.whiteList = this._options.white_list.toLowerCase().split(',');
+        else
+            this.whiteList = null;
 
         const [say, get_gps, get_time] = await Promise.all([
             this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'action', 'say'),
@@ -82,8 +148,13 @@ class ThingpediaLoader {
     }
 
     _recordType(type) {
-        if (type.isCompound)
+        if (type.isCompound) {
+            for (let field in type.fields)
+                this._recordType(type.fields[field].type);
             return null;
+        }
+        if (type.isArray)
+            this._recordType(type.elem);
         const typestr = typeToStringSafe(type);
         if (this._allTypes.has(typestr))
             return typestr;
@@ -121,20 +192,21 @@ class ThingpediaLoader {
         return typestr;
     }
 
-    _addOutParam(pname, typestr, cat, canonical) {
-        this._grammar.addRule('out_param_' + typestr, [canonical], this._runtime.simpleCombine(() => pname));
+    _addOutParam(functionName, pname, typestr, canonical) {
+        this._grammar.addRule('out_param_' + typestr, [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
     }
 
-    _addFilter(pname, cat, expansion) {
-        this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pname, '==', value, false)));
-        this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pname, 'contains', value, false)));
-    }
-
-    _recordOutputParam(pname, ptype, arg) {
+    _recordOutputParam(functionName, pname, ptype, arg) {
         const key = pname + '+' + ptype;
-        if (this.params.out.has(key))
-            return;
+        // FIXME match functionName
+        //if (this.params.out.has(key))
+        //    return;
         this.params.out.add(key);
+
+        const useGenie = arg.getAnnotation('genie');
+        if (useGenie !== undefined && !useGenie)
+            this.params.blacklist.add(key);
+
         const typestr = this._recordType(ptype);
 
         if (ptype.isCompound)
@@ -147,39 +219,81 @@ class ThingpediaLoader {
             this._compoundArrays[pname] = ptype.elem;
             for (let field in ptype.elem.fields) {
                 let arg = ptype.elem.fields[field];
-                this._recordOutputParam(field, arg.type, arg);
+                this._recordOutputParam(functionName, field, arg.type, arg);
             }
         }
 
         let canonical;
 
         if (!arg.metadata.canonical)
-            canonical = { npp: clean(pname) };
+            canonical = { base: [clean(pname)] };
         else if (typeof arg.metadata.canonical === 'string')
-            canonical = { npp: arg.metadata.canonical };
+            canonical = { base: [arg.metadata.canonical] };
         else
             canonical = arg.metadata.canonical;
+
+        let vtype = ptype;
+        let op = '==';
+        if (ptype.isArray) {
+            vtype = ptype.elem;
+            op = 'contains';
+        }
+        const vtypestr = this._recordType(vtype);
 
         for (let cat in canonical) {
             if (cat === 'default')
                 continue;
 
-            for (let form of canonical[cat]) {
-                if (cat === 'npv' || cat === 'apv') {
-                    this._addFilter(pname, cat, [new this._runtime.NonTerminal('constant_Any')]);
-                    continue;
+            let annotvalue = canonical[cat];
+            if (cat in ANNOTATION_RENAME)
+                cat = ANNOTATION_RENAME[cat];
+
+            if (cat === 'apv' && typeof annotvalue === 'boolean') {
+                // compat
+                if (annotvalue)
+                    annotvalue = ['#'];
+                else
+                    annotvalue = [];
+            }
+
+            if (cat === 'npv') {
+                if (typeof value !== 'boolean')
+                    throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${functionName}`);
+                if (annotvalue) {
+                    const expansion = [new this._runtime.NonTerminal('constant_' + vtypestr)];
+                    this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pname, op, value, false)));
                 }
+                continue;
+            }
 
-                let [before, after] = form.split('#');
-                before = before.trim();
-                after = after.trim();
+            if (!Array.isArray(annotvalue))
+                annotvalue = [annotvalue];
 
-                if (cat === 'npp')
-                    this._addOutParam(pname, typestr, (before + ' ' + after).trim());
+            for (let form of annotvalue) {
+                if (cat === 'base') {
+                    this._addOutParam(functionName, pname, typestr, form.trim());
+                    if (!canonical.npp) {
+                        const expansion = [form, new this._runtime.NonTerminal('constant_' + vtypestr)];
+                        this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pname, op, value, false)));
+                    }
+                } else {
+                    let [before, after] = form.split('#');
+                    before = (before || '').trim();
+                    after = (after || '').trim();
 
-                this._addFilter(pname, cat, [before, new this._runtime.NonTerminal('constant_Any'), after]);
+                    const expansion = [before, new this._runtime.NonTerminal('constant_' + vtypestr), after];
+                    this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pname, op, value, false)));
+                }
             }
         }
+    }
+
+    _isHumanEntity(type) {
+        if (['tt:contact', 'tt:username', 'org.wikidata:human'].includes(type))
+            return true;
+        if (type.startsWith('org.schema') && type.endsWith(':Person'))
+            return true;
+        return false;
     }
 
     async _loadTemplate(ex) {
@@ -190,7 +304,7 @@ class ThingpediaLoader {
             await ex.typecheck(this._schemas, true);
         } catch(e) {
             if (!e.message.startsWith('Invalid kind '))
-            console.error(`Failed to load example ${ex.id}: ${e.message}`);
+                console.error(`Failed to load example ${ex.id}: ${e.message}`);
             return [];
         }
 
@@ -251,20 +365,22 @@ class ThingpediaLoader {
                 this.params.in.set(pname + '+' + ptype, [pname, [typeToStringSafe(ptype), pcanonical]]);
                 this._recordType(ptype);
             }
+
+            let functionName = ex.value.schema instanceof Ast.FunctionDef && ex.value.schema.class ?
+                ex.value.schema.class.kind + ':' + ex.value.schema.name : null;
             for (let pname in ex.value.schema.out) {
                 let ptype = ex.value.schema.out[pname];
-                this._recordOutputParam(pname, ptype, ex.value.schema.getArgument(pname));
+
+                this._recordOutputParam(functionName, pname, ptype, ex.value.schema.getArgument(pname));
             }
         }
 
         if (ex.type === 'query') {
-            const human_entity_types = ['tt:contact', 'tt:username', 'org.wikidata:human'];
-            if (ex.value.schema.hasArgument('id')) {
+            if (Object.keys(ex.args).length === 0 && ex.value.schema.hasArgument('id')) {
                 let type = ex.value.schema.getArgument('id').type;
-                if (type.isEntity && human_entity_types.includes(type.type)) {
+                if (type.isEntity && this._isHumanEntity(type.type)) {
                     let grammarCat = 'thingpedia_who_question';
                     this._grammar.addRule(grammarCat, [''], this._runtime.simpleCombine(() => ex.value));
-                    return [];
                 }
             }
         }
@@ -302,9 +418,20 @@ class ThingpediaLoader {
         return rules;
     }
 
-    _loadDevice(device) {
+    async _loadDevice(device) {
         this._grammar.addRule('constant_Entity__tt__device', [device.kind_canonical],
             this._runtime.simpleCombine(() => new Ast.Value.Entity(device.kind, 'tt:device', null)));
+
+        const classDef = await this._schemas.getFullMeta(device.kind);
+        await Promise.all(Object.values(classDef.queries).map(async (q) => {
+            if (this.whiteList && !this.whiteList.includes(q.name.toLowerCase()))
+                return;
+
+            const id = this._entities[`${classDef.name}:${q.name}`];
+            const examples = makeExampleFromQuery(id, q);
+            for (let ex of examples)
+                await this._loadTemplate(ex);
+        }));
     }
 
     _loadIdType(idType) {
@@ -329,6 +456,8 @@ class ThingpediaLoader {
     }
 
     async _loadCanonical(kind) {
+        if (kind.startsWith('org.thingpedia.dynamic.by_kinds.'))
+            kind = kind.substring('org.thingpedia.dynamic.by_kinds.'.length);
         try {
             const classDef = await this._schemas.getFullMeta(kind);
             const canonicals = {};
@@ -400,8 +529,9 @@ class ThingpediaLoader {
         await Promise.all(rules.map((rule) =>  {
             if (rule.category !== 'thingpedia_query')
                 return;
-            if (expander.example.id === rule.example.id)
+            if (expander.example.id !== -1 && expander.example.id === rule.example.id)
                 return;
+
 
             // skip rules with filter on the same parameter
             // TODO: replace this with more robust check and move to _conflictExample
@@ -501,6 +631,8 @@ class ThingpediaLoader {
             console.log('Loaded ' + devices.length + ' devices');
             console.log('Loaded ' + countTemplates + ' templates');
         }
+
+        idTypes.forEach((entity) => this._entities[entity.type] = entity);
         idTypes.forEach(this._loadIdType, this);
         await Promise.all([
             Promise.all(devices.map(this._loadDevice, this)),

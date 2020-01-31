@@ -255,7 +255,7 @@ complete_initial_question = {
 
     // now => get join get => notify
     (
-          ('what' | 'which') 'are' ('the' | '') table:schema_with_filtered_table_join
+          ('what' | 'which') 'are' ('the' | '') table:with_filtered_table_join
         | ('what' | 'which') table:have_filtered_table_join
     ) => new Ast.Statement.Command(table, [C.notifyAction()]);
 
@@ -326,13 +326,13 @@ projection_question = {
 
     // now => get => say(...) (where questions)
     ?turking 'where is the' table:with_filtered_table =>
-        C.sayProjection(C.makeSingleFieldProjection('table', Type.Location, table, new Ast.Value.VarRef('geo')));
+        C.sayProjection(C.makeSingleFieldProjection('table', Type.Location, table, 'geo'));
     !turking 'where' ('is' | 'are') ('' | 'the') table:with_filtered_table =>
-        C.sayProjection(C.makeSingleFieldProjection('table', Type.Location, table, new Ast.Value.VarRef('geo')));
+        C.sayProjection(C.makeSingleFieldProjection('table', Type.Location, table, 'geo'));
 }
 
 explicit_when_condition = {
-    ('if' | 'when') filter:atom_filter 'in' table:complete_table => {
+    ('if' | 'when') filter:if_filter 'in' table:complete_table => {
         if (C.hasGetPredicate(filter))
             return null;
         if (!table.schema.is_monitorable)
@@ -424,7 +424,7 @@ monitor_command = {
             return null;
         return new Ast.Statement.Rule(stream, [C.notifyAction()]);
     };
-    !nofilter ('monitor' | 'watch') table:complete_table 'and' ('alert me' | 'notify me' | 'inform me' | 'warn me') ('if' | 'when') filter:atom_filter => {
+    !nofilter ('monitor' | 'watch') table:complete_table 'and' ('alert me' | 'notify me' | 'inform me' | 'warn me') ('if' | 'when') filter:if_filter => {
         if (C.hasGetPredicate(filter))
             return null;
         if (table.schema.is_list || !table.schema.is_monitorable)
@@ -450,7 +450,11 @@ action_command = {
     ) if complete => new Ast.Statement.Command(null, [action]);
 
     // now => get => do
-    complete_get_do_command;
+    ?compound_commands {
+        complete_forward_get_do_command;
+        !turking backward_get_do_command if complete;
+    }
+    action_replace_param_with_table if complete;
 }
 
 if (_tpLoader.standardSchemas.say) {
@@ -476,7 +480,7 @@ if (_tpLoader.standardSchemas.say) {
 }
 
 remote_command = {
-    !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:atom_filter 'in' table:complete_table ('for' | 'of') principal:constant_Entity__tt__username => {
+    !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') ('if' | 'when') filter:if_filter 'in' table:complete_table ('for' | 'of') principal:constant_Entity__tt__username => {
         if (C.hasGetPredicate(filter))
             return null;
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
@@ -491,7 +495,7 @@ remote_command = {
             return null;
         return C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction()]), principal);
     };
-    !nofilter ('if' | 'when') filter:atom_filter 'in' table:complete_table ('for' | 'of') principal:constant_Entity__tt__username 'then' ('alert me' | 'tell me' | 'notify me' | 'let me know')  => {
+    !nofilter ('if' | 'when') filter:if_filter 'in' table:complete_table ('for' | 'of') principal:constant_Entity__tt__username 'then' ('alert me' | 'tell me' | 'notify me' | 'let me know')  => {
         if (C.hasGetPredicate(filter))
             return null;
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
@@ -558,24 +562,21 @@ compound_command = {
 }
 
 initial_program = {
+    // stuff I am not completely sure of...
     thingpedia_program if complete;
     ?remote_commands remote_command;
-
+    ?policies policy_command;
     !nostream {
         cmd:monitor_command => C.makeProgram(cmd);
     }
-
-    // now => get => do
-    !primonly stmt:complete_get_do_command => C.makeProgram(stmt);
-
+    ?timer stmt:timer_rule => C.makeProgram(stmt);
     // when join get => notify/say(...)
     !nostream {
         stmt:when_command => C.makeProgram(stmt);
     }
-    ?timer stmt:timer_rule => C.makeProgram(stmt);
 
-    // policies
-    ?policies {
-
-    }
+    ( stmt:action_command
+    | stmt:complete_initial_question
+    | stmt:projection_question
+    ) => C.makeProgram(stmt);
 }

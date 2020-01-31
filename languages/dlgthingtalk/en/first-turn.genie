@@ -1,0 +1,39 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+    const ThingTalk = require('thingtalk');
+    const Ast = ThingTalk.Ast;
+    const DlgAst = require('../../../lib/languages/dlgthingtalk/ast');
+}
+
+import '../common';
+import './constants';
+import './timers';
+import './filters';
+import './parameters';
+import './aggregation';
+import './computation';
+import './who_questions';
+import './stream_tables';
+import './commands';
+
+greeting = {
+    'hello !';
+    'hi !';
+}
+
+$root = {
+    greeting => new DlgAst.DialogueState('transaction', 'greet', [], []);
+
+    ( prog:initial_program
+    | greeting prog:initial_program
+    ) => new DlgAst.DialogueState('transaction', 'program', [], [prog]);
+}

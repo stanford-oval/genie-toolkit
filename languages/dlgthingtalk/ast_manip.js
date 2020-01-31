@@ -337,11 +337,11 @@ function makeEventStreamProjection(table) {
     return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), ['$event'], table.schema);
 }
 
-function makeTypeBasedTableProjection(table, ptype, { isId }) {
+function makeTypeBasedTableProjection(table, ptype, ptypestr) {
     if (table.isProjection)
         return null;
 
-    if (isId) {
+    if (_loader.types.id.has(ptypestr)) {
         for (let pname in table.schema.out) {
             if (table.schema.out[pname].equals(ptype))
                 return new Ast.Table.Projection(table, [pname], table.schema);
@@ -350,6 +350,10 @@ function makeTypeBasedTableProjection(table, ptype, { isId }) {
     } else {
         assert(!ptype.isString && !(ptype.isEntity && ptype.type === 'tt:picture'));
 
+        const idArg = table.schema.getArgument('id');
+        if (idArg && idArg.type.equals(ptype))
+            return new Ast.Table.Projection(table, ['id'], table.schema);
+
         let outParams = Object.keys(table.schema.out);
         if (outParams.length !== 1 || !ptype.equals(table.getArgType(outParams[0])))
             return null;
@@ -357,18 +361,22 @@ function makeTypeBasedTableProjection(table, ptype, { isId }) {
     }
 }
 
-function makeTypeBasedStreamProjection(table, ptype, { isId }) {
+function makeTypeBasedStreamProjection(table, ptype, ptypestr) {
     if (table.isProjection)
         return null;
     if (!table.schema.is_monitorable)
         return null;
-    if (isId) {
+    if (_loader.types.id.has(ptypestr)) {
         for (let pname in table.schema.out) {
             if (table.schema.out[pname].equals(ptype))
                 return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), [pname], table.schema);
         }
         return null;
     } else {
+        const idArg = table.schema.getArgument('id');
+        if (idArg && idArg.type.equals(ptype))
+            return new Ast.Table.Projection(table, ['id'], table.schema);
+
         let outParams = Object.keys(table.schema.out);
         if (outParams.length !== 1 || !ptype.equals(table.getArgType(outParams[0])))
             return null;
@@ -1094,12 +1102,12 @@ function sayProjection(proj) {
             return null;
         if (!_loader.flags.projection)
             return null;
-        if (proj.args.includes('name')) {
-            if (proj.args.length === 1)
-                proj = proj.table;
-            else
-                proj.args = proj.args.filter((a) => a !== 'name');
-        }
+
+        const newArgs = proj.args.filter((a) => a !== 'name' && a !== 'id');
+        if (newArgs.length === 0)
+            proj = proj.table;
+        else
+            proj.args = newArgs;
     }
     return new Ast.Statement.Command(proj, [notifyAction()]);
 }

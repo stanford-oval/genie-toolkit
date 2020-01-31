@@ -19,7 +19,7 @@ const Type = ThingTalk.Type;
 // import the combinator library
 const C = require('../ast_manip');
 
-const _tpLoader = require('./load-thingpedia');
+const _tpLoader = require('../load-thingpedia');
 }
 
 complete_table = {
@@ -80,6 +80,7 @@ one_which_filter_table = {
 one_clean_filter_table = {
     !nofilter filter:apv_filter table:complete_table => C.addFilter(table, filter);
     !nofilter table:complete_table filter:pvp_filter => C.addFilter(table, filter);
+    !nofilter table:complete_table filter:preposition_filter => C.addFilter(table, filter);
 }
 
 two_with_filter_table = {
@@ -112,6 +113,7 @@ two_which_filter_table = {
 two_clean_filter_table = {
     !nofilter filter:apv_filter table:one_clean_filter_table => C.addFilter(table, filter);
     !nofilter table:one_clean_filter_table filter:pvp_filter => C.addFilter(table, filter);
+    !nofilter table:one_clean_filter_table filter:preposition_filter => C.addFilter(table, filter);
 }
 
 
@@ -312,7 +314,7 @@ stream = {
             return null;
         return C.tableToStream(table, null);
     };
-    !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:atom_filter => {
+    !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:if_filter => {
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
             return null;
         if (_tpLoader.flags.turking && table.schema.is_list)
@@ -332,6 +334,7 @@ with_filtered_table_join = {
     table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') get_predicate_table:with_filtered_table
         => C.addGetPredicateJoin(table, get_predicate_table, null);
 
+    // FIXME this does not work :(
     ( table:with_filtered_table 'with' p:out_param_Any get_predicate_table:with_filtered_table
     | table:with_filtered_table p:out_param_pvp get_predicate_table:with_filtered_table
     | table:with_filtered_table ('who' | 'which' | 'that') p:out_param_avp get_predicate_table:with_filtered_table
