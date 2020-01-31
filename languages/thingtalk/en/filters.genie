@@ -199,7 +199,7 @@ range_filter = {
         const [v1, v2] = range;
         const f1 = C.makeFilter(_tpLoader, param, '>=', v1);
         const f2 = C.makeFilter(_tpLoader, param, '<=', v2);
-        return f1 && f2 ? new Ast.BooleanExpression.And([f1, f2]) : null;
+        return f1 && f2 ? new Ast.BooleanExpression.And(null, [f1, f2]) : null;
     };
 }
 
@@ -332,63 +332,63 @@ with_filter = {
     !turking p:out_param_String ('containing' | 'including') x:constant_String ('but not'| 'without' | 'but no') y:constant_String => C.makeButFilter(_tpLoader, p, 'contains', [x, y]);
 
     // aggregate filters - count
-    !turking ('no' | 'zero') p:out_param_Array__Any => C.makeAggregateFilter(_tpLoader, p, 'count', '*', '==', Ast.Value.Number(0));
-    x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter(_tpLoader, p, 'count', '*', '==', x);
+    !turking ('no' | 'zero') p:out_param_Array__Any => C.makeAggregateFilter(_tpLoader, p, 'count', null, '==', Ast.Value.Number(0));
+    x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter(_tpLoader, p, 'count', null, '==', x);
 
     !turking ('no' | 'zero') p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
         const filter =  C.makeFilter(_tpLoader, f, '<=', x);
-        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', '*', '==', new Ast.Value.Number(0));
+        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', null, '==', new Ast.Value.Number(0));
     };
     !turking ('no' | 'zero') p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
         const filter = C.makeFilter(_tpLoader, f, '>=', x);
-        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', '*', '==', new Ast.Value.Number(0));
+        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', null, '==', new Ast.Value.Number(0));
     };
 
     p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
         const filter = C.makeFilter(_tpLoader, f, '<=', x);
-        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', '*', '>=', new Ast.Value.Number(1));
+        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', null, '>=', new Ast.Value.Number(1));
 
     };
 
     p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
         const filter = C.makeFilter(_tpLoader, f, '>=', x);
-        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', '*', '>=', new Ast.Value.Number(1));
+        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', null, '>=', new Ast.Value.Number(1));
     };
 
     p:out_param_Array__Compound ('with' | 'having') f:with_filter => {
-        return C.makeAggregateFilterWithFilter(_tpLoader, p, f, 'count', '*', '>=', new Ast.Value.Number(1));
+        return C.makeAggregateFilterWithFilter(_tpLoader, p, f, 'count', null, '>=', new Ast.Value.Number(1));
     };
 
     v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
         const filter = C.makeFilter(_tpLoader, f, '<=', x);
-        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', '*', '==', v);
+        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', null, '==', v);
     };
 
-    ('more than' | 'at least' | 'no fewer than') x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter(_tpLoader, p, 'count', '*', '>=', x);
-    ('fewer than' | 'at most' | 'no more than') x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter(_tpLoader, p, 'count', '*', '<=', x);
+    ('more than' | 'at least' | 'no fewer than') x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter(_tpLoader, p, 'count', null, '>=', x);
+    ('fewer than' | 'at most' | 'no more than') x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter(_tpLoader, p, 'count', null, '<=', x);
 
     // do not merge
     'no more than' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
         const filter = C.makeFilter(_tpLoader, f, '<=', x);
-        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', '*', '<=', v);
+        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', null, '<=', v);
     };
     'at most' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
         const filter = C.makeFilter(_tpLoader, f, '<=', x);
-        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', '*', '<=', v);
+        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', null, '<=', v);
     };
     'fewer than' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
         const filter = C.makeFilter(_tpLoader, f, '<=', x);
-        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', '*', '<=', v);
+        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', null, '<=', v);
     };
 
     // do not merge
     'more than' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
         const filter = C.makeFilter(_tpLoader, f, '>=', x);
-        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', '*', '>=', v);
+        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', null, '>=', v);
     };
     'at least' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
         const filter = C.makeFilter(_tpLoader, f, '>=', x);
-        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', '*', '>=', v);
+        return C.makeAggregateFilterWithFilter(_tpLoader, p, filter, 'count', null, '>=', v);
     };
 
     // aggregate filters - sum
@@ -458,7 +458,7 @@ range_with_filter = {
         const [v1, v2] = range;
         const f1 = C.makeFilter(_tpLoader, param, '>=', v1);
         const f2 = C.makeFilter(_tpLoader, param, '<=', v2);
-        return f1 && f2 ? new Ast.BooleanExpression.And([f1, f2]) : null;
+        return f1 && f2 ? new Ast.BooleanExpression.And(null, [f1, f2]) : null;
     };
 }
 

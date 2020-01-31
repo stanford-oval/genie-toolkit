@@ -46,7 +46,7 @@ module.exports = class ThingTalkDataset {
     }
 
     write(outputFile, callback) {
-        const output = new Library([], [
+        const output = new Library(null, [], [
             this._dataset
         ]);
         const writerStream = fs.createWriteStream(outputFile);

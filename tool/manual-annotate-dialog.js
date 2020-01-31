@@ -259,8 +259,8 @@ class Annotator extends Stream.Readable {
                 // while slot filling, treat yes/no as true/false
                 if (newCommand.intent.isSpecial &&
                     (newCommand.intent.type === 'yes' || newCommand.intent.type === 'no')) {
-                    newCommand = new Ast.Input.Bookkeeping(
-                        new Ast.BookkeepingIntent.Answer(new Ast.Value.Boolean(newCommand.intent.type === 'yes'))
+                    newCommand = new Ast.Input.Bookkeeping(null,
+                        new Ast.BookkeepingIntent.Answer(null, new Ast.Value.Boolean(newCommand.intent.type === 'yes'))
                     );
                 }
             }
@@ -333,7 +333,8 @@ class Annotator extends Stream.Readable {
 
     async _handleInput() {
         if (this._dialogState === 'raw') {
-            const program = new Ast.Input.Bookkeeping(new Ast.BookkeepingIntent.Answer(new Ast.Value.String(this._utterance)));
+            const program = new Ast.Input.Bookkeeping(null,
+                new Ast.BookkeepingIntent.Answer(null, new Ast.Value.String(this._utterance)));
             if (!this._applyReplyToContext(program)) {
                 this._rl.setPrompt('$ ');
                 this._rl.prompt();
