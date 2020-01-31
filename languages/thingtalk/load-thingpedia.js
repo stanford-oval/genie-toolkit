@@ -27,15 +27,15 @@ function identity(x) {
 
 function makeExampleFromQuery(id, q) {
     const examples = [];
-    const device = new Ast.Selector.Device(q.class.name, null, null);
-    const invocation = new Ast.Invocation(device, q.name, [], q);
+    const device = new Ast.Selector.Device(null, q.class.name, null, null);
+    const invocation = new Ast.Invocation(null, device, q.name, [], q);
     const canonical = invocation.canonical ? invocation.canonical : clean(q.name);
     const canonicals = [canonical];
     const pluralized = pluralize(canonical);
     if (pluralized !== canonical)
         canonicals.push(pluralized);
-    const table = new Ast.Table.Invocation(invocation, q);
-    examples.push(new Ast.Example(
+    const table = new Ast.Table.Invocation(null, invocation, q);
+    examples.push(new Ast.Example(null,
         -1,
         'query',
         {},
@@ -45,34 +45,34 @@ function makeExampleFromQuery(id, q) {
         {}
     ));
     if (id && id.has_ner_support === 1) {
-        const filter = new Ast.BooleanExpression.Atom('id', '==', new Ast.Value.VarRef('p_id'));
-        examples.push(new Ast.Example(
+        const filter = new Ast.BooleanExpression.Atom(null, 'id', '==', new Ast.Value.VarRef('p_id'));
+        examples.push(new Ast.Example(null,
             -1,
             'query',
             { p_id: Type.Entity(id.type) },
-            new Ast.Table.Filter(table, filter, q),
+            new Ast.Table.Filter(null, table, filter, q),
             [`\${p_id}`],
             [`\${p_id}`],
             {}
         ));
     }
     if (id && id.has_ner_support) {
-        const idfilter = new Ast.BooleanExpression.Atom('id', '==', new Ast.Value.VarRef('p_id'));
-        examples.push(new Ast.Example(
+        const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', new Ast.Value.VarRef('p_id'));
+        examples.push(new Ast.Example(null,
             -1,
             'query',
             { p_id: Type.Entity(id.type) },
-            new Ast.Table.Filter(table, idfilter, q),
+            new Ast.Table.Filter(null, table, idfilter, q),
             [`\${p_id}`],
             [`\${p_id}`],
             {}
         ));
-        const namefilter = new Ast.BooleanExpression.Atom('name', '=~', new Ast.Value.VarRef('p_name'));
-        examples.push(new Ast.Example(
+        const namefilter = new Ast.BooleanExpression.Atom(null, 'name', '=~', new Ast.Value.VarRef('p_name'));
+        examples.push(new Ast.Example(null,
             -1,
             'query',
             { p_name: Type.String },
-            new Ast.Table.Filter(table, namefilter, q),
+            new Ast.Table.Filter(null, table, namefilter, q),
             [`\${p_name}`],
             [`\${p_name}`],
             {}
@@ -83,18 +83,18 @@ function makeExampleFromQuery(id, q) {
 
 function makeExampleFromAction(a) {
     const examples = [];
-    const device = new Ast.Selector.Device(a.class.name, null, null);
-    const invocation = new Ast.Invocation(device, a.name, [], a);
+    const device = new Ast.Selector.Device(null, a.class.name, null, null);
+    const invocation = new Ast.Invocation(null, device, a.name, [], a);
     const canonical = invocation.canonical ? invocation.canonical : clean(a.name);
     const canonicals = [canonical];
     const pluralized = pluralize(canonical);
     if (pluralized !== canonical)
         canonicals.push(pluralized);
-    examples.push(new Ast.Example(
+    examples.push(new Ast.Example(null,
         -1,
         'action',
         {},
-        new Ast.Action.Invocation(invocation, a),
+        new Ast.Action.Invocation(null, invocation, a),
         canonicals,
         canonicals,
         {}
@@ -323,13 +323,17 @@ class ThingpediaLoader {
                 let ptype = ex.args[pname];
                 // FIXME use the annotation (or find the info in thingpedia)
                 const pcanonical = clean(pname);
-                args.push(new Ast.ArgumentDef(Ast.ArgDirection.IN_REQ, pname, ptype, { canonical: pcanonical }, {}));
+                args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.IN_REQ,
+                    pname, ptype, { canonical: pcanonical }, {}));
 
                 this.params.in.set(pname + '+' + ptype, [pname, [typeToStringSafe(ptype), pcanonical]]);
                 this._recordType(ptype);
             }
 
-            ex.value.schema = new Ast.ExpressionSignature('action', [], args, false, false);
+            ex.value.schema = new Ast.ExpressionSignature(null, 'action', null /* class */, [] /* extends */, args, {
+                is_list: false,
+                is_monitorable: false
+            });
         } else {
             for (let pname in ex.args) {
                 let ptype = ex.args[pname];
@@ -339,6 +343,7 @@ class ThingpediaLoader {
                     // somewhat of a hack, we declare the argument for the value,
                     // because later we will muck with schema only
                     ex.value.schema = ex.value.schema.addArguments([new Ast.ArgumentDef(
+                        null,
                         Ast.ArgDirection.IN_REQ,
                         pname,
                         ptype,
@@ -549,7 +554,7 @@ class ThingpediaLoader {
                 args[arg] = rule.example.args[arg];
             }
 
-            const value = new Ast.Table.Filter(rule.example.value, filter, null);
+            const value = new Ast.Table.Filter(null, rule.example.value, filter, null);
             const preprocessed = this._expandExpansion(expander.expansion, canonical, rule.expansion);
 
             const ex = this.makeExample('query', args, value, preprocessed);
@@ -599,6 +604,7 @@ class ThingpediaLoader {
         try {
             return await this._loadTemplate(ex);
         } catch(e) {
+            console.error(e);
             throw new TypeError(`Failed to load example ${ex.id}: ${e.message}`);
         }
     }

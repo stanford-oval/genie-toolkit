@@ -334,9 +334,12 @@ async function applyPatterns(className, ppdb, functionDef, argDef, valueList, pa
 
     patterns.sort((p1, p2) => p1.score - p2.score);
 
-    dataset.examples.push(new Ast.Example(-1, 'query', { ['p_' + lastProp]: propertyType }, new Ast.Table.Filter(
-        new Ast.Table.Invocation(new Ast.Invocation(new Ast.Selector.Device(className, null, null), functionDef.name, [], functionDef), functionDef),
-        new Ast.BooleanExpression.Atom(propertyName, operator === '==' && propertyType.isString ? '=~' : operator, Ast.Value.VarRef('p_' + lastProp)), null
+    dataset.examples.push(new Ast.Example(null, -1, 'query', { ['p_' + lastProp]: propertyType },
+        new Ast.Table.Filter(null,
+            new Ast.Table.Invocation(null,
+                new Ast.Invocation(null, new Ast.Selector.Device(null, className, null, null), functionDef.name, [], functionDef),
+            functionDef),
+        new Ast.BooleanExpression.Atom(null, propertyName, operator === '==' && propertyType.isString ? '=~' : operator, Ast.Value.VarRef('p_' + lastProp)), null
     ), patterns.slice(0, 4).map((p) => p.template), patterns.slice(0, 4).map((p) => p.template), {}));
 }
 
@@ -356,7 +359,7 @@ async function main(args) {
 
         const rng = seedrandom.alea(args.random_seed);
         const className = args.class_name ? 'org.schema.' + args.class_name : 'org.schema';
-        const dataset = new Ast.Dataset('@' + className, 'en', [], {});
+        const dataset = new Ast.Dataset(null, '@' + className, 'en', [], {});
 
         const tables = args.table_name;
         for (let table of tables)

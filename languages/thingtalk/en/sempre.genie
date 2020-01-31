@@ -22,17 +22,17 @@ const _tpLoader = require('../load-thingpedia');
 
 function makeComputeExpression(table, operation, operands, resultType) {
     const computeSchema = table.schema.addArguments([
-        new Ast.ArgumentDef(Ast.ArgDirection.OUT, operation, resultType, {}, {})]);
-    const expression = new Ast.ScalarExpression.Derived(operation, operands.map((op) => new Ast.ScalarExpression.Primary(op)));
+        new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType)]);
+    const expression = new Ast.Value.Computation(operation, operands);
 
-    return new Ast.Table.Compute(table, expression, null, computeSchema);
+    return new Ast.Table.Compute(null, table, expression, null, computeSchema);
 }
 
 function makeComputeProjExpression(table, operation, operands, resultType) {
     const compute = makeComputeExpression(table, operation, operands, resultType);
     const projSchema = compute.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === operation);
 
-    return new Ast.Table.Projection(compute, [operation], projSchema);
+    return new Ast.Table.Projection(null, compute, [operation], projSchema);
 }
 
 function makeComputeArgMinMaxExpression(table, operation, operands, resultType, direction = 'desc') {
@@ -44,63 +44,69 @@ function makeComputeArgMinMaxExpression(table, operation, operands, resultType, 
                 return null;
         }
     }
-    const compute = makeComputeExpression(table, operation, operands, resultType);
+    const compute = makeComputeExpression(null, table, operation, operands, resultType);
     const projSchema = compute.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === operation);
-    const sort = new Ast.Table.Sort(compute, operation, direction, compute.schema);
-    return new Ast.Table.Index(sort, [new Ast.Value.Number(1)], compute.schema);
+    const sort = new Ast.Table.Sort(null, compute, operation, direction, compute.schema);
+    return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], compute.schema);
 }
 
 function makeAggComputeExpression(table, operation, field, list, resultType) {
     if (C.hasUniqueFilter(table))
         return null;
-    let name = list.name;
+    let name;
+    assert(list.isVarRef || list.isFilter);
+    if (list.isVarRef)
+        name = list.name;
+    else
+        name = list.value.name;
+    assert(typeof name === 'string');
     let canonical = table.schema.getArgCanonical(name);
     for (let p of table.schema.iterateArguments()) {
         if (p.name === name + 'Count' || p.canonical === canonical + 'count' || p.canonical === canonical.slice(0,-1) + ' count') {
             const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-            return new Ast.Table.Projection(table, [p.name], newSchema);
+            return new Ast.Table.Projection(null, table, [p.name], newSchema);
         }
     }
     const computeSchema = table.schema.addArguments([
-        new Ast.ArgumentDef(Ast.ArgDirection.OUT, operation, resultType, {}, {})]);
-    const expression = new Ast.ScalarExpression.Aggregation(operation, field, list);
+        new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType)]);
+    const expression = new Ast.Value.Computation(operation, new Ast.Value.ArrayField(list, field));
 
-    return new Ast.Table.Compute(table, expression, null, computeSchema);
+    return new Ast.Table.Compute(null, table, expression, null, computeSchema);
 }
 
 function makeAggComputeProjExpression(table, operation, field, list, resultType) {
-    const compute = makeAggComputeExpression(table, operation, field, list, resultType);
+    const compute = makeAggComputeExpression(null, table, operation, field, list, resultType);
     if (!compute)
         return null;
     const projSchema = compute.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === operation);
 
-    return new Ast.Table.Projection(compute, [operation], projSchema);
+    return new Ast.Table.Projection(null, compute, [operation], projSchema);
 }
 
 function makeAggComputeArgMinMaxExpression(table, operation, field, list, resultType, direction = 'desc') {
     if (C.hasUniqueFilter(table))
         return null;
-    const compute = makeAggComputeExpression(table, operation, field, list, resultType);
+    const compute = makeAggComputeExpression(null, table, operation, field, list, resultType);
     if (!compute)
         return null;
-    const sort = new Ast.Table.Sort(compute, operation, direction, compute.schema);
-    return new Ast.Table.Index(sort, [new Ast.Value.Number(1)], compute.schema);
+    const sort = new Ast.Table.Sort(null, compute, operation, direction, compute.schema);
+    return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], compute.schema);
 
 }
 
 function makeProjectTable(table, pname) {
     const projectSchema = table.schema.filterArguments((arg) => arg.name === pname);
-    return new Ast.Table.Projection(table, [pname], projectSchema);
+    return new Ast.Table.Projection(null, table, [pname], projectSchema);
 }
 
 function makeArgMinMaxTable(table, pname, direction = 'desc') {
     if (C.hasUniqueFilter(table))
         return null;
-    const sort = new Ast.Table.Sort(table, pname, direction, table.schema.clone());
-    return new Ast.Table.Index(sort, [new Ast.Value.Number(1)], sort.schema);
+    const sort = new Ast.Table.Sort(null, table, pname, direction, table.schema.clone());
+    return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], sort.schema);
 }
 
-const HERE = Ast.Value.Location(Ast.Location.Relative('current_location'));
+const HERE = new Ast.Value.Location(new Ast.Location.Relative('current_location'));
 
 }
 
@@ -170,7 +176,7 @@ filtered_table = {
         const conflictParam = C.hasConflictParam(table, p.name, 'count');
         if (conflictParam)
             return makeArgMinMaxTable(table, conflictParam, 'asc');
-        return makeAggComputeArgMinMaxExpression(table, 'count', null, new Ast.ListExpression(p.name, null), Type.Number, 'desc');
+        return makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'desc');
     };
     ( table:table 'that has the most number of' p:out_param_Array__Any
     | table:filtered_table 'that has the most number of' p:out_param_Array__Any ) => {
@@ -179,7 +185,7 @@ filtered_table = {
         const conflictParam = C.hasConflictParam(table, p.name, 'count');
         if (conflictParam)
             return makeArgMinMaxTable(table, conflictParam, 'desc');
-        return makeAggComputeArgMinMaxExpression(table, 'count', null, new Ast.ListExpression(p.name, null), Type.Number, 'desc');
+        return makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'desc');
     };
 
     // projection
@@ -198,7 +204,7 @@ filtered_table = {
         if (name === 'picture_url' && _tpLoader.flags.turking)
             return null;
         const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
-        return new Ast.Table.Projection(table, [name], newSchema);
+        return new Ast.Table.Projection(null, table, [name], newSchema);
     };
 
     // count
@@ -207,9 +213,9 @@ filtered_table = {
         if (!table.schema.is_list)
             return null;
         const newSchema = table.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT)
-            .addArguments([new Ast.ArgumentDef(Ast.ArgDirection.OUT, 'count', Type.Number)]);
-        const agg = new Ast.Table.Aggregation(table, '*', 'count', null, newSchema);
-        return new Ast.Table.Projection(agg, ['count'], newSchema);
+            .addArguments([new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'count', Type.Number)]);
+        const agg = new Ast.Table.Aggregation(null, table, '*', 'count', null, newSchema);
+        return new Ast.Table.Projection(null, agg, ['count'], newSchema);
     };
 
     // sum & avg
@@ -221,8 +227,8 @@ filtered_table = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-        const agg = new Ast.Table.Aggregation(t, p.name, 'sum', null, newSchema);
-        return new Ast.Table.Projection(agg, [p.name], newSchema);
+        const agg = new Ast.Table.Aggregation(null, t, p.name, 'sum', null, newSchema);
+        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
     ( 'average' p:out_param_Numeric 'of' t:table
     | 'average' p:out_param_Numeric 'of' t:filtered_table ) => {
@@ -232,8 +238,8 @@ filtered_table = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-        const agg = new Ast.Table.Aggregation(t, p.name, 'avg', null, newSchema);
-        return new Ast.Table.Projection(agg, [p.name], newSchema);
+        const agg = new Ast.Table.Aggregation(null, t, p.name, 'avg', null, newSchema);
+        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
 }
 
