@@ -1,3 +1,10 @@
+1.8.0-alpha.1
+=============
+
+* The String.prototype.format polyfill is no longer necessary [#111].
+* Added more tests [#110].
+* Updated dependencies [#107, #109, #111].
+
 1.7.0
 =====
 
