@@ -11,7 +11,7 @@
 
 const Tp = require('thingpedia');
 const seedrandom = require('seedrandom');
-const { DialogGenerator } = require('../../lib/sentence-generator');
+const { DialogueGenerator } = require('../../lib/sentence-generator');
 
 module.exports = function worker(args, shard) {
     let tpClient = null;
@@ -34,5 +34,5 @@ module.exports = function worker(args, shard) {
 
         debug: args.debug,
     };
-    return new DialogGenerator(options);
+    return new DialogueGenerator(options);
 };

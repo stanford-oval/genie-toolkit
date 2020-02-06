@@ -12,28 +12,32 @@
 const assert = require('assert');
 const Stream = require('stream');
 
-class DialogSerializer extends Stream.Transform {
-    constructor() {
+class DialogueSerializer extends Stream.Transform {
+    constructor(options = { annotations: true }) {
         super({ writableObjectMode: true });
 
         this._buffer = [];
+        this._annotations = options.annotations;
     }
 
     _transform(dlg, encoding, callback) {
         this.push('====\n');
+        this.push('# ' + dlg.id + '\n');
+        if (dlg.comment)
+            this.push(...(dlg.comment.split('\n').map((line) => '# ' + line)));
 
-        let lineno = 0;
-        for (let i = 0; i < dlg.length; i++) {
-            const line = dlg[i];
-            if (line.startsWith('#')) { // comment
-                this.push(line + '\n');
-                continue;
+        for (let i = 0; i < dlg.turns.length; i++) {
+            const turn = dlg.turns[i];
+            if (i > 0) {
+                this.push('A: ' + turn.agent + '\n');
+                if (this._annotations)
+                    this.push('AT: ' + turn.agent_target + '\n');
             }
-
-            const prefix = lineno % 2 ? 'A: ' : 'U: ';
-            this.push(prefix + line + '\n');
-            lineno++;
+            this.push('U: ' + turn.user + '\n');
+            if (this._annotations)
+                this.push('UT: ' + turn.user_target + '\n');
         }
+
         callback();
     }
 
@@ -42,7 +46,7 @@ class DialogSerializer extends Stream.Transform {
     }
 }
 
-class DialogParser extends Stream.Transform {
+class DialogueParser extends Stream.Transform {
     constructor() {
         super({ objectMode: true });
 
@@ -107,6 +111,6 @@ class DialogParser extends Stream.Transform {
 }
 
 module.exports = {
-    DialogParser,
-    DialogSerializer,
+    DialogueParser,
+    DialogueSerializer,
 };

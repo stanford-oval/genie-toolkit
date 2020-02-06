@@ -19,7 +19,7 @@ const { DatasetStringifier } = require('../lib/dataset-parsers');
 const StreamUtils = require('../lib/stream-utils');
 const Utils = require('../lib/utils');
 
-const { DialogParser } = require('./lib/dialog_parser');
+const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
 class DialogToTurnStream extends Stream.Transform {
@@ -171,7 +171,7 @@ module.exports = {
         const tokenizer = TokenizerService.get('local');
 
         readAllLines(args.input_file, '====')
-            .pipe(new DialogParser())
+            .pipe(new DialogueParser())
             .pipe(new DialogToTurnStream({
                 locale: args.locale,
                 tokenizer,

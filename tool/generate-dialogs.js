@@ -17,6 +17,7 @@ const parallelize = require('../lib/parallelize');
 const { DatasetParser } = require('../lib/dataset-parsers');
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 
+const { DialogueSerializer } = require('./lib/dialog_parser');
 const StreamUtils = require('../lib/stream-utils');
 const { ActionSetFlag, maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ProgressBar = require('./lib/progress_bar');
@@ -27,51 +28,11 @@ const DIALOG_SERIALIZERS = {
     },
 
     txt() {
-        return new Stream.Transform({
-            writableObjectMode: true,
-
-            transform(dlg, encoding, callback) {
-                this.push('====\n');
-                this.push('# ' + dlg.id + '\n');
-
-                for (let i = 0; i < dlg.turns.length; i++) {
-                    const turn = dlg.turns[i];
-                    if (i > 0)
-                        this.push('S: ' + turn.system + '\n');
-                    this.push('U: ' + turn.user + '\n');
-                    this.push('A: ' + turn.target + '\n');
-                }
-
-                callback();
-            },
-
-            flush(callback) {
-                process.nextTick(callback);
-            }
-        });
+        return new DialogueSerializer();
     },
 
     txt_only() {
-        return new Stream.Transform({
-            writableObjectMode: true,
-
-            transform(dlg, encoding, callback) {
-                this.push('====\n');
-
-                this.push('# ' + dlg.id + '\n');
-                for (let i = 0; i < dlg.turns.length; i++) {
-                    const turn = dlg.turns[i];
-                    if (i > 0)
-                        this.push('S: ' + turn.system + '\n');
-                    this.push('U: ' + turn.user + '\n');
-                }
-                callback();
-            },
-
-            flush(callback) {
-                callback();
-            }
-        });
+        return new DialogueSerializer({ annotations: false });
     }
 };
 
