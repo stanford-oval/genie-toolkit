@@ -639,7 +639,12 @@ class SchemaProcessor {
         } else {
             let tags = posTag(npp.split(' '));
             if (['VBP', 'VBZ'].includes(tags[0])) {
-                canonical["avp"] = [npp];
+                if (tags.length === 2 && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
+                    canonical["avp"] = [npp.replace(' ', ' #')];
+                    npp = npp.split(' ')[1];
+                } else {
+                    canonical["avp"] = [npp];
+                }
                 canonical["default"] = "avp";
             } else if (npp.endsWith(' of')) {
                 canonical["npi"] = [npp];
