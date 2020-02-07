@@ -205,12 +205,43 @@ timer_rule = {
     ) => new Ast.Statement.Rule(null, new Ast.Stream.Join(null, timer, command.table, [], command.table.schema), command.actions);
 }
 
+generic_preamble_for_answer = {
+    'i am looking for';
+    'i would like';
+    'i want';
+    'i need';
+}
+generic_search_preamble = {
+    'show me';
+    'tell me';
+    'give me';
+    'search';
+    'find';
+    'i want';
+    'i need';
+    'i am looking for';
+    'i would like';
+    'i need';
+}
+generic_lookup_preamble = {
+    'show me';
+    'tell me';
+    'give me';
+    'search';
+    'find';
+    'i want to know';
+    'i need to know';
+    'i am looking for';
+    'i would like to know';
+    'i would like';
+    'i need';
+}
+
 search_command = {
     (
           table:complete_get_command
         | 'get' table:with_filtered_table
-        | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:with_filtered_table
-        | ('search' | 'find' | 'i want' | 'i need') table:with_filtered_table
+        | generic_search_preamble table:with_filtered_table
     ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
     ( 'please' | '') ('list' | 'enumerate') table:with_filtered_table => {
         if (!table.schema.is_list)
@@ -219,24 +250,24 @@ search_command = {
     };
 
     // now => get join get => notify
-    'get' table:with_filtered_table_join => new Ast.Statement.Command(null, table, [C.notifyAction()]);
+    generic_search_preamble table:with_filtered_table_join => new Ast.Statement.Command(null, table, [C.notifyAction()]);
 
     // now => get => notify (argmin, argmax)
-    ('search' | 'find' | 'retrieve' | 'tell me' |'show me' | 'present') 'the' table:with_arg_min_max_table
+    generic_search_preamble 'the' table:with_arg_min_max_table
     => new Ast.Statement.Command(null, table, [C.notifyAction()]);
 
     // now => get => say(...)
     // don't merge these, the output sizes are too small
     (
-          ('get' | 'show me' | 'give me' | 'tell me' | 'say') proj:projection_Any
-        | ('show me' | 'tell me' | 'say') 'what is' proj:projection_Any
+          generic_lookup_preamble proj:projection_Any
+        | ('show me' | 'tell me') 'what is' proj:projection_Any
     ) => C.sayProjection(proj);
 
     // now => get => say(...) (where questions)
     !turking proj:projection_Any => C.sayProjection(proj);
 }
 
-complete_initial_question = {
+complete_question = {
     (
           ('what' | 'which') table:verb_filtered_table '?'
         | ('what' | 'which') table:one_be_filter_table '?'

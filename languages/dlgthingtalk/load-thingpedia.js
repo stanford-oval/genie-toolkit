@@ -62,7 +62,7 @@ function makeExampleFromQuery(id, q) {
             [`\${p_id}`],
             {}
         ));
-        const namefilter = new Ast.BooleanExpression.Atom(null, 'name', '=~', new Ast.Value.VarRef('p_name'));
+        const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '=~', new Ast.Value.VarRef('p_name'));
         examples.push(new Ast.Example(
             null,
             -1,

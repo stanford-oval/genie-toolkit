@@ -22,6 +22,14 @@ const C = require('../ast_manip');
 const _tpLoader = require('../load-thingpedia');
 }
 
+base_noun_phrase = {
+    query:thingpedia_query if complete => {
+        if (!query.isInvocation)
+            return null;
+        return query.invocation.selector.kind + ':' + query.invocation.channel;
+    };
+}
+
 complete_table = {
     thingpedia_query if complete;
     !primonly table_join_replace_placeholder if complete;
@@ -330,6 +338,7 @@ stream = {
 
 
 with_filtered_table_join = {
+    !notablejoin {
     // get-predicate form of join
     table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') get_predicate_table:with_filtered_table
         => C.addGetPredicateJoin(table, get_predicate_table, null);
@@ -345,10 +354,13 @@ with_filtered_table_join = {
     rhs:with_filtered_table ('of' | 'for' | 'in') lhs:with_filtered_table => C.addArrayJoin(lhs, rhs);
 
     !turking lhs:with_filtered_table '\'s' rhs:with_filtered_table => C.addArrayJoin(lhs, rhs);
+    }
 }
 
 have_filtered_table_join = {
     // get-predicate form of join
+    !notablejoin {
     table:verb_filtered_table ('and' | 'and have' | 'and also' | 'and in addition' | 'but also') get_predicate_table:with_filtered_table
         => C.addGetPredicateJoin(table, get_predicate_table, null);
+    }
 }

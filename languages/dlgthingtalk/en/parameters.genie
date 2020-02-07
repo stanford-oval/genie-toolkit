@@ -96,12 +96,6 @@ projection_Any = {
     }
 }
 
-// when there is a name field, do a implicit projection on name when refer to the table
-projection_String = {
-    // XXX GC: not sure about this one
-    //!turking table:with_filtered_table => C.makeSingleFieldProjection('table', Type.String, table, 'name');
-}
-
 where_question = {
     ?projection_with_filter {
         ( 'where is the' table:with_filtered_table

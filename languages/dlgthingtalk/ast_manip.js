@@ -15,11 +15,7 @@ const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 
-const { isUnaryTableToTableOp,
-        isUnaryStreamToTableOp,
-        isUnaryStreamToStreamOp,
-        isUnaryTableToStreamOp,
-        typeToStringSafe } = require('./utils');
+const { typeToStringSafe } = require('./utils');
 const Utils = require('./utils');
 const { notifyAction } = ThingTalk.Generate;
 
@@ -39,40 +35,19 @@ function makeDate(base, operator, offset) {
     return value;
 }
 
-function findFunctionNameTable(table) {
-    if (table.isInvocation)
-        return [table.invocation.selector.kind + ':' + table.invocation.channel];
-
-    if (isUnaryTableToTableOp(table))
-        return findFunctionNameTable(table.table);
-
-    if (isUnaryStreamToTableOp(table))
-        return findFunctionNameStream(table.stream);
-
-    if (table.isJoin)
-        return findFunctionNameTable(table.lhs).concat(findFunctionNameTable(table.rhs));
-
-    throw new TypeError();
-}
-
-function findFunctionNameStream(stream) {
-    if (stream.isTimer || stream.isAtTimer)
-        return [];
-
-    if (isUnaryStreamToStreamOp(stream))
-        return findFunctionNameStream(stream.stream);
-
-    if (isUnaryTableToStreamOp(stream))
-        return findFunctionNameTable(stream.table);
-
-    if (stream.isJoin)
-        return findFunctionNameStream(stream.stream).concat(findFunctionNameTable(stream.table));
-
-    throw new TypeError('??? ' + stream);
+function getFunctionNames(ast) {
+    const functions = [];
+    ast.visit(new class extends Ast.NodeVisitor {
+        visitInvocation(invocation) {
+            functions.push(invocation.selector.kind + ':' + invocation.channel);
+            return true;
+        }
+    });
+    return functions;
 }
 
 function isSelfJoinStream(stream) {
-    let functions = findFunctionNameStream(stream);
+    let functions = getFunctionNames(stream);
     if (functions.length > 1) {
         if (!Array.isArray(functions))
             throw new TypeError('??? ' + functions);
@@ -318,13 +293,35 @@ function addUnit(unit, num) {
     }
 }
 
+function resolveProjection(args, schema) {
+    assert (Object.keys(schema.out).length > 1);
+    assert (args.length >= 1);
+    args = new Set(args);
+    for (let arg of schema.minimal_projection)
+        args.add(arg);
+    for (let arg of args)
+        assert (schema.hasArgument(arg));
+    // if default_projection is non-empty, it's overwritten after a projection
+    schema.default_projection = [];
+    if (schema.annotations)
+        schema.annotations.default_projection = Ast.Value.Array([]);
+    return schema.filterArguments((a) => a.is_input || args.has(a.name));
+}
+
+function makeProjection(table, pname) {
+    return new Ast.Table.Projection(null, table, [pname], resolveProjection([pname], table.schema));
+}
+function makeStreamProjection(stream, pname) {
+    return new Ast.Stream.Projection(null, stream [pname], resolveProjection([pname], stream.schema));
+}
+
 function makeEventTableProjection(table) {
     if (table.isProjection)
         return null;
 
     let outParams = Object.keys(table.schema.out);
     if (outParams.length === 1 && table.schema.out[outParams[0]].isString)
-        return new Ast.Table.Projection(null, table, [outParams[0]], table.schema);
+        return makeProjection(table, outParams[0]);
 
     for (let pname in table.schema.out) {
         if (pname === 'picture_url')
@@ -341,7 +338,7 @@ function makeEventStreamProjection(table) {
         return null;
     let outParams = Object.keys(table.schema.out);
     if (outParams.length === 1 && table.schema.out[outParams[0]].isString)
-        return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), [outParams[0]], table.schema);
+        return makeStreamProjection(new Ast.Stream.Monitor(null, table, null, table.schema), outParams[0]);
 
     for (let pname in table.schema.out) {
         if (pname === 'picture_url')
@@ -360,7 +357,7 @@ function makeTypeBasedTableProjection(table, ptype, ptypestr) {
     if (_loader.types.id.has(ptypestr)) {
         for (let pname in table.schema.out) {
             if (table.schema.out[pname].equals(ptype))
-                return new Ast.Table.Projection(null, table, [pname], table.schema);
+                return makeProjection(table, pname);
         }
         return null;
     } else {
@@ -368,12 +365,12 @@ function makeTypeBasedTableProjection(table, ptype, ptypestr) {
 
         const idArg = table.schema.getArgument('id');
         if (idArg && idArg.type.equals(ptype))
-            return new Ast.Table.Projection(null, table, ['id'], table.schema);
+            return makeProjection(table, 'id');
 
         let outParams = Object.keys(table.schema.out);
         if (outParams.length !== 1 || !ptype.equals(table.getArgType(outParams[0])))
             return null;
-        return new Ast.Table.Projection(null, table, [outParams[0]], table.schema);
+        return makeProjection(table, outParams[0]);
     }
 }
 
@@ -385,24 +382,19 @@ function makeTypeBasedStreamProjection(table, ptype, ptypestr) {
     if (_loader.types.id.has(ptypestr)) {
         for (let pname in table.schema.out) {
             if (table.schema.out[pname].equals(ptype))
-                return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), [pname], table.schema);
+                return makeStreamProjection(new Ast.Stream.Monitor(null, table, null, table.schema), pname);
         }
         return null;
     } else {
         const idArg = table.schema.getArgument('id');
         if (idArg && idArg.type.equals(ptype))
-            return new Ast.Table.Projection(null, table, ['id'], table.schema);
+            return makeStreamProjection(new Ast.Stream.Monitor(null, table, null, table.schema), 'id');
 
         let outParams = Object.keys(table.schema.out);
         if (outParams.length !== 1 || !ptype.equals(table.getArgType(outParams[0])))
             return null;
-        return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), [outParams[0]], table.schema);
+        return makeStreamProjection(new Ast.Stream.Monitor(null, table, null, table.schema), outParams[0]);
     }
-}
-
-function makeProjection(table, pname) {
-    const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === pname);
-    return new Ast.Table.Projection(null, table, [pname], newSchema);
 }
 
 function makeSingleFieldProjection(ftype, ptype, table, pname) {
@@ -422,8 +414,7 @@ function makeSingleFieldProjection(ftype, ptype, table, pname) {
         if (!table.schema.is_monitorable)
             return null;
         const stream = new Ast.Stream.Monitor(null, table, null, table.schema);
-        const newSchema = stream.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === pname);
-        return new Ast.Stream.Projection(null, stream, [pname], newSchema);
+        return makeStreamProjection(stream, pname);
     }
 }
 
@@ -451,12 +442,10 @@ function makeMultiFieldProjection(ftype, table, outParams) {
     }
 
     if (ftype === 'table') {
-        const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || names.includes(arg.name));
-        return new Ast.Table.Projection(null, table, names, newSchema);
+        return new Ast.Table.Projection(null, table, names, resolveProjection(names, table.schema));
     } else {
         const stream = new Ast.Stream.Monitor(null, table, null, table.schema);
-        const newSchema = stream.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || names.includes(arg.name));
-        return new Ast.Stream.Projection(null, stream, names, newSchema);
+        return new Ast.Stream.Projection(null, stream, names, resolveProjection(names, stream.schema));
     }
 }
 
@@ -479,32 +468,39 @@ function makeArgMaxMinTable(table, pname, direction) {
     return new Ast.Table.Index(null, t_sort, [new Ast.Value.Number(1)], table.schema);
 }
 
+function checkValidQuery(table) {
+    // projection won't help here
+    if (table.isProjection)
+        table = table.table;
+
+    // if a table is just a plain invocation, drop it
+    if (table.isInvocation)
+        return false;
+
+    if (table.isFilter) {
+        let filteredOnName = false;
+        let filteredOthers = false;
+        for (let [, filter] of iterateFilters(table)) {
+            for (let atom of iterateFields(filter)) {
+                if (atom.name === 'id' && atom.operator === '=~')
+                    filteredOnName = true;
+                else
+                    filteredOthers = true;
+            }
+        }
+        if (filteredOnName && !filteredOthers)
+            return false;
+    }
+
+    return true;
+}
+
 function makeProgram(rule, principal = null) {
     // FIXME: A hack for schema.org only to drop certain programs
     let table = rule.table;
     if (table) {
-        // projection won't help here
-        if (table.isProjection)
-            table = table.table;
-
-        // if a table is just a plain invocation, drop it
-        if (table.isInvocation)
+        if (!checkValidQuery(table))
             return null;
-
-        if (table.isFilter) {
-            let filteredOnName = false;
-            let filteredOthers = false;
-            for (let [, filter] of iterateFilters(table)) {
-                for (let atom of iterateFields(filter)) {
-                    if (atom.name === 'name')
-                        filteredOnName = true;
-                    else
-                        filteredOthers = true;
-                }
-            }
-            if (filteredOnName && !filteredOthers)
-                return null;
-        }
     }
     if (rule.stream) {
         if (_loader.flags.no_stream)
@@ -1118,11 +1114,15 @@ function sayProjection(proj) {
         if (!_loader.flags.projection)
             return null;
 
-        const newArgs = proj.args.filter((a) => a !== 'name' && a !== 'id');
-        if (newArgs.length === 0)
+        // remove all projection args that are part of the minimal projection
+        const newArgs = proj.args.filter((a) => !proj.table.schema.minimal_projection.includes(a));
+        const newSchema = resolveProjection(proj.args, proj.table.schema);
+        if (newArgs.length === 0) {
             proj = proj.table;
-        else
+        } else {
             proj.args = newArgs;
+            proj.schema = newSchema;
+        }
     }
     return new Ast.Statement.Command(null, proj, [notifyAction()]);
 }
@@ -1396,9 +1396,7 @@ function makeComputeExpression(table, operation, operands, resultType) {
 
 function makeComputeProjExpression(table, operation, operands, resultType) {
     const compute = makeComputeExpression(table, operation, operands, resultType);
-    const projSchema = compute.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === operation);
-
-    return new Ast.Table.Projection(null, compute, [operation], projSchema);
+    return makeProjection(compute, operation);
 }
 
 function makeComputeArgMinMaxExpression(table, operation, operands, resultType, direction = 'desc') {
@@ -1427,10 +1425,8 @@ function makeAggComputeExpression(table, operation, field, list, resultType) {
     assert(typeof name === 'string');
     let canonical = table.schema.getArgCanonical(name);
     for (let p of table.schema.iterateArguments()) {
-        if (p.name === name + 'Count' || p.canonical === canonical + 'count' || p.canonical === canonical.slice(0,-1) + ' count') {
-            const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-            return new Ast.Table.Projection(null, table, [p.name], newSchema);
-        }
+        if (p.name === name + 'Count' || p.canonical === canonical + 'count' || p.canonical === canonical.slice(0,-1) + ' count')
+            return makeProjection(table, p.name);
     }
     const computeSchema = table.schema.addArguments([
         new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType)]);
@@ -1443,9 +1439,7 @@ function makeAggComputeProjExpression(table, operation, field, list, resultType)
     const compute = makeAggComputeExpression(null, table, operation, field, list, resultType);
     if (!compute)
         return null;
-    const projSchema = compute.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === operation);
-
-    return new Ast.Table.Projection(null, compute, [operation], projSchema);
+    return makeProjection(compute, operation);
 }
 
 function makeAggComputeArgMinMaxExpression(table, operation, field, list, resultType, direction = 'desc') {
@@ -1468,7 +1462,7 @@ function makeArgMinMaxTable(table, pname, direction = 'desc') {
 
 module.exports = {
     typeToStringSafe,
-    findFunctionNameTable,
+    getFunctionNames,
 
     notifyAction,
     builtinSayAction,
@@ -1504,6 +1498,7 @@ module.exports = {
     makeListExpression,
     makeArgMaxMinTable,
 
+    checkValidQuery,
     makeProjection,
     makeEventTableProjection,
     makeEventStreamProjection,
@@ -1553,5 +1548,5 @@ module.exports = {
 
     addGetPredicateJoin,
     addReverseGetPredicateJoin,
-    addArrayJoin
+    addArrayJoin,
 };

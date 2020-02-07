@@ -1,0 +1,319 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+    const assert = require('assert');
+    const ThingTalk = require('thingtalk');
+    const Ast = ThingTalk.Ast;
+
+    const C = require('../ast_manip');
+    const D = require('../dialogue_utils');
+}
+
+import '../common';
+import './constants';
+import './timers';
+import './filters';
+import './parameters';
+import './aggregation';
+import './computation';
+import './who_questions';
+import './stream_tables';
+import './commands';
+
+context ctx_init,
+    ctx_greet,
+    ctx_search_command,
+    ctx_large_search_command,
+    ctx_complete_search_command,
+    ctx_info_request_command,
+    ctx_completed_action,
+    ctx_confirm_action,
+    ctx_incomplete_action;
+
+context function (state) {
+    if (state === null)
+        return [['ctx_init'], D.INITIAL_CONTEXT_INFO];
+    if (!(state instanceof Ast.DialogueState))
+        console.error(state);
+    assert(state instanceof Ast.DialogueState);
+    if (state.policy !== D.POLICY_NAME)
+        return null;
+    const info = D.getContextInfo(state);
+
+    switch (state.dialogueAct) {
+    case 'greet':
+        assert(state.history.length === 0, `expected empty history for greet`);
+        return [['ctx_greet'], info];
+
+    case 'execute':
+        if (info.resultInfo !== null) {
+            if (info.resultInfo.isTable) {
+                if (info.resultInfo.hasSingleResult) {
+                    return [[
+                        'ctx_complete_search_command',
+                        'ctx_info_request_command',
+                    ], info];
+                } else if (info.resultInfo.hasLargeResult) {
+                    return [[
+                        'ctx_search_command',
+                        'ctx_large_search_command'
+                    ], info];
+                } else {
+                    return [[
+                        'ctx_search_command',
+                        'ctx_complete_search_command'
+                    ], info];
+                }
+            } else {
+                console.error(info, state);
+                throw new Error('???');
+                return [['ctx_completed_action'], info];
+            }
+        } else {
+            if (info.nextIdx === null)
+                console.log(info);
+            assert (info.nextIdx !== null, `expected non-null next idx`);
+            if (C.isCompleteCommand(state.history[info.nextIdx].stmt)) {
+                return [['ctx_confirm_action'], info];
+            } else {
+                return [['ctx_incomplete_action'], info];
+            }
+        }
+
+    default:
+        throw new Error(`Unexpected user dialogue act ${info.dialogueAct}`);
+    }
+}
+
+question_preamble = {
+    ( 'there are' ('many' | 'several') base:base_noun_phrase '.'
+    | ('i can see' | 'i have found') ('many' | 'several') base:base_noun_phrase '.'
+    | 'there are' ('many' | 'several') base:base_noun_phrase ' matching your request .'
+    | ('i can see' | 'i have found') ('many' | 'several') base:base_noun_phrase ' matching your constraints .'
+    | ('i can see' | 'i have found') ('many' | 'several') base:base_noun_phrase ' with those characteristics .'
+    | 'i can recommend' ('many' | 'several') base:base_noun_phrase '.'
+    ) => [base, null, false];
+
+    ( 'there are more than' num:constant_Number base:base_noun_phrase '.'
+    | 'there are more than' num:constant_Number base:base_noun_phrase ' that correspond to your specifications .'
+    ) => [base, num, true];
+}
+
+direct_question = {
+    ( 'what' p:out_param_Any 'do you want ?'
+    | 'what' p:out_param_Any 'would you prefer ?'
+    | 'what' p:out_param_Any 'would you like ?'
+    | 'what' p:out_param_Any 'are you interested in ?'
+    | 'what' p:out_param_Any 'are you looking for ?'
+    ) => p.name;
+}
+
+yesno_direct_question = {
+    ( 'any preference of' p:out_param_Any '?'
+    | 'do you have a specific' p:out_param_Any 'in mind?'
+    | 'do you have a preference of' p:out_param_Any '?'
+    | 'do you have a preferred' p:out_param_Any '?'
+    | 'are you looking for a specific' p:out_param_Any '?'
+    ) => p.name;
+}
+
+generic_answer = {
+    // TODO
+}
+
+imprecise_answer_phrase = {
+    ( slot:constant_Any
+    | slot:apv_filter
+    | slot:pvp_filter
+    | slot:preposition_filter
+    ) => slot;
+}
+
+imprecise_answer = {
+    ans:imprecise_answer_phrase ('please' | '') '.' => ans;
+
+    generic_preamble_for_answer ans:imprecise_answer_phrase '.' => ans;
+}
+
+answer_noun_phrase = {
+    // one filter
+    one_with_filter_table;
+    one_which_filter_table;
+    one_clean_filter_table;
+
+    // two filters
+    two_with_filter_table;
+    two_which_filter_table;
+    two_clean_filter_table;
+}
+
+verbose_answer = {
+    // complete answer, like "I am looking for a bla restaurant"
+    generic_preamble_for_answer ('a' | 'the') query:answer_noun_phrase => query;
+}
+
+generic_question = {
+    'which one would like ?' => '';
+    'do you have a specific one in mind ?' => '';
+}
+
+precise_search_question_answer_pair = {
+    ( question:direct_question '<sep>' table:generic_answer
+    | question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:generic_answer
+    | question:direct_question '<sep>' table:verbose_answer
+    | question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer
+    | question:generic_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer
+    ) => {
+        if (!D.isQueryAnswerValidForQuestion(table, question))
+            return null;
+        return [question, table];
+    };
+}
+
+imprecise_search_question_answer_pair = {
+    ( question:direct_question '<sep>' answer:imprecise_answer
+    | question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer
+    ) => {
+        if (answer instanceof Ast.BooleanExpression) {
+            let pname;
+            if (answer.isNot) {
+                assert(answer.expr.isAtom);
+                pname = answer.expr.name;
+            } else {
+                assert(answer.isAtom);
+                pname = answer.name;
+            }
+            if (pname !== question)
+                return null;
+
+            return [question, answer];
+        } else {
+            assert(answer instanceof Ast.Value);
+            return [question, C.makeFilter(question, '==', answer)];
+        }
+    };
+}
+
+/*
+large_result_question_answer_pair = {
+    param:direct_question
+    | table:question_preamble param:yesno_direct_question
+    ) => {
+        if (!table.schema.out[param])
+            return null;
+        return [dom, q];
+    };
+    dom:question_preamble  => {
+        return [dom, null];
+    };
+
+
+    (
+}
+*/
+
+greeting = {
+    'hello !';
+    'hi !';
+}
+
+greeting_reply = {
+    'hello , how can i help you ?';
+    'how can i help you ?';
+    'what are you interested in ?';
+    'what can i do for you ?';
+}
+
+initial_command = {
+    ( stmt:action_command
+    | stmt:search_command
+    | stmt:complete_question
+    | stmt:projection_question
+    | greeting stmt:action_command
+    | greeting stmt:complete_question
+    | greeting stmt:projection_question
+    ) => stmt;
+
+    ( prog:initial_program
+    | greeting prog:initial_program
+    ) => {
+        if (prog.rules.length !== 1)
+            return null;
+        return prog.rules[0];
+    };
+}
+
+$root = {
+    ctx:ctx_init greeting =>
+        D.checkStateIsValid(ctx, null, new Ast.DialogueState(null, D.POLICY_NAME, 'greet', null, []));
+
+    ctx:ctx_init stmt:initial_command => {
+        const userState = D.initialRequest(stmt);
+        if (userState === null)
+            return null;
+        return D.checkStateIsValid(ctx, null, userState);
+    };
+
+    ( ctx:ctx_greet greeting_reply '<sep>' stmt:action_command
+    | ctx:ctx_greet greeting_reply '<sep>' stmt:search_command
+    | ctx:ctx_greet greeting_reply '<sep>' stmt:complete_question
+    | ctx:ctx_greet greeting_reply '<sep>' stmt:projection_question
+    ) => {
+        const userState = D.initialRequest(stmt);
+        if (userState === null)
+            return null;
+        const sysState = D.makeSimpleSystemState(ctx, 'sys_greet', null);
+        return D.checkStateIsValid(ctx, sysState, userState);
+    };
+
+    ctx:ctx_search_command qa:precise_search_question_answer_pair => {
+        const [question, answer] = qa;
+        const answerFunctions = C.getFunctionNames(answer);
+        assert(answerFunctions.length === 1);
+        if (answerFunctions[0] !== ctx.currentFunction)
+            return null;
+        const currentTable = ctx.current.stmt.table;
+        if (question !== '' && !currentTable.schema.out[question])
+            return null;
+        assert(answer.isFilter && answer.table.isInvocation);
+
+        const clone = ctx.clone();
+        const cloneTable = clone.current.stmt.table;
+        const newTable = D.queryRefinement(cloneTable, answer.filter, D.refineFilterToAnswerQuestion);
+        if (newTable === null)
+            return null;
+        const userState = D.overrideCurrentQuery(clone, newTable);
+        let sysState
+        if (question === '')
+            sysState = D.makeSimpleSystemState(ctx, 'sys_generic_search_question', null);
+        else
+            sysState = D.makeSimpleSystemState(ctx, 'sys_search_question', question);
+        return D.checkStateIsValid(ctx, sysState, userState);
+    };
+
+    ctx:ctx_search_command qa:imprecise_search_question_answer_pair => {
+        const [question, answer] = qa;
+        const currentTable = ctx.current.stmt.table;
+        if (question !== '' && !currentTable.schema.out[question])
+            return null;
+        if (!C.checkFilter(ctx.current.table, question))
+            return null;
+
+        const clone = ctx.clone();
+        const cloneTable = clone.current.stmt.table;
+        const newTable = D.queryRefinement(cloneTable, answer, D.refineFilterToAnswerQuestion);
+        if (newTable === null)
+            return null;
+        const userState = D.overrideCurrentQuery(clone, newTable);
+        const sysState = D.makeSimpleSystemState(ctx, 'sys_search_question', question);
+        return D.checkStateIsValid(ctx, sysState, userState);
+    };
+}

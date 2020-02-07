@@ -42,10 +42,13 @@ function makeFilter(loader, pname, op, value, negate = false) {
     //console.log('param: ' + param.name);
     let vtype = value.getType();
     let ptype = vtype;
-    if (op === 'contains')
+    if (op === 'contains') {
         ptype = Type.Array(vtype);
-    else if (op === '==' && vtype.isString)
+        if (vtype.isString)
+            op = 'contains~';
+    } else if (op === '==' && vtype.isString) {
         op = '=~';
+    }
     if (!loader.params.out.has(pname + '+' + ptype))
         return null;
     if (loader.flags.turking && value.isEnum)
@@ -87,8 +90,8 @@ module.exports = {
             table.isAlias ||
             table.isSort ||
             table.isIndex ||
+            table.isSlice ||
             table.isAggregation ||
-            table.isArgMinMax ||
             table.isSequence ||
             table.isHistory;
     },
