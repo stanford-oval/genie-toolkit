@@ -25,58 +25,6 @@ function identity(x) {
     return x;
 }
 
-function makeExampleFromQuery(id, q) {
-    const examples = [];
-    const device = new Ast.Selector.Device(null, q.class.name, null, null);
-    const invocation = new Ast.Invocation(null, device, q.name, [], q);
-
-    let canonical = q.canonical ? q.canonical : clean(q.name);
-    if (!Array.isArray(canonical))
-        canonical = [canonical];
-
-    for (let form of canonical) {
-        const pluralized = pluralize(form);
-        if (pluralized !== form)
-            canonical.push(pluralized);
-    }
-    const table = new Ast.Table.Invocation(null, invocation, q);
-    examples.push(new Ast.Example(
-        null,
-        -1,
-        'query',
-        {},
-        table,
-        canonical,
-        canonical,
-        {}
-    ));
-    if (id && id.has_ner_support) {
-        const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', new Ast.Value.VarRef('p_id'));
-        examples.push(new Ast.Example(
-            null,
-            -1,
-            'query',
-            { p_id: Type.Entity(id.type) },
-            new Ast.Table.Filter(table, idfilter, q),
-            [`\${p_id}`],
-            [`\${p_id}`],
-            {}
-        ));
-        const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '=~', new Ast.Value.VarRef('p_name'));
-        examples.push(new Ast.Example(
-            null,
-            -1,
-            'query',
-            { p_name: Type.String },
-            new Ast.Table.Filter(table, namefilter, q),
-            [`\${p_name}`],
-            [`\${p_name}`],
-            {}
-        ));
-    }
-    return examples;
-}
-
 const ANNOTATION_RENAME = {
     'property': 'npp',
     'reverse_property': 'npi',
@@ -426,6 +374,71 @@ class ThingpediaLoader {
         return rules;
     }
 
+    _addIdFilters(examples, idType, table) {
+        const schemaClone = table.schema.clone();
+        schemaClone.is_list = false;
+        schemaClone.no_filter = true;
+        const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', new Ast.Value.VarRef('p_id'));
+        examples.push(new Ast.Example(
+            null,
+            -1,
+            'query',
+            { p_id: idType },
+            new Ast.Table.Filter(null, table, idfilter, schemaClone),
+            [`\${p_id}`],
+            [`\${p_id}`],
+            {}
+        ));
+        const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '=~', new Ast.Value.VarRef('p_name'));
+        examples.push(new Ast.Example(
+            null,
+            -1,
+            'query',
+            { p_name: Type.String },
+            new Ast.Table.Filter(null, table, namefilter, table.schema),
+            [`\${p_name}`],
+            [`\${p_name}`],
+            {}
+        ));
+    }
+
+    _makeExampleFromQuery(q) {
+        const examples = [];
+        const device = new Ast.Selector.Device(null, q.class.name, null, null);
+        const invocation = new Ast.Invocation(null, device, q.name, [], q);
+
+        let canonical = q.canonical ? q.canonical : clean(q.name);
+        if (!Array.isArray(canonical))
+            canonical = [canonical];
+
+        for (let form of canonical) {
+            const pluralized = pluralize(form);
+            if (pluralized !== form)
+                canonical.push(pluralized);
+        }
+        const table = new Ast.Table.Invocation(null, invocation, q);
+        examples.push(new Ast.Example(
+            null,
+            -1,
+            'query',
+            {},
+            table,
+            canonical,
+            canonical,
+            {}
+        ));
+
+        if (q.hasArgument('id')) {
+            const id = q.getArgument('id');
+            if (id.type.isEntity) {
+                const entity = this._entities[id.type.type];
+                if (entity && entity.has_ner_support)
+                    this._addIdFilters(examples, id.type, table);
+            }
+        }
+        return examples;
+    }
+
     async _loadDevice(device) {
         this._grammar.addRule('constant_Entity__tt__device', [device.kind_canonical],
             this._runtime.simpleCombine(() => new Ast.Value.Entity(device.kind, 'tt:device', null)));
@@ -435,19 +448,45 @@ class ThingpediaLoader {
             if (this.whiteList && !this.whiteList.includes(q.name.toLowerCase()))
                 return;
 
-            const id = this._entities[`${classDef.name}:${q.name}`];
-            const examples = makeExampleFromQuery(id, q);
+            const examples = this._makeExampleFromQuery(q);
             for (let ex of examples)
                 await this._loadTemplate(ex);
         }));
     }
 
-    _loadIdType(idType) {
+    async _isIdEntity(idEntity) {
+        // FIXME this is kind of a bad heuristic
+        if (idEntity.endsWith(':id'))
+            return true;
+
+        let [prefix, suffix] = idEntity.split(':');
+        if (prefix === 'tt')
+            return false;
+
+        let classDef;
+        try {
+            classDef = await this._schemas.getFullMeta(prefix);
+        } catch(e) {
+            // ignore if the class does not exist
+            return false;
+        }
+        if (classDef.queries[suffix]) {
+            const query = classDef.queries[suffix];
+            if (query.hasArgument('id')) {
+                const id = query.getArgument('id');
+                if (id.type.isEntity && id.type.type === idEntity)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    async _loadIdType(idType) {
         let type = typeToStringSafe(Type.Entity(idType.type));
         if (this._idTypes.has(type))
             return;
 
-        if (idType.type.endsWith(':id')) {
+        if (await this._isIdEntity(idType.type)) {
             if (this._options.debug)
                 console.log('Loaded type ' + type + ' as id type');
             this._idTypes.add(type);
@@ -642,7 +681,7 @@ class ThingpediaLoader {
         }
 
         idTypes.forEach((entity) => this._entities[entity.type] = entity);
-        idTypes.forEach(this._loadIdType, this);
+        await Promise.all(idTypes.map(this._loadIdType, this));
         await Promise.all([
             Promise.all(devices.map(this._loadDevice, this)),
             Promise.all(datasets.map(this._loadDataset, this))

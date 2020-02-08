@@ -608,30 +608,36 @@ function *iterateFields(filter) {
 }
 
 function hasUniqueFilter(table) {
-    for (let [schema, filter] of iterateFilters(table)) {
-        for (let atom of iterateFields(filter)) {
-            if (schema.getArgument(atom.name).unique)
-                return true;
-        }
+    for (let [, filter] of iterateFilters(table)) {
+        if (checkFilterUniqueness(table, filter))
+            return true;
     }
     return false;
 }
 
 function checkFilterUniqueness(table, filter) {
-    // FIXME (thingtalk issue #105)
-    if (filter.isAnd || filter.isOr)
+    if (filter.isAnd)
         return filter.operands.some((f) => checkFilterUniqueness(table, f));
+    // note: a filter of the form
+    // (id == "foo" || id == "bar")
+    // is treated as "unique" because it defines the set of elements
+    // and we should not filter further
+    if (filter.isOr)
+        return filter.operands.every((f) => checkFilterUniqueness(table, f));
 
     if (filter.isExternal)
         return false;
 
     if (filter.isNot)
-        return checkFilterUniqueness(table, filter.expr);
+        return true;
 
     if (filter.isTrue || filter.isFalse)
         return false;
 
     if (filter.isCompute)
+        return false;
+
+    if (filter.operator !== '==' && filter.operator !== 'in_array')
         return false;
 
     return table.schema.getArgument(filter.name).unique;
@@ -697,8 +703,10 @@ function addFilter(table, filter, forceAdd = false) {
     // FIXME deal with the other table types (maybe)
 
     const schema = table.schema.clone();
-    if (checkFilterUniqueness(table, filter))
+    if (checkFilterUniqueness(table, filter)) {
+        schema.is_list = false;
         schema.no_filter = true;
+    }
     return new Ast.Table.Filter(null, table, filter, schema);
 }
 

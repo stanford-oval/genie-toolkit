@@ -140,16 +140,18 @@ for (let [typestr, type] of _tpLoader.types.all) {
             projection_Any = $('projection_' + typestr);
         }
 
-        if (_tpLoader.flags.projection_with_filter) {
-            $('single_projection_' + typestr) = table:with_filtered_table => C.makeTypeBasedTableProjection(table, type, typestr);
+        if (typestr !== 'Entity__tt__picture' && typestr !== 'String') {
+            if (_tpLoader.flags.projection_with_filter) {
+                $('single_projection_' + typestr) = table:with_filtered_table => C.makeTypeBasedTableProjection(table, type, typestr);
 
-            $('single_stream_projection_' + typestr) = !no_stream 'new' table:with_filtered_table =>
-                C.makeTypeBasedStreamProjection(table, type, typestr);
-        } else {
-            $('single_projection_' + typestr) = table:complete_table => C.makeTypeBasedTableProjection(table, type, typestr);
+                $('single_stream_projection_' + typestr) = !no_stream 'new' table:with_filtered_table =>
+                    C.makeTypeBasedStreamProjection(table, type, typestr);
+            } else {
+                $('single_projection_' + typestr) = table:complete_table => C.makeTypeBasedTableProjection(table, type, typestr);
 
-            $('single_stream_projection_' + typestr) = !no_stream 'new' table:complete_table =>
-                C.makeTypeBasedStreamProjection(table, type, typestr);
+                $('single_stream_projection_' + typestr) = !no_stream 'new' table:complete_table =>
+                    C.makeTypeBasedStreamProjection(table, type, typestr);
+            }
         }
     }
 }

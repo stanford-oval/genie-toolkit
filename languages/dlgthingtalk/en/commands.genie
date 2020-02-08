@@ -213,7 +213,6 @@ generic_preamble_for_answer = {
 }
 generic_search_preamble = {
     'show me';
-    'tell me';
     'give me';
     'search';
     'find';
