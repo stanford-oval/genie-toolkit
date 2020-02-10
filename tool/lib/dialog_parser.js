@@ -57,21 +57,13 @@ class DialogueSerializer extends Stream.Transform {
     }
 }
 
+const KEY_SEQUENCE = ['context', 'agent', 'agent_target', 'user', 'user_target'];
+
 class DialogueParser extends Stream.Transform {
     constructor() {
         super({ objectMode: true });
 
-        this._currentDialogue = [];
-        this._currentTurn = {
-            context: '',
-            agent: '',
-            agent_target: '',
-            user: '',
-            user_target: '',
-        };
-        this._currentKey = null;
-        this._buffer = '';
-
+        this._buffer = [];
         this._i = 0;
     }
 
@@ -86,74 +78,97 @@ class DialogueParser extends Stream.Transform {
 
         // end of current dialog
         if (line.startsWith('====')) {
-            if (this._buffer)
-                this._flushTurn();
             this._flush(callback);
             return;
         }
 
-        let key, text;
-        if (line.startsWith('A:')) {
-            key = 'agent';
-            text = line.substring(2).trim();
-        } else if (line.startsWith('U:')) {
-            key = 'user';
-            text = line.substring(2).trim();
-        } else if (line.startsWith('AT:')) {
-            key = 'agent_target';
-            text = line.substring(2).trim();
-        } else if (line.startsWith('UT:')) {
-            key = 'user_target';
-            text = line.substring(3).trim();
-        } else if (line.startsWith('C:')) {
-            key = 'context';
-            text = line.substring(2).trim();
-        } else {
-            throw new Error(`malformed line ${line}, expected to start with U:, A:, AT: or UT:`);
-        }
-        if (this._currentKey !== null && this._currentKey !== key) {
-            this._currentTurn[this._currentKey] = this._buffer;
-            this._buffer = '';
-            if (this._currentKey === 'user_target')
-                this._flushTurn();
-        }
-
-        this._currentKey = key;
-        this._buffer += text;
+        // buffer the current line
+        this._buffer.push(line);
         callback();
     }
 
-    _flushTurn() {
-        if (!this._currentTurn.user ||
-            !this._currentTurn.user_target)
-            throw new Error(`malformed dialogue ${this._i}, missing user utterance at turn ${this._currentDialogue.length}`);
-        if (this._buffer.length > 0) {
-            if (!this._currentTurn.agent ||
-                !this._currentTurn.agent_target)
-                throw new Error(`malformed dialogue ${this._i}, missing agent utterance at turn ${this._currentDialogue.length}`);
+    _flush(callback) {
+        const lines = this._buffer;
+        if (lines.length === 0) {
+            // ignore `====` at the beginning or at the end
+            // or consecutive appearances of `====`
+            // this simplifies concatenating datasets
+            callback();
+            return;
         }
-        this._currentDialogue.push(this._currentTurn);
-        this._currentTurn = {
+        this._buffer = [];
+
+        const dlg = [];
+        let currentTurn = {
+            context: '',
             agent: '',
             agent_target: '',
             user: '',
             user_target: '',
         };
-    }
 
-    _flush(callback) {
-        const dialogue = this._currentDialogue;
-        if (dialogue.length === 0) {
-            // ignore if the user had a ==== at the beginning or at the end of the file
-            callback();
-            return;
+        // first turn starts with the user
+        let expect = KEY_SEQUENCE.indexOf('user');
+        function flushTurn() {
+            dlg.push(currentTurn);
+            currentTurn = {
+                context: '',
+                agent: '',
+                agent_target: '',
+                user: '',
+                user_target: '',
+            };
         }
 
-        dialogue.id = this._i;
+        let currentKey = null;
+        let text = '';
+        for (let line of lines) {
+            let key, newText;
+            if (line.startsWith('A:')) {
+                key = 'agent';
+                newText = line.substring(2).trim();
+            } else if (line.startsWith('U:')) {
+                key = 'user';
+                newText = line.substring(2).trim();
+            } else if (line.startsWith('AT:')) {
+                key = 'agent_target';
+                newText = line.substring(3).trim();
+            } else if (line.startsWith('UT:')) {
+                key = 'user_target';
+                newText = line.substring(3).trim();
+            } else if (line.startsWith('C:')) {
+                key = 'context';
+                newText = line.substring(2).trim();
+            } else {
+                throw new Error(`malformed line ${line}, expected to start with U:, A:, AT: or UT:`);
+            }
+            if (currentKey !== null && currentKey !== key) {
+                assert(text);
+                currentTurn[currentKey] = text;
+                text = '';
+
+                if (currentKey === KEY_SEQUENCE[KEY_SEQUENCE.length-1])
+                    flushTurn();
+            }
+
+            if (currentKey !== key) {
+                if (key !== KEY_SEQUENCE[expect])
+                    throw new Error(`malformed dialogue ${this._i}, expected ${KEY_SEQUENCE[expect]}, saw ${key}`);
+                expect = (expect + 1) % KEY_SEQUENCE.length;
+                currentKey = key;
+            }
+            text += newText;
+        }
+
+        if (currentKey !== KEY_SEQUENCE[KEY_SEQUENCE.length-1])
+            throw new Error(`malformed dialogue ${this._i}, unterminated last turn`);
+
+        currentTurn[currentKey] = text;
+        flushTurn();
+
+        dlg.id = this._i;
         this._i++;
-        this._currentDialogue = [];
-        this._currentKey = null;
-        callback(null, dialogue);
+        callback(null, dlg);
     }
 }
 

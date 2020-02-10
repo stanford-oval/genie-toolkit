@@ -10,10 +10,10 @@
 "use strict";
 
 const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
 const Stream = require('stream');
 const fs = require('fs');
 
+const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 const TokenizerService = require('../lib/tokenizer');
 const { DatasetStringifier } = require('../lib/dataset-parsers');
 const StreamUtils = require('../lib/stream-utils');
@@ -22,86 +22,77 @@ const Utils = require('../lib/utils');
 const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
-class DialogToTurnStream extends Stream.Transform {
+class DialogueToTurnStream extends Stream.Transform {
     constructor(options) {
         super({ objectMode: true });
 
         this._locale = options.locale;
-        this._tokenizer = options.tokenizer;
-        this._schemas = options.schemas;
-        this._tokenized = options.tokenized;
+
+        // FIXME should not load ThingTalk here
+        this._options = options;
         this._debug = options.debug;
+        this._side = options.side;
+        this._flags = options.flags;
+        this._target = require('../lib/languages/' + options.targetLanguage);
+
+        this._tokenized = options.tokenized;
+        this._tokenizer = null;
+        if (!this._tokenized)
+            this._tokenizer = TokenizerService.get('local', true);
     }
 
-    _applyReplyToContext(context, newCommand) {
-        if (newCommand.isProgram || newCommand.isPermissionRule) {
-            return newCommand;
-        } else if (newCommand.isBookkeeping && newCommand.intent.isAnswer) {
-            for (let [,slot] of context.iterateSlots()) {
-                if (slot instanceof ThingTalk.Ast.Selector)
-                    continue;
-                if (!slot.value.isUndefined)
-                    continue;
-                slot.value = newCommand.intent.value;
-                return context;
-            }
-            throw new Error('???');
-        } else if (newCommand.isBookkeeping && newCommand.intent.isSpecial) {
-            if (newCommand.intent.type === 'nevermind' || newCommand.intent.type === 'stop')
-                return null;
-            else // yes/no
-                return context;
+    async _preprocess(sentence, contextEntities) {
+        if (this._tokenized) {
+            const tokens = sentence.split(' ');
+            const entities = Utils.makeDummyEntities(sentence);
+            const tokenized = { tokens, entities };
+            Utils.renumberEntities(tokenized, contextEntities);
+            return tokenized;
         } else {
-            console.log(newCommand);
-            throw new Error('????');
+            const tokenized = await this._tokenizer.tokenize(this._locale, sentence);
+            Utils.renumberEntities(tokenized, contextEntities);
+            return tokenized;
         }
     }
 
-    async _doTransform(dialog) {
-        let context = null;
-        let contextNN = ['null'];
-        let contextEntities = {};
-
-        for (let i = 0; i < dialog.length; i += 2) {
-            const input = dialog[i];
-            const targetCode = dialog[i+1];
-
-            const targetCommand = ThingTalk.Grammar.parse(targetCode);
-            await targetCommand.typecheck(this._schemas);
-
-            // skip raw string answers (which are handled by the dialog agent) because it does not make sense to
-            // evaluate them
-            if (targetCommand.isBookkeeping && targetCommand.intent.isAnswer && targetCommand.intent.value.isString)
-                continue;
-
-            let tokens;
-            let entities;
-            if (this._tokenized) {
-                tokens = input.split(' ');
-                entities = Utils.makeDummyEntities(input);
-                Object.assign(entities, contextEntities);
+    async _doTransform(dlg) {
+        for (let i = 0; i < dlg.length; i++) {
+            const turn = dlg[i];
+            let context, contextCode, contextEntities;
+            if (i > 0) {
+                context = await this._target.parse(turn.context, this._options);
+                [contextCode, contextEntities] = this._target.serializeNormalized(context);
             } else {
-                const tokenized = await this._tokenizer.tokenize(this._locale, input);
-                Utils.renumberEntities(tokenized, contextEntities);
-                tokens = tokenized.tokens;
-                entities = tokenized.entities;
+                context = null;
+                contextCode = 'null';
+                contextEntities = {};
             }
 
-            const targetNN = ThingTalk.NNSyntax.toNN(targetCommand, tokens, entities);
+            if (this._side === 'agent') {
+                if (i === 0)
+                    continue;
+                const { tokens, entities } = await this._preprocess(turn.agent, contextEntities);
+                const agentTarget = await this._target.parse(turn.agent_target, this._options);
+                const code = await this._target.computeAgentPrediction(context, agentTarget, tokens, entities);
 
-            this.push({
-                id: 'dlg' + dialog.id + ':' + i,
-                context: contextNN.join(' '),
-                preprocessed: tokens.join(' '),
-                target_code: targetNN.join(' ')
-            });
+                this.push({
+                    id: this._flags + '' + dlg.id + '/' + i,
+                    context: contextCode,
+                    preprocessed: tokens.join(' '),
+                    target_code: code.join(' ')
+                });
+            } else {
+                const { tokens, entities } = await this._preprocess(turn.user, contextEntities);
+                const userTarget = await this._target.parse(turn.user_target, this._options);
+                const code = await this._target.computeUserPrediction(context, userTarget, tokens, entities);
 
-            context = this._applyReplyToContext(context, targetCommand);
-            contextEntities = {};
-            if (context !== null)
-                contextNN = ThingTalk.NNSyntax.toNN(context, '', contextEntities, { allocateEntities: true });
-            else
-                contextNN = ['null'];
+                this.push({
+                    id: this._flags + '' + dlg.id + '/' + i,
+                    context: contextCode,
+                    preprocessed: tokens.join(' '),
+                    target_code: code.join(' ')
+                });
+            }
         }
 
     }
@@ -111,6 +102,8 @@ class DialogToTurnStream extends Stream.Transform {
     }
 
     _flush(callback) {
+        if (this._tokenizer)
+            this._tokenizer.end();
         process.nextTick(callback);
     }
 }
@@ -128,18 +121,34 @@ module.exports = {
         parser.addArgument('--tokenized', {
             required: false,
             action: 'storeTrue',
-            defaultValue: false,
-            help: "The dataset is already tokenized."
+            defaultValue: true,
+            help: "The dataset is already tokenized (this is the default)."
         });
         parser.addArgument('--no-tokenized', {
             required: false,
             dest: 'tokenized',
             action: 'storeFalse',
-            help: "The dataset is not already tokenized (this is the default)."
+            help: "The dataset is not already tokenized."
         });
         parser.addArgument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
+        });
+        parser.addArgument(['-t', '--target-language'], {
+            required: false,
+            defaultValue: 'thingtalk',
+            choices: AVAILABLE_LANGUAGES,
+            help: `The programming language to generate`
+        });
+        parser.addArgument('--side', {
+            required: true,
+            choices: ['user', 'agent'],
+            help: 'Which side of the conversation should be extracted.'
+        });
+        parser.addArgument('--flags', {
+            required: false,
+            defaultValue: '',
+            help: 'Additional flags to add to the generated training examples.'
         });
         parser.addArgument('input_file', {
             nargs: '+',
@@ -166,16 +175,18 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new Tp.FileClient(args);
-        const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
-        const tokenizer = TokenizerService.get('local');
+        let tpClient = null;
+        if (args.thingpedia)
+            tpClient = new Tp.FileClient(args);
 
         readAllLines(args.input_file, '====')
             .pipe(new DialogueParser())
-            .pipe(new DialogToTurnStream({
+            .pipe(new DialogueToTurnStream({
                 locale: args.locale,
-                tokenizer,
-                schemas,
+                targetLanguage: args.target_language,
+                thingpediaClient: tpClient,
+                flags: args.flags,
+                side: args.side,
                 tokenized: args.tokenized,
                 debug: args.debug
             }))
@@ -183,6 +194,5 @@ module.exports = {
             .pipe(args.output);
 
         await StreamUtils.waitFinish(args.output);
-        await tokenizer.end();
     }
 };

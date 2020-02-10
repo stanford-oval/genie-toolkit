@@ -13,6 +13,7 @@ const fs = require('fs');
 
 const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
 const parallelize = require('../lib/parallelize');
+const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 
 const StreamUtils = require('../lib/stream-utils');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
@@ -32,6 +33,12 @@ module.exports = {
             required: false,
             defaultValue: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
+        });
+        parser.addArgument(['-t', '--target-language'], {
+            required: false,
+            defaultValue: 'thingtalk',
+            choices: AVAILABLE_LANGUAGES,
+            help: `The programming language to generate`
         });
         parser.addArgument('--thingpedia', {
             required: true,
