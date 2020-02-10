@@ -38,6 +38,8 @@ class DialogueSerializer extends Stream.Transform {
         for (let i = 0; i < dlg.turns.length; i++) {
             const turn = dlg.turns[i];
             if (i > 0) {
+                if (this._annotations)
+                    this._pushMany(this._prefixLines(turn.context, 'C: '));
                 this.push('A: ' + turn.agent + '\n');
                 if (this._annotations)
                     this._pushMany(this._prefixLines(turn.agent_target, 'AT: '));
@@ -61,6 +63,7 @@ class DialogueParser extends Stream.Transform {
 
         this._currentDialogue = [];
         this._currentTurn = {
+            context: '',
             agent: '',
             agent_target: '',
             user: '',
@@ -102,6 +105,9 @@ class DialogueParser extends Stream.Transform {
         } else if (line.startsWith('UT:')) {
             key = 'user_target';
             text = line.substring(3).trim();
+        } else if (line.startsWith('C:')) {
+            key = 'context';
+            text = line.substring(2).trim();
         } else {
             throw new Error(`malformed line ${line}, expected to start with U:, A:, AT: or UT:`);
         }
