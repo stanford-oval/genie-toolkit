@@ -36,15 +36,16 @@ class Example {
 }
 
 class CanonicalGenerator {
-    constructor(classDef, constants) {
+    constructor(classDef, constants, queries) {
         this.class = classDef;
-        this.className = this.class.canonical;
         this.constants = constants;
+        this.queries = queries;
     }
+
 
     async generate() {
         const examples = {};
-        for (let qname in this.class.queries) {
+        for (let qname of this.queries) {
             examples[qname] = {};
             let query = this.class.queries[qname];
             for (let arg of query.iterateArguments()) {
@@ -57,7 +58,7 @@ class CanonicalGenerator {
 
                 const samples = this._retrieveSamples(qname, arg);
                 if (samples) {
-                    let generated = this._generateExamples(arg.metadata.canonical, samples);
+                    let generated = this._generateExamples(query.canonical, arg.metadata.canonical, samples);
                     examples[qname][arg.name] = generated.map((e) => {
                         return { masked: e.masked, type: e.type, masks: e.masks };
                     });
@@ -78,7 +79,7 @@ class CanonicalGenerator {
     }
 
     _updateCanonicals(candidates) {
-        for (let qname in candidates) {
+        for (let qname of this.queries) {
             for (let arg in candidates[qname]) {
                 for (let item of candidates[qname][arg]) {
                     let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
@@ -101,7 +102,7 @@ class CanonicalGenerator {
     }
 
     _retrieveSamples(qname, arg) {
-        const keys = makeLookupKeys(this.class.kind + '.' + qname, arg.name, arg.type);
+        const keys = makeLookupKeys('@' + this.class.kind + '.' + qname, arg.name, arg.type);
         let samples;
         for (let key of keys) {
             if (this.constants[key]) {
@@ -119,11 +120,11 @@ class CanonicalGenerator {
         return samples;
     }
 
-    _generateExamples(canonicals, valueSample) {
+    _generateExamples(tableName, canonicals, valueSample) {
         let examples = [];
         for (let value of valueSample) {
             for (let canonical of canonicals['npp']) {
-                let query = `show me ${this.className} with ${value} ${canonical} .`;
+                let query = `show me ${tableName} with ${value} ${canonical} .`;
                 query = query.split(' ');
                 let maskIndices = canonical.split(' ').map((w) => query.indexOf(w));
                 examples.push(new Example('npp', query, [maskIndices]));
@@ -133,12 +134,12 @@ class CanonicalGenerator {
                 for (let canonical of canonicals['avp']) {
                     if (canonical.includes('#')) {
                         let [prefix, suffix] = canonical.split('#').map((span) => span.trim());
-                        let query = `which ${this.className} ${prefix} ${value} ${suffix} ?`.split(' ');
+                        let query = `which ${tableName} ${prefix} ${value} ${suffix} ?`.split(' ');
                         let prefixIndices = prefix.split(' ').map((w) => query.indexOf(w));
                         let suffixIndices = suffix.split(' ').map((w) => query.indexOf(w));
                         examples.push(new Example('avp', query, [prefixIndices, suffixIndices]));
                     } else {
-                        let query = `which ${this.className} ${canonical} ${value} ?`.split(' ');
+                        let query = `which ${tableName} ${canonical} ${value} ?`.split(' ');
                         let maskedIndices = canonical.split(' ').map((w) => query.indexOf(w));
                         examples.push(new Example('avp', query, [maskedIndices]));
                     }
@@ -148,10 +149,10 @@ class CanonicalGenerator {
             if ('pvp' in canonicals) {
                 for (let canonical of canonicals['pvp']) {
                     let query, maskedIndices;
-                    query = `show me ${this.className} ${canonical} ${value} .`.split(' ');
+                    query = `show me ${tableName} ${canonical} ${value} .`.split(' ');
                     maskedIndices = canonical.split(' ').map((w) => query.indexOf(w));
                     examples.push(new Example('pvp', query, [maskedIndices]));
-                    query = `which ${this.className} is ${canonical} ${value}`.split(' ');
+                    query = `which ${tableName} is ${canonical} ${value}`.split(' ');
                     maskedIndices = canonical.split(' ').map((w) => query.indexOf(w));
                     examples.push(new Example('pvp', query, [maskedIndices]));
                 }

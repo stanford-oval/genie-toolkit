@@ -15,7 +15,6 @@ const util = require('util');
 const ThingTalk = require('thingtalk');
 
 const { parseConstantFile } = require('./lib/constant-file');
-const { makeLookupKeys } = require('../lib/sample-utils');
 const CanonicalGenerator = require('./lib/webqa-canonical-generator');
 const StreamUtils = require('../lib/stream-utils');
 
@@ -47,13 +46,18 @@ module.exports = {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
+        parser.addArgument('--queries', {
+            required: true,
+            help: `List of query functions to include, split by comma (no space).`
+        });
 
     },
 
     async execute(args) {
         const constants = await parseConstantFile(args.locale, args.constants);
         const classDef = await loadClassDef(args.thingpedia);
-        const generator = new CanonicalGenerator(classDef, constants);
+        const queries = args.queries.split(',').map((qname) => qname.charAt(0).toUpperCase() + qname.slice(1));
+        const generator = new CanonicalGenerator(classDef, constants, queries);
 
         const updatedClassDef = await generator.generate();
 
