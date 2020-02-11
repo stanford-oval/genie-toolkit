@@ -69,7 +69,7 @@ class CanonicalGenerator {
         fs.writeFileSync('./examples.json', JSON.stringify(examples, null, 2));
 
         // call bert to generate candidates
-        await exec(`/home/silei/.virtualenvs/python36/bin/python ${__dirname}/bert.py`, { maxBuffer: 1024*1024*100 });
+        await exec(`python3 ${__dirname}/bert.py`, { maxBuffer: 1024*1024*100 });
 
         // load exported result from the python script
         const candidates = JSON.parse(fs.readFileSync('./bert-predictions.json'));
