@@ -1,7 +1,7 @@
 import sys
 import json
 import torch
-from pytorch_pretrained_bert import BertTokenizer, BertModel, BertForMaskedLM
+from transformers import BertTokenizer, BertModel, BertForMaskedLM
 
 # Load tokenizer
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
@@ -27,7 +27,7 @@ def predictOne(text):
     with torch.no_grad():
         predictions = model(tokens_tensor, segments_tensors)
 
-    mask = predictions[0, masked_index]
+    mask = predictions[0][0, masked_index]
     topk, indices = torch.topk(mask, 5)
 
     return tokenizer.convert_ids_to_tokens(indices.tolist())
