@@ -1128,6 +1128,7 @@ function sayProjection(proj) {
         if (newArgs.length === 0) {
             proj = proj.table;
         } else {
+            newArgs.sort();
             proj.args = newArgs;
             proj.schema = newSchema;
         }
