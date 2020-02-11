@@ -42,7 +42,6 @@ class CanonicalGenerator {
         this.queries = queries;
     }
 
-
     async generate() {
         const examples = {};
         for (let qname of this.queries) {
@@ -52,9 +51,6 @@ class CanonicalGenerator {
                 // some args don't have canonical: e.g., id, name
                 if (!arg.metadata.canonical)
                     continue;
-
-                if (typeof arg.metadata.canonical === 'string')
-                    arg.metadata.canonical = { default: 'npp', npp: [arg.metadata.canonical] };
 
                 const samples = this._retrieveSamples(qname, arg);
                 if (samples) {

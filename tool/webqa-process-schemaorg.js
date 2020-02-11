@@ -560,7 +560,7 @@ class SchemaProcessor {
                 continue;
 
             const canonical = this.makeArgCanonical(propertyname, ttType);
-            const metadata = {'canonical': canonical["default"] === "npp" && canonical["npp"].length === 1 ? canonical["npp"][0] : canonical};
+            const metadata = { canonical };
             const annotation = keepAnnotation ? {
                 'org_schema_type': Ast.Value.String(schemaOrgType),
                 'org_schema_comment': Ast.Value.String(propertydef.comment)
@@ -925,7 +925,7 @@ class SchemaProcessor {
                     propertyname = '_' + propertyname;
 
                 const canonical = this.makeArgCanonical(propertyname, type);
-                const metadata = { 'canonical': canonical["default"] === "npp" && canonical["npp"].length === 1 ? canonical["npp"][0] : canonical };
+                const metadata = { canonical };
                 const annotation = keepAnnotation ? {
                     'org_schema_type': Ast.Value.String(schemaOrgType),
                     'org_schema_comment': Ast.Value.String(propertydef.comment)
