@@ -53,35 +53,11 @@ module.exports = {
     async execute(args) {
         const constants = await parseConstantFile(args.locale, args.constants);
         const classDef = await loadClassDef(args.thingpedia);
-        const generator = new CanonicalGenerator(classDef.canonical);
-        for (let qname in classDef.queries) {
-            let query = classDef.queries[qname];
-            for (let arg of query.iterateArguments()) {
-                // some args don't have canonical: e.g., id, name
-                if (!arg.metadata.canonical)
-                    continue;
+        const generator = new CanonicalGenerator(classDef, constants);
 
-                const keys = makeLookupKeys(classDef.kind + '.' + qname, arg.name, arg.type);
-                let sample;
-                for (let key of keys) {
-                    if (constants[key]) {
-                        sample = constants[key];
-                        break;
-                    }
-                }
-                if (sample) {
-                    sample = sample.map((v) => {
-                        if (arg.type.isString)
-                            return v.value;
-                        return v.display;
-                    });
-                    await generator.generate(arg.metadata.canonical, sample);
-                }
+        const updatedClassDef = await generator.generate();
 
-            }
-        }
-
-        args.output.end(classDef.prettyprint());
+        args.output.end(updatedClassDef.prettyprint());
         StreamUtils.waitFinish(args.output);
     }
 };

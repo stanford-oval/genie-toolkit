@@ -11,12 +11,10 @@
 const fs = require('fs');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
-
-let count = 0;
+const { makeLookupKeys } = require('../../lib/sample-utils');
 
 class Example {
     constructor(type, query, masks) {
-        this.id = count;
         this.type = type; // POS-based category
         this.query = query; // command in list form
         this.masks = masks; // array of indices of consecutive canonical tokens
@@ -24,7 +22,6 @@ class Example {
                             //       'chinese cuisine' -> [[1]]
         this.masked = []; // masked queries
         this._maskQuery();
-        count ++;
     }
 
     _maskQuery() {
@@ -38,42 +35,80 @@ class Example {
     }
 }
 
-function dumpExamples(examples) {
-    fs.writeFileSync(
-        './examples.json',
-        JSON.stringify(examples.map((e) => {
-            return { id: e.id, masked: e.masked, type: e.type, masks: e.masks };
-        }), null, 2)
-    );
-}
-
-function loadPredictions() {
-    const predictions = fs.readFileSync('./bert-predictions.json');
-    return JSON.parse(predictions);
-}
-
 class CanonicalGenerator {
-    constructor(className) {
-        this.className = className;
+    constructor(classDef, constants) {
+        this.class = classDef;
+        this.className = this.class.canonical;
+        this.constants = constants;
     }
 
-    async generate(canonicals, valueSample) {
-        if (typeof canonicals === 'string')
-            canonicals = { default: 'npp', npp: [canonicals] };
-        const examples = this._generateExamples(canonicals, valueSample);
-        dumpExamples(examples);
-        await exec('/home/silei/.virtualenvs/python36/bin/python ./tool/lib/bert.py', { maxBuffer: 1024*1024*100 });
-        const generated = loadPredictions();
+    async generate() {
+        const examples = {};
+        for (let qname in this.class.queries) {
+            examples[qname] = {};
+            let query = this.class.queries[qname];
+            for (let arg of query.iterateArguments()) {
+                // some args don't have canonical: e.g., id, name
+                if (!arg.metadata.canonical)
+                    continue;
 
-        for (let c of generated)
-            canonicals[c.type] = canonicals[c.type].concat(c.canonicals);
+                if (typeof arg.metadata.canonical === 'string')
+                    arg.metadata.canonical = { default: 'npp', npp: [arg.metadata.canonical] };
 
-        // deduplicate
-        for (let type in canonicals) {
-            if (Array.isArray(canonicals[type]))
-                canonicals[type] = [...new Set(canonicals[type])];
+                const samples = this._retrieveSamples(qname, arg);
+                if (samples) {
+                    let generated = this._generateExamples(arg.metadata.canonical, samples);
+                    examples[qname][arg.name] = generated.map((e) => {
+                        return { masked: e.masked, type: e.type, masks: e.masks };
+                    });
+                }
+            }
         }
-        return canonicals;
+
+        // dump the examples to a json file for the python script to consume
+        fs.writeFileSync('./examples.json', JSON.stringify(examples, null, 2));
+
+        // call bert to generate candidates
+        await exec(`/home/silei/.virtualenvs/python36/bin/python ${__dirname}/bert.py`, { maxBuffer: 1024*1024*100 });
+
+        // load exported result from the python script
+        const candidates = JSON.parse(fs.readFileSync('./bert-predictions.json'));
+        this._updateCanonicals(candidates);
+        return this.class;
+    }
+
+    _updateCanonicals(candidates) {
+        for (let qname in candidates) {
+            for (let arg in candidates[qname]) {
+                for (let item of candidates[qname][arg]) {
+                    let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
+
+                    for (let canonical of item.canonicals) {
+                        if (!canonicals[item.type].includes(canonical))
+                            canonicals[item.type].push(canonical);
+                    }
+                }
+            }
+        }
+    }
+
+    _retrieveSamples(qname, arg) {
+        const keys = makeLookupKeys(this.class.kind + '.' + qname, arg.name, arg.type);
+        let samples;
+        for (let key of keys) {
+            if (this.constants[key]) {
+                samples = this.constants[key];
+                break;
+            }
+        }
+        if (samples) {
+            samples = samples.map((v) => {
+                if (arg.type.isString)
+                    return v.value;
+                return v.display;
+            });
+        }
+        return samples;
     }
 
     _generateExamples(canonicals, valueSample) {

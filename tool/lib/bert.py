@@ -34,19 +34,20 @@ def predictOne(text):
 
 
 def predict(examples):
-    for example in examples:
-        example['canonicals'] = []
-        for query in example['masked']: 
-            alternatives = predictOne(query)
-            query = query.split(' ')
-            span = example['masks'][0]
-            canonical = ' '.join(query[span[0] : span[-1]+1])
-            if len(example['masks']) > 1:
-                span = example['masks'][1]
-                canonical += ' # ' + ' '.join(query[span[0] : span[-1]+1])
-            for alternative in alternatives:
-                example['canonicals'].append(canonical.replace('[MASK]', alternative))
-            print(example)
+    for qname in examples:
+        for arg in examples[qname]: 
+            for example in examples[qname][arg]:
+                example['canonicals'] = []
+                for query in example['masked']: 
+                    alternatives = predictOne(query)
+                    query = query.split(' ')
+                    span = example['masks'][0]
+                    canonical = ' '.join(query[span[0] : span[-1]+1])
+                    if len(example['masks']) > 1:
+                        span = example['masks'][1]
+                        canonical += ' # ' + ' '.join(query[span[0] : span[-1]+1])
+                    for alternative in alternatives:
+                        example['canonicals'].append(canonical.replace('[MASK]', alternative))
         
     return examples
 
