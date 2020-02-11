@@ -64,7 +64,7 @@ class DialogueToTurnStream extends Stream.Transform {
                 [contextCode, contextEntities] = this._target.serializeNormalized(context);
             } else {
                 context = null;
-                contextCode = 'null';
+                contextCode = ['null'];
                 contextEntities = {};
             }
 
@@ -77,7 +77,7 @@ class DialogueToTurnStream extends Stream.Transform {
 
                 this.push({
                     id: this._flags + '' + dlg.id + '/' + i,
-                    context: contextCode,
+                    context: contextCode.join(' '),
                     preprocessed: tokens.join(' '),
                     target_code: code.join(' ')
                 });
@@ -88,7 +88,7 @@ class DialogueToTurnStream extends Stream.Transform {
 
                 this.push({
                     id: this._flags + '' + dlg.id + '/' + i,
-                    context: contextCode,
+                    context: contextCode.join(' '),
                     preprocessed: tokens.join(' '),
                     target_code: code.join(' ')
                 });

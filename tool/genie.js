@@ -24,6 +24,7 @@ const subcommands = {
     'extract-contexts': require('./extract-contexts'),
     'contextualize': require('./contextualize'),
     'generate-dialogs': require('./generate-dialogs'),
+    'dialog-to-contextual': require('./dialog-to-contextual'),
 
     'sample': require('./sample'),
     'contextual-prepare-turk': require('./contextual-prepare-turk'),
@@ -46,7 +47,7 @@ const subcommands = {
     'manual-annotate': require('./manual-annotate'),
     'manual-annotate-dialog': require('./manual-annotate-dialog'),
     'evaluate-dialog': require('./evaluate-dialog'),
-    'dialog-to-contextual': require('./dialog-to-contextual'),
+    'demo-dialog': require('./demo-dialog'),
 
     'dataset': require('./dataset'),
 

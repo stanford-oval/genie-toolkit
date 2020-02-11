@@ -17,6 +17,12 @@ const TokenizerService = require('../../lib/tokenizer');
 const Predictor = require('../../lib/predictor');
 const Utils = require('../../lib/utils');
 
+const NLU_TASK = 'almond_dialogue_nlu';
+const NLG_TASK = 'almond_dialogue_nlg';
+const NLG_QUESTION = 'what should the agent say ?';
+const POLICY_QUESTION = 'what should the agent do ?';
+const POLICY_TASK = 'almond_dialogue_policy';
+
 class LocalParserClient {
     constructor(modeldir, locale) {
         this._locale = locale;
@@ -42,7 +48,7 @@ class LocalParserClient {
         let tokens, entities;
         if (tokenized) {
             tokens = utterance.split(' ');
-            entities = {};
+            entities = Utils.makeDummyEntities(utterance);
             Object.assign(entities, contextEntities);
         } else {
             const tokenized = await this._tokenizer.tokenize(this._locale, utterance);
@@ -51,8 +57,14 @@ class LocalParserClient {
             entities = tokenized.entities;
         }
 
-        const candidates = await this._predictor.predict(tokens, contextCode);
+        const candidates = await this._predictor.predict(contextCode.join(' '), tokens.join(' '), NLU_TASK);
         return { tokens, candidates, entities };
+    }
+    async queryPolicy(contextCode, contextEntities) {
+        return this._predictor.predict(contextCode.join(' '), POLICY_QUESTION, POLICY_TASK);
+    }
+    async generateUtterance(contextCode, contextEntities, targetAct) {
+        return this._predictor.predict(contextCode.join(' ') + ' ' + targetAct.join(' '), NLG_QUESTION, NLG_TASK);
     }
 }
 
