@@ -84,6 +84,14 @@ class CanonicalGenerator {
                     let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
 
                     for (let canonical of item.canonicals) {
+                        // only keep canonical uses letters and #
+                        if (!(/^[a-zA-Z# ]+$/.test(canonical)))
+                            continue;
+
+                        // at most one # is allowed
+                        if ((canonical.match(/#/g) || []).length > 1)
+                            continue;
+
                         if (!canonicals[item.type].includes(canonical))
                             canonicals[item.type].push(canonical);
                     }
