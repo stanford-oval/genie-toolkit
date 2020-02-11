@@ -50,18 +50,28 @@ module.exports = {
             required: true,
             help: `List of query functions to include, split by comma (no space).`
         });
+        parser.addArgument('--skip', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Skip the entire process.',
+            defaultValue: false
+        });
 
     },
 
     async execute(args) {
-        const constants = await parseConstantFile(args.locale, args.constants);
         const classDef = await loadClassDef(args.thingpedia);
-        const queries = args.queries.split(',').map((qname) => qname.charAt(0).toUpperCase() + qname.slice(1));
-        const generator = new CanonicalGenerator(classDef, constants, queries);
 
-        const updatedClassDef = await generator.generate();
+        if (args.skip) {
+            args.output.end(classDef.prettyprint());
+        } else {
+            const constants = await parseConstantFile(args.locale, args.constants);
+            const queries = args.queries.split(',').map((qname) => qname.charAt(0).toUpperCase() + qname.slice(1));
+            const generator = new CanonicalGenerator(classDef, constants, queries);
+            const updatedClassDef = await generator.generate();
+            args.output.end(updatedClassDef.prettyprint());
+        }
 
-        args.output.end(updatedClassDef.prettyprint());
         StreamUtils.waitFinish(args.output);
     }
 };
