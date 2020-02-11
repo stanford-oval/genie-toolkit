@@ -21,7 +21,6 @@ const { DialogueGenerator } = require('../lib/sentence-generator');
 const { DialogueSerializer } = require('./lib/dialog_parser');
 const StreamUtils = require('../lib/stream-utils');
 const { ActionSetFlag } = require('./lib/argutils');
-const ProgressBar = require('./lib/progress_bar');
 
 const DIALOG_SERIALIZERS = {
     json() {
@@ -191,17 +190,6 @@ module.exports = {
             .pipe(counter)
             .pipe(DIALOG_SERIALIZERS[args.output_format.replace('-', '_')]())
             .pipe(args.output);
-
-        if (!args.debug) {
-            const progbar = new ProgressBar(1);
-            counter.on('progress', (value) => {
-                //console.log(value);
-                progbar.update(value);
-            });
-
-            // issue an update now to show the progress bar
-            progbar.update(0);
-        }
 
         await StreamUtils.waitFinish(args.output);
     }
