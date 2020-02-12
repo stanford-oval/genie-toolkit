@@ -307,9 +307,8 @@ generic_negative_proposal_reply = {
 }
 
 system_generic_proposal = {
-    ( ctx:ctx_search_command 'are you looking for a' proposal:answer_noun_phrase '?'
-    | ctx:ctx_search_command 'how about' ('a' | 'the') proposal:answer_noun_phrase '?'
-    ) => D.makeRefinementProposal(ctx, proposal);
+    ctx:ctx_search_command ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase '?'
+        => D.makeRefinementProposal(ctx, proposal);
 }
 
 accept_phrase = {

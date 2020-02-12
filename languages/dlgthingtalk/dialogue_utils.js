@@ -425,9 +425,8 @@ function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
 function queryRefinement(ctxTable, newFilter, refineFilter) {
     let ctxFilterTable;
     [ctxTable, ctxFilterTable] = findOrMakeFilterTable(ctxTable);
-    assert(ctxFilterTable);
-    if (ctxFilterTable === null)
-        return null;
+    //if (ctxFilterTable === null)
+    //    return null;
 
     const refinedFilter = refineFilter(ctxFilterTable.filter, newFilter);
     if (refinedFilter === null)
