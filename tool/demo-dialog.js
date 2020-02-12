@@ -38,7 +38,7 @@ class DialogAgent extends events.EventEmitter {
         this._schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
         this._parser = ParserClient.get(options.server, 'en-US');
         this._langPack = I18n.get(options.locale);
-        this._rng = seedrandom.alea(options.random_seed),
+        this._rng = seedrandom.alea(options.random_seed);
 
         this._state = 'loading';
         this._serial = 0;
