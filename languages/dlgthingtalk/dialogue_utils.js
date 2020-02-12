@@ -456,7 +456,17 @@ function overrideCurrentQuery(ctxClone, newTable) {
     return state;
 }
 
-function preciseSearchQuestionAnswer(ctx, [question, answer]) {
+function preciseSearchQuestionAnswer(ctx, [preamble, question, answer]) {
+    if (preamble !== null) {
+        const [base, num, more] = preamble;
+        if (base !== ctx.currentFunction)
+            return null;
+        if (num !== null && !num.equals(ctx.current.count))
+            return null;
+        if (more !== ctx.current.more)
+            return null;
+    }
+
     const answerFunctions = C.getFunctionNames(answer);
     assert(answerFunctions.length === 1);
     if (answerFunctions[0] !== ctx.currentFunction)
@@ -480,7 +490,17 @@ function preciseSearchQuestionAnswer(ctx, [question, answer]) {
     return checkStateIsValid(ctx, sysState, userState);
 }
 
-function impreciseSearchQuestionAnswer(ctx, [question, answer]) {
+function impreciseSearchQuestionAnswer(ctx, [preamble, question, answer]) {
+    if (preamble !== null) {
+        const [base, num, more] = preamble;
+        if (base !== ctx.currentFunction)
+            return null;
+        if (num !== null && !num.equals(ctx.current.count))
+            return null;
+        if (more !== ctx.current.more)
+            return null;
+    }
+
     const currentTable = ctx.current.stmt.table;
     if (question !== '' && !currentTable.schema.out[question])
         return null;
@@ -540,6 +560,26 @@ function proposalReplyPair(ctx, [proposal, request]) {
     return checkStateIsValid(ctx, sysState, userState);
 }
 
+function impreciseSearchQuestionAnswerPair(preamble, question, answer) {
+    if (answer instanceof Ast.BooleanExpression) {
+        let pname;
+        if (answer.isNot) {
+            assert(answer.expr.isAtom);
+            pname = answer.expr.name;
+        } else {
+            assert(answer.isAtom);
+            pname = answer.name;
+        }
+        if (pname !== question)
+            return null;
+
+        return [preamble, question, answer];
+    } else {
+        assert(answer instanceof Ast.Value);
+        return [preamble, question, C.makeFilter(question, '==', answer)];
+    }
+}
+
 module.exports = {
     // consistency checks
     POLICY_NAME,
@@ -568,6 +608,7 @@ module.exports = {
 
     // templates
     preciseSearchQuestionAnswer,
+    impreciseSearchQuestionAnswerPair,
     impreciseSearchQuestionAnswer,
     proposalReplyPair
 };

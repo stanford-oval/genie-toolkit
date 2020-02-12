@@ -105,17 +105,23 @@ context function (state) {
     }
 }
 
-question_preamble = {
+search_result_preamble = {
     ( 'there are' ('many' | 'several') base:base_noun_phrase '.'
     | ('i can see' | 'i have found') ('many' | 'several') base:base_noun_phrase '.'
-    | 'there are' ('many' | 'several') base:base_noun_phrase ' matching your request .'
-    | ('i can see' | 'i have found') ('many' | 'several') base:base_noun_phrase ' matching your constraints .'
-    | ('i can see' | 'i have found') ('many' | 'several') base:base_noun_phrase ' with those characteristics .'
+    | 'there are' ('many' | 'several') base:base_noun_phrase 'matching your request .'
+    | ('i can see' | 'i have found') ('many' | 'several') base:base_noun_phrase 'matching your constraints .'
+    | ('i can see' | 'i have found') ('many' | 'several') base:base_noun_phrase 'with those characteristics .'
     | 'i can recommend' ('many' | 'several') base:base_noun_phrase '.'
     ) => [base, null, false];
 
+    ( 'i have found' num:constant_Number base:base_noun_phrase '.'
+    | 'i have' num:constant_Number base:base_noun_phrase 'in my database .'
+    | 'i can see' num:constant_Number base:base_noun_phrase 'in my database .'
+    | 'i can see' num:constant_Number base:base_noun_phrase 'like that .'
+    ) => [base, num, false];
+
     ( 'there are more than' num:constant_Number base:base_noun_phrase '.'
-    | 'there are more than' num:constant_Number base:base_noun_phrase ' that correspond to your specifications .'
+    | 'there are more than' num:constant_Number base:base_noun_phrase 'that correspond to your specifications .'
     ) => [base, num, true];
 }
 
@@ -125,7 +131,11 @@ direct_question = {
     | 'what' p:out_param_Any 'would you like ?'
     | 'what' p:out_param_Any 'are you interested in ?'
     | 'what' p:out_param_Any 'are you looking for ?'
-    ) => p.name;
+    ) => {
+        if (p.name === 'id')
+            return null;
+        return p.name;
+    };
 }
 
 yesno_direct_question = {
@@ -134,7 +144,11 @@ yesno_direct_question = {
     | 'do you have a preference of' p:out_param_Any '?'
     | 'do you have a preferred' p:out_param_Any '?'
     | 'are you looking for a specific' p:out_param_Any '?'
-    ) => p.name;
+    ) => {
+        if (p.name === 'id')
+            return null;
+        return p.name;
+    };
 }
 
 generic_answer = {
@@ -186,7 +200,18 @@ precise_search_question_answer_pair = {
     ) => {
         if (!D.isQueryAnswerValidForQuestion(table, question))
             return null;
-        return [question, table];
+        return [null, question, table];
+    };
+
+    ( preamble:search_result_preamble question:direct_question '<sep>' table:generic_answer
+    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:generic_answer
+    | preamble:search_result_preamble question:direct_question '<sep>' table:verbose_answer
+    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer
+    | preamble:search_result_preamble question:generic_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer
+    ) => {
+        if (!D.isQueryAnswerValidForQuestion(table, question))
+            return null;
+        return [preamble, question, table];
     };
 }
 
@@ -194,43 +219,15 @@ imprecise_search_question_answer_pair = {
     ( question:direct_question '<sep>' answer:imprecise_answer
     | question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer
     ) => {
-        if (answer instanceof Ast.BooleanExpression) {
-            let pname;
-            if (answer.isNot) {
-                assert(answer.expr.isAtom);
-                pname = answer.expr.name;
-            } else {
-                assert(answer.isAtom);
-                pname = answer.name;
-            }
-            if (pname !== question)
-                return null;
-
-            return [question, answer];
-        } else {
-            assert(answer instanceof Ast.Value);
-            return [question, C.makeFilter(question, '==', answer)];
-        }
+        return D.impreciseSearchQuestionAnswerPair(null, question, answer);
     };
-}
 
-/*
-large_result_question_answer_pair = {
-    param:direct_question
-    | table:question_preamble param:yesno_direct_question
+    ( preamble:search_result_preamble question:direct_question '<sep>' answer:imprecise_answer
+    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer
     ) => {
-        if (!table.schema.out[param])
-            return null;
-        return [dom, q];
+        return D.impreciseSearchQuestionAnswerPair(preamble, question, answer);
     };
-    dom:question_preamble  => {
-        return [dom, null];
-    };
-
-
-    (
 }
-*/
 
 greeting = {
     'hello !';
