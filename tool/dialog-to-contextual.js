@@ -58,30 +58,40 @@ class DialogueToTurnStream extends Stream.Transform {
     async _doTransform(dlg) {
         for (let i = 0; i < dlg.length; i++) {
             const turn = dlg[i];
-            let context, contextCode, contextEntities;
-            if (i > 0) {
-                context = await this._target.parse(turn.context, this._options);
-                [contextCode, contextEntities] = this._target.serializeNormalized(context);
-            } else {
-                context = null;
-                contextCode = ['null'];
-                contextEntities = {};
-            }
 
             if (this._side === 'agent') {
                 if (i === 0)
                     continue;
-                const { tokens, entities } = await this._preprocess(turn.agent, contextEntities);
+
+                const context = await this._target.parse(turn.context, this._options);
+                const [contextCode, contextEntities] = this._target.serializeNormalized(context);
+
                 const agentTarget = await this._target.parse(turn.agent_target, this._options);
-                const code = await this._target.computeAgentPrediction(context, agentTarget, tokens, entities);
+                // NOTE: contextEntities is modified in place with any new entity that are only in the prediction
+                // (the prediction will be concatenated to the context to pass to the neural network)
+                const agentCode = await this._target.computeAgentPrediction(context, agentTarget, contextEntities);
+
+                const { tokens, } = await this._preprocess(turn.agent, contextEntities);
 
                 this.push({
                     id: this._flags + '' + dlg.id + '/' + i,
                     context: contextCode.join(' '),
                     preprocessed: tokens.join(' '),
-                    target_code: code.join(' ')
+                    target_code: agentCode.join(' ')
                 });
             } else {
+                let context, contextCode, contextEntities;
+                if (i > 0) {
+                    // NOTE: the agent target is context for the user utterance, not the context
+                    // (which is the output of executing the previous program, before the agent speaks)
+                    context = await this._target.parse(turn.agent_target, this._options);
+                    [contextCode, contextEntities] = this._target.serializeNormalized(context);
+                } else {
+                    context = null;
+                    contextCode = ['null'];
+                    contextEntities = {};
+                }
+
                 const { tokens, entities } = await this._preprocess(turn.user, contextEntities);
                 const userTarget = await this._target.parse(turn.user_target, this._options);
                 const code = await this._target.computeUserPrediction(context, userTarget, tokens, entities);
