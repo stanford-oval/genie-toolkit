@@ -203,11 +203,11 @@ precise_search_question_answer_pair = {
         return [null, question, table];
     };
 
-    ( preamble:search_result_preamble question:direct_question '<sep>' table:generic_answer
-    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:generic_answer
-    | preamble:search_result_preamble question:direct_question '<sep>' table:verbose_answer
-    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer
-    | preamble:search_result_preamble question:generic_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer
+    ( preamble:search_result_preamble question:direct_question '<sep>' table:generic_answer [weight=10]
+    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:generic_answer [weight=10]
+    | preamble:search_result_preamble question:direct_question '<sep>' table:verbose_answer [weight=10]
+    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer [weight=10]
+    | preamble:search_result_preamble question:generic_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer [weight=10]
     ) => {
         if (!D.isQueryAnswerValidForQuestion(table, question))
             return null;
@@ -222,8 +222,8 @@ imprecise_search_question_answer_pair = {
         return D.impreciseSearchQuestionAnswerPair(null, question, answer);
     };
 
-    ( preamble:search_result_preamble question:direct_question '<sep>' answer:imprecise_answer
-    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer
+    ( preamble:search_result_preamble question:direct_question '<sep>' answer:imprecise_answer [weight=10]
+    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer [weight=10]
     ) => {
         return D.impreciseSearchQuestionAnswerPair(preamble, question, answer);
     };
@@ -352,7 +352,7 @@ proposal_reply_pair = {
 }
 
 $root = {
-    ctx:ctx_init greeting =>
+    ctx:ctx_init greeting [weight=0.01] =>
         D.checkStateIsValid(ctx, null, new Ast.DialogueState(null, D.POLICY_NAME, 'greet', null, []));
 
     ctx:ctx_init stmt:initial_command => {
@@ -364,8 +364,8 @@ $root = {
 
     ( ctx:ctx_greet greeting_reply '<sep>' stmt:action_command
     | ctx:ctx_greet greeting_reply '<sep>' stmt:search_command
-    | ctx:ctx_greet greeting_reply '<sep>' stmt:complete_question
-    | ctx:ctx_greet greeting_reply '<sep>' stmt:projection_question
+    | ctx:ctx_greet greeting_reply '<sep>' stmt:complete_question [weight=0.1]
+    | ctx:ctx_greet greeting_reply '<sep>' stmt:projection_question [weight=0.01]
     ) => {
         const userState = D.initialRequest(stmt);
         if (userState === null)
@@ -374,10 +374,10 @@ $root = {
         return D.checkStateIsValid(ctx, sysState, userState);
     };
 
-    ctx:ctx_search_command qa:precise_search_question_answer_pair =>
+    ctx:ctx_search_command qa:precise_search_question_answer_pair [weight=0.1] =>
         D.preciseSearchQuestionAnswer(ctx, qa);
 
-    ctx:ctx_search_command qa:imprecise_search_question_answer_pair =>
+    ctx:ctx_search_command qa:imprecise_search_question_answer_pair [weight=0.1] =>
         D.impreciseSearchQuestionAnswer(ctx, qa);
 
     ctx:ctx_search_command pair:proposal_reply_pair =>
