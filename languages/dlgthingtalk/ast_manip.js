@@ -1469,9 +1469,15 @@ function makeArgMinMaxTable(table, pname, direction = 'desc') {
     return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], sort.schema);
 }
 
+function isSameFunction(fndef1, fndef2) {
+    return fndef1.class.name === fndef2.class.name &&
+        fndef1.name === fndef2.name;
+}
+
 module.exports = {
     typeToStringSafe,
     getFunctionNames,
+    isSameFunction,
 
     notifyAction,
     builtinSayAction,

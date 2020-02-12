@@ -15,6 +15,9 @@
 
     const C = require('../ast_manip');
     const D = require('../dialogue_utils');
+
+    // import thingpedia info
+    const _tpLoader = require('../load-thingpedia');
 }
 
 import '../common';
@@ -30,7 +33,9 @@ import './commands';
 
 context ctx_init,
     ctx_greet,
+    ctx_with_result,
     ctx_search_command,
+    ctx_empty_search_command,
     ctx_large_search_command,
     ctx_complete_search_command,
     ctx_info_request_command,
@@ -56,18 +61,25 @@ context function (state) {
     case 'execute':
         if (info.resultInfo !== null) {
             if (info.resultInfo.isTable) {
-                if (info.resultInfo.hasSingleResult) {
+                if (info.resultInfo.hasEmptyResult) {
                     return [[
+                        'ctx_empty_search_command',
+                    ], info];
+                } else if (info.resultInfo.hasSingleResult) {
+                    return [[
+                        'ctx_with_result',
                         'ctx_complete_search_command',
                         'ctx_info_request_command',
                     ], info];
                 } else if (info.resultInfo.hasLargeResult) {
                     return [[
+                        'ctx_with_result',
                         'ctx_search_command',
                         'ctx_large_search_command'
                     ], info];
                 } else {
                     return [[
+                        'ctx_with_result',
                         'ctx_search_command',
                         'ctx_complete_search_command'
                     ], info];
@@ -251,6 +263,98 @@ initial_command = {
     };
 }
 
+info_noun_phrase = {
+    // one, two or three slots
+    one_with_filter_table;
+    one_which_filter_table;
+    one_clean_filter_table;
+
+    two_with_filter_table;
+    two_which_filter_table;
+    two_clean_filter_table;
+
+    three_with_filter_table;
+    three_which_filter_table;
+    three_clean_filter_table;
+}
+
+system_direct_proposal = {
+    ( ctx:ctx_with_result 'how about the' proposal:constant_name '?'
+    | ctx:ctx_with_result 'i' ('recommend' | 'suggest') 'the' proposal:constant_name '.'
+    | ctx:ctx_with_result 'i' ('have' | 'see') 'the' proposal:constant_name '.'
+    ) => D.makeRecommendation(ctx, proposal, null);
+
+    ( ctx:ctx_with_result 'how about the' proposal:constant_name '? it is a' info:info_noun_phrase '.'
+    | ctx:ctx_with_result 'i' ('recommend' | 'suggest') 'the' proposal:constant_name '. it is a' info:info_noun_phrase '.'
+    | ctx:ctx_with_result 'i' ('have' | 'see') 'the' proposal:constant_name '. it is a' info:info_noun_phrase '.'
+    ) => D.makeRecommendation(ctx, proposal, info);
+}
+
+negative_proposal_answer_preamble = {
+    'no i need';
+    'i was thinking more of';
+    'i would like';
+    'no , i would like';
+    'i am looking for';
+    'do you have';
+    'can you find';
+    'is there';
+}
+
+generic_negative_proposal_reply = {
+    'i do not like that';
+    'i do not like that , do you have any other option ?';
+}
+
+system_generic_proposal = {
+    ( ctx:ctx_search_command 'are you looking for a' proposal:answer_noun_phrase '?'
+    | ctx:ctx_search_command 'how about' ('a' | 'the') proposal:answer_noun_phrase '?'
+    ) => D.makeRefinementProposal(ctx, proposal);
+}
+
+accept_phrase = {
+    'i like that';
+    'yes i like that';
+    'sounds good';
+}
+
+proposal_reply_pair = {
+    ( prop:system_direct_proposal '<sep>' negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
+    | prop:system_direct_proposal '<sep>' negative_proposal_answer_preamble request:anything_phrase
+    | prop:system_generic_proposal '<sep>' negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
+    | prop:system_generic_proposal '<sep>' negative_proposal_answer_preamble request:anything_phrase
+    ) => {
+        if (!C.isSameFunction(prop.schema, request.schema))
+            return null;
+        const refined = D.refineFilterToChangeFilter(prop.filter, request.filter);
+        if (refined === null)
+            return null;
+        return [prop, request];
+    };
+
+    /*
+    ( prop:system_direct_proposal '<sep>' ('no ,' | '') request:generic_answer
+    | prop:system_direct_proposal '<sep>' ('no ,' | '') request:generic_domain_answer
+    | prop:system_generic_proposal '<sep>' ('no ,' | '') request:generic_answer
+    | prop:system_generic_proposal '<sep>' ('no ,' | '') request:generic_domain_answer
+    ) => {
+        if (prop.domain !== null && req.domain !== null && prop.domain !== req.domain)
+            return null;
+        return [prop, req];
+    };
+    */
+
+    /*
+    prop:system_direct_proposal '<sep>' generic_negative_proposal_reply => {
+        return [prop, new Ast.DialogState];
+    };
+    */
+
+    prop:system_direct_proposal '<sep>' accept_phrase => {
+        return [prop, prop];
+    };
+}
+
 $root = {
     ctx:ctx_init greeting =>
         D.checkStateIsValid(ctx, null, new Ast.DialogueState(null, D.POLICY_NAME, 'greet', null, []));
@@ -262,7 +366,7 @@ $root = {
         return D.checkStateIsValid(ctx, null, userState);
     };
 
-    ( ctx:ctx_greet greeting_reply '<sep>' stmt:action_command
+    /*( ctx:ctx_greet greeting_reply '<sep>' stmt:action_command
     | ctx:ctx_greet greeting_reply '<sep>' stmt:search_command
     | ctx:ctx_greet greeting_reply '<sep>' stmt:complete_question
     | ctx:ctx_greet greeting_reply '<sep>' stmt:projection_question
@@ -273,47 +377,16 @@ $root = {
         const sysState = D.makeSimpleSystemState(ctx, 'sys_greet', null);
         return D.checkStateIsValid(ctx, sysState, userState);
     };
+    */
 
-    ctx:ctx_search_command qa:precise_search_question_answer_pair => {
-        const [question, answer] = qa;
-        const answerFunctions = C.getFunctionNames(answer);
-        assert(answerFunctions.length === 1);
-        if (answerFunctions[0] !== ctx.currentFunction)
-            return null;
-        const currentTable = ctx.current.stmt.table;
-        if (question !== '' && !currentTable.schema.out[question])
-            return null;
-        assert(answer.isFilter && answer.table.isInvocation);
+    /*
+    ctx:ctx_search_command qa:precise_search_question_answer_pair =>
+        D.preciseSearchQuestionAnswer(ctx, qa);
 
-        const clone = ctx.clone();
-        const cloneTable = clone.current.stmt.table;
-        const newTable = D.queryRefinement(cloneTable, answer.filter, D.refineFilterToAnswerQuestion);
-        if (newTable === null)
-            return null;
-        const userState = D.overrideCurrentQuery(clone, newTable);
-        let sysState
-        if (question === '')
-            sysState = D.makeSimpleSystemState(ctx, 'sys_generic_search_question', null);
-        else
-            sysState = D.makeSimpleSystemState(ctx, 'sys_search_question', question);
-        return D.checkStateIsValid(ctx, sysState, userState);
-    };
+    ctx:ctx_search_command qa:imprecise_search_question_answer_pair =>
+        D.impreciseSearchQuestionAnswer(ctx, qa);
+    */
 
-    ctx:ctx_search_command qa:imprecise_search_question_answer_pair => {
-        const [question, answer] = qa;
-        const currentTable = ctx.current.stmt.table;
-        if (question !== '' && !currentTable.schema.out[question])
-            return null;
-        if (!C.checkFilter(ctx.current.table, question))
-            return null;
-
-        const clone = ctx.clone();
-        const cloneTable = clone.current.stmt.table;
-        const newTable = D.queryRefinement(cloneTable, answer, D.refineFilterToAnswerQuestion);
-        if (newTable === null)
-            return null;
-        const userState = D.overrideCurrentQuery(clone, newTable);
-        const sysState = D.makeSimpleSystemState(ctx, 'sys_search_question', question);
-        return D.checkStateIsValid(ctx, sysState, userState);
-    };
+    ctx:ctx_search_command pair:proposal_reply_pair =>
+        D.proposalReplyPair(ctx, pair);
 }

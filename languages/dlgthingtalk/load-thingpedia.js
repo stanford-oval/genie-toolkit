@@ -374,36 +374,7 @@ class ThingpediaLoader {
         return rules;
     }
 
-    _addIdFilters(examples, idType, table) {
-        const schemaClone = table.schema.clone();
-        schemaClone.is_list = false;
-        schemaClone.no_filter = true;
-        const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', new Ast.Value.VarRef('p_id'));
-        examples.push(new Ast.Example(
-            null,
-            -1,
-            'query',
-            { p_id: idType },
-            new Ast.Table.Filter(null, table, idfilter, schemaClone),
-            [`\${p_id}`],
-            [`\${p_id}`],
-            {}
-        ));
-        const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '=~', new Ast.Value.VarRef('p_name'));
-        examples.push(new Ast.Example(
-            null,
-            -1,
-            'query',
-            { p_name: Type.String },
-            new Ast.Table.Filter(null, table, namefilter, table.schema),
-            [`\${p_name}`],
-            [`\${p_name}`],
-            {}
-        ));
-    }
-
-    _makeExampleFromQuery(q) {
-        const examples = [];
+    async _makeExampleFromQuery(q) {
         const device = new Ast.Selector.Device(null, q.class.name, null, null);
         const invocation = new Ast.Invocation(null, device, q.name, [], q);
 
@@ -416,8 +387,13 @@ class ThingpediaLoader {
             if (pluralized !== form)
                 canonical.push(pluralized);
         }
+
+        const functionName = q.class.name + ':' + q.name;
+        for (let form of canonical)
+            this._grammar.addRule('base_noun_phrase', [form], this._runtime.simpleCombine(() => functionName));
+
         const table = new Ast.Table.Invocation(null, invocation, q);
-        examples.push(new Ast.Example(
+        await this._loadTemplate(new Ast.Example(
             null,
             -1,
             'query',
@@ -428,15 +404,50 @@ class ThingpediaLoader {
             {}
         ));
 
-        if (q.hasArgument('id')) {
-            const id = q.getArgument('id');
-            if (id.type.isEntity) {
-                const entity = this._entities[id.type.type];
-                if (entity && entity.has_ner_support)
-                    this._addIdFilters(examples, id.type, table);
-            }
+        if (!q.hasArgument('id'))
+            return;
+        const id = q.getArgument('id');
+        if (!id.type.isEntity)
+            return;
+
+        const idType = id.type;
+        const entity = this._entities[idType.type];
+        if (!entity || !entity.has_ner_support)
+            return;
+
+        const schemaClone = table.schema.clone();
+        schemaClone.is_list = false;
+        schemaClone.no_filter = true;
+        for (let i = 0; i < 10; i ++) {
+            this._grammar.addRule('constant_name', ['GENERIC_ENTITY_' + idType.type + '_' + i], this._runtime.simpleCombine(() => {
+                const value = new Ast.Value.Entity('str:ENTITY_' + idType.type + '::' + i, idType.type, null);
+                const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', value);
+                return [value, new Ast.Table.Filter(null, table, idfilter, schemaClone)];
+            }));
         }
-        return examples;
+
+        const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', new Ast.Value.VarRef('p_id'));
+        await this._loadTemplate(new Ast.Example(
+            null,
+            -1,
+            'query',
+            { p_id: id.type },
+            new Ast.Table.Filter(null, table, idfilter, schemaClone),
+            [`\${p_id}`],
+            [`\${p_id}`],
+            {}
+        ));
+        const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '=~', new Ast.Value.VarRef('p_name'));
+        await this._loadTemplate(new Ast.Example(
+            null,
+            -1,
+            'query',
+            { p_name: Type.String },
+            new Ast.Table.Filter(null, table, namefilter, table.schema),
+            [`\${p_name}`],
+            [`\${p_name}`],
+            {}
+        ));
     }
 
     async _loadDevice(device) {
@@ -447,10 +458,7 @@ class ThingpediaLoader {
         await Promise.all(Object.values(classDef.queries).map(async (q) => {
             if (this.whiteList && !this.whiteList.includes(q.name.toLowerCase()))
                 return;
-
-            const examples = this._makeExampleFromQuery(q);
-            for (let ex of examples)
-                await this._loadTemplate(ex);
+            await this._makeExampleFromQuery(q);
         }));
     }
 
@@ -482,22 +490,22 @@ class ThingpediaLoader {
     }
 
     async _loadIdType(idType) {
-        let type = typeToStringSafe(Type.Entity(idType.type));
-        if (this._idTypes.has(type))
+        let typestr = typeToStringSafe(Type.Entity(idType.type));
+        if (this._idTypes.has(typestr))
             return;
 
         if (await this._isIdEntity(idType.type)) {
             if (this._options.debug)
-                console.log('Loaded type ' + type + ' as id type');
-            this._idTypes.add(type);
+                console.log('Loaded type ' + idType + ' as id type');
+            this._idTypes.add(typestr);
         } else {
             if (idType.has_ner_support) {
                 if (this._options.debug)
-                    console.log('Loaded type ' + type + ' as generic entity');
+                    console.log('Loaded type ' + idType + ' as generic entity');
             } else {
                 if (this._options.debug)
-                    console.log('Loaded type ' + type + ' as non-constant type');
-                this._nonConstantTypes.add(type);
+                    console.log('Loaded type ' + idType + ' as non-constant type');
+                this._nonConstantTypes.add(typestr);
             }
         }
     }

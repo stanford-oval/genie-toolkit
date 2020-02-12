@@ -22,14 +22,6 @@ const C = require('../ast_manip');
 const _tpLoader = require('../load-thingpedia');
 }
 
-base_noun_phrase = {
-    query:thingpedia_query if complete => {
-        if (!query.isInvocation)
-            return null;
-        return query.invocation.selector.kind + ':' + query.invocation.channel;
-    };
-}
-
 complete_table = {
     thingpedia_query if complete;
     !primonly table_join_replace_placeholder if complete;
@@ -124,6 +116,35 @@ two_clean_filter_table = {
     !nofilter table:one_clean_filter_table filter:preposition_filter => C.addFilter(table, filter);
 }
 
+three_with_filter_table = {
+    table:two_with_filter_table 'and' filter:npp_filter => C.addFilter(table, filter);
+    table:two_which_filter_table ('and having' | 'and with' | ', with') filter:npp_filter => C.addFilter(table, filter);
+    table:two_clean_filter_table ('with' | 'having') filter:npp_filter => C.addFilter(table, filter);
+
+    filter:apv_filter table:two_with_filter_table => C.addFilter(table, filter);
+}
+
+three_which_filter_table = {
+    table:two_with_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
+    table:two_with_filter_table ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
+    table:two_with_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
+
+    table:two_which_filter_table 'and' ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
+    table:two_which_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
+    table:two_which_filter_table 'and' ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
+
+    table:two_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
+    table:two_clean_filter_table ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
+    table:two_clean_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
+
+    filter:apv_filter table:two_which_filter_table => C.addFilter(table, filter);
+}
+
+three_clean_filter_table = {
+    filter:apv_filter table:two_clean_filter_table => C.addFilter(table, filter);
+    table:two_clean_filter_table filter:pvp_filter => C.addFilter(table, filter);
+    table:two_clean_filter_table filter:preposition_filter => C.addFilter(table, filter);
+}
 
 // verb filter:
 // (1) be filter: reviews are written by bob
@@ -363,4 +384,8 @@ have_filtered_table_join = {
     table:verb_filtered_table ('and' | 'and have' | 'and also' | 'and in addition' | 'but also') get_predicate_table:with_filtered_table
         => C.addGetPredicateJoin(table, get_predicate_table, null);
     }
+}
+
+anything_phrase = {
+    // TODO
 }
