@@ -1010,7 +1010,7 @@ module.exports = {
         parser.addArgument('--manual', {
             nargs: 0,
             action: 'storeTrue',
-            help: 'Enable debugging.',
+            help: 'Enable manual annotations.',
             defaultValue: false
         });
         parser.addArgument('--class-name', {
