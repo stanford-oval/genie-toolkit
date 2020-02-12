@@ -45,7 +45,7 @@ def predict(examples):
                     canonical = ' '.join(query[span[0] : span[-1]+1])
                     if len(example['masks']) > 1:
                         span = example['masks'][1]
-                        canonical += ' # ' + ' '.join(query[span[0] : span[-1]+1])
+                        canonical += ' #' + ' '.join(query[span[0] : span[-1]+1])
                     for alternative in alternatives:
                         example['canonicals'].append(canonical.replace('[MASK]', alternative))
         
