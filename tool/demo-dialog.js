@@ -39,6 +39,7 @@ class DialogAgent extends events.EventEmitter {
         this._parser = ParserClient.get(options.server, 'en-US');
         this._langPack = I18n.get(options.locale);
         this._rng = seedrandom.alea(options.random_seed);
+        this._debug = options.debug;
 
         this._state = 'loading';
         this._serial = 0;
@@ -48,11 +49,16 @@ class DialogAgent extends events.EventEmitter {
         this._targetOptions = {
             thingpediaClient: tpClient,
             schemaRetriever: this._schemas,
-            debug: true
+            debug: this._debug
         };
         this._simulator = this._target.createSimulator({
-            rng: this._rng
+            rng: this._rng,
+            locale: options.locale,
+            thingpediaClient: tpClient,
+            schemaRetriever: this._schemas,
+            debug: this._debug
         });
+        this._simulatorState = undefined;
 
         this._dialogState = undefined;
         this._context = undefined;
@@ -123,6 +129,7 @@ class DialogAgent extends events.EventEmitter {
         console.log(`Dialog #${this._serial+1}`);
         this._serial++;
 
+        this._simulatorState = undefined;
         this._context = null;
         this._contextCode = ['null'];
         this._contextEntities = {};
@@ -134,6 +141,13 @@ class DialogAgent extends events.EventEmitter {
         this._utterance = undefined;
         this._rl.setPrompt('U: ');
         this._rl.prompt();
+    }
+
+    _hackNetworkPredictions(candidates) {
+        for (let cand of candidates) {
+            if (cand.answer.startsWith('$dialogue @org.thingpedia.dialogue.transaction.sys_search_question '))
+                cand.answer = cand.answer.substring(0, cand.answer.indexOf(';') + 1);
+        }
     }
 
     async _getProgramPrediction(candidates, entities, prefix) {
@@ -148,8 +162,37 @@ class DialogAgent extends events.EventEmitter {
             return [null, null];
 
         const prediction = candidates[0];
-        console.log(prefix + prediction[0].prettyprint());
+        if (this._debug)
+            this._print(prediction[0].prettyprint(), prefix);
         return [this._target.computeNewState(this._context, prediction[0]), prediction[1]];
+    }
+
+    _print(code, prefix) {
+        for (const line of code.trim().split('\n'))
+            console.log(prefix + line);
+    }
+
+    _setContext(context) {
+        this._context = context;
+        [this._contextCode, this._contextEntities] = this._target.serializeNormalized(context);
+    }
+
+    _detokenizeAnswer(answer, entities) {
+        // simple true-casing
+        answer = answer.replace(/(^| [.?!] )([a-z])/g, (prefix, letter) => prefix + letter.toUpperCase());
+        answer = answer.replace(' i ', ' I ');
+
+        answer = answer.split(' ').map((token) => {
+            if (token in entities) {
+                if (token.startsWith('GENERIC_ENTITY_'))
+                    return (entities[token].display || entities[token].value);
+                return String(entities[token]);
+            }
+            return token;
+        });
+        answer = detokenizeSentence(this._langPack, answer);
+
+        return answer;
     }
 
     async _handleInput() {
@@ -163,13 +206,12 @@ class DialogAgent extends events.EventEmitter {
             return;
         }
 
-        const executed = await this._simulator.execute(userState);
-        this._context = executed;
-
-        console.log('C: ' + this._context.prettyprint());
-        [this._contextCode, this._contextEntities] = this._target.serializeNormalized(this._context);
+        const [executed, simulatorState] = await this._simulator.execute(userState, this._simulatorState);
+        this._simulatorState = simulatorState;
+        this._setContext(executed);
 
         const decisions = await this._parser.queryPolicy(this._contextCode, this._contextEntities);
+        this._hackNetworkPredictions(decisions);
         const [agentState, agentCode] = await this._getProgramPrediction(decisions, this._contextEntities, 'AT: ');
         if (agentState === null) {
             console.log(`A: Sorry, I don't know what to do next.`); //'
@@ -183,8 +225,10 @@ class DialogAgent extends events.EventEmitter {
             this.nextDialog();
             return;
         }
-        // FIXME we should true-case as well
-        console.log(`A: ` + detokenizeSentence(this._langPack, utterances[0].answer.split(' ')));
+        console.log(`A: ` + this._detokenizeAnswer(utterances[0].answer, this._contextEntities));
+
+        this._print(agentState.prettyprint(), 'C: ');
+        this._setContext(agentState);
         this.nextTurn();
     }
 }
@@ -211,6 +255,18 @@ module.exports = {
         parser.addArgument('--random-seed', {
             defaultValue: 'almond is awesome',
             help: 'Random seed'
+        });
+        parser.addArgument('--debug', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Enable debugging.',
+            defaultValue: true
+        });
+        parser.addArgument('--no-debug', {
+            nargs: 0,
+            action: 'storeFalse',
+            dest: 'debug',
+            help: 'Disable debugging.',
         });
     },
 
