@@ -77,6 +77,7 @@ class CanonicalGenerator {
     _updateCanonicals(candidates) {
         for (let qname of this.queries) {
             for (let arg in candidates[qname]) {
+                let count = {};
                 for (let item of candidates[qname][arg]) {
                     let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
 
@@ -89,8 +90,15 @@ class CanonicalGenerator {
                         if ((canonical.match(/#/g) || []).length > 1)
                             continue;
 
-                        if (!canonicals[item.type].includes(canonical))
-                            canonicals[item.type].push(canonical);
+                        if (canonical in count)
+                            count[canonical] += 1;
+                        else
+                            count[canonical] = 1;
+
+                        if (count[canonical] > candidates[qname][arg].length / 3) {
+                            if (!canonicals[item.type].includes(canonical))
+                                canonicals[item.type].push(canonical);
+                        }
                     }
                 }
             }
