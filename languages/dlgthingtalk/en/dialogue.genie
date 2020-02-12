@@ -365,7 +365,7 @@ $root = {
         return D.checkStateIsValid(ctx, null, userState);
     };
 
-    /*( ctx:ctx_greet greeting_reply '<sep>' stmt:action_command
+    ( ctx:ctx_greet greeting_reply '<sep>' stmt:action_command
     | ctx:ctx_greet greeting_reply '<sep>' stmt:search_command
     | ctx:ctx_greet greeting_reply '<sep>' stmt:complete_question
     | ctx:ctx_greet greeting_reply '<sep>' stmt:projection_question
@@ -376,15 +376,12 @@ $root = {
         const sysState = D.makeSimpleSystemState(ctx, 'sys_greet', null);
         return D.checkStateIsValid(ctx, sysState, userState);
     };
-    */
 
-    /*
     ctx:ctx_search_command qa:precise_search_question_answer_pair =>
         D.preciseSearchQuestionAnswer(ctx, qa);
 
     ctx:ctx_search_command qa:imprecise_search_question_answer_pair =>
         D.impreciseSearchQuestionAnswer(ctx, qa);
-    */
 
     ctx:ctx_search_command pair:proposal_reply_pair =>
         D.proposalReplyPair(ctx, pair);
