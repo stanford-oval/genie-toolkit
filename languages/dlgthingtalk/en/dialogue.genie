@@ -242,25 +242,6 @@ greeting_reply = {
     'what can i do for you ?';
 }
 
-initial_command = {
-    ( stmt:action_command
-    | stmt:search_command
-    | stmt:complete_question
-    | stmt:projection_question
-    | greeting stmt:action_command
-    | greeting stmt:complete_question
-    | greeting stmt:projection_question
-    ) => stmt;
-
-    ( prog:initial_program
-    | greeting prog:initial_program
-    ) => {
-        if (prog.rules.length !== 1)
-            return null;
-        return prog.rules[0];
-    };
-}
-
 info_noun_phrase = {
     // one, two or three slots
     one_with_filter_table;
@@ -289,7 +270,7 @@ system_direct_proposal = {
         return nametable;
     };
 
-    proposal:system_direct_proposal_short 'it is a' info:info_noun_phrase '.'
+    proposal:system_direct_proposal_short 'it is a' info:info_noun_phrase '.' [weight=10]
         => D.checkRecommendation(proposal, info);
 }
 
@@ -320,7 +301,7 @@ accept_phrase = {
     'sounds good';
 }
 
-proposal_reply_pair = {
+negative_proposal_reply_pair = {
     ( prop:system_direct_proposal '<sep>' negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
     | prop:system_direct_proposal '<sep>' negative_proposal_answer_preamble request:anything_phrase
     | prop:system_generic_proposal '<sep>' negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
@@ -351,14 +332,35 @@ proposal_reply_pair = {
         return [prop, new Ast.DialogState];
     };
     */
+}
 
+positive_proposal_reply_pair = {
     prop:system_direct_proposal '<sep>' accept_phrase [weight=100] => {
         return [prop, prop];
     };
 }
 
+initial_command = {
+    ( stmt:action_command
+    | stmt:search_command
+    | stmt:complete_question [weight=0.1]
+    | stmt:projection_question [weight=0.1]
+    | greeting stmt:action_command
+    | greeting stmt:complete_question [weight=0.1]
+    | greeting stmt:projection_question [weight=0.1]
+    ) => stmt;
+
+    ( prog:initial_program
+    | greeting prog:initial_program
+    ) => {
+        if (prog.rules.length !== 1)
+            return null;
+        return prog.rules[0];
+    };
+}
+
 $root = {
-    ctx:ctx_init greeting [weight=0.01] =>
+    ctx:ctx_init greeting =>
         D.checkStateIsValid(ctx, null, new Ast.DialogueState(null, D.POLICY_NAME, 'greet', null, []));
 
     ctx:ctx_init stmt:initial_command => {
@@ -371,7 +373,7 @@ $root = {
     ( ctx:ctx_greet greeting_reply '<sep>' stmt:action_command
     | ctx:ctx_greet greeting_reply '<sep>' stmt:search_command
     | ctx:ctx_greet greeting_reply '<sep>' stmt:complete_question [weight=0.1]
-    | ctx:ctx_greet greeting_reply '<sep>' stmt:projection_question [weight=0.01]
+    | ctx:ctx_greet greeting_reply '<sep>' stmt:projection_question [weight=0.1]
     ) => {
         const userState = D.initialRequest(stmt);
         if (userState === null)
@@ -386,6 +388,8 @@ $root = {
     ctx:ctx_search_command qa:imprecise_search_question_answer_pair [weight=1] =>
         D.impreciseSearchQuestionAnswer(ctx, qa);
 
-    ctx:ctx_search_command pair:proposal_reply_pair =>
+    ( ctx:ctx_search_command pair:negative_proposal_reply_pair
+    | ctx:ctx_search_command pair:positive_proposal_reply_pair [weight=10]
+    ) =>
         D.proposalReplyPair(ctx, pair);
 }
