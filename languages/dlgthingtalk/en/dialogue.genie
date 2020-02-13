@@ -157,6 +157,7 @@ generic_answer = {
 
 imprecise_answer_phrase = {
     ( slot:constant_Any
+    | slot:npp_filter
     | slot:apv_filter
     | slot:pvp_filter
     | slot:preposition_filter
@@ -187,28 +188,33 @@ verbose_answer = {
 }
 
 generic_question = {
-    'which one would like ?' => '';
+    'which one would you like ?' => '';
     'do you have a specific one in mind ?' => '';
 }
 
-precise_search_question_answer_pair = {
-    ( question:direct_question '<sep>' table:generic_answer
-    | question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:generic_answer
-    | question:direct_question '<sep>' table:verbose_answer
-    | question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer
-    | question:generic_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer
-    ) => {
-        if (!D.isQueryAnswerValidForQuestion(table, question))
-            return null;
-        return [null, question, table];
-    };
+direct_search_question = {
+    question:direct_question => [null, question];
+    preamble:search_result_preamble question:direct_question => [preamble, question];
+}
 
-    ( preamble:search_result_preamble question:direct_question '<sep>' table:generic_answer [weight=10]
-    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:generic_answer [weight=10]
-    | preamble:search_result_preamble question:direct_question '<sep>' table:verbose_answer [weight=10]
-    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer [weight=10]
-    | preamble:search_result_preamble question:generic_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer [weight=10]
+yesno_direct_search_question = {
+    question:yesno_direct_question => [null, question];
+    preamble:search_result_preamble question:yesno_direct_question => [preamble, question];
+}
+
+generic_search_question = {
+    question:generic_question => [null, question];
+    preamble:search_result_preamble question:generic_question => [preamble, question];
+}
+
+precise_search_question_answer_pair = {
+    ( agent:direct_search_question '<sep>' table:generic_answer
+    | agent:yesno_direct_search_question '<sep>' ('yes' | 'yes ,' | '') table:generic_answer
+    | agent:direct_search_question '<sep>' table:verbose_answer
+    | agent:yesno_direct_search_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer
+    | agent:generic_search_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer
     ) => {
+        const [preamble, question] = agent;
         if (!D.isQueryAnswerValidForQuestion(table, question))
             return null;
         return [preamble, question, table];
@@ -216,15 +222,10 @@ precise_search_question_answer_pair = {
 }
 
 imprecise_search_question_answer_pair = {
-    ( question:direct_question '<sep>' answer:imprecise_answer
-    | question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer
+    ( agent:direct_search_question '<sep>' answer:imprecise_answer
+    | agent:yesno_direct_search_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer
     ) => {
-        return D.impreciseSearchQuestionAnswerPair(null, question, answer);
-    };
-
-    ( preamble:search_result_preamble question:direct_question '<sep>' answer:imprecise_answer [weight=10]
-    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer [weight=10]
-    ) => {
+        const [preamble, question] = agent;
         return D.impreciseSearchQuestionAnswerPair(preamble, question, answer);
     };
 }
@@ -275,16 +276,21 @@ info_noun_phrase = {
     three_clean_filter_table;
 }
 
-system_direct_proposal = {
+system_direct_proposal_short = {
     ( ctx:ctx_with_result 'how about the' proposal:constant_name '?'
     | ctx:ctx_with_result 'i' ('recommend' | 'suggest') 'the' proposal:constant_name '.'
     | ctx:ctx_with_result 'i' ('have' | 'see') 'the' proposal:constant_name '.'
-    ) => D.makeRecommendation(ctx, proposal, null);
+    ) => D.makeRecommendation(ctx, proposal);
+}
 
-    ( ctx:ctx_with_result 'how about the' proposal:constant_name '? it is a' info:info_noun_phrase '.'
-    | ctx:ctx_with_result 'i' ('recommend' | 'suggest') 'the' proposal:constant_name '. it is a' info:info_noun_phrase '.'
-    | ctx:ctx_with_result 'i' ('have' | 'see') 'the' proposal:constant_name '. it is a' info:info_noun_phrase '.'
-    ) => D.makeRecommendation(ctx, proposal, info);
+system_direct_proposal = {
+    proposal:system_direct_proposal_short => {
+        const [topResult, nametable] = proposal;
+        return nametable;
+    };
+
+    proposal:system_direct_proposal_short 'it is a' info:info_noun_phrase '.'
+        => D.checkRecommendation(proposal, info);
 }
 
 negative_proposal_answer_preamble = {
@@ -346,7 +352,7 @@ proposal_reply_pair = {
     };
     */
 
-    prop:system_direct_proposal '<sep>' accept_phrase => {
+    prop:system_direct_proposal '<sep>' accept_phrase [weight=100] => {
         return [prop, prop];
     };
 }
@@ -377,7 +383,7 @@ $root = {
     ctx:ctx_search_command qa:precise_search_question_answer_pair [weight=0.1] =>
         D.preciseSearchQuestionAnswer(ctx, qa);
 
-    ctx:ctx_search_command qa:imprecise_search_question_answer_pair [weight=0.1] =>
+    ctx:ctx_search_command qa:imprecise_search_question_answer_pair [weight=1] =>
         D.impreciseSearchQuestionAnswer(ctx, qa);
 
     ctx:ctx_search_command pair:proposal_reply_pair =>

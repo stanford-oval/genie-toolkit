@@ -696,6 +696,15 @@ function addFilter(table, filter, forceAdd = false) {
                 return null;
         }
 
+        const arg = table.schema.getArgument(atom.name);
+        if (arg.annotations.conflict_filter) {
+            const conflict = arg.annotations.conflict_filter.toJS();
+            for (let atom2 of iterateFields(existing)) {
+                if (conflict.includes(atom2.name))
+                    return null;
+            }
+        }
+
         let newFilter = new Ast.BooleanExpression.And(null, [existing, filter]).optimize();
         return new Ast.Table.Filter(null, table.table, newFilter, table.schema);
     }

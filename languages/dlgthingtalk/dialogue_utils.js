@@ -161,11 +161,13 @@ function isFilterCompatibleWithResult(topResult, filter) {
         return true;
 
     const values = topResult.value;
+
     // if the value was not returned, don't verbalize it
     if (!values[filter.name])
         return false;
 
     const resultValue = topResult.value[filter.name];
+
     switch (filter.operator) {
     case '==':
     case '=~':
@@ -178,18 +180,20 @@ function isFilterCompatibleWithResult(topResult, filter) {
     }
 }
 
-function makeRecommendation(ctx, [name, nametable], info) {
+function makeRecommendation(ctx, [name, nametable]) {
     const results = ctx.current.results.results;
     assert(results.length > 0);
 
     const topResult = results[0];
     const id = topResult.value.id;
+
     if (!id || !id.equals(name))
         return null;
 
-    if (info === null)
-        return nametable;
+    return [topResult, nametable];
+}
 
+function checkRecommendation([topResult, nametable], info) {
     assert(nametable.isFilter && nametable.table.isInvocation);
     if (!C.isSameFunction(nametable.schema, info.schema))
         return null;
@@ -198,9 +202,7 @@ function makeRecommendation(ctx, [name, nametable], info) {
     if (!isFilterCompatibleWithResult(topResult, info.filter))
         return null;
 
-    const clone = nametable.clone();
-    clone.filter = new Ast.BooleanExpression.And(null, [clone.filter, info.filter]).optimize();
-    return clone;
+    return nametable;
 }
 
 function makeRefinementProposal(ctx, proposal) {
@@ -598,6 +600,7 @@ module.exports = {
 
     // system dialogue acts
     makeRecommendation,
+    checkRecommendation,
     makeRefinementProposal,
 
     // user dialogue acts

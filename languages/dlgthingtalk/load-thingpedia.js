@@ -418,9 +418,9 @@ class ThingpediaLoader {
         const schemaClone = table.schema.clone();
         schemaClone.is_list = false;
         schemaClone.no_filter = true;
-        for (let i = 0; i < 10; i ++) {
+        for (let i = 0; i < 50; i ++) {
             this._grammar.addRule('constant_name', ['GENERIC_ENTITY_' + idType.type + '_' + i], this._runtime.simpleCombine(() => {
-                const value = new Ast.Value.Entity('str:ENTITY_' + idType.type + '::' + i, idType.type, null);
+                const value = new Ast.Value.Entity('str:ENTITY_' + idType.type + '::' + i + ':', idType.type, null);
                 const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', value);
                 return [value, new Ast.Table.Filter(null, table, idfilter, schemaClone)];
             }));
