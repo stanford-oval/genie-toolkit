@@ -67,8 +67,6 @@ class CanonicalGenerator {
             }
         }
 
-        console.log(this.sampleSize);
-
         // dump the examples to a json file for the python script to consume
         fs.writeFileSync('./examples.json', JSON.stringify(examples, null, 2));
 
@@ -116,8 +114,6 @@ class CanonicalGenerator {
                         let numSamples = this.sampleSize[`${qname}.${arg}`];
                         let numExamplesOfType = total[arg][item.type];
                         let numExamples = total[arg].sum;
-                        console.log('**********************')
-                        console.log(arg, canonical)
                         if (this._isFrequent(numOccurrences, numSamples, numExamplesOfType, numExamples)) {
                             if (!canonicals[item.type].includes(canonical))
                                 canonicals[item.type].push(canonical);
@@ -129,10 +125,6 @@ class CanonicalGenerator {
     }
 
     _isFrequent(numOccurrences, numSamples, numExamplesOfType, numExamples) {
-        console.log(numOccurrences, numSamples, numExamplesOfType, numExamples);
-        console.log(this.pruningOptions.occurrence * numExamplesOfType / numSamples);
-        console.log(this.pruningOptions.fraction * numExamples * numExamplesOfType / numSamples);
-
         // numExamplesOfType / numSamples gives us the num of different template of this type
         // the canonical should at least appear in one template $occurrence times
         // i.e., the canonical appears with different value $occurrence times
@@ -218,18 +210,3 @@ class CanonicalGenerator {
 }
 
 module.exports = CanonicalGenerator;
-
-async function main() {
-    const generator = new CanonicalGenerator('restaurant');
-    const canonicals = await generator.generate(
-        {
-            npp: ['cuisine', 'serves cuisine'],
-            avp: ['serves', 'serves #cuisine'],
-            pvp: ['lalala', 'aaa bbb']
-        },
-        [`Chinese`, `Italian`, `seafood`, `Mexican`, `Indian`, `dim sum`, `BBQ`]
-    );
-    console.log(canonicals);
-}
-
-if (!module.parent) return main();
