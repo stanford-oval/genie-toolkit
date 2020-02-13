@@ -36,11 +36,15 @@ class Example {
 }
 
 class CanonicalGenerator {
-    constructor(classDef, constants, queries) {
+    constructor(classDef, constants, queries, pruningOptions) {
         this.class = classDef;
         this.constants = constants;
         this.queries = queries;
+        this.pruningOptions = pruningOptions;
+
+        this.sampleSize = {};
     }
+
 
     async generate() {
         const examples = {};
@@ -54,6 +58,7 @@ class CanonicalGenerator {
 
                 const samples = this._retrieveSamples(qname, arg);
                 if (samples) {
+                    this.sampleSize[`${qname}.${arg.name}`] = samples.length;
                     let generated = this._generateExamples(query.canonical, arg.metadata.canonical, samples);
                     examples[qname][arg.name] = generated.map((e) => {
                         return { masked: e.masked, type: e.type, masks: e.masks };
@@ -61,6 +66,8 @@ class CanonicalGenerator {
                 }
             }
         }
+
+        console.log(this.sampleSize);
 
         // dump the examples to a json file for the python script to consume
         fs.writeFileSync('./examples.json', JSON.stringify(examples, null, 2));
@@ -78,12 +85,13 @@ class CanonicalGenerator {
         for (let qname of this.queries) {
             let total = {};
             for (let arg in candidates[qname]) {
-                total[arg] = {};
+                total[arg] = { sum: 0 };
                 for (let item of candidates[qname][arg]) {
                     if (item.type in total[arg])
                         total[arg][item.type] += 1;
                     else
                         total[arg][item.type] = 1;
+                    total[arg].sum += 1;
                 }
 
                 let count = {};
@@ -104,7 +112,13 @@ class CanonicalGenerator {
                         else
                             count[canonical] = 1;
 
-                        if (count[canonical] > total[arg][item.type] / 2) {
+                        let numOccurrences = count[canonical];
+                        let numSamples = this.sampleSize[`${qname}.${arg}`];
+                        let numExamplesOfType = total[arg][item.type];
+                        let numExamples = total[arg].sum;
+                        console.log('**********************')
+                        console.log(arg, canonical)
+                        if (this._isFrequent(numOccurrences, numSamples, numExamplesOfType, numExamples)) {
                             if (!canonicals[item.type].includes(canonical))
                                 canonicals[item.type].push(canonical);
                         }
@@ -112,6 +126,21 @@ class CanonicalGenerator {
                 }
             }
         }
+    }
+
+    _isFrequent(numOccurrences, numSamples, numExamplesOfType, numExamples) {
+        console.log(numOccurrences, numSamples, numExamplesOfType, numExamples);
+        console.log(this.pruningOptions.occurrence * numExamplesOfType / numSamples);
+        console.log(this.pruningOptions.fraction * numExamples * numExamplesOfType / numSamples);
+
+        // numExamplesOfType / numSamples gives us the num of different template of this type
+        // the canonical should at least appear in one template $occurrence times
+        // i.e., the canonical appears with different value $occurrence times
+        if (numOccurrences < this.pruningOptions.occurrence * numExamplesOfType / numSamples)
+            return false;
+        else if (numOccurrences < this.pruningOptions.fraction * numExamples * numExamplesOfType / numSamples)
+            return false;
+        return true;
     }
 
     _retrieveSamples(qname, arg) {
