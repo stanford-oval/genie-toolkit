@@ -49,8 +49,12 @@ const SYSTEM_DIALOGUE_ACTS = new Set([
     'sys_generic_search_question',
     // agent asks a question to slot fill a program
     'sys_slot_fill',
-    // agent recommends a result from the program, or proposes a refined query
+    // agent recommends the result from the program
+    'sys_recommend_one',
+    // agent proposes a refined query
     'sys_propose_refined_query',
+    // agent recommends/suggests an action
+    'sys_recommend_action',
 ]);
 
 const SYSTEM_STATE_MUST_HAVE_PARAM = new Set([
@@ -70,7 +74,7 @@ function checkStateIsValid(ctx, sysState, userState) {
     if (!DEBUG)
         return [sysState, userState];
 
-    assert(USER_DIALOGUE_ACTS.has(userState.dialogueAct));
+    assert(USER_DIALOGUE_ACTS.has(userState.dialogueAct), `invalid user dialogue act ${userState.dialogueAct}`);
     assert(userState.dialogueActParam === null);
 
     if (ctx === INITIAL_CONTEXT_INFO) {
@@ -79,7 +83,7 @@ function checkStateIsValid(ctx, sysState, userState) {
         return [sysState, userState];
     }
 
-    assert(SYSTEM_DIALOGUE_ACTS.has(sysState.dialogueAct));
+    assert(SYSTEM_DIALOGUE_ACTS.has(sysState.dialogueAct), `invalid system dialogue act ${sysState.dialogueAct}`);
     if (SYSTEM_STATE_MUST_HAVE_PARAM.has(sysState.dialogueAct))
         assert(sysState.dialogueActParam);
     else
@@ -98,38 +102,91 @@ class ResultInfo {
     constructor(item) {
         assert(item.results !== null);
         this.isTable = !!(item.stmt.table && item.stmt.actions.every((a) => a.isNotify));
+        this.isQuestion = item.stmt.table.isProjection || item.stmt.table.isAggregation;
         this.hasEmptyResult = item.results.results.length === 0;
         this.hasSingleResult = item.results.results.length === 1;
         this.hasLargeResult = isLargeResultSet(item.results);
     }
 }
 
+class NextStatementInfo {
+    constructor(currentItem, resultInfo, nextItem) {
+        this.isAction = !nextItem.stmt.table;
+
+        this.chainParameter = null;
+        this.chainParameterFilled = false;
+        this.isComplete = C.isCompleteCommand(nextItem.stmt);
+
+        if (!this.isAction)
+            return;
+
+        assert(nextItem.stmt.actions.length === 1);
+        const action = nextItem.stmt.actions[0];
+        assert(action.isInvocation);
+
+        if (!currentItem || !resultInfo || !resultInfo.isTable)
+            return;
+        const tableschema = currentItem.stmt.table.schema;
+        const idType = tableschema.getArgType('id');
+        if (!idType)
+            return;
+
+        const invocation = action.invocation;
+        const actionschema = invocation.schema;
+        for (let arg of actionschema.iterateArguments()) {
+            if (!arg.is_input)
+                continue;
+            if (arg.type.equals(idType)) {
+                this.chainParameter = arg.name;
+                break;
+            }
+        }
+
+        if (this.chainParameter === null)
+            return;
+
+        for (let in_param of invocation.in_params) {
+            if (in_param.name === this.chainParameter) {
+                this.chainParameterFilled = true;
+                break;
+            }
+        }
+    }
+}
+
 class ContextInfo {
-    constructor(state, currentFunction, resultInfo, currentIdx, nextIdx) {
+    constructor(state, currentFunction, resultInfo, currentIdx, nextIdx, nextInfo) {
         this.state = state;
         this.currentFunction = currentFunction;
         this.resultInfo = resultInfo;
         this.currentIdx = currentIdx;
         this.nextIdx = nextIdx;
+        this.nextInfo = nextInfo;
     }
 
     get current() {
         return this.currentIdx !== null ? this.state.history[this.currentIdx] : null;
     }
 
+    get next() {
+        return this.nextIdx !== null ? this.state.history[this.nextIdx] : null;
+    }
+
     clone() {
-        return new ContextInfo(this.state.clone(), this.currentFunction, this.resultInfo, this.currentIdx, this.nextIdx);
+        return new ContextInfo(this.state.clone(), this.currentFunction, this.resultInfo,
+            this.currentIdx, this.nextIdx, this.nextInfo);
     }
 }
 
 function getContextInfo(state) {
     assert (!state.dialogueAct.startsWith('sys_'), `Unexpected system dialogue act ${state.dialogueAct}`);
 
-    let nextItemIdx = null, currentFunction = null, currentResultInfo = null, currentItemIdx = null;
+    let nextItemIdx = null, nextInfo = null, currentFunction = null, currentResultInfo = null, currentItemIdx = null;
     for (let idx = 0; idx < state.history.length; idx ++) {
         const item = state.history[idx];
         if (item.results === null) {
             nextItemIdx = idx;
+            nextInfo = new NextStatementInfo(state.history[currentItemIdx], currentResultInfo, item);
             break;
         }
         const functions = C.getFunctionNames(item.stmt);
@@ -139,7 +196,11 @@ function getContextInfo(state) {
             currentResultInfo = new ResultInfo(item, functions);
         }
     }
-    return new ContextInfo(state, currentFunction, currentResultInfo, currentItemIdx, nextItemIdx);
+    return new ContextInfo(state, currentFunction, currentResultInfo, currentItemIdx, nextItemIdx, nextInfo);
+}
+
+function getActionInvocation(historyItem) {
+    return historyItem.stmt.actions[0].invocation;
 }
 
 function isFilterCompatibleWithResult(topResult, filter) {
@@ -180,7 +241,24 @@ function isFilterCompatibleWithResult(topResult, filter) {
     }
 }
 
-function makeRecommendation(ctx, [name, nametable]) {
+function makeActionRecommendation(ctx, action) {
+    assert(action instanceof Ast.Invocation);
+
+    const results = ctx.current.results.results;
+    assert(results.length > 0);
+
+    const topResult = results[0];
+    const id = topResult.value.id;
+
+    for (let param of action.in_params) {
+        if (param.value.equals(id))
+            return [topResult, action];
+    }
+
+    return null;
+}
+
+function makeRecommendation(ctx, name) {
     const results = ctx.current.results.results;
     assert(results.length > 0);
 
@@ -190,19 +268,39 @@ function makeRecommendation(ctx, [name, nametable]) {
     if (!id || !id.equals(name))
         return null;
 
-    return [topResult, nametable];
+    return [topResult, ctx.nextInfo && ctx.nextInfo.isAction ? getActionInvocation(ctx.next) : null];
 }
 
-function checkRecommendation([topResult, nametable], info) {
-    assert(nametable.isFilter && nametable.table.isInvocation);
-    if (!C.isSameFunction(nametable.schema, info.schema))
+function checkRecommendation([topResult, nextAction], info) {
+    const resultType = topResult.value.id.getType();
+    const idType = info.schema.getArgType('id');
+
+    if (!idType || !idType.equals(resultType))
         return null;
 
     assert(info.isFilter && info.table.isInvocation);
     if (!isFilterCompatibleWithResult(topResult, info.filter))
         return null;
 
-    return nametable;
+    return [topResult, nextAction];
+}
+
+function checkActionForRecommendation([topResult, nextAction], action) {
+    const resultType = topResult.value.id.getType();
+
+    if (nextAction !== null) {
+        if (!C.isSameFunction(nextAction.schema, action.schema))
+            return null;
+    }
+
+    for (let arg of action.schema.iterateArguments()) {
+        if (!arg.is_input)
+            continue;
+        if (arg.type.equals(resultType))
+            return [topResult, action];
+    }
+
+    return null;
 }
 
 function makeRefinementProposal(ctx, proposal) {
@@ -562,6 +660,109 @@ function proposalReplyPair(ctx, [proposal, request]) {
     return checkStateIsValid(ctx, sysState, userState);
 }
 
+function addActionParam(ctxClone, dialogueAct, action, pname, value, confirm = false) {
+    assert(action instanceof Ast.Invocation);
+    const state = ctxClone.state;
+    state.dialogueAct = dialogueAct;
+    state.dialogueActParam = null;
+
+    if (ctxClone.nextInfo) {
+        const nextInvocation = getActionInvocation(ctxClone.next);
+        if (C.isSameFunction(nextInvocation, action.schema)) {
+            for (let in_param of nextInvocation.in_params) {
+                if (in_param.name === pname) {
+                    in_param.value = value;
+                    return state;
+                }
+            }
+            nextInvocation.in_params.push(new Ast.InputParam(null, pname, value));
+            nextInvocation.in_params((p1, p2) => {
+                if (p1.name < p2.name)
+                    return -1;
+                if (p1.name > p2.name)
+                    return 1;
+                return 0;
+            });
+
+            ctxClone.next.confirm = confirm;
+            return state;
+        }
+    }
+
+    let newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
+        new Ast.Invocation(null,
+            action.selector,
+            action.channel,
+            [new Ast.InputParam(null, pname, value)],
+            action.schema
+        ),
+        action.schema.removeArgument(pname)
+    )]);
+    let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
+
+    // wipe everything from state after the current program
+    // this will remove all intermediate results between the current program and the next one,
+    // and remove the next program, if any
+
+    state.history.splice(ctxClone.currentIdx+1, state.history.length-(ctxClone.currentIdx+1), newHistoryItem);
+    return state;
+}
+
+function findChainParam(topResult, action) {
+    const resultType = topResult.value.id.getType();
+
+    let chainParam = undefined;
+    for (let arg of action.schema.iterateArguments()) {
+        if (arg.type.equals(resultType)) {
+            chainParam = arg.name;
+            break;
+        }
+    }
+    assert(chainParam);
+    return chainParam;
+}
+
+function negativeRecommendationReplyPair(ctx, [topResult, action, request]) {
+    const requestFunctions = C.getFunctionNames(request);
+    assert(requestFunctions.length === 1);
+    if (requestFunctions[0] !== ctx.currentFunction)
+        return null;
+    assert(request.isFilter && request.table.isInvocation);
+
+    const clone = ctx.clone();
+    const cloneTable = clone.current.stmt.table;
+    const newTable = queryRefinement(cloneTable, request.filter, refineFilterToAnswerQuestion);
+    if (newTable === null)
+        return null;
+
+    const userState = overrideCurrentQuery(clone, newTable);
+    let sysState;
+    if (action === null)
+        sysState = makeSimpleSystemState(ctx, 'sys_recommend_one', null);
+    else
+        sysState = addActionParam(ctx.clone(), 'sys_recommend_action', action, findChainParam(topResult, action), topResult.value.id);
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
+function positiveRecommendationReplyPair(ctx, [topResult, action]) {
+    // if the user did not give an action earlier, and no action
+    // was proposed by the agent right now, the flow is roughly
+    //
+    // U: hello i am looking for a restaurant
+    // A: how about the ... ?
+    // U: sure I like that
+    //
+    // this doesn't make much sense, so we don't want this flow
+    if (action === null)
+        return null;
+
+    const chainParam = findChainParam(topResult, action);
+
+    const userState = addActionParam(ctx.clone(), 'execute', action, chainParam, topResult.value.id);
+    const sysState = addActionParam(ctx.clone(), 'sys_recommend_action', action, chainParam, topResult.value.id);
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
 function impreciseSearchQuestionAnswerPair(preamble, question, answer) {
     if (answer instanceof Ast.BooleanExpression) {
         let pname;
@@ -599,8 +800,10 @@ module.exports = {
     isQueryAnswerValidForQuestion,
 
     // system dialogue acts
+    makeActionRecommendation,
     makeRecommendation,
     checkRecommendation,
+    checkActionForRecommendation,
     makeRefinementProposal,
 
     // user dialogue acts
@@ -613,5 +816,7 @@ module.exports = {
     preciseSearchQuestionAnswer,
     impreciseSearchQuestionAnswerPair,
     impreciseSearchQuestionAnswer,
-    proposalReplyPair
+    proposalReplyPair,
+    negativeRecommendationReplyPair,
+    positiveRecommendationReplyPair
 };

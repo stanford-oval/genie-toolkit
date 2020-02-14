@@ -421,8 +421,9 @@ class ThingpediaLoader {
         for (let i = 0; i < 50; i ++) {
             this._grammar.addRule('constant_name', ['GENERIC_ENTITY_' + idType.type + '_' + i], this._runtime.simpleCombine(() => {
                 const value = new Ast.Value.Entity('str:ENTITY_' + idType.type + '::' + i + ':', idType.type, null);
-                const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', value);
-                return [value, new Ast.Table.Filter(null, table, idfilter, schemaClone)];
+                /*const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', value);
+                return [value, new Ast.Table.Filter(null, table, idfilter, schemaClone)];*/
+                return value;
             }));
         }
 

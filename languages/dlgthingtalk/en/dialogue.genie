@@ -35,10 +35,11 @@ context ctx_init,
     ctx_greet,
     ctx_with_result,
     ctx_search_command,
+    ctx_empty_direct_question,
+    ctx_direct_question,
     ctx_empty_search_command,
     ctx_large_search_command,
     ctx_complete_search_command,
-    ctx_info_request_command,
     ctx_completed_action,
     ctx_confirm_action,
     ctx_incomplete_action;
@@ -59,45 +60,63 @@ context function (state) {
         return [['ctx_greet'], info];
 
     case 'execute':
-        if (info.resultInfo !== null) {
-            if (info.resultInfo.isTable) {
+        if (info.nextInfo !== null) {
+            // we have an action we want to execute, or a query that needs confirmation
+            if (info.nextInfo.chainParameter === null || info.nextInfo.chainParameterFilled) {
+                // we don't need to fill any parameter from the current query
+
+                if (info.nextInfo.isComplete) {
+                    return [['ctx_confirm_action'], info];
+                } else {
+                    return [['ctx_incomplete_action'], info];
+                }
+            }
+        }
+
+        // we must have a result
+        // except FIXME if the user just says "book a restaurant" we need to generate the search too
+        if (info.resultInfo === null)
+            return [[], info];
+
+        if (info.resultInfo.isTable) {
+            if (info.resultInfo.isQuestion) {
                 if (info.resultInfo.hasEmptyResult) {
                     return [[
-                        'ctx_empty_search_command',
-                    ], info];
-                } else if (info.resultInfo.hasSingleResult) {
-                    return [[
-                        'ctx_with_result',
-                        'ctx_complete_search_command',
-                        'ctx_info_request_command',
-                    ], info];
-                } else if (info.resultInfo.hasLargeResult) {
-                    return [[
-                        'ctx_with_result',
-                        'ctx_search_command',
-                        'ctx_large_search_command'
+                        'ctx_empty_direct_question',
                     ], info];
                 } else {
                     return [[
                         'ctx_with_result',
-                        'ctx_search_command',
-                        'ctx_complete_search_command'
+                        'ctx_direct_question'
                     ], info];
                 }
+            }
+            if (info.resultInfo.hasEmptyResult) {
+                return [[
+                    'ctx_empty_search_command',
+                ], info];
+            } else if (info.resultInfo.hasSingleResult) {
+                return [[
+                    'ctx_with_result',
+                    'ctx_complete_search_command',
+                ], info];
+            } else if (info.resultInfo.hasLargeResult) {
+                return [[
+                    'ctx_with_result',
+                    'ctx_search_command',
+                    'ctx_large_search_command'
+                ], info];
             } else {
-                console.error(info, state);
-                throw new Error('???');
-                return [['ctx_completed_action'], info];
+                return [[
+                    'ctx_with_result',
+                    'ctx_complete_search_command',
+                    'ctx_search_command',
+                ], info];
             }
         } else {
-            if (info.nextIdx === null)
-                console.log(info);
-            assert (info.nextIdx !== null, `expected non-null next idx`);
-            if (C.isCompleteCommand(state.history[info.nextIdx].stmt)) {
-                return [['ctx_confirm_action'], info];
-            } else {
-                return [['ctx_incomplete_action'], info];
-            }
+            console.error(info, state);
+            throw new Error('???');
+            return [['ctx_completed_action'], info];
         }
 
     default:
@@ -257,21 +276,88 @@ info_noun_phrase = {
     three_clean_filter_table;
 }
 
+the_base_noun_phrase = {
+    ( 'the' noun:base_noun_phrase
+    | 'that' noun:base_noun_phrase
+    ) => noun;
+}
+
+for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
+    coref_action_phrase = {
+        action:thingpedia_action ('it' | 'this' | 'that') [-> pname] => {
+            const type = action.schema.getArgType(pname);
+            if (!type || !type.isEntity)
+                return null;
+            return action.invocation;
+        };
+
+        action:thingpedia_action noun:the_base_noun_phrase [-> pname] => {
+            const type = action.schema.getArgType(pname);
+            if (!type || !type.isEntity || type.type !== noun)
+                return null;
+            return action.invocation;
+        };
+    }
+
+    direct_action_phrase = {
+        action:thingpedia_action name:constant_name [-> pname { isConstant: true }] =>
+            C.replacePlaceholderWithConstant(action, pname, name);
+    }
+}
+
 system_direct_proposal_short = {
-    ( ctx:ctx_with_result 'how about the' proposal:constant_name '?'
-    | ctx:ctx_with_result 'i' ('recommend' | 'suggest') 'the' proposal:constant_name '.'
+    ctx:ctx_with_result 'how about the' proposal:constant_name '?'
+        => D.makeRecommendation(ctx, proposal);
+}
+
+action_recommendation = {
+    ctx:ctx_with_result 'would you like to' action:direct_action_phrase '?' if complete [weight=0.1]
+        => D.makeActionRecommendation(ctx, action.invocation);
+}
+
+actionable_system_direct_proposal_short = {
+    ( ctx:ctx_with_result 'i' ('recommend' | 'suggest') 'the' proposal:constant_name '.'
     | ctx:ctx_with_result 'i' ('have' | 'see') 'the' proposal:constant_name '.'
     ) => D.makeRecommendation(ctx, proposal);
 }
 
+action_offer = {
+    ( 'would you like to' action:direct_action_phrase '?'
+    | 'would you like me to' action:direct_action_phrase ' for you ?'
+    ) if complete => action;
+}
+
+// a recommendation ("direct proposal") consists of the first result of the current query,
+// and action to do with it
+// the action can come from the context (if the user expressed it earlier), or it can
+// be offered immediately
 system_direct_proposal = {
-    proposal:system_direct_proposal_short => {
-        const [topResult, nametable] = proposal;
-        return nametable;
+    ( proposal:system_direct_proposal_short [weight=10]
+    | proposal:actionable_system_direct_proposal_short
+    ) => {
+        // refuse to make a recommendation without an action and without any info
+        const [topResult, action] = proposal;
+        if (action === null)
+            return null;
+        return proposal;
     };
 
-    proposal:system_direct_proposal_short 'it is a' info:info_noun_phrase '.' [weight=10]
-        => D.checkRecommendation(proposal, info);
+    action_recommendation;
+
+    proposal:actionable_system_direct_proposal_short action:action_offer
+        => D.checkActionForRecommendation(proposal, action);
+
+    ( proposal:system_direct_proposal_short 'it is a' info:info_noun_phrase '.' [weight=10]
+    | proposal:action_recommendation 'it is a' info:info_noun_phrase '.'
+    | proposal:actionable_system_direct_proposal_short 'it is a' info:info_noun_phrase '.'
+    ) => D.checkRecommendation(proposal, info);
+
+    proposal:actionable_system_direct_proposal_short 'it is a' info:info_noun_phrase '.' action:action_offer => {
+        proposal = D.checkRecommendation(proposal, info);
+        if (proposal === null)
+            return null;
+        return D.checkActionForRecommendation(proposal, action);
+    };
 }
 
 negative_proposal_answer_preamble = {
@@ -301,10 +387,22 @@ accept_phrase = {
     'sounds good';
 }
 
-negative_proposal_reply_pair = {
+negative_recommendation_reply_pair = {
     ( prop:system_direct_proposal '<sep>' negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
     | prop:system_direct_proposal '<sep>' negative_proposal_answer_preamble request:anything_phrase
-    | prop:system_generic_proposal '<sep>' negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
+    ) => {
+        const [topResult, action] = prop;
+        const proposalType = topResult.value.id.getType();
+        const idType = request.schema.getArgType('id');
+
+        if (!idType || !idType.equals(proposalType))
+            return null;
+        return [topResult, action, request];
+    };
+}
+
+negative_proposal_reply_pair = {
+    ( prop:system_generic_proposal '<sep>' negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
     | prop:system_generic_proposal '<sep>' negative_proposal_answer_preamble request:anything_phrase
     ) => {
         if (!C.isSameFunction(prop.schema, request.schema))
@@ -334,11 +432,14 @@ negative_proposal_reply_pair = {
     */
 }
 
-positive_proposal_reply_pair = {
-    prop:system_direct_proposal '<sep>' accept_phrase [weight=100] => {
-        return [prop, prop];
-    };
+positive_recommendation_reply_pair = {
+    prop:system_direct_proposal '<sep>' accept_phrase [weight=10] => prop;
 }
+
+positive_proposal_reply_pair = {
+    prop:system_generic_proposal '<sep>' accept_phrase => [prop, prop];
+}
+
 
 initial_command = {
     ( stmt:action_command
@@ -392,4 +493,9 @@ $root = {
     | ctx:ctx_search_command pair:positive_proposal_reply_pair [weight=10]
     ) =>
         D.proposalReplyPair(ctx, pair);
+
+    ctx:ctx_complete_search_command pair:negative_recommendation_reply_pair
+        => D.negativeRecommendationReplyPair(ctx, pair);
+    ctx:ctx_complete_search_command pair:positive_recommendation_reply_pair [weight=10]
+        => D.positiveRecommendationReplyPair(ctx, pair);
 }
