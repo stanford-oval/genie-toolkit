@@ -28,7 +28,7 @@ def predictOne(text):
         predictions = model(tokens_tensor, segments_tensors)
 
     mask = predictions[0][0, masked_index]
-    topk, indices = torch.topk(mask, 10)
+    topk, indices = torch.topk(mask, 5)
 
     return tokenizer.convert_ids_to_tokens(indices.tolist())
 
