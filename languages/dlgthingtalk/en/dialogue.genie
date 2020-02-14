@@ -34,6 +34,7 @@ import './commands';
 context ctx_init,
     ctx_greet,
     ctx_with_result,
+    ctx_with_action,
     ctx_search_command,
     ctx_empty_direct_question,
     ctx_direct_question,
@@ -59,7 +60,9 @@ context function (state) {
         assert(state.history.length === 0, `expected empty history for greet`);
         return [['ctx_greet'], info];
 
-    case 'execute':
+    case 'execute': {
+        const tags = [];
+
         if (info.nextInfo !== null) {
             // we have an action we want to execute, or a query that needs confirmation
             if (info.nextInfo.chainParameter === null || info.nextInfo.chainParameterFilled) {
@@ -71,51 +74,33 @@ context function (state) {
                     return [['ctx_incomplete_action'], info];
                 }
             }
+
+            tags.push('ctx_with_action');
         }
 
         // we must have a result
         assert(info.resultInfo);
+        // nothing else is implemented.
+        assert (info.resultInfo.isTable);
 
-        if (info.resultInfo.isTable) {
-            if (info.resultInfo.isQuestion) {
-                if (info.resultInfo.hasEmptyResult) {
-                    return [[
-                        'ctx_empty_direct_question',
-                    ], info];
-                } else {
-                    return [[
-                        'ctx_with_result',
-                        'ctx_direct_question'
-                    ], info];
-                }
-            }
-            if (info.resultInfo.hasEmptyResult) {
-                return [[
-                    'ctx_empty_search_command',
-                ], info];
-            } else if (info.resultInfo.hasSingleResult) {
-                return [[
-                    'ctx_with_result',
-                    'ctx_complete_search_command',
-                ], info];
-            } else if (info.resultInfo.hasLargeResult) {
-                return [[
-                    'ctx_with_result',
-                    'ctx_search_command',
-                    'ctx_large_search_command'
-                ], info];
-            } else {
-                return [[
-                    'ctx_with_result',
-                    'ctx_complete_search_command',
-                    'ctx_search_command',
-                ], info];
-            }
-        } else {
-            console.error(info, state);
-            throw new Error('???');
-            return [['ctx_completed_action'], info];
+        if (info.resultInfo.hasEmptyResult) {
+            if (info.resultInfo.isQuestion)
+                tags.push('ctx_empty_direct_question');
+            else
+                tags.push('ctx_empty_search_command');
+            return [tags, info];
         }
+
+        tags.push('ctx_with_result');
+
+        if (!info.resultInfo.hasSingleResult) // we can refine
+            tags.push('ctx_search_command');
+
+        if (!info.resultInfo.hasLargeResult) // we can recommend/show the result
+            tags.push('ctx_complete_search_command');
+
+        return [tags, info];
+    }
 
     default:
         throw new Error(`Unexpected user dialogue act ${info.dialogueAct}`);
@@ -411,16 +396,9 @@ proposal_info_action_pair = {
 // the action can come from the context (if the user expressed it earlier), or it can
 // be offered immediately
 system_direct_proposal = {
-    ( proposal:system_direct_proposal_short [weight=10]
-    | proposal:actionable_system_direct_proposal_short
-    ) => {
-        // refuse to make a recommendation without an action and without any info
-        const [topResult, action] = proposal;
-        if (action === null)
-            return null;
-        return proposal;
-    };
-
+    ( ctx_with_action proposal:system_direct_proposal_short [weight=10]
+    | ctx_with_action proposal:actionable_system_direct_proposal_short
+    ) => proposal;
     action_recommendation;
 
     proposal:actionable_system_direct_proposal_short action:action_offer

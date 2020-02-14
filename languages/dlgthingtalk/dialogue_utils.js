@@ -102,7 +102,7 @@ class ResultInfo {
     constructor(item) {
         assert(item.results !== null);
         this.isTable = !!(item.stmt.table && item.stmt.actions.every((a) => a.isNotify));
-        this.isQuestion = item.stmt.table.isProjection || item.stmt.table.isAggregation;
+        this.isQuestion = !!(item.stmt.table.isProjection || item.stmt.table.isAggregation);
         this.hasEmptyResult = item.results.results.length === 0;
         this.hasSingleResult = item.results.results.length === 1;
         this.hasLargeResult = isLargeResultSet(item.results);
@@ -146,7 +146,7 @@ class NextStatementInfo {
             return;
 
         for (let in_param of invocation.in_params) {
-            if (in_param.name === this.chainParameter) {
+            if (in_param.name === this.chainParameter && !in_param.value.isUndefined) {
                 this.chainParameterFilled = true;
                 break;
             }
@@ -196,6 +196,8 @@ function getContextInfo(state) {
             currentResultInfo = new ResultInfo(item, functions);
         }
     }
+    if (nextItemIdx)
+        assert(nextInfo);
     return new ContextInfo(state, currentFunction, currentResultInfo, currentItemIdx, nextItemIdx, nextInfo);
 }
 
