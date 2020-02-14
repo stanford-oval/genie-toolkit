@@ -660,7 +660,7 @@ function addActionParam(ctxClone, dialogueAct, action, pname, value, confirm = f
 
     if (ctxClone.nextInfo) {
         const nextInvocation = getActionInvocation(ctxClone.next);
-        if (C.isSameFunction(nextInvocation, action.schema)) {
+        if (C.isSameFunction(nextInvocation.schema, action.schema)) {
             for (let in_param of nextInvocation.in_params) {
                 if (in_param.name === pname) {
                     in_param.value = value;
