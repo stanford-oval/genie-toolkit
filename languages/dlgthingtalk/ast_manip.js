@@ -1483,10 +1483,21 @@ function isSameFunction(fndef1, fndef2) {
         fndef1.name === fndef2.name;
 }
 
+function hasArgumentOfType(invocation, type) {
+    for (let arg of invocation.schema.iterateArguments()) {
+        if (!arg.is_input)
+            continue;
+        if (arg.type.equals(type))
+            return true;
+    }
+    return false;
+}
+
 module.exports = {
     typeToStringSafe,
     getFunctionNames,
     isSameFunction,
+    hasArgumentOfType,
 
     notifyAction,
     builtinSayAction,

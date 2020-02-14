@@ -293,12 +293,8 @@ function checkActionForRecommendation([topResult, nextAction], action) {
             return null;
     }
 
-    for (let arg of action.schema.iterateArguments()) {
-        if (!arg.is_input)
-            continue;
-        if (arg.type.equals(resultType))
-            return [topResult, action];
-    }
+    if (!C.hasArgumentOfType(action, resultType))
+        return null;
 
     return null;
 }
@@ -358,6 +354,10 @@ function initialRequest(stmt) {
         history.push(new Ast.DialogueHistoryItem(null, actionStmt, null, false));
     } else {
         if (stmt.table && !C.checkValidQuery(stmt.table))
+            return null;
+
+        // FIXME not all actions should be killed, only those that need param passing to be resolved...
+        if (!stmt.table)
             return null;
 
         history.push(new Ast.DialogueHistoryItem(null, stmt, null, false));
@@ -556,17 +556,7 @@ function overrideCurrentQuery(ctxClone, newTable) {
     return state;
 }
 
-function preciseSearchQuestionAnswer(ctx, [preamble, question, answer]) {
-    if (preamble !== null) {
-        const [base, num, more] = preamble;
-        if (base !== ctx.currentFunction)
-            return null;
-        if (num !== null && !num.equals(ctx.current.count))
-            return null;
-        if (more !== ctx.current.more)
-            return null;
-    }
-
+function preciseSearchQuestionAnswer(ctx, [question, answer]) {
     const answerFunctions = C.getFunctionNames(answer);
     assert(answerFunctions.length === 1);
     if (answerFunctions[0] !== ctx.currentFunction)
@@ -590,7 +580,7 @@ function preciseSearchQuestionAnswer(ctx, [preamble, question, answer]) {
     return checkStateIsValid(ctx, sysState, userState);
 }
 
-function impreciseSearchQuestionAnswer(ctx, [preamble, question, answer]) {
+function impreciseSearchQuestionAnswer(ctx, preamble, [question, answer]) {
     if (preamble !== null) {
         const [base, num, more] = preamble;
         if (base !== ctx.currentFunction)
@@ -763,7 +753,7 @@ function positiveRecommendationReplyPair(ctx, [topResult, action]) {
     return checkStateIsValid(ctx, sysState, userState);
 }
 
-function impreciseSearchQuestionAnswerPair(preamble, question, answer) {
+function impreciseSearchQuestionAnswerPair(question, answer) {
     if (answer instanceof Ast.BooleanExpression) {
         let pname;
         if (answer.isNot) {
@@ -776,10 +766,10 @@ function impreciseSearchQuestionAnswerPair(preamble, question, answer) {
         if (pname !== question)
             return null;
 
-        return [preamble, question, answer];
+        return [question, answer];
     } else {
         assert(answer instanceof Ast.Value);
-        return [preamble, question, C.makeFilter(question, '==', answer)];
+        return [question, C.makeFilter(question, '==', answer)];
     }
 }
 

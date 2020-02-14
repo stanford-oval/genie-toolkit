@@ -24,8 +24,9 @@ const _tpLoader = require('../load-thingpedia');
 
 complete_table = {
     thingpedia_query if complete;
+
     !primonly table_join_replace_placeholder if complete;
-    filter:apv_filter q:thingpedia_query if complete => C.addFilter(q, filter);
+    //filter:apv_filter q:thingpedia_query if complete => C.addFilter(q, filter);
 }
 
 complete_get_command = {
