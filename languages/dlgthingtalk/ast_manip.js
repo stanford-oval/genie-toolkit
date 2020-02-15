@@ -1498,6 +1498,7 @@ module.exports = {
     getFunctionNames,
     isSameFunction,
     hasArgumentOfType,
+    isConstantAssignable,
 
     notifyAction,
     builtinSayAction,

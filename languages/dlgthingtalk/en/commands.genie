@@ -470,22 +470,49 @@ monitor_command = {
     };
 }
 
+complete_action = {
+    action:thingpedia_action if complete =>
+        new Ast.Statement.Command(null, null, [action]);
+    action_replace_param_with_table if complete;
+
+    ( command:complete_action param:preposition_input_param
+    | command:complete_action ('with' | 'having') param:npp_input_param
+    ) => {
+        const arg = command.actions[0].invocation.schema.getArgument(param.name);
+        if (!arg || !arg.is_input || !C.isConstantAssignable(param.value, arg.type))
+            return null;
+        const clone = command.clone();
+        for (let existing of clone.actions[0].invocation.in_params) {
+            if (existing.name == param.name) {
+                if (existing.value.isUndefined) {
+                    existing.value = param.value;
+                    return clone;
+                } else {
+                    return null;
+                }
+            }
+        }
+        clone.actions[0].invocation.in_params.push(param);
+        clone.actions[0].schema = clone.actions[0].schema.removeArgument(param.name);
+        return clone;
+    };
+}
+
 action_command = {
     // now => do
     (
-          action:thingpedia_action
-        | 'please' action:thingpedia_action
-        | 'i need you to' action:thingpedia_action
-        | 'i want to' action:thingpedia_action
-        | 'i \'d like to' action:thingpedia_action
-    ) if complete => new Ast.Statement.Command(null, null, [action]);
+          action:complete_action
+        | 'please' action:complete_action
+        | 'i need you to' action:complete_action
+        | 'i want to' action:complete_action
+        | 'i would like to' action:complete_action
+    ) => action;
 
     // now => get => do
     ?compound_commands {
         complete_forward_get_do_command;
         !turking backward_get_do_command if complete;
     }
-    action_replace_param_with_table if complete;
 }
 
 if (_tpLoader.standardSchemas.say) {

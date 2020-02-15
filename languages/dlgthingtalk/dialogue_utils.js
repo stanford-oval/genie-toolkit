@@ -358,11 +358,30 @@ function initialRequest(stmt) {
         if (stmt.table && !C.checkValidQuery(stmt.table))
             return null;
 
-        // FIXME not all actions should be killed, only those that need param passing to be resolved...
-        if (!stmt.table)
-            return null;
+        let newStatements = [];
+        if (!stmt.table) {
+            for (let action of stmt.actions) {
+                for (let param of action.invocation.in_params) {
+                    if (param.value.isUndefined) {
+                        const type = action.invocation.schema.getArgType(param.name);
+                        if (type.isEntity && _loader.idQueries.has(type.type)) {
+                            const query = _loader.idQueries.get(type.type);
+                            newStatements.push(new Ast.Statement.Command(null, new Ast.Table.Invocation(null,
+                                new Ast.Invocation(null,
+                                    new Ast.Selector.Device(null, query.class.name, null, null),
+                                    query.name,
+                                    [],
+                                    query),
+                                query), [C.notifyAction()]));
+                        }
+                    }
+                }
+            }
+        }
+        newStatements.push(stmt);
 
-        history.push(new Ast.DialogueHistoryItem(null, stmt, null, false));
+        for (let stmt of newStatements)
+            history.push(new Ast.DialogueHistoryItem(null, stmt, null, false));
     }
 
     return new Ast.DialogueState(null, 'org.thingpedia.dialogue.transaction', 'execute', null, history);

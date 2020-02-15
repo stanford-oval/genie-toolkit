@@ -62,6 +62,7 @@ class ThingpediaLoader {
             out: new Set,
             blacklist: new Set,
         };
+        this.idQueries = new Map;
         this.compoundArrays = new Map;
         if (this._options.white_list)
             this.whiteList = this._options.white_list.toLowerCase().split(',');
@@ -147,7 +148,95 @@ class ThingpediaLoader {
         this._grammar.addRule('out_param_' + typestr, [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
     }
 
-    _recordOutputParam(functionName, pname, ptype, arg) {
+    _recordInputParam(functionName, arg) {
+        const pname = arg.name;
+        const ptype = arg.type;
+        //const key = pname + '+' + ptype;
+        // FIXME match functionName
+        //if (this.params.out.has(key))
+        //    return;
+        //this.params.out.add(key);
+
+        const typestr = this._recordType(ptype);
+
+        // compound types are handled by recursing into their fields through iterateArguments()
+        // except FIXME that probably won't work? we need to create a record object...
+        if (ptype.isCompound)
+            return;
+
+        // FIXME boolean types are not handled, they have no way to specify the true/false phrase
+        if (ptype.isBoolean)
+            return;
+
+        /*
+        FIXME what to do here?
+        if (ptype.isArray && ptype.elem.isCompound) {
+            this._compoundArrays[pname] = ptype.elem;
+            for (let field in ptype.elem.fields) {
+                let arg = ptype.elem.fields[field];
+                this._recordInputParam(functionName, field, arg.type, arg);
+            }
+        }*/
+
+        let canonical;
+
+        if (!arg.metadata.canonical)
+            canonical = { base: [clean(pname)] };
+        else if (typeof arg.metadata.canonical === 'string')
+            canonical = { base: [arg.metadata.canonical] };
+        else
+            canonical = arg.metadata.canonical;
+
+        for (let cat in canonical) {
+            if (cat === 'default')
+                continue;
+
+            let annotvalue = canonical[cat];
+            if (cat in ANNOTATION_RENAME)
+                cat = ANNOTATION_RENAME[cat];
+
+            if (cat === 'apv' && typeof annotvalue === 'boolean') {
+                // compat
+                if (annotvalue)
+                    annotvalue = ['#'];
+                else
+                    annotvalue = [];
+            }
+
+            if (cat === 'npv') {
+                // implicit identity does not make sense for input parameters
+                throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${functionName}`);
+            }
+
+            if (!Array.isArray(annotvalue))
+                annotvalue = [annotvalue];
+
+            for (let form of annotvalue) {
+                if (cat === 'base') {
+                    this._grammar.addRule('input_param', [canonical], this._runtime.simpleCombine(() => pname));
+                } else {
+                    let [before, after] = form.split('#');
+                    before = (before || '').trim();
+                    after = (after || '').trim();
+
+                    let expansion;
+                    if (before && after)
+                        expansion = [before, new this._runtime.NonTerminal('constant_' + typestr), after];
+                    else if (before)
+                        expansion = [before, new this._runtime.NonTerminal('constant_' + typestr)];
+                    else if (after)
+                        expansion = [new this._runtime.NonTerminal('constant_' + typestr), after];
+                    else
+                        expansion = [new this._runtime.NonTerminal('constant_' + typestr)];
+                    this._grammar.addRule(cat + '_input_param', expansion, this._runtime.simpleCombine((value) => new Ast.InputParam(null, pname, value)));
+                }
+            }
+        }
+    }
+
+    _recordOutputParam(functionName, arg) {
+        const pname = arg.name;
+        const ptype = arg.type;
         const key = pname + '+' + ptype;
         // FIXME match functionName
         //if (this.params.out.has(key))
@@ -170,7 +259,7 @@ class ThingpediaLoader {
             this._compoundArrays[pname] = ptype.elem;
             for (let field in ptype.elem.fields) {
                 let arg = ptype.elem.fields[field];
-                this._recordOutputParam(functionName, field, arg.type, arg);
+                this._recordOutputParam(functionName, arg);
             }
         }
 
@@ -232,7 +321,15 @@ class ThingpediaLoader {
                     before = (before || '').trim();
                     after = (after || '').trim();
 
-                    const expansion = [before, new this._runtime.NonTerminal('constant_' + vtypestr), after];
+                    let expansion;
+                    if (before && after)
+                        expansion = [before, new this._runtime.NonTerminal('constant_' + vtypestr), after];
+                    else if (before)
+                        expansion = [before, new this._runtime.NonTerminal('constant_' + vtypestr)];
+                    else if (after)
+                        expansion = [new this._runtime.NonTerminal('constant_' + vtypestr), after];
+                    else
+                        expansion = [new this._runtime.NonTerminal('constant_' + vtypestr)];
                     this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pname, op, value, false)));
                 }
             }
@@ -320,14 +417,6 @@ class ThingpediaLoader {
 
                 this.params.in.set(pname + '+' + ptype, [pname, [typeToStringSafe(ptype), pcanonical]]);
                 this._recordType(ptype);
-            }
-
-            let functionName = ex.value.schema instanceof Ast.FunctionDef && ex.value.schema.class ?
-                ex.value.schema.class.kind + ':' + ex.value.schema.name : null;
-            for (let pname in ex.value.schema.out) {
-                let ptype = ex.value.schema.out[pname];
-
-                this._recordOutputParam(functionName, pname, ptype, ex.value.schema.getArgument(pname));
             }
         }
 
@@ -451,16 +540,29 @@ class ThingpediaLoader {
         ));
     }
 
+    async _loadFunction(functionDef) {
+        if (this.whiteList && !this.whiteList.includes(functionDef.name.toLowerCase()))
+            return;
+
+        let functionName = functionDef.class.kind + ':' + functionDef.name;
+        for (const arg of functionDef.iterateArguments()) {
+            if (arg.is_input)
+                this._recordInputParam(functionName, arg);
+            else
+                this._recordOutputParam(functionName, arg);
+        }
+
+        if (functionDef.functionType === 'query')
+            await this._makeExampleFromQuery(functionDef);
+    }
+
     async _loadDevice(device) {
         this._grammar.addRule('constant_Entity__tt__device', [device.kind_canonical],
             this._runtime.simpleCombine(() => new Ast.Value.Entity(device.kind, 'tt:device', null)));
 
         const classDef = await this._schemas.getFullMeta(device.kind);
-        await Promise.all(Object.values(classDef.queries).map(async (q) => {
-            if (this.whiteList && !this.whiteList.includes(q.name.toLowerCase()))
-                return;
-            await this._makeExampleFromQuery(q);
-        }));
+        await Promise.all(Object.values(classDef.queries).map(this._loadFunction.bind(this)));
+        await Promise.all(Object.values(classDef.actions).map(this._loadFunction.bind(this)));
     }
 
     async _isIdEntity(idEntity) {
@@ -471,6 +573,8 @@ class ThingpediaLoader {
         let [prefix, suffix] = idEntity.split(':');
         if (prefix === 'tt')
             return false;
+        if (this.idQueries.has(idEntity))
+            return true;
 
         let classDef;
         try {
@@ -483,8 +587,10 @@ class ThingpediaLoader {
             const query = classDef.queries[suffix];
             if (query.hasArgument('id')) {
                 const id = query.getArgument('id');
-                if (id.type.isEntity && id.type.type === idEntity)
+                if (id.type.isEntity && id.type.type === idEntity) {
+                    this.idQueries.set(idEntity, query);
                     return true;
+                }
             }
         }
         return false;

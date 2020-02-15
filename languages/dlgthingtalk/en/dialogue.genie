@@ -462,6 +462,7 @@ negative_recommendation_reply_pair = {
 negative_proposal_reply_pair = {
     ( prop:system_generic_proposal '<sep>' negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
     | prop:system_generic_proposal '<sep>' negative_proposal_answer_preamble request:anything_phrase
+    | prop:system_generic_proposal '<sep>' ('no ,' | '') request:generic_answer
     ) => {
         if (!C.isSameFunction(prop.schema, request.schema))
             return null;
@@ -470,24 +471,6 @@ negative_proposal_reply_pair = {
             return null;
         return [prop, request];
     };
-
-    /*
-    ( prop:system_direct_proposal '<sep>' ('no ,' | '') request:generic_answer
-    | prop:system_direct_proposal '<sep>' ('no ,' | '') request:generic_domain_answer
-    | prop:system_generic_proposal '<sep>' ('no ,' | '') request:generic_answer
-    | prop:system_generic_proposal '<sep>' ('no ,' | '') request:generic_domain_answer
-    ) => {
-        if (prop.domain !== null && req.domain !== null && prop.domain !== req.domain)
-            return null;
-        return [prop, req];
-    };
-    */
-
-    /*
-    prop:system_direct_proposal '<sep>' generic_negative_proposal_reply => {
-        return [prop, new Ast.DialogState];
-    };
-    */
 }
 
 positive_recommendation_reply_pair = {
@@ -500,7 +483,7 @@ positive_proposal_reply_pair = {
 
 
 initial_command = {
-    ( stmt:action_command
+    ( stmt:action_command [weight=10]
     | stmt:search_command
     | stmt:complete_question [weight=0.1]
     | stmt:projection_question [weight=0.1]

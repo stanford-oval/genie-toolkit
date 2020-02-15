@@ -53,8 +53,7 @@ two_if_filter_table = {
 // (2) which filtered: restaurants which have name bla
 // (3) "clean" filtered (i.e., no which/with): chinese restaurants, reviews written by bob
 with_filtered_table = {
-    // no filter
-    !always_filter complete_table;
+    thingpedia_query if complete;
 
     // one filter
     one_with_filter_table;
