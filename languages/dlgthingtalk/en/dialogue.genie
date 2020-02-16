@@ -35,6 +35,7 @@ context ctx_init,
     ctx_greet,
     ctx_with_result,
     ctx_with_action,
+    ctx_with_result_and_action,
     ctx_search_command,
     ctx_empty_direct_question,
     ctx_direct_question,
@@ -91,6 +92,8 @@ context function (state) {
             return [tags, info];
         }
 
+        if (info.nextInfo)
+            tags.push('ctx_with_result_and_action');
         tags.push('ctx_with_result');
 
         if (!info.resultInfo.hasSingleResult) // we can refine
@@ -308,26 +311,20 @@ greeting = {
     'hi !';
 }
 
-greeting_reply = {
-    'hello , how can i help you ?';
-    'how can i help you ?';
-    'what are you interested in ?';
-    'what can i do for you ?';
-}
-
 info_noun_phrase = {
-    // one, two or three slots
-    one_with_filter_table;
-    one_which_filter_table;
-    one_clean_filter_table;
+    // one, two or three slots, without any "or", "not" or "comparison" filters
+    // only "and" and "contains"
+    table:one_with_filter_table => D.checkInfoFilter(table);
+    table:one_which_filter_table => D.checkInfoFilter(table);
+    table:one_clean_filter_table => D.checkInfoFilter(table);
 
-    two_with_filter_table;
-    two_which_filter_table;
-    two_clean_filter_table;
+    table:two_with_filter_table [weight=0.33] => D.checkInfoFilter(table);
+    table:two_which_filter_table [weight=0.33] => D.checkInfoFilter(table);
+    table:two_clean_filter_table [weight=0.33] => D.checkInfoFilter(table);
 
-    three_with_filter_table;
-    three_which_filter_table;
-    three_clean_filter_table;
+    table:three_with_filter_table [weight=0.33*0.5] => D.checkInfoFilter(table);
+    table:three_which_filter_table [weight=0.33*0.5] => D.checkInfoFilter(table);
+    table:three_clean_filter_table [weight=0.33*0.5] => D.checkInfoFilter(table);
 }
 
 the_base_noun_phrase = {
@@ -338,7 +335,10 @@ the_base_noun_phrase = {
 
 for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
     coref_action_phrase = {
-        action:thingpedia_action ('it' | 'this' | 'that') [-> pname] => {
+        ( action:thingpedia_action 'it'
+        | action:thingpedia_action 'this'
+        | action:thingpedia_action 'that'
+        ) [-> pname] => {
             const type = action.schema.getArgType(pname);
             if (!type || !type.isEntity)
                 return null;
@@ -353,6 +353,19 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
         };
     }
 
+    list_coref_action_phrase = {
+        ( action:thingpedia_action 'either one'
+        | action:thingpedia_action 'either of them'
+        | action:thingpedia_action 'any of them'
+        | action:thingpedia_action 'any one of them'
+        ) [-> pname] => {
+            const type = action.schema.getArgType(pname);
+            if (!type || !type.isEntity)
+                return null;
+            return action.invocation;
+        };
+    }
+
     direct_action_phrase = {
         action:thingpedia_action name:constant_name [-> pname { isConstant: true }] =>
             C.replacePlaceholderWithConstant(action, pname, name);
@@ -360,18 +373,25 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
 }
 
 system_direct_proposal_short = {
-    ctx:ctx_with_result 'how about the' proposal:constant_name '?'
+    ctx:ctx_with_result_and_action 'how about' proposal:constant_name
         => D.makeRecommendation(ctx, proposal);
 }
 
 action_recommendation = {
-    ctx:ctx_with_result 'would you like to' action:direct_action_phrase '?' if complete [weight=0.1]
+    ctx:ctx_with_result 'would you like to' action:direct_action_phrase if complete [weight=0.1]
         => D.makeActionRecommendation(ctx, action.invocation);
 }
 
+have_found_preamble = {
+    'i have';
+    'i see';
+    'i have found';
+}
+
 actionable_system_direct_proposal_short = {
-    ( ctx:ctx_with_result 'i' ('recommend' | 'suggest') 'the' proposal:constant_name '.'
-    | ctx:ctx_with_result 'i' ('have' | 'see') 'the' proposal:constant_name '.'
+    ( ctx:ctx_with_result_and_action 'i' ('recommend' | 'suggest') proposal:constant_name
+    | ctx:ctx_with_result have_found_preamble proposal:constant_name
+    | ctx:ctx_with_result 'there is' proposal:constant_name
     ) => D.makeRecommendation(ctx, proposal);
 }
 
@@ -379,6 +399,21 @@ action_offer = {
     ( 'would you like to' action:direct_action_phrase '?'
     | 'would you like me to' action:direct_action_phrase ' for you ?'
     ) if complete => action.invocation;
+}
+
+learn_more_offer = {
+    'would you like to learn more ?';
+    'would you like to know more about it ?';
+    'would you like to hear more about it ?';
+    'are you interested to hear more about it ?';
+}
+
+list_learn_more_offer = {
+    'would you like to learn more ?';
+    'would you like to learn more about either of them ?';
+    'would you like to know more about them ?';
+    'would you like to hear more about them ?';
+    'are you interested to hear more about any of them ?';
 }
 
 proposal_info_action_pair = {
@@ -396,17 +431,20 @@ proposal_info_action_pair = {
 // the action can come from the context (if the user expressed it earlier), or it can
 // be offered immediately
 system_direct_proposal = {
-    ( ctx_with_action proposal:system_direct_proposal_short [weight=10]
-    | ctx_with_action proposal:actionable_system_direct_proposal_short
+    ( ctx_with_action proposal:system_direct_proposal_short '.' [weight=10]
+    | ctx_with_action proposal:actionable_system_direct_proposal_short '.'
+    | ctx_with_action proposal:actionable_system_direct_proposal_short '.' learn_more_offer
     ) => proposal;
     action_recommendation;
-
     proposal:actionable_system_direct_proposal_short action:action_offer
         => D.checkActionForRecommendation(proposal, action);
 
-    ( proposal:system_direct_proposal_short 'it is a' info:info_noun_phrase '.' [weight=10]
-    | proposal:action_recommendation 'it is a' info:info_noun_phrase '.'
-    | proposal:actionable_system_direct_proposal_short 'it is a' info:info_noun_phrase '.'
+    ( proposal:system_direct_proposal_short '?' 'it is a' info:info_noun_phrase '.' [weight=10]
+    | proposal:action_recommendation '?' 'it is a' info:info_noun_phrase '.'
+    | proposal:actionable_system_direct_proposal_short '.' 'it is a' info:info_noun_phrase '.'
+    | proposal:system_direct_proposal_short ', which is a' info:info_noun_phrase '.' [weight=10]
+    | proposal:action_recommendation ', which is a' info:info_noun_phrase '.'
+    | proposal:actionable_system_direct_proposal_short ', which is a' info:info_noun_phrase '.'
     ) => D.checkRecommendation(proposal, info);
 
     proposal:actionable_system_direct_proposal_short pair:proposal_info_action_pair => {
@@ -418,15 +456,95 @@ system_direct_proposal = {
     };
 }
 
+result_name_pair = {
+    ctx:ctx_with_result n1:constant_name ',' n2:constant_name => {
+        const results = ctx.current.results.results;
+        assert(results.length > 0);
+        if (results.length < 2)
+            return null;
+        if (!ctx.resultInfo.hasID)
+            return null;
+
+        const r1 = results[0];
+        const r2 = results[1];
+        if (!r1.value.id.equals(n1) || !r2.value.id.equals(n2))
+            return null;
+        return results.slice(0, 2);
+    };
+}
+
+result_name_list = {
+    ctx:ctx_with_result n1:constant_name ('and' | 'or') n2:constant_name => {
+        const results = ctx.current.results.results;
+        assert(results.length > 0);
+        if (results.length < 2)
+            return null;
+        if (!ctx.resultInfo.hasID)
+            return null;
+
+        const r1 = results[0];
+        const r2 = results[1];
+        if (!r1.value.id.equals(n1) || !r2.value.id.equals(n2))
+            return null;
+        return results.slice(0, 2);
+    };
+
+    ctx:ctx_with_result result_name_pair ('and' | 'or') n3:constant_name => {
+        const results = ctx.current.results.results;
+        assert(results.length > 0);
+        if (results.length < 3)
+            return null;
+        if (!ctx.resultInfo.hasID)
+            return null;
+        const r3 = results[2];
+        if (!r3.value.id.equals(n3))
+            return null;
+        return results.slice(0, 3);
+    };
+}
+
+// a "list proposal" consists of the first few results of the current query,
+// together with informative results about them, an offer to learn more, or an offer for an action
+//
+system_list_proposal = {
+    ( have_found_preamble name_list:result_name_list '.'
+    | have_found_preamble name_list:result_name_list '.' list_learn_more_offer
+    ) => [name_list, null, null];
+
+    have_found_preamble name_list:result_name_list '.' ('they' | 'all of them') 'are' info:info_noun_phrase '.'
+        => D.checkListProposal(name_list, null, info);
+
+    have_found_preamble name_list:result_name_list '.' 'both are' info:info_noun_phrase '.' => {
+        if (name_list.length !== 2)
+            return null;
+        return D.checkListProposal(name_list, null, info);
+    };
+
+    have_found_preamble name_list:result_name_list '.' 'would you like to' action:list_coref_action_phrase '?' => {
+        const resultType = name_list[0].value.id.getType();
+        if (!C.hasArgumentOfType(action, resultType))
+            return null;
+
+        return [name_list, null, action];
+    };
+}
+
 negative_proposal_answer_preamble = {
-    'no i need';
+    'i need';
     'i was thinking more of';
     'i would like';
-    'no , i would like';
+    'i would like';
     'i am looking for';
     'do you have';
     'can you find';
     'is there';
+    'that does not sound great , do you have';
+}
+
+specific_negative_proposal_preamble = {
+    ( ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:answer_noun_phrase
+    | ('i am not in the mood for' | 'i do not like' | 'i do not want') phrase:anything_phrase
+    ) => phrase;
 }
 
 generic_negative_proposal_reply = {
@@ -442,12 +560,161 @@ system_generic_proposal = {
 accept_phrase = {
     'i like that';
     'yes i like that';
+    'sure i like that';
     'sounds good';
 }
 
+tell_me_more_phrase = {
+    'can you tell me more ?';
+    'can you tell me more about it ?';
+    'can you give me more info ?';
+    'give me more info !';
+    'give me more information .';
+    'tell me more .';
+}
+
+verbose_negative_list_proposal_reply_pair = {
+    prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') preamble:specific_negative_proposal_preamble => {
+        const [results, info, action] = prop;
+        if (info === null)
+            return null;
+        if (!D.isValidNegativePreambleForInfo(info, preamble))
+            return null;
+        return [results, preamble];
+    };
+}
+
+negative_list_proposal_reply_pair = {
+    ( prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
+    | prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble request:anything_phrase
+    ) => {
+        const [results, info, action] = prop;
+        const proposalType = results[0].value.id.getType();
+        const idType = request.schema.getArgType('id');
+
+        if (!idType || !idType.equals(proposalType))
+            return null;
+        return [results, action, request];
+    };
+
+    pair:verbose_negative_list_proposal_reply_pair [weight=5] => {
+        const [results, action, preamble] = pair;
+        // convert the preamble into a request by negating it
+        const clone = preamble.clone();
+        clone.filter = new Ast.BooleanExpression.Not(null, clone.filter);
+        return [results, action, clone];
+    };
+
+    ( pair:verbose_negative_list_proposal_reply_pair negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
+    | pair:verbose_negative_list_proposal_reply_pair negative_proposal_answer_preamble request:anything_phrase
+    ) => D.mergePreambleAndRequest(pair, request);
+}
+
+positive_list_proposal_reply_pair = {
+    ( prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') ('i like' | 'i am interested in' | 'i am intrigued by') name:constant_name '.' [weight=0.5]
+    | prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') name:constant_name 'sounds' ('good' | 'really good' | 'nice' | 'interesting') '.' [weight=0.5]
+    ) => {
+        const [results, info, actionProposal] = prop;
+        let good = false;
+        for (let result of results) {
+            if (result.value.id.equals(name)) {
+                good = true;
+                break;
+            }
+        }
+        if (!good)
+            return false;
+
+        return [results, actionProposal, name, actionProposal];
+    };
+
+    prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') ('i will go' | 'i will take' | 'i am good for') name:constant_name '.' => {
+        const [results, info, actionProposal] = prop;
+        if (actionProposal === null)
+            return null;
+        let good = false;
+        for (let result of results) {
+            if (result.value.id.equals(name)) {
+                good = true;
+                break;
+            }
+        }
+        if (!good)
+            return false;
+
+        return [results, actionProposal, name, actionProposal];
+    };
+
+    ( prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') 'can you tell me more about' name:constant_name '?' [weight=0.33]
+    | prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') ('i like' | 'i am interested in' | 'i am intrigued by') name:constant_name '.' tell_me_more_phrase [weight=0.33]
+    | prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') name:constant_name 'sounds' ('good' | 'really good' | 'nice' | 'interesting') '.' tell_me_more_phrase [weight=0.33]
+    ) => {
+        const [results, info, actionProposal] = prop;
+        let good = false;
+        for (let result of results) {
+            if (result.value.id.equals(name)) {
+                good = true;
+                break;
+            }
+        }
+        if (!good)
+            return false;
+
+        // set the action to null, which will hit the "tell me more" path
+        return [results, actionProposal, name, null];
+    };
+}
+
+verbose_negative_proposal_reply_pair = {
+    prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') preamble:specific_negative_proposal_preamble => {
+        if (!D.isValidNegativePreambleForInfo(prop, preamble))
+            return null;
+        return [prop, preamble];
+    };
+}
+
+negative_proposal_reply_pair = {
+    ( prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
+    | prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble request:anything_phrase
+    | prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') request:generic_answer
+    ) => {
+        if (!C.isSameFunction(prop.schema, request.schema))
+            return null;
+        const refined = D.refineFilterToChangeFilter(prop.filter, request.filter);
+        if (refined === null)
+            return null;
+        return [prop, request];
+    };
+
+    pair:verbose_negative_proposal_reply_pair [weight=5] => {
+        const [prop, preamble] = pair;
+        // convert the preamble into a request by negating it
+        const clone = preamble.clone();
+        clone.filter = new Ast.BooleanExpression.Not(null, clone.filter);
+        return [prop, clone];
+    };
+
+    ( pair:verbose_negative_proposal_reply_pair negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
+    | pair:verbose_negative_proposal_reply_pair negative_proposal_answer_preamble request:anything_phrase
+    ) => D.mergePreambleAndRequest(pair, request);
+}
+
+positive_proposal_reply_pair = {
+    prop:system_generic_proposal '<sep>' accept_phrase => [prop, prop];
+}
+
+verbose_negative_recommendation_reply_pair = {
+    prop:system_direct_proposal '<sep>' ('no ,' | 'no' | '') preamble:specific_negative_proposal_preamble => {
+        const [topResult, action] = prop;
+        if (D.isFilterCompatibleWithResult(topResult, preamble.filter))
+            return null;
+        return [topResult, action, preamble];
+    };
+}
+
 negative_recommendation_reply_pair = {
-    ( prop:system_direct_proposal '<sep>' negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
-    | prop:system_direct_proposal '<sep>' negative_proposal_answer_preamble request:anything_phrase
+    ( prop:system_direct_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
+    | prop:system_direct_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble request:anything_phrase
     ) => {
         const [topResult, action] = prop;
         const proposalType = topResult.value.id.getType();
@@ -457,28 +724,40 @@ negative_recommendation_reply_pair = {
             return null;
         return [topResult, action, request];
     };
-}
 
-negative_proposal_reply_pair = {
-    ( prop:system_generic_proposal '<sep>' negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
-    | prop:system_generic_proposal '<sep>' negative_proposal_answer_preamble request:anything_phrase
-    | prop:system_generic_proposal '<sep>' ('no ,' | '') request:generic_answer
-    ) => {
-        if (!C.isSameFunction(prop.schema, request.schema))
-            return null;
-        const refined = D.refineFilterToChangeFilter(prop.filter, request.filter);
-        if (refined === null)
-            return null;
-        return [prop, request];
+    pair:verbose_negative_recommendation_reply_pair [weight=5] => {
+        const [topResult, action, preamble] = pair;
+        // convert the preamble into a request by negating it
+        const clone = preamble.clone();
+        clone.filter = new Ast.BooleanExpression.Not(null, clone.filter);
+        return [topResult, action, clone];
     };
 }
 
 positive_recommendation_reply_pair = {
-    prop:system_direct_proposal '<sep>' accept_phrase [weight=10] => prop;
-}
+    prop:system_direct_proposal '<sep>' accept_phrase [repeat=true] => {
+        const [topResult, actionProposal] = prop;
+        // if the user did not give an action earlier, and no action
+        // was proposed by the agent right now, the flow is roughly
+        //
+        // U: hello i am looking for a restaurant
+        // A: how about the ... ?
+        // U: sure I like that
+        //
+        // this doesn't make much sense, so we don't want this flow
+        if (actionProposal === null)
+            return null;
 
-positive_proposal_reply_pair = {
-    prop:system_generic_proposal '<sep>' accept_phrase => [prop, prop];
+        return [topResult, actionProposal, action];
+    };
+
+    ( prop:system_direct_proposal '<sep>' tell_me_more_phrase [weight=0.5]
+    | prop:system_direct_proposal '<sep>' accept_phrase tell_me_more_phrase [weight=0.5]
+    ) => {
+        const [topResult, actionProposal] = prop;
+        // set the action to null, which will hit the "tell me more" path
+        return [topResult, actionProposal, null];
+    };
 }
 
 
@@ -487,14 +766,9 @@ initial_command = {
     | stmt:search_command
     | stmt:complete_question [weight=0.1]
     | stmt:projection_question [weight=0.1]
-    | greeting stmt:action_command
-    | greeting stmt:complete_question [weight=0.1]
-    | greeting stmt:projection_question [weight=0.1]
     ) => stmt;
 
-    ( prog:initial_program
-    | greeting prog:initial_program
-    ) => {
+    prog:initial_program => {
         if (prog.rules.length !== 1)
             return null;
         return prog.rules[0];
@@ -502,25 +776,23 @@ initial_command = {
 }
 
 $root = {
-    ctx:ctx_init greeting =>
+    ctx:ctx_init greeting [weight=0.01] =>
         D.checkStateIsValid(ctx, null, new Ast.DialogueState(null, D.POLICY_NAME, 'greet', null, []));
 
-    ctx:ctx_init stmt:initial_command => {
+    ( ctx:ctx_init stmt:initial_command [weight=0.5]
+    | ctx:ctx_init greeting stmt:initial_command [weight=0.5]
+    ) => {
         const userState = D.initialRequest(stmt);
         if (userState === null)
             return null;
         return D.checkStateIsValid(ctx, null, userState);
     };
 
-    ( ctx:ctx_greet greeting_reply '<sep>' stmt:action_command
-    | ctx:ctx_greet greeting_reply '<sep>' stmt:search_command
-    | ctx:ctx_greet greeting_reply '<sep>' stmt:complete_question [weight=0.1]
-    | ctx:ctx_greet greeting_reply '<sep>' stmt:projection_question [weight=0.1]
-    ) => {
+    ctx:ctx_greet ('hello' | 'hi') ('!' ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?' '<sep>' stmt:initial_command => {
         const userState = D.initialRequest(stmt);
         if (userState === null)
             return null;
-        const sysState = D.makeSimpleSystemState(ctx, 'sys_greet', null);
+        const sysState = D.makeSimpleState(ctx, 'sys_greet', null);
         return D.checkStateIsValid(ctx, sysState, userState);
     };
 
@@ -542,4 +814,9 @@ $root = {
         => D.negativeRecommendationReplyPair(ctx, pair);
     ctx:ctx_complete_search_command pair:positive_recommendation_reply_pair [weight=10]
         => D.positiveRecommendationReplyPair(ctx, pair);
+
+    ctx:ctx_complete_search_command pair:negative_list_proposal_reply_pair
+        => D.negativeListProposalReplyPair(ctx, pair);
+    ctx:ctx_complete_search_command pair:positive_list_proposal_reply_pair [weight=10]
+        => D.positiveListProposalReplyPair(ctx, pair);
 }

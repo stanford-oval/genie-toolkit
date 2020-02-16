@@ -95,7 +95,9 @@ if_filter = {
     p:the_out_param_String 'does not' ('contain' | 'include') x:constant_String => C.makeFilter(p, '=~', x, true);
     x:constant_String 'is in' p:the_out_param_String => C.makeFilter(p, '=~', x);
 
-    !turking range_filter;
+    !turking {
+        ?range_filters range_filter;
+    }
     //!turking f:either_filter => f;
 }
 
@@ -300,7 +302,7 @@ with_filter = {
     ('earlier' | 'sooner') p:out_param_Time 'than' x:constant_Time => C.makeFilter(p, '<=', x);
 
     !turking {
-        f:range_with_filter => f;
+        ?range_filters f:range_with_filter => f;
         'no' param:out_param_Number => C.makeFilter(param, '==', Ast.Value.Number(0));
         'zero' param:out_param_Number => C.makeFilter(param, '==', Ast.Value.Number(0));
     }

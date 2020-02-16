@@ -49,12 +49,13 @@ const SYSTEM_DIALOGUE_ACTS = new Set([
     'sys_generic_search_question',
     // agent asks a question to slot fill a program
     'sys_slot_fill',
-    // agent recommends the result from the program
+    // agent recommends one, two, or three results from the program (with or without an action)
     'sys_recommend_one',
+    'sys_recommend_two',
+    'sys_recommend_three',
     // agent proposes a refined query
     'sys_propose_refined_query',
     // agent recommends/suggests an action
-    'sys_recommend_action',
 ]);
 
 const SYSTEM_STATE_MUST_HAVE_PARAM = new Set([
@@ -106,6 +107,8 @@ class ResultInfo {
         this.hasEmptyResult = item.results.results.length === 0;
         this.hasSingleResult = item.results.results.length === 1;
         this.hasLargeResult = isLargeResultSet(item.results);
+        this.hasID = item.results.results.length > 0 &&
+            !!item.results.results[0].value.id;
     }
 }
 
@@ -243,6 +246,53 @@ function isFilterCompatibleWithResult(topResult, filter) {
     }
 }
 
+function isInfoPhraseCompatibleWithResult(topResult, filter) {
+    if (filter.isTrue)
+        return true;
+    if (filter.isFalse)
+        return false;
+    if (filter.isAnd)
+        return filter.operands.every((op) => isInfoPhraseCompatibleWithResult(topResult, op));
+
+    // remove or and not filters from info_phrases
+    if (filter.isOr || filter.isNot)
+        return false;
+    // remove get predicates and compute
+    if (filter.isExternal || filter.isCompute)
+        return false;
+
+    const values = topResult.value;
+
+    // if the value was not returned, don't verbalize it
+    if (!values[filter.name])
+        return false;
+
+    const resultValue = topResult.value[filter.name];
+
+    switch (filter.operator) {
+    case '==':
+    case '=~':
+        // approximate: all strings are made up so we don't need a true likeTest here
+        return resultValue.toJS() === filter.value.toJS();
+
+    // FIXME these would be correct and make good sentences
+    // ("the X is a restaurant with more than Y reviews")
+    // but in neural syntax the NLG would generate
+    // "the X is a restaurant with more than NUMBER_0 reviews" where NUMBER_0 does not
+    // appear in the context and that makes no sense
+    /*
+    case '>=':
+        return resultValue.toJS() >= filter.value.toJS();
+    case '<=':
+        return resultValue.toJS() <= filter.value.toJS();
+    */
+
+    default:
+        // remove
+        return false;
+    }
+}
+
 function makeActionRecommendation(ctx, action) {
     assert(action instanceof Ast.Invocation);
 
@@ -251,6 +301,8 @@ function makeActionRecommendation(ctx, action) {
 
     const topResult = results[0];
     const id = topResult.value.id;
+    if (!id)
+        return null;
 
     for (let param of action.in_params) {
         if (param.value.equals(id))
@@ -273,6 +325,25 @@ function makeRecommendation(ctx, name) {
     return [topResult, ctx.nextInfo && ctx.nextInfo.isAction ? getActionInvocation(ctx.next) : null];
 }
 
+function checkInfoFilter(table) {
+    assert(table.isFilter && table.table.isInvocation);
+
+    const ok = (function recursiveHelper(filter) {
+        if (filter.isTrue || filter.isFalse)
+            return true;
+        if (filter.isCompute || filter.isExternal || filter.isOr || filter.isNot)
+            return false;
+        if (filter.isAnd)
+            return filter.operands.every(recursiveHelper);
+
+        return ['==', '=~', 'contains'].includes(filter.operator);
+    })(table.filter);
+    if (ok)
+        return table;
+    else
+        return null;
+}
+
 function checkRecommendation([topResult, nextAction], info) {
     const resultType = topResult.value.id.getType();
     const idType = info.schema.getArgType('id');
@@ -281,10 +352,64 @@ function checkRecommendation([topResult, nextAction], info) {
         return null;
 
     assert(info.isFilter && info.table.isInvocation);
-    if (!isFilterCompatibleWithResult(topResult, info.filter))
+    if (!isInfoPhraseCompatibleWithResult(topResult, info.filter))
         return null;
 
     return [topResult, nextAction];
+}
+
+function checkListProposal(results, action, info) {
+    const resultType = results[0].value.id.getType();
+    const idType = info.schema.getArgType('id');
+
+    if (!idType || !idType.equals(resultType))
+        return null;
+
+    assert(info.isFilter && info.table.isInvocation);
+    for (let result of results) {
+        if (!isInfoPhraseCompatibleWithResult(result, info.filter))
+            return null;
+    }
+
+    return [results, info, action];
+}
+
+function isValidNegativePreambleForInfo(info, preamble) {
+    const slots = filterToSlots(info.filter);
+    for (let key in slots) {
+        if (!slots[key].isAtom || !['==', '=~', 'contains'].includes(slots[key].operator))
+            return null;
+    }
+
+    let clauses;
+    if (preamble.isAnd)
+        clauses = preamble.operands;
+    else
+        clauses = [preamble];
+    for (let clause of clauses) {
+        if (!clause.isAtom)
+            return false;
+        if (!slots[clause.name])
+            return false;
+        const infovalue = slots[clause.name].value;
+
+        if (clause.operator === 'in_array') {
+            if (!clause.value.isArray)
+                return false;
+            let good = false;
+            for (let value of clause.value.value) {
+                if (value.equals(infovalue)) {
+                    good = true;
+                    break;
+                }
+            }
+            if (!good)
+                return false;
+        } else if (!clause.value.equals(infovalue)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function checkActionForRecommendation([topResult, nextAction], action) {
@@ -315,6 +440,19 @@ function makeRefinementProposal(ctx, proposal) {
     if (refinedFilter === null)
         return null;
     return proposal;
+}
+
+function mergePreambleAndRequest(pair, request) {
+    const preamble = pair[pair.length-1];
+    const refined = refineFilterToChangeFilter(preamble, request);
+    if (refined === null)
+        return null;
+
+    // convert the preamble into a request by negating it, then add the new request
+    return [...pair.slice(0, pair.length-1), new Ast.Table.Filter(null, request.table, new Ast.BooleanExpression.And(null, [
+        new Ast.BooleanExpression.Not(null, preamble.filter),
+        request.filter
+    ]), request.schema)];
 }
 
 function initialRequest(stmt) {
@@ -503,6 +641,8 @@ function refineFilterToAnswerQuestion(ctxFilter, refinedFilter) {
 }
 
 function filterToSlots(filter) {
+    const names = Array.from(C.iterateFields(filter)).map((f) => f.name);
+
     filter = filter.optimize();
     let operands, slots = {};
     if (filter.isAnd)
@@ -515,6 +655,15 @@ function filterToSlots(filter) {
             continue;
 
         slots[operand.name] = operand;
+    }
+
+    for (let name of names) {
+        if (!slots[name]) {
+            console.error(filter);
+            console.error(slots);
+            console.error(filter.prettyprint());
+            throw new Error('???');
+        }
     }
 
     return slots;
@@ -557,7 +706,7 @@ function queryRefinement(ctxTable, newFilter, refineFilter) {
     return ctxTable;
 }
 
-function makeSimpleSystemState(ctx, dialogueAct, dialogueActParam) {
+function makeSimpleState(ctx, dialogueAct, dialogueActParam) {
     return new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, ctx.state.history);
 }
 
@@ -595,9 +744,9 @@ function preciseSearchQuestionAnswer(ctx, [question, answer]) {
     const userState = overrideCurrentQuery(clone, newTable);
     let sysState;
     if (question === '')
-        sysState = makeSimpleSystemState(ctx, 'sys_generic_search_question', null);
+        sysState = makeSimpleState(ctx, 'sys_generic_search_question', null);
     else
-        sysState = makeSimpleSystemState(ctx, 'sys_search_question', question);
+        sysState = makeSimpleState(ctx, 'sys_search_question', question);
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -624,7 +773,7 @@ function impreciseSearchQuestionAnswer(ctx, preamble, [question, answer]) {
     if (newTable === null)
         return null;
     const userState = overrideCurrentQuery(clone, newTable);
-    const sysState = makeSimpleSystemState(ctx, 'sys_search_question', question);
+    const sysState = makeSimpleState(ctx, 'sys_search_question', question);
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -719,6 +868,41 @@ function addActionParam(ctxClone, dialogueAct, action, pname, value, confirm = f
     return state;
 }
 
+
+function addAction(ctxClone, dialogueAct, action, confirm = false) {
+    assert(action instanceof Ast.Invocation);
+    const state = ctxClone.state;
+    state.dialogueAct = dialogueAct;
+    state.dialogueActParam = null;
+
+    if (ctxClone.nextInfo) {
+        const nextInvocation = getActionInvocation(ctxClone.next);
+        if (C.isSameFunction(nextInvocation.schema, action.schema)) {
+            ctxClone.next.results = null;
+            ctxClone.next.confirm = confirm;
+            return state;
+        }
+    }
+
+    let newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
+        new Ast.Invocation(null,
+            action.selector,
+            action.channel,
+            [],
+            action.schema
+        ),
+        action.schema
+    )]);
+    let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
+
+    // wipe everything from state after the current program
+    // this will remove all intermediate results between the current program and the next one,
+    // and remove the next program, if any
+
+    state.history.splice(ctxClone.currentIdx+1, state.history.length-(ctxClone.currentIdx+1), newHistoryItem);
+    return state;
+}
+
 function findChainParam(topResult, action) {
     const resultType = topResult.value.id.getType();
 
@@ -749,28 +933,90 @@ function negativeRecommendationReplyPair(ctx, [topResult, action, request]) {
     const userState = overrideCurrentQuery(clone, newTable);
     let sysState;
     if (action === null)
-        sysState = makeSimpleSystemState(ctx, 'sys_recommend_one', null);
+        sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
     else
-        sysState = addActionParam(ctx.clone(), 'sys_recommend_action', action, findChainParam(topResult, action), topResult.value.id);
+        sysState = addActionParam(ctx.clone(), 'sys_recommend_one', action, findChainParam(topResult, action), topResult.value.id);
     return checkStateIsValid(ctx, sysState, userState);
 }
 
-function positiveRecommendationReplyPair(ctx, [topResult, action]) {
-    // if the user did not give an action earlier, and no action
-    // was proposed by the agent right now, the flow is roughly
-    //
-    // U: hello i am looking for a restaurant
-    // A: how about the ... ?
-    // U: sure I like that
-    //
-    // this doesn't make much sense, so we don't want this flow
-    if (action === null)
+function positiveRecommendationReplyPair(ctx, [topResult, actionProposal, acceptedAction]) {
+
+    // if acceptedAction === null, the user wants to know more about the result before
+    // making a decision
+    let userState;
+    if (acceptedAction === null) {
+        userState = makeSimpleState(ctx, 'learn_more', null);
+    } else {
+        const chainParam = findChainParam(topResult, acceptedAction);
+        userState = addActionParam(ctx.clone(), 'execute', acceptedAction, chainParam, topResult.value.id);
+    }
+
+    let sysState;
+    if (actionProposal === null) {
+        sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
+    } else {
+        const chainParam = findChainParam(topResult, actionProposal);
+        sysState = addActionParam(ctx.clone(), 'sys_recommend_one', actionProposal, chainParam, topResult.value.id);
+    }
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
+function negativeListProposalReplyPair(ctx, [results, action, request]) {
+    const requestFunctions = C.getFunctionNames(request);
+    assert(requestFunctions.length === 1);
+    if (requestFunctions[0] !== ctx.currentFunction)
+        return null;
+    assert(request.isFilter && request.table.isInvocation);
+
+    const clone = ctx.clone();
+    const cloneTable = clone.current.stmt.table;
+    const newTable = queryRefinement(cloneTable, request.filter, refineFilterToAnswerQuestion);
+    if (newTable === null)
         return null;
 
-    const chainParam = findChainParam(topResult, action);
+    const userState = overrideCurrentQuery(clone, newTable);
 
-    const userState = addActionParam(ctx.clone(), 'execute', action, chainParam, topResult.value.id);
-    const sysState = addActionParam(ctx.clone(), 'sys_recommend_action', action, chainParam, topResult.value.id);
+    let dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
+    let sysState;
+    if (action === null)
+        sysState = makeSimpleState(ctx, dialogueAct, null);
+    else
+        sysState = addAction(ctx.clone(), dialogueAct, action);
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
+function positiveListProposalReplyPair(ctx, [results, actionProposal, name, acceptedAction]) {
+
+    // if actionProposal === null the flow is roughly
+    //
+    // U: hello i am looking for a restaurant
+    // A: how about the ... or the ... ?
+    // U: I like the ... bla
+    //
+    // in this case, the agent should hit the "... is a ... restaurant in the ..."
+    // we treat it as "execute" dialogue act and add a filter that causes the program to return a single result
+
+    let userState;
+    if (acceptedAction === null) {
+        const clone = ctx.clone();
+        const cloneTable = clone.current.stmt.table;
+        const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
+        const newTable = queryRefinement(cloneTable, namefilter, (one, two) => new Ast.BooleanExpression.And(null, [one, two]));
+        if (newTable === null)
+            return null;
+
+        userState = overrideCurrentQuery(clone, newTable);
+    } else {
+        const chainParam = findChainParam(results[0], acceptedAction);
+        userState = addActionParam(ctx.clone(), 'execute', acceptedAction, chainParam, name);
+    }
+
+    let dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
+    let sysState;
+    if (acceptedAction === null)
+        sysState = makeSimpleState(ctx, dialogueAct, null);
+    else
+        sysState = addAction(ctx.clone(), dialogueAct, acceptedAction);
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -801,7 +1047,7 @@ module.exports = {
     checkStateIsValid,
 
     // system state manipulation
-    makeSimpleSystemState,
+    makeSimpleState,
 
     // user state manipulation,
     overrideCurrentQuery,
@@ -809,15 +1055,20 @@ module.exports = {
     // helpers
     getContextInfo,
     isQueryAnswerValidForQuestion,
+    isValidNegativePreambleForInfo,
+    isFilterCompatibleWithResult,
+    checkInfoFilter,
 
     // system dialogue acts
     makeActionRecommendation,
     makeRecommendation,
     checkRecommendation,
+    checkListProposal,
     checkActionForRecommendation,
     makeRefinementProposal,
 
     // user dialogue acts
+    mergePreambleAndRequest,
     initialRequest,
     queryRefinement,
     refineFilterToAnswerQuestion,
@@ -829,5 +1080,7 @@ module.exports = {
     impreciseSearchQuestionAnswer,
     proposalReplyPair,
     negativeRecommendationReplyPair,
-    positiveRecommendationReplyPair
+    positiveRecommendationReplyPair,
+    negativeListProposalReplyPair,
+    positiveListProposalReplyPair
 };

@@ -61,9 +61,9 @@ with_filtered_table = {
     one_clean_filter_table;
 
     // two filters
-    two_with_filter_table;
-    two_which_filter_table;
-    two_clean_filter_table;
+    two_with_filter_table [weight=0.33];
+    two_which_filter_table [weight=0.33];
+    two_clean_filter_table [weight=0.33];
 }
 
 one_with_filter_table = {
@@ -144,6 +144,37 @@ three_clean_filter_table = {
     filter:apv_filter table:two_clean_filter_table => C.addFilter(table, filter);
     table:two_clean_filter_table filter:pvp_filter => C.addFilter(table, filter);
     table:two_clean_filter_table filter:preposition_filter => C.addFilter(table, filter);
+}
+
+anything_phrase = {
+    anything_with_filter_phrase;
+    anything_which_filter_phrase;
+    anything_clean_filter_phrase;
+}
+
+anything_with_filter_phrase = {
+    ('any' | 'some') phrase:generic_base_noun_phrase ('with' | 'having') filter:npp_filter => C.addFilter(phrase, filter);
+    phrase:generic_anything_noun_phrase ('with' | 'having') filter:npp_filter => C.addFilter(phrase, filter);
+}
+
+anything_which_filter_phrase = {
+    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('has' | 'have') filter:npp_filter => C.addFilter(phrase, filter);
+    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(phrase, filter);
+    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') filter:avp_filter => C.addFilter(phrase, filter);
+    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(phrase, filter);
+    phrase:generic_anything_noun_phrase ('which' | 'that') ('has' | 'have') filter:npp_filter => C.addFilter(phrase, filter);
+    phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(phrase, filter);
+    phrase:generic_anything_noun_phrase ('which' | 'that') filter:avp_filter => C.addFilter(phrase, filter);
+    phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(phrase, filter);
+}
+
+anything_clean_filter_phrase = {
+    ('any' | 'some') filter:apv_filter phrase:generic_base_noun_phrase => C.addFilter(phrase, filter);
+    ('any' | 'some') phrase:generic_base_noun_phrase filter:pvp_filter => C.addFilter(phrase, filter);
+    ('any' | 'some') phrase:generic_base_noun_phrase filter:preposition_filter => C.addFilter(phrase, filter);
+    phrase:generic_anything_noun_phrase filter:apv_filter => C.addFilter(phrase, filter);
+    phrase:generic_anything_noun_phrase filter:pvp_filter => C.addFilter(phrase, filter);
+    phrase:generic_anything_noun_phrase filter:preposition_filter => C.addFilter(phrase, filter);
 }
 
 // verb filter:
@@ -384,8 +415,4 @@ have_filtered_table_join = {
     table:verb_filtered_table ('and' | 'and have' | 'and also' | 'and in addition' | 'but also') get_predicate_table:with_filtered_table
         => C.addGetPredicateJoin(table, get_predicate_table, null);
     }
-}
-
-anything_phrase = {
-    // TODO
 }

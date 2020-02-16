@@ -482,6 +482,13 @@ class ThingpediaLoader {
             this._grammar.addRule('base_noun_phrase', [form], this._runtime.simpleCombine(() => functionName));
 
         const table = new Ast.Table.Invocation(null, invocation, q);
+
+        // FIXME English words should not be here
+        for (let form of ['anything', 'one', 'something'])
+            this._grammar.addRule('generic_anything_noun_phrase', [form], this._runtime.simpleCombine(() => table));
+        for (let form of ['option', 'choice'])
+            this._grammar.addRule('generic_base_noun_phrase', [form], this._runtime.simpleCombine(() => table));
+
         await this._loadTemplate(new Ast.Example(
             null,
             -1,
@@ -507,7 +514,7 @@ class ThingpediaLoader {
         const schemaClone = table.schema.clone();
         schemaClone.is_list = false;
         schemaClone.no_filter = true;
-        for (let i = 0; i < 50; i ++) {
+        for (let i = 0; i < 5; i ++) {
             this._grammar.addRule('constant_name', ['GENERIC_ENTITY_' + idType.type + '_' + i], this._runtime.simpleCombine(() => {
                 const value = new Ast.Value.Entity('str:ENTITY_' + idType.type + '::' + i + ':', idType.type, null);
                 /*const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', value);

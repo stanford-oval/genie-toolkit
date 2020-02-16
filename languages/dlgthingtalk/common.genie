@@ -130,8 +130,9 @@ apv_input_param = {}
 
 constant_name = {}
 
-base_noun_phrase = {
-}
+base_noun_phrase = {}
+generic_anything_noun_phrase = {}
+generic_base_noun_phrase = {}
 
 {
 const _tpLoader = require('./load-thingpedia');
