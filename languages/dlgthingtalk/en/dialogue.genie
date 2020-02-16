@@ -748,7 +748,7 @@ positive_recommendation_reply_pair = {
         if (actionProposal === null)
             return null;
 
-        return [topResult, actionProposal, action];
+        return [topResult, actionProposal, actionProposal];
     };
 
     ( prop:system_direct_proposal '<sep>' tell_me_more_phrase [weight=0.5]
