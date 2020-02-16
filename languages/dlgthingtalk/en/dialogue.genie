@@ -105,6 +105,10 @@ context function (state) {
         return [tags, info];
     }
 
+    case 'learn_more':
+        // TODO
+        return null;
+
     default:
         throw new Error(`Unexpected user dialogue act ${info.dialogueAct}`);
     }

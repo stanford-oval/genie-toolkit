@@ -39,6 +39,8 @@ const USER_DIALOGUE_ACTS = new Set([
     'greet',
     // user issues a ThingTalk program
     'execute',
+    // user wants to see more output from the previous result
+    'learn_more'
 ]);
 
 const SYSTEM_DIALOGUE_ACTS = new Set([
