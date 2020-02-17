@@ -25,9 +25,7 @@ constant_Number = {
     // rule if the flag is set
 
     !turking {
-    '0'    => new Ast.Value.Number(0);
     'zero' => new Ast.Value.Number(0);
-    '1'    => new Ast.Value.Number(1);
     'one'  => new Ast.Value.Number(1);
     }
 }
