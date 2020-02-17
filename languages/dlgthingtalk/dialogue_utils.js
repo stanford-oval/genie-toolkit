@@ -752,17 +752,47 @@ function preciseSearchQuestionAnswer(ctx, [question, answer]) {
     return checkStateIsValid(ctx, sysState, userState);
 }
 
-function impreciseSearchQuestionAnswer(ctx, preamble, [question, answer]) {
-    if (preamble !== null) {
-        const [base, num, more] = preamble;
-        if (base !== ctx.currentFunction)
-            return null;
-        if (num !== null && !num.equals(ctx.current.count))
+function checkSearchResultPreamble(ctx, base, num, more) {
+    if (base !== ctx.currentFunction)
+        return null;
+    if (num !== null) {
+        if (!num.equals(ctx.current.count))
             return null;
         if (more !== ctx.current.more)
             return null;
     }
 
+    return ctx;
+}
+
+function checkFilterPairForDisjunctiveQuestion(ctx, f1, f2) {
+    if (f1.name !== f2.name)
+        return null;
+    if (!f1.value.getType().equals(f2.value.getType()))
+        return null;
+    if (f1.value.equals(f2.value))
+        return null;
+
+    let good1 = false;
+    let good2 = false;
+    for (let result of ctx.current.results.results) {
+        const value = result.value[f1.name];
+        if (!value)
+            return null;
+        if (value.equals(f1.value))
+            good1 = true;
+        if (value.equals(f2.value))
+            good2 = true;
+        if (good1 && good2)
+            break;
+    }
+    if (!good1 || !good2)
+        return null;
+
+    return [f1.name, f1.value.getType()];
+}
+
+function impreciseSearchQuestionAnswer(ctx, [question, answer]) {
     const currentTable = ctx.current.stmt.table;
     if (question !== '' && !currentTable.schema.out[question])
         return null;
@@ -1060,8 +1090,10 @@ module.exports = {
     isValidNegativePreambleForInfo,
     isFilterCompatibleWithResult,
     checkInfoFilter,
+    checkFilterPairForDisjunctiveQuestion,
 
     // system dialogue acts
+    checkSearchResultPreamble,
     makeActionRecommendation,
     makeRecommendation,
     checkRecommendation,

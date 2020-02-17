@@ -130,6 +130,7 @@ apv_input_param = {}
 
 constant_name = {}
 
+base_table = {}
 base_noun_phrase = {}
 generic_anything_noun_phrase = {}
 generic_base_noun_phrase = {}

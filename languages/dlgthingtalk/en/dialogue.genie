@@ -115,23 +115,13 @@ context function (state) {
 }
 
 search_result_preamble = {
-    ( 'there are' ('many' | 'several') base:base_noun_phrase '.'
-    | ('i can see' | 'i have found') ('many' | 'several') base:base_noun_phrase '.'
-    | 'there are' ('many' | 'several') base:base_noun_phrase 'matching your request .'
-    | ('i can see' | 'i have found') ('many' | 'several') base:base_noun_phrase 'matching your constraints .'
-    | ('i can see' | 'i have found') ('many' | 'several') base:base_noun_phrase 'with those characteristics .'
-    | 'i can recommend' ('many' | 'several') base:base_noun_phrase '.'
-    ) => [base, null, false];
+    ctx:ctx_search_command ('there are' | 'i can see' | 'i have found' | 'i can recommend') ('many' | 'several') base:base_noun_phrase
+        ('matching your request' | 'matching your constraints' | 'with those characteristics' | 'like that' | '') '.'
+        => D.checkSearchResultPreamble(ctx, base, null, false);
 
-    ( 'i have found' num:constant_Number base:base_noun_phrase '.'
-    | 'i have' num:constant_Number base:base_noun_phrase 'in my database .'
-    | 'i can see' num:constant_Number base:base_noun_phrase 'in my database .'
-    | 'i can see' num:constant_Number base:base_noun_phrase 'like that .'
-    ) => [base, num, false];
-
-    ( 'there are more than' num:constant_Number base:base_noun_phrase '.'
-    | 'there are more than' num:constant_Number base:base_noun_phrase 'that correspond to your specifications .'
-    ) => [base, num, true];
+    ctx:ctx_search_command ('there are' | 'i have found' | 'i have' | 'i can see') num:constant_Number base:base_noun_phrase
+        ('in my database' | 'like that') '.'
+        => D.checkSearchResultPreamble(ctx, base, num, false);
 }
 
 direct_question = {
@@ -197,64 +187,26 @@ verbose_answer = {
 }
 
 question_npp_filter_pair = {
-    f1:npp_filter 'or' f2:npp_filter => {
-        if (f1.name !== f2.name)
-            return null;
-        if (!f1.value.getType().equals(f2.value.getType()))
-            return null;
-        if (f1.value.equals(f2.value))
-            return null;
-        return [f1.name, f1.value.getType()];
-    };
-    f1:npp_filter 'or' c:constant_Any => {
-        if (!c.getType().equals(f1.value.getType()))
-            return null;
-        if (f1.value.equals(c))
-            return null;
-        return [f1.name, f1.value.getType()];
-    };
+    ctx:ctx_with_result f1:npp_filter 'or' f2:npp_filter =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
+    ctx:ctx_with_result f1:npp_filter 'or' c:constant_Any  =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, new Ast.BooleanExpression.Atom(null, f1.name, f1.operator, c));
 }
 question_apv_filter_pair = {
-    f1:apv_filter 'or' f2:apv_filter => {
-        if (f1.name !== f2.name)
-            return null;
-        if (!f1.value.getType().equals(f2.value.getType()))
-            return null;
-        if (f1.value.equals(f2.value))
-            return null;
-        return [f1.name, f1.value.getType()];
-    };
+    ctx:ctx_with_result f1:apv_filter 'or' f2:apv_filter =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
 }
 question_avp_filter_pair = {
-    f1:avp_filter 'or' c:constant_Any => {
-        if (!c.getType().equals(f1.value.getType()))
-            return null;
-        if (f1.value.equals(c))
-            return null;
-        return [f1.name, f1.value.getType()];
-    };
+    ctx:ctx_with_result f1:avp_filter 'or' c:constant_Any =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, new Ast.BooleanExpression.Atom(null, f1.name, f1.operator, c));
 }
 question_preposition_filter_pair = {
-    f1:preposition_filter 'or' f2:preposition_filter => {
-        if (f1.name !== f2.name)
-            return null;
-        if (!f1.value.getType().equals(f2.value.getType()))
-            return null;
-        if (f1.value.equals(f2.value))
-            return null;
-        return [f1.name, f1.value.getType()];
-    };
+    ctx:ctx_with_result f1:preposition_filter 'or' f2:preposition_filter =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
 }
 question_pvp_filter_pair = {
-    f1:pvp_filter 'or' f2:pvp_filter => {
-        if (f1.name !== f2.name)
-            return null;
-        if (!f1.value.getType().equals(f2.value.getType()))
-            return null;
-        if (f1.value.equals(f2.value))
-            return null;
-        return [f1.name, f1.value.getType()];
-    };
+    ctx:ctx_with_result f1:pvp_filter 'or' f2:pvp_filter =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
 }
 
 disjunctive_question = {
@@ -268,11 +220,11 @@ disjunctive_question = {
         return pname;
     };
 
-    ( ('are you looking for' | 'would you like' | 'do you need') 'a' table:complete_table question:question_npp_filter_pair '?'
-    | ('are you looking for' | 'would you like' | 'do you need') 'a' question:question_apv_filter_pair table:complete_table '?'
-    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:complete_table question:question_pvp_filter_pair '?'
-    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:complete_table question:question_preposition_filter_pair '?'
-    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:complete_table 'that' question:question_avp_filter_pair '?'
+    ( ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table ('with' | 'that has') question:question_npp_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'a' question:question_apv_filter_pair table:base_table '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table question:question_pvp_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table question:question_preposition_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table 'that' question:question_avp_filter_pair '?'
     ) => {
         const [pname, ptype] = question;
         const tableptype = table.schema.getArgType(pname);
@@ -289,13 +241,27 @@ generic_question = {
 
 precise_search_question_answer_pair = {
     ( question:direct_question '<sep>' table:generic_answer
-    | question:disjunctive_question '<sep>' table:generic_answer [weight=5]
+    | question:disjunctive_question '<sep>' table:generic_answer
     | question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:generic_answer
 
     | question:direct_question '<sep>' table:verbose_answer
-    | question:disjunctive_question '<sep>' table:verbose_answer [weight=5]
+    | question:disjunctive_question '<sep>' table:verbose_answer
     | question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer
-    | question:generic_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer
+    | question:generic_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer [weight=0.1]
+    ) => {
+        if (!D.isQueryAnswerValidForQuestion(table, question))
+            return null;
+        return [question, table];
+    };
+
+    ( preamble:search_result_preamble question:direct_question '<sep>' table:generic_answer [weight=0.1]
+    | preamble:search_result_preamble question:disjunctive_question '<sep>' table:generic_answer [weight=0.5]
+    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:generic_answer [weight=0.1]
+
+    | preamble:search_result_preamble question:direct_question '<sep>' table:verbose_answer [weight=0.1]
+    | preamble:search_result_preamble question:disjunctive_question '<sep>' table:verbose_answer [weight=0.1]
+    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer [weight=0.1]
+    | preamble:search_result_preamble question:generic_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer [weight=0.01]
     ) => {
         if (!D.isQueryAnswerValidForQuestion(table, question))
             return null;
@@ -305,8 +271,13 @@ precise_search_question_answer_pair = {
 
 imprecise_search_question_answer_pair = {
     ( question:direct_question '<sep>' answer:imprecise_answer
-    | question:disjunctive_question '<sep>' answer:imprecise_answer [weight=5]
+    | question:disjunctive_question '<sep>' answer:imprecise_answer [weight=2]
     | question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer
+    ) => D.impreciseSearchQuestionAnswerPair(question, answer);
+
+    ( preamble:search_result_preamble question:direct_question '<sep>' answer:imprecise_answer
+    | preamble:search_result_preamble question:disjunctive_question '<sep>' answer:imprecise_answer
+    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer [weight=2]
     ) => D.impreciseSearchQuestionAnswerPair(question, answer);
 }
 
@@ -376,7 +347,7 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
     }
 }
 
-system_direct_proposal_short = {
+question_system_direct_proposal_short = {
     ctx:ctx_with_result_and_action 'how about' proposal:constant_name
         => D.makeRecommendation(ctx, proposal);
 }
@@ -421,12 +392,16 @@ list_learn_more_offer = {
 }
 
 proposal_info_action_pair = {
-    'it is a' info:info_noun_phrase '.' action:action_offer => {
+    'it is a' info:info_noun_phrase '.' action:action_offer [weight=0.8] => {
         const resultType = info.schema.getArgType('id');
 
         if (!resultType || !C.hasArgumentOfType(action, resultType))
             return null;
         return [info, action];
+    };
+
+    'it is a' info:info_noun_phrase '.' learn_more_offer [weight=0.2] => {
+        return [info, null];
     };
 }
 
@@ -435,19 +410,25 @@ proposal_info_action_pair = {
 // the action can come from the context (if the user expressed it earlier), or it can
 // be offered immediately
 system_direct_proposal = {
-    ( ctx_with_action proposal:system_direct_proposal_short '.' [weight=10]
+    ( ctx_with_action proposal:question_system_direct_proposal_short '.' [weight=10]
     | ctx_with_action proposal:actionable_system_direct_proposal_short '.'
-    | ctx_with_action proposal:actionable_system_direct_proposal_short '.' learn_more_offer
     ) => proposal;
+
+    ctx_with_action proposal:actionable_system_direct_proposal_short '.' learn_more_offer => {
+        // reset the action to null if the agent explicitly asks to "learn more"
+        const [topResult,] = proposal;
+        return [topResult, null];
+    };
+
     action_recommendation;
     proposal:actionable_system_direct_proposal_short action:action_offer
         => D.checkActionForRecommendation(proposal, action);
 
-    ( proposal:system_direct_proposal_short '?' 'it is a' info:info_noun_phrase '.' [weight=10]
+    ( proposal:question_system_direct_proposal_short '?' 'it is a' info:info_noun_phrase '.' [weight=10]
     | proposal:action_recommendation '?' 'it is a' info:info_noun_phrase '.'
     | proposal:actionable_system_direct_proposal_short '.' 'it is a' info:info_noun_phrase '.'
-    | proposal:system_direct_proposal_short ', which is a' info:info_noun_phrase '.' [weight=10]
-    | proposal:action_recommendation ', which is a' info:info_noun_phrase '.'
+    | proposal:question_system_direct_proposal_short ', which is a' info:info_noun_phrase '?' [weight=10]
+    | proposal:action_recommendation ', which is a' info:info_noun_phrase '?'
     | proposal:actionable_system_direct_proposal_short ', which is a' info:info_noun_phrase '.'
     ) => D.checkRecommendation(proposal, info);
 
@@ -456,6 +437,10 @@ system_direct_proposal = {
         proposal = D.checkRecommendation(proposal, info);
         if (proposal === null)
             return null;
+        const [topResult,] = proposal;
+        // reset the action to null if the agent explicitly asks to "learn more"
+        if (action === null)
+            return [topResult, null];
         return D.checkActionForRecommendation(proposal, action);
     };
 }
@@ -558,6 +543,9 @@ generic_negative_proposal_reply = {
 
 system_generic_proposal = {
     ctx:ctx_search_command ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase '?'
+        => D.makeRefinementProposal(ctx, proposal);
+
+    ctx:search_result_preamble ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase '?'
         => D.makeRefinementProposal(ctx, proposal);
 }
 
@@ -800,27 +788,24 @@ $root = {
         return D.checkStateIsValid(ctx, sysState, userState);
     };
 
-    ctx:ctx_search_command qa:precise_search_question_answer_pair [weight=0.1] =>
+    ctx:ctx_search_command qa:precise_search_question_answer_pair [weight=5] =>
         D.preciseSearchQuestionAnswer(ctx, qa);
 
-    ctx:ctx_search_command qa:imprecise_search_question_answer_pair [weight=1] =>
-        D.impreciseSearchQuestionAnswer(ctx, null, qa);
+    ctx:ctx_search_command qa:imprecise_search_question_answer_pair [weight=5] =>
+        D.impreciseSearchQuestionAnswer(ctx, qa);
 
-    ctx:ctx_search_command preamble:search_result_preamble qa:imprecise_search_question_answer_pair [weight=1] =>
-        D.impreciseSearchQuestionAnswer(ctx, preamble, qa);
-
-    ( ctx:ctx_search_command pair:negative_proposal_reply_pair
-    | ctx:ctx_search_command pair:positive_proposal_reply_pair [weight=10]
+    ( ctx:ctx_search_command pair:negative_proposal_reply_pair [weight=0.5]
+    | ctx:ctx_search_command pair:positive_proposal_reply_pair [weight=0.5]
     ) =>
         D.proposalReplyPair(ctx, pair);
 
-    ctx:ctx_complete_search_command pair:negative_recommendation_reply_pair
+    ctx:ctx_complete_search_command pair:negative_recommendation_reply_pair [weight=0.3]
         => D.negativeRecommendationReplyPair(ctx, pair);
-    ctx:ctx_complete_search_command pair:positive_recommendation_reply_pair [weight=10]
+    ctx:ctx_complete_search_command pair:positive_recommendation_reply_pair [weight=0.7]
         => D.positiveRecommendationReplyPair(ctx, pair);
 
-    ctx:ctx_complete_search_command pair:negative_list_proposal_reply_pair
+    ctx:ctx_complete_search_command pair:negative_list_proposal_reply_pair [weight=0.3]
         => D.negativeListProposalReplyPair(ctx, pair);
-    ctx:ctx_complete_search_command pair:positive_list_proposal_reply_pair [weight=10]
+    ctx:ctx_complete_search_command pair:positive_list_proposal_reply_pair [weight=0.7]
         => D.positiveListProposalReplyPair(ctx, pair);
 }

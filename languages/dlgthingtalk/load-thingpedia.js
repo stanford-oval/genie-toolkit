@@ -478,10 +478,11 @@ class ThingpediaLoader {
         }
 
         const functionName = q.class.name + ':' + q.name;
-        for (let form of canonical)
-            this._grammar.addRule('base_noun_phrase', [form], this._runtime.simpleCombine(() => functionName));
-
         const table = new Ast.Table.Invocation(null, invocation, q);
+        for (let form of canonical) {
+            this._grammar.addRule('base_table', [form], this._runtime.simpleCombine(() => table));
+            this._grammar.addRule('base_noun_phrase', [form], this._runtime.simpleCombine(() => functionName));
+        }
 
         // FIXME English words should not be here
         for (let form of ['anything', 'one', 'something'])
