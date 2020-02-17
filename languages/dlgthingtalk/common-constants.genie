@@ -61,8 +61,8 @@ constant_Measure_dBm = {}
 
 for (let i = 0; i <= MAX_SMALL_INTEGER; i++)
     constant_Number = #(String(i)) => new Ast.Value.Number(i);
-for (let i = MAX_SMALL_INTEGER+1; i < MAX_CONSTANTS; i++)
-    constant_Number = #('NUMBER_' + i) => new Ast.Value.Number(2 + i);
+for (let i = 0; i < MAX_CONSTANTS; i++)
+    constant_Number = #('NUMBER_' + i) => new Ast.Value.Number(MAX_SMALL_INTEGER + 1 + i);
 
 for (let i = 0; i < MAX_CONSTANTS; i++) {
     constant_String = #('QUOTED_STRING_' + i) => new Ast.Value.String('str:QUOTED_STRING::' + i + ':');
