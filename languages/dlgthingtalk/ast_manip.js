@@ -397,6 +397,18 @@ function makeTypeBasedStreamProjection(table, ptype, ptypestr) {
     }
 }
 
+function isEqualityFilteredOnParameter(table, pname) {
+    for (let [,filter] of iterateFilters(table)) {
+        for (let field of iterateFields(filter)) {
+            if (field.name === pname &&
+                (field.operator === '==' || field.operator === '=~'))
+                return true;
+        }
+    }
+
+    return false;
+}
+
 function makeSingleFieldProjection(ftype, ptype, table, pname) {
     assert(ftype === 'table' || ftype === 'stream');
     assert(typeof pname === 'string');
@@ -408,6 +420,8 @@ function makeSingleFieldProjection(ftype, ptype, table, pname) {
 
     if (ftype === 'table') {
         if (pname === 'picture_url' && _loader.flags.turking)
+            return null;
+        if (isEqualityFilteredOnParameter(table, pname))
             return null;
         return makeProjection(table, pname);
     } else {
@@ -442,6 +456,11 @@ function makeMultiFieldProjection(ftype, table, outParams) {
     }
 
     if (ftype === 'table') {
+        for (let pname of names) {
+            if (isEqualityFilteredOnParameter(table, pname))
+                return null;
+        }
+
         return new Ast.Table.Projection(null, table, names, resolveProjection(names, table.schema));
     } else {
         const stream = new Ast.Stream.Monitor(null, table, null, table.schema);
@@ -469,29 +488,8 @@ function makeArgMaxMinTable(table, pname, direction) {
 }
 
 function checkValidQuery(table) {
-    // projection won't help here
-    if (table.isProjection)
-        table = table.table;
-
-    // if a table is just a plain invocation, drop it
-    if (table.isInvocation)
-        return false;
-
-    if (table.isFilter) {
-        let filteredOnName = false;
-        let filteredOthers = false;
-        for (let [, filter] of iterateFilters(table)) {
-            for (let atom of iterateFields(filter)) {
-                if (atom.name === 'id' && atom.operator === '=~')
-                    filteredOnName = true;
-                else
-                    filteredOthers = true;
-            }
-        }
-        if (filteredOnName && !filteredOthers)
-            return false;
-    }
-
+    // all queries are valid, actually
+    // filter conflicts are handled elsewhere
     return true;
 }
 
@@ -604,6 +602,8 @@ function *iterateFields(filter) {
         yield *iterateFields(filter.expr);
     } else if (filter.isAtom) {
         yield filter;
+    } else {
+        assert(filter.isOr || filter.isCompute || filter.isExternal);
     }
 }
 

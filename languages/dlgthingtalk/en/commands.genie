@@ -256,14 +256,11 @@ search_command = {
     => new Ast.Statement.Command(null, table, [C.notifyAction()]);
 
     // now => get => say(...)
-    // don't merge these, the output sizes are too small
     (
-          generic_lookup_preamble proj:projection_Any
-        | ('show me' | 'tell me') 'what is' proj:projection_Any
+          generic_lookup_preamble proj:projection_Any [weight=0.45]
+        | ('show me' | 'tell me') 'what is' proj:projection_Any [weight=0.45]
+        | generic_lookup_preamble proj:pair_projection [weight=0.1]
     ) => C.sayProjection(proj);
-
-    // now => get => say(...) (where questions)
-    !turking proj:projection_Any => C.sayProjection(proj);
 }
 
 complete_question = {
@@ -330,10 +327,10 @@ complete_question = {
 }
 
 projection_question = {
-    (
-        'what is' proj:projection_Any '?'
-        | 'who is' proj:projection_Entity__tt__username '?'
-        | 'who is' proj:projection_Entity__tt__email_address '?'
+    ( 'what is' proj:projection_Any '?'
+    | 'what is' proj:pair_projection '?' [weight=0.1]
+    | 'who is' proj:projection_Entity__tt__username '?'
+    | 'who is' proj:projection_Entity__tt__email_address '?'
     ) => {
         // FIXME: this should not happen
         if (proj.args.length === 0)
@@ -342,10 +339,10 @@ projection_question = {
             return null;
         return C.sayProjection(proj);
     };
-    (
-        'what are' proj:projection_Any '?'
-        | 'who are' proj:projection_Entity__tt__username '?'
-        | 'who are' proj:projection_Entity__tt__email_address '?'
+    ( 'what are' proj:projection_Any '?'
+    | 'what are' proj:pair_projection '?' [weight=0.1]
+    | 'who are' proj:projection_Entity__tt__username '?'
+    | 'who are' proj:projection_Entity__tt__email_address '?'
     ) => {
         // FIXME: this should not happen
         if (proj.args.length === 0)

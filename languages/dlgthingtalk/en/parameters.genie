@@ -85,7 +85,7 @@ the_out_param_pair = {
     };
 }
 
-projection_Any = {
+pair_projection = {
     ?projection_with_filter {
         ( ('both' | '') outParams:the_out_param_pair 'of' table:with_filtered_table
         | outParams:the_out_param_pair 'of the' table:with_arg_min_max_table
@@ -114,10 +114,11 @@ for (let [typestr, type] of _tpLoader.types.all) {
         $('the_out_param_' + typestr) = {
             'the' p:$('out_param_' + typestr) => p;
 
-            !turking {
+            /*!turking {
                 'its' p:$('out_param_' + typestr) => p;
                 'their' p:$('out_param_' + typestr) => p;
             }
+            */
         }
 
         if (!_tpLoader.types.id.has(typestr)) {

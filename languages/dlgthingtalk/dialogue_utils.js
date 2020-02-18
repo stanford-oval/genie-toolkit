@@ -101,11 +101,37 @@ function isLargeResultSet(result) {
     return result.more || result.count.isVarRef || result.count.value >= LARGE_RESULT_THRESHOLD;
 }
 
+function getTableArgMinMax(table) {
+    while (table.isProjection || table.isCompute)
+        table = table.table;
+
+    if (table.isIndex && table.table.isSort && table.indices.length === 1 && table.indices[0].isNumber &&
+        table.indices[0].value === 1)
+        return [table.table.field, table.table.direction];
+
+    return null;
+}
+
 class ResultInfo {
     constructor(item) {
         assert(item.results !== null);
         this.isTable = !!(item.stmt.table && item.stmt.actions.every((a) => a.isNotify));
-        this.isQuestion = !!(item.stmt.table.isProjection || item.stmt.table.isAggregation);
+
+        if (this.isTable) {
+            const table = item.stmt.table;
+            // if there is a compute at top-level, there is a projection too
+            assert(!table.isCompute);
+            this.isQuestion = !!(table.isProjection || table.isCompute || table.isIndex || table.isAggregation);
+            this.isAggregation = !!table.isAggregation;
+            this.argMinMaxField = getTableArgMinMax(table);
+            assert(this.argMinMaxField === null || this.isQuestion);
+            this.projection = table.isProjection ? table.args : null;
+        } else {
+            this.isQuestion = false;
+            this.isAggregation = false;
+            this.argMinMaxField = null;
+            this.projection = null;
+        }
         this.hasEmptyResult = item.results.results.length === 0;
         this.hasSingleResult = item.results.results.length === 1;
         this.hasLargeResult = isLargeResultSet(item.results);
@@ -327,9 +353,14 @@ function makeRecommendation(ctx, name) {
     return [topResult, ctx.nextInfo && ctx.nextInfo.isAction ? getActionInvocation(ctx.next) : null];
 }
 
-function checkInfoFilter(table) {
+function checkInfoFilter(ctx, table) {
     assert(table.isFilter && table.table.isInvocation);
 
+    if (ctx.currentFunction !== table.table.invocation.selector.kind + ':' + table.table.invocation.channel)
+        return null;
+
+    // check that the filter only uses "equality" operators (==, =~, contains)
+    const names = new Set;
     const ok = (function recursiveHelper(filter) {
         if (filter.isTrue || filter.isFalse)
             return true;
@@ -338,9 +369,43 @@ function checkInfoFilter(table) {
         if (filter.isAnd)
             return filter.operands.every(recursiveHelper);
 
+        names.add(filter.name);
         return ['==', '=~', 'contains'].includes(filter.operator);
     })(table.filter);
-    if (ok)
+
+    if (!ok)
+        return null;
+
+    // check that the filter uses the right set of parameters
+    if (ctx.resultInfo.projection !== null) {
+        // check that all projected names are present
+        for (let name of ctx.resultInfo.projection) {
+            if (!names.has(name))
+                return null;
+        }
+    } else {
+        // we must have at least one result to be here
+        let topResult = ctx.current.results.results[0];
+        assert(topResult);
+
+        // check that the names are part of the #[default_projection], if one is specified
+        for (let name of names) {
+            if (!topResult.value[name])
+                return null;
+        }
+    }
+
+    // check that the filter is compatible with at least one of the top 3 results
+    let good = false;
+    const results = ctx.current.results.results;
+    for (let i = 0; i < Math.min(3, results.length); i++) {
+        if (isFilterCompatibleWithResult(results[i], table.filter)) {
+            good = true;
+            break;
+        }
+    }
+
+    if (good)
         return table;
     else
         return null;

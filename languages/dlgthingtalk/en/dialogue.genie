@@ -36,15 +36,21 @@ context ctx_init,
     ctx_with_result,
     ctx_with_action,
     ctx_with_result_and_action,
+    ctx_with_projection,
+    ctx_without_projection,
     ctx_search_command,
     ctx_empty_direct_question,
-    ctx_direct_question,
+    ctx_aggregation_question,
+    ctx_distance_argminmax_question,
+    ctx_argminmax_question,
+    ctx_one_result_question,
     ctx_empty_search_command,
     ctx_large_search_command,
     ctx_complete_search_command,
     ctx_completed_action,
     ctx_confirm_action,
-    ctx_incomplete_action;
+    ctx_incomplete_action,
+    ctx_learn_more;
 
 context function (state) {
     if (state === null)
@@ -96,18 +102,50 @@ context function (state) {
             tags.push('ctx_with_result_and_action');
         tags.push('ctx_with_result');
 
-        if (!info.resultInfo.hasSingleResult) // we can refine
-            tags.push('ctx_search_command');
+        if (info.resultInfo.projection === null)
+            tags.push('ctx_without_projection');
+        else
+            tags.push('ctx_with_projection');
 
-        if (!info.resultInfo.hasLargeResult) // we can recommend/show the result
-            tags.push('ctx_complete_search_command');
+        // if there is an action, there cannot be a projection
+        assert(info.resultInfo.projection === null || info.nextInfo === null);
+
+        if (info.resultInfo.isQuestion) {
+            if (info.resultInfo.isAggregation) {
+                // "how many restaurants nearby have more than 500 reviews?"
+                tags.push('ctx_aggregation_question');
+            } else if (info.resultInfo.argMinMaxField !== null) {
+                const [field, direction] = info.resultInfo.argMinMaxField;
+
+                if (field === 'distance') // "find the nearest starbucks"
+                    tags.push('ctx_distance_argminmax_question');
+                else // "what is the highest rated restaurant nearby?"
+                    tags.push('ctx_argminmax_question');
+            } else if (info.resultInfo.hasSingleResult) {
+                // "what is the rating of Terun?"
+                tags.push('ctx_one_result_question');
+            } else {
+                // "what's the food and price range of restaurants nearby?"
+                // we treat these the same as "find restaurants nearby", but we make sure
+                // that the necessary fields are computed
+                tags.push('ctx_search_command');
+
+                // we can recommend/show the result right away, even if many match
+                tags.push('ctx_complete_search_command');
+            }
+        } else {
+            if (!info.resultInfo.hasSingleResult) // we can refine
+                tags.push('ctx_search_command');
+
+            if (!info.resultInfo.hasLargeResult) // we can recommend/show the result
+                tags.push('ctx_complete_search_command');
+        }
 
         return [tags, info];
     }
 
     case 'learn_more':
-        // TODO
-        return null;
+        return ['ctx_learn_more'];
 
     default:
         throw new Error(`Unexpected user dialogue act ${info.dialogueAct}`);
@@ -124,7 +162,7 @@ search_result_preamble = {
         => D.checkSearchResultPreamble(ctx, base, num, false);
 }
 
-direct_question = {
+direct_slot_fill_question = {
     ( 'what' p:out_param_Any 'do you want ?'
     | 'what' p:out_param_Any 'would you prefer ?'
     | 'what' p:out_param_Any 'would you like ?'
@@ -137,7 +175,7 @@ direct_question = {
     };
 }
 
-yesno_direct_question = {
+yesno_direct_slot_fill_question = {
     ( 'any preference of' p:out_param_Any '?'
     | 'do you have a specific' p:out_param_Any 'in mind?'
     | 'do you have a preference of' p:out_param_Any '?'
@@ -209,7 +247,7 @@ question_pvp_filter_pair = {
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
 }
 
-disjunctive_question = {
+disjunctive_slot_fill_question = {
     ( ('are you looking for' | 'would you like' | 'do you need') 'something with' question:question_npp_filter_pair '?'
     | ('are you looking for' | 'would you like' | 'do you need') 'something' question:question_apv_filter_pair '?'
     | ('are you looking for' | 'would you like' | 'do you need') 'something' question:question_preposition_filter_pair '?'
@@ -240,13 +278,13 @@ generic_question = {
 }
 
 precise_search_question_answer_pair = {
-    ( question:direct_question '<sep>' table:generic_answer
-    | question:disjunctive_question '<sep>' table:generic_answer
-    | question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:generic_answer
+    ( question:direct_slot_fill_question '<sep>' table:generic_answer
+    | question:disjunctive_slot_fill_question '<sep>' table:generic_answer
+    | question:yesno_direct_slot_fill_question '<sep>' ('yes' | 'yes ,' | '') table:generic_answer
 
-    | question:direct_question '<sep>' table:verbose_answer
-    | question:disjunctive_question '<sep>' table:verbose_answer
-    | question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer
+    | question:direct_slot_fill_question '<sep>' table:verbose_answer
+    | question:disjunctive_slot_fill_question '<sep>' table:verbose_answer
+    | question:yesno_direct_slot_fill_question'<sep>' ('yes' | 'yes ,' | '') table:verbose_answer
     | question:generic_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer [weight=0.1]
     ) => {
         if (!D.isQueryAnswerValidForQuestion(table, question))
@@ -254,13 +292,13 @@ precise_search_question_answer_pair = {
         return [question, table];
     };
 
-    ( preamble:search_result_preamble question:direct_question '<sep>' table:generic_answer [weight=0.1]
-    | preamble:search_result_preamble question:disjunctive_question '<sep>' table:generic_answer [weight=0.5]
-    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:generic_answer [weight=0.1]
+    ( preamble:search_result_preamble question:direct_slot_fill_question '<sep>' table:generic_answer [weight=0.1]
+    | preamble:search_result_preamble question:disjunctive_slot_fill_question '<sep>' table:generic_answer [weight=0.5]
+    | preamble:search_result_preamble question:yesno_direct_slot_fill_question '<sep>' ('yes' | 'yes ,' | '') table:generic_answer [weight=0.1]
 
-    | preamble:search_result_preamble question:direct_question '<sep>' table:verbose_answer [weight=0.1]
-    | preamble:search_result_preamble question:disjunctive_question '<sep>' table:verbose_answer [weight=0.1]
-    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer [weight=0.1]
+    | preamble:search_result_preamble question:direct_slot_fill_question '<sep>' table:verbose_answer [weight=0.1]
+    | preamble:search_result_preamble question:disjunctive_slot_fill_question '<sep>' table:verbose_answer [weight=0.1]
+    | preamble:search_result_preamble question:yesno_direct_slot_fill_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer [weight=0.1]
     | preamble:search_result_preamble question:generic_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer [weight=0.01]
     ) => {
         if (!D.isQueryAnswerValidForQuestion(table, question))
@@ -270,14 +308,14 @@ precise_search_question_answer_pair = {
 }
 
 imprecise_search_question_answer_pair = {
-    ( question:direct_question '<sep>' answer:imprecise_answer
-    | question:disjunctive_question '<sep>' answer:imprecise_answer [weight=2]
-    | question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer
+    ( question:direct_slot_fill_question '<sep>' answer:imprecise_answer
+    | question:disjunctive_slot_fill_question '<sep>' answer:imprecise_answer [weight=2]
+    | question:yesno_direct_slot_fill_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer
     ) => D.impreciseSearchQuestionAnswerPair(question, answer);
 
-    ( preamble:search_result_preamble question:direct_question '<sep>' answer:imprecise_answer
-    | preamble:search_result_preamble question:disjunctive_question '<sep>' answer:imprecise_answer
-    | preamble:search_result_preamble question:yesno_direct_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer [weight=2]
+    ( preamble:search_result_preamble question:direct_slot_fill_question '<sep>' answer:imprecise_answer
+    | preamble:search_result_preamble question:disjunctive_slot_fill_question '<sep>' answer:imprecise_answer
+    | preamble:search_result_preamble question:yesno_direct_slot_fill_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer [weight=2]
     ) => D.impreciseSearchQuestionAnswerPair(question, answer);
 }
 
@@ -286,20 +324,22 @@ greeting = {
     'hi !';
 }
 
-info_noun_phrase = {
+result_info_phrase = {
     // one, two or three slots, without any "or", "not" or "comparison" filters
     // only "and" and "contains"
-    table:one_with_filter_table => D.checkInfoFilter(table);
-    table:one_which_filter_table => D.checkInfoFilter(table);
-    table:one_clean_filter_table => D.checkInfoFilter(table);
+    // and furthermore, if the context is a projection, all projected fields must
+    // appear as filters
+    ctx:ctx_with_result table:one_with_filter_table => D.checkInfoFilter(ctx, table);
+    ctx:ctx_with_result table:one_which_filter_table => D.checkInfoFilter(ctx, table);
+    ctx:ctx_with_result table:one_clean_filter_table => D.checkInfoFilter(ctx, table);
 
-    table:two_with_filter_table [weight=0.33] => D.checkInfoFilter(table);
-    table:two_which_filter_table [weight=0.33] => D.checkInfoFilter(table);
-    table:two_clean_filter_table [weight=0.33] => D.checkInfoFilter(table);
+    ctx:ctx_with_result table:two_with_filter_table [weight=0.33] => D.checkInfoFilter(ctx, table);
+    ctx:ctx_with_result table:two_which_filter_table [weight=0.33] => D.checkInfoFilter(ctx, table);
+    ctx:ctx_with_result table:two_clean_filter_table [weight=0.33] => D.checkInfoFilter(ctx, table);
 
-    table:three_with_filter_table [weight=0.33*0.5] => D.checkInfoFilter(table);
-    table:three_which_filter_table [weight=0.33*0.5] => D.checkInfoFilter(table);
-    table:three_clean_filter_table [weight=0.33*0.5] => D.checkInfoFilter(table);
+    ctx:ctx_with_result table:three_with_filter_table [weight=0.33*0.5] => D.checkInfoFilter(ctx, table);
+    ctx:ctx_with_result table:three_which_filter_table [weight=0.33*0.5] => D.checkInfoFilter(ctx, table);
+    ctx:ctx_with_result table:three_clean_filter_table [weight=0.33*0.5] => D.checkInfoFilter(ctx, table);
 }
 
 the_base_noun_phrase = {
@@ -357,22 +397,16 @@ action_recommendation = {
         => D.makeActionRecommendation(ctx, action.invocation);
 }
 
-have_found_preamble = {
-    'i have';
-    'i see';
-    'i have found';
-}
-
 actionable_system_direct_proposal_short = {
     ( ctx:ctx_with_result_and_action 'i' ('recommend' | 'suggest') proposal:constant_name
-    | ctx:ctx_with_result have_found_preamble proposal:constant_name
+    | ctx:ctx_with_result ('i see' | 'i have' | 'i have found') proposal:constant_name
     | ctx:ctx_with_result 'there is' proposal:constant_name
     ) => D.makeRecommendation(ctx, proposal);
 }
 
 action_offer = {
-    ( 'would you like to' action:direct_action_phrase '?'
-    | 'would you like me to' action:direct_action_phrase ' for you ?'
+    ( 'would you like to' action:coref_action_phrase '?'
+    | 'would you like me to' action:coref_action_phrase ' for you ?'
     ) if complete => action.invocation;
 }
 
@@ -383,16 +417,8 @@ learn_more_offer = {
     'are you interested to hear more about it ?';
 }
 
-list_learn_more_offer = {
-    'would you like to learn more ?';
-    'would you like to learn more about either of them ?';
-    'would you like to know more about them ?';
-    'would you like to hear more about them ?';
-    'are you interested to hear more about any of them ?';
-}
-
 proposal_info_action_pair = {
-    'it is a' info:info_noun_phrase '.' action:action_offer [weight=0.8] => {
+    'it is a' info:result_info_phrase '.' action:action_offer [weight=0.8] => {
         const resultType = info.schema.getArgType('id');
 
         if (!resultType || !C.hasArgumentOfType(action, resultType))
@@ -400,7 +426,7 @@ proposal_info_action_pair = {
         return [info, action];
     };
 
-    'it is a' info:info_noun_phrase '.' learn_more_offer [weight=0.2] => {
+    'it is a' info:result_info_phrase '.' learn_more_offer [weight=0.2] => {
         return [info, null];
     };
 }
@@ -420,19 +446,19 @@ system_direct_proposal = {
         return [topResult, null];
     };
 
-    action_recommendation;
-    proposal:actionable_system_direct_proposal_short action:action_offer
+    ctx_without_projection action:action_recommendation => action;
+    ctx_without_projection proposal:actionable_system_direct_proposal_short action:action_offer
         => D.checkActionForRecommendation(proposal, action);
 
-    ( proposal:question_system_direct_proposal_short '?' 'it is a' info:info_noun_phrase '.' [weight=10]
-    | proposal:action_recommendation '?' 'it is a' info:info_noun_phrase '.'
-    | proposal:actionable_system_direct_proposal_short '.' 'it is a' info:info_noun_phrase '.'
-    | proposal:question_system_direct_proposal_short ', which is a' info:info_noun_phrase '?' [weight=10]
-    | proposal:action_recommendation ', which is a' info:info_noun_phrase '?'
-    | proposal:actionable_system_direct_proposal_short ', which is a' info:info_noun_phrase '.'
+    ( proposal:question_system_direct_proposal_short '?' 'it is a' info:result_info_phrase '.' [weight=10]
+    | proposal:action_recommendation '?' 'it is a' info:result_info_phrase '.'
+    | proposal:actionable_system_direct_proposal_short '.' 'it is a' info:result_info_phrase '.'
+    | proposal:question_system_direct_proposal_short ', which is a' info:result_info_phrase '?' [weight=10]
+    | proposal:action_recommendation ', which is a' info:result_info_phrase '?'
+    | proposal:actionable_system_direct_proposal_short ', which is a' info:result_info_phrase '.'
     ) => D.checkRecommendation(proposal, info);
 
-    proposal:actionable_system_direct_proposal_short pair:proposal_info_action_pair => {
+    proposal:actionable_system_direct_proposal_short '.' pair:proposal_info_action_pair => {
         const [info, action] = pair;
         proposal = D.checkRecommendation(proposal, info);
         if (proposal === null)
@@ -492,24 +518,31 @@ result_name_list = {
     };
 }
 
+action_coref_proposal = {
+    ctx_without_projection 'would you like to' action:list_coref_action_phrase '?' => action;
+}
+
 // a "list proposal" consists of the first few results of the current query,
 // together with informative results about them, an offer to learn more, or an offer for an action
 //
 system_list_proposal = {
-    ( have_found_preamble name_list:result_name_list '.'
-    | have_found_preamble name_list:result_name_list '.' list_learn_more_offer
-    ) => [name_list, null, null];
+    ctx_without_projection ('i see' | 'i have' | 'i have found') name_list:result_name_list '.'
+        ('' |
+         'would you like to learn more ?' | 'would you like to learn more about either of them ?' |
+         'would you like to know more about them ?' | 'would you like to hear more about them ?' |
+         'are you interested to hear more about any of them ?')
+        => [name_list, null, null];
 
-    have_found_preamble name_list:result_name_list '.' ('they' | 'all of them') 'are' info:info_noun_phrase '.'
+    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' ('they' | 'all of them') 'are' info:result_info_phrase '.'
         => D.checkListProposal(name_list, null, info);
 
-    have_found_preamble name_list:result_name_list '.' 'both are' info:info_noun_phrase '.' => {
+    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' 'both are' info:result_info_phrase '.' => {
         if (name_list.length !== 2)
             return null;
         return D.checkListProposal(name_list, null, info);
     };
 
-    have_found_preamble name_list:result_name_list '.' 'would you like to' action:list_coref_action_phrase '?' => {
+    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_proposal => {
         const resultType = name_list[0].value.id.getType();
         if (!C.hasArgumentOfType(action, resultType))
             return null;
@@ -752,13 +785,11 @@ positive_recommendation_reply_pair = {
     };
 }
 
-
 initial_command = {
-    ( stmt:action_command [weight=10]
-    | stmt:search_command
-    | stmt:complete_question [weight=0.1]
-    | stmt:projection_question [weight=0.1]
-    ) => stmt;
+    action_command [weight=3];
+    search_command;
+    complete_question [weight=0.1];
+    projection_question [weight=0.1];
 
     prog:initial_program => {
         if (prog.rules.length !== 1)
@@ -788,6 +819,7 @@ $root = {
         return D.checkStateIsValid(ctx, sysState, userState);
     };
 
+    // query refinement (through proposal or slot fill)
     ctx:ctx_search_command qa:precise_search_question_answer_pair [weight=5] =>
         D.preciseSearchQuestionAnswer(ctx, qa);
 
@@ -799,6 +831,7 @@ $root = {
     ) =>
         D.proposalReplyPair(ctx, pair);
 
+    // action recommendation (through one or a list)
     ctx:ctx_complete_search_command pair:negative_recommendation_reply_pair [weight=0.3]
         => D.negativeRecommendationReplyPair(ctx, pair);
     ctx:ctx_complete_search_command pair:positive_recommendation_reply_pair [weight=0.7]
