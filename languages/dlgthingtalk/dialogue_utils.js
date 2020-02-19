@@ -845,8 +845,6 @@ function refineFilterToAnswerQuestion(ctxFilter, refinedFilter) {
 }
 
 function filterToSlots(filter) {
-    const names = Array.from(C.iterateFields(filter)).map((f) => f.name);
-
     filter = filter.optimize();
     let operands, slots = {};
     if (filter.isAnd)
@@ -859,15 +857,6 @@ function filterToSlots(filter) {
             continue;
 
         slots[operand.name] = operand;
-    }
-
-    for (let name of names) {
-        if (!slots[name]) {
-            console.error(filter);
-            console.error(slots);
-            console.error(filter.prettyprint());
-            throw new Error('???');
-        }
     }
 
     return slots;
