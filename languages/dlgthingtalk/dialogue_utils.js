@@ -1357,7 +1357,10 @@ function impreciseSearchQuestionAnswerPair(question, answer) {
         return [question, answer];
     } else {
         assert(answer instanceof Ast.Value);
-        return [question, C.makeFilter(question, '==', answer)];
+        answer = C.makeFilter(question, '==', answer);
+        if (answer === null)
+            return null;
+        return [question, answer];
     }
 }
 
