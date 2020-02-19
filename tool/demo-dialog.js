@@ -19,16 +19,6 @@ const I18n = require('../lib/i18n');
 
 const ThingTalk = require('thingtalk');
 
-function detokenizeSentence(langPack, tokens) {
-    let sentence = '';
-    let prevToken = '';
-    for (let token of tokens) {
-        sentence = langPack.detokenize(sentence, prevToken, token);
-        prevToken = token;
-    }
-    return sentence;
-}
-
 class DialogAgent extends events.EventEmitter {
     constructor(rl, options) {
         super();
@@ -143,19 +133,20 @@ class DialogAgent extends events.EventEmitter {
         this._rl.prompt();
     }
 
-    _hackNetworkPredictions(candidates) {
+    /*_hackNetworkPredictions(candidates) {
         for (let cand of candidates) {
             if (cand.answer.startsWith('$dialogue @org.thingpedia.dialogue.transaction.sys_search_question '))
                 cand.answer = cand.answer.substring(0, cand.answer.indexOf(';') + 1);
         }
     }
+    */
 
     async _getProgramPrediction(candidates, entities, prefix) {
         candidates = (await Promise.all(candidates.map(async (cand) => {
-            const parsed = await this._target.parsePrediction(cand.answer, entities, this._targetOptions);
+            const parsed = await this._target.parsePrediction(cand.code, entities, this._targetOptions);
             if (parsed === null)
                 return null;
-            return [parsed, cand.answer.split(' ')];
+            return [parsed, cand.code];
         }))).filter((c) => c !== null);
 
         if (candidates.length === 0)
@@ -177,24 +168,6 @@ class DialogAgent extends events.EventEmitter {
         [this._contextCode, this._contextEntities] = this._target.serializeNormalized(context);
     }
 
-    _detokenizeAnswer(answer, entities) {
-        // simple true-casing
-        answer = answer.replace(/(^| [.?!] )([a-z])/g, (prefix, letter) => prefix + letter.toUpperCase());
-        answer = answer.replace(' i ', ' I ');
-
-        answer = answer.split(' ').map((token) => {
-            if (token in entities) {
-                if (token.startsWith('GENERIC_ENTITY_'))
-                    return (entities[token].display || entities[token].value);
-                return String(entities[token]);
-            }
-            return token;
-        });
-        answer = detokenizeSentence(this._langPack, answer);
-
-        return answer;
-    }
-
     async _handleInput() {
         this._state = 'loading';
 
@@ -211,7 +184,7 @@ class DialogAgent extends events.EventEmitter {
         this._setContext(executed);
 
         const decisions = await this._parser.queryPolicy(this._contextCode, this._contextEntities);
-        this._hackNetworkPredictions(decisions);
+        //this._hackNetworkPredictions(decisions);
         const [agentState, agentCode] = await this._getProgramPrediction(decisions, this._contextEntities, 'AT: ');
         if (agentState === null) {
             console.log(`A: Sorry, I don't know what to do next.`); //'
@@ -225,7 +198,7 @@ class DialogAgent extends events.EventEmitter {
             this.nextDialog();
             return;
         }
-        console.log(`A: ` + this._detokenizeAnswer(utterances[0].answer, this._contextEntities));
+        console.log(`A: ` + utterances[0].answer);
 
         this._print(agentState.prettyprint(), 'C: ');
         this._setContext(agentState);
@@ -249,8 +222,9 @@ module.exports = {
             help: 'Path to ThingTalk file containing class definitions.'
         });
         parser.addArgument('--server', {
-            required: true,
-            help: `The URL of the natural language server. Use a file:// URL pointing to a model directory to evaluate using a local instance of decanlp.`
+            required: false,
+            defaultValue: 'http://127.0.0.1:8400',
+            help: `The URL of the natural language server.`
         });
         parser.addArgument('--random-seed', {
             defaultValue: 'almond is awesome',

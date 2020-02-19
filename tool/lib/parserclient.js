@@ -16,6 +16,7 @@ const qs = require('qs');
 const TokenizerService = require('../../lib/tokenizer');
 const Predictor = require('../../lib/predictor');
 const Utils = require('../../lib/utils');
+const I18n = require('../../lib/i18n');
 
 const NLU_TASK = 'almond_dialogue_nlu';
 const NLG_TASK = 'almond_dialogue_nlg';
@@ -28,6 +29,7 @@ class LocalParserClient {
         this._locale = locale;
         this._tokenizer = TokenizerService.get('local');
         this._predictor = new Predictor('local', modeldir);
+        this._langPack = I18n.get(locale);
     }
 
     async start() {
@@ -57,14 +59,27 @@ class LocalParserClient {
             entities = tokenized.entities;
         }
 
-        const candidates = await this._predictor.predict(contextCode.join(' '), tokens.join(' '), NLU_TASK);
+        let candidates = await this._predictor.predict(contextCode.join(' '), tokens.join(' '), NLU_TASK);
+        candidates = candidates.map((cand) => {
+            return {
+                code: cand.answer.split(' '),
+                score: cand.score
+            };
+        });
         return { tokens, candidates, entities };
     }
     async queryPolicy(contextCode, contextEntities) {
         return this._predictor.predict(contextCode.join(' '), POLICY_QUESTION, POLICY_TASK);
     }
     async generateUtterance(contextCode, contextEntities, targetAct) {
-        return this._predictor.predict(contextCode.join(' ') + ' ' + targetAct.join(' '), NLG_QUESTION, NLG_TASK);
+        let candidates = this._predictor.predict(contextCode.join(' ') + ' ' + targetAct.join(' '), NLG_QUESTION, NLG_TASK);
+        candidates = candidates.map((cand) => {
+            return {
+                answer: this._langPack.postprocessNLG(cand.answer, contextEntities),
+                score: cand.score
+            };
+        });
+        return candidates;
     }
 }
 
@@ -109,27 +124,34 @@ class RemoteParserClient {
             thingtalk_version: ThingTalk.version,
         };
 
-        let response;
         if (contextCode !== undefined) {
             data.context = contextCode.join(' ');
             data.entities = contextEntities;
             data.tokenized = tokenized;
             data.skip_typechecking = true;
-
-            response = await Tp.Helpers.Http.post(`${this._baseUrl}/query`, JSON.stringify(data), {
-                dataContentType: 'application/json'
-            });
-        } else {
-            data.tokenized = tokenized ? '1' : '';
-            data.skip_typechecking = '1';
-
-            let url = `${this._baseUrl}/query?${qs.stringify(data)}`;
-            response = await Tp.Helpers.Http.get(url);
         }
-
+        const response = await Tp.Helpers.Http.post(`${this._baseUrl}/query`, JSON.stringify(data), {
+            dataContentType: 'application/json'
+        });
         const parsed = JSON.parse(response);
         if (parsed.error)
-            throw new Error('Error received from Genie-Parser server: ' + parsed.error);
+            throw new Error('Error received from Genie server: ' + parsed.error);
+
+        return parsed;
+    }
+
+    async generateUtterance(contextCode, contextEntities, targetAct) {
+        const data = {
+            context: contextCode.join(' '),
+            entities: contextEntities,
+            target: targetAct.join(' ')
+        };
+        const response = await Tp.Helpers.Http.post(`${this._baseUrl}/answer`, JSON.stringify(data), {
+            dataContentType: 'application/json' //'
+        });
+        const parsed = JSON.parse(response);
+        if (parsed.error)
+            throw new Error('Error received from Genie server: ' + parsed.error);
 
         return parsed;
     }

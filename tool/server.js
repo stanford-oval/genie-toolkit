@@ -20,6 +20,7 @@ const ThingTalk = require('thingtalk');
 const Utils = require('../lib/utils');
 const TokenizerService = require('../lib/tokenizer');
 const Predictor = require('../lib/predictor');
+const I18n = require('../lib/i18n');
 
 function learn(req, res) {
     res.status(501).json({ error: 'Learning is not available with this Genie server' });
@@ -29,14 +30,14 @@ const NLU_TASK = 'almond_dialogue_nlu';
 const NLG_TASK = 'almond_dialogue_nlg';
 const NLG_QUESTION = 'what should the agent say ?';
 
-async function tokenize(params, data, service, res) {
+async function tokenize(params, data, res) {
     const app = res.app;
     if (params.locale !== app.args.locale) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
     }
 
-    const tokenized = await service.tokenizer.tokenize(params.locale, data.q, data.expect || null);
+    const tokenized = await app.backend.tokenizer.tokenize(params.locale, data.q, data.expect || null);
     if (data.entities)
         Utils.renumberEntities(tokenized, data.entities);
 
@@ -46,14 +47,23 @@ async function tokenize(params, data, service, res) {
 
 async function runNLUPrediction(backend, tokens, entities, context, limit, skipTypechecking) {
     let candidates = await backend.nlu.predict(context.join(' '), tokens.join(' '), NLU_TASK);
-    if (skipTypechecking)
-        return candidates.slice(0, limit);
+    if (skipTypechecking) {
+        return candidates.map((c) => {
+            return {
+                code: c.answer.split(' '),
+                score: c.score
+            };
+       }).slice(0, limit);
+    }
 
     candidates = await Promise.all(candidates.map(async (c) => {
         try {
-            const parsed = ThingTalk.NNSyntax.fromNN(c.code, entities);
+            const parsed = ThingTalk.NNSyntax.fromNN(c.answer, entities);
             await parsed.typecheck(backend.schemas);
-            return c;
+            return {
+                code: c.answer.split(' '),
+                score: c.score
+            };
         } catch(e) {
             return null;
         }
@@ -67,7 +77,7 @@ async function runNLUPrediction(backend, tokens, entities, context, limit, skipT
         return candidates;
 }
 
-async function queryNLU(params, data, service, res) {
+async function queryNLU(params, data, res) {
     const query = data.q;
     const thingtalk_version = data.thingtalk_version;
     const expect = data.expect || null;
@@ -105,7 +115,7 @@ async function queryNLU(params, data, service, res) {
             }
         }
     } else {
-        tokenized = await service.tokenizer.tokenize(params.locale, query, expect);
+        tokenized = await app.backend.tokenizer.tokenize(params.locale, query, expect);
         if (data.entities)
             Utils.renumberEntities(tokenized, data.entities);
     }
@@ -130,7 +140,35 @@ async function queryNLU(params, data, service, res) {
          entities: tokenized.entities,
          intent
     });
+}
 
+async function runNLGPrediction(backend, context, entities, targetAct, limit) {
+    let candidates = await backend.nlg.predict(context + ' ' + targetAct, NLG_QUESTION, NLG_TASK);
+
+    candidates = candidates.slice(0, limit);
+
+    candidates = candidates.map((cand) => {
+        cand.answer = backend.i18n.postprocessNLG(cand.answer, entities);
+        return cand;
+    });
+
+    return candidates;
+}
+
+async function queryNLG(params, data, res) {
+    const app = res.app;
+
+    if (params.locale !== app.args.locale) {
+        res.status(400).json({ error: 'Unsupported language' });
+        return;
+    }
+
+    const result = await runNLGPrediction(app.backend, data.context, data.entities, data.target,
+                                          data.limit ? parseInt(data.limit) : 5);
+
+    res.json({
+         candidates: result,
+    });
 }
 
 const QUERY_PARAMS = {
@@ -146,6 +184,11 @@ const QUERY_PARAMS = {
     tokenized: 'boolean',
     skip_typechecking: 'boolean',
     developer_key: '?string',
+};
+const NLG_PARAMS = {
+    context: 'string',
+    entities: 'object',
+    target: 'string',
 };
 
 module.exports = {
@@ -197,6 +240,7 @@ module.exports = {
 
         app.backend = {
             schemas,
+            i18n: I18n.get(args.locale),
             tokenizer: TokenizerService.get('local'),
             nlu: new Predictor('nlu', args.nlu_model, 1)
         };
@@ -220,25 +264,19 @@ module.exports = {
             next();
         });
 
-        app.get('/:locale/query', qv.validateGET(QUERY_PARAMS, { json: true }), (req, res, next) => {
-            queryNLU(req.params, req.query, req.app.service, res).catch(next);
+        app.post('/:locale/query', qv.validatePOST(QUERY_PARAMS, { accept: 'application/json', json: true }), (req, res, next) => {
+            queryNLU(req.params, req.body, res).catch(next);
         });
 
-        app.get('/:locale/tokenize', qv.validateGET({ q: 'string', expect: '?string', entities: '?object' }, { json: true }), (req, res, next) => {
-            tokenize(req.params, req.query, req.app.service, res).catch(next);
+        app.post('/:locale/answer', qv.validatePOST(NLG_PARAMS, { accept: 'application/json', json: true }), (req, res, next) => {
+            queryNLG(req.params, req.body, res).catch(next);
         });
 
-        app.post('/:locale/query', qv.validatePOST(QUERY_PARAMS, { json: true }), (req, res, next) => {
-            queryNLU(req.params, req.body, req.app.service, res).catch(next);
+        app.post('/:locale/tokenize', qv.validatePOST({ q: 'string', entities: '?object' }, { accept: 'application/json', json: true }), (req, res, next) => {
+            tokenize(req.params, req.body, res).catch(next);
         });
 
-        app.post('/:locale/tokenize', qv.validatePOST({ q: 'string', entities: '?object' }, { json: true }), (req, res, next) => {
-            tokenize(req.params, req.body, req.app.service, res).catch(next);
-        });
-
-        app.post('/:locale/learn',
-            qv.validatePOST({ q: 'string', store: 'string', access_token: '?string', thingtalk_version: 'string', target: 'string', owner: '?string' }, { json: true }),
-            learn);
+        app.post('/:locale/learn', learn);
 
         // if we get here, we have a 404 error
         app.use('/', (req, res) => {
