@@ -157,7 +157,7 @@ context function (state) {
     }
 
     case 'learn_more':
-        assert(ctx.results);
+        assert(info.results);
         return [['ctx_learn_more'], info];
 
     default:
