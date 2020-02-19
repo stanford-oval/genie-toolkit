@@ -68,6 +68,10 @@ module.exports = {
             defaultValue: 2,
             help: `The minimum number of occurrences with different value required for a candidate to be added`
         });
+        parser.addArgument('--parameter-datasets', {
+            required: true,
+            help: `TSV file containing the paths to datasets for strings and entity types.`
+        });
 
     },
 
@@ -80,7 +84,7 @@ module.exports = {
             const constants = await parseConstantFile(args.locale, args.constants);
             const queries = args.queries.split(',').map((qname) => qname.charAt(0).toUpperCase() + qname.slice(1));
             const pruningOptions = { fraction: args.pruning_fraction, occurrence: args.pruning_occurrence };
-            const generator = new CanonicalGenerator(classDef, constants, queries, pruningOptions);
+            const generator = new CanonicalGenerator(classDef, constants, queries, pruningOptions, args.parameter_datasets);
             const updatedClassDef = await generator.generate();
             args.output.end(updatedClassDef.prettyprint());
         }
