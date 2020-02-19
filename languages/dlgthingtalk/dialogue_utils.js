@@ -1032,7 +1032,7 @@ function impreciseSearchQuestionAnswer(ctx, [question, answer]) {
     const currentTable = ctx.current.stmt.table;
     if (question !== '' && !currentTable.schema.out[question])
         return null;
-    if (!C.checkFilter(ctx.current.table, answer))
+    if (!C.checkFilter(ctx.current.stmt.table, answer))
         return null;
 
     const clone = ctx.clone();
