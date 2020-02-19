@@ -48,6 +48,7 @@ const subcommands = {
     'manual-annotate-dialog': require('./manual-annotate-dialog'),
     'evaluate-dialog': require('./evaluate-dialog'),
     'demo-dialog': require('./demo-dialog'),
+    'server': require('./server'),
 
     'dataset': require('./dataset'),
 
