@@ -615,7 +615,7 @@ function *iterateFields(filter) {
     } else if (filter.isAtom) {
         yield filter;
     } else {
-        assert(filter.isOr || filter.isCompute || filter.isExternal);
+        assert(filter.isTrue || filter.isFalse || filter.isOr || filter.isCompute || filter.isExternal);
     }
 }
 
@@ -1505,6 +1505,26 @@ function hasArgumentOfType(invocation, type) {
     return false;
 }
 
+function filterUsesParam(filter, pname) {
+    let used = false;
+    filter.visit(new class extends Ast.NodeVisitor {
+        visitExternalBooleanExpression() {
+            // do not recurse
+            return false;
+        }
+        visitValue() {
+            // do not recurse
+            return false;
+        }
+
+        visitAtomBooleanExpression(atom) {
+            used = used || pname === atom.name;
+            return true;
+        }
+    });
+    return used;
+}
+
 module.exports = {
     typeToStringSafe,
     getFunctionNames,
@@ -1512,6 +1532,7 @@ module.exports = {
     isSameFunction,
     hasArgumentOfType,
     isConstantAssignable,
+    filterUsesParam,
 
     notifyAction,
     builtinSayAction,

@@ -40,11 +40,11 @@ context ctx_init,
     ctx_with_result_noquestion,
     ctx_without_projection,
     ctx_search_command,
-    ctx_empty_direct_question,
     ctx_aggregation_question,
     ctx_distance_argminmax_question,
     ctx_argminmax_question,
     ctx_one_result_question,
+    ctx_empty_direct_question,
     ctx_empty_search_command,
     ctx_large_search_command,
     ctx_single_result_search_command,
@@ -93,10 +93,8 @@ context function (state) {
         assert (info.resultInfo.isTable);
 
         if (info.resultInfo.hasEmptyResult) {
-            if (info.resultInfo.isQuestion)
-                tags.push('ctx_empty_direct_question');
-            else
-                tags.push('ctx_empty_search_command');
+            // note: aggregation cannot be empty (it would be zero)
+            tags.push('ctx_empty_search_command');
             return [tags, info];
         }
 
@@ -901,6 +899,49 @@ learn_more_search_question_pair = {
     };
 }
 
+empty_search_error = {
+    ('sorry ,' | 'i am sorry ,' | '') ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
+    '.' => [base, null];
+
+    ('sorry ,' | 'i am sorry ,' | '') ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
+    '.' 'would you like' ('a different' | 'another') p:out_param_Any '?' => {
+        if (!base.schema.hasArgument(p.name))
+            return null;
+        return [base, p.name];
+    };
+
+    ('sorry ,' | 'i am sorry ,' | '') 'i cannot find any result for your search . would you like' ('a different' | 'another') p:out_param_Any '?'
+        => [null, p.name];
+}
+
+empty_search_change_pair = {
+    ( error:empty_search_error '<sep>' ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') 'a' phrase:answer_noun_phrase '?'
+    | error:empty_search_error '<sep>' ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') phrase:anything_phrase '?'
+    ) => {
+        const [base, param] = error;
+        if (base !== null && !C.isSameFunction(base.schema, phrase.schema))
+            return null;
+        if (param !== null && !C.filterUsesParam(phrase.filter, param))
+            return null;
+        return [param, phrase];
+    };
+
+    error:empty_search_error '<sep>' ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') answer:imprecise_answer_phrase '?' => {
+        const [base, param] = error;
+        if (base === null || param === null)
+            return null;
+        if (answer instanceof Ast.Value)
+            answer = C.makeFilter(param, '==', answer);
+        if (answer === null)
+            return null;
+        if (answer.name !== param)
+            return null;
+        if (!C.checkFilter(base, answer))
+            return null;
+        return [param, new Ast.Table.Filter(null, base, answer, base.schema)];
+    };
+}
+
 initial_command = {
     action_command [weight=3];
     search_command;
@@ -934,6 +975,10 @@ $root = {
         const sysState = D.makeSimpleState(ctx, 'sys_greet', null);
         return D.checkStateIsValid(ctx, sysState, userState);
     };
+
+    // empty search error
+    ctx:ctx_empty_search_command pair:empty_search_change_pair
+        => D.emptySearchChangePair(ctx, pair);
 
     // query refinement (through proposal or slot fill)
     ctx:ctx_search_command qa:precise_search_question_answer_pair [weight=5] =>

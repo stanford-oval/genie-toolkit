@@ -59,11 +59,15 @@ const SYSTEM_DIALOGUE_ACTS = new Set([
     // agent proposes a refined query
     'sys_propose_refined_query',
     // agent asks the user what they would like to hear
-    'sys_learn_more_what'
+    'sys_learn_more_what',
+    // agent informs that the search is empty (with and without a slot-fill question)
+    'sys_empty_search_question',
+    'sys_empty_search'
 ]);
 
 const SYSTEM_STATE_MUST_HAVE_PARAM = new Set([
     'sys_search_question',
+    'sys_empty_search_question',
     'sys_slot_fill'
 ]);
 
@@ -881,15 +885,48 @@ function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
     // - when the agent makes a filter proposal, and the user says no I want something else
     //
     // the refinement is allowed only if at least one parameter is different than before
+    // the resulting filter uses all the parameters in ctxFilter that are not mentioned
+    // in refinedFilter, as well as all of refinedFilter
+
+    ctxFilter = ctxFilter.optimize();
+    refinedFilter = refinedFilter.optimize();
 
     const ctxSlots = filterToSlots(ctxFilter);
     const refinedSlots = filterToSlots(refinedFilter);
+    // all slots in the context must be either not mentioned in the refinement, or changed
     for (let key in ctxSlots) {
         if (refinedSlots[key] && filterEqual(refinedSlots[key], ctxSlots[key]))
             return null;
     }
+    // all slots that are in the refinement must be mentioned in the context
+    for (let key in refinedSlots) {
+        if (!ctxSlots[key])
+            return null;
+    }
 
-    return refinedFilter;
+    const ctxClauses = (ctxFilter.isAnd ? ctxFilter.operands : [ctxFilter]).filter((clause) => {
+        let good = true;
+        clause.visit(new class extends Ast.NodeVisitor {
+             visitExternalBooleanExpression() {
+                // do not recurse
+                // get rid of get-predicates in the context, regardless
+                good = false;
+                return false;
+            }
+            visitValue() {
+                // do not recurse
+                return false;
+            }
+
+            visitAtomBooleanExpression(atom) {
+                good = good && !C.filterUsesParam(refinedFilter, atom.name);
+                return true;
+            }
+        });
+        return good;
+    });
+
+    return new Ast.BooleanExpression.And(null, [...ctxClauses, refinedFilter]).optimize();
 }
 
 function queryRefinement(ctxTable, newFilter, refineFilter) {
@@ -995,7 +1032,7 @@ function impreciseSearchQuestionAnswer(ctx, [question, answer]) {
     const currentTable = ctx.current.stmt.table;
     if (question !== '' && !currentTable.schema.out[question])
         return null;
-    if (!C.checkFilter(ctx.current.table, question))
+    if (!C.checkFilter(ctx.current.table, answer))
         return null;
 
     const clone = ctx.clone();
@@ -1324,6 +1361,26 @@ function impreciseSearchQuestionAnswerPair(question, answer) {
     }
 }
 
+function emptySearchChangePair(ctx, [question, phrase]) {
+    const currentTable = ctx.current.stmt.table;
+    if (question !== null && !currentTable.schema.out[question])
+        return null;
+
+    const clone = ctx.clone();
+
+    const cloneTable = clone.current.stmt.table;
+    const [,ctxFilterTable] = findOrMakeFilterTable(clone.current.stmt.table);
+    if (question !== null && !C.filterUsesParam(ctxFilterTable.filter, question))
+        return null;
+
+    const newTable = queryRefinement(cloneTable, phrase.filter, refineFilterToChangeFilter);
+    if (newTable === null)
+        return null;
+    const userState = overrideCurrentQuery(clone, newTable);
+    const sysState = makeSimpleState(ctx, question ? 'sys_empty_search_question' : 'sys_empty_search', question);
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
 module.exports = {
     // consistency checks
     POLICY_NAME,
@@ -1373,5 +1430,6 @@ module.exports = {
     positiveRecommendationReplyPair,
     recommendationSearchQuestionPair,
     negativeListProposalReplyPair,
-    positiveListProposalReplyPair
+    positiveListProposalReplyPair,
+    emptySearchChangePair
 };
