@@ -898,7 +898,7 @@ learn_more_search_question_pair = {
     | 'what would you like to' ('know' | 'hear') '?' '<sep>' question:boolean_user_search_question
     ) => {
         return [null, null, question];
-    }
+    };
 }
 
 initial_command = {
