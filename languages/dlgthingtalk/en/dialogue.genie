@@ -36,7 +36,8 @@ context ctx_init,
     ctx_with_result,
     ctx_with_action,
     ctx_with_result_and_action,
-    ctx_with_projection,
+    ctx_with_result_question,
+    ctx_with_result_noquestion,
     ctx_without_projection,
     ctx_search_command,
     ctx_empty_direct_question,
@@ -46,6 +47,7 @@ context ctx_init,
     ctx_one_result_question,
     ctx_empty_search_command,
     ctx_large_search_command,
+    ctx_single_result_search_command,
     ctx_complete_search_command,
     ctx_completed_action,
     ctx_confirm_action,
@@ -98,14 +100,17 @@ context function (state) {
             return [tags, info];
         }
 
-        if (info.nextInfo)
-            tags.push('ctx_with_result_and_action');
         tags.push('ctx_with_result');
+        if (info.resultQuestionInfo !== null) {
+            tags.push('ctx_with_result_question');
+        } else {
+            tags.push('ctx_with_result_noquestion');
+            if (info.nextInfo)
+                tags.push('ctx_with_result_and_action');
 
-        if (info.resultInfo.projection === null)
-            tags.push('ctx_without_projection');
-        else
-            tags.push('ctx_with_projection');
+            if (info.resultInfo.projection === null)
+                tags.push('ctx_without_projection');
+        }
 
         // if there is an action, there cannot be a projection
         assert(info.resultInfo.projection === null || info.nextInfo === null);
@@ -117,13 +122,18 @@ context function (state) {
             } else if (info.resultInfo.argMinMaxField !== null) {
                 const [field, direction] = info.resultInfo.argMinMaxField;
 
+                /* FIXME
+                // for now, we treat these as single result questions
                 if (field === 'distance') // "find the nearest starbucks"
                     tags.push('ctx_distance_argminmax_question');
                 else // "what is the highest rated restaurant nearby?"
                     tags.push('ctx_argminmax_question');
+                */
+                tags.push('ctx_single_result_search_command');
             } else if (info.resultInfo.hasSingleResult) {
                 // "what is the rating of Terun?"
-                tags.push('ctx_one_result_question');
+                // FIXME if we want to answer differently, we need to change this one
+                tags.push('ctx_single_result_search_command');
             } else {
                 // "what's the food and price range of restaurants nearby?"
                 // we treat these the same as "find restaurants nearby", but we make sure
@@ -134,10 +144,12 @@ context function (state) {
                 tags.push('ctx_complete_search_command');
             }
         } else {
-            if (!info.resultInfo.hasSingleResult) // we can refine
+            if (info.resultInfo.hasSingleResult || info.resultInfoQuestion) // we can recommend
+                tags.push('ctx_single_result_search_command')
+            else // we can refine
                 tags.push('ctx_search_command');
 
-            if (!info.resultInfo.hasLargeResult) // we can recommend/show the result
+            if (!info.resultInfo.hasLargeResult) // we can /show the result
                 tags.push('ctx_complete_search_command');
         }
 
@@ -145,7 +157,8 @@ context function (state) {
     }
 
     case 'learn_more':
-        return ['ctx_learn_more'];
+        assert(ctx.results);
+        return [['ctx_learn_more'], info];
 
     default:
         throw new Error(`Unexpected user dialogue act ${info.dialogueAct}`);
@@ -207,43 +220,31 @@ imprecise_answer = {
     generic_preamble_for_answer ans:imprecise_answer_phrase '.' => ans;
 }
 
-answer_noun_phrase = {
-    // one filter
-    one_with_filter_table;
-    one_which_filter_table;
-    one_clean_filter_table;
-
-    // two filters
-    two_with_filter_table;
-    two_which_filter_table;
-    two_clean_filter_table;
-}
-
 verbose_answer = {
     // complete answer, like "I am looking for a bla restaurant"
     generic_preamble_for_answer ('a' | 'the') query:answer_noun_phrase => query;
 }
 
 question_npp_filter_pair = {
-    ctx:ctx_with_result f1:npp_filter 'or' f2:npp_filter =>
+    ctx:ctx_with_result_noquestion f1:npp_filter 'or' f2:npp_filter =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
-    ctx:ctx_with_result f1:npp_filter 'or' c:constant_Any  =>
+    ctx:ctx_with_result_noquestion f1:npp_filter 'or' c:constant_Any  =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, new Ast.BooleanExpression.Atom(null, f1.name, f1.operator, c));
 }
 question_apv_filter_pair = {
-    ctx:ctx_with_result f1:apv_filter 'or' f2:apv_filter =>
+    ctx:ctx_with_result_noquestion f1:apv_filter 'or' f2:apv_filter =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
 }
 question_avp_filter_pair = {
-    ctx:ctx_with_result f1:avp_filter 'or' c:constant_Any =>
+    ctx:ctx_with_result_noquestion f1:avp_filter 'or' c:constant_Any =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, new Ast.BooleanExpression.Atom(null, f1.name, f1.operator, c));
 }
 question_preposition_filter_pair = {
-    ctx:ctx_with_result f1:preposition_filter 'or' f2:preposition_filter =>
+    ctx:ctx_with_result_noquestion f1:preposition_filter 'or' f2:preposition_filter =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
 }
 question_pvp_filter_pair = {
-    ctx:ctx_with_result f1:pvp_filter 'or' f2:pvp_filter =>
+    ctx:ctx_with_result_noquestion f1:pvp_filter 'or' f2:pvp_filter =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
 }
 
@@ -329,17 +330,17 @@ result_info_phrase = {
     // only "and" and "contains"
     // and furthermore, if the context is a projection, all projected fields must
     // appear as filters
-    ctx:ctx_with_result table:one_with_filter_table => D.checkInfoFilter(ctx, table);
-    ctx:ctx_with_result table:one_which_filter_table => D.checkInfoFilter(ctx, table);
-    ctx:ctx_with_result table:one_clean_filter_table => D.checkInfoFilter(ctx, table);
+    ctx:ctx_with_result table:one_with_info_phrase [weight=0.33*2] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:one_which_info_phrase [weight=0.33*2] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:one_clean_info_phrase [weight=0.33*2] => D.checkInfoPhrase(ctx, table);
 
-    ctx:ctx_with_result table:two_with_filter_table [weight=0.33] => D.checkInfoFilter(ctx, table);
-    ctx:ctx_with_result table:two_which_filter_table [weight=0.33] => D.checkInfoFilter(ctx, table);
-    ctx:ctx_with_result table:two_clean_filter_table [weight=0.33] => D.checkInfoFilter(ctx, table);
+    ctx:ctx_with_result table:two_with_info_phrase [weight=0.33] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:two_which_info_phrase [weight=0.33] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:two_clean_info_phrase [weight=0.33] => D.checkInfoPhrase(ctx, table);
 
-    ctx:ctx_with_result table:three_with_filter_table [weight=0.33*0.5] => D.checkInfoFilter(ctx, table);
-    ctx:ctx_with_result table:three_which_filter_table [weight=0.33*0.5] => D.checkInfoFilter(ctx, table);
-    ctx:ctx_with_result table:three_clean_filter_table [weight=0.33*0.5] => D.checkInfoFilter(ctx, table);
+    ctx:ctx_with_result table:three_with_info_phrase [weight=0.33*0.5] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:three_which_info_phrase [weight=0.33*0.5] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:three_clean_info_phrase [weight=0.33*0.5] => D.checkInfoPhrase(ctx, table);
 }
 
 the_base_noun_phrase = {
@@ -393,15 +394,21 @@ question_system_direct_proposal_short = {
 }
 
 action_recommendation = {
-    ctx:ctx_with_result 'would you like to' action:direct_action_phrase if complete [weight=0.1]
+    /* FIXME I don't really like this template to be honest
+    ctx:ctx_with_result_noquestion 'would you like to' action:direct_action_phrase if complete [weight=0.1]
         => D.makeActionRecommendation(ctx, action.invocation);
+    */
 }
 
 actionable_system_direct_proposal_short = {
     ( ctx:ctx_with_result_and_action 'i' ('recommend' | 'suggest') proposal:constant_name
-    | ctx:ctx_with_result ('i see' | 'i have' | 'i have found') proposal:constant_name
-    | ctx:ctx_with_result 'there is' proposal:constant_name
+    | ctx:ctx_with_result_noquestion ('i see' | 'i have' | 'i have found') proposal:constant_name
     ) => D.makeRecommendation(ctx, proposal);
+}
+
+user_question_answer_begin = {
+    ctx:ctx_with_result_question proposal:constant_name
+        => D.makeRecommendation(ctx, proposal);
 }
 
 action_offer = {
@@ -418,7 +425,7 @@ learn_more_offer = {
 }
 
 proposal_info_action_pair = {
-    'it is a' info:result_info_phrase '.' action:action_offer [weight=0.8] => {
+    'is a' info:result_info_phrase '.' action:action_offer [weight=0.8] => {
         const resultType = info.schema.getArgType('id');
 
         if (!resultType || !C.hasArgumentOfType(action, resultType))
@@ -426,7 +433,7 @@ proposal_info_action_pair = {
         return [info, action];
     };
 
-    'it is a' info:result_info_phrase '.' learn_more_offer [weight=0.2] => {
+    'is a' info:result_info_phrase '.' learn_more_offer [weight=0.2] => {
         return [info, null];
     };
 }
@@ -436,44 +443,61 @@ proposal_info_action_pair = {
 // the action can come from the context (if the user expressed it earlier), or it can
 // be offered immediately
 system_direct_proposal = {
+    /* FIXME making a recommendation without saying anything about it seems weird?
     ( ctx_with_action proposal:question_system_direct_proposal_short '.' [weight=10]
     | ctx_with_action proposal:actionable_system_direct_proposal_short '.'
     ) => proposal;
+    */
 
     ctx_with_action proposal:actionable_system_direct_proposal_short '.' learn_more_offer => {
         // reset the action to null if the agent explicitly asks to "learn more"
-        const [topResult,] = proposal;
-        return [topResult, null];
+        const { topResult, info } = proposal;
+        return { topResult, info, action: null };
     };
 
-    ctx_without_projection action:action_recommendation => action;
+    ctx_without_projection proposal:action_recommendation => proposal;
     ctx_without_projection proposal:actionable_system_direct_proposal_short action:action_offer
         => D.checkActionForRecommendation(proposal, action);
 
+    // recommendations after a search
     ( proposal:question_system_direct_proposal_short '?' 'it is a' info:result_info_phrase '.' [weight=10]
-    | proposal:action_recommendation '?' 'it is a' info:result_info_phrase '.'
-    | proposal:actionable_system_direct_proposal_short '.' 'it is a' info:result_info_phrase '.'
+    | proposal:action_recommendation '?' 'it is a' info:result_info_phrase '.' [weight=5]
+    | proposal:actionable_system_direct_proposal_short '.' 'it is a' info:result_info_phrase '.' [weight=5]
     | proposal:question_system_direct_proposal_short ', which is a' info:result_info_phrase '?' [weight=10]
-    | proposal:action_recommendation ', which is a' info:result_info_phrase '?'
+    | proposal:action_recommendation ', which is a' info:result_info_phrase '?' [weight=5]
     | proposal:actionable_system_direct_proposal_short ', which is a' info:result_info_phrase '.'
     ) => D.checkRecommendation(proposal, info);
 
-    proposal:actionable_system_direct_proposal_short '.' pair:proposal_info_action_pair => {
+    // long-form answers to a single question
+    proposal:user_question_answer_begin 'is a' info:result_info_phrase '.'
+        => D.checkRecommendation(proposal, info);
+
+    // short answers to a single question
+    ( proposal:user_question_answer_begin filter:avp_filter '.'
+    | proposal:user_question_answer_begin 'is' filter:pvp_filter '.'
+    | proposal:user_question_answer_begin 'is' filter:apv_filter '.'
+    | proposal:user_question_answer_begin 'has' filter:npp_filter '.'
+    ) => D.makeShortUserQuestionAnswer(proposal, filter);
+
+    // recommendations after a search, followed by an offer to make an action
+    ( proposal:actionable_system_direct_proposal_short '. it' pair:proposal_info_action_pair
+    | proposal:user_question_answer_begin pair:proposal_info_action_pair
+    ) => {
         const [info, action] = pair;
         proposal = D.checkRecommendation(proposal, info);
         if (proposal === null)
             return null;
-        const [topResult,] = proposal;
+        const { topResult, } = proposal;
         // reset the action to null if the agent explicitly asks to "learn more"
         if (action === null)
-            return [topResult, null];
+            return { topResult, info, action: null };
         return D.checkActionForRecommendation(proposal, action);
     };
 }
 
 result_name_pair = {
     ctx:ctx_with_result n1:constant_name ',' n2:constant_name => {
-        const results = ctx.current.results.results;
+        const results = ctx.results;
         assert(results.length > 0);
         if (results.length < 2)
             return null;
@@ -490,7 +514,7 @@ result_name_pair = {
 
 result_name_list = {
     ctx:ctx_with_result n1:constant_name ('and' | 'or') n2:constant_name => {
-        const results = ctx.current.results.results;
+        const results = ctx.results;
         assert(results.length > 0);
         if (results.length < 2)
             return null;
@@ -505,7 +529,7 @@ result_name_list = {
     };
 
     ctx:ctx_with_result result_name_pair ('and' | 'or') n3:constant_name => {
-        const results = ctx.current.results.results;
+        const results = ctx.results;
         assert(results.length > 0);
         if (results.length < 3)
             return null;
@@ -563,12 +587,6 @@ negative_proposal_answer_preamble = {
     'that does not sound great , do you have';
 }
 
-specific_negative_proposal_preamble = {
-    ( ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:answer_noun_phrase
-    | ('i am not in the mood for' | 'i do not like' | 'i do not want') phrase:anything_phrase
-    ) => phrase;
-}
-
 generic_negative_proposal_reply = {
     'i do not like that';
     'i do not like that , do you have any other option ?';
@@ -599,13 +617,15 @@ tell_me_more_phrase = {
 }
 
 verbose_negative_list_proposal_reply_pair = {
-    prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') preamble:specific_negative_proposal_preamble => {
+    ( prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:answer_noun_phrase
+    | prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for' | 'i do not like' | 'i do not want') phrase:anything_phrase
+    ) => {
         const [results, info, action] = prop;
         if (info === null)
             return null;
-        if (!D.isValidNegativePreambleForInfo(info, preamble))
+        if (!D.isValidNegativePreambleForInfo(info, phrase))
             return null;
-        return [results, preamble];
+        return [results, action, phrase];
     };
 }
 
@@ -691,11 +711,15 @@ positive_list_proposal_reply_pair = {
 }
 
 verbose_negative_proposal_reply_pair = {
-    prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') preamble:specific_negative_proposal_preamble => {
+    /* FIXME
+    ( prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:answer_noun_phrase
+    | prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for' | 'i do not like' | 'i do not want') phrase:anything_phrase
+    ) => {
         if (!D.isValidNegativePreambleForInfo(prop, preamble))
             return null;
         return [prop, preamble];
     };
+    */
 }
 
 negative_proposal_reply_pair = {
@@ -729,11 +753,13 @@ positive_proposal_reply_pair = {
 }
 
 verbose_negative_recommendation_reply_pair = {
-    prop:system_direct_proposal '<sep>' ('no ,' | 'no' | '') preamble:specific_negative_proposal_preamble => {
-        const [topResult, action] = prop;
-        if (D.isFilterCompatibleWithResult(topResult, preamble.filter))
+    ( prop:system_direct_proposal '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:answer_noun_phrase
+    | prop:system_direct_proposal '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for' | 'i do not like' | 'i do not want') phrase:anything_phrase
+    ) => {
+        const { topResult, info, action } = prop;
+        if (info === null || !D.isValidNegativePreambleForInfo(info, phrase))
             return null;
-        return [topResult, action, preamble];
+        return [topResult, action, phrase];
     };
 }
 
@@ -741,7 +767,7 @@ negative_recommendation_reply_pair = {
     ( prop:system_direct_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
     | prop:system_direct_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble request:anything_phrase
     ) => {
-        const [topResult, action] = prop;
+        const { topResult, action } = prop;
         const proposalType = topResult.value.id.getType();
         const idType = request.schema.getArgType('id');
 
@@ -757,11 +783,15 @@ negative_recommendation_reply_pair = {
         clone.filter = new Ast.BooleanExpression.Not(null, clone.filter);
         return [topResult, action, clone];
     };
+
+    ( pair:verbose_negative_recommendation_reply_pair negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
+    | pair:verbose_negative_recommendation_reply_pair negative_proposal_answer_preamble request:anything_phrase
+    ) => D.mergePreambleAndRequest(pair, request);
 }
 
 positive_recommendation_reply_pair = {
     prop:system_direct_proposal '<sep>' accept_phrase [repeat=true] => {
-        const [topResult, actionProposal] = prop;
+        const { topResult, action: actionProposal } = prop;
         // if the user did not give an action earlier, and no action
         // was proposed by the agent right now, the flow is roughly
         //
@@ -779,10 +809,96 @@ positive_recommendation_reply_pair = {
     ( prop:system_direct_proposal '<sep>' tell_me_more_phrase [weight=0.5]
     | prop:system_direct_proposal '<sep>' accept_phrase tell_me_more_phrase [weight=0.5]
     ) => {
-        const [topResult, actionProposal] = prop;
+        const { topResult, action: actionProposal } = prop;
         // set the action to null, which will hit the "tell me more" path
         return [topResult, actionProposal, null];
     };
+}
+
+simple_user_search_question = {
+    // straight up questions
+    ( ('can you tell me' | '') 'what is' ('the' | 'its') param:out_param_Any '?'
+    | 'can you tell me' ('the' | 'its') param:out_param_Any '?'
+    | ('can you tell me' | '') 'what' param:out_param_Any 'does it have ?'
+    | 'i would like to' ('know' | 'see') ('the' | 'its') param:out_param_Any ('first' | '') '.'
+    ) => {
+        if (param.name === 'id')
+            return null;
+        return [param.name, null];
+    };
+    ( ('can you tell me' | '') 'what is' 'the' param:out_param_Any 'of the' base:base_table '?'
+    | 'can you tell me' 'the' param:out_param_Any 'of the' base:base_table '?'
+    | ('can you tell me' | '') 'what' param:out_param_Any 'does the' base:base_table 'have ?'
+    | 'i would like to' ('know' | 'see') 'the' param:out_param_Any 'of the' base:base_table ('first' | '') '.'
+    | ('can you tell me' | '') 'what is' 'the' base:base_table '\'s' param:out_param_Any '?'
+    | 'can you tell me' 'the' base:base_table '\'s' param:out_param_Any '?'
+    | 'i would like to' ('know' | 'see') 'the' base:base_table '\'s' param:out_param_Any ('first' | '') '.'
+    ) => {
+        if (!base.schema.out[param.name])
+            return null;
+        if (param.name === 'id')
+            return null;
+        return [param.name, null];
+    };
+}
+
+boolean_user_search_question = {
+    // question in boolean
+    ( 'does' ('that' | 'it') 'have' param:npp_filter '?'
+    | 'does' ('that' | 'it') param:avp_filter '?'
+    ) => {
+        if (param.name === 'id')
+            return null;
+        return [param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()];
+    };
+
+    ( 'is' ('it' | 'that') 'a' param:apv_filter base:base_table '?'
+    | 'is that' base:base_table param:apv_filter '?'
+
+    | 'is' ('it' | 'that') 'a' base:base_table param:pvp_filter '?'
+    | 'is that' base:base_table param:pvp_filter '?'
+
+    | 'is' ('it' | 'that') 'a' base:base_table param:preposition_filter '?'
+    | 'is that' base:base_table param:preposition_filter '?'
+
+    | 'is' ('it' | 'that') 'a' base:base_table ('that' | 'which') param:avp_filter '?'
+    | 'does that' base:base_table param:avp_filter '?'
+
+    | 'is' ('it' | 'that') 'a' base:base_table ('that has' | 'with') param:npp_filter '?'
+    | 'does that' base:base_table 'have' param:npp_filter '?'
+    ) => {
+        if (!C.checkFilter(base, param))
+            return null;
+        if (param.name === 'id')
+            return null;
+        return [param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()];
+    };
+}
+
+recommendation_search_question_pair = {
+    ( prop:system_direct_proposal '<sep>' question:simple_user_search_question
+    | prop:system_direct_proposal '<sep>' question:boolean_user_search_question
+    ) => {
+        const [pname, type] = question;
+        const { topResult, info, action } = prop;
+        if (info !== null) {
+            if (info.has(pname))
+                return null;
+            if (!info.schema.hasArgument(pname))
+                return null;
+            if (type !== null && !info.schema.getArgType(pname).equals(type))
+                return null;
+        }
+        return [topResult, action, question];
+    };
+}
+
+learn_more_search_question_pair = {
+    ( 'what would you like to' ('know' | 'hear') '?' '<sep>' question:simple_user_search_question
+    | 'what would you like to' ('know' | 'hear') '?' '<sep>' question:boolean_user_search_question
+    ) => {
+        return [null, null, question];
+    }
 }
 
 initial_command = {
@@ -822,23 +938,28 @@ $root = {
     // query refinement (through proposal or slot fill)
     ctx:ctx_search_command qa:precise_search_question_answer_pair [weight=5] =>
         D.preciseSearchQuestionAnswer(ctx, qa);
-
     ctx:ctx_search_command qa:imprecise_search_question_answer_pair [weight=5] =>
         D.impreciseSearchQuestionAnswer(ctx, qa);
-
     ( ctx:ctx_search_command pair:negative_proposal_reply_pair [weight=0.5]
     | ctx:ctx_search_command pair:positive_proposal_reply_pair [weight=0.5]
     ) =>
         D.proposalReplyPair(ctx, pair);
 
     // action recommendation (through one or a list)
+
+    // FIXME should be "ctx_single_result_search_command" but we don't generate enough
+    // of those so let's stick to complete_search_command for now
     ctx:ctx_complete_search_command pair:negative_recommendation_reply_pair [weight=0.3]
         => D.negativeRecommendationReplyPair(ctx, pair);
     ctx:ctx_complete_search_command pair:positive_recommendation_reply_pair [weight=0.7]
         => D.positiveRecommendationReplyPair(ctx, pair);
+    ctx:ctx_complete_search_command pair:recommendation_search_question_pair [weight=1]
+        => D.recommendationSearchQuestionPair(ctx, pair);
+    ctx:ctx_learn_more pair:learn_more_search_question_pair [weight=1]
+        => D.recommendationSearchQuestionPair(ctx, pair);
 
-    ctx:ctx_complete_search_command pair:negative_list_proposal_reply_pair [weight=0.3]
+    ctx:ctx_complete_search_command pair:negative_list_proposal_reply_pair [weight=10 * 0.3]
         => D.negativeListProposalReplyPair(ctx, pair);
-    ctx:ctx_complete_search_command pair:positive_list_proposal_reply_pair [weight=0.7]
+    ctx:ctx_complete_search_command pair:positive_list_proposal_reply_pair [weight=10 * 0.7]
         => D.positiveListProposalReplyPair(ctx, pair);
 }

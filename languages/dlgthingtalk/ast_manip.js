@@ -46,6 +46,17 @@ function getFunctionNames(ast) {
     return functions;
 }
 
+function getFunctions(ast) {
+    const functions = [];
+    ast.visit(new class extends Ast.NodeVisitor {
+        visitInvocation(invocation) {
+            functions.push(invocation.schema);
+            return true;
+        }
+    });
+    return functions;
+}
+
 function isSelfJoinStream(stream) {
     let functions = getFunctionNames(stream);
     if (functions.length > 1) {
@@ -595,6 +606,7 @@ function *iterateFilters(table) {
 }
 
 function *iterateFields(filter) {
+    assert(filter instanceof Ast.BooleanExpression);
     if (filter.isAnd) {
         for (let operand of filter.operands)
             yield *iterateFields(operand);
@@ -1496,6 +1508,7 @@ function hasArgumentOfType(invocation, type) {
 module.exports = {
     typeToStringSafe,
     getFunctionNames,
+    getFunctions,
     isSameFunction,
     hasArgumentOfType,
     isConstantAssignable,

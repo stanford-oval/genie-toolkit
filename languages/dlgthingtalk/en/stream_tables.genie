@@ -18,6 +18,7 @@ const Type = ThingTalk.Type;
 
 // import the combinator library
 const C = require('../ast_manip');
+const D = require('../dialogue_utils');
 
 const _tpLoader = require('../load-thingpedia');
 }
@@ -53,7 +54,7 @@ two_if_filter_table = {
 // (2) which filtered: restaurants which have name bla
 // (3) "clean" filtered (i.e., no which/with): chinese restaurants, reviews written by bob
 with_filtered_table = {
-    thingpedia_query if complete;
+    thingpedia_query if complete [weight=10];
 
     // one filter
     one_with_filter_table;
@@ -66,8 +67,21 @@ with_filtered_table = {
     two_clean_filter_table [weight=0.33];
 }
 
+answer_noun_phrase = {
+    // one filter
+    one_with_filter_table [weight=10];
+    one_which_filter_table [weight=10];
+    one_clean_filter_table [weight=10];
+
+    // two filters
+    two_with_filter_table;
+    two_which_filter_table;
+    two_clean_filter_table;
+}
+
 one_with_filter_table = {
     !nofilter table:complete_table ('with' | 'having') filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:complete_table ('with' | 'having') filter:npp_filter => C.addFilter(table, filter);
 }
 
 one_which_filter_table = {
@@ -87,6 +101,9 @@ two_with_filter_table = {
     !nofilter table:one_with_filter_table 'and' filter:with_filter => C.addFilter(table, filter);
     !nofilter table:one_which_filter_table ('and having' | 'and with' | ', with') filter:with_filter => C.addFilter(table, filter);
     !nofilter table:one_clean_filter_table ('with' | 'having') filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:one_with_filter_table 'and' filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:one_which_filter_table ('and having' | 'and with' | ', with') filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:one_clean_filter_table ('with' | 'having') filter:npp_filter => C.addFilter(table, filter);
 
     !nofilter filter:apv_filter table:one_with_filter_table => C.addFilter(table, filter);
 }
@@ -117,33 +134,36 @@ two_clean_filter_table = {
 }
 
 three_with_filter_table = {
-    table:two_with_filter_table 'and' filter:npp_filter => C.addFilter(table, filter);
-    table:two_which_filter_table ('and having' | 'and with' | ', with') filter:npp_filter => C.addFilter(table, filter);
-    table:two_clean_filter_table ('with' | 'having') filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:two_with_filter_table 'and' filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:two_which_filter_table ('and having' | 'and with' | ', with') filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table ('with' | 'having') filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:two_with_filter_table 'and' filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:two_which_filter_table ('and having' | 'and with' | ', with') filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table ('with' | 'having') filter:npp_filter => C.addFilter(table, filter);
 
-    filter:apv_filter table:two_with_filter_table => C.addFilter(table, filter);
+    !nofilter filter:apv_filter table:two_with_filter_table => C.addFilter(table, filter);
 }
 
 three_which_filter_table = {
-    table:two_with_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
-    table:two_with_filter_table ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
-    table:two_with_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
+    !nofilter table:two_with_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
+    !nofilter table:two_with_filter_table ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
+    !nofilter table:two_with_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
 
-    table:two_which_filter_table 'and' ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
-    table:two_which_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
-    table:two_which_filter_table 'and' ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
+    !nofilter table:two_which_filter_table 'and' ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
+    !nofilter table:two_which_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
+    !nofilter table:two_which_filter_table 'and' ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
 
-    table:two_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
-    table:two_clean_filter_table ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
-    table:two_clean_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
 
-    filter:apv_filter table:two_which_filter_table => C.addFilter(table, filter);
+    !nofilter filter:apv_filter table:two_which_filter_table => C.addFilter(table, filter);
 }
 
 three_clean_filter_table = {
-    filter:apv_filter table:two_clean_filter_table => C.addFilter(table, filter);
-    table:two_clean_filter_table filter:pvp_filter => C.addFilter(table, filter);
-    table:two_clean_filter_table filter:preposition_filter => C.addFilter(table, filter);
+    !nofilter filter:apv_filter table:two_clean_filter_table => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table filter:pvp_filter => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table filter:preposition_filter => C.addFilter(table, filter);
 }
 
 anything_phrase = {
@@ -415,4 +435,90 @@ have_filtered_table_join = {
     table:verb_filtered_table ('and' | 'and have' | 'and also' | 'and in addition' | 'but also') get_predicate_table:with_filtered_table
         => C.addGetPredicateJoin(table, get_predicate_table, null);
     }
+}
+
+// info phrases (slot bags, used to describe results)
+
+base_slot_bag = {
+    table:base_table => new D.SlotBag(table.schema);
+}
+
+one_with_info_phrase = {
+    table:base_slot_bag ('with' | 'having') filter:npp_filter => D.checkAndAddSlot(table, filter);
+}
+
+one_which_info_phrase = {
+    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:npi_filter => D.checkAndAddSlot(table, filter);
+    table:base_slot_bag ('which' | 'that') filter:avp_filter => D.checkAndAddSlot(table, filter);
+    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:apv_filter => D.checkAndAddSlot(table, filter);
+    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:npv_filter => D.checkAndAddSlot(table, filter);
+}
+
+one_clean_info_phrase = {
+    filter:apv_filter table:base_slot_bag => D.checkAndAddSlot(table, filter);
+    table:base_slot_bag filter:pvp_filter => D.checkAndAddSlot(table, filter);
+    table:base_slot_bag filter:preposition_filter => D.checkAndAddSlot(table, filter);
+}
+
+two_with_info_phrase = {
+    table:one_with_info_phrase 'and' filter:npp_filter => D.checkAndAddSlot(table, filter);
+    table:one_which_info_phrase ('and having' | 'and with' | ', with') filter:npp_filter => D.checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('with' | 'having') filter:npp_filter => D.checkAndAddSlot(table, filter);
+
+    filter:apv_filter table:one_with_info_phrase => D.checkAndAddSlot(table, filter);
+}
+
+two_which_info_phrase = {
+    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => D.checkAndAddSlot(table, filter);
+    table:one_with_info_phrase ('which' | 'that') filter:avp_filter => D.checkAndAddSlot(table, filter);
+    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => D.checkAndAddSlot(table, filter);
+    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npv_filter => D.checkAndAddSlot(table, filter);
+
+    table:one_which_info_phrase 'and' ('is' | 'are') filter:npi_filter => D.checkAndAddSlot(table, filter);
+    table:one_which_info_phrase 'and' filter:avp_filter => D.checkAndAddSlot(table, filter);
+    table:one_which_info_phrase 'and' ('is' | 'are') filter:apv_filter => D.checkAndAddSlot(table, filter);
+    table:one_which_info_phrase 'and' ('is' | 'are') filter:npv_filter => D.checkAndAddSlot(table, filter);
+
+    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => D.checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('which' | 'that') filter:avp_filter => D.checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => D.checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npv_filter => D.checkAndAddSlot(table, filter);
+
+    filter:apv_filter table:one_which_info_phrase => D.checkAndAddSlot(table, filter);
+}
+
+two_clean_info_phrase = {
+    filter:apv_filter table:one_clean_info_phrase => D.checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase filter:pvp_filter => D.checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase filter:preposition_filter => D.checkAndAddSlot(table, filter);
+}
+
+three_with_info_phrase = {
+    table:two_with_info_phrase 'and' filter:npp_filter => D.checkAndAddSlot(table, filter);
+    table:two_which_info_phrase ('and having' | 'and with' | ', with') filter:npp_filter => D.checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase ('with' | 'having') filter:npp_filter => D.checkAndAddSlot(table, filter);
+
+    filter:apv_filter table:two_with_info_phrase => D.checkAndAddSlot(table, filter);
+}
+
+three_which_info_phrase = {
+    table:two_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => D.checkAndAddSlot(table, filter);
+    table:two_with_info_phrase ('which' | 'that') filter:avp_filter => D.checkAndAddSlot(table, filter);
+    table:two_with_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => D.checkAndAddSlot(table, filter);
+
+    table:two_which_info_phrase 'and' ('is' | 'are') filter:npi_filter => D.checkAndAddSlot(table, filter);
+    table:two_which_info_phrase 'and' filter:avp_filter => D.checkAndAddSlot(table, filter);
+    table:two_which_info_phrase 'and' ('is' | 'are') filter:apv_filter => D.checkAndAddSlot(table, filter);
+
+    table:two_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => D.checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase ('which' | 'that') filter:avp_filter => D.checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => D.checkAndAddSlot(table, filter);
+
+    filter:apv_filter table:two_which_info_phrase => D.checkAndAddSlot(table, filter);
+}
+
+three_clean_info_phrase = {
+    filter:apv_filter table:two_clean_info_phrase => D.checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase filter:pvp_filter => D.checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase filter:preposition_filter => D.checkAndAddSlot(table, filter);
 }
