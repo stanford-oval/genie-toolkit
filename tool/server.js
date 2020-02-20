@@ -26,6 +26,7 @@ function learn(req, res) {
     res.status(501).json({ error: 'Learning is not available with this Genie server' });
 }
 
+const SEMANTIC_PARSING_TASK = 'almond';
 const NLU_TASK = 'almond_dialogue_nlu';
 const NLG_TASK = 'almond_dialogue_nlg';
 const NLG_QUESTION = 'what should the agent say ?';
@@ -46,7 +47,11 @@ async function tokenize(params, data, res) {
 }
 
 async function runNLUPrediction(backend, tokens, entities, context, limit, skipTypechecking) {
-    let candidates = await backend.nlu.predict(context.join(' '), tokens.join(' '), NLU_TASK);
+    let candidates;
+    if (context === undefined)
+        candidates = await backend.nlu.predict(tokens.join(' '), undefined, SEMANTIC_PARSING_TASK);
+    else
+        candidates = await backend.nlu.predict(context.join(' '), tokens.join(' '), NLU_TASK);
     if (skipTypechecking) {
         return candidates.map((c) => {
             return {
@@ -58,7 +63,7 @@ async function runNLUPrediction(backend, tokens, entities, context, limit, skipT
 
     candidates = await Promise.all(candidates.map(async (c) => {
         try {
-            const parsed = ThingTalk.NNSyntax.fromNN(c.answer, entities);
+            const parsed = ThingTalk.NNSyntax.fromNN(c.answer.split(' '), entities);
             await parsed.typecheck(backend.schemas);
             return {
                 code: c.answer.split(' '),
