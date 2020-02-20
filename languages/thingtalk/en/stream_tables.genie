@@ -80,6 +80,7 @@ with_filtered_table = {
 
 one_with_filter_table = {
     !nofilter table:complete_table ('with' | 'having') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:complete_table ('with' | 'having') filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
 }
 
 one_which_filter_table = {

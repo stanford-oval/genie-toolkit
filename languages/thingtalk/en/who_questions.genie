@@ -53,6 +53,7 @@ who_two_clean_filter_table = {}
 if (!_tpLoader.flags.nofilter) {
     who_one_with_filter_table = {
         table:thingpedia_who_question ('with' | 'having') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:thingpedia_who_question ('with' | 'having') filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
     }
 
     who_one_which_filter_table = {
