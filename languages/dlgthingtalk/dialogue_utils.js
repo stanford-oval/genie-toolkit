@@ -632,9 +632,8 @@ function makeRefinementProposal(ctx, proposal) {
     assert(proposal.isFilter && proposal.table.isInvocation);
 
     let ctxTable, ctxFilterTable;
-    ctxTable = ctx.current.stmt.table;
+    ctxTable = ctx.current.stmt.table.clone();
     [ctxTable, ctxFilterTable] = findOrMakeFilterTable(ctxTable);
-    assert(ctxFilterTable);
     if (ctxFilterTable === null)
         return null;
 
