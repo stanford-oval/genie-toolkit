@@ -146,14 +146,6 @@ const PROPERTY_TYPE_OVERRIDE = {
 };
 
 const PROPERTY_CANONICAL_OVERRIDE = {
-    'geo': { default:"npp", npp:['location', 'address'] },
-    'streetAddress': { default:"npp", npp:['street'] },
-    'addressCountry': { default:"pvp", pvp:["in"], npp:["country"] },
-    'addressRegion': { default:"pvp", pvp:["in"], npp:["state"] },
-    'addressLocality': { default:"npp", npp:['city'] }
-};
-
-const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     // thing
     url: {
         default: 'npp',
@@ -166,17 +158,25 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
     description: {
         default: 'npp',
-        //avp: ['is about'],
         npp: ['description', 'summary']
     },
 
+    // location
+    'geo': { default:"npp", npp:['location', 'address'] },
+    'streetAddress': { default:"npp", npp:['street'] },
+    'addressCountry': { default:"pvp", pvp:["in"], npp:["country"] },
+    'addressRegion': { default:"pvp", pvp:["in"], npp:["state"] },
+    'addressLocality': { default:"npp", npp:['city'] }
+};
+
+const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     // restaurants
     'datePublished': { default:"pvp", pvp:["published on", "written on"], npp:["date published"] },
     'ratingValue': { default:"pvp", pvp:["rated #star"], npp:["rating"] },
     'reviewRating': { default:"npp", npp:["rating"] },
     'telephone': { default:"npp", npp:["telephone", "phone number"] },
     'servesCuisine': { default:"apv", apv:true, avp:["serves #cuisine", "serves #food", "offer #cuisine", "offer #food", "serves", "offers"],
-        npp:["cuisine", "food type", "served cuisine"] },
+        npp:["#cuisine", "#food"] },
 
     // hotels
     'amenityFeature': {
