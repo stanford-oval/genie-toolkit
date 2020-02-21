@@ -959,8 +959,9 @@ initial_command = {
 }
 
 $root = {
-    ctx:ctx_init greeting [weight=0.01] =>
+    /*ctx:ctx_init greeting [weight=0.01] =>
         D.checkStateIsValid(ctx, null, new Ast.DialogueState(null, D.POLICY_NAME, 'greet', null, []));
+    */
 
     ( ctx:ctx_init stmt:initial_command [weight=0.5]
     | ctx:ctx_init greeting stmt:initial_command [weight=0.5]
