@@ -11,6 +11,7 @@
 // See COPYING for details
 "use strict";
 
+const assert = require('assert');
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
@@ -38,8 +39,7 @@ function clean(name) {
 
 
 function makeFilter(loader, pname, op, value, negate = false) {
-    // param is a Value.VarRef
-    //console.log('param: ' + param.name);
+    assert(pname instanceof Ast.Value.VarRef);
     let vtype = value.getType();
     let ptype = vtype;
     if (op === 'contains') {
@@ -49,12 +49,12 @@ function makeFilter(loader, pname, op, value, negate = false) {
     } else if (op === '==' && vtype.isString) {
         op = '=~';
     }
-    if (!loader.params.out.has(pname + '+' + ptype))
+    if (!loader.params.out.has(pname.name + '+' + ptype))
         return null;
     if (loader.flags.turking && value.isEnum)
         return null;
 
-    let f = new Ast.BooleanExpression.Atom(null, pname, op, value);
+    let f = new Ast.BooleanExpression.Atom(null, pname.name, op, value);
     if (negate)
         return new Ast.BooleanExpression.Not(null, f);
     else

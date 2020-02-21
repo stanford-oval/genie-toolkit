@@ -60,7 +60,6 @@ class ThingpediaLoader {
         this.params = {
             in: new Map,
             out: new Set,
-            blacklist: new Set,
         };
         this.idQueries = new Map;
         this.compoundArrays = new Map;
@@ -137,8 +136,14 @@ class ThingpediaLoader {
                         this._runtime.simpleCombine(() => value));
                 }
             } else if (type.isEntity) {
-                if (!this._nonConstantTypes.has(typestr) && !this._idTypes.has(typestr))
-                    this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + type.type, type);
+                if (!this._nonConstantTypes.has(typestr) && !this._idTypes.has(typestr)) {
+                    for (let i = 0; i < 20; i++) {
+                        const string = `str:ENTITY_${type.type}::${i}:`;
+                        const value = new Ast.Value.Entity(string, type.type, string);
+                        this._grammar.addRule('constant_' + typestr, ['GENERIC_ENTITY_' + type.type + '_' + i],
+                            this._runtime.simpleCombine(() => value));
+                    }
+                }
             }
         }
         return typestr;
@@ -243,10 +248,6 @@ class ThingpediaLoader {
         //    return;
         this.params.out.add(key);
 
-        const useGenie = arg.getAnnotation('genie');
-        if (useGenie !== undefined && !useGenie)
-            this.params.blacklist.add(key);
-
         const typestr = this._recordType(ptype);
 
         if (ptype.isCompound)
@@ -261,6 +262,14 @@ class ThingpediaLoader {
                 let arg = ptype.elem.fields[field];
                 this._recordOutputParam(functionName, arg);
             }
+        }
+
+        const pvar = new Ast.Value.VarRef(pname);
+        if (arg.metadata.counted_object) {
+            let forms = Array.isArray(arg.metadata.counted_object) ?
+                arg.metadata.counted_object : [arg.metadata.counted_object];
+            for (let form of forms)
+                this._grammar.addRule('out_param_ArrayCount', [form], this._runtime.simpleCombine(() => pvar));
         }
 
         let canonical;
@@ -301,7 +310,7 @@ class ThingpediaLoader {
                     throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${functionName}`);
                 if (annotvalue) {
                     const expansion = [new this._runtime.NonTerminal('constant_' + vtypestr)];
-                    this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pname, op, value, false)));
+                    this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
                 }
                 continue;
             }
@@ -314,7 +323,7 @@ class ThingpediaLoader {
                     this._addOutParam(functionName, pname, typestr, form.trim());
                     if (!canonical.npp) {
                         const expansion = [form, new this._runtime.NonTerminal('constant_' + vtypestr)];
-                        this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pname, op, value, false)));
+                        this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
                     }
                 } else {
                     let [before, after] = form.split('#');
@@ -330,7 +339,7 @@ class ThingpediaLoader {
                         expansion = [new this._runtime.NonTerminal('constant_' + vtypestr), after];
                     else
                         expansion = [new this._runtime.NonTerminal('constant_' + vtypestr)];
-                    this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pname, op, value, false)));
+                    this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
                 }
             }
         }
@@ -611,15 +620,15 @@ class ThingpediaLoader {
 
         if (await this._isIdEntity(idType.type)) {
             if (this._options.debug)
-                console.log('Loaded type ' + idType + ' as id type');
+                console.log('Loaded type ' + idType.type + ' as id type');
             this._idTypes.add(typestr);
         } else {
             if (idType.has_ner_support) {
                 if (this._options.debug)
-                    console.log('Loaded type ' + idType + ' as generic entity');
+                    console.log('Loaded type ' + idType.type + ' as generic entity');
             } else {
                 if (this._options.debug)
-                    console.log('Loaded type ' + idType + ' as non-constant type');
+                    console.log('Loaded type ' + idType.type + ' as non-constant type');
                 this._nonConstantTypes.add(typestr);
             }
         }

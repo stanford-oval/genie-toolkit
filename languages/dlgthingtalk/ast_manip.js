@@ -573,7 +573,11 @@ function checkFilter(table, filter) {
         }
         return filter.rhs.getType().equals(vtype);
     } else if (filter.isAtom) {
-        if (!table.schema.out[filter.name])
+        const arg = table.schema.getArgument(filter.name);
+        if (!arg || arg.is_input)
+            return false;
+
+        if (arg.getAnnotation('filterable') === false)
             return false;
 
         ptype = table.schema.out[filter.name];
@@ -585,7 +589,25 @@ function checkFilter(table, filter) {
         } else if (filter.operator === 'in_array') {
             vtype = Type.Array(ptype);
         }
-        return filter.value.getType().equals(vtype);
+
+        if (!filter.value.getType().equals(vtype))
+            return false;
+
+        if (vtype.isNumber || vtype.isMeasure) {
+            let min = -Infinity;
+            let minArg = arg.getImplementationAnnotation('min_number');
+            if (minArg !== undefined)
+                min = minArg;
+            let maxArg = arg.getImplementationAnnotation('max_number');
+            let max = Infinity;
+            if (maxArg !== undefined)
+                max = maxArg;
+
+            const value = filter.value.toJS();
+            if (value < min || value > max)
+                return false;
+        }
+        return true;
     } else {
         return false;
     }
@@ -1438,7 +1460,7 @@ function makeComputeArgMinMaxExpression(table, operation, operands, resultType, 
                 return null;
         }
     }
-    const compute = makeComputeExpression(null, table, operation, operands, resultType);
+    const compute = makeComputeExpression(table, operation, operands, resultType);
     const sort = new Ast.Table.Sort(null, compute, operation, direction, compute.schema);
     return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], compute.schema);
 }
@@ -1460,13 +1482,13 @@ function makeAggComputeExpression(table, operation, field, list, resultType) {
     }
     const computeSchema = table.schema.addArguments([
         new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType)]);
-    const expression = new Ast.Value.Computation(operation, [new Ast.Value.ArrayField(list, field)]);
+    const expression = new Ast.Value.Computation(operation, [field ? new Ast.Value.ArrayField(list, field) : list]);
 
     return new Ast.Table.Compute(null, table, expression, null, computeSchema);
 }
 
 function makeAggComputeProjExpression(table, operation, field, list, resultType) {
-    const compute = makeAggComputeExpression(null, table, operation, field, list, resultType);
+    const compute = makeAggComputeExpression(table, operation, field, list, resultType);
     if (!compute)
         return null;
     return makeProjection(compute, operation);
@@ -1475,7 +1497,7 @@ function makeAggComputeProjExpression(table, operation, field, list, resultType)
 function makeAggComputeArgMinMaxExpression(table, operation, field, list, resultType, direction = 'desc') {
     if (hasUniqueFilter(table))
         return null;
-    const compute = makeAggComputeExpression(null, table, operation, field, list, resultType);
+    const compute = makeAggComputeExpression(table, operation, field, list, resultType);
     if (!compute)
         return null;
     const sort = new Ast.Table.Sort(null, compute, operation, direction, compute.schema);

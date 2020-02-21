@@ -328,6 +328,9 @@ with_filter = {
     !turking ('no' | 'zero') p:out_param_Array__Any => C.makeAggregateFilter(p, 'count', '*', '==', Ast.Value.Number(0));
     x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter(p, 'count', '*', '==', x);
 
+    !turking ('no' | 'zero') p:out_param_ArrayCount => C.makeFilter(p, '==', Ast.Value.Number(0));
+    x:constant_Number p:out_param_ArrayCount => C.makeFilter(p, '==', Ast.Value.Number(0));
+
     !turking ('no' | 'zero') p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
         const filter =  C.makeFilter(f, '<=', x);
         return C.makeAggregateFilterWithFilter(p, filter, 'count', '*', '==', new Ast.Value.Number(0));
@@ -359,6 +362,8 @@ with_filter = {
 
     ('more than' | 'at least' | 'no fewer than') x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter(p, 'count', '*', '>=', x);
     ('fewer than' | 'at most' | 'no more than') x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter(p, 'count', '*', '<=', x);
+    ('more than' | 'at least' | 'no fewer than') x:constant_Number p:out_param_ArrayCount => C.makeFilter(p, '>=', x);
+    ('fewer than' | 'at most' | 'no more than') x:constant_Number p:out_param_ArrayCount => C.makeFilter(p, '<=', x);
 
     // do not merge
     'no more than' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
@@ -495,14 +500,9 @@ preposition_filter = {
     };
     */
 
-    // FIXME: smarter way to get location-type params
-    ('here' | 'around here' | 'near here') => C.makeFilter({ name: "geo" }, '==', Ast.Value.Location(Ast.Location.Relative('current_location')));
-    ('nearby' | 'around me' | 'in this area') => C.makeFilter({ name: "geo" }, '==', Ast.Value.Location(Ast.Location.Relative('current_location')));
-    ('here' | 'around here' | 'near here') => C.makeFilter({ name: "location" }, '==', Ast.Value.Location(Ast.Location.Relative('current_location')));
-    ('nearby' | 'around me' | 'in this area') => C.makeFilter({ name: "location" }, '==', Ast.Value.Location(Ast.Location.Relative('current_location')));
-
-    ('in' | 'around' | 'near') x:constant_Location=> C.makeFilter({ name: "geo" }, '==', x);
-    ('in' | 'around' | 'near') x:constant_Location=> C.makeFilter({ name: "location" }, '==',x);
+    ('here' | 'around here' | 'near here') => C.makeFilter(new Ast.Value.VarRef('geo'), '==', Ast.Value.Location(Ast.Location.Relative('current_location')));
+    ('nearby' | 'around me' | 'in this area') => C.makeFilter(new Ast.Value.VarRef('geo'), '==', Ast.Value.Location(Ast.Location.Relative('current_location')));
+    ('in' | 'around' | 'near') x:constant_Location=> C.makeFilter(new Ast.Value.VarRef('geo'), '==', x);
 }
 
 // filters on avp parameters

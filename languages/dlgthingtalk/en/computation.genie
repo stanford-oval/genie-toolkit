@@ -94,6 +94,13 @@ if (!_tpLoader.flags.turking) {
                 return null;
             return C.makeAggComputeProjExpression(table, 'count', null, list, Type.Number);
         };
+
+        ( 'the number of' p:out_param_ArrayCount ('of' | 'in' | 'in the') table:with_filtered_table
+        | 'the number of' p:out_param_ArrayCount ('of' | 'in') 'the' table:with_arg_min_max_table ) => {
+            if (!table.schema.out[p.name] || !table.schema.out[p.name].isNumber)
+                return null;
+            return C.makeProjection(table, p.name);
+        };
     }
 
     compute_question = {
@@ -111,6 +118,18 @@ if (!_tpLoader.flags.turking) {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
             return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'));
+        };
+
+        ( 'how many' p:out_param_ArrayCount ('does' | 'do') table:with_filtered_table 'have ?'
+        | 'how many' p:out_param_ArrayCount ('in a' | 'in' | 'in the') table:with_filtered_table '?'
+        | 'how many' p:out_param_ArrayCount 'are there' ('in a' | 'in' | 'in the') table:with_filtered_table '?'
+        | 'how many' p:out_param_ArrayCount ('does' | 'do') 'the' table:with_arg_min_max_table 'have ?'
+        | 'how many' p:out_param_ArrayCount 'in the' table:with_arg_min_max_table '?'
+        | 'how many' p:out_param_ArrayCount 'are there in the' table:with_arg_min_max_table '?'
+        ) => {
+            if (!table.schema.out[p.name] || !table.schema.out[p.name].isNumber)
+                return null;
+            return C.makeProjection(table, p.name);
         };
 
         ( 'how many' p:out_param_Array__Any ('does' | 'do') table:with_filtered_table 'have ?'
@@ -226,10 +245,9 @@ if (!_tpLoader.flags.turking) {
                 return null;
             const conflictParam = C.hasConflictParam(table, p.name, 'count');
             if (conflictParam)
-                return makeArgMinMaxTable(table, conflictParam, 'desc');
+                return C.makeArgMinMaxTable(table, conflictParam, 'desc');
             return C.makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'desc');
         };
-
         !turking table:with_filtered_table 'with the' ('least' | 'fewest' | 'smallest number of' | 'tiniest number of' | 'smallest count of') p:out_param_Array__Any => {
             if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
                 return null;
@@ -245,6 +263,22 @@ if (!_tpLoader.flags.turking) {
             if (conflictParam)
                 return C.makeArgMinMaxTable(table, conflictParam, 'asc');
             return C.makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'asc');
+        };
+
+        table:with_filtered_table 'with the' ('most' | 'highest number of' | 'largest number of' | 'largest count of') p:out_param_ArrayCount => {
+            if (!table.schema.out[p.name] || !table.schema.out[p.name].isNumber)
+                return null;
+            return C.makeArgMinMaxTable(table, p.name, 'desc');
+        };
+        !turking table:with_filtered_table 'with the' ('least' | 'fewest' | 'smallest number of' | 'tiniest number of' | 'smallest count of') p:out_param_ArrayCount => {
+            if (!table.schema.out[p.name] || !table.schema.out[p.name].isNumber)
+                return null;
+            return C.makeArgMinMaxTable(table, p.name, 'asc');
+        };
+        ?turking table:with_filtered_table 'with the' ('fewest' | 'smallest number of') p:out_param_ArrayCount => {
+            if (!table.schema.out[p.name] || !table.schema.out[p.name].isNumber)
+                return null;
+            return C.makeArgMinMaxTable(table, p.name, 'asc');
         };
     }
 }

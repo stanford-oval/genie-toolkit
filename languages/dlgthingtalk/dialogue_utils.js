@@ -598,9 +598,9 @@ function isFilterCompatibleWithInfo(info, filter) {
         return filter.value.value.some((v) => v.equals(info.get(pname)));
 
     case '>=':
-        return filter.value.toJS() >= info.get(pname).toJS();
+        return info.get(pname).toJS() >= filter.value.toJS();
     case '<=':
-        return filter.value.toJS() <= info.get(pname).toJS();
+        return info.get(pname).toJS() <= filter.value.toJS();
 
     default:
         // approximate
@@ -762,17 +762,17 @@ function findOrMakeFilterTable(root) {
             table.isTimeSeries)
             throw new Error('NOT IMPLEMENTED');
 
-        // do not cross these with filters
-        if (table.isSort ||
-            table.isIndex ||
-            table.isSlice ||
-            table.isAggregation ||
+        // do not touch these with filters
+        if (table.isAggregation ||
             table.isVarRef ||
             table.isResultRef)
             return [null, null];
 
         // go inside these
-        if (table.isProjection ||
+        if (table.isSort ||
+            table.isIndex ||
+            table.isSlice ||
+            table.isProjection ||
             table.isCompute ||
             table.isAlias) {
             holder = table;
@@ -952,13 +952,21 @@ function overrideCurrentQuery(ctxClone, newTable) {
     return state;
 }
 
+function isValidSlotFillQuestion(table, question) {
+    const arg = table.schema.getArgument(question);
+    if (!arg)
+        return false;
+
+    return arg.getAnnotation('filterable') !== false;
+}
+
 function preciseSearchQuestionAnswer(ctx, [question, answer]) {
     const answerFunctions = C.getFunctionNames(answer);
     assert(answerFunctions.length === 1);
     if (answerFunctions[0] !== ctx.currentFunction)
         return null;
     const currentTable = ctx.current.stmt.table;
-    if (question !== '' && !currentTable.schema.out[question])
+    if (isValidSlotFillQuestion(currentTable, question))
         return null;
     assert(answer.isFilter && answer.table.isInvocation);
 
@@ -1018,7 +1026,7 @@ function checkFilterPairForDisjunctiveQuestion(ctx, f1, f2) {
 
 function impreciseSearchQuestionAnswer(ctx, [question, answer]) {
     const currentTable = ctx.current.stmt.table;
-    if (question !== '' && !currentTable.schema.out[question])
+    if (isValidSlotFillQuestion(currentTable, question))
         return null;
     if (!C.checkFilter(ctx.current.stmt.table, answer))
         return null;
@@ -1330,6 +1338,7 @@ function positiveListProposalReplyPair(ctx, [results, actionProposal, name, acce
 }
 
 function impreciseSearchQuestionAnswerPair(question, answer) {
+    assert(typeof question === 'string');
     if (answer instanceof Ast.BooleanExpression) {
         let pname;
         if (answer.isNot) {
@@ -1345,7 +1354,7 @@ function impreciseSearchQuestionAnswerPair(question, answer) {
         return [question, answer];
     } else {
         assert(answer instanceof Ast.Value);
-        answer = C.makeFilter(question, '==', answer);
+        answer = C.makeFilter(new Ast.Value.VarRef(question), '==', answer);
         if (answer === null)
             return null;
         return [question, answer];

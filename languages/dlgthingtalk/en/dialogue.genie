@@ -12,6 +12,7 @@
     const assert = require('assert');
     const ThingTalk = require('thingtalk');
     const Ast = ThingTalk.Ast;
+    const Type = ThingTalk.Type;
 
     const C = require('../ast_manip');
     const D = require('../dialogue_utils');
@@ -265,7 +266,7 @@ disjunctive_slot_fill_question = {
     ) => {
         const [pname, ptype] = question;
         const tableptype = table.schema.getArgType(pname);
-        if (!tableptype || !ptype.equals(tableptype))
+        if (!tableptype || !ptype.equals(tableptype) || table.schema.getArgument(pname).getAnnotation('filterable') === false)
             return null;
         return pname;
     };
@@ -591,11 +592,13 @@ generic_negative_proposal_reply = {
 }
 
 system_generic_proposal = {
-    ctx:ctx_search_command ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase '?'
-        => D.makeRefinementProposal(ctx, proposal);
+    ( ctx:ctx_search_command ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase '?'
+    | ctx:ctx_search_command ('are you looking for' | 'how about') proposal:anything_phrase '?'
+    ) => D.makeRefinementProposal(ctx, proposal);
 
-    ctx:search_result_preamble ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase '?'
-        => D.makeRefinementProposal(ctx, proposal);
+    ( ctx:search_result_preamble ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase '?'
+    | ctx:search_result_preamble ('are you looking for' | 'how about' | 'how about') proposal:anything_phrase '?'
+    ) => D.makeRefinementProposal(ctx, proposal);
 }
 
 accept_phrase = {
@@ -905,13 +908,13 @@ empty_search_error = {
 
     ('sorry ,' | 'i am sorry ,' | '') ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
     '.' 'would you like' ('a different' | 'another') p:out_param_Any '?' => {
-        if (!base.schema.hasArgument(p.name))
+        if (!base.schema.hasArgument(p))
             return null;
-        return [base, p.name];
+        return [base, p];
     };
 
     ('sorry ,' | 'i am sorry ,' | '') 'i cannot find any result for your search . would you like' ('a different' | 'another') p:out_param_Any '?'
-        => [null, p.name];
+        => [null, p];
 }
 
 empty_search_change_pair = {
@@ -921,7 +924,7 @@ empty_search_change_pair = {
         const [base, param] = error;
         if (base !== null && !C.isSameFunction(base.schema, phrase.schema))
             return null;
-        if (param !== null && !C.filterUsesParam(phrase.filter, param))
+        if (param !== null && !C.filterUsesParam(phrase.filter, param.name))
             return null;
         return [param, phrase];
     };
@@ -934,7 +937,7 @@ empty_search_change_pair = {
             answer = C.makeFilter(param, '==', answer);
         if (answer === null)
             return null;
-        if (answer.name !== param)
+        if (answer.name !== param.name)
             return null;
         if (!C.checkFilter(base, answer))
             return null;
