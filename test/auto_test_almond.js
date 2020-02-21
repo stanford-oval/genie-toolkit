@@ -2440,7 +2440,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ##########
 >> $$$$$$$$$$
 >> %%%%%%%%%%
->> button: Show more results… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> button: Show more results {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> context = now => @org.thingpedia.builtin.test.get_data param:count:Number = NUMBER_0 param:size:Measure(byte) = MEASURE_byte_0 => notify // {"NUMBER_0":25,"MEASURE_byte_0":{"unit":"byte","value":10}}
 >> ask special generic
 `,
@@ -2450,7 +2450,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ((((((((((
 >> ))))))))))
 >> **********
->> button: Show more results… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> button: Show more results {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> context = now => @org.thingpedia.builtin.test.get_data param:count:Number = NUMBER_0 param:size:Measure(byte) = MEASURE_byte_0 => notify // {"NUMBER_0":25,"MEASURE_byte_0":{"unit":"byte","value":10}}
 >> ask special generic
 `,
@@ -2460,7 +2460,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ----------
 >> ..........
 >> //////////
->> button: Show more results… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> button: Show more results {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> context = now => @org.thingpedia.builtin.test.get_data param:count:Number = NUMBER_0 param:size:Measure(byte) = MEASURE_byte_0 => notify // {"NUMBER_0":25,"MEASURE_byte_0":{"unit":"byte","value":10}}
 >> ask special generic
 `,
@@ -2470,7 +2470,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> 2222222222
 >> 3333333333
 >> 4444444444
->> button: Show more results… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> button: Show more results {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> context = now => @org.thingpedia.builtin.test.get_data param:count:Number = NUMBER_0 param:size:Measure(byte) = MEASURE_byte_0 => notify // {"NUMBER_0":25,"MEASURE_byte_0":{"unit":"byte","value":10}}
 >> ask special generic
 `,
@@ -2496,7 +2496,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ##########
 >> $$$$$$$$$$
 >> %%%%%%%%%%
->> button: Show more results… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> button: Show more results {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> context = now => @org.thingpedia.builtin.test.get_data param:count:Number = NUMBER_0 param:size:Measure(byte) = MEASURE_byte_0 => notify // {"NUMBER_0":25,"MEASURE_byte_0":{"unit":"byte","value":10}}
 >> ask special generic
 `,
@@ -2517,7 +2517,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ##########
 >> $$$$$$$$$$
 >> %%%%%%%%%%
->> button: Show more results… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> button: Show more results {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> context = now => @org.thingpedia.builtin.test.get_data param:count:Number = NUMBER_0 param:size:Measure(byte) = MEASURE_byte_0 => notify // {"NUMBER_0":25,"MEASURE_byte_0":{"unit":"byte","value":10}}
 >> ask special generic
 `,
@@ -2541,7 +2541,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ##########
 >> $$$$$$$$$$
 >> %%%%%%%%%%
->> button: Show more results… {"code":["bookkeeping","special","special:more"],"entities":{}}
+>> button: Show more results {"code":["bookkeeping","special","special:more"],"entities":{}}
 >> context = now => @org.thingpedia.builtin.test.get_data param:count:Number = NUMBER_0 param:size:Measure(byte) = MEASURE_byte_0 => notify // {"NUMBER_0":25,"MEASURE_byte_0":{"unit":"byte","value":10}}
 >> ask special generic
 `,
