@@ -712,7 +712,7 @@ msgstr ""
 "personal."
 
 #: lib/dialogs/rule.js:151
-msgid "Show more result…"
+msgid "Show more results…"
 msgstr "Mostrar más resultados…"
 
 #: lib/dialogs/rule.js:179
