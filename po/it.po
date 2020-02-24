@@ -669,8 +669,8 @@ msgstr ""
 "personale."
 
 #: lib/dialogs/rule.js:151
-msgid "Show more result…"
-msgstr "Mostra più risultati…"
+msgid "Show more results"
+msgstr "Mostra più risultati"
 
 #: lib/dialogs/rule.js:179
 msgid "Sorry, I did not find any result for that."
