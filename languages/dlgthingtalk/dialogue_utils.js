@@ -836,11 +836,29 @@ function refineFilterToAnswerQuestion(ctxFilter, refinedFilter) {
     // (e.g. "how about terun?" "nah i'm looking for something chinese")
     //
     // the refinement is allowed only if the parameter was not mentioned before
+    // furthermore, "id ==" filters are removed from the refined filter, so a user
+    // can choose a restaurant for a while then change their mind
 
     if (setsIntersect(getParamsInFilter(ctxFilter),  getParamsInFilter(refinedFilter)))
         return null;
 
-    return new Ast.BooleanExpression.And(null, [ctxFilter, refinedFilter]);
+    function recursiveHelper(ast) {
+        if (ast.isNot)
+            return new Ast.BooleanExpression.Not(null, recursiveHelper(ast.expr));
+        if (ast.isOr)
+            return new Ast.BooleanExpression.Or(null, ast.operands.map(recursiveHelper));
+        if (ast.isAnd)
+            return new Ast.BooleanExpression.And(null, ast.operands.map(recursiveHelper));
+        if (ast.isTrue || ast.isFalse || ast.isCompute || ast.isExternal)
+            return ast;
+
+        assert(ast.isAtom);
+        if (ast.name === 'id' && ast.operator === '==')
+            return Ast.BooleanExpression.True;
+        return ast;
+    }
+    const clone = recursiveHelper(ctxFilter).optimize();
+    return new Ast.BooleanExpression.And(null, [clone, refinedFilter]);
 }
 
 function filterToSlots(filter) {
