@@ -52,6 +52,7 @@ async function runNLUPrediction(backend, tokens, entities, context, limit, skipT
         candidates = await backend.nlu.predict(tokens.join(' '), undefined, SEMANTIC_PARSING_TASK);
     else
         candidates = await backend.nlu.predict(context.join(' '), tokens.join(' '), NLU_TASK);
+
     if (skipTypechecking) {
         return candidates.map((c) => {
             return {
