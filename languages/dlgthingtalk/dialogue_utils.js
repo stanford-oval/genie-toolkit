@@ -1330,10 +1330,10 @@ function positiveListProposalReplyPair(ctx, [results, actionProposal, name, acce
 
     let dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
     let sysState;
-    if (acceptedAction === null)
+    if (actionProposal === null)
         sysState = makeSimpleState(ctx, dialogueAct, null);
     else
-        sysState = addAction(ctx.clone(), dialogueAct, acceptedAction);
+        sysState = addAction(ctx.clone(), dialogueAct, actionProposal);
     return checkStateIsValid(ctx, sysState, userState);
 }
 
