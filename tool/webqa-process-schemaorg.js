@@ -162,7 +162,7 @@ const PROPERTY_CANONICAL_OVERRIDE = {
     },
 
     // location
-    'geo': { default:"npp", npp:['location', 'address'] },
+    'geo': { default:"npp", npp:['location', 'address'], pvp:["in", "around", "at", "on"] },
     'streetAddress': { default:"npp", npp:['street'] },
     'addressCountry': { default:"pvp", pvp:["in"], npp:["country"] },
     'addressRegion': { default:"pvp", pvp:["in"], npp:["state"] },
