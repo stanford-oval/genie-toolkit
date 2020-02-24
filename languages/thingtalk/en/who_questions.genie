@@ -71,6 +71,10 @@ if (!_tpLoader.flags.nofilter) {
         table:who_one_with_filter_table 'and' filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
         table:who_one_which_filter_table ('and having' | 'and with' | ', with') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
         table:who_one_clean_filter_table ('with' | 'having') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+
+        table:who_one_with_filter_table 'and' filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_which_filter_table ('and having' | 'and with' | ', with') filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_clean_filter_table ('with' | 'having') filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
     }
 
     who_two_which_filter_table = {
@@ -124,7 +128,7 @@ if (!_tpLoader.flags.nofilter) {
     }
 
     who_one_have_filter_table = {
-        table:who_complete_table ('get' | 'have' | 'gets' | 'has') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_complete_table ('get' | 'have' | 'gets' | 'has') filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
     }
 
     who_one_verb_filter_table = {
@@ -149,9 +153,9 @@ if (!_tpLoader.flags.nofilter) {
     }
 
     who_two_have_filter_table = {
-        table:who_one_be_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
-        table:who_one_have_filter_table 'and' filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
-        table:who_one_verb_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_be_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_have_filter_table 'and' filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+        table:who_one_verb_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
     }
 
     who_two_verb_filter_table = {
