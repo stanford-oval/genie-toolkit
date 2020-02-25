@@ -711,6 +711,81 @@ positive_list_proposal_reply_pair = {
     };
 }
 
+user_search_question_with_name = {
+    // straight up questions
+    ( ('can you tell me' | '') 'what is' name:constant_name '\'s' param:out_param_Any '?'
+    | ('can you tell me' | '') 'what is' 'the' param:out_param_Any 'of' name:constant_name '?'
+    | 'can you tell me' name:constant_name '\'s' param:out_param_Any '?'
+    | 'can you tell me' 'the' param:out_param_Any 'of' name:constant_name '?'
+    | 'i would like to' ('know' | 'see') name:constant_name '\'s' param:out_param_Any ('first' | '') '.'
+    | 'i would like to' ('know' | 'see') 'the' param:out_param_Any 'of' name:constant_name ('first' | '') '.'
+    ) => {
+        if (param.name === 'id')
+            return null;
+        return [name, param.name, null];
+    };
+}
+
+boolean_user_search_question_with_name = {
+    // question in boolean
+    ( 'does' name:constant_name 'have' param:npp_filter '?'
+    | 'does' name:constant_name param:avp_filter '?'
+    | 'is' name:constant_name param:apv_filter '?'
+    | 'is' name:constant_name param:pvp_filter '?'
+    | 'is' name:constant_name param:preposition_filter '?'
+    ) => {
+        if (param.name === 'id')
+            return null;
+        return [name, param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()];
+    };
+
+    ( 'is' name:constant_name 'a' param:apv_filter base:base_table '?'
+    | 'is' name:constant_name 'a' base:base_table param:pvp_filter '?'
+    | 'is' name:constant_name 'a' base:base_table param:preposition_filter '?'
+    | 'is' name:constant_name 'a' base:base_table ('that' | 'which') param:avp_filter '?'
+    | 'is' name:constant_name 'a' base:base_table ('that has' | 'with') param:npp_filter '?'
+    ) => {
+        if (!C.checkFilter(base, param))
+            return null;
+        if (param.name === 'id')
+            return null;
+        const idArg = base.schema.getArgument('id');
+        if (!idArg || !idArg.type.equals(name.getType()))
+            return null;
+        return [param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()];
+    };
+}
+
+list_proposal_search_question_pair = {
+    ( prop:system_list_proposal '<sep>' question:user_search_question_with_name
+    | prop:system_list_proposal '<sep>' question:boolean_user_search_question_with_name
+    ) => {
+        const [name, pname, type] = question;
+        const [results, info, action] = prop;
+        let good = false;
+        for (let result of results) {
+            if (!result.value.id)
+                continue;
+            if (result.value.id.equals(name)) {
+                good = true;
+                break;
+            }
+        }
+        if (!good)
+            return null;
+
+        if (info !== null) {
+            if (info.has(pname))
+                return null;
+            if (!info.schema.hasArgument(pname))
+                return null;
+            if (type !== null && !info.schema.getArgType(pname).equals(type))
+                return null;
+        }
+        return [results, name, action, [pname, type]];
+    };
+}
+
 verbose_negative_proposal_reply_pair = {
     /* FIXME
     ( prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:answer_noun_phrase
@@ -1011,4 +1086,6 @@ $root = {
         => D.negativeListProposalReplyPair(ctx, pair);
     ctx:ctx_complete_search_command pair:positive_list_proposal_reply_pair [weight=10 * 0.7]
         => D.positiveListProposalReplyPair(ctx, pair);
+    ctx:ctx_complete_search_command pair:list_proposal_search_question_pair [weight=10]
+        => D.listProposalSearchQuestionPair(ctx, pair);
 }

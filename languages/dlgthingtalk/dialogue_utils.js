@@ -1261,6 +1261,31 @@ function addResultQuestion(ctxClone, question) {
     return state;
 }
 
+function listProposalSearchQuestionPair(ctx, [results, name, actionProposal, question]) {
+    const [qname, qtype] = question;
+
+    if (!ctx.currentFunctionSchema.hasArgument(qname))
+        return null;
+    if (qtype !== null && !ctx.currentFunctionSchema.getArgType(qname).equals(qtype))
+        return null;
+
+    const resultRef = new Ast.Table.ResultRef(null, ctx.currentFunctionSchema.class.name, ctx.currentFunctionSchema.name,
+        new Ast.Value.Number(1), ctx.currentFunctionSchema);
+    const filterTable = new Ast.Table.Filter(null, resultRef,
+        new Ast.BooleanExpression.Atom(null, 'id', '==', name), ctx.currentFunctionSchema);
+    const questionTable = C.makeProjection(filterTable, qname);
+    const userState = addResultQuestion(ctx.clone(), questionTable);
+
+    let dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
+    let sysState;
+    if (actionProposal === null)
+        sysState = makeSimpleState(ctx, dialogueAct, null);
+    else
+        sysState = addAction(ctx.clone(), dialogueAct, actionProposal);
+
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
 function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, question]) {
     const [qname, qtype] = question;
 
@@ -1449,5 +1474,6 @@ module.exports = {
     recommendationSearchQuestionPair,
     negativeListProposalReplyPair,
     positiveListProposalReplyPair,
+    listProposalSearchQuestionPair,
     emptySearchChangePair
 };
