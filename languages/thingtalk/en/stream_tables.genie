@@ -80,6 +80,7 @@ with_filtered_table = {
 
 one_with_filter_table = {
     !nofilter table:complete_table ('with' | 'having') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:complete_table ('with' | 'having') filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
 }
 
 one_which_filter_table = {
@@ -98,6 +99,10 @@ two_with_filter_table = {
     !nofilter table:one_with_filter_table 'and' filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
     !nofilter table:one_which_filter_table ('and having' | 'and with' | ', with') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
     !nofilter table:one_clean_filter_table ('with' | 'having') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+
+    !nofilter table:one_with_filter_table 'and' filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_which_filter_table ('and having' | 'and with' | ', with') filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_clean_filter_table ('with' | 'having') filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
 
     !nofilter filter:apv_filter table:one_with_filter_table => C.checkAndAddFilter(table, filter, _tpLoader);
 }
@@ -151,7 +156,7 @@ one_be_filter_table = {
 }
 
 one_have_filter_table = {
-    !nofilter table:complete_table ('get' | 'have') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:complete_table ('get' | 'have') filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
 }
 
 one_verb_filter_table = {
@@ -176,9 +181,9 @@ two_be_filter_table = {
 }
 
 two_have_filter_table = {
-    !nofilter table:one_be_filter_table 'and' ('get' | 'have') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
-    !nofilter table:one_have_filter_table 'and' filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
-    !nofilter table:one_verb_filter_table 'and' ('get' | 'have') filter:with_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_be_filter_table 'and' ('get' | 'have') filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_have_filter_table 'and' filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
+    !nofilter table:one_verb_filter_table 'and' ('get' | 'have') filter:npp_filter => C.checkAndAddFilter(table, filter, _tpLoader);
 }
 
 two_verb_filter_table = {
