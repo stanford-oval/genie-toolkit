@@ -59,7 +59,7 @@ class DialogueToTurnStream extends Stream.Transform {
             return;
 
         const context = await this._target.parse(turn.context, this._options);
-        const agentContext = this._target.prepareContextForPrediction(context);
+        const agentContext = this._target.prepareContextForPrediction(context, 'agent');
         const [contextCode, contextEntities] = this._target.serializeNormalized(agentContext);
 
         const agentTarget = await this._target.parse(turn.agent_target, this._options);
@@ -83,7 +83,7 @@ class DialogueToTurnStream extends Stream.Transform {
             // NOTE: the agent target is context for the user utterance, not the context
             // (which is the output of executing the previous program, before the agent speaks)
             context = await this._target.parse(turn.agent_target, this._options);
-            const userContext = this._target.prepareContextForPrediction(context);
+            const userContext = this._target.prepareContextForPrediction(context, 'user');
             [contextCode, contextEntities] = this._target.serializeNormalized(userContext);
         } else {
             context = null;
