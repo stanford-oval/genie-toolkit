@@ -375,7 +375,7 @@ function getActionInvocation(historyItem) {
 }
 
 function isFilterCompatibleWithResult(topResult, filter) {
-    if (filter.isTrue)
+    if (filter.isTrue || filter.isDontCare)
         return true;
     if (filter.isFalse)
         return false;
@@ -565,7 +565,7 @@ function checkListProposal(ctx, results, info) {
 
 function isFilterCompatibleWithInfo(info, filter) {
     assert(filter instanceof Ast.BooleanExpression);
-    if (filter.isTrue)
+    if (filter.isTrue || filter.isDontCare)
         return true;
     if (filter.isFalse)
         return false;
@@ -742,6 +742,11 @@ function isQueryAnswerValidForQuestion(table, question) {
                 answersQuestion = true;
             return true;
         }
+        visitDontCareBooleanExpression(atom) {
+            if (atom.name === question)
+                answersQuestion = true;
+            return true;
+        }
     });
     return answersQuestion;
 }
@@ -822,6 +827,10 @@ function getParamsInFilter(filter) {
             params.add(atom.name);
             return false;
         }
+        visitDontCareBooleanExpression(atom) {
+            params.add(atom.name);
+            return false;
+        }
         visitExternalBooleanExpression() {
             return false;
         }
@@ -850,7 +859,7 @@ function refineFilterToAnswerQuestion(ctxFilter, refinedFilter) {
             return new Ast.BooleanExpression.Or(null, ast.operands.map(recursiveHelper));
         if (ast.isAnd)
             return new Ast.BooleanExpression.And(null, ast.operands.map(recursiveHelper));
-        if (ast.isTrue || ast.isFalse || ast.isCompute || ast.isExternal)
+        if (ast.isTrue || ast.isDontCare || ast.isFalse || ast.isCompute || ast.isExternal)
             return ast;
 
         assert(ast.isAtom);
@@ -871,18 +880,13 @@ function filterToSlots(filter) {
         operands = [filter];
 
     for (let operand of operands) {
-        if (!operand.isAtom)
+        if (!operand.isAtom && !operand.isDontCare)
             continue;
 
         slots[operand.name] = operand;
     }
 
     return slots;
-}
-
-function filterEqual(atom1, atom2) {
-    return atom1.operator === atom2.operator &&
-        atom1.value.equals(atom2.value);
 }
 
 function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
@@ -902,7 +906,7 @@ function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
     const refinedSlots = filterToSlots(refinedFilter);
     // all slots in the context must be either not mentioned in the refinement, or changed
     for (let key in ctxSlots) {
-        if (refinedSlots[key] && filterEqual(refinedSlots[key], ctxSlots[key]))
+        if (refinedSlots[key] && refinedSlots[key].equals(ctxSlots[key]))
             return null;
     }
     // all slots that are in the refinement must be mentioned in the context
@@ -926,6 +930,10 @@ function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
             }
 
             visitAtomBooleanExpression(atom) {
+                good = good && !C.filterUsesParam(refinedFilter, atom.name);
+                return true;
+            }
+            visitDontCareBooleanExpression(atom) {
                 good = good && !C.filterUsesParam(refinedFilter, atom.name);
                 return true;
             }
@@ -1386,10 +1394,10 @@ function impreciseSearchQuestionAnswerPair(question, answer) {
     if (answer instanceof Ast.BooleanExpression) {
         let pname;
         if (answer.isNot) {
-            assert(answer.expr.isAtom);
+            assert(answer.expr.isAtom || answer.expr.isDontCare);
             pname = answer.expr.name;
         } else {
-            assert(answer.isAtom);
+            assert(answer.isAtom || answer.isDontCare);
             pname = answer.name;
         }
         if (pname !== question)

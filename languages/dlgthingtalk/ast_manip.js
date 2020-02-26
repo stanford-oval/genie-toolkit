@@ -639,7 +639,7 @@ function *iterateFields(filter) {
             yield *iterateFields(operand);
     } else if (filter.isNot) {
         yield *iterateFields(filter.expr);
-    } else if (filter.isAtom) {
+    } else if (filter.isAtom || filter.isDontCare) {
         yield filter;
     } else {
         assert(filter.isTrue || filter.isFalse || filter.isOr || filter.isCompute || filter.isExternal);
