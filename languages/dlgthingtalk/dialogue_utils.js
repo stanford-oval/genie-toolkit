@@ -547,7 +547,7 @@ function makeShortUserQuestionAnswer({ topResult, ctx, action }, filter) {
     return checkRecommendation({ topResult, action }, info);
 }
 
-function checkListProposal(results, action, info) {
+function checkListProposal(ctx, results, info) {
     const resultType = results[0].value.id.getType();
     const idType = info.schema.getArgType('id');
 
@@ -559,6 +559,7 @@ function checkListProposal(results, action, info) {
             return null;
     }
 
+    const action = ctx.nextInfo && ctx.nextInfo.isAction ? getActionInvocation(ctx.next) : null;
     return [results, info, action];
 }
 
@@ -1446,6 +1447,7 @@ module.exports = {
     isInfoPhraseCompatibleWithResult,
     checkInfoPhrase,
     checkFilterPairForDisjunctiveQuestion,
+    getActionInvocation,
 
     // system dialogue acts
     checkSearchResultPreamble,

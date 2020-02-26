@@ -549,25 +549,28 @@ action_coref_proposal = {
 // together with informative results about them, an offer to learn more, or an offer for an action
 //
 system_list_proposal = {
-    ctx_without_projection ('i see' | 'i have' | 'i have found') name_list:result_name_list '.'
+    ctx:ctx_without_projection ('i see' | 'i have' | 'i have found') name_list:result_name_list '.'
         ('' |
          'would you like to learn more ?' | 'would you like to learn more about either of them ?' |
          'would you like to know more about them ?' | 'would you like to hear more about them ?' |
          'are you interested to hear more about any of them ?')
-        => [name_list, null, null];
+        => [name_list, null, ctx.nextInfo && ctx.nextInfo.isAction ? D.getActionInvocation(ctx.next) : null];
 
-    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' ('they' | 'all of them') 'are' info:result_info_phrase '.'
-        => D.checkListProposal(name_list, null, info);
+    ctx:ctx_complete_search_command ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' ('they' | 'all of them') 'are' info:result_info_phrase '.'
+        => D.checkListProposal(ctx, name_list, info);
 
-    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' 'both are' info:result_info_phrase '.' => {
+    ctx:ctx_complete_search_command  ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' 'both are' info:result_info_phrase '.' => {
         if (name_list.length !== 2)
             return null;
-        return D.checkListProposal(name_list, null, info);
+        return D.checkListProposal(ctx, name_list, info);
     };
 
-    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_proposal => {
+    ctx:ctx_complete_search_command ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_proposal => {
         const resultType = name_list[0].value.id.getType();
         if (!C.hasArgumentOfType(action, resultType))
+            return null;
+        const ctxAction = ctx.nextInfo && ctx.nextInfo.isAction ? D.getActionInvocation(ctx.next) : null;
+        if (ctxAction && !C.isSameFunction(ctxAction.schema, action.schema))
             return null;
 
         return [name_list, null, action];
