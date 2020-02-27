@@ -11,34 +11,50 @@
 
 const fs = require('fs');
 const readline = require('readline');
-const Stream = require('stream');
+const events = require('events');
+const seedrandom = require('seedrandom');
 const Tp = require('thingpedia');
-
-const ParserClient = require('./lib/parserclient');
-const { DialogSerializer } = require('./lib/dialog_parser');
-const StreamUtils = require('../lib/stream-utils');
-
 const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
 
-class Annotator extends Stream.Readable {
-    constructor(rl, options) {
-        super({ objectMode: true });
+const { AVAILABLE_LANGUAGES } = require('../lib/languages');
+const ParserClient = require('./lib/parserclient');
+const { DialogueParser, DialogueSerializer } = require('./lib/dialog_parser');
+const StreamUtils = require('../lib/stream-utils');
+const { readAllLines } = require('./lib/argutils');
+
+class Annotator extends events.EventEmitter {
+    constructor(rl, dialogues, options) {
+        super();
 
         this._rl = rl;
+        this._nextDialogue = dialogues[Symbol.iterator]();
 
         const tpClient = new Tp.FileClient(options);
         this._schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
-        this._parser = ParserClient.get(options.server, 'en-US');
+        this._userParser = ParserClient.get(options.user_nlu_server, options.locale);
+        this._agentParser = ParserClient.get(options.agent_nlu_server, options.locale);
+        this._target = require('../lib/languages/' + options.target_language);
+
+        const simulatorOptions = {
+            rng: seedrandom.alea('almond is awesome'),
+            locale: options.locale,
+            thingpediaClient: tpClient,
+            schemaRetriever: this._schemas
+        };
+        this._simulator = this._target.createSimulator(simulatorOptions);
 
         this._state = 'loading';
 
-        this._serial = 0;
+        this._serial = options.offset - 1;
 
-        this._currentDialog = [];
-
-        this._dialogState = undefined;
+        this._currentDialogue = undefined;
+        this._outputDialogue = [];
+        this._currentTurnIdx = undefined;
+        this._outputTurn = undefined;
+        this._currentKey = undefined;
         this._context = undefined;
+        this._simulatorState = undefined;
+        this._dialogState = undefined;
         this._utterance = undefined;
         this._preprocessed = undefined;
         this._entities = undefined;
@@ -55,24 +71,33 @@ class Annotator extends Stream.Readable {
                 return;
             }
 
-            if (line === 'q') {
-                this.quit();
-                return;
-            }
-
             if (line === 'h' || line === '?') {
                 this._help();
                 return;
             }
-
-            if (line === 'd') {
-                this.nextDialog();
+            if (line === 'q') {
+                this.emit('quit');
                 return;
             }
 
-            if (this._state === 'input') {
-                this._utterance = line;
-                this._handleInput().catch((e) => this.emit('error', e));
+            if (line === 'd' || line.startsWith('d ')) {
+                let comment = line.substring(2).trim();
+                if (!comment && this._comment)
+                    comment = this._comment;
+
+                if (this._outputDialogue.length > 0) {
+                    this.emit('learned', {
+                        id: this._serial,
+                        turns: this._outputDialogue,
+                    });
+                }
+
+                this.emit('dropped', {
+                    id: this._serial,
+                    turns: this._currentDialogue,
+                    comment: `dropped at turn ${this._outputDialogue.length+1}: ${comment}`
+                });
+                this.next();
                 return;
             }
 
@@ -85,28 +110,20 @@ class Annotator extends Stream.Readable {
                 this._learnNumber(parseInt(line));
             } else if (line === 'n') {
                 this._more();
+            } else if (line === 'e') {
+                this._edit(undefined);
             } else if (line.startsWith('e ')) {
                 this._edit(parseInt(line.substring(2).trim()));
-            } else if (line.startsWith('t ')) {
-                this._learnThingTalk(line.substring(2)).catch((e) => this.emit('error', e));
             } else if (line === 't') {
                 this._state = 'code';
                 rl.setPrompt('TT: ');
                 rl.prompt();
             } else {
-                console.log('Invalid command');
-                rl.prompt();
+                //console.log('Invalid command');
+                //rl.prompt();
+                this._learnThingTalk(line).catch((e) => this.emit('error', e));
             }
         });
-    }
-
-    _read() {}
-
-    quit() {
-        if (this._currentDialog.length > 0)
-            this.push(this._currentDialog);
-        this._state = 'done';
-        this.push(null);
     }
 
     _help() {
@@ -121,11 +138,12 @@ class Annotator extends Stream.Readable {
     }
 
     async start() {
-        await this._parser.start();
-        this.nextDialog();
+        await this._userParser.start();
+        await this._agentParser.start();
     }
     async stop() {
-        await this._parser.stop();
+        await this._userParser.start();
+        await this._agentParser.start();
     }
 
     async _learnThingTalk(code) {
@@ -135,7 +153,7 @@ class Annotator extends Stream.Readable {
 
             const clone = {};
             Object.assign(clone, this._entities);
-            ThingTalk.NNSyntax.toNN(program, this._preprocessed, clone);
+            ThingTalk.NNSyntax.toNN(program, this._preprocessed, clone, { allocateEntities: true });
         } catch(e) {
             console.log(`${e.name}: ${e.message}`);
             this._rl.setPrompt('TT: ');
@@ -143,32 +161,28 @@ class Annotator extends Stream.Readable {
             return;
         }
 
-        if (!this._applyReplyToContext(program)) {
-            this._rl.setPrompt('TT: ');
-            this._rl.prompt();
-            return;
-        }
-
-        this._currentDialog.push(
-            this._preprocessed,
-            program.prettyprint()
-        );
-        this._computeAssistantAction();
-        this.nextTurn();
+        this._context = this._target.computeNewState(this._context, program);
+        this._outputTurn[this._currentKey] = this._context.prettyprint();
+        this._nextUtterance();
     }
 
     _edit(i) {
-        if (Number.isNaN(i) || i < 1 || i > this._candidates.length) {
-            console.log('Invalid number');
-            this._rl.setPrompt('$ ');
-            this._rl.prompt();
-            return;
+        let program;
+        if (i === undefined) {
+            program = this._context;
+        } else {
+            if (Number.isNaN(i) || i < 1 || i > this._candidates.length) {
+                console.log('Invalid number');
+                this._rl.setPrompt('$ ');
+                this._rl.prompt();
+                return;
+            }
+            i -= 1;
+            program = this._candidates[i];
         }
-        i -= 1;
-        const program = this._candidates[i];
         this._state = 'code';
         this._rl.setPrompt('TT: ');
-        this._rl.write(program.prettyprint(true));
+        this._rl.write(program.prettyprint(true).replace(/\n/g, ' '));
         this._rl.prompt();
     }
 
@@ -182,18 +196,9 @@ class Annotator extends Stream.Readable {
         i -= 1;
 
         const program = this._candidates[i];
-        if (!this._applyReplyToContext(program)) {
-            this._rl.setPrompt('$ ');
-            this._rl.prompt();
-            return;
-        }
-
-        this._currentDialog.push(
-            this._preprocessed,
-            program.prettyprint()
-        );
-        this._computeAssistantAction();
-        this.nextTurn();
+        this._context = this._target.computeNewState(this._context, program);
+        this._outputTurn[this._currentKey] = this._context.prettyprint();
+        this._nextUtterance();
     }
 
     _more() {
@@ -211,153 +216,95 @@ class Annotator extends Stream.Readable {
         }
     }
 
-    _computeAssistantAction() {
-        for (let [schema, slot] of this._context.iterateSlots()) {
-            if (slot instanceof Ast.Selector)
-                continue;
-            if (slot.value.isUndefined) {
-                this._currentDialog.push(`# assistant asks for ${slot.name}`);
-                console.log(`A: asks for ${slot.name}`);
-
-                let argname = slot.name;
-                let type = schema.inReq[argname] || schema.inOpt[argname] || schema.out[argname];
-                if (slot instanceof Ast.BooleanExpression && slot.operator === 'contains')
-                    type = type.elem;
-                this._dialogState = type.isString ? 'raw' : 'slot-fill';
-                return;
-            }
+    next() {
+        if (this._outputDialogue.length > 0) {
+            this.emit('learned', {
+                id: this._serial,
+                turns: this._outputDialogue,
+            });
         }
 
-        if (this._context.isProgram && this._context.rules.every((r) => !r.stream && r.actions.every((a) => a.isInvocation && a.invocation.selector.isBuiltin))) {
-            this._currentDialog.push(`# assistant shows result`);
-            console.log(`A: shows result`);
-            this._dialogState = 'result';
+        const { value: nextDialogue, done } = this._nextDialogue.next();
+        if (done) {
+            this.emit('end');
             return;
         }
-
-        if (this._dialogState === 'confirm') {
-            this._currentDialog.push(`# assistant executes`);
-            console.log(`A: consider it done`);
-            this._dialogState = 'initial';
-            return;
-        }
-
-        this._currentDialog.push(`# assistant confirms`);
-        console.log(`A: confirms`);
-        this._dialogState = 'confirm';
-    }
-
-    _applyReplyToContext(newCommand) {
-        if (newCommand.isProgram || newCommand.isPermissionRule) {
-            this._context = newCommand;
-            this._dialogState = 'initial';
-            return true;
-        }
-
-        if (newCommand.isBookkeeping && this._context !== null) {
-            if (this._dialogState === 'slot-fill') {
-                // while slot filling, treat yes/no as true/false
-                if (newCommand.intent.isSpecial &&
-                    (newCommand.intent.type === 'yes' || newCommand.intent.type === 'no')) {
-                    newCommand = new Ast.Input.Bookkeeping(null,
-                        new Ast.BookkeepingIntent.Answer(null, new Ast.Value.Boolean(newCommand.intent.type === 'yes'))
-                    );
-                }
-            }
-
-            if (newCommand.intent.isAnswer) {
-                if (this._dialogState !== 'slot-fill' && this._dialogState !== 'raw') {
-                    console.log(`Unexpected answer`);
-                    return false;
-                }
-
-                for (let [schema, slot] of this._context.iterateSlots()) {
-                    if (slot instanceof Ast.Selector)
-                        continue;
-                    if (!slot.value.isUndefined)
-                        continue;
-                    let argname = slot.name;
-                    let type = schema.inReq[argname] || schema.inOpt[argname] || schema.out[argname];
-                    if (slot instanceof Ast.BooleanExpression && slot.operator === 'contains')
-                        type = type.elem;
-
-                    if (!ThingTalk.Type.isAssignable(newCommand.intent.value.getType(), type)) {
-                        console.log(`Answer has the wrong type (expected ${type})`);
-                        return false;
-                    }
-                    slot.value = newCommand.intent.value;
-                    console.log(this._context.prettyprint());
-                    return true;
-                }
-
-                throw new Error('??? slot-fill state without a slot?');
-            }
-
-            if (newCommand.intent.isSpecial) {
-                if (newCommand.intent.type === 'nevermind' || newCommand.intent.type === 'stop') {
-                    console.log(`Unexpected stop/nevermind, use "d" to terminate the current dialog`);
-                    return false;
-                }
-
-                // in the confirm state, accept a single "yes" w/ no change in context
-                if (this._dialogState === 'confirm' && newCommand.intent.type === 'yes')
-                    return true;
-            }
-        }
-
-        console.log(`Unexpected command ${newCommand.prettyprint()}`);
-        return false;
-    }
-
-    nextDialog() {
-        if (this._currentDialog.length > 0)
-            this.push(this._currentDialog);
 
         if (this._serial > 0)
             console.log();
         console.log(`Dialog #${this._serial+1}`);
         this._serial++;
 
-        this._currentDialog = [];
+        this._currentDialogue = nextDialogue;
+        this._outputDialogue = [];
         this._context = null;
-        this._dialogState = 'initial';
-        this.nextTurn();
-    }
-    nextTurn() {
-        this._state = 'input';
-        this._utterance = undefined;
-        console.log('Context: ' + (this._context ? this._context.prettyprint() : 'null'));
-        this._rl.setPrompt('U: ');
-        this._rl.prompt();
+        this._outputTurn = undefined;
+        this._simulatorState = undefined;
+        this._currentTurnIdx = -1;
+        this._nextTurn();
     }
 
-    async _handleInput() {
-        if (this._dialogState === 'raw') {
-            const program = new Ast.Input.Bookkeeping(null,
-                new Ast.BookkeepingIntent.Answer(null, new Ast.Value.String(this._utterance)));
-            if (!this._applyReplyToContext(program)) {
-                this._rl.setPrompt('$ ');
-                this._rl.prompt();
-                return;
-            }
+    async _nextTurn() {
+        if (this._outputTurn !== undefined)
+            this._outputDialogue.push(this._outputTurn);
+        this._currentTurnIdx ++;
 
-            this._currentDialog.push(
-                this._preprocessed,
-                program.prettyprint()
-            );
-            this._computeAssistantAction();
-            this.nextTurn();
+        if (this._currentTurnIdx >= this._currentDialogue.length) {
+            this.next();
             return;
         }
+        if (this._currentTurnIdx > 0) {
+            // "execute" the context
+            [this._context, this._simulatorState] = await this._simulator.execute(this._context, this._simulatorState);
+        }
 
+        const currentTurn = this._currentDialogue[this._currentTurnIdx];
+
+        const contextCode = (this._context ? this._context.prettyprint() : null);
+        this._outputTurn = {
+            context: contextCode,
+            agent: currentTurn.agent,
+            agent_target: '',
+            user: currentTurn.user,
+            user_target: '',
+        };
+
+        this._state = 'input';
+        this._dialogueState = (this._currentTurnIdx === 0 ? 'user' : 'agent');
+
+        this._utterance = undefined;
+        await this._handleUtterance();
+    }
+
+    _nextUtterance() {
+        if (this._dialogueState === 'agent') {
+            this._dialogueState = 'user';
+            this._handleUtterance();
+        } else {
+            this._nextTurn();
+        }
+    }
+
+    async _handleUtterance() {
+        console.log('Context: ' + (this._context ? this._context.prettyprint() : null));
+
+        this._utterance = this._outputTurn[this._dialogueState];
+        this._currentKey = this._dialogueState + '_target';
+
+        console.log((this._dialogueState === 'agent' ? 'A: ' : 'U: ') + this._utterance);
         this._state = 'loading';
 
-        let contextCode, contextEntities = {};
-        if (this._context !== null)
-            contextCode = ThingTalk.NNSyntax.toNN(this._context, '', contextEntities, { allocateEntities: true });
-        else
+        let contextCode, contextEntities;
+        if (this._context !== null) {
+            const context = this._target.prepareContextForPrediction(this._context, this._dialogueState);
+            [contextCode, contextEntities] = this._target.serializeNormalized(context);
+        } else {
             contextCode = ['null'];
-        const parsed = await this._parser.sendUtterance(this._utterance, false, contextCode, contextEntities);
+            contextEntities = {};
+        }
+
+        const parser = this._dialogueState === 'agent' ? this._agentParser : this._userParser;
+        const parsed = await parser.sendUtterance(this._utterance, false, contextCode, contextEntities);
 
         this._state = 'top3';
         this._preprocessed = parsed.tokens.join(' ');
@@ -376,8 +323,12 @@ class Annotator extends Stream.Readable {
             }
         }))).filter((c) => c !== null);
 
-        for (var i = 0; i < 3 && i < this._candidates.length; i++)
-            console.log(`${i+1}) ${this._candidates[i].prettyprint()}`);
+        if (this._candidates.length > 0) {
+            for (var i = 0; i < 3 && i < this._candidates.length; i++)
+                console.log(`${i+1}) ${this._candidates[i].prettyprint()}`);
+        } else {
+            console.log(`No candidates for this program`);
+        }
         this._rl.setPrompt('$ ');
         this._rl.prompt();
     }
@@ -387,10 +338,19 @@ module.exports = {
     initArgparse(subparsers) {
         const parser = subparsers.addParser('manual-annotate-dialog', {
             addHelp: true,
-            description: `Interactive create a dialog dataset, by annotating each sentence turn-by-turn.`
+            description: `Interactively annotate a dialog dataset, by annotating each sentence turn-by-turn.`
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.addArgument('--annotated', {
             required: true,
+        });
+        parser.addArgument('--dropped', {
+            required: true,
+        });
+        parser.addArgument('--offset', {
+            required: false,
+            type: parseInt,
+            defaultValue: 1,
+            help: `Start from the nth dialogue of the input tsv file.`
         });
         parser.addArgument(['-l', '--locale'], {
             required: false,
@@ -401,30 +361,73 @@ module.exports = {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('--server', {
+        parser.addArgument(['-t', '--target-language'], {
             required: false,
-            defaultValue: 'https://almond-nl.stanford.edu',
-            help: `The URL of the natural language server. Use a file:// URL pointing to a model directory to evaluate using a local instance of decanlp.`
+            defaultValue: 'dlgthingtalk',
+            choices: AVAILABLE_LANGUAGES,
+            help: `The programming language to generate`
+        });
+        parser.addArgument('--user-nlu-server', {
+            required: false,
+            defaultValue: 'http://127.0.0.1:8400',
+            help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
+        });
+        parser.addArgument('--agent-nlu-server', {
+            required: false,
+            defaultValue: 'http://127.0.0.1:8400',
+            help: `The URL of the natural language server to parse agent utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
+        });
+        parser.addArgument('input_file', {
+            nargs: '+',
+            type: fs.createReadStream,
+            help: 'Input dialog file'
         });
     },
 
     async execute(args) {
+        let dialogues = await readAllLines(args.input_file, '====')
+            .pipe(new DialogueParser({ withAnnotations: false }))
+            .pipe(new StreamUtils.ArrayAccumulator())
+            .read();
+
+        if (args.offset > 1)
+            dialogues = dialogues.slice(args.offset-1);
+
         const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
         rl.setPrompt('$ ');
 
-        const annotator = new Annotator(rl, args);
-        rl.on('SIGINT', () => annotator.quit());
+        function quit() {
+            learned.end();
+            dropped.end();
+            rl.close();
+            //process.exit();
+        }
+
+        const annotator = new Annotator(rl, dialogues, args);
         await annotator.start();
+
+        const learned = new DialogueSerializer({ annotations: true });
+        learned.pipe(fs.createWriteStream(args.annotated, { flags: (args.offset > 1 ? 'a' : 'w') }));
+        const dropped = new DialogueSerializer({ annotations: false });
+        dropped.pipe(fs.createWriteStream(args.dropped, { flags: (args.offset > 1 ? 'a' : 'w') }));
+
+        annotator.on('end', quit);
+        annotator.on('learned', (dlg) => {
+            learned.write(dlg);
+        });
+        annotator.on('dropped', (dlg) => {
+            dropped.write(dlg);
+        });
+        annotator.on('quit', quit);
+        rl.on('SIGINT', quit);
+        annotator.next();
         //process.stdin.on('end', quit);
 
-        await StreamUtils.waitFinish(annotator
-            .pipe(new DialogSerializer())
-            .pipe(fs.createWriteStream(args.output, { flags: 'a' }))
-        );
-
-        console.log('Bye\n');
-        rl.close();
-
+        await Promise.all([
+            StreamUtils.waitFinish(learned),
+            StreamUtils.waitFinish(dropped),
+        ]);
         await annotator.stop();
+        process.exit();
     }
 };
