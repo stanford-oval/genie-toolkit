@@ -57,14 +57,17 @@ class DialogueSerializer extends Stream.Transform {
     }
 }
 
-const KEY_SEQUENCE = ['context', 'agent', 'agent_target', 'user', 'user_target'];
+const KEY_SEQUENCE_WITH_ANNOTATION = ['context', 'agent', 'agent_target', 'user', 'user_target'];
+const KEY_SEQUENCE_WITHOUT_ANNOTATION = ['agent', 'user'];
 
 class DialogueParser extends Stream.Transform {
-    constructor() {
+    constructor({ withAnnotations = true } = {}) {
         super({ objectMode: true });
 
         this._buffer = [];
         this._i = 0;
+        this._withAnnotations = withAnnotations;
+        this._keySequence = withAnnotations ? KEY_SEQUENCE_WITH_ANNOTATION : KEY_SEQUENCE_WITHOUT_ANNOTATION;
     }
 
     _transform(line, encoding, callback) {
@@ -99,18 +102,10 @@ class DialogueParser extends Stream.Transform {
         this._buffer = [];
 
         const dlg = [];
-        let currentTurn = {
-            context: '',
-            agent: '',
-            agent_target: '',
-            user: '',
-            user_target: '',
-        };
+        let currentTurn;
 
-        // first turn starts with the user
-        let expect = KEY_SEQUENCE.indexOf('user');
-        function flushTurn() {
-            dlg.push(currentTurn);
+        const withAnnotations = this._withAnnotations;
+        if (withAnnotations) {
             currentTurn = {
                 context: '',
                 agent: '',
@@ -118,6 +113,31 @@ class DialogueParser extends Stream.Transform {
                 user: '',
                 user_target: '',
             };
+        } else {
+            currentTurn = {
+                agent: '',
+                user: '',
+            };
+        }
+
+        // first turn starts with the user
+        let expect = this._keySequence.indexOf('user');
+        function flushTurn() {
+            dlg.push(currentTurn);
+            if (withAnnotations) {
+                currentTurn = {
+                    context: '',
+                    agent: '',
+                    agent_target: '',
+                    user: '',
+                    user_target: '',
+                };
+            } else {
+                currentTurn = {
+                    agent: '',
+                    user: '',
+                };
+            }
         }
 
         let currentKey = null;
@@ -147,20 +167,20 @@ class DialogueParser extends Stream.Transform {
                 currentTurn[currentKey] = text;
                 text = '';
 
-                if (currentKey === KEY_SEQUENCE[KEY_SEQUENCE.length-1])
+                if (currentKey === this._keySequence[this._keySequence.length-1])
                     flushTurn();
             }
 
             if (currentKey !== key) {
-                if (key !== KEY_SEQUENCE[expect])
-                    throw new Error(`malformed dialogue ${this._i}, expected ${KEY_SEQUENCE[expect]}, saw ${key}`);
-                expect = (expect + 1) % KEY_SEQUENCE.length;
+                if (key !== this._keySequence[expect])
+                    throw new Error(`malformed dialogue ${this._i}, expected ${this._keySequence[expect]}, saw ${key}`);
+                expect = (expect + 1) % this._keySequence.length;
                 currentKey = key;
             }
             text += newText;
         }
 
-        if (currentKey !== KEY_SEQUENCE[KEY_SEQUENCE.length-1])
+        if (currentKey !== this._keySequence[this._keySequence.length-1])
             throw new Error(`malformed dialogue ${this._i}, unterminated last turn`);
 
         currentTurn[currentKey] = text;
