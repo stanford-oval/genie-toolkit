@@ -104,7 +104,6 @@ class CanonicalGenerator {
                 if (adjectives.includes(`${qname}.${arg}`))
                         canonicals['apv'] = true;
 
-                console.log(candidates[qname][arg])
                 for (let type in candidates[qname][arg]) {
                     let count = candidates[qname][arg][type].candidates;
                     let max = candidates[qname][arg][type].examples.length;

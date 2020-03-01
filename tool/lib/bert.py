@@ -24,14 +24,14 @@ class BertLM:
         self.k = k
         self.canonicals = {}
         self.values = {}
-        with open('./param-dataset-paths.json', 'r') as f:
+        with open('./param-dataset-paths.json', 'r', encoding='utf-8') as f:
             domain = json.load(f)
             for table in domain:
                 self.canonicals[table] = domain[table]['canonical']
                 self.values[table] = {}
                 for param in domain[table]['params']:
                     self.values[table][param] = self.load_values(domain[table]['params'][param])
-        with open('./examples.json', 'r') as f:
+        with open('./examples.json', 'r', encoding='utf-8') as f:
             self.examples = json.load(f)
 
     def predict_one(self, table, arg, query, word):
@@ -150,7 +150,7 @@ class BertLM:
         :return: an array of string values
         """
         values = []
-        with open(path, 'r') as tsvfile:
+        with open(path, 'r', encoding='utf-8') as tsvfile:
             rows = csv.reader(tsvfile, delimiter='\t')
             for row in rows:
                 if len(row) > 1:
