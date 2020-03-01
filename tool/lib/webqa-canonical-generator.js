@@ -15,34 +15,17 @@ const path = require('path');
 const exec = util.promisify(require('child_process').exec);
 const { makeLookupKeys } = require('../../lib/sample-utils');
 
-class Example {
-    constructor(type, query, masks) {
-        this.type = type; // POS-based category
-        this.query = query; // command in list form
-        this.masks = masks; // array of indices of consecutive canonical tokens
-                            // e.g.: 'serves chinese cuisine' -> [[0], [2]]
-                            //       'chinese cuisine' -> [[1]]
-        this.masked = []; // masked queries
-        this._maskQuery();
-    }
-
-    _maskQuery() {
-        for (let span of this.masks) {
-            for (let index of span) {
-                let masked = [...this.query];
-                masked[index] = '[MASK]';
-                this.masked.push(masked.join(' '));
-            }
-        }
-    }
-}
+const ANNOTATED_PROPERTIES = [
+    'url', 'name', 'description',
+    'geo', 'address.streetAddress', 'address.addressCountry', 'address.addressRegion', 'address.addressLocality'
+];
 
 class CanonicalGenerator {
-    constructor(classDef, constants, queries, pruningOptions, parameterDatasets) {
+    constructor(classDef, constants, queries, pruning, parameterDatasets) {
         this.class = classDef;
         this.constants = constants;
         this.queries = queries;
-        this.pruningOptions = pruningOptions;
+        this.pruning = pruning;
 
         this.parameterDatasets = parameterDatasets;
         this.parameterDatasetPaths = {};
@@ -60,6 +43,9 @@ class CanonicalGenerator {
             paths[qname] = { canonical: this.class.queries[qname].canonical, params: {} };
             let query = this.class.queries[qname];
             for (let arg of query.iterateArguments()) {
+                if (ANNOTATED_PROPERTIES.includes(arg.name))
+                    continue;
+
                 // get the paths to the data
                 let p = path.dirname(this.parameterDatasets) + '/'  + this._getDatasetPath(qname, arg);
                 if (p && fs.existsSync(p))
@@ -72,10 +58,7 @@ class CanonicalGenerator {
                 const samples = this._retrieveSamples(qname, arg);
                 if (samples) {
                     this.sampleSize[`${qname}.${arg.name}`] = samples.length;
-                    let generated = this._generateExamples(query.canonical, arg.metadata.canonical, samples);
-                    examples[qname][arg.name] = generated.map((e) => {
-                        return { masked: e.masked, type: e.type, masks: e.masks };
-                    });
+                    examples[qname][arg.name] = this._generateExamples(query.canonical, arg.metadata.canonical, samples);
                 }
             }
         }
@@ -85,7 +68,7 @@ class CanonicalGenerator {
         fs.writeFileSync('./param-dataset-paths.json', JSON.stringify(paths, null, 2));
 
         // call bert to generate candidates
-        await exec(`python3 ${__dirname}/bert.py all`, { maxBuffer: 1024*1024*100 });
+        await exec(`python3 ${__dirname}/bert.py all --no-mask`, { maxBuffer: 1024*1024*100 });
 
         // load exported result from the python script
         const candidates = JSON.parse(fs.readFileSync('./bert-predictions.json', 'utf8'));
@@ -116,61 +99,25 @@ class CanonicalGenerator {
 
     _updateCanonicals(candidates, adjectives) {
         for (let qname of this.queries) {
-            let total = {};
             for (let arg in candidates[qname]) {
-                total[arg] = { sum: 0 };
-                for (let item of candidates[qname][arg]) {
-                    if (item.type in total[arg])
-                        total[arg][item.type] += 1;
-                    else
-                        total[arg][item.type] = 1;
-                    total[arg].sum += 1;
-                }
-
-                let count = {};
-                for (let item of candidates[qname][arg]) {
-                    let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
-
-                    if (adjectives.includes(`${qname}.${arg}`))
+                let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
+                if (adjectives.includes(`${qname}.${arg}`))
                         canonicals['apv'] = true;
 
-                    for (let canonical of item.canonicals) {
-                        // only keep canonical uses letters and #
-                        if (!(/^[a-zA-Z# ]+$/.test(canonical)))
-                            continue;
-
-                        // at most one # is allowed
-                        if ((canonical.match(/#/g) || []).length > 1)
-                            continue;
-
-                        if (canonical in count)
-                            count[canonical] += 1;
-                        else
-                            count[canonical] = 1;
-
-                        let numOccurrences = count[canonical];
-                        let numSamples = this.sampleSize[`${qname}.${arg}`];
-                        let numExamplesOfType = total[arg][item.type];
-                        let numExamples = total[arg].sum;
-                        if (this._isFrequent(numOccurrences, numSamples, numExamplesOfType, numExamples)) {
-                            if (!canonicals[item.type].includes(canonical))
-                                canonicals[item.type].push(canonical);
+                console.log(candidates[qname][arg])
+                for (let type in candidates[qname][arg]) {
+                    let count = candidates[qname][arg][type].candidates;
+                    let max = candidates[qname][arg][type].examples.length;
+                    for (let candidate in count) {
+                        if (count[candidate] > max * this.pruning) {
+                            if (!canonicals[type].includes(candidate))
+                                canonicals[type].push(candidate);
                         }
                     }
+
                 }
             }
         }
-    }
-
-    _isFrequent(numOccurrences, numSamples, numExamplesOfType, numExamples) {
-        // numExamplesOfType / numSamples gives us the num of different template of this type
-        // the canonical should at least appear in one template $occurrence times
-        // i.e., the canonical appears with different value $occurrence times
-        if (numOccurrences < this.pruningOptions.occurrence * numExamplesOfType / numSamples)
-            return false;
-        else if (numOccurrences < this.pruningOptions.fraction * numExamples * numExamplesOfType / numSamples)
-            return false;
-        return true;
     }
 
     _retrieveSamples(qname, arg) {
@@ -193,40 +140,41 @@ class CanonicalGenerator {
     }
 
     _generateExamples(tableName, canonicals, valueSample) {
-        let examples = [];
+        let examples = { npp: { examples: [], candidates: [] } };
         for (let value of valueSample) {
             for (let canonical of canonicals['npp']) {
-                let query = `show me ${tableName} with ${value} ${canonical} .`;
-                query = query.split(' ');
+                let query = `show me ${tableName} with ${canonical} ${value} .`.split(' ');
                 let maskIndices = canonical.split(' ').map((w) => query.indexOf(w));
-                examples.push(new Example('npp', query, [maskIndices]));
+                examples['npp']['examples'].push({ query: query.join(' '), masks: { prefix: maskIndices, suffix: [] } });
             }
 
             if ('avp' in canonicals) {
+                examples['avp'] = { examples: [], candidates: [] };
                 for (let canonical of canonicals['avp']) {
                     if (canonical.includes('#')) {
                         let [prefix, suffix] = canonical.split('#').map((span) => span.trim());
                         let query = `which ${tableName} ${prefix} ${value} ${suffix} ?`.split(' ');
                         let prefixIndices = prefix.split(' ').map((w) => query.indexOf(w));
                         let suffixIndices = suffix.split(' ').map((w) => query.indexOf(w));
-                        examples.push(new Example('avp', query, [prefixIndices, suffixIndices]));
+                        examples['avp']['examples'].push({ query: query.join(' '), masks: { prefix: prefixIndices, suffix: suffixIndices } });
                     } else {
                         let query = `which ${tableName} ${canonical} ${value} ?`.split(' ');
-                        let maskedIndices = canonical.split(' ').map((w) => query.indexOf(w));
-                        examples.push(new Example('avp', query, [maskedIndices]));
+                        let maskIndices = canonical.split(' ').map((w) => query.indexOf(w));
+                        examples['avp']['examples'].push({ query: query.join(' '), masks: { prefix: maskIndices, suffix: [] } });
                     }
                 }
             }
 
             if ('pvp' in canonicals) {
+                examples['pvp'] = { examples: [], candidates: [] };
                 for (let canonical of canonicals['pvp']) {
-                    let query, maskedIndices;
+                    let query, maskIndices;
                     query = `show me ${tableName} ${canonical} ${value} .`.split(' ');
-                    maskedIndices = canonical.split(' ').map((w) => query.indexOf(w));
-                    examples.push(new Example('pvp', query, [maskedIndices]));
+                    maskIndices = canonical.split(' ').map((w) => query.indexOf(w));
+                    examples['pvp']['examples'].push({ query: query.join(' '), masks: { prefix: maskIndices, suffix: [] } });
                     query = `which ${tableName} is ${canonical} ${value}`.split(' ');
-                    maskedIndices = canonical.split(' ').map((w) => query.indexOf(w));
-                    examples.push(new Example('pvp', query, [maskedIndices]));
+                    maskIndices = canonical.split(' ').map((w) => query.indexOf(w));
+                    examples['pvp']['examples'].push({ query: query.join(' '), masks: { prefix: maskIndices, suffix: [] } });
                 }
             }
 

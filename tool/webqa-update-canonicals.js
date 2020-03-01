@@ -56,17 +56,11 @@ module.exports = {
             help: 'Skip the entire process.',
             defaultValue: false
         });
-        parser.addArgument('--pruning-fraction', {
+        parser.addArgument('--pruning', {
             required: false,
             type: Number,
-            defaultValue: 0.34,
-            help: `The minimum fraction (#occurrences / (#valueSamples * #templatesOfPOS)) required for a candidate to be added`
-        });
-        parser.addArgument('--pruning-occurrence', {
-            required: false,
-            type: Number,
-            defaultValue: 2,
-            help: `The minimum number of occurrences with different value required for a candidate to be added`
+            defaultValue: 0.5,
+            help: `The minimum fraction required for a candidate to be added`
         });
         parser.addArgument('--parameter-datasets', {
             required: true,
@@ -83,8 +77,7 @@ module.exports = {
         } else {
             const constants = await parseConstantFile(args.locale, args.constants);
             const queries = args.queries.split(',').map((qname) => qname.charAt(0).toUpperCase() + qname.slice(1));
-            const pruningOptions = { fraction: args.pruning_fraction, occurrence: args.pruning_occurrence };
-            const generator = new CanonicalGenerator(classDef, constants, queries, pruningOptions, args.parameter_datasets);
+            const generator = new CanonicalGenerator(classDef, constants, queries, args.pruning, args.parameter_datasets);
             const updatedClassDef = await generator.generate();
             args.output.end(updatedClassDef.prettyprint());
         }
