@@ -34,7 +34,7 @@ class BertLM:
         with open('./examples.json', 'r', encoding='utf-8') as f:
             self.examples = json.load(f)
 
-    def predict_one(self, table, arg, query, word):
+    def predict_one(self, table, arg, query, word, k):
         """
         Get top-k predictions at the position of `word` in `text`
 
@@ -42,8 +42,12 @@ class BertLM:
         :param arg: the argument used in the command
         :param query: a string where `word` appears once
         :param word: a string of word which we want to find the alternatives
+        :param k: number of top candidates to return, this defaults to self.k if absent
         :return: a array in length k of predicted tokens
         """
+        if k is None:
+            k = self.k
+
         if self.mask:
             query = query.replace(word, '[MASK]')
             word = '[MASK]'
@@ -65,7 +69,7 @@ class BertLM:
             predictions = model(tokens_tensor, segments_tensors)
 
         mask = predictions[0][0, masked_index]
-        scores, indices = torch.topk(mask, 100)
+        scores, indices = torch.topk(mask, max(k, 100))
 
         candidates = tokenizer.convert_ids_to_tokens(indices.tolist())
         topk = []
@@ -81,7 +85,7 @@ class BertLM:
             if arg is not None and arg in self.values[table] and candidate in self.values[table][arg]:
                 continue
             topk.append(candidate)
-            if len(topk) == self.k:
+            if len(topk) == k:
                 return topk
         return topk
 
@@ -97,7 +101,7 @@ class BertLM:
         """
         candidates = []
         for i in [*masks['prefix'], *masks['suffix']]:
-            predictions = self.predict_one(table, arg, query, query.split(' ')[i])
+            predictions = self.predict_one(table, arg, query, query.split(' ')[i], None)
             for token in predictions:
                 candidate = self.construct_canonical(query, masks, i, token)
                 candidates.append(candidate)
@@ -124,23 +128,24 @@ class BertLM:
 
         return self.examples
 
-    def predict_adjectives(self):
+    def predict_adjectives(self, k=500):
         """
         Predict which property can be used as an adjective form
 
+        :param k: number of top candidates to generate
         :return: an array of properties
         """
-        result = []
+        properties = []
         for table in self.values:
             query_canonical = self.canonicals[table]
-            predictions = self.predict_one(table, None, 'show me a [MASK] ' + query_canonical, '[MASK]')
+            predictions = self.predict_one(table, None, 'show me a [MASK] ' + query_canonical, '[MASK]', k)
             for param in self.values[table]:
                 values = self.values[table][param]
                 for v in predictions:
                     if v in values:
-                        result.append(table + '.' + param)
+                        properties.append(table + '.' + param)
                         break
-        return result
+        return properties
 
     @staticmethod
     def load_values(path):
@@ -200,10 +205,15 @@ if __name__ == '__main__':
                         action='store_false',
                         dest='mask',
                         help='predict without masking tokens')
-    parser.add_argument('--k',
+    parser.add_argument('--k-synonyms',
+                        dest='k',
                         type=int,
                         default=5,
-                        help='top-k candidates per example to return')
+                        help='top-k candidates per example to return when generating synonyms')
+    parser.add_argument('--k-adjectives',
+                        type=int,
+                        default=500,
+                        help='top-k candidates to return when generating adjectives')
     args = parser.parse_args()
 
     bert = BertLM(args.mask, args.k)
@@ -213,4 +223,5 @@ if __name__ == '__main__':
 
     if args.command == 'adjectives' or args.command == 'all':
         with open('./adjective-properties.json', 'w') as f:
-            json.dump(bert.predict_adjectives(), f, indent=2)
+            adjective_properties = bert.predict_adjectives(args.k_adjectives)
+            json.dump(adjective_properties, f, indent=2)
