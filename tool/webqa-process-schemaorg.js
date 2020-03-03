@@ -965,12 +965,14 @@ class SchemaProcessor {
                 });
         }
 
-        const classdef = new Ast.ClassDef(null,
-            `org.schema${this._className ? '.' + this._className : ''}`,
-            [], queries, {} /* actions */, [
+        const imports = [
             new Ast.ImportStmt.Mixin(null, ['loader'], 'org.thingpedia.v2', []),
             new Ast.ImportStmt.Mixin(null, ['config'], 'org.thingpedia.config.none', [])
-        ], {
+        ];
+
+        const classdef = new Ast.ClassDef(null,
+            `org.schema${this._className ? '.' + this._className : ''}`,
+            [], { queries, imports }, {
             nl: {
                 name: `${this._className ? this._className + ' in ' : ''}Schema.org`,
                 description: 'Scraped data from websites that support schema.org'
