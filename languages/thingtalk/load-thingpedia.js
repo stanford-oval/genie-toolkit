@@ -300,7 +300,7 @@ class ThingpediaLoader {
             }
 
             if (cat === 'npv') {
-                if (typeof value !== 'boolean')
+                if (typeof annotvalue !== 'boolean')
                     throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${functionName}`);
                 if (annotvalue) {
                     const expansion = [new this._runtime.NonTerminal('constant_' + vtypestr)];
@@ -410,7 +410,9 @@ class ThingpediaLoader {
 
             ex.value.schema = new Ast.ExpressionSignature(null, 'action', null /* class */, [] /* extends */, args, {
                 is_list: false,
-                is_monitorable: false
+                is_monitorable: false,
+                default_projection: [],
+                minimal_projection: []
             });
         } else {
             for (let pname in ex.args) {

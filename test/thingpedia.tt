@@ -1227,26 +1227,26 @@ class @com.tesla.car
                                      out battery_level: Number #_[canonical="battery level"],
                                      out charge_port_door_open: Boolean #_[canonical="charge port door open"],
                                      out charge_port_latch: String #_[canonical="charge port latch"])
-  #_[canonical="get the charge state of the Tesla car"]
+  #_[canonical="the charge state of the tesla car"]
   #_[confirmation="the charge state of your Tesla car"];
 
   monitorable query get_climate_state(out inside_temperature: Measure(C) #_[canonical="inside temperature"],
                                       out temperature_setting: Measure(C) #_[canonical="temperature setting"],
                                       out conditioner_on: Boolean #_[canonical="conditioner on"])
-  #_[canonical="get the climate state of the Tesla car"]
+  #_[canonical="the climate state of the tesla car"]
   #_[confirmation="the climate state of your Tesla car"];
 
   monitorable query get_drive_state(out location: Location #_[canonical="location"])
-  #_[canonical="get the location of the Tesla car"]
+  #_[canonical="the location of the tesla car"]
   #_[confirmation="the location of your Tesla car"];
 
   monitorable query get_mobile_enabled(out mobile_enabled: Boolean #_[canonical="mobile enabled"])
-  #_[canonical="is your Tesla car remotely accessible"]
+  #_[canonical="is your tesla car remotely accessible"]
   #_[confirmation="remote accessibility of your Tesla "];
 
   monitorable query get_vehicle_state(out odometer: Number #_[canonical="odometer"],
                                       out locked: Boolean #_[canonical="locked"])
-  #_[canonical="get state on Tesla"]
+  #_[canonical="state on tesla"]
   #_[confirmation="your Tesla car state"];
 
   action flash()
@@ -1254,7 +1254,7 @@ class @com.tesla.car
   #_[confirmation="flash your Tesla car"];
 
   action honk_horn()
-  #_[canonical="honk your Tesla car"]
+  #_[canonical="honk your tesla car"]
   #_[confirmation="honk the horn on your Tesla car"];
 
   action set_air_conditioning(in req power: Enum(on,off) #_[prompt="Do you want to turn the air-conditioner on your Tesla car on or off?"] #_[canonical="power"])
@@ -1262,11 +1262,11 @@ class @com.tesla.car
   #_[confirmation="turn $power your Tesla air-conditioner"];
 
   action set_temperature(in req value: Measure(C) #_[prompt="What temperature do you want to set?"] #_[canonical="value"])
-  #_[canonical="set target temperature of the Tesla car"]
+  #_[canonical="set target temperature of the tesla car"]
   #_[confirmation="set the temperature of your Tesla car to $value"];
 
   action wake_up()
-  #_[canonical="wake up your Tesla car"]
+  #_[canonical="wake up your tesla car"]
   #_[confirmation="wake up your Tesla car"];
 }
 class @com.tumblr.blog
