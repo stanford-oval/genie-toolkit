@@ -513,9 +513,12 @@ action_command = {
 }
 
 if (_tpLoader.standardSchemas.say) {
-     initial_program = {
-        ?timer 'send me a reminder' stream:timer => C.makeProgram(new Ast.Statement.Rule(null, stream, [C.builtinSayAction()]));
-        ?timer 'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction(constant)]));
+    timer_rule = {
+        'send me a reminder' stream:timer => C.makeProgram(new Ast.Statement.Rule(null, stream, [C.builtinSayAction()]));
+        'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction(constant)]));
+    }
+
+    when_command = {
         !turking {
             (
                   'alert me' stream:stream ('saying' | 'with the text') constant:constant_String
