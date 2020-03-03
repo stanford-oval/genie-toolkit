@@ -534,6 +534,21 @@ function combineStreamCommand(stream, command) {
     }
 }
 
+function normalizeFilter(table, filter) {
+    if (filter.isCompute && filter.lhs.isAggregation && filter.lhs.operator === 'count') {
+        let name = filter.lhs.list.name;
+        let canonical = table.schema.getArgCanonical(name);
+        for (let p of table.schema.iterateArguments()) {
+            if (p.name === name + 'Count' ||
+                p.canonical === canonical + ' count' ||
+                p.canonical === canonical.slice(0,-1) + ' count')
+                return new Ast.BooleanExpression.Atom(p.name, '==', filter.rhs);
+        }
+    }
+
+    return filter;
+}
+
 function checkFilter(table, filter) {
     if (filter.isNot)
         filter = filter.expr;
@@ -562,13 +577,6 @@ function checkFilter(table, filter) {
 
         if (filter.lhs.operator === 'count') {
             vtype = Type.Number;
-            let canonical = table.schema.getArgCanonical(name);
-            for (let p of table.schema.iterateArguments()) {
-                if (p.name === name + 'Count')
-                    return false;
-                if (p.canonical === canonical + 'count' || p.canonical === canonical.slice(0,-1) + ' count')
-                    return false;
-            }
         } else {
             if (filter.lhs.field && filter.lhs.field in ptype.elem.fields)
                 ftype = ptype.elem.fields[filter.lhs.field].type;
@@ -685,6 +693,8 @@ function checkFilterUniqueness(table, filter) {
 function addFilter(table, filter, forceAdd = false) {
     if (!checkFilter(table, filter))
         return null;
+
+    filter = normalizeFilter(table, filter);
 
     // when an "unique" parameter has been used in the table
     if (table.schema.no_filter)
