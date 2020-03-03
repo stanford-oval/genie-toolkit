@@ -332,7 +332,8 @@ class ThingpediaLoader {
 
             ex.value.schema = new Ast.ExpressionSignature(null, 'action', null /* class */, [] /* extends */, args, {
                 is_list: false,
-                is_monitorable: false
+                is_monitorable: false,
+                minimal_projection: []
             });
         } else {
             for (let pname in ex.args) {
