@@ -465,21 +465,6 @@ function normalizeFilter(table, filter) {
     return filter;
 }
 
-function normalizeFilter(table, filter) {
-    if (filter.isCompute && filter.lhs.isAggregation && filter.lhs.operator === 'count') {
-        let name = filter.lhs.list.name;
-        let canonical = table.schema.getArgCanonical(name);
-        for (let p of table.schema.iterateArguments()) {
-            if (p.name === name + 'Count' ||
-                p.canonical === canonical + ' count' ||
-                p.canonical === canonical.slice(0,-1) + ' count')
-                return new Ast.BooleanExpression.Atom(p.name, '==', filter.rhs);
-        }
-    }
-
-    return filter;
-}
-
 function checkFilter(table, filter) {
     if (filter.isNot)
         filter = filter.expr;
