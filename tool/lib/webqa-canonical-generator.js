@@ -20,6 +20,19 @@ const ANNOTATED_PROPERTIES = [
     'geo', 'address.streetAddress', 'address.addressCountry', 'address.addressRegion', 'address.addressLocality'
 ];
 
+// split the canonical into prefix and suffix
+function splitCanonical(canonical) {
+    let prefix, suffix;
+    if (!canonical.includes('#'))
+        [prefix, suffix] = [canonical, null];
+    else if (canonical.includes('#') && !canonical.startsWith('#'))
+        [prefix, suffix] = canonical.split('#').map((span) => span.trim());
+    else
+        [prefix, suffix] = [null, canonical.slice(1).trim()];
+    return [prefix, suffix];
+}
+
+
 class CanonicalGenerator {
     constructor(classDef, constants, queries, pruning, parameterDatasets) {
         this.class = classDef;
@@ -138,79 +151,47 @@ class CanonicalGenerator {
         return samples;
     }
 
+
+
     _generateExamples(tableName, canonicals, valueSample) {
         let examples = { npp: { examples: [], candidates: [] } };
         for (let value of valueSample) {
             for (let canonical of canonicals['npp']) {
-                if (canonical.includes('#')) {
-                    let [prefix, suffix] = canonical.split('#').map((span) => span.trim());
-                    let query = `show me ${tableName} with ${prefix} ${value} ${suffix} ?`.split(' ');
-                    let prefixIndices = prefix.split(' ').map((w) => query.indexOf(w));
-                    let suffixIndices = suffix.split(' ').map((w) => query.indexOf(w));
-                    examples['npp']['examples'].push({
-                        query: query.join(' '),
-                        masks: { prefix: prefixIndices, suffix: suffixIndices }
-                    });
-                } else {
-                    let query = `show me ${tableName} with ${canonical} ${value} .`.split(' ');
-                    let maskIndices = canonical.split(' ').map((w) => query.indexOf(w));
-                    examples['npp']['examples'].push({
-                        query: query.join(' '),
-                        masks: { prefix: maskIndices, suffix: [] }
-                    });
-                }
+                let [prefix, suffix] = splitCanonical(canonical);
+                let query = `show me ${tableName} with ${prefix} ${value} ${suffix} .`.split(/\s+/g);
+                let prefixIndices = prefix ? prefix.split(' ').map((w) => query.indexOf(w)) : [];
+                let suffixIndices = suffix ? suffix.split(' ').map((w) => query.indexOf(w)) : [];
+                examples['npp']['examples'].push({
+                    query: query.join(' '),
+                    masks: { prefix: prefixIndices, suffix: suffixIndices }
+                });
             }
 
             if ('avp' in canonicals) {
                 examples['avp'] = { examples: [], candidates: [] };
                 for (let canonical of canonicals['avp']) {
-                    if (canonical.includes('#')) {
-                        let [prefix, suffix] = canonical.split('#').map((span) => span.trim());
-                        let query = `which ${tableName} ${prefix} ${value} ${suffix} ?`.split(' ');
-                        let prefixIndices = prefix.split(' ').map((w) => query.indexOf(w));
-                        let suffixIndices = suffix.split(' ').map((w) => query.indexOf(w));
-                        examples['avp']['examples'].push({
-                            query: query.join(' '),
-                            masks: { prefix: prefixIndices, suffix: suffixIndices }
-                        });
-                    } else {
-                        let query = `which ${tableName} ${canonical} ${value} ?`.split(' ');
-                        let maskIndices = canonical.split(' ').map((w) => query.indexOf(w));
-                        examples['avp']['examples'].push({
-                            query: query.join(' '),
-                            masks: { prefix: maskIndices, suffix: [] }
-                        });
-                    }
+                    let [prefix, suffix] = splitCanonical(canonical);
+                    let query = `which ${tableName} ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
+                    let prefixIndices = prefix ? prefix.split(' ').map((w) => query.indexOf(w)) : [];
+                    let suffixIndices = suffix ? suffix.split(' ').map((w) => query.indexOf(w)) : [];
+                    examples['avp']['examples'].push({
+                        query: query.join(' '),
+                        masks: { prefix: prefixIndices, suffix: suffixIndices }
+                    });
                 }
             }
 
             if ('pvp' in canonicals) {
                 examples['pvp'] = { examples: [], candidates: [] };
                 for (let canonical of canonicals['pvp']) {
-                    if (canonical.includes('#')) {
-                        let [prefix, suffix] = canonical.split('#').map((span) => span.trim());
-                        let query = `show me a ${tableName} ${prefix} ${value} ${suffix} ?`.split(' ');
-                        let prefixIndices = prefix.split(' ').map((w) => query.indexOf(w));
-                        let suffixIndices = suffix.split(' ').map((w) => query.indexOf(w));
-                        examples['pvp']['examples'].push({
-                            query: query.join(' '),
-                            masks: { prefix: prefixIndices, suffix: suffixIndices }
-                        });
-                    } else {
-                        let query, maskIndices;
-                        query = `show me a ${tableName} ${canonical} ${value} .`.split(' ');
-                        maskIndices = canonical.split(' ').map((w) => query.indexOf(w));
-                        examples['pvp']['examples'].push({
-                            query: query.join(' '),
-                            masks: { prefix: maskIndices, suffix: [] }
-                        });
-                        query = `which ${tableName} is ${canonical} ${value}`.split(' ');
-                        maskIndices = canonical.split(' ').map((w) => query.indexOf(w));
-                        examples['pvp']['examples'].push({
-                            query: query.join(' '),
-                            masks: { prefix: maskIndices, suffix: [] }
-                        });
-                    }
+                    let [prefix, suffix] = splitCanonical(canonical);
+                    let query = `show me a ${tableName} ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
+                    let prefixIndices = prefix ? prefix.split(' ').map((w) => query.indexOf(w)) : [];
+                    let suffixIndices = suffix ? suffix.split(' ').map((w) => query.indexOf(w)) : [];
+                    examples['pvp']['examples'].push({
+                        query: query.join(' '),
+                        masks: { prefix: prefixIndices, suffix: suffixIndices }
+                    });
                 }
             }
 
