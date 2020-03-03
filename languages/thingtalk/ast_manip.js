@@ -163,21 +163,11 @@ function makeFilter(param, op, value, negate = false) {
     return Utils.makeFilter(_loader, param, op, value, negate);
 }
 
-function makeAndFilter(param, op, values, negate=false) {
-    if (values.length !== 2)
-        return null;
-    if (values[0].name === values[1].name)
-        return null;
-    const operands  = values.map((v) => makeFilter(param, op, v));
-    if (operands.includes(null))
-        return null;
-    const f = new Ast.BooleanExpression.And(null, operands);
-    if (negate)
-        return new Ast.BooleanExpression.Not(null, f);
-    return f;
+function makeAndFilter(param, op, values, negate = false) {
+    return Utils.makeAndFilter(_loader, param, op, values, negate);
 }
 
-function makeOrFilter(param, op, values, negate=false) {
+function makeOrFilter(param, op, values, negate  =false) {
     if (values.length !== 2)
         return null;
     if (values[0].name === values[1].name)

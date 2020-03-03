@@ -2,7 +2,7 @@
 //
 // This file is part of Genie
 //
-// Copyright 2015-2019 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2015-2020 The Board of Trustees of the Leland Stanford Junior University
 //           2019 National Taiwan University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
@@ -11,6 +11,10 @@
 // See COPYING for details
 "use strict";
 
+const assert = require('assert');
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
 const Inflectors = require('en-inflectors').Inflectors;
 const Tag = require('en-pos').Tag;
 
@@ -31,6 +35,44 @@ function clean(name) {
     if (/^[vwgp]_/.test(name))
         name = name.substr(2);
     return name.replace(/_/g, ' ').replace(/([^A-Z ])([A-Z])/g, '$1 $2').toLowerCase();
+}
+
+
+function makeFilter(loader, pname, op, value, negate = false) {
+    assert(pname instanceof Ast.Value.VarRef);
+    let vtype = value.getType();
+    let ptype = vtype;
+    if (op === 'contains') {
+        ptype = Type.Array(vtype);
+        if (vtype.isString)
+            op = 'contains~';
+    } else if (op === '==' && vtype.isString) {
+        op = '=~';
+    }
+    if (!loader.params.out.has(pname.name + '+' + ptype))
+        return null;
+    if (loader.flags.turking && value.isEnum)
+        return null;
+
+    let f = new Ast.BooleanExpression.Atom(null, pname.name, op, value);
+    if (negate)
+        return new Ast.BooleanExpression.Not(null, f);
+    else
+        return f;
+}
+
+function makeAndFilter(loader, param, op, values, negate=false) {
+    if (values.length !== 2)
+        return null;
+    if (values[0].name === values[1].name)
+        return null;
+    const operands  = values.map((v) => makeFilter(loader, param, op, v));
+    if (operands.includes(null))
+        return null;
+    const f = new Ast.BooleanExpression.And(null, operands);
+    if (negate)
+        return new Ast.BooleanExpression.Not(null, f);
+    return f;
 }
 
 // FIXME do not duplicate this, and also this needs to be moved inside lib/i18n/
@@ -62,8 +104,8 @@ module.exports = {
             table.isAlias ||
             table.isSort ||
             table.isIndex ||
+            table.isSlice ||
             table.isAggregation ||
-            table.isArgMinMax ||
             table.isSequence ||
             table.isHistory;
     },
@@ -83,4 +125,6 @@ module.exports = {
     },
 
     typeToStringSafe,
+    makeFilter,
+    makeAndFilter,
 };
