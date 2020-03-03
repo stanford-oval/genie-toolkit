@@ -2,7 +2,7 @@
 //
 // This file is part of ThingTalk
 //
-// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -10,7 +10,10 @@
 
 {
 const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
+
+const MAX_SMALL_INTEGER = 12;
 }
 
 constant_String                    = const(QUOTED_STRING, Type.String);
@@ -25,11 +28,6 @@ constant_Entity__tt__path_name     = {
     const(QUOTED_STRING, Type.Entity('tt:path_name'));
     const(PATH_NAME, Type.Entity('tt:path_name'));
 }
-constant_Entity__tt__picture  = {}
-constant_Entity__tt__function = {}
-constant_Entity__tt__program  = {}
-constant_Entity__tt__device   = {}
-constant_Boolean = {}
 
 constant_Number = const(NUMBER, Type.Number);
 constant_Currency = const(CURRENCY, Type.Currency);
@@ -38,6 +36,13 @@ constant_Date = const(DATE, Type.Date);
 constant_Location = const(LOCATION, Type.Location);
 
 constant_Measure_ms = const(DURATION, Type.Measure('ms'));
+
+constant_Entity__tt__picture  = {}
+constant_Entity__tt__function = {}
+constant_Entity__tt__program  = {}
+constant_Entity__tt__device   = {}
+constant_Boolean = {}
+
 constant_Measure_byte = {}
 constant_Measure_kg = {}
 constant_Measure_C = {}
@@ -50,6 +55,10 @@ constant_Measure_lx = {}
 constant_Measure_lm = {}
 constant_Measure_dB = {}
 constant_Measure_dBm = {}
+
+for (let i = 0; i <= MAX_SMALL_INTEGER; i++)
+    constant_Number = #(String(i)) => new Ast.Value.Number(i);
+
 
 // this is used for equality filtering, so !turking anything that is weird when equality compared
 constant_Any = {

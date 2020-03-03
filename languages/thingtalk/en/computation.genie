@@ -2,7 +2,7 @@
 //
 // This file is part of ThingTalk
 //
-// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -20,94 +20,7 @@
     const C = require('../ast_manip');
     const _tpLoader = require('../load-thingpedia');
 
-    function makeComputeExpression(table, operation, operands, resultType) {
-        const computeSchema = table.schema.addArguments([
-            new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType)]);
-        const expression = new Ast.Value.Computation(operation, operands);
-
-        return new Ast.Table.Compute(null, table, expression, null, computeSchema);
-    }
-
-    function makeComputeProjExpression(table, operation, operands, resultType) {
-        const compute = makeComputeExpression(table, operation, operands, resultType);
-        const projSchema = compute.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === operation);
-
-        return new Ast.Table.Projection(null, compute, [operation], projSchema);
-    }
-
-    function makeComputeArgMinMaxExpression(table, operation, operands, resultType, direction = 'desc') {
-        if (C.hasUniqueFilter(table))
-            return null;
-        for (let [, filter] of C.iterateFilters(table)) {
-            for (let atom of C.iterateFields(filter)) {
-                if (atom.name === operands[0].name)
-                    return null;
-            }
-        }
-        const compute = makeComputeExpression(null, table, operation, operands, resultType);
-        const projSchema = compute.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === operation);
-        const sort = new Ast.Table.Sort(null, compute, operation, direction, compute.schema);
-        return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], compute.schema);
-    }
-
-    function makeAggComputeExpression(table, operation, field, list, resultType) {
-        if (C.hasUniqueFilter(table))
-            return null;
-        let name;
-        assert(list.isVarRef || list.isFilter);
-        if (list.isVarRef)
-            name = list.name;
-        else
-            name = list.value.name;
-        assert(typeof name === 'string');
-        let canonical = table.schema.getArgCanonical(name);
-        for (let p of table.schema.iterateArguments()) {
-            if (p.name === name + 'Count' || p.canonical === canonical + 'count' || p.canonical === canonical.slice(0,-1) + ' count') {
-                const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-                return new Ast.Table.Projection(null, table, [p.name], newSchema);
-            }
-        }
-        const computeSchema = table.schema.addArguments([
-            new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType)]);
-        const expression = new Ast.Value.Computation(operation, [new Ast.Value.ArrayField(list, field)]);
-
-        return new Ast.Table.Compute(null, table, expression, null, computeSchema);
-    }
-
-    function makeAggComputeProjExpression(table, operation, field, list, resultType) {
-        const compute = makeAggComputeExpression(null, table, operation, field, list, resultType);
-        if (!compute)
-            return null;
-        const projSchema = compute.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === operation);
-
-        return new Ast.Table.Projection(null, compute, [operation], projSchema);
-    }
-
-    function makeAggComputeArgMinMaxExpression(table, operation, field, list, resultType, direction = 'desc') {
-        if (C.hasUniqueFilter(table))
-            return null;
-        const compute = makeAggComputeExpression(null, table, operation, field, list, resultType);
-        if (!compute)
-            return null;
-        const sort = new Ast.Table.Sort(null, compute, operation, direction, compute.schema);
-        return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], compute.schema);
-
-    }
-
-    function makeProjectTable(table, pname) {
-        const projectSchema = table.schema.filterArguments((arg) => arg.name === pname);
-        return new Ast.Table.Projection(null, table, [pname], projectSchema);
-    }
-
-    function makeArgMinMaxTable(table, pname, direction = 'desc') {
-        if (C.hasUniqueFilter(table))
-            return null;
-        const sort = new Ast.Table.Sort(null, table, pname, direction, table.schema.clone());
-        return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], sort.schema);
-    }
-
     const HERE = new Ast.Value.Location(new Ast.Location.Relative('current_location'));
-
 }
 
 
@@ -124,7 +37,7 @@ if (!_tpLoader.flags.turking) {
 
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
         };
 
         // these form sentences like "tell me how far X is", which is grammatical but
@@ -134,7 +47,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
         };
 
         ( 'the distance' ('of' | 'to') table:with_filtered_table 'from' place:constant_Location
@@ -144,7 +57,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'));
         };
 
         !turking {
@@ -155,7 +68,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || table.schema.out.geo.isLocation)
                 return null;
-            return makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'));
         };
         }
 
@@ -165,8 +78,8 @@ if (!_tpLoader.flags.turking) {
                 return null;
             const conflictParam = C.hasConflictParam(table, p.name, 'count');
             if (conflictParam)
-                return makeProjectTable(table, conflictParam);
-            return makeAggComputeProjExpression(table, 'count', null, p, Type.Number);
+                return C.makeProjection(table, conflictParam);
+            return C.makeAggComputeProjExpression(table, 'count', null, p, Type.Number);
         };
 
         ( 'the number of' p:out_param_Array__Any 'with' filter:with_filter ('of' | 'in' | 'in the') table:with_filtered_table
@@ -179,7 +92,14 @@ if (!_tpLoader.flags.turking) {
             const list = C.makeListExpression(_tpLoader, p, filter);
             if (!list)
                 return null;
-            return makeAggComputeProjExpression(table, 'count', null, list, Type.Number);
+            return C.makeAggComputeProjExpression(table, 'count', null, list, Type.Number);
+        };
+
+        ( 'the number of' p:out_param_ArrayCount ('of' | 'in' | 'in the') table:with_filtered_table
+        | 'the number of' p:out_param_ArrayCount ('of' | 'in') 'the' table:with_arg_min_max_table ) => {
+            if (!table.schema.out[p.name] || !table.schema.out[p.name].isNumber)
+                return null;
+            return C.makeProjection(table, p.name);
         };
     }
 
@@ -189,7 +109,7 @@ if (!_tpLoader.flags.turking) {
         )=> {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
         };
 
         ( 'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filtered_table ('from' | 'to') place:constant_Location ('?'|'')
@@ -197,7 +117,19 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'));
+        };
+
+        ( 'how many' p:out_param_ArrayCount ('does' | 'do') table:with_filtered_table 'have ?'
+        | 'how many' p:out_param_ArrayCount ('in a' | 'in' | 'in the') table:with_filtered_table '?'
+        | 'how many' p:out_param_ArrayCount 'are there' ('in a' | 'in' | 'in the') table:with_filtered_table '?'
+        | 'how many' p:out_param_ArrayCount ('does' | 'do') 'the' table:with_arg_min_max_table 'have ?'
+        | 'how many' p:out_param_ArrayCount 'in the' table:with_arg_min_max_table '?'
+        | 'how many' p:out_param_ArrayCount 'are there in the' table:with_arg_min_max_table '?'
+        ) => {
+            if (!table.schema.out[p.name] || !table.schema.out[p.name].isNumber)
+                return null;
+            return C.makeProjection(table, p.name);
         };
 
         ( 'how many' p:out_param_Array__Any ('does' | 'do') table:with_filtered_table 'have ?'
@@ -211,8 +143,8 @@ if (!_tpLoader.flags.turking) {
                 return null;
             const conflictParam = C.hasConflictParam(table, p.name, 'count');
             if (conflictParam)
-                return makeProjectTable(table, conflictParam);
-            return makeAggComputeProjExpression(table, 'count', null, p, Type.Number);
+                return C.makeProjection(table, conflictParam);
+            return C.makeAggComputeProjExpression(table, 'count', null, p, Type.Number);
         };
 
         ( 'how many' p:out_param_Array__Any 'with' filter:with_filter ('does' | 'do') table:with_filtered_table 'have ?'
@@ -230,7 +162,7 @@ if (!_tpLoader.flags.turking) {
             const list = C.makeListExpression(_tpLoader, p, filter);
             if (!list)
                 return null;
-            return makeAggComputeProjExpression(table, 'count', null, list, Type.Number);
+            return C.makeAggComputeProjExpression(table, 'count', null, list, Type.Number);
         };
 
         // aggregation questions
@@ -266,19 +198,19 @@ if (!_tpLoader.flags.turking) {
         ('nearest' | 'closest') table:complete_table ('' | 'from here' | 'to here' | 'to me')  => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'asc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'asc');
         };
 
         ('nearest' | 'closest') table:with_filtered_table => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'asc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'asc');
         };
 
         ('farthest' | 'most far away') table:with_filtered_table => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'desc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'desc');
         };
 
         ( ('nearest' | 'closest') table:complete_table 'to' place:constant_Location
@@ -287,7 +219,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'asc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'asc');
         };
 
         ( ('nearest' | 'closest') table:with_filtered_table 'to' place:constant_Location
@@ -296,7 +228,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'asc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'asc');
         };
 
         ( ('farthest' | 'most far away') table:with_filtered_table 'from' place:constant_Location
@@ -305,7 +237,7 @@ if (!_tpLoader.flags.turking) {
         => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'desc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'desc');
         };
 
         table:with_filtered_table 'with the' ('most' | 'highest number of' | 'largest number of' | 'largest count of') p:out_param_Array__Any => {
@@ -313,25 +245,40 @@ if (!_tpLoader.flags.turking) {
                 return null;
             const conflictParam = C.hasConflictParam(table, p.name, 'count');
             if (conflictParam)
-                return makeArgMinMaxTable(table, conflictParam, 'desc');
-            return makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'desc');
+                return C.makeArgMinMaxTable(table, conflictParam, 'desc');
+            return C.makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'desc');
         };
-
         !turking table:with_filtered_table 'with the' ('least' | 'fewest' | 'smallest number of' | 'tiniest number of' | 'smallest count of') p:out_param_Array__Any => {
             if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
                 return null;
             const conflictParam = C.hasConflictParam(table, p.name, 'count');
             if (conflictParam)
-                return makeArgMinMaxTable(table, conflictParam, 'asc');
-            return makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'asc');
+                return C.makeArgMinMaxTable(table, conflictParam, 'asc');
+            return C.makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'asc');
         };
         ?turking table:with_filtered_table 'with the' ('fewest' | 'smallest number of') p:out_param_Array__Any => {
             if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
                 return null;
             const conflictParam = C.hasConflictParam(table, p.name, 'count');
             if (conflictParam)
-                return makeArgMinMaxTable(table, conflictParam, 'asc');
-            return makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'asc');
+                return C.makeArgMinMaxTable(table, conflictParam, 'asc');
+            return C.makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'asc');
+        };
+
+        table:with_filtered_table 'with the' ('most' | 'highest number of' | 'largest number of' | 'largest count of') p:out_param_ArrayCount => {
+            if (!table.schema.out[p.name] || !table.schema.out[p.name].isNumber)
+                return null;
+            return C.makeArgMinMaxTable(table, p.name, 'desc');
+        };
+        !turking table:with_filtered_table 'with the' ('least' | 'fewest' | 'smallest number of' | 'tiniest number of' | 'smallest count of') p:out_param_ArrayCount => {
+            if (!table.schema.out[p.name] || !table.schema.out[p.name].isNumber)
+                return null;
+            return C.makeArgMinMaxTable(table, p.name, 'asc');
+        };
+        ?turking table:with_filtered_table 'with the' ('fewest' | 'smallest number of') p:out_param_ArrayCount => {
+            if (!table.schema.out[p.name] || !table.schema.out[p.name].isNumber)
+                return null;
+            return C.makeArgMinMaxTable(table, p.name, 'asc');
         };
     }
 }
