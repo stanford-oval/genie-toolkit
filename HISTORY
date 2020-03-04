@@ -1,3 +1,13 @@
+0.5.3
+=====
+
+* Added support for `defaultTemperature` measurement units, allowing
+  the user to use imprecise language around temperature units and have
+  them resolved according to their preference [#127].
+
+Contributors:
+  Lim Swee Kiat
+
 0.5.2
 =====
 
