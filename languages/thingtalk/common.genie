@@ -86,6 +86,12 @@ out_param_Array__Compound = {}  // used for aggregate filter only
 
 input_param = {}
 
+// helper prefix for "and" filters
+// English overrides this to add "both" as well
+both_prefix = {
+    '';
+}
+
 // filters & input parameters on npp parameters
 // nnp: Noun-Phrase parameter for Property of the subject
 // e.g.: "name", "date of birth"

@@ -136,8 +136,8 @@ complete_when_do_rule = {
     complete_forward_when_do_rule;
     backward_when_do_rule if complete;
 
-    !turking ('auto' | 'automatically' | 'continuously') stream:action_replace_param_with_stream if complete => stream;
-    ?turking 'automatically' stream:action_replace_param_with_stream if complete => stream;
+    !turking ('auto' | 'automatically' | 'continuously') stmt:action_replace_param_with_stream if complete => stmt;
+    ?turking 'automatically' stmt:action_replace_param_with_stream if complete => stmt;
 }
 
 when_get_stream = {
@@ -413,16 +413,16 @@ when_command = {
     !primonly stream:complete_when_get_stream => {
         assert(stream.isJoin, `unexpected stream in when_get, found ${stream}`);
         if (stream.table.isProjection)
-            return C.makeProgram(new Ast.Statement.Rule(null, new Ast.Stream.Join(null, stream.stream, stream.table.table, stream.in_params, stream.schema), [C.notifyAction()]));
+            return new Ast.Statement.Rule(null, new Ast.Stream.Join(null, stream.stream, stream.table.table, stream.in_params, stream.schema), [C.notifyAction()]);
         else
-            return C.makeProgram(new Ast.Statement.Rule(null, stream, [C.notifyAction()]));
+            return new Ast.Statement.Rule(null, stream, [C.notifyAction()]);
     };
 
     // when => do
-    !primonly rule:complete_when_do_rule => C.makeProgram(stmt);
+    !primonly complete_when_do_rule;
 
     // when => get => do
-    ?triple_commands rule:when_get_do_rule => C.makeProgram(rule);
+    ?triple_commands when_get_do_rule;
 }
 
 monitor_command = {
@@ -514,8 +514,8 @@ action_command = {
 
 if (_tpLoader.standardSchemas.say) {
     timer_rule = {
-        'send me a reminder' stream:timer => C.makeProgram(new Ast.Statement.Rule(null, stream, [C.builtinSayAction()]));
-        'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => C.makeProgram(new Ast.Statement.Rule(stream, [C.builtinSayAction(constant)]));
+        'send me a reminder' stream:timer => new Ast.Statement.Rule(null, stream, [C.builtinSayAction()]);
+        'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => new Ast.Statement.Rule(null, stream, [C.builtinSayAction(constant)]);
     }
 
     when_command = {
@@ -580,7 +580,7 @@ remote_command = {
         | ('show me' | 'get' | 'what is') principal:constant_Entity__tt__username '\'s' table:complete_table
         | ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to send me' table:complete_table
     ) => C.makeProgram(new Ast.Statement.Command(null, table, [C.notifyAction('return')]), principal);
-    ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' ('let me know' | 'inform me' | 'notify me' | 'alert me') stream:stream => C.makeProgram(new Ast.Statement.Rule(stream, [C.notifyAction('return')]), principal);
+    ('tell' | 'command' | 'order' | 'request' | 'ask') principal:constant_Entity__tt__username 'to' ('let me know' | 'inform me' | 'notify me' | 'alert me') stream:stream => C.makeProgram(new Ast.Statement.Rule(null, stream, [C.notifyAction('return')]), principal);
 
     ?extended_timers {
         (
@@ -598,7 +598,7 @@ policy_command = {
         let policy = C.makePolicy(null, null, action);
         if (!policy)
             return null;
-        policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
+        policy.action.filter = new Ast.BooleanExpression.And(null, [policy.action.filter, filter]);
         return policy;
     };
     ('anyone' | 'anybody' | 'everyone' | 'everybody') ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') ('get' | 'see' | 'access' | 'monitor' | 'read') table:if_filtered_table => C.makePolicy(null, table, null);
@@ -609,7 +609,7 @@ policy_command = {
         let policy = C.makePolicy(source, null, action);
         if (!policy)
             return null;
-        policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
+        policy.action.filter = new Ast.BooleanExpression.And(null, [policy.action.filter, filter]);
         return policy;
     };
     source:constant_Entity__tt__username ('can' | 'is allowed to' | 'is permitted to' | 'has permission to' | 'has my permission to') ('get' | 'see' | 'access' | 'monitor' | 'read') table:if_filtered_table => C.makePolicy(source, table, null);

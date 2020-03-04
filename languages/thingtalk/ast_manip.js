@@ -163,21 +163,11 @@ function makeFilter(param, op, value, negate = false) {
     return Utils.makeFilter(_loader, param, op, value, negate);
 }
 
-function makeAndFilter(param, op, values, negate=false) {
-    if (values.length !== 2)
-        return null;
-    if (values[0].name === values[1].name)
-        return null;
-    const operands  = values.map((v) => makeFilter(param, op, v));
-    if (operands.includes(null))
-        return null;
-    const f = new Ast.BooleanExpression.And(null, operands);
-    if (negate)
-        return new Ast.BooleanExpression.Not(null, f);
-    return f;
+function makeAndFilter(param, op, values, negate = false) {
+    return Utils.makeAndFilter(_loader, param, op, values, negate);
 }
 
-function makeOrFilter(param, op, values, negate=false) {
+function makeOrFilter(param, op, values, negate  =false) {
     if (values.length !== 2)
         return null;
     if (values[0].name === values[1].name)
@@ -310,7 +300,6 @@ function addUnit(unit, num) {
 }
 
 function resolveProjection(args, schema) {
-    assert (Object.keys(schema.out).length > 1);
     assert (args.length >= 1);
     args = new Set(args);
     for (let arg of schema.minimal_projection)
@@ -328,7 +317,7 @@ function makeProjection(table, pname) {
     return new Ast.Table.Projection(null, table, [pname], resolveProjection([pname], table.schema));
 }
 function makeStreamProjection(stream, pname) {
-    return new Ast.Stream.Projection(null, stream [pname], resolveProjection([pname], stream.schema));
+    return new Ast.Stream.Projection(null, stream, [pname], resolveProjection([pname], stream.schema));
 }
 
 function makeEventTableProjection(table) {
@@ -384,7 +373,7 @@ function makeTypeBasedTableProjection(table, ptype, ptypestr) {
             return makeProjection(table, 'id');
 
         let outParams = Object.keys(table.schema.out);
-        if (outParams.length !== 1 || !ptype.equals(table.getArgType(outParams[0])))
+        if (outParams.length !== 1 || !ptype.equals(table.schema.getArgType(outParams[0])))
             return null;
         return makeProjection(table, outParams[0]);
     }
@@ -407,7 +396,7 @@ function makeTypeBasedStreamProjection(table, ptype, ptypestr) {
             return makeStreamProjection(new Ast.Stream.Monitor(null, table, null, table.schema), 'id');
 
         let outParams = Object.keys(table.schema.out);
-        if (outParams.length !== 1 || !ptype.equals(table.getArgType(outParams[0])))
+        if (outParams.length !== 1 || !ptype.equals(table.schema.getArgType(outParams[0])))
             return null;
         return makeStreamProjection(new Ast.Stream.Monitor(null, table, null, table.schema), outParams[0]);
     }
@@ -510,6 +499,8 @@ function checkValidQuery(table) {
 }
 
 function makeProgram(rule, principal = null) {
+    assert(rule instanceof Ast.Statement);
+
     // FIXME: A hack for schema.org only to drop certain programs
     let table = rule.table;
     if (table) {
@@ -532,6 +523,21 @@ function combineStreamCommand(stream, command) {
     } else {
         return new Ast.Statement.Rule(null, stream, command.actions);
     }
+}
+
+function normalizeFilter(table, filter) {
+    if (filter.isCompute && filter.lhs.isAggregation && filter.lhs.operator === 'count') {
+        let name = filter.lhs.list.name;
+        let canonical = table.schema.getArgCanonical(name);
+        for (let p of table.schema.iterateArguments()) {
+            if (p.name === name + 'Count' ||
+                p.canonical === canonical + ' count' ||
+                p.canonical === canonical.slice(0,-1) + ' count')
+                return new Ast.BooleanExpression.Atom(p.name, '==', filter.rhs);
+        }
+    }
+
+    return filter;
 }
 
 function checkFilter(table, filter) {
@@ -562,13 +568,6 @@ function checkFilter(table, filter) {
 
         if (filter.lhs.operator === 'count') {
             vtype = Type.Number;
-            let canonical = table.schema.getArgCanonical(name);
-            for (let p of table.schema.iterateArguments()) {
-                if (p.name === name + 'Count')
-                    return false;
-                if (p.canonical === canonical + 'count' || p.canonical === canonical.slice(0,-1) + ' count')
-                    return false;
-            }
         } else {
             if (filter.lhs.field && filter.lhs.field in ptype.elem.fields)
                 ftype = ptype.elem.fields[filter.lhs.field].type;
@@ -608,9 +607,11 @@ function checkFilter(table, filter) {
             if (maxArg !== undefined)
                 max = maxArg;
 
-            const value = filter.value.toJS();
-            if (value < min || value > max)
-                return false;
+            if (filter.value.isNumber) {
+                const value = filter.value.toJS();
+                if (value < min || value > max)
+                    return false;
+            }
         }
         return true;
     } else {
@@ -685,6 +686,8 @@ function checkFilterUniqueness(table, filter) {
 function addFilter(table, filter, forceAdd = false) {
     if (!checkFilter(table, filter))
         return null;
+
+    filter = normalizeFilter(table, filter);
 
     // when an "unique" parameter has been used in the table
     if (table.schema.no_filter)
@@ -884,9 +887,9 @@ function builtinSayAction(pname) {
 }
 
 function locationGetPredicate(loc, negate = false) {
-    let filter = new Ast.BooleanExpression.Atom('location', '==', loc);
+    let filter = new Ast.BooleanExpression.Atom(null, 'location', '==', loc);
     if (negate)
-        filter = new Ast.BooleanExpression.Not(filter);
+        filter = new Ast.BooleanExpression.Not(null, filter);
 
     return new Ast.BooleanExpression.External(null, new Ast.Selector.Device(null, 'org.thingpedia.builtin.thingengine.builtin',null,null),'get_gps', [], filter,
         _loader.standardSchemas.get_gps);
@@ -896,10 +899,10 @@ function timeGetPredicate(low, high) {
     let operands = [];
 
     if (low)
-        operands.push(new Ast.BooleanExpression.Atom('time', '>=', low));
+        operands.push(new Ast.BooleanExpression.Atom(null, 'time', '>=', low));
     if (high)
-        operands.push(new Ast.BooleanExpression.Atom('time', '<=', high));
-    const filter = Ast.BooleanExpression.And(operands);
+        operands.push(new Ast.BooleanExpression.Atom(null, 'time', '<=', high));
+    const filter = new Ast.BooleanExpression.And(null, operands);
     return new Ast.BooleanExpression.External(null, new Ast.Selector.Device(null, 'org.thingpedia.builtin.thingengine.builtin',null,null),'get_time', [], filter,
         _loader.standardSchemas.get_time);
 }
@@ -954,7 +957,11 @@ function mergeSchemas(functionType, lhsSchema, rhsSchema, passign) {
 
     return new Ast.ExpressionSignature(null, functionType, null /* class */, [] /* extends */, newArgs, {
         is_list: lhsSchema.is_list || rhsSchema.is_list,
-        is_monitorable: lhsSchema.is_monitorable && rhsSchema.is_monitorable
+        is_monitorable: lhsSchema.is_monitorable && rhsSchema.is_monitorable,
+        require_filter: lhsSchema.require_filter || rhsSchema.require_filter,
+        default_projection: [...new Set(lhsSchema.default_projection.concat(rhsSchema.default_projection))],
+        minimal_projection: [...new Set(lhsSchema.minimal_projection.concat(rhsSchema.minimal_projection))],
+        no_filter: lhsSchema.no_filter && rhsSchema.no_filter
     });
 }
 

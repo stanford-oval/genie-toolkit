@@ -110,22 +110,22 @@ node $srcdir/tool/genie.js split-train-eval everything.tsv \
 ## now the same thing, but contextual
 
 # generate-contextual
-node $srcdir/tool/genie.js extract-contexts -l en-US -o contexts.txt \
-   --thingpedia $srcdir/test/data/thingpedia.tt $srcdir/test/data/synthetic.tsv
-node $srcdir/tool/genie.js generate-contextual --maxdepth 3 \
-    --thingpedia $srcdir/test/data/thingpedia.tt --entities entities.json --dataset dataset.tt \
-   --template $srcdir/languages/thingtalk/en/contextual.genie -o /dev/null -l en contexts.txt
-node $srcdir/tool/genie.js contextualize -o /dev/null -l en --context contexts.txt $srcdir/test/data/synthetic.tsv
-
-node $srcdir/tool/genie.js sample -o synthetic-contextual-sampled.tsv \
-  --thingpedia $srcdir/test/data/thingpedia.tt \
-  --contextual --context-source $srcdir/test/data/synthetic-context-source.tsv \
-  --constants $srcdir/data/en-US/constants.tsv --sampling-control $srcdir/test/data/easy-hard-functions.tsv \
-  $srcdir/test/data/synthetic-contextual.tsv
-diff -u $srcdir/test/data/expected-synthetic-contextual-sampled.tsv synthetic-contextual-sampled.tsv
-
-node $srcdir/tool/genie.js mturk-make-paraphrase-hits -o mturk-contextual-paraphrasing.csv \
-  --sentences-per-task 3 < synthetic-contextual-sampled.tsv
-diff -u $srcdir/test/data/expected-contextual-mturk-paraphrasing.csv mturk-contextual-paraphrasing.csv
+#node $srcdir/tool/genie.js extract-contexts -l en-US -o contexts.txt \
+#   --thingpedia $srcdir/test/data/thingpedia.tt $srcdir/test/data/synthetic.tsv
+#node $srcdir/tool/genie.js generate-contextual --maxdepth 3 \
+#    --thingpedia $srcdir/test/data/thingpedia.tt --entities entities.json --dataset dataset.tt \
+#   --template $srcdir/languages/thingtalk/en/contextual.genie -o /dev/null -l en contexts.txt
+#node $srcdir/tool/genie.js contextualize -o /dev/null -l en --context contexts.txt $srcdir/test/data/synthetic.tsv
+#
+#node $srcdir/tool/genie.js sample -o synthetic-contextual-sampled.tsv \
+#  --thingpedia $srcdir/test/data/thingpedia.tt \
+#  --contextual --context-source $srcdir/test/data/synthetic-context-source.tsv \
+#  --constants $srcdir/data/en-US/constants.tsv --sampling-control $srcdir/test/data/easy-hard-functions.tsv \
+#  $srcdir/test/data/synthetic-contextual.tsv
+#diff -u $srcdir/test/data/expected-synthetic-contextual-sampled.tsv synthetic-contextual-sampled.tsv
+#
+#node $srcdir/tool/genie.js mturk-make-paraphrase-hits -o mturk-contextual-paraphrasing.csv \
+#  --sentences-per-task 3 < synthetic-contextual-sampled.tsv
+#diff -u $srcdir/test/data/expected-contextual-mturk-paraphrasing.csv mturk-contextual-paraphrasing.csv
 
 rm -fr $workdir

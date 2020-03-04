@@ -146,14 +146,6 @@ const PROPERTY_TYPE_OVERRIDE = {
 };
 
 const PROPERTY_CANONICAL_OVERRIDE = {
-    'geo': { default:"npp", npp:['location', 'address'] },
-    'streetAddress': { default:"npp", npp:['street'] },
-    'addressCountry': { default:"pvp", pvp:["in"], npp:["country"] },
-    'addressRegion': { default:"pvp", pvp:["in"], npp:["state"] },
-    'addressLocality': { default:"npp", npp:['city'] }
-};
-
-const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     // thing
     url: {
         default: 'npp',
@@ -166,17 +158,25 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
     description: {
         default: 'npp',
-        //avp: ['is about'],
         npp: ['description', 'summary']
     },
 
+    // location
+    'geo': { default:"npp", npp:['location', 'address'], pvp:["in", "around", "at", "on"] },
+    'streetAddress': { default:"npp", npp:['street'] },
+    'addressCountry': { default:"pvp", pvp:["in"], npp:["country"] },
+    'addressRegion': { default:"pvp", pvp:["in"], npp:["state"] },
+    'addressLocality': { default:"npp", npp:['city'] }
+};
+
+const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     // restaurants
     'datePublished': { default:"pvp", pvp:["published on", "written on"], npp:["date published"] },
     'ratingValue': { default:"pvp", pvp:["rated #star"], npp:["rating"] },
     'reviewRating': { default:"npp", npp:["rating"] },
     'telephone': { default:"npp", npp:["telephone", "phone number"] },
     'servesCuisine': { default:"apv", apv:true, avp:["serves #cuisine", "serves #food", "offer #cuisine", "offer #food", "serves", "offers"],
-        npp:["cuisine", "food type", "served cuisine"] },
+        npp:["#cuisine", "#food"] },
 
     // hotels
     'amenityFeature': {
@@ -560,7 +560,7 @@ class SchemaProcessor {
                 continue;
 
             const canonical = this.makeArgCanonical(propertyname, ttType);
-            const metadata = {'canonical': canonical["default"] === "npp" && canonical["npp"].length === 1 ? canonical["npp"][0] : canonical};
+            const metadata = { canonical };
             const annotation = keepAnnotation ? {
                 'org_schema_type': Ast.Value.String(schemaOrgType),
                 'org_schema_comment': Ast.Value.String(propertydef.comment)
@@ -639,7 +639,12 @@ class SchemaProcessor {
         } else {
             let tags = posTag(npp.split(' '));
             if (['VBP', 'VBZ'].includes(tags[0])) {
-                canonical["avp"] = [npp];
+                if (tags.length === 2 && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
+                    canonical["avp"] = [npp.replace(' ', ' #')];
+                    npp = npp.split(' ')[1];
+                } else {
+                    canonical["avp"] = [npp];
+                }
                 canonical["default"] = "avp";
             } else if (npp.endsWith(' of')) {
                 canonical["npi"] = [npp];
@@ -920,7 +925,7 @@ class SchemaProcessor {
                     propertyname = '_' + propertyname;
 
                 const canonical = this.makeArgCanonical(propertyname, type);
-                const metadata = { 'canonical': canonical["default"] === "npp" && canonical["npp"].length === 1 ? canonical["npp"][0] : canonical };
+                const metadata = { canonical };
                 const annotation = keepAnnotation ? {
                     'org_schema_type': Ast.Value.String(schemaOrgType),
                     'org_schema_comment': Ast.Value.String(propertydef.comment)
@@ -960,12 +965,14 @@ class SchemaProcessor {
                 });
         }
 
-        const classdef = new Ast.ClassDef(null,
-            `org.schema${this._className ? '.' + this._className : ''}`,
-            [], queries, {} /* actions */, [
+        const imports = [
             new Ast.ImportStmt.Mixin(null, ['loader'], 'org.thingpedia.v2', []),
             new Ast.ImportStmt.Mixin(null, ['config'], 'org.thingpedia.config.none', [])
-        ], {
+        ];
+
+        const classdef = new Ast.ClassDef(null,
+            `org.schema${this._className ? '.' + this._className : ''}`,
+            [], { queries, imports }, {
             nl: {
                 name: `${this._className ? this._className + ' in ' : ''}Schema.org`,
                 description: 'Scraped data from websites that support schema.org'
@@ -1005,7 +1012,7 @@ module.exports = {
         parser.addArgument('--manual', {
             nargs: 0,
             action: 'storeTrue',
-            help: 'Enable debugging.',
+            help: 'Enable manual annotations.',
             defaultValue: false
         });
         parser.addArgument('--class-name', {

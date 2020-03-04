@@ -141,7 +141,11 @@ constant_Location = {
 }
 
 constant_pairs = {
-    c1:constant_Any 'and' c2:constant_Any => [c1, c2];
+    c1:constant_Any 'and' c2:constant_Any => {
+        if (!c1.getType().equals(c2.getType()))
+            return null;
+        return [c1, c2];
+    };
 }
 
 // ContextRef is not a constant, it needs special templates

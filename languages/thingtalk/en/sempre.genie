@@ -44,7 +44,7 @@ function makeComputeArgMinMaxExpression(table, operation, operands, resultType, 
                 return null;
         }
     }
-    const compute = makeComputeExpression(null, table, operation, operands, resultType);
+    const compute = makeComputeExpression(table, operation, operands, resultType);
     const projSchema = compute.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === operation);
     const sort = new Ast.Table.Sort(null, compute, operation, direction, compute.schema);
     return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], compute.schema);
