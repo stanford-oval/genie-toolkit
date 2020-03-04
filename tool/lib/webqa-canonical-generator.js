@@ -79,7 +79,7 @@ class CanonicalGenerator {
 
         // call bert to generate candidates
         const child = child_process.spawn(`python3`,
-            [path.resolve(path.dirname(module.filename), './bert.py'), `all`, `--no-mask`],
+            [path.resolve(path.dirname(module.filename), './bert-canonical-generator.py'), `all`, `--no-mask`],
             { stdio: ['pipe', 'pipe', 'inherit'] });
 
 
