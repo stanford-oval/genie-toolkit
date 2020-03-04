@@ -183,6 +183,8 @@ async function processOne(id, sentence, code) {
         } else if (entitytype === 'GENERIC_ENTITY_tt:iso_lang_code' && param === 'source_language') {
             choices = [["English", 'en']];
         } else if (entitytype === 'NUMBER' && !!unit) {
+            if (unit === 'defaultTemperature')
+                unit = 'F';
             choices = VALUES.MEASURE[unit];
             if (!choices)
                 throw new Error('Invalid unit ' + unit);
