@@ -11,8 +11,8 @@
 const fs = require('fs');
 const util = require('util');
 const path = require('path');
+const child_process = require('child_process');
 
-const exec = util.promisify(require('child_process').exec);
 const { makeLookupKeys } = require('../../lib/sample-utils');
 
 const ANNOTATED_PROPERTIES = [
@@ -42,13 +42,14 @@ class CanonicalGenerator {
 
         this.parameterDatasets = parameterDatasets;
         this.parameterDatasetPaths = {};
-        this._loadParameterDatasetPaths();
 
         this.sampleSize = {};
     }
 
 
     async generate() {
+        await this._loadParameterDatasetPaths();
+
         const examples = {};
         const paths = {};
         for (let qname of this.queries) {
@@ -76,22 +77,32 @@ class CanonicalGenerator {
             }
         }
 
-        // dump the examples and paths to json files for the python script to consume
-        fs.writeFileSync('./examples.json', JSON.stringify(examples, null, 2));
-        fs.writeFileSync('./param-dataset-paths.json', JSON.stringify(paths, null, 2));
-
         // call bert to generate candidates
-        await exec(`python3 ${__dirname}/bert.py all --no-mask`, { maxBuffer: 1024*1024*100 });
+        const child = child_process.spawn(`python3`,
+            [path.resolve(path.dirname(module.filename), './bert.py'), `all`, `--no-mask`],
+            { stdio: ['pipe', 'pipe', 'inherit'] });
 
-        // load exported result from the python script
-        const candidates = JSON.parse(fs.readFileSync('./bert-predictions.json', 'utf8'));
-        const adjectives = JSON.parse(fs.readFileSync('./adjective-properties.json', 'utf8'));
-        this._updateCanonicals(candidates, adjectives);
+
+        const stdout = await new Promise((resolve, reject) => {
+            child.stdin.write(JSON.stringify( { examples, paths } ));
+            child.stdin.end();
+            child.on('error', reject);
+            child.stdout.on('error', reject);
+            child.stdout.setEncoding('utf8');
+            let buffer = '';
+            child.stdout.on('data', (data) => {
+                buffer += data;
+            });
+            child.stdout.on('end', () => resolve(buffer));
+        });
+
+        const { synonyms, adjectives } = JSON.parse(stdout);
+        this._updateCanonicals(synonyms, adjectives);
         return this.class;
     }
 
-    _loadParameterDatasetPaths() {
-        const rows = fs.readFileSync(this.parameterDatasets, 'utf8').split('\n');
+    async _loadParameterDatasetPaths() {
+        const rows = (await (util.promisify(fs.readFile))(this.parameterDatasets, { encoding: 'utf8' })).split('\n');
         for (let row of rows) {
             let [, key, path] = row.split('\t');
             this.parameterDatasetPaths[key] = path;

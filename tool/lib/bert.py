@@ -2,6 +2,7 @@ import csv
 import argparse
 import json
 import torch
+import sys
 from transformers import BertTokenizer, BertModel, BertForMaskedLM
 
 BLACK_LIST = ['a', 'an', 'the', 'its', 'their', 'his', 'her']
@@ -15,8 +16,10 @@ model.eval()
 
 
 class BertLM:
-    def __init__(self, mask, k):
+    def __init__(self, domain, examples, mask, k):
         """
+        :param domain: an object contains the canonical form and paths to parameters for each table in the domain
+        :param examples: an object of examples for each grammar category of each property of each table
         :param mask: a boolean indicates if we do masking before prediction
         :param k: number of top candidates to return per example
         """
@@ -24,15 +27,12 @@ class BertLM:
         self.k = k
         self.canonicals = {}
         self.values = {}
-        with open('./param-dataset-paths.json', 'r', encoding='utf-8') as f:
-            domain = json.load(f)
-            for table in domain:
-                self.canonicals[table] = domain[table]['canonical']
-                self.values[table] = {}
-                for param in domain[table]['params']:
-                    self.values[table][param] = self.load_values(domain[table]['params'][param])
-        with open('./examples.json', 'r', encoding='utf-8') as f:
-            self.examples = json.load(f)
+        for table in domain:
+            self.canonicals[table] = domain[table]['canonical']
+            self.values[table] = {}
+            for param in domain[table]['params']:
+                self.values[table][param] = self.load_values(domain[table]['params'][param])
+        self.examples = examples
 
     def predict_one(self, table, arg, query, word, k):
         """
@@ -216,12 +216,14 @@ if __name__ == '__main__':
                         help='top-k candidates to return when generating adjectives')
     args = parser.parse_args()
 
-    bert = BertLM(args.mask, args.k)
-    if args.command == 'synonyms' or args.command == 'all':
-        with open('./bert-predictions.json', 'w') as f:
-            json.dump(bert.predict(), f, indent=2)
+    examples, domain = json.load(sys.stdin).values()
 
+    bert = BertLM(domain, examples, args.mask, args.k)
+
+    output = {}
+    if args.command == 'synonyms' or args.command == 'all':
+        output['synonyms'] = bert.predict()
     if args.command == 'adjectives' or args.command == 'all':
-        with open('./adjective-properties.json', 'w') as f:
-            adjective_properties = bert.predict_adjectives(args.k_adjectives)
-            json.dump(adjective_properties, f, indent=2)
+        output['adjectives'] = bert.predict_adjectives(args.k_adjectives)
+
+    print(json.dumps(output))
