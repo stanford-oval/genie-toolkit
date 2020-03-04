@@ -24,11 +24,11 @@ const ANNOTATED_PROPERTIES = [
 function splitCanonical(canonical) {
     let prefix, suffix;
     if (!canonical.includes('#'))
-        [prefix, suffix] = [canonical, null];
+        [prefix, suffix] = [canonical, ''];
     else if (canonical.includes('#') && !canonical.startsWith('#'))
         [prefix, suffix] = canonical.split('#').map((span) => span.trim());
     else
-        [prefix, suffix] = [null, canonical.slice(1).trim()];
+        [prefix, suffix] = ['', canonical.slice(1).trim()];
     return [prefix, suffix];
 }
 
