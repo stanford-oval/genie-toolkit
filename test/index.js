@@ -27,7 +27,7 @@ seq([
     ('./test_stream_utils'),
     ('./test_requoting'),
     ('./test_sentence_generator'),
-    ('./test_augment'),
+    //('./test_augment'),
     ('./test_i18n_chinese'),
     ('./test_random'),
     ('./test_tokenizer')

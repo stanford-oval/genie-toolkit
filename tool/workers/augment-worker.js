@@ -26,6 +26,7 @@ module.exports = async function worker(args, shard) {
     return new DatasetAugmenter(schemaRetriever, constProvider, tpClient, {
         rng: seedrandom.alea(args.random_seed + ':' + shard),
         locale: args.locale,
+        targetLanguage: args.target_language,
         debug: args.debug,
 
         ppdbFile: args.ppdb ? await BinaryPPDB.mapFile(args.ppdb) : null,

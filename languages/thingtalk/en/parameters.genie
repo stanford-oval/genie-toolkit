@@ -2,9 +2,10 @@
 //
 // This file is part of ThingTalk
 //
-// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//         Silei Xu <silei@cs.stanford.edu>
 //
 // See COPYING for details
 
@@ -43,41 +44,14 @@ projection_Numeric = {
     projection_Measure_kcal;
 }
 
-single_projection_String = table:complete_table => {
-    let outParams = Object.keys(table.schema.out);
-    if (outParams.length === 1 && table.schema.out[outParams[0]].isString)
-        return new Ast.Table.Projection(null, table, [outParams[0]], table.schema);
+single_projection_String = table:complete_table => C.makeEventTableProjection(table);
 
-    for (let pname in table.schema.out) {
-        if (pname === 'picture_url')
-            return null;
-        let ptype = table.schema.out[pname];
-        if (_tpLoader.types.id.has(C.typeToStringSafe(ptype)))
-            return null;
-    }
-    return new Ast.Table.Projection(null, table, ['$event'], table.schema);
-};
-single_stream_projection_String = !no_stream 'new' table:complete_table => {
-    if (!table.schema.is_monitorable)
-        return null;
-    let outParams = Object.keys(table.schema.out);
-    if (outParams.length === 1 && table.schema.out[outParams[0]].isString)
-        return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), [outParams[0]], table.schema);
-
-    for (let pname in table.schema.out) {
-        if (pname === 'picture_url')
-            return null;
-        let ptype = table.schema.out[pname];
-        if (_tpLoader.types.id.has(C.typeToStringSafe(ptype)))
-            return null;
-    }
-    return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), ['$event'], table.schema);
-};
+single_stream_projection_String = !no_stream 'new' table:complete_table => C.makeEventStreamProjection(table);
 
 single_projection_Entity__tt__picture = table:complete_table => {
     if (!table.schema.out['picture_url'])
         return null;
-    return new Ast.Table.Projection(table, ['picture_url'], table.schema);
+    return new Ast.Table.Projection(null, table, ['picture_url'], table.schema);
 };
 single_stream_projection_Entity__tt__picture = !no_stream 'new' table:complete_table => {
     if (!table.schema.out['picture_url'])
@@ -111,18 +85,27 @@ the_out_param_pair = {
     };
 }
 
-projection_Any = {
-    !projection_with_filter ('both' | '') outParams:the_out_param_pair 'of' table:complete_table => C.makeMultiFieldProjection(_tpLoader, 'table', table, outParams);
-    ?projection_with_filter ('both' | '') outParams:the_out_param_pair 'of' table:with_filtered_table => C.makeMultiFieldProjection(_tpLoader, 'table', table, outParams);
-    ?projection_with_filter ('both' | '') outParams:the_out_param_pair 'of the' table:with_arg_min_max_table => C.makeMultiFieldProjection(_tpLoader, 'table', table, outParams);
+pair_projection = {
+    ?projection_with_filter {
+        ( ('both' | '') outParams:the_out_param_pair 'of' table:with_filtered_table
+        | outParams:the_out_param_pair 'of the' table:with_arg_min_max_table
+        ) => C.makeMultiFieldProjection('table', table, outParams);
+    }
+    !projection_with_filter {
+        ('both' | '') outParams:the_out_param_pair 'of' table:complete_table => C.makeMultiFieldProjection('table', table, outParams);
+    }
 }
 
-// when there is a name field, do a implicit projection on name when refer to the table
-projection_String = !turking table:with_filtered_table => {
-    return C.makeSingleFieldProjection(_tpLoader, 'table', Type.String, table, new Ast.Value.VarRef('name'));
-};
-
-where_question = {}
+where_question = {
+    ?projection_with_filter {
+        ( 'where is the' table:with_filtered_table
+        | 'where is the' table:with_arg_min_max_table
+        ) => C.makeSingleFieldProjection('table', Type.Location, table, 'geo');
+    }
+    !projection_with_filter {
+        'where is' table:complete_table => C.makeSingleFieldProjection('table', type, table, 'geo');
+    }
+}
 
 for (let [typestr, type] of _tpLoader.types.all) {
     // don't access booleans or enums out arguments generically, as that rarely makes sense
@@ -131,90 +114,45 @@ for (let [typestr, type] of _tpLoader.types.all) {
         $('the_out_param_' + typestr) = {
             'the' p:$('out_param_' + typestr) => p;
 
-            !turking {
+            /*!turking {
                 'its' p:$('out_param_' + typestr) => p;
                 'their' p:$('out_param_' + typestr) => p;
             }
+            */
         }
 
         if (!_tpLoader.types.id.has(typestr)) {
-            if (!_tpLoader.flags.projection_with_filter) {
-                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:complete_table => C.makeSingleFieldProjection(_tpLoader, 'table', type, table, outParam);
-                $('stream_projection_' + typestr) = !no_stream outParam:$('the_out_param_' + typestr) 'of new' table:complete_table => C.makeSingleFieldProjection(_tpLoader, 'stream', type, table, outParam);
-                if (typestr === 'Location') {
-                    //FIXME: choose outParam name in a more smart way
-                    $('where_question') = 'where is' table:complete_table => C.makeSingleFieldProjection(_tpLoader, 'table', type, table, { name: 'geo' });
-                }
+            if (_tpLoader.flags.projection_with_filter) {
+                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:with_filtered_table =>
+                    C.makeSingleFieldProjection('table', type, table, outParam.name);
+                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of the' table:with_arg_min_max_table =>
+                    C.makeSingleFieldProjection('table', type, table, outParam.name);
+                $('stream_projection_' + typestr) = !no_stream outParam:$('the_out_param_' + typestr) 'of new' table:with_filtered_table =>
+                    C.makeSingleFieldProjection('stream', type, table, outParam.name);
+                $('stream_projection_' + typestr) = !no_stream outParam:$('the_out_param_' + typestr) 'of the new' table:with_arg_min_max_table =>
+                    C.makeSingleFieldProjection('stream', type, table, outParam.name);
             } else {
-                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:with_filtered_table => C.makeSingleFieldProjection(_tpLoader, 'table', type, table, outParam);
-                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of the' table:with_arg_min_max_table => C.makeSingleFieldProjection(_tpLoader, 'table', type, table, outParam);
-                $('stream_projection_' + typestr) = !no_stream outParam:$('the_out_param_' + typestr) 'of new' table:with_filtered_table => C.makeSingleFieldProjection(_tpLoader, 'stream', type, table, outParam);
-                $('stream_projection_' + typestr) = !no_stream outParam:$('the_out_param_' + typestr) 'of the new' table:with_arg_min_max_table => C.makeSingleFieldProjection(_tpLoader, 'stream', type, table, outParam);
-
-                if (typestr === 'Location') {
-                    //FIXME: choose outParam name in a more smart way
-                    $('where_question') = 'where is the' table:with_filtered_table => C.makeSingleFieldProjection(_tpLoader, 'table', type, table, { name: 'geo' });
-                    $('where_question') = 'where is the' table:with_arg_min_max_table => C.makeSingleFieldProjection(_tpLoader, 'table', type, table, { name: 'geo' });
-                }
+                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:complete_table =>
+                    C.makeSingleFieldProjection('table', type, table, outParam.name);
+                $('stream_projection_' + typestr) = !no_stream outParam:$('the_out_param_' + typestr) 'of new' table:complete_table =>
+                    C.makeSingleFieldProjection('stream', type, table, outParam.name);
             }
 
             projection_Any = $('projection_' + typestr);
         }
 
-        if (_tpLoader.types.id.has(typestr)) {
-            if (!_tpLoader.flags.projection_with_filter) {
-                $('single_projection_' + typestr) = table:complete_table => {
-                    for (let pname in table.schema.out) {
-                        if (table.schema.out[pname].equals(type))
-                            return new Ast.Table.Projection(null, table, [pname], table.schema);
-                    }
-                    return null;
-                };
+        if (typestr !== 'Entity__tt__picture' && typestr !== 'String') {
+            if (_tpLoader.flags.projection_with_filter) {
+                $('single_projection_' + typestr) = table:with_filtered_table => C.makeTypeBasedTableProjection(table, type, typestr);
 
-                $('single_stream_projection_' + typestr) = !no_stream 'new' table:complete_table => {
-                    if (!table.schema.is_monitorable)
-                        return null;
-                    for (let pname in table.schema.out) {
-                        if (table.schema.out[pname].equals(type))
-                            return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), [pname], table.schema);
-                    }
-                    return null;
-                };
+                $('single_stream_projection_' + typestr) = !no_stream 'new' table:with_filtered_table =>
+                    C.makeTypeBasedStreamProjection(table, type, typestr);
             } else {
-                $('single_projection_' + typestr) = table:with_filtered_table => {
-                    for (let pname in table.schema.out) {
-                        if (table.schema.out[pname].equals(type))
-                            return new Ast.Table.Projection(null, table, [pname], table.schema);
-                    }
-                    return null;
-                };
+                $('single_projection_' + typestr) = table:complete_table => C.makeTypeBasedTableProjection(table, type, typestr);
 
-                $('single_stream_projection_' + typestr) = !no_stream 'new' table:with_filtered_table => {
-                    if (!table.schema.is_monitorable)
-                        return null;
-                    for (let pname in table.schema.out) {
-                        if (table.schema.out[pname].equals(type))
-                            return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), [pname], table.schema);
-                    }
-                    return null;
-                };
+                $('single_stream_projection_' + typestr) = !no_stream 'new' table:complete_table =>
+                    C.makeTypeBasedStreamProjection(table, type, typestr);
             }
-        } else if (typestr !== 'Entity__tt__picture' && typestr !== 'String') {
-            $('single_projection_' + typestr) = table:complete_table => {
-                let outParams = Object.keys(table.schema.out);
-                if (outParams.length !== 1 || !type.equals(table.schema.out[outParams[0]]))
-                    return null;
-                return new Ast.Table.Projection(null, table, [outParams[0]], table.schema);
-            };
-
-            $('single_stream_projection_' + typestr) = !no_stream 'new' table:complete_table => {
-                let outParams = Object.keys(table.schema.out);
-                if (outParams.length !== 1 || !type.equals(table.schema.out[outParams[0]]))
-                    return null;
-                if (!table.schema.is_monitorable)
-                    return null;
-                return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), [outParams[0]], table.schema);
-            };
         }
     }
 }

@@ -15,12 +15,11 @@ const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 
-const { isUnaryTableToTableOp,
-        isUnaryStreamToTableOp,
-        isUnaryStreamToStreamOp,
-        isUnaryTableToStreamOp,
-        typeToStringSafe } = require('./utils');
+const { typeToStringSafe } = require('./utils');
+const Utils = require('./utils');
 const { notifyAction } = ThingTalk.Generate;
+
+const _loader = require('./load-thingpedia');
 
 function makeDate(base, operator, offset) {
     if (!(base instanceof Ast.Value))
@@ -29,6 +28,7 @@ function makeDate(base, operator, offset) {
         return base;
 
     const value = new Ast.Value.Computation('+', [base, offset]);
+    value.overload = [Type.Date, Type.Measure('ms'), Type.Date];
     // HACK
     value.getType = function() {
         return Type.Date;
@@ -36,40 +36,30 @@ function makeDate(base, operator, offset) {
     return value;
 }
 
-function findFunctionNameTable(table) {
-    if (table.isInvocation)
-        return [table.invocation.selector.kind + ':' + table.invocation.channel];
-
-    if (isUnaryTableToTableOp(table))
-        return findFunctionNameTable(table.table);
-
-    if (isUnaryStreamToTableOp(table))
-        return findFunctionNameStream(table.stream);
-
-    if (table.isJoin)
-        return findFunctionNameTable(table.lhs).concat(findFunctionNameTable(table.rhs));
-
-    throw new TypeError();
+function getFunctionNames(ast) {
+    const functions = [];
+    ast.visit(new class extends Ast.NodeVisitor {
+        visitInvocation(invocation) {
+            functions.push(invocation.selector.kind + ':' + invocation.channel);
+            return true;
+        }
+    });
+    return functions;
 }
 
-function findFunctionNameStream(stream) {
-    if (stream.isTimer || stream.isAtTimer)
-        return [];
-
-    if (isUnaryStreamToStreamOp(stream))
-        return findFunctionNameStream(stream.stream);
-
-    if (isUnaryTableToStreamOp(stream))
-        return findFunctionNameTable(stream.table);
-
-    if (stream.isJoin)
-        return findFunctionNameStream(stream.stream).concat(findFunctionNameTable(stream.table));
-
-    throw new TypeError('??? ' + stream);
+function getFunctions(ast) {
+    const functions = [];
+    ast.visit(new class extends Ast.NodeVisitor {
+        visitInvocation(invocation) {
+            functions.push(invocation.schema);
+            return true;
+        }
+    });
+    return functions;
 }
 
 function isSelfJoinStream(stream) {
-    let functions = findFunctionNameStream(stream);
+    let functions = getFunctionNames(stream);
     if (functions.length > 1) {
         if (!Array.isArray(functions))
             throw new TypeError('??? ' + functions);
@@ -169,44 +159,20 @@ function etaReduceTable(table, pname) {
     }
 }
 
-function makeFilter($options, param, op, value, negate = false) {
-    // param is a Value.VarRef
-    //console.log('param: ' + param.name);
-    let vtype = value.getType();
-    if (op === 'contains')
-        vtype = Type.Array(vtype);
-    if (!$options.params.out.has(param.name + '+' + vtype))
-        return null;
-    if ($options.params.blacklist.has(param.name + '+' + vtype))
-        return null;
-
-    let f = new Ast.BooleanExpression.Atom(null, param.name, op, value);
-    if (negate)
-        return new Ast.BooleanExpression.Not(null, f);
-    else
-        return f;
+function makeFilter(param, op, value, negate = false) {
+    return Utils.makeFilter(_loader, param, op, value, negate);
 }
 
-function makeAndFilter($options, param, op, values, negate=false) {
+function makeAndFilter(param, op, values, negate = false) {
+    return Utils.makeAndFilter(_loader, param, op, values, negate);
+}
+
+function makeOrFilter(param, op, values, negate  =false) {
     if (values.length !== 2)
         return null;
     if (values[0].name === values[1].name)
         return null;
-    const operands  = values.map((v) => makeFilter($options, param, op, v));
-    if (operands.includes(null))
-        return null;
-    const f = new Ast.BooleanExpression.And(null, operands);
-    if (negate)
-        return new Ast.BooleanExpression.Not(null, f);
-    return f;
-}
-
-function makeOrFilter($options, param, op, values, negate=false) {
-    if (values.length !== 2)
-        return null;
-    if (values[0].name === values[1].name)
-        return null;
-    const operands  = values.map((v) => makeFilter($options, param, op, v, negate));
+    const operands  = values.map((v) => makeFilter(param, op, v, negate));
     if (operands.includes(null))
         return null;
     const f = new Ast.BooleanExpression.Or(null, operands);
@@ -215,14 +181,14 @@ function makeOrFilter($options, param, op, values, negate=false) {
     return f;
 }
 
-function makeButFilter($options, param, op, values) {
+function makeButFilter(param, op, values) {
     if (values.length !== 2)
         return null;
     if (values[0].name === values[1].name)
         return null;
     const operands  = [
-        makeFilter($options, param, op, values[0]),
-        makeFilter($options, param, op, values[1], true)
+        makeFilter(param, op, values[0]),
+        makeFilter(param, op, values[1], true)
     ];
     if (operands.includes(null))
         return null;
@@ -246,7 +212,7 @@ function makeListExpression($options, param, filter) {
     let vtype = filter.value.getType();
     if (!$options.params.out.has(`${filter.name}+${vtype}`))
         return null;
-    return new Ast.Value.Filter(null, param, filter);
+    return new Ast.Value.Filter(param, filter);
 }
 
 function makeAggregateFilter($options, param, aggregationOp, field, op, value) {
@@ -255,6 +221,7 @@ function makeAggregateFilter($options, param, aggregationOp, field, op, value) {
             return null;
         assert(field === null);
         const agg = new Ast.Value.Computation(aggregationOp, [param]);
+        agg.overload = [Type.Array('x'), Type.Number];
         return new Ast.BooleanExpression.Compute(null, agg, op, value);
     } else if (['sum', 'avg', 'max', 'min'].includes(aggregationOp)) {
         const vtype = value.getType();
@@ -268,6 +235,7 @@ function makeAggregateFilter($options, param, aggregationOp, field, op, value) {
         const agg = new Ast.Value.Computation(aggregationOp, [
             param ? new Ast.Value.ArrayField(param, field.name) : param
         ]);
+        agg.overload = [Type.Array(vtype), vtype];
         return new Ast.BooleanExpression.Compute(null, agg, op, value);
     }
     return null;
@@ -284,6 +252,7 @@ function makeAggregateFilterWithFilter($options, param, filter, aggregationOp, f
             return null;
         assert(field === null);
         const agg = new Ast.Value.Computation(aggregationOp, [list]);
+        agg.overload = [Type.Array('x'), Type.Number];
         return new Ast.BooleanExpression.Compute(null, agg, op, value);
     } else if (['sum', 'avg', 'max', 'min'].includes(aggregationOp)) {
         const vtype = value.getType();
@@ -297,12 +266,14 @@ function makeAggregateFilterWithFilter($options, param, filter, aggregationOp, f
         const agg = new Ast.Value.Computation(aggregationOp, [
             field ? new Ast.Value.ArrayField(list, field.name) : list
         ]);
+        agg.overload = [Type.Array(vtype), vtype];
         return new Ast.BooleanExpression.Compute(null, agg, op, value);
     }
     return null;
 }
 
-function makeEdgeFilterStream(proj, op, value, $options) {
+
+function makeEdgeFilterStream(proj, op, value) {
     if (proj.table.isAggregation)
         return null;
 
@@ -312,7 +283,7 @@ function makeEdgeFilterStream(proj, op, value, $options) {
     if (!proj.schema.is_monitorable || proj.schema.is_list)
         return null;
     let outParams = Object.keys(proj.table.schema.out);
-    if (outParams.length === 1 && $options.flags.turking)
+    if (outParams.length === 1 && _loader.flags.turking)
         return null;
 
     return new Ast.Stream.EdgeFilter(null, new Ast.Stream.Monitor(null, proj.table, null, proj.table.schema), f, proj.table.schema);
@@ -328,37 +299,150 @@ function addUnit(unit, num) {
     }
 }
 
-function makeSingleFieldProjection($options, ftype, ptype, table, outParam) {
-    assert(ftype === 'table' || ftype === 'stream');
+function resolveProjection(args, schema) {
+    assert (args.length >= 1);
+    args = new Set(args);
+    for (let arg of schema.minimal_projection)
+        args.add(arg);
+    for (let arg of args)
+        assert (schema.hasArgument(arg));
+    // if default_projection is non-empty, it's overwritten after a projection
+    schema.default_projection = [];
+    if (schema.annotations)
+        schema.annotations.default_projection = Ast.Value.Array([]);
+    return schema.filterArguments((a) => a.is_input || args.has(a.name));
+}
 
-    const name = outParam.name;
-    if ($options.flags.schema_org) {
-        if (name === 'id')
+function makeProjection(table, pname) {
+    return new Ast.Table.Projection(null, table, [pname], resolveProjection([pname], table.schema));
+}
+function makeStreamProjection(stream, pname) {
+    return new Ast.Stream.Projection(null, stream, [pname], resolveProjection([pname], stream.schema));
+}
+
+function makeEventTableProjection(table) {
+    if (table.isProjection)
+        return null;
+
+    let outParams = Object.keys(table.schema.out);
+    if (outParams.length === 1 && table.schema.out[outParams[0]].isString)
+        return makeProjection(table, outParams[0]);
+
+    for (let pname in table.schema.out) {
+        if (pname === 'picture_url')
+            return null;
+        let ptype = table.schema.out[pname];
+        if (_loader.types.id.has(typeToStringSafe(ptype)))
             return null;
     }
-    if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], ptype))
+    return new Ast.Table.Projection(null, table, ['$event'], table.schema);
+}
+
+function makeEventStreamProjection(table) {
+    if (!table.schema.is_monitorable)
+        return null;
+    let outParams = Object.keys(table.schema.out);
+    if (outParams.length === 1 && table.schema.out[outParams[0]].isString)
+        return makeStreamProjection(new Ast.Stream.Monitor(null, table, null, table.schema), outParams[0]);
+
+    for (let pname in table.schema.out) {
+        if (pname === 'picture_url')
+            return null;
+        let ptype = table.schema.out[pname];
+        if (_loader.types.id.has(typeToStringSafe(ptype)))
+            return null;
+    }
+    return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), ['$event'], table.schema);
+}
+
+function makeTypeBasedTableProjection(table, ptype, ptypestr) {
+    if (table.isProjection)
+        return null;
+
+    if (_loader.types.id.has(ptypestr)) {
+        for (let pname in table.schema.out) {
+            if (table.schema.out[pname].equals(ptype))
+                return makeProjection(table, pname);
+        }
+        return null;
+    } else {
+        assert(!ptype.isString && !(ptype.isEntity && ptype.type === 'tt:picture'));
+
+        const idArg = table.schema.getArgument('id');
+        if (idArg && idArg.type.equals(ptype))
+            return makeProjection(table, 'id');
+
+        let outParams = Object.keys(table.schema.out);
+        if (outParams.length !== 1 || !ptype.equals(table.schema.getArgType(outParams[0])))
+            return null;
+        return makeProjection(table, outParams[0]);
+    }
+}
+
+function makeTypeBasedStreamProjection(table, ptype, ptypestr) {
+    if (table.isProjection)
+        return null;
+    if (!table.schema.is_monitorable)
+        return null;
+    if (_loader.types.id.has(ptypestr)) {
+        for (let pname in table.schema.out) {
+            if (table.schema.out[pname].equals(ptype))
+                return makeStreamProjection(new Ast.Stream.Monitor(null, table, null, table.schema), pname);
+        }
+        return null;
+    } else {
+        const idArg = table.schema.getArgument('id');
+        if (idArg && idArg.type.equals(ptype))
+            return makeStreamProjection(new Ast.Stream.Monitor(null, table, null, table.schema), 'id');
+
+        let outParams = Object.keys(table.schema.out);
+        if (outParams.length !== 1 || !ptype.equals(table.schema.getArgType(outParams[0])))
+            return null;
+        return makeStreamProjection(new Ast.Stream.Monitor(null, table, null, table.schema), outParams[0]);
+    }
+}
+
+function isEqualityFilteredOnParameter(table, pname) {
+    for (let [,filter] of iterateFilters(table)) {
+        for (let field of iterateFields(filter)) {
+            if (field.name === pname &&
+                (field.operator === '==' || field.operator === '=~'))
+                return true;
+        }
+    }
+
+    return false;
+}
+
+function makeSingleFieldProjection(ftype, ptype, table, pname) {
+    assert(ftype === 'table' || ftype === 'stream');
+    assert(typeof pname === 'string');
+
+    if (pname === 'id')
+        return null;
+    if (!table.schema.out[pname] || !Type.isAssignable(table.schema.out[pname], ptype))
         return null;
 
     if (ftype === 'table') {
-        if (name === 'picture_url' && $options.flags.turking)
+        if (pname === 'picture_url' && _loader.flags.turking)
             return null;
-        const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
-        return new Ast.Table.Projection(null, table, [name], newSchema);
+        if (isEqualityFilteredOnParameter(table, pname))
+            return null;
+        return makeProjection(table, pname);
     } else {
         if (!table.schema.is_monitorable)
             return null;
         const stream = new Ast.Stream.Monitor(null, table, null, table.schema);
-        const newSchema = stream.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
-        return new Ast.Stream.Projection(null, stream, [name], newSchema);
+        return makeStreamProjection(stream, pname);
     }
 }
 
 
-function makeMultiFieldProjection($options, ftype, table, outParams) {
+function makeMultiFieldProjection(ftype, table, outParams) {
     const names = [];
     for (let outParam of outParams) {
         const name = outParam.name;
-        if ($options.flags.schema_org) {
+        if (_loader.flags.schema_org) {
             if (name === 'id')
                 return null;
         }
@@ -366,7 +450,7 @@ function makeMultiFieldProjection($options, ftype, table, outParams) {
             return null;
 
         if (ftype === 'table') {
-            if (name === 'picture_url' && $options.flags.turking)
+            if (name === 'picture_url' && _loader.flags.turking)
                 return null;
         } else {
             if (!table.schema.is_monitorable)
@@ -377,12 +461,15 @@ function makeMultiFieldProjection($options, ftype, table, outParams) {
     }
 
     if (ftype === 'table') {
-        const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || names.includes(arg.name));
-        return new Ast.Table.Projection(null, table, names, newSchema);
+        for (let pname of names) {
+            if (isEqualityFilteredOnParameter(table, pname))
+                return null;
+        }
+
+        return new Ast.Table.Projection(null, table, names, resolveProjection(names, table.schema));
     } else {
         const stream = new Ast.Stream.Monitor(null, table, null, table.schema);
-        const newSchema = stream.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || names.includes(arg.name));
-        return new Ast.Stream.Projection(null, stream, names, newSchema);
+        return new Ast.Stream.Projection(null, stream, names, resolveProjection(names, stream.schema));
     }
 }
 
@@ -405,35 +492,23 @@ function makeArgMaxMinTable(table, pname, direction) {
     return new Ast.Table.Index(null, t_sort, [new Ast.Value.Number(1)], table.schema);
 }
 
-function makeProgram($options, rule, principal = null) {
+function checkValidQuery(table) {
+    // all queries are valid, actually
+    // filter conflicts are handled elsewhere
+    return true;
+}
+
+function makeProgram(rule, principal = null) {
+    assert(rule instanceof Ast.Statement);
+
     // FIXME: A hack for schema.org only to drop certain programs
     let table = rule.table;
     if (table) {
-        // projection won't help here
-        if (table.isProjection)
-            table = table.table;
-
-        // if a table is just a plain invocation, drop it
-        if (table.isInvocation)
+        if (!checkValidQuery(table))
             return null;
-
-        if (table.isFilter) {
-            let filteredOnName = false;
-            let filteredOthers = false;
-            for (let [, filter] of iterateFilters(table)) {
-                for (let atom of iterateFields(filter)) {
-                    if (atom.name === 'name')
-                        filteredOnName = true;
-                    else
-                        filteredOthers = true;
-                }
-            }
-            if (filteredOnName && !filteredOthers)
-                return null;
-        }
     }
     if (rule.stream) {
-        if ($options.flags.no_stream)
+        if (_loader.flags.no_stream)
             return null;
     }
     return new Ast.Program(null, [], [], [rule], principal);
@@ -502,7 +577,11 @@ function checkFilter(table, filter) {
         }
         return filter.rhs.getType().equals(vtype);
     } else if (filter.isAtom) {
-        if (!table.schema.out[filter.name])
+        const arg = table.schema.getArgument(filter.name);
+        if (!arg || arg.is_input)
+            return false;
+
+        if (arg.getAnnotation('filterable') === false)
             return false;
 
         ptype = table.schema.out[filter.name];
@@ -514,7 +593,27 @@ function checkFilter(table, filter) {
         } else if (filter.operator === 'in_array') {
             vtype = Type.Array(ptype);
         }
-        return filter.value.getType().equals(vtype);
+
+        if (!filter.value.getType().equals(vtype))
+            return false;
+
+        if (vtype.isNumber || vtype.isMeasure) {
+            let min = -Infinity;
+            let minArg = arg.getImplementationAnnotation('min_number');
+            if (minArg !== undefined)
+                min = minArg;
+            let maxArg = arg.getImplementationAnnotation('max_number');
+            let max = Infinity;
+            if (maxArg !== undefined)
+                max = maxArg;
+
+            if (filter.value.isNumber) {
+                const value = filter.value.toJS();
+                if (value < min || value > max)
+                    return false;
+            }
+        }
+        return true;
     } else {
         return false;
     }
@@ -535,36 +634,42 @@ function *iterateFilters(table) {
 }
 
 function *iterateFields(filter) {
+    assert(filter instanceof Ast.BooleanExpression);
     if (filter.isAnd) {
         for (let operand of filter.operands)
             yield *iterateFields(operand);
     } else if (filter.isNot) {
         yield *iterateFields(filter.expr);
-    } else if (filter.isAtom) {
+    } else if (filter.isAtom || filter.isDontCare) {
         yield filter;
+    } else {
+        assert(filter.isTrue || filter.isFalse || filter.isOr || filter.isCompute || filter.isExternal);
     }
 }
 
 function hasUniqueFilter(table) {
-    for (let [schema, filter] of iterateFilters(table)) {
-        for (let atom of iterateFields(filter)) {
-            if (schema.getArgument(atom.name).unique)
-                return true;
-        }
+    for (let [, filter] of iterateFilters(table)) {
+        if (checkFilterUniqueness(table, filter))
+            return true;
     }
     return false;
 }
 
 function checkFilterUniqueness(table, filter) {
-    // FIXME (thingtalk issue #105)
-    if (filter.isAnd || filter.isOr)
+    if (filter.isAnd)
         return filter.operands.some((f) => checkFilterUniqueness(table, f));
+    // note: a filter of the form
+    // (id == "foo" || id == "bar")
+    // is treated as "unique" because it defines the set of elements
+    // and we should not filter further
+    if (filter.isOr)
+        return filter.operands.every((f) => checkFilterUniqueness(table, f));
 
     if (filter.isExternal)
         return false;
 
     if (filter.isNot)
-        return checkFilterUniqueness(table, filter.expr);
+        return true;
 
     if (filter.isTrue || filter.isFalse)
         return false;
@@ -572,10 +677,16 @@ function checkFilterUniqueness(table, filter) {
     if (filter.isCompute)
         return false;
 
+    if (filter.operator !== '==' && filter.operator !== 'in_array')
+        return false;
+
     return table.schema.getArgument(filter.name).unique;
 }
 
-function addFilter(table, filter, $options, forceAdd = false) {
+function addFilter(table, filter, forceAdd = false) {
+    if (!checkFilter(table, filter))
+        return null;
+
     filter = normalizeFilter(table, filter);
 
     // when an "unique" parameter has been used in the table
@@ -583,7 +694,7 @@ function addFilter(table, filter, $options, forceAdd = false) {
         return null;
 
     if (table.isProjection) {
-        const added = addFilter(table.table, filter, $options, forceAdd);
+        const added = addFilter(table.table, filter, forceAdd);
         if (added === null)
             return null;
         return new Ast.Table.Projection(null, added, table.args, table.schema);
@@ -598,7 +709,7 @@ function addFilter(table, filter, $options, forceAdd = false) {
     //
     // hence, addFilterToProgram/addFilterToPolicy (which are contextual) pass forceAdd = true,
     // which skips the 2 filter heuristic
-    if (!forceAdd && !$options.flags.multifilters && table.isFilter && $options.flags.turking)
+    if (!forceAdd && !_loader.flags.multifilters && table.isFilter && _loader.flags.turking)
         return null;
 
     if (table.isFilter) {
@@ -627,6 +738,15 @@ function addFilter(table, filter, $options, forceAdd = false) {
                 return null;
         }
 
+        const arg = table.schema.getArgument(atom.name);
+        if (arg.annotations.conflict_filter) {
+            const conflict = arg.annotations.conflict_filter.toJS();
+            for (let atom2 of iterateFields(existing)) {
+                if (conflict.includes(atom2.name))
+                    return null;
+            }
+        }
+
         let newFilter = new Ast.BooleanExpression.And(null, [existing, filter]).optimize();
         return new Ast.Table.Filter(null, table.table, newFilter, table.schema);
     }
@@ -634,20 +754,14 @@ function addFilter(table, filter, $options, forceAdd = false) {
     // FIXME deal with the other table types (maybe)
 
     const schema = table.schema.clone();
-    if (checkFilterUniqueness(table, filter))
+    if (checkFilterUniqueness(table, filter)) {
+        schema.is_list = false;
         schema.no_filter = true;
+    }
     return new Ast.Table.Filter(null, table, filter, schema);
 }
 
-function checkAndAddFilter(table, filter, $options) {
-    if (!table.schema.is_list)
-        return null;
-    if (!checkFilter(table, filter))
-        return null;
-    return addFilter(table, filter, $options);
-}
-
-function addFilterToProgram(program, filter, $options) {
+function addFilterToProgram(program, filter) {
     if (!program.rules[0].stream && !program.rules[0].table)
         return null;
 
@@ -660,11 +774,11 @@ function addFilterToProgram(program, filter, $options) {
         if (!checkFilter(clone.rules[0].stream.table, filter))
             return null;
 
-        clone.rules[0].stream.table = addFilter(clone.rules[0].stream.table, filter, $options, true);
+        clone.rules[0].stream.table = addFilter(clone.rules[0].stream.table, filter, true);
         if (!clone.rules[0].stream.table)
             return null;
     } else {
-        clone.rules[0].table = addFilter(clone.rules[0].table, filter, $options, true);
+        clone.rules[0].table = addFilter(clone.rules[0].table, filter, true);
         if (!clone.rules[0].table)
             return null;
     }
@@ -672,7 +786,7 @@ function addFilterToProgram(program, filter, $options) {
     return clone;
 }
 
-function addFilterToPolicy(policy, filter, $options) {
+function addFilterToPolicy(policy, filter) {
     const clone = policy.clone();
 
     if (clone.action.isSpecified) {
@@ -734,9 +848,7 @@ function makePolicy(principal, table, action) {
             if (table.table.invocation.selector.attributes.length)
                 return null;
 
-            const queryfilter = new Ast.BooleanExpression.And(null, [
-                inParamsToFilters(table.table.invocation.in_params), table.filter
-            ]);
+            const queryfilter = new Ast.BooleanExpression.And(null, [inParamsToFilters(table.table.invocation.in_params), table.filter]);
             policyQuery = new Ast.PermissionFunction.Specified(null, table.table.invocation.selector.kind, table.table.invocation.channel, queryfilter,
                 table.table.invocation.schema);
         } else if (table.isInvocation) {
@@ -758,36 +870,32 @@ function makePolicy(principal, table, action) {
     return new Ast.PermissionRule(null, sourcepredicate, policyQuery, policyAction);
 }
 
-function builtinSayAction($options, pname) {
+function builtinSayAction(pname) {
     let selector = new Ast.Selector.Device(null, 'org.thingpedia.builtin.thingengine.builtin', null, null);
     if (pname instanceof Ast.Value) {
         let param = new Ast.InputParam(null, 'message', pname);
-        return new Ast.Action.Invocation(null,
-            new Ast.Invocation(null, selector, 'say', [param], $options.standardSchemas.say),
-            $options.standardSchemas.say.removeArgument('message'));
-    } if (pname) {
+        return new Ast.Action.Invocation(null, new Ast.Invocation(null, selector, 'say', [param], _loader.standardSchemas.say),
+            _loader.standardSchemas.say.removeArgument('message'));
+    } else if (pname) {
         let param = new Ast.InputParam(null, 'message', new Ast.Value.VarRef(pname));
-        return new Ast.Action.Invocation(null,
-            new Ast.Invocation(null, selector, 'say', [param], $options.standardSchemas.say),
-            $options.standardSchemas.say.removeArgument('message'));
+        return new Ast.Action.Invocation(null, new Ast.Invocation(null, selector, 'say', [param], _loader.standardSchemas.say),
+            _loader.standardSchemas.say.removeArgument('message'));
     } else {
-        return new Ast.Action.Invocation(null,
-            new Ast.Invocation(null, selector, 'say', [], $options.standardSchemas.say),
-            $options.standardSchemas.say.removeArgument('message'));
+        return new Ast.Action.Invocation(null, new Ast.Invocation(null, selector, 'say', [], _loader.standardSchemas.say),
+            _loader.standardSchemas.say.removeArgument('message'));
     }
 }
 
-function locationGetPredicate($options, loc, negate = false) {
+function locationGetPredicate(loc, negate = false) {
     let filter = new Ast.BooleanExpression.Atom(null, 'location', '==', loc);
     if (negate)
         filter = new Ast.BooleanExpression.Not(null, filter);
 
-    return new Ast.BooleanExpression.External(null,
-        new Ast.Selector.Device(null, 'org.thingpedia.builtin.thingengine.builtin', null, null),
-        'get_gps', [], filter, $options.standardSchemas.get_gps);
+    return new Ast.BooleanExpression.External(null, new Ast.Selector.Device(null, 'org.thingpedia.builtin.thingengine.builtin',null,null),'get_gps', [], filter,
+        _loader.standardSchemas.get_gps);
 }
 
-function timeGetPredicate($options, low, high) {
+function timeGetPredicate(low, high) {
     let operands = [];
 
     if (low)
@@ -795,9 +903,8 @@ function timeGetPredicate($options, low, high) {
     if (high)
         operands.push(new Ast.BooleanExpression.Atom(null, 'time', '<=', high));
     const filter = new Ast.BooleanExpression.And(null, operands);
-    return new Ast.BooleanExpression.External(null,
-        new Ast.Selector.Device(null, 'org.thingpedia.builtin.thingengine.builtin', null, null),
-        'get_time', [], filter, $options.standardSchemas.get_time);
+    return new Ast.BooleanExpression.External(null, new Ast.Selector.Device(null, 'org.thingpedia.builtin.thingengine.builtin',null,null),'get_time', [], filter,
+        _loader.standardSchemas.get_time);
 }
 
 function hasGetPredicate(filter) {
@@ -825,8 +932,7 @@ function makeGetPredicate(proj, op, value, negate = false) {
     const schema = proj.table.invocation.schema;
     if (!schema.out[arg].equals(value.getType()))
         return null;
-    return new Ast.BooleanExpression.External(null, selector, channel,
-        proj.table.invocation.in_params, filter, proj.table.invocation.schema);
+    return new Ast.BooleanExpression.External(null, selector, channel, proj.table.invocation.in_params, filter, proj.table.invocation.schema);
 }
 
 // perform a join with parameter passing
@@ -851,7 +957,11 @@ function mergeSchemas(functionType, lhsSchema, rhsSchema, passign) {
 
     return new Ast.ExpressionSignature(null, functionType, null /* class */, [] /* extends */, newArgs, {
         is_list: lhsSchema.is_list || rhsSchema.is_list,
-        is_monitorable: lhsSchema.is_monitorable && rhsSchema.is_monitorable
+        is_monitorable: lhsSchema.is_monitorable && rhsSchema.is_monitorable,
+        require_filter: lhsSchema.require_filter || rhsSchema.require_filter,
+        default_projection: [...new Set(lhsSchema.default_projection.concat(rhsSchema.default_projection))],
+        minimal_projection: [...new Set(lhsSchema.minimal_projection.concat(rhsSchema.minimal_projection))],
+        no_filter: lhsSchema.no_filter && rhsSchema.no_filter
     });
 }
 
@@ -927,9 +1037,7 @@ function tableJoinReplacePlaceholder(into, pname, projection) {
 
     const newSchema = mergeSchemas('query', projection.schema, etaReduced.schema, passign);
     let replacement = joinArg === '$event' ? new Ast.Value.Event(null) : new Ast.Value.VarRef(joinArg);
-    return new Ast.Table.Join(null, projection.table, etaReduced, [
-        new Ast.InputParam(null, passign, replacement)
-    ], newSchema);
+    return new Ast.Table.Join(null, projection.table, etaReduced, [new Ast.InputParam(null, passign, replacement)], newSchema);
 }
 
 function actionReplaceParamWith(into, pname, projection) {
@@ -1021,9 +1129,7 @@ function whenGetStream(stream, pname, joinArg) {
     //console.log('passign: ' + passign + ', ptype: ' + ptype);
 
     const newSchema = mergeSchemas('stream', stream.schema, etaReduced.schema, passign);
-    return new Ast.Stream.Join(null, stream.stream, etaReduced,
-        stream.in_params.concat([new Ast.InputParam(null, passign, joinArg)]),
-        newSchema);
+    return new Ast.Stream.Join(null, stream.stream, etaReduced, stream.in_params.concat([new Ast.InputParam(null, passign, joinArg)]), newSchema);
 }
 
 function isConstantAssignable(value, ptype) {
@@ -1057,7 +1163,10 @@ function replacePlaceholderWithUndefined(lhs, pname, typestr) {
     return betaReduce(lhs, pname, new Ast.Value.Undefined(true));
 }
 
-function sayProjectionProgram($options, proj) {
+function sayProjection(proj) {
+    if (proj === null)
+        return null;
+
     // this function is also used for aggregation
     if (proj.isProjection) {
         if (proj.args.length === 1 && proj.args[0] === 'picture_url')
@@ -1065,16 +1174,21 @@ function sayProjectionProgram($options, proj) {
         // if the function only contains one parameter, do not generate projection for it
         if (Object.keys(proj.table.schema.out).length === 1)
             return null;
-        if (!$options.flags.projection)
+        if (!_loader.flags.projection)
             return null;
-        if (proj.args.includes('name')) {
-            if (proj.args.length === 1)
-                proj = proj.table;
-            else
-                proj.args = proj.args.filter((a) => a !== 'name');
+
+        // remove all projection args that are part of the minimal projection
+        const newArgs = proj.args.filter((a) => !proj.table.schema.minimal_projection.includes(a));
+        const newSchema = resolveProjection(proj.args, proj.table.schema);
+        if (newArgs.length === 0) {
+            proj = proj.table;
+        } else {
+            newArgs.sort();
+            proj.args = newArgs;
+            proj.schema = newSchema;
         }
     }
-    return makeProgram($options, new Ast.Statement.Command(null, proj, [notifyAction()]));
+    return new Ast.Statement.Command(null, proj, [notifyAction()]);
 }
 
 function isQueryProgram(program) {
@@ -1130,11 +1244,9 @@ function addTimerToProgram(program, timer) {
 
 function makeMonitor(program) {
     const newrules = program.rules.map((r) => {
-        return new Ast.Statement.Rule(null,
-            new Ast.Stream.Monitor(null, r.table, null, r.table.schema), r.actions);
+        return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, r.table, null, r.table.schema), r.actions);
     });
-    return new Ast.Program(null, program.classes, program.declarations,
-        newrules, program.principal, program.oninputs);
+    return new Ast.Program(null, program.classes, program.declarations, newrules, program.principal, program.oninputs);
 }
 
 function replaceAnyParameterFromContext(context, newValue) {
@@ -1216,7 +1328,7 @@ function maybeGetIdFilter(filter) {
     return undefined;
 }
 
-function addReverseGetPredicateJoin(table, get_predicate_table, pname, $options, negate = false) {
+function addReverseGetPredicateJoin(table, get_predicate_table, pname, negate = false) {
     if (!get_predicate_table.isInvocation &&
         !(get_predicate_table.isFilter && get_predicate_table.table.isInvocation))
         return null;
@@ -1253,10 +1365,10 @@ function addReverseGetPredicateJoin(table, get_predicate_table, pname, $options,
     );
     if (negate)
         get_predicate = new Ast.BooleanExpression.Not(null, get_predicate);
-    return addFilter(table, get_predicate, $options);
+    return addFilter(table, get_predicate);
 }
 
-function addGetPredicateJoin(table, get_predicate_table, pname, $options, negate = false) {
+function addGetPredicateJoin(table, get_predicate_table, pname, negate = false) {
     if (!get_predicate_table.isFilter || !get_predicate_table.table.isInvocation)
         return null;
 
@@ -1294,7 +1406,7 @@ function addGetPredicateJoin(table, get_predicate_table, pname, $options, negate
         if (negate)
             newAtom = new Ast.BooleanExpression.Not(null, newAtom);
 
-        return addFilter(table, newAtom, $options);
+        return addFilter(table, newAtom);
     }
 
     let newAtom = new Ast.BooleanExpression.Atom(null, 'id', (lhsArg.type.isArray ? 'in_array' : '=='), new Ast.Value.VarRef(lhsArg.name));
@@ -1307,10 +1419,10 @@ function addGetPredicateJoin(table, get_predicate_table, pname, $options, negate
         new Ast.BooleanExpression.And(null, [get_predicate_table.filter, newAtom]),
         get_predicate_table.table.invocation.schema
     );
-    return addFilter(table, get_predicate, $options);
+    return addFilter(table, get_predicate);
 }
 
-function addArrayJoin(lhs, rhs, $options) {
+function addArrayJoin(lhs, rhs) {
     if (!lhs.isFilter)
         return null;
 
@@ -1333,14 +1445,134 @@ function addArrayJoin(lhs, rhs, $options) {
     const newSchema = mergeSchemas('query', lhs.schema, rhs.schema, null);
     return new Ast.Table.Filter(null,
         new Ast.Table.Join(null, lhs, rhs, [], newSchema),
-        new Ast.BooleanExpression.Atom(null, 'id', (lhsArg.type.isArray ? 'in_array' : '=='),
-            new Ast.Value.VarRef(lhsArg.name)),
+        new Ast.BooleanExpression.Atom(null, 'id', (lhsArg.type.isArray ? 'in_array' : '=='), new Ast.Value.VarRef(lhsArg.name)),
         newSchema);
+}
+
+
+function makeComputeExpression(table, operation, operands, resultType) {
+    const computeSchema = table.schema.addArguments([
+        new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType)]);
+    const expression = new Ast.Value.Computation(operation, operands);
+    if (operation === 'distance')
+        expression.overload = [Type.Location, Type.Location, Type.Measure('m')];
+
+    return new Ast.Table.Compute(null, table, expression, null, computeSchema);
+}
+
+function makeComputeProjExpression(table, operation, operands, resultType) {
+    const compute = makeComputeExpression(table, operation, operands, resultType);
+    return makeProjection(compute, operation);
+}
+
+function makeComputeArgMinMaxExpression(table, operation, operands, resultType, direction = 'desc') {
+    if (hasUniqueFilter(table))
+        return null;
+    for (let [, filter] of iterateFilters(table)) {
+        for (let atom of iterateFields(filter)) {
+            if (atom.name === operands[0].name)
+                return null;
+        }
+    }
+    const compute = makeComputeExpression(table, operation, operands, resultType);
+    const sort = new Ast.Table.Sort(null, compute, operation, direction, compute.schema);
+    return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], compute.schema);
+}
+
+function makeAggComputeExpression(table, operation, field, list, resultType) {
+    if (hasUniqueFilter(table))
+        return null;
+    let name;
+    assert(list.isVarRef || list.isFilter);
+    if (list.isVarRef)
+        name = list.name;
+    else
+        name = list.value.name;
+    assert(typeof name === 'string');
+    let canonical = table.schema.getArgCanonical(name);
+    for (let p of table.schema.iterateArguments()) {
+        if (p.name === name + 'Count' || p.canonical === canonical + 'count' || p.canonical === canonical.slice(0,-1) + ' count')
+            return makeProjection(table, p.name);
+    }
+    const computeSchema = table.schema.addArguments([
+        new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType)]);
+    const expression = new Ast.Value.Computation(operation, [field ? new Ast.Value.ArrayField(list, field) : list]);
+    if (operation === 'count')
+        expression.overload = [Type.Array('x'), Type.Number];
+    else
+        expression.overload = [Type.Array(resultType), resultType];
+
+    return new Ast.Table.Compute(null, table, expression, null, computeSchema);
+}
+
+function makeAggComputeProjExpression(table, operation, field, list, resultType) {
+    const compute = makeAggComputeExpression(table, operation, field, list, resultType);
+    if (!compute)
+        return null;
+    return makeProjection(compute, operation);
+}
+
+function makeAggComputeArgMinMaxExpression(table, operation, field, list, resultType, direction = 'desc') {
+    if (hasUniqueFilter(table))
+        return null;
+    const compute = makeAggComputeExpression(table, operation, field, list, resultType);
+    if (!compute)
+        return null;
+    const sort = new Ast.Table.Sort(null, compute, operation, direction, compute.schema);
+    return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], compute.schema);
+
+}
+
+function makeArgMinMaxTable(table, pname, direction = 'desc') {
+    if (hasUniqueFilter(table))
+        return null;
+    const sort = new Ast.Table.Sort(null, table, pname, direction, table.schema.clone());
+    return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], sort.schema);
+}
+
+function isSameFunction(fndef1, fndef2) {
+    return fndef1.class.name === fndef2.class.name &&
+        fndef1.name === fndef2.name;
+}
+
+function hasArgumentOfType(invocation, type) {
+    for (let arg of invocation.schema.iterateArguments()) {
+        if (!arg.is_input)
+            continue;
+        if (arg.type.equals(type))
+            return true;
+    }
+    return false;
+}
+
+function filterUsesParam(filter, pname) {
+    let used = false;
+    filter.visit(new class extends Ast.NodeVisitor {
+        visitExternalBooleanExpression() {
+            // do not recurse
+            return false;
+        }
+        visitValue() {
+            // do not recurse
+            return false;
+        }
+
+        visitAtomBooleanExpression(atom) {
+            used = used || pname === atom.name;
+            return true;
+        }
+    });
+    return used;
 }
 
 module.exports = {
     typeToStringSafe,
-    findFunctionNameTable,
+    getFunctionNames,
+    getFunctions,
+    isSameFunction,
+    hasArgumentOfType,
+    isConstantAssignable,
+    filterUsesParam,
 
     notifyAction,
     builtinSayAction,
@@ -1375,12 +1607,18 @@ module.exports = {
     makeAggregateFilterWithFilter,
     makeListExpression,
     makeArgMaxMinTable,
+
+    checkValidQuery,
+    makeProjection,
+    makeEventTableProjection,
+    makeEventStreamProjection,
+    makeTypeBasedTableProjection,
+    makeTypeBasedStreamProjection,
     makeSingleFieldProjection,
     makeMultiFieldProjection,
     makeEdgeFilterStream,
     checkFilter,
     addFilter,
-    checkAndAddFilter,
     hasGetPredicate,
     makeGetPredicate,
 
@@ -1389,7 +1627,7 @@ module.exports = {
     addUnit,
     makeDate,
 
-    sayProjectionProgram,
+    sayProjection,
 
     isQueryProgram,
     isContinuousProgram,
@@ -1401,15 +1639,24 @@ module.exports = {
     addFilterToPolicy,
     makeMonitor,
 
-    //schema.org specific
+    // joins
     filterTableJoin,
     arrayFilterTableJoin,
     hasConflictParam,
+
+    // compute expressions
+    makeArgMinMaxTable,
+    makeComputeExpression,
+    makeComputeProjExpression,
+    makeComputeArgMinMaxExpression,
+    makeAggComputeExpression,
+    makeAggComputeProjExpression,
+    makeAggComputeArgMinMaxExpression,
 
     iterateFilters,
     iterateFields,
 
     addGetPredicateJoin,
     addReverseGetPredicateJoin,
-    addArrayJoin
+    addArrayJoin,
 };

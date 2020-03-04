@@ -12,14 +12,15 @@
 const fs = require('fs');
 const JSONStream = require('JSONStream');
 const Stream = require('stream');
+const Tp = require('thingpedia');
+const seedrandom = require('seedrandom');
 
-const parallelize = require('../lib/parallelize');
-const { DatasetParser } = require('../lib/dataset-parsers');
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
+const { DialogueGenerator } = require('../lib/sentence-generator');
 
+const { DialogueSerializer } = require('./lib/dialog_parser');
 const StreamUtils = require('../lib/stream-utils');
-const { ActionSetFlag, maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const ProgressBar = require('./lib/progress_bar');
+const { ActionSetFlag } = require('./lib/argutils');
 
 const DIALOG_SERIALIZERS = {
     json() {
@@ -27,51 +28,11 @@ const DIALOG_SERIALIZERS = {
     },
 
     txt() {
-        return new Stream.Transform({
-            writableObjectMode: true,
-
-            transform(dlg, encoding, callback) {
-                this.push('====\n');
-                this.push('# ' + dlg.id + '\n');
-
-                for (let i = 0; i < dlg.turns.length; i++) {
-                    const turn = dlg.turns[i];
-                    if (i > 0)
-                        this.push('S: ' + turn.system + '\n');
-                    this.push('U: ' + turn.user + '\n');
-                    this.push('A: ' + turn.target + '\n');
-                }
-
-                callback();
-            },
-
-            flush(callback) {
-                process.nextTick(callback);
-            }
-        });
+        return new DialogueSerializer();
     },
 
     txt_only() {
-        return new Stream.Transform({
-            writableObjectMode: true,
-
-            transform(dlg, encoding, callback) {
-                this.push('====\n');
-
-                this.push('# ' + dlg.id + '\n');
-                for (let i = 0; i < dlg.turns.length; i++) {
-                    const turn = dlg.turns[i];
-                    if (i > 0)
-                        this.push('S: ' + turn.system + '\n');
-                    this.push('U: ' + turn.user + '\n');
-                }
-                callback();
-            },
-
-            flush(callback) {
-                callback();
-            }
-        });
+        return new DialogueSerializer({ annotations: false });
     }
 };
 
@@ -104,11 +65,6 @@ module.exports = {
         parser.addArgument(['-o', '--output'], {
             required: true,
             type: fs.createWriteStream
-        });
-        parser.addArgument('input_file', {
-            nargs: '+',
-            type: maybeCreateReadStream,
-            help: 'Dataset containing starting sentences'
         });
         parser.addArgument(['-l', '--locale'], {
             required: false,
@@ -207,43 +163,34 @@ module.exports = {
             defaultValue: 'almond is awesome',
             help: 'Random seed'
         });
-        parser.addArgument('--parallelize', {
-            type: Number,
-            help: 'Run N threads in parallel (requires --experimental-worker support)',
-            metavar: 'N',
-            defaultValue: 1,
-        });
     },
 
     async execute(args) {
-        const inputFile = readAllLines(args.input_file);
-        const outputFile = args.output;
+        const counter = new SimpleCountStream(args.target_size);
 
-        // divide target size for each thread
-        args.target_size = Math.floor(args.target_size / args.parallelize);
-        const counter = new SimpleCountStream(args.target_size * args.parallelize);
+        let tpClient = null;
+        if (args.thingpedia)
+            tpClient = new Tp.FileClient(args);
+        const options = {
+            rng: seedrandom.alea(args.random_seed),
+            locale: args.locale,
+            flags: args.flags || {},
+            templateFiles: args.template,
+            targetLanguage: args.target_language,
+            thingpediaClient: tpClient,
+            maxDepth: args.maxdepth,
+            targetPruningSize: args.target_pruning_size,
+            targetSize: args.target_size,
+            maxTurns: args.max_turns,
+            minibatchSize: args.minibatch_size,
 
-
-        delete args.input_file;
-        delete args.output;
-        inputFile
-            .pipe(new DatasetParser())
-            .pipe(parallelize(args.parallelize, require.resolve('./workers/generate-dialogs-worker.js'), args))
+            debug: args.debug,
+        };
+        new DialogueGenerator(options)
             .pipe(counter)
             .pipe(DIALOG_SERIALIZERS[args.output_format.replace('-', '_')]())
-            .pipe(outputFile);
+            .pipe(args.output);
 
-        if (!args.debug) {
-            const progbar = new ProgressBar(1);
-            counter.on('progress', (value) => {
-                //console.log(value);
-                progbar.update(value);
-            });
-
-            // issue an update now to show the progress bar
-            progbar.update(0);
-        }
-
-        await StreamUtils.waitFinish(outputFile);
+        await StreamUtils.waitFinish(args.output);
     }
 };

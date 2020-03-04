@@ -54,11 +54,22 @@ function testShuffle(rng) {
     }
 }
 
+function testReservoirSampler(rng) {
+    const sampler = new random.ReservoirSampler(3, rng);
+
+    for (let i = 0; i < 20; i++)
+        sampler.add(i);
+
+    assert.deepStrictEqual(sampler.sampled, [6, 9, 8]);
+    assert.deepStrictEqual(Array.from(sampler), [6, 9, 8]);
+}
+
 async function main() {
     const rng = seedrandom.alea('test almond');
 
     await testChoice(rng);
     await testShuffle(rng);
+    await testReservoirSampler(rng);
 }
 module.exports = main;
 if (!module.parent)

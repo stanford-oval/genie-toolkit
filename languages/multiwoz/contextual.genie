@@ -19,16 +19,63 @@
 
 import './shared.genie';
 
-context intent_request_any = ($.intent === 'init_request' || $.intent === 'second_request');
-context intent_request_initial = $.intent === 'init_request';
-context intent_info_request = $.intent === 'init_request' && Utils.searchIsComplete($);
-context intent_search_request = ($.intent === 'init_request' || $.intent === 'second_request') && !Utils.searchIsComplete($);
-context intent_complete_request = (($.intent === 'init_request' || $.intent === 'second_request') && Utils.searchIsComplete($)) || $.intent === 'accept';
-context intent_slot_question = $.intent === 'slot_question';
-context intent_info_question = $.intent === 'info_question';
-context intent_greet = $.intent === 'greet';
-context intent_insist = $.intent === 'insist';
-context intent_cancel = $.intent === 'cancel';
+context intent_request_any,
+        intent_request_initial,
+        intent_info_request,
+        intent_search_request,
+        intent_complete_request,
+        intent_slot_question,
+        intent_info_question,
+        intent_greet,
+        intent_insist,
+        intent_cancel;
+
+context function(ctx) {
+    switch (ctx.intent) {
+    case 'init_request':
+        if (Utils.searchIsComplete(ctx)) {
+            return [[
+                'intent_request_any',
+                'intent_request_initial',
+                'intent_info_request',
+                'intent_complete_request'
+            ], ctx];
+        } else {
+             return [[
+                'intent_request_any',
+                'intent_request_initial',
+                'intent_search_request'
+            ], ctx];
+        }
+    case 'second_request':
+        if (Utils.searchIsComplete(ctx)) {
+            return [[
+                'intent_request_any',
+                'intent_complete_request'
+            ], ctx];
+        } else {
+            return [[
+                'intent_request_any',
+                'intent_search_request'
+            ], ctx];
+        }
+    case 'accept':
+        return [['intent_complete_request'], ctx];
+    case 'slot_question':
+        return [['intent_slot_question'], ctx];
+    case 'info_question':
+        return [['intent_info_question'], ctx];
+    case 'greet':
+        return [['intent_greet'], ctx];
+    case 'insist':
+        return [['intent_insist'], ctx];
+    case 'cancel':
+        return [['intent_cancel'], ctx];
+
+    default:
+        throw new TypeError(`Invalid intent ${ctx.intent}`);
+    }
+}
 
 // domain-independent stuff
 
@@ -675,7 +722,10 @@ $root = {
         if (!Utils.proposalIsCompatible(proposal, ctx))
             return null;
 
-        return Utils.counterRequest(ctx, counterrequest, 'second_request');
+        const result = Utils.counterRequest(ctx, counterrequest, 'second_request');
+        if (result === null)
+            return null;
+        return [result, result];
     };
 
     ctx:intent_search_request pair:proposal_slot_question_pair => {
@@ -692,7 +742,7 @@ $root = {
         }
         clone.intent = 'slot_question';
         assert(clone.hasQuestion());
-        return clone;
+        return [clone, clone];
     };
     ctx:intent_search_request pair:proposal_info_question_pair => {
         const [proposal, question] = pair;
@@ -712,7 +762,7 @@ $root = {
         }
         clone.intent = 'info_question';
         assert(clone.hasQuestion());
-        return clone;
+        return [clone, clone];
     };
 
     ctx:intent_search_request pair:error_reply_pair => {
@@ -723,7 +773,10 @@ $root = {
         if (intent === 'insist')
             return Utils.insist(ctx, counterrequest);
 
-        return Utils.counterRequest(ctx, counterrequest, intent, /* allow override ctx */ true);
+        const result = Utils.counterRequest(ctx, counterrequest, intent, /* allow override ctx */ true);
+        if (result === null)
+            return null;
+        return [result, result];
     };
 
     ctx:intent_search_request qa:question_answer_pair => {
@@ -736,7 +789,7 @@ $root = {
             clone.set(key, value);
         }
         clone.intent = 'second_request';
-        return clone;
+        return [clone, clone];
     };
 
     ( ctx:intent_info_request pair:info_provide_pair
@@ -764,7 +817,7 @@ $root = {
             return null;
         const clone = ctx.clone();
         clone.intent = intent;
-        return clone;
+        return [clone, clone];
     };
 
     ( ctx:intent_cancel anything_else_phrase '<sep>' thanks_phrase
@@ -772,6 +825,6 @@ $root = {
     ) => {
         const clone = ctx.clone();
         clone.intent = 'end';
-        return clone;
+        return [clone, clone];
     };
 }

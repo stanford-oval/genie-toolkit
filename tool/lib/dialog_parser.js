@@ -12,28 +12,43 @@
 const assert = require('assert');
 const Stream = require('stream');
 
-class DialogSerializer extends Stream.Transform {
-    constructor() {
+class DialogueSerializer extends Stream.Transform {
+    constructor(options = { annotations: true }) {
         super({ writableObjectMode: true });
 
         this._buffer = [];
+        this._annotations = options.annotations;
+    }
+
+    _pushMany(values) {
+        for (const v of values)
+            this.push(v);
+    }
+
+    _prefixLines(text, prefix) {
+        return text.split('\n').map((line) => prefix + line + '\n');
     }
 
     _transform(dlg, encoding, callback) {
         this.push('====\n');
+        this.push('# ' + dlg.id + '\n');
+        if (dlg.comment)
+            this._pushMany(this._prefixLines(dlg.comment, '# '));
 
-        let lineno = 0;
-        for (let i = 0; i < dlg.length; i++) {
-            const line = dlg[i];
-            if (line.startsWith('#')) { // comment
-                this.push(line + '\n');
-                continue;
+        for (let i = 0; i < dlg.turns.length; i++) {
+            const turn = dlg.turns[i];
+            if (i > 0) {
+                if (this._annotations)
+                    this._pushMany(this._prefixLines(turn.context, 'C: '));
+                this.push('A: ' + turn.agent + '\n');
+                if (this._annotations)
+                    this._pushMany(this._prefixLines(turn.agent_target, 'AT: '));
             }
-
-            const prefix = lineno % 2 ? 'A: ' : 'U: ';
-            this.push(prefix + line + '\n');
-            lineno++;
+            this.push('U: ' + turn.user + '\n');
+            if (this._annotations)
+                this._pushMany(this._prefixLines(turn.user_target, 'UT: '));
         }
+
         callback();
     }
 
@@ -42,14 +57,17 @@ class DialogSerializer extends Stream.Transform {
     }
 }
 
-class DialogParser extends Stream.Transform {
-    constructor() {
+const KEY_SEQUENCE_WITH_ANNOTATION = ['context', 'agent', 'agent_target', 'user', 'user_target'];
+const KEY_SEQUENCE_WITHOUT_ANNOTATION = ['agent', 'user'];
+
+class DialogueParser extends Stream.Transform {
+    constructor({ withAnnotations = true } = {}) {
         super({ objectMode: true });
 
         this._buffer = [];
-
         this._i = 0;
-        this._expect = 0;
+        this._withAnnotations = withAnnotations;
+        this._keySequence = withAnnotations ? KEY_SEQUENCE_WITH_ANNOTATION : KEY_SEQUENCE_WITHOUT_ANNOTATION;
     }
 
     _transform(line, encoding, callback) {
@@ -67,46 +85,114 @@ class DialogParser extends Stream.Transform {
             return;
         }
 
-        let interaction;
-        if (line.startsWith('S:')) {
-            // system utterance, ignore
-            callback();
-            return;
-        } else if (line.startsWith('U:')) {
-            line = line.substring(2).trim();
-            interaction = 0;
-        } else if (line.startsWith('A:')) {
-            line = line.substring(2).trim();
-            interaction = 1;
-        } else {
-            throw new Error(`malformed line ${line}, expected to start with U: or A:`);
-        }
-
-        if (interaction !== this._expect)
-            throw new Error(`malformed dialog ${this._i}, two consecutive turns on the same side`);
-
+        // buffer the current line
         this._buffer.push(line);
-        this._expect = (interaction + 1) % 2;
         callback();
     }
 
     _flush(callback) {
-        assert(this._buffer.length % 2 === 0, `malformed dialog ${this._i}, expected an equal number of user/assistant interaction`);
-        const buffer = this._buffer;
-        if (buffer.length === 0) {
-            // ignore if the user had a ==== at the beginning or at the end of the file
+        const lines = this._buffer;
+        if (lines.length === 0) {
+            // ignore `====` at the beginning or at the end
+            // or consecutive appearances of `====`
+            // this simplifies concatenating datasets
             callback();
             return;
         }
-
-        buffer.id = this._i;
-        this._i++;
         this._buffer = [];
-        callback(null, buffer);
+
+        const dlg = [];
+        let currentTurn;
+
+        const withAnnotations = this._withAnnotations;
+        if (withAnnotations) {
+            currentTurn = {
+                context: '',
+                agent: '',
+                agent_target: '',
+                user: '',
+                user_target: '',
+            };
+        } else {
+            currentTurn = {
+                agent: '',
+                user: '',
+            };
+        }
+
+        // first turn starts with the user
+        let expect = this._keySequence.indexOf('user');
+        function flushTurn() {
+            dlg.push(currentTurn);
+            if (withAnnotations) {
+                currentTurn = {
+                    context: '',
+                    agent: '',
+                    agent_target: '',
+                    user: '',
+                    user_target: '',
+                };
+            } else {
+                currentTurn = {
+                    agent: '',
+                    user: '',
+                };
+            }
+        }
+
+        let currentKey = null;
+        let text = '';
+        for (let line of lines) {
+            let key, newText;
+            if (line.startsWith('A:')) {
+                key = 'agent';
+                newText = line.substring(2).trim();
+            } else if (line.startsWith('U:')) {
+                key = 'user';
+                newText = line.substring(2).trim();
+            } else if (line.startsWith('AT:')) {
+                key = 'agent_target';
+                newText = line.substring(3).trim();
+            } else if (line.startsWith('UT:')) {
+                key = 'user_target';
+                newText = line.substring(3).trim();
+            } else if (line.startsWith('C:')) {
+                key = 'context';
+                newText = line.substring(2).trim();
+            } else {
+                throw new Error(`malformed line ${line}, expected to start with U:, A:, AT: or UT:`);
+            }
+            if (currentKey !== null && currentKey !== key) {
+                assert(text);
+                currentTurn[currentKey] = text;
+                text = '';
+
+                if (currentKey === this._keySequence[this._keySequence.length-1])
+                    flushTurn();
+            }
+
+            if (currentKey !== key) {
+                if (key !== this._keySequence[expect])
+                    throw new Error(`malformed dialogue ${this._i}, expected ${this._keySequence[expect]}, saw ${key}`);
+                expect = (expect + 1) % this._keySequence.length;
+                currentKey = key;
+            }
+            text += newText;
+        }
+
+        if (currentKey !== this._keySequence[this._keySequence.length-1])
+            throw new Error(`malformed dialogue ${this._i}, unterminated last turn`);
+
+        currentTurn[currentKey] = text;
+        flushTurn();
+
+        dlg.id = this._i;
+        this._i++;
+        callback(null, dlg);
     }
 }
 
 module.exports = {
-    DialogParser,
-    DialogSerializer,
+    DialogueParser,
+    DialogueSerializer,
 };

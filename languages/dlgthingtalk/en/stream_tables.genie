@@ -1,0 +1,538 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Silei Xu <silei@cs.stanford.edu>
+//         Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+const assert = require('assert');
+
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
+
+// import the combinator library
+const C = require('../ast_manip');
+const D = require('../dialogue_utils');
+
+const _tpLoader = require('../load-thingpedia');
+}
+
+complete_table = {
+    thingpedia_query if complete;
+
+    !primonly table_join_replace_placeholder if complete;
+    //filter:apv_filter q:thingpedia_query if complete => C.addFilter(q, filter);
+}
+
+complete_get_command = {
+    thingpedia_get_command if complete;
+}
+
+// if filter: if it rains (used for stream only)
+if_filtered_table = {
+    !always_filter complete_table;
+    one_if_filter_table;
+    !turking two_if_filter_table;
+}
+
+one_if_filter_table = {
+    !nofilter table:complete_table 'if' filter:if_filter => C.addFilter(table, filter);
+}
+
+two_if_filter_table = {
+    !nofilter table:one_if_filter_table 'and' filter:if_filter => C.addFilter(table, filter);
+}
+
+// non-verb filter:
+// (1) with filtered: restaurants with name bla
+// (2) which filtered: restaurants which have name bla
+// (3) "clean" filtered (i.e., no which/with): chinese restaurants, reviews written by bob
+with_filtered_table = {
+    thingpedia_query if complete [weight=10];
+
+    // one filter
+    one_with_filter_table;
+    one_which_filter_table;
+    one_clean_filter_table;
+
+    // two filters
+    two_with_filter_table [weight=0.33];
+    two_which_filter_table [weight=0.33];
+    two_clean_filter_table [weight=0.33];
+}
+
+answer_noun_phrase = {
+    // one filter
+    one_with_filter_table [weight=10];
+    one_which_filter_table [weight=10];
+    one_clean_filter_table [weight=10];
+
+    // two filters
+    two_with_filter_table;
+    two_which_filter_table;
+    two_clean_filter_table;
+}
+
+one_with_filter_table = {
+    !nofilter table:complete_table ('with' | 'having') filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:complete_table ('with' | 'having') filter:npp_filter => C.addFilter(table, filter);
+}
+
+one_which_filter_table = {
+    !nofilter table:complete_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
+    !nofilter table:complete_table ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
+    !nofilter table:complete_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
+    !nofilter table:complete_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
+    !nofilter table:complete_table ('which' | 'that') 'have' filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:complete_table ('which' | 'that') 'have' filter:with_filter => C.addFilter(table, filter);
+}
+
+one_clean_filter_table = {
+    !nofilter filter:apv_filter table:complete_table => C.addFilter(table, filter);
+    !nofilter table:complete_table filter:pvp_filter => C.addFilter(table, filter);
+    !nofilter table:complete_table filter:preposition_filter => C.addFilter(table, filter);
+}
+
+two_with_filter_table = {
+    !nofilter table:one_with_filter_table 'and' filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:one_which_filter_table ('and having' | 'and with' | ', with' | 'and have') filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:one_clean_filter_table ('with' | 'having' | 'that have') filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:one_with_filter_table 'and' filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:one_which_filter_table ('and having' | 'and with' | ', with' | 'and have') filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:one_clean_filter_table ('with' | 'having' | 'that have') filter:npp_filter => C.addFilter(table, filter);
+
+    !nofilter filter:apv_filter table:one_with_filter_table => C.addFilter(table, filter);
+}
+
+two_which_filter_table = {
+    !nofilter table:one_with_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
+    !nofilter table:one_with_filter_table ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
+    !nofilter table:one_with_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
+    !nofilter table:one_with_filter_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
+    !nofilter table:one_with_filter_table ('which' | 'that') 'have' filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:one_with_filter_table ('which' | 'that') 'have' filter:with_filter => C.addFilter(table, filter);
+
+    !nofilter table:one_which_filter_table 'and' ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
+    !nofilter table:one_which_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
+    !nofilter table:one_which_filter_table 'and' ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
+    !nofilter table:one_which_filter_table 'and' ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
+    !nofilter table:one_which_filter_table 'and' 'have' filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:one_which_filter_table 'and' 'have' filter:with_filter => C.addFilter(table, filter);
+
+    !nofilter table:one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
+    !nofilter table:one_clean_filter_table ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
+    !nofilter table:one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
+    !nofilter table:one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
+    !nofilter table:one_clean_filter_table ('which' | 'that') 'have' filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:one_clean_filter_table ('which' | 'that') 'have' filter:with_filter => C.addFilter(table, filter);
+
+    !nofilter filter:apv_filter table:one_which_filter_table => C.addFilter(table, filter);
+}
+
+two_clean_filter_table = {
+    !nofilter filter:apv_filter table:one_clean_filter_table => C.addFilter(table, filter);
+    !nofilter table:one_clean_filter_table filter:pvp_filter => C.addFilter(table, filter);
+    !nofilter table:one_clean_filter_table filter:preposition_filter => C.addFilter(table, filter);
+}
+
+three_with_filter_table = {
+    !nofilter table:two_with_filter_table 'and' filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:two_which_filter_table ('and having' | 'and with' | ', with' | 'and have') filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table ('with' | 'having' | 'that have') filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:two_with_filter_table 'and' filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:two_which_filter_table ('and having' | 'and with' | ', with' | 'and have') filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table ('with' | 'having' | 'that have') filter:npp_filter => C.addFilter(table, filter);
+
+    !nofilter filter:apv_filter table:two_with_filter_table => C.addFilter(table, filter);
+}
+
+three_which_filter_table = {
+    !nofilter table:two_with_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
+    !nofilter table:two_with_filter_table ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
+    !nofilter table:two_with_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
+    !nofilter table:two_with_filter_table ('which' | 'that') 'have' filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:two_with_filter_table ('which' | 'that') 'have' filter:with_filter => C.addFilter(table, filter);
+
+    !nofilter table:two_which_filter_table 'and' ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
+    !nofilter table:two_which_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
+    !nofilter table:two_which_filter_table 'and' ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
+    !nofilter table:two_which_filter_table 'and' 'have' filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:two_which_filter_table 'and' 'have' filter:with_filter => C.addFilter(table, filter);
+
+    !nofilter table:two_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table ('which' | 'that') 'have' filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table ('which' | 'that') 'have' filter:with_filter => C.addFilter(table, filter);
+
+    !nofilter filter:apv_filter table:two_which_filter_table => C.addFilter(table, filter);
+}
+
+three_clean_filter_table = {
+    !nofilter filter:apv_filter table:two_clean_filter_table => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table filter:pvp_filter => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table filter:preposition_filter => C.addFilter(table, filter);
+}
+
+anything_phrase = {
+    anything_with_filter_phrase;
+    anything_which_filter_phrase;
+    anything_clean_filter_phrase;
+}
+
+anything_with_filter_phrase = {
+    ('any' | 'some') phrase:generic_base_noun_phrase ('with' | 'having') filter:npp_filter => C.addFilter(phrase, filter);
+    phrase:generic_anything_noun_phrase ('with' | 'having') filter:npp_filter => C.addFilter(phrase, filter);
+}
+
+anything_which_filter_phrase = {
+    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('has' | 'have') filter:npp_filter => C.addFilter(phrase, filter);
+    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(phrase, filter);
+    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') filter:avp_filter => C.addFilter(phrase, filter);
+    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(phrase, filter);
+    phrase:generic_anything_noun_phrase ('which' | 'that') ('has' | 'have') filter:npp_filter => C.addFilter(phrase, filter);
+    phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(phrase, filter);
+    phrase:generic_anything_noun_phrase ('which' | 'that') filter:avp_filter => C.addFilter(phrase, filter);
+    phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(phrase, filter);
+}
+
+anything_clean_filter_phrase = {
+    ('any' | 'some') filter:apv_filter phrase:generic_base_noun_phrase => C.addFilter(phrase, filter);
+    ('any' | 'some') phrase:generic_base_noun_phrase filter:pvp_filter => C.addFilter(phrase, filter);
+    ('any' | 'some') phrase:generic_base_noun_phrase filter:preposition_filter => C.addFilter(phrase, filter);
+    phrase:generic_anything_noun_phrase filter:apv_filter => C.addFilter(phrase, filter);
+    phrase:generic_anything_noun_phrase filter:pvp_filter => C.addFilter(phrase, filter);
+    phrase:generic_anything_noun_phrase filter:preposition_filter => C.addFilter(phrase, filter);
+}
+
+// verb filter:
+// (1) be filter: reviews are written by bob
+// (2) have: restaurants have panda in name
+// (3) verb: restaurants serve chinese food
+verb_filtered_table = {
+    // one filter
+    one_be_filter_table;
+    one_have_filter_table;
+    one_verb_filter_table;
+
+    // two filters
+    two_be_filter_table;
+    two_have_filter_table;
+    two_verb_filter_table;
+}
+
+one_be_filter_table = {
+    !nofilter table:complete_table ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
+    !nofilter table:complete_table ('is' | 'are') filter:pvp_filter => C.addFilter(table, filter);
+    !nofilter table:complete_table ('is' | 'are') filter:apv_filter  => C.addFilter(table, filter);
+    !nofilter table:complete_table ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
+}
+
+one_have_filter_table = {
+    !nofilter table:complete_table ('get' | 'have') filter:with_filter => C.addFilter(table, filter);
+}
+
+one_verb_filter_table = {
+    !nofilter table:complete_table filter:avp_filter => C.addFilter(table, filter);
+}
+
+two_be_filter_table = {
+    !nofilter table:one_be_filter_table 'and' filter:npi_filter => C.addFilter(table, filter);
+    !nofilter table:one_be_filter_table 'and' filter:pvp_filter => C.addFilter(table, filter);
+    !nofilter table:one_be_filter_table 'and' filter:apv_filter  => C.addFilter(table, filter);
+    !nofilter table:one_be_filter_table 'and' filter:npv_filter => C.addFilter(table, filter);
+
+    !nofilter table:one_have_filter_table 'and' ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
+    !nofilter table:one_have_filter_table 'and' ('is' | 'are') filter:pvp_filter => C.addFilter(table, filter);
+    !nofilter table:one_have_filter_table 'and' ('is' | 'are') filter:apv_filter  => C.addFilter(table, filter);
+    !nofilter table:one_have_filter_table 'and' ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
+
+    !nofilter table:one_verb_filter_table 'and' ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
+    !nofilter table:one_verb_filter_table 'and' ('is' | 'are') filter:pvp_filter => C.addFilter(table, filter);
+    !nofilter table:one_verb_filter_table 'and' ('is' | 'are') filter:apv_filter  => C.addFilter(table, filter);
+    !nofilter table:one_verb_filter_table 'and' ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
+}
+
+two_have_filter_table = {
+    !nofilter table:one_be_filter_table 'and' ('get' | 'have') filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:one_have_filter_table 'and' filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:one_verb_filter_table 'and' ('get' | 'have') filter:with_filter => C.addFilter(table, filter);
+}
+
+two_verb_filter_table = {
+    !nofilter table:one_be_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
+    !nofilter table:one_have_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
+    !nofilter table:one_verb_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
+}
+
+
+// arg min max
+with_arg_min_max_table = {
+    ?aggregation {
+    t:complete_table ('with' | 'which has') 'the' ('maximum' | 'highest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('minimum' | 'lowest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('longest' | 'most lasting') p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the shortest' p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('maximum' | 'largest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('minimum' | 'smallest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('latest'| 'most recent') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('with' | 'which has') 'the' ('latest'| 'most recent') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'asc');
+
+    t:with_filtered_table ('with' | 'which has') 'the' ('maximum' | 'highest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('minimum' | 'lowest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('longest' | 'most lasting') p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the shortest' p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('maximum' | 'largest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('minimum' | 'smallest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('latest'| 'most recent') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('latest'| 'most recent') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'asc');
+    }
+}
+
+have_arg_min_max_table = {
+    ?aggregation {
+    t:complete_table ('has' | 'gets') 'the' ('maximum' | 'highest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('minimum' | 'lowest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('longest' | 'most lasting') p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the shortest' p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('maximum' | 'largest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('minimum' | 'smallest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('latest'| 'most recent') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('earliest' | 'soonest') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:complete_table ('has' | 'gets') 'the' ('latest'| 'most recent') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:complete_table ('has' | 'gets') 'the' ('earliest' | 'soonest') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'asc');
+    }
+
+    ?aggregation {
+    t:with_filtered_table ('has' | 'gets') 'the' ('maximum' | 'highest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('minimum' | 'lowest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('longest' | 'most lasting') p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the shortest' p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('maximum' | 'largest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('minimum' | 'smallest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('latest'| 'most recent') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('earliest' | 'soonest') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'asc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('latest'| 'most recent') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'desc');
+    t:with_filtered_table ('has' | 'gets') 'the' ('earliest' | 'soonest') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'asc');
+    }
+}
+
+
+edge_stream = {
+    !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => C.makeEdgeFilterStream(p, '==', x);
+    ('when' | 'if') 'the' p:projection_Numeric ('becomes greater than' | 'becomes higher than' | 'goes above' | 'increases above') x:constant_Numeric => C.makeEdgeFilterStream(p, '>=', x);
+    ('when' | 'if') 'the' p:projection_Numeric ('becomes smaller than' | 'becomes lower than' | 'goes below' | 'decreases below') x:constant_Numeric => C.makeEdgeFilterStream(p, '<=', x);
+}
+
+stream = {
+    thingpedia_stream if complete;
+    !turking {
+        ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:with_filtered_table ('change' | 'update') => C.tableToStream(table, null);
+    }
+    ?turking ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:with_filtered_table 'update' => C.tableToStream(table, null);
+
+    !turking {
+        ('in case of changes' | 'in case of variations' | 'in case of updates' | 'if something changes' | 'when something changes' | 'if there are changes' | 'if there are updates') 'in' table:with_filtered_table => C.tableToStream(table, null);
+
+        ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'anytime') proj:projection_Any 'changes' => {
+            if (proj.args[0] === 'picture_url')
+                return null;
+            if (proj.table.isAggregation)
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            let stream;
+            if (outParams.length === 1 && _tpLoader.flags.turking)
+                return null;
+            if (outParams.length === 1)
+                stream = C.tableToStream(proj.table, null);
+            else
+                stream = C.tableToStream(proj.table, proj.args);
+            return stream;
+        };
+    }
+    !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:edge_filter => {
+        if (!table.schema.is_monitorable || !C.checkFilter(table, filter) || table.schema.is_list)
+            return null;
+        table = C.addFilter(table, filter);
+        if (!table)
+            return null;
+        return C.tableToStream(table, null);
+    };
+    !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:if_filter => {
+        if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
+            return null;
+        if (_tpLoader.flags.turking && table.schema.is_list)
+            return null;
+        table = C.addFilter(table, filter);
+        if (!table)
+            return null;
+        return C.tableToStream(table, null);
+    };
+    !nofilter edge_stream;
+    ?timer timer;
+}
+
+
+with_filtered_table_join = {
+    !notablejoin {
+    // get-predicate form of join
+    table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') get_predicate_table:with_filtered_table
+        => C.addGetPredicateJoin(table, get_predicate_table, null);
+
+    // FIXME this does not work :(
+    ( table:with_filtered_table 'with' p:out_param_Any get_predicate_table:with_filtered_table
+    | table:with_filtered_table p:out_param_pvp get_predicate_table:with_filtered_table
+    | table:with_filtered_table ('who' | 'which' | 'that') p:out_param_avp get_predicate_table:with_filtered_table
+    ) => C.addGetPredicateJoin(table, get_predicate_table, p.name);
+
+    // join form of join
+
+    rhs:with_filtered_table ('of' | 'for' | 'in') lhs:with_filtered_table => C.addArrayJoin(lhs, rhs);
+
+    !turking lhs:with_filtered_table '\'s' rhs:with_filtered_table => C.addArrayJoin(lhs, rhs);
+    }
+}
+
+have_filtered_table_join = {
+    // get-predicate form of join
+    !notablejoin {
+    table:verb_filtered_table ('and' | 'and have' | 'and also' | 'and in addition' | 'but also') get_predicate_table:with_filtered_table
+        => C.addGetPredicateJoin(table, get_predicate_table, null);
+    }
+}
+
+// info phrases (slot bags, used to describe results)
+
+base_slot_bag = {
+    table:base_table => new D.SlotBag(table.schema);
+}
+
+one_with_info_phrase = {
+    table:base_slot_bag ('with' | 'having') filter:npp_filter => D.checkAndAddSlot(table, filter);
+}
+
+one_which_info_phrase = {
+    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:npi_filter => D.checkAndAddSlot(table, filter);
+    table:base_slot_bag ('which' | 'that') filter:avp_filter => D.checkAndAddSlot(table, filter);
+    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:apv_filter => D.checkAndAddSlot(table, filter);
+    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:npv_filter => D.checkAndAddSlot(table, filter);
+}
+
+one_clean_info_phrase = {
+    filter:apv_filter table:base_slot_bag => D.checkAndAddSlot(table, filter);
+    table:base_slot_bag filter:pvp_filter => D.checkAndAddSlot(table, filter);
+    table:base_slot_bag filter:preposition_filter => D.checkAndAddSlot(table, filter);
+}
+
+two_with_info_phrase = {
+    table:one_with_info_phrase 'and' filter:npp_filter => D.checkAndAddSlot(table, filter);
+    table:one_which_info_phrase ('and having' | 'and with' | ', with') filter:npp_filter => D.checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('with' | 'having') filter:npp_filter => D.checkAndAddSlot(table, filter);
+
+    filter:apv_filter table:one_with_info_phrase => D.checkAndAddSlot(table, filter);
+}
+
+two_which_info_phrase = {
+    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => D.checkAndAddSlot(table, filter);
+    table:one_with_info_phrase ('which' | 'that') filter:avp_filter => D.checkAndAddSlot(table, filter);
+    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => D.checkAndAddSlot(table, filter);
+    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npv_filter => D.checkAndAddSlot(table, filter);
+
+    table:one_which_info_phrase 'and' ('is' | 'are') filter:npi_filter => D.checkAndAddSlot(table, filter);
+    table:one_which_info_phrase 'and' filter:avp_filter => D.checkAndAddSlot(table, filter);
+    table:one_which_info_phrase 'and' ('is' | 'are') filter:apv_filter => D.checkAndAddSlot(table, filter);
+    table:one_which_info_phrase 'and' ('is' | 'are') filter:npv_filter => D.checkAndAddSlot(table, filter);
+
+    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => D.checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('which' | 'that') filter:avp_filter => D.checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => D.checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npv_filter => D.checkAndAddSlot(table, filter);
+
+    filter:apv_filter table:one_which_info_phrase => D.checkAndAddSlot(table, filter);
+}
+
+two_clean_info_phrase = {
+    filter:apv_filter table:one_clean_info_phrase => D.checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase filter:pvp_filter => D.checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase filter:preposition_filter => D.checkAndAddSlot(table, filter);
+}
+
+three_with_info_phrase = {
+    table:two_with_info_phrase 'and' filter:npp_filter => D.checkAndAddSlot(table, filter);
+    table:two_which_info_phrase ('and having' | 'and with' | ', with') filter:npp_filter => D.checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase ('with' | 'having') filter:npp_filter => D.checkAndAddSlot(table, filter);
+
+    filter:apv_filter table:two_with_info_phrase => D.checkAndAddSlot(table, filter);
+}
+
+three_which_info_phrase = {
+    table:two_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => D.checkAndAddSlot(table, filter);
+    table:two_with_info_phrase ('which' | 'that') filter:avp_filter => D.checkAndAddSlot(table, filter);
+    table:two_with_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => D.checkAndAddSlot(table, filter);
+
+    table:two_which_info_phrase 'and' ('is' | 'are') filter:npi_filter => D.checkAndAddSlot(table, filter);
+    table:two_which_info_phrase 'and' filter:avp_filter => D.checkAndAddSlot(table, filter);
+    table:two_which_info_phrase 'and' ('is' | 'are') filter:apv_filter => D.checkAndAddSlot(table, filter);
+
+    table:two_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => D.checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase ('which' | 'that') filter:avp_filter => D.checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => D.checkAndAddSlot(table, filter);
+
+    filter:apv_filter table:two_which_info_phrase => D.checkAndAddSlot(table, filter);
+}
+
+three_clean_info_phrase = {
+    filter:apv_filter table:two_clean_info_phrase => D.checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase filter:pvp_filter => D.checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase filter:preposition_filter => D.checkAndAddSlot(table, filter);
+}

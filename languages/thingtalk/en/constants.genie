@@ -2,7 +2,7 @@
 //
 // This file is part of ThingTalk
 //
-// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -25,9 +25,7 @@ constant_Number = {
     // rule if the flag is set
 
     !turking {
-    '0'    => new Ast.Value.Number(0);
     'zero' => new Ast.Value.Number(0);
-    '1'    => new Ast.Value.Number(1);
     'one'  => new Ast.Value.Number(1);
     }
 }
@@ -143,7 +141,11 @@ constant_Location = {
 }
 
 constant_pairs = {
-    c1:constant_Any 'and' c2:constant_Any => [c1, c2];
+    c1:constant_Any 'and' c2:constant_Any => {
+        if (!c1.getType().equals(c2.getType()))
+            return null;
+        return [c1, c2];
+    };
 }
 
 // ContextRef is not a constant, it needs special templates
