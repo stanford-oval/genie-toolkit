@@ -4,6 +4,15 @@
 * Updated dependencies to the latest version of the Almond platform
   [#135, #136].
 
+1.7.5
+=====
+
+* Add support for user-preferred default measurement units. This allows the user
+  to issue a command that is ambiguous w.r.t. the unit (e.g. `set the termostat
+  to NUMBER_0 degrees`) and have the correct unit chosen from the user's preferences [#138].
+
+Contributors: Lim Swee Kiat
+
 1.7.4
 =====
 

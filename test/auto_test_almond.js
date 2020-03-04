@@ -3835,7 +3835,20 @@ null],
 `,
     `{
   now => (@org.thingpedia.weather(id="org.thingpedia.weather-55").current(location=new Location(90, 0, "North Pole"))), temperature >= 50C => notify;
-}`]
+}`],
+
+    [
+    { code: ['now', '=>', '@thermostat.set_target_temperature', 'param:value', '=', 'NUMBER_0', 'unit:defaultTemperature'],
+      entities: { NUMBER_0: 70 }
+    },
+`>> Okay, I'm going to set your thermostat to 70 F.
+>> context = now => @thermostat.set_target_temperature param:value:Measure(C) = MEASURE_C_0 // {"MEASURE_C_0":{"unit":"F","value":70}}
+>> ask special null
+`,
+    `{
+  now => @thermostat(id="thermostat-55").set_target_temperature(value=70F);
+}`
+    ],
 ];
 
 function handleCommand(almond, input) {
