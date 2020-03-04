@@ -57,7 +57,8 @@ const subcommands = {
     'webqa-normalize-data': require('./webqa-normalize-data'),
     'webqa-make-string-datasets': require('./webqa-make-string-datasets'),
     'webqa-trim-class': require('./webqa-trim-class'),
-    'webqa-paraphrase-transfer': require('./webqa-paraphrase-transfer')
+    'webqa-paraphrase-transfer': require('./webqa-paraphrase-transfer'),
+    'webqa-update-canonicals': require('./webqa-update-canonicals'),
 };
 
 async function main() {

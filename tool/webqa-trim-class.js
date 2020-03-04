@@ -221,7 +221,7 @@ class SchemaTrimmer {
         }
 
         this._classDef.queries[tablename] = new Ast.FunctionDef(null, 'query', this._classDef,
-            tablename, tabledef.extends, tabledef.qualifiers, newArgs, {
+            tablename, tabledef.extends, tabledef._qualifiers, newArgs, {
                 nl: tabledef.metadata,
                 impl: tabledef.annotations,
             });
