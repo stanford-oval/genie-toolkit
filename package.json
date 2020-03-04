@@ -20,7 +20,7 @@
     "string-interp": "^0.1.0",
     "thingpedia": "~2.7.0-alpha.2",
     "thingtalk": "~1.10.0-alpha.2",
-    "uuid": "^3.1.0"
+    "uuid": "^7.0.0"
   },
   "devDependencies": {
     "byline": "^5.0.0",
