@@ -306,7 +306,7 @@ function makeEdgeFilterStream(proj, op, value, $options) {
     if (proj.table.isAggregation)
         return null;
 
-    let f = new Ast.BooleanExpression.Atom(proj.args[0], op, value);
+    let f = new Ast.BooleanExpression.Atom(null, proj.args[0], op, value);
     if (!checkFilter(proj.table, f))
         return null;
     if (!proj.schema.is_monitorable || proj.schema.is_list)

@@ -169,6 +169,7 @@ param:sender_name:String	charlie
 param:blog_name:String	government secret
 param:description:String	christmas
 param:description:String	wine
+param:description:String	service
 param:organizer:String	stanford
 param:user:String	bob
 param:positions:String	ceo
