@@ -69,6 +69,10 @@ class CanonicalGenerator {
                 if (!arg.metadata.canonical)
                     continue;
 
+                // copy base canonical if npp canonical is missing
+                if (arg.metadata.canonical.base && !arg.metadata.canonical.npp)
+                    arg.metadata.canonical.npp = [...arg.metadata.canonical.base];
+
                 const samples = this._retrieveSamples(qname, arg);
                 if (samples) {
                     this.sampleSize[`${qname}.${arg.name}`] = samples.length;
