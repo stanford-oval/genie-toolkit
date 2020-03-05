@@ -149,34 +149,71 @@ const PROPERTY_CANONICAL_OVERRIDE = {
     // thing
     url: {
         default: 'npp',
-        npp: ['url', 'link']
+        base: ['url', 'link']
     },
     name: {
         default: 'npp',
-        pvp: ['called'],
-        npp: ['name']
+        base: ['name'],
+        pvp: ['called']
     },
     description: {
         default: 'npp',
-        npp: ['description', 'summary']
+        base: ['description', 'summary'],
     },
 
     // location
-    'geo': { default:"npp", npp:['location', 'address'], pvp:["in", "around", "at", "on"] },
-    'streetAddress': { default:"npp", npp:['street'] },
-    'addressCountry': { default:"pvp", pvp:["in"], npp:["country"] },
-    'addressRegion': { default:"pvp", pvp:["in"], npp:["state"] },
-    'addressLocality': { default:"npp", npp:['city'] }
+    'geo': {
+        default: "npp",
+        base: ['location', 'address'],
+        pvp: ["in", "around", "at", "on"]
+    },
+    'streetAddress': {
+        default: "npp",
+        base: ['street']
+    },
+    'addressCountry': {
+        default:"pvp",
+        pvp: ["in"],
+        base: ["country"]
+    },
+    'addressRegion': {
+        default:"pvp",
+        pvp: ["in"],
+        base: ["state"]
+    },
+    'addressLocality': {
+        default: "npp",
+        base: ['city']
+    }
 };
 
 const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     // restaurants
-    'datePublished': { default:"pvp", pvp:["published on", "written on"], npp:["date published"] },
-    'ratingValue': { default:"pvp", pvp:["rated #star"], npp:["rating"] },
-    'reviewRating': { default:"npp", npp:["rating"] },
-    'telephone': { default:"npp", npp:["telephone", "phone number"] },
-    'servesCuisine': { default:"apv", apv:true, avp:["serves #cuisine", "serves #food", "offer #cuisine", "offer #food", "serves", "offers"],
-        npp:["#cuisine", "#food"] },
+    'datePublished': {
+        default: "pvp",
+        pvp: ["published on", "written on"],
+        base: ["date published"]
+    },
+    'ratingValue': {
+        default: "pvp",
+        pvp: ["rated #star"],
+        base: ["rating"]
+    },
+    'reviewRating': {
+        default: "npp",
+        base: ["rating"]
+    },
+    'telephone': {
+        default: "npp",
+        base: ["telephone", "phone number"]
+    },
+    'servesCuisine': {
+        default: "apv",
+        apv: true,
+        avp: ["serves #cuisine", "serves #food", "offer #cuisine", "offer #food", "serves", "offers"],
+        npp: ["#cuisine", "#food"],
+        base: ["cuisine", "food type"]
+    },
 
     // hotels
     'amenityFeature': {
@@ -569,9 +606,9 @@ class SchemaProcessor {
             };
 
             if (PROPERTIES_NO_FILTER.includes(propertyname)) {
-                annotation['genie'] = new Ast.Value.Boolean(false);
+                annotation['filterable'] = new Ast.Value.Boolean(false);
             } else if (this._hasGeo && PROPERTIES_DROP_WITH_GEO.includes(propertyname)) {
-                annotation['genie'] = new Ast.Value.Boolean(false);
+                annotation['filterable'] = new Ast.Value.Boolean(false);
                 annotation['drop'] = new Ast.Value.Boolean(true);
             }
 
@@ -659,6 +696,7 @@ class SchemaProcessor {
         }
 
         canonical["npp"] = [npp];
+        canonical["base"] = [npp];
         if (!("default" in canonical))
             canonical["default"] = "npp";
 
@@ -896,7 +934,7 @@ class SchemaProcessor {
                     nl: {},
                     impl: {
                         'unique': new Ast.Value.Boolean(true),
-                        'genie': new Ast.Value.Boolean(false) // no filter on id, if it has ner support, we'll generate prim for it
+                        'filterable': new Ast.Value.Boolean(false) // no filter on id, if it has ner support, we'll generate prim for it
                     }
                 })
             ];
@@ -907,7 +945,7 @@ class SchemaProcessor {
                     nl: {},
                     impl: {
                         'org_schema_type': new Ast.Value.String('Text'),
-                        'genie': new Ast.Value.Boolean(false) // no filter on name, if it has ner support, we'll generate prim for it
+                        'filterable': new Ast.Value.Boolean(false) // no filter on name, if it has ner support, we'll generate prim for it
                     }
                 });
                 recursiveAddStringValues(arg, this._prefix + typename + '_name');
@@ -934,7 +972,7 @@ class SchemaProcessor {
                 };
 
                 if (PROPERTIES_NO_FILTER.includes(propertyname))
-                    annotation['genie'] = new Ast.Value.Boolean(false);
+                    annotation['filterable'] = new Ast.Value.Boolean(false);
 
                 const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, propertyname, type, {
                     nl: metadata,
