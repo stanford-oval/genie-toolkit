@@ -66,9 +66,9 @@ with_filtered_table = {
     two_clean_filter_table [weight=0.33];
 
     // three filters
-    three_with_filter_table [weight=0.01];
-    three_which_filter_table [weight=0.01];
-    three_clean_filter_table [weight=0.01];
+    three_with_filter_table [weight=0.1];
+    three_which_filter_table [weight=0.1];
+    three_clean_filter_table [weight=0.1];
 }
 
 answer_noun_phrase = {
