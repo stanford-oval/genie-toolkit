@@ -41,7 +41,10 @@ const USER_DIALOGUE_ACTS = new Set([
     // user issues a ThingTalk program
     'execute',
     // user wants to see more output from the previous result
-    'learn_more'
+    'learn_more',
+
+    // user says thank you
+    'thankyou'
 ]);
 
 const SYSTEM_DIALOGUE_ACTS = new Set([
@@ -62,7 +65,16 @@ const SYSTEM_DIALOGUE_ACTS = new Set([
     'sys_learn_more_what',
     // agent informs that the search is empty (with and without a slot-fill question)
     'sys_empty_search_question',
-    'sys_empty_search'
+    'sys_empty_search',
+
+    // agent executed the action successfully (and shows the result of the action)
+    'sys_action_success',
+
+    // agent had an error in executing the action
+    'sys_action_error',
+
+    // agent asks if anything else is needed
+    'sys_anything_else'
 ]);
 
 const SYSTEM_STATE_MUST_HAVE_PARAM = new Set([
