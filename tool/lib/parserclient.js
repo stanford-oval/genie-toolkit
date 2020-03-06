@@ -18,6 +18,7 @@ const Predictor = require('../../lib/predictor');
 const Utils = require('../../lib/utils');
 const I18n = require('../../lib/i18n');
 
+const SEMANTIC_PARSING_TASK = 'almond';
 const NLU_TASK = 'almond_dialogue_nlu';
 const NLG_TASK = 'almond_dialogue_nlg';
 const NLG_QUESTION = 'what should the agent say ?';
@@ -59,7 +60,11 @@ class LocalParserClient {
             entities = tokenized.entities;
         }
 
-        let candidates = await this._predictor.predict(contextCode.join(' '), tokens.join(' '), NLU_TASK);
+        let candidates;
+        if (contextCode === undefined)
+            candidates = await this._predictor.predict(tokens.join(' '), undefined, SEMANTIC_PARSING_TASK);
+        else
+            candidates = await this._predictor.predict(contextCode.join(' '), tokens.join(' '), NLU_TASK);
         candidates = candidates.map((cand) => {
             return {
                 code: cand.answer.split(' '),
