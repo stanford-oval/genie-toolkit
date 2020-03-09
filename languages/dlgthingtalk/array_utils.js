@@ -24,6 +24,6 @@ function arraySubset(small, big) {
     return true;
 }
 
-module.export = {
+module.exports = {
     arraySubset
 };
