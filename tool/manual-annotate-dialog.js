@@ -141,6 +141,7 @@ class Annotator extends events.EventEmitter {
                     turns: this._currentDialogue,
                     comment: `dropped at turn ${this._outputDialogue.length+1}: ${comment}`
                 });
+                this._outputDialogue = [];
                 this.next();
                 return;
             }
@@ -207,8 +208,10 @@ class Annotator extends events.EventEmitter {
             return;
         }
 
-        this._context = this._target.computeNewState(this._context, program);
-        this._outputTurn[this._currentKey] = this._context.prettyprint();
+        const oldContext = this._context;
+        this._context = this._target.computeNewState(this._context, program, this._dialogueState);
+        const prediction = this._target.computePrediction(oldContext, this._context, this._dialogueState);
+        this._outputTurn[this._currentKey] = prediction.prettyprint();
         this._nextUtterance();
     }
 
@@ -242,8 +245,10 @@ class Annotator extends events.EventEmitter {
         i -= 1;
 
         const program = this._candidates[i];
-        this._context = this._target.computeNewState(this._context, program);
-        this._outputTurn[this._currentKey] = this._context.prettyprint();
+        const oldContext = this._context;
+        this._context = this._target.computeNewState(this._context, program, this._dialogueState);
+        const prediction = this._target.computePrediction(oldContext, this._context, this._dialogueState);
+        this._outputTurn[this._currentKey] = prediction.prettyprint();
         this._nextUtterance();
     }
 

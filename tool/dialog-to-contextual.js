@@ -63,9 +63,7 @@ class DialogueToTurnStream extends Stream.Transform {
         const [contextCode, contextEntities] = this._target.serializeNormalized(agentContext);
 
         const agentTarget = await this._target.parse(turn.agent_target, this._options);
-        // NOTE: contextEntities is modified in place with any new entity that are only in the prediction
-        // (the prediction will be concatenated to the context to pass to the neural network)
-        const agentCode = await this._target.computeAgentPrediction(context, agentTarget, contextEntities);
+        const agentCode = await this._target.serializePrediction(agentTarget, '', contextEntities, 'agent');
 
         const { tokens, } = await this._preprocess(turn.agent, contextEntities);
 
@@ -93,7 +91,7 @@ class DialogueToTurnStream extends Stream.Transform {
 
         const { tokens, entities } = await this._preprocess(turn.user, contextEntities);
         const userTarget = await this._target.parse(turn.user_target, this._options);
-        const code = await this._target.computeUserPrediction(context, userTarget, tokens, entities);
+        const code = await this._target.serializePrediction(userTarget, tokens, entities, 'user');
 
         this.push({
             id: this._flags + '' + dlg.id + '/' + i,

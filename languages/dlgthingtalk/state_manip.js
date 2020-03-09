@@ -1,0 +1,486 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+"use strict";
+
+const assert = require('assert');
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+
+const C = require('./ast_manip');
+const { arraySubset } = require('./array_utils');
+
+/**
+ * Enable assertions
+ */
+const DEBUG = true;
+
+// Helper classes for info that we extract from the current context
+// These exist to minimize AST traversals during expansion
+
+// NOTE: while ast_manip is mostly just about ThingTalk semantics, with
+// a few heuristics sprinkled out, this is really only about the "transaction"
+// dialogue policy
+// hence we hard-code the policy name here, and check it before doing anything
+// in the templates
+// templates can be combined though
+
+const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
+
+const USER_DIALOGUE_ACTS = new Set([
+    // user says hi!
+    'greet',
+    // user issues a ThingTalk program
+    'execute',
+    // user wants to see more output from the previous result
+    'learn_more',
+
+    // user says thank you
+    'thankyou'
+]);
+
+const SYSTEM_DIALOGUE_ACTS = new Set([
+    // agent says hi back
+    'sys_greet',
+    // agent asks a question to refine a query (with or without a parameter)
+    'sys_search_question',
+    'sys_generic_search_question',
+    // agent asks a question to slot fill a program
+    'sys_slot_fill',
+    // agent recommends one, two, or three results from the program (with or without an action)
+    'sys_recommend_one',
+    'sys_recommend_two',
+    'sys_recommend_three',
+    // agent proposes a refined query
+    'sys_propose_refined_query',
+    // agent asks the user what they would like to hear
+    'sys_learn_more_what',
+    // agent informs that the search is empty (with and without a slot-fill question)
+    'sys_empty_search_question',
+    'sys_empty_search',
+
+    // agent executed the action successfully (and shows the result of the action)
+    'sys_action_success',
+
+    // agent had an error in executing the action
+    'sys_action_error',
+
+    // agent asks if anything else is needed
+    'sys_anything_else',
+
+    // agent says good bye
+    'sys_goodbye',
+]);
+
+const SYSTEM_STATE_MUST_HAVE_PARAM = new Set([
+    'sys_search_question',
+    'sys_empty_search_question',
+    'sys_slot_fill'
+]);
+
+const INITIAL_CONTEXT_INFO = {};
+
+/**
+ * Check the dialogue state for internal consistency and invariants of the policy
+ *
+ * This method is called by all $root templates
+ * If debugging is disabled, this method does nothing (and we just hope for the best!)
+ */
+function checkStateIsValid(ctx, sysState, userState) {
+    if (!DEBUG)
+        return [sysState, userState];
+
+    assert(USER_DIALOGUE_ACTS.has(userState.dialogueAct), `invalid user dialogue act ${userState.dialogueAct}`);
+    assert(userState.dialogueActParam === null);
+
+    if (ctx === INITIAL_CONTEXT_INFO) {
+        // user speaks first
+        assert(sysState === null);
+        return [sysState, userState];
+    }
+
+    assert(SYSTEM_DIALOGUE_ACTS.has(sysState.dialogueAct), `invalid system dialogue act ${sysState.dialogueAct}`);
+    if (SYSTEM_STATE_MUST_HAVE_PARAM.has(sysState.dialogueAct))
+        assert(sysState.dialogueActParam);
+    else
+        assert(sysState.dialogueActParam === null);
+
+    return [sysState, userState];
+}
+
+const LARGE_RESULT_THRESHOLD = 10;
+function isLargeResultSet(result) {
+    return result.more || result.count.isVarRef || result.count.value >= LARGE_RESULT_THRESHOLD;
+}
+
+function getTableArgMinMax(table) {
+    while (table.isProjection || table.isCompute)
+        table = table.table;
+
+    if (table.isIndex && table.table.isSort && table.indices.length === 1 && table.indices[0].isNumber &&
+        table.indices[0].value === 1)
+        return [table.table.field, table.table.direction];
+
+    return null;
+}
+
+class ResultInfo {
+    constructor(item) {
+        assert(item.results !== null);
+        this.isTable = !!(item.stmt.table && item.stmt.actions.every((a) => a.isNotify));
+
+        if (this.isTable) {
+            const table = item.stmt.table;
+            // if there is a compute at top-level, there is a projection too
+            assert(!table.isCompute);
+            this.isQuestion = !!(table.isProjection || table.isCompute || table.isIndex || table.isAggregation);
+            this.isAggregation = !!table.isAggregation;
+            this.argMinMaxField = getTableArgMinMax(table);
+            assert(this.argMinMaxField === null || this.isQuestion);
+            this.projection = table.isProjection ? table.args.slice() : null;
+            if (this.projection)
+                this.projection.sort();
+        } else {
+            this.isQuestion = false;
+            this.isAggregation = false;
+            this.argMinMaxField = null;
+            this.projection = null;
+        }
+        this.hasEmptyResult = item.results.results.length === 0;
+        this.hasSingleResult = item.results.results.length === 1;
+        this.hasLargeResult = isLargeResultSet(item.results);
+        this.hasID = item.results.results.length > 0 &&
+            !!item.results.results[0].value.id;
+    }
+}
+
+class NextStatementInfo {
+    constructor(currentItem, resultInfo, nextItem) {
+        this.isAction = !nextItem.stmt.table;
+
+        this.chainParameter = null;
+        this.chainParameterFilled = false;
+        this.isComplete = C.isCompleteCommand(nextItem.stmt);
+
+        if (!this.isAction)
+            return;
+
+        assert(nextItem.stmt.actions.length === 1);
+        const action = nextItem.stmt.actions[0];
+        assert(action.isInvocation);
+
+        if (!currentItem || !resultInfo || !resultInfo.isTable)
+            return;
+        const tableschema = currentItem.stmt.table.schema;
+        const idType = tableschema.getArgType('id');
+        if (!idType)
+            return;
+
+        const invocation = action.invocation;
+        const actionschema = invocation.schema;
+        for (let arg of actionschema.iterateArguments()) {
+            if (!arg.is_input)
+                continue;
+            if (arg.type.equals(idType)) {
+                this.chainParameter = arg.name;
+                break;
+            }
+        }
+
+        if (this.chainParameter === null)
+            return;
+
+        for (let in_param of invocation.in_params) {
+            if (in_param.name === this.chainParameter && !in_param.value.isUndefined) {
+                this.chainParameterFilled = true;
+                break;
+            }
+        }
+    }
+}
+
+class ContextInfo {
+    constructor(state, currentFunctionSchema, resultInfo, currentIdx, nextIdx, nextInfo) {
+        this.state = state;
+
+        assert(currentFunctionSchema === null || currentFunctionSchema instanceof Ast.FunctionDef);
+        if (currentFunctionSchema === null) {
+            this.currentFunctionSchema = null;
+            this.currentFunction = null;
+        } else {
+            this.currentFunctionSchema = currentFunctionSchema;
+            this.currentFunction = currentFunctionSchema.class.name + ':' + currentFunctionSchema.name;
+        }
+        this.resultInfo = resultInfo;
+        this.currentIdx = currentIdx;
+        this.nextIdx = nextIdx;
+        this.nextInfo = nextInfo;
+    }
+
+    get results() {
+        if (this.currentIdx !== null)
+            return this.state.history[this.currentIdx].results.results;
+        return null;
+    }
+
+    get current() {
+        return this.currentIdx !== null ? this.state.history[this.currentIdx] : null;
+    }
+
+    get next() {
+        return this.nextIdx !== null ? this.state.history[this.nextIdx] : null;
+    }
+
+    clone() {
+        return new ContextInfo(this.state.clone(), this.currentFunctionSchema, this.resultInfo,
+            this.currentIdx, this.nextIdx, this.nextInfo);
+    }
+}
+
+function getContextInfo(state) {
+    assert (!state.dialogueAct.startsWith('sys_'), `Unexpected system dialogue act ${state.dialogueAct}`);
+
+    let nextItemIdx = null, nextInfo = null, currentFunction = null, currentResultInfo = null,
+        currentItemIdx = null;
+    for (let idx = 0; idx < state.history.length; idx ++) {
+        const item = state.history[idx];
+        if (item.results === null) {
+            nextItemIdx = idx;
+            nextInfo = new NextStatementInfo(state.history[currentItemIdx], currentResultInfo, item);
+            break;
+        }
+        const functions = C.getFunctions(item.stmt);
+        currentFunction = functions[functions.length-1];
+        currentItemIdx = idx;
+        currentResultInfo = new ResultInfo(item, functions);
+    }
+    if (nextItemIdx !== null)
+        assert(nextInfo);
+    if (nextItemIdx !== null && currentItemIdx !== null)
+        assert(nextItemIdx === currentItemIdx + 1);
+
+    return new ContextInfo(state, currentFunction, currentResultInfo,
+        currentItemIdx, nextItemIdx, nextInfo);
+}
+
+function isUserAskingResultQuestion(ctx) {
+    // is the user asking a question about the result, or refining a search?
+    // we say it's a question if the user is asking a projection question, and it's not the first turn,
+    // and the projection was different at the previous turn
+
+    if (ctx.currentIdx === null || ctx.currentIdx === 0)
+        return false;
+
+    let currentProjection = ctx.resultInfo.projection;
+    if (!currentProjection)
+        return false;
+
+    let previous = ctx.state.history[ctx.currentIdx - 1];
+    // only complete (executed) programs make it to the history, so this must be true
+    assert(previous.results !== null);
+    let previousResultInfo = new ResultInfo(previous, C.getFunctions(previous.statement));
+    if (!previousResultInfo.projection)
+        return true;
+
+    // it's a question if the current projection is not a subset of the previous one
+    // (for a search refinement: it might be exactly the same as before, or we might have
+    // lost some parameters because we put a filter on it)
+    return !arraySubset(currentProjection, previousResultInfo.projection);
+}
+
+function getActionInvocation(historyItem) {
+    return historyItem.stmt.actions[0].invocation;
+}
+
+function addNewItem(ctxClone, newHistoryItem, confirm) {
+    const state = ctxClone.state;
+    if (confirm === 'proposed') {
+        // find the first item that was not confirmed or accepted, and replace everything after that
+
+        let proposedIdx;
+        for (proposedIdx = ctxClone.currentIdx + 1; proposedIdx < state.history.length; proposedIdx++) {
+            if (state.history[proposedIdx].confirm === 'proposed')
+                break;
+        }
+        state.history.splice(proposedIdx, state.history.length - proposedIdx, newHistoryItem);
+    } else {
+        // wipe everything from state after the current program
+        // this will remove all previously accepted and/or proposed actions
+        //
+        // XXX is the right thing to do?
+        state.history.splice(ctxClone.currentIdx + 1, state.history.length - (ctxClone.currentIdx + 1), newHistoryItem);
+    }
+
+    return state;
+}
+
+function makeSimpleState(ctx, dialogueAct, dialogueActParam) {
+    return new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, ctx.state.history);
+}
+
+function addActionParam(ctxClone, dialogueAct, action, pname, value, confirm) {
+    assert(action instanceof Ast.Invocation);
+    const state = ctxClone.state;
+    state.dialogueAct = dialogueAct;
+    state.dialogueActParam = null;
+
+    let newHistoryItem;
+    if (ctxClone.nextInfo) {
+        const nextInvocation = getActionInvocation(ctxClone.next);
+        const isSameFunction = C.isSameFunction(nextInvocation.schema, action.schema);
+
+        if (isSameFunction) {
+            if (confirm !== 'proposed' || ctxClone.next.confirm === confirm) {
+                // we want to modify the existing action in case:
+                // - case 1: we're currently accepting/confirming the action (perhaps with the same or
+                //   a different parameter)
+                // - case 2: we're proposing the same action that was proposed before
+
+                let found = false;
+                for (let in_param of nextInvocation.in_params) {
+                    if (in_param.name === pname) {
+                        found = true;
+                        in_param.value = value;
+                        break;
+                    }
+                }
+                if (!found) {
+                    nextInvocation.in_params.push(new Ast.InputParam(null, pname, value));
+                    nextInvocation.in_params((p1, p2) => {
+                        if (p1.name < p2.name)
+                            return -1;
+                        if (p1.name > p2.name)
+                            return 1;
+                        return 0;
+                    });
+                }
+
+                ctxClone.next.confirm = confirm;
+                return state;
+            } else {
+                // otherwise, we're proposing the same action that was accepted before
+                // case 1: the parameter is the same, do nothing and leave the confirm as accepted
+                // case 2: the parameter is different, then we clone the statement entirely, carry
+                // over all the parameters, and add the new parameter
+
+                let found = false, isIdentical;
+                for (let in_param of nextInvocation.in_params) {
+                    if (in_param.name === pname) {
+                        found = true;
+                        isIdentical = in_param.value.equals(value);
+                        break;
+                    }
+                }
+                if (found && isIdentical)
+                    return state;
+
+                newHistoryItem = ctxClone.next.clone();
+
+                if (!found) {
+                    const newInvocation = getActionInvocation(newHistoryItem);
+                    newInvocation.in_params.push(new Ast.InputParam(null, pname, value));
+                    newInvocation.in_params((p1, p2) => {
+                        if (p1.name < p2.name)
+                            return -1;
+                        if (p1.name > p2.name)
+                            return 1;
+                        return 0;
+                    });
+                }
+
+            }
+        }
+    }
+
+    if (!newHistoryItem) {
+        let newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
+            new Ast.Invocation(null,
+                action.selector,
+                action.channel,
+                [new Ast.InputParam(null, pname, value)],
+                action.schema
+            ),
+            action.schema.removeArgument(pname)
+        )]);
+        newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
+    }
+
+    return addNewItem(ctxClone, newHistoryItem, confirm);
+}
+
+
+function addAction(ctxClone, dialogueAct, action, confirm) {
+    assert(action instanceof Ast.Invocation);
+    const state = ctxClone.state;
+    state.dialogueAct = dialogueAct;
+    state.dialogueActParam = null;
+
+    if (ctxClone.nextInfo) {
+        const nextInvocation = getActionInvocation(ctxClone.next);
+        if (C.isSameFunction(nextInvocation.schema, action.schema)) {
+            ctxClone.next.results = null;
+            // case 1:
+            // - we trying to propose an action that the user has already introduced
+            // earlier
+            // in that case, we want to remember the action as accepted, not proposed
+            // case 2:
+            // - we trying to accept or confirm the action that was previously proposed
+            // in that case, we want to change the action to accepted or confirmed
+            if (confirm !== 'proposed')
+                ctxClone.next.confirm = confirm;
+            return state;
+        }
+    }
+
+    let newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
+        new Ast.Invocation(null,
+            action.selector,
+            action.channel,
+            [],
+            action.schema
+        ),
+        action.schema
+    )]);
+    let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
+
+    return addNewItem(ctxClone, newHistoryItem, confirm);
+}
+
+function addQuery(ctxClone, dialogueAct, newTable, confirm) {
+    let newStmt = new Ast.Statement.Command(null, null, newTable, [C.notifyAction()]);
+    let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
+
+    // add the new history item right after the current one, without removing any element
+    // NOTE: this assumes that ctxClone comes from the user's, so it will not have any proposal
+    // in it, otherwise we'd have to remove all proposals between the current item and the next
+    // accepted item
+
+    const state = ctxClone.state;
+    state.dialogueAct = dialogueAct;
+    state.dialogueActParam = null;
+    state.history.splice(ctxClone.currentIdx+1, 0, newHistoryItem);
+    return state;
+}
+
+module.exports = {
+    POLICY_NAME,
+    INITIAL_CONTEXT_INFO,
+
+    // compute derived information of the state
+    getContextInfo,
+    getActionInvocation,
+    isUserAskingResultQuestion,
+    checkStateIsValid,
+
+    // manipulate states to create new states
+    makeSimpleState,
+    addActionParam,
+    addAction,
+    addQuery,
+};

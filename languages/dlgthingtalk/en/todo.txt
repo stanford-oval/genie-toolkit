@@ -1,0 +1,14 @@
+TODO:
+
+For Yelp searches:
+- aggregation answers
+- "distance" answers
+
+For MultiWOZ searches:
+- "info" questions
+- change-of-mind
+
+For actions:
+- error messages
+
+

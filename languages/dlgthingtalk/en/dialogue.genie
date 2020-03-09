@@ -100,7 +100,7 @@ context function (state) {
         }
 
         tags.push('ctx_with_result');
-        if (info.resultQuestionInfo !== null) {
+        if (D.isUserAskingResultQuestion(info)) {
             tags.push('ctx_with_result_question');
         } else {
             tags.push('ctx_with_result_noquestion');
