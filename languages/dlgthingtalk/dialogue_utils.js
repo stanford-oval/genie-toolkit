@@ -782,7 +782,7 @@ function listProposalSearchQuestionPair(ctx, [results, name, actionProposal, que
     if (actionProposal === null)
         sysState = makeSimpleState(ctx, dialogueAct, null);
     else
-        sysState = addAction(ctx.clone(), dialogueAct, actionProposal);
+        sysState = addAction(ctx.clone(), dialogueAct, actionProposal, 'proposed');
 
     return checkStateIsValid(ctx, sysState, userState);
 }
@@ -816,7 +816,7 @@ function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, quest
         sysState = makeSimpleState(ctx, sysDialogueAct, null);
     } else {
         const chainParam = findChainParam(topResult, actionProposal);
-        sysState = addActionParam(ctx.clone(), sysDialogueAct, actionProposal, chainParam, topResult.value.id);
+        sysState = addActionParam(ctx.clone(), sysDialogueAct, actionProposal, chainParam, topResult.value.id, 'proposed');
     }
 
     return checkStateIsValid(ctx, sysState, userState);
@@ -842,7 +842,7 @@ function negativeListProposalReplyPair(ctx, [results, action, request]) {
     if (action === null)
         sysState = makeSimpleState(ctx, dialogueAct, null);
     else
-        sysState = addAction(ctx.clone(), dialogueAct, action);
+        sysState = addAction(ctx.clone(), dialogueAct, action, 'proposed');
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -869,7 +869,7 @@ function positiveListProposalReplyPair(ctx, [results, actionProposal, name, acce
        userState = addQuery(clone, 'execute', newTable, 'accepted');
     } else {
         const chainParam = findChainParam(results[0], acceptedAction);
-        userState = addActionParam(ctx.clone(), 'execute', acceptedAction, chainParam, name);
+        userState = addActionParam(ctx.clone(), 'execute', acceptedAction, chainParam, name, 'accepted');
     }
 
     let dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
@@ -877,7 +877,7 @@ function positiveListProposalReplyPair(ctx, [results, actionProposal, name, acce
     if (actionProposal === null)
         sysState = makeSimpleState(ctx, dialogueAct, null);
     else
-        sysState = addAction(ctx.clone(), dialogueAct, actionProposal);
+        sysState = addAction(ctx.clone(), dialogueAct, actionProposal, 'proposed');
     return checkStateIsValid(ctx, sysState, userState);
 }
 
