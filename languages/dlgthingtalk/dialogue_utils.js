@@ -686,31 +686,6 @@ function impreciseSearchQuestionAnswer(ctx, [question, answer]) {
     return checkStateIsValid(ctx, sysState, userState);
 }
 
-function makeSystemProposal(ctxClone, proposal) {
-    assert(proposal.isFilter && proposal.table.isInvocation);
-    const kind = proposal.table.invocation.selector.kind;
-    const fn = proposal.table.invocation.channel;
-
-    const propstatement = new Ast.Statement.Command(null,
-        new Ast.Table.Filter(null, new Ast.Table.ResultRef(null, kind, fn, new Ast.Value.Number(1), proposal.schema), proposal.filter, proposal.schema),
-        [C.notifyAction()]);
-
-    const prophistoryitem = new Ast.DialogueHistoryItem(null, propstatement, null, false);
-
-    // remove all intermediate results between the current program and the next one
-    // and splice the new history item
-    const state = ctxClone.state;
-    state.dialogueAct = 'sys_propose_refined_query';
-    state.dialogueActParam = null;
-
-    if (ctxClone.nextIdx !== null)
-        state.history.splice(ctxClone.currentIdx+1, ctxClone.nextIdx-(ctxClone.currentIdx+1), prophistoryitem);
-    else
-        state.history.splice(ctxClone.currentIdx+1, state.history.length-(ctxClone.currentIdx+1), prophistoryitem);
-
-    return state;
-}
-
 function proposalReplyPair(ctx, [proposal, request]) {
     const requestFunctions = C.getFunctionNames(request);
     assert(requestFunctions.length === 1);
@@ -725,7 +700,7 @@ function proposalReplyPair(ctx, [proposal, request]) {
         return null;
 
     const userState = addQuery(clone, 'execute', newTable, 'accepted');
-    const sysState = makeSystemProposal(ctx.clone(), proposal);
+    const sysState = addQuery(ctx.clone(), 'sys_propose_refined_query', proposal, 'proposed');
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -953,7 +928,7 @@ function emptySearchChangePair(ctx, [question, phrase]) {
     if (question !== null && !currentTable.schema.out[question])
         return null;
 
-
+    const clone = ctx.clone();
     const [,ctxFilterTable] = findOrMakeFilterTable(clone.current.stmt.table);
     if (question !== null && !C.filterUsesParam(ctxFilterTable.filter, question))
         return null;
@@ -961,7 +936,6 @@ function emptySearchChangePair(ctx, [question, phrase]) {
     const newTable = queryRefinement(currentTable, phrase.filter, refineFilterToChangeFilter);
     if (newTable === null)
         return null;
-    const clone = ctx.clone();
     const userState = addQuery(clone, 'execute', newTable, 'accepted');
     const sysState = makeSimpleState(ctx, question ? 'sys_empty_search_question' : 'sys_empty_search', question);
     return checkStateIsValid(ctx, sysState, userState);

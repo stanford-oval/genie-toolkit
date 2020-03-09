@@ -453,7 +453,7 @@ function addAction(ctxClone, dialogueAct, action, confirm) {
 }
 
 function addQuery(ctxClone, dialogueAct, newTable, confirm) {
-    let newStmt = new Ast.Statement.Command(null, null, newTable, [C.notifyAction()]);
+    let newStmt = new Ast.Statement.Command(null, newTable, [C.notifyAction()]);
     let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
 
     // add the new history item right after the current one, without removing any element

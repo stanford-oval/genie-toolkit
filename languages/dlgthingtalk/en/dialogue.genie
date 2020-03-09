@@ -58,8 +58,6 @@ context ctx_init,
 context function (state) {
     if (state === null)
         return [['ctx_init'], D.INITIAL_CONTEXT_INFO];
-    if (!(state instanceof Ast.DialogueState))
-        console.error(state);
     assert(state instanceof Ast.DialogueState);
     if (state.policy !== D.POLICY_NAME)
         return null;
