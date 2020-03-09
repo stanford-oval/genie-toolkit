@@ -169,7 +169,11 @@ class CanonicalGenerator {
 
 
     _generateExamples(tableName, canonicals, valueSample) {
-        let examples = { npp: { examples: [], candidates: [] } };
+        let examples = {};
+        for (let cat of ['npp', 'avp', 'pvp', 'nni', 'npv', 'apv']) {
+            if (cat in canonicals)
+                examples[cat] = { examples: [], candidates: [] } ;
+        }
         for (let value of valueSample) {
             for (let canonical of canonicals['npp']) {
                 let [prefix, suffix] = splitCanonical(canonical);
@@ -183,7 +187,6 @@ class CanonicalGenerator {
             }
 
             if ('avp' in canonicals) {
-                examples['avp'] = { examples: [], candidates: [] };
                 for (let canonical of canonicals['avp']) {
                     let [prefix, suffix] = splitCanonical(canonical);
                     let query = `which ${tableName} ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
@@ -197,7 +200,6 @@ class CanonicalGenerator {
             }
 
             if ('pvp' in canonicals) {
-                examples['pvp'] = { examples: [], candidates: [] };
                 for (let canonical of canonicals['pvp']) {
                     let [prefix, suffix] = splitCanonical(canonical);
                     let query = `show me a ${tableName} ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
