@@ -10,12 +10,14 @@ BLACK_LIST = ['a', 'an', 'the', 'its', 'their', 'his', 'her']
 
 
 class BertLM:
-    def __init__(self, domain, examples, mask, k, model_name_or_path='bert-large-uncased', is_paraphraser=False):
+    def __init__(self, domain, examples, mask, k, model_name_or_path, is_paraphraser):
         """
         :param domain: an object contains the canonical form and paths to parameters for each table in the domain
         :param examples: an object of examples for each grammar category of each property of each table
         :param mask: a boolean indicates if we do masking before prediction
         :param k: number of top candidates to return per example
+        :param model_name_or_path: a string specifying a model name recognizable by the Transformers package (e.g. bert-base-uncased), or a path to the directory where the model is saved
+        :is_paraphraser: Set to True if model_name_or_path was fine-tuned on a paraphrasing dataset. The input to the model will be changed to match what the model has seen during fine-tuning.
         """
         
         # Load tokenizer
