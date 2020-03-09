@@ -4,6 +4,7 @@ coverage/
 bundle/
 .nyc_output/
 .idea/
+.vscode/
 .DS_Store
 *.pyc
 __pycache__
