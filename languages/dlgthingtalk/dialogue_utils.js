@@ -761,25 +761,6 @@ function positiveRecommendationReplyPair(ctx, [topResult, actionProposal, accept
     return checkStateIsValid(ctx, sysState, userState);
 }
 
-function addResultQuestion(ctxClone, question) {
-    // add a statement between the current result statement and the next statement
-
-    const state = ctxClone.state;
-    state.dialogueAct = 'execute';
-    state.dialogueActParam = null;
-
-    const newStatement = new Ast.Statement.Command(null, question, [C.notifyAction()]);
-    const newItem = new Ast.DialogueHistoryItem(null, newStatement, null, false);
-
-    // remove all intermediate results between the current program and the next one, and add the new item
-    if (ctxClone.nextIdx !== null)
-        state.history.splice(ctxClone.currentIdx+1, ctxClone.nextIdx-(ctxClone.currentIdx+1), newItem);
-    else
-        state.history.splice(ctxClone.currentIdx+1, state.history.length-(ctxClone.currentIdx+1), newItem);
-
-    return state;
-}
-
 function listProposalSearchQuestionPair(ctx, [results, name, actionProposal, question]) {
     const [qname, qtype] = question;
 
@@ -788,12 +769,13 @@ function listProposalSearchQuestionPair(ctx, [results, name, actionProposal, que
     if (qtype !== null && !ctx.currentFunctionSchema.getArgType(qname).equals(qtype))
         return null;
 
-    const resultRef = new Ast.Table.ResultRef(null, ctx.currentFunctionSchema.class.name, ctx.currentFunctionSchema.name,
-        new Ast.Value.Number(1), ctx.currentFunctionSchema);
-    const filterTable = new Ast.Table.Filter(null, resultRef,
-        new Ast.BooleanExpression.Atom(null, 'id', '==', name), ctx.currentFunctionSchema);
-    const questionTable = C.makeProjection(filterTable, qname);
-    const userState = addResultQuestion(ctx.clone(), questionTable);
+    const currentTable = ctx.current.stmt.table;
+    const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
+    const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion);
+    if (newTable === null)
+        return null;
+
+    const userState = addQuery(ctx.clone(), 'execute', newTable, 'accepted');
 
     let dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
     let sysState;
@@ -822,12 +804,12 @@ function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, quest
         sysDialogueAct = 'sys_recommend_one';
     }
 
-    const resultRef = new Ast.Table.ResultRef(null, ctx.currentFunctionSchema.class.name, ctx.currentFunctionSchema.name,
-        new Ast.Value.Number(1), ctx.currentFunctionSchema);
-    const filterTable = new Ast.Table.Filter(null, resultRef,
-        new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id), ctx.currentFunctionSchema);
-    const questionTable = C.makeProjection(filterTable, qname);
-    const userState = addResultQuestion(ctx.clone(), questionTable);
+    const currentTable = ctx.current.stmt.table;
+    const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
+    const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion);
+    if (newTable === null)
+        return null;
+    const userState = addQuery(ctx.clone(), 'execute', newTable, 'accepted');
 
     let sysState;
     if (actionProposal === null) {
@@ -847,12 +829,12 @@ function negativeListProposalReplyPair(ctx, [results, action, request]) {
         return null;
     assert(request.isFilter && request.table.isInvocation);
 
-    const clone = ctx.clone();
-    const currentTable = clone.current.stmt.table;
+    const currentTable = ctx.current.stmt.table;
     const newTable = queryRefinement(currentTable, request.filter, refineFilterToAnswerQuestion);
     if (newTable === null)
         return null;
 
+    const clone = ctx.clone();
     const userState = addQuery(clone, 'execute', newTable, 'accepted');
 
     let dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
