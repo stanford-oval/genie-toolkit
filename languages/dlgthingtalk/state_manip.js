@@ -14,7 +14,24 @@ const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 
 const C = require('./ast_manip');
-const { arraySubset } = require('./array_utils');
+
+// NOTE: this version of arraySubset uses ===
+// the one in array_utils uses .equals()
+// this one is called on array of strings, so === is appropriate
+function arraySubset(small, big) {
+    for (let element of small) {
+        let good = false;
+        for (let candidate of big) {
+            if (candidate === element) {
+                good = true;
+                break;
+            }
+        }
+        if (!good)
+            return false;
+    }
+    return true;
+}
 
 /**
  * Enable assertions
@@ -399,11 +416,21 @@ function addActionParam(ctxClone, dialogueAct, action, pname, value, confirm) {
     }
 
     if (!newHistoryItem) {
+        const in_params = [new Ast.InputParam(null, pname, value)];
+
+        // make sure we add all $undefined values, otherwise we'll fail
+        // to recognize that the statement is not yet executable, and we'll
+        // crash in the compiler
+        for (let arg of action.schema.iterateArguments()) {
+            if (arg.is_input && arg.required && arg.name !== pname)
+                in_params.push(new Ast.InputParam(null, arg.name, new Ast.Value.Undefined(true)));
+        }
+
         let newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
             new Ast.Invocation(null,
                 action.selector,
                 action.channel,
-                [new Ast.InputParam(null, pname, value)],
+                in_params,
                 action.schema
             ),
             action.schema.removeArgument(pname)
