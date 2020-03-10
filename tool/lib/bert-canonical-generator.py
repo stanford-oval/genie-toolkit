@@ -7,22 +7,27 @@ from transformers import BertTokenizer, BertModel, BertForMaskedLM
 
 BLACK_LIST = ['a', 'an', 'the', 'its', 'their', 'his', 'her']
 
-# Load tokenizer
-tokenizer = BertTokenizer.from_pretrained('bert-large-uncased')
-
-# Load pre-trained model (weights)
-model = BertForMaskedLM.from_pretrained('bert-large-uncased')
-model.eval()
 
 
 class BertLM:
-    def __init__(self, domain, examples, mask, k):
+    def __init__(self, domain, examples, mask, k, model_name_or_path, is_paraphraser):
         """
         :param domain: an object contains the canonical form and paths to parameters for each table in the domain
         :param examples: an object of examples for each grammar category of each property of each table
         :param mask: a boolean indicates if we do masking before prediction
         :param k: number of top candidates to return per example
+        :param model_name_or_path: a string specifying a model name recognizable by the Transformers package (e.g. bert-base-uncased), or a path to the directory where the model is saved
+        :is_paraphraser: Set to True if model_name_or_path was fine-tuned on a paraphrasing dataset. The input to the model will be changed to match what the model has seen during fine-tuning.
         """
+        
+        # Load tokenizer
+        self.tokenizer = BertTokenizer.from_pretrained(model_name_or_path)
+
+        # Load pre-trained model (weights)
+        self.model = BertForMaskedLM.from_pretrained(model_name_or_path)
+        self.model.eval()
+        self.is_paraphraser = is_paraphraser
+
         self.mask = mask
         self.k = k
         self.canonicals = {}
@@ -37,7 +42,7 @@ class BertLM:
     def predict_one(self, table, arg, query, word, k):
         """
         Get top-k predictions at the position of `word` in `text`
-
+        
         :param table: the function/table used in the command
         :param arg: the argument used in the command
         :param query: a string where `word` appears once
@@ -48,30 +53,48 @@ class BertLM:
         if k is None:
             k = self.k
 
-        if self.mask:
-            query = query.replace(word, '[MASK]')
-            word = '[MASK]'
-        text = '[CLS] ' + query + ' [SEP]'
+        if self.is_paraphraser:
+            # Input to BERT should be [CLS] query <paraphrase> query </paraphrase> [SEP]
+            first_half = query
+            second_half = query
+            if self.mask:
+                second_half = second_half.replace(word, '[MASK]')
+                word = '[MASK]'
+            text = '[CLS] ' + first_half + ' <paraphrase> ' + second_half + ' </paraphrase> [SEP]'
+            tokenized_text = self.tokenizer.tokenize(text)
+            indexed_tokens = self.tokenizer.convert_tokens_to_ids(tokenized_text)
+            middle_position = tokenized_text.index('<paraphrase>')
+            masked_index = tokenized_text[middle_position:].index(word) + middle_position
+            segments_ids = [0] * (middle_position+1) + [1] * (len(tokenized_text)-middle_position-1)
+            position_ids = list(range(middle_position+1)) + list(range(len(indexed_tokens)-middle_position-1))
+        else:
+            # Input to BERT should be [CLS] query [SEP]
+            if self.mask:
+                query = query.replace(word, '[MASK]')
+                word = '[MASK]'
+            text = '[CLS] ' + query + ' [SEP]'
 
-        tokenized_text = tokenizer.tokenize(text)
-        indexed_tokens = tokenizer.convert_tokens_to_ids(tokenized_text)
-        masked_index = tokenized_text.index(word)
+            tokenized_text = self.tokenizer.tokenize(text)
+            indexed_tokens = self.tokenizer.convert_tokens_to_ids(tokenized_text)
+            masked_index = tokenized_text.index(word)
 
-        # Create the segments tensors.
-        segments_ids = [0] * len(tokenized_text)
+            # Create the segments tensors.
+            segments_ids = [0] * len(tokenized_text)
+            position_ids = list(range(len(indexed_tokens)))
 
         # Convert inputs to PyTorch tensors
         tokens_tensor = torch.tensor([indexed_tokens])
         segments_tensors = torch.tensor([segments_ids])
+        position_tensors = torch.tensor([position_ids])
 
         # Predict all tokens
         with torch.no_grad():
-            predictions = model(tokens_tensor, segments_tensors)
+            predictions = self.model(input_ids=tokens_tensor, token_type_ids=segments_tensors, position_ids=position_tensors)
 
         mask = predictions[0][0, masked_index]
         scores, indices = torch.topk(mask, max(k, 100))
 
-        candidates = tokenizer.convert_ids_to_tokens(indices.tolist())
+        candidates = self.tokenizer.convert_ids_to_tokens(indices.tolist())
         topk = []
         for candidate in candidates:
             if candidate == word:
@@ -92,7 +115,6 @@ class BertLM:
     def predict_one_type(self, table, arg, query, masks):
         """
         Get predictions for one grammar category of given a query
-
         :param table: the function/table used in the command
         :param arg: the argument used in the command
         :param query: a string of the original command
@@ -131,7 +153,7 @@ class BertLM:
     def predict_adjectives(self, k=500):
         """
         Predict which property can be used as an adjective form
-
+        
         :param k: number of top candidates to generate
         :return: an array of properties
         """
@@ -214,11 +236,18 @@ if __name__ == '__main__':
                         type=int,
                         default=500,
                         help='top-k candidates to return when generating adjectives')
+    parser.add_argument('--model-name-or-path',
+                        type=str,
+                        default='bert-large-uncased',
+                        help='The name of the model (e.g. bert-large-uncased) or the path to the directory where the model is saved.')
+    parser.add_argument('--is-paraphraser',
+                        action='store_true',
+                        help='If the model has been trained on a paraphrasing corpus')
     args = parser.parse_args()
 
     examples, domain = json.load(sys.stdin).values()
 
-    bert = BertLM(domain, examples, args.mask, args.k)
+    bert = BertLM(domain, examples, args.mask, args.k, args.model_name_or_path, args.is_paraphraser)
 
     output = {}
     if args.command == 'synonyms' or args.command == 'all':
