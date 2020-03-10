@@ -284,7 +284,7 @@ function isUserAskingResultQuestion(ctx) {
     let previous = ctx.state.history[ctx.currentIdx - 1];
     // only complete (executed) programs make it to the history, so this must be true
     assert(previous.results !== null);
-    let previousResultInfo = new ResultInfo(previous, C.getFunctions(previous.statement));
+    let previousResultInfo = new ResultInfo(previous, C.getFunctions(previous.stmt));
     if (!previousResultInfo.projection)
         return true;
 
