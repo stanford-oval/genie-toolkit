@@ -58,7 +58,7 @@ context ctx_init,
 context function (state) {
     if (state === null)
         return [['ctx_init'], D.INITIAL_CONTEXT_INFO];
-    assert(state instanceof Ast.DialogueState);
+    assert(state instanceof Ast.DialogueState, `expected a dialogue state Ast node`);
     if (state.policy !== D.POLICY_NAME)
         return null;
     const info = D.getContextInfo(state);
@@ -87,9 +87,9 @@ context function (state) {
         }
 
         // we must have a result
-        assert(info.resultInfo);
-        // nothing else is implemented.
-        assert (info.resultInfo.isTable);
+        assert(info.resultInfo, `expected result info`);
+        if (!info.resultInfo.isTable)
+            return [['ctx_action_success'], info];
 
         if (info.resultInfo.hasEmptyResult) {
             // note: aggregation cannot be empty (it would be zero)
@@ -108,9 +108,6 @@ context function (state) {
             if (info.resultInfo.projection === null)
                 tags.push('ctx_without_projection');
         }
-
-        // if there is an action, there cannot be a projection
-        assert(info.resultInfo.projection === null || info.nextInfo === null);
 
         if (info.resultInfo.isQuestion) {
             if (info.resultInfo.isAggregation) {
