@@ -34,11 +34,15 @@ function splitCanonical(canonical) {
 
 
 class CanonicalGenerator {
-    constructor(classDef, constants, queries, pruning, parameterDatasets) {
+    constructor(classDef, constants, queries, parameterDatasets, options) {
         this.class = classDef;
         this.constants = constants;
         this.queries = queries;
-        this.pruning = pruning;
+
+        this.pruning = options.pruning;
+        this.mask = options.mask;
+        this.is_paraphraser = options.is_paraphraser;
+        this.model = options.model;
 
         this.parameterDatasets = parameterDatasets;
         this.parameterDatasetPaths = {};
@@ -81,11 +85,15 @@ class CanonicalGenerator {
             }
         }
 
-        // call bert to generate candidates
-        const child = child_process.spawn(`python3`,
-            [path.resolve(path.dirname(module.filename), './bert-canonical-generator.py'), `all`, `--no-mask`],
-            { stdio: ['pipe', 'pipe', 'inherit'] });
+        const args = [path.resolve(path.dirname(module.filename), './bert-canonical-generator.py'), 'all'];
+        if (this.is_paraphraser)
+            args.push('--is-paraphraser');
+        args.push('--model-name-or-path');
+        args.push(this.model);
+        args.push(this.mask ? '--mask' : '--no-mask');
 
+        // call bert to generate candidates
+        const child = child_process.spawn(`python3`, args, { stdio: ['pipe', 'pipe', 'inherit'] });
 
         const stdout = await new Promise((resolve, reject) => {
             child.stdin.write(JSON.stringify( { examples, paths } ));

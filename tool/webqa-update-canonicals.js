@@ -66,7 +66,24 @@ module.exports = {
             required: true,
             help: `TSV file containing the paths to datasets for strings and entity types.`
         });
-
+        parser.addArgument('--model', {
+            required: false,
+            defaultValue: 'bert-large-uncased',
+            help: `A string specifying a model name recognizable by the Transformers package (e.g. bert-base-uncased), `
+                + `or a path to the directory where the model is saved`
+        });
+        parser.addArgument('--is-paraphraser', {
+            required: false,
+            defaultValue: false,
+            action: 'storeTrue',
+            help: `Set to True if model_name_or_path was fine-tuned on a paraphrasing dataset`
+        });
+        parser.addArgument('--mask', {
+            required: false,
+            defaultValue: false,
+            action: 'storeTrue',
+            help: `mask token before predicting`
+        });
     },
 
     async execute(args) {
@@ -75,9 +92,10 @@ module.exports = {
         if (args.skip) {
             args.output.end(classDef.prettyprint());
         } else {
+            const options = args;
             const constants = await parseConstantFile(args.locale, args.constants);
             const queries = args.queries.split(',').map((qname) => qname.charAt(0).toUpperCase() + qname.slice(1));
-            const generator = new CanonicalGenerator(classDef, constants, queries, args.pruning, args.parameter_datasets);
+            const generator = new CanonicalGenerator(classDef, constants, queries, args.parameter_datasets, options);
             const updatedClassDef = await generator.generate();
             args.output.end(updatedClassDef.prettyprint());
         }
