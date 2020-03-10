@@ -50,7 +50,8 @@ context ctx_init,
     ctx_large_search_command,
     ctx_single_result_search_command,
     ctx_complete_search_command,
-    ctx_completed_action,
+    ctx_completed_action_success,
+    ctx_completed_action_error,
     ctx_confirm_action,
     ctx_incomplete_action,
     ctx_learn_more;
@@ -89,7 +90,7 @@ context function (state) {
         // we must have a result
         assert(info.resultInfo, `expected result info`);
         if (!info.resultInfo.isTable)
-            return [['ctx_action_success'], info];
+            return [['ctx_completed_action_success'], info];
 
         if (info.resultInfo.hasEmptyResult) {
             // note: aggregation cannot be empty (it would be zero)
