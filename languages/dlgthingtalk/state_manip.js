@@ -341,8 +341,30 @@ function makeSimpleState(ctx, dialogueAct, dialogueActParam) {
     return new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, ctx.state.history);
 }
 
+function setOrAddInvocationParam(newInvocation, pname, value) {
+    let found = false;
+    for (let in_param of newInvocation.in_params) {
+        if (in_param.name === pname) {
+            found = true;
+            in_param.value = value;
+            break;
+        }
+    }
+    if (!found) {
+        newInvocation.in_params.push(new Ast.InputParam(null, pname, value));
+        newInvocation.in_params((p1, p2) => {
+            if (p1.name < p2.name)
+                return -1;
+            if (p1.name > p2.name)
+                return 1;
+            return 0;
+        });
+    }
+}
+
 function addActionParam(ctxClone, dialogueAct, action, pname, value, confirm) {
     assert(action instanceof Ast.Invocation);
+    assert(['accepted', 'confirmed', 'proposed'].indexOf(confirm) >= 0);
     const state = ctxClone.state;
     state.dialogueAct = dialogueAct;
     state.dialogueActParam = null;
@@ -359,25 +381,7 @@ function addActionParam(ctxClone, dialogueAct, action, pname, value, confirm) {
                 //   a different parameter)
                 // - case 2: we're proposing the same action that was proposed before
 
-                let found = false;
-                for (let in_param of nextInvocation.in_params) {
-                    if (in_param.name === pname) {
-                        found = true;
-                        in_param.value = value;
-                        break;
-                    }
-                }
-                if (!found) {
-                    nextInvocation.in_params.push(new Ast.InputParam(null, pname, value));
-                    nextInvocation.in_params((p1, p2) => {
-                        if (p1.name < p2.name)
-                            return -1;
-                        if (p1.name > p2.name)
-                            return 1;
-                        return 0;
-                    });
-                }
-
+                setOrAddInvocationParam(nextInvocation, pname, value);
                 ctxClone.next.confirm = confirm;
                 return state;
             } else {
@@ -398,19 +402,9 @@ function addActionParam(ctxClone, dialogueAct, action, pname, value, confirm) {
                     return state;
 
                 newHistoryItem = ctxClone.next.clone();
-
-                if (!found) {
-                    const newInvocation = getActionInvocation(newHistoryItem);
-                    newInvocation.in_params.push(new Ast.InputParam(null, pname, value));
-                    newInvocation.in_params((p1, p2) => {
-                        if (p1.name < p2.name)
-                            return -1;
-                        if (p1.name > p2.name)
-                            return 1;
-                        return 0;
-                    });
-                }
-
+                const newInvocation = getActionInvocation(newHistoryItem);
+                setOrAddInvocationParam(newInvocation, pname, value);
+                newHistoryItem.confirm = confirm;
             }
         }
     }
