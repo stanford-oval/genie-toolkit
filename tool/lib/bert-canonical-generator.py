@@ -8,7 +8,6 @@ from transformers import BertTokenizer, BertModel, BertForMaskedLM
 BLACK_LIST = ['a', 'an', 'the', 'its', 'their', 'his', 'her']
 
 
-
 class BertLM:
     def __init__(self, domain, examples, mask, k, model_name_or_path, is_paraphraser):
         """
@@ -16,10 +15,12 @@ class BertLM:
         :param examples: an object of examples for each grammar category of each property of each table
         :param mask: a boolean indicates if we do masking before prediction
         :param k: number of top candidates to return per example
-        :param model_name_or_path: a string specifying a model name recognizable by the Transformers package (e.g. bert-base-uncased), or a path to the directory where the model is saved
-        :is_paraphraser: Set to True if model_name_or_path was fine-tuned on a paraphrasing dataset. The input to the model will be changed to match what the model has seen during fine-tuning.
+        :param model_name_or_path: a string specifying a model name recognizable by the Transformers package
+            (e.g. bert-base-uncased), or a path to the directory where the model is saved
+        :param is_paraphraser: Set to True if model_name_or_path was fine-tuned on a paraphrasing dataset. The input to
+            the model will be changed to match what the model has seen during fine-tuning.
         """
-        
+
         # Load tokenizer
         self.tokenizer = BertTokenizer.from_pretrained(model_name_or_path)
 
@@ -42,7 +43,7 @@ class BertLM:
     def predict_one(self, table, arg, query, word, k):
         """
         Get top-k predictions at the position of `word` in `text`
-        
+
         :param table: the function/table used in the command
         :param arg: the argument used in the command
         :param query: a string where `word` appears once
@@ -65,8 +66,8 @@ class BertLM:
             indexed_tokens = self.tokenizer.convert_tokens_to_ids(tokenized_text)
             middle_position = tokenized_text.index('<paraphrase>')
             masked_index = tokenized_text[middle_position:].index(word) + middle_position
-            segments_ids = [0] * (middle_position+1) + [1] * (len(tokenized_text)-middle_position-1)
-            position_ids = list(range(middle_position+1)) + list(range(len(indexed_tokens)-middle_position-1))
+            segments_ids = [0] * (middle_position + 1) + [1] * (len(tokenized_text) - middle_position - 1)
+            position_ids = list(range(middle_position + 1)) + list(range(len(indexed_tokens) - middle_position - 1))
         else:
             # Input to BERT should be [CLS] query [SEP]
             if self.mask:
@@ -89,7 +90,8 @@ class BertLM:
 
         # Predict all tokens
         with torch.no_grad():
-            predictions = self.model(input_ids=tokens_tensor, token_type_ids=segments_tensors, position_ids=position_tensors)
+            predictions = self.model(input_ids=tokens_tensor, token_type_ids=segments_tensors,
+                                     position_ids=position_tensors)
 
         mask = predictions[0][0, masked_index]
         scores, indices = torch.topk(mask, max(k, 100))
@@ -135,7 +137,8 @@ class BertLM:
 
         :return: updated examples with additional candidates field for new canonicals
         """
-        for table, arg, pos in ((a, b, c) for a in self.examples for b in self.examples[a] for c in self.examples[a][b]):
+        for table, arg, pos in ((a, b, c) for a in self.examples for b in self.examples[a] for c in
+                                self.examples[a][b]):
             count = {}
             for example in self.examples[table][arg][pos]['examples']:
                 query, masks = example['query'], example['masks']
@@ -153,7 +156,7 @@ class BertLM:
     def predict_adjectives(self, k=500):
         """
         Predict which property can be used as an adjective form
-        
+
         :param k: number of top candidates to generate
         :return: an array of properties
         """
@@ -239,7 +242,8 @@ if __name__ == '__main__':
     parser.add_argument('--model-name-or-path',
                         type=str,
                         default='bert-large-uncased',
-                        help='The name of the model (e.g. bert-large-uncased) or the path to the directory where the model is saved.')
+                        help='The name of the model (e.g. bert-large-uncased) or the path to the directory where the '
+                             'model is saved.')
     parser.add_argument('--is-paraphraser',
                         action='store_true',
                         help='If the model has been trained on a paraphrasing corpus')
