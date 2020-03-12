@@ -716,9 +716,11 @@ function checkFilterPairForDisjunctiveQuestion(ctx, f1, f2) {
 }
 
 function impreciseSearchQuestionAnswer(ctx, [question, answer]) {
+    assert(typeof question === 'string');
     const currentTable = ctx.current.stmt.table;
     if (isValidSlotFillQuestion(currentTable, question))
         return null;
+    assert(answer instanceof Ast.BooleanExpression);
     if (!C.checkFilter(ctx.current.stmt.table, answer))
         return null;
 
@@ -972,6 +974,27 @@ function emptySearchChangePair(ctx, [question, phrase]) {
     return checkStateIsValid(ctx, sysState, userState);
 }
 
+function addDontCare(stmt, dontcare) {
+    if (!stmt.table)
+        return null;
+
+    const arg = stmt.table.schema.getArgument(dontcare.name);
+    if (!arg || arg.is_input)
+        return null;
+    if (arg.getAnnotation('filterable') === false)
+        return null;
+
+    let clone = stmt.clone();
+    let [cloneTable, filterTable] = findOrMakeFilterTable(clone.table);
+    clone.table = cloneTable;
+
+    if (C.filterUsesParam(filterTable.filter, dontcare.name))
+        return null;
+
+    filterTable.filter = new Ast.BooleanExpression.And(null, [filterTable.filter, dontcare]).optimize();
+    return clone;
+}
+
 module.exports = {
     // consistency checks
     POLICY_NAME,
@@ -1019,6 +1042,7 @@ module.exports = {
     negativeListProposalReplyPair,
     positiveListProposalReplyPair,
     listProposalSearchQuestionPair,
-    emptySearchChangePair
+    emptySearchChangePair,
+    addDontCare,
 };
 

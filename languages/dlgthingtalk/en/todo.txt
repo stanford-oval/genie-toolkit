@@ -7,7 +7,6 @@ For Yelp searches:
 For MultiWOZ searches:
 - "info" questions
 - change-of-mind
-- dontcares
 
 For actions:
 - error messages

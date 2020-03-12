@@ -303,6 +303,23 @@ precise_search_question_answer_pair = {
     };
 }
 
+generic_dontcare_phrase = {
+    'it does not matter .';
+    'it does not matter . can you suggest one ?';
+    'i' ('do not have a' | 'have no') 'preference .' => '';
+    'i' ('do not have a' | 'have no') 'preference . what do you recommend ?' => '';
+    'i have no preference . please make a recommendation .';
+}
+
+specific_dontcare_phrase = {
+    ( 'the' param:out_param_Any 'does not matter .'
+    | 'the' param:out_param_Any 'does not matter . can you suggest one ?'
+    | 'i' ('do not have a' | 'have no') 'preference of ' param:out_param_Any '.'
+    | 'i' ('do not have a' | 'have no') 'preference of ' param:out_param_Any '. what do you recommend ?'
+    | 'i have no preference of ' param:out_param_Any '. please make a recommendation .'
+    ) => new Ast.BooleanExpression.DontCare(null, param.name);
+}
+
 imprecise_search_question_answer_pair = {
     ( question:direct_slot_fill_question '<sep>' answer:imprecise_answer
     | question:disjunctive_slot_fill_question '<sep>' answer:imprecise_answer [weight=2]
@@ -312,6 +329,26 @@ imprecise_search_question_answer_pair = {
     ( preamble:search_result_preamble question:direct_slot_fill_question '<sep>' answer:imprecise_answer
     | preamble:search_result_preamble question:disjunctive_slot_fill_question '<sep>' answer:imprecise_answer
     | preamble:search_result_preamble question:yesno_direct_slot_fill_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer [weight=2]
+    ) => D.impreciseSearchQuestionAnswerPair(question, answer);
+
+
+    ( question:direct_slot_fill_question '<sep>' generic_dontcare_phrase [weight=0.1]
+    | question:disjunctive_slot_fill_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
+    | question:yesno_direct_slot_fill_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
+
+    | preamble:search_result_preamble question:direct_slot_fill_question '<sep>' generic_dontcare_phrase [weight=0.1]
+    | preamble:search_result_preamble question:disjunctive_slot_fill_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
+    | preamble:search_result_preamble question:yesno_direct_slot_fill_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
+    ) => D.impreciseSearchQuestionAnswerPair(question, new Ast.BooleanExpression.DontCare(null, question));
+
+
+    ( question:direct_slot_fill_question '<sep>' answer:specific_dontcare_phrase [weight=0.1]
+    | question:disjunctive_slot_fill_question '<sep>' ('no' | 'no ,' | '') answer:specific_dontcare_phrase [weight=0.1]
+    | question:yesno_direct_slot_fill_question '<sep>' ('no' | 'no ,' | '') answer:specific_dontcare_phrase [weight=0.1]
+
+    | preamble:search_result_preamble question:direct_slot_fill_question '<sep>' answer:specific_dontcare_phrase [weight=0.1]
+    | preamble:search_result_preamble question:disjunctive_slot_fill_question '<sep>' ('no' | 'no ,' | '') answer:specific_dontcare_phrase [weight=0.1]
+    | preamble:search_result_preamble question:yesno_direct_slot_fill_question '<sep>' ('no' | 'no ,' | '') answer:specific_dontcare_phrase [weight=0.1]
     ) => D.impreciseSearchQuestionAnswerPair(question, answer);
 }
 
@@ -1040,7 +1077,7 @@ empty_search_change_pair = {
 initial_command = {
     action_command [weight=3];
     search_command;
-    complete_question [weight=0.1];
+    complete_question [weight=0.5];
     projection_question [weight=0.1];
 
     prog:initial_program => {
@@ -1048,6 +1085,10 @@ initial_command = {
             return null;
         return prog.rules[0];
     };
+
+    ( stmt:search_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+    | stmt:action_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+    ) => D.addDontCare(stmt, dontcare);
 }
 
 $root = {
