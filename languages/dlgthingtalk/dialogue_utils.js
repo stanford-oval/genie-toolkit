@@ -806,17 +806,24 @@ function positiveRecommendationReplyPair(ctx, [topResult, actionProposal, accept
     return checkStateIsValid(ctx, sysState, userState);
 }
 
-function listProposalSearchQuestionPair(ctx, [results, name, actionProposal, question]) {
-    const [qname, qtype] = question;
+function areQuestionsValidForContext(ctx, questions) {
+    for (const [qname, qtype] of questions) {
+        if (!ctx.currentFunctionSchema.hasArgument(qname))
+            return false;
+        if (qtype !== null && !ctx.currentFunctionSchema.getArgType(qname).equals(qtype))
+            return false;
+    }
+    return true;
+}
 
-    if (!ctx.currentFunctionSchema.hasArgument(qname))
-        return null;
-    if (qtype !== null && !ctx.currentFunctionSchema.getArgType(qname).equals(qtype))
-        return null;
+function listProposalSearchQuestionPair(ctx, [results, name, actionProposal, questions]) {
+    if (!areQuestionsValidForContext(ctx, questions))
+        return false;
 
     const currentTable = ctx.current.stmt.table;
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
-    const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion, [qname]);
+    const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
+        questions.map(([qname, qtype]) => qname));
     if (newTable === null)
         return null;
 
@@ -832,13 +839,9 @@ function listProposalSearchQuestionPair(ctx, [results, name, actionProposal, que
     return checkStateIsValid(ctx, sysState, userState);
 }
 
-function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, question]) {
-    const [qname, qtype] = question;
-
-    if (!ctx.currentFunctionSchema.hasArgument(qname))
-        return null;
-    if (qtype !== null && !ctx.currentFunctionSchema.getArgType(qname).equals(qtype))
-        return null;
+function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, questions]) {
+    if (!areQuestionsValidForContext(ctx, questions))
+        return false;
 
     let sysDialogueAct;
     if (topResult === null) {
@@ -851,7 +854,8 @@ function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, quest
 
     const currentTable = ctx.current.stmt.table;
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
-    const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion, [qname]);
+    const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
+        questions.map(([qname, qtype]) => qname));
     if (newTable === null)
         return null;
     const userState = addQuery(ctx.clone(), 'execute', newTable, 'accepted');

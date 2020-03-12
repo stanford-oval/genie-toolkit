@@ -896,24 +896,41 @@ simple_user_search_question = {
     | 'can you tell me' ('the' | 'its') param:out_param_Any '?'
     | ('can you tell me' | '') 'what' param:out_param_Any 'does it have ?'
     | 'i would like to' ('know' | 'see') ('the' | 'its') param:out_param_Any ('first' | '') '.'
+    | 'i need' ('the' | 'its') param:out_param_Any ('first' | '') '.'
+    | 'i just need' ('the' | 'its') param:out_param_Any '.'
     ) => {
         if (param.name === 'id')
             return null;
-        return [param.name, null];
+        return [[param.name, null]];
     };
+
+    ( ('can you tell me' | '') 'what' ('is' | 'are') ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any '?'
+    | 'can you tell me' ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any '?'
+    | 'i would like to' ('know' | 'see') ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any ('first' | '') '.'
+    | 'i need' ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any ('first' | '') '.'
+    | 'i just need' ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any '.'
+    ) => {
+        if (p1.name === 'id' || p2.name === 'id')
+            return null;
+        return [[p1.name, null], [p2.name, null]];
+    };
+
     ( ('can you tell me' | '') 'what is' 'the' param:out_param_Any 'of the' base:base_table '?'
     | 'can you tell me' 'the' param:out_param_Any 'of the' base:base_table '?'
     | ('can you tell me' | '') 'what' param:out_param_Any 'does the' base:base_table 'have ?'
     | 'i would like to' ('know' | 'see') 'the' param:out_param_Any 'of the' base:base_table ('first' | '') '.'
+    | 'i just need' ('the' | 'its') 'the' param:out_param_Any 'of the' base:base_table '.'
+
     | ('can you tell me' | '') 'what is' 'the' base:base_table '\'s' param:out_param_Any '?'
     | 'can you tell me' 'the' base:base_table '\'s' param:out_param_Any '?'
     | 'i would like to' ('know' | 'see') 'the' base:base_table '\'s' param:out_param_Any ('first' | '') '.'
+    | 'i just need' ('the' | 'its') 'the' base:base_table '\'s' param:out_param_Any '.'
     ) => {
         if (!base.schema.out[param.name])
             return null;
         if (param.name === 'id')
             return null;
-        return [param.name, null];
+        return [[param.name, null]];
     };
 }
 
@@ -924,7 +941,7 @@ boolean_user_search_question = {
     ) => {
         if (param.name === 'id')
             return null;
-        return [param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()];
+        return [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]];
     };
 
     ( 'is' ('it' | 'that') 'a' param:apv_filter base:base_table '?'
@@ -946,33 +963,34 @@ boolean_user_search_question = {
             return null;
         if (param.name === 'id')
             return null;
-        return [param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()];
+        return [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]];
     };
 }
 
 recommendation_search_question_pair = {
-    ( prop:system_direct_proposal '<sep>' question:simple_user_search_question
-    | prop:system_direct_proposal '<sep>' question:boolean_user_search_question
+    ( prop:system_direct_proposal '<sep>' ('no ,' | '') questions:simple_user_search_question
+    | prop:system_direct_proposal '<sep>' questions:boolean_user_search_question
     ) => {
-        const [pname, type] = question;
         const { topResult, info, action } = prop;
         if (info !== null) {
-            if (info.has(pname))
-                return null;
-            if (!info.schema.hasArgument(pname))
-                return null;
-            if (type !== null && !info.schema.getArgType(pname).equals(type))
-                return null;
+            for (const [pname, ptype] of questions) {
+                if (info.has(pname))
+                    return null;
+                if (!info.schema.hasArgument(pname))
+                    return null;
+                if (ptype !== null && !info.schema.getArgType(pname).equals(ptype))
+                    return null;
+            }
         }
-        return [topResult, action, question];
+        return [topResult, action, questions];
     };
 }
 
 learn_more_search_question_pair = {
-    ( 'what would you like to' ('know' | 'hear') '?' '<sep>' question:simple_user_search_question
-    | 'what would you like to' ('know' | 'hear') '?' '<sep>' question:boolean_user_search_question
+    ( 'what would you like to' ('know' | 'hear') '?' '<sep>' questions:simple_user_search_question
+    | 'what would you like to' ('know' | 'hear') '?' '<sep>' questions:boolean_user_search_question
     ) => {
-        return [null, null, question];
+        return [null, null, questions];
     };
 }
 
