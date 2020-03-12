@@ -582,7 +582,7 @@ function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
     return new Ast.BooleanExpression.And(null, [...ctxClauses, refinedFilter]).optimize();
 }
 
-function queryRefinement(ctxTable, newFilter, refineFilter) {
+function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
     let cloneTable = ctxTable.clone();
 
     let filterTable;
@@ -596,6 +596,51 @@ function queryRefinement(ctxTable, newFilter, refineFilter) {
         return null;
 
     filterTable.filter = refinedFilter;
+
+    if (newProjection) {
+        // if we have a new projection, we remove the projection entirely and replace it
+        // with the new one
+
+        if (cloneTable.isProjection)
+            cloneTable = cloneTable.table;
+        // there should be no projection of projection (will be optimized)
+        assert(!cloneTable.isProjection);
+        cloneTable = new Ast.Table.Projection(null, cloneTable, newProjection,
+            C.resolveProjection(newProjection, cloneTable.schema));
+    } else {
+        // otherwise, we remove all fields from the projection that were mentioned in the
+        // filter
+
+        let oldProjection;
+        if (cloneTable.isProjection) {
+            oldProjection = cloneTable.args;
+            cloneTable = cloneTable.table;
+        }
+        // there should be no projection of projection (will be optimized)
+        assert(!cloneTable.isProjection);
+
+        if (oldProjection) {
+            newProjection = oldProjection.filter((pname) => !C.filterUsesParam(refinedFilter, pname));
+
+            // if the projection is now empty, we don't add
+            // the projection will be empty if
+            // 1. the user asks a question
+            // 2. the agent answers that question
+            // 3. the user now refines the search indicating they don't like that answer
+            //
+            // on the other hand, if
+            // 1. the user asks a question (eg. asks for "address")
+            // 2. the agent answers that question
+            // 3. the user now refines the search changing a different parameter
+            // we will keep the projection
+
+            if (newProjection.length > 0) {
+                cloneTable = new Ast.Table.Projection(null, cloneTable, newProjection,
+                    C.resolveProjection(newProjection, cloneTable.schema));
+            }
+        }
+    }
+
     return cloneTable;
 }
 
@@ -771,7 +816,7 @@ function listProposalSearchQuestionPair(ctx, [results, name, actionProposal, que
 
     const currentTable = ctx.current.stmt.table;
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
-    const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion);
+    const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion, [qname]);
     if (newTable === null)
         return null;
 
@@ -806,7 +851,7 @@ function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, quest
 
     const currentTable = ctx.current.stmt.table;
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
-    const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion);
+    const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion, [qname]);
     if (newTable === null)
         return null;
     const userState = addQuery(ctx.clone(), 'execute', newTable, 'accepted');

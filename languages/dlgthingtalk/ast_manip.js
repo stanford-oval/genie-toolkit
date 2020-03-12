@@ -1567,6 +1567,11 @@ module.exports = {
     isConstantAssignable,
     filterUsesParam,
 
+    // constants
+    addUnit,
+    makeDate,
+
+    // builtins
     notifyAction,
     builtinSayAction,
     locationGetPredicate,
@@ -1579,9 +1584,11 @@ module.exports = {
 
     checkNotSelfJoinStream,
 
+    // low-level helpers
     betaReduce,
     etaReduceTable,
 
+    // placeholder replacement
     replacePlaceholderWithConstant,
     replacePlaceholderWithUndefined,
     tableJoinReplacePlaceholder,
@@ -1591,6 +1598,7 @@ module.exports = {
     whenDoRule,
     whenGetStream,
 
+    // filters
     hasUniqueFilter,
     makeFilter,
     makeAndFilter,
@@ -1598,10 +1606,17 @@ module.exports = {
     makeButFilter,
     makeAggregateFilter,
     makeAggregateFilterWithFilter,
+    checkFilter,
+    addFilter,
+    hasGetPredicate,
+    makeGetPredicate,
+
     makeListExpression,
     makeArgMaxMinTable,
-
     checkValidQuery,
+
+    // projections
+    resolveProjection,
     makeProjection,
     makeEventTableProjection,
     makeEventStreamProjection,
@@ -1609,18 +1624,11 @@ module.exports = {
     makeTypeBasedStreamProjection,
     makeSingleFieldProjection,
     makeMultiFieldProjection,
-    makeEdgeFilterStream,
-    checkFilter,
-    addFilter,
-    hasGetPredicate,
-    makeGetPredicate,
-
-    tableToStream,
-
-    addUnit,
-    makeDate,
-
     sayProjection,
+
+    // streams
+    makeEdgeFilterStream,
+    tableToStream,
 
     isQueryProgram,
     isContinuousProgram,
