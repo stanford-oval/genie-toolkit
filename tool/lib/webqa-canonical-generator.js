@@ -48,6 +48,8 @@ class CanonicalGenerator {
         this.parameterDatasetPaths = {};
 
         this.sampleSize = {};
+
+        this.options = options;
     }
 
 
@@ -107,6 +109,12 @@ class CanonicalGenerator {
             });
             child.stdout.on('end', () => resolve(buffer));
         });
+
+        if (this.options.debug) {
+            const output = util.promisify(fs.writeFile);
+            await output(`./bert-annotator-in.json`, JSON.stringify({ examples, paths }, null, 2));
+            await output(`./bert-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
+        }
 
         const { synonyms, adjectives } = JSON.parse(stdout);
         this._updateCanonicals(synonyms, adjectives);

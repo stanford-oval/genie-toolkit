@@ -84,6 +84,12 @@ module.exports = {
             action: 'storeTrue',
             help: `mask token before predicting`
         });
+        parser.addArgument('--debug', {
+            required: false,
+            defaultValue: false,
+            action: 'storeTrue',
+            help: `Enable debugging, which will output intermediate result into files.`
+        });
     },
 
     async execute(args) {
