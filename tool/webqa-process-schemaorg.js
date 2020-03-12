@@ -218,21 +218,25 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     // hotels
     'amenityFeature': {
         default: 'npp',
+        base: ['amenity', 'amenity feature'],
         npp: ['amenity', 'amenity feature'],
         avp: ['offers', 'offer', 'has', 'have'],
     },
     'checkinTime': {
         default: 'npp',
+        base: ['checkin time', 'check in time', 'check-in time'],
         npp: ['checkin time', 'check in time', 'check-in time']
     },
     'checkoutTime': {
         default: 'npp',
+        base: ['checkout time', 'check out time', 'check-out time'],
         npp: ['checkout time', 'check out time', 'check-out time']
     },
 
     // linkedin
     alumniOf: {
         default: 'npi',
+        base: ['colleges', 'universities', "alma maters"],
         npi: [
         // who is an alumnus of Stanford
         "alumni of", "alumnus of", "alumna of",
@@ -254,6 +258,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
     award: {
         default: 'avp',
+        base: ['awards'],
         npi: [
             // who is a nobel prize winner
             'winner of', 'recipient of',
@@ -270,6 +275,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
     affiliation: {
         default: 'npi',
+        base: ['affiliations'],
         npi: [
             'affiliated with', 'affiliated to', 'member of'
         ],
@@ -277,6 +283,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
     worksFor: {
         default: 'avp',
+        base: ['employers'],
         npi: [
             'employee of', '#employee'
         ],
@@ -284,10 +291,11 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         pvp: [
             'employed at', 'employed by',
         ],
-        npp: ['jobs', 'employers']
+        npp: ['employers']
     },
     addressLocality: {
         default: 'avp',
+        base: ['city'],
         npp: ['city'],
         avp: ['lives in', 'lived in'],
         pvp: ['from', 'in']
