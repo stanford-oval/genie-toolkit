@@ -113,13 +113,6 @@ class ThingpediaLoader {
 
         this._grammar.declareSymbol('out_param_' + typestr);
         this._grammar.declareSymbol('placeholder_' + typestr);
-        if (type.isArray) {
-            this._grammar.addRule('out_param_Array__Any',  [new this._runtime.NonTerminal('out_param_' + typestr)],
-                this._runtime.simpleCombine(identity));
-        } else {
-            this._grammar.addRule('out_param_Any',  [new this._runtime.NonTerminal('out_param_' + typestr)],
-                this._runtime.simpleCombine(identity));
-        }
 
         if (!this._grammar.hasSymbol('constant_' + typestr)) {
             if (!type.isEnum && !type.isEntity && !type.isArray)
@@ -149,8 +142,13 @@ class ThingpediaLoader {
         return typestr;
     }
 
-    _addOutParam(functionName, pname, typestr, canonical) {
+    _addOutParam(functionName, pname, type, typestr, canonical) {
         this._grammar.addRule('out_param_' + typestr, [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+
+        if (type.isArray)
+            this._grammar.addRule('out_param_Array__Any', [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+        else
+            this._grammar.addRule('out_param_Any', [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
     }
 
     _recordInputParam(functionName, arg) {
@@ -320,7 +318,7 @@ class ThingpediaLoader {
 
             for (let form of annotvalue) {
                 if (cat === 'base') {
-                    this._addOutParam(functionName, pname, typestr, form.trim());
+                    this._addOutParam(functionName, pname, ptype, typestr, form.trim());
                     if (!canonical.npp) {
                         const expansion = [form, new this._runtime.NonTerminal('constant_' + vtypestr)];
                         this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
