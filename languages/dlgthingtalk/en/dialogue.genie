@@ -34,6 +34,7 @@ import './commands';
 
 context ctx_init,
     ctx_greet,
+    ctx_cancel,
     ctx_with_result,
     ctx_with_action,
     ctx_with_result_and_action,
@@ -64,10 +65,18 @@ context function (state) {
         return null;
     const info = D.getContextInfo(state);
 
+    // no continuations possible after explicit "end" (which means the user said
+    // "no thanks" after the agent asked "is there anything else I can do for you")
+    if (state.dialogueAct === 'end')
+        return null;
+
     switch (state.dialogueAct) {
     case 'greet':
         assert(state.history.length === 0, `expected empty history for greet`);
         return [['ctx_greet'], info];
+
+    case 'cancel':
+        return [['ctx_cancel'], info];
 
     case 'execute': {
         const tags = [];
@@ -484,7 +493,7 @@ system_direct_proposal = {
     ctx_with_action proposal:actionable_system_direct_proposal_short '.' learn_more_offer => {
         // reset the action to null if the agent explicitly asks to "learn more"
         const { topResult, info } = proposal;
-        return { topResult, info, action: null };
+        return { hasLearnMore: true, topResult, info, action: null };
     };
 
     ctx_without_projection proposal:action_recommendation => proposal;
@@ -522,7 +531,7 @@ system_direct_proposal = {
         const { topResult, } = proposal;
         // reset the action to null if the agent explicitly asks to "learn more"
         if (action === null)
-            return { topResult, info, action: null };
+            return { hasLearnMore: true, topResult, info, action: null };
         return D.checkActionForRecommendation(proposal, action);
     };
 }
@@ -1023,6 +1032,55 @@ recommendation_search_question_pair = {
     };
 }
 
+ok_thanks_phrase = {
+    'ok thank you that is all i need .';
+    'ok thanks that is all i need .';
+}
+thanks_phrase = {
+    'thank you , this is good for now .';
+    'thank you , that will be all .';
+    'thank you , that will be all for now .';
+    'thank you this is what i need .';
+    'thanks , this is good for now .';
+    'thanks this is what i need .';
+    'thank you for your help !';
+    'thank you for your help , this is what i need .';
+}
+no_thanks_phrase = {
+    'no thanks .';
+    'no , thanks .';
+    'no i am good thanks .';
+    'no need thanks .';
+    'no thank you , this is good for now .';
+    'no thank you this is what i need .';
+    'no thanks , this is good for now .';
+    'no thanks this is what i need .';
+    'no thanks that will be it .';
+    'no thanks this will do .';
+    'no thank you that will be it for now .';
+    'no thanks this will do for now .';
+    'no thank you that will be all .';
+}
+
+recommendation_cancel_pair = {
+    // "thanks" without "yes" or "no" is always good
+    prop:system_direct_proposal '<sep>' thanks_phrase ('goodbye !' | '') => prop;
+
+    // "ok thanks" is good if there was no question
+    prop:system_direct_proposal '<sep>' ok_thanks_phrase ('goodbye !' | '') => {
+        if (prop.action || prop.hasLearnMore)
+            return null;
+        return prop;
+    };
+
+    // "no thanks" is good if there was a question
+    prop:system_direct_proposal '<sep>' no_thanks_phrase ('goodbye !' | '') => {
+        if (!prop.action && !prop.hasLearnMore)
+            return null;
+        return prop;
+    };
+}
+
 learn_more_search_question_pair = {
     ( 'what would you like to' ('know' | 'hear') '?' '<sep>' questions:simple_user_search_question
     | 'what would you like to' ('know' | 'hear') '?' '<sep>' questions:boolean_user_search_question
@@ -1091,6 +1149,13 @@ initial_command = {
     ) => D.addDontCare(stmt, dontcare);
 }
 
+anything_else_phrase = {
+    'is there anything else i can help you with ?';
+    'can i help you with anything else ?';
+    'do you need anything else ?';
+    'anything else for you today ?';
+}
+
 $root = {
     /*ctx:ctx_init greeting [weight=0.01] =>
         D.checkStateIsValid(ctx, null, new Ast.DialogueState(null, D.POLICY_NAME, 'greet', null, []));
@@ -1113,6 +1178,14 @@ $root = {
         return D.checkStateIsValid(ctx, sysState, userState);
     };
 
+    ( ctx:ctx_cancel anything_else_phrase '<sep>' no_thanks_phrase ('goodbye !' | '') [weight=0.01]
+    | ctx:ctx_cancel anything_else_phrase '<sep>' thanks_phrase ('goodbye !' | '') [weight=0.01]
+    ) => {
+        const userState = D.makeSimpleState(ctx, 'end', null);
+        const sysState = D.makeSimpleState(ctx, 'sys_anything_else', null);
+        return D.checkStateIsValid(ctx, sysState, userState);
+    };
+
     // empty search error
     ctx:ctx_empty_search_command pair:empty_search_change_pair
         => D.emptySearchChangePair(ctx, pair);
@@ -1129,14 +1202,14 @@ $root = {
 
     // action recommendation (through one or a list)
 
-    // FIXME should be "ctx_single_result_search_command" but we don't generate enough
-    // of those so let's stick to complete_search_command for now
     ctx:ctx_complete_search_command pair:negative_recommendation_reply_pair [weight=0.3]
         => D.negativeRecommendationReplyPair(ctx, pair);
     ctx:ctx_complete_search_command pair:positive_recommendation_reply_pair [weight=0.7]
         => D.positiveRecommendationReplyPair(ctx, pair);
     ctx:ctx_complete_search_command pair:recommendation_search_question_pair [weight=1]
         => D.recommendationSearchQuestionPair(ctx, pair);
+    ctx:ctx_complete_search_command pair:recommendation_cancel_pair [weight=1]
+        => D.recommendationCancelPair(ctx, pair);
     ctx:ctx_learn_more pair:learn_more_search_question_pair [weight=1]
         => D.recommendationSearchQuestionPair(ctx, pair);
 

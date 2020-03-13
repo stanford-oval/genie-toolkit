@@ -955,6 +955,25 @@ function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, quest
     return checkStateIsValid(ctx, sysState, userState);
 }
 
+function recommendationCancelPair(ctx, { topResult, action: actionProposal }) {
+    // "thank you" closes the dialogue
+    // we cannot close the dialogue if we have pending actions
+    if (ctx.next)
+        return null;
+
+    const userState = makeSimpleState(ctx, 'cancel', null);
+
+    let sysState;
+    if (actionProposal === null) {
+        sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
+    } else {
+        const chainParam = findChainParam(topResult, actionProposal);
+        sysState = addActionParam(ctx.clone(), 'sys_recommend_one', actionProposal, chainParam, topResult.value.id, 'proposed');
+    }
+
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
 function negativeListProposalReplyPair(ctx, [results, action, request]) {
     const requestFunctions = C.getFunctionNames(request);
     assert(requestFunctions.length === 1);
@@ -1121,6 +1140,7 @@ module.exports = {
     negativeRecommendationReplyPair,
     positiveRecommendationReplyPair,
     recommendationSearchQuestionPair,
+    recommendationCancelPair,
     negativeListProposalReplyPair,
     positiveListProposalReplyPair,
     listProposalSearchQuestionPair,

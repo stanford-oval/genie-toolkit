@@ -58,8 +58,13 @@ const USER_DIALOGUE_ACTS = new Set([
     // user wants to see more output from the previous result
     'learn_more',
 
-    // user says thank you
-    'thankyou'
+    // user says closes the dialogue mid-way (in the middle of a search)
+    'cancel',
+
+    // user terminates the dialogue after the agent asked if there is anything
+    // else the user wants
+    // "end" is a terminal state, it has no continuations
+    'end',
 ]);
 
 const SYSTEM_DIALOGUE_ACTS = new Set([

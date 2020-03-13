@@ -8,6 +8,7 @@ For MultiWOZ searches:
 - "info" questions
 
 For actions:
+- action results
 - error messages
 
 
