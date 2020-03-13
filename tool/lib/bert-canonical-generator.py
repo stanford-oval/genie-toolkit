@@ -64,6 +64,8 @@ class BertLM:
             text = '[CLS] ' + first_half + ' <paraphrase> ' + second_half + ' </paraphrase> [SEP]'
             tokenized_text = self.tokenizer.tokenize(text)
             indexed_tokens = self.tokenizer.convert_tokens_to_ids(tokenized_text)
+            if word not in tokenized_text:
+                return []
             middle_position = tokenized_text.index('<paraphrase>')
             masked_index = tokenized_text[middle_position:].index(word) + middle_position
             segments_ids = [0] * (middle_position + 1) + [1] * (len(tokenized_text) - middle_position - 1)
@@ -77,6 +79,8 @@ class BertLM:
 
             tokenized_text = self.tokenizer.tokenize(text)
             indexed_tokens = self.tokenizer.convert_tokens_to_ids(tokenized_text)
+            if word not in tokenized_text:
+                return []
             masked_index = tokenized_text.index(word)
 
             # Create the segments tensors.
