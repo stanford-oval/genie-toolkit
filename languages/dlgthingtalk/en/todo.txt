@@ -8,6 +8,8 @@ For MultiWOZ searches:
 - "info" questions
 
 For actions:
+- accepting actions (setting parameters)
+- slot filling actions
 - action results
 - error messages
 
