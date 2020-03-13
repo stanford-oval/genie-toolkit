@@ -6,7 +6,6 @@ For Yelp searches:
 
 For MultiWOZ searches:
 - "info" questions
-- change-of-mind
 
 For actions:
 - error messages

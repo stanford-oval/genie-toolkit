@@ -477,12 +477,28 @@ function getParamsInFilter(filter) {
     return params;
 }
 
+function neutralizeIDFilter(ast) {
+    // clone a filter and replace "id == ..." atoms with "true"
+
+    if (ast.isNot)
+        return new Ast.BooleanExpression.Not(null, neutralizeIDFilter(ast.expr));
+    if (ast.isOr)
+        return new Ast.BooleanExpression.Or(null, ast.operands.map(neutralizeIDFilter));
+    if (ast.isAnd)
+        return new Ast.BooleanExpression.And(null, ast.operands.map(neutralizeIDFilter));
+    if (ast.isTrue || ast.isDontCare || ast.isFalse || ast.isCompute || ast.isExternal)
+        return ast;
+
+    assert(ast.isAtom);
+    if (ast.name === 'id' && ast.operator === '==')
+        return Ast.BooleanExpression.True;
+    return ast;
+}
+
 function refineFilterToAnswerQuestion(ctxFilter, refinedFilter) {
     // this function is used when:
     // - the agent asks a search refinement question, and the user answers it
     // - the agent proposes something to refine the question
-    // - the agent proposes something, and the user replies with a bunch of filters
-    // (e.g. "how about terun?" "nah i'm looking for something chinese")
     //
     // the refinement is allowed only if the parameter was not mentioned before
     // furthermore, "id ==" filters are removed from the refined filter, so a user
@@ -491,23 +507,29 @@ function refineFilterToAnswerQuestion(ctxFilter, refinedFilter) {
     if (setsIntersect(getParamsInFilter(ctxFilter),  getParamsInFilter(refinedFilter)))
         return null;
 
-    function recursiveHelper(ast) {
-        if (ast.isNot)
-            return new Ast.BooleanExpression.Not(null, recursiveHelper(ast.expr));
-        if (ast.isOr)
-            return new Ast.BooleanExpression.Or(null, ast.operands.map(recursiveHelper));
-        if (ast.isAnd)
-            return new Ast.BooleanExpression.And(null, ast.operands.map(recursiveHelper));
-        if (ast.isTrue || ast.isDontCare || ast.isFalse || ast.isCompute || ast.isExternal)
-            return ast;
+    const clone = neutralizeIDFilter(ctxFilter);
+    return new Ast.BooleanExpression.And(null, [clone, refinedFilter]).optimize();
+}
 
-        assert(ast.isAtom);
-        if (ast.name === 'id' && ast.operator === '==')
-            return Ast.BooleanExpression.True;
-        return ast;
+function filterToNegatedSlots(filter) {
+    filter = filter.optimize();
+    let operands, slots = {};
+    if (filter.isAnd)
+        operands = filter.operands;
+    else
+        operands = [filter];
+
+    for (let operand of operands) {
+        if (!operand.isNot)
+            continue;
+        let atom = operand.expr;
+        if (!atom.isAtom && !atom.isDontCare)
+            continue;
+
+        slots[atom.name] = operand;
     }
-    const clone = recursiveHelper(ctxFilter).optimize();
-    return new Ast.BooleanExpression.And(null, [clone, refinedFilter]);
+
+    return slots;
 }
 
 function filterToSlots(filter) {
@@ -528,13 +550,72 @@ function filterToSlots(filter) {
     return slots;
 }
 
+function refineFilterToAnswerQuestionOrChangeFilter(ctxFilter, refinedFilter) {
+    // this function is used:
+    // - the agent proposes something, and the user replies with a bunch of filters
+    //   (e.g. "how about terun?" "nah i'm looking for something chinese")
+    //
+    // the refinement is allowed only if the parameter was not mentioned before
+    // at most one parameter can be mentioned in the context, in which case it must be different
+    //
+    // the refinement contains all clauses which are not explicitly negated in the refinement,
+    // plus all of the refinement
+    // furthermore, "id ==" filters are removed from the refined filter, so a user
+    // can choose a restaurant for a while then change their mind
+
+    ctxFilter = ctxFilter.optimize();
+    refinedFilter = refinedFilter.optimize();
+
+    const ctxSlots = filterToSlots(ctxFilter);
+    const refinedSlots = filterToSlots(refinedFilter);
+    const negatedRefinedSlots = filterToNegatedSlots(refinedFilter);
+
+    let changedParam = undefined;
+    // slots in the context must not mentioned in the refinement, except at most one can, and
+    // it must be different operator or value
+    //
+    // note that both positive and negative filters are killed by this check
+    // so neither "I want X food" nor "I don't like X food" are acceptable when "food =~ X" was
+    // already in the context
+    for (let key in ctxSlots) {
+        assert(ctxSlots[key].isAtom || ctxSlots[key].isDontCare);
+        if (negatedRefinedSlots[key])
+            return null;
+        if (refinedSlots[key]) {
+            // dont change opinion from a dontcare to a not dontcare
+            if (ctxSlots[key].isDontCare)
+                return null;
+
+            if (refinedSlots[key].equals(ctxSlots[key]))
+                return null;
+            if (changedParam !== undefined)
+                return null;
+            changedParam = key;
+        }
+    }
+
+    const newCtxClauses = [];
+    for (let clause of (ctxFilter.isAnd ? ctxFilter.operands : [ctxFilter])) {
+        if (clause.isAtom || clause.isDontCare) {
+            if (refinedSlots[clause.name])
+                continue;
+        }
+        newCtxClauses.push(neutralizeIDFilter(clause));
+    }
+
+    return new Ast.BooleanExpression.And(null, [...newCtxClauses, refinedFilter]).optimize();
+}
+
+
 function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
     // this function is used:
     // - when the agent returned zero results, and the user
     //   must change the search
     // - when the agent makes a filter proposal, and the user says no I want something else
     //
-    // the refinement is allowed only if at least one parameter is different than before
+    // the refinement is allowed only if no new parameters are introduced (all parameters were
+    // mentioned before), and at least one parameter is different than before
+    //
     // the resulting filter uses all the parameters in ctxFilter that are not mentioned
     // in refinedFilter, as well as all of refinedFilter
 
@@ -577,7 +658,8 @@ function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
                 return true;
             }
         });
-        return good;    });
+        return good;
+    });
 
     return new Ast.BooleanExpression.And(null, [...ctxClauses, refinedFilter]).optimize();
 }
@@ -774,7 +856,7 @@ function negativeRecommendationReplyPair(ctx, [topResult, action, request]) {
 
     const clone = ctx.clone();
     const currentTable = clone.current.stmt.table;
-    const newTable = queryRefinement(currentTable, request.filter, refineFilterToAnswerQuestion);
+    const newTable = queryRefinement(currentTable, request.filter, refineFilterToAnswerQuestionOrChangeFilter);
     if (newTable === null)
         return null;
 
@@ -881,7 +963,7 @@ function negativeListProposalReplyPair(ctx, [results, action, request]) {
     assert(request.isFilter && request.table.isInvocation);
 
     const currentTable = ctx.current.stmt.table;
-    const newTable = queryRefinement(currentTable, request.filter, refineFilterToAnswerQuestion);
+    const newTable = queryRefinement(currentTable, request.filter, refineFilterToAnswerQuestionOrChangeFilter);
     if (newTable === null)
         return null;
 
