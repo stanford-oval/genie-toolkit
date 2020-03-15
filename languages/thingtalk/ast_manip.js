@@ -588,11 +588,11 @@ function checkFilter(table, filter) {
 
         ptype = table.schema.out[filter.name];
         vtype = ptype;
-        if (filter.operator === 'contains') {
+        if (['contains', 'contains~', '~contains'].includes(filter.operator)) {
             if (!vtype.isArray)
                 return false;
             vtype = ptype.elem;
-        } else if (filter.operator === 'in_array') {
+        } else if (['in_array', 'in_array~', '~in_array'].includes(filter.operator)) {
             vtype = Type.Array(ptype);
         }
 
