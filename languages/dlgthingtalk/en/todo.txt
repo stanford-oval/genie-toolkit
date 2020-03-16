@@ -6,6 +6,9 @@ For Yelp searches:
 
 For MultiWOZ searches:
 - "info" questions
+- "learn more" offers with parameters
+- negative answers to "generic search question"
+- "insist" dialogue act
 
 For actions:
 - accepting actions (setting parameters)

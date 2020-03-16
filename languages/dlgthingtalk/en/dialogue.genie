@@ -280,6 +280,7 @@ disjunctive_slot_fill_question = {
 generic_question = {
     'which one would you like ?' => '';
     'do you have a specific one in mind ?' => '';
+    'do you have any more information to narrow down the search ?' => '';
 }
 
 precise_search_question_answer_pair = {

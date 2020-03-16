@@ -55,6 +55,12 @@ const USER_DIALOGUE_ACTS = new Set([
     'greet',
     // user issues a ThingTalk program
     'execute',
+    // user wants to see the result of the previous program (in reply to a generic search question)
+    'ask_recommend',
+
+    // user insists in reiterating the same search after an empty search error
+    'insist',
+
     // user wants to see more output from the previous result
     'learn_more',
 
