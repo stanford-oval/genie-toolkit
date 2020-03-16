@@ -594,6 +594,9 @@ class ThingpediaLoader {
         if (this.idQueries.has(idEntity))
             return true;
 
+        if (this.whiteList && !this.whiteList.includes(suffix.toLowerCase()))
+            return false;
+
         let classDef;
         try {
             classDef = await this._schemas.getFullMeta(prefix);
