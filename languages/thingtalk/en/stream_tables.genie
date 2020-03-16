@@ -61,14 +61,14 @@ with_filtered_table = {
     one_clean_filter_table;
 
     // two filters
-    two_with_filter_table [weight=0.33];
-    two_which_filter_table [weight=0.33];
-    two_clean_filter_table [weight=0.33];
+    two_with_filter_table;
+    two_which_filter_table;
+    two_clean_filter_table;
 
     // three filters
-    three_with_filter_table [weight=0.1];
-    three_which_filter_table [weight=0.1];
-    three_clean_filter_table [weight=0.1];
+    three_with_filter_table;
+    three_which_filter_table;
+    three_clean_filter_table;
 }
 
 answer_noun_phrase = {
