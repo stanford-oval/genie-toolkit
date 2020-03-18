@@ -197,9 +197,11 @@ class CanonicalGenerator {
                 let query = `show me ${tableName} with ${prefix} ${value} ${suffix} .`.split(/\s+/g);
                 let prefixIndices = prefix ? prefix.split(' ').map((w) => query.indexOf(w)) : [];
                 let suffixIndices = suffix ? suffix.split(' ').map((w) => query.indexOf(w)) : [];
+                let valueIndices = value.split(' ').map((w) => query.indexOf(w));
                 examples['npp']['examples'].push({
                     query: query.join(' '),
-                    masks: { prefix: prefixIndices, suffix: suffixIndices }
+                    masks: { prefix: prefixIndices, suffix: suffixIndices },
+                    value: valueIndices
                 });
             }
 
@@ -209,9 +211,11 @@ class CanonicalGenerator {
                     let query = `which ${tableName} ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
                     let prefixIndices = prefix ? prefix.split(' ').map((w) => query.indexOf(w)) : [];
                     let suffixIndices = suffix ? suffix.split(' ').map((w) => query.indexOf(w)) : [];
+                    let valueIndices = value.split(' ').map((w) => query.indexOf(w));
                     examples['avp']['examples'].push({
                         query: query.join(' '),
-                        masks: { prefix: prefixIndices, suffix: suffixIndices }
+                        masks: { prefix: prefixIndices, suffix: suffixIndices },
+                        value: valueIndices
                     });
                 }
             }
@@ -222,9 +226,11 @@ class CanonicalGenerator {
                     let query = `show me a ${tableName} ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
                     let prefixIndices = prefix ? prefix.split(' ').map((w) => query.indexOf(w)) : [];
                     let suffixIndices = suffix ? suffix.split(' ').map((w) => query.indexOf(w)) : [];
+                    let valueIndices = value.split(' ').map((w) => query.indexOf(w));
                     examples['pvp']['examples'].push({
                         query: query.join(' '),
-                        masks: { prefix: prefixIndices, suffix: suffixIndices }
+                        masks: { prefix: prefixIndices, suffix: suffixIndices },
+                        value: valueIndices
                     });
                 }
             }
