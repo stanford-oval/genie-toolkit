@@ -148,6 +148,12 @@ function requoteSentence(id, sentence, program) {
             } else {
                 newSentence.push(word);
             }
+
+            if (current_span !== null && i === current_span.begin) {
+                const newEntity = current_span.type + '_' + getEntityNumber(current_span.type);
+                current_span.mapTo = newEntity;
+                newSentence.push(newEntity);
+            }
         }
     }
 
@@ -212,10 +218,17 @@ module.exports = {
                 objectMode: true,
 
                 transform(ex, encoding, callback) {
-                    const [newSentence, newProgram] = requoteSentence(ex.id, ex.preprocessed, ex.target_code);
-                    ex.preprocessed = newSentence;
-                    ex.target_code = newProgram;
-                    callback(null, ex);
+                    try {
+                        const [newSentence, newProgram] = requoteSentence(ex.id, ex.preprocessed, ex.target_code);
+                        ex.preprocessed = newSentence;
+                        ex.target_code = newProgram;
+                        callback(null, ex);
+                    } catch(e) {
+                        console.error(`Failed to requote`);
+                        console.error(ex.preprocessed);
+                        console.error(ex.target_code);
+                        callback(e);
+                    }
                 },
 
                 flush(callback) {
