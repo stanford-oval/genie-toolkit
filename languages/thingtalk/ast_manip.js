@@ -14,6 +14,7 @@ const assert = require('assert');
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
+const Units = require('thingtalk-units');
 
 const { typeToStringSafe } = require('./utils');
 const Utils = require('./utils');
@@ -292,6 +293,7 @@ function makeEdgeFilterStream(proj, op, value) {
 function addUnit(unit, num) {
     if (num.isVarRef) {
         let v = new Ast.Value.VarRef(num.name + '__' + unit);
+        v.unit = unit;
         v.getType = () => Type.Measure(unit);
         return v;
     } else {
@@ -586,11 +588,11 @@ function checkFilter(table, filter) {
 
         ptype = table.schema.out[filter.name];
         vtype = ptype;
-        if (filter.operator === 'contains') {
+        if (['contains', 'contains~', '~contains'].includes(filter.operator)) {
             if (!vtype.isArray)
                 return false;
             vtype = ptype.elem;
-        } else if (filter.operator === 'in_array') {
+        } else if (['in_array', 'in_array~', '~in_array'].includes(filter.operator)) {
             vtype = Type.Array(ptype);
         }
 
@@ -1444,6 +1446,9 @@ function addArrayJoin(lhs, rhs) {
         return null;
     if (lhsArg.name === 'id')
         return null;
+    // if rhs has the same argument, lhsArg will be overridden
+    if (rhs.schema.hasArgument(lhsArg.name))
+        return null;
 
     const newSchema = mergeSchemas('query', lhs.schema, rhs.schema, null);
     return new Ast.Table.Filter(null,
@@ -1451,7 +1456,6 @@ function addArrayJoin(lhs, rhs) {
         new Ast.BooleanExpression.Atom(null, 'id', (lhsArg.type.isArray ? 'in_array' : '=='), new Ast.Value.VarRef(lhsArg.name)),
         newSchema);
 }
-
 
 function makeComputeExpression(table, operation, operands, resultType) {
     const computeSchema = table.schema.addArguments([
@@ -1466,6 +1470,36 @@ function makeComputeExpression(table, operation, operands, resultType) {
 function makeComputeProjExpression(table, operation, operands, resultType) {
     const compute = makeComputeExpression(table, operation, operands, resultType);
     return makeProjection(compute, operation);
+}
+
+function makeComputeFilterExpression(table, operation, operands, resultType, filterOp, filterValue) {
+    // do not compute on a computed table
+    if (table.schema.out[operation])
+        return null;
+
+    const computedTable = makeComputeExpression(table, operation, operands, resultType);
+    const filter = new Ast.BooleanExpression.Atom(null, operation, filterOp, filterValue);
+    if (filter)
+        return addFilter(computedTable, filter);
+    return null;
+}
+
+function makeWithinGeoDistanceExpression(table, location, filterValue) {
+    if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
+        return null;
+    if (!filterValue.getType().isMeasure)
+        return null;
+    let unit = filterValue.unit;
+    assert(unit);
+    if (Units.normalizeUnit(unit) !== 'm')
+        return null;
+    // the unit should be at least feet
+    if (Units.transformToBaseUnit(1, unit) < Units.transformToBaseUnit(1, 'ft'))
+        return null;
+    // the distance should be at least 100 meters (if the value is small number)
+    if (filterValue.isMeasure && Units.transformToBaseUnit(filterValue.value, unit) < 100)
+        return null;
+    return makeComputeFilterExpression(table, 'distance', [Ast.Value.VarRef('geo'), location], Type.Measure('m'), '<=', filterValue);
 }
 
 function makeComputeArgMinMaxExpression(table, operation, operands, resultType, direction = 'desc') {
@@ -1651,10 +1685,13 @@ module.exports = {
     makeArgMinMaxTable,
     makeComputeExpression,
     makeComputeProjExpression,
+    makeComputeFilterExpression,
     makeComputeArgMinMaxExpression,
     makeAggComputeExpression,
     makeAggComputeProjExpression,
     makeAggComputeArgMinMaxExpression,
+
+    makeWithinGeoDistanceExpression,
 
     iterateFilters,
     iterateFields,

@@ -63,8 +63,8 @@ class ThingpediaLoader {
         };
         this.idQueries = new Map;
         this.compoundArrays = new Map;
-        if (this._options.white_list)
-            this.whiteList = this._options.white_list.toLowerCase().split(',');
+        if (this._options.whiteList)
+            this.whiteList = this._options.whiteList.toLowerCase().split(',');
         else
             this.whiteList = null;
 
@@ -593,6 +593,9 @@ class ThingpediaLoader {
             return false;
         if (this.idQueries.has(idEntity))
             return true;
+
+        if (this.whiteList && !this.whiteList.includes(suffix.toLowerCase()))
+            return false;
 
         let classDef;
         try {

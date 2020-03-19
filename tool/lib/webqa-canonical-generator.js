@@ -34,16 +34,22 @@ function splitCanonical(canonical) {
 
 
 class CanonicalGenerator {
-    constructor(classDef, constants, queries, pruning, parameterDatasets) {
+    constructor(classDef, constants, queries, parameterDatasets, options) {
         this.class = classDef;
         this.constants = constants;
         this.queries = queries;
-        this.pruning = pruning;
+
+        this.pruning = options.pruning;
+        this.mask = options.mask;
+        this.is_paraphraser = options.is_paraphraser;
+        this.model = options.model;
 
         this.parameterDatasets = parameterDatasets;
         this.parameterDatasetPaths = {};
 
         this.sampleSize = {};
+
+        this.options = options;
     }
 
 
@@ -69,6 +75,10 @@ class CanonicalGenerator {
                 if (!arg.metadata.canonical)
                     continue;
 
+                // copy base canonical if npp canonical is missing
+                if (arg.metadata.canonical.base && !arg.metadata.canonical.npp)
+                    arg.metadata.canonical.npp = [...arg.metadata.canonical.base];
+
                 const samples = this._retrieveSamples(qname, arg);
                 if (samples) {
                     this.sampleSize[`${qname}.${arg.name}`] = samples.length;
@@ -77,11 +87,19 @@ class CanonicalGenerator {
             }
         }
 
-        // call bert to generate candidates
-        const child = child_process.spawn(`python3`,
-            [path.resolve(path.dirname(module.filename), './bert-canonical-generator.py'), `all`, `--no-mask`],
-            { stdio: ['pipe', 'pipe', 'inherit'] });
+        const args = [path.resolve(path.dirname(module.filename), './bert-canonical-generator.py'), 'all'];
+        if (this.is_paraphraser)
+            args.push('--is-paraphraser');
+        args.push('--model-name-or-path');
+        args.push(this.model);
+        args.push(this.mask ? '--mask' : '--no-mask');
 
+        // call bert to generate candidates
+        const child = child_process.spawn(`python3`, args, { stdio: ['pipe', 'pipe', 'inherit'] });
+
+        const output = util.promisify(fs.writeFile);
+        if (this.options.debug)
+            await output(`./bert-annotator-in.json`, JSON.stringify({ examples, paths }, null, 2));
 
         const stdout = await new Promise((resolve, reject) => {
             child.stdin.write(JSON.stringify( { examples, paths } ));
@@ -95,6 +113,9 @@ class CanonicalGenerator {
             });
             child.stdout.on('end', () => resolve(buffer));
         });
+
+        if (this.options.debug)
+            await output(`./bert-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
 
         const { synonyms, adjectives } = JSON.parse(stdout);
         this._updateCanonicals(synonyms, adjectives);
@@ -130,7 +151,7 @@ class CanonicalGenerator {
 
                 for (let type in candidates[qname][arg]) {
                     let count = candidates[qname][arg][type].candidates;
-                    let max = candidates[qname][arg][type].examples.length;
+                    let max = candidates[qname][arg][type].examples.filter((e) => e.candidates.length > 0).length;
                     for (let candidate in count) {
                         if (count[candidate] > max * this.pruning) {
                             if (!canonicals[type].includes(candidate))
@@ -165,43 +186,51 @@ class CanonicalGenerator {
 
 
     _generateExamples(tableName, canonicals, valueSample) {
-        let examples = { npp: { examples: [], candidates: [] } };
+        let examples = {};
+        for (let cat of ['npp', 'avp', 'pvp', 'nni', 'npv', 'apv']) {
+            if (cat in canonicals)
+                examples[cat] = { examples: [], candidates: [] } ;
+        }
         for (let value of valueSample) {
             for (let canonical of canonicals['npp']) {
                 let [prefix, suffix] = splitCanonical(canonical);
                 let query = `show me ${tableName} with ${prefix} ${value} ${suffix} .`.split(/\s+/g);
                 let prefixIndices = prefix ? prefix.split(' ').map((w) => query.indexOf(w)) : [];
                 let suffixIndices = suffix ? suffix.split(' ').map((w) => query.indexOf(w)) : [];
+                let valueIndices = value.split(' ').map((w) => query.indexOf(w));
                 examples['npp']['examples'].push({
                     query: query.join(' '),
-                    masks: { prefix: prefixIndices, suffix: suffixIndices }
+                    masks: { prefix: prefixIndices, suffix: suffixIndices },
+                    value: valueIndices
                 });
             }
 
             if ('avp' in canonicals) {
-                examples['avp'] = { examples: [], candidates: [] };
                 for (let canonical of canonicals['avp']) {
                     let [prefix, suffix] = splitCanonical(canonical);
                     let query = `which ${tableName} ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
                     let prefixIndices = prefix ? prefix.split(' ').map((w) => query.indexOf(w)) : [];
                     let suffixIndices = suffix ? suffix.split(' ').map((w) => query.indexOf(w)) : [];
+                    let valueIndices = value.split(' ').map((w) => query.indexOf(w));
                     examples['avp']['examples'].push({
                         query: query.join(' '),
-                        masks: { prefix: prefixIndices, suffix: suffixIndices }
+                        masks: { prefix: prefixIndices, suffix: suffixIndices },
+                        value: valueIndices
                     });
                 }
             }
 
             if ('pvp' in canonicals) {
-                examples['pvp'] = { examples: [], candidates: [] };
                 for (let canonical of canonicals['pvp']) {
                     let [prefix, suffix] = splitCanonical(canonical);
                     let query = `show me a ${tableName} ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
                     let prefixIndices = prefix ? prefix.split(' ').map((w) => query.indexOf(w)) : [];
                     let suffixIndices = suffix ? suffix.split(' ').map((w) => query.indexOf(w)) : [];
+                    let valueIndices = value.split(' ').map((w) => query.indexOf(w));
                     examples['pvp']['examples'].push({
                         query: query.join(' '),
-                        masks: { prefix: prefixIndices, suffix: suffixIndices }
+                        masks: { prefix: prefixIndices, suffix: suffixIndices },
+                        value: valueIndices
                     });
                 }
             }

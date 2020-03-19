@@ -61,9 +61,14 @@ with_filtered_table = {
     one_clean_filter_table;
 
     // two filters
-    two_with_filter_table [weight=0.33];
-    two_which_filter_table [weight=0.33];
-    two_clean_filter_table [weight=0.33];
+    two_with_filter_table;
+    two_which_filter_table;
+    two_clean_filter_table;
+
+    // three filters
+    three_with_filter_table;
+    three_which_filter_table;
+    three_clean_filter_table;
 }
 
 answer_noun_phrase = {
@@ -81,6 +86,9 @@ answer_noun_phrase = {
 one_with_filter_table = {
     !nofilter table:complete_table ('with' | 'having') filter:with_filter => C.addFilter(table, filter);
     !nofilter table:complete_table ('with' | 'having') filter:npp_filter => C.addFilter(table, filter);
+
+    // within distance filtered table
+    one_within_filter_table;
 }
 
 one_which_filter_table = {
@@ -107,6 +115,9 @@ two_with_filter_table = {
     !nofilter table:one_clean_filter_table ('with' | 'having' | 'that have') filter:npp_filter => C.addFilter(table, filter);
 
     !nofilter filter:apv_filter table:one_with_filter_table => C.addFilter(table, filter);
+
+    // within distance filtered table
+    two_within_filter_table;
 }
 
 two_which_filter_table = {
@@ -149,6 +160,9 @@ three_with_filter_table = {
     !nofilter table:two_clean_filter_table ('with' | 'having' | 'that have') filter:npp_filter => C.addFilter(table, filter);
 
     !nofilter filter:apv_filter table:two_with_filter_table => C.addFilter(table, filter);
+
+    // within distance filtered table
+    three_within_filter_table;
 }
 
 three_which_filter_table = {
