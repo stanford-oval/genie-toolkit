@@ -1446,6 +1446,9 @@ function addArrayJoin(lhs, rhs) {
         return null;
     if (lhsArg.name === 'id')
         return null;
+    // if rhs has the same argument, lhsArg will be overridden
+    if (rhs.schema.hasArgument(lhsArg.name))
+        return null;
 
     const newSchema = mergeSchemas('query', lhs.schema, rhs.schema, null);
     return new Ast.Table.Filter(null,
