@@ -1,4 +1,4 @@
-// -    *- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -19,7 +19,7 @@ const Grammar = ThingTalk.Grammar;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 const Units = ThingTalk.Units;
 
-const { clean, pluralize, typeToStringSafe, makeFilter } = require('./utils');
+const { clean, pluralize, typeToStringSafe, makeFilter, makeAndFilter } = require('./utils');
 
 function identity(x) {
     return x;
@@ -304,7 +304,7 @@ class ThingpediaLoader {
             }
 
             if (cat === 'npv') {
-                if (typeof value !== 'boolean')
+                if (typeof annotvalue !== 'boolean')
                     throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${functionName}`);
                 if (annotvalue) {
                     const expansion = [new this._runtime.NonTerminal('constant_' + vtypestr)];
@@ -322,22 +322,35 @@ class ThingpediaLoader {
                     if (!canonical.npp) {
                         const expansion = [form, new this._runtime.NonTerminal('constant_' + vtypestr)];
                         this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
+
+                        const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                        this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
                     }
                 } else {
                     let [before, after] = form.split('#');
                     before = (before || '').trim();
                     after = (after || '').trim();
 
-                    let expansion;
-                    if (before && after)
+                    let expansion, pairexpansion;
+                    if (before && after) {
+                        // "rated # stars"
                         expansion = [before, new this._runtime.NonTerminal('constant_' + vtypestr), after];
-                    else if (before)
+                        pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
+                    } else if (before) {
+                        // "named #"
                         expansion = [before, new this._runtime.NonTerminal('constant_' + vtypestr)];
-                    else if (after)
+                        pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                    } else if (after) {
+                        // "# -ly priced"
                         expansion = [new this._runtime.NonTerminal('constant_' + vtypestr), after];
-                    else
+                        pairexpansion = [new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
+                    } else {
+                        // "#" (as in "# restaurant")
                         expansion = [new this._runtime.NonTerminal('constant_' + vtypestr)];
+                        pairexpansion = [new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                    }
                     this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
+                    this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
                 }
             }
         }
@@ -401,7 +414,9 @@ class ThingpediaLoader {
 
             ex.value.schema = new Ast.ExpressionSignature(null, 'action', null /* class */, [] /* extends */, args, {
                 is_list: false,
-                is_monitorable: false
+                is_monitorable: false,
+                default_projection: [],
+                minimal_projection: []
             });
         } else {
             for (let pname in ex.args) {

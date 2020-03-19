@@ -4,8 +4,8 @@
 //
 // Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
 //
-// Author: Silei Xu <silei@cs.stanforedu>
-//         Giovanni Campagna <gcampagn@cs.stanforedu>
+// Author: Silei Xu <silei@cs.stanford.edu>
+//         Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 
@@ -235,6 +235,7 @@ one_be_filter_table = {
 
 one_have_filter_table = {
     !nofilter table:complete_table ('get' | 'have') filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:complete_table ('get' | 'have') filter:npp_filter => C.addFilter(table, filter);
 }
 
 one_verb_filter_table = {
@@ -262,6 +263,9 @@ two_have_filter_table = {
     !nofilter table:one_be_filter_table 'and' ('get' | 'have') filter:with_filter => C.addFilter(table, filter);
     !nofilter table:one_have_filter_table 'and' filter:with_filter => C.addFilter(table, filter);
     !nofilter table:one_verb_filter_table 'and' ('get' | 'have') filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:one_be_filter_table 'and' ('get' | 'have') filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:one_have_filter_table 'and' filter:npp_filter => C.addFilter(table, filter);
+    !nofilter table:one_verb_filter_table 'and' ('get' | 'have') filter:npp_filter => C.addFilter(table, filter);
 }
 
 two_verb_filter_table = {

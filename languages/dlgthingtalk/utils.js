@@ -61,6 +61,20 @@ function makeFilter(loader, pname, op, value, negate = false) {
         return f;
 }
 
+function makeAndFilter(loader, param, op, values, negate=false) {
+    if (values.length !== 2)
+        return null;
+    if (values[0].name === values[1].name)
+        return null;
+    const operands  = values.map((v) => makeFilter(loader, param, op, v));
+    if (operands.includes(null))
+        return null;
+    const f = new Ast.BooleanExpression.And(null, operands);
+    if (negate)
+        return new Ast.BooleanExpression.Not(null, f);
+    return f;
+}
+
 // FIXME do not duplicate this, and also this needs to be moved inside lib/i18n/
 function pluralize(name) {
     if (!name.includes(' ')) {
@@ -112,4 +126,5 @@ module.exports = {
 
     typeToStringSafe,
     makeFilter,
+    makeAndFilter,
 };

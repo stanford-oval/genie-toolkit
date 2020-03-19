@@ -46,7 +46,7 @@ projection_Numeric = {
 
 single_projection_String = table:complete_table => C.makeEventTableProjection(table);
 
-single_stream_projection_String = !no_stream 'new' table:complete_table => C.makeEventStreamProjection(stream);
+single_stream_projection_String = !no_stream 'new' table:complete_table => C.makeEventStreamProjection(table);
 
 single_projection_Entity__tt__picture = table:complete_table => {
     if (!table.schema.out['picture_url'])
