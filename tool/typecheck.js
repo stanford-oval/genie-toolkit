@@ -136,10 +136,17 @@ class TypecheckStream extends Stream.Transform {
     async _process(ex) {
         this._current = ex;
         this._entities = Utils.makeDummyEntities(ex.preprocessed);
-        const program = ThingTalk.NNSyntax.fromNN(ex.target_code.split(' '), this._entities);
-
+        let program;
         try {
+            program = ThingTalk.NNSyntax.fromNN(ex.target_code.split(' '), this._entities);
+
             await program.typecheck(this._schemas);
+
+            // run toNN to verify all the strings/entities are correct
+            const clone = {};
+            Object.assign(clone, this._entities);
+            ThingTalk.NNSyntax.toNN(program, this._current.preprocessed, clone);
+
             this.push(ex);
             return;
         } catch(e) {
@@ -153,10 +160,14 @@ class TypecheckStream extends Stream.Transform {
             if (this._interactive) {
                 console.log(`${ex.id}: ${e.name}: ${e.message}`);
                 console.log(ex.preprocessed);
-                console.log(program.prettyprint());
+                if (program)
+                    console.log(program.prettyprint());
+                else
+                    console.log(ex.target_code);
                 ok = await new Promise((resolve, reject) => {
                     this._resolve = resolve;
-                    this._rl.write(program.prettyprint());
+                    if (program)
+                        this._rl.write(program.prettyprint());
                     this._rl.prompt();
                 });
             }

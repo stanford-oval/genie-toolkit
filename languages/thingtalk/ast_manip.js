@@ -680,7 +680,10 @@ function checkFilterUniqueness(table, filter) {
     if (filter.operator !== '==' && filter.operator !== 'in_array')
         return false;
 
-    return table.schema.getArgument(filter.name).unique;
+    const arg = table.schema.getArgument(filter.name);
+    if (!arg)
+        return false;
+    return arg.unique;
 }
 
 function addFilter(table, filter, forceAdd = false) {
