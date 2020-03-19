@@ -134,10 +134,10 @@ constant_Measure_dBm = {
 }
 
 constant_Location = {
-    'here'                    => new Ast.Value.Location(Ast.Location.Relative('current_location'));
-    !turking 'where i am now' => new Ast.Value.Location(Ast.Location.Relative('current_location'));
-    'home'                    => new Ast.Value.Location(Ast.Location.Relative('home'));
-    'work'                    => new Ast.Value.Location(Ast.Location.Relative('work'));
+    'here'                    => new Ast.Value.Location(new Ast.Location.Relative('current_location'));
+    !turking 'where i am now' => new Ast.Value.Location(new Ast.Location.Relative('current_location'));
+    'home'                    => new Ast.Value.Location(new Ast.Location.Relative('home'));
+    'work'                    => new Ast.Value.Location(new Ast.Location.Relative('work'));
 }
 
 constant_pairs = {
