@@ -207,10 +207,10 @@ class BertLM:
                     else:
                         masks['value'] = list(range(max(masks['prefix'])+1, min(masks['suffix'])))
                 ###
-                natural_query, natural_candidate, natural_masks = self._make_more_natural(query, masks)
                 candidates1 = self.predict_one_type(table, arg, query, masks)
 
                 if self.check_permutations:
+                    natural_query, natural_candidate, natural_masks = self._make_more_natural(query, masks)
                     candidates2 = self.predict_one_type(table, arg, natural_query, natural_masks) # we might be double counting if query==natural_query
                 else:
                     candidates2 = []
@@ -325,6 +325,13 @@ class BertLM:
 
     @staticmethod
     def _get_query_permutations(query, masks, candidate):
+        """
+
+        :param query: a string
+        :param masks: an object indicating the token indices of each part of `query` in the form of `{ prefix: [], suffix: [] value: []}`
+        :param candidate: a string
+        :return: permutations, permutations_candidate, permutations_masks
+        """
         # We assume masks['prefix'] + masks['value'] + masks['suffix'] is a list of consecutive integers
         query = query.split(' ')
         candidate = candidate.replace('#', '').split(' ')
@@ -366,7 +373,7 @@ class BertLM:
         Construct the full canonical form after getting the prediction
 
         :param query: a string of the original query
-        :param masks: an object containing the indices we want to predict in the form of `{ prefix: [], suffix: [] }`
+        :param masks: a dictionary containing the indices we want to predict in the form of `{ prefix: [], suffix: [] value: []}`
         :param current_index: the index of where `replacement` should be in `query`
         :param replacement: a string to be used to replace word in original query
         :return: A string represents the new canonical form
