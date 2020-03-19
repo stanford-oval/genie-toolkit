@@ -518,27 +518,86 @@ function combineStreamCommand(stream, command) {
     }
 }
 
-function normalizeFilter(table, filter) {
-    if (filter.isCompute && filter.lhs.isAggregation && filter.lhs.operator === 'count') {
-        let name = filter.lhs.list.name;
+function checkComputeFilter(table, filter) {
+    if (!filter.lhs.isAggregation)
+        return false;
+    let name = filter.lhs.list.name;
+    if (!table.schema.out[name])
+        return false;
+
+    let vtype, ptype, ftype;
+    ptype = table.schema.out[name];
+    if (!ptype.isArray)
+        return false;
+
+    if (filter.lhs.operator === 'count') {
+        vtype = Type.Number;
         let canonical = table.schema.getArgCanonical(name);
         for (let p of table.schema.iterateArguments()) {
-            if (p.name === name + 'Count' ||
-                p.canonical === canonical + ' count' ||
-                p.canonical === canonical.slice(0,-1) + ' count')
-                return new Ast.BooleanExpression.Atom(p.name, '==', filter.rhs);
+            if (p.name === name + 'Count')
+                return false;
+            if (p.canonical === canonical + 'count' || p.canonical === canonical.slice(0,-1) + ' count')
+                return false;
         }
+    } else {
+        if (filter.lhs.field && filter.lhs.field in ptype.elem.fields)
+            ftype = ptype.elem.fields[filter.lhs.field].type;
+        else
+            ftype = ptype.elem;
+        vtype = ftype;
+    }
+    return filter.rhs.getType().equals(vtype);
+}
+
+function checkAtomFilter(table, filter) {
+    const arg = table.schema.getArgument(filter.name);
+    if (!arg || arg.is_input)
+        return false;
+
+    if (arg.getAnnotation('filterable') === false)
+        return false;
+
+    let vtype, ptype;
+
+    ptype = table.schema.out[filter.name];
+    vtype = ptype;
+    if (filter.operator === 'contains') {
+        if (!vtype.isArray)
+            return false;
+        vtype = ptype.elem;
+    } else if (filter.operator === 'in_array') {
+        vtype = Type.Array(ptype);
     }
 
-    return filter;
+    if (!filter.value.getType().equals(vtype))
+        return false;
+
+    if (vtype.isNumber || vtype.isMeasure) {
+        let min = -Infinity;
+        let minArg = arg.getImplementationAnnotation('min_number');
+        if (minArg !== undefined)
+            min = minArg;
+        let maxArg = arg.getImplementationAnnotation('max_number');
+        let max = Infinity;
+        if (maxArg !== undefined)
+            max = maxArg;
+
+        const value = filter.value.toJS();
+        if (value < min || value > max)
+            return false;
+    }
+    return true;
 }
 
 function checkFilter(table, filter) {
+    while (table.isProjection)
+        table = table.table;
+
     if (filter.isNot)
         filter = filter.expr;
     if (filter.isExternal)
         return true;
-    if (filter.isAnd || filter.isOr ) {
+    if (filter.isAnd || filter.isOr) {
         for (let operands of filter.operands) {
             if (!checkFilter(table, operands))
                 return false;
@@ -546,70 +605,22 @@ function checkFilter(table, filter) {
         return true;
     }
 
-    let vtype, ptype, ftype;
+    if (filter.isCompute)
+        return checkComputeFilter(table, filter);
 
-    if (filter.isCompute) {
-        if (!filter.lhs.isAggregation)
-            return false;
-        let name = filter.lhs.list.name;
-        if (!table.schema.out[name])
-            return false;
+    if (filter.isAtom)
+        return checkAtomFilter(table, filter);
 
-        ptype = table.schema.out[name];
-        if (!ptype.isArray)
-            return false;
-
-        if (filter.lhs.operator === 'count') {
-            vtype = Type.Number;
-        } else {
-            if (filter.lhs.field && filter.lhs.field in ptype.elem.fields)
-                ftype = ptype.elem.fields[filter.lhs.field].type;
-            else
-                ftype = ptype.elem;
-            vtype = ftype;
-        }
-        return filter.rhs.getType().equals(vtype);
-    } else if (filter.isAtom) {
+    if (filter.isDontCare) {
         const arg = table.schema.getArgument(filter.name);
         if (!arg || arg.is_input)
             return false;
-
         if (arg.getAnnotation('filterable') === false)
             return false;
-
-        ptype = table.schema.out[filter.name];
-        vtype = ptype;
-        if (filter.operator === 'contains') {
-            if (!vtype.isArray)
-                return false;
-            vtype = ptype.elem;
-        } else if (filter.operator === 'in_array') {
-            vtype = Type.Array(ptype);
-        }
-
-        if (!filter.value.getType().equals(vtype))
-            return false;
-
-        if (vtype.isNumber || vtype.isMeasure) {
-            let min = -Infinity;
-            let minArg = arg.getImplementationAnnotation('min_number');
-            if (minArg !== undefined)
-                min = minArg;
-            let maxArg = arg.getImplementationAnnotation('max_number');
-            let max = Infinity;
-            if (maxArg !== undefined)
-                max = maxArg;
-
-            if (filter.value.isNumber) {
-                const value = filter.value.toJS();
-                if (value < min || value > max)
-                    return false;
-            }
-        }
         return true;
-    } else {
-        return false;
     }
+
+    throw new Error(`Unexpected filter type ${filter}`);
 }
 
 function *iterateFilters(table) {
@@ -682,8 +693,6 @@ function checkFilterUniqueness(table, filter) {
 function addFilter(table, filter, forceAdd = false) {
     if (!checkFilter(table, filter))
         return null;
-
-    filter = normalizeFilter(table, filter);
 
     // when an "unique" parameter has been used in the table
     if (table.schema.no_filter)
@@ -1575,6 +1584,11 @@ module.exports = {
     isConstantAssignable,
     filterUsesParam,
 
+    // constants
+    addUnit,
+    makeDate,
+
+    // builtins
     notifyAction,
     builtinSayAction,
     locationGetPredicate,
@@ -1587,9 +1601,11 @@ module.exports = {
 
     checkNotSelfJoinStream,
 
+    // low-level helpers
     betaReduce,
     etaReduceTable,
 
+    // placeholder replacement
     replacePlaceholderWithConstant,
     replacePlaceholderWithUndefined,
     tableJoinReplacePlaceholder,
@@ -1599,6 +1615,7 @@ module.exports = {
     whenDoRule,
     whenGetStream,
 
+    // filters
     hasUniqueFilter,
     makeFilter,
     makeAndFilter,
@@ -1606,10 +1623,17 @@ module.exports = {
     makeButFilter,
     makeAggregateFilter,
     makeAggregateFilterWithFilter,
+    checkFilter,
+    addFilter,
+    hasGetPredicate,
+    makeGetPredicate,
+
     makeListExpression,
     makeArgMaxMinTable,
-
     checkValidQuery,
+
+    // projections
+    resolveProjection,
     makeProjection,
     makeEventTableProjection,
     makeEventStreamProjection,
@@ -1617,18 +1641,11 @@ module.exports = {
     makeTypeBasedStreamProjection,
     makeSingleFieldProjection,
     makeMultiFieldProjection,
-    makeEdgeFilterStream,
-    checkFilter,
-    addFilter,
-    hasGetPredicate,
-    makeGetPredicate,
-
-    tableToStream,
-
-    addUnit,
-    makeDate,
-
     sayProjection,
+
+    // streams
+    makeEdgeFilterStream,
+    tableToStream,
 
     isQueryProgram,
     isContinuousProgram,
