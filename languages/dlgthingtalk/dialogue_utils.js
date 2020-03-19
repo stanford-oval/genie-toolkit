@@ -369,20 +369,21 @@ function initialRequest(stmt) {
 }
 
 /**
- * Check if the table filters on the parameter `question` (effectively providing a constraint on question)
+ * Check if the table filters on the parameters `questions` (effectively providing a constraint on question)
  */
-function isQueryAnswerValidForQuestion(table, question) {
-    if (question === '')
+function isQueryAnswerValidForQuestion(table, questions) {
+    assert(Array.isArray(questions));
+    if (questions.length === 0)
         return true;
     let answersQuestion = false;
     table.visit(new class extends Ast.NodeVisitor {
         visitAtomBooleanExpression(atom) {
-            if (atom.name === question)
+            if (questions.some((q) => q === atom.name))
                 answersQuestion = true;
             return true;
         }
         visitDontCareBooleanExpression(atom) {
-            if (atom.name === question)
+            if (questions.some((q) => q === atom.name))
                 answersQuestion = true;
             return true;
         }
@@ -726,21 +727,24 @@ function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
     return cloneTable;
 }
 
-function isValidSlotFillQuestion(table, question) {
-    const arg = table.schema.getArgument(question);
-    if (!arg)
-        return false;
-
-    return arg.getAnnotation('filterable') !== false;
+function isValidSearchQuestion(table, questions) {
+    for (let q of questions) {
+        const arg = table.schema.getArgument(q);
+        if (!arg || arg.is_input)
+            return false;
+        if (arg.getAnnotation('filterable') === false)
+            return false;
+    }
+    return true;
 }
 
-function preciseSearchQuestionAnswer(ctx, [question, answer]) {
+function preciseSearchQuestionAnswer(ctx, [questions, answer]) {
     const answerFunctions = C.getFunctionNames(answer);
     assert(answerFunctions.length === 1);
     if (answerFunctions[0] !== ctx.currentFunction)
         return null;
     const currentTable = ctx.current.stmt.table;
-    if (isValidSlotFillQuestion(currentTable, question))
+    if (!isValidSearchQuestion(currentTable, questions))
         return null;
     assert(answer.isFilter && answer.table.isInvocation);
 
@@ -750,10 +754,10 @@ function preciseSearchQuestionAnswer(ctx, [question, answer]) {
     const clone = ctx.clone();
     const userState = addQuery(clone, 'execute', newTable, 'accepted');
     let sysState;
-    if (question === '')
+    if (questions.length === 0)
         sysState = makeSimpleState(ctx, 'sys_generic_search_question', null);
     else
-        sysState = makeSimpleState(ctx, 'sys_search_question', question);
+        sysState = makeSimpleState(ctx, 'sys_search_question', questions);
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -797,10 +801,10 @@ function checkFilterPairForDisjunctiveQuestion(ctx, f1, f2) {
     return [f1.name, f1.value.getType()];
 }
 
-function impreciseSearchQuestionAnswer(ctx, [question, answer]) {
-    assert(typeof question === 'string');
+function impreciseSearchQuestionAnswer(ctx, [questions, answer]) {
+    assert(Array.isArray(questions));
     const currentTable = ctx.current.stmt.table;
-    if (isValidSlotFillQuestion(currentTable, question))
+    if (!isValidSearchQuestion(currentTable, questions))
         return null;
     assert(answer instanceof Ast.BooleanExpression);
     if (!C.checkFilter(ctx.current.stmt.table, answer))
@@ -811,7 +815,7 @@ function impreciseSearchQuestionAnswer(ctx, [question, answer]) {
         return null;
     const clone = ctx.clone();
     const userState = addQuery(clone, 'execute', newTable, 'accepted');
-    const sysState = makeSimpleState(ctx, 'sys_search_question', question);
+    const sysState = makeSimpleState(ctx, 'sys_search_question', questions);
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -1033,8 +1037,8 @@ function positiveListProposalReplyPair(ctx, [results, actionProposal, name, acce
     return checkStateIsValid(ctx, sysState, userState);
 }
 
-function impreciseSearchQuestionAnswerPair(question, answer) {
-    assert(typeof question === 'string');
+function impreciseSearchQuestionAnswerPair(questions, answer) {
+    assert(Array.isArray(questions));
     if (answer instanceof Ast.BooleanExpression) {
         let pname;
         if (answer.isNot) {
@@ -1044,16 +1048,17 @@ function impreciseSearchQuestionAnswerPair(question, answer) {
             assert(answer.isAtom || answer.isDontCare);
             pname = answer.name;
         }
-        if (pname !== question)
+        if (!questions.some((q) => q === pname))
             return null;
 
-        return [question, answer];
+        return [questions, answer];
     } else {
+        assert(questions.length === 1);
         assert(answer instanceof Ast.Value);
-        answer = C.makeFilter(new Ast.Value.VarRef(question), '==', answer);
+        answer = C.makeFilter(new Ast.Value.VarRef(questions[0]), '==', answer);
         if (answer === null)
             return null;
-        return [question, answer];
+        return [questions, answer];
     }
 }
 

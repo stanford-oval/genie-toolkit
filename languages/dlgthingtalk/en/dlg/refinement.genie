@@ -64,7 +64,6 @@ verbose_negative_proposal_reply_pair = {
 negative_proposal_reply_pair = {
     ( prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
     | prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble request:anything_phrase
-    | prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') request:generic_answer
     ) => {
         if (!C.isSameFunction(prop.schema, request.schema))
             return null;
