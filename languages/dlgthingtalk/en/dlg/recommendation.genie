@@ -60,6 +60,25 @@ recommendation_info_action_pair = {
     };
 }
 
+user_question_answer_begin = {
+    ctx:ctx_with_result_question proposal:constant_name
+        => D.makeRecommendation(ctx, proposal);
+}
+
+proposal_info_action_pair = {
+    'is a' info:result_info_phrase '.' action:action_offer [weight=0.8] => {
+        const resultType = info.schema.getArgType('id');
+
+        if (!resultType || !C.hasArgumentOfType(action, resultType))
+            return null;
+        return [info, action];
+    };
+
+    'is a' info:result_info_phrase '.' learn_more_offer [weight=0.2] => {
+        return [info, null];
+    };
+}
+
 // a recommendation consists of the first result of the current query,
 // and action to do with it
 // the action can come from the context (if the user expressed it earlier), or it can

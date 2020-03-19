@@ -194,15 +194,28 @@ initial_command = {
     complete_question [weight=0.5];
     projection_question [weight=0.1];
 
-    prog:initial_program => {
+    ( stmt:search_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+    | stmt:action_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+    ) => D.addDontCare(stmt, dontcare);
+
+    // TODO
+    /*
+    ?remote_commands remote_command [weight=0.1];
+    ?policies policy_command [weight=0.2];
+    */
+
+    ?timer stmt:timer_rule [weight=0.2] => stmt;
+    !nostream {
+        monitor_command [weight=0.1];
+        when_command [weight=0.1];
+    }
+
+    prog:thingpedia_program if complete => {
         if (prog.rules.length !== 1)
             return null;
         return prog.rules[0];
     };
 
-    ( stmt:search_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-    | stmt:action_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-    ) => D.addDontCare(stmt, dontcare);
 }
 
 $root = {
