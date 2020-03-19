@@ -1,0 +1,186 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+// List proposal templates: the search is complete (1-3 search results), and the
+// agent reads out the search results, optionally proposing an action to do on them
+
+// A list proposal from the system is followed by:
+// - choosing an element from the list (= "positive_list_proposal_reply_pair")
+// - some form of search refinement (= "negative_list_proposa_reply_pair")
+// - a question about an element of the list (= "list_proposal_search_question_pair")
+
+{
+    const assert = require('assert');
+    const ThingTalk = require('thingtalk');
+    const Ast = ThingTalk.Ast;
+    const Type = ThingTalk.Type;
+
+    const C = require('../../ast_manip');
+    const D = require('../../dialogue_utils');
+
+    // import thingpedia info
+    const _tpLoader = require('../../load-thingpedia');
+}
+
+// a "list proposal" consists of the first few results of the current query,
+// together with informative results about them, an offer to learn more, or an offer for an action
+system_list_proposal = {
+    ctx:ctx_without_projection ('i see' | 'i have' | 'i have found') name_list:result_name_list '.'
+        ('' |
+         'would you like to learn more ?' | 'would you like to learn more about either of them ?' |
+         'would you like to know more about them ?' | 'would you like to hear more about them ?' |
+         'are you interested to hear more about any of them ?')
+        => [name_list, null, ctx.nextInfo && ctx.nextInfo.isAction ? D.getActionInvocation(ctx.next) : null];
+
+    ctx:ctx_complete_search_command ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' ('they' | 'all of them') 'are' info:result_info_phrase '.'
+        => D.checkListProposal(ctx, name_list, info);
+
+    ctx:ctx_complete_search_command  ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' 'both are' info:result_info_phrase '.' => {
+        if (name_list.length !== 2)
+            return null;
+        return D.checkListProposal(ctx, name_list, info);
+    };
+
+    ctx:ctx_complete_search_command ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_proposal => {
+        const resultType = name_list[0].value.id.getType();
+        if (!C.hasArgumentOfType(action, resultType))
+            return null;
+        const ctxAction = ctx.nextInfo && ctx.nextInfo.isAction ? D.getActionInvocation(ctx.next) : null;
+        if (ctxAction && !C.isSameFunction(ctxAction.schema, action.schema))
+            return null;
+
+        return [name_list, null, action];
+    };
+}
+
+
+verbose_negative_list_proposal_reply_pair = {
+    ( prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:answer_noun_phrase
+    | prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for' | 'i do not like' | 'i do not want') phrase:anything_phrase
+    ) => {
+        const [results, info, action] = prop;
+        if (info === null)
+            return null;
+        if (!D.isValidNegativePreambleForInfo(info, phrase))
+            return null;
+        return [results, action, phrase];
+    };
+}
+
+negative_list_proposal_reply_pair = {
+    ( prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
+    | prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble request:anything_phrase
+    ) => {
+        const [results, info, action] = prop;
+        const proposalType = results[0].value.id.getType();
+        const idType = request.schema.getArgType('id');
+
+        if (!idType || !idType.equals(proposalType))
+            return null;
+        return [results, action, request];
+    };
+
+    pair:verbose_negative_list_proposal_reply_pair [weight=5] => {
+        const [results, action, preamble] = pair;
+        // convert the preamble into a request by negating it
+        const clone = preamble.clone();
+        clone.filter = new Ast.BooleanExpression.Not(null, clone.filter);
+        return [results, action, clone];
+    };
+
+    ( pair:verbose_negative_list_proposal_reply_pair negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
+    | pair:verbose_negative_list_proposal_reply_pair negative_proposal_answer_preamble request:anything_phrase
+    ) => D.mergePreambleAndRequest(pair, request);
+}
+
+positive_list_proposal_reply_pair = {
+    ( prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') ('i like' | 'i am interested in' | 'i am intrigued by') name:constant_name '.' [weight=0.5]
+    | prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') name:constant_name 'sounds' ('good' | 'really good' | 'nice' | 'interesting') '.' [weight=0.5]
+    ) => {
+        const [results, info, actionProposal] = prop;
+        let good = false;
+        for (let result of results) {
+            if (result.value.id.equals(name)) {
+                good = true;
+                break;
+            }
+        }
+        if (!good)
+            return false;
+
+        return [results, actionProposal, name, actionProposal];
+    };
+
+    prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') ('i will go' | 'i will take' | 'i am good for') name:constant_name '.' => {
+        const [results, info, actionProposal] = prop;
+        if (actionProposal === null)
+            return null;
+        let good = false;
+        for (let result of results) {
+            if (result.value.id.equals(name)) {
+                good = true;
+                break;
+            }
+        }
+        if (!good)
+            return false;
+
+        return [results, actionProposal, name, actionProposal];
+    };
+
+    ( prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') 'can you tell me more about' name:constant_name '?' [weight=0.33]
+    | prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') ('i like' | 'i am interested in' | 'i am intrigued by') name:constant_name '.' tell_me_more_phrase [weight=0.33]
+    | prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') name:constant_name 'sounds' ('good' | 'really good' | 'nice' | 'interesting') '.' tell_me_more_phrase [weight=0.33]
+    ) => {
+        const [results, info, actionProposal] = prop;
+        let good = false;
+        for (let result of results) {
+            if (result.value.id.equals(name)) {
+                good = true;
+                break;
+            }
+        }
+        if (!good)
+            return false;
+
+        // set the action to null, which will hit the "tell me more" path
+        return [results, actionProposal, name, null];
+    };
+}
+
+list_proposal_search_question_pair = {
+    ( prop:system_list_proposal '<sep>' question:user_search_question_with_name
+    | prop:system_list_proposal '<sep>' question:boolean_user_search_question_with_name
+    ) => {
+        const [name, pname, type] = question;
+        const [results, info, action] = prop;
+        let good = false;
+        for (let result of results) {
+            if (!result.value.id)
+                continue;
+            if (result.value.id.equals(name)) {
+                good = true;
+                break;
+            }
+        }
+        if (!good)
+            return null;
+
+        if (info !== null) {
+            if (info.has(pname))
+                return null;
+            if (!info.schema.hasArgument(pname))
+                return null;
+            if (type !== null && !info.schema.getArgType(pname).equals(type))
+                return null;
+        }
+        return [results, name, action, [pname, type]];
+    };
+}

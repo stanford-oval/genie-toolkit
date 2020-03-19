@@ -1,0 +1,213 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+// Slot fill templates: the agent asks a question, and the user replies
+//
+// There are two types slot-fill templates:
+// - for searches: the agent is trying to add a filter
+// - for actions/queries w/ parameters: the agent is trying to add a parameter
+
+{
+    const assert = require('assert');
+    const ThingTalk = require('thingtalk');
+    const Ast = ThingTalk.Ast;
+    const Type = ThingTalk.Type;
+
+    const C = require('../../ast_manip');
+    const D = require('../../dialogue_utils');
+
+    // import thingpedia info
+    const _tpLoader = require('../../load-thingpedia');
+}
+
+direct_slot_fill_question = {
+    ( 'what' p:out_param_Any 'do you want ?'
+    | 'what' p:out_param_Any 'would you prefer ?'
+    | 'what' p:out_param_Any 'would you like ?'
+    | 'what' p:out_param_Any 'are you interested in ?'
+    | 'what' p:out_param_Any 'are you looking for ?'
+    ) => {
+        if (p.name === 'id')
+            return null;
+        return p.name;
+    };
+}
+
+yesno_direct_slot_fill_question = {
+    ( 'any preference of' p:out_param_Any '?'
+    | 'do you have a specific' p:out_param_Any 'in mind?'
+    | 'do you have a preference of' p:out_param_Any '?'
+    | 'do you have a preferred' p:out_param_Any '?'
+    | 'are you looking for a specific' p:out_param_Any '?'
+    ) => {
+        if (p.name === 'id')
+            return null;
+        return p.name;
+    };
+}
+
+generic_answer = {
+    // TODO
+}
+
+imprecise_answer_phrase = {
+    ( slot:constant_Any
+    | slot:npp_filter
+    | slot:apv_filter
+    | slot:pvp_filter
+    | slot:preposition_filter
+    ) => slot;
+}
+
+imprecise_answer = {
+    ans:imprecise_answer_phrase ('please' | '') '.' => ans;
+
+    generic_preamble_for_answer ans:imprecise_answer_phrase '.' => ans;
+}
+
+verbose_answer = {
+    // complete answer, like "I am looking for a bla restaurant"
+    generic_preamble_for_answer ('a' | 'the') query:answer_noun_phrase => query;
+}
+
+question_npp_filter_pair = {
+    ctx:ctx_with_result_noquestion f1:npp_filter 'or' f2:npp_filter =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
+    ctx:ctx_with_result_noquestion f1:npp_filter 'or' c:constant_Any  =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, new Ast.BooleanExpression.Atom(null, f1.name, f1.operator, c));
+}
+question_apv_filter_pair = {
+    ctx:ctx_with_result_noquestion f1:apv_filter 'or' f2:apv_filter =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
+}
+question_avp_filter_pair = {
+    ctx:ctx_with_result_noquestion f1:avp_filter 'or' c:constant_Any =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, new Ast.BooleanExpression.Atom(null, f1.name, f1.operator, c));
+}
+question_preposition_filter_pair = {
+    ctx:ctx_with_result_noquestion f1:preposition_filter 'or' f2:preposition_filter =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
+}
+question_pvp_filter_pair = {
+    ctx:ctx_with_result_noquestion f1:pvp_filter 'or' f2:pvp_filter =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
+}
+
+disjunctive_slot_fill_question = {
+    ( ('are you looking for' | 'would you like' | 'do you need') 'something with' question:question_npp_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'something' question:question_apv_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'something' question:question_preposition_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'something' question:question_pvp_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'something that' question:question_avp_filter_pair '?'
+    ) => {
+        const [pname, ptype] = question;
+        return pname;
+    };
+
+    ( ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table ('with' | 'that has') question:question_npp_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'a' question:question_apv_filter_pair table:base_table '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table question:question_pvp_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table question:question_preposition_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table 'that' question:question_avp_filter_pair '?'
+    ) => {
+        const [pname, ptype] = question;
+        const tableptype = table.schema.getArgType(pname);
+        if (!tableptype || !ptype.equals(tableptype) || table.schema.getArgument(pname).getAnnotation('filterable') === false)
+            return null;
+        return pname;
+    };
+}
+
+generic_question = {
+    'which one would you like ?' => '';
+    'do you have a specific one in mind ?' => '';
+    'do you have any more information to narrow down the search ?' => '';
+}
+
+
+
+precise_search_question_answer_pair = {
+    ( question:direct_slot_fill_question '<sep>' table:generic_answer
+    | question:disjunctive_slot_fill_question '<sep>' table:generic_answer
+    | question:yesno_direct_slot_fill_question '<sep>' ('yes' | 'yes ,' | '') table:generic_answer
+
+    | question:direct_slot_fill_question '<sep>' table:verbose_answer
+    | question:disjunctive_slot_fill_question '<sep>' table:verbose_answer
+    | question:yesno_direct_slot_fill_question'<sep>' ('yes' | 'yes ,' | '') table:verbose_answer
+    | question:generic_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer [weight=0.1]
+    ) => {
+        if (!D.isQueryAnswerValidForQuestion(table, question))
+            return null;
+        return [question, table];
+    };
+
+    ( preamble:search_result_preamble question:direct_slot_fill_question '<sep>' table:generic_answer [weight=0.1]
+    | preamble:search_result_preamble question:disjunctive_slot_fill_question '<sep>' table:generic_answer [weight=0.5]
+    | preamble:search_result_preamble question:yesno_direct_slot_fill_question '<sep>' ('yes' | 'yes ,' | '') table:generic_answer [weight=0.1]
+
+    | preamble:search_result_preamble question:direct_slot_fill_question '<sep>' table:verbose_answer [weight=0.1]
+    | preamble:search_result_preamble question:disjunctive_slot_fill_question '<sep>' table:verbose_answer [weight=0.1]
+    | preamble:search_result_preamble question:yesno_direct_slot_fill_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer [weight=0.1]
+    | preamble:search_result_preamble question:generic_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_answer [weight=0.01]
+    ) => {
+        if (!D.isQueryAnswerValidForQuestion(table, question))
+            return null;
+        return [question, table];
+    };
+}
+
+generic_dontcare_phrase = {
+    'it does not matter .';
+    'it does not matter . can you suggest one ?';
+    'i' ('do not have a' | 'have no') 'preference .' => '';
+    'i' ('do not have a' | 'have no') 'preference . what do you recommend ?' => '';
+    'i have no preference . please make a recommendation .';
+}
+
+specific_dontcare_phrase = {
+    ( 'the' param:out_param_Any 'does not matter .'
+    | 'the' param:out_param_Any 'does not matter . can you suggest one ?'
+    | 'i' ('do not have a' | 'have no') 'preference of ' param:out_param_Any '.'
+    | 'i' ('do not have a' | 'have no') 'preference of ' param:out_param_Any '. what do you recommend ?'
+    | 'i have no preference of ' param:out_param_Any '. please make a recommendation .'
+    ) => new Ast.BooleanExpression.DontCare(null, param.name);
+}
+
+imprecise_search_question_answer_pair = {
+    ( question:direct_slot_fill_question '<sep>' answer:imprecise_answer
+    | question:disjunctive_slot_fill_question '<sep>' answer:imprecise_answer [weight=2]
+    | question:yesno_direct_slot_fill_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer
+    ) => D.impreciseSearchQuestionAnswerPair(question, answer);
+
+    ( preamble:search_result_preamble question:direct_slot_fill_question '<sep>' answer:imprecise_answer
+    | preamble:search_result_preamble question:disjunctive_slot_fill_question '<sep>' answer:imprecise_answer
+    | preamble:search_result_preamble question:yesno_direct_slot_fill_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_answer [weight=2]
+    ) => D.impreciseSearchQuestionAnswerPair(question, answer);
+
+
+    ( question:direct_slot_fill_question '<sep>' generic_dontcare_phrase [weight=0.1]
+    | question:disjunctive_slot_fill_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
+    | question:yesno_direct_slot_fill_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
+
+    | preamble:search_result_preamble question:direct_slot_fill_question '<sep>' generic_dontcare_phrase [weight=0.1]
+    | preamble:search_result_preamble question:disjunctive_slot_fill_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
+    | preamble:search_result_preamble question:yesno_direct_slot_fill_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
+    ) => D.impreciseSearchQuestionAnswerPair(question, new Ast.BooleanExpression.DontCare(null, question));
+
+
+    ( question:direct_slot_fill_question '<sep>' answer:specific_dontcare_phrase [weight=0.1]
+    | question:disjunctive_slot_fill_question '<sep>' ('no' | 'no ,' | '') answer:specific_dontcare_phrase [weight=0.1]
+    | question:yesno_direct_slot_fill_question '<sep>' ('no' | 'no ,' | '') answer:specific_dontcare_phrase [weight=0.1]
+
+    | preamble:search_result_preamble question:direct_slot_fill_question '<sep>' answer:specific_dontcare_phrase [weight=0.1]
+    | preamble:search_result_preamble question:disjunctive_slot_fill_question '<sep>' ('no' | 'no ,' | '') answer:specific_dontcare_phrase [weight=0.1]
+    | preamble:search_result_preamble question:yesno_direct_slot_fill_question '<sep>' ('no' | 'no ,' | '') answer:specific_dontcare_phrase [weight=0.1]
+    ) => D.impreciseSearchQuestionAnswerPair(question, answer);
+}

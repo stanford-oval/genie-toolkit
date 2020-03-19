@@ -1,0 +1,221 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+// Recommendation templates: the agent reads out or describe the top result from the search,
+// optionally proposing an action to do on it
+
+// A recommendation from the system is followed by:
+// - yes (= "positive_recommendation_reply_pair")
+// - some form of search refinement (= "negative_recommendation_reply_pair")
+// - a question (= "recommendation_search_question_pair")
+// - closing the dialogue (= "recommendation_cancel_pair")
+
+{
+    const assert = require('assert');
+    const ThingTalk = require('thingtalk');
+    const Ast = ThingTalk.Ast;
+    const Type = ThingTalk.Type;
+
+    const C = require('../../ast_manip');
+    const D = require('../../dialogue_utils');
+
+    // import thingpedia info
+    const _tpLoader = require('../../load-thingpedia');
+}
+
+question_system_recommendation_short = {
+    ctx:ctx_with_result_and_action 'how about' proposal:constant_name
+        => D.makeRecommendation(ctx, proposal);
+}
+
+action_recommendation = {
+    ctx:ctx_with_result_and_action 'would you like to' action:direct_action_phrase if complete [weight=0.1]
+        => D.makeActionRecommendation(ctx, action.invocation);
+}
+
+actionable_system_recommendation_short = {
+    ( ctx:ctx_with_result_and_action 'i' ('recommend' | 'suggest') proposal:constant_name
+    | ctx:ctx_with_result_noquestion ('i see' | 'i have' | 'i have found') proposal:constant_name
+    ) => D.makeRecommendation(ctx, proposal);
+}
+
+recommendation_info_action_pair = {
+    'is a' info:result_info_phrase '.' action:action_offer [weight=0.8] => {
+        const resultType = info.schema.getArgType('id');
+
+        if (!resultType || !C.hasArgumentOfType(action, resultType))
+            return null;
+        return [info, action];
+    };
+
+    'is a' info:result_info_phrase '.' learn_more_offer [weight=0.2] => {
+        return [info, null];
+    };
+}
+
+// a recommendation consists of the first result of the current query,
+// and action to do with it
+// the action can come from the context (if the user expressed it earlier), or it can
+// be offered immediately
+system_recommendation = {
+    /* FIXME making a recommendation without saying anything about it seems weird?
+    ( ctx_with_action proposal:question_system_direct_proposal_short '.' [weight=10]
+    | ctx_with_action proposal:actionable_system_direct_proposal_short '.'
+    ) => proposal;
+    */
+
+    ctx_with_action proposal:actionable_system_recommendation_short '.' learn_more_offer => {
+        // reset the action to null if the agent explicitly asks to "learn more"
+        const { topResult, info } = proposal;
+        return { hasLearnMore: true, topResult, info, action: null };
+    };
+
+    ctx_without_projection proposal:action_recommendation => proposal;
+    ctx_without_projection proposal:actionable_system_recommendation_short action:action_offer
+        => D.checkActionForRecommendation(proposal, action);
+
+    // recommendations after a search
+    ( proposal:question_system_recommendation_short '?' 'it is a' info:result_info_phrase '.' [weight=10]
+    | proposal:action_recommendation '?' 'it is a' info:result_info_phrase '.' [weight=5]
+    | proposal:actionable_system_recommendation_short '.' 'it is a' info:result_info_phrase '.' [weight=5]
+    | proposal:question_system_recommendation_short ', which is a' info:result_info_phrase '?' [weight=10]
+    | proposal:action_recommendation ', which is a' info:result_info_phrase '?' [weight=5]
+    | proposal:actionable_system_recommendation_short ', which is a' info:result_info_phrase '.'
+    ) => D.checkRecommendation(proposal, info);
+
+    // long-form answers to a single question
+    proposal:user_question_answer_begin 'is a' info:result_info_phrase '.'
+        => D.checkRecommendation(proposal, info);
+
+    // short answers to a single question
+    ( proposal:user_question_answer_begin filter:avp_filter '.'
+    | proposal:user_question_answer_begin 'is' filter:pvp_filter '.'
+    | proposal:user_question_answer_begin 'is' filter:apv_filter '.'
+    | proposal:user_question_answer_begin 'has' filter:npp_filter '.'
+    ) => D.makeShortUserQuestionAnswer(proposal, filter);
+
+    // recommendations after a search, followed by an offer to make an action
+    ( proposal:actionable_system_recommendation_short '. it' pair:proposal_info_action_pair
+    | proposal:user_question_answer_begin pair:proposal_info_action_pair
+    ) => {
+        const [info, action] = pair;
+        proposal = D.checkRecommendation(proposal, info);
+        if (proposal === null)
+            return null;
+        const { topResult, } = proposal;
+        // reset the action to null if the agent explicitly asks to "learn more"
+        if (action === null)
+            return { hasLearnMore: true, topResult, info, action: null };
+        return D.checkActionForRecommendation(proposal, action);
+    };
+}
+
+verbose_negative_recommendation_reply_pair = {
+    ( prop:system_recommendation '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:answer_noun_phrase
+    | prop:system_recommendation '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for' | 'i do not like' | 'i do not want') phrase:anything_phrase
+    ) => {
+        const { topResult, info, action } = prop;
+        if (info === null || !D.isValidNegativePreambleForInfo(info, phrase))
+            return null;
+        return [topResult, action, phrase];
+    };
+}
+
+negative_recommendation_reply_pair = {
+    ( prop:system_recommendation '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
+    | prop:system_recommendation '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble request:anything_phrase
+    ) => {
+        const { topResult, action } = prop;
+        const proposalType = topResult.value.id.getType();
+        const idType = request.schema.getArgType('id');
+
+        if (!idType || !idType.equals(proposalType))
+            return null;
+        return [topResult, action, request];
+    };
+
+    pair:verbose_negative_recommendation_reply_pair [weight=5] => {
+        const [topResult, action, preamble] = pair;
+        // convert the preamble into a request by negating it
+        const clone = preamble.clone();
+        clone.filter = new Ast.BooleanExpression.Not(null, clone.filter);
+        return [topResult, action, clone];
+    };
+
+    ( pair:verbose_negative_recommendation_reply_pair negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
+    | pair:verbose_negative_recommendation_reply_pair negative_proposal_answer_preamble request:anything_phrase
+    ) => D.mergePreambleAndRequest(pair, request);
+}
+
+positive_recommendation_reply_pair = {
+    prop:system_recommendation '<sep>' accept_phrase [repeat=true] => {
+        const { topResult, action: actionProposal } = prop;
+        // if the user did not give an action earlier, and no action
+        // was proposed by the agent right now, the flow is roughly
+        //
+        // U: hello i am looking for a restaurant
+        // A: how about the ... ?
+        // U: sure I like that
+        //
+        // this doesn't make much sense, so we don't want this flow
+        if (actionProposal === null)
+            return null;
+
+        return [topResult, actionProposal, actionProposal];
+    };
+
+    ( prop:system_recommendation '<sep>' tell_me_more_phrase [weight=0.5]
+    | prop:system_recommendation '<sep>' accept_phrase tell_me_more_phrase [weight=0.5]
+    ) => {
+        const { topResult, action: actionProposal } = prop;
+        // set the action to null, which will hit the "tell me more" path
+        return [topResult, actionProposal, null];
+    };
+}
+
+
+recommendation_search_question_pair = {
+    ( prop:system_recommendation '<sep>' ('no ,' | '') questions:simple_user_search_question
+    | prop:system_recommendation '<sep>' questions:boolean_user_search_question
+    ) => {
+        const { topResult, info, action } = prop;
+        if (info !== null) {
+            for (const [pname, ptype] of questions) {
+                if (info.has(pname))
+                    return null;
+                if (!info.schema.hasArgument(pname))
+                    return null;
+                if (ptype !== null && !info.schema.getArgType(pname).equals(ptype))
+                    return null;
+            }
+        }
+        return [topResult, action, questions];
+    };
+}
+
+
+recommendation_cancel_pair = {
+    // "thanks" without "yes" or "no" is always good
+    prop:system_recommendation '<sep>' thanks_phrase ('goodbye !' | '') => prop;
+
+    // "ok thanks" is good if there was no question
+    prop:system_recommendation '<sep>' ok_thanks_phrase ('goodbye !' | '') => {
+        if (prop.action || prop.hasLearnMore)
+            return null;
+        return prop;
+    };
+
+    // "no thanks" is good if there was a question
+    prop:system_recommendation '<sep>' no_thanks_phrase ('goodbye !' | '') => {
+        if (!prop.action && !prop.hasLearnMore)
+            return null;
+        return prop;
+    };
+}

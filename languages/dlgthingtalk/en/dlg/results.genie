@@ -1,0 +1,177 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+// Templates that describe results from a query
+
+{
+    const assert = require('assert');
+    const ThingTalk = require('thingtalk');
+    const Ast = ThingTalk.Ast;
+    const Type = ThingTalk.Type;
+
+    const C = require('../../ast_manip');
+    const D = require('../../dialogue_utils');
+    const { SlotBag, checkAndAddSlot } = require('../../slot_bag');
+
+    // import thingpedia info
+    const _tpLoader = require('../../load-thingpedia');
+}
+
+// names of objects in the result
+
+result_name_pair = {
+    ctx:ctx_with_result n1:constant_name ',' n2:constant_name => {
+        const results = ctx.results;
+        assert(results.length > 0);
+        if (results.length < 2)
+            return null;
+        if (!ctx.resultInfo.hasID)
+            return null;
+
+        const r1 = results[0];
+        const r2 = results[1];
+        if (!r1.value.id.equals(n1) || !r2.value.id.equals(n2))
+            return null;
+        return results.slice(0, 2);
+    };
+}
+
+result_name_list = {
+    ctx:ctx_with_result n1:constant_name ('and' | 'or') n2:constant_name => {
+        const results = ctx.results;
+        assert(results.length > 0);
+        if (results.length < 2)
+            return null;
+        if (!ctx.resultInfo.hasID)
+            return null;
+
+        const r1 = results[0];
+        const r2 = results[1];
+        if (!r1.value.id.equals(n1) || !r2.value.id.equals(n2))
+            return null;
+        return results.slice(0, 2);
+    };
+
+    ctx:ctx_with_result result_name_pair ('and' | 'or') n3:constant_name => {
+        const results = ctx.results;
+        assert(results.length > 0);
+        if (results.length < 3)
+            return null;
+        if (!ctx.resultInfo.hasID)
+            return null;
+        const r3 = results[2];
+        if (!r3.value.id.equals(n3))
+            return null;
+        return results.slice(0, 3);
+    };
+}
+
+
+result_info_phrase = {
+    // one, two or three slots, without any "or", "not" or "comparison" filters
+    // only "and" and "contains"
+    // and furthermore, if the context is a projection, all projected fields must
+    // appear as filters
+    ctx:ctx_with_result table:one_with_info_phrase [weight=0.33*2] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:one_which_info_phrase [weight=0.33*2] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:one_clean_info_phrase [weight=0.33*2] => D.checkInfoPhrase(ctx, table);
+
+    ctx:ctx_with_result table:two_with_info_phrase [weight=0.33] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:two_which_info_phrase [weight=0.33] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:two_clean_info_phrase [weight=0.33] => D.checkInfoPhrase(ctx, table);
+
+    ctx:ctx_with_result table:three_with_info_phrase [weight=0.33*0.5] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:three_which_info_phrase [weight=0.33*0.5] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:three_clean_info_phrase [weight=0.33*0.5] => D.checkInfoPhrase(ctx, table);
+}
+
+base_slot_bag = {
+    table:base_table => new SlotBag(table.schema);
+}
+
+one_with_info_phrase = {
+    table:base_slot_bag ('with' | 'having') filter:npp_filter => checkAndAddSlot(table, filter);
+}
+
+one_which_info_phrase = {
+    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
+    table:base_slot_bag ('which' | 'that') filter:avp_filter => checkAndAddSlot(table, filter);
+    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:apv_filter => checkAndAddSlot(table, filter);
+    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:npv_filter => checkAndAddSlot(table, filter);
+}
+
+one_clean_info_phrase = {
+    filter:apv_filter table:base_slot_bag => checkAndAddSlot(table, filter);
+    table:base_slot_bag filter:pvp_filter => checkAndAddSlot(table, filter);
+    table:base_slot_bag filter:preposition_filter => checkAndAddSlot(table, filter);
+}
+
+two_with_info_phrase = {
+    table:one_with_info_phrase 'and' filter:npp_filter => checkAndAddSlot(table, filter);
+    table:one_which_info_phrase ('and having' | 'and with' | ', with') filter:npp_filter => checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('with' | 'having') filter:npp_filter => checkAndAddSlot(table, filter);
+
+    filter:apv_filter table:one_with_info_phrase => checkAndAddSlot(table, filter);
+}
+
+two_which_info_phrase = {
+    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
+    table:one_with_info_phrase ('which' | 'that') filter:avp_filter => checkAndAddSlot(table, filter);
+    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => checkAndAddSlot(table, filter);
+    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npv_filter => checkAndAddSlot(table, filter);
+
+    table:one_which_info_phrase 'and' ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
+    table:one_which_info_phrase 'and' filter:avp_filter => checkAndAddSlot(table, filter);
+    table:one_which_info_phrase 'and' ('is' | 'are') filter:apv_filter => checkAndAddSlot(table, filter);
+    table:one_which_info_phrase 'and' ('is' | 'are') filter:npv_filter => checkAndAddSlot(table, filter);
+
+    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('which' | 'that') filter:avp_filter => checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npv_filter => checkAndAddSlot(table, filter);
+
+    filter:apv_filter table:one_which_info_phrase => checkAndAddSlot(table, filter);
+}
+
+two_clean_info_phrase = {
+    filter:apv_filter table:one_clean_info_phrase => checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase filter:pvp_filter => checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase filter:preposition_filter => checkAndAddSlot(table, filter);
+}
+
+three_with_info_phrase = {
+    table:two_with_info_phrase 'and' filter:npp_filter => checkAndAddSlot(table, filter);
+    table:two_which_info_phrase ('and having' | 'and with' | ', with') filter:npp_filter => checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase ('with' | 'having') filter:npp_filter => checkAndAddSlot(table, filter);
+
+    filter:apv_filter table:two_with_info_phrase => checkAndAddSlot(table, filter);
+}
+
+three_which_info_phrase = {
+    table:two_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
+    table:two_with_info_phrase ('which' | 'that') filter:avp_filter => checkAndAddSlot(table, filter);
+    table:two_with_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => checkAndAddSlot(table, filter);
+
+    table:two_which_info_phrase 'and' ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
+    table:two_which_info_phrase 'and' filter:avp_filter => checkAndAddSlot(table, filter);
+    table:two_which_info_phrase 'and' ('is' | 'are') filter:apv_filter => checkAndAddSlot(table, filter);
+
+    table:two_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase ('which' | 'that') filter:avp_filter => checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => checkAndAddSlot(table, filter);
+
+    filter:apv_filter table:two_which_info_phrase => checkAndAddSlot(table, filter);
+}
+
+three_clean_info_phrase = {
+    filter:apv_filter table:two_clean_info_phrase => checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase filter:pvp_filter => checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase filter:preposition_filter => checkAndAddSlot(table, filter);
+}
