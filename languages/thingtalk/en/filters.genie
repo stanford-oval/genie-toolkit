@@ -466,8 +466,8 @@ both_prefix = {
 }
 
 preposition_filter = {
-    ('here' | 'around here' | 'near here') => C.makeFilter(new Ast.Value.VarRef('geo'), '==', Ast.Value.Location(Ast.Location.Relative('current_location')));
-    ('nearby' | 'around me' | 'in this area') => C.makeFilter(new Ast.Value.VarRef('geo'), '==', Ast.Value.Location(Ast.Location.Relative('current_location')));
+    ('here' | 'around here' | 'near here') => C.makeFilter(new Ast.Value.VarRef('geo'), '==', new Ast.Value.Location(new Ast.Location.Relative('current_location')));
+    ('nearby' | 'around me' | 'in this area') => C.makeFilter(new Ast.Value.VarRef('geo'), '==', new Ast.Value.Location(new Ast.Location.Relative('current_location')));
     ('in' | 'around' | 'near') x:constant_Location=> C.makeFilter(new Ast.Value.VarRef('geo'), '==', x);
 }
 
