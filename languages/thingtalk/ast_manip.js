@@ -27,12 +27,8 @@ function makeDate(base, operator, offset) {
     if (offset === null)
         return base;
 
-    const value = new Ast.Value.Computation('+', [base, offset]);
-    value.overload = [Type.Date, Type.Measure('ms'), Type.Date];
-    // HACK
-    value.getType = function() {
-        return Type.Date;
-    };
+    const value = new Ast.Value.Computation('+', [base, offset],
+        [Type.Date, Type.Measure('ms'), Type.Date], Type.Date);
     return value;
 }
 
@@ -220,8 +216,8 @@ function makeAggregateFilter($options, param, aggregationOp, field, op, value) {
         if (!value.getType().isNumber)
             return null;
         assert(field === null);
-        const agg = new Ast.Value.Computation(aggregationOp, [param]);
-        agg.overload = [Type.Array('x'), Type.Number];
+        const agg = new Ast.Value.Computation(aggregationOp, [param],
+            [Type.Array('x'), Type.Number], Type.Number);
         return new Ast.BooleanExpression.Compute(null, agg, op, value);
     } else if (['sum', 'avg', 'max', 'min'].includes(aggregationOp)) {
         const vtype = value.getType();
@@ -234,8 +230,7 @@ function makeAggregateFilter($options, param, aggregationOp, field, op, value) {
         }
         const agg = new Ast.Value.Computation(aggregationOp, [
             param ? new Ast.Value.ArrayField(param, field.name) : param
-        ]);
-        agg.overload = [Type.Array(vtype), vtype];
+        ], [Type.Array(vtype), vtype], vtype);
         return new Ast.BooleanExpression.Compute(null, agg, op, value);
     }
     return null;
@@ -251,8 +246,7 @@ function makeAggregateFilterWithFilter($options, param, filter, aggregationOp, f
         if (!value.getType().isNumber)
             return null;
         assert(field === null);
-        const agg = new Ast.Value.Computation(aggregationOp, [list]);
-        agg.overload = [Type.Array('x'), Type.Number];
+        const agg = new Ast.Value.Computation(aggregationOp, [list], [Type.Array('x'), Type.Number], Type.Number);
         return new Ast.BooleanExpression.Compute(null, agg, op, value);
     } else if (['sum', 'avg', 'max', 'min'].includes(aggregationOp)) {
         const vtype = value.getType();
@@ -265,8 +259,7 @@ function makeAggregateFilterWithFilter($options, param, filter, aggregationOp, f
         }
         const agg = new Ast.Value.Computation(aggregationOp, [
             field ? new Ast.Value.ArrayField(list, field.name) : list
-        ]);
-        agg.overload = [Type.Array(vtype), vtype];
+        ], [Type.Array(vtype), vtype], vtype);
         return new Ast.BooleanExpression.Compute(null, agg, op, value);
     }
     return null;
@@ -309,7 +302,7 @@ function resolveProjection(args, schema) {
     // if default_projection is non-empty, it's overwritten after a projection
     schema.default_projection = [];
     if (schema.annotations)
-        schema.annotations.default_projection = Ast.Value.Array([]);
+        schema.annotations.default_projection = new Ast.Value.Array([]);
     return schema.filterArguments((a) => a.is_input || args.has(a.name));
 }
 
@@ -1457,8 +1450,10 @@ function makeComputeExpression(table, operation, operands, resultType) {
     const computeSchema = table.schema.addArguments([
         new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType)]);
     const expression = new Ast.Value.Computation(operation, operands);
-    if (operation === 'distance')
+    if (operation === 'distance') {
         expression.overload = [Type.Location, Type.Location, Type.Measure('m')];
+        expression.type = Type.Measure('m');
+    }
 
     return new Ast.Table.Compute(null, table, expression, null, computeSchema);
 }
@@ -1500,10 +1495,13 @@ function makeAggComputeExpression(table, operation, field, list, resultType) {
     const computeSchema = table.schema.addArguments([
         new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType)]);
     const expression = new Ast.Value.Computation(operation, [field ? new Ast.Value.ArrayField(list, field) : list]);
-    if (operation === 'count')
+    if (operation === 'count') {
         expression.overload = [Type.Array('x'), Type.Number];
-    else
+        expression.type = Type.Number;
+    } else {
         expression.overload = [Type.Array(resultType), resultType];
+        expression.type = resultType;
+    }
 
     return new Ast.Table.Compute(null, table, expression, null, computeSchema);
 }

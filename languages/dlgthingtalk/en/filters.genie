@@ -20,6 +20,8 @@ const Type = ThingTalk.Type;
 const C = require('../ast_manip');
 
 const _tpLoader = require('../load-thingpedia');
+
+const HERE = new Ast.Value.Location(new Ast.Location.Relative('current_location'));
 }
 
 // generic filters (npp)
@@ -466,8 +468,8 @@ both_prefix = {
 }
 
 preposition_filter = {
-    ('here' | 'around here' | 'near here') => C.makeFilter(new Ast.Value.VarRef('geo'), '==', Ast.Value.Location(Ast.Location.Relative('current_location')));
-    ('nearby' | 'around me' | 'in this area') => C.makeFilter(new Ast.Value.VarRef('geo'), '==', Ast.Value.Location(Ast.Location.Relative('current_location')));
+    ('here' | 'around here' | 'near here') => C.makeFilter(new Ast.Value.VarRef('geo'), '==', HERE);
+    ('nearby' | 'around me' | 'in this area') => C.makeFilter(new Ast.Value.VarRef('geo'), '==', HERE);
     ('in' | 'around' | 'near') x:constant_Location=> C.makeFilter(new Ast.Value.VarRef('geo'), '==', x);
 }
 
