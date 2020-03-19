@@ -2,15 +2,67 @@ import csv
 import argparse
 import json
 import torch
+import torch.nn.functional as F
 import sys
-from transformers import BertTokenizer, BertModel, BertForMaskedLM
+from transformers import BertTokenizer, BertModel, BertForMaskedLM, GPT2Tokenizer, GPT2LMHeadModel
 
 BLACK_LIST = ['a', 'an', 'the', 'its', 'their', 'his', 'her']
 
+class GPT2Ranker:
+    def __init__(self, model_name_or_path, prompt_token='<paraphrase>', end_token='</paraphrase>'):
+        self.tokenizer = GPT2Tokenizer.from_pretrained(model_name_or_path)
+        self.model = GPT2LMHeadModel.from_pretrained(model_name_or_path)
+        self.prompt_token = prompt_token
+        self.end_token = end_token
+        # model.to(args.device)
+
+        self.model.eval()
+        
+    def choose_more_natural(self, phrases):
+        best = phrases[0]
+        best_idx = 0
+        for i in range(1, len(phrases)):
+            best, idx = self._choose_more_natural(best, phrases[i])
+            if idx == 1:
+                best_idx = i
+        return best, best_idx
+
+    def _choose_more_natural(self, phrase1, phrase2):
+        s1 = self._assign_score(phrase1, phrase2)
+        s2 = self._assign_score(phrase2, phrase1)
+        if s1 > s2:
+            return phrase2, 1
+        else:
+            return phrase1, 0
+
+    def similarity(self, phrase1, phrase2):
+        return (self._assign_score(phrase1, phrase2) + self._assign_score(phrase2, phrase1)) / 2.0
+
+    def _assign_score(self, original, paraphrase):
+        original += self.prompt_token
+        paraphrase += self.end_token
+        original_tokens = self.tokenizer.encode(original, add_special_tokens=False)
+        paraphrase_tokens = self.tokenizer.encode(paraphrase, add_special_tokens=False)
+        position_ids = list(range(len(original_tokens))) + list(range(len(paraphrase_tokens)))
+        segment_ids = [self.tokenizer.convert_tokens_to_ids(self.prompt_token)] *len(original_tokens) + \
+                      [self.tokenizer.convert_tokens_to_ids(self.end_token)] * len(paraphrase_tokens)
+
+        input_ids = torch.tensor(original_tokens + paraphrase_tokens, dtype=torch.long)
+        position_ids = torch.tensor(position_ids, dtype=torch.long)
+        segment_ids = torch.tensor(segment_ids, dtype=torch.long)
+
+        with torch.no_grad():
+            outputs = self.model(input_ids=input_ids, position_ids=position_ids, token_type_ids=segment_ids)
+            next_token = input_ids[len(original_tokens):].unsqueeze(-1)
+            logprobs = F.log_softmax(outputs[0][len(original_tokens)-1:-1], dim=-1) # shift one token to left
+            score = torch.exp(torch.mean(logprobs.gather(1, next_token)))
+            # print('score = %.3f' % score.item())
+
+        return score.item()
 
 
 class BertLM:
-    def __init__(self, domain, examples, mask, k, model_name_or_path, is_paraphraser):
+    def __init__(self, domain, examples, mask, k, model_name_or_path, is_paraphraser, ranker_path, check_permutations, rank):
         """
         :param domain: an object contains the canonical form and paths to parameters for each table in the domain
         :param examples: an object of examples for each grammar category of each property of each table
@@ -27,6 +79,10 @@ class BertLM:
         self.model = BertForMaskedLM.from_pretrained(model_name_or_path)
         self.model.eval()
         self.is_paraphraser = is_paraphraser
+        self.check_permutations = check_permutations
+        self.rank = rank
+        if self.check_permutations or self.rank:
+            self.ranker= GPT2Ranker(ranker_path)
 
         self.mask = mask
         self.k = k
@@ -126,7 +182,12 @@ class BertLM:
             predictions = self.predict_one(table, arg, query, query.split(' ')[i], None)
             for token in predictions:
                 candidate = self.construct_canonical(query, masks, i, token)
+                if self.check_permutations:
+                    _, candidate, _ = self._make_more_natural(query, masks, candidate)
+
                 candidates.append(candidate)
+
+            
         return candidates
 
     def predict(self):
@@ -139,13 +200,33 @@ class BertLM:
             count = {}
             for example in self.examples[table][arg][pos]['examples']:
                 query, masks = example['query'], example['masks']
-                candidates = self.predict_one_type(table, arg, query, masks)
-                example['candidates'] = candidates
-                for candidate in candidates:
-                    if candidate in count:
-                        count[candidate] += 1
+                ### for older versions
+                if 'value' not in masks:
+                    if len(masks['suffix'])==0:
+                        masks['value'] = list(range(max(masks['prefix'])+1, len(query.split(' '))-1))
                     else:
-                        count[candidate] = 1
+                        masks['value'] = list(range(max(masks['prefix'])+1, min(masks['suffix'])))
+                ###
+                natural_query, natural_candidate, natural_masks = self._make_more_natural(query, masks)
+                candidates1 = self.predict_one_type(table, arg, query, masks)
+
+                if self.check_permutations:
+                    candidates2 = self.predict_one_type(table, arg, natural_query, natural_masks) # we might be double counting if query==natural_query
+                else:
+                    candidates2 = []
+                
+                example['candidates'] = candidates1 + candidates2
+                for candidate in candidates1 + candidates2:
+                    new_query = self._plug_in_query(query, masks, candidate)
+                    if self.rank:
+                        # TODO we sum ranker scores, but we should sum logits. The problem now is that if a candidate does not appear for a query, it gets logit=0 which is the max, not min
+                        score = self.ranker.similarity(natural_query, new_query)
+                    else:
+                        score = 1 # just count
+                    if candidate in count:
+                        count[candidate] += score
+                    else:
+                        count[candidate] = score
             self.examples[table][arg][pos]['candidates'] = count
 
         return self.examples
@@ -185,6 +266,101 @@ class BertLM:
         return values
 
     @staticmethod
+    def _get_original_candidate(query, masks):
+        query = query.split(' ')
+        pre, prefix, value, suffix, post = BertLM._split_query_to_sections(query, masks)
+        candidate = ' '.join(prefix)
+        if len(suffix) > 0:
+            candidate += ' #'
+        candidate += ' '.join(suffix)
+        candidate = candidate.strip()
+        return candidate
+
+    def _make_more_natural(self, query, masks, candidate=None):
+        if candidate is None:
+            candidate = self._get_original_candidate(query, masks)
+        permutations, permutations_candidate, permutations_masks = self._get_query_permutations(query, masks, candidate)
+        most_natural, most_natural_idx = self.ranker.choose_more_natural(permutations)
+        new_candidate = permutations_candidate[most_natural_idx]
+        new_masks = permutations_masks[most_natural_idx]
+        return most_natural, new_candidate, new_masks
+
+
+    @staticmethod
+    def _plug_in_query(query, masks, candidate):
+        query = query.split(' ')
+        pre, prefix, value, suffix, post = BertLM._split_query_to_sections(query, masks)
+        candidate = candidate.split(' ')
+        value_index = [i for i in candidate if i.startswith('#')]
+        if len(value_index)==0:
+            value_index = len(candidate)
+        else:
+            value_index = candidate.index(value_index[0])
+        candidate = [c.replace('#', '') for c in candidate]
+        assert len(prefix+suffix) == len(candidate)
+
+        return ' '.join(pre + candidate[:value_index]+value+candidate[value_index:] + post)
+
+    @staticmethod
+    def _split_query_to_sections(query, masks):
+        """
+        query is a list of tokens
+        """
+        changeable_part = masks['prefix']+masks['value']+masks['suffix']
+        pre = query[:min(changeable_part)]
+        if len(masks['prefix']) == 0:
+            prefix = []
+        else:
+            prefix = query[min(masks['prefix']):max(masks['prefix'])+1]
+        value = query[min(masks['value']):max(masks['value'])+1]
+        if len(masks['suffix']) == 0:
+            suffix = []
+        else:
+            suffix  = query[min(masks['suffix']):max(masks['suffix'])+1]
+        post = query[max(changeable_part)+1:]
+
+        assert ' '.join(pre + prefix + value + suffix + post) == ' '.join(query)
+
+        return pre, prefix, value, suffix, post
+
+    @staticmethod
+    def _get_query_permutations(query, masks, candidate):
+        # We assume masks['prefix'] + masks['value'] + masks['suffix'] is a list of consecutive integers
+        query = query.split(' ')
+        candidate = candidate.replace('#', '').split(' ')
+        for idx, position in enumerate(masks['prefix']+masks['suffix']):
+            query[position] = candidate[idx]
+        
+        pre, prefix, value, suffix, post = BertLM._split_query_to_sections(query, masks)
+
+        prefix = prefix+suffix
+        suffix = []
+        permutations = []
+        permutations_candidate = []
+        permutations_masks = []
+        itarations = len(prefix)+len(suffix)+1
+        for i in range(itarations):
+            permutations.append(' '.join(pre + prefix + value + suffix + post))
+            permutations_masks.append({
+                'prefix': list(range(len(pre), len(pre)+len(prefix))),
+                'value': list(range(len(pre)+len(prefix), len(pre)+len(prefix)+len(value))),
+                'suffix': list(range(len(pre)+len(prefix)+len(value), len(pre)+len(prefix)+len(value)+len(suffix)))
+            })
+            c = ' '.join([candidate[j] for j in range(len(prefix))])
+            if len(suffix) > 0:
+                c += ' #'
+            c += ' '.join([candidate[j] for j in range(len(prefix), len(prefix)+len(suffix))])
+            c = c.strip()
+
+            permutations_candidate.append(c)
+            
+            if len(prefix) > 0:
+                suffix.insert(0, prefix[-1])
+                prefix = prefix[:-1]
+                
+        return permutations, permutations_candidate, permutations_masks
+
+    @staticmethod
     def construct_canonical(query, masks, current_index, replacement):
         """
         Construct the full canonical form after getting the prediction
@@ -210,8 +386,8 @@ class BertLM:
                 suffix.append(query[i])
 
         if len(suffix) > 0:
-            return ' '.join(prefix) + ' #' + ' '.join(suffix)
-        return ' '.join(prefix)
+            return (' '.join(prefix) + ' #' + ' '.join(suffix)).strip()
+        return ' '.join(prefix).strip()
 
 
 if __name__ == '__main__':
@@ -243,11 +419,25 @@ if __name__ == '__main__':
     parser.add_argument('--is-paraphraser',
                         action='store_true',
                         help='If the model has been trained on a paraphrasing corpus')
+    parser.add_argument('--check-permutations',
+                        action='store_true',
+                        help='Use a GPT2-based model to select the best location for the value in the input queries')
+    parser.add_argument('--ranker-path',
+                        type=str,
+                        help='The path to the directory where the ranker model is saved.')
+    parser.add_argument('--rank',
+                        action='store_true',
+                        help='Use a GPT2-based ranker to rank the outputs of bert')
+    parser.add_argument('--output-file',
+                        type=str,
+                        default=None,
+                        help='If provided, the output will be written into the file instead of stdout')
     args = parser.parse_args()
 
     examples, domain = json.load(sys.stdin).values()
 
-    bert = BertLM(domain, examples, args.mask, args.k, args.model_name_or_path, args.is_paraphraser)
+    bert = BertLM(domain, examples, args.mask, args.k, args.model_name_or_path, args.is_paraphraser,
+                  args.ranker_path, args.check_permutations, args.rank)
 
     output = {}
     if args.command == 'synonyms' or args.command == 'all':
@@ -255,4 +445,8 @@ if __name__ == '__main__':
     if args.command == 'adjectives' or args.command == 'all':
         output['adjectives'] = bert.predict_adjectives(args.k_adjectives)
 
-    print(json.dumps(output))
+    if args.output_file is None:
+        print(json.dumps(output, indent=2))
+    else:
+        with open(args.output_file, 'w') as f:
+            json.dump(output, f)
