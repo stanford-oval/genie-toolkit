@@ -258,7 +258,7 @@ $root = {
     ctx:ctx_search_command qa:imprecise_search_question_answer_pair [weight=5] =>
         D.impreciseSearchQuestionAnswer(ctx, qa);
 
-    /*( ctx:ctx_search_command pair:negative_proposal_reply_pair [weight=0.5]
+    ( ctx:ctx_search_command pair:negative_proposal_reply_pair [weight=0.5]
     | ctx:ctx_search_command pair:positive_proposal_reply_pair [weight=0.5]
     ) =>
         D.proposalReplyPair(ctx, pair);
@@ -281,5 +281,5 @@ $root = {
     ctx:ctx_complete_search_command pair:positive_list_proposal_reply_pair [weight=10 * 0.7]
         => D.positiveListProposalReplyPair(ctx, pair);
     ctx:ctx_complete_search_command pair:list_proposal_search_question_pair [weight=10]
-        => D.listProposalSearchQuestionPair(ctx, pair);*/
+        => D.listProposalSearchQuestionPair(ctx, pair);
 }

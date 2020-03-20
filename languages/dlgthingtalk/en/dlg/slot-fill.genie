@@ -27,12 +27,17 @@
     const _tpLoader = require('../../load-thingpedia');
 }
 
+prefer_question_phrase = {
+    'do you want';
+    'would you prefer';
+    'would you like';
+    'are you interested in';
+    'are you looking for';
+}
+
 one_param_direct_search_question = {
-    ( 'what' p:out_param_Any 'do you want ?'
-    | 'what' p:out_param_Any 'would you prefer ?'
-    | 'what' p:out_param_Any 'would you like ?'
-    | 'what' p:out_param_Any 'are you interested in ?'
-    | 'what' p:out_param_Any 'are you looking for ?'
+    ( 'what' p:out_param_Any prefer_question_phrase '?'
+    | p:thingpedia_search_question '?'
     ) => {
         if (p.name === 'id')
             return null;
@@ -41,11 +46,9 @@ one_param_direct_search_question = {
 }
 
 two_param_direct_search_question = {
-    ( 'what' p1:out_param_Any 'and' p2:out_param_Any 'do you want ?'
-    | 'what' p1:out_param_Any 'and' p2:out_param_Any 'would you prefer ?'
-    | 'what' p1:out_param_Any 'and' p2:out_param_Any 'would you like ?'
-    | 'what' p1:out_param_Any 'and' p2:out_param_Any 'are you interested in ?'
-    | 'what' p1:out_param_Any 'and' p2:out_param_Any 'are you looking for ?'
+    ( 'what' p1:out_param_Any 'and' p2:out_param_Any prefer_question_phrase '?'
+    | p1:thingpedia_search_question 'and' 'what' p2:out_param_Any prefer_question_phrase '?'
+    | 'what' p1:out_param_Any prefer_question_phrase 'and' p2:thingpedia_search_question '?'
     ) => {
         if (p1.name === 'id' || p2.name === 'id' || p1.name === p2.name)
             return null;

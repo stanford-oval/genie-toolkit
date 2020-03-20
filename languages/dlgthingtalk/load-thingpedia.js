@@ -167,6 +167,15 @@ class ThingpediaLoader {
         if (ptype.isCompound)
             return;
 
+        if (arg.metadata.prompt) {
+            let prompt = arg.metadata.prompt;
+            if (typeof prompt === 'string')
+                prompt = [prompt];
+
+            for (let form of prompt)
+                this._grammar.addRule('thingpedia_slot_fill_question', [form], this._runtime.simpleCombine(() => pname));
+        }
+
         // FIXME boolean types are not handled, they have no way to specify the true/false phrase
         if (ptype.isBoolean)
             return;
@@ -247,9 +256,19 @@ class ThingpediaLoader {
         this.params.out.add(key);
 
         const typestr = this._recordType(ptype);
+        const pvar = new Ast.Value.VarRef(pname);
 
         if (ptype.isCompound)
             return;
+
+        if (arg.metadata.prompt) {
+            let prompt = arg.metadata.prompt;
+            if (typeof prompt === 'string')
+                prompt = [prompt];
+
+            for (let form of prompt)
+                this._grammar.addRule('thingpedia_search_question', [form], this._runtime.simpleCombine(() => pvar));
+        }
 
         if (ptype.isBoolean)
             return;
@@ -262,7 +281,6 @@ class ThingpediaLoader {
             }
         }
 
-        const pvar = new Ast.Value.VarRef(pname);
         if (arg.metadata.counted_object) {
             let forms = Array.isArray(arg.metadata.counted_object) ?
                 arg.metadata.counted_object : [arg.metadata.counted_object];

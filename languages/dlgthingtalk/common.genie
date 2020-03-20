@@ -26,6 +26,9 @@ thingpedia_action = {}
 thingpedia_program = {}
 thingpedia_who_question = {}
 
+thingpedia_search_question = {}
+thingpedia_slot_fill_question = {}
+
 out_param_Numeric = {
     out_param_Number;
     out_param_Currency;
