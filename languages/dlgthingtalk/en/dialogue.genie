@@ -258,6 +258,11 @@ $root = {
     ctx:ctx_search_command qa:imprecise_search_question_answer_pair [weight=5] =>
         D.impreciseSearchQuestionAnswer(ctx, qa);
 
+    ctx:ctx_incomplete_action qa:precise_slot_fill_question_answer_pair
+        => D.preciseSlotFillQuestionAnswer(ctx, qa);
+    ctx:ctx_incomplete_action qa:imprecise_slot_fill_question_answer_pair
+        => D.impreciseSlotFillQuestionAnswer(ctx, qa);
+
     ( ctx:ctx_search_command pair:negative_proposal_reply_pair [weight=0.5]
     | ctx:ctx_search_command pair:positive_proposal_reply_pair [weight=0.5]
     ) =>

@@ -48,7 +48,7 @@ system_list_proposal = {
         return D.checkListProposal(ctx, name_list, info);
     };
 
-    ctx:ctx_complete_search_command ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_proposal => {
+    ctx:ctx_complete_search_command ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_list_proposal => {
         const resultType = name_list[0].value.id.getType();
         if (!C.hasArgumentOfType(action, resultType))
             return null;

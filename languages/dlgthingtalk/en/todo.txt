@@ -12,8 +12,5 @@ For MultiWOZ searches:
 
 For actions:
 - accepting actions (setting parameters)
-- slot filling actions
 - action results
 - error messages
-
-

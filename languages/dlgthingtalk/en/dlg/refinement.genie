@@ -118,7 +118,7 @@ empty_search_change_pair = {
         return [param, phrase];
     };
 
-    error:empty_search_error '<sep>' ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') answer:imprecise_answer_phrase '?' => {
+    error:empty_search_error '<sep>' ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') answer:imprecise_search_answer_phrase '?' => {
         const [base, param] = error;
         if (base === null || param === null)
             return null;

@@ -36,7 +36,7 @@ question_system_recommendation_short = {
 }
 
 action_recommendation = {
-    ctx:ctx_with_result_and_action 'would you like to' action:direct_action_phrase if complete [weight=0.1]
+    ctx:ctx_with_result_and_action 'would you like to' action:contextual_action_phrase if complete [weight=0.1]
         => D.makeActionRecommendation(ctx, action.invocation);
 }
 
@@ -47,7 +47,7 @@ actionable_system_recommendation_short = {
 }
 
 recommendation_info_action_pair = {
-    'is a' info:result_info_phrase '.' action:action_offer [weight=0.8] => {
+    'is a' info:result_info_phrase '.' action:action_coref_recommendation [weight=0.8] => {
         const resultType = info.schema.getArgType('id');
 
         if (!resultType || !C.hasArgumentOfType(action, resultType))
@@ -66,7 +66,7 @@ user_question_answer_begin = {
 }
 
 proposal_info_action_pair = {
-    'is a' info:result_info_phrase '.' action:action_offer [weight=0.8] => {
+    'is a' info:result_info_phrase '.' action:action_coref_recommendation [weight=0.8] => {
         const resultType = info.schema.getArgType('id');
 
         if (!resultType || !C.hasArgumentOfType(action, resultType))
@@ -97,7 +97,7 @@ system_recommendation = {
     };
 
     ctx_without_projection proposal:action_recommendation => proposal;
-    ctx_without_projection proposal:actionable_system_recommendation_short action:action_offer
+    ctx_without_projection proposal:actionable_system_recommendation_short action:action_coref_recommendation
         => D.checkActionForRecommendation(proposal, action);
 
     // recommendations after a search

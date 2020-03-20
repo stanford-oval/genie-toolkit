@@ -234,7 +234,7 @@ class NextStatementInfo {
 }
 
 class ContextInfo {
-    constructor(state, currentFunctionSchema, resultInfo, currentIdx, nextIdx, nextInfo) {
+    constructor(state, currentFunctionSchema, resultInfo, currentIdx, nextIdx, nextFunctionSchema, nextInfo) {
         this.state = state;
 
         assert(currentFunctionSchema === null || currentFunctionSchema instanceof Ast.FunctionDef);
@@ -247,6 +247,15 @@ class ContextInfo {
         }
         this.resultInfo = resultInfo;
         this.currentIdx = currentIdx;
+
+        assert(nextFunctionSchema === null || nextFunctionSchema instanceof Ast.FunctionDef);
+        if (nextFunctionSchema === null) {
+            this.nextFunctionSchema = null;
+            this.nextFunction = null;
+        } else {
+            this.nextFunctionSchema = nextFunctionSchema;
+            this.nextFunction = nextFunctionSchema.class.name + ':' + nextFunctionSchema.name;
+        }
         this.nextIdx = nextIdx;
         this.nextInfo = nextInfo;
     }
@@ -267,23 +276,24 @@ class ContextInfo {
 
     clone() {
         return new ContextInfo(this.state.clone(), this.currentFunctionSchema, this.resultInfo,
-            this.currentIdx, this.nextIdx, this.nextInfo);
+            this.currentIdx, this.nextIdx, this.nextFunctionSchema, this.nextInfo);
     }
 }
 
 function getContextInfo(state) {
     assert (!state.dialogueAct.startsWith('sys_'), `Unexpected system dialogue act ${state.dialogueAct}`);
 
-    let nextItemIdx = null, nextInfo = null, currentFunction = null, currentResultInfo = null,
+    let nextItemIdx = null, nextInfo = null, currentFunction = null, nextFunction = null, currentResultInfo = null,
         currentItemIdx = null;
     for (let idx = 0; idx < state.history.length; idx ++) {
         const item = state.history[idx];
+        const functions = C.getFunctions(item.stmt);
         if (item.results === null) {
             nextItemIdx = idx;
+            nextFunction = functions[functions.length-1];
             nextInfo = new NextStatementInfo(state.history[currentItemIdx], currentResultInfo, item);
             break;
         }
-        const functions = C.getFunctions(item.stmt);
         currentFunction = functions[functions.length-1];
         currentItemIdx = idx;
         currentResultInfo = new ResultInfo(item, functions);
@@ -294,7 +304,7 @@ function getContextInfo(state) {
         assert(nextItemIdx === currentItemIdx + 1);
 
     return new ContextInfo(state, currentFunction, currentResultInfo,
-        currentItemIdx, nextItemIdx, nextInfo);
+        currentItemIdx, nextItemIdx, nextFunction, nextInfo);
 }
 
 function isUserAskingResultQuestion(ctx) {
@@ -446,6 +456,12 @@ function addActionParam(ctxClone, dialogueAct, action, pname, value, confirm) {
     return addNewItem(ctxClone, newHistoryItem, confirm);
 }
 
+function replaceAction(ctxClone, dialogueAct, action, confirm) {
+    let newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, action, action.schema)]);
+    let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
+
+    return addNewItem(ctxClone, newHistoryItem, confirm);
+}
 
 function addAction(ctxClone, dialogueAct, action, confirm) {
     assert(action instanceof Ast.Invocation);
@@ -515,4 +531,5 @@ module.exports = {
     addActionParam,
     addAction,
     addQuery,
+    replaceAction,
 };

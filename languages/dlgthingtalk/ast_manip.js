@@ -27,7 +27,7 @@ function makeDate(base, operator, offset) {
     if (offset === null)
         return base;
 
-    const value = new Ast.Value.Computation('+', [base, offset],
+    const value = new Ast.Value.Computation(operator, [base, offset],
         [Type.Date, Type.Measure('ms'), Type.Date], Type.Date);
     return value;
 }
@@ -1140,7 +1140,11 @@ function whenGetStream(stream, pname, joinArg) {
 function isConstantAssignable(value, ptype) {
     if (!ptype)
         return false;
-    if (!Type.isAssignable(value.getType(), ptype))
+    const vtype = value.getType();
+    if (!Type.isAssignable(vtype, ptype))
+        return false;
+    // prevent mixing date and type (ThingTalk allows it to support certain time get predicates)
+    if ((vtype.isDate && ptype.isTime) || (vtype.isTime && ptype.isDate))
         return false;
     if (value.getType().isEnum && (!ptype.isEnum || ptype.entries.indexOf(value.value) < 0))
         return false;
@@ -1575,6 +1579,55 @@ function filterUsesParam(filter, pname) {
     return used;
 }
 
+function addInvocationInputParam(invocation, param) {
+    assert(invocation instanceof Ast.Invocation);
+    const arg = invocation.schema.getArgument(param.name);
+    if (!arg || !arg.is_input || !isConstantAssignable(param.value, arg.type))
+        return null;
+    if (param.value.getType().isDate)
+        console.log(param, arg);
+    assert(!param.value.getType().isDate);
+
+    if (arg.type.isNumber || arg.type.isMeasure) {
+        let min = -Infinity;
+        let minArg = arg.getImplementationAnnotation('min_number');
+        if (minArg !== undefined)
+            min = minArg;
+        let maxArg = arg.getImplementationAnnotation('max_number');
+        let max = Infinity;
+        if (maxArg !== undefined)
+            max = maxArg;
+
+        const value = param.value.toJS();
+        if (value < min || value > max)
+            return null;
+    }
+
+    const clone = invocation.clone();
+    for (let existing of clone.in_params) {
+        if (existing.name === param.name) {
+            if (existing.value.isUndefined) {
+                existing.value = param.value;
+                return clone;
+            } else {
+                return null;
+            }
+        }
+    }
+    clone.in_params.push(param);
+    return clone;
+}
+
+function addActionInputParam(action, param) {
+    assert(action instanceof Ast.Action.Invocation || action instanceof Ast.Table.Invocation);
+    const clone = action.clone();
+    clone.invocation = addInvocationInputParam(clone.invocation, param);
+    if (clone.invocation === null)
+        return null;
+    clone.schema = clone.schema.removeArgument(param.name);
+    return clone;
+}
+
 module.exports = {
     typeToStringSafe,
     getFunctionNames,
@@ -1614,6 +1667,8 @@ module.exports = {
     getDoCommand,
     whenDoRule,
     whenGetStream,
+    addInvocationInputParam,
+    addActionInputParam,
 
     // filters
     hasUniqueFilter,

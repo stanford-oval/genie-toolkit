@@ -32,6 +32,7 @@ const {
     addActionParam,
     addAction,
     addQuery,
+    replaceAction,
 } = require('./state_manip');
 
 function isFilterCompatibleWithResult(topResult, filter) {
@@ -98,6 +99,9 @@ function makeActionRecommendation(ctx, action) {
     const topResult = results[0];
     const id = topResult.value.id;
     if (!id)
+        return null;
+
+    if (action.in_params.length !== 1)
         return null;
 
     for (let param of action.in_params) {
@@ -304,16 +308,14 @@ function initialRequest(stmt) {
 
     let history = [];
 
+    if (stmt.table && !C.checkValidQuery(stmt.table))
+        return null;
+
     if (stmt.table && stmt.actions.some((a) => !a.isNotify)) {
         // split into two statements, one getting the data, and the other using it
 
-        if (!stmt.table.isInvocation) {
-            // if there is no filter, skip the statement
-            const queryStmt = new Ast.Statement.Command(null, stmt.table, [C.notifyAction()]);
-            history.push(new Ast.DialogueHistoryItem(null, queryStmt, null, false));
-        }
-        if (!C.checkValidQuery(stmt.table))
-            return null;
+        const queryStmt = new Ast.Statement.Command(null, stmt.table, [C.notifyAction()]);
+        history.push(new Ast.DialogueHistoryItem(null, queryStmt, null, false));
 
         const newActions = stmt.actions.map((a) => a.clone());
         for (let action of newActions) {
@@ -336,9 +338,6 @@ function initialRequest(stmt) {
         const actionStmt = new Ast.Statement.Command(null, null, newActions);
         history.push(new Ast.DialogueHistoryItem(null, actionStmt, null, false));
     } else {
-        if (stmt.table && !C.checkValidQuery(stmt.table))
-            return null;
-
         let newStatements = [];
         if (!stmt.table) {
             for (let action of stmt.actions) {
@@ -358,6 +357,7 @@ function initialRequest(stmt) {
                     }
                 }
             }
+            assert(newStatements.length > 0);
         }
         newStatements.push(stmt);
 
@@ -389,6 +389,21 @@ function isQueryAnswerValidForQuestion(table, questions) {
         }
     });
     return answersQuestion;
+}
+
+/**
+ * Check if the action has parameters for the `questions`
+ */
+function isSlotFillAnswerValidForQuestion(action, questions) {
+    assert(Array.isArray(questions));
+    assert(action instanceof Ast.Invocation);
+    return questions.every((question) => {
+        for (let in_param of action.in_params) {
+            if (in_param.name === question)
+                return !in_param.value.isUndefined;
+        }
+        return false;
+    });
 }
 
 /**
@@ -738,6 +753,20 @@ function isValidSearchQuestion(table, questions) {
     return true;
 }
 
+function isValidSlotFillQuestion(action, questions) {
+    assert(action instanceof Ast.Invocation);
+    for (let q of questions) {
+        const arg = action.schema.getArgument(q);
+        if (!arg || !arg.is_input)
+            return false;
+        for (let in_param of action.in_params) {
+            if (in_param.name === q && !in_param.value.isUndefined)
+                return false;
+        }
+    }
+    return true;
+}
+
 function preciseSearchQuestionAnswer(ctx, [questions, answer]) {
     const answerFunctions = C.getFunctionNames(answer);
     assert(answerFunctions.length === 1);
@@ -758,6 +787,31 @@ function preciseSearchQuestionAnswer(ctx, [questions, answer]) {
         sysState = makeSimpleState(ctx, 'sys_generic_search_question', null);
     else
         sysState = makeSimpleState(ctx, 'sys_search_question', questions);
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
+function preciseSlotFillQuestionAnswer(ctx, [questions, answer]) {
+    const answerFunctions = C.getFunctionNames(answer);
+    assert(answerFunctions.length === 1);
+    if (answerFunctions[0] !== ctx.nextFunction)
+        return null;
+    const currentAction = getActionInvocation(ctx.next);
+    if (!isValidSlotFillQuestion(currentAction, questions))
+        return null;
+    assert(answer instanceof Ast.Invocation);
+
+    // check that we don't fill the chain parameter through this path:
+    // the chain parameter can only be filled if the agent shows the results
+    for (let in_param of answer.in_params) {
+        if (in_param.name === ctx.nextInfo.chainParameter &&
+            !ctx.nextInfo.chainParameterFilled)
+            return null;
+    }
+
+    const clone = ctx.clone();
+    const userState = replaceAction(clone, 'execute', answer, 'accepted');
+    assert(questions.length > 0);
+    const sysState = makeSimpleState(ctx, 'sys_slot_fill', questions);
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -816,6 +870,24 @@ function impreciseSearchQuestionAnswer(ctx, [questions, answer]) {
     const clone = ctx.clone();
     const userState = addQuery(clone, 'execute', newTable, 'accepted');
     const sysState = makeSimpleState(ctx, 'sys_search_question', questions);
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
+
+function impreciseSlotFillQuestionAnswer(ctx, [questions, answer]) {
+    assert(Array.isArray(questions));
+    const currentAction = getActionInvocation(ctx.next);
+    if (!isValidSlotFillQuestion(currentAction, questions))
+        return null;
+    assert(answer instanceof Ast.InputParam);
+    if (answer.name === ctx.nextInfo.chainParameter)
+        return null;
+    const newAction = C.addInvocationInputParam(currentAction, answer);
+    if (newAction === null)
+        return null;
+    const clone = ctx.clone();
+    const userState = replaceAction(clone, 'execute', newAction, 'accepted');
+    const sysState = makeSimpleState(ctx, 'sys_slot_fill', questions);
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -1062,6 +1134,21 @@ function impreciseSearchQuestionAnswerPair(questions, answer) {
     }
 }
 
+function impreciseSlotFillQuestionAnswerPair(questions, answer) {
+    assert(Array.isArray(questions));
+    if (answer instanceof Ast.InputParam) {
+        if (!questions.some((q) => q === answer.name))
+            return null;
+
+        return [questions, answer];
+    } else {
+        assert(questions.length === 1);
+        assert(answer instanceof Ast.Value);
+        answer = new Ast.InputParam(null, questions[0], answer);
+        return [questions, answer];
+    }
+}
+
 function emptySearchChangePair(ctx, [question, phrase]) {
     const currentTable = ctx.current.stmt.table;
     if (question !== null && !currentTable.schema.out[question])
@@ -1101,6 +1188,58 @@ function addDontCare(stmt, dontcare) {
     return clone;
 }
 
+function contextualAction(ctx, action) {
+    assert(action instanceof Ast.Invocation);
+    const ctxInvocation = getActionInvocation(ctx.next);
+    if (!C.isSameFunction(ctxInvocation.schema, action.schema))
+        return null;
+    if (action.in_params.length === 0) // common case, no new parameters
+        return ctxInvocation;
+
+    const clone = ctxInvocation.clone();
+    for (let newParam of action.in_params) {
+        if (newParam.value.isUndefined)
+            continue;
+
+        // check that we don't change a previous parameter
+
+        // if we're introducing a value for the chain parameter that was not previously provided,
+        // it must one of the top 3 results
+        if (newParam.name === ctx.nextInfo.chainParameter &&
+           !ctx.nextInfo.chainParameterFilled) {
+            if (!ctx.results)
+                return null;
+            const results = ctx.results;
+            let good = false;
+            for (let i = 0; i < Math.min(results.length, 3); i ++) {
+                const id = results[i].value.id;
+                if (id && id.equals(newParam.value)) {
+                    good = true;
+                    break;
+                }
+            }
+            if (!good)
+                return null;
+        }
+
+        let found = false;
+        for (let oldParam of clone.in_params) {
+            if (newParam.name === oldParam.name) {
+                if (oldParam.value.isUndefined)
+                    oldParam.value = newParam.value;
+                else if (!newParam.value.equals(oldParam.value))
+                    return null;
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            clone.in_params.push(newParam);
+    }
+
+    return clone;
+}
+
 module.exports = {
     // consistency checks
     POLICY_NAME,
@@ -1112,14 +1251,15 @@ module.exports = {
 
     // helpers
     getContextInfo,
+    getActionInvocation,
     isUserAskingResultQuestion,
     isQueryAnswerValidForQuestion,
+    isSlotFillAnswerValidForQuestion,
     isValidNegativePreambleForInfo,
     isFilterCompatibleWithResult,
     isInfoPhraseCompatibleWithResult,
     checkInfoPhrase,
     checkFilterPairForDisjunctiveQuestion,
-    getActionInvocation,
 
     // system dialogue acts
     checkSearchResultPreamble,
@@ -1136,11 +1276,15 @@ module.exports = {
     initialRequest,
     refineFilterToAnswerQuestion,
     refineFilterToChangeFilter,
+    contextualAction,
 
     // templates
     preciseSearchQuestionAnswer,
+    preciseSlotFillQuestionAnswer,
     impreciseSearchQuestionAnswerPair,
+    impreciseSlotFillQuestionAnswerPair,
     impreciseSearchQuestionAnswer,
+    impreciseSlotFillQuestionAnswer,
     proposalReplyPair,
     negativeRecommendationReplyPair,
     positiveRecommendationReplyPair,
