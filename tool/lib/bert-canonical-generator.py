@@ -352,8 +352,8 @@ class BertLM:
         permutations = []
         permutations_candidate = []
         permutations_masks = []
-        itarations = len(prefix)+len(suffix)+1
-        for i in range(itarations):
+        iterations = len(prefix)+len(suffix)+1
+        for i in range(iterations):
             permutations.append(' '.join(pre + prefix + value + suffix + post))
             permutations_masks.append({
                 'prefix': list(range(len(pre), len(pre)+len(prefix))),
