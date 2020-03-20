@@ -1749,3 +1749,92 @@ class @co.alphavantage
   #_[confirmation="stock price of ${company}"]
   #_[formatted=[{type="text",text="The current stock price of ${company} is ${price}."}]];
 }
+
+class @com.yelp
+#_[name="Yelp"]
+#_[description="Search restaurants on Yelp"]
+#_[canonical="yelp"]
+{
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none(api_key="cyAtJUkZ8pGOCX_eB1-xpQxpwoAvTRKwFgHV5x2mWrM1xYzNkG99aTFz_7MUjQG_7scwLc-1RsKvnexI8ioIcje_964wTiYrckbllFl-_cACmOfAMvkuSj8ihCxgXXYx");
+
+  list query restaurant(out id: Entity(com.yelp:restaurant)
+                        #[conflict_filter=["cuisines", "price_range"]]
+                        #[unique=true]
+                        #[string_values="gov.data:restaurant_names"]
+                        #_[canonical={
+                          default="npp", // ignored
+                          base=["name"],
+                          property=[]
+                        }],
+                        out image_url: Entity(tt:picture)
+                        #[filterable=false]
+                        #_[canonical={
+                          base=["picture", "image", "photo"]
+                        }],
+                        out link: Entity(tt:url)
+                        #[filterable=false]
+                        #_[canonical="link"],
+                        out cuisines: Array(Entity(com.yelp:restaurant_cuisine))
+                        #[conflict_filter=["id"]]
+                        #_[canonical={
+                          default="npp", // ignored
+                          base=["cuisines", "types of cuisine", "food", "types of food"],
+                          property=["# food", "# cuisine"],
+                          adjective=["#"],
+                          verb=["serves # cuisine", "serves # food", "offer # cuisine", "offer # food", "serves", "offers"]
+                        }],
+                        out price : Enum(cheap, moderate, expensive, luxury)
+                        #[conflict_filter=["id"]]
+                        #_[canonical={
+                          default="npp",
+                          base=["price range", "price"],
+                          property=[],
+                          adjective=["#", "# -ly priced"]
+                          // FIXME
+                          /*adjective_enum={ expensive=["upscale"] }*/
+                        }],
+                        out rating: Number
+                        #[min_number=1]
+                        #[max_number=5]
+                        #_[canonical={
+                          default="npp", // ignored
+                          base=["rating", "average rating"],
+                          passive_verb=["rated # star"],
+                          adjective=["# star"],
+                          property=["rating", "# star rating"]
+                        }]
+                        #_[counted_object="stars"],
+                        out reviewCount: Number
+                        #_[canonical={
+                          default="npp", // ignored
+                          base=["review count"],
+                          property=["# reviews"]
+                        }]
+                        #_[counted_object="reviews"],
+                        out geo: Location
+                        #_[canonical={
+                          default="npp", // ignored,
+                          base=["location", "address"],
+                          preposition=["in #", "around #", "near #"]
+                        }],
+                        out phone: Entity(tt:phone_number)
+                        #[filterable=false]
+                        #_[canonical={
+                          default="npp",
+                          base=["telephone", "phone number"]
+                        }])
+  #_[canonical="restaurant"]
+  #_[confirmation="restaurants on Yelp"]
+  #[minimal_projection=["id"]]
+  #[default_projection=["id", "link", "cuisines", "image_url"]]
+  #_[formatted=[{
+    type="rdl",
+    displayTitle="${id}",
+    webCallback="${link}",
+    displayText="Rating: ${rating}\nCuisines: ${cuisines}\nAddress: ${geo}",
+    pictureUrl="${image_url}"
+  }]]
+  #[doc="search for restaurants on Yelp"]
+  #[confirm=false];
+}
