@@ -37,7 +37,7 @@ question_system_recommendation_short = {
 
 action_recommendation = {
     ctx:ctx_with_result_and_action 'would you like to' action:contextual_action_phrase if complete [weight=0.1]
-        => D.makeActionRecommendation(ctx, action.invocation);
+        => D.makeActionRecommendation(ctx, action);
 }
 
 actionable_system_recommendation_short = {
