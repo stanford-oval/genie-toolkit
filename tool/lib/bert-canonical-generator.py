@@ -4,6 +4,7 @@ import json
 import torch
 import torch.nn.functional as F
 import sys
+from collections import OrderedDict
 from transformers import BertTokenizer, BertModel, BertForMaskedLM, GPT2Tokenizer, GPT2LMHeadModel
 
 BLACK_LIST = ['a', 'an', 'the', 'its', 'their', 'his', 'her']
@@ -204,7 +205,7 @@ class BertLM:
         """
         for table, arg, pos in ((a, b, c) for a in self.examples for b in self.examples[a] for c in
                                 self.examples[a][b]):
-            count = {}
+            scores = {}
             for example in self.examples[table][arg][pos]['examples']:
                 query, masks = example['query'], example['masks']
                 ### for older versions
@@ -216,8 +217,9 @@ class BertLM:
                 ###
                 candidates1 = self.predict_one_type(table, arg, query, masks)
 
-                if self.check_permutations:
+                if self.check_permutations or self.rank:
                     natural_query, natural_candidate, natural_masks = self._make_more_natural(query, masks)
+                if self.check_permutations:
                     candidates2 = self.predict_one_type(table, arg, natural_query, natural_masks) # we might be double counting if query==natural_query
                 else:
                     candidates2 = []
@@ -227,15 +229,20 @@ class BertLM:
                     new_query = self._plug_in_query(query, masks, candidate)
                     if self.rank:
                         # TODO we sum ranker scores, but we should sum logits. The problem now is that if a candidate does not appear for a query, it gets logit=0 which is the max, not min
-                        score = self.ranker.similarity(natural_query, new_query)
+                        s = self.ranker.similarity(natural_query, new_query)
                     else:
-                        score = 1 # just count
-                    if candidate in count:
-                        count[candidate] += score
+                        s = 1 # just count
+                    if candidate in scores:
+                        scores[candidate] += s
                     else:
-                        count[candidate] = score
-            self.examples[table][arg][pos]['candidates'] = count
+                        scores[candidate] = s
+            self.examples[table][arg][pos]['candidates'] = scores
 
+        # sort the candidates based on their scores
+        for table, arg, pos in ((a, b, c) for a in self.examples for b in self.examples[a] for c in
+                                self.examples[a][b]):
+            scores = self.examples[table][arg][pos]['candidates']
+            self.examples[table][arg][pos]['candidates'] = OrderedDict(sorted(scores.items(), key=lambda x:x[1], reverse=True))
         return self.examples
 
     def predict_adjectives(self, k=500):
@@ -443,10 +450,6 @@ if __name__ == '__main__':
     parser.add_argument('--rank',
                         action='store_true',
                         help='Use a GPT2-based ranker to rank the outputs of bert')
-    parser.add_argument('--output-file',
-                        type=str,
-                        default=None,
-                        help='If provided, the output will be written into the file instead of stdout')
     args = parser.parse_args()
 
     examples, domain = json.load(sys.stdin).values()

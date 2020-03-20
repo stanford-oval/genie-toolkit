@@ -13,6 +13,7 @@ lib/genie-compiler/grammar.js
 
 *.tgz
 
+env/
 workdir*
 dataset.tt
 thingpedia.json
