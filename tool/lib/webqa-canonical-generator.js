@@ -151,14 +151,10 @@ class CanonicalGenerator {
 
                 for (let type in candidates[qname][arg]) {
                     let count = candidates[qname][arg][type].candidates;
-                    let max = candidates[qname][arg][type].examples.filter((e) => e.candidates.length > 0).length;
                     for (let candidate in count) {
-                        if (count[candidate] > max * this.pruning) {
-                            if (!canonicals[type].includes(candidate))
-                                canonicals[type].push(candidate);
-                        }
+                        if (!canonicals[type].includes(candidate))
+                            canonicals[type].push(candidate);
                     }
-
                 }
             }
         }
