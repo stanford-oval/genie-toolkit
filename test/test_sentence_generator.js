@@ -28,27 +28,33 @@ const _schemaRetriever = new SchemaRetriever(_tpClient, null, true);
 async function processOne(id, sentence, code) {
     const assignedEntities = {};
 
-    const entities = makeDummyEntities(sentence);
-    const program = NNSyntax.fromNN(code.split(' '), (token) => {
-        return assignedEntities[token] = entities[token];
-    });
-    await program.typecheck(_schemaRetriever);
+    try {
+        const entities = makeDummyEntities(sentence);
+        const program = NNSyntax.fromNN(code.split(' '), (token) => {
+            return assignedEntities[token] = entities[token];
+        });
+        await program.typecheck(_schemaRetriever);
 
-    const usedEntities = new Set;
-    for (let token of sentence.split(' ')) {
-        if (/^[A-Z]/.test(token)) { // entity
-            if (!assignedEntities[token]) {
-                console.error(sentence);
-                console.error(code);
-                throw new Error(`Missing entity ${token} (present in the sentence, not in the code)`);
+        const usedEntities = new Set;
+        for (let token of sentence.split(' ')) {
+            if (/^[A-Z]/.test(token)) { // entity
+                if (!assignedEntities[token]) {
+                    console.error(sentence);
+                    console.error(code);
+                    throw new Error(`Missing entity ${token} (present in the sentence, not in the code)`);
+                }
+                usedEntities.add(token);
             }
-            usedEntities.add(token);
         }
-    }
 
-    for (let token in assignedEntities) {
-        if (!usedEntities.has(token))
-            throw new Error(`Missing entity ${token} (present in the code, not in the sentence)`);
+        for (let token in assignedEntities) {
+            if (!usedEntities.has(token))
+                throw new Error(`Missing entity ${token} (present in the code, not in the sentence)`);
+        }
+    } catch(e) {
+        console.error(sentence);
+        console.error(code);
+        throw e;
     }
 }
 

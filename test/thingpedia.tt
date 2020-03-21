@@ -1123,12 +1123,12 @@ class @com.steampowered
 #_[canonical="steam"] {
   monitorable query get_price(in req game_name: String #_[prompt="What is the name of the app you're looking for? (Case-insensitive)"] #_[canonical="game name"],
                               out price: Number #_[canonical="price"])
-  #_[canonical="get price from steam"]
+  #_[canonical="price from steam"]
   #_[confirmation="get price of ${game_name} from steam"];
 
   query get_steam_id(in req name: String #_[prompt="What is the Steam name? (Go to a Steam profile and enter the NAME from the URL https://steamcommunity.com/id/NAME)"] #_[canonical="name"],
                      out id: Entity(com.steampowered:user_id) #_[canonical="id"])
-  #_[canonical="get user's steam ID"]
+  #_[canonical="user 's steam id"]
   #_[confirmation="get steam ID of ${name}"];
 }
 class @org.upcdatabase
@@ -1136,7 +1136,7 @@ class @org.upcdatabase
   monitorable query get(in req query: String #_[prompt="What product do you want to search? "] #_[canonical="query"],
                         out product: String #_[canonical="product"],
                         out upc: String #_[canonical="upc"])
-  #_[canonical="get upc code"]
+  #_[canonical="upc code"]
   #_[confirmation="upc code for $query"];
 }
 class @me.omlet.chat
@@ -1144,7 +1144,7 @@ class @me.omlet.chat
   monitorable list query messages(out feed: Entity(omlet:feed_id) #_[prompt="What feed do you want to monitor?"] #_[canonical="feed"],
                                   out message: String #_[canonical="message"],
                                   in opt from_me: Boolean #_[canonical="from me"])
-  #_[canonical="list messages on omlet"]
+  #_[canonical="messages on omlet"]
   #_[confirmation="Omlet messages"];
 
   action send_picture(in req to: Entity(tt:username) #_[prompt="Who do you want to send the message to? Use the Omlet ID, phone number or email address."] #_[canonical="to"],
@@ -1383,11 +1383,11 @@ class @org.wikidata
                     out P119: String #_[canonical={ default="pvp", npp=["place of burial"], pvp=["buried at"] }] #[string_values="org.wikidata:place_of_burial"],
                     out P18: Entity(tt:picture) #_[canonical="image"],
                     out P109: Entity(tt:picture) #_[canonical="signature"],
-                    out P22: Entity(org.wikidata:human) #_[canonical={ default="npp", npp=["father", "dad"]}],
-                    out P25: Entity(org.wikidata:human) #_[canonical={ default="npp", npp=["mother", "mom"]}],
-                    out P3373: Array(Entity(org.wikidata:human)) #_[canonical="sibling"],
-                    out P26: Array(Entity(org.wikidata:human)) #_[canonical={ default="avp", npp=["spouse"], avp=["married with"]}],
-                    out P40: Array(Entity(org.wikidata:human)) #_[canonical="child"],
+                    out P22: Entity(org.wikidata:person) #_[canonical={ default="npp", npp=["father", "dad"]}],
+                    out P25: Entity(org.wikidata:person) #_[canonical={ default="npp", npp=["mother", "mom"]}],
+                    out P3373: Array(Entity(org.wikidata:person)) #_[canonical="sibling"],
+                    out P26: Array(Entity(org.wikidata:person)) #_[canonical={ default="avp", npp=["spouse"], avp=["married with"]}],
+                    out P40: Array(Entity(org.wikidata:person)) #_[canonical="child"],
                     out P1971: Number #_[canonical="number of children"],
                     out P103: String #_[canonical="native language"] #[string_values="org.wikidata:native_language"],
                     out P106: Array(String) #_[canonical={ default="npp", npp=["occupation", "job", "profession"], avp=["work as a"], npv=true}] #[string_values="org.wikidata:occupation"],
@@ -1411,7 +1411,7 @@ class @org.wikidata
                     out P552: Enum(left,right) #_[canonical={default="npp", npp=["dominant hand", "handedness"]}],
                     out P410: Array(String) #_[canonical="military rank"] #[string_values="org.wikidata:military_rank"],
                     out P856: Entity(tt:url) #_[canonical="official website"] #[string_values="org.wikidata:official_website"],
-                    out P737: Array(Entity(org.wikidata:human)) #_[canonical={default="pvp", pvp=["influenced by"]}],
+                    out P737: Array(Entity(org.wikidata:person)) #_[canonical={default="pvp", pvp=["influenced by"]}],
                     out P641: Array(String) #_[canonical={default="avp", avp=["play"], npp=["sport"]}] #[string_values="org.wikidata:sport"],
                     out P54: Array(String) #_[canonical={default="avp", avp=["play for"], npi=["member of sports team", "member of", "player in team"]}] #[string_values="org.wikidata:member_of_sports_team"],
                     out P647: Array(String) #_[canonical={default="pvp", pvp=["drafted by"]}] #[string_values="org.wikidata:drafted_by"],
@@ -1423,8 +1423,8 @@ class @org.wikidata
                     out P136: Array(String) #_[canonical="genre"] #[string_values="org.wikidata:genre"],
                     out P264: Array(String) #_[canonical="record label"] #[string_values="org.wikidata:record_label"],
                     out P1303: Array(String) #_[canonical={default="avp", avp=["play instrument", "play"], npp=["instrument"]}] #[string_values="org.wikidata:instrument"],
-                    out P184: Array(Entity(org.wikidata:human)) #_[canonical="doctoral advisor"],
-                    out P185: Array(Entity(org.wikidata:human)) #_[canonical="doctoral student"],
+                    out P184: Array(Entity(org.wikidata:person)) #_[canonical="doctoral advisor"],
+                    out P185: Array(Entity(org.wikidata:person)) #_[canonical="doctoral student"],
                     out P2002: String #_[canonical="twitter username"] #[string_values="org.wikidata:Twitter_username"] #[unique=true],
                     out P2003: String #_[canonical="instagram username"] #[string_values="org.wikidata:Instagram_username"] #[unique=true],
                     out P2013: String #_[canonical="facebook id"] #[string_values="org.wikidata:Facebook_ID"] #[unique=true],
@@ -1435,7 +1435,7 @@ class @org.wikidata
                     out P4411: String #_[canonical="quora username"] #[string_values="org.wikidata:Quora_username"] #[unique=true],
                     out P4013: String #_[canonical="giphy username"] #[string_values="org.wikidata:Giphy_username"] #[unique=true],
                     out P3984: String #_[canonical="subreddit"] #[string_values="org.wikidata:subreddit"] #[unique=true],
-                    out id: Entity(org.wikidata:human) #_[canonical="person"] #[unique=true])
+                    out id: Entity(org.wikidata:person) #_[canonical="person"] #[unique=true])
 
   #_[canonical="wikidata human data"]
   #_[confirmation="wikidata human"]
@@ -1612,8 +1612,8 @@ class @org.wikidatasportsskill
                      out P2048: Measure(m) #_[canonical="height"],
                      out P2067: Measure(kg) #_[canonical="mass"],
                      out P2094: Entity(org.wikidatasportsskill:competition_class) #_[canonical="competition class"],
-                     out P26: Entity(org.wikidata:human) #_[canonical="spouse"],
-                     out P40: Entity(org.wikidata:human) #_[canonical="child"],
+                     out P26: Entity(org.wikidata:person) #_[canonical="spouse"],
+                     out P40: Entity(org.wikidata:person) #_[canonical="child"],
                      out P2949: Entity(org.wikidatasportsskill:wikitree_person_id) #_[canonical="wikitree person id"],
                      out P3417: String #_[canonical="quora topic id"] #[string_values="org.wikidata:Quora_topic_ID"],
                      out P691: Entity(org.wikidatasportsskill:nkcr_aut_id) #_[canonical="nkcr aut id"],
@@ -1625,13 +1625,13 @@ class @org.wikidatasportsskill
                      out P1449: Array(String) #_[canonical="nickname"] #[string_values="org.wikidata:nickname"],
                      out P2416: Array(Entity(org.wikidatasportsskill:sports_discipline_competed_in)) #_[canonical="sports discipline competed in"],
                      out P856: Entity(tt:url) #_[canonical="official website"] #[string_values="org.wikidata:official_website"],
-                     out P3373: Array(Entity(org.wikidata:human)) #_[canonical="sibling"],
+                     out P3373: Array(Entity(org.wikidata:person)) #_[canonical="sibling"],
                      out P54: Array(Entity(org.wikidatasportsskill:sports_teams)) #_[canonical="member of sports team"],
                      out P413: Array(Entity(org.wikidatasportsskill:position_played_on_team)) #_[canonical="position played on team / speciality"],
                      out P3574: Entity(org.wikidatasportsskill:fangraphs_player_id) #_[canonical="fangraphs player id"],
                      out P4731: Entity(org.wikidatasportsskill:the_baseball_cube_player_id) #_[canonical="the baseball cube player id"],
                      out P172: Array(String) #_[canonical="ethnic group"] #[string_values="org.wikidata:ethnic_group"],
-                     out P22: Entity(org.wikidata:human) #_[canonical="father"],
+                     out P22: Entity(org.wikidata:person) #_[canonical="father"],
                      out P3542: Array(Entity(org.wikidatasportsskill:fiba_player_id)) #_[canonical="fiba player id"],
                      out P647: Entity(org.wikidatasportsskill:sports_teams) #_[canonical="drafted by"],
                      out P4548: Entity(org.wikidatasportsskill:commonwealth_games_federation_athlete_id) #_[canonical="commonwealth games federation athlete id"],
@@ -1693,7 +1693,7 @@ class @org.wikidatasportsskill
                          out P118: Array(Entity(org.wikidatasportsskill:league)) #_[canonical="league"],
                          out P2094: Array(Entity(org.wikidatasportsskill:competition_class)) #_[canonical="competition class"],
                          out P115: Array(Entity(org.wikidatasportsskill:home_venue)) #_[canonical="home venue"],
-                         out P3022: Array(Entity(org.wikidata:human)) #_[canonical="flag bearer"],
+                         out P3022: Array(Entity(org.wikidata:person)) #_[canonical="flag bearer"],
                          out sports_team: Entity(org.wikidatasportsskill:sports_teams) #_[canonical="sports team"])
   #_[canonical="wikidata sports team"]
   #_[confirmation="wikidata sports team"];
