@@ -583,8 +583,16 @@ function checkFilter(table, filter) {
             if (!vtype.isArray)
                 return false;
             vtype = ptype.elem;
+        } else if (filter.operator === 'contains~') {
+            if (!vtype.isArray || (!vtype.elem.isEntity && !vtype.elem.isString))
+                return false;
+            vtype = Type.String;
         } else if (filter.operator === 'in_array') {
             vtype = Type.Array(ptype);
+        } else if (filter.operator === 'in_array~') {
+            if (!vtype.isEntity && !vtype.isString)
+                return false;
+            vtype = Type.Array(Type.String);
         }
 
         if (!filter.value.getType().equals(vtype))

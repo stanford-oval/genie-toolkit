@@ -565,8 +565,16 @@ function checkAtomFilter(table, filter) {
         if (!vtype.isArray)
             return false;
         vtype = ptype.elem;
+    } else if (filter.operator === 'contains~') {
+        if (!vtype.isArray || (!vtype.elem.isEntity && !vtype.elem.isString))
+            return false;
+        vtype = Type.String;
     } else if (filter.operator === 'in_array') {
         vtype = Type.Array(ptype);
+    } else if (filter.operator === 'in_array~') {
+        if (!vtype.isEntity && !vtype.isString)
+            return false;
+        vtype = Type.Array(Type.String);
     }
 
     if (!filter.value.getType().equals(vtype))
@@ -582,9 +590,11 @@ function checkAtomFilter(table, filter) {
         if (maxArg !== undefined)
             max = maxArg;
 
-        const value = filter.value.toJS();
-        if (value < min || value > max)
-            return false;
+        if (filter.value.isNumber) {
+            const value = filter.value.toJS();
+            if (value < min || value > max)
+                return false;
+        }
     }
     return true;
 }
