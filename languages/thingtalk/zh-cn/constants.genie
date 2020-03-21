@@ -33,41 +33,41 @@ constant_Number = {
 }
 
 constant_date_point = {
-    '现在'             => new Ast.Value.Date(null, '+', null);
-    '今天'             => new Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '+', null);
-    '昨天'             => new Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '-', Ast.Value.Measure(1, 'day'));
-    '这 星期'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '+', null);
-    '这周'             => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '+', null);
-    '这 礼拜'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '+', null);
+    '现在'             => C.makeDate(null, '+', null);
+    '今天'             => C.makeDate(new Ast.DateEdge('start_of', 'day'), '+', null);
+    '昨天'             => C.makeDate(new Ast.DateEdge('start_of', 'day'), '-', new Ast.Value.Measure(1, 'day'));
+    '这 星期'          => C.makeDate(new Ast.DateEdge('start_of', 'week'), '+', null);
+    '这周'             => C.makeDate(new Ast.DateEdge('start_of', 'week'), '+', null);
+    '这 礼拜'          => C.makeDate(new Ast.DateEdge('start_of', 'week'), '+', null);
 
     !turking {
-    '明天'            => new Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
-    '今天 以后'         => new Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null);
-    '这 星期 以后'       => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
-    '这周 以后'         => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
-    '这 礼拜 以后' => new Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null);
-    '上 星期'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
-    '上周'             => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
-    '上 礼拜'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
-    '这个 月'           => new Ast.Value.Date(Ast.DateEdge('start_of', 'mon'), '+', null);
-    '今年'             => new Ast.Value.Date(Ast.DateEdge('start_of', 'year'), '+', null);
-    '下个 月'           => new Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '+', null);
-    '明年'             => new Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '+', null);
-    '上个 月'           => new Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '-', Ast.Value.Measure(1, 'mon'));
-    '去年'             => new Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '-', Ast.Value.Measure(1, 'year'));
+    '明天'             => C.makeDate(new Ast.DateEdge('end_of', 'day'), '+', null);
+    '今天 以后'         => C.makeDate(new Ast.DateEdge('end_of', 'day'), '+', null);
+    '这 星期 以后'      => C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', null);
+    '这周 以后'         => C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', null);
+    '这 礼拜 以后'      => C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', null);
+    '上 星期'           => C.makeDate(new Ast.DateEdge('start_of', 'week'), '-', new Ast.Value.Measure(1, 'week'));
+    '上周'             => C.makeDate(new Ast.DateEdge('start_of', 'week'), '-', new Ast.Value.Measure(1, 'week'));
+    '上 礼拜'           => C.makeDate(new Ast.DateEdge('start_of', 'week'), '-', new Ast.Value.Measure(1, 'week'));
+    '这个 月'           => C.makeDate(new Ast.DateEdge('start_of', 'mon'), '+', null);
+    '今年'             => C.makeDate(new Ast.DateEdge('start_of', 'year'), '+', null);
+    '下个 月'           => C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', null);
+    '明年'             => C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', null);
+    '上个 月'           => C.makeDate(new Ast.DateEdge('end_of', 'mon'), '-', new Ast.Value.Measure(1, 'mon'));
+    '去年'             => C.makeDate(new Ast.DateEdge('end_of', 'year'), '-', new Ast.Value.Measure(1, 'year'));
     }
 }
 
 constant_Date = {
     !turking {
-    duration:constant_Measure_ms '以后' => new Ast.Value.Date(null, '+', duration);
-    duration:constant_Measure_ms '之后' => new Ast.Value.Date(null, '+', duration);
-    duration:constant_Measure_ms '以前' => new Ast.Value.Date(null, '-', duration);
-    duration:constant_Measure_ms '之前' => new Ast.Value.Date(null, '-', duration);
-    '在' pt:constant_date_point '以后' duration:constant_Measure_ms => new Ast.Value.Date(pt.value, '+', duration);
-    '在' pt:constant_date_point '之后' duration:constant_Measure_ms => new Ast.Value.Date(pt.value, '+', duration);
-    '在' pt:constant_date_point '以前' duration:constant_Measure_ms => new Ast.Value.Date(pt.value, '-', duration);
-    '在' pt:constant_date_point '之前' duration:constant_Measure_ms => new Ast.Value.Date(pt.value, '-', duration);
+    duration:constant_Measure_ms '以后' => C.makeDate(null, '+', duration);
+    duration:constant_Measure_ms '之后' => C.makeDate(null, '+', duration);
+    duration:constant_Measure_ms '以前' => C.makeDate(null, '-', duration);
+    duration:constant_Measure_ms '之前' => C.makeDateDate(null, '-', duration);
+    '在' pt:constant_date_point '以后' duration:constant_Measure_ms => C.makeDate(pt.value, '+', duration);
+    '在' pt:constant_date_point '之后' duration:constant_Measure_ms => C.makeDate(pt.value, '+', duration);
+    '在' pt:constant_date_point '以前' duration:constant_Measure_ms => C.makeDate(pt.value, '-', duration);
+    '在' pt:constant_date_point '之前' duration:constant_Measure_ms => C.makeDate(pt.value, '-', duration);
     }
 }
 
@@ -117,9 +117,9 @@ constant_Measure_mps = {
 }
 
 constant_Location = {
-    '这里'                    => new Ast.Value.Location(Ast.Location.Relative('current_location'));
-    !turking '我的 当下 位置' => new Ast.Value.Location(Ast.Location.Relative('current_location'));
-    '家里'                    => new Ast.Value.Location(Ast.Location.Relative('home'));
-    '办公室'                  => new Ast.Value.Location(Ast.Location.Relative('work'));
+    '这里'                    => new Ast.Value.Location(new Ast.Location.Relative('current_location'));
+    !turking '我的 当下 位置' => new Ast.Value.Location(new Ast.Location.Relative('current_location'));
+    '家里'                    => new Ast.Value.Location(new Ast.Location.Relative('home'));
+    '办公室'                  => new Ast.Value.Location(new Ast.Location.Relative('work'));
 }
 

@@ -100,7 +100,7 @@ either_filter = {
             return null;
         if (!_tpLoader.params.out.has(param.name + '+' + vtype))
             return null;
-        return new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2]));
+        return new Ast.BooleanExpression.Atom(param.name, 'in_array', new Ast.Value.Array([v1, v2]));
     };
     param:out_param_Any '不是' v1:constant_Any '也不是' v2:constant_Any => {
         // param is a Value.VarRef
@@ -117,7 +117,7 @@ either_filter = {
             return null;
         if (!_tpLoader.params.out.has(param.name + '+' + vtype))
             return null;
-        return new Ast.BooleanExpression.Not(new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2])));
+        return new Ast.BooleanExpression.Not(new Ast.BooleanExpression.Atom(param.name, 'in_array', new Ast.Value.Array([v1, v2])));
     };
 }
 

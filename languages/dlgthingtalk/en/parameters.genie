@@ -158,91 +158,91 @@ for (let [typestr, type] of _tpLoader.types.all) {
 }
 
 placeholder_Number = {
-    'some number' => Ast.Value.Undefined(true);
-    'some value' => Ast.Value.Undefined(true);
+    'some number' => new Ast.Value.Undefined(true);
+    'some value' => new Ast.Value.Undefined(true);
 }
 placeholder_String = {
-    'something' => Ast.Value.Undefined(true);
+    'something' => new Ast.Value.Undefined(true);
 }
 placeholder_Currency = {
-    'some value' => Ast.Value.Undefined(true);
-    'some amount' => Ast.Value.Undefined(true);
+    'some value' => new Ast.Value.Undefined(true);
+    'some amount' => new Ast.Value.Undefined(true);
 }
 placeholder_Time = {
-    'some time' => Ast.Value.Undefined(true);
-     'a certain time' => Ast.Value.Undefined(true);
+    'some time' => new Ast.Value.Undefined(true);
+     'a certain time' => new Ast.Value.Undefined(true);
 }
 placeholder_Date = {
-    'some date' => Ast.Value.Undefined(true);
-    'a certain date' => Ast.Value.Undefined(true);
-    'some time' => Ast.Value.Undefined(true);
-    'a certain time' => Ast.Value.Undefined(true);
+    'some date' => new Ast.Value.Undefined(true);
+    'a certain date' => new Ast.Value.Undefined(true);
+    'some time' => new Ast.Value.Undefined(true);
+    'a certain time' => new Ast.Value.Undefined(true);
 }
 placeholder_Location = {
-    'some location' => Ast.Value.Undefined(true);
-    'a location' => Ast.Value.Undefined(true);
-    'some place' => Ast.Value.Undefined(true);
-    'a place' => Ast.Value.Undefined(true);
-    'a certain place' => Ast.Value.Undefined(true);
-    'somewhere' => Ast.Value.Undefined(true);
+    'some location' => new Ast.Value.Undefined(true);
+    'a location' => new Ast.Value.Undefined(true);
+    'some place' => new Ast.Value.Undefined(true);
+    'a place' => new Ast.Value.Undefined(true);
+    'a certain place' => new Ast.Value.Undefined(true);
+    'somewhere' => new Ast.Value.Undefined(true);
 }
 placeholder_Measure_ms   = {
-    'some duration' => Ast.Value.Undefined(true);
-    'some amount of time' => Ast.Value.Undefined(true);
+    'some duration' => new Ast.Value.Undefined(true);
+    'some amount of time' => new Ast.Value.Undefined(true);
 }
 placeholder_Measure_byte = {
-    'some size' => Ast.Value.Undefined(true);
-    'a certain size' => Ast.Value.Undefined(true);
+    'some size' => new Ast.Value.Undefined(true);
+    'a certain size' => new Ast.Value.Undefined(true);
 }
 placeholder_Measure_kg   = {
-    'a certain weight' => Ast.Value.Undefined(true);
+    'a certain weight' => new Ast.Value.Undefined(true);
 }
 placeholder_Measure_C    = {
-    'a certain temperature' => Ast.Value.Undefined(true);
+    'a certain temperature' => new Ast.Value.Undefined(true);
 }
 placeholder_Measure_m    = {
-    'some distance' => Ast.Value.Undefined(true);
-    'some length' => Ast.Value.Undefined(true);
+    'some distance' => new Ast.Value.Undefined(true);
+    'some length' => new Ast.Value.Undefined(true);
 }
 placeholder_Measure_mps  = {
-    'some speed' => Ast.Value.Undefined(true);
-    'a certain speed' => Ast.Value.Undefined(true);
+    'some speed' => new Ast.Value.Undefined(true);
+    'a certain speed' => new Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__picture = {
-    'some image' => Ast.Value.Undefined(true);
-    'some picture' => Ast.Value.Undefined(true);
-    'some photo' => Ast.Value.Undefined(true);
+    'some image' => new Ast.Value.Undefined(true);
+    'some picture' => new Ast.Value.Undefined(true);
+    'some photo' => new Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__username = {
-    'somebody' => Ast.Value.Undefined(true);
-    'someone' => Ast.Value.Undefined(true);
-    'some one' => Ast.Value.Undefined(true);
-    'some person' => Ast.Value.Undefined(true);
+    'somebody' => new Ast.Value.Undefined(true);
+    'someone' => new Ast.Value.Undefined(true);
+    'some one' => new Ast.Value.Undefined(true);
+    'some person' => new Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__phone_number = {
-    'somebody' => Ast.Value.Undefined(true);
-    'someone' => Ast.Value.Undefined(true);
-    'some one' => Ast.Value.Undefined(true);
-    'some person' => Ast.Value.Undefined(true);
-    'some number' => Ast.Value.Undefined(true);
-    'some phone number' => Ast.Value.Undefined(true);
+    'somebody' => new Ast.Value.Undefined(true);
+    'someone' => new Ast.Value.Undefined(true);
+    'some one' => new Ast.Value.Undefined(true);
+    'some person' => new Ast.Value.Undefined(true);
+    'some number' => new Ast.Value.Undefined(true);
+    'some phone number' => new Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__email_address = {
-    'somebody' => Ast.Value.Undefined(true);
-    'someone' => Ast.Value.Undefined(true);
-    'some one' => Ast.Value.Undefined(true);
-    'some person' => Ast.Value.Undefined(true);
-    'some email address' => Ast.Value.Undefined(true);
+    'somebody' => new Ast.Value.Undefined(true);
+    'someone' => new Ast.Value.Undefined(true);
+    'some one' => new Ast.Value.Undefined(true);
+    'some person' => new Ast.Value.Undefined(true);
+    'some email address' => new Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__path_name = {
-    'some file' => Ast.Value.Undefined(true);
-    'some directory' => Ast.Value.Undefined(true);
-    'some folder' => Ast.Value.Undefined(true);
+    'some file' => new Ast.Value.Undefined(true);
+    'some directory' => new Ast.Value.Undefined(true);
+    'some folder' => new Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__url = {
-    'some url' => Ast.Value.Undefined(true);
-    'some website' => Ast.Value.Undefined(true);
-    'some link' => Ast.Value.Undefined(true);
+    'some url' => new Ast.Value.Undefined(true);
+    'some website' => new Ast.Value.Undefined(true);
+    'some link' => new Ast.Value.Undefined(true);
 }
 
 for (let [pname, [typestr, pcanonical]] of _tpLoader.params.in.values()) {

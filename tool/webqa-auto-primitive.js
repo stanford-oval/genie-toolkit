@@ -339,7 +339,7 @@ async function applyPatterns(className, ppdb, functionDef, argDef, valueList, pa
             new Ast.Table.Invocation(null,
                 new Ast.Invocation(null, new Ast.Selector.Device(null, className, null, null), functionDef.name, [], functionDef),
             functionDef),
-        new Ast.BooleanExpression.Atom(null, propertyName, operator === '==' && propertyType.isString ? '=~' : operator, Ast.Value.VarRef('p_' + lastProp)), null
+        new Ast.BooleanExpression.Atom(null, propertyName, operator === '==' && propertyType.isString ? '=~' : operator, new Ast.Value.VarRef('p_' + lastProp)), null
     ), patterns.slice(0, 4).map((p) => p.template), patterns.slice(0, 4).map((p) => p.template), {}));
 }
 

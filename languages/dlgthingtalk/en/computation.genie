@@ -37,7 +37,7 @@ if (!_tpLoader.flags.turking) {
 
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
         };
 
         // these form sentences like "tell me how far X is", which is grammatical but
@@ -47,7 +47,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
         };
 
         ( 'the distance' ('of' | 'to') table:with_filtered_table 'from' place:constant_Location
@@ -57,7 +57,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], Type.Measure('m'));
         };
 
         !turking {
@@ -68,7 +68,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], Type.Measure('m'));
         };
         }
 
@@ -109,7 +109,7 @@ if (!_tpLoader.flags.turking) {
         )=> {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
         };
 
         ( 'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filtered_table ('from' | 'to') place:constant_Location ('?'|'')
@@ -117,7 +117,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], Type.Measure('m'));
         };
 
         ( 'how many' p:out_param_ArrayCount ('does' | 'do') table:with_filtered_table 'have ?'
@@ -198,19 +198,19 @@ if (!_tpLoader.flags.turking) {
         ('nearest' | 'closest') table:complete_table ('' | 'from here' | 'to here' | 'to me')  => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'asc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'asc');
         };
 
         ('nearest' | 'closest') table:with_filtered_table => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'asc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'asc');
         };
 
         ('farthest' | 'most far away') table:with_filtered_table => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'desc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'desc');
         };
 
         ( ('nearest' | 'closest') table:complete_table 'to' place:constant_Location
@@ -219,7 +219,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'asc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'asc');
         };
 
         ( ('nearest' | 'closest') table:with_filtered_table 'to' place:constant_Location
@@ -228,7 +228,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'asc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'asc');
         };
 
         ( ('farthest' | 'most far away') table:with_filtered_table 'from' place:constant_Location
@@ -237,7 +237,7 @@ if (!_tpLoader.flags.turking) {
         => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'desc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'desc');
         };
 
         table:with_filtered_table 'with the' ('most' | 'highest number of' | 'largest number of' | 'largest count of') p:out_param_Array__Any => {
