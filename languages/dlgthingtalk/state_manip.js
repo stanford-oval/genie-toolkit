@@ -296,7 +296,7 @@ function getContextInfo(state) {
         }
         currentFunction = functions[functions.length-1];
         currentItemIdx = idx;
-        currentResultInfo = new ResultInfo(item, functions);
+        currentResultInfo = new ResultInfo(item);
     }
     if (nextItemIdx !== null)
         assert(nextInfo);
@@ -322,7 +322,7 @@ function isUserAskingResultQuestion(ctx) {
     let previous = ctx.state.history[ctx.currentIdx - 1];
     // only complete (executed) programs make it to the history, so this must be true
     assert(previous.results !== null);
-    let previousResultInfo = new ResultInfo(previous, C.getFunctions(previous.stmt));
+    let previousResultInfo = new ResultInfo(previous);
     if (!previousResultInfo.projection)
         return true;
 
