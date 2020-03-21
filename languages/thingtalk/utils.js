@@ -42,6 +42,8 @@ function makeFilter(loader, pname, op, value, negate = false) {
     assert(pname instanceof Ast.Value.VarRef);
     let vtype = value.getType();
     let ptype = vtype;
+    if (ptype.isEntity && ptype.type === 'tt:url')
+        return null;
     if (op === 'contains') {
         ptype = Type.Array(vtype);
         if (vtype.isString)
