@@ -58,11 +58,11 @@ async function processOne(id, sentence, code) {
     }
 }
 
-async function main() {
+async function doTest(filename) {
     const options = {
         rng: seedrandom.alea('almond is awesome'),
         locale: 'en-US',
-        templateFiles: [path.resolve(path.dirname(module.filename), '../languages/thingtalk/en/thingtalk.genie')],
+        templateFiles: [filename],
         targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,
         flags: {
@@ -102,10 +102,15 @@ async function main() {
     });
     generator.pipe(writer);
 
-    return new Promise((resolve, reject) => {
+    await new Promise((resolve, reject) => {
         writer.on('finish', resolve);
         writer.on('error', reject);
     });
+}
+
+async function main() {
+    await doTest(path.resolve(path.dirname(module.filename), '../languages/thingtalk/en/thingtalk.genie'));
+    await doTest(path.resolve(path.dirname(module.filename), '../languages/thingtalk/en/basic.genie'));
 }
 module.exports = main;
 if (!module.parent)
