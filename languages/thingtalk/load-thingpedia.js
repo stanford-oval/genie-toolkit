@@ -19,7 +19,7 @@ const Grammar = ThingTalk.Grammar;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 const Units = ThingTalk.Units;
 
-const { clean, pluralize, typeToStringSafe, makeFilter, makeAndFilter } = require('./utils');
+const { clean, typeToStringSafe, makeFilter, makeAndFilter } = require('./utils');
 
 function identity(x) {
     return x;
@@ -212,7 +212,7 @@ class ThingpediaLoader {
 
             for (let form of annotvalue) {
                 if (cat === 'base') {
-                    this._grammar.addRule('input_param', [canonical], this._runtime.simpleCombine(() => pname));
+                    this._grammar.addRule('input_param', [form], this._runtime.simpleCombine(() => pname));
                 } else {
                     let [before, after] = form.split('#');
                     before = (before || '').trim();
@@ -490,8 +490,8 @@ class ThingpediaLoader {
             canonical = [canonical];
 
         for (let form of canonical) {
-            const pluralized = pluralize(form);
-            if (pluralized !== form)
+            const pluralized = this._langPack.pluralize(form);
+            if (pluralized !== undefined && pluralized !== form)
                 canonical.push(pluralized);
         }
 

@@ -9,10 +9,12 @@
 // See COPYING for details
 "use strict";
 
+const util = require('util');
 const fs = require('fs');
 const readline = require('readline');
 const events = require('events');
 const seedrandom = require('seedrandom');
+const path = require('path');
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
@@ -21,6 +23,43 @@ const ParserClient = require('./lib/parserclient');
 const { DialogueParser, DialogueSerializer } = require('./lib/dialog_parser');
 const StreamUtils = require('../lib/stream-utils');
 const { readAllLines } = require('./lib/argutils');
+
+/**
+ * Parse a TSV file in a format similar to shared-parameter-datasets.tsv
+ * with one line per Thingpedia query, pointing to a JSON file for each.
+ */
+class MultiJSONDatabase {
+    constructor(filename) {
+        this._filename = filename;
+        this._dirname = path.dirname(filename);
+
+        this._store = new Map;
+    }
+
+    async load() {
+        const lines = (await util.promisify(fs.readFile)(this._filename, { encoding: 'utf8' })).split(/\r?\n/g);
+        await Promise.all(lines.map(async (line) => {
+            if (!line.trim() || line.startsWith('#'))
+                return;
+
+            let [functionKey, filepath] = line.trim().split('\t');
+            filepath = path.resolve(this._dirname, filepath);
+
+            const file = JSON.parse(await util.promisify(fs.readFile)(filepath, { encoding: 'utf8' }));
+            this._store.set(functionKey, file);
+        }));
+    }
+
+    get size() {
+        return this._store.size;
+    }
+    has(key) {
+        return this._store.has(key);
+    }
+    get(key) {
+        return this._store.get(key);
+    }
+}
 
 class Annotator extends events.EventEmitter {
     constructor(rl, dialogues, options) {
@@ -41,6 +80,11 @@ class Annotator extends events.EventEmitter {
             thingpediaClient: tpClient,
             schemaRetriever: this._schemas
         };
+        if (options.database_file) {
+            this._database = new MultiJSONDatabase(options.database_file);
+            simulatorOptions.database = this._database;
+        }
+
         this._simulator = this._target.createSimulator(simulatorOptions);
 
         this._state = 'loading';
@@ -97,6 +141,7 @@ class Annotator extends events.EventEmitter {
                     turns: this._currentDialogue,
                     comment: `dropped at turn ${this._outputDialogue.length+1}: ${comment}`
                 });
+                this._outputDialogue = [];
                 this.next();
                 return;
             }
@@ -138,6 +183,8 @@ class Annotator extends events.EventEmitter {
     }
 
     async start() {
+        if (this._database)
+            await this._database.load();
         await this._userParser.start();
         await this._agentParser.start();
     }
@@ -161,8 +208,10 @@ class Annotator extends events.EventEmitter {
             return;
         }
 
-        this._context = this._target.computeNewState(this._context, program);
-        this._outputTurn[this._currentKey] = this._context.prettyprint();
+        const oldContext = this._context;
+        this._context = this._target.computeNewState(this._context, program, this._dialogueState);
+        const prediction = this._target.computePrediction(oldContext, this._context, this._dialogueState);
+        this._outputTurn[this._currentKey] = prediction.prettyprint();
         this._nextUtterance();
     }
 
@@ -196,8 +245,10 @@ class Annotator extends events.EventEmitter {
         i -= 1;
 
         const program = this._candidates[i];
-        this._context = this._target.computeNewState(this._context, program);
-        this._outputTurn[this._currentKey] = this._context.prettyprint();
+        const oldContext = this._context;
+        this._context = this._target.computeNewState(this._context, program, this._dialogueState);
+        const prediction = this._target.computePrediction(oldContext, this._context, this._dialogueState);
+        this._outputTurn[this._currentKey] = prediction.prettyprint();
         this._nextUtterance();
     }
 
@@ -366,6 +417,10 @@ module.exports = {
             defaultValue: 'dlgthingtalk',
             choices: AVAILABLE_LANGUAGES,
             help: `The programming language to generate`
+        });
+        parser.addArgument('--database-file', {
+            required: false,
+            help: `Path to a file pointing to JSON databases used to simulate queries.`,
         });
         parser.addArgument('--user-nlu-server', {
             required: false,

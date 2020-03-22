@@ -440,12 +440,12 @@ function recursiveAddStringValues(arg, fileId) {
         type = type.elem;
 
     if (type.isEntity && STRING_FILE_OVERRIDES[fileId]) {
-        arg.annotations['string_values'] = Ast.Value.String(STRING_FILE_OVERRIDES[fileId]);
+        arg.annotations['string_values'] = new Ast.Value.String(STRING_FILE_OVERRIDES[fileId]);
         return;
     }
 
     if (type.isString) {
-        arg.annotations['string_values'] = Ast.Value.String(STRING_FILE_OVERRIDES[fileId] || fileId);
+        arg.annotations['string_values'] = new Ast.Value.String(STRING_FILE_OVERRIDES[fileId] || fileId);
         return;
     }
 
@@ -607,10 +607,10 @@ class SchemaProcessor {
             const canonical = this.makeArgCanonical(propertyname, ttType);
             const metadata = { canonical };
             const annotation = keepAnnotation ? {
-                'org_schema_type': Ast.Value.String(schemaOrgType),
-                'org_schema_comment': Ast.Value.String(propertydef.comment)
+                'org_schema_type': new Ast.Value.String(schemaOrgType),
+                'org_schema_comment': new Ast.Value.String(propertydef.comment)
             } : {
-                'org_schema_type': Ast.Value.String(schemaOrgType)
+                'org_schema_type': new Ast.Value.String(schemaOrgType)
             };
 
             if (PROPERTIES_NO_FILTER.includes(propertyname)) {
@@ -973,10 +973,10 @@ class SchemaProcessor {
                 const canonical = this.makeArgCanonical(propertyname, type);
                 const metadata = { canonical };
                 const annotation = keepAnnotation ? {
-                    'org_schema_type': Ast.Value.String(schemaOrgType),
-                    'org_schema_comment': Ast.Value.String(propertydef.comment)
+                    'org_schema_type': new Ast.Value.String(schemaOrgType),
+                    'org_schema_comment': new Ast.Value.String(propertydef.comment)
                 } : {
-                    'org_schema_type': Ast.Value.String(schemaOrgType)
+                    'org_schema_type': new Ast.Value.String(schemaOrgType)
                 };
 
                 if (PROPERTIES_NO_FILTER.includes(propertyname))
@@ -1003,10 +1003,10 @@ class SchemaProcessor {
                         'confirmation': clean(typename),
                     },
                     impl: keepAnnotation ? {
-                        'org_schema_comment': Ast.Value.String(typedef.comment),
-                        'confirm': Ast.Value.Boolean(false)
+                        'org_schema_comment': new Ast.Value.String(typedef.comment),
+                        'confirm': new Ast.Value.Boolean(false)
                     } : {
-                        'confirm': Ast.Value.Boolean(false)
+                        'confirm': new Ast.Value.Boolean(false)
                     }
                 });
         }

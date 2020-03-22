@@ -28,17 +28,19 @@ projection_Measure_m = {}
 compute_question = {}
 with_arg_min_max_table = {}
 
-if (!_tpLoader.flags.turking) {
-    // within distance
-    one_within_filter_table = {
+// within distance
+one_within_filter_table = {
+    !turking {
         !nofilter table:complete_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
         => C.makeWithinGeoDistanceExpression(table, HERE, distance);
 
         !nofilter table:complete_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
         => C.makeWithinGeoDistanceExpression(table, place, distance);
     }
+}
 
-    two_within_filter_table = {
+two_within_filter_table = {
+    !turking {
         !nofilter (
               table:one_with_filter_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
             | table:one_which_filter_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
@@ -51,8 +53,10 @@ if (!_tpLoader.flags.turking) {
             | table:one_clean_filter_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
         ) => C.makeWithinGeoDistanceExpression(table, place, distance);
     }
+}
 
-    three_within_filter_table = {
+three_within_filter_table = {
+    !turking {
         !nofilter (
               table:two_with_filter_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
             | table:two_which_filter_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
@@ -65,9 +69,10 @@ if (!_tpLoader.flags.turking) {
             | table:two_clean_filter_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
         ) => C.makeWithinGeoDistanceExpression(table, place, distance);
     }
+}
 
-
-    projection_Measure_m = {
+projection_Measure_m = {
+    !turking {
         ( 'the distance' ('of' | 'to') table:with_filtered_table ('from here' | '')
         | 'the distance' ('of' | 'to') 'the' table:with_arg_min_max_table ('from here' | ''))=> {
             // the position of a place in schema.org is called "geo" - for speed
@@ -75,7 +80,7 @@ if (!_tpLoader.flags.turking) {
 
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
         };
 
         // these form sentences like "tell me how far X is", which is grammatical but
@@ -85,7 +90,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
         };
 
         ( 'the distance' ('of' | 'to') table:with_filtered_table 'from' place:constant_Location
@@ -95,7 +100,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], Type.Measure('m'));
         };
 
         !turking {
@@ -106,7 +111,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], Type.Measure('m'));
         };
         }
 
@@ -140,14 +145,16 @@ if (!_tpLoader.flags.turking) {
             return C.makeProjection(table, p.name);
         };
     }
+}
 
-    compute_question = {
+compute_question = {
+    !turking {
         ( 'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filtered_table ('from here' | '') ('?'|'')
         | 'how' ('far' | 'near' | 'close') ('is' | 'are') 'the' table:with_arg_min_max_table ('from here' | '') ('?'|'')
         )=> {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], Type.Measure('m'));
         };
 
         ( 'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filtered_table ('from' | 'to') place:constant_Location ('?'|'')
@@ -155,7 +162,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'));
+            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], Type.Measure('m'));
         };
 
         ( 'how many' p:out_param_ArrayCount ('does' | 'do') table:with_filtered_table 'have ?'
@@ -231,24 +238,26 @@ if (!_tpLoader.flags.turking) {
         };
         }
     }
+}
 
-    with_arg_min_max_table = {
+with_arg_min_max_table = {
+    !turking {
         ('nearest' | 'closest') table:complete_table ('' | 'from here' | 'to here' | 'to me')  => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'asc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'asc');
         };
 
         ('nearest' | 'closest') table:with_filtered_table => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'asc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'asc');
         };
 
         ('farthest' | 'most far away') table:with_filtered_table => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'desc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], Type.Measure('m'), 'desc');
         };
 
         ( ('nearest' | 'closest') table:complete_table 'to' place:constant_Location
@@ -257,7 +266,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'asc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'asc');
         };
 
         ( ('nearest' | 'closest') table:with_filtered_table 'to' place:constant_Location
@@ -266,7 +275,7 @@ if (!_tpLoader.flags.turking) {
         ) => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'asc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'asc');
         };
 
         ( ('farthest' | 'most far away') table:with_filtered_table 'from' place:constant_Location
@@ -275,7 +284,7 @@ if (!_tpLoader.flags.turking) {
         => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
-            return C.makeComputeArgMinMaxExpression(table, 'distance', [Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'desc');
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'desc');
         };
 
         table:with_filtered_table 'with the' ('most' | 'highest number of' | 'largest number of' | 'largest count of') p:out_param_Array__Any => {

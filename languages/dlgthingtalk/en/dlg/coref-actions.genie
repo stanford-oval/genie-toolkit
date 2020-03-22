@@ -1,0 +1,113 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+// Coref actions: actions that operate on the current result, referred by coreference ("it", "that", "the restaurant")
+
+{
+    const assert = require('assert');
+    const ThingTalk = require('thingtalk');
+    const Ast = ThingTalk.Ast;
+    const Type = ThingTalk.Type;
+
+    const C = require('../../ast_manip');
+    const D = require('../../dialogue_utils');
+
+    // import thingpedia info
+    const _tpLoader = require('../../load-thingpedia');
+}
+
+for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
+    // coref to one object (for recommendation)
+    coref_action_phrase = {
+        ( action:thingpedia_action 'it'
+        | action:thingpedia_action 'this'
+        | action:thingpedia_action 'that'
+        ) [-> pname] => {
+            const type = action.schema.getArgType(pname);
+            if (!type || !type.isEntity)
+                return null;
+            return action.invocation;
+        };
+
+        action:thingpedia_action noun:the_base_noun_phrase [-> pname] => {
+            const type = action.schema.getArgType(pname);
+            if (!type || !type.isEntity || type.type !== noun)
+                return null;
+            return action.invocation;
+        };
+    }
+
+    // coref to a list (for list proposal)
+    list_coref_action_phrase = {
+        ( action:thingpedia_action 'either one'
+        | action:thingpedia_action 'either of them'
+        | action:thingpedia_action 'any of them'
+        | action:thingpedia_action 'any one of them'
+        ) [-> pname] => {
+            const type = action.schema.getArgType(pname);
+            if (!type || !type.isEntity)
+                return null;
+            return action.invocation;
+        };
+    }
+
+    // operate on an object by name - this rule is only available after the first turn
+    contextual_action_phrase = {
+        action:thingpedia_action name:constant_name [-> pname { isConstant: true }] => {
+            const newAction = C.replacePlaceholderWithConstant(action, pname, name);
+            if (newAction === null || !(newAction instanceof Ast.Action.Invocation))
+                return null;
+            return newAction.invocation;
+        };
+    }
+
+    // add the rules for constant parameters too
+    coref_action_phrase = {
+        a:coref_action_phrase v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(a, pname, v);
+    }
+    contextual_action_phrase = {
+        a:contextual_action_phrase v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(a, pname, v);
+    }
+    list_coref_action_phrase = {
+        a:list_coref_action_phrase v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(a, pname, v);
+    }
+}
+
+// proposals/recommendations from the agent
+
+action_coref_recommendation = {
+    ( 'would you like to' action:coref_action_phrase '?'
+    | 'would you like me to' action:coref_action_phrase ' for you ?'
+    ) if complete => {
+        if (action.in_params.length > 0)
+            return null;
+        return action;
+    };
+}
+
+action_coref_list_proposal = {
+    'would you like to' action:list_coref_action_phrase '?' if complete => {
+        if (action.in_params.length > 0)
+            return null;
+        return action;
+    };
+}
+
+// sentences from the user
+
+coref_action_command = {
+    ( ctx:ctx_with_action base:coref_action_phrase
+    | ctx:ctx_with_action base:contextual_action_phrase
+    ) if complete => D.contextualAction(ctx, base);
+
+    ( action:coref_action_command param:preposition_input_param
+    | action:coref_action_command ('with' | 'having') param:npp_input_param
+    ) => C.addInvocationInputParam(action, param);
+}

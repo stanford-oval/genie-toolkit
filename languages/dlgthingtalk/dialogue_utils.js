@@ -1,8 +1,8 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Genie
 //
-// Copyright 2017-2018 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -13,366 +13,27 @@ const assert = require('assert');
 
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
 
 const C = require('./ast_manip');
 const _loader = require('./load-thingpedia');
+const { SlotBag, checkAndAddSlot } = require('./slot_bag');
+const { arraySubset } = require('./array_utils');
 
-/**
- * Enable assertions
- */
-const DEBUG = true;
+const {
+    POLICY_NAME,
+    INITIAL_CONTEXT_INFO,
 
-// Helper classes for info that we extract from the current context
-// These exist to minimize AST traversals during expansion
+    getContextInfo,
+    isUserAskingResultQuestion,
+    getActionInvocation,
+    checkStateIsValid,
 
-// NOTE: while ast_manip is mostly just about ThingTalk semantics, with
-// a few heuristics sprinkled out, this is really only about the "transaction"
-// dialogue policy
-// hence we hard-code the policy name here, and check it before doing anything
-// in the templates
-// templates can be combined though
-
-const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
-
-const USER_DIALOGUE_ACTS = new Set([
-    // user says hi!
-    'greet',
-    // user issues a ThingTalk program
-    'execute',
-    // user wants to see more output from the previous result
-    'learn_more'
-]);
-
-const SYSTEM_DIALOGUE_ACTS = new Set([
-    // agent says hi back
-    'sys_greet',
-    // agent asks a question to refine a query (with or without a parameter)
-    'sys_search_question',
-    'sys_generic_search_question',
-    // agent asks a question to slot fill a program
-    'sys_slot_fill',
-    // agent recommends one, two, or three results from the program (with or without an action)
-    'sys_recommend_one',
-    'sys_recommend_two',
-    'sys_recommend_three',
-    // agent proposes a refined query
-    'sys_propose_refined_query',
-    // agent asks the user what they would like to hear
-    'sys_learn_more_what',
-    // agent informs that the search is empty (with and without a slot-fill question)
-    'sys_empty_search_question',
-    'sys_empty_search'
-]);
-
-const SYSTEM_STATE_MUST_HAVE_PARAM = new Set([
-    'sys_search_question',
-    'sys_empty_search_question',
-    'sys_slot_fill'
-]);
-
-const INITIAL_CONTEXT_INFO = {};
-
-class SlotBag {
-    constructor(schema) {
-        this.schema = schema;
-        this.store = new Map;
-    }
-    clone() {
-        let newbag = new SlotBag(this.schema);
-        for (let [key, value] of this.entries())
-            newbag.set(key, value.clone());
-        return newbag;
-    }
-
-    get size() {
-        return this.store.size;
-    }
-    entries() {
-        return this.store.entries();
-    }
-    get(key) {
-        return this.store.get(key);
-    }
-    has(key) {
-        return this.store.has(key);
-    }
-    keys() {
-        return this.store.keys();
-    }
-    values() {
-        return this.store.values();
-    }
-    [Symbol.iterator]() {
-        return this.store[Symbol.iterator]();
-    }
-    set(key, value) {
-        assert(value instanceof Ast.Value);
-        this.store.set(key, value);
-    }
-    clear() {
-        return this.store.clear();
-    }
-    delete(key) {
-        return this.store.delete(key);
-    }
-}
-
-function checkAndAddSlot(bag, filter) {
-    assert(bag instanceof SlotBag);
-    if (!filter.isAtom)
-        return null;
-    const ptype = bag.schema.getArgType(filter.name);
-    if (!ptype)
-        return null;
-    const vtype = filter.value.getType();
-    if (filter.operator === 'contains' || filter.operator === 'contains~') {
-        if (!ptype.equals(new Type.Array(vtype)))
-            return null;
-        const clone = bag.clone();
-        if (clone.has(filter.name))
-            clone.get(filter.name).value.push(filter.value);
-        else
-            clone.set(filter.name, new Ast.Value.Array([filter.value]));
-        return clone;
-    } else {
-        if (filter.operator !== '==' && filter.operator !== '=~')
-            return null;
-        if (!ptype.equals(vtype))
-            return null;
-        if (bag.has(filter.name))
-            return null;
-        const clone = bag.clone();
-        clone.set(filter.name, filter.value);
-        return clone;
-    }
-}
-
-/**
- * Check the dialogue state for internal consistency and invariants of the policy
- *
- * This method is called by all $root templates
- * If debugging is disabled, this method does nothing (and we just hope for the best!)
- */
-function checkStateIsValid(ctx, sysState, userState) {
-    if (!DEBUG)
-        return [sysState, userState];
-
-    assert(USER_DIALOGUE_ACTS.has(userState.dialogueAct), `invalid user dialogue act ${userState.dialogueAct}`);
-    assert(userState.dialogueActParam === null);
-
-    if (ctx === INITIAL_CONTEXT_INFO) {
-        // user speaks first
-        assert(sysState === null);
-        return [sysState, userState];
-    }
-
-    assert(SYSTEM_DIALOGUE_ACTS.has(sysState.dialogueAct), `invalid system dialogue act ${sysState.dialogueAct}`);
-    if (SYSTEM_STATE_MUST_HAVE_PARAM.has(sysState.dialogueAct))
-        assert(sysState.dialogueActParam);
-    else
-        assert(sysState.dialogueActParam === null);
-
-    return [sysState, userState];
-}
-
-
-const LARGE_RESULT_THRESHOLD = 10;
-function isLargeResultSet(result) {
-    return result.more || result.count.isVarRef || result.count.value >= LARGE_RESULT_THRESHOLD;
-}
-
-function getTableArgMinMax(table) {
-    while (table.isProjection || table.isCompute)
-        table = table.table;
-
-    if (table.isIndex && table.table.isSort && table.indices.length === 1 && table.indices[0].isNumber &&
-        table.indices[0].value === 1)
-        return [table.table.field, table.table.direction];
-
-    return null;
-}
-
-class ResultInfo {
-    constructor(item) {
-        assert(item.results !== null);
-        this.isTable = !!(item.stmt.table && item.stmt.actions.every((a) => a.isNotify));
-
-        if (this.isTable) {
-            const table = item.stmt.table;
-            // if there is a compute at top-level, there is a projection too
-            assert(!table.isCompute);
-            this.isQuestion = !!(table.isProjection || table.isCompute || table.isIndex || table.isAggregation);
-            this.isAggregation = !!table.isAggregation;
-            this.argMinMaxField = getTableArgMinMax(table);
-            assert(this.argMinMaxField === null || this.isQuestion);
-            this.projection = table.isProjection ? table.args : null;
-        } else {
-            this.isQuestion = false;
-            this.isAggregation = false;
-            this.argMinMaxField = null;
-            this.projection = null;
-        }
-        this.hasEmptyResult = item.results.results.length === 0;
-        this.hasSingleResult = item.results.results.length === 1;
-        this.hasLargeResult = isLargeResultSet(item.results);
-        this.hasID = item.results.results.length > 0 &&
-            !!item.results.results[0].value.id;
-    }
-}
-
-class NextStatementInfo {
-    constructor(currentItem, resultInfo, nextItem) {
-        this.isAction = !nextItem.stmt.table;
-
-        this.chainParameter = null;
-        this.chainParameterFilled = false;
-        this.isComplete = C.isCompleteCommand(nextItem.stmt);
-
-        if (!this.isAction)
-            return;
-
-        assert(nextItem.stmt.actions.length === 1);
-        const action = nextItem.stmt.actions[0];
-        assert(action.isInvocation);
-
-        if (!currentItem || !resultInfo || !resultInfo.isTable)
-            return;
-        const tableschema = currentItem.stmt.table.schema;
-        const idType = tableschema.getArgType('id');
-        if (!idType)
-            return;
-
-        const invocation = action.invocation;
-        const actionschema = invocation.schema;
-        for (let arg of actionschema.iterateArguments()) {
-            if (!arg.is_input)
-                continue;
-            if (arg.type.equals(idType)) {
-                this.chainParameter = arg.name;
-                break;
-            }
-        }
-
-        if (this.chainParameter === null)
-            return;
-
-        for (let in_param of invocation.in_params) {
-            if (in_param.name === this.chainParameter && !in_param.value.isUndefined) {
-                this.chainParameterFilled = true;
-                break;
-            }
-        }
-    }
-}
-
-class ResultQuestionInfo {
-    constructor(item, currentFunction, state) {
-        assert(item.stmt.table);
-        const projectionTable = item.stmt.table;
-        assert(projectionTable.isProjection);
-        const filterTable = projectionTable.table;
-        assert(filterTable.isFilter);
-        const resultRefTable = filterTable.table;
-        assert(resultRefTable.isResultRef);
-        assert(resultRefTable.kind === currentFunction.class.name &&
-               resultRefTable.channel === currentFunction.name);
-
-        this.projection = projectionTable.args;
-
-        const filter = filterTable.filter;
-        assert(filter.isAtom && filter.operator === '=='  &&
-               filter.name === 'id');
-    }
-}
-
-class ContextInfo {
-    constructor(state, currentFunctionSchema, resultInfo, resultQuestionInfo, currentIdx, questionIdx, nextIdx, nextInfo) {
-        this.state = state;
-
-        assert(currentFunctionSchema === null || currentFunctionSchema instanceof Ast.FunctionDef);
-        if (currentFunctionSchema === null) {
-            this.currentFunctionSchema = null;
-            this.currentFunction = null;
-        } else {
-            this.currentFunctionSchema = currentFunctionSchema;
-            this.currentFunction = currentFunctionSchema.class.name + ':' + currentFunctionSchema.name;
-        }
-        this.resultInfo = resultInfo;
-        this.resultQuestionInfo = resultQuestionInfo;
-        this.currentIdx = currentIdx;
-        this.questionIdx = questionIdx;
-        assert(this.questionIdx !== this.currentIdx || (this.questionIdx === null && this.currentIdx === null));
-        this.nextIdx = nextIdx;
-        this.nextInfo = nextInfo;
-    }
-
-    get results() {
-        if (this.questionIdx !== null)
-            return this.state.history[this.questionIdx].results.results;
-        if (this.currentIdx !== null)
-            return this.state.history[this.currentIdx].results.results;
-        return null;
-    }
-
-    get current() {
-        return this.currentIdx !== null ? this.state.history[this.currentIdx] : null;
-    }
-
-    get question() {
-        return this.questionIdx !== null ? this.state.history[this.questionIdx] : null;
-    }
-
-    get next() {
-        return this.nextIdx !== null ? this.state.history[this.nextIdx] : null;
-    }
-
-    clone() {
-        return new ContextInfo(this.state.clone(), this.currentFunctionSchema, this.resultInfo, this.resultQuestionInfo,
-            this.currentIdx, this.questionIdx, this.nextIdx, this.nextInfo);
-    }
-}
-
-function getContextInfo(state) {
-    assert (!state.dialogueAct.startsWith('sys_'), `Unexpected system dialogue act ${state.dialogueAct}`);
-
-    let nextItemIdx = null, nextInfo = null, currentFunction = null, currentResultInfo = null,
-        questionItemIdx = null, currentResultQuestionInfo = null, currentItemIdx = null;
-    for (let idx = 0; idx < state.history.length; idx ++) {
-        const item = state.history[idx];
-        if (item.results === null) {
-            nextItemIdx = idx;
-            nextInfo = new NextStatementInfo(state.history[currentItemIdx], currentResultInfo, item);
-            break;
-        }
-        const functions = C.getFunctions(item.stmt);
-        if (functions.length > 0) {
-            currentFunction = functions[functions.length-1];
-            currentItemIdx = idx;
-            currentResultInfo = new ResultInfo(item, functions);
-        } else {
-            assert(currentResultInfo);
-            questionItemIdx = idx;
-            currentResultQuestionInfo = new ResultQuestionInfo(item, currentFunction, state);
-        }
-    }
-    if (nextItemIdx !== null)
-        assert(nextInfo);
-
-    // the context should be composed of:
-    // { history of length N } current [optional result question] { sequence of next programs }
-    if (nextItemIdx !== null && currentItemIdx !== null)
-        assert((nextItemIdx - currentItemIdx) > 0 && (nextItemIdx - currentItemIdx) <= 2);
-    if (questionItemIdx !== null)
-        assert(questionItemIdx === currentItemIdx + 1);
-
-    return new ContextInfo(state, currentFunction, currentResultInfo, currentResultQuestionInfo,
-        currentItemIdx, questionItemIdx, nextItemIdx, nextInfo);
-}
-
-function getActionInvocation(historyItem) {
-    return historyItem.stmt.actions[0].invocation;
-}
+    makeSimpleState,
+    addActionParam,
+    addAction,
+    addQuery,
+    replaceAction,
+} = require('./state_manip');
 
 function isFilterCompatibleWithResult(topResult, filter) {
     if (filter.isTrue || filter.isDontCare)
@@ -412,21 +73,6 @@ function isFilterCompatibleWithResult(topResult, filter) {
     }
 }
 
-function arraySubset(small, big) {
-    for (let element of small) {
-        let good = false;
-        for (let candidate of big) {
-            if (candidate.equals(element)) {
-                good = true;
-                break;
-            }
-        }
-        if (!good)
-            return false;
-    }
-    return true;
-}
-
 function isInfoPhraseCompatibleWithResult(topResult, info) {
     for (let [pname, infoValue] of info) {
         const resultValue = topResult.value[pname];
@@ -455,6 +101,9 @@ function makeActionRecommendation(ctx, action) {
     if (!id)
         return null;
 
+    if (action.in_params.length !== 1)
+        return null;
+
     for (let param of action.in_params) {
         if (param.value.equals(id))
             return { topResult, info: null, action };
@@ -481,13 +130,7 @@ function checkInfoPhrase(ctx, info) {
         return null;
 
     // check that the filter uses the right set of parameters
-    if (ctx.resultQuestionInfo) {
-        // check that all projected names are present
-        for (let name of ctx.resultQuestionInfo.projection) {
-            if (!info.has(name))
-                return null;
-        }
-    } else if (ctx.resultInfo.projection !== null) {
+    if (ctx.resultInfo.projection !== null) {
         // check that all projected names are present
         for (let name of ctx.resultInfo.projection) {
             if (!info.has(name))
@@ -665,16 +308,14 @@ function initialRequest(stmt) {
 
     let history = [];
 
+    if (stmt.table && !C.checkValidQuery(stmt.table))
+        return null;
+
     if (stmt.table && stmt.actions.some((a) => !a.isNotify)) {
         // split into two statements, one getting the data, and the other using it
 
-        if (!stmt.table.isInvocation) {
-            // if there is no filter, skip the statement
-            const queryStmt = new Ast.Statement.Command(null, stmt.table, [C.notifyAction()]);
-            history.push(new Ast.DialogueHistoryItem(null, queryStmt, null, false));
-        }
-        if (!C.checkValidQuery(stmt.table))
-            return null;
+        const queryStmt = new Ast.Statement.Command(null, stmt.table, [C.notifyAction()]);
+        history.push(new Ast.DialogueHistoryItem(null, queryStmt, null, false));
 
         const newActions = stmt.actions.map((a) => a.clone());
         for (let action of newActions) {
@@ -697,9 +338,6 @@ function initialRequest(stmt) {
         const actionStmt = new Ast.Statement.Command(null, null, newActions);
         history.push(new Ast.DialogueHistoryItem(null, actionStmt, null, false));
     } else {
-        if (stmt.table && !C.checkValidQuery(stmt.table))
-            return null;
-
         let newStatements = [];
         if (!stmt.table) {
             for (let action of stmt.actions) {
@@ -719,6 +357,7 @@ function initialRequest(stmt) {
                     }
                 }
             }
+            assert(newStatements.length > 0);
         }
         newStatements.push(stmt);
 
@@ -730,25 +369,41 @@ function initialRequest(stmt) {
 }
 
 /**
- * Check if the table filters on the parameter `question` (effectively providing a constraint on question)
+ * Check if the table filters on the parameters `questions` (effectively providing a constraint on question)
  */
-function isQueryAnswerValidForQuestion(table, question) {
-    if (question === '')
+function isQueryAnswerValidForQuestion(table, questions) {
+    assert(Array.isArray(questions));
+    if (questions.length === 0)
         return true;
     let answersQuestion = false;
     table.visit(new class extends Ast.NodeVisitor {
         visitAtomBooleanExpression(atom) {
-            if (atom.name === question)
+            if (questions.some((q) => q === atom.name))
                 answersQuestion = true;
             return true;
         }
         visitDontCareBooleanExpression(atom) {
-            if (atom.name === question)
+            if (questions.some((q) => q === atom.name))
                 answersQuestion = true;
             return true;
         }
     });
     return answersQuestion;
+}
+
+/**
+ * Check if the action has parameters for the `questions`
+ */
+function isSlotFillAnswerValidForQuestion(action, questions) {
+    assert(Array.isArray(questions));
+    assert(action instanceof Ast.Invocation);
+    return questions.every((question) => {
+        for (let in_param of action.in_params) {
+            if (in_param.name === question)
+                return !in_param.value.isUndefined;
+        }
+        return false;
+    });
 }
 
 /**
@@ -838,12 +493,28 @@ function getParamsInFilter(filter) {
     return params;
 }
 
+function neutralizeIDFilter(ast) {
+    // clone a filter and replace "id == ..." atoms with "true"
+
+    if (ast.isNot)
+        return new Ast.BooleanExpression.Not(null, neutralizeIDFilter(ast.expr));
+    if (ast.isOr)
+        return new Ast.BooleanExpression.Or(null, ast.operands.map(neutralizeIDFilter));
+    if (ast.isAnd)
+        return new Ast.BooleanExpression.And(null, ast.operands.map(neutralizeIDFilter));
+    if (ast.isTrue || ast.isDontCare || ast.isFalse || ast.isCompute || ast.isExternal)
+        return ast;
+
+    assert(ast.isAtom);
+    if (ast.name === 'id' && ast.operator === '==')
+        return Ast.BooleanExpression.True;
+    return ast;
+}
+
 function refineFilterToAnswerQuestion(ctxFilter, refinedFilter) {
     // this function is used when:
     // - the agent asks a search refinement question, and the user answers it
     // - the agent proposes something to refine the question
-    // - the agent proposes something, and the user replies with a bunch of filters
-    // (e.g. "how about terun?" "nah i'm looking for something chinese")
     //
     // the refinement is allowed only if the parameter was not mentioned before
     // furthermore, "id ==" filters are removed from the refined filter, so a user
@@ -852,23 +523,29 @@ function refineFilterToAnswerQuestion(ctxFilter, refinedFilter) {
     if (setsIntersect(getParamsInFilter(ctxFilter),  getParamsInFilter(refinedFilter)))
         return null;
 
-    function recursiveHelper(ast) {
-        if (ast.isNot)
-            return new Ast.BooleanExpression.Not(null, recursiveHelper(ast.expr));
-        if (ast.isOr)
-            return new Ast.BooleanExpression.Or(null, ast.operands.map(recursiveHelper));
-        if (ast.isAnd)
-            return new Ast.BooleanExpression.And(null, ast.operands.map(recursiveHelper));
-        if (ast.isTrue || ast.isDontCare || ast.isFalse || ast.isCompute || ast.isExternal)
-            return ast;
+    const clone = neutralizeIDFilter(ctxFilter);
+    return new Ast.BooleanExpression.And(null, [clone, refinedFilter]).optimize();
+}
 
-        assert(ast.isAtom);
-        if (ast.name === 'id' && ast.operator === '==')
-            return Ast.BooleanExpression.True;
-        return ast;
+function filterToNegatedSlots(filter) {
+    filter = filter.optimize();
+    let operands, slots = {};
+    if (filter.isAnd)
+        operands = filter.operands;
+    else
+        operands = [filter];
+
+    for (let operand of operands) {
+        if (!operand.isNot)
+            continue;
+        let atom = operand.expr;
+        if (!atom.isAtom && !atom.isDontCare)
+            continue;
+
+        slots[atom.name] = operand;
     }
-    const clone = recursiveHelper(ctxFilter).optimize();
-    return new Ast.BooleanExpression.And(null, [clone, refinedFilter]);
+
+    return slots;
 }
 
 function filterToSlots(filter) {
@@ -889,13 +566,72 @@ function filterToSlots(filter) {
     return slots;
 }
 
+function refineFilterToAnswerQuestionOrChangeFilter(ctxFilter, refinedFilter) {
+    // this function is used:
+    // - the agent proposes something, and the user replies with a bunch of filters
+    //   (e.g. "how about terun?" "nah i'm looking for something chinese")
+    //
+    // the refinement is allowed only if the parameter was not mentioned before
+    // at most one parameter can be mentioned in the context, in which case it must be different
+    //
+    // the refinement contains all clauses which are not explicitly negated in the refinement,
+    // plus all of the refinement
+    // furthermore, "id ==" filters are removed from the refined filter, so a user
+    // can choose a restaurant for a while then change their mind
+
+    ctxFilter = ctxFilter.optimize();
+    refinedFilter = refinedFilter.optimize();
+
+    const ctxSlots = filterToSlots(ctxFilter);
+    const refinedSlots = filterToSlots(refinedFilter);
+    const negatedRefinedSlots = filterToNegatedSlots(refinedFilter);
+
+    let changedParam = undefined;
+    // slots in the context must not mentioned in the refinement, except at most one can, and
+    // it must be different operator or value
+    //
+    // note that both positive and negative filters are killed by this check
+    // so neither "I want X food" nor "I don't like X food" are acceptable when "food =~ X" was
+    // already in the context
+    for (let key in ctxSlots) {
+        assert(ctxSlots[key].isAtom || ctxSlots[key].isDontCare);
+        if (negatedRefinedSlots[key])
+            return null;
+        if (refinedSlots[key]) {
+            // dont change opinion from a dontcare to a not dontcare
+            if (ctxSlots[key].isDontCare)
+                return null;
+
+            if (refinedSlots[key].equals(ctxSlots[key]))
+                return null;
+            if (changedParam !== undefined)
+                return null;
+            changedParam = key;
+        }
+    }
+
+    const newCtxClauses = [];
+    for (let clause of (ctxFilter.isAnd ? ctxFilter.operands : [ctxFilter])) {
+        if (clause.isAtom || clause.isDontCare) {
+            if (refinedSlots[clause.name])
+                continue;
+        }
+        newCtxClauses.push(neutralizeIDFilter(clause));
+    }
+
+    return new Ast.BooleanExpression.And(null, [...newCtxClauses, refinedFilter]).optimize();
+}
+
+
 function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
     // this function is used:
     // - when the agent returned zero results, and the user
     //   must change the search
     // - when the agent makes a filter proposal, and the user says no I want something else
     //
-    // the refinement is allowed only if at least one parameter is different than before
+    // the refinement is allowed only if no new parameters are introduced (all parameters were
+    // mentioned before), and at least one parameter is different than before
+    //
     // the resulting filter uses all the parameters in ctxFilter that are not mentioned
     // in refinedFilter, as well as all of refinedFilter
 
@@ -944,70 +680,138 @@ function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
     return new Ast.BooleanExpression.And(null, [...ctxClauses, refinedFilter]).optimize();
 }
 
-function queryRefinement(ctxTable, newFilter, refineFilter) {
-    let ctxFilterTable;
-    [ctxTable, ctxFilterTable] = findOrMakeFilterTable(ctxTable);
+function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
+    let cloneTable = ctxTable.clone();
+
+    let filterTable;
+    [cloneTable, filterTable] = findOrMakeFilterTable(cloneTable);
     //if (ctxFilterTable === null)
     //    return null;
-    assert(ctxFilterTable.isFilter && ctxFilterTable.table.isInvocation);
+    assert(filterTable.isFilter && filterTable.table.isInvocation);
 
-    const refinedFilter = refineFilter(ctxFilterTable.filter, newFilter);
+    const refinedFilter = refineFilter(filterTable.filter, newFilter);
     if (refinedFilter === null)
         return null;
 
-    ctxFilterTable.filter = refinedFilter;
-    return ctxTable;
+    filterTable.filter = refinedFilter;
+
+    if (newProjection) {
+        // if we have a new projection, we remove the projection entirely and replace it
+        // with the new one
+
+        if (cloneTable.isProjection)
+            cloneTable = cloneTable.table;
+        // there should be no projection of projection (will be optimized)
+        assert(!cloneTable.isProjection);
+        cloneTable = new Ast.Table.Projection(null, cloneTable, newProjection,
+            C.resolveProjection(newProjection, cloneTable.schema));
+    } else {
+        // otherwise, we remove all fields from the projection that were mentioned in the
+        // filter
+
+        let oldProjection;
+        if (cloneTable.isProjection) {
+            oldProjection = cloneTable.args;
+            cloneTable = cloneTable.table;
+        }
+        // there should be no projection of projection (will be optimized)
+        assert(!cloneTable.isProjection);
+
+        if (oldProjection) {
+            newProjection = oldProjection.filter((pname) => !C.filterUsesParam(refinedFilter, pname));
+
+            // if the projection is now empty, we don't add
+            // the projection will be empty if
+            // 1. the user asks a question
+            // 2. the agent answers that question
+            // 3. the user now refines the search indicating they don't like that answer
+            //
+            // on the other hand, if
+            // 1. the user asks a question (eg. asks for "address")
+            // 2. the agent answers that question
+            // 3. the user now refines the search changing a different parameter
+            // we will keep the projection
+
+            if (newProjection.length > 0) {
+                cloneTable = new Ast.Table.Projection(null, cloneTable, newProjection,
+                    C.resolveProjection(newProjection, cloneTable.schema));
+            }
+        }
+    }
+
+    return cloneTable;
 }
 
-function makeSimpleState(ctx, dialogueAct, dialogueActParam) {
-    return new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, ctx.state.history);
+function isValidSearchQuestion(table, questions) {
+    for (let q of questions) {
+        const arg = table.schema.getArgument(q);
+        if (!arg || arg.is_input)
+            return false;
+        if (arg.getAnnotation('filterable') === false)
+            return false;
+    }
+    return true;
 }
 
-function overrideCurrentQuery(ctxClone, newTable) {
-    ctxClone.current.stmt.table = newTable;
-    ctxClone.current.results = null;
-
-    const state = ctxClone.state;
-    state.dialogueAct = 'execute';
-    state.dialogueActParam = null;
-    // remove all intermediate results between the current program and the next one
-    if (ctxClone.nextIdx !== null)
-        state.history.splice(ctxClone.currentIdx+1, ctxClone.nextIdx-(ctxClone.currentIdx+1));
-    else
-        state.history.splice(ctxClone.currentIdx+1, state.history.length-(ctxClone.currentIdx+1));
-
-    return state;
+function isValidSlotFillQuestion(action, questions) {
+    assert(action instanceof Ast.Invocation);
+    for (let q of questions) {
+        const arg = action.schema.getArgument(q);
+        if (!arg || !arg.is_input)
+            return false;
+        for (let in_param of action.in_params) {
+            if (in_param.name === q && !in_param.value.isUndefined)
+                return false;
+        }
+    }
+    return true;
 }
 
-function isValidSlotFillQuestion(table, question) {
-    const arg = table.schema.getArgument(question);
-    if (!arg)
-        return false;
-
-    return arg.getAnnotation('filterable') !== false;
-}
-
-function preciseSearchQuestionAnswer(ctx, [question, answer]) {
+function preciseSearchQuestionAnswer(ctx, [questions, answer]) {
     const answerFunctions = C.getFunctionNames(answer);
     assert(answerFunctions.length === 1);
     if (answerFunctions[0] !== ctx.currentFunction)
         return null;
     const currentTable = ctx.current.stmt.table;
-    if (isValidSlotFillQuestion(currentTable, question))
+    if (!isValidSearchQuestion(currentTable, questions))
         return null;
     assert(answer.isFilter && answer.table.isInvocation);
 
-    const clone = ctx.clone();
-    const cloneTable = clone.current.stmt.table;
-    const newTable = queryRefinement(cloneTable, answer.filter, refineFilterToAnswerQuestion);
+    const newTable = queryRefinement(currentTable, answer.filter, refineFilterToAnswerQuestion);
     if (newTable === null)
         return null;
-    const userState = overrideCurrentQuery(clone, newTable);
+    const clone = ctx.clone();
+    const userState = addQuery(clone, 'execute', newTable, 'accepted');
     let sysState;
-    if (question === '')
+    if (questions.length === 0)
         sysState = makeSimpleState(ctx, 'sys_generic_search_question', null);
     else
-        sysState = makeSimpleState(ctx, 'sys_search_question', question);
+        sysState = makeSimpleState(ctx, 'sys_search_question', questions);
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
+function preciseSlotFillQuestionAnswer(ctx, [questions, answer]) {
+    const answerFunctions = C.getFunctionNames(answer);
+    assert(answerFunctions.length === 1);
+    if (answerFunctions[0] !== ctx.nextFunction)
+        return null;
+    const currentAction = getActionInvocation(ctx.next);
+    if (!isValidSlotFillQuestion(currentAction, questions))
+        return null;
+    assert(answer instanceof Ast.Invocation);
+
+    // check that we don't fill the chain parameter through this path:
+    // the chain parameter can only be filled if the agent shows the results
+    for (let in_param of answer.in_params) {
+        if (in_param.name === ctx.nextInfo.chainParameter &&
+            !ctx.nextInfo.chainParameterFilled)
+            return null;
+    }
+
+    const clone = ctx.clone();
+    const userState = replaceAction(clone, 'execute', answer, 'accepted');
+    assert(questions.length > 0);
+    const sysState = makeSimpleState(ctx, 'sys_slot_fill', questions);
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -1051,46 +855,40 @@ function checkFilterPairForDisjunctiveQuestion(ctx, f1, f2) {
     return [f1.name, f1.value.getType()];
 }
 
-function impreciseSearchQuestionAnswer(ctx, [question, answer]) {
+function impreciseSearchQuestionAnswer(ctx, [questions, answer]) {
+    assert(Array.isArray(questions));
     const currentTable = ctx.current.stmt.table;
-    if (isValidSlotFillQuestion(currentTable, question))
+    if (!isValidSearchQuestion(currentTable, questions))
         return null;
+    assert(answer instanceof Ast.BooleanExpression);
     if (!C.checkFilter(ctx.current.stmt.table, answer))
         return null;
 
-    const clone = ctx.clone();
-    const cloneTable = clone.current.stmt.table;
-    const newTable = queryRefinement(cloneTable, answer, refineFilterToAnswerQuestion);
+    const newTable = queryRefinement(currentTable, answer, refineFilterToAnswerQuestion);
     if (newTable === null)
         return null;
-    const userState = overrideCurrentQuery(clone, newTable);
-    const sysState = makeSimpleState(ctx, 'sys_search_question', question);
+    const clone = ctx.clone();
+    const userState = addQuery(clone, 'execute', newTable, 'accepted');
+    const sysState = makeSimpleState(ctx, 'sys_search_question', questions);
     return checkStateIsValid(ctx, sysState, userState);
 }
 
-function makeSystemProposal(ctxClone, proposal) {
-    assert(proposal.isFilter && proposal.table.isInvocation);
-    const kind = proposal.table.invocation.selector.kind;
-    const fn = proposal.table.invocation.channel;
 
-    const propstatement = new Ast.Statement.Command(null,
-        new Ast.Table.Filter(null, new Ast.Table.ResultRef(null, kind, fn, new Ast.Value.Number(1), proposal.schema), proposal.filter, proposal.schema),
-        [C.notifyAction()]);
-
-    const prophistoryitem = new Ast.DialogueHistoryItem(null, propstatement, null, false);
-
-    // remove all intermediate results between the current program and the next one
-    // and splice the new history item
-    const state = ctxClone.state;
-    state.dialogueAct = 'sys_propose_refined_query';
-    state.dialogueActParam = null;
-
-    if (ctxClone.nextIdx !== null)
-        state.history.splice(ctxClone.currentIdx+1, ctxClone.nextIdx-(ctxClone.currentIdx+1), prophistoryitem);
-    else
-        state.history.splice(ctxClone.currentIdx+1, state.history.length-(ctxClone.currentIdx+1), prophistoryitem);
-
-    return state;
+function impreciseSlotFillQuestionAnswer(ctx, [questions, answer]) {
+    assert(Array.isArray(questions));
+    const currentAction = getActionInvocation(ctx.next);
+    if (!isValidSlotFillQuestion(currentAction, questions))
+        return null;
+    assert(answer instanceof Ast.InputParam);
+    if (answer.name === ctx.nextInfo.chainParameter)
+        return null;
+    const newAction = C.addInvocationInputParam(currentAction, answer);
+    if (newAction === null)
+        return null;
+    const clone = ctx.clone();
+    const userState = replaceAction(clone, 'execute', newAction, 'accepted');
+    const sysState = makeSimpleState(ctx, 'sys_slot_fill', questions);
+    return checkStateIsValid(ctx, sysState, userState);
 }
 
 function proposalReplyPair(ctx, [proposal, request]) {
@@ -1101,97 +899,14 @@ function proposalReplyPair(ctx, [proposal, request]) {
     assert(request.isFilter && request.table.isInvocation);
 
     const clone = ctx.clone();
-    const cloneTable = clone.current.stmt.table;
-    const newTable = queryRefinement(cloneTable, request.filter, refineFilterToAnswerQuestion);
+    const currentTable = clone.current.stmt.table;
+    const newTable = queryRefinement(currentTable, request.filter, refineFilterToAnswerQuestion);
     if (newTable === null)
         return null;
 
-    const userState = overrideCurrentQuery(clone, newTable);
-    const sysState = makeSystemProposal(ctx.clone(), proposal);
+    const userState = addQuery(clone, 'execute', newTable, 'accepted');
+    const sysState = addQuery(ctx.clone(), 'sys_propose_refined_query', proposal, 'proposed');
     return checkStateIsValid(ctx, sysState, userState);
-}
-
-function addActionParam(ctxClone, dialogueAct, action, pname, value, confirm = false) {
-    assert(action instanceof Ast.Invocation);
-    const state = ctxClone.state;
-    state.dialogueAct = dialogueAct;
-    state.dialogueActParam = null;
-
-    if (ctxClone.nextInfo) {
-        const nextInvocation = getActionInvocation(ctxClone.next);
-        if (C.isSameFunction(nextInvocation.schema, action.schema)) {
-            for (let in_param of nextInvocation.in_params) {
-                if (in_param.name === pname) {
-                    in_param.value = value;
-                    return state;
-                }
-            }
-            nextInvocation.in_params.push(new Ast.InputParam(null, pname, value));
-            nextInvocation.in_params((p1, p2) => {
-                if (p1.name < p2.name)
-                    return -1;
-                if (p1.name > p2.name)
-                    return 1;
-                return 0;
-            });
-
-            ctxClone.next.confirm = confirm;
-            return state;
-        }
-    }
-
-    let newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
-        new Ast.Invocation(null,
-            action.selector,
-            action.channel,
-            [new Ast.InputParam(null, pname, value)],
-            action.schema
-        ),
-        action.schema.removeArgument(pname)
-    )]);
-    let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
-
-    // wipe everything from state after the current program
-    // this will remove all intermediate results between the current program and the next one,
-    // and remove the next program, if any
-
-    state.history.splice(ctxClone.currentIdx+1, state.history.length-(ctxClone.currentIdx+1), newHistoryItem);
-    return state;
-}
-
-
-function addAction(ctxClone, dialogueAct, action, confirm = false) {
-    assert(action instanceof Ast.Invocation);
-    const state = ctxClone.state;
-    state.dialogueAct = dialogueAct;
-    state.dialogueActParam = null;
-
-    if (ctxClone.nextInfo) {
-        const nextInvocation = getActionInvocation(ctxClone.next);
-        if (C.isSameFunction(nextInvocation.schema, action.schema)) {
-            ctxClone.next.results = null;
-            ctxClone.next.confirm = confirm;
-            return state;
-        }
-    }
-
-    let newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
-        new Ast.Invocation(null,
-            action.selector,
-            action.channel,
-            [],
-            action.schema
-        ),
-        action.schema
-    )]);
-    let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
-
-    // wipe everything from state after the current program
-    // this will remove all intermediate results between the current program and the next one,
-    // and remove the next program, if any
-
-    state.history.splice(ctxClone.currentIdx+1, state.history.length-(ctxClone.currentIdx+1), newHistoryItem);
-    return state;
 }
 
 function findChainParam(topResult, action) {
@@ -1216,17 +931,17 @@ function negativeRecommendationReplyPair(ctx, [topResult, action, request]) {
     assert(request.isFilter && request.table.isInvocation);
 
     const clone = ctx.clone();
-    const cloneTable = clone.current.stmt.table;
-    const newTable = queryRefinement(cloneTable, request.filter, refineFilterToAnswerQuestion);
+    const currentTable = clone.current.stmt.table;
+    const newTable = queryRefinement(currentTable, request.filter, refineFilterToAnswerQuestionOrChangeFilter);
     if (newTable === null)
         return null;
 
-    const userState = overrideCurrentQuery(clone, newTable);
+    const userState = addQuery(clone, 'execute', newTable, 'accepted');
     let sysState;
     if (action === null)
         sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
     else
-        sysState = addActionParam(ctx.clone(), 'sys_recommend_one', action, findChainParam(topResult, action), topResult.value.id);
+        sysState = addActionParam(ctx.clone(), 'sys_recommend_one', action, findChainParam(topResult, action), topResult.value.id, 'proposed');
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -1238,7 +953,7 @@ function positiveRecommendationReplyPair(ctx, [topResult, actionProposal, accept
         userState = makeSimpleState(ctx, 'learn_more', null);
     } else {
         const chainParam = findChainParam(topResult, acceptedAction);
-        userState = addActionParam(ctx.clone(), 'execute', acceptedAction, chainParam, topResult.value.id);
+        userState = addActionParam(ctx.clone(), 'execute', acceptedAction, chainParam, topResult.value.id, 'accepted');
     }
 
     let sysState;
@@ -1246,62 +961,47 @@ function positiveRecommendationReplyPair(ctx, [topResult, actionProposal, accept
         sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
     } else {
         const chainParam = findChainParam(topResult, actionProposal);
-        sysState = addActionParam(ctx.clone(), 'sys_recommend_one', actionProposal, chainParam, topResult.value.id);
+        sysState = addActionParam(ctx.clone(), 'sys_recommend_one', actionProposal, chainParam, topResult.value.id, 'proposed');
     }
     return checkStateIsValid(ctx, sysState, userState);
 }
 
-function addResultQuestion(ctxClone, question) {
-    // add a statement between the current result statement and the next statement
-
-    const state = ctxClone.state;
-    state.dialogueAct = 'execute';
-    state.dialogueActParam = null;
-
-    const newStatement = new Ast.Statement.Command(null, question, [C.notifyAction()]);
-    const newItem = new Ast.DialogueHistoryItem(null, newStatement, null, false);
-
-    // remove all intermediate results between the current program and the next one, and add the new item
-    if (ctxClone.nextIdx !== null)
-        state.history.splice(ctxClone.currentIdx+1, ctxClone.nextIdx-(ctxClone.currentIdx+1), newItem);
-    else
-        state.history.splice(ctxClone.currentIdx+1, state.history.length-(ctxClone.currentIdx+1), newItem);
-
-    return state;
+function areQuestionsValidForContext(ctx, questions) {
+    for (const [qname, qtype] of questions) {
+        if (!ctx.currentFunctionSchema.hasArgument(qname))
+            return false;
+        if (qtype !== null && !ctx.currentFunctionSchema.getArgType(qname).equals(qtype))
+            return false;
+    }
+    return true;
 }
 
-function listProposalSearchQuestionPair(ctx, [results, name, actionProposal, question]) {
-    const [qname, qtype] = question;
+function listProposalSearchQuestionPair(ctx, [results, name, actionProposal, questions]) {
+    if (!areQuestionsValidForContext(ctx, questions))
+        return false;
 
-    if (!ctx.currentFunctionSchema.hasArgument(qname))
-        return null;
-    if (qtype !== null && !ctx.currentFunctionSchema.getArgType(qname).equals(qtype))
+    const currentTable = ctx.current.stmt.table;
+    const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
+    const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
+        questions.map(([qname, qtype]) => qname));
+    if (newTable === null)
         return null;
 
-    const resultRef = new Ast.Table.ResultRef(null, ctx.currentFunctionSchema.class.name, ctx.currentFunctionSchema.name,
-        new Ast.Value.Number(1), ctx.currentFunctionSchema);
-    const filterTable = new Ast.Table.Filter(null, resultRef,
-        new Ast.BooleanExpression.Atom(null, 'id', '==', name), ctx.currentFunctionSchema);
-    const questionTable = C.makeProjection(filterTable, qname);
-    const userState = addResultQuestion(ctx.clone(), questionTable);
+    const userState = addQuery(ctx.clone(), 'execute', newTable, 'accepted');
 
     let dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
     let sysState;
     if (actionProposal === null)
         sysState = makeSimpleState(ctx, dialogueAct, null);
     else
-        sysState = addAction(ctx.clone(), dialogueAct, actionProposal);
+        sysState = addAction(ctx.clone(), dialogueAct, actionProposal, 'proposed');
 
     return checkStateIsValid(ctx, sysState, userState);
 }
 
-function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, question]) {
-    const [qname, qtype] = question;
-
-    if (!ctx.currentFunctionSchema.hasArgument(qname))
-        return null;
-    if (qtype !== null && !ctx.currentFunctionSchema.getArgType(qname).equals(qtype))
-        return null;
+function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, questions]) {
+    if (!areQuestionsValidForContext(ctx, questions))
+        return false;
 
     let sysDialogueAct;
     if (topResult === null) {
@@ -1312,19 +1012,39 @@ function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, quest
         sysDialogueAct = 'sys_recommend_one';
     }
 
-    const resultRef = new Ast.Table.ResultRef(null, ctx.currentFunctionSchema.class.name, ctx.currentFunctionSchema.name,
-        new Ast.Value.Number(1), ctx.currentFunctionSchema);
-    const filterTable = new Ast.Table.Filter(null, resultRef,
-        new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id), ctx.currentFunctionSchema);
-    const questionTable = C.makeProjection(filterTable, qname);
-    const userState = addResultQuestion(ctx.clone(), questionTable);
+    const currentTable = ctx.current.stmt.table;
+    const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
+    const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
+        questions.map(([qname, qtype]) => qname));
+    if (newTable === null)
+        return null;
+    const userState = addQuery(ctx.clone(), 'execute', newTable, 'accepted');
 
     let sysState;
     if (actionProposal === null) {
         sysState = makeSimpleState(ctx, sysDialogueAct, null);
     } else {
         const chainParam = findChainParam(topResult, actionProposal);
-        sysState = addActionParam(ctx.clone(), sysDialogueAct, actionProposal, chainParam, topResult.value.id);
+        sysState = addActionParam(ctx.clone(), sysDialogueAct, actionProposal, chainParam, topResult.value.id, 'proposed');
+    }
+
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
+function recommendationCancelPair(ctx, { topResult, action: actionProposal }) {
+    // "thank you" closes the dialogue
+    // we cannot close the dialogue if we have pending actions
+    if (ctx.next)
+        return null;
+
+    const userState = makeSimpleState(ctx, 'cancel', null);
+
+    let sysState;
+    if (actionProposal === null) {
+        sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
+    } else {
+        const chainParam = findChainParam(topResult, actionProposal);
+        sysState = addActionParam(ctx.clone(), 'sys_recommend_one', actionProposal, chainParam, topResult.value.id, 'proposed');
     }
 
     return checkStateIsValid(ctx, sysState, userState);
@@ -1337,20 +1057,20 @@ function negativeListProposalReplyPair(ctx, [results, action, request]) {
         return null;
     assert(request.isFilter && request.table.isInvocation);
 
-    const clone = ctx.clone();
-    const cloneTable = clone.current.stmt.table;
-    const newTable = queryRefinement(cloneTable, request.filter, refineFilterToAnswerQuestion);
+    const currentTable = ctx.current.stmt.table;
+    const newTable = queryRefinement(currentTable, request.filter, refineFilterToAnswerQuestionOrChangeFilter);
     if (newTable === null)
         return null;
 
-    const userState = overrideCurrentQuery(clone, newTable);
+    const clone = ctx.clone();
+    const userState = addQuery(clone, 'execute', newTable, 'accepted');
 
     let dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
     let sysState;
     if (action === null)
         sysState = makeSimpleState(ctx, dialogueAct, null);
     else
-        sysState = addAction(ctx.clone(), dialogueAct, action);
+        sysState = addAction(ctx.clone(), dialogueAct, action, 'proposed');
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -1367,17 +1087,17 @@ function positiveListProposalReplyPair(ctx, [results, actionProposal, name, acce
 
     let userState;
     if (acceptedAction === null) {
-        const clone = ctx.clone();
-        const cloneTable = clone.current.stmt.table;
+        const currentTable = ctx.current.stmt.table;
         const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
-        const newTable = queryRefinement(cloneTable, namefilter, (one, two) => new Ast.BooleanExpression.And(null, [one, two]));
+        const newTable = queryRefinement(currentTable, namefilter, (one, two) => new Ast.BooleanExpression.And(null, [one, two]));
         if (newTable === null)
             return null;
 
-        userState = overrideCurrentQuery(clone, newTable);
+         const clone = ctx.clone();
+       userState = addQuery(clone, 'execute', newTable, 'accepted');
     } else {
         const chainParam = findChainParam(results[0], acceptedAction);
-        userState = addActionParam(ctx.clone(), 'execute', acceptedAction, chainParam, name);
+        userState = addActionParam(ctx.clone(), 'execute', acceptedAction, chainParam, name, 'accepted');
     }
 
     let dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
@@ -1385,12 +1105,12 @@ function positiveListProposalReplyPair(ctx, [results, actionProposal, name, acce
     if (actionProposal === null)
         sysState = makeSimpleState(ctx, dialogueAct, null);
     else
-        sysState = addAction(ctx.clone(), dialogueAct, actionProposal);
+        sysState = addAction(ctx.clone(), dialogueAct, actionProposal, 'proposed');
     return checkStateIsValid(ctx, sysState, userState);
 }
 
-function impreciseSearchQuestionAnswerPair(question, answer) {
-    assert(typeof question === 'string');
+function impreciseSearchQuestionAnswerPair(questions, answer) {
+    assert(Array.isArray(questions));
     if (answer instanceof Ast.BooleanExpression) {
         let pname;
         if (answer.isNot) {
@@ -1400,16 +1120,32 @@ function impreciseSearchQuestionAnswerPair(question, answer) {
             assert(answer.isAtom || answer.isDontCare);
             pname = answer.name;
         }
-        if (pname !== question)
+        if (!questions.some((q) => q === pname))
             return null;
 
-        return [question, answer];
+        return [questions, answer];
     } else {
+        assert(questions.length === 1);
         assert(answer instanceof Ast.Value);
-        answer = C.makeFilter(new Ast.Value.VarRef(question), '==', answer);
+        answer = C.makeFilter(new Ast.Value.VarRef(questions[0]), '==', answer);
         if (answer === null)
             return null;
-        return [question, answer];
+        return [questions, answer];
+    }
+}
+
+function impreciseSlotFillQuestionAnswerPair(questions, answer) {
+    assert(Array.isArray(questions));
+    if (answer instanceof Ast.InputParam) {
+        if (!questions.some((q) => q === answer.name))
+            return null;
+
+        return [questions, answer];
+    } else {
+        assert(questions.length === 1);
+        assert(answer instanceof Ast.Value);
+        answer = new Ast.InputParam(null, questions[0], answer);
+        return [questions, answer];
     }
 }
 
@@ -1419,18 +1155,89 @@ function emptySearchChangePair(ctx, [question, phrase]) {
         return null;
 
     const clone = ctx.clone();
-
-    const cloneTable = clone.current.stmt.table;
     const [,ctxFilterTable] = findOrMakeFilterTable(clone.current.stmt.table);
     if (question !== null && !C.filterUsesParam(ctxFilterTable.filter, question))
         return null;
 
-    const newTable = queryRefinement(cloneTable, phrase.filter, refineFilterToChangeFilter);
+    const newTable = queryRefinement(currentTable, phrase.filter, refineFilterToChangeFilter);
     if (newTable === null)
         return null;
-    const userState = overrideCurrentQuery(clone, newTable);
+    const userState = addQuery(clone, 'execute', newTable, 'accepted');
     const sysState = makeSimpleState(ctx, question ? 'sys_empty_search_question' : 'sys_empty_search', question);
     return checkStateIsValid(ctx, sysState, userState);
+}
+
+function addDontCare(stmt, dontcare) {
+    if (!stmt.table)
+        return null;
+
+    const arg = stmt.table.schema.getArgument(dontcare.name);
+    if (!arg || arg.is_input)
+        return null;
+    if (arg.getAnnotation('filterable') === false)
+        return null;
+
+    let clone = stmt.clone();
+    let [cloneTable, filterTable] = findOrMakeFilterTable(clone.table);
+    clone.table = cloneTable;
+
+    if (C.filterUsesParam(filterTable.filter, dontcare.name))
+        return null;
+
+    filterTable.filter = new Ast.BooleanExpression.And(null, [filterTable.filter, dontcare]).optimize();
+    return clone;
+}
+
+function contextualAction(ctx, action) {
+    assert(action instanceof Ast.Invocation);
+    const ctxInvocation = getActionInvocation(ctx.next);
+    if (!C.isSameFunction(ctxInvocation.schema, action.schema))
+        return null;
+    if (action.in_params.length === 0) // common case, no new parameters
+        return ctxInvocation;
+
+    const clone = ctxInvocation.clone();
+    for (let newParam of action.in_params) {
+        if (newParam.value.isUndefined)
+            continue;
+
+        // check that we don't change a previous parameter
+
+        // if we're introducing a value for the chain parameter that was not previously provided,
+        // it must one of the top 3 results
+        if (newParam.name === ctx.nextInfo.chainParameter &&
+           !ctx.nextInfo.chainParameterFilled) {
+            if (!ctx.results)
+                return null;
+            const results = ctx.results;
+            let good = false;
+            for (let i = 0; i < Math.min(results.length, 3); i ++) {
+                const id = results[i].value.id;
+                if (id && id.equals(newParam.value)) {
+                    good = true;
+                    break;
+                }
+            }
+            if (!good)
+                return null;
+        }
+
+        let found = false;
+        for (let oldParam of clone.in_params) {
+            if (newParam.name === oldParam.name) {
+                if (oldParam.value.isUndefined)
+                    oldParam.value = newParam.value;
+                else if (!newParam.value.equals(oldParam.value))
+                    return null;
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            clone.in_params.push(newParam);
+    }
+
+    return clone;
 }
 
 module.exports = {
@@ -1442,20 +1249,17 @@ module.exports = {
     // system state manipulation
     makeSimpleState,
 
-    // user state manipulation,
-    overrideCurrentQuery,
-
     // helpers
-    SlotBag,
-    checkAndAddSlot,
     getContextInfo,
+    getActionInvocation,
+    isUserAskingResultQuestion,
     isQueryAnswerValidForQuestion,
+    isSlotFillAnswerValidForQuestion,
     isValidNegativePreambleForInfo,
     isFilterCompatibleWithResult,
     isInfoPhraseCompatibleWithResult,
     checkInfoPhrase,
     checkFilterPairForDisjunctiveQuestion,
-    getActionInvocation,
 
     // system dialogue acts
     checkSearchResultPreamble,
@@ -1470,20 +1274,26 @@ module.exports = {
     // user dialogue acts
     mergePreambleAndRequest,
     initialRequest,
-    queryRefinement,
     refineFilterToAnswerQuestion,
     refineFilterToChangeFilter,
+    contextualAction,
 
     // templates
     preciseSearchQuestionAnswer,
+    preciseSlotFillQuestionAnswer,
     impreciseSearchQuestionAnswerPair,
+    impreciseSlotFillQuestionAnswerPair,
     impreciseSearchQuestionAnswer,
+    impreciseSlotFillQuestionAnswer,
     proposalReplyPair,
     negativeRecommendationReplyPair,
     positiveRecommendationReplyPair,
     recommendationSearchQuestionPair,
+    recommendationCancelPair,
     negativeListProposalReplyPair,
     positiveListProposalReplyPair,
     listProposalSearchQuestionPair,
-    emptySearchChangePair
+    emptySearchChangePair,
+    addDontCare,
 };
+

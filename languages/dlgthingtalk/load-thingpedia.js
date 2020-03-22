@@ -1,4 +1,4 @@
-// -    *- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
 //
@@ -19,7 +19,7 @@ const Grammar = ThingTalk.Grammar;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 const Units = ThingTalk.Units;
 
-const { clean, pluralize, typeToStringSafe, makeFilter } = require('./utils');
+const { clean, typeToStringSafe, makeFilter, makeAndFilter } = require('./utils');
 
 function identity(x) {
     return x;
@@ -63,8 +63,8 @@ class ThingpediaLoader {
         };
         this.idQueries = new Map;
         this.compoundArrays = new Map;
-        if (this._options.white_list)
-            this.whiteList = this._options.white_list.toLowerCase().split(',');
+        if (this._options.whiteList)
+            this.whiteList = this._options.whiteList.toLowerCase().split(',');
         else
             this.whiteList = null;
 
@@ -113,13 +113,6 @@ class ThingpediaLoader {
 
         this._grammar.declareSymbol('out_param_' + typestr);
         this._grammar.declareSymbol('placeholder_' + typestr);
-        if (type.isArray) {
-            this._grammar.addRule('out_param_Array__Any',  [new this._runtime.NonTerminal('out_param_' + typestr)],
-                this._runtime.simpleCombine(identity));
-        } else {
-            this._grammar.addRule('out_param_Any',  [new this._runtime.NonTerminal('out_param_' + typestr)],
-                this._runtime.simpleCombine(identity));
-        }
 
         if (!this._grammar.hasSymbol('constant_' + typestr)) {
             if (!type.isEnum && !type.isEntity && !type.isArray)
@@ -149,8 +142,13 @@ class ThingpediaLoader {
         return typestr;
     }
 
-    _addOutParam(functionName, pname, typestr, canonical) {
+    _addOutParam(functionName, pname, type, typestr, canonical) {
         this._grammar.addRule('out_param_' + typestr, [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+
+        if (type.isArray)
+            this._grammar.addRule('out_param_Array__Any', [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+        else
+            this._grammar.addRule('out_param_Any', [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
     }
 
     _recordInputParam(functionName, arg) {
@@ -168,6 +166,15 @@ class ThingpediaLoader {
         // except FIXME that probably won't work? we need to create a record object...
         if (ptype.isCompound)
             return;
+
+        if (arg.metadata.prompt) {
+            let prompt = arg.metadata.prompt;
+            if (typeof prompt === 'string')
+                prompt = [prompt];
+
+            for (let form of prompt)
+                this._grammar.addRule('thingpedia_slot_fill_question', [form], this._runtime.simpleCombine(() => pname));
+        }
 
         // FIXME boolean types are not handled, they have no way to specify the true/false phrase
         if (ptype.isBoolean)
@@ -218,7 +225,7 @@ class ThingpediaLoader {
 
             for (let form of annotvalue) {
                 if (cat === 'base') {
-                    this._grammar.addRule('input_param', [canonical], this._runtime.simpleCombine(() => pname));
+                    this._grammar.addRule('input_param', [form], this._runtime.simpleCombine(() => pname));
                 } else {
                     let [before, after] = form.split('#');
                     before = (before || '').trim();
@@ -249,9 +256,19 @@ class ThingpediaLoader {
         this.params.out.add(key);
 
         const typestr = this._recordType(ptype);
+        const pvar = new Ast.Value.VarRef(pname);
 
         if (ptype.isCompound)
             return;
+
+        if (arg.metadata.prompt) {
+            let prompt = arg.metadata.prompt;
+            if (typeof prompt === 'string')
+                prompt = [prompt];
+
+            for (let form of prompt)
+                this._grammar.addRule('thingpedia_search_question', [form], this._runtime.simpleCombine(() => pvar));
+        }
 
         if (ptype.isBoolean)
             return;
@@ -264,7 +281,6 @@ class ThingpediaLoader {
             }
         }
 
-        const pvar = new Ast.Value.VarRef(pname);
         if (arg.metadata.counted_object) {
             let forms = Array.isArray(arg.metadata.counted_object) ?
                 arg.metadata.counted_object : [arg.metadata.counted_object];
@@ -306,7 +322,7 @@ class ThingpediaLoader {
             }
 
             if (cat === 'npv') {
-                if (typeof value !== 'boolean')
+                if (typeof annotvalue !== 'boolean')
                     throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${functionName}`);
                 if (annotvalue) {
                     const expansion = [new this._runtime.NonTerminal('constant_' + vtypestr)];
@@ -320,26 +336,39 @@ class ThingpediaLoader {
 
             for (let form of annotvalue) {
                 if (cat === 'base') {
-                    this._addOutParam(functionName, pname, typestr, form.trim());
+                    this._addOutParam(functionName, pname, ptype, typestr, form.trim());
                     if (!canonical.npp) {
                         const expansion = [form, new this._runtime.NonTerminal('constant_' + vtypestr)];
                         this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
+
+                        const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                        this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
                     }
                 } else {
                     let [before, after] = form.split('#');
                     before = (before || '').trim();
                     after = (after || '').trim();
 
-                    let expansion;
-                    if (before && after)
+                    let expansion, pairexpansion;
+                    if (before && after) {
+                        // "rated # stars"
                         expansion = [before, new this._runtime.NonTerminal('constant_' + vtypestr), after];
-                    else if (before)
+                        pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
+                    } else if (before) {
+                        // "named #"
                         expansion = [before, new this._runtime.NonTerminal('constant_' + vtypestr)];
-                    else if (after)
+                        pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                    } else if (after) {
+                        // "# -ly priced"
                         expansion = [new this._runtime.NonTerminal('constant_' + vtypestr), after];
-                    else
+                        pairexpansion = [new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
+                    } else {
+                        // "#" (as in "# restaurant")
                         expansion = [new this._runtime.NonTerminal('constant_' + vtypestr)];
+                        pairexpansion = [new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                    }
                     this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
+                    this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
                 }
             }
         }
@@ -403,7 +432,9 @@ class ThingpediaLoader {
 
             ex.value.schema = new Ast.ExpressionSignature(null, 'action', null /* class */, [] /* extends */, args, {
                 is_list: false,
-                is_monitorable: false
+                is_monitorable: false,
+                default_projection: [],
+                minimal_projection: []
             });
         } else {
             for (let pname in ex.args) {
@@ -481,8 +512,8 @@ class ThingpediaLoader {
             canonical = [canonical];
 
         for (let form of canonical) {
-            const pluralized = pluralize(form);
-            if (pluralized !== form)
+            const pluralized = this._langPack.pluralize(form);
+            if (pluralized !== undefined && pluralized !== form)
                 canonical.push(pluralized);
         }
 
@@ -592,6 +623,9 @@ class ThingpediaLoader {
             return false;
         if (this.idQueries.has(idEntity))
             return true;
+
+        if (this.whiteList && !this.whiteList.includes(suffix.toLowerCase()))
+            return false;
 
         let classDef;
         try {

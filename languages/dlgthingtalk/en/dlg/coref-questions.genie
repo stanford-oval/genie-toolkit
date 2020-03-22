@@ -1,0 +1,150 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+// Coref question templates: questions about the current result, referred by coreference ("it", "that", "the restaurant")
+
+{
+    const assert = require('assert');
+    const ThingTalk = require('thingtalk');
+    const Ast = ThingTalk.Ast;
+    const Type = ThingTalk.Type;
+
+    const C = require('../../ast_manip');
+    const D = require('../../dialogue_utils');
+
+    // import thingpedia info
+    const _tpLoader = require('../../load-thingpedia');
+}
+
+// questions with "it"/"that" -- coreference on a single result
+
+simple_user_search_question = {
+    // straight up questions
+    ( ('can you tell me' | '') 'what is' ('the' | 'its') param:out_param_Any '?'
+    | 'can you tell me' ('the' | 'its') param:out_param_Any '?'
+    | ('can you tell me' | '') 'what' param:out_param_Any 'does it have ?'
+    | 'i would like to' ('know' | 'see') ('the' | 'its') param:out_param_Any ('first' | '') '.'
+    | 'i need' ('the' | 'its') param:out_param_Any ('first' | '') '.'
+    | 'i just need' ('the' | 'its') param:out_param_Any '.'
+    ) => {
+        if (param.name === 'id')
+            return null;
+        return [[param.name, null]];
+    };
+
+    ( ('can you tell me' | '') 'what' ('is' | 'are') ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any '?'
+    | 'can you tell me' ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any '?'
+    | 'i would like to' ('know' | 'see') ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any ('first' | '') '.'
+    | 'i need' ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any ('first' | '') '.'
+    | 'i just need' ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any '.'
+    ) => {
+        if (p1.name === 'id' || p2.name === 'id')
+            return null;
+        return [[p1.name, null], [p2.name, null]];
+    };
+
+    ( ('can you tell me' | '') 'what is' 'the' param:out_param_Any 'of the' base:base_table '?'
+    | 'can you tell me' 'the' param:out_param_Any 'of the' base:base_table '?'
+    | ('can you tell me' | '') 'what' param:out_param_Any 'does the' base:base_table 'have ?'
+    | 'i would like to' ('know' | 'see') 'the' param:out_param_Any 'of the' base:base_table ('first' | '') '.'
+    | 'i just need' ('the' | 'its') 'the' param:out_param_Any 'of the' base:base_table '.'
+
+    | ('can you tell me' | '') 'what is' 'the' base:base_table '\'s' param:out_param_Any '?'
+    | 'can you tell me' 'the' base:base_table '\'s' param:out_param_Any '?'
+    | 'i would like to' ('know' | 'see') 'the' base:base_table '\'s' param:out_param_Any ('first' | '') '.'
+    | 'i just need' ('the' | 'its') 'the' base:base_table '\'s' param:out_param_Any '.'
+    ) => {
+        if (!base.schema.out[param.name])
+            return null;
+        if (param.name === 'id')
+            return null;
+        return [[param.name, null]];
+    };
+}
+
+boolean_user_search_question = {
+    // question in boolean
+    ( 'does' ('that' | 'it') 'have' param:npp_filter '?'
+    | 'does' ('that' | 'it') param:avp_filter '?'
+    ) => {
+        if (param.name === 'id')
+            return null;
+        return [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]];
+    };
+
+    ( 'is' ('it' | 'that') 'a' param:apv_filter base:base_table '?'
+    | 'is that' base:base_table param:apv_filter '?'
+
+    | 'is' ('it' | 'that') 'a' base:base_table param:pvp_filter '?'
+    | 'is that' base:base_table param:pvp_filter '?'
+
+    | 'is' ('it' | 'that') 'a' base:base_table param:preposition_filter '?'
+    | 'is that' base:base_table param:preposition_filter '?'
+
+    | 'is' ('it' | 'that') 'a' base:base_table ('that' | 'which') param:avp_filter '?'
+    | 'does that' base:base_table param:avp_filter '?'
+
+    | 'is' ('it' | 'that') 'a' base:base_table ('that has' | 'with') param:npp_filter '?'
+    | 'does that' base:base_table 'have' param:npp_filter '?'
+    ) => {
+        if (!C.checkFilter(base, param))
+            return null;
+        if (param.name === 'id')
+            return null;
+        return [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]];
+    };
+}
+
+// questions by name (when in an list)
+
+user_search_question_with_name = {
+    // straight up questions
+    ( ('can you tell me' | '') 'what is' name:constant_name '\'s' param:out_param_Any '?'
+    | ('can you tell me' | '') 'what is' 'the' param:out_param_Any 'of' name:constant_name '?'
+    | 'can you tell me' name:constant_name '\'s' param:out_param_Any '?'
+    | 'can you tell me' 'the' param:out_param_Any 'of' name:constant_name '?'
+    | 'i would like to' ('know' | 'see') name:constant_name '\'s' param:out_param_Any ('first' | '') '.'
+    | 'i would like to' ('know' | 'see') 'the' param:out_param_Any 'of' name:constant_name ('first' | '') '.'
+    ) => {
+        if (param.name === 'id')
+            return null;
+        return [name, param.name, null];
+    };
+}
+
+boolean_user_search_question_with_name = {
+    // question in boolean
+    ( 'does' name:constant_name 'have' param:npp_filter '?'
+    | 'does' name:constant_name param:avp_filter '?'
+    | 'is' name:constant_name param:apv_filter '?'
+    | 'is' name:constant_name param:pvp_filter '?'
+    | 'is' name:constant_name param:preposition_filter '?'
+    ) => {
+        if (param.name === 'id')
+            return null;
+        return [name, param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()];
+    };
+
+    ( 'is' name:constant_name 'a' param:apv_filter base:base_table '?'
+    | 'is' name:constant_name 'a' base:base_table param:pvp_filter '?'
+    | 'is' name:constant_name 'a' base:base_table param:preposition_filter '?'
+    | 'is' name:constant_name 'a' base:base_table ('that' | 'which') param:avp_filter '?'
+    | 'is' name:constant_name 'a' base:base_table ('that has' | 'with') param:npp_filter '?'
+    ) => {
+        if (!C.checkFilter(base, param))
+            return null;
+        if (param.name === 'id')
+            return null;
+        const idArg = base.schema.getArgument('id');
+        if (!idArg || !idArg.type.equals(name.getType()))
+            return null;
+        return [param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()];
+    };
+}
