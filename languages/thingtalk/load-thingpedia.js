@@ -19,7 +19,7 @@ const Grammar = ThingTalk.Grammar;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 const Units = ThingTalk.Units;
 
-const { clean, pluralize, typeToStringSafe, makeFilter, makeAndFilter } = require('./utils');
+const { clean, typeToStringSafe, makeFilter, makeAndFilter } = require('./utils');
 
 function identity(x) {
     return x;
@@ -490,8 +490,8 @@ class ThingpediaLoader {
             canonical = [canonical];
 
         for (let form of canonical) {
-            const pluralized = pluralize(form);
-            if (pluralized !== form)
+            const pluralized = this._langPack.pluralize(form);
+            if (pluralized !== undefined && pluralized !== form)
                 canonical.push(pluralized);
         }
 

@@ -15,8 +15,6 @@ const assert = require('assert');
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
-const Inflectors = require('en-inflectors').Inflectors;
-const Tag = require('en-pos').Tag;
 
 function typeToStringSafe(type) {
     if (type.isArray)
@@ -77,27 +75,8 @@ function makeAndFilter(loader, param, op, values, negate=false) {
     return f;
 }
 
-// FIXME do not duplicate this, and also this needs to be moved inside lib/i18n/
-function pluralize(name) {
-    if (!name.includes(' ')) {
-        if (new Tag([name]).initial().tags[0] === 'NN')
-            return new Inflectors(name).toPlural();
-        return name;
-    } else {
-        const words = name.split(' ');
-        const tags = new Tag(words).initial().tags;
-        if (tags[tags.length - 1] !== 'NN')
-            return name;
-        else if (['VB', 'VBP', 'VBZ', 'VBD'].includes(tags[0]))
-            return name;
-        words[words.length - 1] = pluralize(words[words.length - 1]);
-        return words.join(' ');
-    }
-}
-
 module.exports = {
     clean,
-    pluralize,
 
     isUnaryTableToTableOp(table) {
         return table.isFilter ||
