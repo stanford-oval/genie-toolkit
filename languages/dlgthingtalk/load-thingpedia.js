@@ -19,7 +19,7 @@ const Grammar = ThingTalk.Grammar;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 const Units = ThingTalk.Units;
 
-const { clean, pluralize, typeToStringSafe, makeFilter, makeAndFilter } = require('./utils');
+const { clean, typeToStringSafe, makeFilter, makeAndFilter } = require('./utils');
 
 function identity(x) {
     return x;
@@ -63,8 +63,8 @@ class ThingpediaLoader {
         };
         this.idQueries = new Map;
         this.compoundArrays = new Map;
-        if (this._options.white_list)
-            this.whiteList = this._options.white_list.toLowerCase().split(',');
+        if (this._options.whiteList)
+            this.whiteList = this._options.whiteList.toLowerCase().split(',');
         else
             this.whiteList = null;
 
@@ -512,8 +512,8 @@ class ThingpediaLoader {
             canonical = [canonical];
 
         for (let form of canonical) {
-            const pluralized = pluralize(form);
-            if (pluralized !== form)
+            const pluralized = this._langPack.pluralize(form);
+            if (pluralized !== undefined && pluralized !== form)
                 canonical.push(pluralized);
         }
 
@@ -623,6 +623,9 @@ class ThingpediaLoader {
             return false;
         if (this.idQueries.has(idEntity))
             return true;
+
+        if (this.whiteList && !this.whiteList.includes(suffix.toLowerCase()))
+            return false;
 
         let classDef;
         try {

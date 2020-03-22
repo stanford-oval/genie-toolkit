@@ -212,7 +212,7 @@ class ThingpediaLoader {
 
             for (let form of annotvalue) {
                 if (cat === 'base') {
-                    this._grammar.addRule('input_param', [canonical], this._runtime.simpleCombine(() => pname));
+                    this._grammar.addRule('input_param', [form], this._runtime.simpleCombine(() => pname));
                 } else {
                     let [before, after] = form.split('#');
                     before = (before || '').trim();
