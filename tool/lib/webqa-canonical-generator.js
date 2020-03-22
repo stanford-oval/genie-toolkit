@@ -20,6 +20,17 @@ const ANNOTATED_PROPERTIES = [
     'geo', 'address.streetAddress', 'address.addressCountry', 'address.addressRegion', 'address.addressLocality'
 ];
 
+
+// turn entity type into string
+function entityTypeToString(type) {
+    if (type.isArray)
+        return entityTypeToString(type.elem);
+    else if (type.isEntity)
+        return type.type;
+    else
+        return null;
+}
+
 // split the canonical into prefix and suffix
 function splitCanonical(canonical) {
     let prefix, suffix;
@@ -84,6 +95,7 @@ class CanonicalGenerator {
             examples[qname] = {};
             paths[qname] = { canonical: this.class.queries[qname].canonical, params: {} };
             let query = this.class.queries[qname];
+            let typeCounts = this._getArgTypeCount(qname);
             for (let arg of query.iterateArguments()) {
                 if (ANNOTATED_PROPERTIES.includes(arg.name))
                     continue;
@@ -100,6 +112,20 @@ class CanonicalGenerator {
                 // copy base canonical if npp canonical is missing
                 if (arg.metadata.canonical.base && !arg.metadata.canonical.npp)
                     arg.metadata.canonical.npp = [...arg.metadata.canonical.base];
+
+                // if npp is missing, try to use entity type info
+                if (!('npp' in arg.metadata.canonical)) {
+                    let typestr = entityTypeToString(query.getArgType(arg.name));
+                    // only apply this if the type is unique
+                    if (typestr && typeCounts[typestr] === 1) {
+                        let base = typestr.substring(typestr.indexOf(':') + 1)
+                            .replace(/_/, ' ')
+                            .toLowerCase()
+                            .trim();
+                        arg.metadata.canonical['npp'] = [base];
+                        arg.metadata.canonical['base'] = [base];
+                    }
+                }
 
                 const samples = this._retrieveSamples(qname, arg);
                 if (samples) {
@@ -142,6 +168,21 @@ class CanonicalGenerator {
         const { synonyms, adjectives } = JSON.parse(stdout);
         this._updateCanonicals(synonyms, adjectives);
         return this.class;
+    }
+
+    _getArgTypeCount(qname) {
+        const schema = this.class.queries[qname];
+        const count = {};
+        for (let arg of schema.iterateArguments()) {
+            let typestr = entityTypeToString(schema.getArgType(arg.name));
+            if (!typestr)
+                continue;
+            if (typestr in count)
+                count[typestr] += 1;
+            else
+                count[typestr] = 1;
+        }
+        return count;
     }
 
     async _loadParameterDatasetPaths() {
