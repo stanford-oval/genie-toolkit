@@ -465,6 +465,7 @@ class SchemaProcessor {
         this._className = args.class_name;
         this._url = args.url;
         this._manual = args.manual;
+        this._always_base_canonical = args.always_base_canonical;
         this._hasGeo = false;
         this._prefix = args.class_name ? `org.schema.${args.class_name}:` : `org.schema:`;
     }
@@ -645,69 +646,63 @@ class SchemaProcessor {
             return MANUAL_PROPERTY_CANONICAL_OVERRIDE[name];
 
         let canonical = {};
-        let npp;
+        let base;
         let plural = ptype && ptype.isArray;
         name = clean(name);
         if (!name.includes('.')) {
-            npp = plural ? pluralize(cleanName(name)) : cleanName(name);
+            base = plural ? pluralize(cleanName(name)) : cleanName(name);
         } else {
             const components = name.split('.');
             const last = components[components.length - 1];
-            npp = plural ? pluralize(last) : last;
+            base = plural ? pluralize(last) : last;
         }
 
-        if (npp.endsWith(' content') && ptype.isMeasure) {
-            npp = npp.substring(0, npp.length - ' content'.length);
+        if (base.endsWith(' content') && ptype.isMeasure) {
+            base = base.substring(0, base.length - ' content'.length);
             canonical = {
-                default: 'npp',
-                avp: ['contains #' + npp.replace(/ /g, '_')],
-                npp: [npp + ' content', npp, npp + ' amount']
+                avp: ['contains #' + base.replace(/ /g, '_')],
+                npp: [base + ' content', base, base + ' amount'],
+                base: [base + ' content', base, base + ' amount']
             };
             return canonical;
         }
 
-        if (npp.startsWith('has ')) {
-            npp = npp.substring('has '.length);
-        } else if (npp.startsWith('is ')) {
-            npp = npp.substring('is '.length);
-            let tags = posTag(npp.split(' '));
+        if (base.startsWith('has ')) {
+            base = base.substring('has '.length);
+            canonical['npp'] = base;
+        } else if (base.startsWith('is ')) {
+            base = base.substring('is '.length);
+            let tags = posTag(base.split(' '));
 
-            if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1]) || npp.endsWith(' of')) {
-                canonical["npi"] = [npp];
-                canonical["default"] = "npi";
-            }
-            else if (['VBN', 'JJ', 'JJR'].includes(tags[0])) {
-                canonical["pvp"] = [npp];
-                canonical["default"] = "pvp";
-            }
+            if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1]) || base.endsWith(' of'))
+                canonical["npi"] = [base];
+            else if (['VBN', 'JJ', 'JJR'].includes(tags[0]))
+                canonical["pvp"] = [base];
 
         } else {
-            let tags = posTag(npp.split(' '));
+            let tags = posTag(base.split(' '));
             if (['VBP', 'VBZ'].includes(tags[0])) {
                 if (tags.length === 2 && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
-                    canonical["avp"] = [npp.replace(' ', ' #')];
-                    npp = npp.split(' ')[1];
+                    canonical["avp"] = [base.replace(' ', ' #')];
+                    canonical["npp"] = base.split(' ')[1];
                 } else {
-                    canonical["avp"] = [npp];
+                    canonical["avp"] = [base];
                 }
-                canonical["default"] = "avp";
-            } else if (npp.endsWith(' of')) {
-                canonical["npi"] = [npp];
-                canonical["default"] = "npi";
+            } else if (base.endsWith(' of')) {
+                canonical["npi"] = [base];
             } else if (['VBN', 'JJ', 'JJR'].includes(tags[0]) && !['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
                 // this one is actually somewhat problematic
                 // e.g., all non-words are recognized as JJ, including issn, dateline, funder
-                canonical["pvp"] = [npp];
-                canonical["default"] = "pvp";
+                canonical["pvp"] = [base];
             }
 
         }
 
-        canonical["npp"] = [npp];
-        canonical["base"] = [npp];
-        if (!("default" in canonical))
-            canonical["default"] = "npp";
+        if (!("npp" in canonical) && this._always_base_canonical)
+            canonical["npp"] = [base];
 
+        if ("npp" in canonical)
+            canonical["base"] = [...canonical["npp"]];
         return canonical;
     }
 
@@ -1061,6 +1056,18 @@ module.exports = {
             action: 'storeTrue',
             help: 'Enable manual annotations.',
             defaultValue: false
+        });
+        parser.addArgument('--always-base-canonical', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: `Always generate base/npp canonical`,
+            defaultValue: true
+        });
+        parser.addArgument('--no-bad-base-canonical', {
+            nargs: 0,
+            action: 'storeFalse',
+            help: `Do not always generate base/npp canonical`,
+            dest: `always_base_canonical`,
         });
         parser.addArgument('--class-name', {
             required: false,
