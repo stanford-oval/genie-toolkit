@@ -1,0 +1,246 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+// contextual templates for Genie
+
+{
+const assert = require('assert');
+
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
+
+// import the combinator library
+const C = require('../ast_manip');
+
+// import thingpedia info
+const _tpLoader = require('../load-thingpedia');
+
+function addParamToAction(command, pname, joinArg) {
+    let actiontype = command.action.schema.inReq[pname];
+    if (!actiontype)
+        return null;
+    let commandtype = joinArg.isEvent ? Type.String : command.table.schema.out[joinArg.name];
+    if (!commandtype || !commandtype.equals(actiontype))
+        return null;
+
+    let reduced = C.betaReduce(command.action, pname, joinArg);
+    if (reduced === null)
+        return null;
+    return { table: command.table, action: reduced };
+}
+
+function addParamToQuery(command, pname, joinArg) {
+    let rhstype = command.rhs.schema.inReq[pname];
+    if (!rhstype)
+        return null;
+    let lhstype = joinArg.isEvent ? Type.String : command.lhs.schema.out[joinArg.name];
+    if (!lhstype || !lhstype.equals(rhstype))
+        return null;
+
+    let [passign, etaReduced] = C.etaReduceTable(command.rhs, pname);
+    if (passign === undefined) {
+        //console.error(`Ignored join between ${into} and ${projection}: cannot find parameter ${pname}`);
+        return null;
+    }
+    //assert(etaReduced);
+    //console.log('passign: ' + passign + ', ptype: ' + ptype);
+
+    return {
+        lhs: command.lhs,
+        rhs: etaReduced,
+        args: command.args.concat([new Ast.InputParam(null, passign, joinArg)])
+    };
+}
+
+}
+
+import '../common';
+import './constants';
+import './timers';
+import './filters';
+import './parameters';
+import './stream_tables';
+
+context complete_query_program = C.isQueryProgram($) && C.isCompleteCommand($);
+context immediate_program = $.isProgram && !C.isContinuousProgram($);
+context incomplete_program = !C.isCompleteCommand($);
+context when_program = $.isProgram && $.rules.some((r) => r.isRule);
+context policy = $.isPermissionRule;
+
+chain_action = {
+    q:complete_query_program action:thingpedia_action if !complete => {
+        // make up a structure containing both the output parameters
+        assert(q.rules.length === 1 && q.rules[0].table);
+
+        const table = q.rules[0].table;
+        return {
+            table,
+            action
+        };
+    };
+}
+chain_query = {
+    (
+          q:complete_query_program rhs:thingpedia_get_command
+        | q:complete_query_program 'get' rhs:thingpedia_query
+        | q:complete_query_program ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') rhs:thingpedia_query
+        | q:complete_query_program ('search' | 'find' | 'i want' | 'i need') rhs:thingpedia_query
+        | q:complete_query_program 'what are' rhs:thingpedia_query '?'
+    ) if !complete => {
+        // make up a structure containing both the output parameters
+        assert(q.rules.length === 1 && q.rules[0].table);
+
+        const lhs = q.rules[0].table;
+        return {
+            lhs, rhs,
+            args: []
+        };
+    };
+}
+
+for (let [pname, [typestr, pcanonical]] of _tpLoader.params.in.values()) {
+    // don't parameter pass booleans or enums, as that rarely makes sense
+    if (typestr !== 'Boolean' && !typestr.startsWith('Enum__')) {
+        if (_tpLoader.types.id.has(typestr)) {
+            chain_action = command:chain_action ('it' | 'that' | 'them') [-> pname] => {
+                for (let joinArg in command.table.schema.out) {
+                    if (typestr === C.typeToStringSafe(command.table.schema.out[joinArg]))
+                        return addParamToAction(command, pname, new Ast.Value.VarRef(joinArg));
+                }
+                return null;
+            };
+
+            chain_query = command:chain_query ('it' | 'that' | 'them') [-> pname] => {
+                for (let joinArg in command.lhs.schema.out) {
+                    if (typestr === C.typeToStringSafe(command.lhs.schema.out[joinArg]))
+                        return addParamToQuery(command, pname, new Ast.Value.VarRef(joinArg));
+                }
+                return null;
+            };
+        } else {
+            chain_action = command:chain_action p:$('the_out_param_' + typestr) [-> pname] => addParamToAction(command, pname, p);
+            chain_query = command:chain_query p:$('the_out_param_' + typestr) [-> pname] => addParamToQuery(command, pname, p);
+        }
+
+        if (pname === 'p_picture_url') {
+            chain_action = command:chain_action ('it' | 'that' | 'them') [-> pname] => addParamToAction(command, pname, new Ast.Value.VarRef('picture_url'));
+            chain_query = command:chain_query ('it' | 'that' | 'them') [-> pname] => addParamToQuery(command, pname, new Ast.Value.VarRef('picture_url'));
+        }
+
+        if (typestr === 'String' && ['p_body', 'p_message', 'p_caption', 'p_status', 'p_text'].indexOf(pname) >= 0) {
+            chain_action = command:chain_action ('it' | 'that' | 'them') [-> pname] => {
+                for (let pname in command.table.schema.out) {
+                    if (pname === 'picture_url')
+                        return null;
+                    let ptype = command.table.schema.out[pname];
+                    if (_tpLoader.types.id.has(C.typeToStringSafe(ptype)))
+                        return null;
+                }
+                return addParamToAction(command, pname, new Ast.Value.Event(null));
+            };
+            chain_query = command:chain_query ('it' | 'that' | 'them') [-> pname] => {
+                for (let pname in command.lhs.schema.out) {
+                    if (pname === 'picture_url')
+                        return null;
+                    let ptype = command.lhs.schema.out[pname];
+                    if (_tpLoader.types.id.has(C.typeToStringSafe(ptype)))
+                        return null;
+                }
+                return addParamToQuery(command, pname, new Ast.Value.Event(null));
+            };
+        }
+    }
+}
+
+$root = {
+    command:chain_action if complete => {
+        let { table, action } = command;
+
+        // if the table is monitorable, run it again
+        if (table.schema.is_monitorable) {
+            return C.makeProgram($options, new Ast.Statement.Command(null, table, [action]))
+        } else {
+            // otherwise, make a result() expression referring to the last type involved
+
+            const functionNames = C.findFunctionNameTable(table);
+            const [kind, fname] = functionNames[functionNames.length-1].split(':');
+            table = new Ast.Table.ResultRef(null, kind, fname, new Ast.Value.Number(-1), table.schema);
+            return C.makeProgram($options, new Ast.Statement.Command(null, table, [action]));
+        }
+    };
+    command:chain_query if complete => {
+        let { lhs, rhs, args } = command;
+
+        // if the previous command is monitorable, run it again
+        if (lhs.schema.is_monitorable) {
+            return C.makeProgram($options, new Ast.Statement.Command(null,
+                new Ast.Table.Join(null, lhs, rhs, args, rhs.schema), [
+                C.notifyAction()]))
+        } else {
+            // otherwise, make a result() expression referring to the last type involved
+
+            const functionNames = C.findFunctionNameTable(lhs);
+            const [kind, fname] = functionNames[functionNames.length-1].split(':');
+            const ref = new Ast.Table.ResultRef(null, kind, fname, new Ast.Value.Number(-1), lhs.schema);
+            return C.makeProgram($options, new Ast.Statement.Command(
+                new Ast.Table.Join(null, ref, rhs, args, rhs.schema), [C.notifyAction()]));
+        }
+    };
+
+     ( q:complete_query_program 'how about' p:constant_Any '?'
+    |  q:complete_query_program 'show me' p:constant_Any 'instead'
+    ) => C.replaceAnyParameterFromContext(q, p);
+
+    p:complete_query_program ('do it again' | 'again' | 'another one' | 'run it again') => {
+        if (p.rules[0].table.schema.is_monitorable)
+            return null;
+        return p;
+    };
+
+    prog:immediate_program ('do this' | 'do it' | 'repeat this command' | 'set this to run') t:timer => C.addTimerToProgram(prog, t);
+    prog:complete_query_program ('send this to me' | 'send it to me' | 'i want to see this' | 'i want this' | 'send this') t:timer => C.addTimerToProgram(prog, t);
+    
+    prog:immediate_program ('do this' | 'do it' | 'do it automatically') stream:stream => C.addTimerToProgram(prog, stream);
+    prog:complete_query_program ('send this to me' | 'send this to me' | 'i want to see this' | 'i want this' | 'send this') stream:stream => C.addTimerToProgram(prog, stream);
+
+    prog:complete_query_program ('ok , notify me when it changes' | 'notify me when it changes' | 'subscribe to changes' | 'let me know of changes' | 'notify me of this' | 'subscribe to this') => {
+        if (prog.rules.length > 1 || !prog.rules[0].table || !prog.rules[0].table.schema.is_monitorable)
+            return null;
+        return C.makeMonitor(prog);
+    };
+
+    !turking prog:incomplete_program ('' | 'the answer is' | 'use' | 'i want') param:constant_Any => C.fillNextSlot(prog, param);
+
+    q:complete_query_program ('only those with' | 'only those having' |
+        'only with' | 'only if they have' | 'filter to those with' | 'show me those with') filter:with_filter => {
+        if (!q.rules[0].table.schema.is_list)
+            return null;
+        return C.addFilterToProgram(q, filter, _tpLoader);
+    };
+    !turking q:complete_query_program ('show me if' | 'only if') filter:atom_filter => {
+        if (!q.rules[0].table.schema.is_list)
+            return null;
+        return C.addFilterToProgram(q, filter, _tpLoader);
+    };
+
+    prog:when_program ('only if' | 'do this only if' | 'and only when' | 'only when') filter:atom_filter => C.addFilterToProgram(prog, filter, _tpLoader);
+    prog:when_program ('only if' | 'do this only if' | 'and only when' | 'only when') filter:get_predicate_filter => C.addFilterToProgram(prog, filter, _tpLoader);
+
+    prog:when_program ('only those with' | 'only those having' |
+        'only with' | 'only if they have' | 'filter to those with' | 'show me those with') filter:with_filter => {
+        if (!prog.rules[0].stream.schema.is_list)
+            return null;
+        return C.addFilterToProgram(prog, filter, _tpLoader);
+    };
+
+    prog:policy ('only if' | 'do this only if' | 'and only when' | 'only when') filter:atom_filter => C.addFilterToPolicy(prog, filter, _tpLoader);
+    prog:policy ('only if' | 'do this only if' | 'and only when' | 'only when') filter:get_predicate_filter => C.addFilterToPolicy(prog, filter, _tpLoader);
+}

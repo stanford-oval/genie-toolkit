@@ -40,6 +40,8 @@ get_predicate_filter = {
 }
 
 if_filter = {
+    get_predicate_filter;
+
     'the' p:out_param_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any        => {
         if (x.getType().isString)
             return C.makeFilter(p, '=~', x);

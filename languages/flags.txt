@@ -5,6 +5,7 @@ thingtalk/en:
     - aggregation
     - bookkeeping
     - configure_actions
+    - dialogues
     - extended_timers
     - multifilters
     - no_contextual_bookkeeping
@@ -36,7 +37,7 @@ thingtalk/en:
     - screen_selection
     - timer
     - undefined_filter
-  default:
+  developer:
     - aggregation
     - bookkeeping
     - configure_actions

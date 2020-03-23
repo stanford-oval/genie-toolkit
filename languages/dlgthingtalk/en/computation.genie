@@ -28,8 +28,51 @@ projection_Measure_m = {}
 compute_question = {}
 with_arg_min_max_table = {}
 
-if (!_tpLoader.flags.turking) {
-    projection_Measure_m = {
+// within distance
+one_within_filter_table = {
+    !turking {
+        !nofilter table:complete_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
+        => C.makeWithinGeoDistanceExpression(table, HERE, distance);
+
+        !nofilter table:complete_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
+        => C.makeWithinGeoDistanceExpression(table, place, distance);
+    }
+}
+
+two_within_filter_table = {
+    !turking {
+        !nofilter (
+              table:one_with_filter_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
+            | table:one_which_filter_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
+            | table:one_clean_filter_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
+        ) => C.makeWithinGeoDistanceExpression(table, HERE, distance);
+
+        !nofilter (
+              table:one_with_filter_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
+            | table:one_which_filter_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
+            | table:one_clean_filter_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
+        ) => C.makeWithinGeoDistanceExpression(table, place, distance);
+    }
+}
+
+three_within_filter_table = {
+    !turking {
+        !nofilter (
+              table:two_with_filter_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
+            | table:two_which_filter_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
+            | table:two_clean_filter_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
+        ) => C.makeWithinGeoDistanceExpression(table, HERE, distance);
+
+        !nofilter (
+              table:two_with_filter_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
+            | table:two_which_filter_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
+            | table:two_clean_filter_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
+        ) => C.makeWithinGeoDistanceExpression(table, place, distance);
+    }
+}
+
+projection_Measure_m = {
+    !turking {
         ( 'the distance' ('of' | 'to') table:with_filtered_table ('from here' | '')
         | 'the distance' ('of' | 'to') 'the' table:with_arg_min_max_table ('from here' | ''))=> {
             // the position of a place in schema.org is called "geo" - for speed
@@ -102,8 +145,10 @@ if (!_tpLoader.flags.turking) {
             return C.makeProjection(table, p.name);
         };
     }
+}
 
-    compute_question = {
+compute_question = {
+    !turking {
         ( 'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filtered_table ('from here' | '') ('?'|'')
         | 'how' ('far' | 'near' | 'close') ('is' | 'are') 'the' table:with_arg_min_max_table ('from here' | '') ('?'|'')
         )=> {
@@ -193,8 +238,10 @@ if (!_tpLoader.flags.turking) {
         };
         }
     }
+}
 
-    with_arg_min_max_table = {
+with_arg_min_max_table = {
+    !turking {
         ('nearest' | 'closest') table:complete_table ('' | 'from here' | 'to here' | 'to me')  => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
