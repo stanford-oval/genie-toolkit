@@ -506,10 +506,8 @@ action_command = {
     ) => action;
 
     // now => get => do
-    ?compound_commands {
-        complete_forward_get_do_command;
-        !turking backward_get_do_command if complete;
-    }
+    complete_forward_get_do_command;
+    !turking backward_get_do_command if complete;
 }
 
 if (_tpLoader.standardSchemas.say) {

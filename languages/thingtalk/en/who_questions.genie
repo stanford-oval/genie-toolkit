@@ -30,7 +30,7 @@ who_complete_table = {
 
 who_with_filtered_table = {
     // no filter
-    !aways_filter who_complete_table;
+    !always_filter who_complete_table;
 
     // one filter
     who_one_with_filter_table;

@@ -503,7 +503,7 @@ function makeProgram(rule, principal = null) {
             return null;
     }
     if (rule.stream) {
-        if (_loader.flags.no_stream)
+        if (_loader.flags.nostream)
             return null;
     }
     return new Ast.Program(null, [], [], [rule], principal);
