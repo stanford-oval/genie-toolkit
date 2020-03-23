@@ -303,7 +303,7 @@ function mergePreambleAndRequest(pair, request) {
 }
 
 function initialRequest(stmt) {
-    if (stmt.stream && _loader.flags.no_stream)
+    if (stmt.stream && _loader.flags.nostream)
         return null;
 
     let history = [];
