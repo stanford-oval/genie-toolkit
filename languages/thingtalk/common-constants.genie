@@ -13,28 +13,57 @@ const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 
+const MAX_CONSTANTS = 20;
 const MAX_SMALL_INTEGER = 12;
 }
 
-constant_String                    = const(QUOTED_STRING, Type.String);
+for (let i = 0; i <= MAX_SMALL_INTEGER; i++)
+    constant_Number = #(String(i)) => new Ast.Value.Number(i);
+// NOTE: normally, we would use _tpLoader.flags.dialogues for these checks, but this code
+// executes before load-thingpedia.js, so _tpLoader cannot be used in this file
+if ($options.flags.dialogues) {
+    for (let i = 0; i < MAX_CONSTANTS; i++)
+        constant_Number = #('NUMBER_' + i) => new Ast.Value.Number(MAX_SMALL_INTEGER + 1 + i);
 
-constant_Entity__tt__url           = const(URL, Type.Entity('tt:url'));
+    for (let i = 0; i < MAX_CONSTANTS; i++) {
+        constant_String = #('QUOTED_STRING_' + i) => new Ast.Value.String('str:QUOTED_STRING::' + i + ':');
+        constant_Entity__tt__url = #('URL_' + i) => new Ast.Value.Entity('str:URL::' + i, 'tt:url', null);
+        constant_Entity__tt__username = #('USERNAME_' + i) => new Ast.Value.Entity('str:USERNAME::' + i + ':', 'tt:url', null);
+        constant_Entity__tt__hashtag = #('HASHTAG_' + i) => new Ast.Value.Entity('str:HASHTAG::' + i + ':', 'tt:hashtag', null);
+        constant_Entity__tt__phone_number = #('PHONE_NUMBER_' + i) => new Ast.Value.Entity('str:PHONE_NUMBER::' + i + ':', 'tt:phone_number', null);
+        constant_Entity__tt__email_address = #('EMAIL_ADDRESS_' + i) => new Ast.Value.Entity('str:EMAIL_ADDRESS::' + i + ':', 'tt:email_address', null);
+        constant_Entity__tt__path_name = #('PATH_NAME_' + i) => new Ast.Value.Entity('str:PATH_NAME::' + i + ':', 'tt:path_name', null);
 
-constant_Entity__tt__username      = const(USERNAME, Type.Entity('tt:username'));
-constant_Entity__tt__hashtag       = const(HASHTAG, Type.Entity('tt:hashtag'));
-constant_Entity__tt__phone_number  = const(PHONE_NUMBER, Type.Entity('tt:phone_number'));
-constant_Entity__tt__email_address = const(EMAIL_ADDRESS, Type.Entity('tt:email_address'));
-constant_Entity__tt__path_name     = {
-    const(PATH_NAME, Type.Entity('tt:path_name'));
+        constant_Currency = #('CURRENCY_' + i) => new Ast.Value.Currency(2 + i, 'usd');
+        constant_Measure_ms = #('DURATION_' + i) => new Ast.Value.Measure(2 + i, 'ms');
+
+        constant_Location = #('LOCATION_' + i) => new Ast.Value.Location(new Ast.Location.Absolute(2 + i, 2 + i, null));
+
+        constant_Date = #('DATE_' + i) => new Ast.Value.Date(new Date(2018, 0, 2 + i));
+        constant_Time = #('TIME_' + i) => new Ast.Value.Time(new Ast.Time.Absolute(Math.floor(i/4), [0, 15, 30, 45][i % 4], 0));
+    }
+} else {
+    constant_String                    = const(QUOTED_STRING, Type.String);
+
+    constant_Entity__tt__url           = const(URL, Type.Entity('tt:url'));
+
+    constant_Entity__tt__username      = const(USERNAME, Type.Entity('tt:username'));
+    constant_Entity__tt__hashtag       = const(HASHTAG, Type.Entity('tt:hashtag'));
+    constant_Entity__tt__phone_number  = const(PHONE_NUMBER, Type.Entity('tt:phone_number'));
+    constant_Entity__tt__email_address = const(EMAIL_ADDRESS, Type.Entity('tt:email_address'));
+    constant_Entity__tt__path_name     = {
+        const(QUOTED_STRING, Type.Entity('tt:path_name'));
+        const(PATH_NAME, Type.Entity('tt:path_name'));
+    }
+
+    constant_Number = const(NUMBER, Type.Number);
+    constant_Currency = const(CURRENCY, Type.Currency);
+    constant_Time = const(TIME, Type.Time);
+    constant_Date = const(DATE, Type.Date);
+    constant_Location = const(LOCATION, Type.Location);
+
+    constant_Measure_ms = const(DURATION, Type.Measure('ms'));
 }
-
-constant_Number = const(NUMBER, Type.Number);
-constant_Currency = const(CURRENCY, Type.Currency);
-constant_Time = const(TIME, Type.Time);
-constant_Date = const(DATE, Type.Date);
-constant_Location = const(LOCATION, Type.Location);
-
-constant_Measure_ms = const(DURATION, Type.Measure('ms'));
 
 constant_Entity__tt__picture  = {}
 constant_Entity__tt__function = {}
@@ -54,10 +83,6 @@ constant_Measure_lx = {}
 constant_Measure_lm = {}
 constant_Measure_dB = {}
 constant_Measure_dBm = {}
-
-for (let i = 0; i <= MAX_SMALL_INTEGER; i++)
-    constant_Number = #(String(i)) => new Ast.Value.Number(i);
-
 
 // this is used for equality filtering, so !turking anything that is weird when equality compared
 constant_Any = {
@@ -79,6 +104,7 @@ constant_Any = {
         constant_Measure_ms;
         constant_Measure_byte;
         constant_Measure_mps;
+
         constant_Measure_m;
         constant_Measure_C;
         constant_Measure_kg;

@@ -145,8 +145,12 @@ when_get_stream = {
     // NOTE: the schema is not quite right but it's ok because the stream is complete
     // and the table is what we care about
     stream:stream table:thingpedia_get_command => C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, table, [], table.schema));
-    stream:stream ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') table:thingpedia_query => C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, table, [], table.schema));
-    stream:stream ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') ('' | 'what is') proj:projection_Any => {
+    ( stream:stream imperative_verb_for_search table:thingpedia_query
+    | stream:stream generic_verb_for_search table:thingpedia_query
+    ) => C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, table, [], table.schema));
+    ( stream:stream imperative_verb_for_search ('' | 'what is') proj:projection_Any
+    | stream:stream generic_verb_for_search ('' | 'what is') proj:projection_Any
+    ) => {
         if (proj.isProjection) {
             if (!_tpLoader.flags.projection)
                 return null;
@@ -160,8 +164,15 @@ when_get_stream = {
     };
 
     table:thingpedia_get_command stream:stream => C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, table, [], table.schema));
-    ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') table:thingpedia_query stream:stream => C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, table, [], table.schema));
-    ('get' | 'show me' | 'give me' | 'tell me' | 'retrieve') proj:projection_Any stream:stream => {
+    ( imperative_verb_for_search table:thingpedia_query stream:stream
+    | generic_verb_for_search table:thingpedia_query stream:stream
+    | generic_preamble_for_answer table:thingpedia_query stream:stream
+    ) => C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, table, [], table.schema));
+
+    ( imperative_verb_for_search proj:projection_Any stream:stream
+    | generic_verb_for_search proj:projection_Any stream:stream
+    | generic_preamble_for_answer proj:projection_Any stream:stream
+    ) => {
         if (proj.isProjection) {
             if (!_tpLoader.flags.projection)
                 return null;
@@ -187,16 +198,15 @@ timer_rule = {
     // timer => get => notify
     (
           timer:timer table:complete_get_command
-        | timer:timer 'get' table:complete_table
-        | 'get' table:complete_table timer:timer
+        | timer:timer generic_verb_for_search table:complete_table
+        | generic_verb_for_search table:complete_table timer:timer
         | timer:timer ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table
         | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table timer:timer
     ) => new Ast.Statement.Rule(null, new Ast.Stream.Join(null, timer, table, [], table.schema), [C.notifyAction()]);
     // timer => do
     (
           timer:timer action:thingpedia_action
-        | action:thingpedia_action timer:timer
-        | 'i want to' action:thingpedia_action timer:timer
+        | generic_preamble_for_action action:thingpedia_action timer:timer
     ) if complete => new Ast.Statement.Rule(null, timer, [action]);
     // timer => get => do
     !primonly (
@@ -211,11 +221,32 @@ generic_preamble_for_answer = {
     'i want';
     'i need';
 }
-generic_search_preamble = {
-    'show me';
-    'give me';
+generic_preamble_for_action = {
+    'i am looking to';
+    'i would like to';
+    'i want to';
+    'i need to';
+    'please';
+}
+generic_verb_for_search = {
+    'search for';
     'search';
     'find';
+    'get';
+    'retrieve';
+}
+imperative_verb_for_search = {
+    'show me';
+    'tell me';
+    'give me';
+}
+
+generic_search_preamble = {
+    'search';
+    'find';
+    'get';
+    'show me';
+    'give me';
     'i want';
     'i need';
     'i am looking for';
@@ -240,7 +271,9 @@ search_command = {
     (
           table:complete_get_command
         | 'get' table:with_filtered_table
-        | generic_search_preamble table:with_filtered_table
+        | generic_preamble_for_answer table:with_filtered_table
+        | generic_verb_for_search table:with_filtered_table
+        | generic_preamble_for_action generic_verb_for_search table:with_filtered_table
     ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
     ( 'please' | '') ('list' | 'enumerate') table:with_filtered_table => {
         if (!table.schema.is_list)
@@ -249,11 +282,15 @@ search_command = {
     };
 
     // now => get join get => notify
-    generic_search_preamble table:with_filtered_table_join => new Ast.Statement.Command(null, table, [C.notifyAction()]);
+    ( generic_preamble_for_answer table:with_filtered_table
+    | generic_verb_for_search table:with_filtered_table
+    | generic_preamble_for_action generic_verb_for_search table:with_filtered_table
+    ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
 
     // now => get => notify (argmin, argmax)
-    generic_search_preamble 'the' table:with_arg_min_max_table
-    => new Ast.Statement.Command(null, table, [C.notifyAction()]);
+    ( generic_preamble_for_answer 'the' table:with_arg_min_max_table
+    | generic_verb_for_search 'the' table:with_arg_min_max_table
+    ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
 
     // now => get => say(...)
     (
@@ -475,39 +512,21 @@ complete_action = {
     ( command:complete_action param:preposition_input_param
     | command:complete_action ('with' | 'having') param:npp_input_param
     ) => {
-        const arg = command.actions[0].invocation.schema.getArgument(param.name);
-        if (!arg || !arg.is_input || !C.isConstantAssignable(param.value, arg.type))
+        const newAction = C.addActionInputParam(command.actions[0], param);
+        if (newAction === null)
             return null;
-        const clone = command.clone();
-        for (let existing of clone.actions[0].invocation.in_params) {
-            if (existing.name == param.name) {
-                if (existing.value.isUndefined) {
-                    existing.value = param.value;
-                    return clone;
-                } else {
-                    return null;
-                }
-            }
-        }
-        clone.actions[0].invocation.in_params.push(param);
-        clone.actions[0].schema = clone.actions[0].schema.removeArgument(param.name);
-        return clone;
+        return new Ast.Statement.Command(null, command.table, [newAction]);
     };
 }
 
 action_command = {
     // now => do
-    (
-          action:complete_action
-        | 'please' action:complete_action
-        | 'i need you to' action:complete_action
-        | 'i want to' action:complete_action
-        | 'i would like to' action:complete_action
-    ) => action;
+    complete_action;
+    generic_preamble_for_action action:complete_action => action;
 
     // now => get => do
-    complete_forward_get_do_command;
-    !turking backward_get_do_command if complete;
+    generic_preamble_for_action action:complete_forward_get_do_command [weight=0.05] => action;
+    !turking generic_preamble_for_action action:backward_get_do_command if complete [weight=0.05] => action;
 }
 
 if (_tpLoader.standardSchemas.say) {
