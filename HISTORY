@@ -1,3 +1,44 @@
+0.6.0-alpha.1
+=============
+
+* Introduce the support for programming languages other than ThingTalk.
+  New programming languages can be supported by adding the relevant abstraction
+  module, and then selecting it when generating data [#123].
+* Added the ability to build Q&A skills for structured web data using
+  schema.org markup. Genie now includes new subcommands, prefixed with "webqa-",
+  which can process structured schema.org markup and produce a Thingpedia
+  skill definition and implementation to answer database-style questions [#124, #130, #132, #135].
+* Templates for questions were rewritten and expanded, to support a larger
+  and more varied set of possible filters [#124].
+* Added new command to generate multi-turn dialogue. This command supersedes
+  the old "generate-contextual" command, and generates both the first turn and
+  the subsequent turn of the dialogue in one shot. The "generate-contextual" command,
+  and the associated command "contextualize" are now obsolete and will be removed soon [#129].
+* The syntax of contextual templates have been modified, and now there is a single
+  tagger function that associates one or more "tags" to each context [#129].
+* Added templates for MultiWOZ dialogues. These templates target the intent-and-slot
+  representation used in MultiWOZ, and generate multi-turn dialogues [#107].
+* Added new templates for multi-turn ThingTalk. These templates support
+  single-domain transaction-style dialogues similar to those in MultiWOZ [#129, #137].
+* Added support for the new genienlp library, which includes new BERT-based
+  semantic parsing and NLU models, yielding significantly higher accuracy [#137].
+* Post-processing in the American English was expanded, so models using Genie are
+  more robust to inconsistent punctuation and contractions.
+* Added HTML templates and tools to help collect manually-annotated validation data
+  on MTurk [#124].
+* Added a tool to requote a training set, replacing all string spans with entities
+  like QUOTED_STRING, LOCATION, etc.
+* Added a command to run a simple HTTP server serving a trained Genie model, with
+  an API compatible with the Almond NLP API. This allows testing a full-fledged Almond
+  against a newly trained Genie model, without deploying Almond Cloud.
+* The sampling algorithm used by the synthetic sentence generator was rewritten,
+  and it now honors the sampling tunable a lot more closely. It is now possible to
+  specify a sampling weight for every template [#129].
+* The implementation of the inner-loop of the sentence generation was rewritten
+  to allow more optimization by the JS engine, and has now significantly less overhead.
+* Misc bug fixes [#117, #118, #119, #125, #128, #134].
+* Node 8 is no longer supported. The only supported version of node is 10.*.
+
 0.5.3
 =====
 
