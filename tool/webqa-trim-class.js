@@ -128,9 +128,8 @@ class SchemaTrimmer {
             if (key === '@id' || key === '@type' || key === '@context')
                 continue;
             if (key === 'name') {
-                if (obj[key] && obj[key].length) {
+                if (obj[key] && obj[key].length)
                     this._markTableHasName(tabledef);
-                }
                 continue;
             }
 
