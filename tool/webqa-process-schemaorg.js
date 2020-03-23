@@ -947,21 +947,12 @@ class SchemaProcessor {
                 })
             ];
             recursiveAddStringValues(args[0], this._prefix + typename + '_name');
-            if (typename !== 'Thing') {
-                // override name so we can apply a custom string_values annotation
-                const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'name', Type.String, {
-                    nl: {},
-                    impl: {
-                        'org_schema_type': new Ast.Value.String('Text'),
-                        'filterable': new Ast.Value.Boolean(false) // no filter on name, if it has ner support, we'll generate prim for it
-                    }
-                });
-                recursiveAddStringValues(arg, this._prefix + typename + '_name');
-                args.push(arg);
-            }
 
             this._hasGeo = 'geo' in typedef.properties;
             for (let propertyname in typedef.properties) {
+                if (propertyname === 'name')
+                    continue;
+
                 const propertydef = typedef.properties[propertyname];
                 const [schemaOrgType, type] = this.getBestPropertyType(propertyname, propertydef, typeHierarchy);
                 if (!type)
