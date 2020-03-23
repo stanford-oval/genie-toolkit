@@ -32,6 +32,28 @@ function splitCanonical(canonical) {
     return [prefix, suffix];
 }
 
+// return the template query of a certain grammar category
+function templateQuery(cat, tableName, prefix, value='', suffix='') {
+    switch (cat) {
+        case 'base':
+            return `what is the ${prefix} of the ${tableName} ?`.split(/\s+/g);
+        case 'npp':
+        case 'property':
+            return `show me ${tableName} with ${prefix} ${value} ${suffix} .`.split(/\s+/g);
+        case 'avp':
+        case 'verb':
+            return `which ${tableName} ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
+        case 'pvp':
+        case 'passive_verb':
+            return `show me a ${tableName} ${prefix} ${value} ${suffix} .`.split(/\s+/g);
+        case 'npi':
+        case 'reverse_property':
+            return `which ${tableName} is a ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
+        default:
+            throw new Error(`Invalid grammar category ${cat}`);
+    }
+}
+
 
 class CanonicalGenerator {
     constructor(classDef, constants, queries, parameterDatasets, options) {
@@ -183,70 +205,42 @@ class CanonicalGenerator {
         return samples;
     }
 
-
-
     _generateExamples(tableName, canonicals, valueSample) {
         let examples = {};
-        for (let cat of ['npp', 'avp', 'pvp', 'nni', 'npv', 'apv']) {
+        for (let cat of ['base', 'npp', 'avp', 'pvp', 'npi']) {
             if (cat in canonicals)
                 examples[cat] = { examples: [], candidates: [] } ;
         }
-        for (let value of valueSample) {
-            for (let canonical of canonicals['npp']) {
-                let [prefix, suffix] = splitCanonical(canonical);
-                let query = `show me ${tableName} with ${prefix} ${value} ${suffix} .`.split(/\s+/g);
-                let prefixIndices = prefix ? prefix.split(' ').map((w) => query.indexOf(w)) : [];
-                let suffixIndices = suffix ? suffix.split(' ').map((w) => query.indexOf(w)) : [];
-                let valueIndices = value.split(' ').map((w) => query.indexOf(w));
-                examples['npp']['examples'].push({
+
+        if ('base' in canonicals) {
+            for (let canonical of canonicals['base']) {
+                let query = templateQuery('base', tableName, canonical);
+                let maskIndices = canonical.split(' ').map((w) => query.indexOf(w));
+                examples['base']['examples'].push({
                     query: query.join(' '),
-                    masks: { prefix: prefixIndices, suffix: suffixIndices },
-                    value: valueIndices
+                    masks: {prefix: maskIndices, suffix: []},
+                    value: []
                 });
             }
+        }
 
-            if ('avp' in canonicals) {
-                for (let canonical of canonicals['avp']) {
+        for (let value of valueSample) {
+            for (let cat in canonicals) {
+                if (['default', 'apv', 'npv', 'base'].includes(cat))
+                    continue;
+                for (let canonical of canonicals[cat]) {
                     let [prefix, suffix] = splitCanonical(canonical);
-                    let query = `which ${tableName} ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
+                    let query = templateQuery(cat, tableName, prefix, value, suffix);
                     let prefixIndices = prefix ? prefix.split(' ').map((w) => query.indexOf(w)) : [];
                     let suffixIndices = suffix ? suffix.split(' ').map((w) => query.indexOf(w)) : [];
                     let valueIndices = value.split(' ').map((w) => query.indexOf(w));
-                    examples['avp']['examples'].push({
+                    examples[cat]['examples'].push({
                         query: query.join(' '),
                         masks: { prefix: prefixIndices, suffix: suffixIndices },
                         value: valueIndices
                     });
                 }
             }
-
-            if ('pvp' in canonicals) {
-                for (let canonical of canonicals['pvp']) {
-                    let [prefix, suffix] = splitCanonical(canonical);
-                    let query = `show me a ${tableName} ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
-                    let prefixIndices = prefix ? prefix.split(' ').map((w) => query.indexOf(w)) : [];
-                    let suffixIndices = suffix ? suffix.split(' ').map((w) => query.indexOf(w)) : [];
-                    let valueIndices = value.split(' ').map((w) => query.indexOf(w));
-                    examples['pvp']['examples'].push({
-                        query: query.join(' '),
-                        masks: { prefix: prefixIndices, suffix: suffixIndices },
-                        value: valueIndices
-                    });
-                }
-            }
-
-            if ('nni' in canonicals) {
-                // TODO
-            }
-
-            if ('npv' in canonicals) {
-                // TODO
-            }
-
-            if ('apv' in canonicals) {
-                // TODO
-            }
-
         }
         return examples;
     }

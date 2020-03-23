@@ -191,41 +191,41 @@ function makeButFilter(param, op, values) {
     return new Ast.BooleanExpression.And(null, operands);
 }
 
-function makeListExpression($options, param, filter) {
+function makeListExpression(param, filter) {
     // TODO: handle more complicated filters
     if (!filter.isAtom)
         return null;
     if (filter.name === 'value') {
-        if ($options.params.out.has(`${param.name}+Array(Compound)`))
+        if (_loader.params.out.has(`${param.name}+Array(Compound)`))
             return null;
     } else {
-        if (!(param.name in $options.compoundArrays))
+        if (!(param.name in _loader.compoundArrays))
             return null;
-        const type = $options.compoundArrays[param.name];
+        const type = _loader.compoundArrays[param.name];
         if (!(filter.name in type.fields))
             return null;
     }
     let vtype = filter.value.getType();
-    if (!$options.params.out.has(`${filter.name}+${vtype}`))
+    if (!_loader.params.out.has(`${filter.name}+${vtype}`))
         return null;
     return new Ast.Value.Filter(param, filter);
 }
 
-function makeAggregateFilter($options, param, aggregationOp, field, op, value) {
+function makeAggregateFilter(param, aggregationOp, field, op, value) {
     if (aggregationOp === 'count') {
         if (!value.getType().isNumber)
             return null;
-        assert(field === null);
+        assert(field === null || field === '*');
         const agg = new Ast.Value.Computation(aggregationOp, [param],
             [Type.Array('x'), Type.Number], Type.Number);
         return new Ast.BooleanExpression.Compute(null, agg, op, value);
     } else if (['sum', 'avg', 'max', 'min'].includes(aggregationOp)) {
         const vtype = value.getType();
         if (field) {
-            if (!$options.params.out.has(`${field.name}+${vtype}`))
+            if (!_loader.params.out.has(`${field.name}+${vtype}`))
                 return null;
         } else {
-            if (!$options.params.out.has(`${param.name}+Array(${vtype})`))
+            if (!_loader.params.out.has(`${param.name}+Array(${vtype})`))
                 return null;
         }
         const agg = new Ast.Value.Computation(aggregationOp, [
@@ -236,10 +236,10 @@ function makeAggregateFilter($options, param, aggregationOp, field, op, value) {
     return null;
 }
 
-function makeAggregateFilterWithFilter($options, param, filter, aggregationOp, field, op, value) {
+function makeAggregateFilterWithFilter(param, filter, aggregationOp, field, op, value) {
     if (filter === null)
         return null;
-    const list = makeListExpression($options, param, filter);
+    const list = makeListExpression(param, filter);
     if (!list)
         return null;
     if (aggregationOp === 'count') {
@@ -251,10 +251,10 @@ function makeAggregateFilterWithFilter($options, param, filter, aggregationOp, f
     } else if (['sum', 'avg', 'max', 'min'].includes(aggregationOp)) {
         const vtype = value.getType();
         if (field) {
-            if (!$options.params.out.has(`${field.name}+${vtype}`))
+            if (!_loader.params.out.has(`${field.name}+${vtype}`))
                 return null;
         } else {
-            if (!$options.params.out.has(`${param.name}+Array(${vtype})`))
+            if (!_loader.params.out.has(`${param.name}+Array(${vtype})`))
                 return null;
         }
         const agg = new Ast.Value.Computation(aggregationOp, [
@@ -519,32 +519,35 @@ function combineStreamCommand(stream, command) {
 }
 
 function checkComputeFilter(table, filter) {
-    if (!filter.lhs.isAggregation)
+    if (!filter.lhs.isComputation)
         return false;
-    let name = filter.lhs.list.name;
-    if (!table.schema.out[name])
+    if (filter.lhs.operands.length !== 1)
+        return false;
+    let param = filter.lhs.operands[0];
+
+    if (!table.schema.out[param.name])
         return false;
 
     let vtype, ptype, ftype;
-    ptype = table.schema.out[name];
+    ptype = table.schema.out[param.name];
     if (!ptype.isArray)
         return false;
 
-    if (filter.lhs.operator === 'count') {
+    if (filter.lhs.op === 'count') {
         vtype = Type.Number;
-        let canonical = table.schema.getArgCanonical(name);
+        let canonical = table.schema.getArgCanonical(param.name);
         for (let p of table.schema.iterateArguments()) {
-            if (p.name === name + 'Count')
+            if (p.name === param.name + 'Count')
                 return false;
             if (p.canonical === canonical + 'count' || p.canonical === canonical.slice(0,-1) + ' count')
                 return false;
         }
     } else {
-        if (filter.lhs.field && filter.lhs.field in ptype.elem.fields)
-            ftype = ptype.elem.fields[filter.lhs.field].type;
-        else
-            ftype = ptype.elem;
-        vtype = ftype;
+        if (param.field && param.field in ptype.elem.fields)
+                ftype = ptype.elem.fields[param.field].type;
+            else
+                ftype = ptype.elem;
+            vtype = ftype;
     }
     return filter.rhs.getType().equals(vtype);
 }

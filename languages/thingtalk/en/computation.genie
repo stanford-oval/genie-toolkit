@@ -287,7 +287,7 @@ with_arg_min_max_table = {
             return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], Type.Measure('m'), 'desc');
         };
 
-        table:with_filtered_table 'with the' ('most' | 'highest number of' | 'largest number of' | 'largest count of') p:out_param_Array__Any => {
+        table:with_filtered_table 'with the' ('most' | 'highest number of' | 'largest number of' | 'largest count of') p:out_param_Array__Any [weight=0.33] => {
             if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
                 return null;
             const conflictParam = C.hasConflictParam(table, p.name, 'count');
@@ -295,7 +295,7 @@ with_arg_min_max_table = {
                 return C.makeArgMinMaxTable(table, conflictParam, 'desc');
             return C.makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'desc');
         };
-        !turking table:with_filtered_table 'with the' ('least' | 'fewest' | 'smallest number of' | 'tiniest number of' | 'smallest count of') p:out_param_Array__Any => {
+        !turking table:with_filtered_table 'with the' ('least' | 'fewest' | 'smallest number of' | 'tiniest number of' | 'smallest count of') p:out_param_Array__Any [weight=0.33] => {
             if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
                 return null;
             const conflictParam = C.hasConflictParam(table, p.name, 'count');
@@ -303,7 +303,7 @@ with_arg_min_max_table = {
                 return C.makeArgMinMaxTable(table, conflictParam, 'asc');
             return C.makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'asc');
         };
-        ?turking table:with_filtered_table 'with the' ('fewest' | 'smallest number of') p:out_param_Array__Any => {
+        ?turking table:with_filtered_table 'with the' ('fewest' | 'smallest number of') p:out_param_Array__Any [weight=0.33] => {
             if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
                 return null;
             const conflictParam = C.hasConflictParam(table, p.name, 'count');
@@ -312,17 +312,17 @@ with_arg_min_max_table = {
             return C.makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'asc');
         };
 
-        table:with_filtered_table 'with the' ('most' | 'highest number of' | 'largest number of' | 'largest count of') p:out_param_ArrayCount => {
+        table:with_filtered_table 'with the' ('most' | 'highest number of' | 'largest number of' | 'largest count of') p:out_param_ArrayCount [weight=0.33] => {
             if (!table.schema.out[p.name] || !table.schema.out[p.name].isNumber)
                 return null;
             return C.makeArgMinMaxTable(table, p.name, 'desc');
         };
-        !turking table:with_filtered_table 'with the' ('least' | 'fewest' | 'smallest number of' | 'tiniest number of' | 'smallest count of') p:out_param_ArrayCount => {
+        !turking table:with_filtered_table 'with the' ('least' | 'fewest' | 'smallest number of' | 'tiniest number of' | 'smallest count of') p:out_param_ArrayCount [weight=0.33] => {
             if (!table.schema.out[p.name] || !table.schema.out[p.name].isNumber)
                 return null;
             return C.makeArgMinMaxTable(table, p.name, 'asc');
         };
-        ?turking table:with_filtered_table 'with the' ('fewest' | 'smallest number of') p:out_param_ArrayCount => {
+        ?turking table:with_filtered_table 'with the' ('fewest' | 'smallest number of') p:out_param_ArrayCount [weight=0.33] => {
             if (!table.schema.out[p.name] || !table.schema.out[p.name].isNumber)
                 return null;
             return C.makeArgMinMaxTable(table, p.name, 'asc');
