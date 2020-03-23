@@ -51,10 +51,7 @@ if ($options.flags.dialogues) {
     constant_Entity__tt__hashtag       = const(HASHTAG, Type.Entity('tt:hashtag'));
     constant_Entity__tt__phone_number  = const(PHONE_NUMBER, Type.Entity('tt:phone_number'));
     constant_Entity__tt__email_address = const(EMAIL_ADDRESS, Type.Entity('tt:email_address'));
-    constant_Entity__tt__path_name     = {
-        const(QUOTED_STRING, Type.Entity('tt:path_name'));
-        const(PATH_NAME, Type.Entity('tt:path_name'));
-    }
+    constant_Entity__tt__path_name     = const(PATH_NAME, Type.Entity('tt:path_name'));
 
     constant_Number = const(NUMBER, Type.Number);
     constant_Currency = const(CURRENCY, Type.Currency);
