@@ -56,7 +56,7 @@ if ($options.flags.dialogues) {
         const(PATH_NAME, Type.Entity('tt:path_name'));
     }
 
-    constant_Number = const(NUMBER, Type.Number)
+    constant_Number = const(NUMBER, Type.Number);
     constant_Currency = const(CURRENCY, Type.Currency);
     constant_Time = const(TIME, Type.Time);
     constant_Date = const(DATE, Type.Date);
