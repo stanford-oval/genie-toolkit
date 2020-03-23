@@ -1,4 +1,45 @@
-en:
-  all: nofilter primonly policies remote_commands aggregation bookkeeping triple_commands configure_actions timer projection undefined_filter projection_with_filter extended_timers screen_selection
-  default: policies remote_commands aggregation bookkeeping triple_commands configure_actions timer projection undefined_filter
-  developer: policies remote_commands aggregation bookkeeping triple_commands configure_actions timer projection undefined_filter projection_with_filter screen_selection
+# -*- mode: yaml -*-
+thingtalk/en:
+  all:
+    - always_filter
+    - aggregation
+    - bookkeeping
+    - configure_actions
+    - extended_timers
+    - no_contextual_bookkeeping
+    - nofilter
+    - nostream
+    - notablejoin
+    - policies
+    - primonly
+    - projection
+    - projection_with_filter
+    - range_filters
+    - remote_commands
+    - schema_org
+    - screen_selection
+    - timer
+    - triple_commands
+    - turking
+    - undefined_filter
+  default:
+    - aggregation
+    - bookkeeping
+    - configure_actions
+    - policies
+    - projection
+    - projection_with_filter
+    - remote_commands
+    - timer
+    - undefined_filter
+  default:
+    - aggregation
+    - bookkeeping
+    - configure_actions
+    - extended_timers
+    - policies
+    - projection
+    - projection_with_filter
+    - remote_commands
+    - timer
+    - undefined_filter
