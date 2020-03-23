@@ -6,6 +6,7 @@ thingtalk/en:
     - bookkeeping
     - configure_actions
     - extended_timers
+    - multifilters
     - no_contextual_bookkeeping
     - nofilter
     - nostream
@@ -26,10 +27,13 @@ thingtalk/en:
     - aggregation
     - bookkeeping
     - configure_actions
+    - multifilters
     - policies
     - projection
     - projection_with_filter
     - remote_commands
+    - schema_org
+    - screen_selection
     - timer
     - undefined_filter
   default:
@@ -37,9 +41,12 @@ thingtalk/en:
     - bookkeeping
     - configure_actions
     - extended_timers
+    - multifilters
     - policies
     - projection
     - projection_with_filter
     - remote_commands
+    - schema_org
+    - screen_selection
     - timer
     - undefined_filter
