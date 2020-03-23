@@ -1007,7 +1007,8 @@ class SchemaProcessor {
                         'confirm': new Ast.Value.Boolean(false)
                     } : {
                         'confirm': new Ast.Value.Boolean(false)
-                    }
+                    },
+                    minimal_projection: ['id']
                 });
         }
 
