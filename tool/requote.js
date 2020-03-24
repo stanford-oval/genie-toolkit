@@ -70,7 +70,7 @@ function findSpanType(program, begin_index, end_index) {
 }
 
 
-function create_newProgram(program, spansByProgramPos, entityRemap) {
+function createProgram(program, spansByProgramPos, entityRemap) {
     let in_string = false;
     let newProgram = [];
     let programSpanIndex = 0;
@@ -109,8 +109,42 @@ function create_newProgram(program, spansByProgramPos, entityRemap) {
     return newProgram;
 }
 
+function qpisSentence(sentence, spansBySentencePos) {
 
-function create_newSentence(sentence, spansBySentencePos) {
+    let current_span_idx = 0;
+    let current_span = spansBySentencePos[0];
+
+    let newSentence = [];
+    let i = 0;
+    let in_string = false;
+    while (i < sentence.length) {
+        let word = sentence[i];
+        if (current_span === null || i < current_span.begin) {
+            newSentence.push(word);
+            i += 1;
+        } else if (i >= current_span.end) {
+            newSentence.push('"');
+            in_string = false;
+            current_span_idx += 1;
+            current_span = current_span_idx < spansBySentencePos.length ? spansBySentencePos[current_span_idx] : null;
+        } else if (i === current_span.begin || in_string) {
+            if (i === current_span.begin)
+                newSentence.push('"');
+            newSentence.push(word);
+            in_string = true;
+            i += 1;
+
+        } else {
+            i += 1;
+        }
+    }
+    if (in_string)
+        newSentence.push('"');
+    return newSentence;
+
+}
+
+function createSentence(sentence, spansBySentencePos) {
 
     let current_span_idx = 0;
     let current_span = spansBySentencePos[0];
@@ -157,12 +191,12 @@ function create_newSentence(sentence, spansBySentencePos) {
 
 function sortWithIndeces(toSort, sort_func) {
     let toSort_new = [];
-    for (var i = 0; i < toSort.length; i++) {
+    for (let i = 0; i < toSort.length; i++) {
         toSort_new[i] = [toSort[i], i];
     }
     toSort_new.sort(sort_func);
     let sortIndices = [];
-    for (var j = 0; j < toSort_new.length; j++) {
+    for (let j = 0; j < toSort_new.length; j++) {
         sortIndices.push(toSort_new[j][1]);
         toSort[j] = toSort_new[j][0];
     }
@@ -189,7 +223,7 @@ function getProgSpans(program) {
     }
 
     // sort params based on length so that longer phrases get matched sooner
-    var sort_func = function (a, b)  {
+    let sort_func = function (a, b)  {
         const {begin:abegin, end:aend} = a[0];
         const {begin:bbegin, end:bend} = b[0];
         return (bend - bbegin) - (aend - abegin);
@@ -235,7 +269,7 @@ function findSpanPositions(id, sentence, program) {
     return [spansBySentencePos, spansByProgramPos, sortIndices];
 }
 
-function requoteSentence(id, sentence, program) {
+function requoteSentence(id, sentence, program, mode) {
     sentence = sentence.split(' ');
     program = program.split(' ');
 
@@ -245,7 +279,7 @@ function requoteSentence(id, sentence, program) {
         return [sentence.join(' '), program.join(' ')];
 
     // revert back the order after matching is done
-    var spansByProgramPos_tmp = spansByProgramPos.slice();
+    let spansByProgramPos_tmp = spansByProgramPos.slice();
     for (let i = 0; i < sortIndices.length; i++){
         spansByProgramPos_tmp[i] = spansByProgramPos[sortIndices[i]];
     }
@@ -265,8 +299,15 @@ function requoteSentence(id, sentence, program) {
         return 0;
     });
 
-    let [newSentence, entityRemap] = create_newSentence(sentence, spansBySentencePos);
-    let newProgram = create_newProgram(program, spansByProgramPos, entityRemap);
+    let newSentence, newProgram, entityRemap;
+
+    if (mode === 'replace'){
+        [newSentence, entityRemap] = createSentence(sentence, spansBySentencePos);
+        newProgram = createProgram(program, spansByProgramPos, entityRemap);
+    } else if (mode === 'qpis') {
+        newSentence = qpisSentence(sentence, spansBySentencePos);
+        newProgram = program;
+    }
 
     return [newSentence.join(' '), newProgram.join(' ')];
 }
@@ -289,8 +330,7 @@ module.exports = {
             defaultValue: false
         });
         parser.addArgument('--mode', {
-            nargs: 0,
-            action: 'storeTrue',
+            type: String,
             help: 'Type of requoting (replace with placeholder, or just add quotation marks around params)',
             choices: ['replace', 'qpis'],
             defaultValue: 'replace'
@@ -309,7 +349,7 @@ module.exports = {
                 objectMode: true,
 
                 transform(ex, encoding, callback) {
-                    const [newSentence, newProgram] = requoteSentence(ex.id, ex.preprocessed, ex.target_code);
+                    const [newSentence, newProgram] = requoteSentence(ex.id, ex.preprocessed, ex.target_code, args.mode);
                     ex.preprocessed = newSentence;
                     ex.target_code = newProgram;
                     callback(null, ex);
