@@ -1,0 +1,114 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+// Shared templates and utilities, mostly collecting actual phrases or groups of phrases
+// rather than complex logic
+
+{
+    const assert = require('assert');
+    const ThingTalk = require('thingtalk');
+    const Ast = ThingTalk.Ast;
+    const Type = ThingTalk.Type;
+
+    const C = require('../../ast_manip');
+    const D = require('../../dialogue_utils');
+
+    // import thingpedia info
+    const _tpLoader = require('../../load-thingpedia');
+}
+
+negative_proposal_answer_preamble = {
+    'i need';
+    'i was thinking more of';
+    'i would like';
+    'i would like';
+    'i am looking for';
+    'do you have';
+    'can you find';
+    'is there';
+    'that does not sound great , do you have';
+}
+
+the_base_noun_phrase = {
+    ( 'the' noun:base_noun_phrase
+    | 'that' noun:base_noun_phrase
+    ) => noun;
+}
+
+greeting = {
+    'hello !';
+    'hi !';
+}
+
+generic_negative_proposal_reply = {
+    'i do not like that';
+    'i do not like that , do you have any other option ?';
+}
+
+accept_phrase = {
+    'i like that';
+    'yes i like that';
+    'sure i like that';
+    'sounds good';
+}
+
+tell_me_more_phrase = {
+    'can you tell me more ?';
+    'can you tell me more about it ?';
+    'can you give me more info ?';
+    'give me more info !';
+    'give me more information .';
+    'tell me more .';
+}
+
+learn_more_offer = {
+    'would you like to learn more ?';
+    'would you like to know more about it ?';
+    'would you like to hear more about it ?';
+    'are you interested to hear more about it ?';
+}
+
+ok_thanks_phrase = {
+    'ok thank you that is all i need .';
+    'ok thanks that is all i need .';
+}
+thanks_phrase = {
+    'thank you , this is good for now .';
+    'thank you , that will be all .';
+    'thank you , that will be all for now .';
+    'thank you this is what i need .';
+    'thanks , this is good for now .';
+    'thanks this is what i need .';
+    'thank you for your help !';
+    'thank you for your help , this is what i need .';
+}
+no_thanks_phrase = {
+    'no thanks .';
+    'no , thanks .';
+    'no i am good thanks .';
+    'no need thanks .';
+    'no thank you , this is good for now .';
+    'no thank you this is what i need .';
+    'no thanks , this is good for now .';
+    'no thanks this is what i need .';
+    'no thanks that will be it .';
+    'no thanks this will do .';
+    'no thank you that will be it for now .';
+    'no thanks this will do for now .';
+    'no thank you that will be all .';
+}
+
+
+anything_else_phrase = {
+    'is there anything else i can help you with ?';
+    'can i help you with anything else ?';
+    'do you need anything else ?';
+    'anything else for you today ?';
+}

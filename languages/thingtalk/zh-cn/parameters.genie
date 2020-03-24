@@ -181,80 +181,80 @@ for (let [typestr, type] of _tpLoader.types.all) {
 
 
 placeholder_Number = {
-    '某个 数字' => Ast.Value.Undefined(true);
-    '某个 数值' => Ast.Value.Undefined(true);
+    '某个 数字' => new Ast.Value.Undefined(true);
+    '某个 数值' => new Ast.Value.Undefined(true);
 }
 placeholder_String = {
-    '某个 东西' => Ast.Value.Undefined(true);
+    '某个 东西' => new Ast.Value.Undefined(true);
 }
 placeholder_Currency = {
-    '某个 数值' => Ast.Value.Undefined(true);
-    '某个 额度' => Ast.Value.Undefined(true);
+    '某个 数值' => new Ast.Value.Undefined(true);
+    '某个 额度' => new Ast.Value.Undefined(true);
 }
 placeholder_Time = {
-    '某段 时间' => Ast.Value.Undefined(true);
-    '一段 时间' => Ast.Value.Undefined(true);
+    '某段 时间' => new Ast.Value.Undefined(true);
+    '一段 时间' => new Ast.Value.Undefined(true);
 }
 placeholder_Date = {
-    '某日' => Ast.Value.Undefined(true);
-    '某天' => Ast.Value.Undefined(true);
-    '某个 时间' => Ast.Value.Undefined(true);
+    '某日' => new Ast.Value.Undefined(true);
+    '某天' => new Ast.Value.Undefined(true);
+    '某个 时间' => new Ast.Value.Undefined(true);
 }
 placeholder_Location = {
-    '某个 地方' => Ast.Value.Undefined(true);
-    '某 地' => Ast.Value.Undefined(true);
-    '一个 地方' => Ast.Value.Undefined(true);
+    '某个 地方' => new Ast.Value.Undefined(true);
+    '某 地' => new Ast.Value.Undefined(true);
+    '一个 地方' => new Ast.Value.Undefined(true);
 }
 placeholder_Measure_ms   = {
-    '某段 时间' => Ast.Value.Undefined(true);
+    '某段 时间' => new Ast.Value.Undefined(true);
 }
 placeholder_Measure_byte = {
-    '某个 大小' => Ast.Value.Undefined(true);
+    '某个 大小' => new Ast.Value.Undefined(true);
 }
 placeholder_Measure_kg   = {
-    '某个 重量' => Ast.Value.Undefined(true);
+    '某个 重量' => new Ast.Value.Undefined(true);
 }
 placeholder_Measure_C    = {
-    '某个 温度' => Ast.Value.Undefined(true);
+    '某个 温度' => new Ast.Value.Undefined(true);
 }
 placeholder_Measure_m    = {
-    '某个 长度' => Ast.Value.Undefined(true);
-    '某段 距离' => Ast.Value.Undefined(true);
+    '某个 长度' => new Ast.Value.Undefined(true);
+    '某段 距离' => new Ast.Value.Undefined(true);
 }
 placeholder_Measure_mps  = {
-    '某个 速度' => Ast.Value.Undefined(true);
+    '某个 速度' => new Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__picture = {
-    '某张 图' => Ast.Value.Undefined(true);
-    '某张 图片' => Ast.Value.Undefined(true);
-    '某张 照片' => Ast.Value.Undefined(true);
+    '某张 图' => new Ast.Value.Undefined(true);
+    '某张 图片' => new Ast.Value.Undefined(true);
+    '某张 照片' => new Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__username = {
-    '某人' => Ast.Value.Undefined(true);
-    '某个 人' => Ast.Value.Undefined(true);
+    '某人' => new Ast.Value.Undefined(true);
+    '某个 人' => new Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__phone_number = {
-    '某人' => Ast.Value.Undefined(true);
-    '某个 人' => Ast.Value.Undefined(true);
-    '某个 号码' => Ast.Value.Undefined(true);
-    '某个 电话 号码' => Ast.Value.Undefined(true);
+    '某人' => new Ast.Value.Undefined(true);
+    '某个 人' => new Ast.Value.Undefined(true);
+    '某个 号码' => new Ast.Value.Undefined(true);
+    '某个 电话 号码' => new Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__email_address = {
-    '某人' => Ast.Value.Undefined(true);
-    '某个 人' => Ast.Value.Undefined(true);
-    '某个 电邮 地址' => Ast.Value.Undefined(true);
-    '某个 电子 邮件 地址' => Ast.Value.Undefined(true);
+    '某人' => new Ast.Value.Undefined(true);
+    '某个 人' => new Ast.Value.Undefined(true);
+    '某个 电邮 地址' => new Ast.Value.Undefined(true);
+    '某个 电子 邮件 地址' => new Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__path_name = {
-    '某个 文档' => Ast.Value.Undefined(true);
-    '某个 目录' => Ast.Value.Undefined(true);
-    '某个 文件' => Ast.Value.Undefined(true);
-    '某个 文件夹' => Ast.Value.Undefined(true);
+    '某个 文档' => new Ast.Value.Undefined(true);
+    '某个 目录' => new Ast.Value.Undefined(true);
+    '某个 文件' => new Ast.Value.Undefined(true);
+    '某个 文件夹' => new Ast.Value.Undefined(true);
 }
 placeholder_Entity__tt__url = {
-    '某个 链接' => Ast.Value.Undefined(true);
-    '某个 网站' => Ast.Value.Undefined(true);
-    '某个 网址' => Ast.Value.Undefined(true);
+    '某个 链接' => new Ast.Value.Undefined(true);
+    '某个 网站' => new Ast.Value.Undefined(true);
+    '某个 网址' => new Ast.Value.Undefined(true);
 }
 
 for (let [pname, [typestr, pcanonical]] of _tpLoader.params.in.values()) {

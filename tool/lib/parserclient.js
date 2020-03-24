@@ -61,10 +61,11 @@ class LocalParserClient {
         }
 
         let candidates;
-        if (contextCode === undefined)
-            candidates = await this._predictor.predict(tokens.join(' '), undefined, SEMANTIC_PARSING_TASK);
-        else
+        if (contextCode)
             candidates = await this._predictor.predict(contextCode.join(' '), tokens.join(' '), NLU_TASK);
+        else
+            candidates = await this._predictor.predict(tokens.join(' '), undefined, SEMANTIC_PARSING_TASK);
+
         candidates = candidates.map((cand) => {
             return {
                 code: cand.answer.split(' '),

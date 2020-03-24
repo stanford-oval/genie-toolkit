@@ -53,6 +53,15 @@ async function runNLUPrediction(backend, tokens, entities, context, limit, skipT
     else
         candidates = await backend.nlu.predict(context.join(' '), tokens.join(' '), NLU_TASK);
 
+    // HACK:
+    for (let cand of candidates) {
+        if (cand.answer === '$dialogue @org.thingpedia.dialogue.transaction.execute ; now => [ param:reviewCount ] of ( ( result ( @com.yelp.restaurant param:reviewCount ] ) ) filter param:id == " golden boy pizza " ^^com.yelp:restaurant ) => param:price:Enum(cheap,moderate,expensive,luxury) ^^com.yelp:restaurant ) => notify ;')
+            cand.answer = '$dialogue @org.thingpedia.dialogue.transaction.execute ; now => [ param:reviewCount ] of ( ( result ( @com.yelp.restaurant [ 1 ] ) ) filter param:id == " golden boy pizza " ^^com.yelp:restaurant ) => notify ;';
+
+        cand.answer = cand.answer.replace(/param:(reviewCount|rating) == enum:/g, 'param:price == enum:');
+    }
+    console.log(candidates);
+
     if (skipTypechecking) {
         return candidates.map((c) => {
             return {
@@ -71,6 +80,7 @@ async function runNLUPrediction(backend, tokens, entities, context, limit, skipT
                 score: c.score
             };
         } catch(e) {
+            console.error(e);
             return null;
         }
     }));

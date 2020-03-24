@@ -19,7 +19,7 @@ const Grammar = ThingTalk.Grammar;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 const Units = ThingTalk.Units;
 
-const { clean, pluralize, typeToStringSafe, makeFilter, makeAndFilter } = require('./utils');
+const { clean, typeToStringSafe, makeFilter, makeAndFilter } = require('./utils');
 
 function identity(x) {
     return x;
@@ -113,13 +113,6 @@ class ThingpediaLoader {
 
         this._grammar.declareSymbol('out_param_' + typestr);
         this._grammar.declareSymbol('placeholder_' + typestr);
-        if (type.isArray) {
-            this._grammar.addRule('out_param_Array__Any',  [new this._runtime.NonTerminal('out_param_' + typestr)],
-                this._runtime.simpleCombine(identity));
-        } else {
-            this._grammar.addRule('out_param_Any',  [new this._runtime.NonTerminal('out_param_' + typestr)],
-                this._runtime.simpleCombine(identity));
-        }
 
         if (!this._grammar.hasSymbol('constant_' + typestr)) {
             if (!type.isEnum && !type.isEntity && !type.isArray)
@@ -136,15 +129,30 @@ class ThingpediaLoader {
                         this._runtime.simpleCombine(() => value));
                 }
             } else if (type.isEntity) {
-                if (!this._nonConstantTypes.has(typestr) && !this._idTypes.has(typestr))
-                    this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + type.type, type);
+                if (!this._nonConstantTypes.has(typestr) && !this._idTypes.has(typestr)) {
+                    if (this._options.flags.dialogues) {
+                        for (let i = 0; i < 20; i++) {
+                            const string = `str:ENTITY_${type.type}::${i}:`;
+                            const value = new Ast.Value.Entity(string, type.type, string);
+                            this._grammar.addRule('constant_' + typestr, ['GENERIC_ENTITY_' + type.type + '_' + i],
+                                this._runtime.simpleCombine(() => value));
+                        }
+                    } else {
+                        this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + type.type, type);
+                    }
+                }
             }
         }
         return typestr;
     }
 
-    _addOutParam(functionName, pname, typestr, canonical) {
+    _addOutParam(functionName, pname, type, typestr, canonical) {
         this._grammar.addRule('out_param_' + typestr, [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+
+        if (type.isArray)
+            this._grammar.addRule('out_param_Array__Any', [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+        else
+            this._grammar.addRule('out_param_Any', [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
     }
 
     _recordInputParam(functionName, arg) {
@@ -162,6 +170,15 @@ class ThingpediaLoader {
         // except FIXME that probably won't work? we need to create a record object...
         if (ptype.isCompound)
             return;
+
+        if (arg.metadata.prompt) {
+            let prompt = arg.metadata.prompt;
+            if (typeof prompt === 'string')
+                prompt = [prompt];
+
+            for (let form of prompt)
+                this._grammar.addRule('thingpedia_slot_fill_question', [form], this._runtime.simpleCombine(() => pname));
+        }
 
         // FIXME boolean types are not handled, they have no way to specify the true/false phrase
         if (ptype.isBoolean)
@@ -212,7 +229,7 @@ class ThingpediaLoader {
 
             for (let form of annotvalue) {
                 if (cat === 'base') {
-                    this._grammar.addRule('input_param', [canonical], this._runtime.simpleCombine(() => pname));
+                    this._grammar.addRule('input_param', [form], this._runtime.simpleCombine(() => pname));
                 } else {
                     let [before, after] = form.split('#');
                     before = (before || '').trim();
@@ -243,9 +260,19 @@ class ThingpediaLoader {
         this.params.out.add(key);
 
         const typestr = this._recordType(ptype);
+        const pvar = new Ast.Value.VarRef(pname);
 
         if (ptype.isCompound)
             return;
+
+        if (arg.metadata.prompt) {
+            let prompt = arg.metadata.prompt;
+            if (typeof prompt === 'string')
+                prompt = [prompt];
+
+            for (let form of prompt)
+                this._grammar.addRule('thingpedia_search_question', [form], this._runtime.simpleCombine(() => pvar));
+        }
 
         if (ptype.isBoolean)
             return;
@@ -258,7 +285,6 @@ class ThingpediaLoader {
             }
         }
 
-        const pvar = new Ast.Value.VarRef(pname);
         if (arg.metadata.counted_object) {
             let forms = Array.isArray(arg.metadata.counted_object) ?
                 arg.metadata.counted_object : [arg.metadata.counted_object];
@@ -314,7 +340,7 @@ class ThingpediaLoader {
 
             for (let form of annotvalue) {
                 if (cat === 'base') {
-                    this._addOutParam(functionName, pname, typestr, form.trim());
+                    this._addOutParam(functionName, pname, ptype, typestr, form.trim());
                     if (!canonical.npp) {
                         const expansion = [form, new this._runtime.NonTerminal('constant_' + vtypestr)];
                         this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
@@ -490,8 +516,8 @@ class ThingpediaLoader {
             canonical = [canonical];
 
         for (let form of canonical) {
-            const pluralized = pluralize(form);
-            if (pluralized !== form)
+            const pluralized = this._langPack.pluralize(form);
+            if (pluralized !== undefined && pluralized !== form)
                 canonical.push(pluralized);
         }
 
@@ -533,6 +559,16 @@ class ThingpediaLoader {
         const schemaClone = table.schema.clone();
         schemaClone.is_list = false;
         schemaClone.no_filter = true;
+        if (this._options.flags.dialogues) {
+            for (let i = 0; i < 5; i ++) {
+                this._grammar.addRule('constant_name', ['GENERIC_ENTITY_' + idType.type + '_' + i], this._runtime.simpleCombine(() => {
+                    const value = new Ast.Value.Entity('str:ENTITY_' + idType.type + '::' + i + ':', idType.type, null);
+                    /*const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', value);
+                    return [value, new Ast.Table.Filter(null, table, idfilter, schemaClone)];*/
+                    return value;
+                }));
+            }
+        }
 
         const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', new Ast.Value.VarRef('p_id'));
         await this._loadTemplate(new Ast.Example(

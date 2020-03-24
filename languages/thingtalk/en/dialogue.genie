@@ -1,0 +1,290 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+    const assert = require('assert');
+    const ThingTalk = require('thingtalk');
+    const Ast = ThingTalk.Ast;
+    const Type = ThingTalk.Type;
+
+    const C = require('../ast_manip');
+    const D = require('../dialogue_utils');
+
+    // import thingpedia info
+    const _tpLoader = require('../load-thingpedia');
+}
+
+import '../common';
+import './constants';
+import './timers';
+import './filters';
+import './parameters';
+import './aggregation';
+import './computation';
+import './who_questions';
+import './stream_tables';
+import './commands';
+import './dlg/shared';
+import './dlg/coref-actions';
+import './dlg/coref-questions';
+import './dlg/list-proposal';
+import './dlg/recommendation';
+import './dlg/refinement';
+import './dlg/results';
+import './dlg/slot-fill';
+
+context ctx_init,
+    ctx_greet,
+    ctx_cancel,
+    ctx_with_result,
+    ctx_with_action,
+    ctx_with_result_and_action,
+    ctx_with_result_question,
+    ctx_with_result_noquestion,
+    ctx_without_projection,
+    ctx_search_command,
+    ctx_aggregation_question,
+    ctx_distance_argminmax_question,
+    ctx_argminmax_question,
+    ctx_one_result_question,
+    ctx_empty_direct_question,
+    ctx_empty_search_command,
+    ctx_large_search_command,
+    ctx_single_result_search_command,
+    ctx_complete_search_command,
+    ctx_completed_action_success,
+    ctx_completed_action_error,
+    ctx_confirm_action,
+    ctx_incomplete_action,
+    ctx_learn_more;
+
+context function (state) {
+    if (state === null)
+        return [['ctx_init'], D.INITIAL_CONTEXT_INFO];
+    assert(state instanceof Ast.DialogueState, `expected a dialogue state Ast node`);
+    if (state.policy !== D.POLICY_NAME)
+        return null;
+    const info = D.getContextInfo(state);
+
+    // no continuations possible after explicit "end" (which means the user said
+    // "no thanks" after the agent asked "is there anything else I can do for you")
+    if (state.dialogueAct === 'end')
+        return null;
+
+    switch (state.dialogueAct) {
+    case 'greet':
+        assert(state.history.length === 0, `expected empty history for greet`);
+        return [['ctx_greet'], info];
+
+    case 'cancel':
+        return [['ctx_cancel'], info];
+
+    case 'execute': {
+        const tags = [];
+
+        if (info.nextInfo !== null) {
+            // we have an action we want to execute, or a query that needs confirmation
+            if (info.nextInfo.chainParameter === null || info.nextInfo.chainParameterFilled) {
+                // we don't need to fill any parameter from the current query
+
+                if (info.nextInfo.isComplete) {
+                    return [['ctx_confirm_action'], info];
+                } else {
+                    return [['ctx_incomplete_action'], info];
+                }
+            }
+
+            tags.push('ctx_with_action');
+
+            if (!info.nextInfo.isComplete)
+                tags.push('ctx_incomplete_action');
+        }
+
+        // we must have a result
+        assert(info.resultInfo, `expected result info`);
+        if (!info.resultInfo.isTable)
+            return [['ctx_completed_action_success'], info];
+
+        if (info.resultInfo.hasEmptyResult) {
+            // note: aggregation cannot be empty (it would be zero)
+            tags.push('ctx_empty_search_command');
+            return [tags, info];
+        }
+
+        tags.push('ctx_with_result');
+        if (D.isUserAskingResultQuestion(info)) {
+            tags.push('ctx_with_result_question');
+        } else {
+            tags.push('ctx_with_result_noquestion');
+            if (info.nextInfo)
+                tags.push('ctx_with_result_and_action');
+
+            if (info.resultInfo.projection === null)
+                tags.push('ctx_without_projection');
+        }
+
+        if (info.resultInfo.isQuestion) {
+            if (info.resultInfo.isAggregation) {
+                // "how many restaurants nearby have more than 500 reviews?"
+                tags.push('ctx_aggregation_question');
+            } else if (info.resultInfo.argMinMaxField !== null) {
+                const [field, direction] = info.resultInfo.argMinMaxField;
+
+                /* FIXME
+                // for now, we treat these as single result questions
+                if (field === 'distance') // "find the nearest starbucks"
+                    tags.push('ctx_distance_argminmax_question');
+                else // "what is the highest rated restaurant nearby?"
+                    tags.push('ctx_argminmax_question');
+                */
+                tags.push('ctx_single_result_search_command');
+            } else if (info.resultInfo.hasSingleResult) {
+                // "what is the rating of Terun?"
+                // FIXME if we want to answer differently, we need to change this one
+                tags.push('ctx_single_result_search_command');
+            } else {
+                // "what's the food and price range of restaurants nearby?"
+                // we treat these the same as "find restaurants nearby", but we make sure
+                // that the necessary fields are computed
+                tags.push('ctx_search_command');
+
+                // we can recommend/show the result right away, even if many match
+                tags.push('ctx_complete_search_command');
+            }
+        } else {
+            if (info.resultInfo.hasSingleResult || info.resultInfoQuestion) // we can recommend
+                tags.push('ctx_single_result_search_command')
+            else // we can refine
+                tags.push('ctx_search_command');
+
+            if (!info.resultInfo.hasLargeResult) // we can /show the result
+                tags.push('ctx_complete_search_command');
+        }
+
+        return [tags, info];
+    }
+
+    case 'learn_more':
+        assert(info.results);
+        return [['ctx_learn_more'], info];
+
+    default:
+        throw new Error(`Unexpected user dialogue act ${info.dialogueAct}`);
+    }
+}
+
+learn_more_search_question_pair = {
+    ( 'what would you like to' ('know' | 'hear') '?' '<sep>' questions:simple_user_search_question
+    | 'what would you like to' ('know' | 'hear') '?' '<sep>' questions:boolean_user_search_question
+    ) => {
+        return [null, null, questions];
+    };
+}
+
+initial_command = {
+    action_command [weight=3];
+    search_command;
+    complete_question [weight=0.5];
+    projection_question [weight=0.1];
+
+    ( stmt:search_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+    | stmt:action_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+    ) => D.addDontCare(stmt, dontcare);
+
+    // TODO
+    /*
+    ?remote_commands remote_command [weight=0.1];
+    ?policies policy_command [weight=0.2];
+    */
+
+    ?timer stmt:timer_rule [weight=0.2] => stmt;
+    !nostream {
+        monitor_command [weight=0.1];
+        when_command [weight=0.1];
+    }
+
+    prog:thingpedia_program if complete => {
+        if (prog.rules.length !== 1)
+            return null;
+        return prog.rules[0];
+    };
+
+}
+
+$root = {
+    /*ctx:ctx_init greeting [weight=0.01] =>
+        D.checkStateIsValid(ctx, null, new Ast.DialogueState(null, D.POLICY_NAME, 'greet', null, []));
+    */
+
+    ( ctx:ctx_init stmt:initial_command [weight=0.5]
+    | ctx:ctx_init greeting stmt:initial_command [weight=0.5]
+    ) => {
+        const userState = D.initialRequest(stmt);
+        if (userState === null)
+            return null;
+        return D.checkStateIsValid(ctx, null, userState);
+    };
+
+    ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?' '<sep>' stmt:initial_command => {
+        const userState = D.initialRequest(stmt);
+        if (userState === null)
+            return null;
+        const sysState = D.makeSimpleState(ctx, 'sys_greet', null);
+        return D.checkStateIsValid(ctx, sysState, userState);
+    };
+
+    ( ctx:ctx_cancel anything_else_phrase '<sep>' no_thanks_phrase ('goodbye !' | '') [weight=0.01]
+    | ctx:ctx_cancel anything_else_phrase '<sep>' thanks_phrase ('goodbye !' | '') [weight=0.01]
+    ) => {
+        const userState = D.makeSimpleState(ctx, 'end', null);
+        const sysState = D.makeSimpleState(ctx, 'sys_anything_else', null);
+        return D.checkStateIsValid(ctx, sysState, userState);
+    };
+
+    // empty search error
+    ctx:ctx_empty_search_command pair:empty_search_change_pair
+        => D.emptySearchChangePair(ctx, pair);
+
+    // query refinement (through proposal or slot fill)
+    ctx:ctx_search_command qa:precise_search_question_answer_pair [weight=5] =>
+        D.preciseSearchQuestionAnswer(ctx, qa);
+    ctx:ctx_search_command qa:imprecise_search_question_answer_pair [weight=5] =>
+        D.impreciseSearchQuestionAnswer(ctx, qa);
+
+    ctx:ctx_incomplete_action qa:precise_slot_fill_question_answer_pair
+        => D.preciseSlotFillQuestionAnswer(ctx, qa);
+    ctx:ctx_incomplete_action qa:imprecise_slot_fill_question_answer_pair
+        => D.impreciseSlotFillQuestionAnswer(ctx, qa);
+
+    ( ctx:ctx_search_command pair:negative_proposal_reply_pair [weight=0.5]
+    | ctx:ctx_search_command pair:positive_proposal_reply_pair [weight=0.5]
+    ) =>
+        D.proposalReplyPair(ctx, pair);
+
+    // action recommendation (through one or a list)
+
+    ctx:ctx_complete_search_command pair:negative_recommendation_reply_pair [weight=0.3]
+        => D.negativeRecommendationReplyPair(ctx, pair);
+    ctx:ctx_complete_search_command pair:positive_recommendation_reply_pair [weight=0.7]
+        => D.positiveRecommendationReplyPair(ctx, pair);
+    ctx:ctx_complete_search_command pair:recommendation_search_question_pair [weight=1]
+        => D.recommendationSearchQuestionPair(ctx, pair);
+    ctx:ctx_complete_search_command pair:recommendation_cancel_pair [weight=1]
+        => D.recommendationCancelPair(ctx, pair);
+    ctx:ctx_learn_more pair:learn_more_search_question_pair [weight=1]
+        => D.recommendationSearchQuestionPair(ctx, pair);
+
+    ctx:ctx_complete_search_command pair:negative_list_proposal_reply_pair [weight=10 * 0.3]
+        => D.negativeListProposalReplyPair(ctx, pair);
+    ctx:ctx_complete_search_command pair:positive_list_proposal_reply_pair [weight=10 * 0.7]
+        => D.positiveListProposalReplyPair(ctx, pair);
+    ctx:ctx_complete_search_command pair:list_proposal_search_question_pair [weight=10]
+        => D.listProposalSearchQuestionPair(ctx, pair);
+}

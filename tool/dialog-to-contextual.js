@@ -63,9 +63,7 @@ class DialogueToTurnStream extends Stream.Transform {
         const [contextCode, contextEntities] = this._target.serializeNormalized(agentContext);
 
         const agentTarget = await this._target.parse(turn.agent_target, this._options);
-        // NOTE: contextEntities is modified in place with any new entity that are only in the prediction
-        // (the prediction will be concatenated to the context to pass to the neural network)
-        const agentCode = await this._target.computeAgentPrediction(context, agentTarget, contextEntities);
+        const agentCode = await this._target.serializePrediction(agentTarget, '', contextEntities, 'agent');
 
         const { tokens, } = await this._preprocess(turn.agent, contextEntities);
 
@@ -80,9 +78,12 @@ class DialogueToTurnStream extends Stream.Transform {
     async _emitUserTurn(i, turn, dlg) {
         let context, contextCode, contextEntities;
         if (i > 0) {
-            // NOTE: the agent target is context for the user utterance, not the context
-            // (which is the output of executing the previous program, before the agent speaks)
-            context = await this._target.parse(turn.agent_target, this._options);
+            context = await this._target.parse(turn.context, this._options);
+            // apply the agent prediction to the context to get the state of the dialogue before
+            // the user speaks
+            const agentPrediction = await this._target.parse(turn.agent_target, this._options);
+            context = this._target.computeNewState(context, agentPrediction);
+
             const userContext = this._target.prepareContextForPrediction(context, 'user');
             [contextCode, contextEntities] = this._target.serializeNormalized(userContext);
         } else {
@@ -93,7 +94,7 @@ class DialogueToTurnStream extends Stream.Transform {
 
         const { tokens, entities } = await this._preprocess(turn.user, contextEntities);
         const userTarget = await this._target.parse(turn.user_target, this._options);
-        const code = await this._target.computeUserPrediction(context, userTarget, tokens, entities);
+        const code = await this._target.serializePrediction(userTarget, tokens, entities, 'user');
 
         this.push({
             id: this._flags + '' + dlg.id + '/' + i,

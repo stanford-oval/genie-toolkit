@@ -26,6 +26,9 @@ thingpedia_action = {}
 thingpedia_program = {}
 thingpedia_who_question = {}
 
+thingpedia_search_question = {}
+thingpedia_slot_fill_question = {}
+
 out_param_Numeric = {
     out_param_Number;
     out_param_Currency;
@@ -109,7 +112,7 @@ npi_input_param = {}
 // pvp: Passive-Verb Phrase parameter
 // e.g.: "called <nickname>", "born on <date>"
 pvp_filter = {}
-npv_input_param = {}
+pvp_input_param = {}
 
 // filters & input parameters on prep parameters
 // prep: preposition parameter
@@ -154,23 +157,23 @@ projection_Entity__tt__email_address = {}
 
 for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
     thingpedia_stream = {
-        s:thingpedia_stream v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(s, pname, v);
+        s:thingpedia_stream v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(s, pname, v);
     }
 
     thingpedia_query = {
-        q:thingpedia_query v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(q, pname, v);
+        q:thingpedia_query v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(q, pname, v);
     }
 
     thingpedia_get_command = {
-        q:thingpedia_get_command v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(q, pname, v);
+        q:thingpedia_get_command v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(q, pname, v);
     }
 
     thingpedia_action = {
-        a:thingpedia_action v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(a, pname, v);
+        a:thingpedia_action v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(a, pname, v);
     }
 
     thingpedia_program = {
-        p:thingpedia_program v:$('constant_' + typestr) [-> pname { isConstant: true, allowEmptyPictureURL: true }] => C.replacePlaceholderWithConstant(p, pname, v);
+        p:thingpedia_program v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(p, pname, v);
     }
 
     // don't parameter pass booleans or enums, as that rarely makes sense

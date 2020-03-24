@@ -20,6 +20,8 @@ const Type = ThingTalk.Type;
 const C = require('../ast_manip');
 
 const _tpLoader = require('../load-thingpedia');
+
+const HERE = new Ast.Value.Location(new Ast.Location.Relative('current_location'));
 }
 
 // generic filters (npp)
@@ -38,6 +40,8 @@ get_predicate_filter = {
 }
 
 if_filter = {
+    get_predicate_filter;
+
     'the' p:out_param_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any        => {
         if (x.getType().isString)
             return C.makeFilter(p, '=~', x);
@@ -151,7 +155,7 @@ either_filter = {
         let vtype = v1.getType();
         if (vtype.isBoolean) // "is equal to true or false" does not make sense
             return null;
-        return C.makeFilter(param, 'in_array', Ast.Value.Array([v1, v2]));
+        return C.makeFilter(param, 'in_array', new Ast.Value.Array([v1, v2]));
     };
     'the' param:out_param_Any 'is' ('not' | 'neither') v1:constant_Any 'nor' v2:constant_Any => {
         // param is a Value.VarRef
@@ -166,7 +170,7 @@ either_filter = {
         let vtype = v1.getType();
         if (vtype.isBoolean) // "is neither true nor false" does not make sense
             return null;
-        return C.makeFilter(param, 'in_array', Ast.Value.Array([v1, v2]), true);
+        return C.makeFilter(param, 'in_array', new Ast.Value.Array([v1, v2]), true);
     };
 }
 
@@ -303,8 +307,8 @@ with_filter = {
 
     !turking {
         ?range_filters f:range_with_filter => f;
-        'no' param:out_param_Number => C.makeFilter(param, '==', Ast.Value.Number(0));
-        'zero' param:out_param_Number => C.makeFilter(param, '==', Ast.Value.Number(0));
+        'no' param:out_param_Number => C.makeFilter(param, '==', new Ast.Value.Number(0));
+        'zero' param:out_param_Number => C.makeFilter(param, '==', new Ast.Value.Number(0));
     }
 
     // array
@@ -325,11 +329,11 @@ with_filter = {
     !turking p:out_param_String ('containing' | 'including') x:constant_String ('but not'| 'without' | 'but no') y:constant_String => C.makeButFilter(p, 'contains', [x, y]);
 
     // aggregate filters - count
-    !turking ('no' | 'zero') p:out_param_Array__Any => C.makeAggregateFilter(p, 'count', '*', '==', Ast.Value.Number(0));
+    !turking ('no' | 'zero') p:out_param_Array__Any => C.makeAggregateFilter(p, 'count', '*', '==', new Ast.Value.Number(0));
     x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter(p, 'count', '*', '==', x);
 
-    !turking ('no' | 'zero') p:out_param_ArrayCount => C.makeFilter(p, '==', Ast.Value.Number(0));
-    x:constant_Number p:out_param_ArrayCount => C.makeFilter(p, '==', Ast.Value.Number(0));
+    !turking ('no' | 'zero') p:out_param_ArrayCount => C.makeFilter(p, '==', new Ast.Value.Number(0));
+    x:constant_Number p:out_param_ArrayCount => C.makeFilter(p, '==', new Ast.Value.Number(0));
 
     !turking ('no' | 'zero') p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
         const filter =  C.makeFilter(f, '<=', x);
@@ -466,8 +470,8 @@ both_prefix = {
 }
 
 preposition_filter = {
-    ('here' | 'around here' | 'near here') => C.makeFilter(new Ast.Value.VarRef('geo'), '==', Ast.Value.Location(Ast.Location.Relative('current_location')));
-    ('nearby' | 'around me' | 'in this area') => C.makeFilter(new Ast.Value.VarRef('geo'), '==', Ast.Value.Location(Ast.Location.Relative('current_location')));
+    ('here' | 'around here' | 'near here') => C.makeFilter(new Ast.Value.VarRef('geo'), '==', HERE);
+    ('nearby' | 'around me' | 'in this area') => C.makeFilter(new Ast.Value.VarRef('geo'), '==', HERE);
     ('in' | 'around' | 'near') x:constant_Location=> C.makeFilter(new Ast.Value.VarRef('geo'), '==', x);
 }
 
