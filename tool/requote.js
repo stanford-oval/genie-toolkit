@@ -98,8 +98,6 @@ function createProgram(program, spansByProgramPos, entityRemap) {
         if (token === 'location:' || token.startsWith('^^')) {
             continue;
         } else if (ENTITY_MATCH_REGEX.test(token)) {
-            if (!entityRemap[token])
-                console.error(id, token, program, sentence);
             assert(entityRemap[token]);
             newProgram.push(entityRemap[token]);
         } else {
@@ -162,7 +160,7 @@ function createSentence(sentence, spansBySentencePos) {
     while (i < sentence.length) {
         let word = sentence[i];
         if (current_span === null || i < current_span.begin) {
-            const entityMatch = ENTITY_MATCH_REGEX.exec(word)
+            const entityMatch = ENTITY_MATCH_REGEX.exec(word);
             if (entityMatch !== null) {
                 // input sentence contains entities
                 const newEntity = entityMatch[1] + '_' + getEntityNumber(entityMatch[1]);
@@ -191,9 +189,9 @@ function createSentence(sentence, spansBySentencePos) {
 
 function sortWithIndeces(toSort, sort_func) {
     let toSort_new = [];
-    for (let i = 0; i < toSort.length; i++) {
+    for (let i = 0; i < toSort.length; i++) 
         toSort_new[i] = [toSort[i], i];
-    }
+    
     toSort_new.sort(sort_func);
     let sortIndices = [];
     for (let j = 0; j < toSort_new.length; j++) {
@@ -216,7 +214,7 @@ function getProgSpans(program) {
                 begin_index = i + 1;
             } else {
                 end_index = i;
-                let prog_span = {begin: begin_index, end: end_index}
+                let prog_span = {begin: begin_index, end: end_index};
                 all_prog_spans.push(prog_span);
             }
         }
@@ -273,16 +271,16 @@ function requoteSentence(id, sentence, program, mode) {
     sentence = sentence.split(' ');
     program = program.split(' ');
 
-    let [spansBySentencePos, spansByProgramPos_sorted, sortIndices] = findSpanPositions(id, sentence, program)
+    let [spansBySentencePos, spansByProgramPos_sorted, sortIndices] = findSpanPositions(id, sentence, program);
 
     if (spansBySentencePos.length === 0)
         return [sentence.join(' '), program.join(' ')];
 
     // revert back the order after matching is done
     let spansByProgramPos = [];
-    for (let i = 0; i < sortIndices.length; i++){
+    for (let i = 0; i < sortIndices.length; i++)
         spansByProgramPos[sortIndices[i]] = spansByProgramPos_sorted[i];
-    }
+    
 
     spansBySentencePos.sort((a, b) => {
         const {begin:abegin, end:aend} = a;
