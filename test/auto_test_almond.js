@@ -121,6 +121,34 @@ function createApp(program) {
     } else if (code.indexOf('@org.thingpedia.builtin.test') >= 0) {
         results = getTestData(25, 10).map((r) => ({ isNotification: true, icon: 'org.thingpedia.builtin.test',
             outputType: 'org.thingpedia.builtin.test:get_data', outputValue: r }));
+    } else if (code === `{
+  now => (@uk.ac.cam.multiwoz.Restaurant(id="uk.ac.cam.multiwoz.Restaurant-58").Restaurant()), food == "chinese" => notify;
+}`) {
+        results = [{ isNotification: true, icon: 'uk.ac.cam.multiwoz.Restaurant', outputType: 'uk.ac.cam.multiwoz.Restaurant:Restaurant', outputValue: {
+            address: "82 Cherry Hinton Road Cherry Hinton",
+            area: "south",
+            food: "chinese",
+            id: new Tp.Value.Entity('19192', "the good luck chinese food takeaway"),
+            phone: "01223244149",
+            postcode: "cb17ag",
+            price_range: "expensive"
+        } },
+        { isNotification: true, icon: 'uk.ac.cam.multiwoz.Restaurant', outputType: 'uk.ac.cam.multiwoz.Restaurant:Restaurant', outputValue: {
+            address: "529 Newmarket Road Fen Ditton",
+            area: "east",
+            food: "chinese",
+            id: new Tp.Value.Entity('19273', "yu garden"),
+            phone: "01223248882",
+            postcode: "cb58pa",
+            price_range: "expensive"
+        } }];
+    } else if (code === `{
+  now => [price_range] of ((@uk.ac.cam.multiwoz.Restaurant(id="uk.ac.cam.multiwoz.Restaurant-59").Restaurant()), (food == "chinese" && id == "19273"^^uk.ac.cam.multiwoz.Restaurant:Restaurant("yu garden"))) => notify;
+}`) {
+        results = [{ isNotification: true, icon: 'uk.ac.cam.multiwoz.Restaurant', outputType: 'uk.ac.cam.multiwoz.Restaurant:Restaurant', outputValue: {
+            id: new Tp.Value.Entity('19273', "yu garden"),
+            price_range: "expensive"
+        } }];
     }
 
     return Promise.resolve(new MockApp('uuid-' + appid++, results));
@@ -3882,6 +3910,47 @@ null],
   now => @thermostat(id="thermostat-56").set_target_temperature(value=70F);
 }`
     ],
+
+    [
+    // "I'm looking for an Italian restaurant"
+    { program: '$dialogue @org.thingpedia.dialogue.transaction.execute; now => @uk.ac.cam.multiwoz.Restaurant.Restaurant(), food == "italian" => notify;' },
+`>> There are no restaurants that have “italian” food. How about a different food?
+>> context = $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search_question param:food ; now => ( @uk.ac.cam.multiwoz.Restaurant.Restaurant ) filter param:food == QUOTED_STRING_0 => notify #[ results = [ ] ] ; // {"QUOTED_STRING_0":"italian"}
+>> ask special command
+`,
+    // Ok how about something Chinese?
+    { program: '$dialogue @org.thingpedia.dialogue.transaction.execute; now => @uk.ac.cam.multiwoz.Restaurant.Restaurant(), food == "chinese" => notify;' },
+`>> Here is what I found.
+>> the good luck chinese food takeaway. Located in the south part of the city. Serves chinese food.
+>> yu garden. Located in the east part of the city. Serves chinese food.
+>> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two ; now => ( @uk.ac.cam.multiwoz.Restaurant.Restaurant ) filter param:food == QUOTED_STRING_0 => notify #[ results = [ { param:address = QUOTED_STRING_1 , param:area = enum:south , param:food = QUOTED_STRING_0 , param:id = GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 , param:phone = PHONE_NUMBER_0 , param:postcode = QUOTED_STRING_2 , param:price_range = enum:expensive } ] ] #[ count = 2 ] ; // {"QUOTED_STRING_0":"chinese","QUOTED_STRING_1":"82 Cherry Hinton Road Cherry Hinton","GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0":{"value":"19192","display":"the good luck chinese food takeaway"},"PHONE_NUMBER_0":"01223244149","QUOTED_STRING_2":"cb17ag"}
+>> ask special command
+`,
+    // what's the price range of yu garden?
+    { program: `$dialogue @org.thingpedia.dialogue.transaction.execute;
+                now => [price_range] of @uk.ac.cam.multiwoz.Restaurant.Restaurant(), food == "chinese" && id == null^^uk.ac.cam.multiwoz.Restaurant:Restaurant("yu garden") => notify;`
+    },
+`>> The price range of yu garden is expensive.
+>> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => [ param:price_range ] of ( ( @uk.ac.cam.multiwoz.Restaurant.Restaurant ) filter param:food == QUOTED_STRING_0 and param:id == GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 , param:price_range = enum:expensive } ] ] ; // {"QUOTED_STRING_0":"chinese","GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0":{"value":"19273","display":"yu garden"}}
+>> ask special command
+`,
+    // thanks, that is all I need
+    { program: `$dialogue @org.thingpedia.dialogue.transaction.cancel;`
+    },
+`>> Is there anything else I can help you with?
+>> context = $dialogue @org.thingpedia.dialogue.transaction.sys_anything_else ; now => [ param:price_range ] of ( ( @uk.ac.cam.multiwoz.Restaurant.Restaurant ) filter param:food == QUOTED_STRING_0 and param:id == GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 , param:price_range = enum:expensive } ] ] ; // {"QUOTED_STRING_0":"chinese","GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0":{"value":"19273","display":"yu garden"}}
+>> ask special command
+`,
+    // no thanks, goodbye!
+    { program: `$dialogue @org.thingpedia.dialogue.transaction.end;`
+    },
+`>> Alright, good bye!
+>> context = $dialogue @org.thingpedia.dialogue.transaction.sys_end ; now => [ param:price_range ] of ( ( @uk.ac.cam.multiwoz.Restaurant.Restaurant ) filter param:food == QUOTED_STRING_0 and param:id == GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 , param:price_range = enum:expensive } ] ] ; // {"QUOTED_STRING_0":"chinese","GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0":{"value":"19273","display":"yu garden"}}
+>> ask special null
+`,
+    `{
+  now => [price_range] of ((@uk.ac.cam.multiwoz.Restaurant(id="uk.ac.cam.multiwoz.Restaurant-59").Restaurant()), (food == "chinese" && id == "19273"^^uk.ac.cam.multiwoz.Restaurant:Restaurant("yu garden"))) => notify;
+}`]
 ];
 
 function handleCommand(almond, input) {

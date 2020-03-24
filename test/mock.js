@@ -498,6 +498,10 @@ module.exports.createMockEngine = function(thingpediaUrl) {
         discovery: new MockDiscoveryClient(),
         messaging: new MockMessagingManager(),
         remote: new MockRemote(schemas),
-        permissions: new MockPermissionManager(schemas)
+        permissions: new MockPermissionManager(schemas),
+
+        createApp(program, options) {
+            return this.apps.createApp(program, options);
+        }
     };
 };
