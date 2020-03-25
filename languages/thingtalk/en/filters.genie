@@ -151,7 +151,7 @@ either_filter = {
         let vtype = v1.getType();
         if (vtype.isBoolean) // "is equal to true or false" does not make sense
             return null;
-        return C.makeFilter(param, 'in_array', Ast.Value.Array([v1, v2]));
+        return C.makeFilter(param, 'in_array', new Ast.Value.Array([v1, v2]));
     };
     'the' param:out_param_Any 'is' ('not' | 'neither') v1:constant_Any 'nor' v2:constant_Any => {
         // param is a Value.VarRef
@@ -166,7 +166,7 @@ either_filter = {
         let vtype = v1.getType();
         if (vtype.isBoolean) // "is neither true nor false" does not make sense
             return null;
-        return C.makeFilter(param, 'in_array', Ast.Value.Array([v1, v2]), true);
+        return C.makeFilter(param, 'in_array', new Ast.Value.Array([v1, v2]), true);
     };
 }
 
