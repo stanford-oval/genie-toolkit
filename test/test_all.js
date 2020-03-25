@@ -19,5 +19,4 @@ seq([
     ('./auto_test_almond'),
     ('./test_helpers'),
     ('./test_entities'),
-    ('./test_dialogue_state_utils')
 ]);
