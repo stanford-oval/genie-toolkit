@@ -303,8 +303,8 @@ with_filter = {
 
     !turking {
         ?range_filters f:range_with_filter => f;
-        'no' param:out_param_Number => C.makeFilter(param, '==', Ast.Value.Number(0));
-        'zero' param:out_param_Number => C.makeFilter(param, '==', Ast.Value.Number(0));
+        'no' param:out_param_Number => C.makeFilter(param, '==', new Ast.Value.Number(0));
+        'zero' param:out_param_Number => C.makeFilter(param, '==', new Ast.Value.Number(0));
     }
 
     // array
@@ -325,11 +325,11 @@ with_filter = {
     !turking p:out_param_String ('containing' | 'including') x:constant_String ('but not'| 'without' | 'but no') y:constant_String => C.makeButFilter(p, 'contains', [x, y]);
 
     // aggregate filters - count
-    !turking ('no' | 'zero') p:out_param_Array__Any => C.makeAggregateFilter(p, 'count', '*', '==', Ast.Value.Number(0));
+    !turking ('no' | 'zero') p:out_param_Array__Any => C.makeAggregateFilter(p, 'count', '*', '==', new Ast.Value.Number(0));
     x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter(p, 'count', '*', '==', x);
 
-    !turking ('no' | 'zero') p:out_param_ArrayCount => C.makeFilter(p, '==', Ast.Value.Number(0));
-    x:constant_Number p:out_param_ArrayCount => C.makeFilter(p, '==', Ast.Value.Number(0));
+    !turking ('no' | 'zero') p:out_param_ArrayCount => C.makeFilter(p, '==', new Ast.Value.Number(0));
+    x:constant_Number p:out_param_ArrayCount => C.makeFilter(p, '==', new Ast.Value.Number(0));
 
     !turking ('no' | 'zero') p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
         const filter =  C.makeFilter(f, '<=', x);
