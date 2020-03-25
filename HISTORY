@@ -1,3 +1,11 @@
+1.8.0-alpha.2
+=============
+* The dialogue loop was refactored to add support for the new kind
+  of multi-turn dialogues introduced in ThingTalk this cycle. This support
+  is still experimental [#141].
+* Misc bug fixes [#139].
+* Updated dependencies [#140].
+
 1.8.0-alpha.1
 =============
 
