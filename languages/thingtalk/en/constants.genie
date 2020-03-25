@@ -33,20 +33,20 @@ constant_Number = {
 constant_date_point = {
     'now'                 => C.makeDate(null, '+', null);
     'today'               => C.makeDate(new Ast.DateEdge('start_of', 'day'), '+', null);
-    'yesterday'           => C.makeDate(new Ast.DateEdge('start_of', 'day'), '-', Ast.Value.Measure(1, 'day'));
+    'yesterday'           => C.makeDate(new Ast.DateEdge('start_of', 'day'), '-', new Ast.Value.Measure(1, 'day'));
     'this week'           => C.makeDate(new Ast.DateEdge('start_of', 'week'), '+', null);
 
     !turking {
     'tomorrow'            => C.makeDate(new Ast.DateEdge('end_of', 'day'), '+', null);
     'the end of the day'  => C.makeDate(new Ast.DateEdge('end_of', 'day'), '+', null);
     'the end of the week' => C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', null);
-    'last week'           => C.makeDate(new Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week'));
+    'last week'           => C.makeDate(new Ast.DateEdge('start_of', 'week'), '-', new Ast.Value.Measure(1, 'week'));
     'this month'          => C.makeDate(new Ast.DateEdge('start_of', 'mon'), '+', null);
     'this year'           => C.makeDate(new Ast.DateEdge('start_of', 'year'), '+', null);
     'next month'          => C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', null);
     'next year'           => C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', null);
-    'last month'          => C.makeDate(new Ast.DateEdge('end_of', 'mon'), '-', Ast.Value.Measure(1, 'mon'));
-    'last year'           => C.makeDate(new Ast.DateEdge('end_of', 'year'), '-', Ast.Value.Measure(1, 'year'));
+    'last month'          => C.makeDate(new Ast.DateEdge('end_of', 'mon'), '-', new Ast.Value.Measure(1, 'mon'));
+    'last year'           => C.makeDate(new Ast.DateEdge('end_of', 'year'), '-', new Ast.Value.Measure(1, 'year'));
     }
 }
 
