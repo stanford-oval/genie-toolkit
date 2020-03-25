@@ -309,7 +309,7 @@ function resolveProjection(args, schema) {
     // if default_projection is non-empty, it's overwritten after a projection
     schema.default_projection = [];
     if (schema.annotations)
-        schema.annotations.default_projection = Ast.Value.Array([]);
+        schema.annotations.default_projection = new Ast.Value.Array([]);
     return schema.filterArguments((a) => a.is_input || args.has(a.name));
 }
 
