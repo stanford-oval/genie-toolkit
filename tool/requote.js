@@ -271,7 +271,7 @@ function requoteSentence(id, sentence, program, mode) {
     sentence = sentence.split(' ');
     program = program.split(' ');
 
-    let [spansBySentencePos, spansByProgramPos_sorted, sortIndices] = findSpanPositions(id, sentence, program);
+    let [spansBySentencePos, spansByProgramPosSorted, sortIndices] = findSpanPositions(id, sentence, program);
 
     if (spansBySentencePos.length === 0)
         return [sentence.join(' '), program.join(' ')];
@@ -279,8 +279,7 @@ function requoteSentence(id, sentence, program, mode) {
     // revert back the order after matching is done
     let spansByProgramPos = [];
     for (let i = 0; i < sortIndices.length; i++)
-        spansByProgramPos[sortIndices[i]] = spansByProgramPos_sorted[i];
-    
+        spansByProgramPos[sortIndices[i]] = spansByProgramPosSorted[i];
 
     spansBySentencePos.sort((a, b) => {
         const {begin:abegin, end:aend} = a;
