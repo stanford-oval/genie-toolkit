@@ -121,6 +121,34 @@ function createApp(program) {
     } else if (code.indexOf('@org.thingpedia.builtin.test') >= 0) {
         results = getTestData(25, 10).map((r) => ({ isNotification: true, icon: 'org.thingpedia.builtin.test',
             outputType: 'org.thingpedia.builtin.test:get_data', outputValue: r }));
+    } else if (code === `{
+  now => (@uk.ac.cam.multiwoz.Restaurant(id="uk.ac.cam.multiwoz.Restaurant-58").Restaurant()), food == "chinese" => notify;
+}`) {
+        results = [{ isNotification: true, icon: 'uk.ac.cam.multiwoz.Restaurant', outputType: 'uk.ac.cam.multiwoz.Restaurant:Restaurant', outputValue: {
+            address: "82 Cherry Hinton Road Cherry Hinton",
+            area: "south",
+            food: "chinese",
+            id: new Tp.Value.Entity('19192', "the good luck chinese food takeaway"),
+            phone: "01223244149",
+            postcode: "cb17ag",
+            price_range: "expensive"
+        } },
+        { isNotification: true, icon: 'uk.ac.cam.multiwoz.Restaurant', outputType: 'uk.ac.cam.multiwoz.Restaurant:Restaurant', outputValue: {
+            address: "529 Newmarket Road Fen Ditton",
+            area: "east",
+            food: "chinese",
+            id: new Tp.Value.Entity('19273', "yu garden"),
+            phone: "01223248882",
+            postcode: "cb58pa",
+            price_range: "expensive"
+        } }];
+    } else if (code === `{
+  now => [price_range] of ((@uk.ac.cam.multiwoz.Restaurant(id="uk.ac.cam.multiwoz.Restaurant-59").Restaurant()), (food == "chinese" && id == "19273"^^uk.ac.cam.multiwoz.Restaurant:Restaurant("yu garden"))) => notify;
+}`) {
+        results = [{ isNotification: true, icon: 'uk.ac.cam.multiwoz.Restaurant', outputType: 'uk.ac.cam.multiwoz.Restaurant:Restaurant', outputValue: {
+            id: new Tp.Value.Entity('19273', "yu garden"),
+            price_range: "expensive"
+        } }];
     }
 
     return Promise.resolve(new MockApp('uuid-' + appid++, results));
@@ -791,11 +819,15 @@ const TEST_CASES = [
             almond.runProgram(prog, 'uuid-12345', 'phone:+555654321');
 
             // inject a meaningless intent so we synchronize the two concurrent tasks
+            // NOTE: we cannot "await" the runProgram call, because the promise won't return until the program is done
+            // (after we answer the question), which would be a deadlock
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         }));
     },
 `>> I'm going to get an Xkcd comic and then notify you (as asked by Carol Johnson).
 >> Sorry, I did not find any result for that.
+>> context = now => @com.xkcd.get_comic => notify // {}
+>> ask special null
 >> context = now => @com.xkcd.get_comic => notify // {}
 >> ask special null
 `,
@@ -808,10 +840,14 @@ const TEST_CASES = [
             almond.runProgram(prog, 'uuid-12345', 'phone:+555654321');
 
             // inject a meaningless intent so we synchronize the two concurrent tasks
+            // NOTE: we cannot "await" the runProgram call, because the promise won't return until the program is done
+            // (after we answer the question), which would be a deadlock
             return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
         });
     },
 `>> What do you want to search?
+>> context = now => @com.bing.web_search => notify // {}
+>> ask special raw_string
 >> context = now => @com.bing.web_search => notify // {}
 >> ask special raw_string
 `,
@@ -830,17 +866,12 @@ const TEST_CASES = [
 }`],
 
     [(almond) => {
-        return Promise.resolve().then(() => {
-            return almond.notify('uuid-test-notify1', 'com.xkcd', 'com.xkcd:get_comic', {
-                number: 1986,
-                title: 'River Border',
-                picture_url: 'http://imgs.xkcd.com/comics/river_border.png',
-                link: 'https://xkcd.com/1986',
-                alt_text: `I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.` //'
-            });
-        }).then(() => {
-            // inject a meaningless intent so we synchronize the two concurrent tasks
-            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        return almond.notify('uuid-test-notify1', 'com.xkcd', 'com.xkcd:get_comic', {
+            number: 1986,
+            title: 'River Border',
+            picture_url: 'http://imgs.xkcd.com/comics/river_border.png',
+            link: 'https://xkcd.com/1986',
+            alt_text: `I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.` //'
         });
     },
 `>> rdl: River Border https://xkcd.com/1986
@@ -852,17 +883,12 @@ const TEST_CASES = [
     null],
 
     [(almond) => {
-        return Promise.resolve().then(() => {
-            almond.notify('uuid-test-notify2', 'com.xkcd', 'com.xkcd:get_comic', {
-                number: 1986,
-                title: 'River Border',
-                picture_url: 'http://imgs.xkcd.com/comics/river_border.png',
-                link: 'https://xkcd.com/1986',
-                alt_text: `I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.` //'
-            });
-        }).then(() => {
-            // inject a meaningless intent so we synchronize the two concurrent tasks
-            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
+        return almond.notify('uuid-test-notify2', 'com.xkcd', 'com.xkcd:get_comic', {
+            number: 1986,
+            title: 'River Border',
+            picture_url: 'http://imgs.xkcd.com/comics/river_border.png',
+            link: 'https://xkcd.com/1986',
+            alt_text: `I'm not a lawyer, but I believe zones like this are technically considered the high seas, so if you cut a pizza into a spiral there you could be charged with pieracy under marinaritime law.` //'
         });
     },
 `>> Notification from Xkcd ⇒ Notification
@@ -875,12 +901,7 @@ const TEST_CASES = [
     null],
 
     [(almond) => {
-        return Promise.resolve().then(() => {
-            return almond.notifyError('uuid-test-notify2', 'com.xkcd', new Error('Something went wrong'));
-        }).then(() => {
-            // inject a meaningless intent so we synchronize the two concurrent tasks
-            return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
-        });
+        return almond.notifyError('uuid-test-notify2', 'com.xkcd', new Error('Something went wrong'));
     },
 `>> Xkcd ⇒ Notification had an error: Something went wrong.
 >> context = null // {}
@@ -905,6 +926,8 @@ const TEST_CASES = [
 >> button: Always from Bob Smith (dad) (this exact request) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data filter param:data:String == QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"QUOTED_STRING_0":"foo"}
+>> ask special generic
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data filter param:data:String == QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"QUOTED_STRING_0":"foo"}
 >> ask special generic
 `,
@@ -934,6 +957,8 @@ const TEST_CASES = [
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data filter param:data:String == QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"bogus@example.com"},"QUOTED_STRING_0":"foo"}
 >> ask special generic
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data filter param:data:String == QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"bogus@example.com"},"QUOTED_STRING_0":"foo"}
+>> ask special generic
 `,
     ['bookkeeping', 'special', 'special:no'],
 `>> Sorry I couldn't help on that.
@@ -961,6 +986,8 @@ const TEST_CASES = [
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data filter param:data:String == QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"X1234567"},"QUOTED_STRING_0":"foo"}
 >> ask special generic
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data filter param:data:String == QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"X1234567"},"QUOTED_STRING_0":"foo"}
+>> ask special generic
 `,
     ['bookkeeping', 'special', 'special:no'],
 `>> Sorry I couldn't help on that.
@@ -986,6 +1013,8 @@ const TEST_CASES = [
 >> button: Always from Bob Smith (dad) (this exact request) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : now => @org.thingpedia.builtin.test.eat_data, data == \\"foo\\";"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data filter param:data:String == QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"QUOTED_STRING_0":"foo"}
+>> ask special generic
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : now => @org.thingpedia.builtin.test.eat_data filter param:data:String == QUOTED_STRING_0 // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"},"QUOTED_STRING_0":"foo"}
 >> ask special generic
 `,
@@ -1062,6 +1091,8 @@ const TEST_CASES = [
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
+>> ask special generic
 `,
     ['bookkeeping', 'special', 'special:no'],
 `>> Sorry I couldn't help on that.
@@ -1088,6 +1119,8 @@ const TEST_CASES = [
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
+>> ask special generic
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
@@ -1111,6 +1144,8 @@ const TEST_CASES = [
 >> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
+>> ask special generic
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
@@ -1144,6 +1179,8 @@ const TEST_CASES = [
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
+>> ask special generic
 `,
     {"code":["policy","param:source:Entity(tt:contact)", "==", "USERNAME_0",":","@com.xkcd.get_comic","=>","notify"],"entities":{ "USERNAME_0": "bob" }},
 `>> Okay, so Bob Smith (dad) is allowed to read an Xkcd comic. Is that correct?
@@ -1173,6 +1210,8 @@ const TEST_CASES = [
 >> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
+>> ask special generic
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
@@ -1211,6 +1250,8 @@ const TEST_CASES = [
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
+>> ask special generic
 `,
     {"program":"true : @com.xkcd.get_comic => notify;"},
 `>> Okay, so anyone is allowed to read an Xkcd comic. Is that correct?
@@ -1240,6 +1281,8 @@ const TEST_CASES = [
 >> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
+>> ask special generic
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
@@ -1285,6 +1328,8 @@ const TEST_CASES = [
 >> button: Always from Bob Smith (dad) {"program":"source == \\"mock-account:...\\"^^tt:contact(\\"Bob Smith (dad)\\") : @com.xkcd.get_comic => notify;"}
 >> button: No {"code":["bookkeeping","special","special:no"],"entities":{}}
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
+>> ask special generic
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
 `,
@@ -1835,6 +1880,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
+>> ask special generic
 `,
     ['bookkeeping', 'special', 'special:maybe'],
 `>> Choose the filter you want to add:
@@ -1892,6 +1939,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> button: Only if… {"code":["bookkeeping","special","special:maybe"],"entities":{}}
 >> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
 >> ask special generic
+>> context = policy param:source:Entity(tt:contact) == GENERIC_ENTITY_tt:contact_0 : @com.xkcd.get_comic => notify // {"GENERIC_ENTITY_tt:contact_0":{"value":"mock-account:...","display":"Bob Smith (dad)"}}
+>> ask special generic
 `,
     ['bookkeeping', 'special', 'special:maybe'],
 `>> Choose the filter you want to add:
@@ -1943,6 +1992,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `>> What is the answer to life the universe and everything?
 >> context = null // {}
 >> ask special number
+>> context = null // {}
+>> ask special number
 `,
     { entities: {NUMBER_0: 42}, code: ['bookkeeping', 'answer', 'NUMBER_0'] },
 `>> context = null // {}
@@ -1961,6 +2012,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
         return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
     },
 `>> What is the answer to life the universe and everything?
+>> context = null // {}
+>> ask special number
 >> context = null // {}
 >> ask special number
 `,
@@ -1982,6 +2035,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
         return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
     },
 `>> What is the answer to life the universe and everything?
+>> context = null // {}
+>> ask special number
 >> context = null // {}
 >> ask special number
 `,
@@ -2036,6 +2091,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `>> com.xkcd has been enabled successfully.
 >> context = null // {}
 >> ask special null
+>> context = null // {}
+>> ask special null
 `,
     null],
 
@@ -2049,6 +2106,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> link: Configure Instagram /devices/oauth2/com.instagram?name=Instagram
 >> context = null // {}
 >> ask special null
+>> context = null // {}
+>> ask special null
 `,
     null],
 
@@ -2059,6 +2118,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
         return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
     },
 `>> Please enter the Feed URL.
+>> context = null // {}
+>> ask special raw_string
 >> context = null // {}
 >> ask special raw_string
 `,
@@ -2080,6 +2141,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> button: Configure Some other Tumblr Thing {"entities":{},"code":["now","=>","@org.thingpedia.builtin.thingengine.builtin.configure","param:device:Entity(tt:device)","=","device:com.tumblr2"]}
 >> context = null // {}
 >> ask special null
+>> context = null // {}
+>> ask special null
 `,
     null],
 
@@ -2090,6 +2153,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
         return almond.handleParsedCommand({ code: ['bookkeeping', 'special', 'special:wakeup'], entities: {} });
     },
 `>> Insert your Matrix username:
+>> context = null // {}
+>> ask special raw_string
 >> context = null // {}
 >> ask special raw_string
 `,
@@ -2120,6 +2185,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> Can't find any LG WebOS TV around.
 >> context = null // {}
 >> ask special null
+>> context = null // {}
+>> ask special null
 `,
     null],
 
@@ -2133,6 +2200,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> I found the following devices. Which one do you want to set up?
 >> choice 0: Bluetooth Device foo
 >> choice 1: Bluetooth Device bar
+>> context = null // {}
+>> ask special choice
 >> context = null // {}
 >> ask special choice
 `,
@@ -2157,6 +2226,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> I found the following devices. Which one do you want to set up?
 >> choice 0: Bluetooth Device foo
 >> choice 1: Bluetooth Device bar
+>> context = null // {}
+>> ask special choice
 >> context = null // {}
 >> ask special choice
 `,
@@ -2214,6 +2285,8 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Yes what?
+>> context = null // {}
+>> ask special command
 `,
     ['bookkeeping', 'answer', '0'],
 `>> Sorry, but that's not what I asked.
@@ -2256,12 +2329,16 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 `>> Sorry, I don't know how to configure Home.
 >> context = null // {}
 >> ask special null
+>> context = null // {}
+>> ask special null
 `,
     null],
 
     [
     ['bookkeeping', 'special', 'special:wakeup'],
-``,
+`>> context = null // {}
+>> ask special null
+`,
     null],
 
     [
@@ -2522,9 +2599,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special generic
 `,
     ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
-`>> context = null // {}
->> ask special null
->> Sorry, I did not find any result for that.
+`>> Sorry, I did not find any result for that.
 >> context = now => @com.xkcd.get_comic => notify // {}
 >> ask special null
 `,
@@ -2546,9 +2621,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special generic
 `,
     ['now', '=>', '@com.twitter.post'],
-`>> context = null // {}
->> ask special null
->> You have multiple Twitter devices. Which one do you want to use?
+`>> You have multiple Twitter devices. Which one do you want to use?
 >> choice 0: Twitter Account foo
 >> choice 1: Twitter Account bar
 >> context = now => @com.twitter.post // {}
@@ -2572,9 +2645,7 @@ remote mock-account:MOCK1234-phone:+1234567890/phone:+15555555555 : uuid-XXXXXX 
 >> ask special choice
 `,
     ['now', '=>', '@com.xkcd.get_comic', '=>', 'notify'],
-`>> context = null // {}
->> ask special null
->> Sorry, I did not find any result for that.
+`>> Sorry, I did not find any result for that.
 >> context = now => @com.xkcd.get_comic => notify // {}
 >> ask special null
 `,
@@ -2862,16 +2933,14 @@ null],
 >> ask special null
 `,
     ['bookkeeping', 'special', 'special:train'],
-`>> context = null // {}
->> ask special null
->> Did you mean get an Xkcd comic and then notify you?
->> context = null // {}
+`>> Did you mean get an Xkcd comic and then notify you?
+>> context = now => @com.xkcd.get_comic => notify // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:yes'],
 `>> Thanks, I made a note of that.
 >> You have trained me with 1 sentence.
->> context = null // {}
+>> context = now => @com.xkcd.get_comic => notify // {}
 >> ask special null
 `,
     `{
@@ -2884,10 +2953,8 @@ null],
 >> ask special null
 `,
     ['bookkeeping', 'special', 'special:train'],
-`>> context = null // {}
->> ask special null
->> Did you mean get an Xkcd comic and then notify you?
->> context = null // {}
+`>> Did you mean get an Xkcd comic and then notify you?
+>> context = now => @com.xkcd.get_comic => notify // {}
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:no'],
@@ -2924,9 +2991,7 @@ null],
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:train'],
-`>> context = null // {}
->> ask special null
->> Did you mean any of the following?
+`>> Did you mean any of the following?
 >> choice 0: tweet ____
 >> choice 1: tweet “multiple results”
 >> choice 2: post ____ on Facebook
@@ -2947,9 +3012,7 @@ null],
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:train'],
-`>> context = null // {}
->> ask special null
->> Did you mean any of the following?
+`>> Did you mean any of the following?
 >> choice 0: tweet ____
 >> choice 1: tweet “multiple results”
 >> choice 2: post ____ on Facebook
@@ -2971,9 +3034,7 @@ null],
 >> ask special yesno
 `,
     ['bookkeeping', 'special', 'special:train'],
-`>> context = null // {}
->> ask special null
->> Did you mean any of the following?
+`>> Did you mean any of the following?
 >> choice 0: tweet ____
 >> choice 1: tweet “multiple results”
 >> choice 2: post ____ on Facebook
@@ -3248,7 +3309,7 @@ null],
     // confirmation: not confident, has slot in filter, query
     [
     `search hello on bing with title filter`,
-    `>> Okay, so you want me to get websites matching “hello” on Bing such that the title contains ____ and then notify you. Is that right?
+    `>> Okay, so you want me to get websites matching “hello” on Bing that have title ____ and then notify you. Is that right?
 >> context = now => ( @com.bing.web_search param:query:String = QUOTED_STRING_0 ) filter param:title:String =~ undefined => notify // {"QUOTED_STRING_0":"hello"}
 >> ask special yesno
 `,
@@ -3849,6 +3910,47 @@ null],
   now => @thermostat(id="thermostat-56").set_target_temperature(value=70F);
 }`
     ],
+
+    [
+    // "I'm looking for an Italian restaurant"
+    { program: '$dialogue @org.thingpedia.dialogue.transaction.execute; now => @uk.ac.cam.multiwoz.Restaurant.Restaurant(), food == "italian" => notify;' },
+`>> There are no restaurants that have “italian” food. How about a different food?
+>> context = $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search_question param:food ; now => ( @uk.ac.cam.multiwoz.Restaurant.Restaurant ) filter param:food == QUOTED_STRING_0 => notify #[ results = [ ] ] ; // {"QUOTED_STRING_0":"italian"}
+>> ask special command
+`,
+    // Ok how about something Chinese?
+    { program: '$dialogue @org.thingpedia.dialogue.transaction.execute; now => @uk.ac.cam.multiwoz.Restaurant.Restaurant(), food == "chinese" => notify;' },
+`>> Here is what I found.
+>> the good luck chinese food takeaway. Located in the south part of the city. Serves chinese food.
+>> yu garden. Located in the east part of the city. Serves chinese food.
+>> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two ; now => ( @uk.ac.cam.multiwoz.Restaurant.Restaurant ) filter param:food == QUOTED_STRING_0 => notify #[ results = [ { param:address = QUOTED_STRING_1 , param:area = enum:south , param:food = QUOTED_STRING_0 , param:id = GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 , param:phone = PHONE_NUMBER_0 , param:postcode = QUOTED_STRING_2 , param:price_range = enum:expensive } ] ] #[ count = 2 ] ; // {"QUOTED_STRING_0":"chinese","QUOTED_STRING_1":"82 Cherry Hinton Road Cherry Hinton","GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0":{"value":"19192","display":"the good luck chinese food takeaway"},"PHONE_NUMBER_0":"01223244149","QUOTED_STRING_2":"cb17ag"}
+>> ask special command
+`,
+    // what's the price range of yu garden?
+    { program: `$dialogue @org.thingpedia.dialogue.transaction.execute;
+                now => [price_range] of @uk.ac.cam.multiwoz.Restaurant.Restaurant(), food == "chinese" && id == null^^uk.ac.cam.multiwoz.Restaurant:Restaurant("yu garden") => notify;`
+    },
+`>> The price range of yu garden is expensive.
+>> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => [ param:price_range ] of ( ( @uk.ac.cam.multiwoz.Restaurant.Restaurant ) filter param:food == QUOTED_STRING_0 and param:id == GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 , param:price_range = enum:expensive } ] ] ; // {"QUOTED_STRING_0":"chinese","GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0":{"value":"19273","display":"yu garden"}}
+>> ask special command
+`,
+    // thanks, that is all I need
+    { program: `$dialogue @org.thingpedia.dialogue.transaction.cancel;`
+    },
+`>> Is there anything else I can help you with?
+>> context = $dialogue @org.thingpedia.dialogue.transaction.sys_anything_else ; now => [ param:price_range ] of ( ( @uk.ac.cam.multiwoz.Restaurant.Restaurant ) filter param:food == QUOTED_STRING_0 and param:id == GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 , param:price_range = enum:expensive } ] ] ; // {"QUOTED_STRING_0":"chinese","GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0":{"value":"19273","display":"yu garden"}}
+>> ask special command
+`,
+    // no thanks, goodbye!
+    { program: `$dialogue @org.thingpedia.dialogue.transaction.end;`
+    },
+`>> Alright, good bye!
+>> context = $dialogue @org.thingpedia.dialogue.transaction.sys_end ; now => [ param:price_range ] of ( ( @uk.ac.cam.multiwoz.Restaurant.Restaurant ) filter param:food == QUOTED_STRING_0 and param:id == GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 , param:price_range = enum:expensive } ] ] ; // {"QUOTED_STRING_0":"chinese","GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0":{"value":"19273","display":"yu garden"}}
+>> ask special null
+`,
+    `{
+  now => [price_range] of ((@uk.ac.cam.multiwoz.Restaurant(id="uk.ac.cam.multiwoz.Restaurant-59").Restaurant()), (food == "chinese" && id == "19273"^^uk.ac.cam.multiwoz.Restaurant:Restaurant("yu garden"))) => notify;
+}`]
 ];
 
 function handleCommand(almond, input) {

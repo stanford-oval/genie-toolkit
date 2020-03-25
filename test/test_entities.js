@@ -11,7 +11,7 @@
 
 const Tp = require('thingpedia');
 
-const { getBestEntityMatch } = require('../lib/dialogs/entity_lookup');
+const { getBestEntityMatch } = require('../lib/legacy-dialogs/entity_lookup');
 
 const THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
 
