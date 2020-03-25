@@ -6,8 +6,9 @@ set -x
 srcdir=`dirname $0`/..
 srcdir=`realpath $srcdir`
 
-workdir=`mktemp -t -d genie-XXXXXX`
+workdir=`mktemp -d -t genie-XXXXXX`
 workdir=`realpath $workdir`
+
 on_error() {
     rm -fr $workdir
 }
@@ -19,6 +20,15 @@ cd $workdir
 node $srcdir/tool/genie.js && exit 1 || true
 
 node $srcdir/tool/genie.js --help
+
+
+# check requote.js
+node $srcdir/tool/genie.js requote $srcdir/test/data/samples-en-hard.tsv --output ./samples-en-hard-requoted.tsv --mode replace
+diff -u $srcdir/test/data/samples-en-hard-requoted.tsv ./samples-en-hard-requoted.tsv
+
+node $srcdir/tool/genie.js requote $srcdir/test/data/samples-en-hard.tsv --output ./samples-en-hard-qpis.tsv --mode qpis
+diff -u $srcdir/test/data/samples-en-hard-qpis.tsv ./samples-en-hard-qpis.tsv
+
 
 # download-*
 node $srcdir/tool/genie.js download-snapshot --help
