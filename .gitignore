@@ -34,3 +34,6 @@ decanlp/
 !test/data/easy-hard-functions.tsv
 !test/data/parameter-datasets.tsv
 !test/data/thingpedia.tt
+!test/data/samples-en-hard.tsv
+!test/data/samples-en-hard-qpis.tsv
+!test/data/samples-en-hard-requoted.tsv
