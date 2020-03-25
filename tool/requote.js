@@ -255,8 +255,7 @@ function findSpanPositions(id, sentence, program) {
         const spanBegin = idx;
         const spanEnd = idx + end_index - begin_index;
 
-        let spanType;
-        [spanType, end_index] = findSpanType(program, begin_index, end_index);
+        let spanType = findSpanType(program, begin_index, end_index).spanType;
 
         const span = {begin: spanBegin, end: spanEnd, type: spanType, mapTo: undefined};
         spansBySentencePos.push(span);
