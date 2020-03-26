@@ -75,9 +75,7 @@ verbose_negative_list_proposal_reply_pair = {
 }
 
 negative_list_proposal_reply_pair = {
-    ( prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
-    | prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble request:anything_phrase
-    ) => {
+    prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') request:negative_proposal_answer => {
         const [results, info, action] = prop;
         const proposalType = results[0].value.id.getType();
         const idType = request.schema.getArgType('id');
@@ -98,9 +96,8 @@ negative_list_proposal_reply_pair = {
         return [results, action, clone];
     };
 
-    ( pair:verbose_negative_list_proposal_reply_pair negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
-    | pair:verbose_negative_list_proposal_reply_pair negative_proposal_answer_preamble request:anything_phrase
-    ) => D.mergePreambleAndRequest(pair, request);
+    pair:verbose_negative_list_proposal_reply_pair request:negative_proposal_answer
+        => D.mergePreambleAndRequest(pair, request);
 }
 
 positive_list_proposal_reply_pair = {

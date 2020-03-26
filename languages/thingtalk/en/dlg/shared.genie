@@ -34,6 +34,11 @@ negative_proposal_answer_preamble = {
     'that does not sound great , do you have';
 }
 
+negative_proposal_answer = {
+    negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase => request;
+    negative_proposal_answer_preamble request:anything_phrase => request;
+}
+
 the_base_noun_phrase = {
     ( 'the' noun:base_noun_phrase
     | 'that' noun:base_noun_phrase
