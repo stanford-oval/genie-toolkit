@@ -25,9 +25,7 @@
 }
 
 negative_proposal_answer_preamble = {
-    'i need';
     'i was thinking more of';
-    'i would like';
     'i would like';
     'i am looking for';
     'do you have';
