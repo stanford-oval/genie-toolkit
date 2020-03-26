@@ -190,7 +190,8 @@ function makeShortUserQuestionAnswer({ topResult, ctx, action }, filter) {
     return checkRecommendation({ topResult, action }, info);
 }
 
-function checkListProposal(ctx, results, info) {
+function checkListProposal(nameList, info) {
+    const { ctx, results } = nameList;
     const resultType = results[0].value.id.getType();
     const idType = info.schema.getArgType('id');
 
