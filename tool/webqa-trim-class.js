@@ -127,11 +127,8 @@ class SchemaTrimmer {
         for (let key in obj) {
             if (key === '@id' || key === '@type' || key === '@context')
                 continue;
-            if (key === 'name') {
-                if (obj[key] && obj[key].length)
-                    this._markTableHasName(tabledef);
-                continue;
-            }
+            if (key === 'name' && obj[key] && obj[key].length)
+                this._markTableHasName(tabledef);
 
             const arg = tabledef.getArgument(key);
             if (!arg)
