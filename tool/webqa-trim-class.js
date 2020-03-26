@@ -193,6 +193,8 @@ class SchemaTrimmer {
         let hasAddress = false;
         let hasGeo = false;
         for (let argname of tabledef.args) {
+            if (argname === 'name')
+                continue;
             if (argname.indexOf('.') >= 0)
                 continue;
             const arg = tabledef.getArgument(argname);
