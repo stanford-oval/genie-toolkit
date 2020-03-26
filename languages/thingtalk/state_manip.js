@@ -336,26 +336,31 @@ function getActionInvocation(historyItem) {
     return historyItem.stmt.actions[0].invocation;
 }
 
-function addNewItem(ctxClone, newHistoryItem, confirm) {
-    const state = ctxClone.state;
+function addNewItem(ctx, dialogueAct, dialogueActParam, newHistoryItem, confirm) {
+    const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, []);
+
     if (confirm === 'proposed') {
         // find the first item that was not confirmed or accepted, and replace everything after that
 
-        let proposedIdx;
-        for (proposedIdx = ctxClone.currentIdx + 1; proposedIdx < state.history.length; proposedIdx++) {
-            if (state.history[proposedIdx].confirm === 'proposed')
+        for (let i = 0; i < ctx.state.history.length; i++) {
+            if (ctx.state.history[i].confirm === 'proposed')
                 break;
+            newState.history.push(ctx.state.history[i]);
         }
-        state.history.splice(proposedIdx, state.history.length - proposedIdx, newHistoryItem);
+        newState.history.push(newHistoryItem);
     } else {
         // wipe everything from state after the current program
         // this will remove all previously accepted and/or proposed actions
         //
         // XXX is the right thing to do?
-        state.history.splice(ctxClone.currentIdx + 1, state.history.length - (ctxClone.currentIdx + 1), newHistoryItem);
+        if (ctx.currentIdx !== null) {
+            for (let i = 0; i <= ctx.currentIdx; i++)
+                newState.history.push(ctx.state.history[i]);
+        }
+        newState.history.push(newHistoryItem);
     }
 
-    return state;
+    return newState;
 }
 
 function makeSimpleState(ctx, dialogueAct, dialogueActParam) {
@@ -383,50 +388,32 @@ function setOrAddInvocationParam(newInvocation, pname, value) {
     }
 }
 
-function addActionParam(ctxClone, dialogueAct, action, pname, value, confirm) {
+function addActionParam(ctx, dialogueAct, action, pname, value, confirm) {
     assert(action instanceof Ast.Invocation);
     assert(['accepted', 'confirmed', 'proposed'].indexOf(confirm) >= 0);
-    const state = ctxClone.state;
-    state.dialogueAct = dialogueAct;
-    state.dialogueActParam = null;
 
     let newHistoryItem;
-    if (ctxClone.nextInfo) {
-        const nextInvocation = getActionInvocation(ctxClone.next);
+    if (ctx.nextInfo) {
+        const nextInvocation = getActionInvocation(ctx.next);
         const isSameFunction = C.isSameFunction(nextInvocation.schema, action.schema);
 
         if (isSameFunction) {
-            if (confirm !== 'proposed' || ctxClone.next.confirm === confirm) {
-                // we want to modify the existing action in case:
-                // - case 1: we're currently accepting/confirming the action (perhaps with the same or
-                //   a different parameter)
-                // - case 2: we're proposing the same action that was proposed before
+            // we want to modify the existing action in case:
+            // - case 1: we're currently accepting/confirming the action (perhaps with the same or
+            //   a different parameter)
+            // - case 2: we're proposing the same action that was proposed before
+            //
+            // to carry over parameters, we actually clone the statement and set the parameter
+            // if confirm == "proposed":
+            //   addNewItem() will add at the end, after the currently accepted
+            //   item, and we'll have two actions (one "accepted" and one "proposed"), or just one "proposed" action
+            // if confirm == "accepted":
+            //   addNewItem() will wipe everything and we'll only one
 
-                setOrAddInvocationParam(nextInvocation, pname, value);
-                ctxClone.next.confirm = confirm;
-                return state;
-            } else {
-                // otherwise, we're proposing the same action that was accepted before
-                // case 1: the parameter is the same, do nothing and leave the confirm as accepted
-                // case 2: the parameter is different, then we clone the statement entirely, carry
-                // over all the parameters, and add the new parameter
-
-                let found = false, isIdentical;
-                for (let in_param of nextInvocation.in_params) {
-                    if (in_param.name === pname) {
-                        found = true;
-                        isIdentical = in_param.value.equals(value);
-                        break;
-                    }
-                }
-                if (found && isIdentical)
-                    return state;
-
-                newHistoryItem = ctxClone.next.clone();
-                const newInvocation = getActionInvocation(newHistoryItem);
-                setOrAddInvocationParam(newInvocation, pname, value);
-                newHistoryItem.confirm = confirm;
-            }
+            newHistoryItem = ctx.next.clone();
+            const newInvocation = getActionInvocation(newHistoryItem);
+            setOrAddInvocationParam(newInvocation, pname, value);
+            newHistoryItem.confirm = confirm;
         }
     }
 
@@ -453,26 +440,24 @@ function addActionParam(ctxClone, dialogueAct, action, pname, value, confirm) {
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
 
-    return addNewItem(ctxClone, newHistoryItem, confirm);
+    return addNewItem(ctx, dialogueAct, null, newHistoryItem, confirm);
 }
 
-function replaceAction(ctxClone, dialogueAct, action, confirm) {
+function replaceAction(ctx, dialogueAct, action, confirm) {
     let newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, action, action.schema)]);
     let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
 
-    return addNewItem(ctxClone, newHistoryItem, confirm);
+    return addNewItem(ctx, dialogueAct, null, newHistoryItem, confirm);
 }
 
-function addAction(ctxClone, dialogueAct, action, confirm) {
+function addAction(ctx, dialogueAct, action, confirm) {
     assert(action instanceof Ast.Invocation);
-    const state = ctxClone.state;
-    state.dialogueAct = dialogueAct;
-    state.dialogueActParam = null;
 
-    if (ctxClone.nextInfo) {
-        const nextInvocation = getActionInvocation(ctxClone.next);
+    let newHistoryItem;
+    if (ctx.nextInfo) {
+        const nextInvocation = getActionInvocation(ctx.next);
         if (C.isSameFunction(nextInvocation.schema, action.schema)) {
-            ctxClone.next.results = null;
+            assert(ctx.next.results === null);
             // case 1:
             // - we trying to propose an action that the user has already introduced
             // earlier
@@ -480,40 +465,47 @@ function addAction(ctxClone, dialogueAct, action, confirm) {
             // case 2:
             // - we trying to accept or confirm the action that was previously proposed
             // in that case, we want to change the action to accepted or confirmed
-            if (confirm !== 'proposed')
-                ctxClone.next.confirm = confirm;
-            return state;
+            if (confirm === 'proposed' || confirm === ctx.next.confirm)
+                return new Ast.DialogueState(null, POLICY_NAME, dialogueAct, null, ctx.state.history);
+
+            newHistoryItem = new Ast.DialogueStateHistoryItem(null, ctx.next.stmt, null, confirm);
         }
     }
 
-    let newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
-        new Ast.Invocation(null,
-            action.selector,
-            action.channel,
-            [],
+    if (!newHistoryItem) {
+        let newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
+            new Ast.Invocation(null,
+                action.selector,
+                action.channel,
+                [],
+                action.schema
+            ),
             action.schema
-        ),
-        action.schema
-    )]);
-    let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
+        )]);
+        newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
+    }
 
-    return addNewItem(ctxClone, newHistoryItem, confirm);
+    return addNewItem(ctx, dialogueAct, null, newHistoryItem, confirm);
 }
 
-function addQuery(ctxClone, dialogueAct, newTable, confirm) {
+function addQuery(ctx, dialogueAct, newTable, confirm) {
     let newStmt = new Ast.Statement.Command(null, newTable, [C.notifyAction()]);
     let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
 
     // add the new history item right after the current one, without removing any element
-    // NOTE: this assumes that ctxClone comes from the user's, so it will not have any proposal
+    // NOTE: this assumes that ctx comes from the user's, so it will not have any proposal
     // in it, otherwise we'd have to remove all proposals between the current item and the next
     // accepted item
 
-    const state = ctxClone.state;
-    state.dialogueAct = dialogueAct;
-    state.dialogueActParam = null;
-    state.history.splice(ctxClone.currentIdx+1, 0, newHistoryItem);
-    return state;
+    assert(ctx.currentIdx !== null);
+    const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, null, []);
+    for (let i = 0; i <= ctx.currentIdx; i++)
+        newState.history.push(ctx.state.history[i]);
+    newState.history.push(newHistoryItem);
+    for (let i = ctx.currentIdx + 1; i < ctx.state.history.length; i++)
+        newState.history.push(ctx.state.history[i]);
+
+    return newState;
 }
 
 module.exports = {
