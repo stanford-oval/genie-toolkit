@@ -286,6 +286,7 @@ function makeEdgeFilterStream(proj, op, value) {
 function addUnit(unit, num) {
     if (num.isVarRef) {
         let v = new Ast.Value.VarRef(num.name + '__' + unit);
+        v.unit = unit;
         v.getType = () => Type.Measure(unit);
         return v;
     } else {
