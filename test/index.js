@@ -16,14 +16,19 @@ process.env.TEST_MODE = '1';
 // require everything, to get a complete view of code coverage
 require('../lib/index');
 
-async function seq(array) {
-    for (let fn of array) {
-        console.log(`Running ${fn}`);
-        await require(fn)();
+
+async function do_test(array) {
+    if (typeof array !== 'undefined' && array instanceof Array ){
+        for (let fn of array) {
+            console.log(`Running ${fn}`);
+            await require(fn)();
+        }
     }
 }
 
-seq([
+
+// test lib scripts
+do_test([
     ('./test_stream_utils'),
     ('./test_requoting'),
     ('./test_sentence_generator'),

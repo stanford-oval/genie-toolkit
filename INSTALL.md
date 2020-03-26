@@ -15,24 +15,22 @@ After running this, if encounter `command not found`, make sure the Yarn global 
 
 ## Training
 
-To train a model, genie uses the [decaNLP](https://github.com/stanford-oval/decaNLP) library. To install it, use:
+To train a model, genie uses the [Genie NLP](https://github.com/stanford-oval/genienlp) library. To install it, use:
 ```
-git clone https://github.com/stanford-oval/decaNLP decanlp
-cd decanlp
+git clone https://github.com/stanford-oval/genienlp genienlp
+cd genienlp
 pip install -r requirements.txt
 pip install -e .
 ```
 
-After training, you should also download the following embedding files:
 
-- <https://oval.cs.stanford.edu/data/glove/glove.840B.300d.txt.vectors.npy>
-- <https://oval.cs.stanford.edu/data/glove/glove.840B.300d.txt.table.npy>
-- <https://oval.cs.stanford.edu/data/glove/glove.840B.300d.txt.itos.npy>
-- <https://oval.cs.stanford.edu/data/glove/charNgram.txt.vectors.npy>
-- <https://oval.cs.stanford.edu/data/glove/charNgram.txt.table.npy>
-- <https://oval.cs.stanford.edu/data/glove/charNgram.txt.itos.npy>
+After training, you should also download the embedding tarball and unzip it:
 
-Then set the path to the directory with the downloaded files as the `DECANLP_EMBEDDINGS` environment variable.
+```
+curl -L https://oval.cs.stanford.edu/data/glove/embeddings.tar.xz | tar xJv
+```
+
+Then set the path to the directory with the downloaded files as the `GENIENLP_EMBEDDINGS` environment variable.
 
 If you skip this step, decaNLP will download those embeddings automatically, but you might find that
 it redundantly downloads them multiple times.

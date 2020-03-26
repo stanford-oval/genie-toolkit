@@ -17,22 +17,35 @@ const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const StreamUtils = require('../lib/stream-utils');
 
-function findSubstring(sequence, substring) {
+const ENTITY_MATCH_REGEX = /^([A-Z].*)_[0-9]+$/;
+
+
+function check_range(index, spansBySentencePos){
+    for (let i = 0; i < spansBySentencePos.length; i++){
+        const span = spansBySentencePos[i];
+        if (index >= span.begin && index < span.end)
+            return false;
+    }
+    return true;
+
+}
+
+function findSubstring(sequence, substring, spansBySentencePos) {
     for (let i = 0; i < sequence.length - substring.length + 1; i++) {
         let found = true;
+
         for (let j = 0; j < substring.length; j++) {
             if (sequence[i+j] !== substring[j]) {
                 found = false;
                 break;
             }
         }
-        if (found)
+        if (found && check_range(i, spansBySentencePos))
             return i;
     }
     return -1;
 }
 
-const ENTITY_MATCH_REGEX = /^([A-Z].*)_[0-9]+$/;
 
 function findSpanType(program, begin_index, end_index) {
     let spanType;
@@ -56,45 +69,216 @@ function findSpanType(program, begin_index, end_index) {
     return [spanType, end_index];
 }
 
-function requoteSentence(id, sentence, program) {
-    sentence = sentence.split(' ');
-    program = program.split(' ');
 
-    const spansBySentencePos = [];
-    const spansByProgramPos = [];
+function createProgram(program, spansByProgramPos, entityRemap) {
+    let in_string = false;
+    let newProgram = [];
+    let programSpanIndex = 0;
+    for (let i = 0; i < program.length; i++) {
+        let token = program[i];
+        if (token === '"') {
+            in_string = !in_string;
+            if (in_string)
+                continue;
+            const currentSpan = spansByProgramPos[programSpanIndex];
+            try{
+                assert(currentSpan.mapTo);
+            }
+            catch (e) {
+                console.log('error!');
+                console.log(program.join(' '));
+            }
 
+            newProgram.push(currentSpan.mapTo);
+            programSpanIndex++;
+            continue;
+        }
+        if (in_string) continue;
+
+        if (token === 'location:' || token.startsWith('^^')) {
+            continue;
+        } else if (ENTITY_MATCH_REGEX.test(token)) {
+            assert(entityRemap[token]);
+            newProgram.push(entityRemap[token]);
+        } else {
+            newProgram.push(token);
+        }
+    }
+    return newProgram;
+}
+
+function qpisSentence(sentence, spansBySentencePos) {
+
+    let current_span_idx = 0;
+    let current_span = spansBySentencePos[0];
+
+    let newSentence = [];
+    let i = 0;
+    let in_string = false;
+    while (i < sentence.length) {
+        let word = sentence[i];
+        if (current_span === null || i < current_span.begin) {
+            newSentence.push(word);
+            i += 1;
+        } else if (i >= current_span.end) {
+            newSentence.push('"');
+            in_string = false;
+            current_span_idx += 1;
+            current_span = current_span_idx < spansBySentencePos.length ? spansBySentencePos[current_span_idx] : null;
+        } else if (i === current_span.begin || in_string) {
+            if (i === current_span.begin)
+                newSentence.push('"');
+            newSentence.push(word);
+            in_string = true;
+            i += 1;
+
+        } else {
+            i += 1;
+        }
+    }
+    if (in_string)
+        newSentence.push('"');
+    return newSentence;
+
+}
+
+function createSentence(sentence, spansBySentencePos) {
+
+    let current_span_idx = 0;
+    let current_span = spansBySentencePos[0];
+
+    let newSentence = [];
+    let entityNumbers = {};
+    function getEntityNumber(entityType) {
+        let nextId = (entityNumbers[entityType] || 0);
+        entityNumbers[entityType] = nextId + 1;
+        return String(nextId);
+    }
+    let entityRemap = {};
+
+    let i = 0;
+    while (i < sentence.length) {
+        let word = sentence[i];
+        if (current_span === null || i < current_span.begin) {
+            const entityMatch = ENTITY_MATCH_REGEX.exec(word);
+            if (entityMatch !== null) {
+                // input sentence contains entities
+                const newEntity = entityMatch[1] + '_' + getEntityNumber(entityMatch[1]);
+                entityRemap[word] = newEntity;
+                newSentence.push(newEntity);
+            } else {
+                newSentence.push(word);
+            }
+            i += 1;
+        } else if (i === current_span.begin) {
+            const newEntity = current_span.type + '_' + getEntityNumber(current_span.type);
+            current_span.mapTo = newEntity;
+            newSentence.push(newEntity);
+            i += 1;
+        } else if (i >= current_span.end) {
+            current_span_idx += 1;
+            current_span = current_span_idx < spansBySentencePos.length ? spansBySentencePos[current_span_idx] : null;
+        } else {
+            i += 1;
+        }
+    }
+
+    return [newSentence, entityRemap];
+
+}
+
+function sortWithIndeces(toSort, sort_func) {
+    let toSort_new = [];
+    for (let i = 0; i < toSort.length; i++) 
+        toSort_new[i] = [toSort[i], i];
+    
+    toSort_new.sort(sort_func);
+    let sortIndices = [];
+    for (let j = 0; j < toSort_new.length; j++) {
+        sortIndices.push(toSort_new[j][1]);
+        toSort[j] = toSort_new[j][0];
+    }
+    return sortIndices;
+}
+
+function getProgSpans(program) {
     let in_string = false;
     let begin_index = null;
     let end_index = null;
+    let all_prog_spans = [];
     for (let i = 0; i < program.length; i++) {
         let token = program[i];
         if (token === '"') {
             in_string = !in_string;
             if (in_string) {
-                begin_index = i+1;
+                begin_index = i + 1;
             } else {
                 end_index = i;
-                const substring = program.slice(begin_index, end_index);
-                const idx = findSubstring(sentence, substring);
-                if (idx < 0)
-                    throw new Error(`Cannot find span ${substring.join(' ')} in sentence id ${id}`);
-
-                const spanBegin = idx;
-                const spanEnd = idx+end_index-begin_index;
-
-                let spanType;
-                [spanType, end_index] = findSpanType(program, begin_index, end_index);
-
-                const span = { begin: spanBegin, end: spanEnd, type: spanType, mapTo: undefined };
-                spansBySentencePos.push(span);
-                spansByProgramPos.push(span);
-                i = end_index;
+                let prog_span = {begin: begin_index, end: end_index};
+                all_prog_spans.push(prog_span);
             }
         }
     }
 
+    // sort params based on length so that longer phrases get matched sooner
+    let sort_func = function (a, b)  {
+        const {begin:abegin, end:aend} = a[0];
+        const {begin:bbegin, end:bend} = b[0];
+        return (bend - bbegin) - (aend - abegin);
+    };
+
+    // sort array in-place and return sorted indices
+    let sortIndices = sortWithIndeces(all_prog_spans, sort_func);
+
+    return [all_prog_spans, sortIndices];
+}
+
+
+function findSpanPositions(id, sentence, program) {
+    const spansBySentencePos = [];
+    const spansByProgramPos = [];
+
+    const [all_prog_spans_sorted, sortIndices]  = getProgSpans(program);
+
+    for (let i = 0; i < all_prog_spans_sorted.length; i++) {
+        const prog_span = all_prog_spans_sorted[i];
+        let [begin_index, end_index] = [prog_span.begin, prog_span.end];
+        const substring = program.slice(begin_index, end_index);
+        const idx = findSubstring(sentence, substring, spansBySentencePos);
+        if (idx < 0){
+            console.log(program.join(' '));
+            console.error('***Error: Program contains some parameters that are not present in the sentence***');
+            throw new Error(`Cannot find span ${substring.join(' ')} in sentence id ${id}`);
+
+        }
+
+        const spanBegin = idx;
+        const spanEnd = idx + end_index - begin_index;
+
+        let spanType = findSpanType(program, begin_index, end_index)[0];
+
+        const span = {begin: spanBegin, end: spanEnd, type: spanType, mapTo: undefined};
+        spansBySentencePos.push(span);
+        spansByProgramPos.push(span);
+
+    }
+
+    return [spansBySentencePos, spansByProgramPos, sortIndices];
+}
+
+function requoteSentence(id, sentence, program, mode) {
+    sentence = sentence.split(' ');
+    program = program.split(' ');
+
+    let [spansBySentencePos, spansByProgramPosSorted, sortIndices] = findSpanPositions(id, sentence, program);
+
     if (spansBySentencePos.length === 0)
         return [sentence.join(' '), program.join(' ')];
+
+    // revert back the order after matching is done
+    let spansByProgramPos = [];
+    for (let i = 0; i < sortIndices.length; i++)
+        spansByProgramPos[sortIndices[i]] = spansByProgramPosSorted[i];
 
     spansBySentencePos.sort((a, b) => {
         const {begin:abegin, end:aend} = a;
@@ -109,84 +293,20 @@ function requoteSentence(id, sentence, program) {
             return +1;
         return 0;
     });
-    let current_span_idx = 0;
-    let current_span = spansBySentencePos[0];
 
-    let newSentence = [];
-    let entityNumbers = {};
-    function getEntityNumber(entityType) {
-        let nextId = (entityNumbers[entityType] || 0);
-        entityNumbers[entityType] = nextId + 1;
-        return String(nextId);
-    }
-    let entityRemap = {};
+    let newSentence, newProgram, entityRemap;
 
-    for (let i = 0; i < sentence.length; i++) {
-        let word = sentence[i];
-        if (current_span === null || i < current_span.begin) {
-            const entityMatch = ENTITY_MATCH_REGEX.exec(word);
-            if (entityMatch !== null) {
-                const newEntity = entityMatch[1] + '_' + getEntityNumber(entityMatch[1]);
-                entityRemap[word] = newEntity;
-                newSentence.push(newEntity);
-            } else {
-                newSentence.push(word);
-            }
-        } else if (i === current_span.begin) {
-            const newEntity = current_span.type + '_' + getEntityNumber(current_span.type);
-            current_span.mapTo = newEntity;
-            newSentence.push(newEntity);
-        } else if (i >= current_span.end) {
-            current_span_idx += 1;
-            current_span = current_span_idx < spansBySentencePos.length ? spansBySentencePos[current_span_idx] : null;
-
-            const entityMatch = ENTITY_MATCH_REGEX.exec(word);
-            if (entityMatch !== null) {
-                const newEntity = entityMatch[1] + '_' + getEntityNumber(entityMatch[1]);
-                entityRemap[word] = newEntity;
-                newSentence.push(newEntity);
-            } else {
-                newSentence.push(word);
-            }
-
-            if (current_span !== null && i === current_span.begin) {
-                const newEntity = current_span.type + '_' + getEntityNumber(current_span.type);
-                current_span.mapTo = newEntity;
-                newSentence.push(newEntity);
-            }
-        }
-    }
-
-    let newProgram = [];
-    let programSpanIndex = 0;
-    for (let i = 0; i < program.length; i++) {
-        let token = program[i];
-        if (token === '"') {
-            in_string = !in_string;
-            if (in_string)
-                continue;
-            const currentSpan = spansByProgramPos[programSpanIndex];
-            assert(currentSpan.mapTo);
-            newProgram.push(currentSpan.mapTo);
-            programSpanIndex ++;
-            continue;
-        }
-        if (in_string) continue;
-
-        if (token === 'location:' || token.startsWith('^^')) {
-            continue;
-        } else if (ENTITY_MATCH_REGEX.test(token)) {
-            if (!entityRemap[token])
-                console.error(id, token, program, sentence);
-            assert(entityRemap[token]);
-            newProgram.push(entityRemap[token]);
-        } else {
-            newProgram.push(token);
-        }
+    if (mode === 'replace'){
+        [newSentence, entityRemap] = createSentence(sentence, spansBySentencePos);
+        newProgram = createProgram(program, spansByProgramPos, entityRemap);
+    } else if (mode === 'qpis') {
+        newSentence = qpisSentence(sentence, spansBySentencePos);
+        newProgram = program;
     }
 
     return [newSentence.join(' '), newProgram.join(' ')];
 }
+
 
 module.exports = {
     initArgparse(subparsers) {
@@ -204,6 +324,12 @@ module.exports = {
             help: 'Process a contextual dataset.',
             defaultValue: false
         });
+        parser.addArgument('--mode', {
+            type: String,
+            help: 'Type of requoting (replace with placeholder, or just add quotation marks around params)',
+            choices: ['replace', 'qpis'],
+            defaultValue: 'replace'
+        });
         parser.addArgument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
@@ -219,7 +345,7 @@ module.exports = {
 
                 transform(ex, encoding, callback) {
                     try {
-                        const [newSentence, newProgram] = requoteSentence(ex.id, ex.preprocessed, ex.target_code);
+                        const [newSentence, newProgram] = requoteSentence(ex.id, ex.preprocessed, ex.target_code, args.mode);
                         ex.preprocessed = newSentence;
                         ex.target_code = newProgram;
                         callback(null, ex);
