@@ -90,7 +90,10 @@ negative_list_proposal_reply_pair = {
     pair:verbose_negative_list_proposal_reply_pair [weight=5] => {
         const [results, action, preamble] = pair;
         // convert the preamble into a request by negating it
-        const clone = preamble.clone();
+
+        // shallow clone
+        assert(preamble instanceof Ast.Table.Filter);
+        const clone = new Ast.Table.Filter(null, preamble.table, preamble.filter, preamble.schema);
         clone.filter = new Ast.BooleanExpression.Not(null, clone.filter);
         return [results, action, clone];
     };

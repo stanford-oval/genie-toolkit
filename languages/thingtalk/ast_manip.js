@@ -1683,12 +1683,14 @@ function addInvocationInputParam(invocation, param) {
 
 function addActionInputParam(action, param) {
     assert(action instanceof Ast.Action.Invocation || action instanceof Ast.Table.Invocation);
-    const clone = action.clone();
-    clone.invocation = addInvocationInputParam(clone.invocation, param);
-    if (clone.invocation === null)
+    const newInvocation = addInvocationInputParam(action.invocation, param);
+    if (newInvocation === null)
         return null;
-    clone.schema = clone.schema.removeArgument(param.name);
-    return clone;
+
+    if (action instanceof Ast.Action.Invocation)
+        return new Ast.Action.Invocation(null, newInvocation, action.schema.removeArgument(param.name));
+    else
+        return new Ast.Table.Invocation(null, newInvocation, action.schema.removeArgument(param.name));
 }
 
 module.exports = {
