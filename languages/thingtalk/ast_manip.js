@@ -1537,7 +1537,7 @@ function makeWithinGeoDistanceExpression(table, location, filterValue) {
     // the distance should be at least 100 meters (if the value is small number)
     if (filterValue.isMeasure && Units.transformToBaseUnit(filterValue.value, unit) < 100)
         return null;
-    return makeComputeFilterExpression(table, 'distance', [Ast.Value.VarRef('geo'), location], Type.Measure('m'), '<=', filterValue);
+    return makeComputeFilterExpression(table, 'distance', [new Ast.Value.VarRef('geo'), location], Type.Measure('m'), '<=', filterValue);
 }
 
 function makeComputeArgMinMaxExpression(table, operation, operands, resultType, direction = 'desc') {
