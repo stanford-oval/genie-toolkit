@@ -1,3 +1,11 @@
+1.8.0-alpha.2
+=============
+
+* Added support for query invocation hints: Thingpedia queries now receive
+  a "hint" containing which filters, projections, sorting and slicing operations
+  will be applied on the result. Query implementations can use the hint to reduce
+  the amount of data retrieved from the server.
+
 1.8.0-alpha.1
 =============
 
