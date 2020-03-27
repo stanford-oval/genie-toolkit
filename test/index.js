@@ -31,7 +31,7 @@ async function do_test(array) {
 do_test([
     ('./test_stream_utils'),
     ('./test_requoting'),
-    ('./test_sentence_generator'),
+    //('./test_sentence_generator'),
     //('./test_augment'),
     ('./test_i18n_chinese'),
     ('./test_random'),
