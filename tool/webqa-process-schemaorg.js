@@ -148,41 +148,33 @@ const PROPERTY_TYPE_OVERRIDE = {
 const PROPERTY_CANONICAL_OVERRIDE = {
     // thing
     url: {
-        default: 'npp',
         base: ['url', 'link']
     },
     name: {
-        default: 'npp',
         base: ['name'],
-        pvp: ['called']
+        passive_verb: ['called']
     },
     description: {
-        default: 'npp',
         base: ['description', 'summary'],
     },
 
     // location
     'geo': {
-        default: "npp",
         base: ['location', 'address'],
-        pvp: ["in", "around", "at", "on"]
+        passive_verb: ["in #", "around #", "at #", "on #"]
     },
     'streetAddress': {
-        default: "npp",
         base: ['street']
     },
     'addressCountry': {
-        default:"pvp",
-        pvp: ["in"],
+        passive_verb: ["in #"],
         base: ["country"]
     },
     'addressRegion': {
-        default:"pvp",
-        pvp: ["in"],
+        passive_verb: ["in #"],
         base: ["state"]
     },
     'addressLocality': {
-        default: "npp",
         base: ['city']
     }
 };
@@ -190,193 +182,145 @@ const PROPERTY_CANONICAL_OVERRIDE = {
 const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     // restaurants
     'datePublished': {
-        default: "pvp",
-        pvp: ["published on", "written on"],
+        passive_verb: ["published on #", "written on #"],
         base: ["date published"]
     },
     'ratingValue': {
-        default: "pvp",
-        pvp: ["rated #star"],
+        passive_verb: ["rated # star"],
         base: ["rating"]
     },
     'reviewRating': {
-        default: "npp",
         base: ["rating"]
     },
     'telephone': {
-        default: "npp",
         base: ["telephone", "phone number"]
     },
     'servesCuisine': {
-        default: "apv",
-        apv: true,
-        avp: ["serves #cuisine", "serves #food", "offer #cuisine", "offer #food", "serves", "offers"],
-        npp: ["#cuisine", "#food"],
+        adjective: ["#"],
+        verb: ["serves # cuisine", "serves # food", "offer # cuisine", "offer # food", "serves", "offers"],
+        property: ["# cuisine", "# food"],
         base: ["cuisine", "food type"]
     },
 
     // hotels
     'amenityFeature': {
-        default: 'npp',
         base: ['amenity', 'amenity feature'],
-        npp: ['amenity', 'amenity feature'],
-        avp: ['offers', 'offer', 'has', 'have'],
+        verb: ['offers #', 'offer #', 'has #', 'have #'],
     },
     'checkinTime': {
-        default: 'npp',
-        base: ['checkin time', 'check in time', 'check-in time'],
-        npp: ['checkin time', 'check in time', 'check-in time']
+        base: ['checkin time', 'check in time', 'check-in time']
     },
     'checkoutTime': {
-        default: 'npp',
-        base: ['checkout time', 'check out time', 'check-out time'],
-        npp: ['checkout time', 'check out time', 'check-out time']
+        base: ['checkout time', 'check out time', 'check-out time']
     },
 
     // linkedin
     alumniOf: {
-        default: 'npi',
-        base: ['colleges', 'universities', "alma maters"],
-        npi: [
+        base: ['college degrees', 'universities', "alma maters"],
+        reverse_property: [
         // who is an alumnus of Stanford
-        "alumni of", "alumnus of", "alumna of",
+        "alumni of #", "alumnus of #", "alumna of #",
         // who is a Stanford alumnus
-        "#alumnus", "#alumni", "#grad", "#gradudate"
+        "# alumnus", "# alumni", "# grad", "# graduate"
         ],
-        avp: [
-        // who was educated at Stanford
-        "was educated at", "is graduated from", "was studied at", "went to", "graduated from", "attended"
+        verb: [
+        // who went to Stanford
+        "went to #", "graduated from #", "attended #", "studied at #"
         ],
-        pvp: [
-        // what person educated at Stanford ...
-        "educated at", "graduated from", "studied at", "attended"
-        ],
-        npp: [
-        // who has alma mater ...
-        'colleges', 'universities', "alma maters"
+        passive_verb: [
+        // who was educated at Stanford ...
+        "educated at #", "graduated from #"
         ]
     },
     award: {
-        default: 'avp',
         base: ['awards'],
-        npi: [
+        reverse_property: [
             // who is a nobel prize winner
-            'winner of', 'recipient of',
-            '#winner', '#awardee', '#recipient', '#holder',
+            'winner of #', 'recipient of #',
+            '# winner', '# awardee', '# recipient', '# holder',
         ],
-        avp: [
-        "has the award", "has received the #award", "won the award for", "won the #award",
-        "received the #award", "received the", "won the", "won", "holds the award for", "holds the #award"
-        ],
-        pvp: [
-            "received"
-        ],
-        npp: ['awards']
+        verb: [
+        "has the award #", "has received the # award", "won the award for #", "won the # award",
+        "received the # award", "received the #", "won the #", "won #", "holds the award for #", "holds the # award"
+        ]
     },
     affiliation: {
-        default: 'npi',
         base: ['affiliations'],
-        npi: [
-            'affiliated with', 'affiliated to', 'member of'
+        reverse_property: [
+            'member of #'
         ],
-        npp: ['affiliations']
+        passive_verb: [
+            'affiliated with #', 'affiliated to #'
+        ]
     },
     worksFor: {
-        default: 'avp',
         base: ['employers'],
-        npi: [
-            'employee of', '#employee'
+        reverse_property: [
+            'employee of #', '# employee'
         ],
-        avp: ['works for', 'works at', 'worked at', 'worked for'],
-        pvp: [
-            'employed at', 'employed by',
-        ],
-        npp: ['employers']
-    },
-    addressLocality: {
-        default: 'avp',
-        base: ['city'],
-        npp: ['city'],
-        avp: ['lives in', 'lived in'],
-        pvp: ['from', 'in']
+        verb: ['works for #', 'works at #', 'worked at #', 'worked for #'],
+        passive_verb: [
+            'employed at #', 'employed by #',
+        ]
     },
 
     // recipes
     author: {
-        default: 'pvp',
-        avp: [
-            'was written by', 'was submitted by',
-        ],
-        pvp: [
+        base: ['author', 'creator'],
+        passive_verb: [
             'by', 'made by', 'written by', 'created by', 'authored by', 'uploaded by', 'submitted by'
-        ],
-        npp: ['author', 'creator']
+        ]
     },
     publisher: {
-        default: 'pvp',
-        avp: [
-            'was published by', 'was submitted by'
-        ],
-        pvp: [
+        base: ['publisher'],
+        passive_verb: [
             'by', 'made by', 'published by'
         ],
-        npp: ['publisher']
     },
 
     prepTime: {
-        default: 'npp',
-        avp: ['takes #to_prepare', 'needs #to_prepare'],
-        npp: ['prep time', 'preparation time', 'time to prep', 'time to prepare']
+        verb: ['takes # to prepare', 'needs # to prepare'],
+        base: ['prep time', 'preparation time', 'time to prep', 'time to prepare']
     },
     cookTime: {
-        default: 'npp',
-        avp: ['takes #to_cook', 'needs #to_cook'],
-        npp: ['cook time', 'cooking time', 'time to cook']
+        verb: ['takes # to cook', 'needs # to cook'],
+        base: ['cook time', 'cooking time', 'time to cook']
     },
     totalTime: {
-        default: 'avp',
-        avp: ['takes', 'requires', 'needs', 'uses', 'consumes'],
-        npp: ['total time', 'time in total', 'time to make']
+        verb: ['takes #', 'requires #', 'needs #', 'uses #', 'consumes #'],
+        base: ['total time', 'time in total', 'time to make']
     },
     recipeYield: {
-        default: 'avp',
-        avp: ['yields', 'feeds', 'produces', 'results in', 'is good for'],
-        pvp: ['yielding'],
-        npp: ['yield amount', 'yield size']
+        verb: ['yields #', 'feeds #', 'produces #', 'results in #', 'is good for #'],
+        passive_verb: ['yielding #'],
+        base: ['yield amount', 'yield size']
     },
     recipeCategory: {
-        default: 'npp',
-        npp: ['categories']
+        base: ['categories']
     },
     recipeIngredient: {
-        default: 'npp',
-        avp: ['contains', 'uses', 'has'],
-        pvp: ['containing', 'using'],
-        npp: ['ingredients']
+        verb: ['contains', 'uses', 'has'],
+        passive_verb: ['containing', 'using'],
+        base: ['ingredients']
     },
     recipeInstructions: {
-        default: 'npp',
-        npp: ['instructions']
+        base: ['instructions']
     },
     recipeCuisines: {
-        default: 'avp',
-        apv: true,
-        avp: ['belongs to the #cuisine'],
-        npp: ['cuisines']
+        adjective: ["#"],
+        verb: ['belongs to the # cuisine'],
+        base: ['cuisines', 'cuisine']
     },
     reviewBody: {
-        default: 'npp',
-        npp: ['body', 'text', 'content']
+        base: ['body', 'text', 'content']
     },
     saturatedFatContent: {
-        default: 'npp',
-        npp: ['saturated fat content', 'saturated fat amount', 'saturated fat', 'trans far']
+        base: ['saturated fat content', 'saturated fat amount', 'saturated fat', 'trans fat']
     },
 
     // product
     mpn: {
-        default: 'npp',
-        npp: ['manufacturer part number']
+        base: ['manufacturer part number']
     }
 };
 
@@ -660,8 +604,7 @@ class SchemaProcessor {
         if (base.endsWith(' content') && ptype.isMeasure) {
             base = base.substring(0, base.length - ' content'.length);
             canonical = {
-                avp: ['contains #' + base.replace(/ /g, '_')],
-                npp: [base + ' content', base, base + ' amount'],
+                verb: ['contains #' + base.replace(/ /g, '_')],
                 base: [base + ' content', base, base + ' amount']
             };
             return canonical;
@@ -669,40 +612,38 @@ class SchemaProcessor {
 
         if (base.startsWith('has ')) {
             base = base.substring('has '.length);
-            canonical['npp'] = base;
+            canonical['base'] = [base];
         } else if (base.startsWith('is ')) {
             base = base.substring('is '.length);
             let tags = posTag(base.split(' '));
 
             if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1]) || base.endsWith(' of'))
-                canonical["npi"] = [base];
+                canonical["reverse_property"] = [base];
             else if (['VBN', 'JJ', 'JJR'].includes(tags[0]))
-                canonical["pvp"] = [base];
+                canonical["passive_verb"] = [base];
 
         } else {
             let tags = posTag(base.split(' '));
             if (['VBP', 'VBZ'].includes(tags[0])) {
                 if (tags.length === 2 && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
-                    canonical["avp"] = [base.replace(' ', ' #')];
-                    canonical["npp"] = base.split(' ')[1];
+                    canonical["verb"] = [base.replace(' ', ' # ')];
+                    canonical["base"] = [base.split(' ')[1]];
                 } else {
-                    canonical["avp"] = [base];
+                    canonical["verb"] = [base];
                 }
             } else if (base.endsWith(' of')) {
-                canonical["npi"] = [base];
+                canonical["reverse_property"] = [base];
             } else if (['VBN', 'JJ', 'JJR'].includes(tags[0]) && !['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
                 // this one is actually somewhat problematic
                 // e.g., all non-words are recognized as JJ, including issn, dateline, funder
-                canonical["pvp"] = [base];
+                canonical["passive_verb"] = [base];
             }
 
         }
 
-        if (!("npp" in canonical) && this._always_base_canonical)
-            canonical["npp"] = [base];
+        if (!("base" in canonical) && this._always_base_canonical)
+            canonical["base"] = [base];
 
-        if ("npp" in canonical)
-            canonical["base"] = [...canonical["npp"]];
         return canonical;
     }
 
@@ -1060,13 +1001,13 @@ module.exports = {
         parser.addArgument('--always-base-canonical', {
             nargs: 0,
             action: 'storeTrue',
-            help: `Always generate base/npp canonical`,
+            help: `Always generate base canonical`,
             defaultValue: true
         });
         parser.addArgument('--no-bad-base-canonical', {
             nargs: 0,
             action: 'storeFalse',
-            help: `Do not always generate base/npp canonical`,
+            help: `Do not always generate base canonical`,
             dest: `always_base_canonical`,
         });
         parser.addArgument('--class-name', {

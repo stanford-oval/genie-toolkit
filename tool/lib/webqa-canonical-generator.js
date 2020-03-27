@@ -48,16 +48,12 @@ function templateQuery(cat, tableName, prefix, value='', suffix='') {
     switch (cat) {
         case 'base':
             return `what is the ${prefix} of the ${tableName} ?`.split(/\s+/g);
-        case 'npp':
         case 'property':
             return `show me ${tableName} with ${prefix} ${value} ${suffix} .`.split(/\s+/g);
-        case 'avp':
         case 'verb':
             return `which ${tableName} ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
-        case 'pvp':
         case 'passive_verb':
             return `show me a ${tableName} ${prefix} ${value} ${suffix} .`.split(/\s+/g);
-        case 'npi':
         case 'reverse_property':
             return `which ${tableName} is a ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
         default:
@@ -109,12 +105,12 @@ class CanonicalGenerator {
                 if (!arg.metadata.canonical)
                     continue;
 
-                // copy base canonical if npp canonical is missing
-                if (arg.metadata.canonical.base && !arg.metadata.canonical.npp)
-                    arg.metadata.canonical.npp = [...arg.metadata.canonical.base];
+                // copy base canonical if property canonical is missing
+                if (arg.metadata.canonical.base && !arg.metadata.canonical.property)
+                    arg.metadata.canonical.property = [...arg.metadata.canonical.base];
 
-                // if npp is missing, try to use entity type info
-                if (!('npp' in arg.metadata.canonical)) {
+                // if property is missing, try to use entity type info
+                if (!('property' in arg.metadata.canonical)) {
                     let typestr = entityTypeToString(query.getArgType(arg.name));
                     // only apply this if the type is unique
                     if (typestr && typeCounts[typestr] === 1) {
@@ -122,7 +118,7 @@ class CanonicalGenerator {
                             .replace(/_/, ' ')
                             .toLowerCase()
                             .trim();
-                        arg.metadata.canonical['npp'] = [base];
+                        arg.metadata.canonical['property'] = [base];
                         arg.metadata.canonical['base'] = [base];
                     }
                 }
@@ -210,7 +206,7 @@ class CanonicalGenerator {
             for (let arg in candidates[qname]) {
                 let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
                 if (adjectives.includes(`${qname}.${arg}`))
-                        canonicals['apv'] = true;
+                        canonicals['adjective'] = ['#'];
 
                 for (let type in candidates[qname][arg]) {
                     let count = candidates[qname][arg][type].candidates;
@@ -248,7 +244,7 @@ class CanonicalGenerator {
 
     _generateExamples(tableName, canonicals, valueSample) {
         let examples = {};
-        for (let cat of ['base', 'npp', 'avp', 'pvp', 'npi']) {
+        for (let cat of ['base', 'property', 'verb', 'passive_verb', 'reverse_property']) {
             if (cat in canonicals)
                 examples[cat] = { examples: [], candidates: [] } ;
         }
@@ -267,7 +263,7 @@ class CanonicalGenerator {
 
         for (let value of valueSample) {
             for (let cat in canonicals) {
-                if (['default', 'apv', 'npv', 'base'].includes(cat))
+                if (['default', 'adjective', 'implicit_identity', 'base'].includes(cat))
                     continue;
                 for (let canonical of canonicals[cat]) {
                     let [prefix, suffix] = splitCanonical(canonical);

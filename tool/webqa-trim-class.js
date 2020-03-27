@@ -211,9 +211,9 @@ class SchemaTrimmer {
         }
 
         if (tabledef.args.includes('geo') && hasAddress && !hasGeo) {
-            newArgs.push(new Ast.ArgumentDef(null, 'out', 'geo', Type.Location, {
+            newArgs.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'geo', Type.Location, {
                 nl: {
-                    canonical: { default:"npp", npp:["location", "address"] }
+                    canonical: { base:["location", "address"] }
                 },
                 impl: {
                     org_schema_type: new Ast.Value.String('GeoCoordinates'),
