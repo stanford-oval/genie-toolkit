@@ -39,7 +39,7 @@ result_name_pair = {
         const r2 = results[1];
         if (!r1.value.id.equals(n1) || !r2.value.id.equals(n2))
             return null;
-        return results.slice(0, 2);
+        return { ctx, results: results.slice(0, 2) };
     };
 }
 
@@ -56,10 +56,11 @@ result_name_list = {
         const r2 = results[1];
         if (!r1.value.id.equals(n1) || !r2.value.id.equals(n2))
             return null;
-        return results.slice(0, 2);
+        return { ctx, results: results.slice(0, 2) };
     };
 
-    ctx:ctx_with_result result_name_pair ('and' | 'or') n3:constant_name => {
+    pair:result_name_pair ('and' | 'or') n3:constant_name => {
+        const ctx = pair.ctx;
         const results = ctx.results;
         assert(results.length > 0);
         if (results.length < 3)
@@ -69,7 +70,7 @@ result_name_list = {
         const r3 = results[2];
         if (!r3.value.id.equals(n3))
             return null;
-        return results.slice(0, 3);
+        return { ctx, results: results.slice(0, 3) };
     };
 }
 

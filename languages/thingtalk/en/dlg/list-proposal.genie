@@ -32,31 +32,37 @@
 // a "list proposal" consists of the first few results of the current query,
 // together with informative results about them, an offer to learn more, or an offer for an action
 system_list_proposal = {
-    ctx:ctx_without_projection ('i see' | 'i have' | 'i have found') name_list:result_name_list '.'
+    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.'
         ('' |
          'would you like to learn more ?' | 'would you like to learn more about either of them ?' |
          'would you like to know more about them ?' | 'would you like to hear more about them ?' |
          'are you interested to hear more about any of them ?')
-        => [name_list, null, ctx.nextInfo && ctx.nextInfo.isAction ? D.getActionInvocation(ctx.next) : null];
-
-    ctx:ctx_complete_search_command ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' ('they' | 'all of them') 'are' info:result_info_phrase '.'
-        => D.checkListProposal(ctx, name_list, info);
-
-    ctx:ctx_complete_search_command  ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' 'both are' info:result_info_phrase '.' => {
-        if (name_list.length !== 2)
+        => {
+        const { ctx, results } = name_list;
+        if (ctx.resultInfo.projection !== null)
             return null;
-        return D.checkListProposal(ctx, name_list, info);
+        return [results, null, ctx.nextInfo && ctx.nextInfo.isAction ? D.getActionInvocation(ctx.next) : null];
     };
 
-    ctx:ctx_complete_search_command ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_list_proposal => {
-        const resultType = name_list[0].value.id.getType();
+    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' ('they' | 'all of them') 'are' info:result_info_phrase '.'
+        => D.checkListProposal(name_list, info);
+
+    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' 'both are' info:result_info_phrase '.' => {
+        if (name_list.results.length !== 2)
+            return null;
+        return D.checkListProposal(name_list, info);
+    };
+
+    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_list_proposal => {
+        const { ctx, results } = name_list;
+        const resultType = results[0].value.id.getType();
         if (!C.hasArgumentOfType(action, resultType))
             return null;
         const ctxAction = ctx.nextInfo && ctx.nextInfo.isAction ? D.getActionInvocation(ctx.next) : null;
         if (ctxAction && !C.isSameFunction(ctxAction.schema, action.schema))
             return null;
 
-        return [name_list, null, action];
+        return [results, null, action];
     };
 }
 
@@ -75,9 +81,7 @@ verbose_negative_list_proposal_reply_pair = {
 }
 
 negative_list_proposal_reply_pair = {
-    ( prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
-    | prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble request:anything_phrase
-    ) => {
+    prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') request:negative_proposal_answer => {
         const [results, info, action] = prop;
         const proposalType = results[0].value.id.getType();
         const idType = request.schema.getArgType('id');
@@ -90,14 +94,16 @@ negative_list_proposal_reply_pair = {
     pair:verbose_negative_list_proposal_reply_pair [weight=5] => {
         const [results, action, preamble] = pair;
         // convert the preamble into a request by negating it
-        const clone = preamble.clone();
+
+        // shallow clone
+        assert(preamble instanceof Ast.Table.Filter);
+        const clone = new Ast.Table.Filter(null, preamble.table, preamble.filter, preamble.schema);
         clone.filter = new Ast.BooleanExpression.Not(null, clone.filter);
         return [results, action, clone];
     };
 
-    ( pair:verbose_negative_list_proposal_reply_pair negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
-    | pair:verbose_negative_list_proposal_reply_pair negative_proposal_answer_preamble request:anything_phrase
-    ) => D.mergePreambleAndRequest(pair, request);
+    pair:verbose_negative_list_proposal_reply_pair request:negative_proposal_answer
+        => D.mergePreambleAndRequest(pair, request);
 }
 
 positive_list_proposal_reply_pair = {

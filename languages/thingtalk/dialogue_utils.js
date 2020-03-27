@@ -190,7 +190,8 @@ function makeShortUserQuestionAnswer({ topResult, ctx, action }, filter) {
     return checkRecommendation({ topResult, action }, info);
 }
 
-function checkListProposal(ctx, results, info) {
+function checkListProposal(nameList, info) {
+    const { ctx, results } = nameList;
     const resultType = results[0].value.id.getType();
     const idType = info.schema.getArgType('id');
 
@@ -275,9 +276,7 @@ function checkActionForRecommendation({ topResult, info, action: nextAction }, a
 function makeRefinementProposal(ctx, proposal) {
     assert(proposal.isFilter && proposal.table.isInvocation);
 
-    let ctxTable, ctxFilterTable;
-    ctxTable = ctx.current.stmt.table.clone();
-    [ctxTable, ctxFilterTable] = findOrMakeFilterTable(ctxTable);
+    const ctxFilterTable = findFilterTable(ctx.current.stmt.table);
     if (ctxFilterTable === null)
         return null;
 
@@ -409,7 +408,53 @@ function isSlotFillAnswerValidForQuestion(action, questions) {
 /**
  * Find the filter table in the context.
  *
- * If we don't have one, make it up right before the invocation.
+ * Returns filterTable
+ */
+function findFilterTable(root) {
+    let table = root;
+    while (!table.isFilter) {
+        if (table.isSequence ||
+            table.isHistory ||
+            table.isWindow ||
+            table.isTimeSeries)
+            throw new Error('NOT IMPLEMENTED');
+
+        // do not touch these with filters
+        if (table.isAggregation ||
+            table.isVarRef ||
+            table.isResultRef)
+            return null;
+
+        // go inside these
+        if (table.isSort ||
+            table.isIndex ||
+            table.isSlice ||
+            table.isProjection ||
+            table.isCompute ||
+            table.isAlias) {
+            table = table.table;
+            continue;
+        }
+
+        if (table.isJoin) {
+            // go right on join, always
+            table = table.rhs;
+            continue;
+        }
+
+        assert(table.isInvocation);
+        // if we get here, there is no filter table at all
+        return null;
+    }
+
+    return table;
+}
+
+
+/**
+ * Find the filter table in the context.
+ *
+ * Like findFilterTable, but if we don't have one, make it up right before the invocation.
  *
  * Returns [root, filterTable]
  */
@@ -780,8 +825,7 @@ function preciseSearchQuestionAnswer(ctx, [questions, answer]) {
     const newTable = queryRefinement(currentTable, answer.filter, refineFilterToAnswerQuestion);
     if (newTable === null)
         return null;
-    const clone = ctx.clone();
-    const userState = addQuery(clone, 'execute', newTable, 'accepted');
+    const userState = addQuery(ctx, 'execute', newTable, 'accepted');
     let sysState;
     if (questions.length === 0)
         sysState = makeSimpleState(ctx, 'sys_generic_search_question', null);
@@ -808,8 +852,7 @@ function preciseSlotFillQuestionAnswer(ctx, [questions, answer]) {
             return null;
     }
 
-    const clone = ctx.clone();
-    const userState = replaceAction(clone, 'execute', answer, 'accepted');
+    const userState = replaceAction(ctx, 'execute', answer, 'accepted');
     assert(questions.length > 0);
     const sysState = makeSimpleState(ctx, 'sys_slot_fill', questions);
     return checkStateIsValid(ctx, sysState, userState);
@@ -867,8 +910,7 @@ function impreciseSearchQuestionAnswer(ctx, [questions, answer]) {
     const newTable = queryRefinement(currentTable, answer, refineFilterToAnswerQuestion);
     if (newTable === null)
         return null;
-    const clone = ctx.clone();
-    const userState = addQuery(clone, 'execute', newTable, 'accepted');
+    const userState = addQuery(ctx, 'execute', newTable, 'accepted');
     const sysState = makeSimpleState(ctx, 'sys_search_question', questions);
     return checkStateIsValid(ctx, sysState, userState);
 }
@@ -885,8 +927,7 @@ function impreciseSlotFillQuestionAnswer(ctx, [questions, answer]) {
     const newAction = C.addInvocationInputParam(currentAction, answer);
     if (newAction === null)
         return null;
-    const clone = ctx.clone();
-    const userState = replaceAction(clone, 'execute', newAction, 'accepted');
+    const userState = replaceAction(ctx, 'execute', newAction, 'accepted');
     const sysState = makeSimpleState(ctx, 'sys_slot_fill', questions);
     return checkStateIsValid(ctx, sysState, userState);
 }
@@ -898,14 +939,13 @@ function proposalReplyPair(ctx, [proposal, request]) {
         return null;
     assert(request.isFilter && request.table.isInvocation);
 
-    const clone = ctx.clone();
-    const currentTable = clone.current.stmt.table;
+    const currentTable = ctx.current.stmt.table;
     const newTable = queryRefinement(currentTable, request.filter, refineFilterToAnswerQuestion);
     if (newTable === null)
         return null;
 
-    const userState = addQuery(clone, 'execute', newTable, 'accepted');
-    const sysState = addQuery(ctx.clone(), 'sys_propose_refined_query', proposal, 'proposed');
+    const userState = addQuery(ctx, 'execute', newTable, 'accepted');
+    const sysState = addQuery(ctx, 'sys_propose_refined_query', proposal, 'proposed');
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -930,18 +970,17 @@ function negativeRecommendationReplyPair(ctx, [topResult, action, request]) {
         return null;
     assert(request.isFilter && request.table.isInvocation);
 
-    const clone = ctx.clone();
-    const currentTable = clone.current.stmt.table;
+    const currentTable = ctx.current.stmt.table;
     const newTable = queryRefinement(currentTable, request.filter, refineFilterToAnswerQuestionOrChangeFilter);
     if (newTable === null)
         return null;
 
-    const userState = addQuery(clone, 'execute', newTable, 'accepted');
+    const userState = addQuery(ctx, 'execute', newTable, 'accepted');
     let sysState;
     if (action === null)
         sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
     else
-        sysState = addActionParam(ctx.clone(), 'sys_recommend_one', action, findChainParam(topResult, action), topResult.value.id, 'proposed');
+        sysState = addActionParam(ctx, 'sys_recommend_one', action, findChainParam(topResult, action), topResult.value.id, 'proposed');
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -953,7 +992,7 @@ function positiveRecommendationReplyPair(ctx, [topResult, actionProposal, accept
         userState = makeSimpleState(ctx, 'learn_more', null);
     } else {
         const chainParam = findChainParam(topResult, acceptedAction);
-        userState = addActionParam(ctx.clone(), 'execute', acceptedAction, chainParam, topResult.value.id, 'accepted');
+        userState = addActionParam(ctx, 'execute', acceptedAction, chainParam, topResult.value.id, 'accepted');
     }
 
     let sysState;
@@ -961,7 +1000,7 @@ function positiveRecommendationReplyPair(ctx, [topResult, actionProposal, accept
         sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
     } else {
         const chainParam = findChainParam(topResult, actionProposal);
-        sysState = addActionParam(ctx.clone(), 'sys_recommend_one', actionProposal, chainParam, topResult.value.id, 'proposed');
+        sysState = addActionParam(ctx, 'sys_recommend_one', actionProposal, chainParam, topResult.value.id, 'proposed');
     }
     return checkStateIsValid(ctx, sysState, userState);
 }
@@ -987,14 +1026,14 @@ function listProposalSearchQuestionPair(ctx, [results, name, actionProposal, que
     if (newTable === null)
         return null;
 
-    const userState = addQuery(ctx.clone(), 'execute', newTable, 'accepted');
+    const userState = addQuery(ctx, 'execute', newTable, 'accepted');
 
     let dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
     let sysState;
     if (actionProposal === null)
         sysState = makeSimpleState(ctx, dialogueAct, null);
     else
-        sysState = addAction(ctx.clone(), dialogueAct, actionProposal, 'proposed');
+        sysState = addAction(ctx, dialogueAct, actionProposal, 'proposed');
 
     return checkStateIsValid(ctx, sysState, userState);
 }
@@ -1018,14 +1057,14 @@ function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, quest
         questions.map(([qname, qtype]) => qname));
     if (newTable === null)
         return null;
-    const userState = addQuery(ctx.clone(), 'execute', newTable, 'accepted');
+    const userState = addQuery(ctx, 'execute', newTable, 'accepted');
 
     let sysState;
     if (actionProposal === null) {
         sysState = makeSimpleState(ctx, sysDialogueAct, null);
     } else {
         const chainParam = findChainParam(topResult, actionProposal);
-        sysState = addActionParam(ctx.clone(), sysDialogueAct, actionProposal, chainParam, topResult.value.id, 'proposed');
+        sysState = addActionParam(ctx, sysDialogueAct, actionProposal, chainParam, topResult.value.id, 'proposed');
     }
 
     return checkStateIsValid(ctx, sysState, userState);
@@ -1044,7 +1083,7 @@ function recommendationCancelPair(ctx, { topResult, action: actionProposal }) {
         sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
     } else {
         const chainParam = findChainParam(topResult, actionProposal);
-        sysState = addActionParam(ctx.clone(), 'sys_recommend_one', actionProposal, chainParam, topResult.value.id, 'proposed');
+        sysState = addActionParam(ctx, 'sys_recommend_one', actionProposal, chainParam, topResult.value.id, 'proposed');
     }
 
     return checkStateIsValid(ctx, sysState, userState);
@@ -1062,15 +1101,14 @@ function negativeListProposalReplyPair(ctx, [results, action, request]) {
     if (newTable === null)
         return null;
 
-    const clone = ctx.clone();
-    const userState = addQuery(clone, 'execute', newTable, 'accepted');
+    const userState = addQuery(ctx, 'execute', newTable, 'accepted');
 
     let dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
     let sysState;
     if (action === null)
         sysState = makeSimpleState(ctx, dialogueAct, null);
     else
-        sysState = addAction(ctx.clone(), dialogueAct, action, 'proposed');
+        sysState = addAction(ctx, dialogueAct, action, 'proposed');
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -1093,11 +1131,10 @@ function positiveListProposalReplyPair(ctx, [results, actionProposal, name, acce
         if (newTable === null)
             return null;
 
-         const clone = ctx.clone();
-       userState = addQuery(clone, 'execute', newTable, 'accepted');
+        userState = addQuery(ctx, 'execute', newTable, 'accepted');
     } else {
         const chainParam = findChainParam(results[0], acceptedAction);
-        userState = addActionParam(ctx.clone(), 'execute', acceptedAction, chainParam, name, 'accepted');
+        userState = addActionParam(ctx, 'execute', acceptedAction, chainParam, name, 'accepted');
     }
 
     let dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
@@ -1105,7 +1142,7 @@ function positiveListProposalReplyPair(ctx, [results, actionProposal, name, acce
     if (actionProposal === null)
         sysState = makeSimpleState(ctx, dialogueAct, null);
     else
-        sysState = addAction(ctx.clone(), dialogueAct, actionProposal, 'proposed');
+        sysState = addAction(ctx, dialogueAct, actionProposal, 'proposed');
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -1154,15 +1191,14 @@ function emptySearchChangePair(ctx, [question, phrase]) {
     if (question !== null && !currentTable.schema.out[question])
         return null;
 
-    const clone = ctx.clone();
-    const [,ctxFilterTable] = findOrMakeFilterTable(clone.current.stmt.table);
+    const ctxFilterTable = findFilterTable(ctx.current.stmt.table);
     if (question !== null && !C.filterUsesParam(ctxFilterTable.filter, question))
         return null;
 
     const newTable = queryRefinement(currentTable, phrase.filter, refineFilterToChangeFilter);
     if (newTable === null)
         return null;
-    const userState = addQuery(clone, 'execute', newTable, 'accepted');
+    const userState = addQuery(ctx, 'execute', newTable, 'accepted');
     const sysState = makeSimpleState(ctx, question ? 'sys_empty_search_question' : 'sys_empty_search', question);
     return checkStateIsValid(ctx, sysState, userState);
 }

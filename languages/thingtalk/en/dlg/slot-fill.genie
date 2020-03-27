@@ -45,6 +45,10 @@ one_param_direct_search_question = {
     };
 }
 
+one_param_direct_search_question_with_preamble = {
+    search_result_preamble question:one_param_direct_search_question => question;
+}
+
 two_param_direct_search_question = {
     ( 'what' p1:out_param_Any 'and' p2:out_param_Any prefer_question_phrase '?'
     | p1:thingpedia_search_question 'and' 'what' p2:out_param_Any prefer_question_phrase '?'
@@ -68,6 +72,10 @@ one_param_yesno_direct_search_question = {
             return null;
         return [p.name];
     };
+}
+
+one_param_yesno_direct_search_question_with_preamble = {
+    search_result_preamble question:one_param_yesno_direct_search_question => question;
 }
 
 two_param_yesno_direct_search_question = {
@@ -155,31 +163,51 @@ disjunctive_search_question = {
     };
 }
 
+disjunctive_search_question_with_preamble = {
+    search_result_preamble question:disjunctive_search_question => question;
+}
+
 generic_question = {
     'which one would you like ?' => [];
     'do you have a specific one in mind ?' => [];
     'do you have any more information to narrow down the search ?' => [];
 }
 
+direct_search_question = {
+    one_param_direct_search_question;
+    two_param_direct_search_question;
+    disjunctive_search_question;
+}
+
+yesno_search_question = {
+    one_param_yesno_direct_search_question;
+    two_param_yesno_direct_search_question;
+    generic_question;
+}
+
+direct_search_question_with_preamble = {
+    search_result_preamble question:one_param_direct_search_question => question;
+    search_result_preamble question:two_param_direct_search_question => question;
+    search_result_preamble question:disjunctive_search_question => question;
+}
+
+yesno_search_question_with_preamble = {
+    search_result_preamble question:one_param_yesno_direct_search_question => question;
+    search_result_preamble question:two_param_yesno_direct_search_question => question;
+    search_result_preamble question:generic_question => question;
+}
+
 precise_search_question_answer_pair = {
-    ( questions:one_param_direct_search_question '<sep>' table:verbose_search_answer
-    | questions:two_param_direct_search_question '<sep>' table:verbose_search_answer
-    | questions:disjunctive_search_question '<sep>' table:verbose_search_answer
-    | questions:one_param_yesno_direct_search_question'<sep>' ('yes' | 'yes ,' | '') table:verbose_search_answer
-    | questions:two_param_yesno_direct_search_question'<sep>' ('yes' | 'yes ,' | '') table:verbose_search_answer
-    | questions:generic_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_search_answer [weight=0.1]
+    ( questions:direct_search_question '<sep>' table:verbose_search_answer
+    | questions:yesno_search_question'<sep>' ('yes' | 'yes ,' | '') table:verbose_search_answer
     ) => {
         if (!D.isQueryAnswerValidForQuestion(table, questions))
             return null;
         return [questions, table];
     };
 
-    ( preamble:search_result_preamble questions:one_param_direct_search_question '<sep>' table:verbose_search_answer [weight=0.1]
-    | preamble:search_result_preamble questions:two_param_direct_search_question '<sep>' table:verbose_search_answer [weight=0.1]
-    | preamble:search_result_preamble questions:disjunctive_search_question '<sep>' table:verbose_search_answer [weight=0.1]
-    | preamble:search_result_preamble questions:one_param_yesno_direct_search_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_search_answer [weight=0.1]
-    | preamble:search_result_preamble questions:two_param_yesno_direct_search_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_search_answer [weight=0.1]
-    | preamble:search_result_preamble questions:generic_question '<sep>' ('yes' | 'yes ,' | '') table:verbose_search_answer [weight=0.01]
+    ( questions:direct_search_question_with_preamble '<sep>' table:verbose_search_answer [weight=0.1]
+    | questions:yesno_search_question_with_preamble '<sep>' ('yes' | 'yes ,' | '') table:verbose_search_answer [weight=0.1]
     ) => {
         if (!D.isQueryAnswerValidForQuestion(table, questions))
             return null;
@@ -210,9 +238,9 @@ imprecise_search_question_answer_pair = {
     | questions:one_param_yesno_direct_search_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_search_answer
     ) => D.impreciseSearchQuestionAnswerPair(questions, answer);
 
-    ( preamble:search_result_preamble questions:one_param_direct_search_question '<sep>' answer:imprecise_search_answer
-    | preamble:search_result_preamble questions:disjunctive_search_question '<sep>' answer:imprecise_search_answer
-    | preamble:search_result_preamble questions:one_param_yesno_direct_search_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_search_answer [weight=2]
+    ( questions:one_param_direct_search_question_with_preamble '<sep>'  ('yes' | 'yes ,' | '') answer:imprecise_search_answer
+    | questions:disjunctive_search_question_with_preamble '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_search_answer
+    | questions:one_param_yesno_direct_search_question_with_preamble '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_search_answer [weight=2]
     ) => D.impreciseSearchQuestionAnswerPair(questions, answer);
 
 
@@ -220,9 +248,9 @@ imprecise_search_question_answer_pair = {
     | questions:disjunctive_search_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
     | questions:one_param_yesno_direct_search_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
 
-    | preamble:search_result_preamble questions:one_param_direct_search_question '<sep>' generic_dontcare_phrase [weight=0.1]
-    | preamble:search_result_preamble questions:disjunctive_search_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
-    | preamble:search_result_preamble questions:one_param_yesno_direct_search_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
+    | questions:one_param_direct_search_question_with_preamble '<sep>' generic_dontcare_phrase [weight=0.1]
+    | questions:disjunctive_search_question_with_preamble '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
+    | questions:one_param_yesno_direct_search_question_with_preamble '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
     ) => D.impreciseSearchQuestionAnswerPair(questions, new Ast.BooleanExpression.DontCare(null, questions[0]));
 
 
@@ -230,9 +258,9 @@ imprecise_search_question_answer_pair = {
     | questions:disjunctive_search_question '<sep>' ('no' | 'no ,' | '') answer:specific_dontcare_phrase [weight=0.1]
     | questions:one_param_yesno_direct_search_question '<sep>' ('no' | 'no ,' | '') answer:specific_dontcare_phrase [weight=0.1]
 
-    | preamble:search_result_preamble questions:one_param_direct_search_question '<sep>' answer:specific_dontcare_phrase [weight=0.1]
-    | preamble:search_result_preamble questions:disjunctive_search_question '<sep>' ('no' | 'no ,' | '') answer:specific_dontcare_phrase [weight=0.1]
-    | preamble:search_result_preamble questions:one_param_yesno_direct_search_question '<sep>' ('no' | 'no ,' | '') answer:specific_dontcare_phrase [weight=0.1]
+    | questions:one_param_direct_search_question_with_preamble '<sep>' answer:specific_dontcare_phrase [weight=0.1]
+    | questions:disjunctive_search_question_with_preamble '<sep>' ('no' | 'no ,' | '') answer:specific_dontcare_phrase [weight=0.1]
+    | questions:one_param_yesno_direct_search_question_with_preamble '<sep>' ('no' | 'no ,' | '') answer:specific_dontcare_phrase [weight=0.1]
     ) => D.impreciseSearchQuestionAnswerPair(questions, answer);
 }
 

@@ -25,15 +25,18 @@
 }
 
 negative_proposal_answer_preamble = {
-    'i need';
     'i was thinking more of';
-    'i would like';
     'i would like';
     'i am looking for';
     'do you have';
     'can you find';
     'is there';
     'that does not sound great , do you have';
+}
+
+negative_proposal_answer = {
+    negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase => request;
+    negative_proposal_answer_preamble request:anything_phrase => request;
 }
 
 the_base_noun_phrase = {

@@ -1537,7 +1537,7 @@ function makeWithinGeoDistanceExpression(table, location, filterValue) {
     // the distance should be at least 100 meters (if the value is small number)
     if (filterValue.isMeasure && Units.transformToBaseUnit(filterValue.value, unit) < 100)
         return null;
-    return makeComputeFilterExpression(table, 'distance', [Ast.Value.VarRef('geo'), location], Type.Measure('m'), '<=', filterValue);
+    return makeComputeFilterExpression(table, 'distance', [new Ast.Value.VarRef('geo'), location], Type.Measure('m'), '<=', filterValue);
 }
 
 function makeComputeArgMinMaxExpression(table, operation, operands, resultType, direction = 'desc') {
@@ -1684,12 +1684,14 @@ function addInvocationInputParam(invocation, param) {
 
 function addActionInputParam(action, param) {
     assert(action instanceof Ast.Action.Invocation || action instanceof Ast.Table.Invocation);
-    const clone = action.clone();
-    clone.invocation = addInvocationInputParam(clone.invocation, param);
-    if (clone.invocation === null)
+    const newInvocation = addInvocationInputParam(action.invocation, param);
+    if (newInvocation === null)
         return null;
-    clone.schema = clone.schema.removeArgument(param.name);
-    return clone;
+
+    if (action instanceof Ast.Action.Invocation)
+        return new Ast.Action.Invocation(null, newInvocation, action.schema.removeArgument(param.name));
+    else
+        return new Ast.Table.Invocation(null, newInvocation, action.schema.removeArgument(param.name));
 }
 
 module.exports = {
