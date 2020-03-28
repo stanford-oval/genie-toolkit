@@ -12,6 +12,7 @@ const fs = require('fs');
 const util = require('util');
 const path = require('path');
 const child_process = require('child_process');
+const utils = require('../../lib/utils');
 
 const { makeLookupKeys } = require('../../lib/sample-utils');
 
@@ -21,10 +22,10 @@ const ANNOTATED_PROPERTIES = [
 ];
 
 
-// turn entity type into string
-function entityTypeToString(type) {
+// extract entity type from type
+function typeToEntityType(type) {
     if (type.isArray)
-        return entityTypeToString(type.elem);
+        return typeToEntityType(type.elem);
     else if (type.isEntity)
         return type.type;
     else
@@ -111,13 +112,10 @@ class CanonicalGenerator {
 
                 // if property is missing, try to use entity type info
                 if (!('property' in arg.metadata.canonical)) {
-                    let typestr = entityTypeToString(query.getArgType(arg.name));
-                    // only apply this if the type is unique
+                    let typestr = typeToEntityType(query.getArgType(arg.name));
+                    // only apply this if there is only one property uses this entity type
                     if (typestr && typeCounts[typestr] === 1) {
-                        let base = typestr.substring(typestr.indexOf(':') + 1)
-                            .replace(/_/, ' ')
-                            .toLowerCase()
-                            .trim();
+                        let base = utils.clean(typestr.substring(typestr.indexOf(':') + 1));
                         arg.metadata.canonical['property'] = [base];
                         arg.metadata.canonical['base'] = [base];
                     }
@@ -170,13 +168,10 @@ class CanonicalGenerator {
         const schema = this.class.queries[qname];
         const count = {};
         for (let arg of schema.iterateArguments()) {
-            let typestr = entityTypeToString(schema.getArgType(arg.name));
+            let typestr = typeToEntityType(schema.getArgType(arg.name));
             if (!typestr)
                 continue;
-            if (typestr in count)
-                count[typestr] += 1;
-            else
-                count[typestr] = 1;
+            count[typestr] = (count[typestr] || 0) + 1;
         }
         return count;
     }

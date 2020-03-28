@@ -1004,7 +1004,7 @@ module.exports = {
             help: `Always generate base canonical`,
             defaultValue: true
         });
-        parser.addArgument('--no-bad-base-canonical', {
+        parser.addArgument('--no-always-base-canonical', {
             nargs: 0,
             action: 'storeFalse',
             help: `Do not always generate base canonical`,
