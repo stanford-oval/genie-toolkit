@@ -127,11 +127,8 @@ class SchemaTrimmer {
         for (let key in obj) {
             if (key === '@id' || key === '@type' || key === '@context')
                 continue;
-            if (key === 'name') {
-                if (obj[key] && obj[key].length)
-                    this._markTableHasName(tabledef);
-                continue;
-            }
+            if (key === 'name' && obj[key] && obj[key].length)
+                this._markTableHasName(tabledef);
 
             const arg = tabledef.getArgument(key);
             if (!arg)
@@ -196,6 +193,8 @@ class SchemaTrimmer {
         let hasAddress = false;
         let hasGeo = false;
         for (let argname of tabledef.args) {
+            if (argname === 'name')
+                continue;
             if (argname.indexOf('.') >= 0)
                 continue;
             const arg = tabledef.getArgument(argname);
@@ -212,9 +211,9 @@ class SchemaTrimmer {
         }
 
         if (tabledef.args.includes('geo') && hasAddress && !hasGeo) {
-            newArgs.push(new Ast.ArgumentDef(null, 'out', 'geo', Type.Location, {
+            newArgs.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'geo', Type.Location, {
                 nl: {
-                    canonical: { default:"npp", npp:["location", "address"] }
+                    canonical: { base:["location", "address"] }
                 },
                 impl: {
                     org_schema_type: new Ast.Value.String('GeoCoordinates'),
