@@ -884,7 +884,9 @@ class SchemaProcessor {
             ];
             recursiveAddStringValues(args[0], this._prefix + typename + '_name');
             if (typename !== 'Thing') {
-                // override name so we can apply a custom string_values annotation
+                // override name for each table so we can apply a custom string_values annotation
+                // name is preserved to determine if the table has name and id has ner support
+                // it will be removed during trimming
                 const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'name', Type.String, {
                     nl: {},
                     impl: {
