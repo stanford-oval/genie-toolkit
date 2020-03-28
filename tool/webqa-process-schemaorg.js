@@ -413,7 +413,11 @@ class SchemaProcessor {
         this._hasGeo = false;
         this._prefix = `${this._className}:`;
         this._white_list = args.white_list.split(',');
+
+        this._wikidata_path = args.wikidata_path;
+        this._wikidata_labels = {};
     }
+
 
     typeToThingTalk(typename, typeHierarchy, manualAnnotation) {
         if (typename in BUILTIN_TYPEMAP)
@@ -580,6 +584,7 @@ class SchemaProcessor {
 
     makeArgCanonical(name, ptype) {
         function cleanName(name) {
+            name = clean(name);
             if (name.endsWith(' value'))
                 return name.substring(0, name.length - ' value'.length);
             return name;
@@ -591,61 +596,61 @@ class SchemaProcessor {
             return MANUAL_PROPERTY_CANONICAL_OVERRIDE[name];
 
         let canonical = {};
-        let base;
-        let plural = ptype && ptype.isArray;
-        name = clean(name);
-        if (!name.includes('.')) {
-            base = plural ? pluralize(cleanName(name)) : cleanName(name);
-        } else {
-            const components = name.split('.');
-            const last = components[components.length - 1];
-            base = plural ? pluralize(last) : last;
-        }
 
-        if (base.endsWith(' content') && ptype.isMeasure) {
-            base = base.substring(0, base.length - ' content'.length);
-            canonical = {
-                verb: ['contains #' + base.replace(/ /g, '_')],
-                base: [base + ' content', base, base + ' amount']
-            };
-            return canonical;
-        }
-
-        if (base.startsWith('has ')) {
-            base = base.substring('has '.length);
-            canonical['base'] = [base];
-        } else if (base.startsWith('is ')) {
-            base = base.substring('is '.length);
-            let tags = posTag(base.split(' '));
-
-            if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1]) || base.endsWith(' of'))
-                canonical["reverse_property"] = [base];
-            else if (['VBN', 'JJ', 'JJR'].includes(tags[0]))
-                canonical["passive_verb"] = [base];
-
-        } else {
-            let tags = posTag(base.split(' '));
-            if (['VBP', 'VBZ'].includes(tags[0])) {
-                if (tags.length === 2 && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
-                    canonical["verb"] = [base.replace(' ', ' # ')];
-                    canonical["base"] = [base.split(' ')[1]];
-                } else {
-                    canonical["verb"] = [base];
-                }
-            } else if (base.endsWith(' of')) {
-                canonical["reverse_property"] = [base];
-            } else if (['VBN', 'JJ', 'JJR'].includes(tags[0]) && !['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
-                // this one is actually somewhat problematic
-                // e.g., all non-words are recognized as JJ, including issn, dateline, funder
-                canonical["passive_verb"] = [base];
-            }
-
-        }
-
+        const candidates = name in this._wikidata_labels ? this._wikidata_labels[name].labels : [cleanName(name)];
+        for (let candidate of [...new Set(candidates)])
+            this.addCanonical(canonical, candidate, ptype);
         if (!("base" in canonical) && this._always_base_canonical)
-            canonical["base"] = [base];
+            canonical["base"] = [name];
 
         return canonical;
+    }
+
+    addCanonical(canonical, name, ptype) {
+        name = name.toLowerCase();
+        // drop all names with char other than letters
+        if (!/^[a-z ]+$/.test(name))
+            return;
+
+        if (ptype && ptype.isArray)
+            name = pluralize(name);
+
+        if (name.endsWith(' content') && ptype.isMeasure) {
+            name = name.substring(0, name.length - ' content'.length);
+            let base = [name + ' content', name, name + ' amount'];
+            let verb = ['contains #' + name.replace(/ /g, '_')];
+            canonical.verb = (canonical.verb || []).concat(verb);
+            canonical.base = (canonical.base || []).concat(base);
+        } else if (name.startsWith('has ')) {
+            name = [name.substring('has '.length)];
+            canonical.base = (canonical.base || [] ).concat(name);
+        } else if (name.startsWith('is ')) {
+            name = name.substring('is '.length);
+            let tags = posTag(name.split(' '));
+
+            if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1]) || name.endsWith(' of'))
+                canonical.reverse_property = (canonical.reverse_property || []).concat([name]);
+            else if (['VBN', 'JJ', 'JJR'].includes(tags[0]))
+                canonical.passive_verb = (canonical.passive_verb || []).concat([name]);
+        } else {
+            let tags = posTag(name.split(' '));
+            if (['VBP', 'VBZ', 'VBD'].includes(tags[0])) {
+                if (tags.length === 2 && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
+                    canonical.verb = (canonical.verb || []).concat([name.replace(' ', ' # ')]);
+                    canonical.base = (canonical.base || []).concat([name.split(' ')[1]]);
+                } else {
+                    canonical.verb = (canonical.verb || []).concat([name]);
+                }
+            } else if (name.endsWith(' of')) {
+                canonical.reverse_property = (canonical.reverse_property || []).concat([name]);
+            } else if (['VBN', 'VBG', 'JJ', 'JJR'].includes(tags[0]) && !['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
+                // this one is actually somewhat problematic
+                // e.g., all non-words are recognized as JJ, including issn, dateline, funder
+                canonical.passive_verb = (canonical.passive_verb || []).concat([name]);
+            } else {
+                canonical.base = (canonical.base || []).concat(name);
+            }
+        }
     }
 
     async run() {
@@ -656,6 +661,9 @@ class SchemaProcessor {
             schemajsonld = await Tp.Helpers.Http.get(this._url);
             await util.promisify(fs.writeFile)(this._cache, schemajsonld);
         }
+
+        if (this._wikidata_path)
+            this._wikidata_labels = JSON.parse(await (util.promisify(fs.readFile))(this._wikidata_path, { encoding: 'utf8' }));
 
         // type_name -> {
         //    extends: [type_name],
@@ -1004,6 +1012,10 @@ module.exports = {
             action: 'storeTrue',
             help: 'Enable manual annotations.',
             defaultValue: false
+        });
+        parser.addArgument('--wikidata-path', {
+            required: false,
+            help: 'path to the json file with wikidata property labels'
         });
         parser.addArgument('--always-base-canonical', {
             nargs: 0,

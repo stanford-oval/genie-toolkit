@@ -59,6 +59,7 @@ const subcommands = {
     'webqa-trim-class': require('./webqa-trim-class'),
     'webqa-paraphrase-transfer': require('./webqa-paraphrase-transfer'),
     'webqa-update-canonicals': require('./webqa-update-canonicals'),
+    'webqa-retrieve-wikidata-labels': require('./webqa-retrieve-wikidata-labels')
 };
 
 async function main() {
