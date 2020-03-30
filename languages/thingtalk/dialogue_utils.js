@@ -798,7 +798,22 @@ function isValidSearchQuestion(table, questions) {
     return true;
 }
 
-function isValidSlotFillQuestion(action, questions) {
+function isGoodSearchQuestion(ctx, questions) {
+    if (!isValidSearchQuestion(ctx.current.stmt.table, questions))
+        return false;
+
+    const ctxFilterTable = findFilterTable(ctx.current.stmt.table);
+    if (!ctxFilterTable)
+        return false;
+    for (let q of questions) {
+        if (C.filterUsesParam(ctxFilterTable.filter, q))
+            return false;
+    }
+    return true;
+}
+
+function isGoodSlotFillQuestion(ctx, questions) {
+    const action = getActionInvocation(ctx.next);
     assert(action instanceof Ast.Invocation);
     for (let q of questions) {
         const arg = action.schema.getArgument(q);
@@ -839,8 +854,7 @@ function preciseSlotFillQuestionAnswer(ctx, [questions, answer]) {
     assert(answerFunctions.length === 1);
     if (answerFunctions[0] !== ctx.nextFunction)
         return null;
-    const currentAction = getActionInvocation(ctx.next);
-    if (!isValidSlotFillQuestion(currentAction, questions))
+    if (!isGoodSlotFillQuestion(ctx, questions))
         return null;
     assert(answer instanceof Ast.Invocation);
 
@@ -919,7 +933,7 @@ function impreciseSearchQuestionAnswer(ctx, [questions, answer]) {
 function impreciseSlotFillQuestionAnswer(ctx, [questions, answer]) {
     assert(Array.isArray(questions));
     const currentAction = getActionInvocation(ctx.next);
-    if (!isValidSlotFillQuestion(currentAction, questions))
+    if (!isGoodSlotFillQuestion(ctx, questions))
         return null;
     assert(answer instanceof Ast.InputParam);
     if (answer.name === ctx.nextInfo.chainParameter)
@@ -1186,15 +1200,23 @@ function impreciseSlotFillQuestionAnswerPair(questions, answer) {
     }
 }
 
-function emptySearchChangePair(ctx, [question, phrase]) {
+function isGoodEmptySearchQuestion(ctx, question) {
     const currentTable = ctx.current.stmt.table;
-    if (question !== null && !currentTable.schema.out[question])
-        return null;
+    if (!currentTable.schema.out[question])
+        return false;
 
     const ctxFilterTable = findFilterTable(ctx.current.stmt.table);
-    if (question !== null && !C.filterUsesParam(ctxFilterTable.filter, question))
+    if (!ctxFilterTable || !C.filterUsesParam(ctxFilterTable.filter, question))
+        return false;
+
+    return true;
+}
+
+function emptySearchChangePair(ctx, [question, phrase]) {
+    if (question !== null  && !isGoodEmptySearchQuestion(ctx, question))
         return null;
 
+    const currentTable = ctx.current.stmt.table;
     const newTable = queryRefinement(currentTable, phrase.filter, refineFilterToChangeFilter);
     if (newTable === null)
         return null;
@@ -1284,16 +1306,23 @@ module.exports = {
 
     // system state manipulation
     makeSimpleState,
+    addQuery,
+    addActionParam,
+    addAction,
 
     // helpers
     getContextInfo,
     getActionInvocation,
+    findChainParam,
     isUserAskingResultQuestion,
     isQueryAnswerValidForQuestion,
     isSlotFillAnswerValidForQuestion,
     isValidNegativePreambleForInfo,
     isFilterCompatibleWithResult,
     isInfoPhraseCompatibleWithResult,
+    isGoodEmptySearchQuestion,
+    isGoodSearchQuestion,
+    isGoodSlotFillQuestion,
     checkInfoPhrase,
     checkFilterPairForDisjunctiveQuestion,
 
