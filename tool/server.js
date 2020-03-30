@@ -223,7 +223,7 @@ module.exports = {
             help: "Path to the NLU model, pointing to a model directory.",
         });
         parser.addArgument('--nlg-model', {
-            required: true,
+            required: false,
             help: "Path to the NLU model, pointing to a model directory.",
         });
         parser.addArgument('--thingpedia', {
