@@ -180,9 +180,14 @@ context function (state) {
     }
 }
 
+system_learn_more = {
+    'what would you like to know ?';
+    'what would you like to hear ?';
+}
+
 learn_more_search_question_pair = {
-    ( 'what would you like to' ('know' | 'hear') '?' '<sep>' questions:simple_user_search_question
-    | 'what would you like to' ('know' | 'hear') '?' '<sep>' questions:boolean_user_search_question
+    ( system_learn_more '<sep>' questions:simple_user_search_question
+    | system_learn_more '<sep>' questions:boolean_user_search_question
     ) => {
         return [null, null, questions];
     };
@@ -216,6 +221,64 @@ initial_command = {
         return prog.rules[0];
     };
 
+}
+
+$agent = {
+    ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+        => D.makeSimpleState(ctx, 'sys_greet', null);
+
+    ctx:ctx_cancel anything_else_phrase
+        => D.makeSimpleState(ctx, 'sys_anything_else', null);
+
+    // empty search error
+    ctx:ctx_empty_search_command question:empty_search_error => {
+        if (!D.isGoodEmptySearchQuestion(ctx, question))
+            return null;
+        return D.makeSimpleState(ctx, question ? 'sys_empty_search_question' : 'sys_empty_search', question);
+    };
+
+    // query refinement (through proposal or slot fill)
+    ctx:ctx_search_command questions:search_question => {
+        if (!D.isGoodSearchQuestion(ctx, questions))
+            return null;
+        if (questions.length === 0)
+            return D.makeSimpleState(ctx, 'sys_generic_search_question', null);
+        else
+            return D.makeSimpleState(ctx, 'sys_search_question', questions);
+    };
+
+    ctx:ctx_incomplete_action questions:slot_fill_question => {
+        if (!D.isGoodSlotFillQuestion(ctx, questions))
+            return null;
+        return D.makeSimpleState(ctx, 'sys_slot_fill', questions);
+    };
+
+    ctx:ctx_search_command proposal:system_generic_proposal =>
+        D.addQuery(ctx, 'sys_propose_refined_query', proposal, 'proposed');
+
+    // action recommendation (through one or a list)
+
+    ctx:ctx_complete_search_command proposal:system_recommendation => {
+        const { topResult, action } = proposal;
+        if (action === null) {
+            return D.makeSimpleState(ctx, 'sys_recommend_one', null);
+        } else {
+            const chainParam = D.findChainParam(topResult, action);
+            return D.addActionParam(ctx, 'sys_recommend_one', action, chainParam, topResult.value.id, 'proposed');
+        }
+    };
+
+    ctx:ctx_complete_search_command proposal:system_list_proposal [weight=10] => {
+        const [results, /*info*/, action] = proposal;
+        const dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
+        if (action === null)
+            return D.makeSimpleState(ctx, dialogueAct, null);
+        else
+            return D.addAction(ctx, dialogueAct, action, 'proposed');
+    };
+
+    ctx:ctx_learn_more system_learn_more
+        => D.makeSimpleState(ctx, 'sys_learn_more_what', null);
 }
 
 $root = {

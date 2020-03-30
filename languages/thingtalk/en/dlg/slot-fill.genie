@@ -215,6 +215,13 @@ precise_search_question_answer_pair = {
     };
 }
 
+search_question = {
+    direct_search_question;
+    yesno_search_question;
+    direct_search_question_with_preamble [weight=0.1];
+    yesno_search_question_with_preamble [weight=0.1];
+}
+
 generic_dontcare_phrase = {
     'it does not matter .';
     'it does not matter . can you suggest one ?';
@@ -280,6 +287,11 @@ two_param_slot_fill_question = {
             return null;
         return [p1, p2];
     };
+}
+
+slot_fill_question = {
+    one_param_slot_fill_question;
+    two_param_slot_fill_question;
 }
 
 imprecise_slot_fill_answer_phrase = {
