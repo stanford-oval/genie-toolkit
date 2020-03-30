@@ -129,18 +129,8 @@ class ThingpediaLoader {
                         this._runtime.simpleCombine(() => value));
                 }
             } else if (type.isEntity) {
-                if (!this._nonConstantTypes.has(typestr) && !this._idTypes.has(typestr)) {
-                    if (this._options.flags.dialogues) {
-                        for (let i = 0; i < 20; i++) {
-                            const string = `str:ENTITY_${type.type}::${i}:`;
-                            const value = new Ast.Value.Entity(string, type.type, string);
-                            this._grammar.addRule('constant_' + typestr, ['GENERIC_ENTITY_' + type.type + '_' + i],
-                                this._runtime.simpleCombine(() => value));
-                        }
-                    } else {
-                        this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + type.type, type);
-                    }
-                }
+                if (!this._nonConstantTypes.has(typestr) && !this._idTypes.has(typestr))
+                    this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + type.type, type);
             }
         }
         return typestr;
@@ -559,16 +549,7 @@ class ThingpediaLoader {
         const schemaClone = table.schema.clone();
         schemaClone.is_list = false;
         schemaClone.no_filter = true;
-        if (this._options.flags.dialogues) {
-            for (let i = 0; i < 5; i ++) {
-                this._grammar.addRule('constant_name', ['GENERIC_ENTITY_' + idType.type + '_' + i], this._runtime.simpleCombine(() => {
-                    const value = new Ast.Value.Entity('str:ENTITY_' + idType.type + '::' + i + ':', idType.type, null);
-                    /*const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', value);
-                    return [value, new Ast.Table.Filter(null, table, idfilter, schemaClone)];*/
-                    return value;
-                }));
-            }
-        }
+        this._grammar.addConstants('constant_name', 'GENERIC_ENTITY_' + idType.type, idType);
 
         const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', new Ast.Value.VarRef('p_id'));
         await this._loadTemplate(new Ast.Example(
