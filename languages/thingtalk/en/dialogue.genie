@@ -63,6 +63,7 @@ context ctx_init,
     ctx_completed_action_error,
     ctx_confirm_action,
     ctx_incomplete_action,
+    ctx_incomplete_action_after_search,
     ctx_learn_more;
 
 context function (state) {
@@ -97,7 +98,7 @@ context function (state) {
                 if (info.nextInfo.isComplete) {
                     return [['ctx_confirm_action'], info];
                 } else {
-                    return [['ctx_incomplete_action'], info];
+                    return [['ctx_incomplete_action', 'ctx_incomplete_action_after_search'], info];
                 }
             }
 
@@ -247,7 +248,7 @@ $agent = {
             return D.makeSimpleState(ctx, 'sys_search_question', questions);
     };
 
-    ctx:ctx_incomplete_action questions:slot_fill_question => {
+    ctx:ctx_incomplete_action_after_search questions:slot_fill_question => {
         if (!D.isGoodSlotFillQuestion(ctx, questions))
             return null;
         return D.makeSimpleState(ctx, 'sys_slot_fill', questions);

@@ -816,6 +816,8 @@ function isGoodSlotFillQuestion(ctx, questions) {
     const action = getActionInvocation(ctx.next);
     assert(action instanceof Ast.Invocation);
     for (let q of questions) {
+        if (q === ctx.nextInfo.chainParameter)
+            return null;
         const arg = action.schema.getArgument(q);
         if (!arg || !arg.is_input)
             return false;
