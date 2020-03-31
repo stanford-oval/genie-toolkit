@@ -63,7 +63,7 @@ class DialogAgent extends events.EventEmitter {
         this._simulatorState = undefined;
 
         if (!USE_NEURAL_POLICY) {
-            this._sentenceGenerator = new SentenceGenerator(this._target, {
+            this._sentenceGenerator = new SentenceGenerator({
                 contextual: true,
                 rootSymbol: '$agent',
                 flags: {
