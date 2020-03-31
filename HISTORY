@@ -1,3 +1,8 @@
+1.8.0-beta.2
+============
+
+* Use app-launcher platform capability to perform entity linking of Freedesktop App IDs [#142]
+
 1.8.0-beta.1
 ============
 
