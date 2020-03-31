@@ -43,6 +43,7 @@ import './dlg/slot-fill';
 context ctx_init,
     ctx_greet,
     ctx_cancel,
+    ctx_end,
     ctx_with_result,
     ctx_with_action,
     ctx_with_result_and_action,
@@ -74,10 +75,11 @@ context function (state) {
         return null;
     const info = D.getContextInfo(state);
 
-    // no continuations possible after explicit "end" (which means the user said
+    // no continuations are possible after explicit "end" (which means the user said
     // "no thanks" after the agent asked "is there anything else I can do for you")
+    // but we still tag the context to generate something in inference mode
     if (state.dialogueAct === 'end')
-        return null;
+        return [['ctx_end'], info];
 
     switch (state.dialogueAct) {
     case 'greet':
@@ -236,6 +238,9 @@ $agent = {
 
     ctx:ctx_cancel anything_else_phrase
         => D.makeSimpleState(ctx, 'sys_anything_else', null);
+
+    ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
+        => D.makeSimpleState(ctx, 'sys_end', null);
 
     // empty search error
     ctx:ctx_empty_search_command error:empty_search_error => {
