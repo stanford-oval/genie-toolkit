@@ -146,10 +146,16 @@ context function (state) {
                     tags.push('ctx_argminmax_question');
                 */
                 tags.push('ctx_single_result_search_command');
+
+                // we can recommend/show the result right away, even if many match
+                tags.push('ctx_complete_search_command');
             } else if (info.resultInfo.hasSingleResult) {
                 // "what is the rating of Terun?"
                 // FIXME if we want to answer differently, we need to change this one
                 tags.push('ctx_single_result_search_command');
+
+                // we can recommend/show the result right away, even if many match
+                tags.push('ctx_complete_search_command');
             } else {
                 // "what's the food and price range of restaurants nearby?"
                 // we treat these the same as "find restaurants nearby", but we make sure
@@ -232,10 +238,13 @@ $agent = {
         => D.makeSimpleState(ctx, 'sys_anything_else', null);
 
     // empty search error
-    ctx:ctx_empty_search_command question:empty_search_error => {
-        if (!D.isGoodEmptySearchQuestion(ctx, question))
+    ctx:ctx_empty_search_command error:empty_search_error => {
+        const [base, question] = error;
+        if (base !== null && !C.isSameFunction(base.schema, ctx.current.stmt.table.schema))
             return null;
-        return D.makeSimpleState(ctx, question ? 'sys_empty_search_question' : 'sys_empty_search', question);
+        if (question !== null && !D.isGoodEmptySearchQuestion(ctx, question.name))
+            return null;
+        return D.makeSimpleState(ctx, question ? 'sys_empty_search_question' : 'sys_empty_search', question.name);
     };
 
     // query refinement (through proposal or slot fill)
