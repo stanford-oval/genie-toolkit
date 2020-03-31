@@ -274,7 +274,9 @@ function checkActionForRecommendation({ topResult, info, action: nextAction }, a
 }
 
 function makeRefinementProposal(ctx, proposal) {
-    assert(proposal.isFilter && proposal.table.isInvocation);
+    // this if() can be false only with weird primitive templates
+    if (!(proposal.isFilter && proposal.table.isInvocation))
+        return null;
 
     const ctxFilterTable = findFilterTable(ctx.current.stmt.table);
     if (ctxFilterTable === null)
@@ -1203,6 +1205,7 @@ function impreciseSlotFillQuestionAnswerPair(questions, answer) {
 }
 
 function isGoodEmptySearchQuestion(ctx, question) {
+    assert(typeof question === 'string');
     const currentTable = ctx.current.stmt.table;
     if (!currentTable.schema.out[question])
         return false;
@@ -1215,7 +1218,7 @@ function isGoodEmptySearchQuestion(ctx, question) {
 }
 
 function emptySearchChangePair(ctx, [question, phrase]) {
-    if (question !== null  && !isGoodEmptySearchQuestion(ctx, question))
+    if (question !== null  && !isGoodEmptySearchQuestion(ctx, question.name))
         return null;
 
     const currentTable = ctx.current.stmt.table;
