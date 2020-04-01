@@ -833,12 +833,16 @@ class ThingpediaLoader {
             console.log('Loaded ' + countTemplates + ' templates');
         }
 
-        idTypes.forEach((entity) => this._entities[entity.type] = entity);
-        await Promise.all(idTypes.map(this._loadIdType, this));
-        await Promise.all([
-            Promise.all(devices.map(this._loadDevice, this)),
-            Promise.all(datasets.map(this._loadDataset, this))
-        ]);
+        for (let entity of idTypes) {
+            this._entities[entity.type] = entity;
+            await this._loadIdType(entity);
+        }
+
+        for (let device of devices)
+            await this._loadDevice(device);
+
+        for (let dataset of datasets)
+            await this._loadDataset(dataset);
     }
 }
 
