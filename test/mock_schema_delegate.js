@@ -24,6 +24,7 @@ class MockThingpediaClient extends Tp.BaseClient {
         this._entities = null;
 
         this._thingpediafilename = path.resolve(path.dirname(module.filename), 'thingpedia.tt');
+        this._entityfilename = path.resolve(path.dirname(module.filename), 'entities.json');
         this._loaded = null;
     }
 
@@ -45,7 +46,8 @@ class MockThingpediaClient extends Tp.BaseClient {
     }
 
     async getAllEntityTypes() {
-        throw new Error(`Cannot click examples using MockThingpediaClient`);
+        await this._ensureLoaded();
+        return this._entities;
     }
 
     async lookupEntity(entityType, entityDisplay) {
@@ -211,7 +213,12 @@ class MockThingpediaClient extends Tp.BaseClient {
 
     async getExamplesByKinds(kinds) {
         assert.strictEqual(kinds.length, 1);
-        return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), 'examples/' + kinds[0] + '.tt'), { encoding: 'utf8' });
+
+        if (['com.facebook', 'com.phdcomics', 'com.xkcd', 'com.yahoo.finance', 'gov.nasa', 'org.thingpedia.builtin.thingengine.phone',
+             'uk.ac.cam.multiwoz.Restaurant'].includes(kinds[0]))
+            return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), 'examples/' + kinds[0] + '.tt'), { encoding: 'utf8' });
+        else
+            return `dataset @empty {}`;
     }
 
     getAllExamples() {

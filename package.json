@@ -18,6 +18,7 @@
     "consumer-queue": "^1.0.0",
     "genie-toolkit": "github:stanford-oval/genie-toolkit#wip/new-dialogues",
     "qs": "^6.7.0",
+    "seedrandom": "^3.0.5",
     "string-interp": "^0.1.0",
     "thingpedia": "~2.7.0-alpha.2",
     "thingtalk": "~1.10.0-alpha.5",

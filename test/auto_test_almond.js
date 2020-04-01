@@ -3914,23 +3914,21 @@ null],
     [
     // "I'm looking for an Italian restaurant"
     { program: '$dialogue @org.thingpedia.dialogue.transaction.execute; now => @uk.ac.cam.multiwoz.Restaurant.Restaurant(), food == "italian" => notify;' },
-`>> There are no restaurants that have “italian” food. How about a different food?
+`>> I cannot find any result for your search. Would you like another cuisine?
 >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search_question param:food ; now => ( @uk.ac.cam.multiwoz.Restaurant.Restaurant ) filter param:food == QUOTED_STRING_0 => notify #[ results = [ ] ] ; // {"QUOTED_STRING_0":"italian"}
 >> ask special command
 `,
     // Ok how about something Chinese?
     { program: '$dialogue @org.thingpedia.dialogue.transaction.execute; now => @uk.ac.cam.multiwoz.Restaurant.Restaurant(), food == "chinese" => notify;' },
-`>> Here is what I found.
->> the good luck chinese food takeaway. Located in the south part of the city. Serves chinese food.
->> yu garden. Located in the east part of the city. Serves chinese food.
+`>> I have the good luck Chinese food takeaway or yu garden. They 're restaurants that are Chinese.
 >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two ; now => ( @uk.ac.cam.multiwoz.Restaurant.Restaurant ) filter param:food == QUOTED_STRING_0 => notify #[ results = [ { param:address = QUOTED_STRING_1 , param:area = enum:south , param:food = QUOTED_STRING_0 , param:id = GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 , param:phone = PHONE_NUMBER_0 , param:postcode = QUOTED_STRING_2 , param:price_range = enum:expensive } ] ] #[ count = 2 ] ; // {"QUOTED_STRING_0":"chinese","QUOTED_STRING_1":"82 Cherry Hinton Road Cherry Hinton","GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0":{"value":"19192","display":"the good luck chinese food takeaway"},"PHONE_NUMBER_0":"01223244149","QUOTED_STRING_2":"cb17ag"}
 >> ask special command
 `,
-    // what's the price range of yu garden?
+    // what is the price range of yu garden?
     { program: `$dialogue @org.thingpedia.dialogue.transaction.execute;
                 now => [price_range] of @uk.ac.cam.multiwoz.Restaurant.Restaurant(), food == "chinese" && id == null^^uk.ac.cam.multiwoz.Restaurant:Restaurant("yu garden") => notify;`
     },
-`>> The price range of yu garden is expensive.
+`>> Yu garden is expensive.
 >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => [ param:price_range ] of ( ( @uk.ac.cam.multiwoz.Restaurant.Restaurant ) filter param:food == QUOTED_STRING_0 and param:id == GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 , param:price_range = enum:expensive } ] ] ; // {"QUOTED_STRING_0":"chinese","GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0":{"value":"19273","display":"yu garden"}}
 >> ask special command
 `,
@@ -3944,7 +3942,7 @@ null],
     // no thanks, goodbye!
     { program: `$dialogue @org.thingpedia.dialogue.transaction.end;`
     },
-`>> Alright, good bye!
+`>> Alright, bye!
 >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_end ; now => [ param:price_range ] of ( ( @uk.ac.cam.multiwoz.Restaurant.Restaurant ) filter param:food == QUOTED_STRING_0 and param:id == GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0 , param:price_range = enum:expensive } ] ] ; // {"QUOTED_STRING_0":"chinese","GENERIC_ENTITY_uk.ac.cam.multiwoz.Restaurant:Restaurant_0":{"value":"19273","display":"yu garden"}}
 >> ask special null
 `,
