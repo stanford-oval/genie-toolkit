@@ -34,6 +34,11 @@ module.exports = {
             defaultValue: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
+        parser.addArgument(['-pl', '--param_locale'], {
+            required: false,
+            defaultValue: 'en-US',
+            help: `BGP 47 locale tag of the language for parameter values (defaults to 'en-US', English)`
+        });
         parser.addArgument(['-t', '--target-language'], {
             required: false,
             defaultValue: 'thingtalk',
@@ -129,6 +134,18 @@ module.exports = {
             action: 'storeFalse',
             dest: 'replace_locations',
             help: 'Do not replace LOCATION tokens with unquoted locations.',
+        });
+        parser.addArgument('--replace-numbers', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Replace NUMBER tokens with actual values.',
+            defaultValue: false
+        });
+        parser.addArgument('--no-replace-numbers', {
+            nargs: 0,
+            action: 'storeFalse',
+            dest: 'replace_locations',
+            help: 'Do not replace NUMBER tokens',
         });
 
         parser.addArgument('--debug', {
