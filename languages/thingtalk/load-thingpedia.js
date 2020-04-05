@@ -615,8 +615,17 @@ class ThingpediaLoader {
             this._runtime.simpleCombine(() => new Ast.Value.Entity(device.kind, 'tt:device', null)));
 
         const classDef = await this._schemas.getFullMeta(device.kind);
-        await Promise.all(Object.values(classDef.queries).map(this._loadFunction.bind(this)));
-        await Promise.all(Object.values(classDef.actions).map(this._loadFunction.bind(this)));
+
+        const whitelist = classDef.getImplementationAnnotation('whitelist');
+        let queries = Object.keys(classDef.queries);
+        let actions = Object.keys(classDef.actions);
+        if (whitelist && whitelist.length > 0) {
+            queries = queries.filter((name) => whitelist.includes(name.toLowerCase()));
+            actions = actions.filter((name) => whitelist.includes(name.toLowerCase()));
+        }
+
+        await Promise.all(queries.map((name) => classDef.queries[name]).map(this._loadFunction.bind(this)));
+        await Promise.all(actions.map((name) => classDef.actions[name]).map(this._loadFunction.bind(this)));
     }
 
     async _isIdEntity(idEntity) {
