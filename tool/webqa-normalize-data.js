@@ -27,6 +27,7 @@ const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 const MONTH = 30 * DAY;
 const YEAR = 365 * DAY;
+
 function parseDuration(form) {
     const match = /^P([0-9]+Y)?([0-9]+M)?([0-9]+D)?T?([0-9]+H)?([0-9]+M)?([0-9]+S)?/.exec(form);
 
@@ -115,7 +116,7 @@ function hash(obj) {
 class Normalizer {
     constructor() {
         // metadata for each schema.org type
-        this._meta = {};
+        this.meta = {};
 
         // the normalized file
         this.output = {};
@@ -135,7 +136,7 @@ class Normalizer {
 
         for (let fn in classDef.queries) {
             const fndef = classDef.queries[fn];
-            this._meta[fn] = {
+            this.meta[fn] = {
                 extends: fndef.extends,
                 fields: makeMetadata(fndef.args.map((argname) => fndef.getArgument(argname)))
             };
@@ -167,7 +168,7 @@ class Normalizer {
             return;
 
         for (let field in obj) {
-            if (field === '@id' || field === '@type' || field === '@context' || field === 'sameAs')
+            if (field === '@id' || field === 'name' || field === '@type' || field === '@context' || field === 'sameAs')
                 continue;
 
             if (!querydef.hasArgument(field)) {
@@ -196,7 +197,7 @@ class Normalizer {
     }
 
     _processObject(value, type, visitedTypes = new Set) {
-        const typemeta = this._meta[type];
+        const typemeta = this.meta[type];
         if (!typemeta) {
             if (!type.endsWith('Action'))
                 console.error(`Unrecognized object type ${type}`);
@@ -498,8 +499,12 @@ module.exports = {
             addHelp: true,
             description: "Normalize schema.org JSON+LD files to match their ThingTalk representation."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.addArgument('--data-output', {
             required: true,
+            type: fs.createWriteStream
+        });
+        parser.addArgument('--meta-output', {
+            require: true,
             type: fs.createWriteStream
         });
         parser.addArgument('--thingpedia', {
@@ -518,7 +523,11 @@ module.exports = {
         for (let filename of args.input_file)
             await normalizer.process(filename);
 
-        args.output.end(JSON.stringify(normalizer.output, undefined, 2));
-        await StreamUtils.waitFinish(args.output);
+
+        args.meta_output.end(JSON.stringify(normalizer.meta, undefined, 2));
+        await StreamUtils.waitFinish(args.meta_output);
+
+        args.data_output.end(JSON.stringify(normalizer.output, undefined, 2));
+        await StreamUtils.waitFinish(args.data_output);
     }
 };
