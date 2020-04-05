@@ -45,8 +45,8 @@ $root = {
 
     ?timer stmt:timer_rule [weight=0.2] => C.makeProgram(stmt);
     !nostream {
-        ( stmt:monitor_command [weight=0.1]
-        | stmt:when_command [weight=0.1]
+        ( stmt:monitor_command [weight=0.2]
+        | stmt:when_command [weight=0.2]
         ) => C.makeProgram(stmt);
     }
 
