@@ -500,11 +500,9 @@ module.exports = {
             description: "Normalize schema.org JSON+LD files to match their ThingTalk representation."
         });
         parser.addArgument('--data-output', {
-            required: true,
             type: fs.createWriteStream
         });
         parser.addArgument('--meta-output', {
-            require: true,
             type: fs.createWriteStream
         });
         parser.addArgument('--thingpedia', {
@@ -523,11 +521,14 @@ module.exports = {
         for (let filename of args.input_file)
             await normalizer.process(filename);
 
+        if (args.meta_output) {
+            args.meta_output.end(JSON.stringify(normalizer.meta, undefined, 2));
+            await StreamUtils.waitFinish(args.meta_output);
+        }
 
-        args.meta_output.end(JSON.stringify(normalizer.meta, undefined, 2));
-        await StreamUtils.waitFinish(args.meta_output);
-
-        args.data_output.end(JSON.stringify(normalizer.output, undefined, 2));
-        await StreamUtils.waitFinish(args.data_output);
+        if (args.data_output) {
+            args.data_output.end(JSON.stringify(normalizer.output, undefined, 2));
+            await StreamUtils.waitFinish(args.data_output);
+        }
     }
 };
