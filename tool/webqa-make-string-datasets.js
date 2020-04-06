@@ -24,6 +24,7 @@ class ParamDatasetGenerator {
     constructor(locale, debug, className, classNamePrefix) {
         this._locale = locale;
         this._debug = debug;
+        this._classNamePrefix = classNamePrefix;
         this._entityNamePrefix = className ? `${classNamePrefix}.${className}:` : `${classNamePrefix}:`;
 
         this._meta = {};
@@ -57,7 +58,7 @@ class ParamDatasetGenerator {
                 args.push(arg);
             this._meta[fn] = {
                 extends: fndef.extends,
-                fields: makeMetadata(args)
+                fields: makeMetadata(this._classNamePrefix, args)
             };
         }
     }

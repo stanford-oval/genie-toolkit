@@ -114,7 +114,7 @@ function hash(obj) {
 }
 
 class Normalizer {
-    constructor() {
+    constructor(prefix) {
         // metadata for each schema.org type
         this.meta = {};
 
@@ -126,6 +126,9 @@ class Normalizer {
 
         // deduplication of warnings
         this._warnings = new Set;
+
+        // the prefix of the class name, default to org.schema
+        this._prefix = prefix;
     }
 
     async init(thingpedia) {
@@ -138,7 +141,7 @@ class Normalizer {
             const fndef = classDef.queries[fn];
             this.meta[fn] = {
                 extends: fndef.extends,
-                fields: makeMetadata(fndef.args.map((argname) => fndef.getArgument(argname)))
+                fields: makeMetadata(this._prefix, fndef.args.map((argname) => fndef.getArgument(argname)))
             };
         }
     }
@@ -513,10 +516,15 @@ module.exports = {
             nargs: '+',
             help: 'Input JSON+LD files to normalize. Multiple input files will be merged in one.'
         });
+        parser.addArgument('--class-name-prefix', {
+            required: false,
+            help: 'The prefix of the class name, defaults to org.schema',
+            defaultValue: 'org.schema'
+        });
     },
 
     async execute(args) {
-        const normalizer = new Normalizer();
+        const normalizer = new Normalizer(args.class_name_prefix);
         await normalizer.init(args.thingpedia);
         for (let filename of args.input_file)
             await normalizer.process(filename);
