@@ -64,9 +64,9 @@ class ThingpediaLoader {
         this.idQueries = new Map;
         this.compoundArrays = new Map;
         if (this._options.whiteList)
-            this.whiteList = this._options.whiteList.split(',');
+            this.globalWhiteList = this._options.whiteList.split(',');
         else
-            this.whiteList = null;
+            this.globalWhiteList = null;
 
         const [say, get_gps, get_time] = await Promise.all([
             this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'action', 'say'),
@@ -595,7 +595,7 @@ class ThingpediaLoader {
     }
 
     async _loadFunction(functionDef) {
-        if (this.whiteList && !this.whiteList.includes(functionDef.name))
+        if (this.globalWhiteList && !this.globalWhiteList.includes(functionDef.name))
             return;
 
         let functionName = functionDef.class.kind + ':' + functionDef.name;
@@ -639,7 +639,7 @@ class ThingpediaLoader {
         if (this.idQueries.has(idEntity))
             return true;
 
-        if (this.whiteList && !this.whiteList.includes(suffix))
+        if (this.globalWhiteList && !this.globalWhiteList.includes(suffix))
             return false;
 
         let classDef;
