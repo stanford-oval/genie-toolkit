@@ -965,7 +965,7 @@ class SchemaProcessor {
             },
             impl: {
                 whitelist: new Ast.Value.Array(
-                    this._white_list.map((q) => new Ast.Value.String(q.trim().toLowerCase()))
+                    this._white_list.map((q) => new Ast.Value.String(q.trim()))
                 )
             }
         }, {

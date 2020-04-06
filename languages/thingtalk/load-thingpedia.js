@@ -64,7 +64,7 @@ class ThingpediaLoader {
         this.idQueries = new Map;
         this.compoundArrays = new Map;
         if (this._options.whiteList)
-            this.whiteList = this._options.whiteList.toLowerCase().split(',');
+            this.whiteList = this._options.whiteList.split(',');
         else
             this.whiteList = null;
 
@@ -595,7 +595,7 @@ class ThingpediaLoader {
     }
 
     async _loadFunction(functionDef) {
-        if (this.whiteList && !this.whiteList.includes(functionDef.name.toLowerCase()))
+        if (this.whiteList && !this.whiteList.includes(functionDef.name))
             return;
 
         let functionName = functionDef.class.kind + ':' + functionDef.name;
@@ -620,8 +620,8 @@ class ThingpediaLoader {
         let queries = Object.keys(classDef.queries);
         let actions = Object.keys(classDef.actions);
         if (whitelist && whitelist.length > 0) {
-            queries = queries.filter((name) => whitelist.includes(name.toLowerCase()));
-            actions = actions.filter((name) => whitelist.includes(name.toLowerCase()));
+            queries = queries.filter((name) => whitelist.includes(name));
+            actions = actions.filter((name) => whitelist.includes(name));
         }
 
         await Promise.all(queries.map((name) => classDef.queries[name]).map(this._loadFunction.bind(this)));
@@ -639,7 +639,7 @@ class ThingpediaLoader {
         if (this.idQueries.has(idEntity))
             return true;
 
-        if (this.whiteList && !this.whiteList.includes(suffix.toLowerCase()))
+        if (this.whiteList && !this.whiteList.includes(suffix))
             return false;
 
         let classDef;

@@ -100,7 +100,6 @@ module.exports = {
         } else {
             const options = args;
             const constants = await parseConstantFile(args.locale, args.constants);
-            const queries = args.queries.split(',').map((qname) => qname.charAt(0).toUpperCase() + qname.slice(1));
             const generator = new CanonicalGenerator(classDef, constants, queries, args.parameter_datasets, options);
             const updatedClassDef = await generator.generate();
             args.output.end(updatedClassDef.prettyprint());
