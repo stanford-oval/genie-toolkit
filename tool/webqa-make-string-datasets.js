@@ -21,10 +21,10 @@ const StreamUtils = require('../lib/stream-utils');
 const { makeMetadata } = require('./lib/webqa-metadata');
 
 class ParamDatasetGenerator {
-    constructor(locale, debug, className) {
+    constructor(locale, debug, className, classNamePrefix) {
         this._locale = locale;
         this._debug = debug;
-        this._prefix = className ? `org.schema.${className}:` : `org.schema:`;
+        this._entityNamePrefix = className ? `${classNamePrefix}.${className}:` : `${classNamePrefix}:`;
 
         this._meta = {};
         this._stringFiles = new Map;
@@ -47,7 +47,7 @@ class ParamDatasetGenerator {
 
     async init(thingpedia) {
         const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
-        assert(library.isLibrary && library.classes.length === 1 && library.classes[0].kind.startsWith('org.schema'));
+        assert(library.isLibrary && library.classes.length === 1);
         const classDef = library.classes[0];
 
         for (let fn in classDef.queries) {
@@ -144,7 +144,7 @@ class ParamDatasetGenerator {
         const manifest = fs.createWriteStream(manifestFile, { flags: appendManifest ? 'a' : 'w' });
 
         for (let [fileId, fileContent] of this._stringFiles) {
-            const outputpath = path.resolve(outputDir, this._prefix + fileId + (fileContent.isEntity ? '.json' : '.tsv'));
+            const outputpath = path.resolve(outputDir, this._entityNamePrefix + fileId + (fileContent.isEntity ? '.json' : '.tsv'));
 
             if (fileContent.isEntity) {
                 if (this._debug)
@@ -169,7 +169,7 @@ class ParamDatasetGenerator {
                     result: 'ok', data
                 }, undefined, 2), { encoding: 'utf8' });
 
-                manifest.write(`entity\t${this._prefix}${fileId}\t${path.relative(manifestDir, outputpath)}\n`);
+                manifest.write(`entity\t${this._entityNamePrefix}${fileId}\t${path.relative(manifestDir, outputpath)}\n`);
             } else {
                 if (this._debug)
                     console.log(`Found ${fileContent.file.size} examples for string file ${fileId}`);
@@ -196,7 +196,7 @@ class ParamDatasetGenerator {
                 }
 
                 output.end();
-                manifest.write(`string\t${this._prefix}${fileId}\t${path.relative(manifestDir, outputpath)}\n`);
+                manifest.write(`string\t${this._entityNamePrefix}${fileId}\t${path.relative(manifestDir, outputpath)}\n`);
 
                 //await StreamUtils.waitFinish(output);
                 console.log(`completed ${fileId}`);
@@ -257,10 +257,15 @@ module.exports = {
             required: false,
             help: 'The name of the generated class, this will also affect the entity names'
         });
+        parser.addArgument('--class-name-prefix', {
+            required: false,
+            help: 'The prefix of the class name, defaults to org.schema',
+            defaultValue: 'org.schema'
+        });
     },
 
     async execute(args) {
-        const generator = new ParamDatasetGenerator(args.locale, args.debug, args.class_name);
+        const generator = new ParamDatasetGenerator(args.locale, args.debug, args.class_name, args.class_name_prefix);
         await generator.init(args.thingpedia);
 
         const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));
