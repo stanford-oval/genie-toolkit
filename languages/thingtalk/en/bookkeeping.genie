@@ -34,7 +34,7 @@ command_category = {
     ('services' | 'other' | 'miscellaneous' | 'misc') => 'service';
 }
 
-$root = {
+bookkeeping = {
     ('yes'
     | 'of course'
     | 'sure'
