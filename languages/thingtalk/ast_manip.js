@@ -908,6 +908,9 @@ function makePolicy(principal, table, action) {
 }
 
 function builtinSayAction(pname) {
+    if (!_loader.standardSchemas.say)
+        return null;
+
     let selector = new Ast.Selector.Device(null, 'org.thingpedia.builtin.thingengine.builtin', null, null);
     if (pname instanceof Ast.Value) {
         let param = new Ast.InputParam(null, 'message', pname);
@@ -924,6 +927,9 @@ function builtinSayAction(pname) {
 }
 
 function locationGetPredicate(loc, negate = false) {
+    if (!_loader.standardSchemas.get_gps)
+        return null;
+
     let filter = new Ast.BooleanExpression.Atom(null, 'location', '==', loc);
     if (negate)
         filter = new Ast.BooleanExpression.Not(null, filter);
@@ -933,6 +939,9 @@ function locationGetPredicate(loc, negate = false) {
 }
 
 function timeGetPredicate(low, high) {
+    if (!_loader.standardSchemas.get_time)
+        return null;
+
     let operands = [];
 
     if (low)

@@ -32,12 +32,12 @@ import './computation';
 import './who_questions';
 import './schema.org';
 import './commands';
-
-if (_tpLoader.flags.bookkeeping)
-    import './bookkeeping';
+import './bookkeeping';
 import './stream_tables';
 
 $root = {
+    ?bookkeeping bookkeeping [weight=0.1];
+
     thingpedia_program if complete;
 
     ?remote_commands remote_command [weight=0.1];
@@ -45,8 +45,8 @@ $root = {
 
     ?timer stmt:timer_rule [weight=0.2] => C.makeProgram(stmt);
     !nostream {
-        ( stmt:monitor_command [weight=0.1]
-        | stmt:when_command [weight=0.1]
+        ( stmt:monitor_command [weight=0.2]
+        | stmt:when_command [weight=0.2]
         ) => C.makeProgram(stmt);
     }
 
