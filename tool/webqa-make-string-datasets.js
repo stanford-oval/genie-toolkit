@@ -24,7 +24,8 @@ class ParamDatasetGenerator {
     constructor(locale, debug, className) {
         this._locale = locale;
         this._debug = debug;
-        this._prefix = className ? `org.schema.${className}:` : `org.schema:`;
+        this._className = className;
+        this._prefix = `${className}:`;
 
         this._meta = {};
         this._stringFiles = new Map;
@@ -47,7 +48,7 @@ class ParamDatasetGenerator {
 
     async init(thingpedia) {
         const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
-        assert(library.isLibrary && library.classes.length === 1 && library.classes[0].kind.startsWith('org.schema'));
+        assert(library.isLibrary && library.classes.length === 1);
         const classDef = library.classes[0];
 
         for (let fn in classDef.queries) {
@@ -57,7 +58,7 @@ class ParamDatasetGenerator {
                 args.push(arg);
             this._meta[fn] = {
                 extends: fndef.extends,
-                fields: makeMetadata(args)
+                fields: makeMetadata(this._className, args)
             };
         }
     }
@@ -255,7 +256,7 @@ module.exports = {
         });
         parser.addArgument('--class-name', {
             required: false,
-            help: 'The name of the generated class, this will also affect the entity names'
+            help: 'The name of the device class, used for decide class-specific types'
         });
     },
 

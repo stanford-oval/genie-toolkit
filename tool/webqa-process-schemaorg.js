@@ -411,7 +411,8 @@ class SchemaProcessor {
         this._manual = args.manual;
         this._always_base_canonical = args.always_base_canonical;
         this._hasGeo = false;
-        this._prefix = args.class_name ? `org.schema.${args.class_name}:` : `org.schema:`;
+        this._prefix = `${this._className}:`;
+        this._white_list = args.white_list.split(',');
     }
 
     typeToThingTalk(typename, typeHierarchy, manualAnnotation) {
@@ -956,13 +957,17 @@ class SchemaProcessor {
         ];
 
         const classdef = new Ast.ClassDef(null,
-            `org.schema${this._className ? '.' + this._className : ''}`,
+            `${this._className}`,
             [], { queries, imports }, {
             nl: {
-                name: `${this._className ? this._className + ' in ' : ''}Schema.org`,
+                name: `${this._className.slice(this._className.lastIndexOf('.') + 1)} in Schema.org`,
                 description: 'Scraped data from websites that support schema.org'
             },
-            impl: {}
+            impl: {
+                whitelist: new Ast.Value.Array(
+                    this._white_list.map((q) => new Ast.Value.String(q.trim()))
+                )
+            }
         }, {
             is_abstract: false
         });
@@ -1014,7 +1019,12 @@ module.exports = {
         });
         parser.addArgument('--class-name', {
             required: false,
-            help: 'The name of the generated class, this will also affect the entity names'
+            help: 'The name of the generated class, this will also affect the entity names',
+            defaultValue: 'org.schema'
+        });
+        parser.addArgument('--white-list', {
+            required: true,
+            help: 'A list of queries allowed to use in the class, split by comma (no space).'
         });
     },
 

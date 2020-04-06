@@ -37,7 +37,7 @@ const DEFAULT_ENTITIES = [
 
 async function loadClassDef(thingpedia) {
     const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
-    assert(library.isLibrary && library.classes.length === 1 && library.classes[0].kind.startsWith('org.schema'));
+    assert(library.isLibrary && library.classes.length === 1);
     return library.classes[0];
 }
 
