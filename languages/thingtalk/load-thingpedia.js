@@ -649,7 +649,10 @@ class ThingpediaLoader {
             // ignore if the class does not exist
             return false;
         }
+        const whitelist = classDef.getImplementationAnnotation('whitelist');
         if (classDef.queries[suffix]) {
+            if (whitelist && whitelist.length > 0 && !whitelist.includes(suffix))
+                return false;
             const query = classDef.queries[suffix];
             if (query.hasArgument('id')) {
                 const id = query.getArgument('id');
