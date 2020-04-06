@@ -3,7 +3,7 @@ branches:
   - "/^wip/"
 language: node_js
 node_js:
-- '8'
+- '10'
 before_install:
 - mkdir cvc4/
 - wget https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt -O cvc4/cvc4
