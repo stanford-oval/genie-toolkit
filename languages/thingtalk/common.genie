@@ -29,6 +29,8 @@ thingpedia_who_question = {}
 thingpedia_search_question = {}
 thingpedia_slot_fill_question = {}
 
+thingpedia_result = {}
+
 out_param_Numeric = {
     out_param_Number;
     out_param_Currency;
@@ -197,5 +199,12 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
                     C.replacePlaceholderWithUndefined(p, pname, typestr);
             }
         }
+    }
+}
+
+for (let [pname, typestr] of _tpLoader.params.out.values()) {
+    thingpedia_result = {
+        bag:thingpedia_result v:$('constant_name') [-> pname { isConstant: true }] => C.replaceSlotBagPlaceholder(bag, pname, v);
+        bag:thingpedia_result v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replaceSlotBagPlaceholder(bag, pname, v);
     }
 }
