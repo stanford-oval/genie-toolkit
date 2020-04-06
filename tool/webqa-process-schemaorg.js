@@ -407,12 +407,11 @@ class SchemaProcessor {
         this._output = args.output;
         this._cache = args.cache_file;
         this._className = args.class_name;
-        this._classNamePrefix = args.class_name_prefix;
         this._url = args.url;
         this._manual = args.manual;
         this._always_base_canonical = args.always_base_canonical;
         this._hasGeo = false;
-        this._entityNamePrefix = this._className ? `${this._classNamePrefix}.${this._className}:` : `${this._classNamePrefix}:`;
+        this._prefix = `${this._className}:`;
         this._white_list = args.white_list.split(',');
     }
 
@@ -427,7 +426,7 @@ class SchemaProcessor {
         if (typeHierarchy[typename].representAsStruct)
             return this.makeCompoundType(typename, typeHierarchy[typename], typeHierarchy, manualAnnotation);
 
-        return Type.Entity(this._entityNamePrefix + typename);
+        return Type.Entity(this._prefix + typename);
     }
 
     getBestPropertyType(propname, property, typeHierarchy, manualAnnotation) {
@@ -876,7 +875,7 @@ class SchemaProcessor {
                 continue;
 
             const args = [
-                new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'id', Type.Entity(this._entityNamePrefix + typename), {
+                new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'id', Type.Entity(this._prefix + typename), {
                     nl: {},
                     impl: {
                         'unique': new Ast.Value.Boolean(true),
@@ -884,7 +883,7 @@ class SchemaProcessor {
                     }
                 })
             ];
-            recursiveAddStringValues(args[0], this._entityNamePrefix + typename + '_name');
+            recursiveAddStringValues(args[0], this._prefix + typename + '_name');
             if (typename !== 'Thing') {
                 // override name for each table so we can apply a custom string_values annotation
                 // name is preserved to determine if the table has name and id has ner support
@@ -896,7 +895,7 @@ class SchemaProcessor {
                         'filterable': new Ast.Value.Boolean(false) // no filter on name, if it has ner support, we'll generate prim for it
                     }
                 });
-                recursiveAddStringValues(arg, this._entityNamePrefix + typename + '_name');
+                recursiveAddStringValues(arg, this._prefix + typename + '_name');
                 args.push(arg);
             }
 
@@ -926,7 +925,7 @@ class SchemaProcessor {
                     nl: metadata,
                     impl: annotation
                 });
-                recursiveAddStringValues(arg, this._entityNamePrefix + typename + '_' + propertyname);
+                recursiveAddStringValues(arg, this._prefix + typename + '_' + propertyname);
 
                 args.push(arg);
             }
@@ -958,10 +957,10 @@ class SchemaProcessor {
         ];
 
         const classdef = new Ast.ClassDef(null,
-            `${this._classNamePrefix}${this._className ? '.' + this._className : ''}`,
+            `${this._className}`,
             [], { queries, imports }, {
             nl: {
-                name: `${this._className ? this._className + ' in ' : ''}Schema.org`,
+                name: `${this._className.slice(this._className.lastIndexOf('.') + 1)} in Schema.org`,
                 description: 'Scraped data from websites that support schema.org'
             },
             impl: {
@@ -1020,11 +1019,7 @@ module.exports = {
         });
         parser.addArgument('--class-name', {
             required: false,
-            help: 'The name of the generated class, this will also affect the entity names'
-        });
-        parser.addArgument('--class-name-prefix', {
-            required: false,
-            help: 'The prefix of the class name, defaults to org.schema',
+            help: 'The name of the generated class, this will also affect the entity names',
             defaultValue: 'org.schema'
         });
         parser.addArgument('--white-list', {
