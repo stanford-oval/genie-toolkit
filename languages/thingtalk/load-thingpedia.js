@@ -20,6 +20,7 @@ const SchemaRetriever = ThingTalk.SchemaRetriever;
 const Units = ThingTalk.Units;
 
 const { clean, typeToStringSafe, makeFilter, makeAndFilter } = require('./utils');
+const { SlotBag } = require('./slot_bag');
 
 function identity(x) {
     return x;
@@ -59,7 +60,7 @@ class ThingpediaLoader {
         };
         this.params = {
             in: new Map,
-            out: new Set,
+            out: new Map,
         };
         this.idQueries = new Map;
         this.compoundArrays = new Map;
@@ -244,12 +245,12 @@ class ThingpediaLoader {
         const pname = arg.name;
         const ptype = arg.type;
         const key = pname + '+' + ptype;
+        const typestr = this._recordType(ptype);
         // FIXME match functionName
         //if (this.params.out.has(key))
         //    return;
-        this.params.out.add(key);
+        this.params.out.set(key, [pname, typestr]);
 
-        const typestr = this._recordType(ptype);
         const pvar = new Ast.Value.VarRef(pname);
 
         if (ptype.isCompound)
@@ -513,7 +514,11 @@ class ThingpediaLoader {
 
         const functionName = q.class.name + ':' + q.name;
         const table = new Ast.Table.Invocation(null, invocation, q);
-        for (let form of canonical) {
+
+        let shortCanonical = q.metadata.canonical_short || canonical;
+        if (!Array.isArray(shortCanonical))
+            shortCanonical = [shortCanonical];
+        for (let form of shortCanonical) {
             this._grammar.addRule('base_table', [form], this._runtime.simpleCombine(() => table));
             this._grammar.addRule('base_noun_phrase', [form], this._runtime.simpleCombine(() => functionName));
         }
@@ -587,8 +592,31 @@ class ThingpediaLoader {
                 this._recordOutputParam(functionName, arg);
         }
 
-        if (functionDef.functionType === 'query')
+        if (functionDef.functionType === 'query') {
             await this._makeExampleFromQuery(functionDef);
+            if (functionDef.metadata.result)
+                await this._loadCustomResultString(functionDef);
+        }
+    }
+
+    async _loadCustomResultString(functionDef) {
+        let chunks = functionDef.metadata.result.trim().split(' ');
+        let expansion = [];
+
+        for (let chunk of chunks) {
+            if (chunk === '')
+                continue;
+            if (chunk.startsWith('$') && chunk !== '$$') {
+                const [, param1, param2, opt] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk);
+                let param = param1 || param2;
+                assert(param);
+                expansion.push(new this._runtime.Placeholder(param, opt));
+            } else {
+                expansion.push(chunk);
+            }
+        }
+
+        this._grammar.addRule('thingpedia_result', expansion, this._runtime.simpleCombine(() => new SlotBag(functionDef)));
     }
 
     async _loadDevice(device) {

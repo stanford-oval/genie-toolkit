@@ -39,6 +39,7 @@ import './dlg/recommendation';
 import './dlg/refinement';
 import './dlg/results';
 import './dlg/slot-fill';
+import './dlg/related-questions.genie';
 
 context ctx_init,
     ctx_greet,
@@ -173,8 +174,8 @@ context function (state) {
             else // we can refine
                 tags.push('ctx_search_command');
 
-            if (!info.resultInfo.hasLargeResult) // we can /show the result
-                tags.push('ctx_complete_search_command');
+            // we can /show the result
+            tags.push('ctx_complete_search_command');
         }
 
         return [tags, info];
@@ -318,7 +319,7 @@ $root = {
         return D.checkStateIsValid(ctx, sysState, userState);
     };
 
-    ( ctx:ctx_cancel anything_else_phrase '<sep>' no_thanks_phrase ('goodbye !' | '') [weight=0.01]
+    /*( ctx:ctx_cancel anything_else_phrase '<sep>' no_thanks_phrase ('goodbye !' | '') [weight=0.01]
     | ctx:ctx_cancel anything_else_phrase '<sep>' thanks_phrase ('goodbye !' | '') [weight=0.01]
     ) => {
         const userState = D.makeSimpleState(ctx, 'end', null);
@@ -344,7 +345,7 @@ $root = {
     ( ctx:ctx_search_command pair:negative_proposal_reply_pair [weight=0.5]
     | ctx:ctx_search_command pair:positive_proposal_reply_pair [weight=0.5]
     ) =>
-        D.proposalReplyPair(ctx, pair);
+        D.proposalReplyPair(ctx, pair);*/
 
     // action recommendation (through one or a list)
 
@@ -358,11 +359,15 @@ $root = {
         => D.recommendationCancelPair(ctx, pair);
     ctx:ctx_learn_more pair:learn_more_search_question_pair [weight=1]
         => D.recommendationSearchQuestionPair(ctx, pair);
+    ctx:ctx_complete_search_command pair:recommendation_related_question_pair [weight=1]
+        => D.recommendationRelatedQuestionPair(ctx, pair);
 
-    ctx:ctx_complete_search_command pair:negative_list_proposal_reply_pair [weight=10 * 0.3]
+    /*ctx:ctx_complete_search_command pair:negative_list_proposal_reply_pair [weight=10 * 0.3]
         => D.negativeListProposalReplyPair(ctx, pair);
     ctx:ctx_complete_search_command pair:positive_list_proposal_reply_pair [weight=10 * 0.7]
         => D.positiveListProposalReplyPair(ctx, pair);
     ctx:ctx_complete_search_command pair:list_proposal_search_question_pair [weight=10]
         => D.listProposalSearchQuestionPair(ctx, pair);
+    ctx:ctx_complete_search_command pair:list_proposal_related_question_pair [weight=1]
+        => D.listProposalRelatedQuestionPair(ctx, pair);*/
 }

@@ -41,6 +41,11 @@ action_recommendation = {
 }
 
 actionable_system_recommendation_short = {
+    ctx:ctx_with_result_noquestion proposal:thingpedia_result if complete
+        => D.makeThingpediaRecommendation(ctx, proposal);
+    ctx:ctx_with_result_noquestion proposal:thingpedia_result if complete
+        => D.makeThingpediaRecommendation(ctx, proposal);
+
     ( ctx:ctx_with_result_and_action 'i' ('recommend' | 'suggest') proposal:constant_name
     | ctx:ctx_with_result_noquestion ('i see' | 'i have' | 'i have found' | 'i have one , it is') proposal:constant_name
     ) => D.makeRecommendation(ctx, proposal);
@@ -236,4 +241,9 @@ recommendation_cancel_pair = {
             return null;
         return prop;
     };
+}
+
+
+recommendation_related_question_pair = {
+    prop:system_recommendation '<sep>' question:related_question => [prop, question];
 }

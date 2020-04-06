@@ -1703,6 +1703,24 @@ function addActionInputParam(action, param) {
         return new Ast.Table.Invocation(null, newInvocation, action.schema.removeArgument(param.name));
 }
 
+function replaceSlotBagPlaceholder(bag, pname, value) {
+    if (!value.isConstant())
+        return null;
+    let ptype = bag.schema.getArgType(pname);
+    if (!ptype)
+        return null;
+    if (ptype.isArray)
+        ptype = ptype.elem;
+    const vtype = value.getType();
+    if (!ptype.equals(vtype))
+        return null;
+    if (bag.has(pname))
+        return null;
+    const clone = bag.clone();
+    clone.set(pname, value);
+    return clone;
+}
+
 module.exports = {
     typeToStringSafe,
     getFunctionNames,
@@ -1744,6 +1762,7 @@ module.exports = {
     whenGetStream,
     addInvocationInputParam,
     addActionInputParam,
+    replaceSlotBagPlaceholder,
 
     // filters
     hasUniqueFilter,
