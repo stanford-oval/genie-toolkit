@@ -125,6 +125,17 @@ function makeRecommendation(ctx, name) {
     return { topResult, ctx, info: null, action: ctx.nextInfo && ctx.nextInfo.isAction ? getActionInvocation(ctx.next) : null };
 }
 
+function makeThingpediaRecommendation(ctx, info) {
+    const results = ctx.results;
+    assert(results.length > 0);
+
+    const topResult = results[0];
+    if (!isInfoPhraseCompatibleWithResult(topResult, info))
+        return null;
+
+    return { topResult, ctx, info, action: ctx.nextInfo && ctx.nextInfo.isAction ? getActionInvocation(ctx.next) : null };
+}
+
 function checkInfoPhrase(ctx, info) {
     if (ctx.currentFunction !== info.schema.class.name + ':' + info.schema.name)
         return null;
@@ -228,6 +239,9 @@ function isFilterCompatibleWithInfo(info, filter) {
     const pname = filter.name;
     if (!info.has(pname))
         return false;
+
+    if (!filter.value.isConstant())
+        return true;
 
     switch (filter.operator) {
     case '==':
@@ -1303,6 +1317,75 @@ function contextualAction(ctx, action) {
     return clone;
 }
 
+function relatedQuestion(ctx, stmt) {
+    const currentTable = ctx.current.stmt.table;
+    if (!currentTable)
+        return null;
+
+    if (!stmt.isCommand || !stmt.table)
+        return null;
+    if (!C.checkValidQuery(stmt.table))
+        return null;
+    if (stmt.actions.some((a) => !a.isNotify))
+        return null;
+
+    let newTable = stmt.table;
+    if (C.isSameFunction(currentTable.schema, newTable.schema))
+        return null;
+
+    const related = currentTable.schema.getAnnotation('related');
+    if (!related)
+        return null;
+
+    const functionNames = C.getFunctionNames(newTable);
+    for (let fn of functionNames) {
+        if (!related.includes(fn))
+            return null;
+    }
+
+    let ctxFilterTable, newFilterTable;
+    [newTable, newFilterTable] = findOrMakeFilterTable(newTable.clone());
+    if (newFilterTable === null)
+        return null;
+
+    ctxFilterTable = findFilterTable(currentTable);
+
+    if (ctxFilterTable) {
+        const newFilter = refineFilterToAnswerQuestion(ctxFilterTable.filter, newFilterTable.filter);
+        if (newFilter === null)
+            return null;
+        newFilterTable.filter = newFilter;
+    }
+
+    return newTable;
+}
+
+function recommendationRelatedQuestionPair(ctx, [{ topResult, action: actionProposal }, relatedQuestion]) {
+    const userState = addQuery(ctx, 'execute', relatedQuestion, 'accepted');
+
+    let sysState;
+    if (actionProposal === null) {
+        sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
+    } else {
+        const chainParam = findChainParam(topResult, actionProposal);
+        sysState = addActionParam(ctx, 'sys_recommend_one', actionProposal, chainParam, topResult.value.id, 'proposed');
+    }
+
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
+function listProposalRelatedQuestionPair(ctx, [[results, info, actionProposal], relatedQuestion]) {
+    const userState = addQuery(ctx, 'execute', relatedQuestion, 'accepted');
+
+    let dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
+    let sysState;
+    if (actionProposal === null)
+        sysState = makeSimpleState(ctx, dialogueAct, null);
+    else
+        sysState = addAction(ctx, dialogueAct, actionProposal, 'proposed');
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
 module.exports = {
     // consistency checks
     POLICY_NAME,
@@ -1335,6 +1418,7 @@ module.exports = {
     checkSearchResultPreamble,
     makeActionRecommendation,
     makeRecommendation,
+    makeThingpediaRecommendation,
     checkRecommendation,
     makeShortUserQuestionAnswer,
     checkListProposal,
@@ -1347,6 +1431,7 @@ module.exports = {
     refineFilterToAnswerQuestion,
     refineFilterToChangeFilter,
     contextualAction,
+    relatedQuestion,
 
     // templates
     preciseSearchQuestionAnswer,
@@ -1360,9 +1445,11 @@ module.exports = {
     positiveRecommendationReplyPair,
     recommendationSearchQuestionPair,
     recommendationCancelPair,
+    recommendationRelatedQuestionPair,
     negativeListProposalReplyPair,
     positiveListProposalReplyPair,
     listProposalSearchQuestionPair,
+    listProposalRelatedQuestionPair,
     emptySearchChangePair,
     addDontCare,
 };

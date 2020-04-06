@@ -23,6 +23,10 @@
     const _tpLoader = require('../../load-thingpedia');
 }
 
+coref_action_phrase = {}
+contextual_action_phrase = {}
+list_coref_action_phrase = {}
+
 for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
     // coref to one object (for recommendation)
     coref_action_phrase = {
