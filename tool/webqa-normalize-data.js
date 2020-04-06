@@ -27,6 +27,7 @@ const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 const MONTH = 30 * DAY;
 const YEAR = 365 * DAY;
+
 function parseDuration(form) {
     const match = /^P([0-9]+Y)?([0-9]+M)?([0-9]+D)?T?([0-9]+H)?([0-9]+M)?([0-9]+S)?/.exec(form);
 
@@ -113,9 +114,9 @@ function hash(obj) {
 }
 
 class Normalizer {
-    constructor() {
+    constructor(className) {
         // metadata for each schema.org type
-        this._meta = {};
+        this.meta = {};
 
         // the normalized file
         this.output = {};
@@ -125,19 +126,22 @@ class Normalizer {
 
         // deduplication of warnings
         this._warnings = new Set;
+
+        // the prefix of the class name, default to org.schema
+        this._className = className;
     }
 
     async init(thingpedia) {
         const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
-        assert(library.isLibrary && library.classes.length === 1 && library.classes[0].kind.startsWith('org.schema'));
+        assert(library.isLibrary && library.classes.length === 1);
         const classDef = library.classes[0];
         this._classDef = classDef;
 
         for (let fn in classDef.queries) {
             const fndef = classDef.queries[fn];
-            this._meta[fn] = {
+            this.meta[fn] = {
                 extends: fndef.extends,
-                fields: makeMetadata(fndef.args.map((argname) => fndef.getArgument(argname)))
+                fields: makeMetadata(this._className, fndef.args.map((argname) => fndef.getArgument(argname)))
             };
         }
     }
@@ -167,7 +171,7 @@ class Normalizer {
             return;
 
         for (let field in obj) {
-            if (field === '@id' || field === '@type' || field === '@context' || field === 'sameAs')
+            if (field === '@id' || field === 'name' || field === '@type' || field === '@context' || field === 'sameAs')
                 continue;
 
             if (!querydef.hasArgument(field)) {
@@ -196,7 +200,7 @@ class Normalizer {
     }
 
     _processObject(value, type, visitedTypes = new Set) {
-        const typemeta = this._meta[type];
+        const typemeta = this.meta[type];
         if (!typemeta) {
             if (!type.endsWith('Action'))
                 console.error(`Unrecognized object type ${type}`);
@@ -498,8 +502,10 @@ module.exports = {
             addHelp: true,
             description: "Normalize schema.org JSON+LD files to match their ThingTalk representation."
         });
-        parser.addArgument(['-o', '--output'], {
-            required: true,
+        parser.addArgument('--data-output', {
+            type: fs.createWriteStream
+        });
+        parser.addArgument('--meta-output', {
             type: fs.createWriteStream
         });
         parser.addArgument('--thingpedia', {
@@ -510,15 +516,27 @@ module.exports = {
             nargs: '+',
             help: 'Input JSON+LD files to normalize. Multiple input files will be merged in one.'
         });
+        parser.addArgument('--class-name', {
+            required: false,
+            help: 'The name of the device class, used for decide class-specific types',
+            defaultValue: 'org.schema'
+        });
     },
 
     async execute(args) {
-        const normalizer = new Normalizer();
+        const normalizer = new Normalizer(args.class_name);
         await normalizer.init(args.thingpedia);
         for (let filename of args.input_file)
             await normalizer.process(filename);
 
-        args.output.end(JSON.stringify(normalizer.output, undefined, 2));
-        await StreamUtils.waitFinish(args.output);
+        if (args.meta_output) {
+            args.meta_output.end(JSON.stringify(normalizer.meta, undefined, 2));
+            await StreamUtils.waitFinish(args.meta_output);
+        }
+
+        if (args.data_output) {
+            args.data_output.end(JSON.stringify(normalizer.output, undefined, 2));
+            await StreamUtils.waitFinish(args.data_output);
+        }
     }
 };

@@ -20,7 +20,7 @@ const StreamUtils = require('../lib/stream-utils');
 
 async function loadClassDef(thingpedia) {
     const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
-    assert(library.isLibrary && library.classes.length === 1 && library.classes[0].kind.startsWith('org.schema'));
+    assert(library.isLibrary && library.classes.length === 1);
     return library.classes[0];
 }
 
@@ -100,8 +100,7 @@ module.exports = {
         } else {
             const options = args;
             const constants = await parseConstantFile(args.locale, args.constants);
-            const queries = args.queries.split(',').map((qname) => qname.charAt(0).toUpperCase() + qname.slice(1));
-            const generator = new CanonicalGenerator(classDef, constants, queries, args.parameter_datasets, options);
+            const generator = new CanonicalGenerator(classDef, constants, args.queries, args.parameter_datasets, options);
             const updatedClassDef = await generator.generate();
             args.output.end(updatedClassDef.prettyprint());
         }

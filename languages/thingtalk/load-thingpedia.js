@@ -64,9 +64,9 @@ class ThingpediaLoader {
         this.idQueries = new Map;
         this.compoundArrays = new Map;
         if (this._options.whiteList)
-            this.whiteList = this._options.whiteList.toLowerCase().split(',');
+            this.globalWhiteList = this._options.whiteList.split(',');
         else
-            this.whiteList = null;
+            this.globalWhiteList = null;
 
         const [say, get_gps, get_time] = await Promise.all([
             this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'action', 'say'),
@@ -595,7 +595,7 @@ class ThingpediaLoader {
     }
 
     async _loadFunction(functionDef) {
-        if (this.whiteList && !this.whiteList.includes(functionDef.name.toLowerCase()))
+        if (this.globalWhiteList && !this.globalWhiteList.includes(functionDef.name))
             return;
 
         let functionName = functionDef.class.kind + ':' + functionDef.name;
@@ -615,8 +615,17 @@ class ThingpediaLoader {
             this._runtime.simpleCombine(() => new Ast.Value.Entity(device.kind, 'tt:device', null)));
 
         const classDef = await this._schemas.getFullMeta(device.kind);
-        await Promise.all(Object.values(classDef.queries).map(this._loadFunction.bind(this)));
-        await Promise.all(Object.values(classDef.actions).map(this._loadFunction.bind(this)));
+
+        const whitelist = classDef.getImplementationAnnotation('whitelist');
+        let queries = Object.keys(classDef.queries);
+        let actions = Object.keys(classDef.actions);
+        if (whitelist && whitelist.length > 0) {
+            queries = queries.filter((name) => whitelist.includes(name));
+            actions = actions.filter((name) => whitelist.includes(name));
+        }
+
+        await Promise.all(queries.map((name) => classDef.queries[name]).map(this._loadFunction.bind(this)));
+        await Promise.all(actions.map((name) => classDef.actions[name]).map(this._loadFunction.bind(this)));
     }
 
     async _isIdEntity(idEntity) {
@@ -630,7 +639,7 @@ class ThingpediaLoader {
         if (this.idQueries.has(idEntity))
             return true;
 
-        if (this.whiteList && !this.whiteList.includes(suffix.toLowerCase()))
+        if (this.globalWhiteList && !this.globalWhiteList.includes(suffix))
             return false;
 
         let classDef;
@@ -640,7 +649,10 @@ class ThingpediaLoader {
             // ignore if the class does not exist
             return false;
         }
+        const whitelist = classDef.getImplementationAnnotation('whitelist');
         if (classDef.queries[suffix]) {
+            if (whitelist && whitelist.length > 0 && !whitelist.includes(suffix))
+                return false;
             const query = classDef.queries[suffix];
             if (query.hasArgument('id')) {
                 const id = query.getArgument('id');
