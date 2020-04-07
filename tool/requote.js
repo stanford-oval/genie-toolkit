@@ -52,6 +52,10 @@ function findSpanType(program, begin_index, end_index) {
     let spanType;
     if (begin_index > 1 && program[begin_index-2] === 'location:') {
         spanType = 'LOCATION';
+    } else if (program[begin_index-2] === '==' && program[begin_index-3].endsWith('Number')){
+        spanType = 'NUMBER';
+    } else if (program[begin_index-2] === '==' && program[begin_index-3].includes('phone_number')){
+        spanType = 'PHONE_NUMBER';
     } else if (end_index === program.length - 1 || !program[end_index+1].startsWith('^^')) {
         spanType = 'QUOTED_STRING';
     } else {
@@ -202,24 +206,39 @@ function sortWithIndeces(toSort, sort_func) {
     return sortIndices;
 }
 
-function getProgSpans(program) {
+function getProgSpans(program, is_quoted) {
     let in_string = false;
     let begin_index = null;
     let end_index = null;
     let all_prog_spans = [];
-    for (let i = 0; i < program.length; i++) {
-        let token = program[i];
-        if (token === '"') {
-            in_string = !in_string;
-            if (in_string) {
-                begin_index = i + 1;
-            } else {
-                end_index = i;
+    if (is_quoted) {
+        for (let i = 0; i < program.length; i++) {
+            let token = program[i];
+            if (ENTITY_MATCH_REGEX.test(token)){
+                begin_index = i;
+                end_index = begin_index + 1;
                 let prog_span = {begin: begin_index, end: end_index};
                 all_prog_spans.push(prog_span);
             }
         }
+
+    } else {
+        for (let i = 0; i < program.length; i++) {
+            let token = program[i];
+            if (token === '"') {
+                in_string = !in_string;
+                if (in_string) {
+                    begin_index = i + 1;
+                } else {
+                    end_index = i;
+                    let prog_span = {begin: begin_index, end: end_index};
+                    all_prog_spans.push(prog_span);
+                }
+            }
+        }
     }
+
+
 
     // sort params based on length so that longer phrases get matched sooner
     let sort_func = function (a, b)  {
@@ -235,11 +254,11 @@ function getProgSpans(program) {
 }
 
 
-function findSpanPositions(id, sentence, program) {
+function findSpanPositions(id, sentence, program, is_quoted) {
     const spansBySentencePos = [];
     const spansByProgramPos = [];
 
-    const [all_prog_spans_sorted, sortIndices]  = getProgSpans(program);
+    const [all_prog_spans_sorted, sortIndices]  = getProgSpans(program, is_quoted);
 
     for (let i = 0; i < all_prog_spans_sorted.length; i++) {
         const prog_span = all_prog_spans_sorted[i];
@@ -267,11 +286,11 @@ function findSpanPositions(id, sentence, program) {
     return [spansBySentencePos, spansByProgramPos, sortIndices];
 }
 
-function requoteSentence(id, sentence, program, mode) {
+function requoteSentence(id, sentence, program, mode, is_quoted) {
     sentence = sentence.split(' ');
     program = program.split(' ');
 
-    let [spansBySentencePos, spansByProgramPosSorted, sortIndices] = findSpanPositions(id, sentence, program);
+    let [spansBySentencePos, spansByProgramPosSorted, sortIndices] = findSpanPositions(id, sentence, program, is_quoted);
 
     if (spansBySentencePos.length === 0)
         return [sentence.join(' '), program.join(' ')];
@@ -331,6 +350,11 @@ module.exports = {
             choices: ['replace', 'qpis'],
             defaultValue: 'replace'
         });
+        parser.addArgument('--is_quoted', {
+            action: 'storeTrue',
+            help: 'The input dataset is already quoted. Pass this to qpis a quoted dataset',
+            defaultValue: false
+        });
         parser.addArgument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
@@ -346,7 +370,7 @@ module.exports = {
 
                 transform(ex, encoding, callback) {
                     try {
-                        const [newSentence, newProgram] = requoteSentence(ex.id, ex.preprocessed, ex.target_code, args.mode);
+                        const [newSentence, newProgram] = requoteSentence(ex.id, ex.preprocessed, ex.target_code, args.mode, args.is_quoted);
                         ex.preprocessed = newSentence;
                         ex.target_code = newProgram;
                         callback(null, ex);
