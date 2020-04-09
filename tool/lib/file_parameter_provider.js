@@ -113,12 +113,12 @@ module.exports = class FileParameterProvider {
 
     get(valueListType, valueListName) {
         switch (valueListType) {
-            case 'string':
-                return this._getStrings(valueListName);
-            case 'entity':
-                return this._getEntities(valueListName);
-            default:
-                throw new TypeError(`Unexpected value list type ${valueListType}`);
+        case 'string':
+            return this._getStrings(valueListName);
+        case 'entity':
+            return this._getEntities(valueListName);
+        default:
+            throw new TypeError(`Unexpected value list type ${valueListType}`);
         }
     }
 };

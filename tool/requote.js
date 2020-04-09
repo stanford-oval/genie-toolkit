@@ -19,6 +19,7 @@ const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const StreamUtils = require('../lib/stream-utils');
 
 const ENTITY_MATCH_REGEX = /^([A-Z].*)_[0-9]+$/;
+const NUMBER_MATCH_REGEX = /^([0-9|\u0660-\u0669]+)$/;
 
 
 function check_range(index, spansBySentencePos){
@@ -52,22 +53,23 @@ function findSpanType(program, begin_index, end_index) {
     let spanType;
     if (begin_index > 1 && program[begin_index-2] === 'location:') {
         spanType = 'LOCATION';
-    } else if (program[begin_index-2] === '==' && program[begin_index-3].endsWith('Number')){
+    } else if (NUMBER_MATCH_REGEX.test(program[begin_index])){
         spanType = 'NUMBER';
-    } else if (program[begin_index-2] === '==' && program[begin_index-3].includes('phone_number')){
-        spanType = 'PHONE_NUMBER';
     } else if (end_index === program.length - 1 || !program[end_index+1].startsWith('^^')) {
         spanType = 'QUOTED_STRING';
     } else {
         switch (program[end_index+1]) {
-        case '^^tt:hashtag':
-            spanType = 'HASHTAG';
-            break;
-        case '^^tt:username':
-            spanType = 'USERNAME';
-            break;
-        default:
-            spanType = 'GENERIC_ENTITY_' + program[end_index+1].substring(2);
+            case '^^tt:hashtag':
+                spanType = 'HASHTAG';
+                break;
+            case '^^tt:username':
+                spanType = 'USERNAME';
+                break;
+            case '^^tt:phone_number':
+                spanType = 'PHONE_NUMBER';
+                break;
+            default:
+                spanType = 'GENERIC_ENTITY_' + program[end_index+1].substring(2);
         }
         end_index++;
     }
