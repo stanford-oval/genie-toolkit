@@ -22,10 +22,9 @@ const ENTITY_MATCH_REGEX = /^([A-Z].*)_[0-9]+$/;
 const NUMBER_MATCH_REGEX = /^([0-9|\u0660-\u0669]+)$/;
 
 function do_replace_numbers(token, requote_numbers) {
-    // check if token is:
-    // 1) an Arabic or English number
-    // 2) ignore digit 0 and 1 since it is sometimes used in program to represent
-    // singularities (e.g. a, an, one, ...) but is not present in the snetence
+    // 1) check if token is an Arabic or English number
+    // 2) ignore digit 0 and 1 since they are sometimes used in the program
+    // (e.g. to represent singularities) but are not present in the sentence
 
     return requote_numbers && NUMBER_MATCH_REGEX.test(token) && !(token === '0') && !(token === '1');
 }
