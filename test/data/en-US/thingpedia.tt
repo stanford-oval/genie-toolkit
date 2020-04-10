@@ -1554,7 +1554,7 @@ class @org.arxiv
                                out pubDate: Date #_[canonical="pub date"],
                                out link: Entity(tt:url) #_[canonical="link"],
                                out summary: String #_[canonical="summary"])
-  #_[canonical="Search papers on ArXiv"]
+  #_[canonical="papers on arxiv"]
   #_[confirmation="search papers on ArXiv"]
   #_[formatted=[{type="rdl",webCallback="$link",displayTitle="$title by $author ($pubDate)",displayText="$summary"}]]
   #[confirm=false];
@@ -2128,4 +2128,3 @@ class @org.thingpedia.friendhub.stickynotes
   #_[confirmation="Add $post to sticky notes"]
   #[confirm=true];
 }
-
