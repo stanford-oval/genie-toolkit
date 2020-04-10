@@ -19,7 +19,7 @@ const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const StreamUtils = require('../lib/stream-utils');
 
 const ENTITY_MATCH_REGEX = /^([A-Z].*)_[0-9]+$/;
-const NUMBER_MATCH_REGEX = /^([0-9|\u0660-\u0669]+)$/;
+const NUMBER_MATCH_REGEX = /^([0-9]+)$/;
 
 function do_replace_numbers(token, requote_numbers) {
     // 1) check if token is an Arabic or English number
@@ -73,21 +73,21 @@ function findSpanType(program, begin_index, end_index, requote_numbers) {
         spanType = 'QUOTED_STRING';
     } else {
         switch (program[end_index+1]) {
-            case '^^tt:hashtag':
-                spanType = 'HASHTAG';
-                break;
-            case '^^tt:username':
-                spanType = 'USERNAME';
-                break;
-            case '^^tt:phone_number':
-                spanType = 'PHONE_NUMBER';
-                break;
-            default:
-                spanType = 'GENERIC_ENTITY_' + program[end_index+1].substring(2);
+        case '^^tt:hashtag':
+            spanType = 'HASHTAG';
+            break;
+        case '^^tt:username':
+            spanType = 'USERNAME';
+            break;
+        case '^^tt:phone_number':
+            spanType = 'PHONE_NUMBER';
+            break;
+        default:
+            spanType = 'GENERIC_ENTITY_' + program[end_index+1].substring(2);
         }
         end_index++;
     }
-    return [spanType, end_index];
+    return spanType;
 }
 
 
@@ -245,7 +245,7 @@ function getProgSpans(program, is_quoted, requote_numbers) {
     } else {
         for (let i = 0; i < program.length; i++) {
             let token = program[i];
-             if (token === '"') {
+            if (token === '"') {
                 in_string = !in_string;
                 if (in_string) {
                     begin_index = i + 1;
@@ -300,7 +300,7 @@ function findSpanPositions(id, sentence, program, is_quoted, requote_numbers) {
         const spanBegin = idx;
         const spanEnd = idx + end_index - begin_index;
 
-        let spanType = findSpanType(program, begin_index, end_index, requote_numbers)[0];
+        let spanType = findSpanType(program, begin_index, end_index, requote_numbers);
 
         const span = {begin: spanBegin, end: spanEnd, type: spanType, mapTo: undefined};
         spansBySentencePos.push(span);

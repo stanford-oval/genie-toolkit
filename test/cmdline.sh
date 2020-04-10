@@ -56,7 +56,7 @@ node $srcdir/tool/genie.js generate --maxdepth 2 \
 
 # sample
 node $srcdir/tool/genie.js sample -o synthetic-sampled.tsv \
-  --thingpedia $srcdir/test/data/thingpedia.tt \
+  --thingpedia $srcdir/test/data/en-US/thingpedia.tt \
   --constants $srcdir/data/en-US/constants.tsv --sampling-control $srcdir/test/data/easy-hard-functions.tsv $srcdir/test/data/synthetic.tsv
 diff -u $srcdir/test/data/expected-synthetic-sampled.tsv synthetic-sampled.tsv
 
@@ -67,12 +67,12 @@ diff -u $srcdir/test/data/expected-mturk-paraphrasing.csv mturk-paraphrasing.csv
 # time passes...
 
 # make validation hits
-node $srcdir/tool/genie.js mturk-make-validation-hits -o mturk-validation.csv --thingpedia $srcdir/test/data/thingpedia.tt < $srcdir/test/data/paraphrasing-results.csv
+node $srcdir/tool/genie.js mturk-make-validation-hits -o mturk-validation.csv --thingpedia $srcdir/test/data/en-US/thingpedia.tt < $srcdir/test/data/paraphrasing-results.csv
 diff -u $srcdir/test/data/expected-mturk-validation.csv mturk-validation.csv
 
 # more time passes...
 
-node $srcdir/tool/genie.js mturk-validate -o paraphrase1.tsv -l en-US --thingpedia $srcdir/test/data/thingpedia.tt \
+node $srcdir/tool/genie.js mturk-validate -o paraphrase1.tsv -l en-US --thingpedia $srcdir/test/data/en-US/thingpedia.tt \
   --paraphrasing-input $srcdir/test/data/paraphrasing-results.csv \
   --validation-input $srcdir/test/data/validation-results.csv \
   --paraphrasing-rejects ./paraphrasing-rejects.csv \
@@ -85,14 +85,14 @@ diff -u $srcdir/test/data/expected-validation-rejects.csv validation-rejects.csv
 
 # now test we can validate without validation results (auto validation only)
 
-node $srcdir/tool/genie.js mturk-validate -o paraphrase2.tsv -l en-US --thingpedia $srcdir/test/data/thingpedia.tt \
+node $srcdir/tool/genie.js mturk-validate -o paraphrase2.tsv -l en-US --thingpedia $srcdir/test/data/en-US/thingpedia.tt \
   --paraphrasing-input $srcdir/test/data/paraphrasing-results.csv \
   --paraphrasing-rejects /dev/null \
   --validation-threshold 0
 diff -u $srcdir/test/data/expected-paraphrase2.tsv paraphrase2.tsv
 
 # test that we can skip the reject files
-#node $srcdir/tool/genie.js mturk-validate -o paraphrase1.tsv -l en-US --thingpedia $srcdir/test/data/thingpedia.tt \
+#node $srcdir/tool/genie.js mturk-validate -o paraphrase1.tsv -l en-US --thingpedia $srcdir/test/data/en-US/thingpedia.tt \
 #  --paraphrasing-input $srcdir/test/data/paraphrasing-results.csv \
 #  --validation-input $srcdir/test/data/validation-results.csv \
 #  --validation-count 3 --validation-threshold 3
@@ -101,7 +101,7 @@ diff -u $srcdir/test/data/expected-paraphrase2.tsv paraphrase2.tsv
 # yay we have a dataset, time to augment it...
 
 node $srcdir/tool/genie.js compile-ppdb -o compiled-ppdb.bin $srcdir/test/data/ppdb-2.0-xs-lexical
-node $srcdir/tool/genie.js augment paraphrase1.tsv $srcdir/test/data/synthetic.tsv --thingpedia $srcdir/test/data/thingpedia.tt \
+node $srcdir/tool/genie.js augment paraphrase1.tsv $srcdir/test/data/synthetic.tsv --thingpedia $srcdir/test/data/en-US/thingpedia.tt \
   --ppdb compiled-ppdb.bin --parameter-datasets $srcdir/test/data/parameter-datasets.tsv \
   -o everything.tsv \
   --ppdb-synthetic-fraction 0.5 --ppdb-paraphrase-fraction 1.0 \
@@ -130,14 +130,14 @@ node $srcdir/tool/genie.js split-train-eval everything.tsv \
 
 # generate-contextual
 #node $srcdir/tool/genie.js extract-contexts -l en-US -o contexts.txt \
-#   --thingpedia $srcdir/test/data/thingpedia.tt $srcdir/test/data/synthetic.tsv
+#   --thingpedia $srcdir/test/data/en-US/thingpedia.tt $srcdir/test/data/synthetic.tsv
 #node $srcdir/tool/genie.js generate-contextual --maxdepth 3 \
-#    --thingpedia $srcdir/test/data/thingpedia.tt --entities entities.json --dataset dataset.tt \
+#    --thingpedia $srcdir/test/data/en-US/thingpedia.tt --entities entities.json --dataset dataset.tt \
 #   --template $srcdir/languages/thingtalk/en/contextual.genie -o /dev/null -l en contexts.txt
 #node $srcdir/tool/genie.js contextualize -o /dev/null -l en --context contexts.txt $srcdir/test/data/synthetic.tsv
 #
 #node $srcdir/tool/genie.js sample -o synthetic-contextual-sampled.tsv \
-#  --thingpedia $srcdir/test/data/thingpedia.tt \
+#  --thingpedia $srcdir/test/data/en-US/thingpedia.tt \
 #  --contextual --context-source $srcdir/test/data/synthetic-context-source.tsv \
 #  --constants $srcdir/data/en-US/constants.tsv --sampling-control $srcdir/test/data/easy-hard-functions.tsv \
 #  $srcdir/test/data/synthetic-contextual.tsv
