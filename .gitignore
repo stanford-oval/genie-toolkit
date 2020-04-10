@@ -37,3 +37,5 @@ decanlp/
 !test/data/en-US/samples-en-hard.tsv
 !test/data/en-US/samples-en-hard-qpis.tsv
 !test/data/en-US/samples-en-hard-requoted.tsv
+!test/data/en-US/thingpedia.tt
+!test/data/fa/*
