@@ -1,0 +1,94 @@
+class @org.schema.Restaurant
+#_[name="Restaurant in Schema.org"]
+#_[description="Scraped data from websites that support schema.org"] {
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  list query Thing(out id: Entity(org.schema.Restaurant:Thing) #[unique=true] #[filterable=false] #[org_schema_has_data=true],
+                   out image: Entity(tt:picture) #_[canonical={npp=["image"],base=["image"],default="npp"}] #[org_schema_type="URL"] #[org_schema_has_data=true],
+                   out description: String #_[canonical={default="npp",base=["description", "summary"]}] #[org_schema_type="Text"] #[string_values="org.schema.Restaurant:Thing_description"] #[org_schema_has_data=true])
+  #_[canonical="thing"]
+  #_[confirmation="thing"]
+  #[confirm=false]
+  #[minimal_projection=["id"]]
+  #[org_schema_has_data=true]
+  #[org_schema_has_name=true];
+
+  list query CreativeWork extends Thing(out id: Entity(org.schema.Restaurant:CreativeWork) #[unique=true] #[filterable=false] #[org_schema_has_data=true],
+                                        out author: Entity(org.schema.Restaurant:Person) #_[canonical={default="pvp",avp=["was written by", "was submitted by"],pvp=["by", "made by", "written by", "created by", "authored by", "uploaded by", "submitted by"],npp=["author", "creator"]}] #[org_schema_type="Person"] #[org_schema_has_data=true],
+                                        out datePublished: Date #_[canonical={default="pvp",pvp=["published on", "written on"],base=["date published"]}] #[org_schema_type="Date"] #[org_schema_has_data=true])
+  #_[canonical="creative work"]
+  #_[confirmation="creative work"]
+  #[confirm=false]
+  #[minimal_projection=["id"]]
+  #[org_schema_has_data=true];
+
+  list query Place extends Thing(out id: Entity(org.schema.Restaurant:Place) #[unique=true] #[filterable=false] #[org_schema_has_data=true],
+                                 out address: {
+                                   streetAddress: String #_[canonical={default="npp",base=["street"]}] #[org_schema_type="Text"] #[filterable=false] #[drop=true] #[string_values="org.schema.Restaurant:Place_address_streetAddress"] #[org_schema_has_data=true],
+                                   addressCountry: Entity(tt:country) #_[canonical={default="pvp",pvp=["in"],base=["country"]}] #[org_schema_type="Text"] #[org_schema_has_data=true],
+                                   addressRegion: Entity(tt:us_state) #_[canonical={default="pvp",pvp=["in"],base=["state"]}] #[org_schema_type="Text"] #[org_schema_has_data=true],
+                                   postalCode: String #_[canonical={npp=["postal code"],base=["postal code"],default="npp"}] #[org_schema_type="Text"] #[string_values="org.schema.Restaurant:Place_address_postalCode"] #[org_schema_has_data=true],
+                                   addressLocality: String #_[canonical={default="npp",base=["city"]}] #[org_schema_type="Text"] #[filterable=false] #[drop=true] #[string_values="org.schema.Restaurant:Place_address_addressLocality"] #[org_schema_has_data=true]
+                                 } #_[canonical={npp=["address"],base=["address"],default="npp"}] #[org_schema_type="PostalAddress"] #[org_schema_has_data=true],
+                                 out aggregateRating: {
+                                   reviewCount: Number #_[canonical={npp=["review count"],base=["review count"],default="npp"}] #[org_schema_type="Integer"] #[org_schema_has_data=true],
+                                   ratingValue: Number #_[canonical={default="pvp",pvp=["rated #star"],base=["rating"]}] #[org_schema_type="Number"] #[org_schema_has_data=true]
+                                 } #_[canonical={npp=["aggregate rating"],base=["aggregate rating"],default="npp"}] #[org_schema_type="AggregateRating"] #[org_schema_has_data=true],
+                                 out telephone: Entity(tt:phone_number) #_[canonical={default="npp",base=["telephone", "phone number"]}] #[org_schema_type="Text"] #[org_schema_has_data=true],
+                                 out review: Array(Entity(org.schema.Restaurant:Review)) #_[canonical={npp=["reviews"],base=["reviews"],default="npp"}] #[org_schema_type="Review"] #[org_schema_has_data=true],
+                                 out geo: Location #_[canonical={default="npp",npp=["location", "address"]}] #[org_schema_type="GeoCoordinates"] #[org_schema_has_data=false])
+  #_[canonical="place"]
+  #_[confirmation="place"]
+  #[confirm=false]
+  #[minimal_projection=["id"]]
+  #[org_schema_has_data=true];
+
+  list query Organization extends Thing(out id: Entity(org.schema.Restaurant:Organization) #[unique=true] #[filterable=false] #[org_schema_has_data=true])
+  #_[canonical="organization"]
+  #_[confirmation="organization"]
+  #[confirm=false]
+  #[minimal_projection=["id"]]
+  #[org_schema_has_data=true];
+
+  list query LocalBusiness extends Place, Organization(out id: Entity(org.schema.Restaurant:LocalBusiness) #[unique=true] #[filterable=false] #[org_schema_has_data=true],
+                                                       out priceRange: String #_[canonical={npp=["price range"],base=["price range"],default="npp"}] #[org_schema_type="Text"] #[filterable=false] #[string_values="org.schema.Restaurant:LocalBusiness_priceRange"] #[org_schema_has_data=true])
+  #_[canonical="local business"]
+  #_[confirmation="local business"]
+  #[confirm=false]
+  #[minimal_projection=["id"]]
+  #[org_schema_has_data=true];
+
+  list query FoodEstablishment extends LocalBusiness(out id: Entity(org.schema.Restaurant:FoodEstablishment) #[unique=true] #[filterable=false] #[org_schema_has_data=true],
+                                                     out servesCuisine: String #_[canonical={default="apv",apv=true,avp=["serves #cuisine", "serves #food", "offer #cuisine", "offer #food", "serves", "offers"],npp=["#cuisine", "#food"],base=["cuisine", "food type"]}] #[org_schema_type="Text"] #[string_values="org.schema.Restaurant:FoodEstablishment_servesCuisine"] #[org_schema_has_data=true])
+  #_[canonical="food establishment"]
+  #_[confirmation="food establishment"]
+  #[confirm=false]
+  #[minimal_projection=["id"]]
+  #[org_schema_has_data=true];
+
+  list query Person extends Thing(out id: Entity(org.schema.Restaurant:Person) #[unique=true] #[filterable=false] #[org_schema_has_data=true])
+  #_[canonical="person"]
+  #_[confirmation="person"]
+  #[confirm=false]
+  #[minimal_projection=["id"]]
+  #[org_schema_has_data=true]
+  #[org_schema_has_name=true];
+
+  list query Review extends CreativeWork(out id: Entity(org.schema.Restaurant:Review) #[unique=true] #[filterable=false] #[org_schema_has_data=true],
+                                         out reviewRating: {
+                                           ratingValue: Number #_[canonical={default="pvp",pvp=["rated #star"],base=["rating"]}] #[org_schema_type="Number"] #[org_schema_has_data=true]
+                                         } #_[canonical={default="npp",base=["rating"]}] #[org_schema_type="Rating"] #[org_schema_has_data=true])
+  #_[canonical="review"]
+  #_[confirmation="review"]
+  #[confirm=false]
+  #[minimal_projection=["id"]]
+  #[org_schema_has_data=true];
+
+  list query Restaurant extends FoodEstablishment(out id: Entity(org.schema.Restaurant:Restaurant) #[unique=true] #[filterable=false] #[string_values="com.yelp:restaurant_names"] #[org_schema_has_data=true])
+  #_[canonical="restaurant"]
+  #_[confirmation="restaurant"]
+  #[confirm=false]
+  #[minimal_projection=["id"]]
+  #[org_schema_has_data=true];
+}
