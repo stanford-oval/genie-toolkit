@@ -642,7 +642,9 @@ class SchemaProcessor {
                     canonical.verb = (canonical.verb || []).concat([name]);
                 }
             } else if (name.endsWith(' of')) {
-                canonical.reverse_property = (canonical.reverse_property || []).concat([name]);
+                let noun = name.slice(0, -' of'.length);
+                let canonicals = [name, `# ${noun}`, `# 's ${noun}`];
+                canonical.reverse_property = (canonical.reverse_property || []).concat(canonicals);
             } else if (['VBN', 'VBG', 'JJ', 'JJR'].includes(tags[0]) && !['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
                 // this one is actually somewhat problematic
                 // e.g., all non-words are recognized as JJ, including issn, dateline, funder
