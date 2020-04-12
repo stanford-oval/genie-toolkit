@@ -6,13 +6,14 @@ set -x
 srcdir=`dirname $0`/..
 srcdir=`realpath $srcdir`
 
-workdir=`mktemp -d -t genie-XXXXXX`
+export TMPDIR=$srcdir
+workdir=`mktemp -d $TMPDIR/genie-XXXXXX`
 workdir=`realpath $workdir`
 
-on_error() {
-    rm -fr $workdir
-}
-trap on_error ERR INT TERM
+#on_error() {
+#    rm -fr $workdir
+#}
+#trap on_error ERR INT TERM
 
 oldpwd=`pwd`
 cd $workdir
@@ -22,23 +23,24 @@ node $srcdir/tool/genie.js && exit 1 || true
 node $srcdir/tool/genie.js --help
 
 
-# test requote.js
+## test requote.js
+# replace mode
 node $srcdir/tool/genie.js requote $srcdir/test/data/en-US/samples-en-hard.tsv --output ./samples-en-hard-requoted.tsv --mode replace
 diff -u $srcdir/test/data/en-US/samples-en-hard-requoted.tsv ./samples-en-hard-requoted.tsv
-
+# qpis mode
 node $srcdir/tool/genie.js requote $srcdir/test/data/en-US/samples-en-hard.tsv --output ./samples-en-hard-qpis.tsv --mode qpis
 diff -u $srcdir/test/data/en-US/samples-en-hard-qpis.tsv ./samples-en-hard-qpis.tsv
 
 
 ## test augment.js and requote.js
 # first augment input dataset
-node $srcdir/tool/genie.js augment $srcdir/test/data/fa/para-restaurants-fixed.tsv --output ./para-restaurants-aug.tsv -l en-US -pl fa --replace-numbers --thingpedia $srcdir/data/fa/restaurants/schema.tt --parameter-datasets $srcdir/data/fa/restaurants/parameter-datasets.tsv --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 1 --no-quote-paraphrasing-expand-factor 1 --quoted-fraction 0.0 --debug
+node $srcdir/tool/genie.js augment $srcdir/test/data/fa/para-restaurants-fixed.tsv --output ./para-restaurants-aug.tsv --random-seed 123 -l en-US -pl fa --replace-numbers --thingpedia $srcdir/data/fa/restaurants/schema.tt --parameter-datasets $srcdir/data/fa/restaurants/parameter-datasets.tsv --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 1 --no-quote-paraphrasing-expand-factor 1 --quoted-fraction 0.0 --debug
 # then requote the augmented dataset and assert the result matches the input dataset
 node $srcdir/tool/genie.js requote ./para-restaurants-aug.tsv --output ./para-restaurants-aug-req.tsv --mode replace --requote-numbers
-diff -u <(cut -f2- ./para-restaurants-aug-req.tsv) <(cut -f2- $srcdir/test/data/fa/para-restaurants-fixed.tsv)
+diff -u --left-column <(cut -f2- ./para-restaurants-aug-req.tsv) <(cut -f2- $srcdir/test/data/fa/para-restaurants-fixed.tsv)
 
 
-
+<<a
 # download-*
 node $srcdir/tool/genie.js download-snapshot --help
 node $srcdir/tool/genie.js download-dataset --help

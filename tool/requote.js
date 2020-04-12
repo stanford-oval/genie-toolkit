@@ -20,13 +20,14 @@ const StreamUtils = require('../lib/stream-utils');
 
 const ENTITY_MATCH_REGEX = /^([A-Z].*)_[0-9]+$/;
 const NUMBER_MATCH_REGEX = /^([0-9]+)$/;
+const SMALL_NUMBER_REGEX = /^-?10|11|12|[0-9]$/;
 
 function do_replace_numbers(token, requote_numbers) {
     // 1) check if token is an Arabic or English number
     // 2) ignore digit 0 and 1 since they are sometimes used in the program
     // (e.g. to represent singularities) but are not present in the sentence
 
-    return requote_numbers && NUMBER_MATCH_REGEX.test(token) && !(token === '0') && !(token === '1');
+    return requote_numbers && NUMBER_MATCH_REGEX.test(token) && !(SMALL_NUMBER_REGEX.exec(token)[0] === token);
 }
 
 
@@ -58,14 +59,14 @@ function findSubstring(sequence, substring, spansBySentencePos) {
 }
 
 
-function findSpanType(program, begin_index, end_index, requote_numbers) {
+function findSpanType(program, begin_index, end_index, requote_numbers, is_postal_code = false) {
     let spanType;
     if (begin_index > 1 && program[begin_index-2] === 'location:') {
         spanType = 'LOCATION';
 
     } else if (do_replace_numbers(program[begin_index], requote_numbers) && !(program[end_index+1].startsWith('^^'))){
         // catch purely numeric postal code
-        if (program[begin_index - 3].endsWith('String'))
+        if (is_postal_code)
             spanType = 'QUOTED_STRING';
         else
             spanType = 'NUMBER';
@@ -230,6 +231,7 @@ function getProgSpans(program, is_quoted, requote_numbers) {
     let in_string = false;
     let begin_index = null;
     let end_index = null;
+    let span_type = null;
     let all_prog_spans = [];
     if (is_quoted) {
         for (let i = 0; i < program.length; i++) {
@@ -237,7 +239,9 @@ function getProgSpans(program, is_quoted, requote_numbers) {
             if (ENTITY_MATCH_REGEX.test(token) || do_replace_numbers(token, requote_numbers)){
                 begin_index = i;
                 end_index = begin_index + 1;
-                let prog_span = {begin: begin_index, end: end_index};
+                // for quoted datasets span_type is the placeholder itself
+                span_type = token;
+                let prog_span = {begin: begin_index, end: end_index, span_type:span_type};
                 all_prog_spans.push(prog_span);
             }
         }
@@ -251,19 +255,19 @@ function getProgSpans(program, is_quoted, requote_numbers) {
                     begin_index = i + 1;
                 } else {
                     end_index = i;
-                    let prog_span = {begin: begin_index, end: end_index};
+                    span_type = findSpanType(program, begin_index, end_index, requote_numbers, true);
+                    let prog_span = {begin: begin_index, end: end_index, span_type:span_type};
                     all_prog_spans.push(prog_span);
                 }
             } else if (!in_string && do_replace_numbers(token, requote_numbers)){
                 begin_index = i;
                 end_index = begin_index + 1;
-                let prog_span = {begin: begin_index, end: end_index};
+                span_type = findSpanType(program, begin_index, end_index, requote_numbers);
+                let prog_span = {begin: begin_index, end: end_index, span_type:span_type};
                 all_prog_spans.push(prog_span);
             }
         }
     }
-
-
 
     // sort params based on length so that longer phrases get matched sooner
     let sort_func = function (a, b)  {
@@ -287,7 +291,7 @@ function findSpanPositions(id, sentence, program, is_quoted, requote_numbers) {
 
     for (let i = 0; i < all_prog_spans_sorted.length; i++) {
         const prog_span = all_prog_spans_sorted[i];
-        let [begin_index, end_index] = [prog_span.begin, prog_span.end];
+        let [begin_index, end_index, span_type] = [prog_span.begin, prog_span.end, prog_span.span_type];
         const substring = program.slice(begin_index, end_index);
         const idx = findSubstring(sentence, substring, spansBySentencePos);
         if (idx < 0){
@@ -299,8 +303,7 @@ function findSpanPositions(id, sentence, program, is_quoted, requote_numbers) {
 
         const spanBegin = idx;
         const spanEnd = idx + end_index - begin_index;
-
-        let spanType = findSpanType(program, begin_index, end_index, requote_numbers);
+        let spanType = span_type;
 
         const span = {begin: spanBegin, end: spanEnd, type: spanType, mapTo: undefined};
         spansBySentencePos.push(span);
