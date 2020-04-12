@@ -185,10 +185,15 @@ class AutoCanonicalAnnotator {
     }
 
     _getDatasetPath(qname, arg) {
-        const keys = [
-            `${this.class.kind}:${qname}_${arg.name}`,
-            `${arg.type.isEntity ? arg.type.type : arg.type}`
-        ];
+        const keys = [];
+        const stringValueAnnotation = arg.getImplementationAnnotation('string_values');
+        if (stringValueAnnotation)
+            keys.push(stringValueAnnotation);
+        keys.push(`${this.class.kind}:${qname}_${arg.name}`);
+        const elementType = arg.type.isArray ? arg.type.elem : arg.type;
+        if (!elementType.isCompound)
+            keys.push(elementType.isEntity ? elementType.type : elementType);
+
         for (let key of keys) {
             if (this.parameterDatasetPaths[key])
                 return this.parameterDatasetPaths[key];
