@@ -63,7 +63,7 @@ function templateQuery(cat, tableName, prefix, value='', suffix='') {
 }
 
 
-class CanonicalGenerator {
+class AutoCanonicalAnnotator {
     constructor(classDef, constants, queries, parameterDatasets, options) {
         this.class = classDef;
         this.constants = constants;
@@ -129,7 +129,7 @@ class CanonicalGenerator {
             }
         }
 
-        const args = [path.resolve(path.dirname(module.filename), './bert-canonical-generator.py'), 'all'];
+        const args = [path.resolve(path.dirname(module.filename), './bert-annotator.py'), 'all'];
         if (this.is_paraphraser)
             args.push('--is-paraphraser');
         args.push('--model-name-or-path');
@@ -278,4 +278,4 @@ class CanonicalGenerator {
     }
 }
 
-module.exports = CanonicalGenerator;
+module.exports = AutoCanonicalAnnotator;

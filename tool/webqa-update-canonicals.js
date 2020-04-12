@@ -15,7 +15,7 @@ const util = require('util');
 const ThingTalk = require('thingtalk');
 
 const { parseConstantFile } = require('./lib/constant-file');
-const CanonicalGenerator = require('./lib/webqa-canonical-generator');
+const Annotator = require('./lib/webqa-canonical-annotator');
 const StreamUtils = require('../lib/stream-utils');
 
 async function loadClassDef(thingpedia) {
@@ -100,7 +100,7 @@ module.exports = {
         } else {
             const options = args;
             const constants = await parseConstantFile(args.locale, args.constants);
-            const generator = new CanonicalGenerator(classDef, constants, args.queries.split(','), args.parameter_datasets, options);
+            const generator = new Annotator(classDef, constants, args.queries.split(','), args.parameter_datasets, options);
             const updatedClassDef = await generator.generate();
             args.output.end(updatedClassDef.prettyprint());
         }
