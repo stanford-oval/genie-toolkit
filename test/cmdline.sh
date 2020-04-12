@@ -10,10 +10,10 @@ export TMPDIR=$srcdir
 workdir=`mktemp -d $TMPDIR/genie-XXXXXX`
 workdir=`realpath $workdir`
 
-#on_error() {
-#    rm -fr $workdir
-#}
-#trap on_error ERR INT TERM
+on_error() {
+    rm -fr $workdir
+}
+trap on_error ERR INT TERM
 
 oldpwd=`pwd`
 cd $workdir
@@ -40,7 +40,7 @@ node $srcdir/tool/genie.js requote ./para-restaurants-aug.tsv --output ./para-re
 diff -u --left-column <(cut -f2- ./para-restaurants-aug-req.tsv) <(cut -f2- $srcdir/test/data/fa/para-restaurants-fixed.tsv)
 
 
-<<a
+
 # download-*
 node $srcdir/tool/genie.js download-snapshot --help
 node $srcdir/tool/genie.js download-dataset --help
