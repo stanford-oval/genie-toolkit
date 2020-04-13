@@ -57,7 +57,7 @@ class GPT2Ranker:
         self.end_token = '</paraphrase>'
 
     def rank(self, phrases):
-        return sorted(phrases, key=lambda p: self.score(p), reverse=True)
+        return sorted(range(len(phrases)), key=lambda i: self.score(phrases[i]), reverse=True)
 
     def score(self, sentence):
         indexed_tokens = self.tokenizer.encode(sentence)
@@ -82,7 +82,7 @@ class GPT2Ranker:
 
 
 class BertLM:
-    def __init__(self, queries, mask, k, model_name_or_path, is_paraphraser):
+    def __init__(self, queries, mask, k, model_name_or_path, is_paraphraser, gpt2_order):
         """
         :param queries: an object contains the canonicals, values, paths for args in each query
         :param mask: a boolean indicates if we do masking before prediction
@@ -91,6 +91,7 @@ class BertLM:
             (e.g. bert-base-uncased), or a path to the directory where the model is saved
         :param is_paraphraser: Set to True if model_name_or_path was fine-tuned on a paraphrasing dataset. The input to
             the model will be changed to match what the model has seen during fine-tuning.
+        :param gpt2_order: a boolean indicates if we use gpt2 to check where we place value
         """
 
         # Load tokenizer
@@ -100,7 +101,9 @@ class BertLM:
         self.model = BertForMaskedLM.from_pretrained(model_name_or_path)
         self.model.eval()
 
-        self.ranker = GPT2Ranker()
+        self.gpt2_order = gpt2_order
+        if gpt2_order:
+            self.ranker = GPT2Ranker()
 
         self.is_paraphraser = is_paraphraser
         self.mask = mask
@@ -285,6 +288,32 @@ class BertLM:
                     "value": []
                 })
 
+        # check where to put value
+        if self.gpt2_order:
+            for category in arg_canonicals:
+                if category in ['default', 'adjective', 'implicit_identity', 'base']:
+                    continue
+                needs_reorder = []
+                for canonical in arg_canonicals[category]:
+                    count_prefix = 0
+                    count_suffix = 0
+                    for value in self.queries[query_name]['args'][arg_name]['values']:
+                        if '#' not in canonical:
+                            rank = self.ranker.rank([
+                                ' '.join(template_query(category, query_canonical, canonical, value, '')),
+                                ' '.join(template_query(category, query_canonical, '', value, canonical))
+                            ])
+                            print(canonical, rank)
+                            if rank[0] == 0:
+                                count_prefix += 1
+                            else:
+                                count_suffix += 1
+                    if count_suffix > count_prefix:
+                        needs_reorder.append(canonical)
+                for canonical in needs_reorder:
+                    arg_canonicals[category].remove(canonical)
+                    arg_canonicals[category].append(f"# {canonical}")
+
         for value in self.queries[query_name]['args'][arg_name]['values']:
             for category in arg_canonicals:
                 if category in ['default', 'adjective', 'implicit_identity', 'base']:
@@ -384,7 +413,7 @@ if __name__ == '__main__':
 
     queries = json.load(sys.stdin)
 
-    bert = BertLM(queries, args.mask, args.k, args.model_name_or_path, args.is_paraphraser)
+    bert = BertLM(queries, args.mask, args.k, args.model_name_or_path, args.is_paraphraser, args.gpt2_order)
 
     output = {}
     if args.command == 'synonyms' or args.command == 'all':
