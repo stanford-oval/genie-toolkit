@@ -203,6 +203,8 @@ class AutoCanonicalAnnotator {
     _updateCanonicals(candidates, adjectives) {
         for (let qname of this.queries) {
             for (let arg in candidates[qname]) {
+                if (arg === 'id')
+                    continue;
                 let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
                 if (adjectives.includes(`${qname}.${arg}`))
                         canonicals['adjective'] = ['#'];
