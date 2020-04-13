@@ -371,7 +371,7 @@ class BertLM:
                 suffix.append(query[i])
 
         if len(suffix) > 0:
-            return ' '.join(prefix) + ' #' + ' '.join(suffix)
+            return (' '.join(prefix) + ' # ' + ' '.join(suffix)).strip()
         return ' '.join(prefix)
 
 
