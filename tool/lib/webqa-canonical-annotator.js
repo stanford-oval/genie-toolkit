@@ -77,8 +77,6 @@ class AutoCanonicalAnnotator {
         this.parameterDatasets = parameterDatasets;
         this.parameterDatasetPaths = {};
 
-        this.sampleSize = {};
-
         this.options = options;
     }
 
@@ -86,21 +84,22 @@ class AutoCanonicalAnnotator {
     async generate() {
         await this._loadParameterDatasetPaths();
 
-        const examples = {};
-        const paths = {};
+        const queries = {};
         for (let qname of this.queries) {
-            examples[qname] = {};
-            paths[qname] = { canonical: this.class.queries[qname].canonical, params: {} };
             let query = this.class.queries[qname];
+            queries[qname] = { canonical: query.canonical, args: {} };
+
             let typeCounts = this._getArgTypeCount(qname);
             for (let arg of query.iterateArguments()) {
+                queries[qname]['args'][arg.name] = {};
+
                 if (ANNOTATED_PROPERTIES.includes(arg.name))
                     continue;
 
                 // get the paths to the data
                 let p = path.dirname(this.parameterDatasets) + '/'  + this._getDatasetPath(qname, arg);
                 if (p && fs.existsSync(p))
-                    paths[qname]['params'][`${arg.name}`] = p;
+                    queries[qname]['args'][arg.name]['path'] = p;
 
                 // some args don't have canonical: e.g., id, name
                 if (!arg.metadata.canonical)
@@ -123,8 +122,8 @@ class AutoCanonicalAnnotator {
 
                 const samples = this._retrieveSamples(qname, arg);
                 if (samples) {
-                    this.sampleSize[`${qname}.${arg.name}`] = samples.length;
-                    examples[qname][arg.name] = this._generateExamples(query.canonical, arg.metadata.canonical, samples);
+                    queries[qname]['args'][arg.name]['canonicals'] = arg.metadata.canonical;
+                    queries[qname]['args'][arg.name]['values'] = samples;
                 }
             }
         }
@@ -141,10 +140,10 @@ class AutoCanonicalAnnotator {
 
         const output = util.promisify(fs.writeFile);
         if (this.options.debug)
-            await output(`./bert-annotator-in.json`, JSON.stringify({ examples, paths }, null, 2));
+            await output(`./bert-annotator-in.json`, JSON.stringify(queries, null, 2));
 
         const stdout = await new Promise((resolve, reject) => {
-            child.stdin.write(JSON.stringify( { examples, paths } ));
+            child.stdin.write(JSON.stringify(queries));
             child.stdin.end();
             child.on('error', reject);
             child.stdout.on('error', reject);

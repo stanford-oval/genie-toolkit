@@ -8,11 +8,48 @@ from transformers import BertTokenizer, BertModel, BertForMaskedLM
 BLACK_LIST = ['a', 'an', 'the', 'its', 'their', 'his', 'her']
 
 
+def split_canonical(canonical):
+    """
+    Split a canonical into prefix and suffix based on value sign #
+
+    :param canonical: the canonical to split
+    :return: prefix and suffix
+    """
+    if '#' not in canonical:
+        return canonical, ''
+    if canonical.startswith('#'):
+        return '', canonical[1:].strip()
+    return list(map(lambda x: x.strip(), canonical.split('#')))
+
+
+def template_query(cat, query_canonical, prefix, value='', suffix=''):
+    """
+    return a template query sentence for bert
+
+    :param cat: the grammar category of the prefix, value, and suffix
+    :param query_canonical: the canonical form of the query (table), e.g., restaurant, person
+    :param prefix: the prefix of the canonical form
+    :param value: an example value of the property
+    :param suffix: the suffix of the canonical form
+    :return: a template query string
+    """
+    if cat == 'base':
+        return f"what is the {prefix} of the {query_canonical} ?".split()
+    if cat == 'property':
+        return f"show me a {query_canonical} with {prefix} {value} {suffix} .".split()
+    if cat == 'verb':
+        return f"which {query_canonical} {prefix} {value} {suffix} ?".split()
+    if cat == 'passive_verb':
+        return f"show me a {query_canonical} {prefix} {value} {suffix} .".split()
+    if cat == 'reverse_property':
+        return f"which {query_canonical} is a {prefix} {value} {suffix} ?".split()
+    raise Exception('Invalid grammar category: ', cat)
+
+
 class BertLM:
-    def __init__(self, domain, examples, mask, k, model_name_or_path, is_paraphraser):
+    def __init__(self, queries, mask, k, model_name_or_path, is_paraphraser):
         """
-        :param domain: an object contains the canonical form and paths to parameters for each table in the domain
-        :param examples: an object of examples for each grammar category of each property of each table
+        :param queries: an object contains the canonicals, values, paths for args in each query
         :param mask: a boolean indicates if we do masking before prediction
         :param k: number of top candidates to return per example
         :param model_name_or_path: a string specifying a model name recognizable by the Transformers package
@@ -31,14 +68,15 @@ class BertLM:
 
         self.mask = mask
         self.k = k
-        self.canonicals = {}
-        self.values = {}
-        for table in domain:
-            self.canonicals[table] = domain[table]['canonical']
-            self.values[table] = {}
-            for param in domain[table]['params']:
-                self.values[table][param] = self.load_values(domain[table]['params'][param])
-        self.examples = examples
+        self.queries = queries
+        self.canonicals = {}  # canonical of queries
+        self.values = {}  # values of arguments
+        for query in queries:
+            self.canonicals[query] = queries[query]['canonical']
+            self.values[query] = {}
+            for arg in queries[query]['args']:
+                if 'path' in queries[query]['args'][arg]:
+                    self.values[query][arg] = self.load_values(queries[query]['args'][arg]['path'])
 
     def predict_one(self, table, arg, query, word, k):
         """
@@ -141,21 +179,27 @@ class BertLM:
 
         :return: updated examples with additional candidates field for new canonicals
         """
-        for table, arg, pos in ((a, b, c) for a in self.examples for b in self.examples[a] for c in
-                                self.examples[a][b]):
-            count = {}
-            for example in self.examples[table][arg][pos]['examples']:
-                query, masks = example['query'], example['masks']
-                candidates = self.predict_one_type(table, arg, query, masks)
-                example['candidates'] = candidates
-                for candidate in candidates:
-                    if candidate in count:
-                        count[candidate] += 1
-                    else:
-                        count[candidate] = 1
-            self.examples[table][arg][pos]['candidates'] = count
-
-        return self.examples
+        candidates = {}
+        for query in self.queries:
+            candidates[query] = {}
+            for arg in self.queries[query]['args']:
+                candidates[query][arg] = {}
+                examples = self.construct_examples(query, arg)
+                for category in examples:
+                    count = {}
+                    candidates[query][arg][category] = {}
+                    candidates[query][arg][category]['examples'] = []
+                    for example in examples[category]['examples']:
+                        sentence, masks = example['query'], example['masks']
+                        predictions = self.predict_one_type(query, arg, sentence, masks)
+                        candidates[query][arg][category]['examples'].append({
+                            "sentence": example,
+                            "candidates": predictions
+                        })
+                        for prediction in predictions:
+                            count[prediction] = count[prediction] + 1 if prediction in count else 1
+                    candidates[query][arg][category]['candidates'] = count
+        return candidates
 
     def predict_adjectives(self, k=500):
         """
@@ -175,6 +219,51 @@ class BertLM:
                         properties.append(table + '.' + param)
                         break
         return properties
+
+    def construct_examples(self, query_name, arg_name):
+        """
+        construct examples for a given argument of a query
+
+        :param query_name: the name of the query
+        :param arg_name: the name of the argument
+        :return: an object containing examples in different grammar categories
+        """
+        examples = {}
+        query_canonical = self.canonicals[query_name]
+        if 'canonicals' not in self.queries[query_name]['args'][arg_name]:
+            return examples
+
+        arg_canonicals = self.queries[query_name]['args'][arg_name]['canonicals']
+        for category in ['base', 'property', 'verb', 'passive_verb', 'reverse_property']:
+            if category in arg_canonicals:
+                examples[category] = {"examples": [], "candidates": []}
+
+        if 'base' in arg_canonicals:
+            for canonical in arg_canonicals['base']:
+                query = template_query('base', query_canonical, canonical)
+                mask_indices = list(map(lambda x: query.index(x), canonical.split()))
+                examples['base']['examples'].append({
+                    "query": ' '.join(query),
+                    "masks": {"prefix": mask_indices, "suffix": []},
+                    "value": []
+                })
+
+        for value in self.queries[query_name]['args'][arg_name]['values']:
+            for category in arg_canonicals:
+                if category in ['default', 'adjective', 'implicit_identity', 'base']:
+                    continue
+                for canonical in arg_canonicals[category]:
+                    prefix, suffix = split_canonical(canonical)
+                    query = template_query(category, query_canonical, prefix, value, suffix)
+                    prefix_indices = list(map(lambda x: query.index(x), prefix.split()))
+                    suffix_indices = list(map(lambda x: query.index(x), suffix.split()))
+                    value_indices = list(map(lambda x: query.index(x), value.split()))
+                    examples[category]['examples'].append({
+                        "query": ' '.join(query),
+                        "masks": {"prefix": prefix_indices, "suffix": suffix_indices},
+                        "value": value_indices
+                    })
+        return examples
 
     @staticmethod
     def load_values(path):
@@ -253,9 +342,9 @@ if __name__ == '__main__':
                         help='If the model has been trained on a paraphrasing corpus')
     args = parser.parse_args()
 
-    examples, domain = json.load(sys.stdin).values()
+    queries = json.load(sys.stdin)
 
-    bert = BertLM(domain, examples, args.mask, args.k, args.model_name_or_path, args.is_paraphraser)
+    bert = BertLM(queries, args.mask, args.k, args.model_name_or_path, args.is_paraphraser)
 
     output = {}
     if args.command == 'synonyms' or args.command == 'all':
