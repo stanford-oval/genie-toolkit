@@ -1,9 +1,10 @@
 import csv
 import argparse
 import json
-import torch
 import sys
-from transformers import BertTokenizer, BertModel, BertForMaskedLM
+import torch
+import torch.nn.functional as F
+from transformers import BertTokenizer, BertForMaskedLM, GPT2Tokenizer, GPT2LMHeadModel
 
 BLACK_LIST = ['a', 'an', 'the', 'its', 'their', 'his', 'her']
 
@@ -46,6 +47,40 @@ def template_query(cat, query_canonical, prefix, value='', suffix=''):
     raise Exception('Invalid grammar category: ', cat)
 
 
+class GPT2Ranker:
+    def __init__(self):
+        self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+        self.model = GPT2LMHeadModel.from_pretrained('gpt2')
+        self.model.eval()
+
+        self.prompt_token = '<paraphrase>'
+        self.end_token = '</paraphrase>'
+
+    def rank(self, phrases):
+        return sorted(phrases, key=lambda p: self.score(p), reverse=True)
+
+    def score(self, sentence):
+        indexed_tokens = self.tokenizer.encode(sentence)
+        position_ids = list(range(len(indexed_tokens)))
+        segments_ids = [0] * len(indexed_tokens)
+
+        tokens_tensor = torch.tensor(indexed_tokens)
+        segments_tensors = torch.tensor(segments_ids)
+        position_tensors = torch.tensor(position_ids)
+
+        with torch.no_grad():
+            outputs = self.model(
+                input_ids=tokens_tensor,
+                token_type_ids=segments_tensors,
+                position_ids=position_tensors
+            )
+            next_token = tokens_tensor.unsqueeze(-1)
+            logprobs = F.log_softmax(outputs[0], dim=-1)
+            score = torch.exp(torch.mean(logprobs.gather(1, next_token)))
+
+        return score.item()
+
+
 class BertLM:
     def __init__(self, queries, mask, k, model_name_or_path, is_paraphraser):
         """
@@ -64,8 +99,10 @@ class BertLM:
         # Load pre-trained model (weights)
         self.model = BertForMaskedLM.from_pretrained(model_name_or_path)
         self.model.eval()
-        self.is_paraphraser = is_paraphraser
 
+        self.ranker = GPT2Ranker()
+
+        self.is_paraphraser = is_paraphraser
         self.mask = mask
         self.k = k
         self.queries = queries
@@ -340,6 +377,9 @@ if __name__ == '__main__':
     parser.add_argument('--is-paraphraser',
                         action='store_true',
                         help='If the model has been trained on a paraphrasing corpus')
+    parser.add_argument('--gpt2-order',
+                        action='store_true',
+                        help='Use gpt2 model to rank different orders')
     args = parser.parse_args()
 
     queries = json.load(sys.stdin)
