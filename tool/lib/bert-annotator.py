@@ -82,7 +82,7 @@ class GPT2Ranker:
 
 
 class BertLM:
-    def __init__(self, queries, mask, k, model_name_or_path, is_paraphraser, gpt2_order):
+    def __init__(self, queries, mask, k, model_name_or_path, is_paraphraser, gpt2_ordering):
         """
         :param queries: an object contains the canonicals, values, paths for args in each query
         :param mask: a boolean indicates if we do masking before prediction
@@ -91,7 +91,7 @@ class BertLM:
             (e.g. bert-base-uncased), or a path to the directory where the model is saved
         :param is_paraphraser: Set to True if model_name_or_path was fine-tuned on a paraphrasing dataset. The input to
             the model will be changed to match what the model has seen during fine-tuning.
-        :param gpt2_order: a boolean indicates if we use gpt2 to check where we place value
+        :param gpt2_ordering: a boolean indicates if we use gpt2 to check where we place value
         """
 
         # Load tokenizer
@@ -101,8 +101,8 @@ class BertLM:
         self.model = BertForMaskedLM.from_pretrained(model_name_or_path)
         self.model.eval()
 
-        self.gpt2_order = gpt2_order
-        if gpt2_order:
+        self.gpt2_ordering = gpt2_ordering
+        if gpt2_ordering:
             self.ranker = GPT2Ranker()
 
         self.is_paraphraser = is_paraphraser
@@ -289,7 +289,7 @@ class BertLM:
                 })
 
         # check where to put value
-        if self.gpt2_order:
+        if self.gpt2_ordering:
             for category in arg_canonicals:
                 if category in ['default', 'adjective', 'implicit_identity', 'base']:
                     continue
@@ -303,7 +303,6 @@ class BertLM:
                                 ' '.join(template_query(category, query_canonical, canonical, value, '')),
                                 ' '.join(template_query(category, query_canonical, '', value, canonical))
                             ])
-                            print(canonical, rank)
                             if rank[0] == 0:
                                 count_prefix += 1
                             else:
@@ -406,14 +405,14 @@ if __name__ == '__main__':
     parser.add_argument('--is-paraphraser',
                         action='store_true',
                         help='If the model has been trained on a paraphrasing corpus')
-    parser.add_argument('--gpt2-order',
+    parser.add_argument('--gpt2-ordering',
                         action='store_true',
                         help='Use gpt2 model to rank different orders')
     args = parser.parse_args()
 
     queries = json.load(sys.stdin)
 
-    bert = BertLM(queries, args.mask, args.k, args.model_name_or_path, args.is_paraphraser, args.gpt2_order)
+    bert = BertLM(queries, args.mask, args.k, args.model_name_or_path, args.is_paraphraser, args.gpt2_ordering)
 
     output = {}
     if args.command == 'synonyms' or args.command == 'all':

@@ -42,6 +42,7 @@ class AutoCanonicalAnnotator {
         this.mask = options.mask;
         this.is_paraphraser = options.is_paraphraser;
         this.model = options.model;
+        this.gpt2_ordering = options.gpt2_ordering;
 
         this.parameterDatasets = parameterDatasets;
         this.parameterDatasetPaths = {};
@@ -100,6 +101,8 @@ class AutoCanonicalAnnotator {
         const args = [path.resolve(path.dirname(module.filename), './bert-annotator.py'), 'all'];
         if (this.is_paraphraser)
             args.push('--is-paraphraser');
+        if (this.gpt2_ordering)
+            args.push('--gpt2-ordering');
         args.push('--model-name-or-path');
         args.push(this.model);
         args.push(this.mask ? '--mask' : '--no-mask');

@@ -78,6 +78,12 @@ module.exports = {
             action: 'storeTrue',
             help: `Set to True if model_name_or_path was fine-tuned on a paraphrasing dataset`
         });
+        parser.addArgument('--gpt2-ordering', {
+            required: false,
+            defaultValue: false,
+            action: 'storeTrue',
+            help: `Set to True to use gpt2 to decide where to put value`
+        });
         parser.addArgument('--mask', {
             required: false,
             defaultValue: false,
