@@ -32,37 +32,6 @@ function typeToEntityType(type) {
         return null;
 }
 
-// split the canonical into prefix and suffix
-function splitCanonical(canonical) {
-    let prefix, suffix;
-    if (!canonical.includes('#'))
-        [prefix, suffix] = [canonical, ''];
-    else if (canonical.includes('#') && !canonical.startsWith('#'))
-        [prefix, suffix] = canonical.split('#').map((span) => span.trim());
-    else
-        [prefix, suffix] = ['', canonical.slice(1).trim()];
-    return [prefix, suffix];
-}
-
-// return the template query of a certain grammar category
-function templateQuery(cat, tableName, prefix, value='', suffix='') {
-    switch (cat) {
-        case 'base':
-            return `what is the ${prefix} of the ${tableName} ?`.split(/\s+/g);
-        case 'property':
-            return `show me ${tableName} with ${prefix} ${value} ${suffix} .`.split(/\s+/g);
-        case 'verb':
-            return `which ${tableName} ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
-        case 'passive_verb':
-            return `show me a ${tableName} ${prefix} ${value} ${suffix} .`.split(/\s+/g);
-        case 'reverse_property':
-            return `which ${tableName} is a ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
-        default:
-            throw new Error(`Invalid grammar category ${cat}`);
-    }
-}
-
-
 class AutoCanonicalAnnotator {
     constructor(classDef, constants, queries, parameterDatasets, options) {
         this.class = classDef;
@@ -241,46 +210,6 @@ class AutoCanonicalAnnotator {
             });
         }
         return samples;
-    }
-
-    _generateExamples(tableName, canonicals, valueSample) {
-        let examples = {};
-        for (let cat of ['base', 'property', 'verb', 'passive_verb', 'reverse_property']) {
-            if (cat in canonicals)
-                examples[cat] = { examples: [], candidates: [] } ;
-        }
-
-        if ('base' in canonicals) {
-            for (let canonical of canonicals['base']) {
-                let query = templateQuery('base', tableName, canonical);
-                let maskIndices = canonical.split(' ').map((w) => query.indexOf(w));
-                examples['base']['examples'].push({
-                    query: query.join(' '),
-                    masks: {prefix: maskIndices, suffix: []},
-                    value: []
-                });
-            }
-        }
-
-        for (let value of valueSample) {
-            for (let cat in canonicals) {
-                if (['default', 'adjective', 'implicit_identity', 'base'].includes(cat))
-                    continue;
-                for (let canonical of canonicals[cat]) {
-                    let [prefix, suffix] = splitCanonical(canonical);
-                    let query = templateQuery(cat, tableName, prefix, value, suffix);
-                    let prefixIndices = prefix ? prefix.split(' ').map((w) => query.indexOf(w)) : [];
-                    let suffixIndices = suffix ? suffix.split(' ').map((w) => query.indexOf(w)) : [];
-                    let valueIndices = value.split(' ').map((w) => query.indexOf(w));
-                    examples[cat]['examples'].push({
-                        query: query.join(' '),
-                        masks: { prefix: prefixIndices, suffix: suffixIndices },
-                        value: valueIndices
-                    });
-                }
-            }
-        }
-        return examples;
     }
 }
 
