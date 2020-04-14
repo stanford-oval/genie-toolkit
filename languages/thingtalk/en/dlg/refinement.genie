@@ -62,9 +62,7 @@ verbose_negative_proposal_reply_pair = {
 }
 
 negative_proposal_reply_pair = {
-    ( prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
-    | prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') negative_proposal_answer_preamble request:anything_phrase
-    ) => {
+    prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') request:negative_proposal_answer => {
         if (!C.isSameFunction(prop.schema, request.schema))
             return null;
         const refined = D.refineFilterToChangeFilter(prop.filter, request.filter);
@@ -76,14 +74,15 @@ negative_proposal_reply_pair = {
     pair:verbose_negative_proposal_reply_pair [weight=5] => {
         const [prop, preamble] = pair;
         // convert the preamble into a request by negating it
-        const clone = preamble.clone();
+        // shallow clone
+        assert(preamble instanceof Ast.Table.Filter);
+        const clone = new Ast.Table.Filter(null, preamble.table, preamble.filter, preamble.schema);
         clone.filter = new Ast.BooleanExpression.Not(null, clone.filter);
         return [prop, clone];
     };
 
-    ( pair:verbose_negative_proposal_reply_pair negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase
-    | pair:verbose_negative_proposal_reply_pair negative_proposal_answer_preamble request:anything_phrase
-    ) => D.mergePreambleAndRequest(pair, request);
+    pair:verbose_negative_proposal_reply_pair request:negative_proposal_answer
+        => D.mergePreambleAndRequest(pair, request);
 }
 
 positive_proposal_reply_pair = {
@@ -106,10 +105,13 @@ empty_search_error = {
         => [null, p];
 }
 
+empty_search_change_request = {
+    ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') 'a' phrase:answer_noun_phrase '?' => phrase;
+    ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') phrase:anything_phrase '?' => phrase;
+}
+
 empty_search_change_pair = {
-    ( error:empty_search_error '<sep>' ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') 'a' phrase:answer_noun_phrase '?'
-    | error:empty_search_error '<sep>' ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') phrase:anything_phrase '?'
-    ) => {
+    error:empty_search_error '<sep>' phrase:empty_search_change_request => {
         const [base, param] = error;
         if (base !== null && !C.isSameFunction(base.schema, phrase.schema))
             return null;

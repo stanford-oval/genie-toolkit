@@ -1,3 +1,25 @@
+0.6.0
+=====
+
+* Schema2QA scripts fully migrated to the new annotation scheme [#144].
+* Misc bug fixes [#147, #148].
+
+0.6.0-beta.1
+============
+
+* Program normalization during evaluation was improved, which should result in higher
+  accuracy and fewer errors due to incorrect evaluation [#139].
+* ThingTalk templates for single sentence and dialogues have been merged. This should
+  have no impact on downstream users as dialogues are disabled by default, but it will
+  allow us to share fixes [#138].
+* The "requote" script has been refactored and fixed, and now has a mode where the
+  string values are preserved in the sentence, but wrapped in quote marks [#140].
+* The performance of template generation (in terms of sentence/sec) has been improved
+  significantly, compared to previous unstable releases, and should be on par or better with
+  the 0.5 series. This primarily affects dialogue templates, but it should improve
+  single-sentence templates too [#142].
+* Misc template fixes [#139, #141].
+
 0.6.0-alpha.1
 =============
 

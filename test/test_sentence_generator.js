@@ -77,7 +77,7 @@ async function doTest(filename) {
             projection: true,
             projection_with_filter: true
         },
-        targetPruningSize: 100,
+        targetPruningSize: 50,
         maxDepth: 8,
         debug: true
     };

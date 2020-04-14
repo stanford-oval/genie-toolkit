@@ -12,6 +12,7 @@ const fs = require('fs');
 const util = require('util');
 const path = require('path');
 const child_process = require('child_process');
+const utils = require('../../lib/utils');
 
 const { makeLookupKeys } = require('../../lib/sample-utils');
 
@@ -19,6 +20,17 @@ const ANNOTATED_PROPERTIES = [
     'url', 'name', 'description',
     'geo', 'address.streetAddress', 'address.addressCountry', 'address.addressRegion', 'address.addressLocality'
 ];
+
+
+// extract entity type from type
+function typeToEntityType(type) {
+    if (type.isArray)
+        return typeToEntityType(type.elem);
+    else if (type.isEntity)
+        return type.type;
+    else
+        return null;
+}
 
 // split the canonical into prefix and suffix
 function splitCanonical(canonical) {
@@ -37,16 +49,12 @@ function templateQuery(cat, tableName, prefix, value='', suffix='') {
     switch (cat) {
         case 'base':
             return `what is the ${prefix} of the ${tableName} ?`.split(/\s+/g);
-        case 'npp':
         case 'property':
             return `show me ${tableName} with ${prefix} ${value} ${suffix} .`.split(/\s+/g);
-        case 'avp':
         case 'verb':
             return `which ${tableName} ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
-        case 'pvp':
         case 'passive_verb':
             return `show me a ${tableName} ${prefix} ${value} ${suffix} .`.split(/\s+/g);
-        case 'npi':
         case 'reverse_property':
             return `which ${tableName} is a ${prefix} ${value} ${suffix} ?`.split(/\s+/g);
         default:
@@ -84,6 +92,7 @@ class CanonicalGenerator {
             examples[qname] = {};
             paths[qname] = { canonical: this.class.queries[qname].canonical, params: {} };
             let query = this.class.queries[qname];
+            let typeCounts = this._getArgTypeCount(qname);
             for (let arg of query.iterateArguments()) {
                 if (ANNOTATED_PROPERTIES.includes(arg.name))
                     continue;
@@ -97,9 +106,20 @@ class CanonicalGenerator {
                 if (!arg.metadata.canonical)
                     continue;
 
-                // copy base canonical if npp canonical is missing
-                if (arg.metadata.canonical.base && !arg.metadata.canonical.npp)
-                    arg.metadata.canonical.npp = [...arg.metadata.canonical.base];
+                // copy base canonical if property canonical is missing
+                if (arg.metadata.canonical.base && !arg.metadata.canonical.property)
+                    arg.metadata.canonical.property = [...arg.metadata.canonical.base];
+
+                // if property is missing, try to use entity type info
+                if (!('property' in arg.metadata.canonical)) {
+                    let typestr = typeToEntityType(query.getArgType(arg.name));
+                    // only apply this if there is only one property uses this entity type
+                    if (typestr && typeCounts[typestr] === 1) {
+                        let base = utils.clean(typestr.substring(typestr.indexOf(':') + 1));
+                        arg.metadata.canonical['property'] = [base];
+                        arg.metadata.canonical['base'] = [base];
+                    }
+                }
 
                 const samples = this._retrieveSamples(qname, arg);
                 if (samples) {
@@ -144,6 +164,18 @@ class CanonicalGenerator {
         return this.class;
     }
 
+    _getArgTypeCount(qname) {
+        const schema = this.class.queries[qname];
+        const count = {};
+        for (let arg of schema.iterateArguments()) {
+            let typestr = typeToEntityType(schema.getArgType(arg.name));
+            if (!typestr)
+                continue;
+            count[typestr] = (count[typestr] || 0) + 1;
+        }
+        return count;
+    }
+
     async _loadParameterDatasetPaths() {
         const rows = (await (util.promisify(fs.readFile))(this.parameterDatasets, { encoding: 'utf8' })).split('\n');
         for (let row of rows) {
@@ -169,7 +201,7 @@ class CanonicalGenerator {
             for (let arg in candidates[qname]) {
                 let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
                 if (adjectives.includes(`${qname}.${arg}`))
-                        canonicals['apv'] = true;
+                        canonicals['adjective'] = ['#'];
 
                 for (let type in candidates[qname][arg]) {
                     let count = candidates[qname][arg][type].candidates;
@@ -207,7 +239,7 @@ class CanonicalGenerator {
 
     _generateExamples(tableName, canonicals, valueSample) {
         let examples = {};
-        for (let cat of ['base', 'npp', 'avp', 'pvp', 'npi']) {
+        for (let cat of ['base', 'property', 'verb', 'passive_verb', 'reverse_property']) {
             if (cat in canonicals)
                 examples[cat] = { examples: [], candidates: [] } ;
         }
@@ -226,7 +258,7 @@ class CanonicalGenerator {
 
         for (let value of valueSample) {
             for (let cat in canonicals) {
-                if (['default', 'apv', 'npv', 'base'].includes(cat))
+                if (['default', 'adjective', 'implicit_identity', 'base'].includes(cat))
                     continue;
                 for (let canonical of canonicals[cat]) {
                     let [prefix, suffix] = splitCanonical(canonical);

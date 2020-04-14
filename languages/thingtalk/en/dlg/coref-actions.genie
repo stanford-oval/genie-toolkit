@@ -33,14 +33,20 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
             const type = action.schema.getArgType(pname);
             if (!type || !type.isEntity)
                 return null;
-            return action.invocation;
+            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
+            if (replaced === null)
+                return null;
+            return replaced.invocation;
         };
 
         action:thingpedia_action noun:the_base_noun_phrase [-> pname] => {
             const type = action.schema.getArgType(pname);
             if (!type || !type.isEntity || type.type !== noun)
                 return null;
-            return action.invocation;
+            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
+            if (replaced === null)
+                return null;
+            return replaced.invocation;
         };
     }
 
@@ -54,7 +60,10 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
             const type = action.schema.getArgType(pname);
             if (!type || !type.isEntity)
                 return null;
-            return action.invocation;
+            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
+            if (replaced === null)
+                return null;
+            return replaced.invocation;
         };
     }
 
@@ -86,7 +95,7 @@ action_coref_recommendation = {
     ( 'would you like to' action:coref_action_phrase '?'
     | 'would you like me to' action:coref_action_phrase ' for you ?'
     ) if complete => {
-        if (action.in_params.length > 0)
+        if (action.in_params.some((ip) => !ip.value.isUndefined))
             return null;
         return action;
     };
@@ -94,7 +103,7 @@ action_coref_recommendation = {
 
 action_coref_list_proposal = {
     'would you like to' action:list_coref_action_phrase '?' if complete => {
-        if (action.in_params.length > 0)
+        if (action.in_params.some((ip) => !ip.value.isUndefined))
             return null;
         return action;
     };

@@ -16,7 +16,7 @@ const LOCATION_TYPE = {
     longitude: { isArray: false, type: 'tt:Number' }
 };
 
-function makeMetadata(args) {
+function makeMetadata(className, args) {
     const meta = {};
 
     for (let arg of args) {
@@ -33,7 +33,7 @@ function makeMetadata(args) {
         assert(!ptype.isArray);
 
         let typemeta;
-        if (ptype.isEntity && ptype.type.startsWith('org.schema.'))
+        if (ptype.isEntity && ptype.type.startsWith(`${className}:`))
             typemeta = ptype.type.substring(ptype.type.indexOf(':') + 1);
         else if (ptype.isEntity && ptype.type === 'tt:country')
             typemeta = 'tt:EntityLower';
@@ -44,7 +44,7 @@ function makeMetadata(args) {
         else if (ptype.isMeasure)
             typemeta = 'tt:Measure';
         else if (ptype.isCompound)
-            typemeta = makeMetadata(Object.values(ptype.fields));
+            typemeta = makeMetadata(className, Object.values(ptype.fields));
         else if (ptype.isLocation)
             typemeta = LOCATION_TYPE;
         else
