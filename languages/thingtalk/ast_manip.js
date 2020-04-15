@@ -1729,6 +1729,51 @@ function replaceSlotBagPlaceholder(bag, pname, value) {
     return clone;
 }
 
+/**
+ * Find the filter table in the context.
+ *
+ * Returns filterTable
+ */
+function findFilterTable(root) {
+    let table = root;
+    while (!table.isFilter) {
+        if (table.isSequence ||
+            table.isHistory ||
+            table.isWindow ||
+            table.isTimeSeries)
+            throw new Error('NOT IMPLEMENTED');
+
+        // do not touch these with filters
+        if (table.isAggregation ||
+            table.isVarRef ||
+            table.isResultRef)
+            return null;
+
+        // go inside these
+        if (table.isSort ||
+            table.isIndex ||
+            table.isSlice ||
+            table.isProjection ||
+            table.isCompute ||
+            table.isAlias) {
+            table = table.table;
+            continue;
+        }
+
+        if (table.isJoin) {
+            // go right on join, always
+            table = table.rhs;
+            continue;
+        }
+
+        assert(table.isInvocation);
+        // if we get here, there is no filter table at all
+        return null;
+    }
+
+    return table;
+}
+
 module.exports = {
     typeToStringSafe,
     getFunctionNames,
@@ -1784,6 +1829,7 @@ module.exports = {
     addFilter,
     hasGetPredicate,
     makeGetPredicate,
+    findFilterTable,
 
     makeListExpression,
     makeSortedTable,
