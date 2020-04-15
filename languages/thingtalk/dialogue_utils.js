@@ -1240,7 +1240,7 @@ function emptySearchChangePair(ctx, [question, phrase]) {
     if (newTable === null)
         return null;
     const userState = addQuery(ctx, 'execute', newTable, 'accepted');
-    const sysState = makeSimpleState(ctx, question ? 'sys_empty_search_question' : 'sys_empty_search', question);
+    const sysState = makeSimpleState(ctx, question ? 'sys_empty_search_question' : 'sys_empty_search', question.name);
     return checkStateIsValid(ctx, sysState, userState);
 }
 
