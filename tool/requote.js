@@ -30,19 +30,17 @@ function do_replace_numbers(token, requote_numbers) {
     return requote_numbers && NUMBER_MATCH_REGEX.test(token) && !(SMALL_NUMBER_REGEX.exec(token)[0] === token);
 }
 
-
-function check_range(index, spansBySentencePos){
-    for (let i = 0; i < spansBySentencePos.length; i++){
+function findSpanContaining(index, spansBySentencePos) {
+    for (let i = 0; i < spansBySentencePos.length; i++) {
         const span = spansBySentencePos[i];
         if (index >= span.begin && index < span.end)
-            return false;
+            return span;
     }
-    return true;
-
+    return undefined;
 }
 
 
-function findSubstring(sequence, substring, spansBySentencePos) {
+function findSubstring(sequence, substring, spansBySentencePos, allowOverlapping) {
     for (let i = 0; i < sequence.length - substring.length + 1; i++) {
         let found = true;
 
@@ -52,21 +50,21 @@ function findSubstring(sequence, substring, spansBySentencePos) {
                 break;
             }
         }
-        if (found && check_range(i, spansBySentencePos))
+        if (found && (allowOverlapping || !findSpanContaining(i, spansBySentencePos)))
             return i;
     }
     return -1;
 }
 
 
-function findSpanType(program, begin_index, end_index, requote_numbers, is_postal_code = false) {
+function findSpanType(program, begin_index, end_index, requote_numbers, string_number = false) {
     let spanType;
     if (begin_index > 1 && program[begin_index-2] === 'location:') {
         spanType = 'LOCATION';
 
     } else if (do_replace_numbers(program[begin_index], requote_numbers) && !(program[end_index+1].startsWith('^^'))){
-        // catch purely numeric postal code
-        if (is_postal_code)
+        // catch purely numeric postal_codes or phone_numbers
+        if (string_number)
             spanType = 'QUOTED_STRING';
         else
             spanType = 'NUMBER';
@@ -86,7 +84,6 @@ function findSpanType(program, begin_index, end_index, requote_numbers, is_posta
         default:
             spanType = 'GENERIC_ENTITY_' + program[end_index+1].substring(2);
         }
-        end_index++;
     }
     return spanType;
 }
@@ -96,6 +93,7 @@ function createProgram(program, spansByProgramPos, entityRemap, requote_numbers)
     let in_string = false;
     let newProgram = [];
     let programSpanIndex = 0;
+
     for (let i = 0; i < program.length; i++) {
         let token = program[i];
         if (token === '"') {
@@ -103,15 +101,11 @@ function createProgram(program, spansByProgramPos, entityRemap, requote_numbers)
             if (in_string)
                 continue;
             const currentSpan = spansByProgramPos[programSpanIndex];
-            try{
-                assert(currentSpan.mapTo);
-            }
-            catch (e) {
-                console.log('error!');
-                console.log(program.join(' '));
-            }
+            if (!currentSpan.sentenceSpan || !currentSpan.sentenceSpan.mapTo)
+                console.log(spansByProgramPos);
+            assert(currentSpan.sentenceSpan.mapTo);
 
-            newProgram.push(currentSpan.mapTo);
+            newProgram.push(currentSpan.sentenceSpan.mapTo);
             programSpanIndex++;
             continue;
         }
@@ -124,7 +118,7 @@ function createProgram(program, spansByProgramPos, entityRemap, requote_numbers)
             newProgram.push(entityRemap[token]);
         } else if (do_replace_numbers(token, requote_numbers)){
             const currentSpan = spansByProgramPos[programSpanIndex];
-            newProgram.push(currentSpan.mapTo);
+            newProgram.push(currentSpan.sentenceSpan.mapTo);
             programSpanIndex++;
         } else {
             newProgram.push(token);
@@ -168,19 +162,25 @@ function qpisSentence(sentence, spansBySentencePos) {
 
 }
 
-function createSentence(sentence, spansBySentencePos) {
+function createSentence(sentence, contextEntities, spansBySentencePos) {
 
     let current_span_idx = 0;
     let current_span = spansBySentencePos[0];
 
     let newSentence = [];
     let entityNumbers = {};
+    let entityRemap = {};
+    for (let entity of contextEntities) {
+        const [, type, num] = /^(.+)_([0-9]+)$/.exec(entity);
+        entityNumbers[type] = Math.max(num+1, entityNumbers[type] || 0);
+        entityRemap[entity] = entity;
+    }
+
     function getEntityNumber(entityType) {
         let nextId = (entityNumbers[entityType] || 0);
         entityNumbers[entityType] = nextId + 1;
         return String(nextId);
     }
-    let entityRemap = {};
 
     let i = 0;
     while (i < sentence.length) {
@@ -213,125 +213,134 @@ function createSentence(sentence, spansBySentencePos) {
 
 }
 
-function sortWithIndeces(toSort, sort_func) {
-    let toSort_new = [];
-    for (let i = 0; i < toSort.length; i++) 
-        toSort_new[i] = [toSort[i], i];
-    
-    toSort_new.sort(sort_func);
-    let sortIndices = [];
-    for (let j = 0; j < toSort_new.length; j++) {
-        sortIndices.push(toSort_new[j][1]);
-        toSort[j] = toSort_new[j][0];
-    }
-    return sortIndices;
-}
+// <<<<<<< HEAD
+// function sortWithIndeces(toSort, sort_func) {
+//     let toSort_new = [];
+//     for (let i = 0; i < toSort.length; i++)
+//         toSort_new[i] = [toSort[i], i];
+//
+//     toSort_new.sort(sort_func);
+//     let sortIndices = [];
+//     for (let j = 0; j < toSort_new.length; j++) {
+//         sortIndices.push(toSort_new[j][1]);
+//         toSort[j] = toSort_new[j][0];
+//     }
+//     return sortIndices;
+// }
 
-function getProgSpans(program, is_quoted, requote_numbers) {
+function getProgSpans(program, requote_numbers) {
     let in_string = false;
     let begin_index = null;
     let end_index = null;
     let span_type = null;
-    let all_prog_spans = [];
-    if (is_quoted) {
-        for (let i = 0; i < program.length; i++) {
-            let token = program[i];
-            if (ENTITY_MATCH_REGEX.test(token) || do_replace_numbers(token, requote_numbers)){
-                begin_index = i;
-                end_index = begin_index + 1;
-                // for quoted datasets span_type is the placeholder itself
-                span_type = token;
+    let allProgSpans = [];
+    for (let i = 0; i < program.length; i++) {
+        let token = program[i];
+        if (token === '"') {
+            in_string = !in_string;
+            if (in_string) {
+                begin_index = i + 1;
+            } else {
+                end_index = i;
+                span_type = findSpanType(program, begin_index, end_index, requote_numbers, true);
                 let prog_span = {begin: begin_index, end: end_index, span_type:span_type};
-                all_prog_spans.push(prog_span);
+                allProgSpans.push(prog_span);
             }
-        }
-
-    } else {
-        for (let i = 0; i < program.length; i++) {
-            let token = program[i];
-            if (token === '"') {
-                in_string = !in_string;
-                if (in_string) {
-                    begin_index = i + 1;
-                } else {
-                    end_index = i;
-                    span_type = findSpanType(program, begin_index, end_index, requote_numbers, true);
-                    let prog_span = {begin: begin_index, end: end_index, span_type:span_type};
-                    all_prog_spans.push(prog_span);
-                }
-            } else if (!in_string && do_replace_numbers(token, requote_numbers)){
-                begin_index = i;
-                end_index = begin_index + 1;
-                span_type = findSpanType(program, begin_index, end_index, requote_numbers);
-                let prog_span = {begin: begin_index, end: end_index, span_type:span_type};
-                all_prog_spans.push(prog_span);
-            }
+        } else if (!in_string && do_replace_numbers(token, requote_numbers)){
+            begin_index = i;
+            end_index = begin_index + 1;
+            span_type = findSpanType(program, begin_index, end_index, requote_numbers);
+            let prog_span = {begin: begin_index, end: end_index, span_type:span_type};
+            allProgSpans.push(prog_span);
         }
     }
 
     // sort params based on length so that longer phrases get matched sooner
-    let sort_func = function (a, b)  {
-        const {begin:abegin, end:aend} = a[0];
-        const {begin:bbegin, end:bend} = b[0];
+    allProgSpans.sort((a, b) => {
+        const { begin:abegin, end:aend } = a;
+        const { begin:bbegin, end:bend } = b;
         return (bend - bbegin) - (aend - abegin);
-    };
-
-    // sort array in-place and return sorted indices
-    let sortIndices = sortWithIndeces(all_prog_spans, sort_func);
-
-    return [all_prog_spans, sortIndices];
+    });
+    return allProgSpans;
 }
 
 
-function findSpanPositions(id, sentence, program, is_quoted, requote_numbers) {
+function findSpanPositions(id, sentence, program, requote_numbers) {
     const spansBySentencePos = [];
     const spansByProgramPos = [];
 
-    const [all_prog_spans_sorted, sortIndices]  = getProgSpans(program, is_quoted, requote_numbers);
+    // allProgSpans is sorted by length (longest first)
+    const allProgSpans = getProgSpans(program, requote_numbers);
 
-    for (let i = 0; i < all_prog_spans_sorted.length; i++) {
-        const prog_span = all_prog_spans_sorted[i];
-        let [begin_index, end_index, span_type] = [prog_span.begin, prog_span.end, prog_span.span_type];
+    for (const progSpan of allProgSpans) {
+        // const begin_index = progSpan.begin;
+        // const end_index = progSpan.end;
+        let [begin_index, end_index, span_type] = [progSpan.begin, progSpan.end, progSpan.span_type];
         const substring = program.slice(begin_index, end_index);
-        const idx = findSubstring(sentence, substring, spansBySentencePos);
-        if (idx < 0){
-            console.log(program.join(' '));
-            console.error('***Error: Program contains some parameters that are not present in the sentence***');
-            throw new Error(`Cannot find span ${substring.join(' ')} in sentence id ${id}`);
 
+
+        // first try without overlapping parameters, then try with overlapping parameters
+        // (this is mostly useful for parameters that used twice, which happens in some dialogue dataset)
+        let idx = findSubstring(sentence, substring, spansBySentencePos, false /* allow overlapping */);
+        if (idx < 0) {
+            idx = findSubstring(sentence, substring, spansBySentencePos, true /* allow overlapping */);
+
+            if (idx < 0) {
+                console.log(program.join(' '));
+                throw new Error(`Cannot find span ${substring.join(' ')} in sentence id ${id}`);
+            } else {
+                const overlappingSpan = findSpanContaining(idx, spansBySentencePos);
+                assert(overlappingSpan);
+                if (idx !== overlappingSpan.begin || idx + end_index - begin_index !== overlappingSpan.end)
+                    throw new Error(`Found span ${substring.join(' ')} that overlaps another span but is not identical in sentence id ${id}`);
+
+                // otherwise, the two spans are identical, so we don't create a new span
+                spansByProgramPos.push({
+                    begin: begin_index,
+                    end: end_index,
+                    sentenceSpan: overlappingSpan
+                });
+                continue;
+            }
         }
 
-        const spanBegin = idx;
-        const spanEnd = idx + end_index - begin_index;
-        let spanType = span_type;
+        const sentenceSpanBegin = idx;
+        const sentenceSpanEnd = idx + end_index - begin_index;
+        const spanType = span_type;
 
-        const span = {begin: spanBegin, end: spanEnd, type: spanType, mapTo: undefined};
-        spansBySentencePos.push(span);
-        spansByProgramPos.push(span);
-
+        const sentenceSpan = { begin: sentenceSpanBegin, end: sentenceSpanEnd, type: spanType, mapTo: undefined };
+        spansBySentencePos.push(sentenceSpan);
+        spansByProgramPos.push({
+            begin: begin_index,
+            end: end_index,
+            sentenceSpan: sentenceSpan
+        });
     }
 
-    return [spansBySentencePos, spansByProgramPos, sortIndices];
+    // sort by program position after matching is done
+    spansByProgramPos.sort((a, b) => {
+        return a.begin - b.begin;
+    });
+    return [spansBySentencePos, spansByProgramPos];
 }
 
 
-function requoteSentence(args, id, sentence, program) {
+function requoteSentence(id, context, sentence, program, mode, requote_numbers) {
     sentence = sentence.split(' ');
     program = program.split(' ');
 
-    let mode = args.mode;
-    let is_quoted = args.is_quoted;
-    let requote_numbers = args.requote_numbers;
+    let contextEntities = new Set;
+    if (context) {
+        for (let token of context.split(' ')) {
+            if (/^[A-Z]/.test(token))
+                contextEntities.add(token);
+        }
+    }
 
-    let [spansBySentencePos, spansByProgramPosSorted, sortIndices] = findSpanPositions(id, sentence, program, is_quoted, requote_numbers);
+    let [spansBySentencePos, spansByProgramPos] = findSpanPositions(id, sentence, program, requote_numbers);
 
     if (spansBySentencePos.length === 0)
         return [sentence.join(' '), program.join(' ')];
-
-    // revert back the order after matching is done
-    let spansByProgramPos = [];
-    for (let i = 0; i < sortIndices.length; i++)
-        spansByProgramPos[sortIndices[i]] = spansByProgramPosSorted[i];
 
     spansBySentencePos.sort((a, b) => {
         const {begin:abegin, end:aend} = a;
@@ -350,7 +359,7 @@ function requoteSentence(args, id, sentence, program) {
     let newSentence, newProgram, entityRemap;
 
     if (mode === 'replace'){
-        [newSentence, entityRemap] = createSentence(sentence, spansBySentencePos);
+        [newSentence, entityRemap] = createSentence(sentence, contextEntities, spansBySentencePos);
         newProgram = createProgram(program, spansByProgramPos, entityRemap, requote_numbers);
     } else if (mode === 'qpis') {
         newSentence = qpisSentence(sentence, spansBySentencePos);
@@ -383,11 +392,6 @@ module.exports = {
             choices: ['replace', 'qpis'],
             defaultValue: 'replace'
         });
-        parser.addArgument('--is_quoted', {
-            action: 'storeTrue',
-            help: 'The input dataset is already quoted. Pass this to qpis a quoted dataset',
-            defaultValue: false
-        });
         parser.addArgument('--requote-numbers', {
             action: 'storeTrue',
             help: 'Requote numbers',
@@ -408,7 +412,8 @@ module.exports = {
 
                 transform(ex, encoding, callback) {
                     try {
-                        const [newSentence, newProgram] = requoteSentence(args, ex.id, ex.preprocessed, ex.target_code);
+                        const [newSentence, newProgram] =
+                            requoteSentence(ex.id, ex.context, ex.preprocessed, ex.target_code, args.mode, args.requote_numbers);
                         ex.preprocessed = newSentence;
                         ex.target_code = newProgram;
                         callback(null, ex);

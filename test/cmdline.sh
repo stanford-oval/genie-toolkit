@@ -28,7 +28,7 @@ node $srcdir/tool/genie.js --help
 node $srcdir/tool/genie.js requote $srcdir/test/data/en-US/samples-en-hard.tsv --output ./samples-en-hard-requoted.tsv --mode replace
 diff -u $srcdir/test/data/en-US/samples-en-hard-requoted.tsv ./samples-en-hard-requoted.tsv
 # qpis mode
-node $srcdir/tool/genie.js requote $srcdir/test/data/en-US/samples-en-hard.tsv --output ./samples-en-hard-qpis.tsv --mode qpis
+node $srcdir/tool/genie.js requote $srcdir/test/data/en-US/samples-en-hard.tsv --output ./samples-en-hard-qpis.tsv --mode qpis --requote_numbers
 diff -u $srcdir/test/data/en-US/samples-en-hard-qpis.tsv ./samples-en-hard-qpis.tsv
 
 
@@ -38,7 +38,6 @@ node $srcdir/tool/genie.js augment $srcdir/test/data/fa/para-restaurants-fixed.t
 # then requote the augmented dataset and assert the result matches the input dataset
 node $srcdir/tool/genie.js requote ./para-restaurants-aug.tsv --output ./para-restaurants-aug-req.tsv --mode replace --requote-numbers
 diff -u --left-column <(cut -f2- ./para-restaurants-aug-req.tsv) <(cut -f2- $srcdir/test/data/fa/para-restaurants-fixed.tsv)
-
 
 
 # download-*
