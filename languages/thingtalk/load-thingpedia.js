@@ -563,8 +563,8 @@ class ThingpediaLoader {
             'query',
             { p_id: id.type },
             new Ast.Table.Filter(null, table, idfilter, schemaClone),
-            [`\${p_id}`],
-            [`\${p_id}`],
+            [`\${p_id:no-undefined}`],
+            [`\${p_id:no-undefined}`],
             {}
         ));
         const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '=~', new Ast.Value.VarRef('p_name'));
@@ -574,8 +574,8 @@ class ThingpediaLoader {
             'query',
             { p_name: Type.String },
             new Ast.Table.Filter(null, table, namefilter, table.schema),
-            [`\${p_name}`],
-            [`\${p_name}`],
+            [`\${p_name:no-undefined}`],
+            [`\${p_name:no-undefined}`],
             {}
         ));
     }
