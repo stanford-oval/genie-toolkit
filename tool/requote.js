@@ -136,19 +136,25 @@ function qpisSentence(sentence, spansBySentencePos) {
 
 }
 
-function createSentence(sentence, spansBySentencePos) {
+function createSentence(sentence, contextEntities, spansBySentencePos) {
 
     let current_span_idx = 0;
     let current_span = spansBySentencePos[0];
 
     let newSentence = [];
     let entityNumbers = {};
+    let entityRemap = {};
+    for (let entity of contextEntities) {
+        const [, type, num] = /^(.+)_([0-9]+)$/.exec(entity);
+        entityNumbers[type] = Math.max(num+1, entityNumbers[type] || 0);
+        entityRemap[entity] = entity;
+    }
+
     function getEntityNumber(entityType) {
         let nextId = (entityNumbers[entityType] || 0);
         entityNumbers[entityType] = nextId + 1;
         return String(nextId);
     }
-    let entityRemap = {};
 
     let i = 0;
     while (i < sentence.length) {
@@ -267,9 +273,17 @@ function findSpanPositions(id, sentence, program) {
     return [spansBySentencePos, spansByProgramPos];
 }
 
-function requoteSentence(id, sentence, program, mode) {
+function requoteSentence(id, context, sentence, program, mode) {
     sentence = sentence.split(' ');
     program = program.split(' ');
+
+    let contextEntities = new Set;
+    if (context) {
+        for (let token of context.split(' ')) {
+            if (/^[A-Z]/.test(token))
+                contextEntities.add(token);
+        }
+    }
 
     let [spansBySentencePos, spansByProgramPos] = findSpanPositions(id, sentence, program);
 
@@ -293,7 +307,7 @@ function requoteSentence(id, sentence, program, mode) {
     let newSentence, newProgram, entityRemap;
 
     if (mode === 'replace'){
-        [newSentence, entityRemap] = createSentence(sentence, spansBySentencePos);
+        [newSentence, entityRemap] = createSentence(sentence, contextEntities, spansBySentencePos);
         newProgram = createProgram(program, spansByProgramPos, entityRemap);
     } else if (mode === 'qpis') {
         newSentence = qpisSentence(sentence, spansBySentencePos);
@@ -341,7 +355,7 @@ module.exports = {
 
                 transform(ex, encoding, callback) {
                     try {
-                        const [newSentence, newProgram] = requoteSentence(ex.id, ex.preprocessed, ex.target_code, args.mode);
+                        const [newSentence, newProgram] = requoteSentence(ex.id, ex.context, ex.preprocessed, ex.target_code, args.mode);
                         ex.preprocessed = newSentence;
                         ex.target_code = newProgram;
                         callback(null, ex);
