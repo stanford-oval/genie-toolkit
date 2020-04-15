@@ -101,10 +101,6 @@ class ParamDatasetGenerator {
         if (typeof expectedType.type === 'string') {
             // entity of builtin type
 
-            const key = path[path.length-1];
-            if (key === 'description')
-                return;
-
             if (expectedType.type === 'tt:String') {
                 assert(typeof value === 'string');
                 this._addString(path.join('_'), value);
