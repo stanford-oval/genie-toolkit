@@ -28,7 +28,7 @@ node $srcdir/tool/genie.js --help
 node $srcdir/tool/genie.js requote $srcdir/test/data/en-US/samples-en-hard.tsv --output ./samples-en-hard-requoted.tsv --mode replace
 diff -u $srcdir/test/data/en-US/samples-en-hard-requoted.tsv ./samples-en-hard-requoted.tsv
 # qpis mode
-node $srcdir/tool/genie.js requote $srcdir/test/data/en-US/samples-en-hard.tsv --output ./samples-en-hard-qpis.tsv --mode qpis --requote_numbers
+node $srcdir/tool/genie.js requote $srcdir/test/data/en-US/samples-en-hard.tsv --output ./samples-en-hard-qpis.tsv --mode qpis --requote-numbers
 diff -u $srcdir/test/data/en-US/samples-en-hard-qpis.tsv ./samples-en-hard-qpis.tsv
 
 
