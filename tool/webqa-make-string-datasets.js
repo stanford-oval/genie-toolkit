@@ -20,6 +20,8 @@ const Tokenizer = require('../lib/tokenizer');
 const StreamUtils = require('../lib/stream-utils');
 const { makeMetadata } = require('./lib/webqa-metadata');
 
+const MAX_CHARS = 200;
+
 class ParamDatasetGenerator {
     constructor(locale, debug, className) {
         this._locale = locale;
@@ -126,14 +128,14 @@ class ParamDatasetGenerator {
     async _tokenizeOne(str) {
         // chunk long sentences into chunks of at most 1000 characters
 
-        if (str.length < 500)
+        if (str.length < MAX_CHARS)
             return this._tokenizer.tokenize(this._locale, str);
 
         // very crude chunking, might break a word in the middle
         // this is mostly ok anyway cause we'll pick a substring anyway
         const output = [];
-        for (let i = 0; i < str.length; i += 500) {
-            const chunk = str.substring(i, i+500);
+        for (let i = 0; i < str.length; i += MAX_CHARS) {
+            const chunk = str.substring(i, i+MAX_CHARS);
             const { tokens } = await this._tokenizer.tokenize(this._locale, chunk);
             // refuse to do anything if we have any entity (we'll drop this string later anyway)
             if (tokens.some((tok) => /^[A-Z]/.test(tok)))
