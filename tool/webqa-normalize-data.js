@@ -64,7 +64,9 @@ function parseMeasure(str) {
     if (MEASURE_UNIT_REMAP[unit])
         unit = MEASURE_UNIT_REMAP[unit];
 
-    if (!ThingTalk.Units.UnitsToBaseUnit[unit]) {
+    try {
+        ThingTalk.Units.normalizeUnit(unit);
+    } catch(e) {
         console.error(`Invalid measurement unit ${unit}`);
         return undefined;
     }
