@@ -349,7 +349,7 @@ module.exports = {
 
     async execute(args) {
         readAllLines(args.input_file)
-            .pipe(new DatasetParser({ contextual: args.contextual }))
+            .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true }))
             .pipe(new Stream.Transform({
                 objectMode: true,
 
