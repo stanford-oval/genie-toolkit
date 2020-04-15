@@ -292,7 +292,7 @@ function makeRefinementProposal(ctx, proposal) {
     if (!(proposal.isFilter && proposal.table.isInvocation))
         return null;
 
-    const ctxFilterTable = findFilterTable(ctx.current.stmt.table);
+    const ctxFilterTable = C.findFilterTable(ctx.current.stmt.table);
     if (ctxFilterTable === null)
         return null;
 
@@ -419,51 +419,6 @@ function isSlotFillAnswerValidForQuestion(action, questions) {
         }
         return false;
     });
-}
-
-/**
- * Find the filter table in the context.
- *
- * Returns filterTable
- */
-function findFilterTable(root) {
-    let table = root;
-    while (!table.isFilter) {
-        if (table.isSequence ||
-            table.isHistory ||
-            table.isWindow ||
-            table.isTimeSeries)
-            throw new Error('NOT IMPLEMENTED');
-
-        // do not touch these with filters
-        if (table.isAggregation ||
-            table.isVarRef ||
-            table.isResultRef)
-            return null;
-
-        // go inside these
-        if (table.isSort ||
-            table.isIndex ||
-            table.isSlice ||
-            table.isProjection ||
-            table.isCompute ||
-            table.isAlias) {
-            table = table.table;
-            continue;
-        }
-
-        if (table.isJoin) {
-            // go right on join, always
-            table = table.rhs;
-            continue;
-        }
-
-        assert(table.isInvocation);
-        // if we get here, there is no filter table at all
-        return null;
-    }
-
-    return table;
 }
 
 
@@ -818,7 +773,7 @@ function isGoodSearchQuestion(ctx, questions) {
     if (!isValidSearchQuestion(ctx.current.stmt.table, questions))
         return false;
 
-    const ctxFilterTable = findFilterTable(ctx.current.stmt.table);
+    const ctxFilterTable = C.findFilterTable(ctx.current.stmt.table);
     if (!ctxFilterTable)
         return false;
     for (let q of questions) {
@@ -1224,7 +1179,7 @@ function isGoodEmptySearchQuestion(ctx, question) {
     if (!currentTable.schema.out[question])
         return false;
 
-    const ctxFilterTable = findFilterTable(ctx.current.stmt.table);
+    const ctxFilterTable = C.findFilterTable(ctx.current.stmt.table);
     if (!ctxFilterTable || !C.filterUsesParam(ctxFilterTable.filter, question))
         return false;
 
@@ -1348,7 +1303,7 @@ function relatedQuestion(ctx, stmt) {
     if (newFilterTable === null)
         return null;
 
-    ctxFilterTable = findFilterTable(currentTable);
+    ctxFilterTable = C.findFilterTable(currentTable);
 
     if (ctxFilterTable) {
         const newFilter = refineFilterToAnswerQuestion(ctxFilterTable.filter, newFilterTable.filter);

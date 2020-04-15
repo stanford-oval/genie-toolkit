@@ -308,12 +308,20 @@ function getContextInfo(state) {
 }
 
 function isUserAskingResultQuestion(ctx) {
-    // is the user asking a question about the result, or refining a search?
+    // is the user asking a question about the result (or a specific element), or refining a search?
     // we say it's a question if the user is asking a projection question, and it's not the first turn,
     // and the projection was different at the previous turn
 
-    if (ctx.currentIdx === null || ctx.currentIdx === 0)
+    if (ctx.currentIdx === null)
         return false;
+    if (ctx.currentIdx === 0) {
+        if (!ctx.current.stmt.table)
+            return false;
+        const filterTable = C.findFilterTable(ctx.current.stmt.table);
+        if (!filterTable)
+            return false;
+        return C.filterUsesParam(filterTable.filter, 'id');
+    }
 
     let currentProjection = ctx.resultInfo.projection;
     if (!currentProjection)
