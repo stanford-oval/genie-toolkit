@@ -269,7 +269,7 @@ $agent = {
         return D.makeSimpleState(ctx, 'sys_slot_fill', questions);
     };
 
-    ctx:ctx_search_command proposal:system_generic_proposal =>
+    ctx:ctx_search_command proposal:system_generic_proposal [weight=0.5] =>
         D.addQuery(ctx, 'sys_propose_refined_query', proposal, 'proposed');
 
     // action recommendation (through one or a list)
