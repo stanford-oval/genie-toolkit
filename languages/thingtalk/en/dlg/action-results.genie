@@ -1,0 +1,75 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+// Action result templates: used after executing the action
+// Either the action was successful, and we're done, or
+// the action failed, and we give the user an option to try again
+
+{
+    const assert = require('assert');
+    const ThingTalk = require('thingtalk');
+    const Ast = ThingTalk.Ast;
+    const Type = ThingTalk.Type;
+
+    const C = require('../../ast_manip');
+    const D = require('../../dialogue_utils');
+
+    // import thingpedia info
+    const _tpLoader = require('../../load-thingpedia');
+}
+
+for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
+    thingpedia_action_past = {
+        ( action:thingpedia_action_past 'it'
+        | action:thingpedia_action_past 'this'
+        | action:thingpedia_action_past 'that'
+        ) [-> pname] => {
+            const type = action.schema.getArgType(pname);
+            if (!type || !type.isEntity)
+                return null;
+            return C.replacePlaceholderWithUndefined(action, pname, typestr);
+        };
+    }
+}
+
+complete_past_action_phrase = {
+    action:thingpedia_action_past 'for you' if complete => {
+        if (!(action instanceof Ast.Action.Invocation))
+            return null;
+        return action.invocation;
+    };
+
+    ( action:complete_past_action_phrase param:preposition_input_param
+    | action:complete_past_action_phrase ('with' | 'having') param:npp_input_param
+    ) => C.addInvocationInputParam(action, param);
+}
+
+generic_action_success_phrase = {
+    'your request was completed successfully';
+    'consider your request done !';
+}
+
+action_success_phrase = {
+    ctx:ctx_completed_action_success generic_excitement_phrase result:thingpedia_result if complete
+        => D.makeThingpediaActionSuccessPhrase(ctx, result);
+
+    ctx:ctx_completed_action_success generic_excitement_phrase generic_action_success_phrase result:direct_result_info_phrase
+        => D.makeThingpediaActionSuccessPhrase(ctx, result);
+
+    ctx:ctx_completed_action_success 'i' action:complete_past_action_phrase '.'
+        => D.makeCompleteActionSuccessPhrase(ctx, action, null);
+
+    ctx:ctx_completed_action_success 'i' action:complete_past_action_phrase '.' info:direct_result_info_phrase
+        => D.makeCompleteActionSuccessPhrase(ctx, action, info);
+}
+
+action_success_terminal_pair = {
+    action:action_success_phrase anything_else_phrase '<sep>' thanks_phrase ('goodbye !' | '') => action;
+}

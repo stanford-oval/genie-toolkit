@@ -476,26 +476,37 @@ class ThingpediaLoader {
             if (this._options.debug && preprocessed[0].startsWith(','))
                 console.log(`WARNING: template ${ex.id} starts with , but is not a query`);
 
-            let chunks = preprocessed.trim().split(' ');
-            let expansion = [];
-
-            for (let chunk of chunks) {
-                if (chunk === '')
-                    continue;
-                if (chunk.startsWith('$') && chunk !== '$$') {
-                    const [, param1, param2, opt] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk);
-                    let param = param1 || param2;
-                    assert(param);
-                    expansion.push(new this._runtime.Placeholder(param, opt));
-                } else {
-                    expansion.push(chunk);
-                }
-            }
-
-            this._grammar.addRule(grammarCat, expansion, this._runtime.simpleCombine(() => ex.value));
+            const chunks = this._addPrimitiveTemplate(grammarCat, preprocessed, ex.value);
             rules.push({ category: grammarCat, expansion: chunks, example: ex });
+
+            if (grammarCat === 'thingpedia_action') {
+                const pastform = this._langPack.toVerbPast(preprocessed);
+                if (pastform)
+                    this._addPrimitiveTemplate('thingpedia_action_past', pastform, ex.value);
+            }
         }
         return rules;
+    }
+
+    _addPrimitiveTemplate(grammarCat, preprocessed, value) {
+        let chunks = preprocessed.trim().split(' ');
+        let expansion = [];
+
+        for (let chunk of chunks) {
+            if (chunk === '')
+                continue;
+            if (chunk.startsWith('$') && chunk !== '$$') {
+                const [, param1, param2, opt] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk);
+                let param = param1 || param2;
+                assert(param);
+                expansion.push(new this._runtime.Placeholder(param, opt));
+            } else {
+                expansion.push(chunk);
+            }
+        }
+
+        this._grammar.addRule(grammarCat, expansion, this._runtime.simpleCombine(() => value));
+        return chunks;
     }
 
     async _makeExampleFromQuery(q) {
@@ -592,11 +603,10 @@ class ThingpediaLoader {
                 this._recordOutputParam(functionName, arg);
         }
 
-        if (functionDef.functionType === 'query') {
+        if (functionDef.functionType === 'query')
             await this._makeExampleFromQuery(functionDef);
-            if (functionDef.metadata.result)
-                await this._loadCustomResultString(functionDef);
-        }
+        if (functionDef.metadata.result)
+            await this._loadCustomResultString(functionDef);
     }
 
     async _loadCustomResultString(functionDef) {

@@ -39,7 +39,8 @@ import './dlg/recommendation';
 import './dlg/refinement';
 import './dlg/results';
 import './dlg/slot-fill';
-import './dlg/related-questions.genie';
+import './dlg/related-questions';
+import './dlg/action-results';
 
 context ctx_init,
     ctx_greet,
@@ -111,13 +112,18 @@ context function (state) {
             if (!info.nextInfo.isComplete)
                 tags.push('ctx_incomplete_action');
         } else {
-            tags.push('ctx_without_action');
+            if (info.resultInfo && info.resultInfo.isTable)
+                tags.push('ctx_without_action');
         }
 
         // we must have a result
         assert(info.resultInfo, `expected result info`);
-        if (!info.resultInfo.isTable)
-            return [['ctx_completed_action_success'], info];
+        if (!info.resultInfo.isTable) {
+            if (info.resultInfo.hasError)
+                return [['ctx_completed_action_error'], info];
+            else
+                return [['ctx_with_result', 'ctx_completed_action_success'], info];
+        }
 
         if (info.resultInfo.hasEmptyResult) {
             // note: aggregation cannot be empty (it would be zero)
@@ -330,6 +336,10 @@ $root = {
         return D.checkStateIsValid(ctx, sysState, userState);
     };
 
+    // action results
+    ctx:ctx_completed_action_success action_success_terminal_pair
+        => D.actionSuccessTerminalPair(ctx);
+
     // empty search error
     ctx:ctx_empty_search_command pair:empty_search_change_pair
         => D.emptySearchChangePair(ctx, pair);
@@ -352,10 +362,10 @@ $root = {
 
     // action recommendation (through one or a list)
 
-    ctx:ctx_complete_search_command pair:negative_recommendation_reply_pair [weight=0.6]
-        => D.negativeRecommendationReplyPair(ctx, pair);
     ctx:ctx_complete_search_command pair:positive_recommendation_reply_pair [weight=0.7]
         => D.positiveRecommendationReplyPair(ctx, pair);
+    ctx:ctx_complete_search_command pair:negative_recommendation_reply_pair [weight=0.6]
+        => D.negativeRecommendationReplyPair(ctx, pair);
     ctx:ctx_complete_search_command pair:positive_recommendation_reply_by_name_pair [weight=0.7]
         => D.positiveRecommendationReplyPair(ctx, pair);
     ctx:ctx_complete_search_command pair:recommendation_search_question_pair [weight=1]
@@ -367,10 +377,10 @@ $root = {
     ctx:ctx_complete_search_command pair:recommendation_related_question_pair [weight=1]
         => D.recommendationRelatedQuestionPair(ctx, pair);
 
-    ctx:ctx_complete_search_command pair:negative_list_proposal_reply_pair [weight=10 * 0.3]
-        => D.negativeListProposalReplyPair(ctx, pair);
     ctx:ctx_complete_search_command pair:positive_list_proposal_reply_pair [weight=10 * 0.7]
         => D.positiveListProposalReplyPair(ctx, pair);
+    ctx:ctx_complete_search_command pair:negative_list_proposal_reply_pair [weight=10 * 0.3]
+        => D.negativeListProposalReplyPair(ctx, pair);
     ctx:ctx_complete_search_command pair:list_proposal_search_question_pair [weight=10]
         => D.listProposalSearchQuestionPair(ctx, pair);
     ctx:ctx_complete_search_command pair:list_proposal_related_question_pair [weight=1]
