@@ -177,6 +177,10 @@ negative_recommendation_reply_pair = {
         => D.mergePreambleAndRequest(pair, request);
 }
 
+recommendation_accept_phrase_with_action = {
+    accept_phrase generic_preamble_for_action action:coref_action_command => action;
+}
+
 positive_recommendation_reply_pair = {
     prop:system_recommendation '<sep>' accept_phrase [repeat=true] => {
         const { topResult, action: actionProposal } = prop;
@@ -190,14 +194,67 @@ positive_recommendation_reply_pair = {
         // this doesn't make much sense, so we don't want this flow
         if (actionProposal === null)
             return null;
-
         return [topResult, actionProposal, actionProposal];
+    };
+
+    prop:system_recommendation '<sep>' acceptedAction:recommendation_accept_phrase_with_action => {
+        const { topResult, action: actionProposal } = prop;
+        if (actionProposal !== null && !C.isSameFunction(actionProposal.schema, acceptedAction.schema))
+            return null;
+        return [topResult, actionProposal, acceptedAction];
     };
 
     ( prop:system_recommendation '<sep>' tell_me_more_phrase [weight=0.5]
     | prop:system_recommendation '<sep>' accept_phrase tell_me_more_phrase [weight=0.5]
     ) => {
         const { topResult, action: actionProposal } = prop;
+        // set the action to null, which will hit the "tell me more" path
+        return [topResult, actionProposal, null];
+    };
+}
+
+positive_recommendation_reply_by_name_pair = {
+    prop:system_recommendation '<sep>' name:generic_list_proposal_accept_phrase => {
+        const { topResult, action: actionProposal } = prop;
+        // if the user did not give an action earlier, and no action
+        // was proposed by the agent right now, the flow is roughly
+        //
+        // U: hello i am looking for a restaurant
+        // A: how about the ... ?
+        // U: sure I like that
+        //
+        // this doesn't make much sense, so we don't want this flow
+        if (actionProposal === null)
+            return null;
+        if (!topResult.value.id.equals(name))
+            return null;
+        return [topResult, actionProposal, actionProposal];
+    };
+
+    prop:system_recommendation '<sep>' name:list_proposal_accept_phrase_must_have_action => {
+        const { topResult, action: actionProposal } = prop;
+        if (actionProposal === null)
+            return null;
+        if (!topResult.value.id.equals(name))
+            return null;
+        return [topResult, actionProposal, actionProposal];
+    };
+
+    prop:system_recommendation '<sep>' accept:list_proposal_accept_phrase_with_action => {
+        const { topResult, action: actionProposal } = prop;
+        const [name, acceptedAction] = accept;
+        if (actionProposal !== null && !C.isSameFunction(actionProposal.schema, acceptedAction.schema))
+            return null;
+        if (!topResult.value.id.equals(name))
+            return null;
+
+        return [topResult, actionProposal, acceptedAction];
+    };
+
+    prop:system_recommendation '<sep>' name:list_proposal_tell_me_more => {
+        const { topResult, action: actionProposal } = prop;
+        if (!topResult.value.id.equals(name))
+            return null;
         // set the action to null, which will hit the "tell me more" path
         return [topResult, actionProposal, null];
     };
