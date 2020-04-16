@@ -106,10 +106,32 @@ negative_list_proposal_reply_pair = {
         => D.mergePreambleAndRequest(pair, request);
 }
 
+generic_list_proposal_accept_phrase = {
+    ('ok' | 'yeah' | '') ('i like' | 'i am interested in' | 'i am intrigued by') name:constant_name '.' => name;
+    ('ok' | 'yeah' | '') name:constant_name 'sounds' ('good' | 'really good' | 'nice' | 'interesting') '.' => name;
+}
+
+list_proposal_accept_phrase_must_have_action = {
+    ('ok' | 'yeah' | '') ('i will go' | 'i will take' | 'i am good for') name:constant_name '.' => name;
+}
+
+list_proposal_accept_phrase_with_action = {
+    name:generic_list_proposal_accept_phrase generic_preamble_for_action action:coref_action_command => [name, action];
+    name:list_proposal_accept_phrase_must_have_action generic_preamble_for_action action:coref_action_command => [name, action];
+}
+
+list_proposal_accept_phrase_with_action_by_name = {
+    ('ok' | 'yeah' | '') generic_preamble_for_action action:action_by_name_command => action;
+}
+
+list_proposal_tell_me_more = {
+    ('ok' | 'yeah' | '') 'can you tell me more about' name:constant_name '?' => name;
+    ('ok' | 'yeah' | '') ('i like' | 'i am interested in' | 'i am intrigued by') name:constant_name '.' tell_me_more_phrase => name;
+    ('ok' | 'yeah' | '') name:constant_name 'sounds' ('good' | 'really good' | 'nice' | 'interesting') '.' tell_me_more_phrase => name;
+}
+
 positive_list_proposal_reply_pair = {
-    ( prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') ('i like' | 'i am interested in' | 'i am intrigued by') name:constant_name '.' [weight=0.5]
-    | prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') name:constant_name 'sounds' ('good' | 'really good' | 'nice' | 'interesting') '.' [weight=0.5]
-    ) => {
+    prop:system_list_proposal '<sep>' name:generic_list_proposal_accept_phrase => {
         const [results, info, actionProposal] = prop;
         let good = false;
         for (let result of results) {
@@ -124,7 +146,7 @@ positive_list_proposal_reply_pair = {
         return [results, actionProposal, name, actionProposal];
     };
 
-    prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') ('i will go' | 'i will take' | 'i am good for') name:constant_name '.' => {
+    prop:system_list_proposal '<sep>' name:list_proposal_accept_phrase_must_have_action => {
         const [results, info, actionProposal] = prop;
         if (actionProposal === null)
             return null;
@@ -141,10 +163,56 @@ positive_list_proposal_reply_pair = {
         return [results, actionProposal, name, actionProposal];
     };
 
-    ( prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') 'can you tell me more about' name:constant_name '?' [weight=0.33]
-    | prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') ('i like' | 'i am interested in' | 'i am intrigued by') name:constant_name '.' tell_me_more_phrase [weight=0.33]
-    | prop:system_list_proposal '<sep>' ('ok' | 'yeah' | '') name:constant_name 'sounds' ('good' | 'really good' | 'nice' | 'interesting') '.' tell_me_more_phrase [weight=0.33]
-    ) => {
+    prop:system_list_proposal '<sep>' accept:list_proposal_accept_phrase_with_action => {
+        const [results, info, actionProposal] = prop;
+        const [name, acceptedAction] = accept;
+        if (actionProposal !== null && !C.isSameFunction(actionProposal.schema, acceptedAction.schema))
+            return null;
+        let good = false;
+        for (let result of results) {
+            if (result.value.id.equals(name)) {
+                good = true;
+                break;
+            }
+        }
+        if (!good)
+            return false;
+
+        return [results, actionProposal, name, acceptedAction];
+    };
+
+    prop:system_list_proposal '<sep>' action:list_proposal_accept_phrase_with_action_by_name => {
+        const [results, info, actionProposal] = prop;
+        if (actionProposal !== null && !C.isSameFunction(actionProposal.schema, action.schema))
+            return null;
+
+        const idType = results[0].value.id.getType();
+        let name = null;
+        const acceptedAction = action.clone();
+        // find the chain parameter for the action, extract the name, and set the param to undefined
+        // as the rest of the code expects
+        for (let in_param of acceptedAction.in_params) {
+            const arg = action.schema.getArgument(in_param.name);
+            assert(arg);
+            if (arg.type.equals(idType)) {
+                name = in_param.value;
+                in_param.value = new Ast.Value.Undefined(true);
+                break;
+            }
+        }
+        if (!name)
+            return null;
+        let good = false;
+        for (let result of results) {
+            if (result.value.id.equals(name)) {
+                good = true;
+                break;
+            }
+        }
+        return [results, actionProposal, name, acceptedAction];
+    };
+
+    prop:system_list_proposal '<sep>' name:list_proposal_tell_me_more => {
         const [results, info, actionProposal] = prop;
         let good = false;
         for (let result of results) {

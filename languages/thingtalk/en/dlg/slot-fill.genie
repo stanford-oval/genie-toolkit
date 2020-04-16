@@ -317,6 +317,7 @@ imprecise_slot_fill_question_answer_pair = {
 verbose_slot_fill_answer = {
     // complete answer, like "I am looking to book it for ... at ..."
     generic_preamble_for_action action:coref_action_command => action;
+    generic_preamble_for_action action:action_by_name_command => action;
 }
 
 imprecise_slot_fill_question_answer_pair = {
