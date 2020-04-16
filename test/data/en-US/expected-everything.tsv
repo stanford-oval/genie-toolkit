@@ -537,128 +537,128 @@ RPS4000140883-0	alert me when it is more humid than 1 in where i am now saying n
 RPS4000140883-1	alert me when it is more humid than 1 in where i am now saying news of the project reached the press by weather api	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " news of the project reached the press "
 RPS4000140883-2	alert me when it is more humid than 1 in where i am now saying the children loathed himtoo by weather api	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " the children loathed himtoo "
 RPS4000140883-0	tell weather api to alert me when it is more humid than 1 in where i am now saying maximizing economic and cultural opportunity	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " maximizing economic and cultural opportunity "
-RPS4000140883-1	tell weather api to alert me when it is more humid than 1 in where i am now saying he did not count time	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " he did not count time "
-RPS4000140883-2	tell weather api to alert me when it is more humid than 1 in where i am now saying the children loathed himtoo	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " the children loathed himtoo "
-RPS4000140883-0	use weather api and alert me when it is more humid than 1 in where i am now saying maximizing economic and cultural opportunity	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " maximizing economic and cultural opportunity "
-RPS4000140883-1	use weather api and alert me when it is more humid than 1 in where i am now saying he did not count time	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " he did not count time "
-RPS4000140883-2	use weather api and alert me when it is more humid than 1 in where i am now saying the children loathed himtoo	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " the children loathed himtoo "
-RPS4000140883-0	alert me when it is more humid than 1 in where i am now saying due in 1986 from weather api	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " due in 1986 "
-RPS4000140883-1	alert me when it is more humid than 1 in where i am now saying the children loathed himtoo from weather api	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " the children loathed himtoo "
-RPS4000140883-2	alert me when it is more humid than 1 in where i am now saying due in 1986 from weather api	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " due in 1986 "
+RPS4000140883-1	tell weather api to alert me when it is more humid than 1 in where i am now saying 3	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " 3 "
+RPS4000140883-2	tell weather api to alert me when it is more humid than 1 in where i am now saying 3	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " 3 "
+RPS4000140883-0	use weather api and alert me when it is more humid than 1 in where i am now saying he did not count time	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " he did not count time "
+RPS4000140883-1	use weather api and alert me when it is more humid than 1 in where i am now saying the children loathed himtoo	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " the children loathed himtoo "
+RPS4000140883-2	use weather api and alert me when it is more humid than 1 in where i am now saying due in 1986	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " due in 1986 "
+RPS4000140883-0	alert me when it is more humid than 1 in where i am now saying he did not count time from weather api	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " he did not count time "
+RPS4000140883-1	alert me when it is more humid than 1 in where i am now saying 3 from weather api	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " 3 "
+RPS4000140883-2	alert me when it is more humid than 1 in where i am now saying the children loathed himtoo from weather api	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " the children loathed himtoo "
 RS2000043793-0	colon has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " colon " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RS2000043793-1	finnly has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " finnly " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RS2000043793-2	rekesha has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " rekesha " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RPS2000043793-0	launch miscellaneous interfaces and evolett has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " evolett " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RPS2000043793-1	launch miscellaneous interfaces and melo has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " melo " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RPS2000043793-2	launch miscellaneous interfaces and amariss has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " amariss " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RPS2000043793-0	ask miscellaneous interfaces to madhulika has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " madhulika " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RPS2000043793-1	ask miscellaneous interfaces to sinath has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " sinath " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RPS2000043793-2	ask miscellaneous interfaces to rekesha has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " rekesha " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RPS2000043793-0	tell miscellaneous interfaces to evolett has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " evolett " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RS2000043793-1	leiona has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " leiona " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RS2000043793-2	jerrianna has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " jerrianna " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RPS2000043793-0	tell miscellaneous interfaces that nohl has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " nohl " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RPS2000043793-1	tell miscellaneous interfaces that colon has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " colon " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RPS2000043793-2	tell miscellaneous interfaces that sinath has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " sinath " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RPS2000043793-0	tell miscellaneous interfaces to thyrome has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " thyrome " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
 RPS2000043793-1	tell miscellaneous interfaces to evolett has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " evolett " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RPS2000043793-2	tell miscellaneous interfaces to gaddiel has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " gaddiel " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RPS2000043793-0	tell miscellaneous interfaces that delantae has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " delantae " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RPS2000043793-1	tell miscellaneous interfaces that sinath has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " sinath " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RPS2000043793-2	tell miscellaneous interfaces that colon has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " colon " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RPS2000043793-0	use miscellaneous interfaces to caprina has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " caprina " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RPS2000043793-1	use miscellaneous interfaces to madhulika has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " madhulika " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RPS2000043793-2	use miscellaneous interfaces to nohl has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " nohl " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RPS2000043793-2	tell miscellaneous interfaces to melo has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " melo " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RPS2000043793-0	USERNAME_0 has my permission to setup tumblr blog if my location is not here with miscellaneous interfaces	policy param:source:Entity(tt:contact) == USERNAME_0 : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RPS2000043793-1	USERNAME_0 has my permission to setup tumblr blog if my location is not here with miscellaneous interfaces	policy param:source:Entity(tt:contact) == USERNAME_0 : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RPS2000043793-2	USERNAME_0 has my permission to setup tumblr blog if my location is not here with miscellaneous interfaces	policy param:source:Entity(tt:contact) == USERNAME_0 : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RPS2000043793-0	use miscellaneous interfaces to madhulika has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " madhulika " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RPS2000043793-1	use miscellaneous interfaces to sinath has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " sinath " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RPS2000043793-2	use miscellaneous interfaces to rekesha has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " rekesha " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RPS2000043793-0	use miscellaneous interfaces and evolett has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " evolett " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RPS2000043793-1	use miscellaneous interfaces and evolett has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " evolett " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RPS2000043793-2	use miscellaneous interfaces and gaddiel has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == " gaddiel " ^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
 RS4000227894-0	if something happens on my security camera retrieve what philips hue can do	( monitor ( @security-camera.current_event ) ) => ( @org.thingpedia.builtin.thingengine.builtin.get_commands param:device:Entity(tt:device) = device:com.hue ) => notify
 RS4000227894-1	if something happens on my security camera retrieve what philips hue can do	( monitor ( @security-camera.current_event ) ) => ( @org.thingpedia.builtin.thingengine.builtin.get_commands param:device:Entity(tt:device) = device:com.hue ) => notify
 RS4000227894-2	if something happens on my security camera retrieve what philips hue can do	( monitor ( @security-camera.current_event ) ) => ( @org.thingpedia.builtin.thingengine.builtin.get_commands param:device:Entity(tt:device) = device:com.hue ) => notify
 RS4000511177-0	setup thingengine when a file is modified on google drive	monitor ( @com.google.drive.list_drive_files ) => @org.thingpedia.builtin.thingengine.builtin.configure param:device:Entity(tt:device) = device:org.thingpedia.builtin.thingengine
 RS4000511177-1	setup thingengine when a file is modified on google drive	monitor ( @com.google.drive.list_drive_files ) => @org.thingpedia.builtin.thingengine.builtin.configure param:device:Entity(tt:device) = device:org.thingpedia.builtin.thingengine
 RS4000511177-2	setup thingengine when a file is modified on google drive	monitor ( @com.google.drive.list_drive_files ) => @org.thingpedia.builtin.thingengine.builtin.configure param:device:Entity(tt:device) = device:org.thingpedia.builtin.thingengine
-RS4000113241-0	notify me should photos in album QUOTED_STRING_0 on facebook change and after TIME_0	edge ( monitor ( @com.facebook.list_photos param:album:String = QUOTED_STRING_0 ) ) on @org.thingpedia.builtin.thingengine.builtin.get_time { param:time:Date >= TIME_0 } => notify
-RS4000113241-1	notify me should photos in album QUOTED_STRING_0 on facebook change and after TIME_0	edge ( monitor ( @com.facebook.list_photos param:album:String = QUOTED_STRING_0 ) ) on @org.thingpedia.builtin.thingengine.builtin.get_time { param:time:Date >= TIME_0 } => notify
-RS4000113241-2	notify me should photos in album QUOTED_STRING_0 on facebook change and after TIME_0	edge ( monitor ( @com.facebook.list_photos param:album:String = QUOTED_STRING_0 ) ) on @org.thingpedia.builtin.thingengine.builtin.get_time { param:time:Date >= TIME_0 } => notify
-RS1234567890-0	get weather for stanford , california	now => @org.thingpedia.weather.current param:location:Location = location: " stanford , california " => notify
-RS1234567890-1	get weather for san francisco	now => @org.thingpedia.weather.current param:location:Location = location: " san francisco " => notify
-RS1234567890-2	get weather for new york	now => @org.thingpedia.weather.current param:location:Location = location: " new york " => notify
-RPS1234567890-0	get weather for seattle by weather api	now => @org.thingpedia.weather.current param:location:Location = location: " seattle " => notify
-RPS1234567890-1	get weather for stanford , california by weather api	now => @org.thingpedia.weather.current param:location:Location = location: " stanford , california " => notify
-RPS1234567890-2	get weather for new york by weather api	now => @org.thingpedia.weather.current param:location:Location = location: " new york " => notify
+RS4000113241-0	notify me should photos in album of his execution on facebook change and after TIME_0	edge ( monitor ( @com.facebook.list_photos param:album:String = " of his execution " ) ) on @org.thingpedia.builtin.thingengine.builtin.get_time { param:time:Date >= TIME_0 } => notify
+RS4000113241-1	notify me should photos in album the fuses however on facebook change and after TIME_0	edge ( monitor ( @com.facebook.list_photos param:album:String = " the fuses however " ) ) on @org.thingpedia.builtin.thingengine.builtin.get_time { param:time:Date >= TIME_0 } => notify
+RS4000113241-2	notify me should photos in album of shell-psychology would on facebook change and after TIME_0	edge ( monitor ( @com.facebook.list_photos param:album:String = " of shell-psychology would " ) ) on @org.thingpedia.builtin.thingengine.builtin.get_time { param:time:Date >= TIME_0 } => notify
+RS1234567890-0	get weather for palo alto	now => @org.thingpedia.weather.current param:location:Location = location: " palo alto " => notify
+RS1234567890-1	get weather for stanford , california	now => @org.thingpedia.weather.current param:location:Location = location: " stanford , california " => notify
+RS1234567890-2	get weather for san francisco	now => @org.thingpedia.weather.current param:location:Location = location: " san francisco " => notify
+RPS1234567890-0	get weather for new york from weather api	now => @org.thingpedia.weather.current param:location:Location = location: " new york " => notify
+RPS1234567890-1	get weather for palo alto from weather api	now => @org.thingpedia.weather.current param:location:Location = location: " palo alto " => notify
+RPS1234567890-2	get weather for stanford , california from weather api	now => @org.thingpedia.weather.current param:location:Location = location: " stanford , california " => notify
 RPS1234567890-0	tell weather api that get weather for stanford , california	now => @org.thingpedia.weather.current param:location:Location = location: " stanford , california " => notify
-RPS1234567890-1	tell weather api that get weather for seattle	now => @org.thingpedia.weather.current param:location:Location = location: " seattle " => notify
-RPS1234567890-2	tell weather api that get weather for palo alto	now => @org.thingpedia.weather.current param:location:Location = location: " palo alto " => notify
-RPS1234567890-0	tell weather api to get weather for san francisco	now => @org.thingpedia.weather.current param:location:Location = location: " san francisco " => notify
-RPS1234567890-1	tell weather api to get weather for palo alto	now => @org.thingpedia.weather.current param:location:Location = location: " palo alto " => notify
-RPS1234567890-2	tell weather api to get weather for seattle	now => @org.thingpedia.weather.current param:location:Location = location: " seattle " => notify
-RPS1234567890-0	ask weather api to get weather for new york	now => @org.thingpedia.weather.current param:location:Location = location: " new york " => notify
-RPS1234567890-1	ask weather api to get weather for palo alto	now => @org.thingpedia.weather.current param:location:Location = location: " palo alto " => notify
+RPS1234567890-1	tell weather api that get weather for san francisco	now => @org.thingpedia.weather.current param:location:Location = location: " san francisco " => notify
+RPS1234567890-2	tell weather api that get weather for new york	now => @org.thingpedia.weather.current param:location:Location = location: " new york " => notify
+RPS1234567890-0	get weather for seattle in weather api	now => @org.thingpedia.weather.current param:location:Location = location: " seattle " => notify
+RPS1234567890-1	get weather for los angeles in weather api	now => @org.thingpedia.weather.current param:location:Location = location: " los angeles " => notify
+RPS1234567890-2	get weather for palo alto in weather api	now => @org.thingpedia.weather.current param:location:Location = location: " palo alto " => notify
+RPS1234567890-0	ask weather api to get weather for stanford , california	now => @org.thingpedia.weather.current param:location:Location = location: " stanford , california " => notify
+RPS1234567890-1	ask weather api to get weather for los angeles	now => @org.thingpedia.weather.current param:location:Location = location: " los angeles " => notify
 RPS1234567890-2	ask weather api to get weather for seattle	now => @org.thingpedia.weather.current param:location:Location = location: " seattle " => notify
-RPS1234567890-0	order weather api to get weather for san francisco	now => @org.thingpedia.weather.current param:location:Location = location: " san francisco " => notify
-RPS1234567890-1	order weather api to get weather for san francisco	now => @org.thingpedia.weather.current param:location:Location = location: " san francisco " => notify
-RPS1234567890-2	order weather api to get weather for palo alto	now => @org.thingpedia.weather.current param:location:Location = location: " palo alto " => notify
+RPS1234567890-0	use weather api and get weather for stanford , california	now => @org.thingpedia.weather.current param:location:Location = location: " stanford , california " => notify
+RPS1234567890-1	use weather api and get weather for new york	now => @org.thingpedia.weather.current param:location:Location = location: " new york " => notify
+RPS1234567890-2	use weather api and get weather for stanford , california	now => @org.thingpedia.weather.current param:location:Location = location: " stanford , california " => notify
 RS4000123456-0	what is the weather	now => @org.thingpedia.weather.current => notify
 RS4000123456-1	what is the weather	now => @org.thingpedia.weather.current => notify
 RS4000123456-2	what is the weather	now => @org.thingpedia.weather.current => notify
-RPS4000123456-0	ask weather api about what is the weather	now => @org.thingpedia.weather.current => notify
-RPS4000123456-1	ask weather api about what is the weather	now => @org.thingpedia.weather.current => notify
-RPS4000123456-2	ask weather api about what is the weather	now => @org.thingpedia.weather.current => notify
-RPS4000123456-0	what is the weather from weather api	now => @org.thingpedia.weather.current => notify
-RPS4000123456-1	what is the weather from weather api	now => @org.thingpedia.weather.current => notify
-RPS4000123456-2	what is the weather from weather api	now => @org.thingpedia.weather.current => notify
-RPS4000123456-0	ask weather api what is the weather	now => @org.thingpedia.weather.current => notify
-RPS4000123456-1	ask weather api what is the weather	now => @org.thingpedia.weather.current => notify
-RPS4000123456-2	ask weather api what is the weather	now => @org.thingpedia.weather.current => notify
 RPS4000123456-0	what is the weather in weather api	now => @org.thingpedia.weather.current => notify
 RPS4000123456-1	what is the weather in weather api	now => @org.thingpedia.weather.current => notify
 RPS4000123456-2	what is the weather in weather api	now => @org.thingpedia.weather.current => notify
-RPS4000123456-0	what is the weather using weather api	now => @org.thingpedia.weather.current => notify
-RPS4000123456-1	what is the weather using weather api	now => @org.thingpedia.weather.current => notify
-RPS4000123456-2	what is the weather using weather api	now => @org.thingpedia.weather.current => notify
+RPS4000123456-0	ask weather api about what is the weather	now => @org.thingpedia.weather.current => notify
+RPS4000123456-1	ask weather api about what is the weather	now => @org.thingpedia.weather.current => notify
+RPS4000123456-2	ask weather api about what is the weather	now => @org.thingpedia.weather.current => notify
+RPS4000123456-0	ask weather api what is the weather	now => @org.thingpedia.weather.current => notify
+RPS4000123456-1	ask weather api what is the weather	now => @org.thingpedia.weather.current => notify
+RPS4000123456-2	ask weather api what is the weather	now => @org.thingpedia.weather.current => notify
+RPS4000123456-0	what is the weather from weather api	now => @org.thingpedia.weather.current => notify
+RPS4000123456-1	what is the weather from weather api	now => @org.thingpedia.weather.current => notify
+RPS4000123456-2	what is the weather from weather api	now => @org.thingpedia.weather.current => notify
+RPS4000123456-0	what is the weather by weather api	now => @org.thingpedia.weather.current => notify
+RPS4000123456-1	what is the weather by weather api	now => @org.thingpedia.weather.current => notify
+RPS4000123456-2	what is the weather by weather api	now => @org.thingpedia.weather.current => notify
 RS4000123457-0	get the current weather	now => @org.thingpedia.weather.current => notify
 RS4000123457-1	get the current weather	now => @org.thingpedia.weather.current => notify
 RS4000123457-2	get the current weather	now => @org.thingpedia.weather.current => notify
-RPS4000123457-0	get the current weather with weather api	now => @org.thingpedia.weather.current => notify
-RPS4000123457-1	get the current weather with weather api	now => @org.thingpedia.weather.current => notify
-RPS4000123457-2	get the current weather with weather api	now => @org.thingpedia.weather.current => notify
-RPS4000123457-0	tell weather api that get the current weather	now => @org.thingpedia.weather.current => notify
-RPS4000123457-1	tell weather api that get the current weather	now => @org.thingpedia.weather.current => notify
-RPS4000123457-2	tell weather api that get the current weather	now => @org.thingpedia.weather.current => notify
+RPS4000123457-0	open weather api and get the current weather	now => @org.thingpedia.weather.current => notify
+RPS4000123457-1	open weather api and get the current weather	now => @org.thingpedia.weather.current => notify
+RPS4000123457-2	open weather api and get the current weather	now => @org.thingpedia.weather.current => notify
 RPS4000123457-0	ask weather api to get the current weather	now => @org.thingpedia.weather.current => notify
 RPS4000123457-1	ask weather api to get the current weather	now => @org.thingpedia.weather.current => notify
 RPS4000123457-2	ask weather api to get the current weather	now => @org.thingpedia.weather.current => notify
 RPS4000123457-0	tell weather api to get the current weather	now => @org.thingpedia.weather.current => notify
 RPS4000123457-1	tell weather api to get the current weather	now => @org.thingpedia.weather.current => notify
 RPS4000123457-2	tell weather api to get the current weather	now => @org.thingpedia.weather.current => notify
+RPS4000123457-0	tell weather api that get the current weather	now => @org.thingpedia.weather.current => notify
+RPS4000123457-1	tell weather api that get the current weather	now => @org.thingpedia.weather.current => notify
+RPS4000123457-2	tell weather api that get the current weather	now => @org.thingpedia.weather.current => notify
 RPS4000123457-0	use weather api to get the current weather	now => @org.thingpedia.weather.current => notify
 RPS4000123457-1	use weather api to get the current weather	now => @org.thingpedia.weather.current => notify
 RPS4000123457-2	use weather api to get the current weather	now => @org.thingpedia.weather.current => notify
 RS4000123458-0	who is the sender of my emails	now => @com.gmail.inbox => notify
 RS4000123458-1	who is the sender of my emails	now => @com.gmail.inbox => notify
 RS4000123458-2	who is the sender of my emails	now => @com.gmail.inbox => notify
-RPS4000123458-0	who is the sender of my emails with gmail account	now => @com.gmail.inbox => notify
-RPS4000123458-1	who is the sender of my emails with gmail account	now => @com.gmail.inbox => notify
-RPS4000123458-2	who is the sender of my emails with gmail account	now => @com.gmail.inbox => notify
-RPS4000123458-0	ask gmail account about who is the sender of my emails	now => @com.gmail.inbox => notify
-RPS4000123458-1	ask gmail account about who is the sender of my emails	now => @com.gmail.inbox => notify
-RPS4000123458-2	ask gmail account about who is the sender of my emails	now => @com.gmail.inbox => notify
 RPS4000123458-0	ask gmail account who is the sender of my emails	now => @com.gmail.inbox => notify
 RPS4000123458-1	ask gmail account who is the sender of my emails	now => @com.gmail.inbox => notify
 RPS4000123458-2	ask gmail account who is the sender of my emails	now => @com.gmail.inbox => notify
+RPS4000123458-0	ask gmail account about who is the sender of my emails	now => @com.gmail.inbox => notify
+RPS4000123458-1	ask gmail account about who is the sender of my emails	now => @com.gmail.inbox => notify
+RPS4000123458-2	ask gmail account about who is the sender of my emails	now => @com.gmail.inbox => notify
 RPS4000123458-0	who is the sender of my emails from gmail account	now => @com.gmail.inbox => notify
 RPS4000123458-1	who is the sender of my emails from gmail account	now => @com.gmail.inbox => notify
 RPS4000123458-2	who is the sender of my emails from gmail account	now => @com.gmail.inbox => notify
 RPS4000123458-0	who is the sender of my emails using gmail account	now => @com.gmail.inbox => notify
 RPS4000123458-1	who is the sender of my emails using gmail account	now => @com.gmail.inbox => notify
 RPS4000123458-2	who is the sender of my emails using gmail account	now => @com.gmail.inbox => notify
+RPS4000123458-0	who is the sender of my emails by gmail account	now => @com.gmail.inbox => notify
+RPS4000123458-1	who is the sender of my emails by gmail account	now => @com.gmail.inbox => notify
+RPS4000123458-2	who is the sender of my emails by gmail account	now => @com.gmail.inbox => notify
 RS4000123459-0	order a coffee	now => @org.thingpedia.demo.coffee.order
 RS4000123459-1	order a coffee	now => @org.thingpedia.demo.coffee.order
 RS4000123459-2	order a coffee	now => @org.thingpedia.demo.coffee.order
-RPS4000123459-0	tell almond coffee to order a coffee	now => @org.thingpedia.demo.coffee.order
-RPS4000123459-1	tell almond coffee to order a coffee	now => @org.thingpedia.demo.coffee.order
-RPS4000123459-2	tell almond coffee to order a coffee	now => @org.thingpedia.demo.coffee.order
-RPS4000123459-0	tell almond coffee that order a coffee	now => @org.thingpedia.demo.coffee.order
-RPS4000123459-1	tell almond coffee that order a coffee	now => @org.thingpedia.demo.coffee.order
-RPS4000123459-2	tell almond coffee that order a coffee	now => @org.thingpedia.demo.coffee.order
-RPS4000123459-0	order a coffee in almond coffee	now => @org.thingpedia.demo.coffee.order
-RPS4000123459-1	order a coffee in almond coffee	now => @org.thingpedia.demo.coffee.order
-RPS4000123459-2	order a coffee in almond coffee	now => @org.thingpedia.demo.coffee.order
+RPS4000123459-0	order almond coffee to order a coffee	now => @org.thingpedia.demo.coffee.order
+RPS4000123459-1	order almond coffee to order a coffee	now => @org.thingpedia.demo.coffee.order
+RPS4000123459-2	order almond coffee to order a coffee	now => @org.thingpedia.demo.coffee.order
 RPS4000123459-0	order a coffee from almond coffee	now => @org.thingpedia.demo.coffee.order
 RPS4000123459-1	order a coffee from almond coffee	now => @org.thingpedia.demo.coffee.order
 RPS4000123459-2	order a coffee from almond coffee	now => @org.thingpedia.demo.coffee.order
+RPS4000123459-0	order a coffee using almond coffee	now => @org.thingpedia.demo.coffee.order
+RPS4000123459-1	order a coffee using almond coffee	now => @org.thingpedia.demo.coffee.order
+RPS4000123459-2	order a coffee using almond coffee	now => @org.thingpedia.demo.coffee.order
+RPS4000123459-0	tell almond coffee to order a coffee	now => @org.thingpedia.demo.coffee.order
+RPS4000123459-1	tell almond coffee to order a coffee	now => @org.thingpedia.demo.coffee.order
+RPS4000123459-2	tell almond coffee to order a coffee	now => @org.thingpedia.demo.coffee.order
 RPS4000123459-0	ask almond coffee to order a coffee	now => @org.thingpedia.demo.coffee.order
 RPS4000123459-1	ask almond coffee to order a coffee	now => @org.thingpedia.demo.coffee.order
 RPS4000123459-2	ask almond coffee to order a coffee	now => @org.thingpedia.demo.coffee.order

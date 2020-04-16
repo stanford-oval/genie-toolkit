@@ -5,6 +5,7 @@
 // Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//          Mehrad Moradshahi <mehrad@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -33,6 +34,11 @@ module.exports = {
             required: false,
             defaultValue: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
+        });
+        parser.addArgument(['-pl', '--param-locale'], {
+            required: false,
+            defaultValue: 'en-US',
+            help: `BGP 47 locale tag of the language for parameter values (defaults to 'en-US', English)`
         });
         parser.addArgument(['-t', '--target-language'], {
             required: false,
@@ -129,6 +135,18 @@ module.exports = {
             action: 'storeFalse',
             dest: 'replace_locations',
             help: 'Do not replace LOCATION tokens with unquoted locations.',
+        });
+        parser.addArgument('--replace-numbers', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Replace NUMBER tokens with actual values.',
+            defaultValue: false
+        });
+        parser.addArgument('--no-replace-numbers', {
+            nargs: 0,
+            action: 'storeFalse',
+            dest: 'replace_locations',
+            help: 'Do not replace NUMBER tokens',
         });
 
         parser.addArgument('--debug', {

@@ -4,7 +4,8 @@
 //
 // Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
 //
-// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>,
+//          Mehrad Moradshahi <mehrad@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -18,6 +19,16 @@ const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const StreamUtils = require('../lib/stream-utils');
 
 const ENTITY_MATCH_REGEX = /^([A-Z].*)_[0-9]+$/;
+const NUMBER_MATCH_REGEX = /^([0-9]+)$/;
+const SMALL_NUMBER_REGEX = /^-?10|11|12|[0-9]$/;
+
+function do_replace_numbers(token, requote_numbers) {
+    // 1) check if token is an Arabic or English number
+    // 2) ignore digit 0 and 1 since they are sometimes used in the program
+    // (e.g. to represent singularities) but are not present in the sentence
+
+    return requote_numbers && NUMBER_MATCH_REGEX.test(token) && !(SMALL_NUMBER_REGEX.exec(token)[0] === token);
+}
 
 function findSpanContaining(index, spansBySentencePos) {
     for (let i = 0; i < spansBySentencePos.length; i++) {
@@ -27,6 +38,7 @@ function findSpanContaining(index, spansBySentencePos) {
     }
     return undefined;
 }
+
 
 function findSubstring(sequence, substring, spansBySentencePos, allowOverlapping) {
     for (let i = 0; i < sequence.length - substring.length + 1; i++) {
@@ -45,10 +57,17 @@ function findSubstring(sequence, substring, spansBySentencePos, allowOverlapping
 }
 
 
-function findSpanType(program, begin_index, end_index) {
+function findSpanType(program, begin_index, end_index, requote_numbers, string_number = false) {
     let spanType;
     if (begin_index > 1 && program[begin_index-2] === 'location:') {
         spanType = 'LOCATION';
+
+    } else if (do_replace_numbers(program[begin_index], requote_numbers) && !(program[end_index+1].startsWith('^^'))){
+        // catch purely numeric postal_codes or phone_numbers
+        if (string_number)
+            spanType = 'QUOTED_STRING';
+        else
+            spanType = 'NUMBER';
     } else if (end_index === program.length - 1 || !program[end_index+1].startsWith('^^')) {
         spanType = 'QUOTED_STRING';
     } else {
@@ -59,6 +78,9 @@ function findSpanType(program, begin_index, end_index) {
         case '^^tt:username':
             spanType = 'USERNAME';
             break;
+        case '^^tt:phone_number':
+            spanType = 'PHONE_NUMBER';
+            break;
         default:
             spanType = 'GENERIC_ENTITY_' + program[end_index+1].substring(2);
         }
@@ -67,7 +89,7 @@ function findSpanType(program, begin_index, end_index) {
 }
 
 
-function createProgram(program, spansByProgramPos, entityRemap) {
+function createProgram(program, spansByProgramPos, entityRemap, requote_numbers) {
     let in_string = false;
     let newProgram = [];
     let programSpanIndex = 0;
@@ -87,13 +109,17 @@ function createProgram(program, spansByProgramPos, entityRemap) {
             programSpanIndex++;
             continue;
         }
-        if (in_string) continue;
-
+        if (in_string)
+            continue;
         if (token === 'location:' || token.startsWith('^^')) {
             continue;
         } else if (ENTITY_MATCH_REGEX.test(token)) {
             assert(entityRemap[token]);
             newProgram.push(entityRemap[token]);
+        } else if (do_replace_numbers(token, requote_numbers)){
+            const currentSpan = spansByProgramPos[programSpanIndex];
+            newProgram.push(currentSpan.sentenceSpan.mapTo);
+            programSpanIndex++;
         } else {
             newProgram.push(token);
         }
@@ -187,10 +213,26 @@ function createSentence(sentence, contextEntities, spansBySentencePos) {
 
 }
 
-function getProgSpans(program) {
+// <<<<<<< HEAD
+// function sortWithIndeces(toSort, sort_func) {
+//     let toSort_new = [];
+//     for (let i = 0; i < toSort.length; i++)
+//         toSort_new[i] = [toSort[i], i];
+//
+//     toSort_new.sort(sort_func);
+//     let sortIndices = [];
+//     for (let j = 0; j < toSort_new.length; j++) {
+//         sortIndices.push(toSort_new[j][1]);
+//         toSort[j] = toSort_new[j][0];
+//     }
+//     return sortIndices;
+// }
+
+function getProgSpans(program, requote_numbers) {
     let in_string = false;
     let begin_index = null;
     let end_index = null;
+    let span_type = null;
     let allProgSpans = [];
     for (let i = 0; i < program.length; i++) {
         let token = program[i];
@@ -200,9 +242,16 @@ function getProgSpans(program) {
                 begin_index = i + 1;
             } else {
                 end_index = i;
-                const span = { begin: begin_index, end: end_index };
-                allProgSpans.push(span);
+                span_type = findSpanType(program, begin_index, end_index, requote_numbers, true);
+                let prog_span = {begin: begin_index, end: end_index, span_type:span_type};
+                allProgSpans.push(prog_span);
             }
+        } else if (!in_string && do_replace_numbers(token, requote_numbers)){
+            begin_index = i;
+            end_index = begin_index + 1;
+            span_type = findSpanType(program, begin_index, end_index, requote_numbers);
+            let prog_span = {begin: begin_index, end: end_index, span_type:span_type};
+            allProgSpans.push(prog_span);
         }
     }
 
@@ -216,17 +265,19 @@ function getProgSpans(program) {
 }
 
 
-function findSpanPositions(id, sentence, program) {
+function findSpanPositions(id, sentence, program, requote_numbers) {
     const spansBySentencePos = [];
     const spansByProgramPos = [];
 
-    // allprogspans is sorted by length (longest first)
-    const allProgSpans = getProgSpans(program);
+    // allProgSpans is sorted by length (longest first)
+    const allProgSpans = getProgSpans(program, requote_numbers);
 
     for (const progSpan of allProgSpans) {
-        const begin_index = progSpan.begin;
-        const end_index = progSpan.end;
+        // const begin_index = progSpan.begin;
+        // const end_index = progSpan.end;
+        let [begin_index, end_index, span_type] = [progSpan.begin, progSpan.end, progSpan.span_type];
         const substring = program.slice(begin_index, end_index);
+
 
         // first try without overlapping parameters, then try with overlapping parameters
         // (this is mostly useful for parameters that used twice, which happens in some dialogue dataset)
@@ -255,7 +306,7 @@ function findSpanPositions(id, sentence, program) {
 
         const sentenceSpanBegin = idx;
         const sentenceSpanEnd = idx + end_index - begin_index;
-        const spanType = findSpanType(program, begin_index, end_index);
+        const spanType = span_type;
 
         const sentenceSpan = { begin: sentenceSpanBegin, end: sentenceSpanEnd, type: spanType, mapTo: undefined };
         spansBySentencePos.push(sentenceSpan);
@@ -273,7 +324,8 @@ function findSpanPositions(id, sentence, program) {
     return [spansBySentencePos, spansByProgramPos];
 }
 
-function requoteSentence(id, context, sentence, program, mode) {
+
+function requoteSentence(id, context, sentence, program, mode, requote_numbers) {
     sentence = sentence.split(' ');
     program = program.split(' ');
 
@@ -285,7 +337,7 @@ function requoteSentence(id, context, sentence, program, mode) {
         }
     }
 
-    let [spansBySentencePos, spansByProgramPos] = findSpanPositions(id, sentence, program);
+    let [spansBySentencePos, spansByProgramPos] = findSpanPositions(id, sentence, program, requote_numbers);
 
     if (spansBySentencePos.length === 0)
         return [sentence.join(' '), program.join(' ')];
@@ -308,7 +360,7 @@ function requoteSentence(id, context, sentence, program, mode) {
 
     if (mode === 'replace'){
         [newSentence, entityRemap] = createSentence(sentence, contextEntities, spansBySentencePos);
-        newProgram = createProgram(program, spansByProgramPos, entityRemap);
+        newProgram = createProgram(program, spansByProgramPos, entityRemap, requote_numbers);
     } else if (mode === 'qpis') {
         newSentence = qpisSentence(sentence, spansBySentencePos);
         newProgram = program;
@@ -340,6 +392,11 @@ module.exports = {
             choices: ['replace', 'qpis'],
             defaultValue: 'replace'
         });
+        parser.addArgument('--requote-numbers', {
+            action: 'storeTrue',
+            help: 'Requote numbers',
+            defaultValue: false
+        });
         parser.addArgument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
@@ -355,7 +412,8 @@ module.exports = {
 
                 transform(ex, encoding, callback) {
                     try {
-                        const [newSentence, newProgram] = requoteSentence(ex.id, ex.context, ex.preprocessed, ex.target_code, args.mode);
+                        const [newSentence, newProgram] =
+                            requoteSentence(ex.id, ex.context, ex.preprocessed, ex.target_code, args.mode, args.requote_numbers);
                         ex.preprocessed = newSentence;
                         ex.target_code = newProgram;
                         callback(null, ex);

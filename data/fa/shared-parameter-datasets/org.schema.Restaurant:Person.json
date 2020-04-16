@@ -1,0 +1,45 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "name": "مجید جوهری",
+      "value": "https://thingpedia.stanford.edu/ns/uuid/Person/548e1f04d3b09937ea7f73c5c3bb468c84e0056f",
+      "canonical": "مجید جوهری"
+    },
+    {
+      "name": "علی احساسی",
+      "value": "https://thingpedia.stanford.edu/ns/uuid/Person/91c792417a6cbe024dbe2769e7acc18cc9281271",
+      "canonical": "علی احساسی"
+    },
+    {
+      "name": "رضا مریدی",
+      "value": "https://thingpedia.stanford.edu/ns/uuid/Person/1d2bdcc5f4225e31c8f3ff953d3bf61dbd844682",
+      "canonical": "رضا مریدی"
+    },
+    {
+      "name": "علی سینا",
+      "value": "https://thingpedia.stanford.edu/ns/uuid/Person/78c773915f80ce51b639011599cd9f7817b7c76a",
+      "canonical": "علی سینا"
+    },
+    {
+      "name": "حسن خسروشاهی",
+      "value": "https://thingpedia.stanford.edu/ns/uuid/Person/c57f1a15c0c62360764e422988850d48a03b7f04",
+      "canonical": "حسن خسروشاهی"
+    },
+    {
+      "name": "ژیان قمیشی",
+      "value": "https://thingpedia.stanford.edu/ns/uuid/Person/097eb295fb22deeb07a84a63877c40921c6b1e50",
+      "canonical": "ژیان قمیشی"
+    },
+    {
+      "name": "زهرا کاظمی",
+      "value": "https://thingpedia.stanford.edu/ns/uuid/Person/f913eef03ce6dbb9fcd5e4a8607734b6187f6581",
+      "canonical": "زهرا کاظمی"
+    },
+    {
+      "name": "مرضیه ستوده",
+      "value": "https://thingpedia.stanford.edu/ns/uuid/Person/b29e1f3bb0fbc9957f719ebc231582a85a98ea0b",
+      "canonical": "مرضیه ستوده"
+    }
+  ]
+}

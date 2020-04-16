@@ -26,6 +26,7 @@ module.exports = async function worker(args, shard) {
     return new DatasetAugmenter(schemaRetriever, constProvider, tpClient, {
         rng: seedrandom.alea(args.random_seed + ':' + shard),
         locale: args.locale,
+        paramLocale: args.param_locale,
         targetLanguage: args.target_language,
         debug: args.debug,
 
@@ -40,6 +41,7 @@ module.exports = async function worker(args, shard) {
         noQuoteExpandFactor: args.no_quote_paraphrasing_expand_factor,
         singleDeviceExpandFactor: args.single_device_expand_factor,
         replaceLocations: args.replace_locations,
+        replaceNumbers: args.replaceNumbers,
     });
 };
 

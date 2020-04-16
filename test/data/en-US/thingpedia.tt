@@ -2128,4 +2128,3 @@ class @org.thingpedia.friendhub.stickynotes
   #_[confirmation="Add $post to sticky notes"]
   #[confirm=true];
 }
-
