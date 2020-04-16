@@ -421,18 +421,32 @@ function addActionParam(ctx, dialogueAct, action, pname, value, confirm) {
             newHistoryItem = ctx.next.clone();
             const newInvocation = getActionInvocation(newHistoryItem);
             setOrAddInvocationParam(newInvocation, pname, value);
+            // also add the new parameters from this action, if any
+            for (let param of action.in_params) {
+                if (param.value.isUndefined)
+                    continue;
+                setOrAddInvocationParam(newInvocation, param.name, param.value);
+            }
+
             newHistoryItem.confirm = confirm;
         }
     }
 
     if (!newHistoryItem) {
         const in_params = [new Ast.InputParam(null, pname, value)];
+        const setparams = new Set;
+        setparams.add(pname);
+        for (let param of action.in_params) {
+            if (param.name !== pname)
+                in_params.push(param);
+            setparams.add(param.name);
+        }
 
         // make sure we add all $undefined values, otherwise we'll fail
         // to recognize that the statement is not yet executable, and we'll
         // crash in the compiler
         for (let arg of action.schema.iterateArguments()) {
-            if (arg.is_input && arg.required && arg.name !== pname)
+            if (arg.is_input && arg.required && !setparams.has(arg.name))
                 in_params.push(new Ast.InputParam(null, arg.name, new Ast.Value.Undefined(true)));
         }
 
@@ -460,6 +474,8 @@ function replaceAction(ctx, dialogueAct, action, confirm) {
 
 function addAction(ctx, dialogueAct, action, confirm) {
     assert(action instanceof Ast.Invocation);
+    // the action must have no parameter set!
+    assert(action.in_params.every((in_param) => in_param.value.isUndefined));
 
     let newHistoryItem;
     if (ctx.nextInfo) {
