@@ -20,6 +20,21 @@ class SlotBag {
         this.schema = schema;
         this.store = new Map;
     }
+
+    static merge(b1, b2) {
+        if (b1.schema !== null && b2.schema !== null && b1.schema !== b2.schema)
+            return null;
+        const newbag = new SlotBag(b1.schema || b2.schema);
+        for (let [key, value] of b1.entries())
+            newbag.set(key, value.clone());
+        for (let [key, value] of b2.entries()) {
+            if (newbag.has(key))
+                return null;
+            newbag.set(key, value.clone());
+        }
+        return newbag;
+    }
+
     clone() {
         let newbag = new SlotBag(this.schema);
         for (let [key, value] of this.entries())
@@ -64,7 +79,10 @@ function checkAndAddSlot(bag, filter) {
     assert(bag instanceof SlotBag);
     if (!filter.isAtom)
         return null;
-    const ptype = bag.schema.getArgType(filter.name);
+    const arg = bag.schema.getArgument(filter.name);
+    if (!arg || arg.is_input)
+        return null;
+    const ptype = arg.type;
     if (!ptype)
         return null;
     const vtype = filter.value.getType();

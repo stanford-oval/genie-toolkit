@@ -70,6 +70,11 @@ user_question_answer_begin = {
         => D.makeRecommendation(ctx, proposal);
 }
 
+direct_user_question_answer = {
+    ctx:ctx_with_result_question info:direct_result_info_phrase
+        => D.makeThingpediaRecommendation(ctx, info);
+}
+
 proposal_info_action_pair = {
     'is a' info:result_info_phrase '.' action:action_coref_recommendation [weight=0.8] => {
         const resultType = info.schema.getArgType('id');
@@ -124,6 +129,9 @@ system_recommendation = {
     | proposal:user_question_answer_begin 'is' filter:apv_filter '.'
     | proposal:user_question_answer_begin 'has' filter:npp_filter '.'
     ) => D.makeShortUserQuestionAnswer(proposal, filter);
+
+    // even shorter answers to single questions
+    direct_user_question_answer;
 
     // recommendations after a search, followed by an offer to make an action
     ( proposal:actionable_system_recommendation_short '. it' pair:proposal_info_action_pair
