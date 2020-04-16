@@ -24,8 +24,7 @@ const SMALL_NUMBER_REGEX = /^-?10|11|12|[0-9]$/;
 
 function do_replace_numbers(token, requote_numbers) {
     // 1) check if token is an Arabic or English number
-    // 2) ignore digit 0 and 1 since they are sometimes used in the program
-    // (e.g. to represent singularities) but are not present in the sentence
+    // 2) ignore "small numbers" ranging from -12 to 12
 
     return requote_numbers && NUMBER_MATCH_REGEX.test(token) && !(SMALL_NUMBER_REGEX.exec(token)[0] === token);
 }
@@ -213,20 +212,6 @@ function createSentence(sentence, contextEntities, spansBySentencePos) {
 
 }
 
-// <<<<<<< HEAD
-// function sortWithIndeces(toSort, sort_func) {
-//     let toSort_new = [];
-//     for (let i = 0; i < toSort.length; i++)
-//         toSort_new[i] = [toSort[i], i];
-//
-//     toSort_new.sort(sort_func);
-//     let sortIndices = [];
-//     for (let j = 0; j < toSort_new.length; j++) {
-//         sortIndices.push(toSort_new[j][1]);
-//         toSort[j] = toSort_new[j][0];
-//     }
-//     return sortIndices;
-// }
 
 function getProgSpans(program, requote_numbers) {
     let in_string = false;
@@ -273,8 +258,6 @@ function findSpanPositions(id, sentence, program, requote_numbers) {
     const allProgSpans = getProgSpans(program, requote_numbers);
 
     for (const progSpan of allProgSpans) {
-        // const begin_index = progSpan.begin;
-        // const end_index = progSpan.end;
         let [begin_index, end_index, span_type] = [progSpan.begin, progSpan.end, progSpan.span_type];
         const substring = program.slice(begin_index, end_index);
 
