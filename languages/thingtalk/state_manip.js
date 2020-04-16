@@ -180,6 +180,7 @@ class ResultInfo {
             this.argMinMaxField = null;
             this.projection = null;
         }
+        this.hasError = item.results.error !== null;
         this.hasEmptyResult = item.results.results.length === 0;
         this.hasSingleResult = item.results.results.length === 1;
         this.hasLargeResult = isLargeResultSet(item.results);

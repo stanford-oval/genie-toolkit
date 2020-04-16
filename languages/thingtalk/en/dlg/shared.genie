@@ -45,6 +45,15 @@ the_base_noun_phrase = {
     ) => noun;
 }
 
+generic_excitement_phrase = {
+    'great !';
+    'awesome !';
+    'sounds good !';
+    'alright ,';
+    'sounds good ,';
+    'perfect !';
+}
+
 greeting = {
     'hello !';
     'hi !';
@@ -107,7 +116,6 @@ no_thanks_phrase = {
     'no thanks this will do for now .';
     'no thank you that will be all .';
 }
-
 
 anything_else_phrase = {
     'is there anything else i can help you with ?';

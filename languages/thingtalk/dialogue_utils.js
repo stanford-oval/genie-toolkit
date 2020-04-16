@@ -138,8 +138,10 @@ function makeThingpediaRecommendation(ctx, info) {
 }
 
 function checkInfoPhrase(ctx, info) {
-    if (ctx.currentFunction !== info.schema.class.name + ':' + info.schema.name)
-        return null;
+    if (info.schema !== null) {
+        if (ctx.currentFunction !== info.schema.class.name + ':' + info.schema.name)
+            return null;
+    }
 
     // check that the filter uses the right set of parameters
     if (ctx.resultInfo.projection !== null) {
@@ -170,10 +172,16 @@ function checkInfoPhrase(ctx, info) {
         }
     }
 
-    if (good)
-        return info;
-    else
+    if (good) {
+        if (info.schema !== null)
+            return info;
+
+        const clone = info.clone();
+        clone.schema = ctx.currentFunctionSchema;
+        return clone;
+    } else {
         return null;
+    }
 }
 
 function checkRecommendation({ topResult, action: nextAction }, info) {
@@ -1346,6 +1354,62 @@ function listProposalRelatedQuestionPair(ctx, [[results, info, actionProposal], 
     return checkStateIsValid(ctx, sysState, userState);
 }
 
+function makeThingpediaActionSuccessPhrase(ctx, info) {
+    const results = ctx.results;
+    assert(results.length === 1);
+
+    const topResult = results[0];
+    if (!isInfoPhraseCompatibleWithResult(topResult, info))
+        return null;
+
+    // return the info, so we know what not to ask in the next user act...
+    return info;
+}
+
+function makeCompleteActionSuccessPhrase(ctx, action, info) {
+    const results = ctx.results;
+    assert(results.length === 1);
+
+    // check the action is the same we actually executed, and all the parameters we're mentioning
+    // match the actual parameters of the action
+    assert(action instanceof Ast.Invocation);
+    const ctxInvocation = getActionInvocation(ctx.current);
+    if (!C.isSameFunction(ctxInvocation.schema, action.schema))
+        return null;
+
+    for (let newParam of action.in_params) {
+        if (newParam.value.isUndefined)
+            continue;
+
+        let found = false;
+        for (let oldParam of ctxInvocation.in_params) {
+            if (newParam.name === oldParam.name) {
+                if (!newParam.value.equals(oldParam.value))
+                    return null;
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            return null;
+    }
+
+    if (info !== null) {
+        assert(info instanceof SlotBag);
+        const topResult = results[0];
+        if (!isInfoPhraseCompatibleWithResult(topResult, info))
+            return null;
+    }
+
+    return info;
+}
+
+function actionSuccessTerminalPair(ctx) {
+    const sysState = makeSimpleState(ctx, 'sys_action_success', null);
+    const userState = makeSimpleState(ctx, 'end', null);
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
 module.exports = {
     // consistency checks
     POLICY_NAME,
@@ -1373,6 +1437,7 @@ module.exports = {
     isGoodSlotFillQuestion,
     checkInfoPhrase,
     checkFilterPairForDisjunctiveQuestion,
+    addDontCare,
 
     // system dialogue acts
     checkSearchResultPreamble,
@@ -1384,6 +1449,8 @@ module.exports = {
     checkListProposal,
     checkActionForRecommendation,
     makeRefinementProposal,
+    makeThingpediaActionSuccessPhrase,
+    makeCompleteActionSuccessPhrase,
 
     // user dialogue acts
     mergePreambleAndRequest,
@@ -1393,7 +1460,7 @@ module.exports = {
     contextualAction,
     relatedQuestion,
 
-    // templates
+    // transition templates
     preciseSearchQuestionAnswer,
     preciseSlotFillQuestionAnswer,
     impreciseSearchQuestionAnswerPair,
@@ -1411,6 +1478,6 @@ module.exports = {
     listProposalSearchQuestionPair,
     listProposalRelatedQuestionPair,
     emptySearchChangePair,
-    addDontCare,
+    actionSuccessTerminalPair,
 };
 
