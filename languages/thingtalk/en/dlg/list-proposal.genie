@@ -187,7 +187,7 @@ list_proposal_search_question_pair = {
             if (type !== null && !info.schema.getArgType(pname).equals(type))
                 return null;
         }
-        return [results, name, action, [pname, type]];
+        return [results, name, action, [[pname, type]]];
     };
 }
 
