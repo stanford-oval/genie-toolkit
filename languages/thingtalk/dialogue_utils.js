@@ -13,6 +13,7 @@ const assert = require('assert');
 
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
 
 const C = require('./ast_manip');
 const _loader = require('./load-thingpedia');
@@ -491,23 +492,6 @@ function setsIntersect(s1, s2) {
     return false;
 }
 
-function getParamsInFilter(filter) {
-    let params = new Set;
-    filter.visit(new class extends Ast.NodeVisitor {
-        visitAtomBooleanExpression(atom) {
-            params.add(atom.name);
-            return false;
-        }
-        visitDontCareBooleanExpression(atom) {
-            params.add(atom.name);
-            return false;
-        }
-        visitExternalBooleanExpression() {
-            return false;
-        }
-    });
-    return params;
-}
 
 function neutralizeIDFilter(ast) {
     // clone a filter and replace "id == ..." atoms with "true"
@@ -536,6 +520,25 @@ function refineFilterToAnswerQuestion(ctxFilter, refinedFilter) {
     // furthermore, "id ==" filters are removed from the refined filter, so a user
     // can choose a restaurant for a while then change their mind
 
+    function getParamsInFilter(filter) {
+        let params = new Set;
+        filter.visit(new class extends Ast.NodeVisitor {
+            visitAtomBooleanExpression(atom) {
+                if (atom.name === 'id' && atom.operator === '==')
+                    return false;
+                params.add(atom.name);
+                return false;
+            }
+            visitDontCareBooleanExpression(atom) {
+                params.add(atom.name);
+                return false;
+            }
+            visitExternalBooleanExpression() {
+                return false;
+            }
+        });
+        return params;
+    }
     if (setsIntersect(getParamsInFilter(ctxFilter),  getParamsInFilter(refinedFilter)))
         return null;
 
@@ -994,6 +997,8 @@ function positiveRecommendationReplyPair(ctx, [topResult, actionProposal, accept
 
 function areQuestionsValidForContext(ctx, questions) {
     for (const [qname, qtype] of questions) {
+        assert(typeof qname === 'string');
+        assert(qtype === null || qtype instanceof Type);
         if (!ctx.currentFunctionSchema.hasArgument(qname))
             return false;
         if (qtype !== null && !ctx.currentFunctionSchema.getArgType(qname).equals(qtype))
