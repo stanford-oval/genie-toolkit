@@ -1287,6 +1287,8 @@ function contextualAction(ctx, action) {
 
 function relatedQuestion(ctx, stmt) {
     const currentTable = ctx.current.stmt.table;
+    if (!currentTable)
+        return null;
 
     if (!stmt.isCommand || !stmt.table)
         return null;
