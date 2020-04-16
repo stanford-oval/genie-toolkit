@@ -47,6 +47,7 @@ context ctx_init,
     ctx_end,
     ctx_with_result,
     ctx_with_action,
+    ctx_without_action,
     ctx_with_result_and_action,
     ctx_with_result_question,
     ctx_with_result_noquestion,
@@ -109,6 +110,8 @@ context function (state) {
 
             if (!info.nextInfo.isComplete)
                 tags.push('ctx_incomplete_action');
+        } else {
+            tags.push('ctx_without_action');
         }
 
         // we must have a result
@@ -349,9 +352,11 @@ $root = {
 
     // action recommendation (through one or a list)
 
-    ctx:ctx_complete_search_command pair:negative_recommendation_reply_pair [weight=0.3]
+    ctx:ctx_complete_search_command pair:negative_recommendation_reply_pair [weight=0.6]
         => D.negativeRecommendationReplyPair(ctx, pair);
     ctx:ctx_complete_search_command pair:positive_recommendation_reply_pair [weight=0.7]
+        => D.positiveRecommendationReplyPair(ctx, pair);
+    ctx:ctx_complete_search_command pair:positive_recommendation_reply_by_name_pair [weight=0.7]
         => D.positiveRecommendationReplyPair(ctx, pair);
     ctx:ctx_complete_search_command pair:recommendation_search_question_pair [weight=1]
         => D.recommendationSearchQuestionPair(ctx, pair);
