@@ -438,8 +438,10 @@ function addActionParam(ctx, dialogueAct, action, pname, value, confirm) {
         const setparams = new Set;
         setparams.add(pname);
         for (let param of action.in_params) {
+            if (param.value.isUndefined)
+                continue;
             if (param.name !== pname)
-                in_params.push(param);
+                in_params.push(param.clone());
             setparams.add(param.name);
         }
 
@@ -475,8 +477,7 @@ function replaceAction(ctx, dialogueAct, action, confirm) {
 
 function addAction(ctx, dialogueAct, action, confirm) {
     assert(action instanceof Ast.Invocation);
-    // the action must have no parameter set!
-    assert(action.in_params.every((in_param) => in_param.value.isUndefined));
+    // note: parameters from the action are ignored altogether!
 
     let newHistoryItem;
     if (ctx.nextInfo) {
