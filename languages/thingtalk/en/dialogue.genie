@@ -92,6 +92,9 @@ context function (state) {
     case 'cancel':
         return [['ctx_cancel'], info];
 
+    case 'action_question':
+        return [['ctx_with_result', 'ctx_completed_action_success'], info];
+
     case 'execute': {
         const tags = [];
 
@@ -339,6 +342,8 @@ $root = {
     // action results
     ctx:ctx_completed_action_success action_success_terminal_pair
         => D.actionSuccessTerminalPair(ctx);
+    ctx:ctx_completed_action_success question:action_success_question_pair
+        => D.actionSuccessQuestionPair(ctx, question);
 
     ctx:ctx_completed_action_error error:action_error_terminal_pair [weight=0.1]
         => D.actionErrorTerminalPair(ctx, error);

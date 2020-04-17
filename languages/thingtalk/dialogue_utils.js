@@ -1453,6 +1453,12 @@ function actionSuccessTerminalPair(ctx) {
     return checkStateIsValid(ctx, sysState, userState);
 }
 
+function actionSuccessQuestionPair(ctx, questions) {
+    const sysState = makeSimpleState(ctx, 'sys_action_success', null);
+    const userState = makeSimpleState(ctx, 'action_question', questions);
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
 function actionErrorTerminalPair(ctx, error) {
     const [, questions] = error;
     assert(Array.isArray(questions));
@@ -1557,6 +1563,7 @@ module.exports = {
     listProposalRelatedQuestionPair,
     emptySearchChangePair,
     actionSuccessTerminalPair,
+    actionSuccessQuestionPair,
     actionErrorTerminalPair,
     actionErrorChangeParamPair,
 };

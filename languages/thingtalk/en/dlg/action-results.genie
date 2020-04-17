@@ -74,6 +74,19 @@ action_success_terminal_pair = {
     action:action_success_phrase anything_else_phrase '<sep>' thanks_phrase ('goodbye !' | '') => action;
 }
 
+action_success_question_pair = {
+    action:action_success_phrase anything_else_phrase '<sep>' questions:simple_user_search_question => {
+        for (let [qname, qtype] of questions) {
+            const arg = action.schema.getArgument(qname);
+            if (!arg || arg.is_input)
+                return null;
+            if (qtype !== null && !qtype.equals(arg.type))
+                return null;
+        }
+        return questions.map(([qname, qtype]) => qname);
+    };
+}
+
 short_action_error_message = {
     ctx:ctx_completed_action_error msg:thingpedia_error_message if complete
         => D.checkThingpediaErrorMessage(ctx, msg);
