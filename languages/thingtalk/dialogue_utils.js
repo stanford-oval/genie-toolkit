@@ -34,6 +34,7 @@ const {
     addAction,
     addQuery,
     replaceAction,
+    setOrAddInvocationParam,
 } = require('./state_manip');
 
 function isFilterCompatibleWithResult(topResult, filter) {
@@ -1404,9 +1405,84 @@ function makeCompleteActionSuccessPhrase(ctx, action, info) {
     return info;
 }
 
+function checkThingpediaErrorMessage(ctx, msg) {
+    if (!C.isSameFunction(ctx.currentFunctionSchema, msg.bag.schema))
+        return null;
+    const error = ctx.error;
+    if (error.isEnum && error.value !== msg.code)
+        return null;
+
+    const action = getActionInvocation(ctx.current);
+    for (let in_param of action.in_params) {
+        if (msg.bag.has(in_param.name) && !msg.bag.get(in_param.name).equals(in_param.value))
+            return null;
+    }
+
+    return ctx;
+}
+
+function checkActionErrorMessage(ctx, action) {
+    // check the action is the same we actually executed, and all the parameters we're mentioning
+    // match the actual parameters of the action
+    if (!C.isSameFunction(ctx.currentFunctionSchema, action.schema))
+        return null;
+    const ctxInvocation = getActionInvocation(ctx.current);
+    for (let newParam of action.in_params) {
+        if (newParam.value.isUndefined)
+            continue;
+
+        let found = false;
+        for (let oldParam of ctxInvocation.in_params) {
+            if (newParam.name === oldParam.name) {
+                if (!newParam.value.equals(oldParam.value))
+                    return null;
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            return null;
+    }
+
+    return ctx;
+}
+
 function actionSuccessTerminalPair(ctx) {
     const sysState = makeSimpleState(ctx, 'sys_action_success', null);
     const userState = makeSimpleState(ctx, 'end', null);
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
+function actionErrorTerminalPair(ctx, error) {
+    const [, questions] = error;
+    assert(Array.isArray(questions));
+
+    let sysState;
+    if (questions.length > 0)
+        sysState = makeSimpleState(ctx, 'sys_action_error_question', questions);
+    else
+        sysState = makeSimpleState(ctx, 'sys_action_error', null);
+    const userState = makeSimpleState(ctx, 'cancel', null);
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
+function actionErrorChangeParamPair(ctx, [error, answer]) {
+    const [, questions] = error;
+    assert(Array.isArray(questions));
+
+    let sysState;
+    if (questions.length > 0)
+        sysState = makeSimpleState(ctx, 'sys_action_error_question', questions);
+    else
+        sysState = makeSimpleState(ctx, 'sys_action_error', null);
+
+    const action = getActionInvocation(ctx.current);
+    if (!action)
+        return null;
+    const clone = action.clone();
+    setOrAddInvocationParam(clone, answer.name, answer.value);
+    const userState = replaceAction(ctx, 'execute', clone, 'accepted');
+
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -1451,6 +1527,8 @@ module.exports = {
     makeRefinementProposal,
     makeThingpediaActionSuccessPhrase,
     makeCompleteActionSuccessPhrase,
+    checkThingpediaErrorMessage,
+    checkActionErrorMessage,
 
     // user dialogue acts
     mergePreambleAndRequest,
@@ -1479,5 +1557,7 @@ module.exports = {
     listProposalRelatedQuestionPair,
     emptySearchChangePair,
     actionSuccessTerminalPair,
+    actionErrorTerminalPair,
+    actionErrorChangeParamPair,
 };
 
