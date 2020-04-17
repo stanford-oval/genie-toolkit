@@ -340,6 +340,11 @@ $root = {
     ctx:ctx_completed_action_success action_success_terminal_pair
         => D.actionSuccessTerminalPair(ctx);
 
+    ctx:ctx_completed_action_error error:action_error_terminal_pair [weight=0.1]
+        => D.actionErrorTerminalPair(ctx, error);
+    ctx:ctx_completed_action_error pair:action_error_change_param_pair
+        => D.actionErrorChangeParamPair(ctx, pair);
+
     // empty search error
     ctx:ctx_empty_search_command pair:empty_search_change_pair
         => D.emptySearchChangePair(ctx, pair);

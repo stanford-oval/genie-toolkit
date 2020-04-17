@@ -1721,6 +1721,13 @@ function replaceSlotBagPlaceholder(bag, pname, value) {
     return clone;
 }
 
+function replaceErrorMessagePlaceholder(msg, pname, value) {
+    const newbag = replaceSlotBagPlaceholder(msg.bag, pname, value);
+    if (newbag === null)
+        return null;
+    return { code: msg.code, bag: newbag };
+}
+
 /**
  * Find the filter table in the context.
  *
@@ -1808,6 +1815,7 @@ module.exports = {
     addInvocationInputParam,
     addActionInputParam,
     replaceSlotBagPlaceholder,
+    replaceErrorMessagePlaceholder,
 
     // filters
     hasUniqueFilter,

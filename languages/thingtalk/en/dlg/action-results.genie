@@ -73,3 +73,89 @@ action_success_phrase = {
 action_success_terminal_pair = {
     action:action_success_phrase anything_else_phrase '<sep>' thanks_phrase ('goodbye !' | '') => action;
 }
+
+short_action_error_message = {
+    ctx:ctx_completed_action_error msg:thingpedia_error_message if complete
+        => D.checkThingpediaErrorMessage(ctx, msg);
+
+    ctx:ctx_completed_action_error msg:constant_String => {
+        const error = ctx.error;
+        if (error.isString && error.equals(msg))
+            return ctx;
+        else
+            return null;
+    };
+}
+
+action_description_phrase = {
+    coref_action_phrase;
+
+    ( action:action_description_phrase param:preposition_input_param
+    | action:action_description_phrase ('with' | 'having') param:npp_input_param
+    ) => C.addInvocationInputParam(action, param);
+}
+
+long_action_error_message = {
+    ('i could not' | 'it was not possible to') action:action_description_phrase (':' | 'because') ctx:short_action_error_message
+        => D.checkActionErrorMessage(ctx, action);
+}
+
+one_param_try_different_param_question = {
+    ( 'would you like to try a different' p:input_param '?'
+    | 'would you like a different' p:input_param '?'
+    | 'shall i try another' p:input_param '?'
+    | 'how about for another' p:input_param '?'
+    ) => {
+        return [p.name];
+    };
+}
+
+two_param_try_different_param_question = {
+    ( 'would you like to try a different' p1:input_param 'or' p2:input_param '?'
+    | 'would you like a different' p1:input_param 'or' p2:input_param '?'
+    | 'shall i try another' p1:input_param 'or' p2:input_param '?'
+    | 'how about for another' p1:input_param 'or' p2:input_param '?'
+    ) => {
+        if (p1 === p2)
+            return null;
+        return [p1, p2];
+    };
+}
+
+action_error_phrase = {
+    sorry_preamble ctx:short_action_error_message '.' => [ctx.currentFunctionSchema, []];
+
+    ( sorry_preamble ctx:short_action_error_message '.' questions:one_param_try_different_param_question [weight=1]
+    | sorry_preamble ctx:short_action_error_message '.' questions:two_param_try_different_param_question [weight=0.5]
+    | sorry_preamble ctx:long_action_error_message '.' questions:one_param_try_different_param_question [weight=1]
+    | sorry_preamble ctx:long_action_error_message '.' questions:two_param_try_different_param_question [weight=0.5]
+    ) => {
+        const schema = ctx.currentFunctionSchema;
+        for (let q of questions) {
+            const arg = schema.getArgument(q);
+            if (!arg || !arg.is_input)
+                return null;
+        }
+        return [schema, questions];
+    };
+}
+
+action_error_terminal_pair = {
+    error:action_error_phrase '<sep>' no_thanks_phrase => error;
+    error:action_error_phrase '<sep>' nevermind_phrase => error;
+}
+
+action_error_change_param_pair = {
+    error:action_error_phrase '<sep>' ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('can you try' | 'how about') answer:imprecise_slot_fill_answer_phrase '?' => {
+        const [schema, questions] = error;
+        if (answer instanceof Ast.Value) {
+            if (questions.length !== 1)
+                return null;
+            answer = new Ast.InputParam(null, questions[0], answer);
+        }
+        const arg = schema.getArgument(answer.name);
+        if (!arg || !arg.is_input || !arg.type.equals(answer.value.getType()))
+            return null;
+        return [error, answer];
+    };
+}

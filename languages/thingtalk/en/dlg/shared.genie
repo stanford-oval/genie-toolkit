@@ -123,3 +123,16 @@ anything_else_phrase = {
     'do you need anything else ?';
     'anything else for you today ?';
 }
+
+sorry_preamble = {
+    'sorry ,';
+    'i am sorry ,';
+    '';
+}
+
+nevermind_phrase = {
+    'ok , never mind';
+    'never mind then';
+    'alright , never mind';
+    'too bad , alright';
+}
