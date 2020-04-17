@@ -91,17 +91,17 @@ positive_proposal_reply_pair = {
 
 
 empty_search_error = {
-    !inference ('sorry ,' | 'i am sorry ,' | '') ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
+    !inference sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
     '.' => [base, null];
 
-    ('sorry ,' | 'i am sorry ,' | '') ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
+    sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
     '.' 'would you like' ('a different' | 'another') p:out_param_Any '?' => {
         if (!base.schema.hasArgument(p))
             return null;
         return [base, p];
     };
 
-    ('sorry ,' | 'i am sorry ,' | '') 'i cannot find any result for your search . would you like' ('a different' | 'another') p:out_param_Any '?'
+    sorry_preamble 'i cannot find any result for your search . would you like' ('a different' | 'another') p:out_param_Any '?'
         => [null, p];
 }
 

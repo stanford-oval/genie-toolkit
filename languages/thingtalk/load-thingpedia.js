@@ -609,26 +609,46 @@ class ThingpediaLoader {
             await this._makeExampleFromQuery(functionDef);
         if (functionDef.metadata.result)
             await this._loadCustomResultString(functionDef);
+        if (functionDef.metadata.on_error)
+            await this._loadCustomErrorMessages(functionDef);
+    }
+
+    async _loadCustomErrorMessages(functionDef) {
+        for (let code in functionDef.metadata.on_error) {
+            let messages = functionDef.metadata.on_error[code];
+            if (!Array.isArray(messages))
+                messages = [messages];
+
+            for (let msg of messages) {
+                const bag = new SlotBag(functionDef);
+
+                let chunks = msg.trim().split(' ');
+                for (let chunk of chunks) {
+                    if (chunk === '')
+                        continue;
+                    if (chunk.startsWith('$') && chunk !== '$$') {
+                        const [, param1, param2,] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk);
+                        const pname = param1 || param2;
+                        assert(pname);
+                        const ptype = functionDef.getArgType(pname);
+                        const pcanonical = functionDef.getArgCanonical(pname);
+                        this.params.in.set(pname + '+' + ptype, [pname, [typeToStringSafe(ptype), pcanonical]]);
+                        this._recordType(ptype);
+                    }
+                }
+
+                this._addPrimitiveTemplate('thingpedia_error_message', msg, { code, bag });
+            }
+        }
     }
 
     async _loadCustomResultString(functionDef) {
-        let chunks = functionDef.metadata.result.trim().split(' ');
-        let expansion = [];
+        let resultstring = functionDef.metadata.result;
+        if (!Array.isArray(resultstring))
+            resultstring = [resultstring];
 
-        for (let chunk of chunks) {
-            if (chunk === '')
-                continue;
-            if (chunk.startsWith('$') && chunk !== '$$') {
-                const [, param1, param2, opt] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk);
-                let param = param1 || param2;
-                assert(param);
-                expansion.push(new this._runtime.Placeholder(param, opt));
-            } else {
-                expansion.push(chunk);
-            }
-        }
-
-        this._grammar.addRule('thingpedia_result', expansion, this._runtime.simpleCombine(() => new SlotBag(functionDef)));
+        for (let form of resultstring)
+            this._addPrimitiveTemplate('thingpedia_result', form, new SlotBag(functionDef));
     }
 
     async _loadDevice(device) {

@@ -96,7 +96,8 @@ const SYSTEM_DIALOGUE_ACTS = new Set([
     // agent executed the action successfully (and shows the result of the action)
     'sys_action_success',
 
-    // agent had an error in executing the action
+    // agent had an error in executing the action (with and without a slot-fill question)
+    'sys_action_error_question',
     'sys_action_error',
 
     // agent asks if anything else is needed
@@ -108,8 +109,9 @@ const SYSTEM_DIALOGUE_ACTS = new Set([
 
 const SYSTEM_STATE_MUST_HAVE_PARAM = new Set([
     'sys_search_question',
+    'sys_slot_fill',
     'sys_empty_search_question',
-    'sys_slot_fill'
+    'sys_action_error_question',
 ]);
 
 const INITIAL_CONTEXT_INFO = {};
@@ -264,6 +266,12 @@ class ContextInfo {
     get results() {
         if (this.currentIdx !== null)
             return this.state.history[this.currentIdx].results.results;
+        return null;
+    }
+
+    get error() {
+        if (this.currentIdx !== null)
+            return this.state.history[this.currentIdx].results.error;
         return null;
     }
 
@@ -550,4 +558,5 @@ module.exports = {
     addAction,
     addQuery,
     replaceAction,
+    setOrAddInvocationParam,
 };
