@@ -45,7 +45,7 @@ simple_user_search_question = {
     | 'i need' ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any ('first' | '') '.'
     | 'i just need' ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any '.'
     ) => {
-        if (p1.name === 'id' || p2.name === 'id')
+        if (p1.name === 'id' || p2.name === 'id' || p1.name === p2.name)
             return null;
         return [[p1.name, null], [p2.name, null]];
     };

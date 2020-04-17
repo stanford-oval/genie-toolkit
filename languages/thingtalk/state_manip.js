@@ -64,6 +64,9 @@ const USER_DIALOGUE_ACTS = new Set([
     // user wants to see more output from the previous result
     'learn_more',
 
+    // user asks to see an output parameter from the previous result
+    'action_question',
+
     // user says closes the dialogue mid-way (in the middle of a search)
     'cancel',
 
@@ -71,6 +74,10 @@ const USER_DIALOGUE_ACTS = new Set([
     // else the user wants
     // "end" is a terminal state, it has no continuations
     'end',
+]);
+
+const USER_STATE_MUST_HAVE_PARAM = new Set([
+    'action_question'
 ]);
 
 const SYSTEM_DIALOGUE_ACTS = new Set([
@@ -127,7 +134,10 @@ function checkStateIsValid(ctx, sysState, userState) {
         return [sysState, userState];
 
     assert(USER_DIALOGUE_ACTS.has(userState.dialogueAct), `invalid user dialogue act ${userState.dialogueAct}`);
-    assert(userState.dialogueActParam === null);
+    if (USER_STATE_MUST_HAVE_PARAM.has(userState.dialogueAct))
+        assert(userState.dialogueActParam);
+    else
+        assert(userState.dialogueActParam === null);
 
     if (ctx === INITIAL_CONTEXT_INFO) {
         // user speaks first
@@ -161,7 +171,7 @@ function getTableArgMinMax(table) {
 }
 
 class ResultInfo {
-    constructor(item) {
+    constructor(state, item) {
         assert(item.results !== null);
         this.isTable = !!(item.stmt.table && item.stmt.actions.every((a) => a.isNotify));
 
@@ -181,6 +191,8 @@ class ResultInfo {
             this.isAggregation = false;
             this.argMinMaxField = null;
             this.projection = null;
+            if (state.dialogueAct === 'action_question')
+                this.projection = state.dialogueActParam;
         }
         this.hasError = item.results.error !== null;
         this.hasEmptyResult = item.results.results.length === 0;
@@ -305,7 +317,7 @@ function getContextInfo(state) {
         }
         currentFunction = functions[functions.length-1];
         currentItemIdx = idx;
-        currentResultInfo = new ResultInfo(item);
+        currentResultInfo = new ResultInfo(state, item);
     }
     if (nextItemIdx !== null)
         assert(nextInfo);
@@ -321,6 +333,8 @@ function isUserAskingResultQuestion(ctx) {
     // we say it's a question if the user is asking a projection question, and it's not the first turn,
     // and the projection was different at the previous turn
 
+    if (ctx.state.dialogueAct === 'action_question')
+        return true;
     if (ctx.currentIdx === null)
         return false;
     if (ctx.currentIdx === 0) {
@@ -339,7 +353,7 @@ function isUserAskingResultQuestion(ctx) {
     let previous = ctx.state.history[ctx.currentIdx - 1];
     // only complete (executed) programs make it to the history, so this must be true
     assert(previous.results !== null);
-    let previousResultInfo = new ResultInfo(previous);
+    let previousResultInfo = new ResultInfo(ctx.state, previous);
     if (!previousResultInfo.projection)
         return true;
 
