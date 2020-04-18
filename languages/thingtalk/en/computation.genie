@@ -168,6 +168,7 @@ compute_question = {
         ( 'how many' p:out_param_ArrayCount ('does' | 'do') table:with_filtered_table 'have ?'
         | 'how many' p:out_param_ArrayCount ('in a' | 'in' | 'in the') table:with_filtered_table '?'
         | 'how many' p:out_param_ArrayCount 'are there' ('in a' | 'in' | 'in the') table:with_filtered_table '?'
+
         | 'how many' p:out_param_ArrayCount ('does' | 'do') 'the' table:with_arg_min_max_table 'have ?'
         | 'how many' p:out_param_ArrayCount 'in the' table:with_arg_min_max_table '?'
         | 'how many' p:out_param_ArrayCount 'are there in the' table:with_arg_min_max_table '?'
@@ -180,6 +181,7 @@ compute_question = {
         ( 'how many' p:out_param_Array__Any ('does' | 'do') table:with_filtered_table 'have ?'
         | 'how many' p:out_param_Array__Any ('in a' | 'in' | 'in the') table:with_filtered_table '?'
         | 'how many' p:out_param_Array__Any 'are there' ('in a' | 'in' | 'in the') table:with_filtered_table '?'
+
         | 'how many' p:out_param_Array__Any ('does' | 'do') 'the' table:with_arg_min_max_table 'have ?'
         | 'how many' p:out_param_Array__Any 'in the' table:with_arg_min_max_table '?'
         | 'how many' p:out_param_Array__Any 'are there in the' table:with_arg_min_max_table '?'
@@ -192,9 +194,11 @@ compute_question = {
             return C.makeAggComputeProjExpression(table, 'count', null, p, Type.Number);
         };
 
+        !dialogues {
         ( 'how many' p:out_param_Array__Any 'with' filter:with_filter ('does' | 'do') table:with_filtered_table 'have ?'
         | 'how many' p:out_param_Array__Any 'with' filter:with_filter ('in a' | 'in' | 'in the') table:with_filtered_table '?'
         | 'how many' p:out_param_Array__Any 'with' filter:with_filter 'are there' ('in a' | 'in' | 'in the') table:with_filtered_table '?'
+
         | 'how many' p:out_param_Array__Any 'with' filter:with_filter ('does' | 'do') 'the'  table:with_arg_min_max_table 'have ?'
         | 'how many' p:out_param_Array__Any 'with' filter:with_filter 'in the' table:with_arg_min_max_table '?'
         | 'how many' p:out_param_Array__Any 'with' filter:with_filter 'are there in the' table:with_arg_min_max_table '?'
@@ -209,6 +213,7 @@ compute_question = {
                 return null;
             return C.makeAggComputeProjExpression(table, 'count', null, list, Type.Number);
         };
+        }
 
         // aggregation questions
         ?aggregation {
