@@ -715,7 +715,10 @@ function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
     [cloneTable, filterTable] = findOrMakeFilterTable(cloneTable);
     //if (ctxFilterTable === null)
     //    return null;
-    assert(filterTable.isFilter && filterTable.table.isInvocation);
+    assert(filterTable.isFilter);
+    if (!filterTable.table.isInvocation)
+        return null;
+    //assert(filterTable.isFilter && filterTable.table.isInvocation);
 
     const refinedFilter = refineFilter(filterTable.filter, newFilter);
     if (refinedFilter === null)
@@ -1225,6 +1228,9 @@ function addDontCare(stmt, dontcare) {
 
     let clone = stmt.clone();
     let [cloneTable, filterTable] = findOrMakeFilterTable(clone.table);
+    assert(filterTable.isFilter);
+    if (!filterTable.table.isInvocation)
+        return null;
     clone.table = cloneTable;
 
     if (C.filterUsesParam(filterTable.filter, dontcare.name))
@@ -1315,6 +1321,9 @@ function relatedQuestion(ctx, stmt) {
     let ctxFilterTable, newFilterTable;
     [newTable, newFilterTable] = findOrMakeFilterTable(newTable.clone());
     if (newFilterTable === null)
+        return null;
+    assert(newFilterTable.isFilter);
+    if (!newFilterTable.table.isInvocation)
         return null;
 
     ctxFilterTable = C.findFilterTable(currentTable);
