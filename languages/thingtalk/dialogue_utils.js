@@ -716,8 +716,7 @@ function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
     //if (ctxFilterTable === null)
     //    return null;
     assert(filterTable.isFilter);
-    if (!filterTable.table.isInvocation)
-        return null;
+    assert(filterTable.isFilter && ((filterTable.table.isCompute && filterTable.table.table.isInvocation) || filterTable.table.isInvocation));
     //assert(filterTable.isFilter && filterTable.table.isInvocation);
 
     const refinedFilter = refineFilter(filterTable.filter, newFilter);
@@ -823,7 +822,7 @@ function preciseSearchQuestionAnswer(ctx, [questions, answer]) {
     const currentTable = ctx.current.stmt.table;
     if (!isValidSearchQuestion(currentTable, questions))
         return null;
-    assert(answer.isFilter && answer.table.isInvocation);
+    assert(answer.isFilter && ((answer.table.isCompute && answer.table.table.isInvocation) || answer.table.isInvocation));
 
     const newTable = queryRefinement(currentTable, answer.filter, refineFilterToAnswerQuestion);
     if (newTable === null)
@@ -939,7 +938,7 @@ function proposalReplyPair(ctx, [proposal, request]) {
     assert(requestFunctions.length === 1);
     if (requestFunctions[0] !== ctx.currentFunction)
         return null;
-    assert(request.isFilter && request.table.isInvocation);
+    assert(request.isFilter && ((request.table.isCompute && request.table.table.isInvocation) || request.table.isInvocation));
 
     const currentTable = ctx.current.stmt.table;
     const newTable = queryRefinement(currentTable, request.filter, refineFilterToAnswerQuestion);
@@ -970,7 +969,7 @@ function negativeRecommendationReplyPair(ctx, [topResult, action, request]) {
     assert(requestFunctions.length === 1);
     if (requestFunctions[0] !== ctx.currentFunction)
         return null;
-    assert(request.isFilter && request.table.isInvocation);
+    assert(request.isFilter && ((request.table.isCompute && request.table.table.isInvocation) || request.table.isInvocation));
 
     const currentTable = ctx.current.stmt.table;
     const newTable = queryRefinement(currentTable, request.filter, refineFilterToAnswerQuestionOrChangeFilter);
@@ -1098,7 +1097,7 @@ function negativeListProposalReplyPair(ctx, [results, action, request]) {
     assert(requestFunctions.length === 1);
     if (requestFunctions[0] !== ctx.currentFunction)
         return null;
-    assert(request.isFilter && request.table.isInvocation);
+    assert(request.isFilter && ((request.table.isCompute && request.table.table.isInvocation) || request.table.isInvocation));
 
     const currentTable = ctx.current.stmt.table;
     const newTable = queryRefinement(currentTable, request.filter, refineFilterToAnswerQuestionOrChangeFilter);
