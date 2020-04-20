@@ -29,7 +29,8 @@
     "coveralls": "^3.0.0",
     "eslint": "^6.0.0",
     "node-gettext": "^2.0.0",
-    "nyc": "^15.0.0"
+    "nyc": "^15.0.0",
+    "pegjs": "^0.10.0"
   },
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}",
@@ -38,7 +39,7 @@
     "lint": "eslint lib/",
     "test": "nyc node ./test/test_all",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "prepare": "which yarn >/dev/null 2>&1 && yarn compile-mo || npm run compile-mo"
+    "prepare": "yarn compile-mo && (cd node_modules/genie-toolkit ; yarn prepare)"
   },
   "greenkeeper": {
     "ignore": [
