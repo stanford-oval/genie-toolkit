@@ -591,6 +591,10 @@ function checkAtomFilter(table, filter) {
         if (!vtype.isEntity && !vtype.isString)
             return false;
         vtype = Type.Array(Type.String);
+    } else if (filter.operator === '=~') {
+        if (!ptype.isEntity && !ptype.isString)
+            return false;
+        vtype = Type.String;
     }
 
     if (!filter.value.getType().equals(vtype))
