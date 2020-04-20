@@ -297,6 +297,8 @@ class ThingpediaLoader {
         if (ptype.isArray) {
             vtype = ptype.elem;
             op = 'contains';
+        } else if (pname === 'id') {
+            vtype = Type.String;
         }
         const vtypestr = this._recordType(vtype);
         if (vtypestr === null)
