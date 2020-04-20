@@ -9,8 +9,13 @@ For MultiWOZ searches:
 - "learn more" offers with parameters
 - negative answers to "generic search question"
 - "insist" dialogue act
-
-For actions:
-- accepting actions (setting parameters)
-- action results
-- error messages
+- "how about a different" from user after empty search
+- 3 param projections
+- "ask action" from user after list proposal without choosing an item
+- don't care replies
+- 2 param slot fill answers, one of them a dontcare
+- negative recommendation replies with a positive tone
+- "resetting" state after empty search
+- "lets go with the XXX one" after a list proposal
+- "recommend one" offering information
+- dontcare + projection
