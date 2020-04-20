@@ -601,7 +601,7 @@ class SchemaProcessor {
         for (let candidate of [...new Set(candidates)])
             this.addCanonical(canonical, candidate, ptype);
         if (!("base" in canonical) && this._always_base_canonical)
-            canonical["base"] = [name];
+            canonical["base"] = [cleanName(name)];
 
         return canonical;
     }
