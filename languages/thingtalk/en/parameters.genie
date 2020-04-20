@@ -103,7 +103,7 @@ where_question = {
         ) => C.makeSingleFieldProjection('table', Type.Location, table, 'geo');
     }
     !projection_with_filter {
-        'where is' table:complete_table => C.makeSingleFieldProjection('table', type, table, 'geo');
+        'where is' table:complete_table => C.makeSingleFieldProjection('table', Type.Location, table, 'geo');
     }
 }
 
