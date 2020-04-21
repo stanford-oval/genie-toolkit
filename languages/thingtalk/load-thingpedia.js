@@ -187,7 +187,7 @@ class ThingpediaLoader {
         /*
         FIXME what to do here?
         if (ptype.isArray && ptype.elem.isCompound) {
-            this._compoundArrays[pname] = ptype.elem;
+            this.compoundArrays[pname] = ptype.elem;
             for (let field in ptype.elem.fields) {
                 let arg = ptype.elem.fields[field];
                 this._recordInputParam(functionName, field, arg.type, arg);
@@ -278,7 +278,7 @@ class ThingpediaLoader {
             return;
 
         if (ptype.isArray && ptype.elem.isCompound) {
-            this._compoundArrays[pname] = ptype.elem;
+            this.compoundArrays[pname] = ptype.elem;
             for (let field in ptype.elem.fields) {
                 let arg = ptype.elem.fields[field];
                 this._recordOutputParam(functionName, arg);
