@@ -148,7 +148,12 @@ module.exports = {
             dest: 'replace_locations',
             help: 'Do not replace NUMBER tokens',
         });
-
+        parser.addArgument('--clean-parameters', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Take extra effort to use parameters that are simple and do not include punctuation marks',
+            defaultValue: false
+        });
         parser.addArgument('--debug', {
             nargs: 0,
             action: 'storeTrue',

@@ -375,9 +375,14 @@ module.exports = {
             choices: ['replace', 'qpis'],
             defaultValue: 'replace'
         });
-        parser.addArgument('--requote-numbers', {
+        parser.addArgument('--requote_numbers', {
             action: 'storeTrue',
             help: 'Requote numbers',
+            defaultValue: false
+        });
+        parser.addArgument('--skip_errors', {
+            action: 'storeTrue',
+            help: 'Skip examples that we are unable to requote',
             defaultValue: false
         });
         parser.addArgument('input_file', {
@@ -402,9 +407,14 @@ module.exports = {
                         callback(null, ex);
                     } catch(e) {
                         console.error(`Failed to requote`);
+                        console.error(ex.id);
                         console.error(ex.preprocessed);
                         console.error(ex.target_code);
-                        callback(e);
+                        if (args.skip_errors)
+                            callback(null);
+                        else
+                            callback(e);
+                        
                     }
                 },
 
