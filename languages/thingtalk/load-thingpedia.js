@@ -62,7 +62,7 @@ class ThingpediaLoader {
             out: new Set,
         };
         this.idQueries = new Map;
-        this.compoundArrays = new Map;
+        this.compoundArrays = {};
         if (this._options.whiteList)
             this.globalWhiteList = this._options.whiteList.split(',');
         else
@@ -308,6 +308,8 @@ class ThingpediaLoader {
             op = 'contains';
         }
         const vtypestr = this._recordType(vtype);
+        if (vtypestr === null)
+            return null;
 
         for (let cat in canonical) {
             if (cat === 'default')
