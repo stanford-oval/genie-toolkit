@@ -62,7 +62,7 @@ class ThingpediaLoader {
             out: new Set,
         };
         this.idQueries = new Map;
-        this.compoundArrays = new Map;
+        this.compoundArrays = {};
         if (this._options.whiteList)
             this.whiteList = this._options.whiteList.toLowerCase().split(',');
         else
