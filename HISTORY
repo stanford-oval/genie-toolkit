@@ -1,3 +1,8 @@
+0.6.2
+=====
+
+* Fix another crash during dataset generation, related to compound types [#161]
+
 0.6.1
 =====
 
