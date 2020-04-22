@@ -580,6 +580,10 @@ function checkAtomFilter(table, filter) {
         if (!vtype.isEntity && !vtype.isString)
             return false;
         vtype = Type.Array(Type.String);
+    } else if (filter.operator === '=~') {
+        if (!ptype.isEntity && !ptype.isString)
+            return false;
+        vtype = Type.String;
     }
 
     if (!filter.value.getType().equals(vtype))
@@ -1524,10 +1528,14 @@ function makeComputeFilterExpression(table, operation, operands, resultType, fil
     if (table.schema.out[operation])
         return null;
 
-    const computedTable = makeComputeExpression(table, operation, operands, resultType);
-    const filter = new Ast.BooleanExpression.Atom(null, operation, filterOp, filterValue);
+    const expression = new Ast.Value.Computation(operation, operands);
+    if (operation === 'distance') {
+        expression.overload = [Type.Location, Type.Location, Type.Measure('m')];
+        expression.type = Type.Measure('m');
+    }
+    const filter = new Ast.BooleanExpression.Compute(null, expression, filterOp, filterValue);
     if (filter)
-        return addFilter(computedTable, filter);
+        return addFilter(table, filter);
     return null;
 }
 
