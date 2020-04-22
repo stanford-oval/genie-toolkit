@@ -23,7 +23,7 @@ def split_canonical(canonical):
     return list(map(lambda x: x.strip(), canonical.split('#')))
 
 
-def template_query(cat, query_canonical, prefix, value='', suffix=''):
+def template_query(cat, query_canonical='', prefix='', value='', suffix=''):
     """
     return a template query sentence for bert
 
@@ -34,16 +34,32 @@ def template_query(cat, query_canonical, prefix, value='', suffix=''):
     :param suffix: the suffix of the canonical form
     :return: a template query string
     """
+    question_start = "who" if query_canonical == "person" else f"which {query_canonical}"
     if cat == 'base':
-        return f"what is the {prefix} of the {query_canonical} ?".split()
+        return [
+            f"what is the {prefix} of the {query_canonical} ?".split(),
+            f"what is the {query_canonical} 's {prefix} ?".split(),
+            f"what {prefix} does the {query_canonical} have ? ".split(),
+        ]
     if cat == 'property':
-        return f"show me a {query_canonical} with {prefix} {value} {suffix} .".split()
+        return [
+            f"show me a {query_canonical} with {prefix} {value} {suffix} .".split(),
+            f"{question_start} has {prefix} {value} {suffix} ?".split()
+        ]
     if cat == 'verb':
-        return f"which {query_canonical} {prefix} {value} {suffix} ?".split()
+        return [
+            f"{question_start} {prefix} {value} {suffix} ?".split(),
+            f"show me a {query_canonical} that {prefix} {value} {suffix} .".split()
+        ]
     if cat == 'passive_verb':
-        return f"show me a {query_canonical} {prefix} {value} {suffix} .".split()
+        return [
+            f"show me a {query_canonical} {prefix} {value} {suffix} .".split(),
+            f"{question_start} is {prefix} {value} {suffix} .".split()
+        ]
     if cat == 'reverse_property':
-        return f"which {query_canonical} is a {prefix} {value} {suffix} ?".split()
+        return [
+            f"{question_start} is a {prefix} {value} {suffix} ?".split()
+        ]
     raise Exception('Invalid grammar category: ', cat)
 
 
@@ -239,7 +255,8 @@ class BertLM:
                                 result[canonical].append(sentence)
                             else:
                                 result[canonical] = [sentence]
-                    max_count = 1 if category == 'base' else len(self.queries[query]['args'][arg]['values'])
+                    value_count = 1 if category == 'base' else len(self.queries[query]['args'][arg]['values'])
+                    max_count = value_count * len(template_query(category))
                     pruned = self.prune_canonicals(result, max_count)
                     candidates[query][arg][category] = pruned
         return candidates
@@ -283,13 +300,13 @@ class BertLM:
 
         if 'base' in arg_canonicals:
             for canonical in arg_canonicals['base']:
-                query = template_query('base', query_canonical, canonical)
-                mask_indices = list(map(lambda x: query.index(x), canonical.split()))
-                examples['base']['examples'].append({
-                    "query": ' '.join(query),
-                    "masks": {"prefix": mask_indices, "suffix": []},
-                    "value": []
-                })
+                for query in template_query('base', query_canonical, canonical):
+                    mask_indices = list(map(lambda x: query.index(x), canonical.split()))
+                    examples['base']['examples'].append({
+                        "query": ' '.join(query),
+                        "masks": {"prefix": mask_indices, "suffix": []},
+                        "value": []
+                    })
 
         # check where to put value
         if self.gpt2_ordering:
@@ -302,14 +319,14 @@ class BertLM:
                     count_suffix = 0
                     for value in self.queries[query_name]['args'][arg_name]['values']:
                         if '#' not in canonical:
-                            rank = self.ranker.rank([
-                                ' '.join(template_query(category, query_canonical, canonical, value, '')),
-                                ' '.join(template_query(category, query_canonical, '', value, canonical))
-                            ])
-                            if rank[0] == 0:
-                                count_prefix += 1
-                            else:
-                                count_suffix += 1
+                            prefix_queries = template_query(category, query_canonical, canonical, value, '')
+                            suffix_queries = template_query(category, query_canonical, '', value, canonical)
+                            for i in range(len(prefix_queries)):
+                                rank = self.ranker.rank([' '.join(prefix_queries[i]), ' '.join(suffix_queries[i])])
+                                if rank[0] == 0:
+                                    count_prefix += 1
+                                else:
+                                    count_suffix += 1
                     if count_suffix > count_prefix:
                         needs_reorder.append(canonical)
                 for canonical in needs_reorder:
@@ -322,15 +339,15 @@ class BertLM:
                     continue
                 for canonical in arg_canonicals[category]:
                     prefix, suffix = split_canonical(canonical)
-                    query = template_query(category, query_canonical, prefix, value, suffix)
-                    prefix_indices = list(map(lambda x: query.index(x), prefix.split()))
-                    suffix_indices = list(map(lambda x: query.index(x), suffix.split()))
-                    value_indices = list(map(lambda x: query.index(x), value.split()))
-                    examples[category]['examples'].append({
-                        "query": ' '.join(query),
-                        "masks": {"prefix": prefix_indices, "suffix": suffix_indices},
-                        "value": value_indices
-                    })
+                    for query in template_query(category, query_canonical, prefix, value, suffix):
+                        prefix_indices = list(map(lambda x: query.index(x), prefix.split()))
+                        suffix_indices = list(map(lambda x: query.index(x), suffix.split()))
+                        value_indices = list(map(lambda x: query.index(x), value.split()))
+                        examples[category]['examples'].append({
+                            "query": ' '.join(query),
+                            "masks": {"prefix": prefix_indices, "suffix": suffix_indices},
+                            "value": value_indices
+                        })
         return examples
 
     @staticmethod

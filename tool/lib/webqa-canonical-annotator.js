@@ -186,7 +186,7 @@ class AutoCanonicalAnnotator {
                         canonicals['adjective'] = ['#'];
 
                 for (let type in candidates[qname][arg]) {
-                    for (let candidate in candidates[qname][arg]) {
+                    for (let candidate in candidates[qname][arg][type]) {
                         if (!canonicals[type].includes(candidate))
                             canonicals[type].push(candidate);
                     }
