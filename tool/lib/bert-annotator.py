@@ -82,11 +82,13 @@ class GPT2Ranker:
 
 
 class BertLM:
-    def __init__(self, queries, mask, k, model_name_or_path, is_paraphraser, gpt2_ordering):
+    def __init__(self, queries, mask, k_synonyms, k_adjectives, pruning_threshold, model_name_or_path, is_paraphraser, gpt2_ordering):
         """
         :param queries: an object contains the canonicals, values, paths for args in each query
         :param mask: a boolean indicates if we do masking before prediction
-        :param k: number of top candidates to return per example
+        :param k_synonyms: number of top candidates to return per example when predicting synonyms
+        :param k_adjectives: number of top candidates to return when predicting adjectives
+        :param pruning_threshold: frequency a candidate needs to appear to be considered valid
         :param model_name_or_path: a string specifying a model name recognizable by the Transformers package
             (e.g. bert-base-uncased), or a path to the directory where the model is saved
         :param is_paraphraser: Set to True if model_name_or_path was fine-tuned on a paraphrasing dataset. The input to
@@ -107,7 +109,9 @@ class BertLM:
 
         self.is_paraphraser = is_paraphraser
         self.mask = mask
-        self.k = k
+        self.k_synonyms = k_synonyms
+        self.k_adjectives = k_adjectives
+        self.pruning_threshold = pruning_threshold
         self.queries = queries
         self.canonicals = {}  # canonical of queries
         self.values = {}  # values of arguments
@@ -130,7 +134,7 @@ class BertLM:
         :return: a array in length k of predicted tokens
         """
         if k is None:
-            k = self.k
+            k = self.k_synonyms
 
         if self.is_paraphraser:
             # Input to BERT should be [CLS] query <paraphrase> query </paraphrase> [SEP]
@@ -205,12 +209,12 @@ class BertLM:
         :param masks: an object containing the indices we want to predict in the form of `{ prefix: [], suffix: [] }`
         :return: an array of generated new canonicals
         """
-        candidates = []
+        candidates = {}
         for i in [*masks['prefix'], *masks['suffix']]:
             predictions = self.predict_one(table, arg, query, query.split(' ')[i], None)
             for token in predictions:
                 candidate = self.construct_canonical(query, masks, i, token)
-                candidates.append(candidate)
+                candidates[candidate] = self.replace_canonical(query, i, token)
         return candidates
 
     def predict(self):
@@ -226,28 +230,27 @@ class BertLM:
                 candidates[query][arg] = {}
                 examples = self.construct_examples(query, arg)
                 for category in examples:
-                    count = {}
-                    candidates[query][arg][category] = {}
-                    candidates[query][arg][category]['examples'] = []
+                    result = {}
                     for example in examples[category]['examples']:
                         sentence, masks = example['query'], example['masks']
                         predictions = self.predict_one_type(query, arg, sentence, masks)
-                        candidates[query][arg][category]['examples'].append({
-                            "sentence": example,
-                            "candidates": predictions
-                        })
-                        for prediction in predictions:
-                            count[prediction] = count[prediction] + 1 if prediction in count else 1
-                    candidates[query][arg][category]['candidates'] = count
+                        for canonical, sentence in predictions.items():
+                            if canonical in result:
+                                result[canonical].append(sentence)
+                            else:
+                                result[canonical] = [sentence]
+                    max_count = 1 if category == 'base' else len(self.queries[query]['args'][arg]['values'])
+                    pruned = self.prune_canonicals(result, max_count)
+                    candidates[query][arg][category] = pruned
         return candidates
 
-    def predict_adjectives(self, k=500):
+    def predict_adjectives(self):
         """
         Predict which property can be used as an adjective form
 
-        :param k: number of top candidates to generate
         :return: an array of properties
         """
+        k = self.k_adjectives
         properties = []
         for table in self.values:
             query_canonical = self.canonicals[table]
@@ -356,7 +359,7 @@ class BertLM:
         :param replacement: a string to be used to replace word in original query
         :return: A string represents the new canonical form
         """
-        query = query.split(' ')
+        query = query.split()
         prefix, suffix = [], []
         for i in masks['prefix']:
             if i == current_index:
@@ -374,6 +377,36 @@ class BertLM:
             return (' '.join(prefix) + ' # ' + ' '.join(suffix)).strip()
         return ' '.join(prefix)
 
+    @staticmethod
+    def replace_canonical(query, index, replacement):
+        """
+        Replace the canonical in the original sentence
+
+        :param query: a string of the original query
+        :param index: the index of where `replacement` should be in `query`
+        :param replacement: a string to be used to replace word in original query
+        :return: the original query with canonical replaced
+        """
+
+        query = query.split()
+        query[index] = replacement
+        return ' '.join(query)
+
+    def prune_canonicals(self, candidates, max_count):
+        """
+        Prune candidate canonicals of one grammar type for a parameter
+
+        :param candidates: an object where keys are candidate canonicals, values are list of sentences
+        :param max_count: the maximum possible sentences a candidate can have
+        :return: a pruned version of candidates
+        """
+
+        pruned = {}
+        for canonical, sentences in candidates.items():
+            if len(sentences) > max_count * self.pruning_threshold:
+                pruned[canonical] = sentences
+        return pruned
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -389,7 +422,6 @@ if __name__ == '__main__':
                         dest='mask',
                         help='predict without masking tokens')
     parser.add_argument('--k-synonyms',
-                        dest='k',
                         type=int,
                         default=5,
                         help='top-k candidates per example to return when generating synonyms')
@@ -397,6 +429,10 @@ if __name__ == '__main__':
                         type=int,
                         default=500,
                         help='top-k candidates to return when generating adjectives')
+    parser.add_argument('--pruning-threshold',
+                        type=float,
+                        default=0.5,
+                        help='the frequency a candidate needs to be predicted, to be considered as a valid canonical')
     parser.add_argument('--model-name-or-path',
                         type=str,
                         default='bert-large-uncased',
@@ -412,12 +448,13 @@ if __name__ == '__main__':
 
     queries = json.load(sys.stdin)
 
-    bert = BertLM(queries, args.mask, args.k, args.model_name_or_path, args.is_paraphraser, args.gpt2_ordering)
+    bert = BertLM(queries, args.mask, args.k_synonyms, args.k_adjectives, args.pruning_threshold,
+                  args.model_name_or_path, args.is_paraphraser, args.gpt2_ordering)
 
     output = {}
     if args.command == 'synonyms' or args.command == 'all':
         output['synonyms'] = bert.predict()
     if args.command == 'adjectives' or args.command == 'all':
-        output['adjectives'] = bert.predict_adjectives(args.k_adjectives)
+        output['adjectives'] = bert.predict_adjectives()
 
     print(json.dumps(output))

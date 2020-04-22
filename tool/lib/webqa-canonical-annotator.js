@@ -103,6 +103,10 @@ class AutoCanonicalAnnotator {
             args.push('--is-paraphraser');
         if (this.gpt2_ordering)
             args.push('--gpt2-ordering');
+        if (this.pruning) {
+            args.push('--pruning-threshold');
+            args.push(this.pruning);
+        }
         args.push('--model-name-or-path');
         args.push(this.model);
         args.push(this.mask ? '--mask' : '--no-mask');
@@ -182,15 +186,10 @@ class AutoCanonicalAnnotator {
                         canonicals['adjective'] = ['#'];
 
                 for (let type in candidates[qname][arg]) {
-                    let count = candidates[qname][arg][type].candidates;
-                    let max = candidates[qname][arg][type].examples.filter((e) => e.candidates.length > 0).length;
-                    for (let candidate in count) {
-                        if (count[candidate] > max * this.pruning) {
-                            if (!canonicals[type].includes(candidate))
-                                canonicals[type].push(candidate);
-                        }
+                    for (let candidate in candidates[qname][arg]) {
+                        if (!canonicals[type].includes(candidate))
+                            canonicals[type].push(candidate);
                     }
-
                 }
             }
         }
