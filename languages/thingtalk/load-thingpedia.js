@@ -308,6 +308,8 @@ class ThingpediaLoader {
             op = 'contains';
         }
         const vtypestr = this._recordType(vtype);
+        if (vtypestr === null)
+            return null;
 
         for (let cat in canonical) {
             if (cat === 'default')
