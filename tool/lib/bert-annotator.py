@@ -248,6 +248,13 @@ class BertLM:
                 for category in examples:
                     result = {}
                     for example in examples[category]['examples']:
+                        # add the original canonical
+                        if example['canonical'] in result:
+                            result[example['canonical']].append(example['query'])
+                        else:
+                            result[example['canonical']] = [example['query']]
+
+                        # add predictions
                         sentence, masks = example['query'], example['masks']
                         predictions = self.predict_one_type(query, arg, sentence, masks)
                         for canonical, sentence in predictions.items():
@@ -255,8 +262,7 @@ class BertLM:
                                 result[canonical].append(sentence)
                             else:
                                 result[canonical] = [sentence]
-                    value_count = 1 if category == 'base' else len(self.queries[query]['args'][arg]['values'])
-                    max_count = value_count * len(template_query(category))
+                    max_count = max([len(x) for x in result.values()])
                     pruned = self.prune_canonicals(result, max_count)
                     candidates[query][arg][category] = pruned
         return candidates
@@ -303,6 +309,7 @@ class BertLM:
                 for query in template_query('base', query_canonical, canonical):
                     mask_indices = list(map(lambda x: query.index(x), canonical.split()))
                     examples['base']['examples'].append({
+                        'canonical': canonical,
                         "query": ' '.join(query),
                         "masks": {"prefix": mask_indices, "suffix": []},
                         "value": []
@@ -344,6 +351,7 @@ class BertLM:
                         suffix_indices = list(map(lambda x: query.index(x), suffix.split()))
                         value_indices = list(map(lambda x: query.index(x), value.split()))
                         examples[category]['examples'].append({
+                            "canonical": canonical,
                             "query": ' '.join(query),
                             "masks": {"prefix": prefix_indices, "suffix": suffix_indices},
                             "value": value_indices
