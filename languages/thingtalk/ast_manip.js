@@ -706,14 +706,16 @@ function checkFilterUniqueness(table, filter) {
 }
 
 function normalizeFilter(table, filter) {
-    if (filter.isCompute && filter.lhs.isAggregation && filter.lhs.operator === 'count') {
-        let name = filter.lhs.list.name;
+    if (filter.lhs && filter.lhs.isComputation && filter.lhs.op === 'count' && filter.lhs.operands.length === 1) {
+        let name = filter.lhs.operands[0].name;
         let canonical = table.schema.getArgCanonical(name);
+        if (!canonical)
+            return null;
         for (let p of table.schema.iterateArguments()) {
             if (p.name === name + 'Count' ||
                 p.canonical === canonical + ' count' ||
                 p.canonical === canonical.slice(0,-1) + ' count')
-                return new Ast.BooleanExpression.Atom(p.name, '==', filter.rhs);
+                return new Ast.BooleanExpression.Atom(null, p.name, filter.operator, filter.rhs);
         }
     }
 
@@ -721,10 +723,12 @@ function normalizeFilter(table, filter) {
 }
 
 function addFilter(table, filter, forceAdd = false) {
-    if (!checkFilter(table, filter))
+    filter = normalizeFilter(table, filter);
+    if (!filter)
         return null;
 
-    filter = normalizeFilter(table, filter);
+    if (!checkFilter(table, filter))
+        return null;
 
     // when an "unique" parameter has been used in the table
     if (table.schema.no_filter)
