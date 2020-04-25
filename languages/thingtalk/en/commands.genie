@@ -22,7 +22,7 @@ const _tpLoader = require('../load-thingpedia');
 }
 
 forward_get_do_command = {
-    ('get' | 'take' | 'retrieve') table:if_filtered_table ('and then' | 'then') action:thingpedia_action if !complete => new Ast.Statement.Command(null, table, [action]);
+    ('get' | 'take' | 'retrieve')  table:if_filtered_table ('and then' | 'then') action:thingpedia_action if !complete => new Ast.Statement.Command(null, table, [action]);
     table:complete_get_command ('and then' | 'then' | ',') action:thingpedia_action if !complete => new Ast.Statement.Command(null, table, [action]);
     'after' ('you get' | 'taking' | 'getting' | 'retrieving') table:with_filtered_table action:thingpedia_action if !complete => new Ast.Statement.Command(null, table, [action]);
     ('get' | 'take' | 'retrieve') table:with_filtered_table ('and then' | 'then') action:thingpedia_action if !complete => new Ast.Statement.Command(null, table, [action]);
@@ -239,6 +239,7 @@ imperative_verb_for_search = {
     'show me';
     'tell me';
     'give me';
+    'find me';
 }
 
 generic_search_preamble = {
@@ -247,6 +248,7 @@ generic_search_preamble = {
     'get';
     'show me';
     'give me';
+    'find me';
     'i want';
     'i need';
     'i am looking for';
@@ -257,6 +259,7 @@ generic_lookup_preamble = {
     'show me';
     'tell me';
     'give me';
+    'find me';
     'search';
     'find';
     'i want to know';
@@ -267,13 +270,23 @@ generic_lookup_preamble = {
     'i need';
 }
 
+generic_article = {
+    'a';
+    'an';
+    'the';
+    'some';
+    'any';
+    'all';
+    'every';
+}
+
 search_command = {
     (
           table:complete_get_command
-        | 'get' table:with_filtered_table
-        | generic_preamble_for_answer table:with_filtered_table
-        | generic_verb_for_search table:with_filtered_table
-        | generic_preamble_for_action generic_verb_for_search table:with_filtered_table
+        | 'get' generic_article table:with_filtered_table
+        | generic_preamble_for_answer generic_article table:with_filtered_table
+        | generic_verb_for_search generic_article table:with_filtered_table
+        | generic_preamble_for_action generic_verb_for_search generic_article table:with_filtered_table
     ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
     ( 'please' | '') ('list' | 'enumerate') table:with_filtered_table => {
         if (!table.schema.is_list)
@@ -282,9 +295,9 @@ search_command = {
     };
 
     // now => get join get => notify
-    ( generic_preamble_for_answer table:with_filtered_table
-    | generic_verb_for_search table:with_filtered_table
-    | generic_preamble_for_action generic_verb_for_search table:with_filtered_table
+    ( generic_preamble_for_answer generic_article table:with_filtered_table
+    | generic_verb_for_search generic_article table:with_filtered_table
+    | generic_preamble_for_action generic_verb_for_search generic_article table:with_filtered_table
     ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
 
     // now => get => notify (argmin, argmax)
