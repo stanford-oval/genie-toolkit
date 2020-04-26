@@ -84,6 +84,16 @@ module.exports = {
             action: 'storeTrue',
             help: `Set to True to use gpt2 to decide where to put value`
         });
+        parser.addArgument('--gpt2-paraphraser', {
+            required: false,
+            defaultValue: false,
+            action: 'storeTrue',
+            help: `Set to True to use gpt2 paraphrase to automatically extract canonicals`
+        });
+        parser.addArgument('--gpt2-paraphraser-model', {
+            required: false,
+            help: `A path to the directory where the gpt2 paraphraser model is saved`
+        });
         parser.addArgument('--mask', {
             required: false,
             defaultValue: false,
