@@ -124,6 +124,8 @@ context function (state) {
         if (!info.resultInfo.isTable) {
             if (info.resultInfo.hasError)
                 return [['ctx_completed_action_error'], info];
+            else if (info.resultInfo.hasEmptyResult)
+                return [['ctx_completed_action_success'], info];
             else
                 return [['ctx_with_result', 'ctx_completed_action_success'], info];
         }
