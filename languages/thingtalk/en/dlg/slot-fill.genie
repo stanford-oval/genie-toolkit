@@ -115,6 +115,29 @@ verbose_search_answer = {
     generic_preamble_for_answer query:anything_phrase => query;
 }
 
+verbose_search_answer_with_action = {
+    // complete answer with another action phrase, like "I am looking for a bla restaurant. I will need to book it for 3 people."
+    query:verbose_search_answer ('.' | ',') generic_preamble_for_action action:coref_action_command => {
+        // check that one of the parameters of action has the right type to param pass into the action
+        let idArg = query.schema.getArgument('id');
+        if (!idArg)
+            return null;
+
+        let found = false;
+        for (let arg of action.schema.iterateArguments()) {
+            if (!arg.is_input)
+                continue
+            if (arg.type.equals(idArg.type)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            return null;
+        return [query, action];
+    };
+}
+
 question_npp_filter_pair = {
     ctx:ctx_with_result_noquestion f1:npp_filter 'or' f2:npp_filter =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
@@ -203,7 +226,7 @@ precise_search_question_answer_pair = {
     ) => {
         if (!D.isQueryAnswerValidForQuestion(table, questions))
             return null;
-        return [questions, table];
+        return [questions, table, null];
     };
 
     ( questions:direct_search_question_with_preamble '<sep>' table:verbose_search_answer [weight=0.1]
@@ -211,7 +234,25 @@ precise_search_question_answer_pair = {
     ) => {
         if (!D.isQueryAnswerValidForQuestion(table, questions))
             return null;
-        return [questions, table];
+        return [questions, table, null];
+    };
+
+    ( questions:direct_search_question '<sep>' table_action:verbose_search_answer_with_action
+    | questions:yesno_search_question'<sep>' ('yes' | 'yes ,' | '') table_action:verbose_search_answer_with_action
+    ) => {
+        const [table, action] = table_action;
+        if (!D.isQueryAnswerValidForQuestion(table, questions))
+            return null;
+        return [questions, table, action];
+    };
+
+    ( questions:direct_search_question_with_preamble '<sep>' table_action:verbose_search_answer_with_action [weight=0.1]
+    | questions:yesno_search_question_with_preamble '<sep>' ('yes' | 'yes ,' | '') table_action:verbose_search_answer_with_action [weight=0.1]
+    ) => {
+        const [table, action] = table_action;
+        if (!D.isQueryAnswerValidForQuestion(table, questions))
+            return null;
+        return [questions, table, action];
     };
 }
 
