@@ -367,7 +367,7 @@ function getActionInvocation(historyItem) {
     return historyItem.stmt.actions[0].invocation;
 }
 
-function addNewItem(ctx, dialogueAct, dialogueActParam, newHistoryItem, confirm) {
+function addNewItem(ctx, dialogueAct, dialogueActParam, confirm, ...newHistoryItem) {
     const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, []);
 
     if (confirm === 'proposed') {
@@ -378,7 +378,7 @@ function addNewItem(ctx, dialogueAct, dialogueActParam, newHistoryItem, confirm)
                 break;
             newState.history.push(ctx.state.history[i]);
         }
-        newState.history.push(newHistoryItem);
+        newState.history.push(...newHistoryItem);
     } else {
         // wipe everything from state after the current program
         // this will remove all previously accepted and/or proposed actions
@@ -388,7 +388,7 @@ function addNewItem(ctx, dialogueAct, dialogueActParam, newHistoryItem, confirm)
             for (let i = 0; i <= ctx.currentIdx; i++)
                 newState.history.push(ctx.state.history[i]);
         }
-        newState.history.push(newHistoryItem);
+        newState.history.push(...newHistoryItem);
     }
 
     return newState;
@@ -487,14 +487,14 @@ function addActionParam(ctx, dialogueAct, action, pname, value, confirm) {
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
 
-    return addNewItem(ctx, dialogueAct, null, newHistoryItem, confirm);
+    return addNewItem(ctx, dialogueAct, null, confirm, newHistoryItem);
 }
 
 function replaceAction(ctx, dialogueAct, action, confirm) {
     let newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, action, action.schema)]);
     let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
 
-    return addNewItem(ctx, dialogueAct, null, newHistoryItem, confirm);
+    return addNewItem(ctx, dialogueAct, null, confirm, newHistoryItem);
 }
 
 function addAction(ctx, dialogueAct, action, confirm) {
@@ -533,7 +533,7 @@ function addAction(ctx, dialogueAct, action, confirm) {
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
 
-    return addNewItem(ctx, dialogueAct, null, newHistoryItem, confirm);
+    return addNewItem(ctx, dialogueAct, null, confirm, newHistoryItem);
 }
 
 function addQuery(ctx, dialogueAct, newTable, confirm) {
@@ -556,6 +556,18 @@ function addQuery(ctx, dialogueAct, newTable, confirm) {
     return newState;
 }
 
+function addQueryAndAction(ctx, dialogueAct, newTable, newAction, confirm) {
+    let newTableStmt = new Ast.Statement.Command(null, newTable, [C.notifyAction()]);
+    let newTableHistoryItem = new Ast.DialogueHistoryItem(null, newTableStmt, null, confirm);
+
+    // add the new table history item right after the current one, and replace everything after that
+
+    let newActionStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, newAction, newAction.schema)]);
+    let newActionHistoryItem = new Ast.DialogueHistoryItem(null, newActionStmt, null, confirm);
+
+    return addNewItem(ctx, dialogueAct, null, confirm, newTableHistoryItem, newActionHistoryItem);
+}
+
 module.exports = {
     POLICY_NAME,
     INITIAL_CONTEXT_INFO,
@@ -571,6 +583,7 @@ module.exports = {
     addActionParam,
     addAction,
     addQuery,
+    addQueryAndAction,
     replaceAction,
     setOrAddInvocationParam,
 };

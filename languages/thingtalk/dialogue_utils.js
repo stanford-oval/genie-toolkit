@@ -33,6 +33,7 @@ const {
     addActionParam,
     addAction,
     addQuery,
+    addQueryAndAction,
     replaceAction,
     setOrAddInvocationParam,
 } = require('./state_manip');
@@ -814,20 +815,71 @@ function isGoodSlotFillQuestion(ctx, questions) {
     return true;
 }
 
-function preciseSearchQuestionAnswer(ctx, [questions, answer]) {
-    const answerFunctions = C.getFunctionNames(answer);
+function addParametersFromContext(toInvocation, fromInvocation) {
+    let newParams = new Set;
+    for (let in_param of toInvocation.in_params) {
+        if (in_param.value.isUndefined)
+            continue;
+        newParams.add(in_param.name);
+    }
+
+    let cloned = false;
+
+    for (let in_param of fromInvocation.in_params) {
+        if (in_param.value.isUndefined)
+            continue;
+        if (newParams.has(in_param.name))
+            continue;
+
+        if (!cloned) {
+            toInvocation = toInvocation.clone();
+            cloned = true;
+        }
+
+        setOrAddInvocationParam(toInvocation, in_param.name, in_param.value);
+    }
+
+    return toInvocation;
+}
+
+function preciseSearchQuestionAnswer(ctx, [questions, answerTable, answerAction]) {
+    const answerFunctions = C.getFunctionNames(answerTable);
     assert(answerFunctions.length === 1);
     if (answerFunctions[0] !== ctx.currentFunction)
         return null;
     const currentTable = ctx.current.stmt.table;
     if (!isValidSearchQuestion(currentTable, questions))
         return null;
-    assert(answer.isFilter && ((answer.table.isCompute && answer.table.table.isInvocation) || answer.table.isInvocation));
+    assert(answerTable.isFilter && ((answerTable.table.isCompute && answerTable.table.table.isInvocation) || answerTable.table.isInvocation));
 
-    const newTable = queryRefinement(currentTable, answer.filter, refineFilterToAnswerQuestion);
+    if (answerAction !== null) {
+        const answerFunctions = C.getFunctionNames(answerAction);
+        assert(answerFunctions.length === 1);
+        assert(answerAction instanceof Ast.Invocation);
+        if (ctx.nextFunction !== null) {
+            if (answerFunctions[0] !== ctx.nextFunction)
+                return null;
+
+            // check that we don't fill the chain parameter through this path:
+            // the chain parameter can only be filled if the agent shows the results
+            for (let in_param of answerAction.in_params) {
+                if (in_param.name === ctx.nextInfo.chainParameter &&
+                    !ctx.nextInfo.chainParameterFilled)
+                    return null;
+            }
+
+            answerAction = addParametersFromContext(answerAction, getActionInvocation(ctx.next));
+        }
+    }
+
+    const newTable = queryRefinement(currentTable, answerTable.filter, refineFilterToAnswerQuestion);
     if (newTable === null)
         return null;
-    const userState = addQuery(ctx, 'execute', newTable, 'accepted');
+    let userState;
+    if (answerAction !== null)
+        userState = addQueryAndAction(ctx, 'execute', newTable, answerAction, 'accepted');
+    else
+        userState = addQuery(ctx, 'execute', newTable, 'accepted');
     let sysState;
     if (questions.length === 0)
         sysState = makeSimpleState(ctx, 'sys_generic_search_question', null);
@@ -844,6 +896,7 @@ function preciseSlotFillQuestionAnswer(ctx, [questions, answer]) {
     if (!isGoodSlotFillQuestion(ctx, questions))
         return null;
     assert(answer instanceof Ast.Invocation);
+    addParametersFromContext(answer, getActionInvocation(ctx.next));
 
     // check that we don't fill the chain parameter through this path:
     // the chain parameter can only be filled if the agent shows the results
