@@ -25,6 +25,24 @@
 
 // questions with "it"/"that" -- coreference on a single result
 
+// this is the almost the same as a plain out_param_list, but we drop the wrapper
+// VarRef and return a list of strings
+out_param_list_for_coref_question = {
+    p1:out_param_Any 'and' p2:out_param_Any => {
+        if (p1.name === 'id' || p2.name === 'id' || p1.name === p2.name)
+            return null;
+        return [p1.name, p2.name];
+    };
+
+    p1:out_param_Any ',' p2:out_param_Any (',' | '') 'and' p3:out_param_Any=> {
+        if (p1.name === 'id' || p2.name === 'id' || p3.name === 'id')
+            return null;
+        if (p1.name === p2.name || p2.name === p3.name || p1.name === p3.name)
+            return null;
+        return [p1.name, p2.name, p3.name];
+    };
+}
+
 simple_user_search_question = {
     // straight up questions
     ( ('can you tell me' | '') 'what is' ('the' | 'its') param:out_param_Any '?'
@@ -39,16 +57,12 @@ simple_user_search_question = {
         return [[param.name, null]];
     };
 
-    ( ('can you tell me' | '') 'what' ('is' | 'are') ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any '?'
-    | 'can you tell me' ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any '?'
-    | 'i would like to' ('know' | 'see') ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any ('first' | '') '.'
-    | 'i need' ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any ('first' | '') '.'
-    | 'i just need' ('the' | 'its') p1:out_param_Any 'and' p2:out_param_Any '.'
-    ) => {
-        if (p1.name === 'id' || p2.name === 'id' || p1.name === p2.name)
-            return null;
-        return [[p1.name, null], [p2.name, null]];
-    };
+    ( ('can you tell me' | '') 'what' ('is' | 'are') ('the' | 'its') params:out_param_list_for_coref_question '?'
+    | 'can you tell me' ('the' | 'its') params:out_param_list_for_coref_question '?'
+    | 'i would like to' ('know' | 'see') ('the' | 'its') params:out_param_list_for_coref_question ('first' | '') '.'
+    | 'i need' ('the' | 'its') params:out_param_list_for_coref_question ('first' | '') '.'
+    | 'i just need' ('the' | 'its') params:out_param_list_for_coref_question '.'
+    ) => params.map((pname) => [pname, null]);
 
     ( ('can you tell me' | '') 'what is' 'the' param:out_param_Any 'of the' base:base_table '?'
     | 'can you tell me' 'the' param:out_param_Any 'of the' base:base_table '?'
@@ -66,6 +80,22 @@ simple_user_search_question = {
         if (param.name === 'id')
             return null;
         return [[param.name, null]];
+    };
+
+    ( ('can you tell me' | '') 'what' ('is' | 'are') 'the' params:out_param_list_for_coref_question 'of the' base:base_table '?'
+    | 'can you tell me' 'the' params:out_param_list_for_coref_question 'of the' base:base_table '?'
+    | ('can you tell me' | '') 'what' params:out_param_list_for_coref_question 'does the' base:base_table 'have ?'
+    | 'i would like to' ('know' | 'see') 'the' params:out_param_list_for_coref_question 'of the' base:base_table ('first' | '') '.'
+    | 'i just need' ('the' | 'its') 'the' params:out_param_list_for_coref_question 'of the' base:base_table '.'
+
+    | ('can you tell me' | '') 'what is' 'the' base:base_table '\'s' params:out_param_list_for_coref_question '?'
+    | 'can you tell me' 'the' base:base_table '\'s' params:out_param_list_for_coref_question '?'
+    | 'i would like to' ('know' | 'see') 'the' base:base_table '\'s' params:out_param_list_for_coref_question ('first' | '') '.'
+    | 'i just need' ('the' | 'its') 'the' base:base_table '\'s' params:out_param_list_for_coref_question '.'
+    ) => {
+        if (!params.every((pname) => !!base.schema.out[pname]))
+            return null;
+        return params.map((pname) => [pname, null]);
     };
 }
 
@@ -115,7 +145,18 @@ user_search_question_with_name = {
     ) => {
         if (param.name === 'id')
             return null;
-        return [name, param.name, null];
+        return [name, [[param.name, null]]];
+    };
+
+    // straight up questions
+    ( ('can you tell me' | '') 'what is' name:constant_name '\'s' params:out_param_list_for_coref_question '?'
+    | ('can you tell me' | '') 'what is' 'the' params:out_param_list_for_coref_question 'of' name:constant_name '?'
+    | 'can you tell me' name:constant_name '\'s' params:out_param_list_for_coref_question '?'
+    | 'can you tell me' 'the' params:out_param_list_for_coref_question 'of' name:constant_name '?'
+    | 'i would like to' ('know' | 'see') name:constant_name '\'s' params:out_param_list_for_coref_question ('first' | '') '.'
+    | 'i would like to' ('know' | 'see') 'the' params:out_param_list_for_coref_question 'of' name:constant_name ('first' | '') '.'
+    ) => {
+        return [name, params.map((pname) => [pname, null])];
     };
 }
 
@@ -129,7 +170,7 @@ boolean_user_search_question_with_name = {
     ) => {
         if (param.name === 'id')
             return null;
-        return [name, param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()];
+        return [name, [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]]];
     };
 
     ( 'is' name:constant_name 'a' param:apv_filter base:base_table '?'
@@ -145,6 +186,6 @@ boolean_user_search_question_with_name = {
         const idArg = base.schema.getArgument('id');
         if (!idArg || !idArg.type.equals(name.getType()))
             return null;
-        return [param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()];
+        return [name, [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]]];
     };
 }
