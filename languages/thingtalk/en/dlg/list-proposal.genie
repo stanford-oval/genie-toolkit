@@ -233,7 +233,7 @@ list_proposal_search_question_pair = {
     ( prop:system_list_proposal '<sep>' question:user_search_question_with_name
     | prop:system_list_proposal '<sep>' question:boolean_user_search_question_with_name
     ) => {
-        const [name, pname, type] = question;
+        const [name, params] = question;
         const [results, info, action] = prop;
         let good = false;
         for (let result of results) {
@@ -248,14 +248,17 @@ list_proposal_search_question_pair = {
             return null;
 
         if (info !== null) {
-            if (info.has(pname))
-                return null;
-            if (!info.schema.hasArgument(pname))
-                return null;
-            if (type !== null && !info.schema.getArgType(pname).equals(type))
-                return null;
+            for (let [pname, type] of params) {
+                assert(typeof pname === 'string');
+                if (info.has(pname))
+                    return null;
+                if (!info.schema.hasArgument(pname))
+                    return null;
+                if (type !== null && !info.schema.getArgType(pname).equals(type))
+                    return null;
+            }
         }
-        return [results, name, action, [[pname, type]]];
+        return [results, name, action, params];
     };
 }
 

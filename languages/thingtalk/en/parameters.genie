@@ -85,14 +85,24 @@ the_out_param_pair = {
     };
 }
 
+the_out_param_triple = {
+    'the' p1:out_param_Any ',' p2:out_param_Any (',' | '') 'and' p3:out_param_Any => {
+        if (p1.name === p2.name || p1.name === p3.name || p2.name === p3.name)
+            return null;
+        return [p1, p2, p3];
+    };
+}
+
 pair_projection = {
     ?projection_with_filter {
         ( ('both' | '') outParams:the_out_param_pair 'of' table:with_filtered_table
-        | outParams:the_out_param_pair 'of the' table:with_arg_min_max_table
+        | outParams:the_out_param_triple 'of the' table:with_arg_min_max_table
         ) => C.makeMultiFieldProjection('table', table, outParams);
     }
     !projection_with_filter {
-        ('both' | '') outParams:the_out_param_pair 'of' table:complete_table => C.makeMultiFieldProjection('table', table, outParams);
+        ( ('both' | '') outParams:the_out_param_pair 'of' table:complete_table
+        | outParams:the_out_param_triple 'of the' table:with_arg_min_max_table
+        ) => C.makeMultiFieldProjection('table', table, outParams);
     }
 }
 
