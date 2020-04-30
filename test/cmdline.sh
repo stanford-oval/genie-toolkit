@@ -108,7 +108,8 @@ node $srcdir/tool/genie.js augment paraphrase1.tsv $srcdir/test/data/en-US/synth
   --ppdb-synthetic-fraction 0.5 --ppdb-paraphrase-fraction 1.0 \
   --quoted-fraction 0.1 \
   --synthetic-expand-factor 3
-diff -u $srcdir/test/data/en-US/expected-everything.tsv everything.tsv
+node $srcdir/tool/genie.js requote ./everything.tsv --output ./everything-req.tsv --mode replace
+diff -u $srcdir/test/data/en-US/expected-everything-req.tsv everything-req.tsv
 
 # and split it in various ways
 node $srcdir/tool/genie.js split-train-eval everything.tsv \
