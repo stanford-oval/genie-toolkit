@@ -675,8 +675,8 @@ class ThingpediaLoader {
             'query',
             { p_name: Type.String },
             new Ast.Table.Filter(null, table, namefilter, table.schema),
-            [`\${p_name:no-undefined}`],
-            [`\${p_name:no-undefined}`],
+            [`\${p_name:no-undefined}`, ...canonical.map((c) => `\${p_name} ${c}`)],
+            [`\${p_name:no-undefined}`, ...canonical.map((c) => `\${p_name} ${c}`)],
             {}
         ));
     }
