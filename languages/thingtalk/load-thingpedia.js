@@ -343,7 +343,7 @@ class ThingpediaLoader {
             for (let form of annotvalue) {
                 if (cat === 'base') {
                     this._addOutParam(functionName, pname, ptype, typestr, form.trim());
-                    if (!canonical.npp) {
+                    if (!canonical.npp && !canonical.property) {
                         const expansion = [form, new this._runtime.NonTerminal('constant_' + vtypestr)];
                         this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
 
