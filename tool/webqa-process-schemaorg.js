@@ -157,6 +157,9 @@ const PROPERTY_CANONICAL_OVERRIDE = {
     description: {
         base: ['description', 'summary'],
     },
+    image: {
+        base: ['picture', 'image', 'photo']
+    },
 
     // location
     'geo': {
@@ -296,9 +299,11 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['yield amount', 'yield size']
     },
     recipeCategory: {
+        adjective: ["#"],
         base: ['categories']
     },
     recipeIngredient: {
+        adjective: ["#"],
         verb: ['contains', 'uses', 'has'],
         passive_verb: ['containing', 'using'],
         base: ['ingredients']
@@ -321,12 +326,29 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     // product
     mpn: {
         base: ['manufacturer part number']
+    },
+    color: {
+        base: ['color'],
+        adjective: ['#'],
+        passive_verb: ['in #']
+    },
+    model: {
+        base: ['model'],
+        implicit_identity: true
+    },
+    brand: {
+        base: ['brand'],
+        adjective: ['#'],
+        passive_verb: ['by #', 'manufactured by #', 'made by #', 'from #']
     }
+
 };
 
 const PROPERTIES_NO_FILTER = [
     'name', // no filter on name, if the id has ner support, we'll generate prim for it
+    'description', // we consider a question not answerable if we don't have specific property for it
     'priceRange',
+    'brand',
 
     // ID properties or opaque strings
     'gtin13',
