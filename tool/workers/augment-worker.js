@@ -41,7 +41,7 @@ module.exports = async function worker(args, shard) {
         noQuoteExpandFactor: args.no_quote_paraphrasing_expand_factor,
         singleDeviceExpandFactor: args.single_device_expand_factor,
         replaceLocations: args.replace_locations,
-        replaceNumbers: args.replaceNumbers,
+        replaceNumbers: args.replace_numbers,
         cleanParameters: args.clean_parameters
     });
 };
