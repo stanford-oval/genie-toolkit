@@ -10,10 +10,10 @@ export TMPDIR=$srcdir
 workdir=`mktemp -d $TMPDIR/genie-XXXXXX`
 workdir=`realpath $workdir`
 
-#on_error() {
-#    rm -fr $workdir
-#}
-#trap on_error ERR INT TERM
+on_error() {
+    rm -fr $workdir
+}
+trap on_error ERR INT TERM
 
 oldpwd=`pwd`
 cd $workdir
