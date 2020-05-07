@@ -63,7 +63,7 @@ class ThingpediaLoader {
             out: new Map,
         };
         this.idQueries = new Map;
-        this.compoundArrays = new Map;
+        this.compoundArrays = {};
         if (this._options.whiteList)
             this.globalWhiteList = this._options.whiteList.split(',');
         else
@@ -178,7 +178,7 @@ class ThingpediaLoader {
         /*
         FIXME what to do here?
         if (ptype.isArray && ptype.elem.isCompound) {
-            this._compoundArrays[pname] = ptype.elem;
+            this.compoundArrays[pname] = ptype.elem;
             for (let field in ptype.elem.fields) {
                 let arg = ptype.elem.fields[field];
                 this._recordInputParam(functionName, field, arg.type, arg);
@@ -269,7 +269,7 @@ class ThingpediaLoader {
             return;
 
         if (ptype.isArray && ptype.elem.isCompound) {
-            this._compoundArrays[pname] = ptype.elem;
+            this.compoundArrays[pname] = ptype.elem;
             for (let field in ptype.elem.fields) {
                 let arg = ptype.elem.fields[field];
                 this._recordOutputParam(functionName, arg);
@@ -301,6 +301,8 @@ class ThingpediaLoader {
             vtype = Type.String;
         }
         const vtypestr = this._recordType(vtype);
+        if (vtypestr === null)
+            return null;
 
         for (let cat in canonical) {
             if (cat === 'default')

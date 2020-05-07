@@ -1,0 +1,209 @@
+# format is <key> <value> [<display>], tab separated
+#
+# <key> can be:
+# - a type
+# - `param:` parameter name `:` type
+# - `param:@` device name `.*:` parameter name `:` type
+# - `param:@` device name `.` function name `:` parameter name `:` type
+# for a given parameter, all keys will be tried in turn, from the most specific
+# to the least specific, stopping at the first key that has at least one entry
+#
+# <value> is the value to use in the program, in simil ThingTalk syntax, while
+# <display> is the string to place in the sentence
+# for certain types, <display> can be omitted to use the default display
+#
+# empty (white-space only) lines and lines starting with # (optionally preceded by space)
+# are ignored
+
+# generic types
+String	X
+String	Y
+String	Z
+Number	2
+Number	4
+Number	3
+#Number	1
+Number	5
+Measure(C)	73F
+Measure(C)	75F
+Measure(C)	80F
+Measure(C)	20C
+Measure(C)	21C
+Measure(C)	17C
+Measure(byte)	300KB
+Measure(byte)	15MB
+Measure(byte)	40MB
+Measure(byte)	2GB
+Measure(byte)	3GB
+Measure(byte)	1.5TB
+Measure(byte)	2TB
+#Measure(kg)	75kg
+#Measure(kg)	81kg
+#Measure(kg)	88kg
+Measure(kg)	5kg
+Measure(kg)	3kg
+#Measure(kg)	150lb
+#Measure(kg)	180lb
+#Measure(kg)	239lb
+Measure(kg)	5oz
+Measure(kg)	12oz
+Measure(kg)	3oz
+Measure(kg)	2lb
+Measure(kg)	3lb
+Measure(kg)	500g
+Measure(kg)	250g
+Measure(m)	800m
+Measure(m)	1500m
+Measure(m)	23km
+Measure(m)	50km
+Measure(m)	30mi
+Measure(m)	200mi
+Measure(mps)	70kmph
+Measure(mps)	120kmph
+Measure(mps)	35mph
+Measure(mps)	60mph
+Measure(ms)	2h	two hours
+Measure(ms)	30min	30 minutes
+Measure(ms)	3day	3 days
+Currency	100usd	$100
+Currency	15usd	15 dollars
+Currency	3.5usd	$ 3.50
+Location	40.7590,73.9845	Time Square
+Location	34.0430,118.2673	Staples Center
+Date	2017-02-14T00:00:00-08:00	Feb 14 2017
+Date	2016-05-04T00:00:00-07:00	May 4th, 2016
+Date	2017-08-02T00:00:00-07:00	August 2nd 2017
+Time	07:30:00	7:30 am
+Time	15:00:00	3 pm
+Time	20:30:00	8:30 pm
+
+# entity types
+Entity(tt:email_address)	bob@gmail.com
+Entity(tt:email_address)	alice@gmail.com
+Entity(tt:email_address)	charlie@hotmail.com
+Entity(tt:phone_number)	+16501234567
+Entity(tt:phone_number)	+15551234567
+Entity(tt:phone_number)	+123456789
+Entity(tt:hashtag)	funny
+Entity(tt:hashtag)	cat
+Entity(tt:hashtag)	lol
+Entity(tt:hashtag)	covfefe
+Entity(tt:username)	alice
+Entity(tt:username)	bob
+Entity(tt:username)	charlie
+Entity(tt:url)	http://www.abc.def
+Entity(tt:url)	http://www.google.com	www.google.com
+Entity(tt:url)	http://www.example.com
+Entity(tt:path_name)	images/lol.png
+Entity(tt:path_name)	images/me.png
+Entity(tt:path_name)	documents/work.pdf
+Entity(tt:path_name)	videos/cat.mp4
+Entity(tt:path_name)	school/cs101/hw1.pdf
+Entity(tt:stock_id)	goog	Google
+Entity(tt:stock_id)	aapl	Apple
+Entity(tt:stock_id)	msft	Microsoft
+Entity(tt:stock_id)	wmt	Walmart
+Entity(tt:iso_lang_code)	it	Italian
+Entity(tt:iso_lang_code)	de	German
+Entity(tt:iso_lang_code)	zh	Chinese
+Entity(tt:iso_lang_code)	es	Spanish
+Entity(sportradar:eu_soccer_team)	juv	Juventus
+Entity(sportradar:eu_soccer_team)	bar	Barcelona
+Entity(sportradar:eu_soccer_team)	fcb	Bayer Munich
+Entity(sportradar:eu_soccer_team)	che	Chelsea
+Entity(sportradar:mlb_team)	sf	San Francisco Giants
+Entity(sportradar:mlb_team)	chc	Chicago Cubs
+Entity(sportradar:nba_team)	gsw	Golden State Warriors
+Entity(sportradar:nba_team)	lal	Los Angeles Lakers
+Entity(sportradar:ncaafb_team)	sta	Stanford Cardinals
+Entity(sportradar:ncaafb_team)	cal	California Bears
+Entity(sportradar:ncaambb_team)	stan	Stanford Cardinals
+Entity(sportradar:ncaambb_team)	cal	California Bears
+Entity(sportradar:nfl_team)	sea	Seattle Seahawks
+Entity(sportradar:nfl_team)	sf	San Francisco 49ers
+Entity(sportradar:us_soccer_team)	sje	San Jose Earthquakes
+Entity(sportradar:us_soccer_team)	tor	Toronto FC
+Entity(tt:mime_type)	application/pdf	PDF documents
+Entity(tt:mime_type)	image/jpeg	JPEG pictures
+Entity(tt:mime_type)	application/vnd.openxmlformats-officedocument.wordprocessingml.document	Word documents
+Entity(tt:mime_type)	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	Excel spreadsheets
+Entity(tt:us_state)	ca	California
+Entity(tt:us_state)	wa	Washington
+Entity(tt:us_state)	ny	New York
+Entity(tt:us_state)	fl	Florida
+Entity(tt:country)	us	United States
+Entity(tt:country)	it	Italy
+Entity(tt:country)	gb	United Kingdom
+Entity(tt:country)	de	Germany
+Entity(gov.nasa:curiosity_rover_camera)	MAST	Mast Camera
+Entity(gov.nasa:curiosity_rover_camera)	FHAZ	Front Hazard Avoidance Camera
+Entity(gov.nasa:curiosity_rover_camera)	MAHLI	Mars Hand Lens Imager
+Entity(imgflip:meme_id)	61520	Futurama Fry
+Entity(imgflip:meme_id)	61546	Brace Yourselves
+Entity(com.instagram:filter)	inkwell	Inkwell
+Entity(com.instagram:filter)	lo-fi	Lo-Fi
+Entity(com.instagram:filter)	sierra	Sierra
+Entity(org.freedesktop:app_id)	inkscape	Inkscape
+Entity(org.freedesktop:app_id)	firefox	Firefox
+Entity(org.freedesktop:app_id)	google-chrome	Google Chrome
+Entity(org.freedesktop:app_id)	emacs	Emacs
+Entity(tt:cryptocurrency_code)	btc	Bitcoin
+Entity(tt:cryptocurrency_code)	xlm	Stellar
+Entity(tt:cryptocurrency_code)	eth	Ethereum
+Entity(tt:cryptocurrency_code)	doge	Dogecoin
+
+# overrides for specific parameters
+param:source_language:Entity(tt:iso_lang_code)	en	English
+param:repo_name:String	android_repository
+param:repo_name:String	twbs/bootstrap
+param:folder_name:String	archive
+param:folder_name:String	school
+param:purpose:String	research project
+param:query:String	super bowl
+param:summary:String	celebration
+param:category:String	sports
+param:from_name:String	bob
+param:sender_name:String	bob
+param:sender_name:String	alice
+param:sender_name:String	charlie
+param:blog_name:String	government secret
+param:description:String	christmas
+param:description:String	wine
+param:description:String	service
+param:organizer:String	stanford
+param:user:String	bob
+param:positions:String	ceo
+param:specialties:String	java
+param:industry:String	music
+param:template:String	wtf
+param:text_top:String	ummm... i have a question...
+param:text_bottom:String	wtf?
+# for icalendar
+param:location:String	conference room 7
+param:location:String	downtown
+param:location:String	bob's house
+
+# overrides for specific function/parameter combinations
+param:@com.spotify.*:song:String	Hey Jude
+param:@com.spotify.*:song:String	California Girls
+param:@com.spotify.*:album:String	Yellow Submarine
+param:@com.spotify.*:album:String	Thriller
+param:@com.spotify.*:playlist:String	my favorite
+param:@com.spotify.*:playlist:String	classics
+param:@com.spotify.*:artist:String	Beatles
+param:@com.spotify.*:artist:String	Taylor Swift
+param:@com.spotify.*:toPlay:String	Hey Jude
+param:@com.spotify.*:toPlay:String	California Girls
+param:@com.spotify.*:toAdd:String	Hey Jude
+param:@com.spotify.*:toAdd:String	California Girls
+param:@com.spotify.*:key:String	A Major
+
+param:cookTime:Measure(ms)	10min	10 minutes
+param:cookTime:Measure(ms)	20min	20 minutes
+param:cookTime:Measure(ms)	5min	5 minutes
+param:prepTime:Measure(ms)	10min	10 minutes
+param:prepTime:Measure(ms)	20min	20 minutes
+param:prepTime:Measure(ms)	5min	5 minutes
+param:totalTime:Measure(ms)	25min	25 minutes
+param:totalTime:Measure(ms)	45min	45 minutes
+param:totalTime:Measure(ms)	20min	20 minutes
