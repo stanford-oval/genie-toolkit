@@ -145,7 +145,7 @@ module.exports = {
         parser.addArgument('--no-replace-numbers', {
             nargs: 0,
             action: 'storeFalse',
-            dest: 'replace_locations',
+            dest: 'replace_numbers',
             help: 'Do not replace NUMBER tokens',
         });
         parser.addArgument('--clean-parameters', {
