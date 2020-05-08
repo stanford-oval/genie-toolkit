@@ -35,7 +35,7 @@ module.exports = {
             defaultValue: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
-        parser.addArgument(['-pl', '--param-locale'], {
+        parser.addArgument(['--param-locale'], {
             required: false,
             defaultValue: 'en-US',
             help: `BGP 47 locale tag of the language for parameter values (defaults to 'en-US', English)`
@@ -148,7 +148,12 @@ module.exports = {
             dest: 'replace_locations',
             help: 'Do not replace NUMBER tokens',
         });
-
+        parser.addArgument('--clean-parameters', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Take extra effort to use parameters that are simple and do not include punctuation marks',
+            defaultValue: false
+        });
         parser.addArgument('--debug', {
             nargs: 0,
             action: 'storeTrue',

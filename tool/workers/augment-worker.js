@@ -20,7 +20,7 @@ const BinaryPPDB = require('../../lib/binary_ppdb');
 module.exports = async function worker(args, shard) {
     const tpClient = new Tp.FileClient(args);
     const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, args.debug);
-    const constProvider = new FileParameterProvider(args.parameter_datasets);
+    const constProvider = new FileParameterProvider(args.parameter_datasets, args.param_locale);
     await constProvider.open();
 
     return new DatasetAugmenter(schemaRetriever, constProvider, tpClient, {
@@ -41,7 +41,8 @@ module.exports = async function worker(args, shard) {
         noQuoteExpandFactor: args.no_quote_paraphrasing_expand_factor,
         singleDeviceExpandFactor: args.single_device_expand_factor,
         replaceLocations: args.replace_locations,
-        replaceNumbers: args.replaceNumbers,
+        replaceNumbers: args.replace_numbers,
+        cleanParameters: args.clean_parameters
     });
 };
 

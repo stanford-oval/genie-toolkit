@@ -1,8 +1,10 @@
-# format is <string_or_entity> <type> <path>, tab separated
+# format is <string_or_entity> <locale> <type> <path>, tab separated
 #
 # <string_or_entity> is:
 # `string` if the path refers to a string dataset (in TSV format)
 # `entity` if the path refers to an entity dataset (in JSON format)
+#
+# <local> is BGP 47 locale tag of the language used for the parameters
 #
 # <type> is the dataset identifier from Thingpedia
 #
@@ -12,13 +14,13 @@
 # empty (white-space only) lines and lines starting with # (optionally preceded by space)
 # are ignored
 
-string	tt:long_free_text	./tt:long_free_text.txt
-string	tt:short_free_text	./tt:short_free_text.txt
-string	tt:search_query	./tt:search_query.txt
-string	tt:song_name	./tt:song_name.txt
-string	tt:person_first_name	./tt:person_first_name.txt
-string	tt:path_name	./tt:path_name.txt
-string	tt:location	./tt:location.txt
-string	tt:word	./tt:word.txt
-entity	org.freedesktop:app_id	./org.freedesktop:app_id.json
-entity	tt:stock_id	./tt:stock_id.json
+string	en	tt:long_free_text	./tt:long_free_text.txt
+string	en	tt:short_free_text	./tt:short_free_text.txt
+string	en	tt:search_query	./tt:search_query.txt
+string	en	tt:song_name	./tt:song_name.txt
+string	en	tt:person_first_name	./tt:person_first_name.txt
+string	en	tt:path_name	./tt:path_name.txt
+string	en	tt:location	./tt:location.txt
+string	en	tt:word	./tt:word.txt
+entity	en	org.freedesktop:app_id	./org.freedesktop:app_id.json
+entity	en	tt:stock_id	./tt:stock_id.json
