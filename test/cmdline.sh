@@ -103,7 +103,7 @@ diff -u $srcdir/test/data/en-US/expected-paraphrase2.tsv paraphrase2.tsv
 
 node $srcdir/tool/genie.js compile-ppdb -o compiled-ppdb.bin $srcdir/test/data/en-US/ppdb-2.0-xs-lexical
 node $srcdir/tool/genie.js augment paraphrase1.tsv $srcdir/test/data/en-US/synthetic.tsv --thingpedia $srcdir/test/data/en-US/thingpedia.tt \
-  --ppdb compiled-ppdb.bin -pl en --parameter-datasets $srcdir/test/data/en-US/parameter-datasets.tsv \
+  --ppdb compiled-ppdb.bin --param-locale en --parameter-datasets $srcdir/test/data/en-US/parameter-datasets.tsv \
   -o everything.tsv \
   --ppdb-synthetic-fraction 0.5 --ppdb-paraphrase-fraction 1.0 \
   --quoted-fraction 0.1 \

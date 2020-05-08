@@ -35,7 +35,7 @@ module.exports = {
             defaultValue: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
-        parser.addArgument(['-pl', '--param-locale'], {
+        parser.addArgument(['--param-locale'], {
             required: false,
             defaultValue: 'en-US',
             help: `BGP 47 locale tag of the language for parameter values (defaults to 'en-US', English)`
