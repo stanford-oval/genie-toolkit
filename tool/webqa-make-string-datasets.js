@@ -190,7 +190,7 @@ class ParamDatasetGenerator {
                     result: 'ok', data
                 }, undefined, 2), { encoding: 'utf8' });
 
-                manifest.write(`entity\t${this._prefix}${fileId}\t${path.relative(manifestDir, outputpath)}\n`);
+                manifest.write(`entity\t${this._locale}\t${this._prefix}${fileId}\t${path.relative(manifestDir, outputpath)}\n`);
             } else {
                 if (this._debug)
                     console.log(`Found ${fileContent.file.size} examples for string file ${fileId}`);
@@ -217,7 +217,7 @@ class ParamDatasetGenerator {
                 }
 
                 output.end();
-                manifest.write(`string\t${this._prefix}${fileId}\t${path.relative(manifestDir, outputpath)}\n`);
+                manifest.write(`string\t${this._locale}\t${this._prefix}${fileId}\t${path.relative(manifestDir, outputpath)}\n`);
 
                 //await StreamUtils.waitFinish(output);
                 console.log(`completed ${fileId}`);
@@ -261,7 +261,6 @@ module.exports = {
             required: true,
             help: 'Path to JSON file with normalized WebQA data.'
         });
-
         parser.addArgument('--debug', {
             nargs: 0,
             action: 'storeTrue',
@@ -276,7 +275,7 @@ module.exports = {
         });
         parser.addArgument('--class-name', {
             required: false,
-            help: 'The name of the device class, used for decide class-specific types'
+            help: 'The name of the device class, used to decide class-specific types'
         });
     },
 

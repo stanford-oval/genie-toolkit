@@ -20,6 +20,9 @@ entities.json
 thingpedia.tt
 decanlp/
 
+# test dirs
+genie-??????
+
 *.tsv
 *.csv
 *.bin

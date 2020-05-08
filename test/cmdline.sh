@@ -28,15 +28,15 @@ node $srcdir/tool/genie.js --help
 node $srcdir/tool/genie.js requote $srcdir/test/data/en-US/samples-en-hard.tsv --output ./samples-en-hard-requoted.tsv --mode replace
 diff -u $srcdir/test/data/en-US/samples-en-hard-requoted.tsv ./samples-en-hard-requoted.tsv
 # qpis mode
-node $srcdir/tool/genie.js requote $srcdir/test/data/en-US/samples-en-hard.tsv --output ./samples-en-hard-qpis.tsv --mode qpis --requote-numbers
+node $srcdir/tool/genie.js requote $srcdir/test/data/en-US/samples-en-hard.tsv --output ./samples-en-hard-qpis.tsv --mode qpis
 diff -u $srcdir/test/data/en-US/samples-en-hard-qpis.tsv ./samples-en-hard-qpis.tsv
 
 
 ## test augment.js and requote.js
 # first augment input dataset
-node $srcdir/tool/genie.js augment $srcdir/test/data/fa/para-restaurants-fixed.tsv --output ./para-restaurants-aug.tsv --random-seed 123 -l en-US -pl fa --replace-numbers --thingpedia $srcdir/data/fa/restaurants/schema.tt --parameter-datasets $srcdir/data/fa/restaurants/parameter-datasets.tsv --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 1 --no-quote-paraphrasing-expand-factor 1 --quoted-fraction 0.0 --debug
+node $srcdir/tool/genie.js augment $srcdir/test/data/fa/para-restaurants-fixed.tsv --output ./para-restaurants-aug.tsv --random-seed 123 -l en-US --param-local fa --thingpedia $srcdir/data/fa/restaurants/schema.tt --parameter-datasets $srcdir/data/fa/restaurants/parameter-datasets.tsv --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 1 --no-quote-paraphrasing-expand-factor 1 --quoted-fraction 0.0 --debug
 # then requote the augmented dataset and assert the result matches the input dataset
-node $srcdir/tool/genie.js requote ./para-restaurants-aug.tsv --output ./para-restaurants-aug-req.tsv --mode replace --requote-numbers
+node $srcdir/tool/genie.js requote ./para-restaurants-aug.tsv --output ./para-restaurants-aug-req.tsv --mode replace
 diff -u --left-column <(cut -f2- ./para-restaurants-aug-req.tsv) <(cut -f2- $srcdir/test/data/fa/para-restaurants-fixed.tsv)
 
 
@@ -103,11 +103,13 @@ diff -u $srcdir/test/data/en-US/expected-paraphrase2.tsv paraphrase2.tsv
 
 node $srcdir/tool/genie.js compile-ppdb -o compiled-ppdb.bin $srcdir/test/data/en-US/ppdb-2.0-xs-lexical
 node $srcdir/tool/genie.js augment paraphrase1.tsv $srcdir/test/data/en-US/synthetic.tsv --thingpedia $srcdir/test/data/en-US/thingpedia.tt \
-  --ppdb compiled-ppdb.bin --parameter-datasets $srcdir/test/data/en-US/parameter-datasets.tsv \
+  --ppdb compiled-ppdb.bin --param-locale en --parameter-datasets $srcdir/test/data/en-US/parameter-datasets.tsv \
   -o everything.tsv \
   --ppdb-synthetic-fraction 0.5 --ppdb-paraphrase-fraction 1.0 \
   --quoted-fraction 0.1 \
   --synthetic-expand-factor 3
+node $srcdir/tool/genie.js requote ./everything.tsv --output ./everything-req.tsv --mode replace
+diff -u $srcdir/test/data/en-US/expected-everything-req.tsv everything-req.tsv
 diff -u $srcdir/test/data/en-US/expected-everything.tsv everything.tsv
 
 # and split it in various ways

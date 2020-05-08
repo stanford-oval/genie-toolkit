@@ -24,10 +24,10 @@ const path = require('path');
 // https://almond.stanford.edu/thingpedia/api/v3/entities/list/:x
 
 module.exports = class FileParameterProvider {
-    constructor(filename) {
+    constructor(filename, param_locale) {
         this._filename = filename;
+        this._paramLocale = param_locale;
         this._dirname = path.dirname(filename);
-
         this._paths = new Map;
     }
 
@@ -41,11 +41,11 @@ module.exports = class FileParameterProvider {
             if (/^\s*(#|$)/.test(line))
                 return;
 
-            const [stringOrEntity, type, filepath] = line.trim().split('\t');
+            const [stringOrEntity, locale, type, filepath] = line.trim().split('\t');
             if (stringOrEntity !== 'string' && stringOrEntity !== 'entity')
                 throw new Error(`Invalid syntax: ${line}`);
-
-            this._paths.set(stringOrEntity + '+' + type, path.resolve(this._dirname, filepath));
+            if (locale === this._paramLocale)
+                this._paths.set(stringOrEntity + '+' + type, path.resolve(this._dirname, filepath));
         });
 
         return new Promise((resolve, reject) => {
