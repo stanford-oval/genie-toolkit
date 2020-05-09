@@ -28,7 +28,6 @@ class DialogueToTurnStream extends Stream.Transform {
 
         this._locale = options.locale;
 
-        // FIXME should not load ThingTalk here
         this._options = options;
         this._debug = options.debug;
         this._side = options.side;
