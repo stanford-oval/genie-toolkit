@@ -32,6 +32,7 @@ class DialogueToTurnStream extends Stream.Transform {
         this._debug = options.debug;
         this._side = options.side;
         this._flags = options.flags;
+        this._idPrefix = options.idPrefix;
         this._target = require('../lib/languages/' + options.targetLanguage);
 
         this._tokenized = options.tokenized;
@@ -67,7 +68,7 @@ class DialogueToTurnStream extends Stream.Transform {
         const { tokens, } = await this._preprocess(turn.agent, contextEntities);
 
         this.push({
-            id: this._flags + '' + dlg.id + '/' + i,
+            id: this._flags + '' + this._idPrefix + dlg.id + '/' + i,
             context: contextCode.join(' '),
             preprocessed: tokens.join(' '),
             target_code: agentCode.join(' ')
@@ -96,7 +97,7 @@ class DialogueToTurnStream extends Stream.Transform {
         const code = await this._target.serializePrediction(userTarget, tokens, entities, 'user');
 
         this.push({
-            id: this._flags + '' + dlg.id + '/' + i,
+            id: this._flags + '' + this._idPrefix + dlg.id + '/' + i,
             context: contextCode.join(' '),
             preprocessed: tokens.join(' '),
             target_code: code.join(' ')
@@ -173,6 +174,11 @@ module.exports = {
             defaultValue: '',
             help: 'Additional flags to add to the generated training examples.'
         });
+        parser.addArgument('--id-prefix', {
+            required: false,
+            defaultValue: '',
+            help: 'Prefix to add to all sentence IDs (useful to combine multiple datasets).'
+        });
         parser.addArgument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
@@ -209,6 +215,7 @@ module.exports = {
                 targetLanguage: args.target_language,
                 thingpediaClient: tpClient,
                 flags: args.flags,
+                idPrefix: args.id_prefix,
                 side: args.side,
                 tokenized: args.tokenized,
                 debug: args.debug
