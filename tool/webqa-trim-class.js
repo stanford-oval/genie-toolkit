@@ -174,7 +174,7 @@ class SchemaTrimmer {
         if (!tabledef.annotations['org_schema_has_data'] || !tabledef.annotations['org_schema_has_data'].value) {
             this._entities.push({
                 type: this._className + ':' + tablename,
-                name: titleCase(tabledef.canonical),
+                name: titleCase(Array.isArray(tabledef.canonical) ? tabledef.canonical[0] : tabledef.canonical),
                 is_well_known: false,
                 has_ner_support: false
             });
@@ -184,7 +184,7 @@ class SchemaTrimmer {
 
         this._entities.push({
             type: this._className + ':' + tablename,
-            name: titleCase(tabledef.canonical),
+            name: titleCase(Array.isArray(tabledef.canonical) ? tabledef.canonical[0] : tabledef.canonical),
             is_well_known: false,
             has_ner_support: tabledef.annotations['org_schema_has_name'] && tabledef.annotations['org_schema_has_name'].value
         });

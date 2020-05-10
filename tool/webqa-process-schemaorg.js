@@ -344,6 +344,11 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
 
 };
 
+const MANUAL_TABLE_CANONICAL_OVERRIDE = {
+    'Restaurant': ['restaurant', 'diner', 'place', 'joint', 'eatery', 'canteen', 'cafeteria', 'cafe'],
+    'Hotel': ['hotel', 'resort', 'lodging', 'model', 'place']
+};
+
 const PROPERTIES_NO_FILTER = [
     'name', // no filter on name, if the id has ner support, we'll generate prim for it
     'description', // we consider a question not answerable if we don't have specific property for it
@@ -964,13 +969,20 @@ class SchemaProcessor {
 
             if (KEYWORDS.includes(typename))
                 typename = '_' + typename;
+
+            let query_canonical;
+            if (this._manual && typename in MANUAL_TABLE_CANONICAL_OVERRIDE)
+                query_canonical = MANUAL_TABLE_CANONICAL_OVERRIDE[typename];
+            else
+                query_canonical = clean(typename);
+
             queries[typename] = new Ast.FunctionDef(null, 'query', null /* class */, typename,
                 typedef.extends, {
                     is_list: true,
                     is_monitorable: false,
                 }, args, {
                     nl: {
-                        'canonical': clean(typename),
+                        'canonical': query_canonical,
                         'confirmation': clean(typename),
                     },
                     impl: keepAnnotation ? {
