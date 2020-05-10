@@ -1614,11 +1614,15 @@ function makeAggComputeArgMinMaxExpression(table, operation, field, list, result
 
 }
 
-function makeArgMinMaxTable(table, pname, direction = 'desc') {
+function makeArgMinMaxTable(table, pname, direction = 'desc', count) {
     if (hasUniqueFilter(table))
         return null;
     const sort = new Ast.Table.Sort(null, table, pname, direction, table.schema.clone());
-    return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], sort.schema);
+    if (!count)
+        return sort;
+    if (count === 1)
+        return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], sort.schema);
+    return new Ast.Table.Slice(null, sort, new Ast.Value.Number(1), new Ast.Value.Number(count), sort.schema);
 }
 
 function isSameFunction(fndef1, fndef2) {

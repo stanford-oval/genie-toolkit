@@ -104,6 +104,7 @@ one_clean_filter_table = {
     !nofilter filter:apv_filter table:complete_table => C.addFilter(table, filter);
     !nofilter table:complete_table filter:pvp_filter => C.addFilter(table, filter);
     !nofilter table:complete_table filter:preposition_filter => C.addFilter(table, filter);
+    !nofilter filter:quality_filter table:complete_table => C.addFilter(table, filter);
 }
 
 two_with_filter_table = {
@@ -149,6 +150,7 @@ two_clean_filter_table = {
     !nofilter filter:apv_filter table:one_clean_filter_table => C.addFilter(table, filter);
     !nofilter table:one_clean_filter_table filter:pvp_filter => C.addFilter(table, filter);
     !nofilter table:one_clean_filter_table filter:preposition_filter => C.addFilter(table, filter);
+    !nofilter filter:quality_filter table:one_clean_filter_table => C.addFilter(table, filter);
 }
 
 three_with_filter_table = {
@@ -191,6 +193,7 @@ three_clean_filter_table = {
     !nofilter filter:apv_filter table:two_clean_filter_table => C.addFilter(table, filter);
     !nofilter table:two_clean_filter_table filter:pvp_filter => C.addFilter(table, filter);
     !nofilter table:two_clean_filter_table filter:preposition_filter => C.addFilter(table, filter);
+    !nofilter filter:quality_filter table:two_clean_filter_table => C.addFilter(table, filter);
 }
 
 anything_phrase = {
