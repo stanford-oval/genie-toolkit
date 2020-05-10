@@ -34,6 +34,7 @@ class DialogueToTurnStream extends Stream.Transform {
         this._flags = options.flags;
         this._idPrefix = options.idPrefix;
         this._target = require('../lib/languages/' + options.targetLanguage);
+        this._dedupe = options.deduplicate ? new Set : undefined;
 
         this._tokenized = options.tokenized;
         this._tokenizer = null;
@@ -54,6 +55,10 @@ class DialogueToTurnStream extends Stream.Transform {
         return tokenized;
     }
 
+    _getDedupeKey(context, utterance) {
+        return context.join(' ') + '<sep>' + utterance.join(' ');
+    }
+
     async _emitAgentTurn(i, turn, dlg) {
         if (i === 0)
             return;
@@ -66,6 +71,13 @@ class DialogueToTurnStream extends Stream.Transform {
         const agentCode = await this._target.serializePrediction(agentTarget, '', contextEntities, 'agent');
 
         const { tokens, } = await this._preprocess(turn.agent, contextEntities);
+
+        if (this._dedupe) {
+            const key = this._getDedupeKey(contextCode, tokens);
+            if (this._dedupe.has(key))
+                return;
+            this._dedupe.add(key);
+        }
 
         this.push({
             id: this._flags + '' + this._idPrefix + dlg.id + '/' + i,
@@ -95,6 +107,13 @@ class DialogueToTurnStream extends Stream.Transform {
         const { tokens, entities } = await this._preprocess(turn.user, contextEntities);
         const userTarget = await this._target.parse(turn.user_target, this._options);
         const code = await this._target.serializePrediction(userTarget, tokens, entities, 'user');
+
+        if (this._dedupe) {
+            const key = this._getDedupeKey(contextCode, tokens);
+            if (this._dedupe.has(key))
+                return;
+            this._dedupe.add(key);
+        }
 
         this.push({
             id: this._flags + '' + this._idPrefix + dlg.id + '/' + i,
@@ -142,6 +161,11 @@ module.exports = {
             required: true,
             type: fs.createWriteStream
         });
+        parser.addArgument(['-l', '--locale'], {
+            required: false,
+            defaultValue: 'en-US',
+            help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
+        });
         parser.addArgument('--tokenized', {
             required: false,
             action: 'storeTrue',
@@ -179,15 +203,22 @@ module.exports = {
             defaultValue: '',
             help: 'Prefix to add to all sentence IDs (useful to combine multiple datasets).'
         });
+        parser.addArgument('--deduplicate', {
+            nargs: 0,
+            action: 'storeTrue',
+            defaultValue: false,
+            help: 'Do not output duplicate turns (with the same preprocessed context and utterance)'
+        });
+        parser.addArgument('--no-deduplicate', {
+            nargs: 0,
+            action: 'storeFalse',
+            dest: 'deduplicate',
+            help: 'Output duplicate turns (with the same preprocessed context and utterance)'
+        });
         parser.addArgument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input dialog file; use - for standard input'
-        });
-        parser.addArgument(['-l', '--locale'], {
-            required: false,
-            defaultValue: 'en-US',
-            help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
         });
         parser.addArgument('--debug', {
             nargs: 0,
@@ -218,6 +249,7 @@ module.exports = {
                 idPrefix: args.id_prefix,
                 side: args.side,
                 tokenized: args.tokenized,
+                deduplicate: args.deduplicate,
                 debug: args.debug
             }))
             .pipe(new DatasetStringifier())
