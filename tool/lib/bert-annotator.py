@@ -69,32 +69,26 @@ class GPT2Ranker:
         self.model = GPT2LMHeadModel.from_pretrained('gpt2')
         self.model.eval()
 
-        self.prompt_token = '<paraphrase>'
-        self.end_token = '</paraphrase>'
-
     def rank(self, phrases):
-        return sorted(range(len(phrases)), key=lambda i: self.score(phrases[i]), reverse=True)
+        """
+        Return the indices of elements in `phrases` in descending naturalness order. So phrases[GPT2Ranker.rank(phrases)[0]] is the most natural phrase
+        :param phrases: a list of strings
+        """
+        return sorted(range(len(phrases)), key=lambda i: self.score(phrases[i]), reverse=False) # lower score means more natural sentence
 
     def score(self, sentence):
         indexed_tokens = self.tokenizer.encode(sentence)
-        position_ids = list(range(len(indexed_tokens)))
-        segments_ids = [0] * len(indexed_tokens)
-
         tokens_tensor = torch.tensor(indexed_tokens)
-        segments_tensors = torch.tensor(segments_ids)
-        position_tensors = torch.tensor(position_ids)
 
         with torch.no_grad():
             outputs = self.model(
                 input_ids=tokens_tensor,
-                token_type_ids=segments_tensors,
-                position_ids=position_tensors
+                labels=tokens_tensor
             )
-            next_token = tokens_tensor.unsqueeze(-1)
-            logprobs = F.log_softmax(outputs[0], dim=-1)
-            score = torch.exp(torch.mean(logprobs.gather(1, next_token)))
+            loss = outputs[0]
+            score = torch.exp(loss).item() # perplexity
 
-        return score.item()
+        return score
 
 
 class BertLM:
