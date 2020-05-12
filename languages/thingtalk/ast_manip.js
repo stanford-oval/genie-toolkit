@@ -468,7 +468,18 @@ function makeMultiFieldProjection(ftype, table, outParams) {
     }
 }
 
-function makeArgMaxMinTable(table, pname, direction) {
+function makeArgMaxMinTable(table, pname, direction, count) {
+    const t_sort = makeSortedTable(table, pname, direction);
+
+    if (!t_sort)
+        return null;
+
+    if (!count || count === 1)
+        return new Ast.Table.Index(null, t_sort, [new Ast.Value.Number(1)], table.schema);
+    return new Ast.Table.Slice(null, t_sort, new Ast.Value.Number(1), new Ast.Value.Number(count), t_sort.schema);
+}
+
+function makeSortedTable(table, pname, direction = 'desc') {
     if (!table.schema.out[pname] || !table.schema.out[pname].isNumeric())
         return null;
     if (!table.schema.is_list || table.isIndex) //avoid conflict with primitives
@@ -483,8 +494,9 @@ function makeArgMaxMinTable(table, pname, direction) {
         }
     }
 
-    const t_sort = new Ast.Table.Sort(null, table, pname, direction, table.schema);
-    return new Ast.Table.Index(null, t_sort, [new Ast.Value.Number(1)], table.schema);
+    if (hasUniqueFilter(table))
+        return null;
+    return new Ast.Table.Sort(null, table, pname, direction, table.schema);
 }
 
 function checkValidQuery(table) {
@@ -1614,17 +1626,6 @@ function makeAggComputeArgMinMaxExpression(table, operation, field, list, result
 
 }
 
-function makeArgMinMaxTable(table, pname, direction = 'desc', count) {
-    if (hasUniqueFilter(table))
-        return null;
-    const sort = new Ast.Table.Sort(null, table, pname, direction, table.schema.clone());
-    if (!count)
-        return sort;
-    if (count === 1)
-        return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], sort.schema);
-    return new Ast.Table.Slice(null, sort, new Ast.Value.Number(1), new Ast.Value.Number(count), sort.schema);
-}
-
 function isSameFunction(fndef1, fndef2) {
     return fndef1.class.name === fndef2.class.name &&
         fndef1.name === fndef2.name;
@@ -1767,6 +1768,7 @@ module.exports = {
     makeGetPredicate,
 
     makeListExpression,
+    makeSortedTable,
     makeArgMaxMinTable,
     checkValidQuery,
 
@@ -1801,7 +1803,6 @@ module.exports = {
     hasConflictParam,
 
     // compute expressions
-    makeArgMinMaxTable,
     makeComputeExpression,
     makeComputeProjExpression,
     makeComputeFilterExpression,
