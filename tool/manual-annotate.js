@@ -224,6 +224,7 @@ class Trainer extends events.EventEmitter {
                 await program.typecheck(this._schemas);
                 return program;
             } catch(e) {
+                console.error(e);
                 return null;
             }
         }))).filter((c) => c !== null);
