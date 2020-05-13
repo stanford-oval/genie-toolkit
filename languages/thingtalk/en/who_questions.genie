@@ -170,7 +170,7 @@ if (!_tpLoader.flags.nofilter) {
     }
 
     whose_filtered_table = {
-        table:who_complete_table filter:whose_filtered_table => C.addFilter(table, filter);
+        table:who_complete_table filter:whose_npp_filter => C.addFilter(table, filter);
     }
 
 }
