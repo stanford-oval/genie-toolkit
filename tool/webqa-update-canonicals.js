@@ -56,6 +56,12 @@ module.exports = {
             help: 'Skip the entire process.',
             defaultValue: false
         });
+        parser.addArgument('--no-neural', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Only apply rule based heuristics, no neural methods',
+            defaultValue: false
+        });
         parser.addArgument('--pruning', {
             required: false,
             type: Number,

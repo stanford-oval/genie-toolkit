@@ -17,7 +17,7 @@ const utils = require('../../lib/utils');
 const { makeLookupKeys } = require('../../lib/sample-utils');
 
 const ANNOTATED_PROPERTIES = [
-    'url', 'name', 'description',
+    'url', 'name', 'description', 'image',
     'geo', 'address.streetAddress', 'address.addressCountry', 'address.addressRegion', 'address.addressLocality'
 ];
 
@@ -38,6 +38,7 @@ class AutoCanonicalAnnotator {
         this.constants = constants;
         this.queries = queries;
 
+        this.no_neural = options.no_neural;
         this.pruning = options.pruning;
         this.mask = options.mask;
         this.is_paraphraser = options.is_paraphraser;
@@ -52,14 +53,13 @@ class AutoCanonicalAnnotator {
         this.options = options;
     }
 
-
     async generate() {
         await this._loadParameterDatasetPaths();
 
         const queries = {};
         for (let qname of this.queries) {
             let query = this.class.queries[qname];
-            queries[qname] = { canonical: query.canonical, args: {} };
+            queries[qname] = {canonical: query.canonical, args: {}};
 
             let typeCounts = this._getArgTypeCount(qname);
             for (let arg of query.iterateArguments()) {
@@ -69,7 +69,7 @@ class AutoCanonicalAnnotator {
                     continue;
 
                 // get the paths to the data
-                let p = path.dirname(this.parameterDatasets) + '/'  + this._getDatasetPath(qname, arg);
+                let p = path.dirname(this.parameterDatasets) + '/' + this._getDatasetPath(qname, arg);
                 if (p && fs.existsSync(p))
                     queries[qname]['args'][arg.name]['path'] = p;
 
@@ -81,9 +81,16 @@ class AutoCanonicalAnnotator {
                 if (arg.metadata.canonical.base && !arg.metadata.canonical.property)
                     arg.metadata.canonical.property = [...arg.metadata.canonical.base];
 
+                let typestr = typeToEntityType(query.getArgType(arg.name));
+
+                // if an entity is unique, allow dropping the property name entirely
+                if (typestr && typeCounts[typestr] === 1) {
+                    if (!this.queries.includes(typestr.substring(typestr.indexOf(':') + 1)))
+                        arg.metadata.canonical.property.push('# XXX');
+                }
+
                 // if property is missing, try to use entity type info
                 if (!('property' in arg.metadata.canonical)) {
-                    let typestr = typeToEntityType(query.getArgType(arg.name));
                     // only apply this if there is only one property uses this entity type
                     if (typestr && typeCounts[typestr] === 1) {
                         let base = utils.clean(typestr.substring(typestr.indexOf(':') + 1));
@@ -100,46 +107,49 @@ class AutoCanonicalAnnotator {
             }
         }
 
-        const args = [path.resolve(path.dirname(module.filename), './bert-annotator.py'), 'all'];
-        if (this.is_paraphraser)
-            args.push('--is-paraphraser');
-        if (this.gpt2_ordering)
-            args.push('--gpt2-ordering');
-        if (this.pruning) {
-            args.push('--pruning-threshold');
-            args.push(this.pruning);
-        }
-        args.push('--model-name-or-path');
-        args.push(this.model);
-        args.push(this.mask ? '--mask' : '--no-mask');
+        if (!this.no_neural) {
+            const args = [path.resolve(path.dirname(module.filename), './bert-annotator.py'), 'all'];
+            if (this.is_paraphraser)
+                args.push('--is-paraphraser');
+            if (this.gpt2_ordering)
+                args.push('--gpt2-ordering');
+            if (this.pruning) {
+                args.push('--pruning-threshold');
+                args.push(this.pruning);
+            }
+            args.push('--model-name-or-path');
+            args.push(this.model);
+            args.push(this.mask ? '--mask' : '--no-mask');
 
-        // call bert to generate candidates
-        const child = child_process.spawn(`python3`, args, { stdio: ['pipe', 'pipe', 'inherit'] });
+            // call bert to generate candidates
+            const child = child_process.spawn(`python3`, args, {stdio: ['pipe', 'pipe', 'inherit']});
 
-        const output = util.promisify(fs.writeFile);
-        if (this.options.debug)
-            await output(`./bert-annotator-in.json`, JSON.stringify(queries, null, 2));
+            const output = util.promisify(fs.writeFile);
+            if (this.options.debug)
+                await output(`./bert-annotator-in.json`, JSON.stringify(queries, null, 2));
 
-        const stdout = await new Promise((resolve, reject) => {
-            child.stdin.write(JSON.stringify(queries));
-            child.stdin.end();
-            child.on('error', reject);
-            child.stdout.on('error', reject);
-            child.stdout.setEncoding('utf8');
-            let buffer = '';
-            child.stdout.on('data', (data) => {
-                buffer += data;
+            const stdout = await new Promise((resolve, reject) => {
+                child.stdin.write(JSON.stringify(queries));
+                child.stdin.end();
+                child.on('error', reject);
+                child.stdout.on('error', reject);
+                child.stdout.setEncoding('utf8');
+                let buffer = '';
+                child.stdout.on('data', (data) => {
+                    buffer += data;
+                });
+                child.stdout.on('end', () => resolve(buffer));
             });
-            child.stdout.on('end', () => resolve(buffer));
-        });
 
-        if (this.options.debug)
-            await output(`./bert-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
+            if (this.options.debug)
+                await output(`./bert-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
 
-        const { synonyms, adjectives } = JSON.parse(stdout);
-        this._updateCanonicals(synonyms, adjectives);
-        if (this.gpt2_paraphraser)
-            await this._gpt2UpdateCanonicals(synonyms, queries);
+            const {synonyms, adjectives} = JSON.parse(stdout);
+            this._updateCanonicals(synonyms, adjectives);
+            if (this.gpt2_paraphraser)
+                await this._gpt2UpdateCanonicals(synonyms, queries);
+        }
+
         return this.class;
     }
 
