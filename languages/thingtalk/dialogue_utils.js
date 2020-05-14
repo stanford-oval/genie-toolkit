@@ -383,7 +383,6 @@ function initialRequest(stmt) {
                     }
                 }
             }
-            assert(newStatements.length > 0);
         }
         newStatements.push(stmt);
 
