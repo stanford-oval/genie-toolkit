@@ -18,25 +18,35 @@ const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('./lib/parserclient');
 const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('../lib/evaluators');
 
-function csvDisplay(args, complexity, result) {
+function csvDisplay(args, complexity, result, with_numeric=false, without_numeric=false) {
     let buffer = '';
     if (args.csv_prefix)
         buffer = args.csv_prefix + ',';
 
-    if (complexity === null) {
+    let prefix = '';
+    if (with_numeric) {
+        prefix = `with_numeric_`;
+        buffer += `with_numeric, ` + String(result[`${prefix}total`]);
+    } else if (without_numeric) {
+        prefix = `without_numeric_`;
+        buffer += `without_numeric, ` + String(result[`${prefix}total`]);
+    } else if (complexity === null) {
         buffer += 'all,';
         buffer += String(result.total);
     } else {
-        if (!result[`complexity_${complexity}/total`])
+        prefix = `complexity_${complexity}/`;
+        if (!result[`${prefix}total`])
             return;
-        buffer += String(complexity) + ',' + String(result[`complexity_${complexity}/total`]);
+
+        buffer += String(complexity) + ',' + String(result[`${prefix}total`]);
     }
     for (let key of ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax']) {
-        const fullkey = complexity === null ? key : `complexity_${complexity}/${key}`;
+        const fullkey = `${prefix}${key}`;
         result[fullkey].length = parseInt(process.env.CSV_LENGTH || 1);
         buffer += ',';
         buffer += String(result[fullkey]);
     }
+
     args.output.write(buffer + '\n');
 }
 
@@ -142,6 +152,8 @@ module.exports = {
                 for (let complexity = 0; complexity < 10; complexity++)
                     csvDisplay(args, complexity, result);
             }
+            csvDisplay(args, null, result, true);
+            csvDisplay(args, null, result, false, true);
         } else {
             for (let key in result) {
                 if (Array.isArray(result[key]))
