@@ -19,6 +19,7 @@ const csvstringify = require('csv-stringify');
 const Tokenizer = require('../lib/tokenizer');
 const StreamUtils = require('../lib/stream-utils');
 const { makeMetadata } = require('./lib/webqa-metadata');
+const { PROPERTIES_NO_FILTER } = require('./lib/webqa-manual-annotations');
 
 const MAX_CHARS = 200;
 
@@ -102,6 +103,12 @@ class ParamDatasetGenerator {
 
         if (typeof expectedType.type === 'string') {
             // entity of builtin type
+
+            const key = path[path.length-1];
+
+            // no string set needed if the field is not filterable
+            if (PROPERTIES_NO_FILTER.includes(key))
+                return;
 
             if (expectedType.type === 'tt:String') {
                 assert(typeof value === 'string');

@@ -89,6 +89,9 @@ function recursiveAddStringValues(arg, fileId) {
     while (type.isArray)
         type = type.elem;
 
+    if (fileId in PROPERTIES_NO_FILTER)
+        return;
+
     if (type.isEntity && STRING_FILE_OVERRIDES[fileId]) {
         arg.annotations['string_values'] = new Ast.Value.String(STRING_FILE_OVERRIDES[fileId]);
         return;
