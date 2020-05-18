@@ -36,7 +36,7 @@ class AutoCanonicalAnnotator {
         this.constants = constants;
         this.queries = queries;
 
-        this.no_neural = options.no_neural;
+        this.algorithm = options.algorithm;
         this.pruning = options.pruning;
         this.mask = options.mask;
         this.is_paraphraser = options.is_paraphraser;
@@ -87,7 +87,7 @@ class AutoCanonicalAnnotator {
                 // if an entity is unique, allow dropping the property name entirely
                 if (typestr && typeCounts[typestr] === 1) {
                     if (!this.queries.includes(typestr.substring(typestr.indexOf(':') + 1)))
-                        arg.metadata.canonical.property.push('# XXX');
+                        arg.metadata.canonical.property.push('#');
                 }
 
                 // if property is missing, try to use entity type info
@@ -108,7 +108,7 @@ class AutoCanonicalAnnotator {
             }
         }
 
-        if (!this.no_neural) {
+        if (this.algorithm === 'neural') {
             const args = [path.resolve(path.dirname(module.filename), './bert-annotator.py'), 'all'];
             if (this.is_paraphraser)
                 args.push('--is-paraphraser');
