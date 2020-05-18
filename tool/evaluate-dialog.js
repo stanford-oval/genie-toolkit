@@ -15,7 +15,7 @@ const ThingTalk = require('thingtalk');
 const { DialogParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('./lib/parserclient');
-const { DialogEvaluatorStream, CollectDialogStatistics } = require('../lib/evaluators');
+const { DialogueEvaluatorStream, CollectDialogueStatistics } = require('../lib/dialogue_evaluator');
 
 module.exports = {
     initArgparse(subparsers) {
@@ -81,8 +81,8 @@ module.exports = {
 
         const output = readAllLines(args.input_file, '====')
             .pipe(new DialogParser())
-            .pipe(new DialogEvaluatorStream(parser, schemas, args.tokenized, args.debug))
-            .pipe(new CollectDialogStatistics());
+            .pipe(new DialogueEvaluatorStream(parser, schemas, args.tokenized, args.debug))
+            .pipe(new CollectDialogueStatistics());
 
         const result = await output.read();
 
