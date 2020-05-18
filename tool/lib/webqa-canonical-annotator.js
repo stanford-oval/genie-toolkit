@@ -15,11 +15,9 @@ const child_process = require('child_process');
 const utils = require('../../lib/utils');
 
 const { makeLookupKeys } = require('../../lib/sample-utils');
+const { PROPERTY_CANONICAL_OVERRIDE } = require('./webqa-manual-annotations');
 
-const ANNOTATED_PROPERTIES = [
-    'url', 'name', 'description', 'image',
-    'geo', 'address.streetAddress', 'address.addressCountry', 'address.addressRegion', 'address.addressLocality'
-];
+const ANNOTATED_PROPERTIES = Object.keys(PROPERTY_CANONICAL_OVERRIDE);
 
 
 // extract entity type from type
@@ -66,6 +64,9 @@ class AutoCanonicalAnnotator {
                 queries[qname]['args'][arg.name] = {};
 
                 if (ANNOTATED_PROPERTIES.includes(arg.name))
+                    continue;
+
+                if (arg.name.includes('.') && ANNOTATED_PROPERTIES.includes(arg.name.slice(arg.name.indexOf('.') + 1)))
                     continue;
 
                 // get the paths to the data

@@ -20,6 +20,10 @@ const crypto = require('crypto');
 
 const StreamUtils = require('../lib/stream-utils');
 const { makeMetadata } = require('./lib/webqa-metadata');
+const {
+    PROPERTY_RENAMES,
+    ENUM_VALUE_NORMALIZE
+} = require('./lib/webqa-manual-annotations');
 
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
@@ -73,33 +77,6 @@ function parseMeasure(str) {
 
     return ThingTalk.Units.transformToBaseUnit(parseFloat(value), unit);
 }
-
-// maps old name to new name
-const PROPERTY_RENAMES = {
-    'checkInTime': 'checkinTime',
-    'checkOutTime': 'checkoutTime',
-    'AggregateRating': 'aggregateRating',
-    'awards': 'award',
-
-    // clean up property ambiguity by consolidating to one property
-    'reviewBody': 'description',
-};
-
-// enum normalization
-const ENUM_VALUE_NORMALIZE = {
-    'itemCondition': {
-        'New': 'NewCondition',
-        'BrandNew': 'NewCondition',
-        'NewWithBox': 'NewCondition',
-        'NewWithTags': 'NewCondition',
-        'NewWithoutTags': 'UsedCondition',
-        'OpenBox': 'UsedCondition',
-        'Used': 'UsedCondition',
-        'ManufacturerRefurbished': 'RefurbishedCondition',
-        'SellerRefurbished': 'RefurbishedCondition',
-        '--notSpecified': undefined
-    }
-};
 
 function ensureArray(value) {
     if (Array.isArray(value))
