@@ -15,7 +15,7 @@ const util = require('util');
 const ThingTalk = require('thingtalk');
 
 const { parseConstantFile } = require('./lib/constant-file');
-const CanonicalGenerator = require('./lib/webqa-canonical-generator');
+const Annotator = require('./lib/webqa-canonical-annotator');
 const StreamUtils = require('../lib/stream-utils');
 
 async function loadClassDef(thingpedia) {
@@ -56,6 +56,11 @@ module.exports = {
             help: 'Skip the entire process.',
             defaultValue: false
         });
+        parser.addArgument('--algorithm', {
+            choices: ['heuristics', 'neural'],
+            help: 'Only apply rule based heuristics, no neural methods',
+            defaultValue: 'neural'
+        });
         parser.addArgument('--pruning', {
             required: false,
             type: Number,
@@ -77,6 +82,22 @@ module.exports = {
             defaultValue: false,
             action: 'storeTrue',
             help: `Set to True if model_name_or_path was fine-tuned on a paraphrasing dataset`
+        });
+        parser.addArgument('--gpt2-ordering', {
+            required: false,
+            defaultValue: false,
+            action: 'storeTrue',
+            help: `Set to True to use gpt2 to decide where to put value`
+        });
+        parser.addArgument('--gpt2-paraphraser', {
+            required: false,
+            defaultValue: false,
+            action: 'storeTrue',
+            help: `Set to True to use gpt2 paraphrase to automatically extract canonicals`
+        });
+        parser.addArgument('--gpt2-paraphraser-model', {
+            required: false,
+            help: `A path to the directory where the gpt2 paraphraser model is saved`
         });
         parser.addArgument('--mask', {
             required: false,
@@ -100,7 +121,7 @@ module.exports = {
         } else {
             const options = args;
             const constants = await parseConstantFile(args.locale, args.constants);
-            const generator = new CanonicalGenerator(classDef, constants, args.queries.split(','), args.parameter_datasets, options);
+            const generator = new Annotator(classDef, constants, args.queries.split(','), args.parameter_datasets, options);
             const updatedClassDef = await generator.generate();
             args.output.end(updatedClassDef.prettyprint());
         }

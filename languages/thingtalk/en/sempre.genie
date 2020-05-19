@@ -17,156 +17,69 @@ const Type = ThingTalk.Type;
 
 // import the combinator library
 const C = require('../ast_manip');
-
 const _tpLoader = require('../load-thingpedia');
-
-function makeComputeExpression(table, operation, operands, resultType) {
-    const computeSchema = table.schema.addArguments([
-        new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType)]);
-    const expression = new Ast.Value.Computation(operation, operands);
-
-    return new Ast.Table.Compute(null, table, expression, null, computeSchema);
-}
-
-function makeComputeProjExpression(table, operation, operands, resultType) {
-    const compute = makeComputeExpression(table, operation, operands, resultType);
-    const projSchema = compute.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === operation);
-
-    return new Ast.Table.Projection(null, compute, [operation], projSchema);
-}
-
-function makeComputeArgMinMaxExpression(table, operation, operands, resultType, direction = 'desc') {
-    if (C.hasUniqueFilter(table))
-        return null;
-    for (let [, filter] of C.iterateFilters(table)) {
-        for (let atom of C.iterateFields(filter)) {
-            if (atom.name === operands[0].name)
-                return null;
-        }
-    }
-    const compute = makeComputeExpression(table, operation, operands, resultType);
-    const projSchema = compute.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === operation);
-    const sort = new Ast.Table.Sort(null, compute, operation, direction, compute.schema);
-    return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], compute.schema);
-}
-
-function makeAggComputeExpression(table, operation, field, list, resultType) {
-    if (C.hasUniqueFilter(table))
-        return null;
-    let name;
-    assert(list.isVarRef || list.isFilter);
-    if (list.isVarRef)
-        name = list.name;
-    else
-        name = list.value.name;
-    assert(typeof name === 'string');
-    let canonical = table.schema.getArgCanonical(name);
-    for (let p of table.schema.iterateArguments()) {
-        if (p.name === name + 'Count' || p.canonical === canonical + 'count' || p.canonical === canonical.slice(0,-1) + ' count') {
-            const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-            return new Ast.Table.Projection(null, table, [p.name], newSchema);
-        }
-    }
-    const computeSchema = table.schema.addArguments([
-        new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType)]);
-    const expression = new Ast.Value.Computation(operation, new Ast.Value.ArrayField(list, field));
-
-    return new Ast.Table.Compute(null, table, expression, null, computeSchema);
-}
-
-function makeAggComputeProjExpression(table, operation, field, list, resultType) {
-    const compute = makeAggComputeExpression(null, table, operation, field, list, resultType);
-    if (!compute)
-        return null;
-    const projSchema = compute.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === operation);
-
-    return new Ast.Table.Projection(null, compute, [operation], projSchema);
-}
-
-function makeAggComputeArgMinMaxExpression(table, operation, field, list, resultType, direction = 'desc') {
-    if (C.hasUniqueFilter(table))
-        return null;
-    const compute = makeAggComputeExpression(null, table, operation, field, list, resultType);
-    if (!compute)
-        return null;
-    const sort = new Ast.Table.Sort(null, compute, operation, direction, compute.schema);
-    return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], compute.schema);
-
-}
-
-function makeProjectTable(table, pname) {
-    const projectSchema = table.schema.filterArguments((arg) => arg.name === pname);
-    return new Ast.Table.Projection(null, table, [pname], projectSchema);
-}
-
-function makeArgMinMaxTable(table, pname, direction = 'desc') {
-    if (C.hasUniqueFilter(table))
-        return null;
-    const sort = new Ast.Table.Sort(null, table, pname, direction, table.schema.clone());
-    return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], sort.schema);
-}
-
 const HERE = new Ast.Value.Location(new Ast.Location.Relative('current_location'));
 
 }
 
 import './constants';
-import '../common-parameters';
+import '../common';
+import '../common-constants';
 
 table = thingpedia_query if complete;
 
 filter = {
-    'whose' p:out_param_Any 'is' v:constant_Any => C.makeFilter(_tpLoader, p, v.getType().isString ? '=~' : '==', v);
-    'whose' p:out_param_Any 'is not' v:constant_Any =>  C.makeFilter(_tpLoader, p, v.getType().isString ? '=~' : '==', v, true);
-    'whose' p:out_param_Array__Any 'is' v:constant_Any => C.makeFilter(_tpLoader, p, 'contains', v);
-    'whose' p:out_param_Array__Any 'is not' v:constant_Any =>  C.makeFilter(_tpLoader, p, 'contains', v, true);
-    'whose' p:out_param_Numeric ('is samller than' | 'at most') v:constant_Numeric => C.makeFilter(_tpLoader, p, '<=', v);
-    'whose' p:out_param_Numeric ('is larger than' | 'at least')  v:constant_Numeric => C.makeFilter(_tpLoader, p, '>=', v);
+    'whose' p:out_param_Any 'is' v:constant_Any => C.makeFilter(p, v.getType().isString ? '=~' : '==', v);
+    'whose' p:out_param_Any 'is not' v:constant_Any =>  C.makeFilter(p, v.getType().isString ? '=~' : '==', v, true);
+    'whose' p:out_param_Array__Any 'is' v:constant_Any => C.makeFilter(p, 'contains', v);
+    'whose' p:out_param_Array__Any 'is not' v:constant_Any =>  C.makeFilter(p, 'contains', v, true);
+    'whose' p:out_param_Numeric ('is samller than' | 'at most') v:constant_Numeric => C.makeFilter(p, '<=', v);
+    'whose' p:out_param_Numeric ('is larger than' | 'at least')  v:constant_Numeric => C.makeFilter(p, '>=', v);
 
-    'that' p:out_param_avp v:constant_Any =>  C.makeFilter(_tpLoader, p, v.getType().isString ? '=~' : '==', v);
-    'that not' p:out_param_avp v:constant_Any => C.makeFilter(_tpLoader, p, v.getType().isString ? '=~' : '==', v, true);
-    'that' p:out_param_avp v:constant_Any =>  C.makeFilter(_tpLoader, p, 'contains', v);
-    'that not' p:out_param_avp v:constant_Any => C.makeFilter(_tpLoader, p, 'contains', v, true);
+    'that' p:out_param_avp v:constant_Any =>  C.makeFilter(p, v.getType().isString ? '=~' : '==', v);
+    'that not' p:out_param_avp v:constant_Any => C.makeFilter(p, v.getType().isString ? '=~' : '==', v, true);
+    'that' p:out_param_avp v:constant_Any =>  C.makeFilter(p, 'contains', v);
+    'that not' p:out_param_avp v:constant_Any => C.makeFilter(p, 'contains', v, true);
 
-    'that has' v:constant_Number p:out_param_Any => C.makeAggregateFilter(_tpLoader, p, 'count', '*', '==', v);
-    'that has' ('less than' | 'at most') v:constant_Number p:out_param_Any => C.makeAggregateFilter(_tpLoader, p, 'count', '*', '<=', v);
-    'that has' ('more than' | 'at least') v:constant_Number p:out_param_Any => C.makeAggregateFilter(_tpLoader, p, 'count', '*', '>=', v);
+    'that has' v:constant_Number p:out_param_Any => C.makeAggregateFilter(p, 'count', '*', '==', v);
+    'that has' ('less than' | 'at most') v:constant_Number p:out_param_Any => C.makeAggregateFilter(p, 'count', '*', '<=', v);
+    'that has' ('more than' | 'at least') v:constant_Number p:out_param_Any => C.makeAggregateFilter(p, 'count', '*', '>=', v);
 }
 
 filtered_table = {
-    t:table f:filter => C.checkAndAddFilter(t, f, _tpLoader);
-    t:filtered_table 'and' f:filter => C.checkAndAddFilter(t, f, _tpLoader);
+    t:table f:filter => C.addFilter(t, f);
+    t:filtered_table 'and' f:filter => C.addFilter(t, f);
 
     // noun reverse
     ( t1:table 'that is' p:out_param_Any 'of' t2:table
     | t1:table 'that is' p:out_param_Any 'of' t2:filtered_table
     | t1:table 'that is' p:out_param_Array__Any 'of' t2:table
     | t1:table 'that is' p:out_param_Array__Any 'of' t2:filtered_table) => {
-        return C.addReverseGetPredicateJoin(t1, t2, p.name, _tpLoader);
+        return C.addReverseGetPredicateJoin(t1, t2, p.name);
     };
     ( t1:table 'that is not' p:out_param_Any 'of' t2:table
     | t1:table 'that is not' p:out_param_Any 'of' t2:filtered_table
     | t1:table 'that is not' p:out_param_Array__Any 'of' t2:table
     | t1:table 'that is not' p:out_param_Array__Any 'of' t2:filtered_table
     ) => {
-        return C.addReverseGetPredicateJoin(t1, t2, p.name, _tpLoader, true);
+        return C.addReverseGetPredicateJoin(t1, t2, p.name, true);
     };
 
     // verb reverse
     ( t1:table 'that' t2:table p:out_param_avp
     | t1:table 'that' t2:filtered_table 'and' p:out_param_avp ) => {
-        return C.addReverseGetPredicateJoin(t1, t2, p.name, _tpLoader);
+        return C.addReverseGetPredicateJoin(t1, t2, p.name);
     };
     ( t1:table 'that' t2:table 'not' p:out_param_avp
     | t1:table 'that' t2:filtered_table 'and not' p:out_param_avp ) => {
-        return C.addReverseGetPredicateJoin(t1, t2, p.name, _tpLoader, true);
+        return C.addReverseGetPredicateJoin(t1, t2, p.name, true);
     };
 
     // arg minmax
     ( table:table 'that has the smallest' p:out_param_Numeric
-    | table:filtered_table 'that has the smallest' p:out_param_Numeric ) => C.makeArgMaxMinTable(table, p, 'asc');
+    | table:filtered_table 'that has the smallest' p:out_param_Numeric ) => C.makeArgMaxMinTable(table, p, 'asc', 1);
     ( table:table 'that has the largest' p:out_param_Numeric
-    | table:filtered_table 'that has the largest' p:out_param_Numeric ) => C.makeArgMaxMinTable(table, p, 'desc');
+    | table:filtered_table 'that has the largest' p:out_param_Numeric ) => C.makeArgMaxMinTable(table, p, 'desc', 1);
 
     // arg minmax on count
     ( table:table 'that has the least number of' p:out_param_Array__Any
@@ -175,8 +88,8 @@ filtered_table = {
             return null;
         const conflictParam = C.hasConflictParam(table, p.name, 'count');
         if (conflictParam)
-            return makeArgMinMaxTable(table, conflictParam, 'asc');
-        return makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'desc');
+            return C.makeArgMaxMinTable(table, conflictParam, 'asc');
+        return C.makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'desc');
     };
     ( table:table 'that has the most number of' p:out_param_Array__Any
     | table:filtered_table 'that has the most number of' p:out_param_Array__Any ) => {
@@ -184,8 +97,8 @@ filtered_table = {
             return null;
         const conflictParam = C.hasConflictParam(table, p.name, 'count');
         if (conflictParam)
-            return makeArgMinMaxTable(table, conflictParam, 'desc');
-        return makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'desc');
+            return C.makeArgMaxMinTable(table, conflictParam, 'desc');
+        return C.makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'desc');
     };
 
     // projection
@@ -245,6 +158,16 @@ filtered_table = {
 
 
 $root = {
-    t:table => C.sayProjectionProgram(_tpLoader, t);
-    t:filtered_table => C.sayProjectionProgram(_tpLoader, t);
+    t:table => {
+        const proj = C.sayProjection(t);
+        if (proj)
+            return C.makeProgram(proj);
+        return null;
+    };
+    t:filtered_table => {
+        const filtered = C.sayProjection(t);
+        if (filtered)
+            return C.makeProgram(filtered);
+        return null;
+    };
 }

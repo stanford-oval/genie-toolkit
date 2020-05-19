@@ -343,7 +343,7 @@ class ThingpediaLoader {
             for (let form of annotvalue) {
                 if (cat === 'base') {
                     this._addOutParam(functionName, pname, ptype, typestr, form.trim());
-                    if (!canonical.npp) {
+                    if (!canonical.npp && !canonical.property) {
                         const expansion = [form, new this._runtime.NonTerminal('constant_' + vtypestr)];
                         this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
 
@@ -590,8 +590,8 @@ class ThingpediaLoader {
             'query',
             { p_name: Type.String },
             new Ast.Table.Filter(null, table, namefilter, table.schema),
-            [`\${p_name}`],
-            [`\${p_name}`],
+            [`\${p_name}`, ...canonical.map((c) => `\${p_name} ${c}`)],
+            [`\${p_name}`, ...canonical.map((c) => `\${p_name} ${c}`)],
             {}
         ));
     }

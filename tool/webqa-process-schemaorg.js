@@ -21,6 +21,24 @@ const util = require('util');
 const { clean, pluralize } = require('../lib/utils');
 const StreamUtils = require('../lib/stream-utils');
 
+const {
+    BUILTIN_TYPEMAP,
+    BLACKLISTED_TYPES,
+    BLACKLISTED_PROPERTIES,
+    STRUCTURED_HIERARCHIES,
+    NON_STRUCT_TYPES,
+    PROPERTY_CANONICAL_OVERRIDE,
+    MANUAL_PROPERTY_CANONICAL_OVERRIDE,
+    MANUAL_TABLE_CANONICAL_OVERRIDE,
+    PROPERTY_FORCE_NOT_ARRAY,
+    PROPERTY_FORCE_ARRAY,
+    PROPERTY_TYPE_OVERRIDE,
+    PROPERTIES_NO_FILTER,
+    PROPERTIES_DROP_WITH_GEO,
+    STRUCT_INCLUDE_THING_PROPERTIES,
+    STRING_FILE_OVERRIDES
+} = require('./lib/webqa-manual-annotations');
+
 const keepAnnotation = false;
 
 function getId(id) {
@@ -35,316 +53,12 @@ function getIncludes(includes) {
         return [getId(includes['@id'])];
 }
 
-const BUILTIN_TYPEMAP = {
-    Time: Type.Time,
-    Number: Type.Number,
-    Float: Type.Number,
-    Integer: Type.Number,
-    Text: Type.String,
-    Boolean: Type.Boolean,
-    DateTime: Type.Date,
-    Date: Type.Date,
-    DataType: Type.Any,
-    URL: Type.Entity('tt:url'),
-    ImageObject: Type.Entity('tt:picture'),
-    Barcode: Type.Entity('tt:picture'),
-
-    Mass: Type.Measure('kg'),
-    Energy: Type.Measure('kcal'),
-    Distance: Type.Measure('m'),
-    Duration: Type.Measure('ms'),
-
-    GeoCoordinates: Type.Location,
-    MonetaryAmount: Type.Currency,
-
-    QuantitativeValue: Type.Any
-};
-
 const KEYWORDS = [
     'let', 'now', 'new', 'as', 'of', 'in', 'out', 'req', 'opt', 'notify', 'return',
     'join', 'edge', 'monitor', 'class', 'extends', 'mixin', 'this', 'import', 'null',
     'enum', 'aggregate', 'dataset', 'oninput', 'sort', 'asc', 'desc', 'bookkeeping',
     'compute', 'true', 'false'
 ];
-
-const BLACKLISTED_TYPES = new Set([
-    'QualitativeValue', 'PropertyValue', 'BedType', 'MedicalBusiness',
-
-    // buggy, causes Audience to turn into an enum
-    'Researcher',
-]);
-
-const BLACKLISTED_PROPERTIES = new Set([
-    'sameAs', 'affiliation', 'mainEntityOfPage',
-    'embedUrl',
-
-    // FIXME we want to black-list aggregateRating.itemReviewed but not Review.itemReviewed...
-    'itemReviewed',
-
-     // This is used as the range of rating
-    'bestRating', 'worstRating',
-
-    // renamed to description during normalization
-    'reviewBody',
-
-    // this causes a loop in PriceSpecification, which turns PriceSpecification into an Entity and that sucks
-    'eligibleTransactionVolume',
-    // same thing, causes a loop in Offer which is bad
-    'addOn',
-
-    // not particularly useful, and kind of confusing
-    'areaServed',
-
-    // handled specially by normalization
-    'priceCurrency'
-]);
-
-const STRUCTURED_HIERARCHIES = [
-    'StructuredValue', 'Rating', 'Offer',
-
-    // FIXME Review is too messy to represent as a structured value, either you lose info or you get cycles
-    // 'Review'
-];
-
-const NON_STRUCT_TYPES = new Set([
-]);
-
-const PROPERTY_FORCE_ARRAY = new Set([
-    'worksFor',
-
-    'recipeCuisine',
-    'recipeCategory',
-]);
-
-const PROPERTY_FORCE_NOT_ARRAY = new Set([
-    'offers'
-]);
-
-const PROPERTY_TYPE_OVERRIDE = {
-    'telephone': Type.Entity('tt:phone_number'),
-    'email': Type.Entity('tt:email_address'),
-    'image': Type.Entity('tt:picture'),
-    'logo': Type.Entity('tt:picture'),
-    'checkinTime': Type.Time,
-    'checkoutTime': Type.Time,
-    'price': Type.Currency,
-
-    'weight': Type.Measure('ms'),
-    'depth': Type.Measure('m'),
-    'description': Type.String,
-    'addressCountry': Type.Entity('tt:country'),
-    'addressRegion': Type.Entity('tt:us_state'),
-
-    // we want to prefer VideoObject to the default Clip
-    'video': Type.Entity('org.schema:VideoObject'),
-
-    // we want to prefer Organization to the default Person
-    'publisher': Type.Entity('org.schema:Organization'),
-
-    // weird number like things, but mostly text
-    'recipeYield': Type.String
-};
-
-const PROPERTY_CANONICAL_OVERRIDE = {
-    // thing
-    url: {
-        base: ['url', 'link']
-    },
-    name: {
-        base: ['name'],
-        passive_verb: ['called']
-    },
-    description: {
-        base: ['description', 'summary'],
-    },
-
-    // location
-    'geo': {
-        base: ['location', 'address'],
-        passive_verb: ["in #", "around #", "at #", "on #"]
-    },
-    'streetAddress': {
-        base: ['street']
-    },
-    'addressCountry': {
-        passive_verb: ["in #"],
-        base: ["country"]
-    },
-    'addressRegion': {
-        passive_verb: ["in #"],
-        base: ["state"]
-    },
-    'addressLocality': {
-        base: ['city']
-    }
-};
-
-const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
-    // restaurants
-    'datePublished': {
-        passive_verb: ["published on #", "written on #"],
-        base: ["date published"]
-    },
-    'ratingValue': {
-        passive_verb: ["rated # star"],
-        base: ["rating"]
-    },
-    'reviewRating': {
-        base: ["rating"]
-    },
-    'telephone': {
-        base: ["telephone", "phone number"]
-    },
-    'servesCuisine': {
-        adjective: ["#"],
-        verb: ["serves # cuisine", "serves # food", "offer # cuisine", "offer # food", "serves", "offers"],
-        property: ["# cuisine", "# food"],
-        base: ["cuisine", "food type"]
-    },
-
-    // hotels
-    'amenityFeature': {
-        base: ['amenity', 'amenity feature'],
-        verb: ['offers #', 'offer #', 'has #', 'have #'],
-    },
-    'checkinTime': {
-        base: ['checkin time', 'check in time', 'check-in time']
-    },
-    'checkoutTime': {
-        base: ['checkout time', 'check out time', 'check-out time']
-    },
-
-    // linkedin
-    alumniOf: {
-        base: ['college degrees', 'universities', "alma maters"],
-        reverse_property: [
-        // who is an alumnus of Stanford
-        "alumni of #", "alumnus of #", "alumna of #",
-        // who is a Stanford alumnus
-        "# alumnus", "# alumni", "# grad", "# graduate"
-        ],
-        verb: [
-        // who went to Stanford
-        "went to #", "graduated from #", "attended #", "studied at #"
-        ],
-        passive_verb: [
-        // who was educated at Stanford ...
-        "educated at #", "graduated from #"
-        ]
-    },
-    award: {
-        base: ['awards'],
-        reverse_property: [
-            // who is a nobel prize winner
-            'winner of #', 'recipient of #',
-            '# winner', '# awardee', '# recipient', '# holder',
-        ],
-        verb: [
-        "has the award #", "has received the # award", "won the award for #", "won the # award",
-        "received the # award", "received the #", "won the #", "won #", "holds the award for #", "holds the # award"
-        ]
-    },
-    affiliation: {
-        base: ['affiliations'],
-        reverse_property: [
-            'member of #'
-        ],
-        passive_verb: [
-            'affiliated with #', 'affiliated to #'
-        ]
-    },
-    worksFor: {
-        base: ['employers'],
-        reverse_property: [
-            'employee of #', '# employee'
-        ],
-        verb: ['works for #', 'works at #', 'worked at #', 'worked for #'],
-        passive_verb: [
-            'employed at #', 'employed by #',
-        ]
-    },
-
-    // recipes
-    author: {
-        base: ['author', 'creator'],
-        passive_verb: [
-            'by', 'made by', 'written by', 'created by', 'authored by', 'uploaded by', 'submitted by'
-        ]
-    },
-    publisher: {
-        base: ['publisher'],
-        passive_verb: [
-            'by', 'made by', 'published by'
-        ],
-    },
-
-    prepTime: {
-        verb: ['takes # to prepare', 'needs # to prepare'],
-        base: ['prep time', 'preparation time', 'time to prep', 'time to prepare']
-    },
-    cookTime: {
-        verb: ['takes # to cook', 'needs # to cook'],
-        base: ['cook time', 'cooking time', 'time to cook']
-    },
-    totalTime: {
-        verb: ['takes #', 'requires #', 'needs #', 'uses #', 'consumes #'],
-        base: ['total time', 'time in total', 'time to make']
-    },
-    recipeYield: {
-        verb: ['yields #', 'feeds #', 'produces #', 'results in #', 'is good for #'],
-        passive_verb: ['yielding #'],
-        base: ['yield amount', 'yield size']
-    },
-    recipeCategory: {
-        base: ['categories']
-    },
-    recipeIngredient: {
-        verb: ['contains', 'uses', 'has'],
-        passive_verb: ['containing', 'using'],
-        base: ['ingredients']
-    },
-    recipeInstructions: {
-        base: ['instructions']
-    },
-    recipeCuisines: {
-        adjective: ["#"],
-        verb: ['belongs to the # cuisine'],
-        base: ['cuisines', 'cuisine']
-    },
-    reviewBody: {
-        base: ['body', 'text', 'content']
-    },
-    saturatedFatContent: {
-        base: ['saturated fat content', 'saturated fat amount', 'saturated fat', 'trans fat']
-    },
-
-    // product
-    mpn: {
-        base: ['manufacturer part number']
-    }
-};
-
-const PROPERTIES_NO_FILTER = [
-    'name', // no filter on name, if the id has ner support, we'll generate prim for it
-    'priceRange',
-
-    // ID properties or opaque strings
-    'gtin13',
-    'productID',
-    'mpn'
-];
-
-const PROPERTIES_DROP_WITH_GEO = [
-    'streetAddress', // street address and address locality should be handled by geo
-    'addressLocality'
-];
-
-// HACK: certain structured types want to get the name & description property from Thing
-const STRUCT_INCLUDE_THING_PROPERTIES = new Set([
-    'LocationFeatureSpecification'
-]);
-
-
 
 function posTag(tokens) {
     return new POS.Tag(tokens)
@@ -370,18 +84,13 @@ function getItemType(typename, typeHierarchy) {
     return 'Thing';
 }
 
-const STRING_FILE_OVERRIDES = {
-    'org.schema.Restaurant:Restaurant_name': 'com.yelp:restaurant_names',
-    'org.schema.Person:Person_name': 'tt:person_full_name',
-    'org.schema.Person:Person_alumniOf': 'tt:university_names',
-    'org.schema.Person:Person_worksFor': 'tt:company_name',
-    'org.schema.Hotel:Hotel_name': 'tt:hotel_name'
-};
-
 function recursiveAddStringValues(arg, fileId) {
     let type = arg.type;
     while (type.isArray)
         type = type.elem;
+
+    if (fileId in PROPERTIES_NO_FILTER)
+        return;
 
     if (type.isEntity && STRING_FILE_OVERRIDES[fileId]) {
         arg.annotations['string_values'] = new Ast.Value.String(STRING_FILE_OVERRIDES[fileId]);
@@ -413,7 +122,11 @@ class SchemaProcessor {
         this._hasGeo = false;
         this._prefix = `${this._className}:`;
         this._white_list = args.white_list.split(',');
+
+        this._wikidata_path = args.wikidata_path;
+        this._wikidata_labels = {};
     }
+
 
     typeToThingTalk(typename, typeHierarchy, manualAnnotation) {
         if (typename in BUILTIN_TYPEMAP)
@@ -580,6 +293,7 @@ class SchemaProcessor {
 
     makeArgCanonical(name, ptype) {
         function cleanName(name) {
+            name = clean(name);
             if (name.endsWith(' value'))
                 return name.substring(0, name.length - ' value'.length);
             return name;
@@ -591,61 +305,63 @@ class SchemaProcessor {
             return MANUAL_PROPERTY_CANONICAL_OVERRIDE[name];
 
         let canonical = {};
-        let base;
-        let plural = ptype && ptype.isArray;
-        name = clean(name);
-        if (!name.includes('.')) {
-            base = plural ? pluralize(cleanName(name)) : cleanName(name);
-        } else {
-            const components = name.split('.');
-            const last = components[components.length - 1];
-            base = plural ? pluralize(last) : last;
-        }
 
-        if (base.endsWith(' content') && ptype.isMeasure) {
-            base = base.substring(0, base.length - ' content'.length);
-            canonical = {
-                verb: ['contains #' + base.replace(/ /g, '_')],
-                base: [base + ' content', base, base + ' amount']
-            };
-            return canonical;
-        }
-
-        if (base.startsWith('has ')) {
-            base = base.substring('has '.length);
-            canonical['base'] = [base];
-        } else if (base.startsWith('is ')) {
-            base = base.substring('is '.length);
-            let tags = posTag(base.split(' '));
-
-            if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1]) || base.endsWith(' of'))
-                canonical["reverse_property"] = [base];
-            else if (['VBN', 'JJ', 'JJR'].includes(tags[0]))
-                canonical["passive_verb"] = [base];
-
-        } else {
-            let tags = posTag(base.split(' '));
-            if (['VBP', 'VBZ'].includes(tags[0])) {
-                if (tags.length === 2 && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
-                    canonical["verb"] = [base.replace(' ', ' # ')];
-                    canonical["base"] = [base.split(' ')[1]];
-                } else {
-                    canonical["verb"] = [base];
-                }
-            } else if (base.endsWith(' of')) {
-                canonical["reverse_property"] = [base];
-            } else if (['VBN', 'JJ', 'JJR'].includes(tags[0]) && !['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
-                // this one is actually somewhat problematic
-                // e.g., all non-words are recognized as JJ, including issn, dateline, funder
-                canonical["passive_verb"] = [base];
-            }
-
-        }
-
+        const candidates = name in this._wikidata_labels ? this._wikidata_labels[name].labels : [cleanName(name)];
+        for (let candidate of [...new Set(candidates)])
+            this.addCanonical(canonical, candidate, ptype);
         if (!("base" in canonical) && this._always_base_canonical)
-            canonical["base"] = [base];
+            canonical["base"] = [cleanName(name)];
 
         return canonical;
+    }
+
+    addCanonical(canonical, name, ptype) {
+        name = name.toLowerCase();
+        // drop all names with char other than letters
+        if (!/^[a-z ]+$/.test(name))
+            return;
+
+        if (ptype && ptype.isArray)
+            name = pluralize(name);
+
+        if (name.endsWith(' content') && ptype.isMeasure) {
+            name = name.substring(0, name.length - ' content'.length);
+            let base = [name + ' content', name, name + ' amount'];
+            let verb = ['contains #' + name.replace(/ /g, '_')];
+            canonical.verb = (canonical.verb || []).concat(verb);
+            canonical.base = (canonical.base || []).concat(base);
+        } else if (name.startsWith('has ')) {
+            name = [name.substring('has '.length)];
+            canonical.base = (canonical.base || [] ).concat(name);
+        } else if (name.startsWith('is ')) {
+            name = name.substring('is '.length);
+            let tags = posTag(name.split(' '));
+
+            if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1]) || name.endsWith(' of'))
+                canonical.reverse_property = (canonical.reverse_property || []).concat([name]);
+            else if (['VBN', 'JJ', 'JJR'].includes(tags[0]))
+                canonical.passive_verb = (canonical.passive_verb || []).concat([name]);
+        } else {
+            let tags = posTag(name.split(' '));
+            if (['VBP', 'VBZ', 'VBD'].includes(tags[0])) {
+                if (tags.length === 2 && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
+                    canonical.verb = (canonical.verb || []).concat([name.replace(' ', ' # ')]);
+                    canonical.base = (canonical.base || []).concat([name.split(' ')[1]]);
+                } else {
+                    canonical.verb = (canonical.verb || []).concat([name]);
+                }
+            } else if (name.endsWith(' of')) {
+                let noun = name.slice(0, -' of'.length);
+                let canonicals = [name, `# ${noun}`, `# 's ${noun}`];
+                canonical.reverse_property = (canonical.reverse_property || []).concat(canonicals);
+            } else if (['VBN', 'VBG', 'JJ', 'JJR'].includes(tags[0]) && !['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
+                // this one is actually somewhat problematic
+                // e.g., all non-words are recognized as JJ, including issn, dateline, funder
+                canonical.passive_verb = (canonical.passive_verb || []).concat([name]);
+            } else {
+                canonical.base = (canonical.base || []).concat(name);
+            }
+        }
     }
 
     async run() {
@@ -656,6 +372,9 @@ class SchemaProcessor {
             schemajsonld = await Tp.Helpers.Http.get(this._url);
             await util.promisify(fs.writeFile)(this._cache, schemajsonld);
         }
+
+        if (this._wikidata_path)
+            this._wikidata_labels = JSON.parse(await (util.promisify(fs.readFile))(this._wikidata_path, { encoding: 'utf8' }));
 
         // type_name -> {
         //    extends: [type_name],
@@ -932,13 +651,20 @@ class SchemaProcessor {
 
             if (KEYWORDS.includes(typename))
                 typename = '_' + typename;
+
+            let query_canonical;
+            if (this._manual && typename in MANUAL_TABLE_CANONICAL_OVERRIDE)
+                query_canonical = MANUAL_TABLE_CANONICAL_OVERRIDE[typename];
+            else
+                query_canonical = clean(typename);
+
             queries[typename] = new Ast.FunctionDef(null, 'query', null /* class */, typename,
                 typedef.extends, {
                     is_list: true,
                     is_monitorable: false,
                 }, args, {
                     nl: {
-                        'canonical': clean(typename),
+                        'canonical': query_canonical,
                         'confirmation': clean(typename),
                     },
                     impl: keepAnnotation ? {
@@ -1004,6 +730,10 @@ module.exports = {
             action: 'storeTrue',
             help: 'Enable manual annotations.',
             defaultValue: false
+        });
+        parser.addArgument('--wikidata-path', {
+            required: false,
+            help: 'path to the json file with wikidata property labels'
         });
         parser.addArgument('--always-base-canonical', {
             nargs: 0,

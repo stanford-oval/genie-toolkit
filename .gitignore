@@ -18,7 +18,9 @@ dataset.tt
 thingpedia.json
 entities.json
 thingpedia.tt
-decanlp/
+genienlp/
+
+env/
 
 # test dirs
 genie-??????

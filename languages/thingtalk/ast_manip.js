@@ -468,7 +468,17 @@ function makeMultiFieldProjection(ftype, table, outParams) {
     }
 }
 
-function makeArgMaxMinTable(table, pname, direction) {
+function makeArgMaxMinTable(table, pname, direction, count) {
+    const t_sort = makeSortedTable(table, pname, direction);
+
+    if (!t_sort)
+        return null;
+
+    count = count || new Ast.Value.Number(1);
+    return new Ast.Table.Slice(null, t_sort, new Ast.Value.Number(1), count, t_sort.schema);
+}
+
+function makeSortedTable(table, pname, direction = 'desc') {
     if (!table.schema.out[pname] || !table.schema.out[pname].isNumeric())
         return null;
     if (!table.schema.is_list || table.isIndex) //avoid conflict with primitives
@@ -483,8 +493,9 @@ function makeArgMaxMinTable(table, pname, direction) {
         }
     }
 
-    const t_sort = new Ast.Table.Sort(null, table, pname, direction, table.schema);
-    return new Ast.Table.Index(null, t_sort, [new Ast.Value.Number(1)], table.schema);
+    if (hasUniqueFilter(table))
+        return null;
+    return new Ast.Table.Sort(null, table, pname, direction, table.schema);
 }
 
 function checkValidQuery(table) {
@@ -706,14 +717,16 @@ function checkFilterUniqueness(table, filter) {
 }
 
 function normalizeFilter(table, filter) {
-    if (filter.isCompute && filter.lhs.isAggregation && filter.lhs.operator === 'count') {
-        let name = filter.lhs.list.name;
+    if (filter.lhs && filter.lhs.isComputation && filter.lhs.op === 'count' && filter.lhs.operands.length === 1) {
+        let name = filter.lhs.operands[0].name;
         let canonical = table.schema.getArgCanonical(name);
+        if (!canonical)
+            return null;
         for (let p of table.schema.iterateArguments()) {
             if (p.name === name + 'Count' ||
                 p.canonical === canonical + ' count' ||
                 p.canonical === canonical.slice(0,-1) + ' count')
-                return new Ast.BooleanExpression.Atom(p.name, '==', filter.rhs);
+                return new Ast.BooleanExpression.Atom(null, p.name, filter.operator, filter.rhs);
         }
     }
 
@@ -721,10 +734,12 @@ function normalizeFilter(table, filter) {
 }
 
 function addFilter(table, filter, forceAdd = false) {
-    if (!checkFilter(table, filter))
+    filter = normalizeFilter(table, filter);
+    if (!filter)
         return null;
 
-    filter = normalizeFilter(table, filter);
+    if (!checkFilter(table, filter))
+        return null;
 
     // when an "unique" parameter has been used in the table
     if (table.schema.no_filter)
@@ -1610,13 +1625,6 @@ function makeAggComputeArgMinMaxExpression(table, operation, field, list, result
 
 }
 
-function makeArgMinMaxTable(table, pname, direction = 'desc') {
-    if (hasUniqueFilter(table))
-        return null;
-    const sort = new Ast.Table.Sort(null, table, pname, direction, table.schema.clone());
-    return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], sort.schema);
-}
-
 function isSameFunction(fndef1, fndef2) {
     return fndef1.class.name === fndef2.class.name &&
         fndef1.name === fndef2.name;
@@ -1759,6 +1767,7 @@ module.exports = {
     makeGetPredicate,
 
     makeListExpression,
+    makeSortedTable,
     makeArgMaxMinTable,
     checkValidQuery,
 
@@ -1793,7 +1802,6 @@ module.exports = {
     hasConflictParam,
 
     // compute expressions
-    makeArgMinMaxTable,
     makeComputeExpression,
     makeComputeProjExpression,
     makeComputeFilterExpression,

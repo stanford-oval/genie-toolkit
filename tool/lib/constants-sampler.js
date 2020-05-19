@@ -19,6 +19,14 @@ function getEntityType(type) {
     return null;
 }
 
+function isString(type) {
+    if (type.isString)
+        return true;
+    if (type.isArray && type.elem.isString)
+        return true;
+    return false;
+}
+
 
 module.exports = class ConstantSampler {
     constructor(schemaRetriever, constProvider, options) {
@@ -81,7 +89,7 @@ module.exports = class ConstantSampler {
                                 constants.push([`param:@${device}.${f}:${arg}:Entity(${entityType})`, `null`, sample]);
                             });
                         }
-                    } else if (argument.type.isString) {
+                    } else if (isString(argument.type)) {
                         samples.forEach((sample) => {
                             constants.push([`param:@${device}.${f}:${arg}:String`, sample]);
                         });

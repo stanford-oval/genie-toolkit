@@ -478,7 +478,12 @@ preposition_filter = {
 // filters on npp parameter for "whose" question
 // e.g.: whose nickname is boogie?
 whose_npp_filter = {
-    p:out_param_Any 'is' x:constant_Any => C.makeFilter(p, op, x);
+    p:out_param_Any 'is' x:constant_Any => C.makeFilter(p, '==', x);
     p:out_param_Any 'is' x:constant_Any => C.makeFilter(p, 'contains', x);
 }
 
+
+//FIXME: calculate threshold using max rating instead of a fixed number
+quality_filter = {
+    ('good' | 'great' | 'nice' | 'decent') => C.makeFilter(new Ast.Value.VarRef('aggregateRating.ratingValue'), '>=', new Ast.Value.Number(4));
+}
