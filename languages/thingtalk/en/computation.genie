@@ -251,7 +251,7 @@ with_arg_min_max_table = {
         ('best' | 'top') count:constant_Number table:with_filtered_table => {
             if (!table.schema.out['aggregateRating.ratingValue'])
                 return null;
-            return C.makeArgMaxMinTable(table, 'aggregateRating.ratingValue', 'desc', count.value);
+            return C.makeArgMaxMinTable(table, 'aggregateRating.ratingValue', 'desc', count);
         };
 
         ('nearest' | 'closest') table:complete_table ('' | 'from here' | 'to here' | 'to me')  => {

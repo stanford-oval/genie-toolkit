@@ -474,9 +474,8 @@ function makeArgMaxMinTable(table, pname, direction, count) {
     if (!t_sort)
         return null;
 
-    if (!count || count === 1)
-        return new Ast.Table.Index(null, t_sort, [new Ast.Value.Number(1)], table.schema);
-    return new Ast.Table.Slice(null, t_sort, new Ast.Value.Number(1), new Ast.Value.Number(count), t_sort.schema);
+    count = count || new Ast.Value.Number(1);
+    return new Ast.Table.Slice(null, t_sort, new Ast.Value.Number(1), count, t_sort.schema);
 }
 
 function makeSortedTable(table, pname, direction = 'desc') {
