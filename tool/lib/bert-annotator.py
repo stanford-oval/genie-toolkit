@@ -280,6 +280,26 @@ class BertLM:
                         break
         return properties
 
+    def predict_implicit_identity(self):
+        """
+        Predict which property can be used as an implicit identity
+
+        :return: an array of properties
+        """
+        k = self.k_adjectives
+        properties = []
+        for table in self.values:
+            query_canonical = self.canonicals[table]
+            predictions = self.predict_one(table, None, 'This ' + query_canonical + ' is a [MASK] .', '[MASK]', k)
+            for param in self.values[table]:
+                values = self.values[table][param]
+                for v in predictions:
+                    if v in values:
+                        properties.append(table + '.' + param)
+                        break
+        return properties
+
+
     def construct_examples(self, query_name, arg_name):
         """
         construct examples for a given argument of a query
@@ -430,7 +450,7 @@ class BertLM:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('command',
-                        choices=['adjectives', 'synonyms', 'all'],
+                        choices=['adjectives', 'implicit_identity', 'synonyms', 'all'],
                         help='Which command do you want to run?')
     parser.add_argument('--mask',
                         action='store_true',
@@ -475,5 +495,7 @@ if __name__ == '__main__':
         output['synonyms'] = bert.predict()
     if args.command == 'adjectives' or args.command == 'all':
         output['adjectives'] = bert.predict_adjectives()
+    if args.command == 'implicit_identity' or args.command == 'all':
+        output['implicit_identity'] = bert.predict_implicit_identity()
 
     print(json.dumps(output))

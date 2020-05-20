@@ -145,8 +145,8 @@ class AutoCanonicalAnnotator {
             if (this.options.debug)
                 await output(`./bert-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
 
-            const {synonyms, adjectives} = JSON.parse(stdout);
-            this._updateCanonicals(synonyms, adjectives);
+            const {synonyms, adjectives, implicit_identity } = JSON.parse(stdout);
+            this._updateCanonicals(synonyms, adjectives, implicit_identity);
             if (this.gpt2_paraphraser)
                 await this._gpt2UpdateCanonicals(synonyms, queries);
         }
@@ -196,14 +196,22 @@ class AutoCanonicalAnnotator {
         return null;
     }
 
-    _updateCanonicals(candidates, adjectives) {
+    _updateCanonicals(candidates, adjectives, implicit_identity) {
         for (let qname of this.queries) {
             for (let arg in candidates[qname]) {
                 if (arg === 'id')
                     continue;
                 let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
                 if (adjectives.includes(`${qname}.${arg}`))
-                        canonicals['adjective'] = ['#'];
+                    canonicals['adjective'] = ['#'];
+
+                if (implicit_identity.includes(`${qname}.${arg}`)) {
+                    canonicals['implicit_identity'] = true;
+                    if ('reverse_property' in canonicals && !canonicals['reverse_property'].includes('#'))
+                        canonicals['reverse_property'].push('#');
+                    else
+                        canonicals['reverse_property'] = ['#'];
+                }
 
                 for (let type in candidates[qname][arg]) {
                     for (let candidate in candidates[qname][arg][type]) {
