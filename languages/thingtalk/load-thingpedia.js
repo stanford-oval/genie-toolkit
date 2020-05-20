@@ -294,15 +294,26 @@ class ThingpediaLoader {
 
         let vtype = ptype;
         let op = '==';
-        if (ptype.isArray) {
-            vtype = ptype.elem;
-            op = 'contains';
-        } else if (pname === 'id') {
-            vtype = Type.String;
+        // true if slot can use a form with "both", that is, "serves both chinese and italian"
+        // (this is false if the slot uses >= or <=, because "arrives by 7pm and 8pm" doesn't make sense
+        let canUseBothForm = false;
+
+        if (arg.annotations.slot_operator) {
+            op = arg.annotations.slot_operator.toJS();
+            assert(['==', '>=', '<=', 'contains'].includes(op));
+            if (op === '>=' || op === '<=')
+                canUseBothForm = false;
+        } else {
+            if (ptype.isArray) {
+                vtype = ptype.elem;
+                op = 'contains';
+            } else if (pname === 'id') {
+                vtype = Type.String;
+            }
         }
         const vtypestr = this._recordType(vtype);
         if (vtypestr === null)
-            return null;
+            return;
 
         for (let cat in canonical) {
             if (cat === 'default')
@@ -340,8 +351,10 @@ class ThingpediaLoader {
                         const expansion = [form, new this._runtime.NonTerminal('constant_' + vtypestr)];
                         this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
 
-                        const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
-                        this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
+                        if (canUseBothForm) {
+                            const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                            this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
+                        }
                     }
                 } else {
                     let [before, after] = form.split('#');
@@ -367,7 +380,8 @@ class ThingpediaLoader {
                         pairexpansion = [new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
                     }
                     this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
-                    this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
+                    if (canUseBothForm)
+                        this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
                 }
             }
         }
