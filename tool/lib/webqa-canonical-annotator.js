@@ -169,7 +169,12 @@ class AutoCanonicalAnnotator {
     async _loadParameterDatasetPaths() {
         const rows = (await (util.promisify(fs.readFile))(this.parameterDatasets, { encoding: 'utf8' })).split('\n');
         for (let row of rows) {
-            let [, key, path] = row.split('\t');
+            let key, path;
+            let split = row.split('\t');
+            if (split.length === 4)
+                [, , key, path] = split;
+            else
+                [, key, path] = split;
             this.parameterDatasetPaths[key] = path;
         }
     }
