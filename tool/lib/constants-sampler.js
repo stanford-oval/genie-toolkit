@@ -10,6 +10,7 @@
 "use strict";
 
 const { choose } = require('../../lib/random');
+const { sampleString } = require('../../lib/utils');
 
 function getEntityType(type) {
     if (type.isEntity)
@@ -47,8 +48,14 @@ module.exports = class ConstantSampler {
     }
 
     _sampleStrings(data) {
-        const sampled = choose(data.filter((string) => string.value.length < 25), this._options.sample_size, this._options.rng);
-        return sampled.filter((string) => /^[a-zA-Z0-9 .]*$/.test(string.value)).map((string) => string.value);
+        const rng = this._options.rng;
+        const sampleOne = function(string) {
+            const sampled = sampleString(string.preprocessed.split(' '), rng);
+            if (sampled)
+                return sampled.join(' ');
+        };
+        const sampled = choose(data.map(sampleOne).filter(Boolean), this._options.sample_size, rng);
+        return sampled.filter((string) => /^[a-zA-Z0-9 .]*$/.test(string));
     }
 
 
