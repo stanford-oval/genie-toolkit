@@ -93,13 +93,13 @@ class Annotator extends events.EventEmitter {
 
                 if (this._outputDialogue.length > 0) {
                     this.emit('learned', {
-                        id: this._serial,
+                        id: this._currentDialogue.id || this._serial,
                         turns: this._outputDialogue,
                     });
                 }
 
                 this.emit('dropped', {
-                    id: this._serial,
+                    id: this._currentDialogue.id || this._serial,
                     turns: this._currentDialogue,
                     comment: `dropped at turn ${this._outputDialogue.length+1}: ${comment}`
                 });
