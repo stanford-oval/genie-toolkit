@@ -105,42 +105,56 @@ both_prefix = {
 
 npp_filter = {}
 npp_input_param = {}
+coref_npp_filter = {}
+coref_npp_input_param = {}
 
 // filters & input parameters on npi parameters
 // npi: Noun-phrase parameter for Identity of the subejct
 // e.g.: "owner of <company>", "student in <university>"
 npi_filter = {}
 npi_input_param = {}
+coref_npi_filter = {}
+coref_npi_input_param = {}
 
 // filters & input parameters on pvp parameters
 // pvp: Passive-Verb Phrase parameter
 // e.g.: "called <nickname>", "born on <date>"
 pvp_filter = {}
 pvp_input_param = {}
+coref_pvp_filter = {}
+coref_pvp_input_param = {}
 
 // filters & input parameters on prep parameters
 // prep: preposition parameter
 // e.g.: "at <time>", "in <area>"
 preposition_filter = {}
 preposition_input_param = {}
+coref_preposition_filter = {}
+coref_preposition_input_param = {}
 
 // filters & input parameters on avp parameters
 // avp: Active-Verb Phrase parameter
 // e.g.: "owns <company>", "studied in <university>"
 avp_filter = {}
 avp_input_param = {}
+coref_avp_filter = {}
+coref_avp_input_param = {}
 
 // filters & input parameters on npv parameters
 // npv: implicit parameter with Noun-Phrase Value, i.e., the parameter itself will not appear in the sentence
 // e.g.: "Bob is a PhD", the parameter `academic_degree` is implicit, and should be inferred by the value "PhD"
 npv_filter = {}
 npv_input_param = {}
+coref_npv_filter = {}
+coref_npv_input_param = {}
 
 // filters & input parameters on apv parameter
 // apv: implicit parameter with Adjective-Phrase Value (similar to npv, but in adjective form)
 // e.g.: "Bob is left-handed"
 apv_filter = {}
 apv_input_param = {}
+coref_apv_filter = {}
+coref_apv_input_param = {}
 
 constant_name = {}
 
