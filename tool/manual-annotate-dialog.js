@@ -232,20 +232,21 @@ class Annotator extends events.EventEmitter {
     next() {
         if (this._outputDialogue.length > 0) {
             this.emit('learned', {
-                id: this._serial,
+                id: this._currentDialogue.id || this._serial,
                 turns: this._outputDialogue,
             });
         }
 
         const { value: nextDialogue, done } = this._nextDialogue.next();
         if (done) {
-            this.emit('end');
+            console.log('All dialogues annotated, waiting 30 seconds to quit...');
+            setTimeout(() => this.emit('end'), 30000);
             return;
         }
 
         if (this._serial > 0)
             console.log();
-        console.log(`Dialog #${this._serial+1}`);
+        console.log(`Dialog #${this._serial+1} (${nextDialogue.id})`);
         this._serial++;
 
         this._currentDialogue = nextDialogue;
@@ -289,12 +290,21 @@ class Annotator extends events.EventEmitter {
         await this._handleUtterance();
     }
 
-    _nextUtterance() {
+    async _nextUtterance() {
         if (this._dialogueState === 'agent') {
+            // "execute" the context again in case the agent introduced some executable result
+
+            let anyChange = true;
+            while (anyChange) {
+                [this._context, this._simulatorState, anyChange] = await this._simulator.execute(this._context, this._simulatorState);
+                if (anyChange)
+                    this._outputTurn.intermediate_context = this._context.prettyprint();
+            }
+
             this._dialogueState = 'user';
-            this._handleUtterance();
+            await this._handleUtterance();
         } else {
-            this._nextTurn();
+            await this._nextTurn();
         }
     }
 

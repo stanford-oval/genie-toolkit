@@ -90,11 +90,20 @@ class DialogueToTurnStream extends Stream.Transform {
     async _emitUserTurn(i, turn, dlg) {
         let context, contextCode, contextEntities;
         if (i > 0) {
-            context = await this._target.parse(turn.context, this._options);
-            // apply the agent prediction to the context to get the state of the dialogue before
-            // the user speaks
-            const agentPrediction = await this._target.parse(turn.agent_target, this._options);
-            context = this._target.computeNewState(context, agentPrediction);
+            // if we have an "intermediate context" (C: block after AT:) we ran the execution
+            // after the agent spoke, so we don't need to apply the agent turn any more
+            //
+            // (this occurs only when annotating multiwoz data, when the agent chooses to complete
+            // an action with incomplete information, choosing the value spontaneously)
+            if (turn.intermediate_context) {
+                context = await this._target.parse(turn.intermediate_context, this._options);
+            } else {
+                context = await this._target.parse(turn.context, this._options);
+                // apply the agent prediction to the context to get the state of the dialogue before
+                // the user speaks
+                const agentPrediction = await this._target.parse(turn.agent_target, this._options);
+                context = this._target.computeNewState(context, agentPrediction);
+            }
 
             const userContext = this._target.prepareContextForPrediction(context, 'user');
             [contextCode, contextEntities] = this._target.serializeNormalized(userContext);
