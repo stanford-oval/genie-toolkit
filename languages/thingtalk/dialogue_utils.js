@@ -1322,6 +1322,8 @@ function addDontCare(stmt, dontcare) {
 function contextualAction(ctx, action) {
     assert(action instanceof Ast.Invocation);
     const ctxInvocation = getActionInvocation(ctx.next);
+    if (ctxInvocation.selector.isBuiltin)
+        return null;
     if (!C.isSameFunction(ctxInvocation.schema, action.schema))
         return null;
     if (action.in_params.length === 0) // common case, no new parameters
