@@ -293,7 +293,7 @@ coref_constant = {
         if (previous.results.results.length === 0)
             return null;
         const ctxStmt = previous.stmt;
-        const ctxSchema = ctxStmt.table ? ctxStmt.schema : ctxStmt.actions[0].schema;
+        const ctxSchema = ctxStmt.table ? ctxStmt.table.schema : ctxStmt.actions[0].schema;
         if (ctxSchema.class.name !== base.schema.class.name)
             return null;
         const result = previous.results.results[0];
