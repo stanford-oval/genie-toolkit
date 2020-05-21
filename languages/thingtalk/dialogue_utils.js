@@ -34,6 +34,7 @@ const {
     addAction,
     addQuery,
     addQueryAndAction,
+    addNewItem,
     replaceAction,
     setOrAddInvocationParam,
 } = require('./state_manip');
@@ -328,20 +329,19 @@ function mergePreambleAndRequest(pair, request) {
     ]), request.schema)];
 }
 
-function initialRequest(stmt) {
+function adjustStatementsForInitialRequest(stmt) {
     if (stmt.stream && _loader.flags.nostream)
         return null;
-
-    let history = [];
 
     if (stmt.table && !C.checkValidQuery(stmt.table))
         return null;
 
+    const newStatements = [];
     if (stmt.table && stmt.actions.some((a) => !a.isNotify)) {
         // split into two statements, one getting the data, and the other using it
 
         const queryStmt = new Ast.Statement.Command(null, stmt.table, [C.notifyAction()]);
-        history.push(new Ast.DialogueHistoryItem(null, queryStmt, null, false));
+        newStatements.push(queryStmt);
 
         const newActions = stmt.actions.map((a) => a.clone());
         for (let action of newActions) {
@@ -362,9 +362,8 @@ function initialRequest(stmt) {
             }
         }
         const actionStmt = new Ast.Statement.Command(null, null, newActions);
-        history.push(new Ast.DialogueHistoryItem(null, actionStmt, null, false));
+        newStatements.push(actionStmt);
     } else {
-        let newStatements = [];
         if (!stmt.table) {
             for (let action of stmt.actions) {
                 for (let param of action.invocation.in_params) {
@@ -385,12 +384,29 @@ function initialRequest(stmt) {
             }
         }
         newStatements.push(stmt);
-
-        for (let stmt of newStatements)
-            history.push(new Ast.DialogueHistoryItem(null, stmt, null, false));
     }
 
+    return newStatements;
+}
+
+function initialRequest(stmt) {
+    const newStatements = adjustStatementsForInitialRequest(stmt);
+    if (newStatements === null)
+        return null;
+
+    const history = newStatements.map((stmt) => new Ast.DialogueHistoryItem(null, stmt, null, 'accepted'));
     return new Ast.DialogueState(null, 'org.thingpedia.dialogue.transaction', 'execute', null, history);
+}
+
+function startNewRequest(ctx, stmt) {
+    const newStatements = adjustStatementsForInitialRequest(stmt);
+    if (newStatements === null)
+        return null;
+
+    const newItems = newStatements.map((stmt) => new Ast.DialogueHistoryItem(null, stmt, null, 'accepted'));
+    const userState = addNewItem(ctx, 'execute', null, 'accepted', ...newItems);
+    const sysState = makeSimpleState(ctx, 'sys_anything_else', null);
+    return checkStateIsValid(ctx, sysState, userState);
 }
 
 /**
@@ -1012,7 +1028,6 @@ function findChainParam(topResult, action) {
             break;
         }
     }
-    assert(chainParam);
     return chainParam;
 }
 
@@ -1045,6 +1060,8 @@ function positiveRecommendationReplyPair(ctx, [topResult, actionProposal, accept
         userState = makeSimpleState(ctx, 'learn_more', null);
     } else {
         const chainParam = findChainParam(topResult, acceptedAction);
+        if (!chainParam)
+            return null;
         userState = addActionParam(ctx, 'execute', acceptedAction, chainParam, topResult.value.id, 'accepted');
     }
 
@@ -1053,6 +1070,8 @@ function positiveRecommendationReplyPair(ctx, [topResult, actionProposal, accept
         sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
     } else {
         const chainParam = findChainParam(topResult, actionProposal);
+        if (!chainParam)
+            return null;
         sysState = addActionParam(ctx, 'sys_recommend_one', actionProposal, chainParam, topResult.value.id, 'proposed');
     }
     return checkStateIsValid(ctx, sysState, userState);
@@ -1119,6 +1138,8 @@ function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, quest
         sysState = makeSimpleState(ctx, sysDialogueAct, null);
     } else {
         const chainParam = findChainParam(topResult, actionProposal);
+        if (!chainParam)
+            return null;
         sysState = addActionParam(ctx, sysDialogueAct, actionProposal, chainParam, topResult.value.id, 'proposed');
     }
 
@@ -1138,6 +1159,8 @@ function recommendationCancelPair(ctx, { topResult, action: actionProposal }) {
         sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
     } else {
         const chainParam = findChainParam(topResult, actionProposal);
+        if (!chainParam)
+            return null;
         sysState = addActionParam(ctx, 'sys_recommend_one', actionProposal, chainParam, topResult.value.id, 'proposed');
     }
 
@@ -1189,6 +1212,8 @@ function positiveListProposalReplyPair(ctx, [results, actionProposal, name, acce
         userState = addQuery(ctx, 'execute', newTable, 'accepted');
     } else {
         const chainParam = findChainParam(results[0], acceptedAction);
+        if (!chainParam)
+            return null;
         userState = addActionParam(ctx, 'execute', acceptedAction, chainParam, name, 'accepted');
     }
 
@@ -1400,6 +1425,8 @@ function recommendationRelatedQuestionPair(ctx, [{ topResult, action: actionProp
         sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
     } else {
         const chainParam = findChainParam(topResult, actionProposal);
+        if (!chainParam)
+            return null;
         sysState = addActionParam(ctx, 'sys_recommend_one', actionProposal, chainParam, topResult.value.id, 'proposed');
     }
 
@@ -1512,7 +1539,18 @@ function checkActionErrorMessage(ctx, action) {
 
 function actionSuccessTerminalPair(ctx) {
     const sysState = makeSimpleState(ctx, 'sys_action_success', null);
-    const userState = makeSimpleState(ctx, 'end', null);
+    const userState = makeSimpleState(ctx, 'cancel', null);
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
+function actionSuccessRestartPair(ctx, [action, newStmt]) {
+    const newStatements = adjustStatementsForInitialRequest(newStmt);
+    if (newStatements === null)
+        return null;
+
+    const newItems = newStatements.map((stmt) => new Ast.DialogueHistoryItem(null, stmt, null, 'accepted'));
+    const userState = addNewItem(ctx, 'execute', null, 'accepted', ...newItems);
+    const sysState = makeSimpleState(ctx, 'sys_action_success', null);
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -1602,6 +1640,7 @@ module.exports = {
     // user dialogue acts
     mergePreambleAndRequest,
     initialRequest,
+    startNewRequest,
     refineFilterToAnswerQuestion,
     refineFilterToChangeFilter,
     contextualAction,
@@ -1626,6 +1665,7 @@ module.exports = {
     listProposalRelatedQuestionPair,
     emptySearchChangePair,
     actionSuccessTerminalPair,
+    actionSuccessRestartPair,
     actionSuccessQuestionPair,
     actionErrorTerminalPair,
     actionErrorChangeParamPair,

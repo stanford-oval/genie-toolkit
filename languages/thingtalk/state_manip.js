@@ -580,6 +580,7 @@ module.exports = {
 
     // manipulate states to create new states
     makeSimpleState,
+    addNewItem,
     addActionParam,
     addAction,
     addQuery,
