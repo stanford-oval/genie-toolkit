@@ -207,6 +207,7 @@ class DialogueParser extends Stream.Transform {
         flushTurn();
 
         dlg.id = this._id || this._i;
+        this._id = undefined;
         this._i++;
         callback(null, dlg);
     }
