@@ -1259,6 +1259,9 @@ function emptySearchChangePair(ctx, [question, phrase]) {
         return null;
 
     const currentTable = ctx.current.stmt.table;
+    if (!C.isSameFunction(ctx.current.stmt.table.schema, phrase.schema))
+        return null;
+
     const newTable = queryRefinement(currentTable, phrase.filter, refineFilterToChangeFilter);
     if (newTable === null)
         return null;
