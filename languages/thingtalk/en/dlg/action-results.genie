@@ -74,6 +74,11 @@ action_success_terminal_pair = {
     action:action_success_phrase anything_else_phrase '<sep>' thanks_phrase ('goodbye !' | '') => action;
 }
 
+action_success_restart_pair = {
+    action:action_success_phrase anything_else_phrase '<sep>' stmt:initial_command => [action, stmt];
+    action:action_success_phrase anything_else_phrase '<sep>' yes_please_phrase stmt:initial_command => [action, stmt];
+}
+
 action_success_question_pair = {
     action:action_success_phrase anything_else_phrase '<sep>' questions:simple_user_search_question => {
         for (let [qname, qtype] of questions) {

@@ -294,6 +294,8 @@ $agent = {
             return D.makeSimpleState(ctx, 'sys_recommend_one', null);
         } else {
             const chainParam = D.findChainParam(topResult, action);
+            if (!chainParam)
+                return null;
             return D.addActionParam(ctx, 'sys_recommend_one', action, chainParam, topResult.value.id, 'proposed');
         }
     };
@@ -341,9 +343,15 @@ $root = {
         return D.checkStateIsValid(ctx, sysState, userState);
     };
 
+    ( ctx:ctx_cancel anything_else_phrase '<sep>' stmt:initial_command
+    | ctx:ctx_cancel anything_else_phrase '<sep>' yes_please_phrase stmt:initial_command
+    ) => D.startNewRequest(ctx, stmt);
+
     // action results
     ctx:ctx_completed_action_success action_success_terminal_pair
         => D.actionSuccessTerminalPair(ctx);
+    ctx:ctx_completed_action_success pair:action_success_restart_pair
+        => D.actionSuccessRestartPair(ctx, pair);
     ctx:ctx_completed_action_success question:action_success_question_pair
         => D.actionSuccessQuestionPair(ctx, question);
 
