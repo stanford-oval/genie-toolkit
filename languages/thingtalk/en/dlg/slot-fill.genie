@@ -280,6 +280,38 @@ specific_dontcare_phrase = {
     ) => new Ast.BooleanExpression.DontCare(null, param.name);
 }
 
+coref_constant = {
+    ( ctx:ctx_multidomain ('the' | 'the same') base:base_table '\'s' param:out_param_Any '.'
+    | ctx:ctx_multidomain generic_preamble_for_answer ('the' | 'the same') base:base_table '\'s' param:out_param_Any '.'
+    | ctx:ctx_multidomain 'the same' param:out_param_Any 'as' 'the' base:base_table '.'
+    | ctx:ctx_multidomain generic_preamble_for_answer 'the same' param:out_param_Any 'as' 'the' base:base_table  '.'
+    | ctx:ctx_multidomain ('the same as the' | 'the') param:out_param_Any 'of' 'the' base:base_table '.'
+    | ctx:ctx_multidomain generic_preamble_for_answer ('the same as the' | 'the') param:out_param_Any 'of' 'the' base:base_table  '.'
+    ) => {
+        const previous = ctx.previousDomain;
+        assert(previous);
+        if (previous.results.results.length === 0)
+            return null;
+        const ctxStmt = previous.stmt;
+        const ctxSchema = ctxStmt.table ? ctxStmt.table.schema : ctxStmt.actions[0].schema;
+        if (ctxSchema.class.name !== base.schema.class.name)
+            return null;
+        const result = previous.results.results[0];
+        if (!result.value[param.name])
+            return null;
+        return result.value[param.name];
+    };
+}
+
+imprecise_search_coref_answer = {
+    ( slot:coref_constant
+    | slot:coref_npp_filter
+    | slot:coref_apv_filter
+    | slot:coref_pvp_filter
+    | slot:coref_preposition_filter
+    ) => slot;
+}
+
 imprecise_search_question_answer_pair = {
     ( questions:one_param_direct_search_question '<sep>' answer:imprecise_search_answer
     | questions:disjunctive_search_question '<sep>' answer:imprecise_search_answer [weight=2]
@@ -291,6 +323,15 @@ imprecise_search_question_answer_pair = {
     | questions:one_param_yesno_direct_search_question_with_preamble '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_search_answer [weight=2]
     ) => D.impreciseSearchQuestionAnswerPair(questions, answer);
 
+    ( questions:one_param_direct_search_question '<sep>' answer:imprecise_search_coref_answer
+    | questions:disjunctive_search_question '<sep>' answer:imprecise_search_coref_answer [weight=2]
+    | questions:one_param_yesno_direct_search_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_search_coref_answer
+    ) => D.impreciseSearchQuestionAnswerPair(questions, answer);
+
+    ( questions:one_param_direct_search_question_with_preamble '<sep>'  ('yes' | 'yes ,' | '') answer:imprecise_search_coref_answer
+    | questions:disjunctive_search_question_with_preamble '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_search_coref_answer
+    | questions:one_param_yesno_direct_search_question_with_preamble '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_search_coref_answer [weight=2]
+    ) => D.impreciseSearchQuestionAnswerPair(questions, answer);
 
     ( questions:one_param_direct_search_question '<sep>' generic_dontcare_phrase [weight=0.1]
     | questions:disjunctive_search_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
@@ -344,6 +385,16 @@ imprecise_slot_fill_answer_phrase = {
     ) => slot;
 }
 
+imprecise_slot_fill_coref_answer = {
+    ( slot:coref_constant
+    | slot:coref_npp_input_param
+    | slot:coref_apv_input_param
+    | slot:coref_pvp_input_param
+    | slot:coref_preposition_input_param
+    ) => slot;
+}
+
+
 imprecise_slot_fill_answer = {
     ans:imprecise_slot_fill_answer_phrase ('please' | '') '.' => ans;
 
@@ -363,6 +414,9 @@ verbose_slot_fill_answer = {
 
 imprecise_slot_fill_question_answer_pair = {
     questions:one_param_slot_fill_question '<sep>' answer:imprecise_slot_fill_answer
+        => D.impreciseSlotFillQuestionAnswerPair(questions, answer);
+
+    questions:one_param_slot_fill_question '<sep>' answer:imprecise_slot_fill_coref_answer
         => D.impreciseSlotFillQuestionAnswerPair(questions, answer);
 }
 
