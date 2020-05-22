@@ -28,6 +28,7 @@ thingpedia_who_question = {}
 
 thingpedia_search_question = {}
 thingpedia_slot_fill_question = {}
+thingpedia_user_question = {}
 
 thingpedia_result = {}
 thingpedia_action_past = {}

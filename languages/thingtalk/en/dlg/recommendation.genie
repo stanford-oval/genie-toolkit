@@ -269,6 +269,7 @@ positive_recommendation_reply_by_name_pair = {
 
 recommendation_search_question_pair = {
     ( prop:system_recommendation '<sep>' ('no ,' | '') questions:simple_user_search_question
+    | prop:system_recommendation '<sep>' ('no ,' | '') questions:thingpedia_user_question '?' [weight=0.3]
     | prop:system_recommendation '<sep>' questions:boolean_user_search_question
     ) => {
         const { topResult, info, action } = prop;

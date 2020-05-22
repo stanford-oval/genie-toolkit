@@ -249,6 +249,50 @@ class ThingpediaLoader {
         }
     }
 
+    _recordBooleanOutputParam(functionName, arg) {
+        const pname = arg.name;
+        const ptype = arg.type;
+        const typestr = this._recordType(ptype);
+        const pvar = new Ast.Value.VarRef(pname);
+
+        let canonical;
+
+        if (!arg.metadata.canonical)
+            canonical = { base: [clean(pname)] };
+        else if (typeof arg.metadata.canonical === 'string')
+            canonical = { base: [arg.metadata.canonical] };
+        else
+            canonical = arg.metadata.canonical;
+
+        for (let key in canonical) {
+            if (key === 'default')
+                continue;
+
+            let annotvalue = canonical[key];
+            if (!Array.isArray(annotvalue))
+                annotvalue = [annotvalue];
+            if (key === 'base') {
+                for (let form of annotvalue)
+                    this._addOutParam(functionName, pname, ptype, typestr, form.trim());
+
+                continue;
+            }
+
+            const match = /^([a-zA-Z_]+)_(true|false)$/.exec(key);
+            assert(match);
+            if (match === null)
+                continue;
+            let cat = match[1];
+            const value = new Ast.Value.Boolean(match[2] === 'true');
+
+            if (cat in ANNOTATION_RENAME)
+                cat = ANNOTATION_RENAME[cat];
+
+            for (let form of annotvalue)
+                 this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, '==', value, false)));
+        }
+    }
+
     _recordOutputParam(functionName, arg) {
         const pname = arg.name;
         const ptype = arg.type;
@@ -272,9 +316,19 @@ class ThingpediaLoader {
             for (let form of prompt)
                 this._grammar.addRule('thingpedia_search_question', [form], this._runtime.simpleCombine(() => pvar));
         }
+        if (arg.metadata.question) {
+            let question = arg.metadata.question;
+            if (typeof question === 'string')
+                question = [question];
 
-        if (ptype.isBoolean)
+            for (let form of question)
+                this._grammar.addRule('thingpedia_user_question', [form], this._runtime.simpleCombine(() => [[pname, ptype]]));
+        }
+
+        if (ptype.isBoolean) {
+            this._recordBooleanOutputParam(functionName, arg);
             return;
+        }
 
         if (ptype.isArray && ptype.elem.isCompound) {
             this.compoundArrays[pname] = ptype.elem;
