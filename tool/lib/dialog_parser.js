@@ -26,7 +26,7 @@ class DialogueSerializer extends Stream.Transform {
     }
 
     _prefixLines(text, prefix) {
-        return text.split('\n').map((line) => prefix + line + '\n');
+        return text.trim().split('\n').map((line) => prefix + line + '\n');
     }
 
     _transform(dlg, encoding, callback) {
@@ -156,21 +156,21 @@ class DialogueParser extends Stream.Transform {
         let text = '';
         for (let line of lines) {
             let key, newText;
-            if (line.startsWith('A:')) {
+            if (line.startsWith('A: ')) {
                 key = 'agent';
-                newText = line.substring(2).trim();
-            } else if (line.startsWith('U:')) {
+                newText = line.substring(3).trim();
+            } else if (line.startsWith('U: ')) {
                 key = 'user';
-                newText = line.substring(2).trim();
-            } else if (line.startsWith('AT:')) {
+                newText = line.substring(3).trim();
+            } else if (line.startsWith('AT: ')) {
                 key = 'agent_target';
-                newText = line.substring(3).trim();
-            } else if (line.startsWith('UT:')) {
+                newText = line.substring(4);
+            } else if (line.startsWith('UT: ')) {
                 key = 'user_target';
-                newText = line.substring(3).trim();
-            } else if (line.startsWith('C:')) {
+                newText = line.substring(4);
+            } else if (line.startsWith('C: ')) {
                 key = 'context';
-                newText = line.substring(2).trim();
+                newText = line.substring(3);
             } else {
                 throw new Error(`malformed line ${line}, expected to start with C:, U:, A:, AT: or UT:`);
             }
@@ -179,7 +179,7 @@ class DialogueParser extends Stream.Transform {
                 key = 'intermediate_context';
             if (currentKey !== null && currentKey !== key) {
                 assert(text);
-                currentTurn[currentKey] = text;
+                currentTurn[currentKey] = text.trim();
                 text = '';
 
                 if (currentKey === this._keySequence[this._keySequence.length-1])
@@ -197,13 +197,13 @@ class DialogueParser extends Stream.Transform {
                 }
                 currentKey = key;
             }
-            text += newText;
+            text += newText + '\n';
         }
 
         if (currentKey !== this._keySequence[this._keySequence.length-1])
             throw new Error(`malformed dialogue ${this._i}, unterminated last turn`);
 
-        currentTurn[currentKey] = text;
+        currentTurn[currentKey] = text.trim();
         flushTurn();
 
         dlg.id = this._id || this._i;
