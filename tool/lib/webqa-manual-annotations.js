@@ -314,8 +314,59 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['brand'],
         adjective: ['#'],
         passive_verb: ['by #', 'manufactured by #', 'made by #', 'from #']
-    }
+    },
 
+    // books
+    inLanguage: {
+        base: ['language'],
+        adjective: ['#'],
+        passive_verb: ['in #', 'written in #'],
+        reverse_property: ['# version of']
+    },
+    bookEdition: {
+        base: ['edition'],
+        reverse_property: ['# of']
+    },
+    bookFormat: {
+        base: ['format'],
+        passive_verb: ['in #', 'in # format']
+    },
+    numberOfPages: {
+        base: ['number of pages'],
+        property: ['# pages']
+    },
+
+    // movies
+    contentRating: {
+        base: ['content rating'],
+        adjective: ['# rated', '#-rated'],
+        passive_verb: ['rated #']
+    },
+    genre: {
+        base: ['genre'],
+        adjective: ['#']
+    },
+    creator: {
+        base: ['creator', 'producer'],
+        passive_verb: ['created by', 'produced by']
+    },
+    dateCreated: {
+        base: ['date created'],
+        passive_verb: ['created on #']
+    },
+    duration: {
+        base: ['duration', 'length'],
+        adjective: ['# long']
+    },
+    actor: {
+        base: ['actor', 'actress'],
+        property: ['#'],
+        passive_verb: ['played by', 'acted by']
+    },
+    director: {
+        base: ['director'],
+        passive_verb: ['directed by']
+    }
 };
 
 const MANUAL_TABLE_CANONICAL_OVERRIDE = {
