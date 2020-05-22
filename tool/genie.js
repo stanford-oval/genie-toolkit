@@ -61,6 +61,8 @@ const subcommands = {
     'webqa-update-canonicals': require('./webqa-update-canonicals'),
     'webqa-retrieve-wikidata-labels': require('./webqa-retrieve-wikidata-labels'),
     'webqa-annotation-diffchecker': require('./webqa-annotation-diffchecker')
+
+    'auto-annotate-multiwoz': require('./auto-annotate-multiwoz'),
 };
 
 async function main() {
