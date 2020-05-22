@@ -59,6 +59,8 @@ const subcommands = {
     'webqa-trim-class': require('./webqa-trim-class'),
     'webqa-paraphrase-transfer': require('./webqa-paraphrase-transfer'),
     'webqa-update-canonicals': require('./webqa-update-canonicals'),
+
+    'auto-annotate-multiwoz': require('./auto-annotate-multiwoz'),
 };
 
 async function main() {
