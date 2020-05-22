@@ -66,7 +66,13 @@ const BLACKLISTED_PROPERTIES = new Set([
     'areaServed',
 
     // handled specially by normalization
-    'priceCurrency'
+    'priceCurrency',
+
+    // movie properties
+    'dateCreated',
+    'thumbnailUrl',
+    'trailer',
+
 ]);
 
 const STRUCTURED_HIERARCHIES = [
