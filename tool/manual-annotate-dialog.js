@@ -29,6 +29,11 @@ class Annotator extends events.EventEmitter {
 
         this._rl = rl;
         this._nextDialogue = dialogues[Symbol.iterator]();
+        this._hasExistingAnnotations = options.existing_annotations;
+        if (options.only_ids)
+            this._onlyIds = new Set(options.only_ids.split(','));
+        else
+            this._onlyIds = undefined;
 
         const tpClient = new Tp.FileClient(options);
         this._schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
@@ -82,7 +87,7 @@ class Annotator extends events.EventEmitter {
                 return;
             }
             if (line === 'q') {
-                this.emit('quit');
+                this._quit();
                 return;
             }
 
@@ -131,6 +136,26 @@ class Annotator extends events.EventEmitter {
                 this._learnThingTalk(line).catch((e) => this.emit('error', e));
             }
         });
+    }
+
+    _quit() {
+        if (this._hasExistingAnnotations) {
+            if (this._currentTurnIdx > 0)
+                console.log(`WARNING: the current dialogue (${this._currentDialogue.id}) has not been saved, any change will be lost`);
+            this.emit('learned', {
+                id: this._currentDialogue.id || this._serial,
+                turns: this._currentDialogue,
+            });
+            let { value, done } = this._nextDialogue.next();
+            while (!done) {
+                this.emit('learned', { id: value.id, turns: value });
+                let result = this._nextDialogue.next();
+                value = result.value;
+                done = result.done;
+            }
+        }
+
+        this.emit('quit');
     }
 
     _help() {
@@ -239,14 +264,20 @@ class Annotator extends events.EventEmitter {
 
         const { value: nextDialogue, done } = this._nextDialogue.next();
         if (done) {
-            console.log('All dialogues annotated, waiting 30 seconds to quit...');
-            setTimeout(() => this.emit('end'), 30000);
+            this.emit('end');
             return;
         }
 
-        if (this._serial > 0)
-            console.log();
-        console.log(`Dialog #${this._serial+1} (${nextDialogue.id})`);
+        const shouldSkip = this._onlyIds && !this._onlyIds.has(nextDialogue.id);
+
+        if (!shouldSkip) {
+            if (this._serial > 0) {
+                console.log();
+                console.log();
+                console.log();
+            }
+            console.log(`Dialog #${this._serial+1} (${nextDialogue.id})`);
+        }
         this._serial++;
 
         this._currentDialogue = nextDialogue;
@@ -255,7 +286,19 @@ class Annotator extends events.EventEmitter {
         this._outputTurn = undefined;
         this._simulatorState = undefined;
         this._currentTurnIdx = -1;
-        this._nextTurn();
+
+        if (shouldSkip) {
+            // skip this dialogue
+            this.emit('learned', {
+                id: nextDialogue.id,
+                turns: nextDialogue,
+            });
+            setImmediate(() => {
+                this.next();
+            });
+        } else {
+            this._nextTurn();
+        }
     }
 
     async _nextTurn() {
@@ -267,12 +310,14 @@ class Annotator extends events.EventEmitter {
             this.next();
             return;
         }
+
+        const currentTurn = this._currentDialogue[this._currentTurnIdx];
+
         if (this._currentTurnIdx > 0) {
             // "execute" the context
             [this._context, this._simulatorState] = await this._simulator.execute(this._context, this._simulatorState);
         }
 
-        const currentTurn = this._currentDialogue[this._currentTurnIdx];
 
         const contextCode = (this._context ? this._context.prettyprint() : null);
         this._outputTurn = {
@@ -309,7 +354,12 @@ class Annotator extends events.EventEmitter {
     }
 
     async _handleUtterance() {
-        console.log('Context: ' + (this._context ? this._context.prettyprint() : null));
+        if (this._context) {
+            console.log();
+            const contextCode = this._context.prettyprint();
+            for (let line of contextCode.trim().split('\n'))
+                console.log('C: ' + line);
+        }
 
         this._utterance = this._outputTurn[this._dialogueState];
         this._currentKey = this._dialogueState + '_target';
@@ -345,6 +395,19 @@ class Annotator extends events.EventEmitter {
                 return null;
             }
         }))).filter((c) => c !== null);
+
+        if (this._hasExistingAnnotations) {
+            const currentTurn = this._currentDialogue[this._currentTurnIdx];
+            const existing = currentTurn[this._currentKey];
+            if (existing) {
+                try {
+                    const program = await ThingTalk.Grammar.parseAndTypecheck(existing, this._schemas, false);
+                    this._candidates.unshift(program);
+                } catch(e) {
+                    console.log('WARNING: existing annotation fails to parse or typecheck: ' + e.message);
+                }
+            }
+        }
 
         if (this._candidates.length > 0) {
             for (var i = 0; i < 3 && i < this._candidates.length; i++)
@@ -404,18 +467,45 @@ module.exports = {
             defaultValue: 'http://127.0.0.1:8400',
             help: `The URL of the natural language server to parse agent utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
         });
+        parser.addArgument('--existing-annotations', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'The input file already has annotations.',
+            defaultValue: false
+        });
+        parser.addArgument('--only-ids', {
+            required: false,
+            help: 'Only annotate the dialogues with the given IDs, comma-separated (must be given with --existing-annotations)',
+            defaultValue: ''
+        });
         parser.addArgument('input_file', {
             nargs: '+',
             type: fs.createReadStream,
             help: 'Input dialog file'
         });
+
     },
 
     async execute(args) {
+        if (args.only_ids && !args.existing_annotations)
+            throw new Error(`--only-ids is only valid in edit mode (with --existing-annotations)`);
+
         let dialogues = await readAllLines(args.input_file, '====')
-            .pipe(new DialogueParser({ withAnnotations: false }))
+            .pipe(new DialogueParser({ withAnnotations: args.existing_annotations }))
             .pipe(new StreamUtils.ArrayAccumulator())
             .read();
+
+
+        const learned = new DialogueSerializer({ annotations: true });
+        learned.pipe(fs.createWriteStream(args.annotated, { flags: ((args.offset > 1 && !args.existing_annotations) ? 'a' : 'w') }));
+        const dropped = new DialogueSerializer({ annotations: false });
+        dropped.pipe(fs.createWriteStream(args.dropped, { flags: ((args.offset > 1 || args.existing_annotations) ? 'a' : 'w') }));
+
+        if (args.existing_annotations) {
+            // copy over the existing dialogues if we're in editing mode
+            for (let i = 0; i < args.offset-1; i++)
+                learned.write({ id: dialogues[i].id, turns: dialogues[i] });
+        }
 
         if (args.offset > 1)
             dialogues = dialogues.slice(args.offset-1);
@@ -433,10 +523,6 @@ module.exports = {
         const annotator = new Annotator(rl, dialogues, args);
         await annotator.start();
 
-        const learned = new DialogueSerializer({ annotations: true });
-        learned.pipe(fs.createWriteStream(args.annotated, { flags: (args.offset > 1 ? 'a' : 'w') }));
-        const dropped = new DialogueSerializer({ annotations: false });
-        dropped.pipe(fs.createWriteStream(args.dropped, { flags: (args.offset > 1 ? 'a' : 'w') }));
 
         annotator.on('end', quit);
         annotator.on('learned', (dlg) => {
@@ -455,6 +541,8 @@ module.exports = {
             StreamUtils.waitFinish(dropped),
         ]);
         await annotator.stop();
-        process.exit();
+
+        console.log('All dialogues annotated, waiting 30 seconds to quit...');
+        setTimeout(() => process.exit(), 30000);
     }
 };
