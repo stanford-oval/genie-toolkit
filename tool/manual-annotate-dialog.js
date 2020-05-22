@@ -30,6 +30,7 @@ class Annotator extends events.EventEmitter {
         this._rl = rl;
         this._nextDialogue = dialogues[Symbol.iterator]();
         this._hasExistingAnnotations = options.existing_annotations;
+        this._editMode = options.edit_mode;
         if (options.only_ids)
             this._onlyIds = new Set(options.only_ids.split(','));
         else
@@ -139,7 +140,7 @@ class Annotator extends events.EventEmitter {
     }
 
     _quit() {
-        if (this._hasExistingAnnotations) {
+        if (this._editMode) {
             if (this._currentTurnIdx > 0)
                 console.log(`WARNING: the current dialogue (${this._currentDialogue.id}) has not been saved, any change will be lost`);
             this.emit('learned', {
@@ -473,6 +474,12 @@ module.exports = {
             help: 'The input file already has annotations.',
             defaultValue: false
         });
+        parser.addArgument('--edit-mode', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Edit an existing annotated dataset instead of creating a new one (implies --existing-annotations).',
+            defaultValue: false
+        });
         parser.addArgument('--only-ids', {
             required: false,
             help: 'Only annotate the dialogues with the given IDs, comma-separated (must be given with --existing-annotations)',
@@ -487,6 +494,8 @@ module.exports = {
     },
 
     async execute(args) {
+        if (args.edit_mode)
+            args.existing_annotations = true;
         if (args.only_ids && !args.existing_annotations)
             throw new Error(`--only-ids is only valid in edit mode (with --existing-annotations)`);
 
@@ -497,11 +506,11 @@ module.exports = {
 
 
         const learned = new DialogueSerializer({ annotations: true });
-        learned.pipe(fs.createWriteStream(args.annotated, { flags: ((args.offset > 1 && !args.existing_annotations) ? 'a' : 'w') }));
+        learned.pipe(fs.createWriteStream(args.annotated, { flags: ((args.offset > 1 && !args.edit_mode) ? 'a' : 'w') }));
         const dropped = new DialogueSerializer({ annotations: false });
-        dropped.pipe(fs.createWriteStream(args.dropped, { flags: ((args.offset > 1 || args.existing_annotations) ? 'a' : 'w') }));
+        dropped.pipe(fs.createWriteStream(args.dropped, { flags: ((args.offset > 1 || args.edit_mode) ? 'a' : 'w') }));
 
-        if (args.existing_annotations) {
+        if (args.edit_mode) {
             // copy over the existing dialogues if we're in editing mode
             for (let i = 0; i < args.offset-1; i++)
                 learned.write({ id: dialogues[i].id, turns: dialogues[i] });
