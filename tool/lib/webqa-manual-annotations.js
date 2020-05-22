@@ -112,7 +112,11 @@ const PROPERTY_TYPE_OVERRIDE = {
     'publisher': Type.Entity('org.schema:Organization'),
 
     // weird number like things, but mostly text
-    'recipeYield': Type.String
+    'recipeYield': Type.String,
+
+    'genre': Type.Array(Type.String),
+    'creator': Type.Array(Type.Entity('org.schema.Movie:Person')),
+    'contentRating': Type.String
 };
 
 const PROPERTY_CANONICAL_OVERRIDE = {
