@@ -66,7 +66,13 @@ const BLACKLISTED_PROPERTIES = new Set([
     'areaServed',
 
     // handled specially by normalization
-    'priceCurrency'
+    'priceCurrency',
+
+    // movie properties
+    'dateCreated',
+    'thumbnailUrl',
+    'trailer',
+
 ]);
 
 const STRUCTURED_HIERARCHIES = [
@@ -112,7 +118,13 @@ const PROPERTY_TYPE_OVERRIDE = {
     'publisher': Type.Entity('org.schema:Organization'),
 
     // weird number like things, but mostly text
-    'recipeYield': Type.String
+    'recipeYield': Type.String,
+
+    'genre': Type.Array(Type.String),
+    'creator': Type.Array(Type.Entity('org.schema.Movie:Person')),
+    'contentRating': Type.String,
+
+    'byArtist': Type.Entity('org.schema.Music:Person')
 };
 
 const PROPERTY_CANONICAL_OVERRIDE = {
@@ -310,13 +322,77 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['brand'],
         adjective: ['#'],
         passive_verb: ['by #', 'manufactured by #', 'made by #', 'from #']
-    }
+    },
 
+    // books
+    inLanguage: {
+        base: ['language'],
+        adjective: ['#'],
+        passive_verb: ['in #', 'written in #'],
+        reverse_property: ['# version of']
+    },
+    bookEdition: {
+        base: ['edition'],
+        reverse_property: ['# of']
+    },
+    bookFormat: {
+        base: ['format'],
+        passive_verb: ['in #', 'in # format']
+    },
+    numberOfPages: {
+        base: ['number of pages'],
+        property: ['# pages']
+    },
+
+    // movies
+    contentRating: {
+        base: ['content rating'],
+        adjective: ['# rated', '#-rated'],
+        passive_verb: ['rated #']
+    },
+    genre: {
+        base: ['genre'],
+        adjective: ['#']
+    },
+    creator: {
+        base: ['creator', 'producer'],
+        passive_verb: ['created by', 'produced by']
+    },
+    dateCreated: {
+        base: ['date created'],
+        passive_verb: ['created on #']
+    },
+    duration: {
+        base: ['duration', 'length'],
+        adjective: ['# long']
+    },
+    actor: {
+        base: ['actor', 'actress'],
+        property: ['#'],
+        passive_verb: ['played by', 'acted by']
+    },
+    director: {
+        base: ['director'],
+        passive_verb: ['directed by']
+    },
+
+    // music
+    inAlbum: {
+        base: ['album'],
+        passive_verb: ['in', 'in album', 'included in'],
+    },
+    byArtist: {
+        base: ['artist', 'singer'],
+        adjective: ['# \'s', '#'],
+        passive_verb: ['by', 'by artist'],
+    }
 };
 
 const MANUAL_TABLE_CANONICAL_OVERRIDE = {
     'Restaurant': ['restaurant', 'diner', 'place', 'joint', 'eatery', 'canteen', 'cafeteria', 'cafe'],
-    'Hotel': ['hotel', 'resort', 'lodging', 'model', 'place']
+    'Hotel': ['hotel', 'resort', 'lodging', 'model', 'place'],
+    'MusicRecording': ['song', 'music recording', 'music'],
+    'MusicAlbum': ['album']
 };
 
 const PROPERTIES_NO_FILTER = [
@@ -347,7 +423,11 @@ const STRING_FILE_OVERRIDES = {
     'org.schema.Person:Person_name': 'tt:person_full_name',
     'org.schema.Person:Person_alumniOf': 'tt:university_names',
     'org.schema.Person:Person_worksFor': 'tt:company_name',
-    'org.schema.Hotel:Hotel_name': 'tt:hotel_name'
+    'org.schema.Hotel:Hotel_name': 'tt:hotel_name',
+    'org.schema.Music:MusicRecording_byArtist': 'tt:song_artist',
+    'org.schema.Music:MusicAlbum_byArtist': 'tt:song_artist',
+    'org.schema.Music:MusicRecording_inAlbum': 'tt:song_album',
+    'org.schema.Music:MusicRecording_name': 'tt:song_name',
 };
 
 // maps old name to new name
