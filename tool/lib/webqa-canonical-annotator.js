@@ -78,6 +78,17 @@ class AutoCanonicalAnnotator {
                 if (!arg.metadata.canonical)
                     continue;
 
+                // remove query name in arg name, normally it's repetitive
+                for (let type in arg.metadata.canonical) {
+                    if (Array.isArray(arg.metadata.canonical[type])) {
+                        arg.metadata.canonical[type] = arg.metadata.canonical[type].map((c) => {
+                            if (c.startsWith(qname.toLowerCase() + ' '))
+                                return c.slice(qname.toLowerCase().length + 1);
+                            return c;
+                        });
+                    }
+                }
+
                 // copy base canonical if property canonical is missing
                 if (arg.metadata.canonical.base && !arg.metadata.canonical.property)
                     arg.metadata.canonical.property = [...arg.metadata.canonical.base];
