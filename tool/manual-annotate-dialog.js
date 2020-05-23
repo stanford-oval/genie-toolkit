@@ -42,11 +42,13 @@ class Annotator extends events.EventEmitter {
         this._agentParser = ParserClient.get(options.agent_nlu_server, options.locale);
         this._target = require('../lib/languages/' + options.target_language);
 
+        this._simulatorOverrides = new Map;
         const simulatorOptions = {
             rng: seedrandom.alea('almond is awesome'),
             locale: options.locale,
             thingpediaClient: tpClient,
-            schemaRetriever: this._schemas
+            schemaRetriever: this._schemas,
+            overrides: this._simulatorOverrides,
         };
         if (options.database_file) {
             this._database = new MultiJSONDatabase(options.database_file);
@@ -77,6 +79,11 @@ class Annotator extends events.EventEmitter {
                 return;
 
             line = line.trim();
+
+            if (this._state === 'context' && line.length === 0) {
+                this._flushContextOverride().catch((e) => this.emit('error', e));
+                return;
+            }
 
             if (line.length === 0 || this._state === 'loading') {
                 rl.prompt();
@@ -114,8 +121,19 @@ class Annotator extends events.EventEmitter {
                 return;
             }
 
+            if (/^c: /i.test(line)) {
+                this._addLineToContext(line.substring(3).trim());
+                return;
+            }
+
             if (this._state === 'code') {
                 this._learnThingTalk(line).catch((e) => this.emit('error', e));
+                return;
+            }
+            if (this._state === 'context') {
+                if (/^c:/i.test(line))
+                    line = line.substring(2).trim();
+                this._addLineToContext(line);
                 return;
             }
 
@@ -302,6 +320,18 @@ class Annotator extends events.EventEmitter {
         }
     }
 
+    _extractSimulatorOverrides(utterance) {
+        const car = /\b(black|white|red|yellow|blue|grey) (toyota|skoda|bmw|honda|ford|audi|lexus|volvo|volkswagen|tesla)\b/.exec(utterance);
+        if (car)
+            this._simulatorOverrides.set('car', car[0]);
+
+        for (let token of utterance.split(' ')) {
+            // a reference number is an 8 character token containing both letters and numbers
+            if (token.length === 8 && /[a-z]/.test(token) && /[0-9]/.test(token))
+                this._simulatorOverrides.set('reference_number', token);
+        }
+    }
+
     async _nextTurn() {
         if (this._outputTurn !== undefined)
             this._outputDialogue.push(this._outputTurn);
@@ -315,8 +345,35 @@ class Annotator extends events.EventEmitter {
         const currentTurn = this._currentDialogue[this._currentTurnIdx];
 
         if (this._currentTurnIdx > 0) {
+            this._simulatorOverrides.clear();
+            this._extractSimulatorOverrides(currentTurn.agent);
+
             // "execute" the context
             [this._context, this._simulatorState] = await this._simulator.execute(this._context, this._simulatorState);
+
+            // sort all results based on the presence of the name in the agent utterance
+            for (let item of this._context.history) {
+                if (item.results === null)
+                    continue;
+
+                if (item.results.results.length === 0)
+                    continue;
+
+                let firstResult = item.results.results[0];
+                if (!firstResult.value.id)
+                    continue;
+                item.results.results.sort((one, two) => {
+                    const onerank = currentTurn.agent.toLowerCase().indexOf(one.value.id.display.toLowerCase());
+                    const tworank = currentTurn.agent.toLowerCase().indexOf(two.value.id.display.toLowerCase());
+                    if (onerank === tworank)
+                        return 0;
+                    if (onerank === -1)
+                        return 1;
+                    if (tworank === -1)
+                        return -1;
+                    return onerank - tworank;
+                });
+            }
         }
 
 
@@ -354,6 +411,57 @@ class Annotator extends events.EventEmitter {
         }
     }
 
+    async _flushContextOverride() {
+        if (!this._context || !this._contextOverride)
+            return;
+
+        let firstLine;
+        if (this._dialogueState === 'user' && this._outputTurn.intermediate_context)
+            firstLine = this._outputTurn.intermediate_context.split('\n')[0];
+        else
+            firstLine = this._outputTurn.context.split('\n')[0];
+
+        let ctxOverride;
+        try {
+            ctxOverride = await ThingTalk.Grammar.parseAndTypecheck(firstLine + '\n' + this._contextOverride, this._schemas);
+        } catch(e) {
+            console.log(`${e.name}: ${e.message}`);
+            this._contextOverride = '';
+            this._state = 'context';
+            this._rl.setPrompt('C: ');
+            this._rl.prompt();
+            return;
+        }
+
+        // find the last item that has results, remove that and everything afterwards, and replace it with
+        // what we parsed as the override
+        let idx;
+        for (idx = this._context.history.length-1; idx >= 0; idx--) {
+            const item = this._context.history[idx];
+            if (item.results !== null)
+                break;
+        }
+        this._context.history.splice(idx, this._context.history.length-idx, ...ctxOverride.history);
+
+        // save in the output
+        if (this._dialogueState === 'user')
+            this._outputTurn.intermediate_context = this._context.prettyprint();
+        else
+            this._outputTurn.context = this._context.prettyprint();
+
+        // now handle the utterance again
+        await this._handleUtterance();
+    }
+
+    _addLineToContext(line) {
+        if (this._contextOverride === undefined)
+            this._contextOverride = '';
+        this._contextOverride += line + '\n';
+        this._state = 'context';
+        this._rl.setPrompt('C: ');
+        this._rl.prompt();
+    }
+
     async _handleUtterance() {
         if (this._context) {
             console.log();
@@ -361,6 +469,7 @@ class Annotator extends events.EventEmitter {
             for (let line of contextCode.trim().split('\n'))
                 console.log('C: ' + line);
         }
+        this._contextOverride = undefined;
 
         this._utterance = this._outputTurn[this._dialogueState];
         this._currentKey = this._dialogueState + '_target';
