@@ -398,7 +398,17 @@ function initialRequest(stmt) {
     return new Ast.DialogueState(null, 'org.thingpedia.dialogue.transaction', 'execute', null, history);
 }
 
+function getStatementDevice(stmt) {
+    if (stmt.table)
+        return stmt.table.schema.class.name;
+    else
+        return stmt.actions[0].schema.class.name;
+}
+
 function startNewRequest(ctx, stmt) {
+    if (getStatementDevice(ctx.current.stmt) === getStatementDevice(stmt))
+        return null;
+
     const newStatements = adjustStatementsForInitialRequest(stmt);
     if (newStatements === null)
         return null;
@@ -1546,6 +1556,8 @@ function actionSuccessTerminalPair(ctx) {
 }
 
 function actionSuccessRestartPair(ctx, [action, newStmt]) {
+    if (getStatementDevice(ctx.current.stmt) === getStatementDevice(newStmt))
+        return null;
     const newStatements = adjustStatementsForInitialRequest(newStmt);
     if (newStatements === null)
         return null;
