@@ -42,11 +42,13 @@ class Annotator extends events.EventEmitter {
         this._agentParser = ParserClient.get(options.agent_nlu_server, options.locale);
         this._target = require('../lib/languages/' + options.target_language);
 
+        this._simulatorOverrides = new Map;
         const simulatorOptions = {
             rng: seedrandom.alea('almond is awesome'),
             locale: options.locale,
             thingpediaClient: tpClient,
-            schemaRetriever: this._schemas
+            schemaRetriever: this._schemas,
+            overrides: this._simulatorOverrides,
         };
         if (options.database_file) {
             this._database = new MultiJSONDatabase(options.database_file);
@@ -318,6 +320,18 @@ class Annotator extends events.EventEmitter {
         }
     }
 
+    _extractSimulatorOverrides(utterance) {
+        const car = /\b(black|white|red|yellow|blue|grey) (toyota|skoda|bmw|honda|ford|audi|lexus|volvo|volkswagen|tesla)\b/.exec(utterance);
+        if (car)
+            this._simulatorOverrides.set('car', car[0]);
+
+        for (let token of utterance.split(' ')) {
+            // a reference number is an 8 character token containing both letters and numbers
+            if (token.length === 8 && /[a-z]/.test(token) && /[0-9]/.test(token))
+                this._simulatorOverrides.set('reference_number', token);
+        }
+    }
+
     async _nextTurn() {
         if (this._outputTurn !== undefined)
             this._outputDialogue.push(this._outputTurn);
@@ -331,8 +345,35 @@ class Annotator extends events.EventEmitter {
         const currentTurn = this._currentDialogue[this._currentTurnIdx];
 
         if (this._currentTurnIdx > 0) {
+            this._simulatorOverrides.clear();
+            this._extractSimulatorOverrides(currentTurn.agent);
+
             // "execute" the context
             [this._context, this._simulatorState] = await this._simulator.execute(this._context, this._simulatorState);
+
+            // sort all results based on the presence of the name in the agent utterance
+            for (let item of this._context.history) {
+                if (item.results === null)
+                    continue;
+
+                if (item.results.results.length === 0)
+                    continue;
+
+                let firstResult = item.results.results[0];
+                if (!firstResult.value.id)
+                    continue;
+                item.results.results.sort((one, two) => {
+                    const onerank = currentTurn.agent.toLowerCase().indexOf(one.value.id.display.toLowerCase());
+                    const tworank = currentTurn.agent.toLowerCase().indexOf(two.value.id.display.toLowerCase());
+                    if (onerank === tworank)
+                        return 0;
+                    if (onerank === -1)
+                        return 1;
+                    if (tworank === -1)
+                        return -1;
+                    return onerank - tworank;
+                });
+            }
         }
 
 

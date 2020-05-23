@@ -71,6 +71,13 @@ function getBestEntityMatch(searchTerm, candidates) {
 
     let best = undefined, bestScore = undefined;
 
+    // try an exact match first (faster)
+    for (let cand of candidates) {
+        if (searchTerm === cand.id.display)
+            return cand.id;
+    }
+
+    // now find the one with minimum edit distance
     for (let cand of candidates) {
         let score = editDistance(searchTerm, cand.id.display);
 
@@ -100,6 +107,7 @@ const SEARCH_SLOTS = new Set([
     'attraction-name',
     'attraction-area',
     'attraction-type',
+    'train-name',
     'train-day',
     'train-departure',
     'train-destination',
@@ -124,7 +132,7 @@ const REQUESTED_SLOT_MAP = {
     price: 'price_range',
     wifi: 'internet',
     leave: 'leave_at',
-    arrive: 'arrive_at',
+    arrive: 'arrive_by',
     depart: 'departure',
     dest: 'destination'
 };
@@ -233,6 +241,13 @@ function parseTime(v) {
     return new Ast.Value.Time(new Ast.Time.Absolute(0, 0, 0));
 }
 
+function getStatementDomain(stmt) {
+    if (stmt.table)
+        return stmt.table.schema.class.name;
+    else
+        return stmt.actions[0].schema.class.name;
+}
+
 class Converter extends stream.Readable {
     constructor(args) {
         super({ objectMode: true });
@@ -243,12 +258,14 @@ class Converter extends stream.Readable {
         this._agentParser = ParserClient.get(args.agent_nlu_server, 'en-US');
 
         this._target = require('../lib/languages/dlgthingtalk');
+        this._simulatorOverrides = new Map;
         const simulatorOptions = {
             rng: seedrandom.alea('almond is awesome'),
             locale: 'en-US',
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
-            forceEntityResolution: true
+            forceEntityResolution: true,
+            overrides: this._simulatorOverrides
         };
         this._database = new MultiJSONDatabase(args.database_file);
         simulatorOptions.database = this._database;
@@ -350,7 +367,10 @@ class Converter extends stream.Readable {
     _resolveEntity(value) {
         const resolved = getBestEntityMatch(value.display, this._database.get(value.type));
         value.value = resolved.value;
-        value.display = resolved.display;
+
+        // do not override the display field, it should match the sentence instead
+        // it will be overridden later when round-tripped through the executor
+        //value.display = resolved.display;
     }
 
     async _doUserTurn(context, contextInfo, turn, userUtterance, slotBag, actionDomains) {
@@ -417,7 +437,7 @@ class Converter extends stream.Readable {
 
             // if the only new search slot is name, and we'll be executing the action for this
             // domain, we move the name to an action slot instead
-            if (actionDomains.has(domain)) {
+            if (actionDomains.has(domain) && contextInfo.current && getStatementDomain(contextInfo.current.stmt) === domain) {
                 const searchKeys = Array.from(newSearchSlots.keys());
                 if (searchKeys.length === 1 && searchKeys[0].endsWith('name')) {
                     newActionSlots.set(searchKeys[0], newSearchSlots.get(searchKeys[0]));
@@ -458,7 +478,7 @@ class Converter extends stream.Readable {
                             ttValue = new Ast.Value.Boolean(value !== 'no');
                         else if (param === 'leave_at' || param === 'arrive_by')
                             ttValue = parseTime(value);
-                        else if (param === 'id' && contextInfo.current)
+                        else if (param === 'id' && contextInfo.current && getStatementDomain(contextInfo.current.stmt) === domain)
                             ttValue = new Ast.Value.Entity(null, tpClass + ':' + queryname, value);
                         else if (param === 'stars')
                             ttValue = new Ast.Value.Number(parseInt(value) || 0);
@@ -633,6 +653,30 @@ class Converter extends stream.Readable {
         return domains;
     }
 
+    _findTrainName(turn) {
+        let name = undefined;
+        for (let utterance of [turn.system_transcript, turn.transcript]) {
+            for (let token of utterance.split(' ')) {
+                if (/^tr[0-9]+$/i.test(token))
+                    name = token;
+            }
+        }
+        if (name)
+            turn.belief_state.push({ slots: [ [ 'train-name', name ] ], act: 'inform' });
+    }
+
+    _extractSimulatorOverrides(utterance) {
+        const car = /\b(black|white|red|yellow|blue|grey) (toyota|skoda|bmw|honda|ford|audi|lexus|volvo|volkswagen|tesla)\b/.exec(utterance);
+        if (car)
+            this._simulatorOverrides.set('car', car[0]);
+
+        for (let token of utterance.split(' ')) {
+            // a reference number is an 8 character token containing both letters and numbers
+            if (token.length === 8 && /[a-z]/.test(token) && /[0-9]/.test(token))
+                this._simulatorOverrides.set('reference_number', token);
+        }
+    }
+
     async _doDialogue(dlg) {
         const id = dlg.dialogue_idx;
 
@@ -642,7 +686,10 @@ class Converter extends stream.Readable {
         let context = null, contextInfo = { current: null, next: null },
             simulatorState = undefined, slotBag = new Map;
         const turns = [];
-        for (let turn of dlg.dialogue) {
+        for (let idx = 0; idx < dlg.dialogue.length; idx++) {
+            const turn = dlg.dialogue[idx];
+            this._findTrainName(turn);
+
             try {
                 let contextCode = '', agentUtterance = '', agentTargetCode = '';
                 if (context !== null) {
@@ -671,6 +718,11 @@ class Converter extends stream.Readable {
                     user: userUtterance,
                     user_target: userTargetCode,
                 });
+
+                // use the next turn to find the values of the action output parameters (reference_number and car) if any
+                this._simulatorOverrides.clear();
+                if (idx < dlg.dialogue.length-1)
+                    this._extractSimulatorOverrides(dlg.dialogue[idx+1].system_transcript);
 
                 // "execute" the context
                 [context, simulatorState] = await this._simulator.execute(context, simulatorState);
