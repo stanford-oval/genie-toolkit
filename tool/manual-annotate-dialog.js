@@ -78,6 +78,11 @@ class Annotator extends events.EventEmitter {
 
             line = line.trim();
 
+            if (this._state === 'context' && line.length === 0) {
+                this._flushContextOverride().catch((e) => this.emit('error', e));
+                return;
+            }
+
             if (line.length === 0 || this._state === 'loading') {
                 rl.prompt();
                 return;
@@ -114,8 +119,19 @@ class Annotator extends events.EventEmitter {
                 return;
             }
 
+            if (/^c: /i.test(line)) {
+                this._addLineToContext(line.substring(3).trim());
+                return;
+            }
+
             if (this._state === 'code') {
                 this._learnThingTalk(line).catch((e) => this.emit('error', e));
+                return;
+            }
+            if (this._state === 'context') {
+                if (/^c:/i.test(line))
+                    line = line.substring(2).trim();
+                this._addLineToContext(line);
                 return;
             }
 
@@ -354,6 +370,57 @@ class Annotator extends events.EventEmitter {
         }
     }
 
+    async _flushContextOverride() {
+        if (!this._context || !this._contextOverride)
+            return;
+
+        let firstLine;
+        if (this._dialogueState === 'user' && this._outputTurn.intermediate_context)
+            firstLine = this._outputTurn.intermediate_context.split('\n')[0];
+        else
+            firstLine = this._outputTurn.context.split('\n')[0];
+
+        let ctxOverride;
+        try {
+            ctxOverride = await ThingTalk.Grammar.parseAndTypecheck(firstLine + '\n' + this._contextOverride, this._schemas);
+        } catch(e) {
+            console.log(`${e.name}: ${e.message}`);
+            this._contextOverride = '';
+            this._state = 'context';
+            this._rl.setPrompt('C: ');
+            this._rl.prompt();
+            return;
+        }
+
+        // find the last item that has results, remove that and everything afterwards, and replace it with
+        // what we parsed as the override
+        let idx;
+        for (idx = this._context.history.length-1; idx >= 0; idx--) {
+            const item = this._context.history[idx];
+            if (item.results !== null)
+                break;
+        }
+        this._context.history.splice(idx, this._context.history.length-idx, ...ctxOverride.history);
+
+        // save in the output
+        if (this._dialogueState === 'user')
+            this._outputTurn.intermediate_context = this._context.prettyprint();
+        else
+            this._outputTurn.context = this._context.prettyprint();
+
+        // now handle the utterance again
+        await this._handleUtterance();
+    }
+
+    _addLineToContext(line) {
+        if (this._contextOverride === undefined)
+            this._contextOverride = '';
+        this._contextOverride += line + '\n';
+        this._state = 'context';
+        this._rl.setPrompt('C: ');
+        this._rl.prompt();
+    }
+
     async _handleUtterance() {
         if (this._context) {
             console.log();
@@ -361,6 +428,7 @@ class Annotator extends events.EventEmitter {
             for (let line of contextCode.trim().split('\n'))
                 console.log('C: ' + line);
         }
+        this._contextOverride = undefined;
 
         this._utterance = this._outputTurn[this._dialogueState];
         this._currentKey = this._dialogueState + '_target';

@@ -113,7 +113,9 @@ const SEARCH_SLOTS_FOR_SYSTEM = new Set([
     'food', 'area',
     'price-range', 'price', 'type', 'parking',
     'internet', 'wifi', 'choice',
-    'day', 'departure', 'destination',
+    'day',
+    'departure', 'depart',
+    'destination', 'dest',
     'leave-at', 'leave',
     'arrive-at', 'arrive',
 ]);
@@ -122,7 +124,9 @@ const REQUESTED_SLOT_MAP = {
     price: 'price_range',
     wifi: 'internet',
     leave: 'leave_at',
-    arrive: 'arrive_at'
+    arrive: 'arrive_at',
+    depart: 'departure',
+    dest: 'destination'
 };
 
 // copied from trade-dst
