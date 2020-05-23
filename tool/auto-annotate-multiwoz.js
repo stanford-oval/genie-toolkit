@@ -754,6 +754,11 @@ module.exports = {
         await converter.run(data);
         await converter.stop();
 
+        console.log('Finished, waiting for pending writes...');
         await promise;
+        console.log('Everything done...');
+
+        // we need this otherwise we hang at exit, due to some open file I cannot find...
+        setTimeout(() => process.exit(), 10000);
     }
 };
