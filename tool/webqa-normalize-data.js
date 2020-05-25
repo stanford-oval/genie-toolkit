@@ -446,6 +446,8 @@ class Normalizer {
     }
 
     _preprocess(input) {
+        if (!input || typeof input !== 'object')
+            return input;
         if (Array.isArray(input))
             return input.map(this._preprocess.bind(this));
 
