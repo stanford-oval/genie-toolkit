@@ -95,10 +95,14 @@ class AutoCanonicalAnnotator {
 
                 let typestr = typeToEntityType(query.getArgType(arg.name));
 
-                // if an entity is unique, allow dropping the property name entirely
                 if (typestr && typeCounts[typestr] === 1) {
+                    // if an entity is unique, allow dropping the property name entirely
                     if (!this.queries.includes(typestr.substring(typestr.indexOf(':') + 1)))
                         arg.metadata.canonical.property.push('#');
+
+                    // if it's the only people entity, adding adjective form
+                    if (typestr.endsWith(':Person'))
+                        arg.metadata.canonical.adjective = ["# 's", '#'];
                 }
 
                 // if property is missing, try to use entity type info
