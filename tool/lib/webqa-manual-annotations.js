@@ -408,7 +408,10 @@ const STRING_FILE_OVERRIDES = {
     'org.schema.Person:Person_name': 'tt:person_full_name',
     'org.schema.Person:Person_alumniOf': 'tt:university_names',
     'org.schema.Person:Person_worksFor': 'tt:company_name',
-    'org.schema.Hotel:Hotel_name': 'tt:hotel_name'
+    'org.schema.Hotel:Hotel_name': 'tt:hotel_name',
+    'org.schema.Music:MusicRecording_byArtist': 'tt:song_artist',
+    'org.schema.Music:MusicRecording_inAlbum': 'tt:song_album',
+    'org.schema.Music:MusicRecording_name': 'tt:song_name',
 };
 
 // maps old name to new name
