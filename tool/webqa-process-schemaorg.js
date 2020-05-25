@@ -359,7 +359,13 @@ class SchemaProcessor {
                 let noun = name.slice(0, -' of'.length);
                 let canonicals = [name, `# ${noun}`, `# 's ${noun}`];
                 canonical.reverse_property = (canonical.reverse_property || []).concat(canonicals);
-            } else if (['VBN', 'VBG', 'JJ', 'JJR'].includes(tags[0]) && !['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
+            } else if (tags.length === 2 && tags[0] === 'IN' && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
+                let [preposition, noun] = name.split(' ');
+                canonical.passive_verb = (canonical.passive_verb || []).concat([preposition]);
+                canonical.base = (canonical.base || []).concat([noun]);
+            } else if (['IN', 'VBN', 'VBG'].includes(tags[0])) {
+                canonical.passive_verb = (canonical.passive_verb || []).concat([name]);
+            } else if (['JJ', 'JJR'].includes(tags[0]) && !['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
                 // this one is actually somewhat problematic
                 // e.g., all non-words are recognized as JJ, including issn, dateline, funder
                 canonical.passive_verb = (canonical.passive_verb || []).concat([name]);
