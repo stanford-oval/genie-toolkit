@@ -374,12 +374,25 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     director: {
         base: ['director'],
         passive_verb: ['directed by']
+    },
+
+    // music
+    inAlbum: {
+        base: ['album'],
+        passive_verb: ['in', 'in album', 'included in'],
+    },
+    byArtist: {
+        base: ['artist', 'singer'],
+        adjective: ['# \'s', '#'],
+        passive_verb: ['by', 'by artist'],
     }
 };
 
 const MANUAL_TABLE_CANONICAL_OVERRIDE = {
     'Restaurant': ['restaurant', 'diner', 'place', 'joint', 'eatery', 'canteen', 'cafeteria', 'cafe'],
-    'Hotel': ['hotel', 'resort', 'lodging', 'model', 'place']
+    'Hotel': ['hotel', 'resort', 'lodging', 'model', 'place'],
+    'MusicRecording': ['song', 'music recording', 'music'],
+    'MusicAlbum': ['album']
 };
 
 const PROPERTIES_NO_FILTER = [
