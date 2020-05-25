@@ -40,6 +40,7 @@ module.exports = async function worker(args, shard) {
         replaceNumbers: args.replace_numbers,
         cleanParameters: args.clean_parameters,
         requotable: args.requotable,
+        samplingType: args.sampling_type,
         numAttempts: args.num_attempts
     });
 };

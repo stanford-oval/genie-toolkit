@@ -148,6 +148,12 @@ module.exports = {
             help: 'Take extra effort to use parameters that are simple and do not include punctuation marks',
             defaultValue: false
         });
+        parser.addArgument('--sampling-type', {
+            choices: ['default', 'random'],
+            help: 'random strategy assigns random weights to parameters' +
+                'with this sampling method you get different results as the random generator is not seeded',
+            defaultValue: false
+        });
         parser.addArgument('--num-attempts', {
             type: Number,
             defaultValue: 10000,
