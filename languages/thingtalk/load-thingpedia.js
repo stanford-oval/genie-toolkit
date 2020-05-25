@@ -594,14 +594,19 @@ class ThingpediaLoader {
             {}
         ));
         const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '=~', new Ast.Value.VarRef('p_name'));
+        let span;
+        if (q.name === 'Person')
+            span = [`\${p_name}`, ...canonical.map((c) => `\${p_name} ${c}`)];
+        else
+            span = [`\${p_name}`, ...canonical.map((c) => `\${p_name} ${c}`), ...canonical.map((c) => `${c} \${p_name}`)];
         await this._loadTemplate(new Ast.Example(
             null,
             -1,
             'query',
             { p_name: Type.String },
             new Ast.Table.Filter(null, table, namefilter, table.schema),
-            [`\${p_name}`, ...canonical.map((c) => `\${p_name} ${c}`)],
-            [`\${p_name}`, ...canonical.map((c) => `\${p_name} ${c}`)],
+            span,
+            span,
             {}
         ));
     }

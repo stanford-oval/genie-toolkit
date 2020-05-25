@@ -277,7 +277,12 @@ generic_article = {
     'some';
     'any';
     'all';
+    'all the';
     'every';
+    'a list of';
+    'a list of all';
+    'the list of';
+    'the list of all';
 }
 
 search_command = {
