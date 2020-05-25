@@ -278,6 +278,8 @@ generic_article = {
     'any';
     'all';
     'every';
+    'a list of';
+    'the list of';
 }
 
 search_command = {
