@@ -237,15 +237,11 @@ class AutoCanonicalAnnotator {
     async _paraphrase(input) {
         const args = [
             `run-paraphrase`,
-            `--model_type`, `gpt2`,
             `--model_name_or_path`, this.gpt2_paraphraser_model,
-            `--length`, `15`,
-            `--temperature`, `0.0`,
-            `--repetition_penalty`, `1.0`,
+            `--temperature`, `0`, `1`,
             `--num_samples`, `1`,
             `--input_column`, `1`,
-            `--batch_size`, `8`,
-            `--stop_tokens`, `</paraphrase>`, `?`
+            `--skip_heuristics`,
         ];
         const child = child_process.spawn(`genienlp`, args, { stdio: ['pipe', 'pipe', 'inherit'] });
 
@@ -299,23 +295,38 @@ class AutoCanonicalAnnotator {
                 if (!paraphrase.includes(value))
                     continue;
 
-                let prefix;
-                if (origin.startsWith('who '))
-                    prefix = 'who ';
-                else
-                    prefix = origin.slice(0, origin.indexOf(query_canonical) + query_canonical.length + 1);
+                if (paraphrase.endsWith('.') || paraphrase.endsWith('?') || paraphrase.endsWith('!'))
+                    paraphrase = paraphrase.slice(0, -1);
 
-                if (!paraphrase.startsWith(prefix))
-                    continue;
+                let prefixes = [];
+                if (origin.startsWith('who ')) {
+                    prefixes.push('who ');
+                } else {
+                    let standard_prefix = origin.slice(0, origin.indexOf(query_canonical) + query_canonical.length + 1);
+                    prefixes.push(standard_prefix);
+                    let to_replace = origin.includes(`a ${query_canonical}`) ? `a ${query_canonical}` : query_canonical;
+                    prefixes.push(standard_prefix.replace(to_replace, `${query_canonical}s`));
+                    prefixes.push(standard_prefix.replace(to_replace, `some ${query_canonical}s`));
+                    prefixes.push(standard_prefix.replace(to_replace, `all ${query_canonical}s`));
+                    prefixes.push(standard_prefix.replace(to_replace, `any ${query_canonical}s`));
+                    prefixes.push(standard_prefix.replace(to_replace, `any ${query_canonical}`));
+                    prefixes.push(standard_prefix.replace(to_replace, `an ${query_canonical}`));
+                    prefixes.push(standard_prefix.replace(to_replace, `the ${query_canonical}`));
+                }
 
-                const clause = paraphrase.slice(prefix.length);
+                for (let prefix of new Set(prefixes)) {
+                    if (!paraphrase.startsWith(prefix))
+                        continue;
 
-                if (clause.startsWith('with ')) {
-                    canonical['property'] = canonical['property'] || [];
-                    canonical['property'].push(clause.slice('with '.length).replace(value, '#'));
-                } else if (clause.startsWith('that ')) {
-                    canonical['verb'] = canonical['verb'] || [];
-                    canonical['verb'].push(clause.slice('that '.length).replace(value, '#'));
+                    const clause = paraphrase.slice(prefix.length);
+
+                    if (clause.startsWith('with ')) {
+                        canonical['property'] = canonical['property'] || [];
+                        canonical['property'].push(clause.slice('with '.length).replace(value, '#'));
+                    } else if (clause.startsWith('that ')) {
+                        canonical['verb'] = canonical['verb'] || [];
+                        canonical['verb'].push(clause.slice('that '.length).replace(value, '#'));
+                    }
                 }
             }
             return canonical;
@@ -336,9 +347,13 @@ class AutoCanonicalAnnotator {
                     let newCanonicals = extractCanonical(input[i].split('\t')[1], output[i], values, query_canonical);
                     for (let typeNewCanonical in newCanonicals) {
                         for (let newCanonical of newCanonicals[typeNewCanonical]) {
+                            if (!canonicals[typeNewCanonical]) {
+                                canonicals[typeNewCanonical] = [newCanonical];
+                                continue;
+                            }
                             if (canonicals[typeNewCanonical].includes(newCanonical))
                                 continue;
-                            if (newCanonical.endsWith(' #') && canonicals[typeNewCanonical].includes(newCanonicals.slice(0, -2)))
+                            if (newCanonical.endsWith(' #') && canonicals[typeNewCanonical].includes(newCanonical.slice(0, -2)))
                                 continue;
                             canonicals[typeNewCanonical].push(newCanonical);
                         }
