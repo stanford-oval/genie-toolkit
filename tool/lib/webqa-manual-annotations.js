@@ -122,7 +122,9 @@ const PROPERTY_TYPE_OVERRIDE = {
 
     'genre': Type.Array(Type.String),
     'creator': Type.Array(Type.Entity('org.schema.Movie:Person')),
-    'contentRating': Type.String
+    'contentRating': Type.String,
+
+    'byArtist': Type.Entity('org.schema.Music:Person')
 };
 
 const PROPERTY_CANONICAL_OVERRIDE = {
@@ -410,6 +412,7 @@ const STRING_FILE_OVERRIDES = {
     'org.schema.Person:Person_worksFor': 'tt:company_name',
     'org.schema.Hotel:Hotel_name': 'tt:hotel_name',
     'org.schema.Music:MusicRecording_byArtist': 'tt:song_artist',
+    'org.schema.Music:MusicAlbum_byArtist': 'tt:song_artist',
     'org.schema.Music:MusicRecording_inAlbum': 'tt:song_album',
     'org.schema.Music:MusicRecording_name': 'tt:song_name',
 };
