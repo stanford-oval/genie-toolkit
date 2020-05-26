@@ -121,25 +121,23 @@ for (let [typestr, type] of _tpLoader.types.all) {
             */
         }
 
-        if (!_tpLoader.types.id.has(typestr)) {
-            if (_tpLoader.flags.projection_with_filter) {
-                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:with_filtered_table =>
-                    C.makeSingleFieldProjection('table', type, table, outParam.name);
-                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of the' table:with_arg_min_max_table =>
-                    C.makeSingleFieldProjection('table', type, table, outParam.name);
-                $('stream_projection_' + typestr) = !nostream outParam:$('the_out_param_' + typestr) 'of new' table:with_filtered_table =>
-                    C.makeSingleFieldProjection('stream', type, table, outParam.name);
-                $('stream_projection_' + typestr) = !nostream outParam:$('the_out_param_' + typestr) 'of the new' table:with_arg_min_max_table =>
-                    C.makeSingleFieldProjection('stream', type, table, outParam.name);
-            } else {
-                $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:complete_table =>
-                    C.makeSingleFieldProjection('table', type, table, outParam.name);
-                $('stream_projection_' + typestr) = !nostream outParam:$('the_out_param_' + typestr) 'of new' table:complete_table =>
-                    C.makeSingleFieldProjection('stream', type, table, outParam.name);
-            }
-
-            projection_Any = $('projection_' + typestr);
+        if (_tpLoader.flags.projection_with_filter) {
+            $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:with_filtered_table =>
+                C.makeSingleFieldProjection('table', type, table, outParam.name);
+            $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of the' table:with_arg_min_max_table =>
+                C.makeSingleFieldProjection('table', type, table, outParam.name);
+            $('stream_projection_' + typestr) = !nostream outParam:$('the_out_param_' + typestr) 'of new' table:with_filtered_table =>
+                C.makeSingleFieldProjection('stream', type, table, outParam.name);
+            $('stream_projection_' + typestr) = !nostream outParam:$('the_out_param_' + typestr) 'of the new' table:with_arg_min_max_table =>
+                C.makeSingleFieldProjection('stream', type, table, outParam.name);
+        } else {
+            $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:complete_table =>
+                C.makeSingleFieldProjection('table', type, table, outParam.name);
+            $('stream_projection_' + typestr) = !nostream outParam:$('the_out_param_' + typestr) 'of new' table:complete_table =>
+                C.makeSingleFieldProjection('stream', type, table, outParam.name);
         }
+
+        projection_Any = $('projection_' + typestr);
 
         if (typestr !== 'Entity__tt__picture' && typestr !== 'String') {
             if (_tpLoader.flags.projection_with_filter) {
