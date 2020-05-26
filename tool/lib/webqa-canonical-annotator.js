@@ -11,6 +11,7 @@
 const fs = require('fs');
 const util = require('util');
 const path = require('path');
+const POS = require("en-pos");
 const child_process = require('child_process');
 const utils = require('../../lib/utils');
 
@@ -19,6 +20,12 @@ const { PROPERTY_CANONICAL_OVERRIDE } = require('./webqa-manual-annotations');
 
 const ANNOTATED_PROPERTIES = Object.keys(PROPERTY_CANONICAL_OVERRIDE);
 
+function posTag(tokens) {
+    return new POS.Tag(tokens)
+        .initial() // initial dictionary and pattern based tagging
+        .smooth() // further context based smoothing
+        .tags;
+}
 
 // extract entity type from type
 function typeToEntityType(type) {
@@ -238,7 +245,7 @@ class AutoCanonicalAnnotator {
         }
     }
 
-    async _paraphrase(input) {
+    async _paraphrase(input, arg) {
         const args = [
             `run-paraphrase`,
             `--model_name_or_path`, this.gpt2_paraphraser_model,
@@ -251,7 +258,7 @@ class AutoCanonicalAnnotator {
 
         const output = util.promisify(fs.writeFile);
         if (this.options.debug)
-            await output(`./gpt2-paraphraser-in.tsv`, input);
+            await output(`./gpt2-paraphraser-in-${arg}.tsv`, input);
 
         const stdout = await new Promise((resolve, reject) => {
             child.stdin.write(input);
@@ -266,10 +273,8 @@ class AutoCanonicalAnnotator {
             child.stdout.on('end', () => resolve(buffer));
         });
 
-        console.log(stdout);
-
         if (this.options.debug)
-            await output(`./gpt2-paraphraser-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
+            await output(`./gpt2-paraphraser-out-${arg}.json`, JSON.stringify(JSON.parse(stdout), null, 2));
 
         return JSON.parse(stdout);
     }
@@ -302,9 +307,14 @@ class AutoCanonicalAnnotator {
                 if (paraphrase.endsWith('.') || paraphrase.endsWith('?') || paraphrase.endsWith('!'))
                     paraphrase = paraphrase.slice(0, -1);
 
+                paraphrase = paraphrase.toLowerCase();
+
+                let tags = posTag(paraphrase.split(' '));
+
                 let prefixes = [];
                 if (origin.startsWith('who ')) {
                     prefixes.push('who ');
+                    prefixes.push('who\'s');
                 } else {
                     let standard_prefix = origin.slice(0, origin.indexOf(query_canonical) + query_canonical.length + 1);
                     prefixes.push(standard_prefix);
@@ -322,15 +332,33 @@ class AutoCanonicalAnnotator {
                     if (!paraphrase.startsWith(prefix))
                         continue;
 
-                    const clause = paraphrase.slice(prefix.length);
+                    let clause = paraphrase.slice(prefix.length);
+                    let length = prefix.trim().split(' ').length;
 
-                    if (clause.startsWith('with ')) {
+                    if (prefix === 'who\'s' || clause.startsWith('is ') || clause.startsWith('are ')) {
+                        if (clause.startsWith('is ') || clause.startsWith('are ')) {
+                            clause = clause.slice(clause.indexOf(' ') + 1);
+                            length += 1;
+                        }
+                        if (clause.startsWith('a ') || clause.startsWith('an ') || clause.startsWith('the ') ||
+                            ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[length + 1])) {
+                            canonical['reverse_property'] = canonical['reverse_property'] || [];
+                            canonical['reverse_property'].push(clause.replace(value, '#'));
+                        } else if (['IN', 'VBN', 'VBG'].includes(tags[length + 1])) {
+                            canonical['passive_verb'] = canonical['passive_verb'] || [];
+                            canonical['passive_verb'].push(clause.replace(value, '#'));
+                        }
+                    } if (clause.startsWith('with ') || clause.startsWith('has ') || clause.startsWith('have ')) {
                         canonical['property'] = canonical['property'] || [];
-                        canonical['property'].push(clause.slice('with '.length).replace(value, '#'));
-                    } else if (clause.startsWith('that ')) {
+                        canonical['property'].push(clause.slice(clause.indexOf(' ') + 1).replace(value, '#'));
+                    } else if ((clause.startsWith('that ') || clause.startsWith('who ')) && ['VBP', 'VBZ', 'VBD'].includes(tags[length + 1])) {
                         canonical['verb'] = canonical['verb'] || [];
-                        canonical['verb'].push(clause.slice('that '.length).replace(value, '#'));
+                        canonical['verb'].push(clause.slice(clause.indexOf(' ' + 1)).replace(value, '#'));
+                    } else if (['VBP', 'VBZ', 'VBD'].includes(tags[length])) {
+                        canonical['verb'] = canonical['verb'] || [];
+                        canonical['verb'].push(clause.replace(value, '#'));
                     }
+                    break;
                 }
             }
             return canonical;
@@ -345,7 +373,7 @@ class AutoCanonicalAnnotator {
                     continue;
 
                 let input = generateGpt2Input(synonyms[qname][arg]);
-                let output = await this._paraphrase(input.join('\n'));
+                let output = await this._paraphrase(input.join('\n'), arg);
                 let values = queries[qname]['args'][arg]['values'];
                 for (let i = 0; i < input.length; i++) {
                     let newCanonicals = extractCanonical(input[i].split('\t')[1], output[i], values, query_canonical);
