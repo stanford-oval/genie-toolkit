@@ -360,12 +360,19 @@ class ThingpediaLoader {
         const vtypestr = this._recordType(vtype);
         if (vtypestr === null)
             return;
-
+            
+        const constant = new this._runtime.NonTerminal('constant_' + vtypestr);
         for (let cat in canonical) {
             if (cat === 'default')
                 continue;
 
             let annotvalue = canonical[cat];
+            let isEnum = false;
+            if (vtype.isEnum && cat.endsWith('_enum')) {
+                cat = cat.substring(0, cat.length - '_enum'.length);
+                isEnum = true;
+            }
+
             if (cat in ANNOTATION_RENAME)
                 cat = ANNOTATION_RENAME[cat];
 
@@ -387,47 +394,58 @@ class ThingpediaLoader {
                 continue;
             }
 
-            if (!Array.isArray(annotvalue))
-                annotvalue = [annotvalue];
+            if (isEnum) {
+                for (let enumerand in annotvalue) {
+                    let forms = annotvalue[enumerand];
+                    if (!Array.isArray(forms))
+                        forms = [forms];
+                    const value = new Ast.Value.Enum(enumerand);
+                    for (let form of forms)
+                        this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, op, value, false)));
+                }
+            } else {
+                if (!Array.isArray(annotvalue))
+                    annotvalue = [annotvalue];
 
-            for (let form of annotvalue) {
-                if (cat === 'base') {
-                    this._addOutParam(functionName, pname, ptype, typestr, form.trim());
-                    if (!canonical.npp && !canonical.property) {
-                        const expansion = [form, new this._runtime.NonTerminal('constant_' + vtypestr)];
-                        this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
+                for (let form of annotvalue) {
+                    if (cat === 'base') {
+                        this._addOutParam(functionName, pname, ptype, typestr, form.trim());
+                        if (!canonical.npp && !canonical.property) {
+                            const expansion = [form, constant];
+                            this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
 
-                        if (canUseBothForm) {
-                            const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
-                            this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
+                            if (canUseBothForm) {
+                                const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                                this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
+                            }
                         }
-                    }
-                } else {
-                    let [before, after] = form.split('#');
-                    before = (before || '').trim();
-                    after = (after || '').trim();
-
-                    let expansion, pairexpansion;
-                    if (before && after) {
-                        // "rated # stars"
-                        expansion = [before, new this._runtime.NonTerminal('constant_' + vtypestr), after];
-                        pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
-                    } else if (before) {
-                        // "named #"
-                        expansion = [before, new this._runtime.NonTerminal('constant_' + vtypestr)];
-                        pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
-                    } else if (after) {
-                        // "# -ly priced"
-                        expansion = [new this._runtime.NonTerminal('constant_' + vtypestr), after];
-                        pairexpansion = [new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
                     } else {
-                        // "#" (as in "# restaurant")
-                        expansion = [new this._runtime.NonTerminal('constant_' + vtypestr)];
-                        pairexpansion = [new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                        let [before, after] = form.split('#');
+                        before = (before || '').trim();
+                        after = (after || '').trim();
+
+                        let expansion, pairexpansion;
+                        if (before && after) {
+                            // "rated # stars"
+                            expansion = [before, constant, after];
+                            pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
+                        } else if (before) {
+                            // "named #"
+                            expansion = [before, constant];
+                            pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                        } else if (after) {
+                            // "# -ly priced"
+                            expansion = [constant, after];
+                            pairexpansion = [new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
+                        } else {
+                            // "#" (as in "# restaurant")
+                            expansion = [constant];
+                            pairexpansion = [new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                        }
+                        this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
+                        if (canUseBothForm)
+                            this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
                     }
-                    this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
-                    if (canUseBothForm)
-                        this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
                 }
             }
         }
