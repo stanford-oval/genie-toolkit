@@ -413,8 +413,6 @@ function makeSingleFieldProjection(ftype, ptype, table, pname) {
     assert(ftype === 'table' || ftype === 'stream');
     assert(typeof pname === 'string');
 
-    if (pname === 'id')
-        return null;
     if (!table.schema.out[pname] || !Type.isAssignable(table.schema.out[pname], ptype))
         return null;
 
