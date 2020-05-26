@@ -496,6 +496,6 @@ if __name__ == '__main__':
     if args.command == 'adjectives' or args.command == 'all':
         output['adjectives'] = bert.predict_adjectives()
     if args.command == 'implicit_identity' or args.command == 'all':
-        output['implicit_identity'] = bert.predict_implicit_identity()
+        output['implicit_identity'] = [] # bert.predict_implicit_identity()
 
     print(json.dumps(output))
