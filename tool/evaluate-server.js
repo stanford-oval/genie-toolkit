@@ -111,6 +111,11 @@ module.exports = {
             defaultValue: '',
             help: `Prefix all output lines with this string`
         });
+        parser.addArgument('--complexity-metric', {
+            choices: ['num_params', 'turn_number'],
+            defaultValue: 'num_params',
+            help: `Complexity metric to use to divide examples by complexity`
+        });
         parser.addArgument('--max-complexity', {
             required: false,
             type: Number,
@@ -127,7 +132,7 @@ module.exports = {
 
         const output = readAllLines(args.input_file)
             .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true }))
-            .pipe(new SentenceEvaluatorStream(parser, schemas, args.tokenized, args.debug))
+            .pipe(new SentenceEvaluatorStream(parser, schemas, args.tokenized, args.debug, args.complexity_metric))
             .pipe(new CollectSentenceStatistics({ maxComplexity: args.max_complexity }));
 
         const result = await output.read();
