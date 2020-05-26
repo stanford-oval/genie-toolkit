@@ -146,21 +146,22 @@ const PROPERTY_CANONICAL_OVERRIDE = {
     // location
     'geo': {
         base: ['location', 'address'],
-        passive_verb: ["in #", "around #", "at #", "on #"]
+        passive_verb: ["in #", "from #", "around #", "at #", "on #"]
     },
     'streetAddress': {
         base: ['street']
     },
     'addressCountry': {
-        passive_verb: ["in #"],
+        passive_verb: ["in #", "from #"],
         base: ["country"]
     },
     'addressRegion': {
-        passive_verb: ["in #"],
+        passive_verb: ["in #", "from #"],
         base: ["state"]
     },
     'addressLocality': {
-        base: ['city']
+        base: ['city'],
+        passive_verb: ["in #", "from #"],
     }
 };
 
