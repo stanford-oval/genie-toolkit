@@ -391,6 +391,8 @@ class ThingpediaLoader {
     }
 
     _isHumanEntity(type) {
+        if (type.isArray)
+            return this._isHumanEntity(type.elem);
         if (['tt:contact', 'tt:username', 'org.wikidata:human'].includes(type))
             return true;
         if (type.startsWith('org.schema') && type.endsWith(':Person'))
