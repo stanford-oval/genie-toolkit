@@ -99,6 +99,22 @@ simple_user_search_question = {
     };
 }
 
+simple_user_search_question_for_list = {
+    // straight up questions
+    ( ('can you tell me' | '') 'what are' ('the' | 'their') param:out_param_Any '?'
+    | 'can you tell me' ('the' | 'their') param:out_param_Any '?'
+    | 'can you tell me' 'the' param:out_param_Any ('for both of them' | 'for all of them') '?'
+    | ('can you tell me' | '') 'what' param:out_param_Any 'does it have ?'
+    | 'i would like to' ('know' | 'see') ('both of' | '') ('the' | 'their') param:out_param_Any ('first' | '') '.'
+    | 'i need' ('the' | 'their') param:out_param_Any ('first' | '') '.'
+    | 'i just need' ('the' | 'their') param:out_param_Any '.'
+    ) => {
+        if (param.name === 'id')
+            return null;
+        return [[param.name, null]];
+    };
+}
+
 boolean_user_search_question = {
     // question in boolean
     ( 'does' ('that' | 'it') 'have' param:npp_filter '?'
@@ -123,6 +139,39 @@ boolean_user_search_question = {
 
     | 'is' ('it' | 'that') 'a' base:base_table ('that has' | 'with') param:npp_filter '?'
     | 'does that' base:base_table 'have' param:npp_filter '?'
+    ) => {
+        if (!C.checkFilter(base, param))
+            return null;
+        if (param.name === 'id')
+            return null;
+        return [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]];
+    };
+}
+
+boolean_user_search_question_for_list = {
+    // question in boolean
+    ( ('does either of them' | 'does any of them' | 'do they') 'have' param:npp_filter '?'
+    | ('does either of them' | 'does any of them' | 'do they') param:avp_filter '?'
+    ) => {
+        if (param.name === 'id')
+            return null;
+        return [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]];
+    };
+
+    ( ('is either of them' | 'is any of them' | 'are they') 'a' param:apv_filter base:base_table '?'
+    | 'are those' base:base_table param:apv_filter '?'
+
+    | ('is either of them' | 'is any of them' | 'are they') 'a' base:base_table param:pvp_filter '?'
+    | 'are those' base:base_table param:pvp_filter '?'
+
+    | ('is either of them' | 'is any of them' | 'are they')  'a' base:base_table param:preposition_filter '?'
+    | 'are those' base:base_table param:preposition_filter '?'
+
+    | ('is either of them' | 'is any of them' | 'are they')  'a' base:base_table ('that' | 'which') param:avp_filter '?'
+    | 'do those' base:base_table param:avp_filter '?'
+
+    | ('is either of them' | 'is any of them' | 'are they')  'a' base:base_table ('that has' | 'with') param:npp_filter '?'
+    | 'do those' base:base_table 'have' param:npp_filter '?'
     ) => {
         if (!C.checkFilter(base, param))
             return null;

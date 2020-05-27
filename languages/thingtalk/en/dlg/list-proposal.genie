@@ -230,6 +230,25 @@ positive_list_proposal_reply_pair = {
 }
 
 list_proposal_search_question_pair = {
+    ( prop:system_list_proposal '<sep>' params:simple_user_search_question
+    | prop:system_list_proposal '<sep>' params:simple_user_search_question_for_list
+    | prop:system_list_proposal '<sep>' params:boolean_user_search_question_for_list
+    ) => {
+        const [results, info, action] = prop;
+        if (info !== null) {
+            for (let [pname, type] of params) {
+                assert(typeof pname === 'string');
+                if (info.has(pname))
+                    return null;
+                if (!info.schema.hasArgument(pname))
+                    return null;
+                if (type !== null && !info.schema.getArgType(pname).equals(type))
+                    return null;
+            }
+        }
+        return [results, null, action, params];
+    };
+
     ( prop:system_list_proposal '<sep>' question:user_search_question_with_name
     | prop:system_list_proposal '<sep>' question:boolean_user_search_question_with_name
     ) => {
