@@ -737,19 +737,21 @@ function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
 function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
     let cloneTable = ctxTable.clone();
 
-    let filterTable;
-    [cloneTable, filterTable] = findOrMakeFilterTable(cloneTable);
-    //if (ctxFilterTable === null)
-    //    return null;
-    assert(filterTable.isFilter);
-    assert(filterTable.isFilter && ((filterTable.table.isCompute && filterTable.table.table.isInvocation) || filterTable.table.isInvocation));
-    //assert(filterTable.isFilter && filterTable.table.isInvocation);
+    if (newFilter !== null) {
+        let filterTable;
+        [cloneTable, filterTable] = findOrMakeFilterTable(cloneTable);
+        //if (ctxFilterTable === null)
+        //    return null;
+        assert(filterTable.isFilter);
+        assert(filterTable.isFilter && ((filterTable.table.isCompute && filterTable.table.table.isInvocation) || filterTable.table.isInvocation));
+        //assert(filterTable.isFilter && filterTable.table.isInvocation);
 
-    const refinedFilter = refineFilter(filterTable.filter, newFilter);
-    if (refinedFilter === null)
-        return null;
+        const refinedFilter = refineFilter(filterTable.filter, newFilter);
+        if (refinedFilter === null)
+            return null;
 
-    filterTable.filter = refinedFilter;
+        filterTable.filter = refinedFilter;
+    }
 
     if (newProjection) {
         // if we have a new projection, we remove the projection entirely and replace it
@@ -1104,9 +1106,15 @@ function listProposalSearchQuestionPair(ctx, [results, name, actionProposal, que
         return false;
 
     const currentTable = ctx.current.stmt.table;
-    const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
-    const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
-        questions.map(([qname, qtype]) => qname));
+    let newTable;
+    if (name !== null) {
+        const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
+        newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
+            questions.map(([qname, qtype]) => qname));
+    } else {
+        newTable = queryRefinement(currentTable, null, null,
+            questions.map(([qname, qtype]) => qname));
+    }
     if (newTable === null)
         return null;
 
