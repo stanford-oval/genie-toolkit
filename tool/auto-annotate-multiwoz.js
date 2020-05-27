@@ -23,46 +23,12 @@ const { DialogueSerializer } = require('./lib/dialog_parser');
 const StreamUtils = require('../lib/stream-utils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
 const ProgressBar = require('./lib/progress_bar');
+const editDistance = require('../lib/edit-distance');
 
 function undoTradePreprocessing(sentence) {
     return sentence.replace(/ -(ly|s)/g, '$1').replace(/\b24:([0-9]{2})\b/g, '00:$1');
 }
 
-function editDistance(one, two) {
-    if (one === two)
-        return 0;
-    if (one.indexOf(two) >= 0)
-        return one.length-two.length;
-    if (two.indexOf(one) >= 0)
-        return two.length-one.length;
-
-    const R = one.length+1;
-    const C = two.length+1;
-    const matrix = new Array(R*C);
-    function set(i, j, v) {
-        assert(i*C + j < R*C);
-        matrix[i*C + j] = v;
-    }
-    function get(i, j) {
-        assert(i*C + j < R*C);
-        return matrix[i*C + j];
-    }
-
-    for (let j = 0; j < C; j++)
-        set(0, j, j);
-    for (let i = 1; i < R; i++)
-        set(i, 0, i);
-    for (let i = 1; i <= one.length; i++) {
-        for (let j = 1; j <= two.length; j++) {
-            if (one[i-1] === two[j-1])
-                set(i, j, get(i-1, j-1));
-            else
-                set(i, j, 1 + Math.min(Math.min(get(i-1, j), get(i, j-1)), get(i-1, j-1)));
-        }
-    }
-
-    return get(one.length, two.length);
-}
 
 function getBestEntityMatch(searchTerm, candidates) {
     // based only on character-level edit distance, instead of token overlap
