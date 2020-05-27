@@ -129,6 +129,8 @@ class AnnotationExtractor {
     generateInput(candidates) {
         const input = [];
         for (let category in candidates) {
+            if (category === 'base')
+                continue;
             let canonical = Object.keys(candidates[category])[0];
             for (let sentence of candidates[category][canonical])
                 input.push(`${sentence}`);
