@@ -272,6 +272,11 @@ class SchemaProcessor {
                 'org_schema_type': new Ast.Value.String(schemaOrgType)
             };
 
+            if (canonical.base[0].startsWith('number of '))
+                metadata.counted_object = [ canonical.base[0].slice('number of '.length) ];
+            if (canonical.base[0].endsWith(' count'))
+                metadata.counted_object = [ pluralize(canonical.base[0].slice(0, -' count'.length)) ];
+
             if (PROPERTIES_NO_FILTER.includes(propertyname)) {
                 annotation['filterable'] = new Ast.Value.Boolean(false);
             } else if (this._hasGeo && PROPERTIES_DROP_WITH_GEO.includes(propertyname)) {
@@ -639,6 +644,11 @@ class SchemaProcessor {
 
                 if (PROPERTIES_NO_FILTER.includes(propertyname))
                     annotation['filterable'] = new Ast.Value.Boolean(false);
+
+                if (canonical.base[0].startsWith('number of '))
+                    metadata.counted_object = [ canonical.base[0].slice('number of '.length) ];
+                if (canonical.base[0].endsWith(' count'))
+                    metadata.counted_object = [ pluralize(canonical.base[0].slice(0, -' count'.length)) ];
 
                 const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, propertyname, type, {
                     nl: metadata,
