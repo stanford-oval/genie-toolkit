@@ -138,6 +138,11 @@ npv_input_param = {}
 apv_filter = {}
 apv_input_param = {}
 
+// projection in reversed verb form
+// e.g., "who [wrote] book X", "which [album includes] song Y"
+rv_projection = {}
+who_rv_projection = {}
+
 constant_name = {}
 
 base_table = {}

@@ -107,6 +107,44 @@ where_question = {
     }
 }
 
+rv_projection_table = {
+    ?projection_with_filter {
+        ( p:rv_projection ('the' | '') table:with_filtered_table
+        | p:rv_projection ('the' | '') table:with_arg_min_max_table
+        ) => {
+            if (!table.schema.out[p.name])
+                return null;
+            return C.makeProjection(table, p.name);
+        };
+    }
+    !projection_with_filter {
+        p:rv_projection ('the' | '') table:complete_table => {
+            if (!table.schema.out[p.name])
+                return null;
+            return C.makeProjection(table, p.name);
+        };
+    }
+}
+
+who_rv_projection_table = {
+    ?projection_with_filter {
+        ( p:who_rv_projection ('the' | '') table:with_filtered_table
+        | p:who_rv_projection ('the' | '') table:with_arg_min_max_table
+        ) => {
+            if (!table.schema.out[p.name])
+                return null;
+            return C.makeProjection(table, p.name);
+        };
+    }
+    !projection_with_filter {
+        p:who_rv_projection ('the' | '') table:complete_table => {
+            if (!table.schema.out[p.name])
+                return null;
+            return C.makeProjection(table, p.name);
+        };
+    }
+}
+
 for (let [typestr, type] of _tpLoader.types.all) {
     // don't access booleans or enums out arguments generically, as that rarely makes sense
     // (and when it does, you probably want a macro and maybe and edge trigger)
