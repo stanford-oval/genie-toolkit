@@ -26,39 +26,64 @@ class AnnotationExtractor {
         this.model = model;
         this.queries = queries;
         this.options = options;
+
+        this.newCanonicals = {};
     }
 
     async run(synonyms, queries) {
         for (let qname of this.queries) {
             let query_canonical = queries[qname]['canonical'];
             for (let arg in synonyms[qname]) {
-                let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
                 if (arg === 'id' || Object.keys(synonyms[qname][arg]).length === 0)
                     continue;
 
                 let input = this.generateInput(synonyms[qname][arg]);
                 let output = await this._paraphrase(input.join('\n'), arg);
                 let values = queries[qname]['args'][arg]['values'];
-                for (let i = 0; i < input.length; i++) {
-                    let newCanonicals = this.extractCanonical(input[i], output[i], values, query_canonical);
-                    for (let typeNewCanonical in newCanonicals) {
-                        for (let newCanonical of newCanonicals[typeNewCanonical]) {
-                            if (!canonicals[typeNewCanonical]) {
-                                canonicals[typeNewCanonical] = [newCanonical];
-                                continue;
-                            }
-                            if (canonicals[typeNewCanonical].includes(newCanonical))
-                                continue;
-                            if (newCanonical.endsWith(' #') && canonicals[typeNewCanonical].includes(newCanonical.slice(0, -2)))
-                                continue;
-                            canonicals[typeNewCanonical].push(newCanonical);
+                for (let i = 0; i < input.length; i++)
+                    this.extractCanonical(arg, input[i], output[i], values, query_canonical);
+            }
+
+            for (let arg in synonyms[qname]) {
+                if (!(arg in this.newCanonicals))
+                    continue;
+
+                let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
+                for (let typeNewCanonical in this.newCanonicals[arg]) {
+                    for (let newCanonical of this.newCanonicals[arg][typeNewCanonical]) {
+                        if (!(newCanonical.startsWith('# ') || newCanonical.endsWith(' #') || newCanonical.includes(' # ')))
+                            continue;
+
+                        if (this.hasConflict(arg, newCanonical))
+                            continue;
+
+                        if (!canonicals[typeNewCanonical]) {
+                            canonicals[typeNewCanonical] = [newCanonical];
+                            continue;
                         }
+                        if (canonicals[typeNewCanonical].includes(newCanonical))
+                            continue;
+                        if (newCanonical.endsWith(' #') && canonicals[typeNewCanonical].includes(newCanonical.slice(0, -2)))
+                            continue;
+                        canonicals[typeNewCanonical].push(newCanonical);
                     }
                 }
-
-
             }
         }
+    }
+
+    hasConflict(currentArg, currentCanonical) {
+        for (let arg in this.newCanonicals) {
+            if (arg === currentArg)
+                continue;
+            for (let pos in this.newCanonicals[arg]) {
+                for (let canonical of this.newCanonicals[arg][pos]) {
+                    if (canonical.replace('#', '').trim() === currentCanonical.replace('#', '').trim())
+                        return true;
+                }
+            }
+        }
+        return false;
     }
 
     async _paraphrase(input, arg) {
@@ -111,12 +136,15 @@ class AnnotationExtractor {
         return input;
     }
 
-    extractCanonical(origin, paraphrases, values, query_canonical) {
-        const canonical = {};
+    extractCanonical(arg, origin, paraphrases, values, query_canonical) {
+        if (!(arg in this.newCanonicals))
+            this.newCanonicals[arg] = {};
+
+        const canonical = this.newCanonicals[arg];
         let value = values.find((v) => origin.includes(v));
         if (!value) {
-            // base canonical
-            return canonical;
+            // base canonical, do nothing
+            return;
         }
         value = value.toLowerCase();
 
@@ -181,7 +209,6 @@ class AnnotationExtractor {
                 break;
             }
         }
-        return canonical;
     }
 }
 
