@@ -36,7 +36,7 @@ class AnnotationExtractor {
                 if (arg === 'id' || Object.keys(synonyms[qname][arg]).length === 0)
                     continue;
 
-                let input = this.generateGpt2Input(synonyms[qname][arg]);
+                let input = this.generateInput(synonyms[qname][arg]);
                 let output = await this._paraphrase(input.join('\n'), arg);
                 let values = queries[qname]['args'][arg]['values'];
                 for (let i = 0; i < input.length; i++) {
@@ -101,13 +101,12 @@ class AnnotationExtractor {
         return JSON.parse(stdout);
     }
 
-    generateGpt2Input(candidates) {
+    generateInput(candidates) {
         const input = [];
         for (let category in candidates) {
-            for (let canonical in candidates[category]) {
-                for (let sentence of candidates[category][canonical])
-                    input.push(`${sentence}`);
-            }
+            let canonical = Object.keys(candidates[category])[0];
+            for (let sentence of candidates[category][canonical])
+                input.push(`${sentence}`);
         }
         return input;
     }
