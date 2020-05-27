@@ -63,7 +63,7 @@ class AutoCanonicalAnnotator {
             for (let arg of query.iterateArguments()) {
                 queries[qname]['args'][arg.name] = {};
 
-                if (ANNOTATED_PROPERTIES.includes(arg.name))
+                if (ANNOTATED_PROPERTIES.includes(arg.name) || arg.name === 'id')
                     continue;
 
                 // TODO: bert on counted object only for these args
