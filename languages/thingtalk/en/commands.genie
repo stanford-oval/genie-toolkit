@@ -250,8 +250,13 @@ generic_search_preamble = {
     'i want';
     'i need';
     'i am looking for';
+    'i am looking for a particular';
+    'i am looking for a certain';
     'i would like';
     'i need';
+    'i need some information about';
+    'i would like information about';
+    'i would like to hear about';
 }
 generic_lookup_preamble = {
     'show me';
