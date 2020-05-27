@@ -352,7 +352,7 @@ class ThingpediaLoader {
                         this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
                     }
                 } else if (cat === 'rv') {
-                    if (ptype.isEntity && this._isHumanEntity(ptype.type)) {
+                    if (this._isHumanEntity(ptype)) {
                         let expansion = [form];
                         this._grammar.addRule('who_rv_projection', expansion, this._runtime.simpleCombine(() => pvar));
                     }
@@ -391,8 +391,12 @@ class ThingpediaLoader {
     }
 
     _isHumanEntity(type) {
+        if (type.isEntity)
+            return this._isHumanEntity(type.type);
         if (type.isArray)
             return this._isHumanEntity(type.elem);
+        if (typeof type !== 'string')
+            return false;
         if (['tt:contact', 'tt:username', 'org.wikidata:human'].includes(type))
             return true;
         if (type.startsWith('org.schema') && type.endsWith(':Person'))
@@ -481,7 +485,7 @@ class ThingpediaLoader {
         if (ex.type === 'query') {
             if (Object.keys(ex.args).length === 0 && ex.value.schema.hasArgument('id')) {
                 let type = ex.value.schema.getArgument('id').type;
-                if (type.isEntity && this._isHumanEntity(type.type)) {
+                if (this._isHumanEntity(type)) {
                     let grammarCat = 'thingpedia_who_question';
                     this._grammar.addRule(grammarCat, [''], this._runtime.simpleCombine(() => ex.value));
                 }
