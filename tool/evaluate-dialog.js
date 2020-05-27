@@ -17,7 +17,8 @@ const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('./lib/parserclient');
 const TokenizerService = require('../lib/tokenizer');
-const { DialogueEvaluatorStream, CollectDialogueStatistics } = require('../lib/dialogue_evaluator');
+const MultiJSONDatabase = require('./lib/multi_json_database');
+const { KEYS, DialogueEvaluatorStream, CollectDialogueStatistics } = require('../lib/dialogue_evaluator');
 
 module.exports = {
     initArgparse(subparsers) {
@@ -80,6 +81,10 @@ module.exports = {
             dest: 'debug',
             help: 'Disable debugging.',
         });
+        parser.addArgument('--database-file', {
+            required: false,
+            help: `Path to a file pointing to JSON databases used to simulate queries.`,
+        });
         parser.addArgument('--csv', {
             nargs: 0,
             action: 'storeTrue',
@@ -102,6 +107,12 @@ module.exports = {
             tokenizer = TokenizerService.get('local', true);
         await parser.start();
 
+        let database;
+        if (args.database_file) {
+            database = new MultiJSONDatabase(args.database_file);
+            await database.load();
+        }
+
         const output = readAllLines(args.input_file, '====')
             .pipe(new DialogueParser())
             .pipe(new DialogueEvaluatorStream(parser, tokenizer, {
@@ -109,7 +120,8 @@ module.exports = {
                 targetLanguage: args.target_language,
                 thingpediaClient: tpClient,
                 tokenized: args.tokenized,
-                debug: args.debug
+                debug: args.debug,
+                database: database
             }))
             .pipe(new CollectDialogueStatistics());
 
@@ -119,7 +131,7 @@ module.exports = {
         if (args.csv_prefix)
             buffer = args.csv_prefix + ',';
         let first = true;
-        for (let key of ['total', 'turns', 'ok', 'ok_initial', 'ok_partial', 'ok_prefix', 'ok_progress']) {
+        for (let key of ['total', 'turns'].concat(KEYS)) {
             if (!first)
                 buffer += ',';
             first = false;

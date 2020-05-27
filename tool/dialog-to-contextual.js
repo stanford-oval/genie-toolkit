@@ -142,6 +142,7 @@ class DialogueToTurnStream extends Stream.Transform {
                 else
                     await this._emitUserTurn(i, turn, dlg);
             } catch(e) {
+                console.error('Failed in dialogue ' + dlg.id);
                 console.error(turn);
                 throw e;
             }
