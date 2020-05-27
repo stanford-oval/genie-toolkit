@@ -278,6 +278,12 @@ specific_dontcare_phrase = {
     | 'i' ('do not have a' | 'have no') 'preference of ' param:out_param_Any '. what do you recommend ?'
     | 'i have no preference of ' param:out_param_Any '. please make a recommendation .'
     ) => new Ast.BooleanExpression.DontCare(null, param.name);
+
+    ('i do not care that it has' | 'it need not have' | 'i do not need') param:npp_filter => {
+        if (!param.value.isBoolean)
+            return null;
+        return new Ast.BooleanExpression.DontCare(null, param.name);
+    };
 }
 
 coref_constant = {
