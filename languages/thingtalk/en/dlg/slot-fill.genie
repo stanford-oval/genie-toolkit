@@ -268,11 +268,23 @@ generic_dontcare_phrase = {
     'it does not matter . can you suggest one ?';
     'i' ('do not have a' | 'have no') 'preference .' => '';
     'i' ('do not have a' | 'have no') 'preference . what do you recommend ?' => '';
-    'i have no preference . please make a recommendation .';
+    'i have no preference . please make a recommendation .' => '';
+    'i have no preference . which' ('one' | '1') 'is best ?' => '';
+}
+
+no_dontcare_phrase = {
+    'no' ('.' | ',') 'can you suggest one ?' => '';
+    'no' ('.' | ',') 'please make a recommendation .' => '';
+    'no' ('.' | ',') 'which' ('one' | '1') 'is best ?' => '';
+    'no' ('.' | ',') 'you choose for me !' => '';
+    'no' ('.' | ',') 'surprise me !' => '';
+    'i have no preference . please make a recommendation .' => '';
 }
 
 specific_dontcare_phrase = {
     ( 'the' param:out_param_Any 'does not matter .'
+    | 'the' param:out_param_Any 'is not an issue .'
+    | 'the' param:out_param_Any 'is not important .'
     | 'the' param:out_param_Any 'does not matter . can you suggest one ?'
     | 'i' ('do not have a' | 'have no') 'preference of ' param:out_param_Any '.'
     | 'i' ('do not have a' | 'have no') 'preference of ' param:out_param_Any '. what do you recommend ?'
@@ -342,10 +354,14 @@ imprecise_search_question_answer_pair = {
     ( questions:one_param_direct_search_question '<sep>' generic_dontcare_phrase [weight=0.1]
     | questions:disjunctive_search_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
     | questions:one_param_yesno_direct_search_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
+    | questions:disjunctive_search_question '<sep>' ('no' | 'no ,' | '') no_dontcare_phrase [weight=0.1]
+    | questions:one_param_yesno_direct_search_question '<sep>' ('no' | 'no ,' | '') no_dontcare_phrase [weight=0.1]
 
     | questions:one_param_direct_search_question_with_preamble '<sep>' generic_dontcare_phrase [weight=0.1]
     | questions:disjunctive_search_question_with_preamble '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
     | questions:one_param_yesno_direct_search_question_with_preamble '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
+    | questions:disjunctive_search_question_with_preamble '<sep>' ('no' | 'no ,' | '') no_dontcare_phrase [weight=0.1]
+    | questions:one_param_yesno_direct_search_question_with_preamble '<sep>' ('no' | 'no ,' | '') no_dontcare_phrase [weight=0.1]
     ) => D.impreciseSearchQuestionAnswerPair(questions, new Ast.BooleanExpression.DontCare(null, questions[0]));
 
 
