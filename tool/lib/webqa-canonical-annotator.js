@@ -164,7 +164,7 @@ class AutoCanonicalAnnotator {
             this._updateCanonicals(synonyms, adjectives, implicit_identity);
             if (this.gpt2_paraphraser) {
                 const extractor = new AnnotationExtractor(this.class, this.queries, this.gpt2_paraphraser_model, this.options);
-                extractor.run(synonyms, queries);
+                await extractor.run(synonyms, queries);
             }
         }
 

@@ -62,6 +62,10 @@ class AnnotationExtractor {
     }
 
     async _paraphrase(input, arg) {
+        // if debug file exists, use them directly
+        if (fs.existsSync(`./gpt2-paraphraser-out-${arg}.json`))
+            return JSON.parse(fs.readFileSync(`./gpt2-paraphraser-out-${arg}.json`, 'utf-8'));
+
         // genienlp run-paraphrase --input_column 0 --skip_heuristics --model_name_or_path xxx --temperature 1 1 1 --num_beams 4 --pipe_mode
         const args = [
             `run-paraphrase`,
@@ -118,20 +122,20 @@ class AnnotationExtractor {
         value = value.toLowerCase();
 
         for (let paraphrase of paraphrases) {
+            paraphrase = paraphrase.toLowerCase();
+
             if (!paraphrase.includes(value))
                 continue;
 
             if (paraphrase.endsWith('.') || paraphrase.endsWith('?') || paraphrase.endsWith('!'))
                 paraphrase = paraphrase.slice(0, -1);
 
-            paraphrase = paraphrase.toLowerCase();
-
             let tags = posTag(paraphrase.split(' '));
 
             let prefixes = [];
             if (origin.startsWith('who ')) {
                 prefixes.push('who ');
-                prefixes.push('who\'s');
+                prefixes.push('who\'s ');
             } else {
                 let standard_prefix = origin.slice(0, origin.indexOf(query_canonical) + query_canonical.length + 1);
                 prefixes.push(standard_prefix);
