@@ -63,7 +63,7 @@ class AutoCanonicalAnnotator {
             for (let arg of query.iterateArguments()) {
                 queries[qname]['args'][arg.name] = {};
 
-                if (ANNOTATED_PROPERTIES.includes(arg.name))
+                if (ANNOTATED_PROPERTIES.includes(arg.name) || arg.name === 'id')
                     continue;
 
                 if (arg.name.includes('.') && ANNOTATED_PROPERTIES.includes(arg.name.slice(arg.name.indexOf('.') + 1)))
