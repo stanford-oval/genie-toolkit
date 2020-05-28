@@ -64,11 +64,11 @@ if_filter = {
     p:out_param_Currency 'is' ('more expensive' | 'more costly' | 'more') 'than' x:constant_Currency => C.makeFilter(p, '>=', x);
     p:out_param_Currency 'is' ('less expensive' | 'cheaper' | 'less') 'than' x:constant_Currency  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_ms 'is' 'longer than' x:constant_Measure_ms => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_ms 'is' 'shorter than' x:constant_Measure_ms  => C.makeFilter(p, '<=', x);
+    p:out_param_Measure_ms 'is' ('longer than' | 'no shorter than') x:constant_Measure_ms => C.makeFilter(p, '>=', x);
+    p:out_param_Measure_ms 'is' ('no longer than' | 'shorter than') x:constant_Measure_ms  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_byte 'is' ('larger' | 'more') 'than' x:constant_Measure_byte => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_byte 'is' ('smaller' | 'less') 'than' x:constant_Measure_byte  => C.makeFilter(p, '<=', x);
+    p:out_param_Measure_byte 'is' ('larger' | 'more' | 'no smaller'| 'no less') 'than' x:constant_Measure_byte => C.makeFilter(p, '>=', x);
+    p:out_param_Measure_byte 'is' ('smaller' | 'less' | 'no larger' | 'no more') 'than' x:constant_Measure_byte  => C.makeFilter(p, '<=', x);
 
     p:out_param_Measure_kg 'is' ('heavier' | 'larger') 'than' x:constant_Measure_kg => C.makeFilter(p, '>=', x);
     p:out_param_Measure_kg 'is' ('lighter' | 'smaller') 'than' x:constant_Measure_kg  => C.makeFilter(p, '<=', x);
@@ -77,7 +77,7 @@ if_filter = {
     p:out_param_Measure_C 'is' ('cooler' | 'colder' | 'lower') 'than' x:constant_Measure_C  => C.makeFilter(p, '<=', x);
 
     p:out_param_Measure_m 'is' ('farther' | 'more distant' | 'longer') 'than' x:constant_Measure_m => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_m 'is' ('nearer' | 'closer' | 'shorter') 'than' x:constant_Measure_m  => C.makeFilter(p, '<=', x);
+    p:out_param_Measure_m 'is' ('nearer' | 'closer' | 'shorter' | 'no longer' | 'no farther') 'than' x:constant_Measure_m  => C.makeFilter(p, '<=', x);
 
     p:out_param_Measure_mps 'is' ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
     p:out_param_Measure_mps 'is' ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);
