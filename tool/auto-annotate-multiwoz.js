@@ -147,6 +147,9 @@ const GENERAL_TYPO = {
     // others
     "y":"yes", "any":"dontcare", "n":"no", "does not care":"dontcare", "not men":"none", "not":"none", "not mentioned":"none",
     '':"none", "not mendtioned":"none", "3 .":"3", "does not":"no", "fun":"none", "art":"none",
+
+    // new typos
+    "el shaddia guesthouse": "el shaddai"
 };
 function fixGeneralLabelError(key, value) {
     if (value in GENERAL_TYPO)
