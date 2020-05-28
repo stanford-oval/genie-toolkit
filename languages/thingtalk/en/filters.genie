@@ -333,7 +333,7 @@ with_filter = {
     x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter(p, 'count', '*', '==', x);
 
     !turking ('no' | 'zero') p:out_param_ArrayCount => C.makeFilter(p, '==', new Ast.Value.Number(0));
-    x:constant_Number p:out_param_ArrayCount => C.makeFilter(p, '==', new Ast.Value.Number(0));
+    x:constant_Number p:out_param_ArrayCount => C.makeFilter(p, '==', x);
 
     !turking ('no' | 'zero') p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
         const filter =  C.makeFilter(f, '<=', x);
