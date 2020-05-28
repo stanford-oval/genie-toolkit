@@ -413,6 +413,13 @@ projection_question = {
             return null;
         return C.sayProjection(proj);
     };
+    ('what' | 'which') proj:verb_projection_Any '?' => {
+        // FIXME: this should not happen
+        if (proj.args.length === 0)
+            return null;
+        return C.sayProjection(proj);
+    };
+
 
     // now => get => say(...) (where questions)
     ?turking 'where is the' table:with_filtered_table =>
