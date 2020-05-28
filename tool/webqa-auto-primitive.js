@@ -25,7 +25,7 @@ const Ast = ThingTalk.Ast;
 
 const BinaryPPDB = require('../lib/binary_ppdb');
 const { choose } = require('../lib/random');
-const { clean } = require('../lib/utils');
+const { clean, posTag } = require('../lib/utils');
 const StreamUtils = require('../lib/stream-utils');
 //const Tokenizer = require('../lib/tokenizer');
 
@@ -101,13 +101,6 @@ function getEdIng(propertyCanonical) {
 
     const inflector = new Inflectors(words[0]);
     return [inflector.toPast(), inflector.toGerund()];
-}
-
-function posTag(tokens) {
-    return new POS.Tag(tokens)
-        .initial() // initial dictionary and pattern based tagging
-        .smooth() // further context based smoothing
-        .tags;
 }
 
 function phraseStartWithVerb(propertyCanonical) {

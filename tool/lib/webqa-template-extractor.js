@@ -10,15 +10,8 @@
 "use strict";
 const fs = require('fs');
 const util = require('util');
-const POS = require("en-pos");
 const child_process = require('child_process');
-
-function posTag(tokens) {
-    return new POS.Tag(tokens)
-        .initial() // initial dictionary and pattern based tagging
-        .smooth() // further context based smoothing
-        .tags;
-}
+const { posTag } = require('../../lib/utils');
 
 class AnnotationExtractor {
     constructor(klass, queries, model, options) {

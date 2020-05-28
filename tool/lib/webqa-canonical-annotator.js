@@ -11,6 +11,7 @@
 const fs = require('fs');
 const util = require('util');
 const path = require('path');
+const Inflectors = require('en-inflectors').Inflectors;
 const child_process = require('child_process');
 const utils = require('../../lib/utils');
 
@@ -228,12 +229,29 @@ class AutoCanonicalAnnotator {
 
                 for (let type in candidates[qname][arg]) {
                     for (let candidate in candidates[qname][arg][type]) {
+                        if (type === 'reverse_verb' && !this._isVerb(candidate))
+                            continue;
                         if (!canonicals[type].includes(candidate))
                             canonicals[type].push(candidate);
                     }
                 }
+                if (canonicals.reverse_verb && canonicals.reverse_verb.length === 1) {
+                    // FIXME: a hack, when there is only one candidate for reverse verb, it means the inflector noun
+                    //  to verb doesn't work, add the following heuristics
+                    const base = (new Inflectors(canonicals.base[0])).toSingular();
+                    if (base.endsWith('or') || base.endsWith('er'))
+                        canonicals.reverse_verb.push(base.slice(0, -2) + 'ed');
+                    canonicals.reverse_verb.push(base);
+                }
             }
         }
+    }
+
+    _isVerb(candidate) {
+        if (candidate === 'is' || candidate === 'are')
+            return false;
+
+        return ['VBP', 'VBZ', 'VBD'].includes(utils.posTag([candidate])[0]);
     }
 
     _retrieveSamples(qname, arg) {

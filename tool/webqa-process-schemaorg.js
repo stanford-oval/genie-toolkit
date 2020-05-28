@@ -10,7 +10,7 @@
 "use strict";
 
 const assert = require('assert');
-const POS = require("en-pos");
+const Inflectors = require('en-inflectors').Inflectors;
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const Type = ThingTalk.Type;
@@ -18,7 +18,7 @@ const Ast = ThingTalk.Ast;
 const fs = require('fs');
 const util = require('util');
 
-const { clean, pluralize } = require('../lib/utils');
+const { clean, pluralize, isHumanEntity, posTag } = require('../lib/utils');
 const StreamUtils = require('../lib/stream-utils');
 
 const {
@@ -59,13 +59,6 @@ const KEYWORDS = [
     'enum', 'aggregate', 'dataset', 'oninput', 'sort', 'asc', 'desc', 'bookkeeping',
     'compute', 'true', 'false'
 ];
-
-function posTag(tokens) {
-    return new POS.Tag(tokens)
-        .initial() // initial dictionary and pattern based tagging
-        .smooth() // further context based smoothing
-        .tags;
-}
 
 function getItemType(typename, typeHierarchy) {
     // use conventions on the typename to convert an array type to its element type
@@ -316,6 +309,12 @@ class SchemaProcessor {
             this.addCanonical(canonical, candidate, ptype);
         if (!("base" in canonical) && this._always_base_canonical)
             canonical["base"] = [cleanName(name)];
+
+        if (isHumanEntity(ptype)) {
+            const singular = (new Inflectors(canonical.base[0])).toSingular();
+            const past = (new Inflectors(singular).toPast());
+            canonical.reverse_verb = [past];
+        }
 
         return canonical;
     }

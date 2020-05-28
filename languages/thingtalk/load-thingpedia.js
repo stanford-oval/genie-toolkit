@@ -33,7 +33,7 @@ const ANNOTATION_RENAME = {
     'passive_verb': 'pvp',
     'adjective': 'apv',
     'implicit_identity': 'npv',
-    'reversed_verb': 'rv'
+    'reverse_verb': 'rv'
 };
 
 class ThingpediaLoader {
