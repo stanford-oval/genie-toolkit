@@ -11,6 +11,7 @@
 const fs = require('fs');
 const util = require('util');
 const path = require('path');
+const stemmer = require('stemmer');
 const Inflectors = require('en-inflectors').Inflectors;
 const child_process = require('child_process');
 const POS = require("en-pos");
@@ -241,6 +242,8 @@ class AutoCanonicalAnnotator {
 
                 for (let type in candidates[qname][arg]) {
                     for (let candidate in candidates[qname][arg][type]) {
+                        if (this._hasConflict(qname, arg, type, candidate))
+                            continue;
                         if (type === 'reverse_verb' && !this._isVerb(candidate))
                             continue;
                         if (!canonicals[type].includes(candidate))
@@ -264,6 +267,45 @@ class AutoCanonicalAnnotator {
             return false;
 
         return ['VBP', 'VBZ', 'VBD'].includes(posTag([candidate])[0]);
+    }
+
+    _hasConflict(query, currentArg, currentPos, currentCanonical) {
+        currentArg = this.class.queries[query].getArgument(currentArg);
+        const currentStringset = currentArg.getImplementationAnnotation('string_values');
+        for (let arg of this.class.queries[query].iterateArguments()) {
+            if (arg.name === currentArg.name)
+                continue;
+
+            // for non base, we only check conflict between arguments of the same type, or same string set
+            if (currentPos !== 'base') {
+                if (currentStringset) {
+                    let stringset = arg.getImplementationAnnotation('string_values');
+                    if (stringset && stringset !== currentStringset)
+                        continue;
+                }
+                if (!currentArg.type.equals(arg.type))
+                    continue;
+            }
+
+            const canonicals = arg.metadata.canonical;
+
+            for (let pos in canonicals) {
+                // if current pos is base, only check base
+                if (currentPos === 'base' && pos !== 'base')
+                    continue;
+                // if current pos is not base, only check non-base
+                if (currentPos !== 'base' && pos === 'base')
+                    continue;
+                for (let canonical of canonicals[pos]) {
+                    if (stemmer(canonical) === stemmer(currentCanonical))
+                        return true;
+                }
+            }
+        }
+
+        //TODO: also consider conflicts between candidates
+
+        return false;
     }
 
     _retrieveSamples(qname, arg) {
