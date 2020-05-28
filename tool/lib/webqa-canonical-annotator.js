@@ -11,6 +11,7 @@
 const fs = require('fs');
 const util = require('util');
 const path = require('path');
+const stemmer = require('stemmer');
 const Inflectors = require('en-inflectors').Inflectors;
 const child_process = require('child_process');
 const utils = require('../../lib/utils');
@@ -238,6 +239,8 @@ class AutoCanonicalAnnotator {
                 if (this.bert) {
                     for (let type in candidates[qname][arg]) {
                         for (let candidate in candidates[qname][arg][type]) {
+                            if (this._hasConflict(qname, arg, type, candidate))
+                                continue;
                             if (type === 'reverse_verb' && !this._isVerb(candidate))
                                 continue;
                             if (!canonicals[type].includes(candidate))
@@ -263,6 +266,63 @@ class AutoCanonicalAnnotator {
             return false;
 
         return ['VBP', 'VBZ', 'VBD'].includes(utils.posTag([candidate])[0]);
+    }
+
+    _hasConflict(query, currentArg, currentPos, currentCanonical) {
+        currentArg = this.class.queries[query].getArgument(currentArg);
+        const currentStringset = currentArg.getImplementationAnnotation('string_values');
+        for (let arg of this.class.queries[query].iterateArguments()) {
+            if (arg.name === currentArg.name)
+                continue;
+
+            // for non base, we only check conflict between arguments of the same type, or same string set
+            if (currentPos !== 'base') {
+                if (currentStringset) {
+                    let stringset = arg.getImplementationAnnotation('string_values');
+                    if (stringset && stringset !== currentStringset)
+                        continue;
+                }
+                let currentType = currentArg.type.isArray ? currentArg.type.elem : currentArg.type;
+                let type = arg.type.isArray ? arg.type.elem : arg.type;
+                if (!currentType.equals(type))
+                    continue;
+            }
+
+            const canonicals = arg.metadata.canonical;
+
+            for (let pos in canonicals) {
+                // if current pos is base, only check base
+                if (currentPos === 'base' && pos !== 'base')
+                    continue;
+                // if current pos is not base, only check non-base
+                if (currentPos !== 'base' && pos === 'base')
+                    continue;
+                let conflictFound = false;
+                let todelete = [];
+                for (let i = 0; i < canonicals[pos].length; i++) {
+                    let canonical = canonicals[pos][i];
+                    if (stemmer(canonical) === stemmer(currentCanonical)) {
+                        // conflict with the base canonical phrase of another parameter, return true directly
+                        if (i === 0)
+                            return true;
+                        // conflict with generate canonicals of another parameter, remove conflicts, then return true
+                        conflictFound = true;
+                        todelete.push(canonical);
+                    }
+                }
+                if (conflictFound) {
+                    for (let canonical of todelete) {
+                        let index = canonicals[pos].indexOf(canonical);
+                        canonicals[pos].splice(index, 1);
+                    }
+                    return true;
+                }
+            }
+        }
+
+        //TODO: also consider conflicts between candidates
+
+        return false;
     }
 
     _retrieveSamples(qname, arg) {
