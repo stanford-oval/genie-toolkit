@@ -255,7 +255,9 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['author', 'creator'],
         passive_verb: [
             'by', 'made by', 'written by', 'created by', 'authored by', 'uploaded by', 'submitted by'
-        ]
+        ],
+        reverse_verb: ['wrote', 'authored']
+
     },
     publisher: {
         base: ['publisher'],
@@ -357,7 +359,8 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
     creator: {
         base: ['creator', 'producer'],
-        passive_verb: ['created by', 'produced by']
+        passive_verb: ['created by', 'produced by'],
+        reverse_verb: ['created', 'creates', 'produced']
     },
     dateCreated: {
         base: ['date created'],
@@ -370,22 +373,26 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     actor: {
         base: ['actor', 'actress'],
         property: ['#'],
-        passive_verb: ['played by', 'acted by']
+        passive_verb: ['played by', 'acted by'],
+        reverse_verb: ['acted', 'acted in']
     },
     director: {
         base: ['director'],
-        passive_verb: ['directed by']
+        passive_verb: ['directed by'],
+        reverse_verb: ['directs', 'directed']
     },
 
     // music
     inAlbum: {
         base: ['album'],
         passive_verb: ['in', 'in album', 'included in'],
+        reverse_verb: ['contains', 'includes']
     },
     byArtist: {
         base: ['artist', 'singer'],
         adjective: ['# \'s', '#'],
         passive_verb: ['by', 'by artist'],
+        reverse_verb: ['sings', 'sang']
     }
 };
 
