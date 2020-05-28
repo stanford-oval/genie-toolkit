@@ -256,6 +256,14 @@ precise_search_question_answer_pair = {
     };
 }
 
+search_question_ask_recommend_pair = {
+    ( questions:direct_search_question '<sep>' ask_recommend_phrase
+    | questions:yesno_search_question '<sep>' ask_recommend_phrase
+    | questions:direct_search_question_with_preamble '<sep>' ask_recommend_phrase
+    | questions:yesno_search_question_with_preamble '<sep>' ask_recommend_phrase
+    ) => questions;
+}
+
 search_question = {
     direct_search_question;
     yesno_search_question;
