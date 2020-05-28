@@ -19,6 +19,7 @@ const { DatasetStringifier } = require('../lib/dataset-parsers');
 const StreamUtils = require('../lib/stream-utils');
 const Utils = require('../lib/utils');
 
+const ProgressBar = require('./lib/progress_bar');
 const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
@@ -249,8 +250,11 @@ module.exports = {
         if (args.thingpedia)
             tpClient = new Tp.FileClient(args);
 
+        const counter = new StreamUtils.CountStream();
+
         readAllLines(args.input_file, '====')
             .pipe(new DialogueParser())
+            .pipe(counter)
             .pipe(new DialogueToTurnStream({
                 locale: args.locale,
                 targetLanguage: args.target_language,
@@ -264,6 +268,15 @@ module.exports = {
             }))
             .pipe(new DatasetStringifier())
             .pipe(args.output);
+
+        const progbar = new ProgressBar(1);
+        counter.on('progress', (value) => {
+            //console.log(value);
+            progbar.update(value);
+        });
+
+        // issue an update now to show the progress bar
+        progbar.update(0);
 
         await StreamUtils.waitFinish(args.output);
     }
