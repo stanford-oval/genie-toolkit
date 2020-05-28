@@ -11,6 +11,7 @@
 
 const assert = require('assert');
 const POS = require("en-pos");
+const Inflectors = require('en-inflectors').Inflectors;
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const Type = ThingTalk.Type;
@@ -317,6 +318,12 @@ class SchemaProcessor {
         if (!("base" in canonical) && this._always_base_canonical)
             canonical["base"] = [cleanName(name)];
 
+        if (this._isHumanEntity(ptype)) {
+            const singular = (new Inflectors(canonical.base[0])).toSingular();
+            const past = (new Inflectors(singular).toPast());
+            canonical.reverse_verb = [past];
+        }
+
         return canonical;
     }
 
@@ -373,6 +380,20 @@ class SchemaProcessor {
                 canonical.base = (canonical.base || []).concat(name);
             }
         }
+    }
+
+    _isHumanEntity(type) {
+        if (type.isEntity)
+            return this._isHumanEntity(type.type);
+        if (type.isArray)
+            return this._isHumanEntity(type.elem);
+        if (typeof type !== 'string')
+            return false;
+        if (['tt:contact', 'tt:username', 'org.wikidata:human'].includes(type))
+            return true;
+        if (type.startsWith('org.schema') && type.endsWith(':Person'))
+            return true;
+        return false;
     }
 
     async run() {

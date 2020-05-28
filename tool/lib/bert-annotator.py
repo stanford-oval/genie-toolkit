@@ -60,6 +60,12 @@ def template_query(cat, query_canonical='', prefix='', value='', suffix=''):
         return [
             f"{question_start} is a {prefix} {value} {suffix} ?".split()
         ]
+    # currently only do this for human properties
+    if cat == 'reverse_verb':
+        return [
+            f"who {prefix} the {query_canonical} ?".split()
+        ]
+
     raise Exception('Invalid grammar category: ', cat)
 
 
@@ -314,7 +320,7 @@ class BertLM:
             return examples
 
         arg_canonicals = self.queries[query_name]['args'][arg_name]['canonicals']
-        for category in ['base', 'property', 'verb', 'passive_verb', 'reverse_property']:
+        for category in ['base', 'property', 'verb', 'passive_verb', 'reverse_property', 'reverse_verb']:
             if category in arg_canonicals:
                 examples[category] = {"examples": [], "candidates": []}
 
@@ -329,10 +335,21 @@ class BertLM:
                         "value": []
                     })
 
+        if 'reverse_verb' in arg_canonicals:
+            for canonical in arg_canonicals['reverse_verb']:
+                for query in template_query('reverse_verb', query_canonical, canonical):
+                    mask_indices = list(map(lambda x: query.index(x), canonical.split()))
+                    examples['reverse_verb']['examples'].append({
+                        'canonical': canonical,
+                        "query": ' '.join(query),
+                        "masks": {"prefix": mask_indices, "suffix": []},
+                        "value": []
+                    })
+
         # check where to put value
         if self.gpt2_ordering:
             for category in arg_canonicals:
-                if category in ['default', 'adjective', 'implicit_identity', 'base']:
+                if category in ['default', 'adjective', 'implicit_identity', 'base', 'reverse_verb']:
                     continue
                 needs_reorder = []
                 for canonical in arg_canonicals[category]:
@@ -356,7 +373,7 @@ class BertLM:
 
         for value in self.queries[query_name]['args'][arg_name]['values']:
             for category in arg_canonicals:
-                if category in ['default', 'adjective', 'implicit_identity', 'base']:
+                if category in ['default', 'adjective', 'implicit_identity', 'base', 'reverse_verb']:
                     continue
                 for canonical in arg_canonicals[category]:
                     prefix, suffix = split_canonical(canonical)
