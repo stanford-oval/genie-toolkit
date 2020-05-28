@@ -12,6 +12,7 @@
 
 const assert = require('assert');
 
+const POS = require("en-pos");
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
@@ -34,6 +35,13 @@ const ANNOTATION_RENAME = {
     'implicit_identity': 'npv',
     'reverse_verb': 'rv'
 };
+
+function posTag(tokens) {
+    return new POS.Tag(tokens)
+        .initial() // initial dictionary and pattern based tagging
+        .smooth() // further context based smoothing
+        .tags;
+}
 
 class ThingpediaLoader {
     async init(runtime, grammar, langPack, options) {
@@ -113,6 +121,7 @@ class ThingpediaLoader {
         this._allTypes.set(typestr, type);
 
         this._grammar.declareSymbol('out_param_' + typestr);
+        this._grammar.declareSymbol('noun_out_param_' + typestr);
         this._grammar.declareSymbol('placeholder_' + typestr);
 
         if (!this._grammar.hasSymbol('constant_' + typestr)) {
@@ -149,6 +158,12 @@ class ThingpediaLoader {
 
     _addOutParam(functionName, pname, type, typestr, canonical) {
         this._grammar.addRule('out_param_' + typestr, [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+
+        if (!pname.startsWith('address') && !pname.endsWith('Count') && !pname.startsWith('numberOf')) {
+            let postags = posTag(canonical.split(' '));
+            if (postags.every((tag) => ['NN', 'NNS', 'NNP', 'NNPS'].includes(tag)))
+                this._grammar.addRule('noun_out_param_' + typestr, [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+        }
 
         if (type.isArray)
             this._grammar.addRule('out_param_Array__Any', [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
