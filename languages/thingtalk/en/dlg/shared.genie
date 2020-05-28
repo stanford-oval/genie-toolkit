@@ -142,3 +142,10 @@ nevermind_phrase = {
     'alright , never mind';
     'too bad , alright';
 }
+
+ask_recommend_phrase = {
+    'which one would you recommend ?';
+    'which 1 would you recommend ?';
+    'what is your favorite ?';
+    'surprise me ! just pick one please .';
+}

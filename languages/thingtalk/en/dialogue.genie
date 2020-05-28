@@ -101,6 +101,7 @@ context function (state) {
         return [tags, info];
     }
 
+    case 'ask_recommend':
     case 'execute': {
         const tags = [];
         if (info.isMultiDomain)
@@ -196,7 +197,7 @@ context function (state) {
         } else {
             if (info.resultInfo.hasSingleResult || info.resultInfoQuestion) // we can recommend
                 tags.push('ctx_single_result_search_command')
-            else // we can refine
+            else if (state.dialogueAct !== 'ask_recommend')// we can refine
                 tags.push('ctx_search_command');
 
             // we can /show the result
@@ -380,6 +381,8 @@ $root = {
         D.preciseSearchQuestionAnswer(ctx, qa);
     ctx:ctx_search_command qa:imprecise_search_question_answer_pair [weight=5] =>
         D.impreciseSearchQuestionAnswer(ctx, qa);
+    ctx:ctx_search_command questions:search_question_ask_recommend_pair [weight=1] =>
+        D.searchQuestionAskRecommendPair(ctx, questions);
 
     ctx:ctx_incomplete_action qa:precise_slot_fill_question_answer_pair
         => D.preciseSlotFillQuestionAnswer(ctx, qa);
@@ -416,4 +419,6 @@ $root = {
         => D.listProposalSearchQuestionPair(ctx, pair);
     ctx:ctx_complete_search_command pair:list_proposal_related_question_pair [weight=1]
         => D.listProposalRelatedQuestionPair(ctx, pair);
+    ctx:ctx_complete_search_command prop:list_proposal_ask_recommend_pair [weight=1]
+        => D.listProposalAskRecommendPair(ctx, prop);
 }
