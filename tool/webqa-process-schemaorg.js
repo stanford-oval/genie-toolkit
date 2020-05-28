@@ -273,6 +273,11 @@ class SchemaProcessor {
                 'org_schema_type': new Ast.Value.String(schemaOrgType)
             };
 
+            if (propertyname.endsWith('ratingValue')) {
+                annotation['min_number'] = new Ast.Value.Number(1);
+                annotation['max_number'] = new Ast.Value.Number(5);
+            }
+
             if (canonical.base[0].startsWith('number of '))
                 metadata.counted_object = [ canonical.base[0].slice('number of '.length) ];
             if (canonical.base[0].endsWith(' count'))
