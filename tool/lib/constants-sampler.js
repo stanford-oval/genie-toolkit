@@ -118,6 +118,12 @@ module.exports = class ConstantSampler {
                             sample.display
                         ]);
                     });
+
+                    if (arg === 'id') {
+                        samples.forEach((sample) => {
+                            constants.push([`param:@${device}.${f}:${arg}:String`, sample.display.toLowerCase()]);
+                        });
+                    }
                 }
             }
         }
