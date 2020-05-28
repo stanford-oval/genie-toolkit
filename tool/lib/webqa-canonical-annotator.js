@@ -66,6 +66,10 @@ class AutoCanonicalAnnotator {
                 if (ANNOTATED_PROPERTIES.includes(arg.name))
                     continue;
 
+                // TODO: bert on counted object only for these args
+                if (arg.name.startsWith('numberOf') || arg.name.endsWith('Count'))
+                    continue;
+
                 if (arg.name.includes('.') && ANNOTATED_PROPERTIES.includes(arg.name.slice(arg.name.indexOf('.') + 1)))
                     continue;
 
