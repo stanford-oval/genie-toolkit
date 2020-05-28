@@ -737,6 +737,7 @@ function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
 function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
     let cloneTable = ctxTable.clone();
 
+    let refinedFilter;
     if (newFilter !== null) {
         let filterTable;
         [cloneTable, filterTable] = findOrMakeFilterTable(cloneTable);
@@ -746,7 +747,7 @@ function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
         assert(filterTable.isFilter && ((filterTable.table.isCompute && filterTable.table.table.isInvocation) || filterTable.table.isInvocation));
         //assert(filterTable.isFilter && filterTable.table.isInvocation);
 
-        const refinedFilter = refineFilter(filterTable.filter, newFilter);
+        refinedFilter = refineFilter(filterTable.filter, newFilter);
         if (refinedFilter === null)
             return null;
 
@@ -776,7 +777,8 @@ function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
         assert(!cloneTable.isProjection);
 
         if (oldProjection) {
-            newProjection = oldProjection.filter((pname) => !C.filterUsesParam(refinedFilter, pname));
+            if (newFilter !== null)
+                newProjection = oldProjection.filter((pname) => !C.filterUsesParam(refinedFilter, pname));
 
             // if the projection is now empty, we don't add
             // the projection will be empty if
@@ -996,6 +998,20 @@ function impreciseSearchQuestionAnswer(ctx, [questions, answer]) {
     return checkStateIsValid(ctx, sysState, userState);
 }
 
+function searchQuestionAskRecommendPair(ctx, questions) {
+    assert(Array.isArray(questions));
+    const currentTable = ctx.current.stmt.table;
+    if (!isValidSearchQuestion(currentTable, questions))
+        return null;
+    const userState = makeSimpleState(ctx, 'ask_recommend', null);
+    let sysState;
+    if (questions.length > 0)
+        sysState = makeSimpleState(ctx, 'sys_search_question', questions);
+    else
+        sysState = makeSimpleState(ctx, 'sys_generic_search_question', null);
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
 
 function impreciseSlotFillQuestionAnswer(ctx, [questions, answer]) {
     assert(Array.isArray(questions));
@@ -1129,6 +1145,20 @@ function listProposalSearchQuestionPair(ctx, [results, name, actionProposal, que
 
     return checkStateIsValid(ctx, sysState, userState);
 }
+
+function listProposalAskRecommendPair(ctx, [results, info, actionProposal]) {
+    const userState = makeSimpleState(ctx, 'ask_recommend', null);
+
+    let dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
+    let sysState;
+    if (actionProposal === null)
+        sysState = makeSimpleState(ctx, dialogueAct, null);
+    else
+        sysState = addAction(ctx, dialogueAct, actionProposal, 'proposed');
+
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
 
 function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, questions]) {
     if (!areQuestionsValidForContext(ctx, questions))
@@ -1675,6 +1705,7 @@ module.exports = {
     impreciseSlotFillQuestionAnswerPair,
     impreciseSearchQuestionAnswer,
     impreciseSlotFillQuestionAnswer,
+    searchQuestionAskRecommendPair,
     proposalReplyPair,
     negativeRecommendationReplyPair,
     positiveRecommendationReplyPair,
@@ -1685,6 +1716,7 @@ module.exports = {
     positiveListProposalReplyPair,
     listProposalSearchQuestionPair,
     listProposalRelatedQuestionPair,
+    listProposalAskRecommendPair,
     emptySearchChangePair,
     actionSuccessTerminalPair,
     actionSuccessRestartPair,

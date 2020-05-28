@@ -281,6 +281,9 @@ list_proposal_search_question_pair = {
     };
 }
 
+list_proposal_ask_recommend_pair = {
+    prop:system_list_proposal '<sep>' ask_recommend_phrase => prop;
+}
 
 list_proposal_related_question_pair = {
     prop:system_list_proposal '<sep>' question:related_question => [prop, question];
