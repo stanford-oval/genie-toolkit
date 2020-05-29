@@ -61,6 +61,7 @@ const subcommands = {
     'webqa-update-canonicals': require('./webqa-update-canonicals'),
 
     'auto-annotate-multiwoz': require('./auto-annotate-multiwoz'),
+    'convert-thingtalk-to-multidst': require('./convert-thingtalk-to-multidst')
 };
 
 async function main() {
