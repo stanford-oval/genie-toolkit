@@ -280,7 +280,7 @@ generic_article = {
     'all the';
     'every';
     'a list of';
-    'a list of all'
+    'a list of all';
     'the list of';
     'the list of all';
 }
