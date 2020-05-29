@@ -222,11 +222,9 @@ system_learn_more = {
 }
 
 learn_more_search_question_pair = {
-    ( system_learn_more '<sep>' questions:simple_user_search_question
-    | system_learn_more '<sep>' questions:boolean_user_search_question
-    ) => {
-        return [null, null, questions];
-    };
+    ( system_learn_more '<sep>' reply:simple_user_search_question
+    | system_learn_more '<sep>' reply:boolean_user_search_question
+    ) => reply;
 }
 
 initial_command = {
@@ -407,7 +405,7 @@ $root = {
     ctx:ctx_complete_search_command pair:recommendation_cancel_pair [weight=1]
         => D.recommendationCancelPair(ctx, pair);
     ctx:ctx_learn_more pair:learn_more_search_question_pair [weight=1]
-        => D.recommendationSearchQuestionPair(ctx, pair);
+        => D.learnMoreSearchQuestionPair(ctx, pair);
     ctx:ctx_complete_search_command pair:recommendation_related_question_pair [weight=1]
         => D.recommendationRelatedQuestionPair(ctx, pair);
 
