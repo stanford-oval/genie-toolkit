@@ -63,6 +63,7 @@ const subcommands = {
     'webqa-annotation-diffchecker': require('./webqa-annotation-diffchecker')
 
     'auto-annotate-multiwoz': require('./auto-annotate-multiwoz'),
+    'convert-thingtalk-to-multidst': require('./convert-thingtalk-to-multidst')
 };
 
 async function main() {
