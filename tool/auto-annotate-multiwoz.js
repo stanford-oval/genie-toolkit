@@ -92,6 +92,7 @@ const SEARCH_SLOTS_FOR_SYSTEM = new Set([
     'destination', 'dest',
     'leave-at', 'leave',
     'arrive-at', 'arrive',
+    'stars',
 ]);
 
 const REQUESTED_SLOT_MAP = {
@@ -191,12 +192,18 @@ function parseTime(v) {
             second = 0;
         else
             second = parseInt(second);
+        if (hour === 24)
+            hour = 0;
         return new Ast.Value.Time(new Ast.Time.Absolute(hour, minute, second));
     }
 
     let match = /([0-9]{2})([0-9]{2})/.exec(v);
-    if (match !== null)
-        return new Ast.Value.Time(new Ast.Time.Absolute(parseInt(match[1]), parseInt(match[2]), 0));
+    if (match !== null) {
+        let hour = parseInt(match[1]);
+        if (hour === 24)
+            hour = 0;
+        return new Ast.Value.Time(new Ast.Time.Absolute(hour, parseInt(match[2]), 0));
+    }
 
     match = /([0-9]+)\s*am/.exec(v);
     if (match !== null)
@@ -571,31 +578,6 @@ class Converter extends stream.Readable {
         return names;
     }
 
-    _sortAllResults(context, names) {
-        for (let item of context.history) {
-            if (item.results === null)
-                continue;
-
-            if (item.results.results.length === 0)
-                continue;
-
-            let firstResult = item.results.results[0];
-            if (!firstResult.value.id)
-                continue;
-            item.results.results.sort((one, two) => {
-                const onerank = this._findName(names, one.value.id);
-                const tworank = this._findName(names, two.value.id);
-                if (onerank === tworank)
-                    return 0;
-                if (onerank === -1)
-                    return 1;
-                if (tworank === -1)
-                    return -1;
-                return onerank - tworank;
-            });
-        }
-    }
-
     _getActionDomains(dlg) {
         const domains = new Set;
 
@@ -649,7 +631,6 @@ class Converter extends stream.Readable {
     async _doDialogue(dlg) {
         const id = dlg.dialogue_idx;
 
-        const names = this._extractNames(dlg);
         const actionDomains = this._getActionDomains(dlg);
 
         let context = null, contextInfo = { current: null, next: null },
@@ -662,10 +643,40 @@ class Converter extends stream.Readable {
             try {
                 let contextCode = '', agentUtterance = '', agentTargetCode = '';
                 if (context !== null) {
+                    // use the next turn to find the values of the action output parameters (reference_number and car) if any
+                    this._simulatorOverrides.clear();
+                    agentUtterance = undoTradePreprocessing(turn.system_transcript);
+                    this._extractSimulatorOverrides(agentUtterance);
+
+                    // "execute" the context
+                    [context, simulatorState] = await this._simulator.execute(context, simulatorState);
+
+                    for (let item of context.history) {
+                        if (item.results === null)
+                            continue;
+
+                        if (item.results.results.length === 0)
+                            continue;
+
+                        let firstResult = item.results.results[0];
+                        if (!firstResult.value.id)
+                            continue;
+                        item.results.results.sort((one, two) => {
+                            const onerank = agentUtterance.toLowerCase().indexOf(one.value.id.display.toLowerCase());
+                            const tworank = agentUtterance.toLowerCase().indexOf(two.value.id.display.toLowerCase());
+                            if (onerank === tworank)
+                                return 0;
+                            if (onerank === -1)
+                                return 1;
+                            if (tworank === -1)
+                                return -1;
+                            return onerank - tworank;
+                        });
+                    }
+                    contextInfo = this._getContextInfo(context);
                     contextCode = context.prettyprint();
 
                     // do the agent
-                    agentUtterance = undoTradePreprocessing(turn.system_transcript);
                     const agentTarget = await this._doAgentTurn(context, contextInfo, turn, agentUtterance);
                     const oldContext = context;
                     context = this._target.computeNewState(context, agentTarget, 'agent');
@@ -687,16 +698,6 @@ class Converter extends stream.Readable {
                     user: userUtterance,
                     user_target: userTargetCode,
                 });
-
-                // use the next turn to find the values of the action output parameters (reference_number and car) if any
-                this._simulatorOverrides.clear();
-                if (idx < dlg.dialogue.length-1)
-                    this._extractSimulatorOverrides(dlg.dialogue[idx+1].system_transcript);
-
-                // "execute" the context
-                [context, simulatorState] = await this._simulator.execute(context, simulatorState);
-                this._sortAllResults(context, names);
-                contextInfo = this._getContextInfo(context);
             } catch(e) {
                 console.error(`Failed in dialogue ${id}`);
                 console.error(turn);
