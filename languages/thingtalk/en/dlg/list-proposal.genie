@@ -230,13 +230,19 @@ positive_list_proposal_reply_pair = {
 }
 
 list_proposal_search_question_pair = {
-    ( prop:system_list_proposal '<sep>' params:simple_user_search_question
-    | prop:system_list_proposal '<sep>' params:simple_user_search_question_for_list
-    | prop:system_list_proposal '<sep>' params:boolean_user_search_question_for_list
+    ( prop:system_list_proposal '<sep>' reply:simple_user_search_question
+    | prop:system_list_proposal '<sep>' reply:simple_user_search_question_for_list
+    | prop:system_list_proposal '<sep>' reply:boolean_user_search_question_for_list
     ) => {
+        const { base, questions } = reply;
         const [results, info, action] = prop;
+        if (base !== null) {
+            if (!base.schema.getArgType('id').equals(results[0].value.id.getType()))
+                return null;
+        }
+
         if (info !== null) {
-            for (let [pname, type] of params) {
+            for (let [pname, type] of questions) {
                 assert(typeof pname === 'string');
                 if (info.has(pname))
                     return null;
@@ -246,7 +252,7 @@ list_proposal_search_question_pair = {
                     return null;
             }
         }
-        return [results, null, action, params];
+        return [results, null, action, questions];
     };
 
     ( prop:system_list_proposal '<sep>' question:user_search_question_with_name

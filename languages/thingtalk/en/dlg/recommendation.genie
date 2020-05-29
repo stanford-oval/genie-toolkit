@@ -268,10 +268,29 @@ positive_recommendation_reply_by_name_pair = {
 
 
 recommendation_search_question_pair = {
-    ( prop:system_recommendation '<sep>' ('no ,' | '') questions:simple_user_search_question
-    | prop:system_recommendation '<sep>' ('no ,' | '') questions:thingpedia_user_question '?' [weight=0.3]
-    | prop:system_recommendation '<sep>' questions:boolean_user_search_question
+    ( prop:system_recommendation '<sep>' ('no ,' | '') reply:simple_user_search_question
+    | prop:system_recommendation '<sep>' reply:boolean_user_search_question
     ) => {
+        const { topResult, info, action } = prop;
+        const { base, questions } = reply;
+        if (base !== null) {
+            if (!base.schema.getArgType('id').equals(topResult.value.id.getType()))
+                return null;
+        }
+        if (info !== null) {
+            for (const [pname, ptype] of questions) {
+                if (info.has(pname))
+                    return null;
+                if (!info.schema.hasArgument(pname))
+                    return null;
+                if (ptype !== null && !info.schema.getArgType(pname).equals(ptype))
+                    return null;
+            }
+        }
+        return [topResult, action, questions];
+    };
+
+    prop:system_recommendation '<sep>' ('no ,' | '') questions:thingpedia_user_question '?' [weight=0.3] => {
         const { topResult, info, action } = prop;
         if (info !== null) {
             for (const [pname, ptype] of questions) {

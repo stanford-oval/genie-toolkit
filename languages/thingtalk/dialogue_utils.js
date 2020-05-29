@@ -1159,20 +1159,16 @@ function listProposalAskRecommendPair(ctx, [results, info, actionProposal]) {
     return checkStateIsValid(ctx, sysState, userState);
 }
 
-
-function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, questions]) {
+function learnMoreSearchQuestionPair(ctx, { base, questions }) {
     if (!areQuestionsValidForContext(ctx, questions))
-        return false;
+        return null;
+    if (base && !C.isSameFunction(base.schema, ctx.currentFunctionSchema))
+        return null;
 
-    let sysDialogueAct;
-    if (topResult === null) {
-        assert(actionProposal === null);
-        sysDialogueAct = 'sys_learn_more_what';
-        topResult = ctx.results[0];
-    } else {
-        sysDialogueAct = 'sys_recommend_one';
-    }
+    if (!ctx.current || !ctx.current.results.results.length)
+        return null;
 
+    const topResult = ctx.current.results.results[0];
     const currentTable = ctx.current.stmt.table;
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
     const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
@@ -1180,15 +1176,32 @@ function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, quest
     if (newTable === null)
         return null;
     const userState = addQuery(ctx, 'execute', newTable, 'accepted');
+    const sysState = makeSimpleState(ctx, 'sys_learn_more_what', null);
+
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
+function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, questions]) {
+    if (!areQuestionsValidForContext(ctx, questions))
+        return null;
+
+    const currentTable = ctx.current.stmt.table;
+    const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
+    const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
+        questions.map(([qname, qtype]) => qname));
+    if (newTable === null)
+        return null;
+
+    const userState = addQuery(ctx, 'execute', newTable, 'accepted');
 
     let sysState;
     if (actionProposal === null) {
-        sysState = makeSimpleState(ctx, sysDialogueAct, null);
+        sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
     } else {
         const chainParam = findChainParam(topResult, actionProposal);
         if (!chainParam)
             return null;
-        sysState = addActionParam(ctx, sysDialogueAct, actionProposal, chainParam, topResult.value.id, 'proposed');
+        sysState = addActionParam(ctx, 'sys_recommend_one', actionProposal, chainParam, topResult.value.id, 'proposed');
     }
 
     return checkStateIsValid(ctx, sysState, userState);
@@ -1709,6 +1722,7 @@ module.exports = {
     proposalReplyPair,
     negativeRecommendationReplyPair,
     positiveRecommendationReplyPair,
+    learnMoreSearchQuestionPair,
     recommendationSearchQuestionPair,
     recommendationCancelPair,
     recommendationRelatedQuestionPair,

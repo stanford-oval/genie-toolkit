@@ -54,7 +54,7 @@ simple_user_search_question = {
     ) => {
         if (param.name === 'id')
             return null;
-        return [[param.name, null]];
+        return { base: null, questions: [[param.name, null]] };
     };
 
     ( ('can you tell me' | '') 'what' ('is' | 'are') ('the' | 'its') params:out_param_list_for_coref_question '?'
@@ -62,7 +62,7 @@ simple_user_search_question = {
     | 'i would like to' ('know' | 'see') ('the' | 'its') params:out_param_list_for_coref_question ('first' | '') '.'
     | 'i need' ('the' | 'its') params:out_param_list_for_coref_question ('first' | '') '.'
     | 'i just need' ('the' | 'its') params:out_param_list_for_coref_question '.'
-    ) => params.map((pname) => [pname, null]);
+    ) => ({ base: null, questions: params.map((pname) => [pname, null]) });
 
     ( ('can you tell me' | '') 'what is' 'the' param:out_param_Any 'of the' base:base_table '?'
     | 'can you tell me' 'the' param:out_param_Any 'of the' base:base_table '?'
@@ -79,7 +79,7 @@ simple_user_search_question = {
             return null;
         if (param.name === 'id')
             return null;
-        return [[param.name, null]];
+        return { base, questions: [[param.name, null]] };
     };
 
     ( ('can you tell me' | '') 'what' ('is' | 'are') 'the' params:out_param_list_for_coref_question 'of the' base:base_table '?'
@@ -95,7 +95,7 @@ simple_user_search_question = {
     ) => {
         if (!params.every((pname) => !!base.schema.out[pname]))
             return null;
-        return params.map((pname) => [pname, null]);
+        return { base, questions: params.map((pname) => [pname, null]) };
     };
 }
 
@@ -111,7 +111,7 @@ simple_user_search_question_for_list = {
     ) => {
         if (param.name === 'id')
             return null;
-        return [[param.name, null]];
+        return { base: null, questions: [[param.name, null]] };
     };
 }
 
@@ -122,7 +122,7 @@ boolean_user_search_question = {
     ) => {
         if (param.name === 'id')
             return null;
-        return [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]];
+        return { base: null, questions: [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]] };
     };
 
     ( 'is' ('it' | 'that') 'a' param:apv_filter base:base_table '?'
@@ -144,7 +144,7 @@ boolean_user_search_question = {
             return null;
         if (param.name === 'id')
             return null;
-        return [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]];
+        return { base, questions: [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]] };
     };
 }
 
@@ -155,7 +155,7 @@ boolean_user_search_question_for_list = {
     ) => {
         if (param.name === 'id')
             return null;
-        return [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]];
+        return { base: null, questions: [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]] };
     };
 
     ( ('is either of them' | 'is any of them' | 'are they') 'a' param:apv_filter base:base_table '?'
@@ -177,7 +177,7 @@ boolean_user_search_question_for_list = {
             return null;
         if (param.name === 'id')
             return null;
-        return [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]];
+        return { base, questions: [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]] };
     };
 }
 
