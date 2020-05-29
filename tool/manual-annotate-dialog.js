@@ -35,6 +35,7 @@ class Annotator extends events.EventEmitter {
             this._onlyIds = new Set(options.only_ids.split(','));
         else
             this._onlyIds = undefined;
+        this._maxTurns = options.max_turns;
 
         const tpClient = new Tp.FileClient(options);
         this._schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
@@ -525,8 +526,13 @@ class Annotator extends events.EventEmitter {
         } else {
             console.log(`No candidates for this program`);
         }
-        this._rl.setPrompt('$ ');
-        this._rl.prompt();
+
+        if (this._maxTurns && this._currentTurnIdx >= this._maxTurns) {
+            setTimeout(() => this._learnNumber(1), 1);
+        } else {
+            this._rl.setPrompt('$ ');
+            this._rl.prompt();
+        }
     }
 }
 
@@ -593,6 +599,10 @@ module.exports = {
             required: false,
             help: 'Only annotate the dialogues with the given IDs, comma-separated (must be given with --existing-annotations)',
             defaultValue: ''
+        });
+        parser.addArgument('--max-turns', {
+            required: false,
+            help: 'Auto-annotate after the given number of turns',
         });
         parser.addArgument('input_file', {
             nargs: '+',
