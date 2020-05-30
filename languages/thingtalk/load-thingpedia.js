@@ -617,7 +617,7 @@ class ThingpediaLoader {
         const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '=~', new Ast.Value.VarRef('p_name'));
         let span;
         if (q.name === 'Person')
-            span = [`\${p_name}`];
+            span = [`\${p_name}`, ...canonical.map((c) => `\${p_name} ${c}`)];
         else
             span = [`\${p_name}`, ...canonical.map((c) => `\${p_name} ${c}`), ...canonical.map((c) => `${c} \${p_name}`)];
         await this._loadTemplate(new Ast.Example(
