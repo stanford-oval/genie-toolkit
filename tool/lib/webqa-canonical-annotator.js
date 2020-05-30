@@ -43,13 +43,19 @@ class AutoCanonicalAnnotator {
         this.is_paraphraser = options.is_paraphraser;
         this.model = options.model;
         this.gpt2_ordering = options.gpt2_ordering;
-        this.gpt2_paraphraser = options.gpt2_paraphraser;
-        this.gpt2_paraphraser_model = options.gpt2_paraphraser_model;
+        this.paraphraser_model = options.paraphraser_model;
 
         this.parameterDatasets = parameterDatasets;
         this.parameterDatasetPaths = {};
 
         this.options = options;
+
+        if (['all', 'bert', 'no-adj', 'no-bart'].includes(this.algorithm))
+            this.bert = true;
+        if (['all', 'bart', 'no-adj', 'no-bert'].includes(this.algorithm))
+            this.bart = true;
+        if (['all', 'adj', 'no-bert', 'no-bart'].includes(this.algorithm))
+            this.adj = true;
     }
 
     async generate() {
@@ -128,7 +134,7 @@ class AutoCanonicalAnnotator {
             }
         }
 
-        if (this.algorithm === 'neural') {
+        if (this.algorithm !== 'heuristics-only') {
             const args = [path.resolve(path.dirname(module.filename), './bert-annotator.py'), 'all'];
             if (this.is_paraphraser)
                 args.push('--is-paraphraser');
@@ -165,10 +171,11 @@ class AutoCanonicalAnnotator {
             if (this.options.debug)
                 await output(`./bert-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
 
-            const {synonyms, adjectives} = JSON.parse(stdout);
-            this._updateCanonicals(synonyms, adjectives);
-            if (this.gpt2_paraphraser) {
-                const extractor = new AnnotationExtractor(this.class, this.queries, this.gpt2_paraphraser_model, this.options);
+            const {synonyms, adjectives } = JSON.parse(stdout);
+            if (this.bert || this.adj)
+                this._updateCanonicals(synonyms, adjectives);
+            if (this.bart) {
+                const extractor = new AnnotationExtractor(this.class, this.queries, this.paraphraser_model, this.options);
                 await extractor.run(synonyms, queries);
             }
         }
@@ -224,24 +231,28 @@ class AutoCanonicalAnnotator {
                 if (arg === 'id')
                     continue;
                 let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
-                if (adjectives.includes(`${qname}.${arg}`))
-                        canonicals['adjective'] = ['#'];
 
-                for (let type in candidates[qname][arg]) {
-                    for (let candidate in candidates[qname][arg][type]) {
-                        if (type === 'reverse_verb' && !this._isVerb(candidate))
-                            continue;
-                        if (!canonicals[type].includes(candidate))
-                            canonicals[type].push(candidate);
+                if (this.adj && adjectives.includes(`${qname}.${arg}`))
+                    canonicals['adjective'] = ['#'];
+
+                if (this.bert) {
+                    for (let type in candidates[qname][arg]) {
+                        for (let candidate in candidates[qname][arg][type]) {
+                            if (type === 'reverse_verb' && !this._isVerb(candidate))
+                                continue;
+                            if (!canonicals[type].includes(candidate))
+                                canonicals[type].push(candidate);
+                        }
                     }
-                }
-                if (canonicals.reverse_verb && canonicals.reverse_verb.length === 1) {
-                    // FIXME: a hack, when there is only one candidate for reverse verb, it means the inflector noun
-                    //  to verb doesn't work, add the following heuristics
-                    const base = (new Inflectors(canonicals.base[0])).toSingular();
-                    if (base.endsWith('or') || base.endsWith('er'))
-                        canonicals.reverse_verb.push(base.slice(0, -2) + 'ed');
-                    canonicals.reverse_verb.push(base);
+
+                    if (canonicals.reverse_verb && canonicals.reverse_verb.length === 1) {
+                        // FIXME: a hack, when there is only one candidate for reverse verb, it means the inflector noun
+                        //  to verb doesn't work, add the following heuristics
+                        const base = (new Inflectors(canonicals.base[0])).toSingular();
+                        if (base.endsWith('or') || base.endsWith('er'))
+                            canonicals.reverse_verb.push(base.slice(0, -2) + 'ed');
+                        canonicals.reverse_verb.push(base);
+                    }
                 }
             }
         }
