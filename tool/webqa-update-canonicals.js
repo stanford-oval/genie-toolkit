@@ -57,7 +57,7 @@ module.exports = {
             defaultValue: false
         });
         parser.addArgument('--algorithm', {
-            choices: ['heuristics', 'neural'],
+            choices: ['heuristics', 'neural', 'bert', 'bart'],
             help: 'Only apply rule based heuristics, no neural methods',
             defaultValue: 'neural'
         });

@@ -137,7 +137,7 @@ class AutoCanonicalAnnotator {
             }
         }
 
-        if (this.algorithm === 'neural') {
+        if (this.algorithm === 'neural' || this.algorithm === 'bert' || this.algorithm === 'bart') {
             const args = [path.resolve(path.dirname(module.filename), './bert-annotator.py'), 'all'];
             if (this.is_paraphraser)
                 args.push('--is-paraphraser');
@@ -175,8 +175,9 @@ class AutoCanonicalAnnotator {
                 await output(`./bert-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
 
             const {synonyms, adjectives, implicit_identity } = JSON.parse(stdout);
-            this._updateCanonicals(synonyms, adjectives, implicit_identity);
-            if (this.gpt2_paraphraser) {
+            if (this.algorithm !== 'bart')
+                this._updateCanonicals(synonyms, adjectives, implicit_identity);
+            if (this.algorithm !== 'bert' && this.gpt2_paraphraser) {
                 const extractor = new AnnotationExtractor(this.class, this.queries, this.gpt2_paraphraser_model, this.options);
                 await extractor.run(synonyms, queries);
             }
