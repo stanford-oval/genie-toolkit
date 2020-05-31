@@ -102,7 +102,9 @@ module.exports = class ConstantSampler {
                         });
                     }
                 } else if (entityType) {
-                    const samples = await this._retrieveSamples('entity', entityType);
+                    let samples = await this._retrieveSamples('entity', `${entityType}_${arg}`);
+                    if (samples.length === 0)
+                        samples = await this._retrieveSamples('entity', entityType);
                     samples.forEach((sample) => {
                         constants.push([
                             `param:@${device}.${f}:${arg}:Entity(${entityType})`,

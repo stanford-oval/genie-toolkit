@@ -114,6 +114,13 @@ class ParamDatasetGenerator {
                 assert(typeof value === 'string');
                 this._addString(path.join('_'), value);
             }
+
+            if (!expectedType.type.includes(':')) {
+                const entities = this._getStringFile(expectedType.type, true);
+                const match = entities.find((entity) => entity.value === value);
+                if (match)
+                    this._getStringFile(`${expectedType.type}_${key}`, true).push({ name: match.name, value });
+            }
         } else {
             // compound type
 
