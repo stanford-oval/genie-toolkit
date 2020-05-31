@@ -60,7 +60,7 @@ function getBestEntityMatch(value, searchTerm, candidates) {
             }
             // give a small boost to ignorable tokens that are missing
             // this offsets the char-level edit distance
-            if (!found && ['the', 'hotel', 'house'].includes(candToken))
+            if (!found && ['the', 'hotel', 'house', 'restaurant'].includes(candToken))
                 score += 1;
         }
 
