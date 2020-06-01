@@ -65,11 +65,19 @@ function isFilterCompatibleWithResult(topResult, filter) {
 
     const resultValue = topResult.value[filter.name];
 
+    if (resultValue.isEntity) {
+        // approximate: all strings are made up so we don't need a true likeTest here
+        if (filter.operator === '=~')
+            return resultValue.display === filter.value.toJS();
+        else
+            return String(resultValue.toJS()) === String(filter.value.toJS());
+    }
+
     switch (filter.operator) {
     case '==':
     case '=~':
         // approximate: all strings are made up so we don't need a true likeTest here
-        return resultValue.toJS() === filter.value.toJS();
+        return String(resultValue.toJS()) === String(filter.value.toJS());
 
     default:
         // approximate

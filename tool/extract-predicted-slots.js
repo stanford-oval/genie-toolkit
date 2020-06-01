@@ -17,7 +17,7 @@ const JSONStream = require('JSONStream');
 const assert = require('assert');
 
 const StreamUtils = require('../lib/stream-utils');
-const editDistance = require('../lib/edit-distance');
+const { getBestEntityMatch } = require('../lib/entity-finder');
 const Utils = require('../lib/utils');
 
 const TokenizerService = require('../lib/tokenizer');
@@ -26,51 +26,6 @@ const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
 const ParserClient = require('./lib/parserclient');
 
-function getBestEntityMatch(value, searchTerm, candidates) {
-    if (value !== null) {
-        for (let cand of candidates) {
-            if (value === cand.id.value)
-                return cand.id;
-        }
-    }
-
-    let best = undefined, bestScore = undefined;
-
-    let searchTermTokens = searchTerm.split(' ');
-
-    for (let cand of candidates) {
-        let candDisplay = cand.id.display;
-
-        let score = 0;
-        score -= 0.1 * editDistance(searchTerm, candDisplay);
-
-        let candTokens = candDisplay.split(' ');
-
-        for (let candToken of candTokens) {
-            let found = false;
-            for (let token of searchTermTokens) {
-                if (token === candToken) {
-                    score += 10;
-                    found = true;
-                } else if (candToken.startsWith(token)) {
-                    score += 0.5;
-                }
-            }
-            // give a small boost to ignorable tokens that are missing
-            // this offsets the char-level edit distance
-            if (!found && ['the', 'hotel', 'house', 'restaurant'].includes(candToken))
-                score += 1;
-        }
-
-        //console.log(`candidate ${cand.name} score ${score}`);
-        if (bestScore === undefined || score > bestScore) {
-            bestScore = score;
-            best = cand.id;
-        }
-    }
-
-    return best;
-}
 
 class DialogueToDSTStream extends Stream.Transform {
     constructor(options) {
@@ -80,6 +35,7 @@ class DialogueToDSTStream extends Stream.Transform {
         this._database = options.database;
         this._tokenized = options.tokenized;
         this._tokenizer = options.tokenizer;
+        this._parser = options.parser;
 
         this._options = options;
         this._debug = options.debug;
@@ -122,6 +78,7 @@ class DialogueToDSTStream extends Stream.Transform {
             return value.value ? 'yes' : 'no';
         if (value.isEntity) {
             const resolved = this._resolveEntity(value);
+            assert(resolved);
             if (resolved)
                 return resolved.display;
             return value.display;
@@ -139,7 +96,7 @@ class DialogueToDSTStream extends Stream.Transform {
 
         function nameToSlot(domain, name) {
             if (name === 'id' || name === domain)
-                return [domain + '-name', domain + '-name'];
+                return domain + '-name';
             const slotKey = domain + '-' + name.replace(/_/g, '-');
             return slotKey;
         }
@@ -153,8 +110,15 @@ class DialogueToDSTStream extends Stream.Transform {
                 currentDomain = domain;
 
                 // delete all slots for this domain (they'll be set again right after)
-                for (let arg of invocation.schema.iterateArguments())
-                    slots.delete(domain + '-' + arg.name.replace(/_/g, '-'));
+                for (let arg of invocation.schema.iterateArguments()) {
+                    if (arg.name === currentDomain) {
+                        // do not erase the "id" slot just because we have an action!
+                        assert(arg.type.isEntity);
+                        continue;
+                    }
+                    const slotKey = nameToSlot(domain, arg.name);
+                    slots.delete(slotKey);
+                }
 
                 for (let in_param of invocation.in_params) {
                     if (in_param.value.isUndefined)
@@ -186,8 +150,8 @@ class DialogueToDSTStream extends Stream.Transform {
                 const slotKey = nameToSlot(currentDomain, expr.name);
                 if (expr.operator === 'in_array') // multiple values, pick the first one
                     slots.set(slotKey, self._valueToSlot(expr.value.value[0]));
-
-                slots.set(slotKey, self._valueToSlot(expr.value));
+                else
+                    slots.set(slotKey, self._valueToSlot(expr.value));
                 return false;
             }
 
@@ -198,7 +162,8 @@ class DialogueToDSTStream extends Stream.Transform {
 
             visitOrBooleanExpression(expr) {
                 // explicitly do not recurse into "or" operators
-                return false;
+                // (unless they are an "or" of one operand)
+                return expr.operands.length === 1;
             }
         });
 
@@ -217,11 +182,15 @@ class DialogueToDSTStream extends Stream.Transform {
     async _checkTurn(id, turn, turnIndex) {
         let context, contextCode, contextEntities;
         if (turnIndex > 0) {
-            context = await this._target.parse(turn.context, this._options);
-            // apply the agent prediction to the context to get the state of the dialogue before
-            // the user speaks
-            const agentPrediction = await this._target.parse(turn.agent_target, this._options);
-            context = this._target.computeNewState(context, agentPrediction);
+            if (turn.intermediate_context) {
+                context = await this._target.parse(turn.intermediate_context, this._options);
+            } else {
+                context = await this._target.parse(turn.context, this._options);
+                // apply the agent prediction to the context to get the state of the dialogue before
+                // the user speaks
+                const agentPrediction = await this._target.parse(turn.agent_target, this._options);
+                context = this._target.computeNewState(context, agentPrediction);
+            }
 
             const userContext = this._target.prepareContextForPrediction(context, 'user');
             [contextCode, contextEntities] = this._target.serializeNormalized(userContext);
@@ -377,6 +346,7 @@ module.exports = {
                 tokenized: args.tokenized,
                 thingpediaClient: tpClient,
                 database: database,
+                parser: parser,
                 tokenizer: tokenizer,
             }))
             .pipe(JSONStream.stringifyObject(undefined, undefined, undefined, 2))
