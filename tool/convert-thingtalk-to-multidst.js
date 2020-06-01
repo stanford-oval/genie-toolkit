@@ -13,66 +13,19 @@ const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const Stream = require('stream');
 const fs = require('fs');
-const util = require('util');
 const JSONStream = require('JSONStream');
 const seedrandom = require('seedrandom');
 const assert = require('assert');
 
 const MultiDST = require('../lib/languages/multidst/ast');
 const StreamUtils = require('../lib/stream-utils');
-const editDistance = require('../lib/edit-distance');
+const { getBestEntityMatch } = require('../lib/entity-finder');
 const { uniform } = require('../lib/random');
 
 const ProgressBar = require('./lib/progress_bar');
 const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
-
-function getBestEntityMatch(value, searchTerm, candidates) {
-    if (value !== null) {
-        for (let cand of candidates) {
-            if (value === cand.id.value)
-                return cand.id;
-        }
-    }
-
-    let best = undefined, bestScore = undefined;
-
-    let searchTermTokens = searchTerm.split(' ');
-
-    for (let cand of candidates) {
-        let candDisplay = cand.id.display;
-
-        let score = 0;
-        score -= 0.1 * editDistance(searchTerm, candDisplay);
-
-        let candTokens = candDisplay.split(' ');
-
-        for (let candToken of candTokens) {
-            let found = false;
-            for (let token of searchTermTokens) {
-                if (token === candToken) {
-                    score += 10;
-                    found = true;
-                } else if (candToken.startsWith(token)) {
-                    score += 0.5;
-                }
-            }
-            // give a small boost to ignorable tokens that are missing
-            // this offsets the char-level edit distance
-            if (!found && ['the', 'hotel', 'house', 'restaurant'].includes(candToken))
-                score += 1;
-        }
-
-        //console.log(`candidate ${cand.name} score ${score}`);
-        if (bestScore === undefined || score > bestScore) {
-            bestScore = score;
-            best = cand.id;
-        }
-    }
-
-    return best;
-}
 
 class DialogueToDSTStream extends Stream.Transform {
     constructor(options) {
@@ -284,7 +237,7 @@ class DialogueToDSTStream extends Stream.Transform {
                         replacement = uniform(this._ontology['restaurant-phone'], this._rng);
                     } else {
                         replacement = '';
-                        //console.error(`missing entity ${token}`);
+                        console.error(`missing entity ${token}`);
                         //console.error(utterance);
                         //console.error(replacements);
                         //throw new Error(`missing entity ${token}: ${userTarget.prettyprint()}`);
