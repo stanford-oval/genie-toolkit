@@ -47,6 +47,7 @@ class AutoCanonicalAnnotator {
         this.queries = queries;
 
         this.algorithm = options.algorithm;
+        this.adjective = !options.no_adjective;
         this.pruning = options.pruning;
         this.mask = options.mask;
         this.is_paraphraser = options.is_paraphraser;
@@ -234,7 +235,7 @@ class AutoCanonicalAnnotator {
                 if (arg === 'id')
                     continue;
                 let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
-                if (adjectives.includes(`${qname}.${arg}`))
+                if (this.adjective && adjectives.includes(`${qname}.${arg}`))
                     canonicals['adjective'] = ['#'];
 
                 if (implicit_identity.includes(`${qname}.${arg}`)) {

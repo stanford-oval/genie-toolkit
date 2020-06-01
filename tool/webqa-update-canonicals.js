@@ -61,6 +61,12 @@ module.exports = {
             help: 'Only apply rule based heuristics, no neural methods',
             defaultValue: 'neural'
         });
+        parser.addArgument('--no-adjective', {
+            required: false,
+            defaultValue: false,
+            action: 'storeTrue',
+            help: `Set to True to disable adjective prediction`
+        });
         parser.addArgument('--pruning', {
             required: false,
             type: Number,
