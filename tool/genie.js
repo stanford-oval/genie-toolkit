@@ -64,7 +64,8 @@ const subcommands = {
 
     'auto-annotate-multiwoz': require('./auto-annotate-multiwoz'),
     'convert-thingtalk-to-multidst': require('./convert-thingtalk-to-multidst'),
-    'extract-predicted-slots': require('./extract-predicted-slots')
+    'extract-predicted-slots': require('./extract-predicted-slots'),
+    'analyze-dialogue-annotations': require('./analyze-dialogue-annotations')
 };
 
 async function main() {
