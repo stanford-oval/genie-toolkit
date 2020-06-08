@@ -596,9 +596,9 @@ csv-parse@^4.4.5:
   integrity sha512-uDxIDIDLb89gxqixSgGqDj3EA5A8D0pgUeyp9Qut8u+eCIC8IXkTtaxJEnnWDb6N2HqBY64suSlcOGg5ZBtsAQ==
 
 csv-stringify@^5.3.0:
-  version "5.4.2"
-  resolved "https://registry.yarnpkg.com/csv-stringify/-/csv-stringify-5.4.2.tgz#c85dc508fec661e8056e3ef120e8ddbf2402a213"
-  integrity sha512-E30lNUlBvONUfALt+h4hAQ+EWYxI5gLZcxAZtxEYr7VAYdkUjPgdDGJNyZAcaECzZyczs16zpUveREVSUoh0sw==
+  version "5.5.0"
+  resolved "https://registry.yarnpkg.com/csv-stringify/-/csv-stringify-5.5.0.tgz#0bdeaaf60d6e15b89c752a0eceb4b4c2c8af5a8a"
+  integrity sha512-G05575DSO/9vFzQxZN+Srh30cNyHk0SM0ePyiTChMD5WVt7GMTVPBQf4rtgMF6mqhNCJUPw4pN8LDe8MF9EYOA==
 
 dashdash@^1.12.0:
   version "1.14.1"
