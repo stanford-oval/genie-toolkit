@@ -150,8 +150,7 @@ module.exports = {
         });
         parser.addArgument('--sampling-type', {
             choices: ['default', 'random'],
-            help: 'random strategy assigns random weights to parameters' +
-                'with this sampling method you get different results as the random generator is not seeded',
+            help: 'Random strategy assigns random weights to parameters instead of reading from file',
             defaultValue: false
         });
         parser.addArgument('--num-attempts', {
