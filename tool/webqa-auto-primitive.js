@@ -18,7 +18,6 @@ const child_process = require('child_process');
 const path = require('path');
 const assert = require('assert');
 const seedrandom = require('seedrandom');
-const POS = require("en-pos");
 const Inflectors = require('en-inflectors').Inflectors;
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
