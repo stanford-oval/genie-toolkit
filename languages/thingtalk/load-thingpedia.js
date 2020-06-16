@@ -20,6 +20,7 @@ const SchemaRetriever = ThingTalk.SchemaRetriever;
 const Units = ThingTalk.Units;
 
 const { clean, typeToStringSafe, makeFilter, makeAndFilter } = require('./utils');
+const { SlotBag } = require('./slot_bag');
 
 function identity(x) {
     return x;
@@ -59,7 +60,7 @@ class ThingpediaLoader {
         };
         this.params = {
             in: new Map,
-            out: new Set,
+            out: new Map,
         };
         this.idQueries = new Map;
         this.compoundArrays = {};
@@ -129,18 +130,8 @@ class ThingpediaLoader {
                         this._runtime.simpleCombine(() => value));
                 }
             } else if (type.isEntity) {
-                if (!this._nonConstantTypes.has(typestr) && !this._idTypes.has(typestr)) {
-                    if (this._options.flags.dialogues) {
-                        for (let i = 0; i < 20; i++) {
-                            const string = `str:ENTITY_${type.type}::${i}:`;
-                            const value = new Ast.Value.Entity(string, type.type, string);
-                            this._grammar.addRule('constant_' + typestr, ['GENERIC_ENTITY_' + type.type + '_' + i],
-                                this._runtime.simpleCombine(() => value));
-                        }
-                    } else {
-                        this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + type.type, type);
-                    }
-                }
+                if (!this._nonConstantTypes.has(typestr) && !this._idTypes.has(typestr))
+                    this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + type.type, type);
             }
         }
         return typestr;
@@ -254,12 +245,12 @@ class ThingpediaLoader {
         const pname = arg.name;
         const ptype = arg.type;
         const key = pname + '+' + ptype;
+        const typestr = this._recordType(ptype);
         // FIXME match functionName
         //if (this.params.out.has(key))
         //    return;
-        this.params.out.add(key);
+        this.params.out.set(key, [pname, typestr]);
 
-        const typestr = this._recordType(ptype);
         const pvar = new Ast.Value.VarRef(pname);
 
         if (ptype.isCompound)
@@ -306,6 +297,8 @@ class ThingpediaLoader {
         if (ptype.isArray) {
             vtype = ptype.elem;
             op = 'contains';
+        } else if (pname === 'id') {
+            vtype = Type.String;
         }
         const vtypestr = this._recordType(vtype);
         if (vtypestr === null)
@@ -487,26 +480,37 @@ class ThingpediaLoader {
             if (this._options.debug && preprocessed[0].startsWith(','))
                 console.log(`WARNING: template ${ex.id} starts with , but is not a query`);
 
-            let chunks = preprocessed.trim().split(' ');
-            let expansion = [];
-
-            for (let chunk of chunks) {
-                if (chunk === '')
-                    continue;
-                if (chunk.startsWith('$') && chunk !== '$$') {
-                    const [, param1, param2, opt] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk);
-                    let param = param1 || param2;
-                    assert(param);
-                    expansion.push(new this._runtime.Placeholder(param, opt));
-                } else {
-                    expansion.push(chunk);
-                }
-            }
-
-            this._grammar.addRule(grammarCat, expansion, this._runtime.simpleCombine(() => ex.value));
+            const chunks = this._addPrimitiveTemplate(grammarCat, preprocessed, ex.value);
             rules.push({ category: grammarCat, expansion: chunks, example: ex });
+
+            if (grammarCat === 'thingpedia_action') {
+                const pastform = this._langPack.toVerbPast(preprocessed);
+                if (pastform)
+                    this._addPrimitiveTemplate('thingpedia_action_past', pastform, ex.value);
+            }
         }
         return rules;
+    }
+
+    _addPrimitiveTemplate(grammarCat, preprocessed, value) {
+        let chunks = preprocessed.trim().split(' ');
+        let expansion = [];
+
+        for (let chunk of chunks) {
+            if (chunk === '')
+                continue;
+            if (chunk.startsWith('$') && chunk !== '$$') {
+                const [, param1, param2, opt] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk);
+                let param = param1 || param2;
+                assert(param);
+                expansion.push(new this._runtime.Placeholder(param, opt));
+            } else {
+                expansion.push(chunk);
+            }
+        }
+
+        this._grammar.addRule(grammarCat, expansion, this._runtime.simpleCombine(() => value));
+        return chunks;
     }
 
     async _makeExampleFromQuery(q) {
@@ -525,7 +529,11 @@ class ThingpediaLoader {
 
         const functionName = q.class.name + ':' + q.name;
         const table = new Ast.Table.Invocation(null, invocation, q);
-        for (let form of canonical) {
+
+        let shortCanonical = q.metadata.canonical_short || canonical;
+        if (!Array.isArray(shortCanonical))
+            shortCanonical = [shortCanonical];
+        for (let form of shortCanonical) {
             this._grammar.addRule('base_table', [form], this._runtime.simpleCombine(() => table));
             this._grammar.addRule('base_noun_phrase', [form], this._runtime.simpleCombine(() => functionName));
         }
@@ -561,16 +569,7 @@ class ThingpediaLoader {
         const schemaClone = table.schema.clone();
         schemaClone.is_list = false;
         schemaClone.no_filter = true;
-        if (this._options.flags.dialogues) {
-            for (let i = 0; i < 5; i ++) {
-                this._grammar.addRule('constant_name', ['GENERIC_ENTITY_' + idType.type + '_' + i], this._runtime.simpleCombine(() => {
-                    const value = new Ast.Value.Entity('str:ENTITY_' + idType.type + '::' + i + ':', idType.type, null);
-                    /*const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', value);
-                    return [value, new Ast.Table.Filter(null, table, idfilter, schemaClone)];*/
-                    return value;
-                }));
-            }
-        }
+        this._grammar.addConstants('constant_name', 'GENERIC_ENTITY_' + idType.type, idType);
 
         const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', new Ast.Value.VarRef('p_id'));
         await this._loadTemplate(new Ast.Example(
@@ -579,8 +578,8 @@ class ThingpediaLoader {
             'query',
             { p_id: id.type },
             new Ast.Table.Filter(null, table, idfilter, schemaClone),
-            [`\${p_id}`],
-            [`\${p_id}`],
+            [`\${p_id:no-undefined}`],
+            [`\${p_id:no-undefined}`],
             {}
         ));
         const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '=~', new Ast.Value.VarRef('p_name'));
@@ -590,8 +589,8 @@ class ThingpediaLoader {
             'query',
             { p_name: Type.String },
             new Ast.Table.Filter(null, table, namefilter, table.schema),
-            [`\${p_name}`, ...canonical.map((c) => `\${p_name} ${c}`)],
-            [`\${p_name}`, ...canonical.map((c) => `\${p_name} ${c}`)],
+            [`\${p_name:no-undefined}`, ...canonical.map((c) => `\${p_name} ${c}`)],
+            [`\${p_name:no-undefined}`, ...canonical.map((c) => `\${p_name} ${c}`)],
             {}
         ));
     }
@@ -610,6 +609,48 @@ class ThingpediaLoader {
 
         if (functionDef.functionType === 'query')
             await this._makeExampleFromQuery(functionDef);
+        if (functionDef.metadata.result)
+            await this._loadCustomResultString(functionDef);
+        if (functionDef.metadata.on_error)
+            await this._loadCustomErrorMessages(functionDef);
+    }
+
+    async _loadCustomErrorMessages(functionDef) {
+        for (let code in functionDef.metadata.on_error) {
+            let messages = functionDef.metadata.on_error[code];
+            if (!Array.isArray(messages))
+                messages = [messages];
+
+            for (let msg of messages) {
+                const bag = new SlotBag(functionDef);
+
+                let chunks = msg.trim().split(' ');
+                for (let chunk of chunks) {
+                    if (chunk === '')
+                        continue;
+                    if (chunk.startsWith('$') && chunk !== '$$') {
+                        const [, param1, param2,] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk);
+                        const pname = param1 || param2;
+                        assert(pname);
+                        const ptype = functionDef.getArgType(pname);
+                        const pcanonical = functionDef.getArgCanonical(pname);
+                        this.params.in.set(pname + '+' + ptype, [pname, [typeToStringSafe(ptype), pcanonical]]);
+                        this._recordType(ptype);
+                    }
+                }
+
+                this._addPrimitiveTemplate('thingpedia_error_message', msg, { code, bag });
+            }
+        }
+    }
+
+    async _loadCustomResultString(functionDef) {
+        let resultstring = functionDef.metadata.result;
+        if (!Array.isArray(resultstring))
+            resultstring = [resultstring];
+
+        for (let form of resultstring)
+            this._addPrimitiveTemplate('thingpedia_result', form, new SlotBag(functionDef));
     }
 
     async _loadDevice(device) {
@@ -866,12 +907,16 @@ class ThingpediaLoader {
             console.log('Loaded ' + countTemplates + ' templates');
         }
 
-        idTypes.forEach((entity) => this._entities[entity.type] = entity);
-        await Promise.all(idTypes.map(this._loadIdType, this));
-        await Promise.all([
-            Promise.all(devices.map(this._loadDevice, this)),
-            Promise.all(datasets.map(this._loadDataset, this))
-        ]);
+        for (let entity of idTypes) {
+            this._entities[entity.type] = entity;
+            await this._loadIdType(entity);
+        }
+
+        for (let device of devices)
+            await this._loadDevice(device);
+
+        for (let dataset of datasets)
+            await this._loadDataset(dataset);
     }
 }
 

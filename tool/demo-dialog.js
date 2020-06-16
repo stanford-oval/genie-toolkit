@@ -1,8 +1,8 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Genie
 //
-// Copyright 2016 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -12,12 +12,20 @@
 const seedrandom = require('seedrandom');
 const readline = require('readline');
 const events = require('events');
+const path = require('path');
 const Tp = require('thingpedia');
 
+const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 const ParserClient = require('./lib/parserclient');
 const I18n = require('../lib/i18n');
+const MultiJSONDatabase = require('./lib/multi_json_database');
+const { SentenceGenerator } = require('../lib/sentence-generator');
 
 const ThingTalk = require('thingtalk');
+
+const USE_NEURAL_POLICY = false;
+const MAX_DEPTH = 9;
+const TARGET_PRUNING_SIZE = 20;
 
 class DialogAgent extends events.EventEmitter {
     constructor(rl, options) {
@@ -34,21 +42,44 @@ class DialogAgent extends events.EventEmitter {
         this._state = 'loading';
         this._serial = 0;
 
-        // FIXME command-line argument
-        this._target = require('../lib/languages/dlgthingtalk');
+        this._target = require('../lib/languages/' + options.target_language);
         this._targetOptions = {
             thingpediaClient: tpClient,
-            schemaRetriever: this._schemas,
-            debug: this._debug
+            schemaRetriever: this._schemas
         };
-        this._simulator = this._target.createSimulator({
+
+        const simulatorOptions = {
             rng: this._rng,
             locale: options.locale,
             thingpediaClient: tpClient,
-            schemaRetriever: this._schemas,
-            debug: this._debug
-        });
+            schemaRetriever: this._schemas
+        };
+        if (options.database_file) {
+            this._database = new MultiJSONDatabase(options.database_file);
+            simulatorOptions.database = this._database;
+        }
+
+        this._simulator = this._target.createSimulator(simulatorOptions);
         this._simulatorState = undefined;
+
+        if (!USE_NEURAL_POLICY) {
+            this._sentenceGenerator = new SentenceGenerator({
+                contextual: true,
+                rootSymbol: '$agent',
+                flags: {
+                    // FIXME
+                    dialogues: true,
+                },
+                rng: this._rng,
+                locale: options.locale,
+                templateFiles: options.template,
+                targetLanguage: options.target_language,
+                thingpediaClient: tpClient,
+                maxDepth: MAX_DEPTH,
+                targetPruningSize: TARGET_PRUNING_SIZE,
+                debug: false,
+            });
+        }
 
         this._dialogState = undefined;
         this._context = undefined;
@@ -106,7 +137,12 @@ class DialogAgent extends events.EventEmitter {
     }
 
     async start() {
+        if (this._database)
+            await this._database.load();
         await this._parser.start();
+        if (!USE_NEURAL_POLICY)
+            await this._sentenceGenerator.initialize();
+
         this.nextDialog();
     }
     async stop() {
@@ -163,9 +199,46 @@ class DialogAgent extends events.EventEmitter {
             console.log(prefix + line);
     }
 
-    _setContext(context) {
+    _setContext(context, forTarget) {
         this._context = context;
-        [this._contextCode, this._contextEntities] = this._target.serializeNormalized(context);
+        if (context !== null) {
+            context = this._target.prepareContextForPrediction(context, forTarget);
+            [this._contextCode, this._contextEntities] = this._target.serializeNormalized(context);
+        } else {
+            this._contextCode = ['null'];
+            this._contextEntities = {};
+        }
+    }
+
+    async _neuralPolicy() {
+        const decisions = await this._parser.queryPolicy(this._contextCode, this._contextEntities);
+        //this._hackNetworkPredictions(decisions);
+        const [agentState, agentCode] = await this._getProgramPrediction(decisions, this._contextEntities, 'AT: ');
+        if (agentState === null) {
+            console.log(`A: Sorry, I don't know what to do next.`); //'
+            this.nextDialog();
+            return [undefined, undefined];
+        }
+
+        const utterances = await this._parser.generateUtterance(this._contextCode, this._contextEntities, agentCode);
+        if (utterances.length === null) {
+            console.log(`A: Sorry, I don't know what to say now.`); //'
+            this.nextDialog();
+            return [undefined, undefined];
+        }
+
+        return [agentState, utterances[0].answer];
+    }
+
+    async _heuristicPolicy() {
+        const derivation = this._sentenceGenerator.generateOne({ context: this._context });
+        if (derivation === undefined) {
+            console.log(`A: Sorry, I don't know what to do next.`); //'
+            this.nextDialog();
+            return [undefined, undefined];
+        }
+
+        return [derivation.value, derivation.toString()];
     }
 
     async _handleInput() {
@@ -183,23 +256,16 @@ class DialogAgent extends events.EventEmitter {
         this._simulatorState = simulatorState;
         this._setContext(executed);
 
-        const decisions = await this._parser.queryPolicy(this._contextCode, this._contextEntities);
-        //this._hackNetworkPredictions(decisions);
-        const [agentState, agentCode] = await this._getProgramPrediction(decisions, this._contextEntities, 'AT: ');
-        if (agentState === null) {
-            console.log(`A: Sorry, I don't know what to do next.`); //'
-            this.nextDialog();
-            return;
-        }
+        let agentState, utterance;
+        if (USE_NEURAL_POLICY)
+            [agentState, utterance] = await this._neuralPolicy();
+        else
+            [agentState, utterance] = await this._heuristicPolicy();
 
-        const utterances = await this._parser.generateUtterance(this._contextCode, this._contextEntities, agentCode);
-        if (utterances.length === null) {
-            console.log(`A: Sorry, I don't know what to say now.`); //'
-            this.nextDialog();
+        if (agentState === undefined || utterance === undefined)
             return;
-        }
-        console.log(`A: ` + utterances[0].answer);
 
+        console.log(`A: ` + utterance);
         this._print(agentState.prettyprint(), 'C: ');
         this._setContext(agentState);
         this.nextTurn();
@@ -220,6 +286,29 @@ module.exports = {
         parser.addArgument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
+        });
+        parser.addArgument(['-t', '--target-language'], {
+            required: false,
+            defaultValue: 'dlgthingtalk',
+            choices: AVAILABLE_LANGUAGES,
+            help: `The programming language to generate`
+        });
+        parser.addArgument('--database-file', {
+            required: false,
+            help: `Path to a file pointing to JSON databases used to simulate queries.`,
+        });
+        parser.addArgument('--template', {
+            nargs: '+',
+            defaultValue: [path.resolve(path.dirname(module.filename), '../languages/thingtalk/en/dialogue.genie')],
+            help: 'Path to file containing construct templates, in Genie syntax.'
+        });
+        parser.addArgument('--entities', {
+            required: false,
+            help: 'Path to JSON file containing entity type definitions.'
+        });
+        parser.addArgument('--dataset', {
+            required: false,
+            help: 'Path to file containing primitive templates, in ThingTalk syntax.'
         });
         parser.addArgument('--server', {
             required: false,

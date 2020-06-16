@@ -74,7 +74,37 @@ result_name_list = {
     };
 }
 
+// a noun phrase of the form "the X is ... and the Y is ..."
+// used to answer questions, and to add extra information after recommendations & action results
+direct_result_info_phrase = {
+    ( ctx:ctx_with_result phrase:one_param_direct_result_info_phrase
+    | ctx:ctx_with_result phrase:two_param_direct_result_info_phrase
+    | ctx:ctx_with_result phrase:three_param_direct_result_info_phrase
+    ) => D.checkInfoPhrase(ctx, phrase);
+}
 
+one_param_direct_result_info_phrase = {
+    ('the' | 'its') param:out_param_Any 'is' v:constant_Any => {
+        const vtype = v.getType();
+        if (!_tpLoader.params.out.has(param.name + '+' + vtype))
+            return null;
+        const bag = new SlotBag(null);
+        bag.set(param.name, v);
+        return bag;
+    };
+}
+
+two_param_direct_result_info_phrase = {
+    b1:one_param_direct_result_info_phrase 'and' b2:one_param_direct_result_info_phrase => SlotBag.merge(b1, b2);
+}
+
+three_param_direct_result_info_phrase = {
+    b1:one_param_direct_result_info_phrase ',' b2:two_param_direct_result_info_phrase => SlotBag.merge(b1, b2);
+}
+
+// a noun phrase of the form "a restaurant in Cambridge that serves X"
+// structurally similar to a with_filter_table, but used to describe a result
+// so either filters & comparisons are not allowed, and the AST is different (it's a SlotBag)
 result_info_phrase = {
     // one, two or three slots, without any "or", "not" or "comparison" filters
     // only "and" and "contains"
