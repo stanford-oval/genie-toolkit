@@ -272,6 +272,14 @@ class ThingpediaLoader {
             for (let form of prompt)
                 this._grammar.addRule('thingpedia_search_question', [form], this._runtime.simpleCombine(() => pvar));
         }
+        if (arg.metadata.question) {
+            let question = arg.metadata.question;
+            if (typeof question === 'string')
+                question = [question];
+
+            for (let form of question)
+                this._grammar.addRule('thingpedia_user_question', [form], this._runtime.simpleCombine(() => [[pname, ptype]]));
+        }
 
         if (ptype.isBoolean)
             return;
