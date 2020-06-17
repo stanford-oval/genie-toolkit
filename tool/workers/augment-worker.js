@@ -42,7 +42,8 @@ module.exports = async function worker(args, shard) {
         singleDeviceExpandFactor: args.single_device_expand_factor,
         replaceLocations: args.replace_locations,
         replaceNumbers: args.replace_numbers,
-        cleanParameters: args.clean_parameters
+        cleanParameters: args.clean_parameters,
+        requotable: args.requotable,
     });
 };
 
