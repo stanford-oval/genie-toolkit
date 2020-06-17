@@ -302,7 +302,7 @@ class ThingpediaLoader {
         }
         const vtypestr = this._recordType(vtype);
         if (vtypestr === null)
-            return null;
+            return;
 
         for (let cat in canonical) {
             if (cat === 'default')
