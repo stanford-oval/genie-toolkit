@@ -35,5 +35,6 @@ do_test([
     //('./test_augment'),
     ('./test_i18n_chinese'),
     ('./test_random'),
-    ('./test_tokenizer')
+    ('./test_tokenizer'),
+    ('./test_new_tokenizer_en')
 ]);
