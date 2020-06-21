@@ -37,5 +37,6 @@ do_test([
     ('./test_random'),
     ('./test_tokenizer'),
     ('./test_new_tokenizer_en'),
-    ('./test_new_tokenizer_it')
+    ('./test_new_tokenizer_it'),
+    ('./test_new_tokenizer_zh')
 ]);
