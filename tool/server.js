@@ -18,7 +18,6 @@ const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
 const Utils = require('../lib/utils');
-const TokenizerService = require('../lib/tokenizer');
 const Predictor = require('../lib/predictor');
 const I18n = require('../lib/i18n');
 
@@ -38,7 +37,7 @@ async function tokenize(params, data, res) {
         return;
     }
 
-    const tokenized = await app.backend.tokenizer.tokenize(params.locale, data.q, data.expect || null);
+    const tokenized = await app.backend.tokenizer.tokenize(data.q, data.expect || null);
     if (data.entities)
         Utils.renumberEntities(tokenized, data.entities);
 
@@ -131,7 +130,7 @@ async function queryNLU(params, data, res) {
             }
         }
     } else {
-        tokenized = await app.backend.tokenizer.tokenize(params.locale, query, expect);
+        tokenized = await app.backend.tokenizer.tokenize(query, expect);
         if (data.entities)
             Utils.renumberEntities(tokenized, data.entities);
     }
@@ -254,10 +253,11 @@ module.exports = {
         const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
         const app = express();
 
+        const i18n = I18n.get(args.locale);
         app.backend = {
             schemas,
-            i18n: I18n.get(args.locale),
-            tokenizer: TokenizerService.get('local'),
+            i18n,
+            tokenizer: i18n.getTokenizer(),
             nlu: new Predictor('nlu', args.nlu_model, 1)
         };
         app.backend.nlu.start();
@@ -311,6 +311,5 @@ module.exports = {
         if (app.backend.nlg !== app.backend.nlu)
             await app.backend.nlg.stop();
         server.close();
-        app.backend.tokenizer.end();
     }
 };

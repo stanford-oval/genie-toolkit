@@ -27,7 +27,6 @@ const BinaryPPDB = require('../lib/binary_ppdb');
 const { choose } = require('../lib/random');
 const { clean } = require('../lib/utils');
 const StreamUtils = require('../lib/stream-utils');
-//const Tokenizer = require('../lib/tokenizer');
 
 function* get(obj, propertyList, offset) {
     if (offset === propertyList.length) {
