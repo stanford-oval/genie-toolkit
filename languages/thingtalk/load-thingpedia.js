@@ -32,8 +32,7 @@ const ANNOTATION_RENAME = {
     'verb': 'avp',
     'passive_verb': 'pvp',
     'adjective': 'apv',
-    'implicit_identity': 'npv',
-    'reverse_verb': 'rv'
+    'implicit_identity': 'npv'
 };
 
 class ThingpediaLoader {
@@ -359,14 +358,14 @@ class ThingpediaLoader {
                         const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
                         this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
                     }
-                } else if (cat === 'rv') {
+                } else if (cat === 'reverse_verb') {
                     if (isHumanEntity(ptype)) {
                         let expansion = [form];
-                        this._grammar.addRule('who_rv_projection', expansion, this._runtime.simpleCombine(() => pvar));
+                        this._grammar.addRule('who_reverse_verb_projection', expansion, this._runtime.simpleCombine(() => pvar));
                     }
 
                     let expansion = [canonical.base[0], form];
-                    this._grammar.addRule('rv_projection', expansion, this._runtime.simpleCombine(() => pvar));
+                    this._grammar.addRule('reverse_verb_projection', expansion, this._runtime.simpleCombine(() => pvar));
 
                 } else {
                     let [before, after] = form.split('#');

@@ -387,7 +387,6 @@ projection_question = {
     | 'who is' proj:projection_Entity__tt__username '?'
     | 'who is' proj:projection_Entity__tt__email_address '?'
     ) => {
-        // FIXME: this should not happen
         if (proj.args.length === 0)
             return null;
         if (proj.schema.getArgType(proj.args[0]).isArray)
@@ -399,27 +398,23 @@ projection_question = {
     | 'who are' proj:projection_Entity__tt__username '?'
     | 'who are' proj:projection_Entity__tt__email_address '?'
     ) => {
-        // FIXME: this should not happen
         if (proj.args.length === 0)
             return null;
         if (!proj.schema.getArgType(proj.args[0]).isArray)
             return null;
         return C.sayProjection(proj);
     };
-    'who' proj:who_rv_projection_table '?' => {
-        // FIXME: this should not happen
+    'who' proj:who_reverse_verb_projection_table '?' => {
         if (proj.args.length === 0)
             return null;
         return C.sayProjection(proj);
     };
-    ('what' | 'which') proj:rv_projection_table '?' => {
-        // FIXME: this should not happen
+    ('what' | 'which') proj:reverse_verb_projection_table '?' => {
         if (proj.args.length === 0)
             return null;
         return C.sayProjection(proj);
     };
     ('what' | 'which') proj:verb_projection_Any '?' => {
-        // FIXME: this should not happen
         if (proj.args.length === 0)
             return null;
         return C.sayProjection(proj);

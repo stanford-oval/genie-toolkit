@@ -152,8 +152,8 @@ apv_input_param = {}
 
 // projection in reversed verb form
 // e.g., "who [wrote] book X", "which [album includes] song Y"
-rv_projection = {}
-who_rv_projection = {}
+reverse_verb_projection = {}
+who_reverse_verb_projection = {}
 
 constant_name = {}
 

@@ -108,10 +108,10 @@ where_question = {
     }
 }
 
-rv_projection_table = {
+reverse_verb_projection_table = {
     ?projection_with_filter {
-        ( p:rv_projection ('the' | '') table:with_filtered_table
-        | p:rv_projection ('the' | '') table:with_arg_min_max_table
+        ( p:reverse_verb_projection ('the' | '') table:with_filtered_table
+        | p:reverse_verb_projection ('the' | '') table:with_arg_min_max_table
         ) => {
             if (!table.schema.out[p.name])
                 return null;
@@ -119,7 +119,7 @@ rv_projection_table = {
         };
     }
     !projection_with_filter {
-        p:rv_projection ('the' | '') table:complete_table => {
+        p:reverse_verb_projection ('the' | '') table:complete_table => {
             if (!table.schema.out[p.name])
                 return null;
             return C.makeProjection(table, p.name);
@@ -127,10 +127,10 @@ rv_projection_table = {
     }
 }
 
-who_rv_projection_table = {
+who_reverse_verb_projection_table = {
     ?projection_with_filter {
-        ( p:who_rv_projection ('the' | '') table:with_filtered_table
-        | p:who_rv_projection ('the' | '') table:with_arg_min_max_table
+        ( p:who_reverse_verb_projection ('the' | '') table:with_filtered_table
+        | p:who_reverse_verb_projection ('the' | '') table:with_arg_min_max_table
         ) => {
             if (!table.schema.out[p.name])
                 return null;
@@ -138,7 +138,7 @@ who_rv_projection_table = {
         };
     }
     !projection_with_filter {
-        p:who_rv_projection ('the' | '') table:complete_table => {
+        p:who_reverse_verb_projection ('the' | '') table:complete_table => {
             if (!table.schema.out[p.name])
                 return null;
             return C.makeProjection(table, p.name);
