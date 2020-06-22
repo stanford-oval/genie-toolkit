@@ -57,9 +57,9 @@ module.exports = {
             defaultValue: false
         });
         parser.addArgument('--algorithm', {
-            choices: ['heuristics', 'neural'],
-            help: 'Only apply rule based heuristics, no neural methods',
-            defaultValue: 'neural'
+            choices: ['all', 'heuristics-only', 'bert', 'bart', 'adj', 'no-bert', 'no-bart', 'no-adj'],
+            help: 'Different algorithms to generate canonicals',
+            defaultValue: 'all'
         });
         parser.addArgument('--pruning', {
             required: false,
@@ -89,15 +89,9 @@ module.exports = {
             action: 'storeTrue',
             help: `Set to True to use gpt2 to decide where to put value`
         });
-        parser.addArgument('--gpt2-paraphraser', {
+        parser.addArgument('--paraphraser-model', {
             required: false,
-            defaultValue: false,
-            action: 'storeTrue',
-            help: `Set to True to use gpt2 paraphrase to automatically extract canonicals`
-        });
-        parser.addArgument('--gpt2-paraphraser-model', {
-            required: false,
-            help: `A path to the directory where the gpt2 paraphraser model is saved`
+            help: `A path to the directory where the bart paraphraser model is saved`
         });
         parser.addArgument('--mask', {
             required: false,

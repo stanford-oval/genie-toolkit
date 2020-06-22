@@ -10,6 +10,8 @@
 "use strict";
 
 const { choose } = require('../../lib/random');
+const { sampleString } = require('../../lib/utils');
+const i18n = require('../../lib/i18n');
 
 function getEntityType(type) {
     if (type.isEntity)
@@ -33,6 +35,7 @@ module.exports = class ConstantSampler {
         this._schemaRetriever = schemaRetriever;
         this._constProvider = constProvider;
         this._options = options;
+        this._langPack = i18n.get(options.locale);
         this._cached = {};
     }
 
@@ -47,8 +50,20 @@ module.exports = class ConstantSampler {
     }
 
     _sampleStrings(data) {
-        const sampled = choose(data.filter((string) => string.value.length < 25), this._options.sample_size, this._options.rng);
-        return sampled.filter((string) => /^[a-zA-Z0-9 .]*$/.test(string.value)).map((string) => string.value);
+        const rng = this._options.rng;
+        const langPack = this._langPack;
+        const sampleOne = function(string) {
+            let attempts = 1000;
+            while (attempts > 0) {
+                const sampled = sampleString(string.preprocessed.split(' '), langPack, rng);
+                if (sampled)
+                    return sampled;
+                attempts -= 1;
+            }
+            return null;
+        };
+        const sampled = choose(data.map(sampleOne).filter(Boolean), this._options.sample_size, rng);
+        return sampled.filter((string) => /^[a-zA-Z0-9 .]*$/.test(string));
     }
 
 
@@ -103,6 +118,12 @@ module.exports = class ConstantSampler {
                             sample.display
                         ]);
                     });
+
+                    if (arg === 'id') {
+                        samples.forEach((sample) => {
+                            constants.push([`param:@${device}.${f}:${arg}:String`, sample.display.toLowerCase()]);
+                        });
+                    }
                 }
             }
         }

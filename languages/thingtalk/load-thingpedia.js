@@ -19,7 +19,7 @@ const Grammar = ThingTalk.Grammar;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 const Units = ThingTalk.Units;
 
-const { clean, typeToStringSafe, makeFilter, makeAndFilter } = require('./utils');
+const { clean, typeToStringSafe, makeFilter, makeAndFilter, isHumanEntity } = require('./utils');
 const { SlotBag } = require('./slot_bag');
 
 function identity(x) {
@@ -32,7 +32,7 @@ const ANNOTATION_RENAME = {
     'verb': 'avp',
     'passive_verb': 'pvp',
     'adjective': 'apv',
-    'implicit_identity': 'npv',
+    'implicit_identity': 'npv'
 };
 
 class ThingpediaLoader {
@@ -302,7 +302,7 @@ class ThingpediaLoader {
         }
         const vtypestr = this._recordType(vtype);
         if (vtypestr === null)
-            return null;
+            return;
 
         for (let cat in canonical) {
             if (cat === 'default')
@@ -343,6 +343,15 @@ class ThingpediaLoader {
                         const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
                         this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
                     }
+                } else if (cat === 'reverse_verb') {
+                    if (isHumanEntity(ptype)) {
+                        let expansion = [form];
+                        this._grammar.addRule('who_reverse_verb_projection', expansion, this._runtime.simpleCombine(() => pvar));
+                    }
+
+                    let expansion = [canonical.base[0], form];
+                    this._grammar.addRule('reverse_verb_projection', expansion, this._runtime.simpleCombine(() => pvar));
+
                 } else {
                     let [before, after] = form.split('#');
                     before = (before || '').trim();
@@ -371,14 +380,6 @@ class ThingpediaLoader {
                 }
             }
         }
-    }
-
-    _isHumanEntity(type) {
-        if (['tt:contact', 'tt:username', 'org.wikidata:human'].includes(type))
-            return true;
-        if (type.startsWith('org.schema') && type.endsWith(':Person'))
-            return true;
-        return false;
     }
 
     async _loadTemplate(ex) {
@@ -462,7 +463,7 @@ class ThingpediaLoader {
         if (ex.type === 'query') {
             if (Object.keys(ex.args).length === 0 && ex.value.schema.hasArgument('id')) {
                 let type = ex.value.schema.getArgument('id').type;
-                if (type.isEntity && this._isHumanEntity(type.type)) {
+                if (isHumanEntity(type)) {
                     let grammarCat = 'thingpedia_who_question';
                     this._grammar.addRule(grammarCat, [''], this._runtime.simpleCombine(() => ex.value));
                 }
@@ -583,14 +584,19 @@ class ThingpediaLoader {
             {}
         ));
         const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '=~', new Ast.Value.VarRef('p_name'));
+        let span;
+        if (q.name === 'Person')
+            span = [`\${p_name:no-undefined}`, ...canonical.map((c) => `\${p_name:no-undefined} ${c}`)];
+        else
+            span = [`\${p_name:no-undefined}`, ...canonical.map((c) => `\${p_name:no-undefined} ${c}`), ...canonical.map((c) => `${c} \${p_name:no-undefined}`)];
         await this._loadTemplate(new Ast.Example(
             null,
             -1,
             'query',
             { p_name: Type.String },
             new Ast.Table.Filter(null, table, namefilter, table.schema),
-            [`\${p_name:no-undefined}`, ...canonical.map((c) => `\${p_name} ${c}`)],
-            [`\${p_name:no-undefined}`, ...canonical.map((c) => `\${p_name} ${c}`)],
+            span,
+            span,
             {}
         ));
     }

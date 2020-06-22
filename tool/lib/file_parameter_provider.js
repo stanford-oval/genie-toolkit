@@ -26,7 +26,7 @@ const path = require('path');
 module.exports = class FileParameterProvider {
     constructor(filename, param_locale) {
         this._filename = filename;
-        this._paramLocale = param_locale;
+        this._paramLocale = param_locale || 'en-US';
         this._dirname = path.dirname(filename);
         this._paths = new Map;
     }
