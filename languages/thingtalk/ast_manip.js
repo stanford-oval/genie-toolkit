@@ -1232,6 +1232,7 @@ function sayProjection(proj) {
 
     // this function is also used for aggregation
     if (proj.isProjection) {
+        assert(proj.args.length > 0);
         if (proj.args.length === 1 && proj.args[0] === 'picture_url')
             return null;
         // if the function only contains one parameter, do not generate projection for it
