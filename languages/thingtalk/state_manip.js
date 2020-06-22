@@ -64,6 +64,9 @@ const USER_DIALOGUE_ACTS = new Set([
     // user wants to see more output from the previous result
     'learn_more',
 
+    // user asks to see an output parameter from the previous result
+    'action_question',
+
     // user says closes the dialogue mid-way (in the middle of a search)
     'cancel',
 
@@ -71,6 +74,10 @@ const USER_DIALOGUE_ACTS = new Set([
     // else the user wants
     // "end" is a terminal state, it has no continuations
     'end',
+]);
+
+const USER_STATE_MUST_HAVE_PARAM = new Set([
+    'action_question'
 ]);
 
 const SYSTEM_DIALOGUE_ACTS = new Set([
@@ -96,7 +103,8 @@ const SYSTEM_DIALOGUE_ACTS = new Set([
     // agent executed the action successfully (and shows the result of the action)
     'sys_action_success',
 
-    // agent had an error in executing the action
+    // agent had an error in executing the action (with and without a slot-fill question)
+    'sys_action_error_question',
     'sys_action_error',
 
     // agent asks if anything else is needed
@@ -108,8 +116,9 @@ const SYSTEM_DIALOGUE_ACTS = new Set([
 
 const SYSTEM_STATE_MUST_HAVE_PARAM = new Set([
     'sys_search_question',
+    'sys_slot_fill',
     'sys_empty_search_question',
-    'sys_slot_fill'
+    'sys_action_error_question',
 ]);
 
 const INITIAL_CONTEXT_INFO = {};
@@ -125,7 +134,10 @@ function checkStateIsValid(ctx, sysState, userState) {
         return [sysState, userState];
 
     assert(USER_DIALOGUE_ACTS.has(userState.dialogueAct), `invalid user dialogue act ${userState.dialogueAct}`);
-    assert(userState.dialogueActParam === null);
+    if (USER_STATE_MUST_HAVE_PARAM.has(userState.dialogueAct))
+        assert(userState.dialogueActParam);
+    else
+        assert(userState.dialogueActParam === null);
 
     if (ctx === INITIAL_CONTEXT_INFO) {
         // user speaks first
@@ -159,7 +171,7 @@ function getTableArgMinMax(table) {
 }
 
 class ResultInfo {
-    constructor(item) {
+    constructor(state, item) {
         assert(item.results !== null);
         this.isTable = !!(item.stmt.table && item.stmt.actions.every((a) => a.isNotify));
 
@@ -179,7 +191,10 @@ class ResultInfo {
             this.isAggregation = false;
             this.argMinMaxField = null;
             this.projection = null;
+            if (state.dialogueAct === 'action_question')
+                this.projection = state.dialogueActParam;
         }
+        this.hasError = item.results.error !== null;
         this.hasEmptyResult = item.results.results.length === 0;
         this.hasSingleResult = item.results.results.length === 1;
         this.hasLargeResult = isLargeResultSet(item.results);
@@ -266,6 +281,12 @@ class ContextInfo {
         return null;
     }
 
+    get error() {
+        if (this.currentIdx !== null)
+            return this.state.history[this.currentIdx].results.error;
+        return null;
+    }
+
     get current() {
         return this.currentIdx !== null ? this.state.history[this.currentIdx] : null;
     }
@@ -296,7 +317,7 @@ function getContextInfo(state) {
         }
         currentFunction = functions[functions.length-1];
         currentItemIdx = idx;
-        currentResultInfo = new ResultInfo(item);
+        currentResultInfo = new ResultInfo(state, item);
     }
     if (nextItemIdx !== null)
         assert(nextInfo);
@@ -308,12 +329,22 @@ function getContextInfo(state) {
 }
 
 function isUserAskingResultQuestion(ctx) {
-    // is the user asking a question about the result, or refining a search?
+    // is the user asking a question about the result (or a specific element), or refining a search?
     // we say it's a question if the user is asking a projection question, and it's not the first turn,
     // and the projection was different at the previous turn
 
-    if (ctx.currentIdx === null || ctx.currentIdx === 0)
+    if (ctx.state.dialogueAct === 'action_question')
+        return true;
+    if (ctx.currentIdx === null)
         return false;
+    if (ctx.currentIdx === 0) {
+        if (!ctx.current.stmt.table)
+            return false;
+        const filterTable = C.findFilterTable(ctx.current.stmt.table);
+        if (!filterTable)
+            return false;
+        return C.filterUsesParam(filterTable.filter, 'id');
+    }
 
     let currentProjection = ctx.resultInfo.projection;
     if (!currentProjection)
@@ -322,7 +353,7 @@ function isUserAskingResultQuestion(ctx) {
     let previous = ctx.state.history[ctx.currentIdx - 1];
     // only complete (executed) programs make it to the history, so this must be true
     assert(previous.results !== null);
-    let previousResultInfo = new ResultInfo(previous);
+    let previousResultInfo = new ResultInfo(ctx.state, previous);
     if (!previousResultInfo.projection)
         return true;
 
@@ -413,18 +444,34 @@ function addActionParam(ctx, dialogueAct, action, pname, value, confirm) {
             newHistoryItem = ctx.next.clone();
             const newInvocation = getActionInvocation(newHistoryItem);
             setOrAddInvocationParam(newInvocation, pname, value);
+            // also add the new parameters from this action, if any
+            for (let param of action.in_params) {
+                if (param.value.isUndefined)
+                    continue;
+                setOrAddInvocationParam(newInvocation, param.name, param.value);
+            }
+
             newHistoryItem.confirm = confirm;
         }
     }
 
     if (!newHistoryItem) {
         const in_params = [new Ast.InputParam(null, pname, value)];
+        const setparams = new Set;
+        setparams.add(pname);
+        for (let param of action.in_params) {
+            if (param.value.isUndefined)
+                continue;
+            if (param.name !== pname)
+                in_params.push(param.clone());
+            setparams.add(param.name);
+        }
 
         // make sure we add all $undefined values, otherwise we'll fail
         // to recognize that the statement is not yet executable, and we'll
         // crash in the compiler
         for (let arg of action.schema.iterateArguments()) {
-            if (arg.is_input && arg.required && arg.name !== pname)
+            if (arg.is_input && arg.required && !setparams.has(arg.name))
                 in_params.push(new Ast.InputParam(null, arg.name, new Ast.Value.Undefined(true)));
         }
 
@@ -452,6 +499,7 @@ function replaceAction(ctx, dialogueAct, action, confirm) {
 
 function addAction(ctx, dialogueAct, action, confirm) {
     assert(action instanceof Ast.Invocation);
+    // note: parameters from the action are ignored altogether!
 
     let newHistoryItem;
     if (ctx.nextInfo) {
@@ -524,4 +572,5 @@ module.exports = {
     addAction,
     addQuery,
     replaceAction,
+    setOrAddInvocationParam,
 };

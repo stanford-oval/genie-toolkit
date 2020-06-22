@@ -49,7 +49,7 @@ function makeFilter(loader, pname, op, value, negate = false) {
     } else if (op === '==' && vtype.isString) {
         op = '=~';
     }
-    if (!loader.params.out.has(pname.name + '+' + ptype))
+    if (!loader.params.out.has(pname.name + '+' + ptype) && pname.name !== 'id')
         return null;
     if (loader.flags.turking && value.isEnum)
         return null;

@@ -29,6 +29,10 @@ thingpedia_who_question = {}
 thingpedia_search_question = {}
 thingpedia_slot_fill_question = {}
 
+thingpedia_result = {}
+thingpedia_action_past = {}
+thingpedia_error_message = {}
+
 out_param_Numeric = {
     out_param_Number;
     out_param_Currency;
@@ -177,6 +181,24 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
         a:thingpedia_action v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(a, pname, v);
     }
 
+    thingpedia_action_past = {
+        a:thingpedia_action v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(a, pname, v);
+    }
+
+    thingpedia_error_message = {
+        msg:thingpedia_error_message v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replaceErrorMessagePlaceholder(msg, pname, v);
+    }
+
+    if (typestr.startsWith('Entity')) {
+        thingpedia_action_past = {
+            a:thingpedia_action v:constant_name [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(a, pname, v);
+        }
+
+        thingpedia_error_message = {
+            msg:thingpedia_error_message v:constant_name [-> pname { isConstant: true }] => C.replaceErrorMessagePlaceholder(msg, pname, v);
+        }
+    }
+
     thingpedia_program = {
         p:thingpedia_program v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(p, pname, v);
     }
@@ -201,6 +223,15 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
                 thingpedia_program = p:thingpedia_program $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
                     C.replacePlaceholderWithUndefined(p, pname, typestr);
             }
+        }
+    }
+}
+
+for (let [pname, typestr] of _tpLoader.params.out.values()) {
+    if (typestr !== null) {
+        thingpedia_result = {
+            bag:thingpedia_result v:$('constant_name') [-> pname { isConstant: true }] => C.replaceSlotBagPlaceholder(bag, pname, v);
+            bag:thingpedia_result v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replaceSlotBagPlaceholder(bag, pname, v);
         }
     }
 }

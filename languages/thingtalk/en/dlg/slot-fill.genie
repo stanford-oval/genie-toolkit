@@ -182,7 +182,7 @@ direct_search_question = {
 yesno_search_question = {
     one_param_yesno_direct_search_question;
     two_param_yesno_direct_search_question;
-    generic_question;
+    !inference generic_question;
 }
 
 direct_search_question_with_preamble = {
@@ -194,7 +194,7 @@ direct_search_question_with_preamble = {
 yesno_search_question_with_preamble = {
     search_result_preamble question:one_param_yesno_direct_search_question => question;
     search_result_preamble question:two_param_yesno_direct_search_question => question;
-    search_result_preamble question:generic_question => question;
+    !inference search_result_preamble question:generic_question => question;
 }
 
 precise_search_question_answer_pair = {
@@ -213,6 +213,13 @@ precise_search_question_answer_pair = {
             return null;
         return [questions, table];
     };
+}
+
+search_question = {
+    direct_search_question;
+    yesno_search_question;
+    direct_search_question_with_preamble [weight=0.1];
+    yesno_search_question_with_preamble [weight=0.1];
 }
 
 generic_dontcare_phrase = {
@@ -282,6 +289,11 @@ two_param_slot_fill_question = {
     };
 }
 
+slot_fill_question = {
+    one_param_slot_fill_question;
+    two_param_slot_fill_question;
+}
+
 imprecise_slot_fill_answer_phrase = {
     ( slot:constant_Any
     | slot:npp_input_param
@@ -305,6 +317,7 @@ imprecise_slot_fill_question_answer_pair = {
 verbose_slot_fill_answer = {
     // complete answer, like "I am looking to book it for ... at ..."
     generic_preamble_for_action action:coref_action_command => action;
+    generic_preamble_for_action action:action_by_name_command => action;
 }
 
 imprecise_slot_fill_question_answer_pair = {

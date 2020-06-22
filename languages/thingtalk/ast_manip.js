@@ -589,6 +589,10 @@ function checkAtomFilter(table, filter) {
         if (!vtype.isEntity && !vtype.isString)
             return false;
         vtype = Type.Array(Type.String);
+    } else if (filter.operator === '=~') {
+        if (!ptype.isEntity && !ptype.isString)
+            return false;
+        vtype = Type.String;
     }
 
     if (!filter.value.getType().equals(vtype))
@@ -1538,10 +1542,14 @@ function makeComputeFilterExpression(table, operation, operands, resultType, fil
     if (table.schema.out[operation])
         return null;
 
-    const computedTable = makeComputeExpression(table, operation, operands, resultType);
-    const filter = new Ast.BooleanExpression.Atom(null, operation, filterOp, filterValue);
+    const expression = new Ast.Value.Computation(operation, operands);
+    if (operation === 'distance') {
+        expression.overload = [Type.Location, Type.Location, Type.Measure('m')];
+        expression.type = Type.Measure('m');
+    }
+    const filter = new Ast.BooleanExpression.Compute(null, expression, filterOp, filterValue);
     if (filter)
-        return addFilter(computedTable, filter);
+        return addFilter(table, filter);
     return null;
 }
 
@@ -1710,6 +1718,76 @@ function addActionInputParam(action, param) {
         return new Ast.Table.Invocation(null, newInvocation, action.schema.removeArgument(param.name));
 }
 
+function replaceSlotBagPlaceholder(bag, pname, value) {
+    if (!value.isConstant())
+        return null;
+    let ptype = bag.schema.getArgType(pname);
+    if (!ptype)
+        return null;
+    if (ptype.isArray)
+        ptype = ptype.elem;
+    const vtype = value.getType();
+    if (!ptype.equals(vtype))
+        return null;
+    if (bag.has(pname))
+        return null;
+    const clone = bag.clone();
+    clone.set(pname, value);
+    return clone;
+}
+
+function replaceErrorMessagePlaceholder(msg, pname, value) {
+    const newbag = replaceSlotBagPlaceholder(msg.bag, pname, value);
+    if (newbag === null)
+        return null;
+    return { code: msg.code, bag: newbag };
+}
+
+/**
+ * Find the filter table in the context.
+ *
+ * Returns filterTable
+ */
+function findFilterTable(root) {
+    let table = root;
+    while (!table.isFilter) {
+        if (table.isSequence ||
+            table.isHistory ||
+            table.isWindow ||
+            table.isTimeSeries)
+            throw new Error('NOT IMPLEMENTED');
+
+        // do not touch these with filters
+        if (table.isAggregation ||
+            table.isVarRef ||
+            table.isResultRef)
+            return null;
+
+        // go inside these
+        if (table.isSort ||
+            table.isIndex ||
+            table.isSlice ||
+            table.isProjection ||
+            table.isCompute ||
+            table.isAlias) {
+            table = table.table;
+            continue;
+        }
+
+        if (table.isJoin) {
+            // go right on join, always
+            table = table.rhs;
+            continue;
+        }
+
+        assert(table.isInvocation);
+        // if we get here, there is no filter table at all
+        return null;
+    }
+
+    return table;
+}
+
 module.exports = {
     typeToStringSafe,
     getFunctionNames,
@@ -1751,6 +1829,8 @@ module.exports = {
     whenGetStream,
     addInvocationInputParam,
     addActionInputParam,
+    replaceSlotBagPlaceholder,
+    replaceErrorMessagePlaceholder,
 
     // filters
     hasUniqueFilter,
@@ -1764,6 +1844,7 @@ module.exports = {
     addFilter,
     hasGetPredicate,
     makeGetPredicate,
+    findFilterTable,
 
     makeListExpression,
     makeSortedTable,
