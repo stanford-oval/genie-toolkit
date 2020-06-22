@@ -445,6 +445,29 @@ class Normalizer {
         }
     }
 
+    /**
+     * Preprocess raw data file
+     * We observe two different format in practice:
+     *
+     * format 1:
+     * {
+     *   "@context": "http://schema.org",
+     *   "@type": "Movie",
+     *   "url": "/title/tt0050083/",
+     *   "name": "12 Angry Men"
+     * }
+     *
+     * format 2:
+     * {
+     *   "@type": "http://schema.org/Movie",
+     *   "properties": {
+     *     "url": "/title/tt0050083/",
+     *     "name": "12 Angry Men"
+     *   }
+     * }
+     *
+     * here, we normalize to format 1
+     */
     _preprocess(input) {
         if (!input || typeof input !== 'object')
             return input;

@@ -113,6 +113,8 @@ class AutoCanonicalAnnotator {
                         arg.metadata.canonical.property.push('#');
 
                     // if it's the only people entity, adding adjective form
+                    // E.g., author for review - bob's review
+                    //       byArtist for MusicRecording - bob's song
                     if (typestr.endsWith(':Person'))
                         arg.metadata.canonical.adjective = ["# 's", '#'];
                 }
