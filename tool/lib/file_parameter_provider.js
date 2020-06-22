@@ -26,7 +26,7 @@ const path = require('path');
 module.exports = class FileParameterProvider {
     constructor(filename, param_locale) {
         this._filename = filename;
-        this._paramLocale = param_locale || 'en-US';
+        this._paramLocale = param_locale;
         this._dirname = path.dirname(filename);
         this._paths = new Map;
     }
@@ -41,14 +41,7 @@ module.exports = class FileParameterProvider {
             if (/^\s*(#|$)/.test(line))
                 return;
 
-            const row = line.trim().split('\t');
-            let stringOrEntity, locale, type, filepath;
-            if (row.length === 4) {
-                [stringOrEntity, locale, type, filepath] = row;
-            } else {
-                locale = 'en-US';
-                [stringOrEntity, type, filepath] = row;
-            }
+            const [stringOrEntity, locale, type, filepath] = line.trim().split('\t');
             if (stringOrEntity !== 'string' && stringOrEntity !== 'entity')
                 throw new Error(`Invalid syntax: ${line}`);
             if (locale === this._paramLocale)
