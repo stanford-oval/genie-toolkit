@@ -75,7 +75,7 @@ class AutoCanonicalAnnotator {
                     continue;
 
                 // TODO: bert on counted object only for these args
-                if (arg.name.startsWith('numberOf') || arg.name.endsWith('Count'))
+                if (arg.metadata.counted_object)
                     continue;
 
                 if (arg.name.includes('.') && ANNOTATED_PROPERTIES.includes(arg.name.slice(arg.name.indexOf('.') + 1)))

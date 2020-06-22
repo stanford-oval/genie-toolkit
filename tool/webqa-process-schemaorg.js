@@ -270,10 +270,10 @@ class SchemaProcessor {
                 annotation['max_number'] = new Ast.Value.Number(5);
             }
 
-            if (canonical.base[0].startsWith('number of '))
-                metadata.counted_object = [ canonical.base[0].slice('number of '.length) ];
-            if (canonical.base[0].endsWith(' count'))
-                metadata.counted_object = [ pluralize(canonical.base[0].slice(0, -' count'.length)) ];
+            if (propertyname.startsWith('numberOf'))
+                metadata.counted_object = [ clean(propertyname.slice('numberOf'.length)) ];
+            if (propertyname.endsWith('Count'))
+                metadata.counted_object = [ pluralize(clean(propertyname.slice(0, -'Count'.length)))];
 
             if (PROPERTIES_NO_FILTER.includes(propertyname)) {
                 annotation['filterable'] = new Ast.Value.Boolean(false);
@@ -655,10 +655,10 @@ class SchemaProcessor {
                 if (PROPERTIES_NO_FILTER.includes(propertyname))
                     annotation['filterable'] = new Ast.Value.Boolean(false);
 
-                if (canonical.base[0].startsWith('number of '))
-                    metadata.counted_object = [ canonical.base[0].slice('number of '.length) ];
-                if (canonical.base[0].endsWith(' count'))
-                    metadata.counted_object = [ pluralize(canonical.base[0].slice(0, -' count'.length)) ];
+                if (propertyname.startsWith('numberOf'))
+                    metadata.counted_object = [ clean(propertyname.slice('numberOf'.length)) ];
+                if (propertyname.endsWith('Count'))
+                    metadata.counted_object = [ pluralize(clean(propertyname.slice(0, -'Count'.length)))];
 
                 const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, propertyname, type, {
                     nl: metadata,
