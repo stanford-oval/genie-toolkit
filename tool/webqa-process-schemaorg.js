@@ -18,7 +18,8 @@ const Ast = ThingTalk.Ast;
 const fs = require('fs');
 const util = require('util');
 
-const { clean, pluralize, isHumanEntity, posTag } = require('../lib/utils');
+const { clean, pluralize, posTag } = require('../lib/utils');
+const { isHumanEntity } = require('../languages/thingtalk/utils');
 const StreamUtils = require('../lib/stream-utils');
 
 const {

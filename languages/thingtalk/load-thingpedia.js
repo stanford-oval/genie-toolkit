@@ -19,8 +19,7 @@ const Grammar = ThingTalk.Grammar;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 const Units = ThingTalk.Units;
 
-const { clean, typeToStringSafe, makeFilter, makeAndFilter } = require('./utils');
-const { isHumanEntity, posTag } = require('../../lib/utils');
+const { clean, typeToStringSafe, makeFilter, makeAndFilter, isHumanEntity } = require('./utils');
 
 function identity(x) {
     return x;
@@ -113,7 +112,6 @@ class ThingpediaLoader {
         this._allTypes.set(typestr, type);
 
         this._grammar.declareSymbol('out_param_' + typestr);
-        this._grammar.declareSymbol('noun_out_param_' + typestr);
         this._grammar.declareSymbol('placeholder_' + typestr);
 
         if (!this._grammar.hasSymbol('constant_' + typestr)) {
@@ -150,12 +148,6 @@ class ThingpediaLoader {
 
     _addOutParam(functionName, pname, type, typestr, canonical) {
         this._grammar.addRule('out_param_' + typestr, [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
-
-        if (!pname.startsWith('address') && !pname.endsWith('Count') && !pname.startsWith('numberOf')) {
-            let postags = posTag(canonical.split(' '));
-            if (postags.every((tag) => ['NN', 'NNS', 'NNP', 'NNPS'].includes(tag)))
-                this._grammar.addRule('noun_out_param_' + typestr, [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
-        }
 
         if (type.isArray)
             this._grammar.addRule('out_param_Array__Any', [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
