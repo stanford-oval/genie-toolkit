@@ -33,7 +33,6 @@ const subcommands = {
     'mturk-validate': require('./mturk-validate'),
     'mturk-process-eval-data': require('./mturk-process-eval-data'),
 
-    'compile-ppdb': require('./compile-ppdb'),
     'augment': require('./augment'),
     'requote': require('./requote'),
     'resample': require('./resample'),

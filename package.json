@@ -20,7 +20,6 @@
     "en-pos": "^1.0.16",
     "errorhandler": "^1.5.1",
     "express": "^4.17.1",
-    "mmap-io": "^1.1.7",
     "morgan": "^1.9.1",
     "qs": "^6.7.0",
     "query-validation": "^0.1.0",

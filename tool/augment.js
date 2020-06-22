@@ -24,7 +24,7 @@ module.exports = {
     initArgparse(subparsers) {
         const parser = subparsers.addParser('augment', {
             addHelp: true,
-            description: "Apply parameter replacement and PPDB augmentation on a Genie dataset."
+            description: "Apply parameter replacement and misc augmentations on a Genie dataset."
         });
         parser.addArgument(['-o', '--output'], {
             required: true,
@@ -54,10 +54,6 @@ module.exports = {
             required: true,
             help: 'TSV file containing the paths to datasets for strings and entity types.'
         });
-        parser.addArgument('--ppdb', {
-            required: false,
-            help: 'Path to the compiled binary PPDB file',
-        });
         parser.addArgument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
@@ -70,18 +66,6 @@ module.exports = {
             defaultValue: false
         });
 
-        parser.addArgument('--ppdb-synthetic-fraction', {
-            type: Number,
-            defaultValue: 0.1,
-            metavar: 'FRACTION',
-            help: 'Fraction of synthetic sentences to augment with PPDB',
-        });
-        parser.addArgument('--ppdb-paraphrase-fraction', {
-            type: Number,
-            defaultValue: 1.0,
-            metavar: 'FRACTION',
-            help: 'Fraction of paraphrase sentences to augment with PPDB',
-        });
         parser.addArgument('--quoted-fraction', {
             type: Number,
             defaultValue: 0.1,
