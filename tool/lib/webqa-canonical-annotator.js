@@ -19,6 +19,7 @@ const utils = require('../../lib/utils');
 const AnnotationExtractor = require('./webqa-template-extractor');
 const { makeLookupKeys } = require('../../lib/sample-utils');
 const { PROPERTY_CANONICAL_OVERRIDE } = require('./webqa-manual-annotations');
+const { posTag } = require('../../lib/i18n/american-english');
 
 const ANNOTATED_PROPERTIES = Object.keys(PROPERTY_CANONICAL_OVERRIDE);
 
@@ -262,7 +263,7 @@ class AutoCanonicalAnnotator {
         if (candidate === 'is' || candidate === 'are')
             return false;
 
-        return ['VBP', 'VBZ', 'VBD'].includes(utils.posTag([candidate])[0]);
+        return ['VBP', 'VBZ', 'VBD'].includes(posTag([candidate])[0]);
     }
 
     _hasConflict(query, currentArg, currentPos, currentCanonical) {
