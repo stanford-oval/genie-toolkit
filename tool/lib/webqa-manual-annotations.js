@@ -11,6 +11,8 @@
 const ThingTalk = require('thingtalk');
 const Type = ThingTalk.Type;
 
+//TODO: some of the following could differ from domain to domain; we should allow domain override.
+
 const BUILTIN_TYPEMAP = {
     Time: Type.Time,
     Number: Type.Number,
@@ -254,7 +256,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     author: {
         base: ['author', 'creator'],
         passive_verb: [
-            'by', 'made by', 'written by', 'created by', 'authored by', 'uploaded by', 'submitted by'
+            'by', 'written by', 'created by', 'authored by', 'uploaded by', 'submitted by'
         ],
         reverse_verb: ['wrote', 'authored']
 
@@ -359,8 +361,8 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
     creator: {
         base: ['creator', 'producer'],
-        passive_verb: ['created by', 'produced by'],
-        reverse_verb: ['created', 'creates', 'produced']
+        passive_verb: ['created by', 'produced by', 'made by'],
+        reverse_verb: ['created', 'creates', 'produced', 'made']
     },
     dateCreated: {
         base: ['date created'],
@@ -374,7 +376,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['actor', 'actress'],
         property: ['#'],
         passive_verb: ['played by', 'acted by'],
-        reverse_verb: ['acted', 'acted in']
+        reverse_verb: ['acted', 'acted in', 'was in']
     },
     director: {
         base: ['director'],

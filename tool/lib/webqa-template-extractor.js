@@ -81,8 +81,8 @@ class AnnotationExtractor {
 
     async _paraphrase(input, arg) {
         // if debug file exists, use them directly
-        if (fs.existsSync(`./gpt2-paraphraser-out-${arg}.json`))
-            return JSON.parse(fs.readFileSync(`./gpt2-paraphraser-out-${arg}.json`, 'utf-8'));
+        if (fs.existsSync(`./paraphraser-out-${arg}.json`))
+            return JSON.parse(fs.readFileSync(`./paraphraser-out-${arg}.json`, 'utf-8'));
 
         // genienlp run-paraphrase --input_column 0 --skip_heuristics --model_name_or_path xxx --temperature 1 1 1 --num_beams 4 --pipe_mode
         const args = [
@@ -98,7 +98,7 @@ class AnnotationExtractor {
 
         const output = util.promisify(fs.writeFile);
         if (this.options.debug)
-            await output(`./gpt2-paraphraser-in-${arg}.tsv`, input);
+            await output(`./paraphraser-in-${arg}.tsv`, input);
 
         const stdout = await new Promise((resolve, reject) => {
             child.stdin.write(input);
@@ -114,7 +114,7 @@ class AnnotationExtractor {
         });
 
         if (this.options.debug)
-            await output(`./gpt2-paraphraser-out-${arg}.json`, JSON.stringify(JSON.parse(stdout), null, 2));
+            await output(`./paraphraser-out-${arg}.json`, JSON.stringify(JSON.parse(stdout), null, 2));
 
         return JSON.parse(stdout);
     }
