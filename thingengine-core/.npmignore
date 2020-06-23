@@ -1,0 +1,11 @@
+*~
+
+node_modules/
+po/thingengine-core.pot
+po/*.json
+po/tmp
+
+yarn-error.log
+.nyc_output/
+
+home*

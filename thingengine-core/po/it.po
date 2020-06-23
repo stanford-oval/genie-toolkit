@@ -1,0 +1,595 @@
+# Italian translations for thingengine-core package.
+# Copyright (C) 2016 THE thingengine-core'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the thingengine-core package.
+# Giovanni Campagna <scampa.giovanni@gmail.com>, 2016-2019.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: thingengine-core 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-11-03 18:07-0800\n"
+"PO-Revision-Date: 2019-11-03 18:10-0800\n"
+"Last-Translator: Giovanni Campagna <scampa.giovanni@gmail.com>\n"
+"Language-Team: Italian <it@li.org>\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Generator: Gtranslator 3.34.0\n"
+
+#: lib/apps/app_executor.js:87
+msgid "This app has no description"
+msgstr "Questa app non ha descrizione."
+
+#: lib/apps/output_queue.js:110
+msgid "User not available to respond"
+msgstr "L'utente non è disponibile a rispondere"
+
+#: lib/devices/builtins/bluetooth.generic.js:35
+#, javascript-format
+msgid "Generic Bluetooth Device %s"
+msgstr "Dispositivo Bluetooth Generico %s"
+
+#: lib/devices/builtins/bluetooth.generic.js:36
+msgid "This is a Bluetooth device of unknown or generic type"
+msgstr "Questo è un dispositivo Bluetooth di tipo generico o sconosciuto"
+
+#: lib/devices/builtins/bluetooth.generic.js:44
+msgid "This Almond has no bluetooth capability"
+msgstr "Questo Almond non supporta il Bluetooth"
+
+#. NOTE: if you change the sentences used here, make sure to change tests/create_test_users.js
+#. in platform-cmdline
+#: lib/devices/builtins/matrix/index.js:108
+msgid "Insert your email address or phone number:"
+msgstr "Inserisci il tuo numero di telefono o indirizzo email:"
+
+#: lib/devices/builtins/matrix/index.js:123
+msgid "Insert your password:"
+msgstr "Inserisci la tua password:"
+
+#: lib/devices/builtins/matrix/index.js:138
+#, javascript-format
+msgid "Authentication failed: %s"
+msgstr "Authenticazione fallita: %s"
+
+#: lib/devices/builtins/matrix/index.js:185
+#, javascript-format
+msgid "Matrix Account of %s"
+msgstr "Account Matrix di %s"
+
+#: lib/devices/builtins/matrix/index.js:186
+msgid "This is your Matrix Account."
+msgstr "Questo è il tuo account Matrix."
+
+#: lib/devices/builtins/thingengine.builtin.js:19
+msgid "Hi!"
+msgstr "Ciao!"
+
+#: lib/devices/builtins/thingengine.builtin.js:20
+msgid "I know, right?"
+msgstr "Vero?"
+
+#: lib/devices/builtins/thingengine.builtin.js:21
+msgid "No need to be sorry."
+msgstr "Non c'è motivo di scusarsi."
+
+#: lib/devices/builtins/thingengine.builtin.js:22
+msgid "At your service."
+msgstr "Al tuo servizio."
+
+#. name
+#: lib/devices/builtins/thingengine.builtin.js:34
+#: po/tmp/thingengine.builtin.js:2
+msgid "Miscellaneous Interfaces"
+msgstr "Miscellanea"
+
+#: lib/devices/builtins/thingengine.builtin.js:35
+msgid "Time, randomness and other non-device specific things."
+msgstr "Orario, casualità e altre cose non specifiche di un dispositivo."
+
+#: lib/devices/builtins/thingengine.builtin.js:63
+#: lib/devices/builtins/thingengine.builtin.js:80
+msgid "Sorry, I cannot access your location in this version of Almond."
+msgstr ""
+"Mi dispiace, ma non posso accedere alla tua posizione in questa versione di "
+"Almond."
+
+#: lib/devices/builtins/thingengine.builtin.js:71
+msgid "Unknown"
+msgstr "Ignota"
+
+#: lib/devices/builtins/thingengine.builtin.js:116
+#: lib/devices/builtins/thingengine.builtin.js:125
+msgid "User not available"
+msgstr "Utente non disponibile"
+
+#: lib/devices/builtins/thingengine.builtin.js:134
+msgid "Opening files is not implemented in this Almond"
+msgstr "L'apertura di file non è implementata in questo Almond"
+
+#: lib/devices/builtins/thingengine.js:48
+#, javascript-format
+msgid "Almond %s (%s)"
+msgstr "Almond %s (%s)"
+
+#: lib/devices/builtins/thingengine.js:49
+msgid "This is one of your own Almond apps."
+msgstr "Questo è una delle tue app Almond."
+
+#: lib/engine.js:273
+msgid "Unknown device"
+msgstr "Dispositivo sconosciuto"
+
+#: lib/engine.js:274
+msgid "Description not available"
+msgstr "Descrizione non disponibile"
+
+#. name
+#: po/tmp/bluetooth.generic.js:2
+msgid "Generic Bluetooth Device"
+msgstr "Dispositivo Bluetooth Generico"
+
+#. description
+#: po/tmp/bluetooth.generic.js:4
+msgid ""
+"The most generic of Bluetooth classes, it supports no operation at all. It "
+"is used if nothing more specific is found."
+msgstr ""
+"La più generica di tutte le classi Bluetooth. Non supporta alcuna "
+"operazione, ed è usata solo se non è trovata una classe più specifica."
+
+#. name
+#: po/tmp/matrix.js:2
+msgid "Matrix"
+msgstr "Matrix"
+
+#. description
+#: po/tmp/matrix.js:4
+msgid "The Matrix.org federated chat service "
+msgstr "Il servizio di chat federato Matrix.org"
+
+#. name
+#: po/tmp/test.js:2
+msgid "Test Device"
+msgstr "Dispositivo di Test"
+
+#. description
+#: po/tmp/test.js:4
+msgid "Test Almond in various ways"
+msgstr "Testa Almond in vari modi"
+
+#. queries.get_data.canonical
+#: po/tmp/test.js:6
+msgid "get data on test"
+msgstr "ottieni dati di test"
+
+#. queries.get_data.confirmation
+#: po/tmp/test.js:8
+msgid "generate $size of fake data"
+msgstr "genera $size di dati fasulli"
+
+#. queries.get_data.confirmation_remote
+#: po/tmp/test.js:10
+msgid "generate $size of fake data on $__person's Almond"
+msgstr "genera $size di dati fasulli sull'Almond di $__person"
+
+#. queries.get_data.formatted[0].text
+#: po/tmp/test.js:12
+msgid "${data}"
+msgstr "${data}"
+
+#. queries.get_data.args.size.prompt
+#: po/tmp/test.js:14
+msgid "How much fake data do you want?"
+msgstr "Quanti dati fasulli vuoi?"
+
+#. queries.next_sequence.canonical
+#: po/tmp/test.js:16
+msgid "get sequence number on test"
+msgstr "ottieni numero di sequenza di test"
+
+#. queries.next_sequence.confirmation
+#: po/tmp/test.js:18
+msgid "return the next test number"
+msgstr "ritorna il prossimo numero di test"
+
+#. queries.next_sequence.formatted[0].text
+#: po/tmp/test.js:20
+msgid "${number}"
+msgstr "${number}"
+
+#. queries.dup_data.canonical
+#: po/tmp/test.js:22
+msgid "duplicate data on test"
+msgstr "duplica dati di test"
+
+#. queries.dup_data.confirmation
+#: po/tmp/test.js:24
+msgid "duplicate ${data_in} data"
+msgstr "duplica i dati ${data_in}"
+
+#. queries.dup_data.formatted[0].text
+#: po/tmp/test.js:26
+msgid "${data_out}"
+msgstr "${data_out}"
+
+#. queries.dup_data.args.data_in.prompt
+#: po/tmp/test.js:28
+msgid "What data do you want to duplicate?"
+msgstr "Quali dati vuoi duplicare?"
+
+#. actions.eat_data.canonical
+#: po/tmp/test.js:30
+msgid "eat data on test"
+msgstr "mangia dati di test"
+
+#. actions.eat_data.confirmation
+#: po/tmp/test.js:32
+msgid "consume $data"
+msgstr "consuma $data"
+
+#. actions.eat_data.confirmation_remote
+#: po/tmp/test.js:34
+msgid "consume $data on $__person's Almond"
+msgstr "consuma $data sull'Almond di $__person"
+
+#. actions.eat_data.args.data.prompt
+#: po/tmp/test.js:36
+msgid "What do you want me to consume?"
+msgstr "Che cosa vuoi che io consumi?"
+
+#. actions.ask.canonical
+#. actions.say.canonical
+#: po/tmp/test.js:38 po/tmp/thingengine.builtin.js:76
+msgid "say"
+msgstr "dici"
+
+#. actions.ask.confirmation
+#: po/tmp/test.js:40
+msgid "ask me a question $question"
+msgstr "fammi una domanda $question"
+
+#. actions.ask.confirmation_remote
+#: po/tmp/test.js:42
+msgid "ask $__person question $question"
+msgstr "fai la domanda $question a $__person"
+
+#. actions.ask.args.question.prompt
+#: po/tmp/test.js:44
+msgid "What do you want me to ask?"
+msgstr "Che cosa vuoi che io domandi?"
+
+#. description
+#: po/tmp/thingengine.builtin.js:4
+msgid ""
+"Commands that are always available and don't belong to any specific device "
+"or account. Mostly related to time and randomness, because the universe is "
+"chaos and those always there. Also debugging."
+msgstr ""
+"Comandi che sono sempre disponibili e non appartengono a un dispositivo o "
+"account specifico. Per lo più relativi al tempo e al caso, perché l'universo "
+"è caos e ad essi non si può sfuggire. E anche debugging."
+
+#. queries.get_gps.canonical
+#: po/tmp/thingengine.builtin.js:6
+msgid "get current location"
+msgstr "posizione corrente"
+
+#. queries.get_gps.confirmation
+#: po/tmp/thingengine.builtin.js:8
+msgid "your location"
+msgstr "la tua posizione"
+
+#. queries.get_gps.confirmation_remote
+#: po/tmp/thingengine.builtin.js:10
+msgid "$__person's location"
+msgstr "la posizione di $__person"
+
+#. queries.get_gps.formatted[0].text
+#: po/tmp/thingengine.builtin.js:12
+msgid "Current Location: ${location}"
+msgstr "Posizione corrente: ${location}"
+
+#. queries.get_gps.args.location.prompt
+#: po/tmp/thingengine.builtin.js:14
+msgid "What location are you interested in?"
+msgstr "A quale posizione sei interessato?"
+
+#. queries.get_gps.args.location.canonical
+#: po/tmp/thingengine.builtin.js:16
+msgid "location"
+msgstr "località"
+
+#. queries.get_gps.args.altitude.canonical
+#: po/tmp/thingengine.builtin.js:18
+msgid "altitude"
+msgstr "altitudine"
+
+#. queries.get_gps.args.bearing.canonical
+#: po/tmp/thingengine.builtin.js:20
+msgid "bearing"
+msgstr "direzione"
+
+#. queries.get_gps.args.speed.canonical
+#: po/tmp/thingengine.builtin.js:22
+msgid "speed"
+msgstr "velocità"
+
+#. queries.get_time.canonical
+#: po/tmp/thingengine.builtin.js:24
+msgid "get time"
+msgstr "ottieni ora"
+
+#. queries.get_time.confirmation
+#: po/tmp/thingengine.builtin.js:26
+msgid "the current time"
+msgstr "l'ora attuale"
+
+#. queries.get_time.formatted[0].text
+#: po/tmp/thingengine.builtin.js:28
+msgid "Current time is ${time:time}."
+msgstr "L'ora attuale è ${time:time}."
+
+#. queries.get_date.canonical
+#: po/tmp/thingengine.builtin.js:30
+msgid "get date"
+msgstr "ottieni data"
+
+#. queries.get_date.confirmation
+#: po/tmp/thingengine.builtin.js:32
+msgid "today's date"
+msgstr "la data di oggi"
+
+#. queries.get_date.formatted[0].text
+#: po/tmp/thingengine.builtin.js:34
+msgid "Today is ${date:date}."
+msgstr "Oggi è il ${date:date}."
+
+#. queries.get_random_between.canonical
+#: po/tmp/thingengine.builtin.js:36
+msgid "get random integer"
+msgstr "ottieni intero casuale"
+
+#. queries.get_random_between.confirmation
+#: po/tmp/thingengine.builtin.js:38
+msgid "a random integer between $low and $high"
+msgstr "un numero intero casuale tra $low e $high"
+
+#. queries.get_random_between.formatted[0].text
+#: po/tmp/thingengine.builtin.js:40
+msgid "${random}"
+msgstr "${random}"
+
+#. queries.get_random_between.args.low.prompt
+#: po/tmp/thingengine.builtin.js:42
+msgid "What should be the lower bound?"
+msgstr "Qual è l'estremo inferiore?"
+
+#. queries.get_random_between.args.high.prompt
+#: po/tmp/thingengine.builtin.js:44
+msgid "What should be the upper bound?"
+msgstr "Qual è l'estremo superiore?"
+
+#. queries.get_commands.canonical
+#: po/tmp/thingengine.builtin.js:46
+msgid "list commands"
+msgstr "lista comandi"
+
+#. queries.get_commands.confirmation
+#: po/tmp/thingengine.builtin.js:48
+msgid "the list of commands of $device"
+msgstr "la lista dei comandi di $device"
+
+#. queries.get_commands.formatted[0].text
+#: po/tmp/thingengine.builtin.js:50
+msgid "${program}"
+msgstr "${program}"
+
+#. queries.get_commands.args.device.prompt
+#: po/tmp/thingengine.builtin.js:52
+msgid "What device do you want help for?"
+msgstr "Per quale dispositivo hai bisogno di aiuto?"
+
+#. queries.canned_reply.canonical
+#: po/tmp/thingengine.builtin.js:54
+msgid "get canned reply"
+msgstr "ottieni risposta confezionata"
+
+#. queries.canned_reply.confirmation
+#: po/tmp/thingengine.builtin.js:56
+msgid "a reply to ${intent}"
+msgstr "una risposta a ${intent}"
+
+#. queries.canned_reply.formatted[0]
+#: po/tmp/thingengine.builtin.js:58
+msgid "${text}"
+msgstr "${text}"
+
+#. actions.debug_log.canonical
+#: po/tmp/thingengine.builtin.js:60
+msgid "log"
+msgstr "registro"
+
+#. actions.debug_log.confirmation
+#: po/tmp/thingengine.builtin.js:62
+msgid "write $message in the developer logs"
+msgstr "scrivi $message nei registri di sviluppo"
+
+#. actions.debug_log.confirmation_remote
+#: po/tmp/thingengine.builtin.js:64
+msgid "write $message in the developer logs on $__person's phone"
+msgstr "scrivi $message nei registri di sviluppo di $__person"
+
+#. actions.debug_log.args.message.prompt
+#: po/tmp/thingengine.builtin.js:66
+msgid "What should I write in the logs?"
+msgstr "Cosa devo scrivere nel registro?"
+
+#. actions.configure.canonical
+#: po/tmp/thingengine.builtin.js:68
+msgid "configure"
+msgstr "configura"
+
+#. actions.configure.confirmation
+#: po/tmp/thingengine.builtin.js:70
+msgid "configure a new $device"
+msgstr "configura un nuovo $device"
+
+#. actions.configure.confirmation_remote
+#: po/tmp/thingengine.builtin.js:72
+msgid "configure a new $device on $__person's Almond"
+msgstr "configura un nuovo $device nell'Almond di $__person"
+
+#. actions.configure.args.device.prompt
+#: po/tmp/thingengine.builtin.js:74
+msgid "What device do you want to configure?"
+msgstr "Quale dispositivo vuoi configurare?"
+
+#. actions.say.confirmation
+#: po/tmp/thingengine.builtin.js:78
+msgid "send me a message $message"
+msgstr "mandami un messaggio $message"
+
+#. actions.say.confirmation_remote
+#: po/tmp/thingengine.builtin.js:80
+msgid "send $__person message $message"
+msgstr "manda un messaggio $message a $__person"
+
+#. actions.say.args.message.prompt
+#: po/tmp/thingengine.builtin.js:82
+msgid "What do you want me to say?"
+msgstr "Che cosa vuoi che io dica?"
+
+#. actions.discover.canonical
+#: po/tmp/thingengine.builtin.js:84
+msgid "discover"
+msgstr "scopri"
+
+#. actions.discover.confirmation
+#: po/tmp/thingengine.builtin.js:86
+msgid "search for new devices"
+msgstr "cerca nuovi dispositivi"
+
+#. actions.discover.confirmation_remote
+#: po/tmp/thingengine.builtin.js:88
+msgid "search for new devices on $__person's Almond"
+msgstr "cerca nuovi dispositivi nell'Almond di $__person"
+
+#. actions.open_url.canonical
+#: po/tmp/thingengine.builtin.js:90
+msgid "open url on builtin"
+msgstr "apri url su builtin"
+
+#. actions.open_url.confirmation
+#: po/tmp/thingengine.builtin.js:92
+msgid "open $url"
+msgstr "apri $url"
+
+#. actions.open_url.confirmation_remote
+#: po/tmp/thingengine.builtin.js:94
+msgid "open $url in $__person's PC"
+msgstr "apri $url nel PC di $__person"
+
+#. actions.open_url.args.url.prompt
+#: po/tmp/thingengine.builtin.js:96
+msgid "What URL do you want to open?"
+msgstr "Quale URL vuoi aprire?"
+
+#. name
+#: po/tmp/thingengine.remote.js:2
+msgid "Remote Almond"
+msgstr "Almond remoto"
+
+#. description
+#: po/tmp/thingengine.remote.js:4
+msgid ""
+"A proxy device for a Almond owned by a different user. This device is "
+"created and managed automatically by the system."
+msgstr ""
+"Un dispositivo proxy per un Almond di proprietà di un utente diverso. Questo "
+"dispositivo è creato e gestito automaticamente dal sistema."
+
+#. name
+#: po/tmp/thingengine.js:2
+msgid "Almond Configuration"
+msgstr "Configurazione di Almond"
+
+#. description
+#: po/tmp/thingengine.js:4
+msgid ""
+"A placeholder for configuration parameters of Almond. This device is created "
+"and loaded automatically by the system."
+msgstr ""
+"Un contenitore per i parametri di configurazione di Almond. Questo "
+"dispositivo è creato e gestito automaticamente dal sistema."
+
+#, javascript-format
+#~ msgid "ThingSystem %s"
+#~ msgstr "ThingSystem %s"
+
+#~ msgid "Remote ThingSystem"
+#~ msgstr "ThingSystem Remoto"
+
+#~ msgid ""
+#~ "This service allows you to interact with devices and accounts that belong "
+#~ "to other people (with their permission)."
+#~ msgstr ""
+#~ "Questo servizio ti consente di interagire con dispositivi e account che "
+#~ "appartengono ad altre persone (con il loro permesso)."
+
+#~ msgid "Insert your phone number or email address:"
+#~ msgstr "Inserisci il tuo numero di telefono o indirizzo email:"
+
+#~ msgid "Please click the confirmation link that was just sent you."
+#~ msgstr "Clicca il link di conferma che ti è stato inviato."
+
+#~ msgid "Insert the confirmation code you received in the SMS."
+#~ msgstr "Inserisci il codice di conferma che hai ricevuto via SMS."
+
+#~ msgid "Omlet Account of %s"
+#~ msgstr "Account Omlet di %s"
+
+#~ msgid ""
+#~ "This is your Omlet Account. You can use it to communicate and share data "
+#~ "with your friends!"
+#~ msgstr ""
+#~ "Questo è il tuo account Omlet. Puoi usarlo per comunicare e condividere "
+#~ "dati con i tuoi amici!"
+
+#~ msgid "Almond 4 GNOME"
+#~ msgstr "Almond 4 GNOME"
+
+#~ msgid "Control your PC with your voice."
+#~ msgstr "Controlla il tuo PC con la tua voce"
+
+#~ msgid "Almond Home"
+#~ msgstr "Almond Home"
+
+#~ msgid "Phone"
+#~ msgstr "Telefono"
+
+#~ msgid "Access your phone capabilities from Almond."
+#~ msgstr "Accedi alle funzionalità del tuo telefono da Almond."
+
+#~ msgid "Timer Elapsed"
+#~ msgstr "Timer scaduto"
+
+#~ msgid "Timer at %s elapsed."
+#~ msgstr "Timer alle ore %s scaduto."
+
+#~ msgid "Current date is %s"
+#~ msgstr "La data di oggi è %s"
+
+#~ msgid "New SMS from %s: %s"
+#~ msgstr "Nuovo SMS da %s: %s"
+
+#~ msgid "You"
+#~ msgstr "Tu"
+
+#~ msgid "Missing $F parameter for feed shared app"
+#~ msgstr "Parametro $F mancante per app condivisa su feed."
+
+#~ msgid "%s is not a feed shared app"
+#~ msgstr "%s non è un'app condivisa su feed."

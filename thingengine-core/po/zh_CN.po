@@ -1,0 +1,97 @@
+# Chinese translations for thingengine-platform-cloud package
+# Copyright (C) 2016 THE thingengine-platform-cloud'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the thingengine-platform-cloud package.
+# Giovanni Campagna <silei@stanford.edu>, 2016.
+
+msgid ""
+msgstr ""
+"Project-Id-Version: thingengine-core 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-08-15 02:54+0000\n"
+"PO-Revision-Date: 2016-08-16 16:37-0700\n"
+"Last-Translator: Silei Xu <silei@stanford.edu>\n"
+"Language-Team: Chinese (simplified)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: lib/apps/app_executor.js:83
+msgid "Missing $F parameter for feed shared app"
+msgstr "共享订阅应用缺少参数 $F"
+
+#: lib/apps/app_executor.js:109
+msgid "This app has no description"
+msgstr "该应用没有描述"
+
+#: lib/apps/app_executor.js:199
+#, javascript-format
+msgid "%s is not a feed shared app"
+msgstr "%s 不是一个共享订阅应用"
+
+#: lib/devices/thingpedia/builtins/bluetooth.generic/device.js:34
+#, javascript-format
+msgid "Generic Bluetooth Device %s"
+msgstr "通用蓝牙设备 %s"
+
+#: lib/devices/thingpedia/builtins/bluetooth.generic/device.js:35
+msgid "This is a Bluetooth device of unknown or generic type"
+msgstr "这是一个未知类型或通用类型蓝牙设备"
+
+#: lib/devices/thingpedia/builtins/bluetooth.generic/device.js:46
+msgid "Platform has no bluetooth capability"
+msgstr "当前平台没有蓝牙功能"
+
+#: lib/devices/thingpedia/builtins/omlet/device.js:223
+#, javascript-format
+msgid "Omlet Account of %s"
+msgstr "%s的Omlet账户"
+
+#: lib/devices/thingpedia/builtins/omlet/device.js:224
+msgid ""
+"This is your Omlet Account. You can use it to communicate and share data "
+"with your friends!"
+msgstr "这是你的Omlet账户。你可以使用它来与你朋友交流、共享数据！"
+
+#: lib/devices/thingpedia/builtins/omlet/omlet_messaging.js:98
+msgid "You"
+msgstr "你"
+
+#: lib/devices/thingpedia/builtins/thingengine/device.js:41
+#, javascript-format
+msgid "ThingEngine %s"
+msgstr "ThingEngine %s"
+
+#: lib/devices/thingpedia/builtins/thingengine/device.js:42
+msgid "This is your own ThingEngine."
+msgstr "这是你的ThingEngine."
+
+#: lib/devices/thingpedia/builtins/thingengine.builtin/at.js:42
+#, javascript-format
+msgid "Timer at %s elapsed."
+msgstr "%s时设置的计时器到时了。"
+
+#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:23
+msgid "Builtin Interfaces"
+msgstr "内置接口"
+
+#: lib/devices/thingpedia/builtins/thingengine.builtin/device.js:24
+msgid "Time and other non-device specific things."
+msgstr "时间和其他非设备特定的Things。"
+
+#: lib/devices/thingpedia/builtins/thingengine.builtin/get_time.js:18
+#, javascript-format
+msgid "Current time is %s"
+msgstr "当前时间是 %s"
+
+#: lib/devices/thingpedia/builtins/thingengine.builtin/timer.js:29
+msgid "Timer Elapsed"
+msgstr "计时器时间到"
+
+#: lib/devices/thingpedia/builtins/thingengine.phone/device.js:26
+msgid "Phone"
+msgstr "手机"
+
+#: lib/devices/thingpedia/builtins/thingengine.phone/device.js:27
+msgid "Access your phone capabilities from Sabrina."
+msgstr "从Sabrina访问你的手机功能"
