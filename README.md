@@ -172,9 +172,8 @@ is not necessary. The script will still perform automatic validation.
 After creating the synthesized and paraphrase datasets, use the following command to augment the dataset
 and apply parameter replacement:
 ```
-genie augment paraphrasing.tsv synthesized.tsv --thingpedia thingpedia.tt --ppdb compiled-ppdb.bin --parameter-datasets parameter-datasets.tsv
+genie augment paraphrasing.tsv synthesized.tsv --thingpedia thingpedia.tt --parameter-datasets parameter-datasets.tsv
  -o everything.tsv
- [--ppdb-synthetic-fraction FRACTION] [--ppdb-paraphrase-fraction FRACTION]
  [--quoted-fraction FRACTION]
 ```
 

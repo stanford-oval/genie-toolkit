@@ -71,12 +71,6 @@ module.exports = {
             defaultValue: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
-        parser.addArgument(['-n', '--target-size'], {
-            required: false,
-            defaultValue: 1000000,
-            type: Number,
-            help: `Number of dialogues to generate`
-        });
         parser.addArgument(['-f', '--output-format'], {
             required: false,
             defaultValue: 'txt-only',
@@ -138,13 +132,19 @@ module.exports = {
             required: false,
             type: Number,
             defaultValue: 100,
-            help: 'Approximate target size of the generate dataset, for each $root rule and each depth, for each minibatch of dialogues',
+            help: 'Pruning target for each non-terminal',
         });
         parser.addArgument(['-B', '--minibatch-size'], {
             required: false,
             type: Number,
             defaultValue: 1000,
-            help: 'Size of the dialog minibatch',
+            help: 'Number of partial dialogue to keep in the working set for each minibatch',
+        });
+        parser.addArgument(['-n', '--num-minibatches'], {
+            required: false,
+            defaultValue: 1,
+            type: Number,
+            help: `Number of minibatches of dialogues to generate`
         });
 
         parser.addArgument('--debug', {
@@ -180,9 +180,9 @@ module.exports = {
             thingpediaClient: tpClient,
             maxDepth: args.maxdepth,
             targetPruningSize: args.target_pruning_size,
-            targetSize: args.target_size,
             maxTurns: args.max_turns,
             minibatchSize: args.minibatch_size,
+            numMinibatches: args.num_minibatches,
 
             debug: args.debug,
         };
