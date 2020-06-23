@@ -34,6 +34,8 @@ thingpedia_result = {}
 thingpedia_action_past = {}
 thingpedia_error_message = {}
 
+coref_constant = {}
+
 out_param_Numeric = {
     out_param_Number;
     out_param_Currency;
