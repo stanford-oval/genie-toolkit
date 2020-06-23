@@ -26,6 +26,7 @@
     "query-validation": "^0.1.0",
     "seedrandom": "^3.0.0",
     "sockaddr": "^1.0.1",
+    "stemmer": "^1.0.5",
     "thingpedia": "~2.7.0",
     "thingtalk": "~1.10.0",
     "thingtalk-units": "^0.1.0"

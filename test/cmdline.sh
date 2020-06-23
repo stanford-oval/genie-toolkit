@@ -112,6 +112,15 @@ node $srcdir/tool/genie.js requote ./everything.tsv --output ./everything-req.ts
 diff -u $srcdir/test/data/en-US/expected-everything-req.tsv everything-req.tsv
 diff -u $srcdir/test/data/en-US/expected-everything.tsv everything.tsv
 
+node $srcdir/tool/genie.js augment paraphrase1.tsv $srcdir/test/data/en-US/synthetic.tsv --thingpedia $srcdir/test/data/en-US/thingpedia.tt \
+  --ppdb compiled-ppdb.bin --param-locale en --parameter-datasets $srcdir/test/data/en-US/parameter-datasets.tsv \
+  -o everything-nonrequotable.tsv \
+  --ppdb-synthetic-fraction 0.5 --ppdb-paraphrase-fraction 1.0 \
+  --quoted-fraction 0.1 \
+  --synthetic-expand-factor 3 \
+  --no-requotable
+diff -u $srcdir/test/data/en-US/expected-everything-nonrequotable.tsv everything-nonrequotable.tsv
+
 # and split it in various ways
 node $srcdir/tool/genie.js split-train-eval everything.tsv \
   --train /dev/null --eval /dev/null --test /dev/null \

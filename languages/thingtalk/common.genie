@@ -157,6 +157,11 @@ apv_input_param = {}
 coref_apv_filter = {}
 coref_apv_input_param = {}
 
+// projection in reversed verb form
+// e.g., "who [wrote] book X", "which [album includes] song Y"
+reverse_verb_projection = {}
+who_reverse_verb_projection = {}
+
 constant_name = {}
 
 base_table = {}

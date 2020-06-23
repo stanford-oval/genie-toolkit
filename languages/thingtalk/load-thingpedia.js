@@ -19,7 +19,7 @@ const Grammar = ThingTalk.Grammar;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 const Units = ThingTalk.Units;
 
-const { clean, typeToStringSafe, makeFilter, makeAndFilter } = require('./utils');
+const { clean, typeToStringSafe, makeFilter, makeAndFilter, isHumanEntity } = require('./utils');
 const { SlotBag } = require('./slot_bag');
 
 function identity(x) {
@@ -32,7 +32,7 @@ const ANNOTATION_RENAME = {
     'verb': 'avp',
     'passive_verb': 'pvp',
     'adjective': 'apv',
-    'implicit_identity': 'npv',
+    'implicit_identity': 'npv'
 };
 
 class ThingpediaLoader {
@@ -249,6 +249,50 @@ class ThingpediaLoader {
         }
     }
 
+    _recordBooleanOutputParam(functionName, arg) {
+        const pname = arg.name;
+        const ptype = arg.type;
+        const typestr = this._recordType(ptype);
+        const pvar = new Ast.Value.VarRef(pname);
+
+        let canonical;
+
+        if (!arg.metadata.canonical)
+            canonical = { base: [clean(pname)] };
+        else if (typeof arg.metadata.canonical === 'string')
+            canonical = { base: [arg.metadata.canonical] };
+        else
+            canonical = arg.metadata.canonical;
+
+        for (let key in canonical) {
+            if (key === 'default')
+                continue;
+
+            let annotvalue = canonical[key];
+            if (!Array.isArray(annotvalue))
+                annotvalue = [annotvalue];
+            if (key === 'base') {
+                for (let form of annotvalue)
+                    this._addOutParam(functionName, pname, ptype, typestr, form.trim());
+
+                continue;
+            }
+
+            const match = /^([a-zA-Z_]+)_(true|false)$/.exec(key);
+            assert(match);
+            if (match === null)
+                continue;
+            let cat = match[1];
+            const value = new Ast.Value.Boolean(match[2] === 'true');
+
+            if (cat in ANNOTATION_RENAME)
+                cat = ANNOTATION_RENAME[cat];
+
+            for (let form of annotvalue)
+                 this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, '==', value, false)));
+        }
+    }
+
     _recordOutputParam(functionName, arg) {
         const pname = arg.name;
         const ptype = arg.type;
@@ -281,8 +325,10 @@ class ThingpediaLoader {
                 this._grammar.addRule('thingpedia_user_question', [form], this._runtime.simpleCombine(() => [[pname, ptype]]));
         }
 
-        if (ptype.isBoolean)
+        if (ptype.isBoolean) {
+            this._recordBooleanOutputParam(functionName, arg);
             return;
+        }
 
         if (ptype.isArray && ptype.elem.isCompound) {
             this.compoundArrays[pname] = ptype.elem;
@@ -310,23 +356,40 @@ class ThingpediaLoader {
 
         let vtype = ptype;
         let op = '==';
-        if (ptype.isArray) {
-            vtype = ptype.elem;
-            op = 'contains';
-        } else if (pname === 'id') {
-            vtype = Type.String;
+        // true if slot can use a form with "both", that is, "serves both chinese and italian"
+        // (this is false if the slot uses >= or <=, because "arrives by 7pm and 8pm" doesn't make sense
+        let canUseBothForm = true;
+
+        if (arg.annotations.slot_operator) {
+            op = arg.annotations.slot_operator.toJS();
+            assert(['==', '>=', '<=', 'contains'].includes(op));
+            if (op === '>=' || op === '<=')
+                canUseBothForm = false;
+        } else {
+            if (ptype.isArray) {
+                vtype = ptype.elem;
+                op = 'contains';
+            } else if (pname === 'id') {
+                vtype = Type.String;
+            }
         }
         const vtypestr = this._recordType(vtype);
         if (vtypestr === null)
-            return null;
+            return;
 
-        const corefconst = new this._runtime.NonTerminal('coref_constant');
         const constant = new this._runtime.NonTerminal('constant_' + vtypestr);
+        const corefconst = new this._runtime.NonTerminal('coref_constant');
         for (let cat in canonical) {
             if (cat === 'default')
                 continue;
 
             let annotvalue = canonical[cat];
+            let isEnum = false;
+            if (vtype.isEnum && cat.endsWith('_enum')) {
+                cat = cat.substring(0, cat.length - '_enum'.length);
+                isEnum = true;
+            }
+
             if (cat in ANNOTATION_RENAME)
                 cat = ANNOTATION_RENAME[cat];
 
@@ -349,63 +412,77 @@ class ThingpediaLoader {
                 continue;
             }
 
-            if (!Array.isArray(annotvalue))
-                annotvalue = [annotvalue];
+            if (isEnum) {
+                for (let enumerand in annotvalue) {
+                    let forms = annotvalue[enumerand];
+                    if (!Array.isArray(forms))
+                        forms = [forms];
+                    const value = new Ast.Value.Enum(enumerand);
+                    for (let form of forms)
+                        this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, op, value, false)));
+                }
+            } else {
+                if (!Array.isArray(annotvalue))
+                    annotvalue = [annotvalue];
 
-            for (let form of annotvalue) {
-                if (cat === 'base') {
-                    this._addOutParam(functionName, pname, ptype, typestr, form.trim());
+                for (let form of annotvalue) {
+                    if (cat === 'base') {
+                        this._addOutParam(functionName, pname, ptype, typestr, form.trim());
+                        if (!canonical.npp && !canonical.property) {
+                            const expansion = [form, constant];
+                            this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
+                            const corefexpansion = [form, corefconst];
+                            this._grammar.addRule('coref_npp_filter', corefexpansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
 
-                    if (!canonical.npp && !canonical.property) {
-                        const expansion = [form, constant];
-                        this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
-                        const corefexpansion = [form, corefconst];
-                        this._grammar.addRule('coref_npp_filter', corefexpansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
+                            if (canUseBothForm) {
+                                const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                                this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
+                            }
+                        }
+                    } else if (cat === 'reverse_verb') {
+                        if (isHumanEntity(ptype)) {
+                            let expansion = [form];
+                            this._grammar.addRule('who_reverse_verb_projection', expansion, this._runtime.simpleCombine(() => pvar));
+                        }
 
-                        const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
-                        this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
-                    }
-                } else {
-                    let [before, after] = form.split('#');
-                    before = (before || '').trim();
-                    after = (after || '').trim();
+                        let expansion = [canonical.base[0], form];
+                        this._grammar.addRule('reverse_verb_projection', expansion, this._runtime.simpleCombine(() => pvar));
 
-                    let expansion, corefexpansion, pairexpansion;
-                    if (before && after) {
-                        // "rated # stars"
-                        expansion = [before, constant, after];
-                        corefexpansion = [before, corefconst, after];
-                        pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
-                    } else if (before) {
-                        // "named #"
-                        expansion = [before, constant];
-                        corefexpansion = [before, corefconst];
-                        pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
-                    } else if (after) {
-                        // "# -ly priced"
-                        expansion = [constant, after];
-                        corefexpansion = [corefconst, after];
-                        pairexpansion = [new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
                     } else {
-                        // "#" (as in "# restaurant")
-                        expansion = [constant];
-                        corefexpansion = [corefconst];
-                        pairexpansion = [new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                        let [before, after] = form.split('#');
+                        before = (before || '').trim();
+                        after = (after || '').trim();
+
+                        let expansion, corefexpansion, pairexpansion;
+                        if (before && after) {
+                            // "rated # stars"
+                            expansion = [before, constant, after];
+                            corefexpansion = [before, corefconst, after];
+                            pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
+                        } else if (before) {
+                            // "named #"
+                            expansion = [before, constant];
+                            corefexpansion = [before, corefconst];
+                            pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                        } else if (after) {
+                            // "# -ly priced"
+                            expansion = [constant, after];
+                            corefexpansion = [corefconst, after];
+                            pairexpansion = [new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
+                        } else {
+                            // "#" (as in "# restaurant")
+                            expansion = [constant];
+                            corefexpansion = [corefconst];
+                            pairexpansion = [new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                        }
+                        this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
+                        this._grammar.addRule('coref_' + cat + '_filter', corefexpansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
+                        if (canUseBothForm)
+                            this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
                     }
-                    this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
-                    this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
-                    this._grammar.addRule('coref_' + cat + '_filter', corefexpansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
                 }
             }
         }
-    }
-
-    _isHumanEntity(type) {
-        if (['tt:contact', 'tt:username', 'org.wikidata:human'].includes(type))
-            return true;
-        if (type.startsWith('org.schema') && type.endsWith(':Person'))
-            return true;
-        return false;
     }
 
     async _loadTemplate(ex) {
@@ -489,7 +566,7 @@ class ThingpediaLoader {
         if (ex.type === 'query') {
             if (Object.keys(ex.args).length === 0 && ex.value.schema.hasArgument('id')) {
                 let type = ex.value.schema.getArgument('id').type;
-                if (type.isEntity && this._isHumanEntity(type.type)) {
+                if (isHumanEntity(type)) {
                     let grammarCat = 'thingpedia_who_question';
                     this._grammar.addRule(grammarCat, [''], this._runtime.simpleCombine(() => ex.value));
                 }
@@ -610,14 +687,19 @@ class ThingpediaLoader {
             {}
         ));
         const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '=~', new Ast.Value.VarRef('p_name'));
+        let span;
+        if (q.name === 'Person')
+            span = [`\${p_name:no-undefined}`, ...canonical.map((c) => `\${p_name:no-undefined} ${c}`)];
+        else
+            span = [`\${p_name:no-undefined}`, ...canonical.map((c) => `\${p_name:no-undefined} ${c}`), ...canonical.map((c) => `${c} \${p_name:no-undefined}`)];
         await this._loadTemplate(new Ast.Example(
             null,
             -1,
             'query',
             { p_name: Type.String },
             new Ast.Table.Filter(null, table, namefilter, table.schema),
-            [`\${p_name:no-undefined}`, ...canonical.map((c) => `\${p_name} ${c}`)],
-            [`\${p_name:no-undefined}`, ...canonical.map((c) => `\${p_name} ${c}`)],
+            span,
+            span,
             {}
         ));
     }

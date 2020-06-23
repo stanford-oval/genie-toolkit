@@ -75,6 +75,20 @@ function makeAndFilter(loader, param, op, values, negate=false) {
     return f;
 }
 
+function isHumanEntity(type) {
+    if (type.isEntity)
+        return isHumanEntity(type.type);
+    if (type.isArray)
+        return isHumanEntity(type.elem);
+    if (typeof type !== 'string')
+        return false;
+    if (['tt:contact', 'tt:username', 'org.wikidata:human'].includes(type))
+        return true;
+    if (type.startsWith('org.schema') && type.endsWith(':Person'))
+        return true;
+    return false;
+}
+
 module.exports = {
     clean,
 
@@ -108,4 +122,6 @@ module.exports = {
     typeToStringSafe,
     makeFilter,
     makeAndFilter,
+
+    isHumanEntity
 };
