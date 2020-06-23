@@ -147,6 +147,18 @@ module.exports = {
             dest: 'replace_numbers',
             help: 'Do not replace NUMBER tokens',
         });
+        parser.addArgument('--requotable', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Replace parameters in a way that they can be requoted later (defaults to true).',
+            defaultValue: true
+        });
+        parser.addArgument('--no-requotable', {
+            nargs: 0,
+            action: 'storeFalse',
+            dest: 'requotable',
+            help: 'Allow the replacement of a parameter in the sentence and in the program to differ (making requoting impossible).',
+        });
         parser.addArgument('--clean-parameters', {
             nargs: 0,
             action: 'storeTrue',
