@@ -1,0 +1,50 @@
+{
+  "name": "almond-dialog-agent",
+  "version": "1.8.0",
+  "description": "Almond The Open Virtual Assistant",
+  "author": "Stanford University Mobile and Social Computing Lab",
+  "repository": "https://github.com/stanford-oval/almond-dialog-agent",
+  "license": "GPL-3.0+",
+  "contributors": [
+    {
+      "name": "Giovanni Campagna",
+      "email": "gcampagn@cs.stanford.edu"
+    }
+  ],
+  "main": "lib/almond.js",
+  "resolutions": {},
+  "dependencies": {
+    "adt": "^0.7.2",
+    "consumer-queue": "^1.0.0",
+    "genie-toolkit": "github:stanford-oval/genie-toolkit#wip/new-dialogues",
+    "qs": "^6.7.0",
+    "seedrandom": "^3.0.5",
+    "string-interp": "^0.1.0",
+    "thingpedia": "~2.7.0",
+    "thingtalk": "~1.10.0",
+    "uuid": "^7.0.0"
+  },
+  "devDependencies": {
+    "byline": "^5.0.0",
+    "coveralls": "^3.0.0",
+    "eslint": "^6.0.0",
+    "node-gettext": "^2.0.0",
+    "nyc": "^15.0.0",
+    "pegjs": "^0.10.0"
+  },
+  "scripts": {
+    "update-pot": "xgettext -f po/POTFILES -x po/POTFILES.skip -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}",
+    "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
+    "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done",
+    "lint": "eslint lib/",
+    "test": "nyc node ./test/test_all",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "prepare": "yarn compile-mo && (cd node_modules/genie-toolkit ; yarn prepare)"
+  },
+  "greenkeeper": {
+    "ignore": [
+      "thingtalk",
+      "thingpedia"
+    ]
+  }
+}

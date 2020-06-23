@@ -1,0 +1,38 @@
+class @org.thingpedia.weather {
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  monitorable query sunrise(in req location: Location #_[prompt="What location do you want sun time info for?"],
+                            in opt date: Date #_[prompt="What day are you interested in?"],
+                            out sunrise_time: Time,
+                            out sunset_time: Time)
+  #_[canonical="get sunrise on weatherapi"]
+  #_[confirmation="the sunrise and sunset time for location $location"]
+  #_[formatted=[{type="text",text="Sun times on ${date:date} for ${location}: rises at ${sunrise_time}, sets at ${sunset_time}"}]]
+  #[poll_interval=86400000ms]
+  #[doc="Information about sunrise and sunset"];
+
+  monitorable query moon(in req location: Location #_[prompt="What location do you want moon time info for?"],
+                         in opt date: Date #_[prompt="What day are you interested in?"],
+                         out phase: Enum(new_moon,waxing_crescent,first_quarter,waxing_gibbous,full_moon,waning_gibbous,third_quarter,waning_crescent))
+  #_[canonical="get moon phase on weatherapi"]
+  #_[confirmation="the moon phase for $location"]
+  #_[formatted=[{type="text",text="Moon phase on ${date:date} for ${location}: ${phase}."}]]
+  #[poll_interval=86400000ms]
+  #[doc="Information about moon times and moon phase"];
+
+  monitorable query current(in req location: Location #_[prompt="What location do you want the current weather for?"],
+                            out temperature: Measure(C),
+                            out wind_speed: Measure(mps),
+                            out humidity: Number,
+                            out cloudiness: Number,
+                            out fog: Number,
+                            out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy),
+                            out icon: Entity(tt:picture))
+  #_[canonical="get current weather on weatherapi"]
+  #_[confirmation="the current weather for $location"]
+  #_[formatted=[{type="text",text="Current weather for ${location}: ${status}, temperature ${temperature:C} C, wind speed ${wind_speed:mps} m/s, humidity ${humidity}%, cloudiness ${cloudiness}%, fog ${fog}%."}, {type="map", lat="${location:lat}", lon="${location:lon}"}]]
+  #[poll_interval=3600000ms]
+  #[doc="Information about current weather"];
+}
+
