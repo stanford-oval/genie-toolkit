@@ -277,7 +277,12 @@ generic_article = {
     'some';
     'any';
     'all';
+    'all the';
     'every';
+    'a list of';
+    'a list of all';
+    'the list of';
+    'the list of all';
 }
 
 search_command = {
@@ -382,9 +387,6 @@ projection_question = {
     | 'who is' proj:projection_Entity__tt__username '?'
     | 'who is' proj:projection_Entity__tt__email_address '?'
     ) => {
-        // FIXME: this should not happen
-        if (proj.args.length === 0)
-            return null;
         if (proj.schema.getArgType(proj.args[0]).isArray)
             return null;
         return C.sayProjection(proj);
@@ -394,13 +396,13 @@ projection_question = {
     | 'who are' proj:projection_Entity__tt__username '?'
     | 'who are' proj:projection_Entity__tt__email_address '?'
     ) => {
-        // FIXME: this should not happen
-        if (proj.args.length === 0)
-            return null;
         if (!proj.schema.getArgType(proj.args[0]).isArray)
             return null;
         return C.sayProjection(proj);
     };
+    'who' proj:who_reverse_verb_projection_table '?' => C.sayProjection(proj);
+    ('what' | 'which') proj:reverse_verb_projection_table '?' => C.sayProjection(proj);
+    ('what' | 'which') proj:verb_projection_Any '?' => C.sayProjection(proj);
 
     // now => get => say(...) (where questions)
     ?turking 'where is the' table:with_filtered_table =>

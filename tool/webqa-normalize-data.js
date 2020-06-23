@@ -445,11 +445,60 @@ class Normalizer {
         }
     }
 
+    /**
+     * Preprocess raw data file
+     * We observe two different format in practice:
+     *
+     * format 1:
+     * {
+     *   "@context": "http://schema.org",
+     *   "@type": "Movie",
+     *   "url": "/title/tt0050083/",
+     *   "name": "12 Angry Men"
+     * }
+     *
+     * format 2:
+     * {
+     *   "@type": "http://schema.org/Movie",
+     *   "properties": {
+     *     "url": "/title/tt0050083/",
+     *     "name": "12 Angry Men"
+     *   }
+     * }
+     *
+     * here, we normalize to format 1
+     */
+    _preprocess(input) {
+        if (!input || typeof input !== 'object')
+            return input;
+        if (Array.isArray(input))
+            return input.map(this._preprocess.bind(this));
+
+        if (!('@type' in input) && 'type' in input) {
+            input['@type'] = input.type;
+            delete input.type;
+        }
+        if ('@type' in input && input['@type'].startsWith('http://schema.org/'))
+            input['@type'] = input['@type'].slice('http://schema.org/'.length);
+
+        if ('properties' in input) {
+            for (let field in input.properties)
+                input[field] = input.properties[field];
+            delete input.properties;
+        }
+
+        for (let field in input) {
+            if (typeof input[field] === 'object' && input[field] !== null)
+                input[field] = this._preprocess(input[field]);
+        }
+        return input;
+    }
+
     async process(filename) {
         console.error('filename', filename);
         let input = JSON.parse(await util.promisify(fs.readFile)(filename), { encoding: 'utf8' });
 
-
+        input = this._preprocess(input);
         if (!Array.isArray(input))
             input = [input];
 
