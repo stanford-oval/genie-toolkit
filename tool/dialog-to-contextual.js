@@ -19,6 +19,7 @@ const StreamUtils = require('../lib/stream-utils');
 const Utils = require('../lib/utils');
 const I18n = require('../lib/i18n');
 
+const ProgressBar = require('./lib/progress_bar');
 const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
@@ -28,12 +29,13 @@ class DialogueToTurnStream extends Stream.Transform {
 
         this._locale = options.locale;
 
-        // FIXME should not load ThingTalk here
         this._options = options;
         this._debug = options.debug;
         this._side = options.side;
         this._flags = options.flags;
+        this._idPrefix = options.idPrefix;
         this._target = require('../lib/languages/' + options.targetLanguage);
+        this._dedupe = options.deduplicate ? new Set : undefined;
 
         this._tokenized = options.tokenized;
         this._tokenizer = null;
@@ -54,6 +56,10 @@ class DialogueToTurnStream extends Stream.Transform {
         return tokenized;
     }
 
+    _getDedupeKey(context, utterance) {
+        return context.join(' ') + '<sep>' + utterance.join(' ');
+    }
+
     async _emitAgentTurn(i, turn, dlg) {
         if (i === 0)
             return;
@@ -67,8 +73,15 @@ class DialogueToTurnStream extends Stream.Transform {
 
         const { tokens, } = this._preprocess(turn.agent, contextEntities);
 
+        if (this._dedupe) {
+            const key = this._getDedupeKey(contextCode, tokens);
+            if (this._dedupe.has(key))
+                return;
+            this._dedupe.add(key);
+        }
+
         this.push({
-            id: this._flags + '' + dlg.id + '/' + i,
+            id: this._flags + '' + this._idPrefix + dlg.id + '/' + i,
             context: contextCode.join(' '),
             preprocessed: tokens.join(' '),
             target_code: agentCode.join(' ')
@@ -78,11 +91,20 @@ class DialogueToTurnStream extends Stream.Transform {
     async _emitUserTurn(i, turn, dlg) {
         let context, contextCode, contextEntities;
         if (i > 0) {
-            context = await this._target.parse(turn.context, this._options);
-            // apply the agent prediction to the context to get the state of the dialogue before
-            // the user speaks
-            const agentPrediction = await this._target.parse(turn.agent_target, this._options);
-            context = this._target.computeNewState(context, agentPrediction);
+            // if we have an "intermediate context" (C: block after AT:) we ran the execution
+            // after the agent spoke, so we don't need to apply the agent turn any more
+            //
+            // (this occurs only when annotating multiwoz data, when the agent chooses to complete
+            // an action with incomplete information, choosing the value spontaneously)
+            if (turn.intermediate_context) {
+                context = await this._target.parse(turn.intermediate_context, this._options);
+            } else {
+                context = await this._target.parse(turn.context, this._options);
+                // apply the agent prediction to the context to get the state of the dialogue before
+                // the user speaks
+                const agentPrediction = await this._target.parse(turn.agent_target, this._options);
+                context = this._target.computeNewState(context, agentPrediction);
+            }
 
             const userContext = this._target.prepareContextForPrediction(context, 'user');
             [contextCode, contextEntities] = this._target.serializeNormalized(userContext);
@@ -96,8 +118,15 @@ class DialogueToTurnStream extends Stream.Transform {
         const userTarget = await this._target.parse(turn.user_target, this._options);
         const code = await this._target.serializePrediction(userTarget, tokens, entities, 'user');
 
+        if (this._dedupe) {
+            const key = this._getDedupeKey(contextCode, tokens);
+            if (this._dedupe.has(key))
+                return;
+            this._dedupe.add(key);
+        }
+
         this.push({
-            id: this._flags + '' + dlg.id + '/' + i,
+            id: this._flags + '' + this._idPrefix + dlg.id + '/' + i,
             context: contextCode.join(' '),
             preprocessed: tokens.join(' '),
             target_code: code.join(' ')
@@ -114,6 +143,7 @@ class DialogueToTurnStream extends Stream.Transform {
                 else
                     await this._emitUserTurn(i, turn, dlg);
             } catch(e) {
+                console.error('Failed in dialogue ' + dlg.id);
                 console.error(turn);
                 throw e;
             }
@@ -139,6 +169,11 @@ module.exports = {
         parser.addArgument(['-o', '--output'], {
             required: true,
             type: fs.createWriteStream
+        });
+        parser.addArgument(['-l', '--locale'], {
+            required: false,
+            defaultValue: 'en-US',
+            help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
         });
         parser.addArgument('--tokenized', {
             required: false,
@@ -172,15 +207,27 @@ module.exports = {
             defaultValue: '',
             help: 'Additional flags to add to the generated training examples.'
         });
+        parser.addArgument('--id-prefix', {
+            required: false,
+            defaultValue: '',
+            help: 'Prefix to add to all sentence IDs (useful to combine multiple datasets).'
+        });
+        parser.addArgument('--deduplicate', {
+            nargs: 0,
+            action: 'storeTrue',
+            defaultValue: false,
+            help: 'Do not output duplicate turns (with the same preprocessed context and utterance)'
+        });
+        parser.addArgument('--no-deduplicate', {
+            nargs: 0,
+            action: 'storeFalse',
+            dest: 'deduplicate',
+            help: 'Output duplicate turns (with the same preprocessed context and utterance)'
+        });
         parser.addArgument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input dialog file; use - for standard input'
-        });
-        parser.addArgument(['-l', '--locale'], {
-            required: false,
-            defaultValue: 'en-US',
-            help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
         });
         parser.addArgument('--debug', {
             nargs: 0,
@@ -201,19 +248,33 @@ module.exports = {
         if (args.thingpedia)
             tpClient = new Tp.FileClient(args);
 
+        const counter = new StreamUtils.CountStream();
+
         readAllLines(args.input_file, '====')
             .pipe(new DialogueParser())
+            .pipe(counter)
             .pipe(new DialogueToTurnStream({
                 locale: args.locale,
                 targetLanguage: args.target_language,
                 thingpediaClient: tpClient,
                 flags: args.flags,
+                idPrefix: args.id_prefix,
                 side: args.side,
                 tokenized: args.tokenized,
+                deduplicate: args.deduplicate,
                 debug: args.debug
             }))
             .pipe(new DatasetStringifier())
             .pipe(args.output);
+
+        const progbar = new ProgressBar(1);
+        counter.on('progress', (value) => {
+            //console.log(value);
+            progbar.update(value);
+        });
+
+        // issue an update now to show the progress bar
+        progbar.update(0);
 
         await StreamUtils.waitFinish(args.output);
     }

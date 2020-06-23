@@ -11,6 +11,8 @@
 const ThingTalk = require('thingtalk');
 const Type = ThingTalk.Type;
 
+//TODO: some of the following could differ from domain to domain; we should allow domain override.
+
 const BUILTIN_TYPEMAP = {
     Time: Type.Time,
     Number: Type.Number,
@@ -66,7 +68,13 @@ const BLACKLISTED_PROPERTIES = new Set([
     'areaServed',
 
     // handled specially by normalization
-    'priceCurrency'
+    'priceCurrency',
+
+    // movie properties
+    'dateCreated',
+    'thumbnailUrl',
+    'trailer',
+
 ]);
 
 const STRUCTURED_HIERARCHIES = [
@@ -112,7 +120,13 @@ const PROPERTY_TYPE_OVERRIDE = {
     'publisher': Type.Entity('org.schema:Organization'),
 
     // weird number like things, but mostly text
-    'recipeYield': Type.String
+    'recipeYield': Type.String,
+
+    'genre': Type.Array(Type.String),
+    'creator': Type.Array(Type.Entity('org.schema.Movie:Person')),
+    'contentRating': Type.String,
+
+    'byArtist': Type.Entity('org.schema.Music:Person')
 };
 
 const PROPERTY_CANONICAL_OVERRIDE = {
@@ -134,21 +148,22 @@ const PROPERTY_CANONICAL_OVERRIDE = {
     // location
     'geo': {
         base: ['location', 'address'],
-        passive_verb: ["in #", "around #", "at #", "on #"]
+        passive_verb: ["in #", "from #", "around #", "at #", "on #"]
     },
     'streetAddress': {
         base: ['street']
     },
     'addressCountry': {
-        passive_verb: ["in #"],
+        passive_verb: ["in #", "from #"],
         base: ["country"]
     },
     'addressRegion': {
-        passive_verb: ["in #"],
+        passive_verb: ["in #", "from #"],
         base: ["state"]
     },
     'addressLocality': {
-        base: ['city']
+        base: ['city'],
+        passive_verb: ["in #", "from #"],
     }
 };
 
@@ -241,8 +256,10 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     author: {
         base: ['author', 'creator'],
         passive_verb: [
-            'by', 'made by', 'written by', 'created by', 'authored by', 'uploaded by', 'submitted by'
-        ]
+            'by', 'written by', 'created by', 'authored by', 'uploaded by', 'submitted by'
+        ],
+        reverse_verb: ['wrote', 'authored']
+
     },
     publisher: {
         base: ['publisher'],
@@ -310,13 +327,82 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['brand'],
         adjective: ['#'],
         passive_verb: ['by #', 'manufactured by #', 'made by #', 'from #']
-    }
+    },
 
+    // books
+    inLanguage: {
+        base: ['language'],
+        adjective: ['#'],
+        passive_verb: ['in #', 'written in #'],
+        reverse_property: ['# version of']
+    },
+    bookEdition: {
+        base: ['edition'],
+        reverse_property: ['# of']
+    },
+    bookFormat: {
+        base: ['format'],
+        passive_verb: ['in #', 'in # format']
+    },
+    numberOfPages: {
+        base: ['number of pages'],
+        property: ['# pages']
+    },
+
+    // movies
+    contentRating: {
+        base: ['content rating'],
+        adjective: ['# rated', '#-rated'],
+        passive_verb: ['rated #']
+    },
+    genre: {
+        base: ['genre'],
+        adjective: ['#']
+    },
+    creator: {
+        base: ['creator', 'producer'],
+        passive_verb: ['created by', 'produced by', 'made by'],
+        reverse_verb: ['created', 'creates', 'produced', 'made']
+    },
+    dateCreated: {
+        base: ['date created'],
+        passive_verb: ['created on #']
+    },
+    duration: {
+        base: ['duration', 'length'],
+        adjective: ['# long']
+    },
+    actor: {
+        base: ['actor', 'actress'],
+        property: ['#'],
+        passive_verb: ['played by', 'acted by'],
+        reverse_verb: ['acted', 'acted in', 'was in']
+    },
+    director: {
+        base: ['director'],
+        passive_verb: ['directed by'],
+        reverse_verb: ['directs', 'directed']
+    },
+
+    // music
+    inAlbum: {
+        base: ['album'],
+        passive_verb: ['in', 'in album', 'included in'],
+        reverse_verb: ['contains', 'includes']
+    },
+    byArtist: {
+        base: ['artist', 'singer'],
+        adjective: ['# \'s', '#'],
+        passive_verb: ['by', 'by artist'],
+        reverse_verb: ['sings', 'sang']
+    }
 };
 
 const MANUAL_TABLE_CANONICAL_OVERRIDE = {
     'Restaurant': ['restaurant', 'diner', 'place', 'joint', 'eatery', 'canteen', 'cafeteria', 'cafe'],
-    'Hotel': ['hotel', 'resort', 'lodging', 'model', 'place']
+    'Hotel': ['hotel', 'resort', 'lodging', 'model', 'place'],
+    'MusicRecording': ['song', 'music recording', 'music'],
+    'MusicAlbum': ['album']
 };
 
 const PROPERTIES_NO_FILTER = [
@@ -347,7 +433,11 @@ const STRING_FILE_OVERRIDES = {
     'org.schema.Person:Person_name': 'tt:person_full_name',
     'org.schema.Person:Person_alumniOf': 'tt:university_names',
     'org.schema.Person:Person_worksFor': 'tt:company_name',
-    'org.schema.Hotel:Hotel_name': 'tt:hotel_name'
+    'org.schema.Hotel:Hotel_name': 'tt:hotel_name',
+    'org.schema.Music:MusicRecording_byArtist': 'tt:song_artist',
+    'org.schema.Music:MusicAlbum_byArtist': 'tt:song_artist',
+    'org.schema.Music:MusicRecording_inAlbum': 'tt:song_album',
+    'org.schema.Music:MusicRecording_name': 'tt:song_name',
 };
 
 // maps old name to new name

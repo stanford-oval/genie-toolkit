@@ -18,14 +18,12 @@ const child_process = require('child_process');
 const path = require('path');
 const assert = require('assert');
 const seedrandom = require('seedrandom');
-const POS = require("en-pos");
 const Inflectors = require('en-inflectors').Inflectors;
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 
-const BinaryPPDB = require('../lib/binary_ppdb');
 const { choose } = require('../lib/random');
-const { clean } = require('../lib/utils');
+const { clean, posTag } = require('../lib/utils');
 const StreamUtils = require('../lib/stream-utils');
 
 function* get(obj, propertyList, offset) {
@@ -100,13 +98,6 @@ function getEdIng(propertyCanonical) {
 
     const inflector = new Inflectors(words[0]);
     return [inflector.toPast(), inflector.toGerund()];
-}
-
-function posTag(tokens) {
-    return new POS.Tag(tokens)
-        .initial() // initial dictionary and pattern based tagging
-        .smooth() // further context based smoothing
-        .tags;
 }
 
 function phraseStartWithVerb(propertyCanonical) {
@@ -215,31 +206,6 @@ const COMPARATIVE_LESS_PATTERNS = [
     ['${table} ${propIng} less than ${value}'],
 ];
 
-function getPPDBCandidates(ppdb, canonicals) {
-    if (!ppdb)
-        return Array.from(canonicals);
-
-    const output = [...canonicals];
-
-    for (let canonical of canonicals) {
-        const words = canonical.split(' ');
-
-        for (let i = 0; i < words.length; i++) {
-            for (let j = i+1; j <= words.length; j++) {
-                const span = words.slice(i, j).join(' ');
-                const paraphrases = ppdb.get(span);
-                console.error(`ppdb ${span}:`, paraphrases);
-                if (paraphrases) {
-                    for (let paraphrase of paraphrases)
-                        output.push([...words.slice(0, i), paraphrase, ...words.slice(j)].join(' '));
-                }
-            }
-        }
-    }
-
-    return output;
-}
-
 function *getAllCanonicals(argDef) {
     if (!argDef.metadata.canonical) {
         yield argDef.canonical;
@@ -265,17 +231,17 @@ function *getAllCanonicals(argDef) {
 
 const THRESHOLD = 100;
 
-async function applyPatterns(className, ppdb, functionDef, argDef, valueList, patternList, operator, dataset, cache) {
+async function applyPatterns(className, functionDef, argDef, valueList, patternList, operator, dataset, cache) {
     /*if (propertyName === 'name')
         return [['value', 2], ['value_table', 1]];
 
     if (propertyName === 'geo')
         return [['table_near_value', 2], ['table_around_value', 1]];*/
 
-    const tableCanonicals = getPPDBCandidates(ppdb, [functionDef.canonical || clean(functionDef.name)]).map(toPlural);
+    const tableCanonicals = [functionDef.canonical || clean(functionDef.name)].map(toPlural);
     const propertyName = argDef.name;
     const propertyType = argDef.type;
-    const propertyCanonicals = getPPDBCandidates(ppdb, getAllCanonicals(argDef));
+    const propertyCanonicals = Array.from(getAllCanonicals(argDef));
 
     // special properties we don't want to handle
     if (propertyName === 'name' || propertyName === 'geo' || /^address\.?/.test(propertyName))
@@ -374,7 +340,6 @@ async function main(args) {
 async function processTable(className, data, library, dataset, table, args, rng, cache) {
     const classDef = library.classes[0];
     const queryDef = classDef.queries[table];
-    const ppdb = args.ppdb ? await BinaryPPDB.mapFile(args.ppdb) : null;
 
     const seen = new Set;
     for (const argDef of queryDef.iterateArguments()) {
@@ -391,10 +356,10 @@ async function processTable(className, data, library, dataset, table, args, rng,
         if (valueList.length === 0)
             continue;
 
-        await applyPatterns(className, ppdb, queryDef, argDef, valueList, EQUAL_PATTERNS, '==', dataset, cache);
+        await applyPatterns(className, queryDef, argDef, valueList, EQUAL_PATTERNS, '==', dataset, cache);
         if (argDef.type.isNumeric()) {
-            await applyPatterns(className, ppdb, queryDef, argDef, valueList, COMPARATIVE_MORE_PATTERNS, '>=', dataset, cache);
-            await applyPatterns(className, ppdb, queryDef, argDef, valueList, COMPARATIVE_LESS_PATTERNS, '<=', dataset, cache);
+            await applyPatterns(className, queryDef, argDef, valueList, COMPARATIVE_MORE_PATTERNS, '>=', dataset, cache);
+            await applyPatterns(className, queryDef, argDef, valueList, COMPARATIVE_LESS_PATTERNS, '<=', dataset, cache);
         }
     }
 }
@@ -427,10 +392,6 @@ module.exports = {
             required: false,
             defaultValue: './auto-primitive-cache.json',
             help: 'Cache results of Bing search in this file.'
-        });
-        parser.addArgument('--ppdb', {
-            required: false,
-            help: 'Path to the compiled binary PPDB file',
         });
         parser.addArgument('--random-seed', {
             defaultValue: 'almond is awesome',

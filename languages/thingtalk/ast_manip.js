@@ -413,8 +413,6 @@ function makeSingleFieldProjection(ftype, ptype, table, pname) {
     assert(ftype === 'table' || ftype === 'stream');
     assert(typeof pname === 'string');
 
-    if (pname === 'id')
-        return null;
     if (!table.schema.out[pname] || !Type.isAssignable(table.schema.out[pname], ptype))
         return null;
 
@@ -1238,6 +1236,7 @@ function sayProjection(proj) {
 
     // this function is also used for aggregation
     if (proj.isProjection) {
+        assert(proj.args.length > 0);
         if (proj.args.length === 1 && proj.args[0] === 'picture_url')
             return null;
         // if the function only contains one parameter, do not generate projection for it

@@ -10,18 +10,27 @@
 "use strict";
 
 const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
+const fs = require('fs');
 
-const { DialogParser } = require('./lib/dialog_parser');
+const { AVAILABLE_LANGUAGES } = require('../lib/languages');
+const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('./lib/parserclient');
-const { DialogEvaluatorStream, CollectDialogStatistics } = require('../lib/evaluators');
+const TokenizerService = require('../lib/tokenizer');
+const MultiJSONDatabase = require('./lib/multi_json_database');
+const { KEYS, DialogueEvaluatorStream, CollectDialogueStatistics } = require('../lib/dialogue_evaluator');
 
 module.exports = {
     initArgparse(subparsers) {
         const parser = subparsers.addParser('evaluate-dialog', {
             addHelp: true,
             description: "Evaluate a trained model on a dialog data, by contacting a running Genie server."
+        });
+        parser.addArgument(['-o', '--output'], {
+            required: false,
+            defaultValue: process.stdout,
+            type: fs.createWriteStream,
+            description: "Write results to this file instead of stdout"
         });
         parser.addArgument('--url', {
             required: false,
@@ -54,6 +63,12 @@ module.exports = {
             defaultValue: 'en-US',
             help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
         });
+        parser.addArgument(['-t', '--target-language'], {
+            required: false,
+            defaultValue: 'thingtalk',
+            choices: AVAILABLE_LANGUAGES,
+            help: `The programming language to generate`
+        });
         parser.addArgument('--debug', {
             nargs: 0,
             action: 'storeTrue',
@@ -66,34 +81,68 @@ module.exports = {
             dest: 'debug',
             help: 'Disable debugging.',
         });
+        parser.addArgument('--database-file', {
+            required: false,
+            help: `Path to a file pointing to JSON databases used to simulate queries.`,
+        });
         parser.addArgument('--csv', {
             nargs: 0,
             action: 'storeTrue',
             help: 'Output a single CSV line',
         });
+        parser.addArgument('--csv-prefix', {
+            required: false,
+            defaultValue: '',
+            help: `Prefix all output lines with this string`
+        });
     },
 
     async execute(args) {
-        const tpClient = new Tp.FileClient(args);
-        const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
+        let tpClient = null;
+        if (args.thingpedia)
+            tpClient = new Tp.FileClient(args);
         const parser = ParserClient.get(args.url, args.locale);
+        let tokenizer = null;
+        if (!args.tokenized)
+            tokenizer = TokenizerService.get('local', true);
         await parser.start();
 
+        let database;
+        if (args.database_file) {
+            database = new MultiJSONDatabase(args.database_file);
+            await database.load();
+        }
+
         const output = readAllLines(args.input_file, '====')
-            .pipe(new DialogParser())
-            .pipe(new DialogEvaluatorStream(parser, schemas, args.tokenized, args.debug))
-            .pipe(new CollectDialogStatistics());
+            .pipe(new DialogueParser())
+            .pipe(new DialogueEvaluatorStream(parser, tokenizer, {
+                locale: args.locale,
+                targetLanguage: args.target_language,
+                thingpediaClient: tpClient,
+                tokenized: args.tokenized,
+                debug: args.debug,
+                database: database
+            }))
+            .pipe(new CollectDialogueStatistics());
 
         const result = await output.read();
 
         let buffer = '';
-        for (let key of ['total', 'turns', 'ok', 'ok_initial', 'ok_partial', 'ok_progress']) {
-            if (buffer)
+        if (args.csv_prefix)
+            buffer = args.csv_prefix + ',';
+        let first = true;
+        for (let key of ['total', 'turns'].concat(KEYS)) {
+            if (!first)
                 buffer += ',';
+            first = false;
             buffer += String(result[key]);
         }
-        console.log(buffer);
+        buffer += '\n';
+        args.output.write(buffer);
+        args.output.end();
 
         await parser.stop();
+        if (tokenizer)
+            await tokenizer.end();
     }
 };

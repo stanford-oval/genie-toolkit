@@ -26,7 +26,7 @@ class DialogueSerializer extends Stream.Transform {
     }
 
     _prefixLines(text, prefix) {
-        return text.split('\n').map((line) => prefix + line + '\n');
+        return text.trim().split('\n').map((line) => prefix + line + '\n');
     }
 
     _transform(dlg, encoding, callback) {
@@ -43,6 +43,8 @@ class DialogueSerializer extends Stream.Transform {
                 this.push('A: ' + turn.agent + '\n');
                 if (this._annotations)
                     this._pushMany(this._prefixLines(turn.agent_target, 'AT: '));
+                if (this._annotations && turn.intermediate_context)
+                    this._pushMany(this._prefixLines(turn.intermediate_context, 'C: '));
             }
             this.push('U: ' + turn.user + '\n');
             if (this._annotations)
@@ -66,6 +68,7 @@ class DialogueParser extends Stream.Transform {
 
         this._buffer = [];
         this._i = 0;
+        this._id = undefined;
         this._withAnnotations = withAnnotations;
         this._keySequence = withAnnotations ? KEY_SEQUENCE_WITH_ANNOTATION : KEY_SEQUENCE_WITHOUT_ANNOTATION;
     }
@@ -74,6 +77,15 @@ class DialogueParser extends Stream.Transform {
         line = line.trim();
 
         // comment or empty line
+        // the first # line is treated as the ID of the dialogue
+        if (this._id === undefined && line.startsWith('#')) {
+            this._id = line.substring(1).trim();
+
+            // if the ID starts with some character that could be confused as flag (like "S" for synthetic)
+            // add a "_" in front
+            if (/^(R)?(P)?(C)?(S)?(E)?$/.test(this._id))
+                this._id = '_' + this._id;
+        }
         if (!line || line.startsWith('#')) {
             callback();
             return;
@@ -144,27 +156,30 @@ class DialogueParser extends Stream.Transform {
         let text = '';
         for (let line of lines) {
             let key, newText;
-            if (line.startsWith('A:')) {
+            if (line.startsWith('A: ')) {
                 key = 'agent';
-                newText = line.substring(2).trim();
-            } else if (line.startsWith('U:')) {
+                newText = line.substring(3).trim();
+            } else if (line.startsWith('U: ')) {
                 key = 'user';
-                newText = line.substring(2).trim();
-            } else if (line.startsWith('AT:')) {
+                newText = line.substring(3).trim();
+            } else if (line.startsWith('AT: ')) {
                 key = 'agent_target';
-                newText = line.substring(3).trim();
-            } else if (line.startsWith('UT:')) {
+                newText = line.substring(4);
+            } else if (line.startsWith('UT: ')) {
                 key = 'user_target';
-                newText = line.substring(3).trim();
-            } else if (line.startsWith('C:')) {
+                newText = line.substring(4);
+            } else if (line.startsWith('C: ')) {
                 key = 'context';
-                newText = line.substring(2).trim();
+                newText = line.substring(3);
             } else {
-                throw new Error(`malformed line ${line}, expected to start with U:, A:, AT: or UT:`);
+                throw new Error(`malformed line ${line}, expected to start with C:, U:, A:, AT: or UT:`);
             }
+
+            if (currentKey === 'intermediate_context' && key === 'context')
+                key = 'intermediate_context';
             if (currentKey !== null && currentKey !== key) {
                 assert(text);
-                currentTurn[currentKey] = text;
+                currentTurn[currentKey] = text.trim();
                 text = '';
 
                 if (currentKey === this._keySequence[this._keySequence.length-1])
@@ -172,21 +187,27 @@ class DialogueParser extends Stream.Transform {
             }
 
             if (currentKey !== key) {
-                if (key !== this._keySequence[expect])
-                    throw new Error(`malformed dialogue ${this._i}, expected ${this._keySequence[expect]}, saw ${key}`);
-                expect = (expect + 1) % this._keySequence.length;
+                if (key === 'context' && this._keySequence[expect] === 'user')
+                    key = 'intermediate_context';
+
+                if (key !== 'intermediate_context') {
+                    if (key !== this._keySequence[expect])
+                        throw new Error(`malformed dialogue ${this._i}, expected ${this._keySequence[expect]}, saw ${key}`);
+                    expect = (expect + 1) % this._keySequence.length;
+                }
                 currentKey = key;
             }
-            text += newText;
+            text += newText + '\n';
         }
 
         if (currentKey !== this._keySequence[this._keySequence.length-1])
             throw new Error(`malformed dialogue ${this._i}, unterminated last turn`);
 
-        currentTurn[currentKey] = text;
+        currentTurn[currentKey] = text.trim();
         flushTurn();
 
-        dlg.id = this._i;
+        dlg.id = this._id || this._i;
+        this._id = undefined;
         this._i++;
         callback(null, dlg);
     }

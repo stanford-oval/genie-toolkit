@@ -33,7 +33,6 @@ const subcommands = {
     'mturk-validate': require('./mturk-validate'),
     'mturk-process-eval-data': require('./mturk-process-eval-data'),
 
-    'compile-ppdb': require('./compile-ppdb'),
     'augment': require('./augment'),
     'requote': require('./requote'),
     'resample': require('./resample'),
@@ -60,7 +59,12 @@ const subcommands = {
     'webqa-paraphrase-transfer': require('./webqa-paraphrase-transfer'),
     'webqa-update-canonicals': require('./webqa-update-canonicals'),
     'webqa-retrieve-wikidata-labels': require('./webqa-retrieve-wikidata-labels'),
-    'webqa-annotation-diffchecker': require('./webqa-annotation-diffchecker')
+    'webqa-annotation-diffchecker': require('./webqa-annotation-diffchecker'),
+
+    'auto-annotate-multiwoz': require('./auto-annotate-multiwoz'),
+    'convert-thingtalk-to-multidst': require('./convert-thingtalk-to-multidst'),
+    'extract-predicted-slots': require('./extract-predicted-slots'),
+    'analyze-dialogue-annotations': require('./analyze-dialogue-annotations')
 };
 
 async function main() {

@@ -29,6 +29,13 @@ class Annotator extends events.EventEmitter {
 
         this._rl = rl;
         this._nextDialogue = dialogues[Symbol.iterator]();
+        this._hasExistingAnnotations = options.existing_annotations;
+        this._editMode = options.edit_mode;
+        if (options.only_ids)
+            this._onlyIds = new Set(options.only_ids.split(','));
+        else
+            this._onlyIds = undefined;
+        this._maxTurns = options.max_turns;
 
         const tpClient = new Tp.FileClient(options);
         this._schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
@@ -36,11 +43,13 @@ class Annotator extends events.EventEmitter {
         this._agentParser = ParserClient.get(options.agent_nlu_server, options.locale);
         this._target = require('../lib/languages/' + options.target_language);
 
+        this._simulatorOverrides = new Map;
         const simulatorOptions = {
             rng: seedrandom.alea('almond is awesome'),
             locale: options.locale,
             thingpediaClient: tpClient,
-            schemaRetriever: this._schemas
+            schemaRetriever: this._schemas,
+            overrides: this._simulatorOverrides,
         };
         if (options.database_file) {
             this._database = new MultiJSONDatabase(options.database_file);
@@ -72,6 +81,11 @@ class Annotator extends events.EventEmitter {
 
             line = line.trim();
 
+            if (this._state === 'context' && line.length === 0) {
+                this._flushContextOverride().catch((e) => this.emit('error', e));
+                return;
+            }
+
             if (line.length === 0 || this._state === 'loading') {
                 rl.prompt();
                 return;
@@ -82,7 +96,7 @@ class Annotator extends events.EventEmitter {
                 return;
             }
             if (line === 'q') {
-                this.emit('quit');
+                this._quit();
                 return;
             }
 
@@ -93,13 +107,13 @@ class Annotator extends events.EventEmitter {
 
                 if (this._outputDialogue.length > 0) {
                     this.emit('learned', {
-                        id: this._serial,
+                        id: this._currentDialogue.id || this._serial,
                         turns: this._outputDialogue,
                     });
                 }
 
                 this.emit('dropped', {
-                    id: this._serial,
+                    id: this._currentDialogue.id || this._serial,
                     turns: this._currentDialogue,
                     comment: `dropped at turn ${this._outputDialogue.length+1}: ${comment}`
                 });
@@ -108,8 +122,19 @@ class Annotator extends events.EventEmitter {
                 return;
             }
 
+            if (/^c: /i.test(line)) {
+                this._addLineToContext(line.substring(3).trim());
+                return;
+            }
+
             if (this._state === 'code') {
                 this._learnThingTalk(line).catch((e) => this.emit('error', e));
+                return;
+            }
+            if (this._state === 'context') {
+                if (/^c:/i.test(line))
+                    line = line.substring(2).trim();
+                this._addLineToContext(line);
                 return;
             }
 
@@ -131,6 +156,26 @@ class Annotator extends events.EventEmitter {
                 this._learnThingTalk(line).catch((e) => this.emit('error', e));
             }
         });
+    }
+
+    _quit() {
+        if (this._editMode) {
+            if (this._currentTurnIdx > 0)
+                console.log(`WARNING: the current dialogue (${this._currentDialogue.id}) has not been saved, any change will be lost`);
+            this.emit('learned', {
+                id: this._currentDialogue.id || this._serial,
+                turns: this._currentDialogue,
+            });
+            let { value, done } = this._nextDialogue.next();
+            while (!done) {
+                this.emit('learned', { id: value.id, turns: value });
+                let result = this._nextDialogue.next();
+                value = result.value;
+                done = result.done;
+            }
+        }
+
+        this.emit('quit');
     }
 
     _help() {
@@ -232,7 +277,7 @@ class Annotator extends events.EventEmitter {
     next() {
         if (this._outputDialogue.length > 0) {
             this.emit('learned', {
-                id: this._serial,
+                id: this._currentDialogue.id || this._serial,
                 turns: this._outputDialogue,
             });
         }
@@ -243,9 +288,16 @@ class Annotator extends events.EventEmitter {
             return;
         }
 
-        if (this._serial > 0)
-            console.log();
-        console.log(`Dialog #${this._serial+1}`);
+        const shouldSkip = this._onlyIds && !this._onlyIds.has(nextDialogue.id);
+
+        if (!shouldSkip) {
+            if (this._serial > 0) {
+                console.log();
+                console.log();
+                console.log();
+            }
+            console.log(`Dialog #${this._serial+1} (${nextDialogue.id})`);
+        }
         this._serial++;
 
         this._currentDialogue = nextDialogue;
@@ -254,7 +306,31 @@ class Annotator extends events.EventEmitter {
         this._outputTurn = undefined;
         this._simulatorState = undefined;
         this._currentTurnIdx = -1;
-        this._nextTurn();
+
+        if (shouldSkip) {
+            // skip this dialogue
+            this.emit('learned', {
+                id: nextDialogue.id,
+                turns: nextDialogue,
+            });
+            setImmediate(() => {
+                this.next();
+            });
+        } else {
+            this._nextTurn();
+        }
+    }
+
+    _extractSimulatorOverrides(utterance) {
+        const car = /\b(black|white|red|yellow|blue|grey) (toyota|skoda|bmw|honda|ford|audi|lexus|volvo|volkswagen|tesla)\b/.exec(utterance);
+        if (car)
+            this._simulatorOverrides.set('car', car[0]);
+
+        for (let token of utterance.split(' ')) {
+            // a reference number is an 8 character token containing both letters and numbers
+            if (token.length === 8 && /[a-z]/.test(token) && /[0-9]/.test(token))
+                this._simulatorOverrides.set('reference_number', token);
+        }
     }
 
     async _nextTurn() {
@@ -266,12 +342,41 @@ class Annotator extends events.EventEmitter {
             this.next();
             return;
         }
-        if (this._currentTurnIdx > 0) {
-            // "execute" the context
-            [this._context, this._simulatorState] = await this._simulator.execute(this._context, this._simulatorState);
-        }
 
         const currentTurn = this._currentDialogue[this._currentTurnIdx];
+
+        if (this._currentTurnIdx > 0) {
+            this._simulatorOverrides.clear();
+            this._extractSimulatorOverrides(currentTurn.agent);
+
+            // "execute" the context
+            [this._context, this._simulatorState] = await this._simulator.execute(this._context, this._simulatorState);
+
+            // sort all results based on the presence of the name in the agent utterance
+            for (let item of this._context.history) {
+                if (item.results === null)
+                    continue;
+
+                if (item.results.results.length === 0)
+                    continue;
+
+                let firstResult = item.results.results[0];
+                if (!firstResult.value.id)
+                    continue;
+                item.results.results.sort((one, two) => {
+                    const onerank = currentTurn.agent.toLowerCase().indexOf(one.value.id.display.toLowerCase());
+                    const tworank = currentTurn.agent.toLowerCase().indexOf(two.value.id.display.toLowerCase());
+                    if (onerank === tworank)
+                        return 0;
+                    if (onerank === -1)
+                        return 1;
+                    if (tworank === -1)
+                        return -1;
+                    return onerank - tworank;
+                });
+            }
+        }
+
 
         const contextCode = (this._context ? this._context.prettyprint() : null);
         this._outputTurn = {
@@ -289,17 +394,83 @@ class Annotator extends events.EventEmitter {
         await this._handleUtterance();
     }
 
-    _nextUtterance() {
+    async _nextUtterance() {
         if (this._dialogueState === 'agent') {
+            // "execute" the context again in case the agent introduced some executable result
+
+            let anyChange = true;
+            while (anyChange) {
+                [this._context, this._simulatorState, anyChange] = await this._simulator.execute(this._context, this._simulatorState);
+                if (anyChange)
+                    this._outputTurn.intermediate_context = this._context.prettyprint();
+            }
+
             this._dialogueState = 'user';
-            this._handleUtterance();
+            await this._handleUtterance();
         } else {
-            this._nextTurn();
+            await this._nextTurn();
         }
     }
 
+    async _flushContextOverride() {
+        if (!this._context || !this._contextOverride)
+            return;
+
+        let firstLine;
+        if (this._dialogueState === 'user' && this._outputTurn.intermediate_context)
+            firstLine = this._outputTurn.intermediate_context.split('\n')[0];
+        else
+            firstLine = this._outputTurn.context.split('\n')[0];
+
+        let ctxOverride;
+        try {
+            ctxOverride = await ThingTalk.Grammar.parseAndTypecheck(firstLine + '\n' + this._contextOverride, this._schemas);
+        } catch(e) {
+            console.log(`${e.name}: ${e.message}`);
+            this._contextOverride = '';
+            this._state = 'context';
+            this._rl.setPrompt('C: ');
+            this._rl.prompt();
+            return;
+        }
+
+        // find the last item that has results, remove that and everything afterwards, and replace it with
+        // what we parsed as the override
+        let idx;
+        for (idx = this._context.history.length-1; idx >= 0; idx--) {
+            const item = this._context.history[idx];
+            if (item.results !== null)
+                break;
+        }
+        this._context.history.splice(idx, this._context.history.length-idx, ...ctxOverride.history);
+
+        // save in the output
+        if (this._dialogueState === 'user')
+            this._outputTurn.intermediate_context = this._context.prettyprint();
+        else
+            this._outputTurn.context = this._context.prettyprint();
+
+        // now handle the utterance again
+        await this._handleUtterance();
+    }
+
+    _addLineToContext(line) {
+        if (this._contextOverride === undefined)
+            this._contextOverride = '';
+        this._contextOverride += line + '\n';
+        this._state = 'context';
+        this._rl.setPrompt('C: ');
+        this._rl.prompt();
+    }
+
     async _handleUtterance() {
-        console.log('Context: ' + (this._context ? this._context.prettyprint() : null));
+        if (this._context) {
+            console.log();
+            const contextCode = this._context.prettyprint();
+            for (let line of contextCode.trim().split('\n'))
+                console.log('C: ' + line);
+        }
+        this._contextOverride = undefined;
 
         this._utterance = this._outputTurn[this._dialogueState];
         this._currentKey = this._dialogueState + '_target';
@@ -336,14 +507,32 @@ class Annotator extends events.EventEmitter {
             }
         }))).filter((c) => c !== null);
 
+        if (this._hasExistingAnnotations) {
+            const currentTurn = this._currentDialogue[this._currentTurnIdx];
+            const existing = currentTurn[this._currentKey];
+            if (existing) {
+                try {
+                    const program = await ThingTalk.Grammar.parseAndTypecheck(existing, this._schemas, false);
+                    this._candidates.unshift(program);
+                } catch(e) {
+                    console.log('WARNING: existing annotation fails to parse or typecheck: ' + e.message);
+                }
+            }
+        }
+
         if (this._candidates.length > 0) {
             for (var i = 0; i < 3 && i < this._candidates.length; i++)
                 console.log(`${i+1}) ${this._candidates[i].prettyprint()}`);
         } else {
             console.log(`No candidates for this program`);
         }
-        this._rl.setPrompt('$ ');
-        this._rl.prompt();
+
+        if (this._maxTurns && this._currentTurnIdx >= this._maxTurns) {
+            setTimeout(() => this._learnNumber(1), 1);
+        } else {
+            this._rl.setPrompt('$ ');
+            this._rl.prompt();
+        }
     }
 }
 
@@ -394,18 +583,57 @@ module.exports = {
             defaultValue: 'http://127.0.0.1:8400',
             help: `The URL of the natural language server to parse agent utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
         });
+        parser.addArgument('--existing-annotations', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'The input file already has annotations.',
+            defaultValue: false
+        });
+        parser.addArgument('--edit-mode', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Edit an existing annotated dataset instead of creating a new one (implies --existing-annotations).',
+            defaultValue: false
+        });
+        parser.addArgument('--only-ids', {
+            required: false,
+            help: 'Only annotate the dialogues with the given IDs, comma-separated (must be given with --existing-annotations)',
+            defaultValue: ''
+        });
+        parser.addArgument('--max-turns', {
+            required: false,
+            help: 'Auto-annotate after the given number of turns',
+        });
         parser.addArgument('input_file', {
             nargs: '+',
             type: fs.createReadStream,
             help: 'Input dialog file'
         });
+
     },
 
     async execute(args) {
+        if (args.edit_mode)
+            args.existing_annotations = true;
+        if (args.only_ids && !args.existing_annotations)
+            throw new Error(`--only-ids is only valid in edit mode (with --existing-annotations)`);
+
         let dialogues = await readAllLines(args.input_file, '====')
-            .pipe(new DialogueParser({ withAnnotations: false }))
+            .pipe(new DialogueParser({ withAnnotations: args.existing_annotations }))
             .pipe(new StreamUtils.ArrayAccumulator())
             .read();
+
+
+        const learned = new DialogueSerializer({ annotations: true });
+        learned.pipe(fs.createWriteStream(args.annotated, { flags: ((args.offset > 1 && !args.edit_mode) ? 'a' : 'w') }));
+        const dropped = new DialogueSerializer({ annotations: false });
+        dropped.pipe(fs.createWriteStream(args.dropped, { flags: ((args.offset > 1 || args.edit_mode) ? 'a' : 'w') }));
+
+        if (args.edit_mode) {
+            // copy over the existing dialogues if we're in editing mode
+            for (let i = 0; i < args.offset-1; i++)
+                learned.write({ id: dialogues[i].id, turns: dialogues[i] });
+        }
 
         if (args.offset > 1)
             dialogues = dialogues.slice(args.offset-1);
@@ -423,10 +651,6 @@ module.exports = {
         const annotator = new Annotator(rl, dialogues, args);
         await annotator.start();
 
-        const learned = new DialogueSerializer({ annotations: true });
-        learned.pipe(fs.createWriteStream(args.annotated, { flags: (args.offset > 1 ? 'a' : 'w') }));
-        const dropped = new DialogueSerializer({ annotations: false });
-        dropped.pipe(fs.createWriteStream(args.dropped, { flags: (args.offset > 1 ? 'a' : 'w') }));
 
         annotator.on('end', quit);
         annotator.on('learned', (dlg) => {
@@ -445,6 +669,8 @@ module.exports = {
             StreamUtils.waitFinish(dropped),
         ]);
         await annotator.stop();
-        process.exit();
+
+        console.log('All dialogues annotated, waiting 30 seconds to quit...');
+        setTimeout(() => process.exit(), 30000);
     }
 };

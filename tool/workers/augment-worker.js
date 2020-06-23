@@ -15,7 +15,6 @@ const Tp = require('thingpedia');
 
 const DatasetAugmenter = require('../../lib/dataset_augmenter');
 const FileParameterProvider = require('../lib/file_parameter_provider');
-const BinaryPPDB = require('../../lib/binary_ppdb');
 
 module.exports = async function worker(args, shard) {
     const tpClient = new Tp.FileClient(args);
@@ -30,9 +29,6 @@ module.exports = async function worker(args, shard) {
         targetLanguage: args.target_language,
         debug: args.debug,
 
-        ppdbFile: args.ppdb ? await BinaryPPDB.mapFile(args.ppdb) : null,
-        ppdbProbabilitySynthetic: args.ppdb_synthetic_fraction,
-        ppdbProbabilityParaphrase: args.ppdb_paraphrase_fraction,
         quotedProbability: args.quoted_fraction,
         untypedStringProbability: args.untyped_string_probability,
         maxSpanLength: args.max_span_length,
@@ -42,7 +38,8 @@ module.exports = async function worker(args, shard) {
         singleDeviceExpandFactor: args.single_device_expand_factor,
         replaceLocations: args.replace_locations,
         replaceNumbers: args.replace_numbers,
-        cleanParameters: args.clean_parameters
+        cleanParameters: args.clean_parameters,
+        requotable: args.requotable,
     });
 };
 

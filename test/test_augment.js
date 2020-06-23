@@ -65,18 +65,9 @@ async function main() {
         quotedProbability: 0.1,
         untypedStringProbability: 0,
         maxSpanLength: MAX_SPAN_LENGTH,
-        ppdbProbabilitySynthetic: 0.1,
-        ppdbProbabilityParaphrase: 1.0,
         syntheticExpandFactor: 1,
         paraphrasingExpandFactor: 30,
         noQuoteExpandFactor: 10,
-
-        ppdbFile: {
-            // fake ppdb
-            get(word) {
-                return [];
-            }
-        },
 
         locale: 'en-US',
         rng,
