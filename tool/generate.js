@@ -113,6 +113,11 @@ module.exports = {
             required: false,
             help: `List of functions to include, split by comma (no space).`
         });
+        parser.addArgument('--id-prefix', {
+            required: false,
+            defaultValue: '',
+            help: 'Prefix to add to all sentence IDs (useful to combine multiple datasets).'
+        });
     },
 
     async execute(args) {
@@ -129,7 +134,8 @@ module.exports = {
             targetPruningSize: args.target_pruning_size,
             maxDepth: args.maxdepth,
             debug: args.debug,
-            whiteList: args.white_list
+            whiteList: args.white_list,
+            idPrefix: args.id_prefix
         };
 
         const generator = new BasicSentenceGenerator(options);

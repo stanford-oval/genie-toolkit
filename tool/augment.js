@@ -37,8 +37,7 @@ module.exports = {
         });
         parser.addArgument(['--param-locale'], {
             required: false,
-            defaultValue: 'en-US',
-            help: `BGP 47 locale tag of the language for parameter values (defaults to 'en-US', English)`
+            help: `BGP 47 locale tag of the language for parameter values (defaults to the same value as --locale)`
         });
         parser.addArgument(['-t', '--target-language'], {
             required: false,
@@ -145,7 +144,7 @@ module.exports = {
         parser.addArgument('--no-replace-numbers', {
             nargs: 0,
             action: 'storeFalse',
-            dest: 'replace_locations',
+            dest: 'replace_numbers',
             help: 'Do not replace NUMBER tokens',
         });
         parser.addArgument('--clean-parameters', {
@@ -181,6 +180,8 @@ module.exports = {
     async execute(args) {
         const inputFile = readAllLines(args.input_file);
         const outputFile = args.output;
+        if (!args.param_locale)
+            args.param_locale = args.locale;
 
         const counter = new StreamUtils.CountStream();
 
