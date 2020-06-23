@@ -20,14 +20,10 @@ const subcommands = {
     'sample-constants': require('./sample-constants'),
 
     'generate': require('./generate'),
-    'generate-contextual': require('./generate-contextual'),
-    'extract-contexts': require('./extract-contexts'),
-    'contextualize': require('./contextualize'),
     'generate-dialogs': require('./generate-dialogs'),
     'dialog-to-contextual': require('./dialog-to-contextual'),
 
     'sample': require('./sample'),
-    'contextual-prepare-turk': require('./contextual-prepare-turk'),
     'mturk-make-paraphrase-hits': require('./mturk-make-paraphrase-hits'),
     'mturk-make-validation-hits': require('./mturk-make-validation-hits'),
     'mturk-validate': require('./mturk-validate'),
