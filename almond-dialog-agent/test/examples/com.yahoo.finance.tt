@@ -1,0 +1,42 @@
+dataset @com.yahoo.finance language "en" {
+    stream (p_stock_id :Entity(tt:stock_id))  := monitor (@com.yahoo.finance.get_stock_quote(stock_id=p_stock_id))
+    #_[utterances=["when the stock price of $p_stock_id changes"]]
+    #_[preprocessed=["when the stock price of ${p_stock_id} changes"]]
+    #[id=1645420] #[click_count=1];
+    stream (p_stock_id :Entity(tt:stock_id))  := monitor (@com.yahoo.finance.get_stock_div(stock_id=p_stock_id))
+    #_[utterances=["when stock dividends for $p_stock_id changes"]]
+    #_[preprocessed=["when stock dividends for ${p_stock_id} changes"]]
+    #[id=1645421] #[click_count=1];
+    query (p_stock_id :Entity(tt:stock_id))  := @com.yahoo.finance.get_stock_quote(stock_id=p_stock_id)
+    #_[utterances=["stock price of $p_stock_id","$p_stock_id stocks"]]
+    #_[preprocessed=["stock price of ${p_stock_id}","${p_stock_id} stocks"]]
+    #[id=1645422] #[click_count=1];
+    stream (p_stock_id :Entity(tt:stock_id), p_ask_price :Currency)  := edge (monitor (@com.yahoo.finance.get_stock_quote(stock_id=p_stock_id))) on ask_price >= p_ask_price
+    #_[utterances=["when the ask stock price of $p_stock_id goes above $p_ask_price","when the ask stock price of $p_stock_id becomes higher than $p_ask_price"]]
+    #_[preprocessed=["when the ask stock price of ${p_stock_id} goes above ${p_ask_price}","when the ask stock price of ${p_stock_id} becomes higher than ${p_ask_price}"]]
+    #[id=1645423] #[click_count=1];
+    stream (p_stock_id :Entity(tt:stock_id), p_ask_price :Currency)  := edge (monitor (@com.yahoo.finance.get_stock_quote(stock_id=p_stock_id))) on ask_price <= p_ask_price
+    #_[utterances=["when the ask stock price of $p_stock_id goes below $p_ask_price"]]
+    #_[preprocessed=["when the ask stock price of ${p_stock_id} goes below ${p_ask_price}"]]
+    #[id=1645424] #[click_count=1];
+    stream (p_stock_id :Entity(tt:stock_id), p_bid_price :Currency)  := edge (monitor (@com.yahoo.finance.get_stock_quote(stock_id=p_stock_id))) on bid_price >= p_bid_price
+    #_[utterances=["when the bid stock price of $p_stock_id goes above $p_bid_price","when the bid stock price of $p_stock_id becomes higher than $p_bid_price"]]
+    #_[preprocessed=["when the bid stock price of ${p_stock_id} goes above ${p_bid_price}","when the bid stock price of ${p_stock_id} becomes higher than ${p_bid_price}"]]
+    #[id=1645425] #[click_count=1];
+    stream (p_stock_id :Entity(tt:stock_id), p_bid_price :Currency)  := edge (monitor (@com.yahoo.finance.get_stock_quote(stock_id=p_stock_id))) on bid_price <= p_bid_price
+    #_[utterances=["when the bid stock price of $p_stock_id goes below $p_bid_price"]]
+    #_[preprocessed=["when the bid stock price of ${p_stock_id} goes below ${p_bid_price}"]]
+    #[id=1645426] #[click_count=1];
+    query (p_stock_id :Entity(tt:stock_id))  := @com.yahoo.finance.get_stock_div(stock_id=p_stock_id)
+    #_[utterances=["dividend per share of $p_stock_id","dividend quotes for $p_stock_id"]]
+    #_[preprocessed=["dividend per share of ${p_stock_id}","dividend quotes for ${p_stock_id}"]]
+    #[id=1645429] #[click_count=1];
+    stream (p_stock_id :Entity(tt:stock_id), p_value :Currency)  := edge (monitor (@com.yahoo.finance.get_stock_div(stock_id=p_stock_id))) on value >= p_value
+    #_[utterances=["when the dividend of $p_stock_id goes above $p_value"]]
+    #_[preprocessed=["when the dividend of ${p_stock_id} goes above ${p_value}"]]
+    #[id=1645431] #[click_count=1];
+    stream (p_stock_id :Entity(tt:stock_id), p_value :Currency)  := edge (monitor (@com.yahoo.finance.get_stock_div(stock_id=p_stock_id))) on value <= p_value
+    #_[utterances=["when the dividend of $p_stock_id goes below $p_value"]]
+    #_[preprocessed=["when the dividend of ${p_stock_id} goes below ${p_value}"]]
+    #[id=1645432] #[click_count=1];
+}

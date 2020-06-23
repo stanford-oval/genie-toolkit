@@ -1,0 +1,9 @@
+class @org.thingpedia.builtin.thingengine.remote
+#_[name="Remote Almond"]
+#_[description="A proxy device for a Almond owned by a different user. This device is created and managed automatically by the system."]
+#[system=true]
+{
+  import loader from @org.thingpedia.builtin();
+  import config from @org.thingpedia.config.builtin();
+}
+

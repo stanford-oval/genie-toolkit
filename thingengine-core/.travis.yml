@@ -1,0 +1,35 @@
+branches:
+  except:
+  - "/^wip/"
+language: node_js
+node_js:
+- '10'
+before_install:
+- mkdir cvc4/
+- wget https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt -O cvc4/cvc4
+- chmod +x cvc4/cvc4
+- mkdir -p ~/.cache
+- mkdir -p ~/.config
+- export PATH="`pwd`/cvc4:$PATH"
+- yarn global add greenkeeper-lockfile@1
+before_script:
+- greenkeeper-lockfile-update
+after_script: greenkeeper-lockfile-upload
+script:
+- yarn lint
+- yarn test
+after_success: yarn run coverage
+notifications:
+  slack:
+    secure: VvTCTiYHFmGE6kyrjHQFDNcukbL3Aly827vigNW9yOYhQlZwR17NBlTo/DFSQ87wR0W1eO5uS7wKUR4+2FFmkTgTBhdyCC4uISKCsYsHmPuaa4nf+nyvcQJ51ieIsdBI1yZfQ2Kx9Rpq6rfzobQlqnKgeDPhZRGJyUf/yuSJ703k3WGUCwOpWKejK9/sk4U4V7mtOEfCCH7LV89aN00C6g1rNjnj0kh2Y0EFqE6H/BHFA34DrBWwBpSp8NoUVlzsf1eW7jLxMm/HYuMhkNks7DA5xif44wdgswgovOZS8O+0FyyJL08QUuv7YXy/BmKhGT7UV1holJtDQydhQK4SvnthvAJOGF9Wq4qBP4Y8Bud+z61aYSJfd1Qztx128bF6bNIwVfHWpWv2XdMqLutIZUGFTx0tv377qEc8x03CXFagX7j33dQ0Bk69Ajwbd5/3TrfpCP9D+8TLn90JI8ACx6ryL1fegV4dglcVPfspT/fXN+9t+eb4o5Ntbxl/y/xeiiQ6nfbmD1TmB1Oodvv4QGmUz5bPz6zZygrBtKf+LGdu5QD6z1lxQgyg5MSOOF3Nv26BAv1nnhsKgArKLsNLoB1Y8dL+UTxjWxq8TazUle2lyWsiEGxykG8Z5J0Yp/McquOLIu6YdM9ZsJlZJFG5lmcS/vb3Rbx7somONP7lwFk=
+env:
+  global:
+    secure: t2YIgxQicS4LFxjPAmYh/qd5b4Zyh3Y8bLGmVbWUNIfahPOU9jfnKfpAVEvWrjVgcFVIMahw47M3icPaewqcwNQVa0J7PiRHmFn9o7EKC8PJal0frkobuDEuKKF1Hj32IF/kzwqb1fT7YHxi4azwgHROw11A6xsPeQZlJbXwapzIupBav4jSD3F/tohoH/HejqzeHZUiX88/IJ5wvbLypmya5vP9gt1TAtC/Os+fB/lZ1kUtb6PnTmE9KAnxeyPHaIjECZo0t3hhjJRbFqfykP78pv4gusHjUfxBRkQ+X/PRybooO3yAPEbDhUqPk7cBsgRXc1kihISwH8jN9m3APy9t6qRooyolio9vTCiZuO5daxNVpqBk4xESYmT2kd076um3vC7rlBISgvA2x6JnmGdEnm1utMIi3nLho7O9Ofb3DX+YMNboRJOX+y1vULz0bPQdjbLOXDau4SwqphVb+22tIJ2wfzV6iQCngTANxODf8A37jU94yESVcESa9o/NoxRgk6ZtZLcP+gKoNRtErICy15DuDMSmPRxdSSW/+JqjSiY7N9oN/s5d56ziD9caEA57fgIDe8E5M3Tql+9gu4ndFunhcin6Dx2qftUbLL1XxVZQ4dZmUlXxTRg+RJFwxZKgfZO325//dGpVb5CePEbdr2wjB7WiIhgj2CLy8W4=
+deploy:
+  provider: npm
+  email: gcampagn@cs.stanford.edu
+  api_key:
+    secure: df2J3aDRsAdWk/HzgirqkQ2t8Y+FlP2lbRLO7sgdYAUVgvPlOFKQ5zZGBAvrE+LkZVN6h+Zi5Se56Ro6hLKj78hcbwNbj2bsn/PGbANlzqzrrJnoeXkCowGkE03V6bba0kJkgjuhWZPRb7ms2xcMblhuqKUGQ7nK2or1+Dfmcjq69rhBTvmf/D4TRa/THdr603r9c+iyFKu1SNBsFnp495mzszgpfxQjOf9h32Cmeq32v7wjdfpZ0QzpYSz+zmMvCZyc7WPpGGgbvxCaBgHVjFDfIzOR42xS6E1/6hyfgO+LX/Vt77VVUUhXsqRQ5ljpXnG3ulk0H4AGDvAVFQ3G7S0aX7o/nR+y3nyj+detSos721XdGUltzqbaZa3fv5oYGXbU4wT9QrvhmdP7PWwedigJ7uJcfKoAzic7mvkgXqCVKjQvgabXqz6n2WUK+5qKC5k/9wNIB2gaPLgufX1tvxKaznmwiqNS29tj+IN2KpqVXHvKqQC+d2MjAM002tObbkpfEHkG4S+duVWYWKAgIlA7KAaYv2q4YQBaeo1+okaLhhKPKbg5rm5b4akfUCsu2dOAXEdCq++xroQtvoas1isqOL7fWgT/TubFdOQKJQPwU6oj9hoKDcr8EnXqzfoZtuzyNK2EzXlv0J0mIJogUyeC9ted7vO2YWzfQEqBDzQ=
+  on:
+    tags: true
+    repo: stanford-oval/thingengine-core

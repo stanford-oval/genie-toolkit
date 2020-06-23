@@ -1,0 +1,26 @@
+dataset @com.facebook language "en" {
+    action (p_status :String)  := @com.facebook.post(status=p_status)
+    #_[utterances=["post ${p_status} on facebook","post on facebook saying ${p_status:const}"]]
+    #_[preprocessed=["post ${p_status} on facebook","post on facebook saying ${p_status:const}"]]
+    #[id=1640495] #[click_count=3];
+    action  := @com.facebook.post_picture()
+    #_[utterances=["post a picture on facebook"]]
+    #_[preprocessed=["post a picture on facebook"]]
+    #[id=1640497] #[click_count=2];
+    action (p_caption :String)  := @com.facebook.post_picture(caption=p_caption)
+    #_[utterances=["post a picture with caption ${p_caption:const} on facebook","post a picture on facebook with caption ${p_caption}"]]
+    #_[preprocessed=["post a picture with caption ${p_caption:const} on facebook","post a picture on facebook with caption ${p_caption}"]]
+    #[id=1640498] #[click_count=1];
+    action (p_picture_url :Entity(tt:picture))  := @com.facebook.post_picture(picture_url=p_picture_url)
+    #_[utterances=["post ${p_picture_url} on facebook"]]
+    #_[preprocessed=["post ${p_picture_url} on facebook"]]
+    #[id=1640500] #[click_count=1];
+    action (p_picture_url :Entity(tt:picture), p_caption :String)  := @com.facebook.post_picture(picture_url=p_picture_url, caption=p_caption)
+    #_[utterances=["post ${p_picture_url} on facebook with caption ${p_caption}","caption ${p_picture_url} as ${p_caption:const} and post it on facebook"]]
+    #_[preprocessed=["post ${p_picture_url} on facebook with caption ${p_caption}","caption ${p_picture_url} as ${p_caption:const} and post it on facebook"]]
+    #[id=1640501] #[click_count=1];
+    action  := @com.facebook.post()
+    #_[utterances=["post something on facebook"]]
+    #_[preprocessed=["post something on facebook"]]
+    #[id=1640502] #[click_count=4];
+}
