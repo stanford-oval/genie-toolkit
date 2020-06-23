@@ -25,12 +25,12 @@ const TEST_CASES = [
     // "I can help you! What cuisine would you like?"
     // (proper would be: "我 可以 帮助 你 ！ 你 想 什么 菜 ？"
     // note that NFKD normalization converted the ideographic punctuation to ASCII one
-    ['我可以帮助你！你想什么菜？', '我 可 以 帮 助 你 ! 你 想 什 么 菜 ?', '我 可 以 帮 助 你 ! 你 想 什 么 菜 ?', {}],
+    ['我可以帮助你！你想要什么菜？', '我 可 以 帮 助 你 ! 你 想 要 什 么 菜 ?', '我 可 以 帮 助 你 ! 你 想 要 什 么 菜 ?', {}],
     // "Italian cuisine. Do you have a cheap one?"
     // (proper would be "意大利 菜 ！ 你 有 一 家 便宜 的 吗 ？"
     ['意大利菜！你有一家便宜的吗？', '意 大 利 菜 ! 你 有 一 家 便 宜 的 吗 ?', '意 大 利 菜 ! 你 有 一 家 便 宜 的 吗 ?', {}],
     // "I am sorry, There are no cheap Italian restaurants in the north part of town."
-    ['对不起！城市的北边没有意大利菜便宜的饭馆。', '对 不 起 ! 城 市 的 北 边 没 有 意 大 利 菜 便 宜 的 饭 馆 。', '对 不 起 ! 城 市 的 北 边 没 有 意 大 利 菜 便 宜 的 饭 馆 。', {}],
+    ['对不起！城市的北边没有便宜的意大利菜饭馆。', '对 不 起 ! 城 市 的 北 边 没 有 便 宜 的 意 大 利 菜 饭 馆 。', '对 不 起 ! 城 市 的 北 边 没 有 便 宜 的 意 大 利 菜 饭 馆 。', {}],
 
     // numbers and measurements
     ['3gb', '3 gb', '3 gb', {}],
@@ -58,11 +58,14 @@ const TEST_CASES = [
     ['一百万二千三', '1002003', 'NUMBER_0', { NUMBER_0: 1002003 }],
     ['一百二十万零三', '1200003', 'NUMBER_0', { NUMBER_0: 1200003 }],
     ['一百', '100', 'NUMBER_0', { NUMBER_0: 100 }],
+    ['一百一', '110', 'NUMBER_0', { NUMBER_0: 110 }],
     ['一千', '1000', 'NUMBER_0', { NUMBER_0: 1000 }],
+    ['一千一', '1100', 'NUMBER_0', { NUMBER_0: 1100 }],
     ['二千二百', '2200', 'NUMBER_0', { NUMBER_0: 2200 }],
     ['二千三百四十五', '2345', 'NUMBER_0', { NUMBER_0: 2345 }],
     ['三十万', '300000', 'NUMBER_0', { NUMBER_0: 300000 }],
     ['三十一万五千', '315000', 'NUMBER_0', { NUMBER_0: 315000 }],
+    ['三十一万五', '315000', 'NUMBER_0', { NUMBER_0: 315000 }],
 
     // ordinals
     ['我要第1个', '我 要 第 1 个', '我 要 第 1 个', {}],
@@ -80,14 +83,20 @@ const TEST_CASES = [
     ['我要第一百万个', '我 要 第 1000000 个', '我 要 第 NUMBER_0 个', { NUMBER_0: 1e6 }],
 
     // currencies
-    ['它$50钱', '它 50usd 钱', '它 CURRENCY_0 钱', { CURRENCY_0: { value: 50, unit: 'usd' }}],
-    ['它$50钱', '它 50usd 钱', '它 CURRENCY_0 钱', { CURRENCY_0: { value: 50, unit: 'usd' }}],
-    ['它$1,000钱', '它 1000usd 钱', '它 CURRENCY_0 钱', { CURRENCY_0: { value: 1000, unit: 'usd' }}],
-    ['它€50钱', '它 50eur 钱', '它 CURRENCY_0 钱', { CURRENCY_0: { value: 50, unit: 'eur' }}],
-    ['它50美元钱', '它 50usd 钱', '它 CURRENCY_0 钱', { CURRENCY_0: { value: 50, unit: 'usd' }}],
+    ['它$50', '它 50usd', '它 CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' }}],
+    ['它$50', '它 50usd', '它 CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' }}],
+    ['它$1,000', '它 1000usd', '它 CURRENCY_0', { CURRENCY_0: { value: 1000, unit: 'usd' }}],
+    ['它€50', '它 50eur', '它 CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'eur' }}],
+    ['它50美元', '它 50usd', '它 CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' }}],
+    ['它50美金', '它 50usd', '它 CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' }}],
+    ['它50刀', '它 50usd', '它 CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' }}],
+    ['它50元', '它 50cny', '它 CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'cny' }}],
+    ['它50块', '它 50cny', '它 CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'cny' }}],
     ['它50元钱', '它 50cny 钱', '它 CURRENCY_0 钱', { CURRENCY_0: { value: 50, unit: 'cny' }}],
-    ['它50eur钱', '它 50eur 钱', '它 CURRENCY_0 钱', { CURRENCY_0: { value: 50, unit: 'eur' }}],
-    ['它50cny钱', '它 50cny 钱', '它 CURRENCY_0 钱', { CURRENCY_0: { value: 50, unit: 'cny' }}],
+    ['它50块钱', '它 50cny 钱', '它 CURRENCY_0 钱', { CURRENCY_0: { value: 50, unit: 'cny' }}],
+    ['它50eur', '它 50eur', '它 CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'eur' }}],
+    ['它50欧', '它 50eur', '它 CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'eur' }}],
+    ['它50cny', '它 50cny', '它 CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'cny' }}],
 
     // times
 
@@ -111,6 +120,7 @@ const TEST_CASES = [
 
     // dates
     ['6月1号', 'XXXX-06-01', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
+    ['6月1日', 'XXXX-06-01', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
     ['2020年6月1号', '2020-06-01', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
     ['六月一号', 'XXXX-06-01', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
     ['二〇二〇年六月一号', '2020-06-01', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
@@ -124,6 +134,10 @@ const TEST_CASES = [
     ['2020年4月3号', '2020-04-03', 'DATE_0', { DATE_0: { year: 2020, month: 4, day: 3, hour: 0, minute: 0, second: 0, timezone: undefined } }],
     ['2020年6月', '2020-06-XX', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: -1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
     ['2020年六月', '2020-06-XX', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: -1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
+    // three special dates which are normally referred in abbreviation
+    ['六一', 'XXXX-06-01', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
+    ['五一', 'XXXX-05-01', 'DATE_0', { DATE_0: { year: -1, month: 5, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
+    ['十一', 'XXXX-10-01', 'DATE_0', { DATE_0: { year: -1, month: 10, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
 
     // with times
     ['6月1号1:15', 'XXXX-06-01T01:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 1, minute: 15, second: 0, timezone: undefined } }],
