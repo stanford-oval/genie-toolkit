@@ -17,7 +17,7 @@ const Library = ThingTalk.Ast.Input.Library;
 
 const ProgressBar = require('./progress_bar');
 const TokenizerService = require('../../lib/tokenizer');
-const { tokenizeExample } = require('../../lib/utils');
+const { tokenizeExample } = require('../../lib/utils/misc-utils');
 
 module.exports = class ThingTalkDataset {
     constructor(options) {

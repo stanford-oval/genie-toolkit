@@ -18,9 +18,9 @@ const seedrandom = require('seedrandom');
 const assert = require('assert');
 
 const MultiDST = require('../lib/languages/multidst/ast');
-const StreamUtils = require('../lib/stream-utils');
-const { getBestEntityMatch } = require('../lib/entity-finder');
-const { uniform } = require('../lib/random');
+const StreamUtils = require('../lib/utils/stream-utils');
+const { getBestEntityMatch } = require('../lib/utils/entity-finder');
+const { uniform } = require('../lib/utils/random');
 
 const ProgressBar = require('./lib/progress_bar');
 const { DialogueParser } = require('./lib/dialog_parser');

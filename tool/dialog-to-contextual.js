@@ -15,9 +15,9 @@ const fs = require('fs');
 
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 const TokenizerService = require('../lib/tokenizer');
-const { DatasetStringifier } = require('../lib/dataset-parsers');
-const StreamUtils = require('../lib/stream-utils');
-const Utils = require('../lib/utils');
+const { DatasetStringifier } = require('../lib/dataset-tools/parsers');
+const StreamUtils = require('../lib/utils/stream-utils');
+const Utils = require('../lib/utils/misc-utils');
 
 const ProgressBar = require('./lib/progress_bar');
 const { DialogueParser } = require('./lib/dialog_parser');

@@ -14,7 +14,7 @@ const Tp = require('thingpedia');
 
 const DEFAULT_THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 
-const StreamUtils = require('../lib/stream-utils');
+const StreamUtils = require('../lib/utils/stream-utils');
 
 module.exports = {
     initArgparse(subparsers) {

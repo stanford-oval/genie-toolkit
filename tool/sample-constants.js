@@ -14,7 +14,7 @@ const seedrandom = require('seedrandom');
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
-const StreamUtils = require('../lib/stream-utils');
+const StreamUtils = require('../lib/utils/stream-utils');
 const ConstantSampler = require('./lib/constants-sampler');
 const FileParameterProvider = require('./lib/file_parameter_provider');
 

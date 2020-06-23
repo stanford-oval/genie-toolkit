@@ -14,10 +14,10 @@ const path = require('path');
 const stemmer = require('stemmer');
 const Inflectors = require('en-inflectors').Inflectors;
 const child_process = require('child_process');
-const utils = require('../../lib/utils');
+const utils = require('../../lib/utils/misc-utils');
 
 const AnnotationExtractor = require('./webqa-template-extractor');
-const { makeLookupKeys } = require('../../lib/sample-utils');
+const { makeLookupKeys } = require('../../lib/dataset-tools/mturk/sample-utils');
 const { PROPERTY_CANONICAL_OVERRIDE } = require('./webqa-manual-annotations');
 const { posTag } = require('../../lib/i18n/american-english');
 

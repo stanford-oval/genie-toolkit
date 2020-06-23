@@ -16,12 +16,12 @@ const csvstringify = require('csv-stringify');
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
-const { ParaphraseValidatorFilter } = require('../lib/validator');
-const { DatasetStringifier } = require('../lib/dataset-parsers');
-
+const { ParaphraseValidatorFilter } = require('../lib/dataset-tools/mturk/validator');
+const { DatasetStringifier } = require('../lib/dataset-tools/parsers');
 const TokenizerService = require('../lib/tokenizer');
+const StreamUtils = require('../lib/utils/stream-utils');
+
 const MT = require('./lib/mturk-parsers');
-const StreamUtils = require('../lib/stream-utils');
 
 const { NUM_SENTENCES_PER_TASK, NUM_PARAPHRASES_PER_SENTENCE, NUM_SUBMISSIONS_PER_TASK } = require('./lib/constants');
 

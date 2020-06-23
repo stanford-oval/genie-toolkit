@@ -13,10 +13,10 @@ const fs = require('fs');
 const Stream = require('stream');
 const seedrandom = require('seedrandom');
 
-const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
+const { DatasetParser, DatasetStringifier } = require('../lib/dataset-tools/parsers');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const StreamUtils = require('../lib/stream-utils');
-const { coin } = require('../lib/random');
+const StreamUtils = require('../lib/utils/stream-utils');
+const { coin } = require('../lib/utils/random');
 
 module.exports = {
     initArgparse(subparsers) {

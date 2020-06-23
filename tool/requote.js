@@ -14,9 +14,9 @@ const fs = require('fs');
 const Stream = require('stream');
 const assert = require('assert');
 
-const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
+const { DatasetParser, DatasetStringifier } = require('../lib/dataset-tools/parsers');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const StreamUtils = require('../lib/stream-utils');
+const StreamUtils = require('../lib/utils/stream-utils');
 
 const ENTITY_MATCH_REGEX = /^([A-Z].*)_[0-9]+$/;
 const NUMBER_MATCH_REGEX = /^([0-9]+)$/;

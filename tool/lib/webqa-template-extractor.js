@@ -11,7 +11,7 @@
 const fs = require('fs');
 const util = require('util');
 const child_process = require('child_process');
-const { posTag } = require('../../lib/utils');
+const { posTag } = require('../../lib/utils/misc-utils');
 
 class AnnotationExtractor {
     constructor(klass, queries, model, options) {

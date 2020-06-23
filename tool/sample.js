@@ -17,9 +17,9 @@ const Stream = require('stream');
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
-const { DatasetParser } = require('../lib/dataset-parsers');
-const SentenceSampler = require('../lib/sampler');
-const StreamUtils = require('../lib/stream-utils');
+const { DatasetParser } = require('../lib/dataset-tools/parsers');
+const SentenceSampler = require('../lib/dataset-tools/mturk/sampler');
+const StreamUtils = require('../lib/utils/stream-utils');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const { parseConstantFile } = require('./lib/constant-file');
 

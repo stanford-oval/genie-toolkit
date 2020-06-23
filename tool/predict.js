@@ -12,10 +12,10 @@
 const fs = require('fs');
 const Stream = require('stream');
 
-const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
+const { DatasetParser, DatasetStringifier } = require('../lib/dataset-tools/parsers');
+const StreamUtils = require('../lib/utils/stream-utils');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('./lib/parserclient');
-const StreamUtils = require('../lib/stream-utils');
 
 class PredictStream extends Stream.Transform {
     constructor(parser, tokenized, debug) {

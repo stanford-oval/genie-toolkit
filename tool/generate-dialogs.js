@@ -17,9 +17,9 @@ const seedrandom = require('seedrandom');
 
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 const { DialogueGenerator } = require('../lib/sentence-generator');
+const StreamUtils = require('../lib/utils/stream-utils');
 
 const { DialogueSerializer } = require('./lib/dialog_parser');
-const StreamUtils = require('../lib/stream-utils');
 const { ActionSetFlag } = require('./lib/argutils');
 
 const DIALOG_SERIALIZERS = {

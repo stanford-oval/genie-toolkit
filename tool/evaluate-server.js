@@ -13,10 +13,10 @@ const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const fs = require('fs');
 
-const { DatasetParser } = require('../lib/dataset-parsers');
+const { DatasetParser } = require('../lib/dataset-tools/parsers');
+const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('../lib/dataset-tools/evaluation/sentence_evaluator');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('./lib/parserclient');
-const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('../lib/evaluators');
 
 function csvDisplay(args, complexity, result, with_numeric=false, without_numeric=false) {
     let buffer = '';

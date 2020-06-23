@@ -20,10 +20,10 @@ const Ast = ThingTalk.Ast;
 
 const ParserClient = require('./lib/parserclient');
 const { DialogueSerializer } = require('./lib/dialog_parser');
-const StreamUtils = require('../lib/stream-utils');
+const StreamUtils = require('../lib/utils/stream-utils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
 const ProgressBar = require('./lib/progress_bar');
-const editDistance = require('../lib/edit-distance');
+const editDistance = require('../lib/utils/edit-distance');
 
 function undoTradePreprocessing(sentence) {
     return sentence.replace(/ -(ly|s)/g, '$1').replace(/\b24:([0-9]{2})\b/g, '00:$1');

@@ -15,7 +15,7 @@ const qs = require('qs');
 
 const TokenizerService = require('../../lib/tokenizer');
 const Predictor = require('../../lib/predictor');
-const Utils = require('../../lib/utils');
+const Utils = require('../../lib/utils/misc-utils');
 const I18n = require('../../lib/i18n');
 
 const SEMANTIC_PARSING_TASK = 'almond';

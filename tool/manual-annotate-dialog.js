@@ -17,9 +17,9 @@ const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
+const StreamUtils = require('../lib/utils/stream-utils');
 const ParserClient = require('./lib/parserclient');
 const { DialogueParser, DialogueSerializer } = require('./lib/dialog_parser');
-const StreamUtils = require('../lib/stream-utils');
 const { readAllLines } = require('./lib/argutils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
 

@@ -13,12 +13,12 @@ const Tp = require('thingpedia');
 const fs = require('fs');
 
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
+const TokenizerService = require('../lib/tokenizer');
+const { KEYS, DialogueEvaluatorStream, CollectDialogueStatistics } = require('../lib/dataset-tools/evaluation/dialogue_evaluator');
 const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('./lib/parserclient');
-const TokenizerService = require('../lib/tokenizer');
 const MultiJSONDatabase = require('./lib/multi_json_database');
-const { KEYS, DialogueEvaluatorStream, CollectDialogueStatistics } = require('../lib/dialogue_evaluator');
 
 module.exports = {
     initArgparse(subparsers) {

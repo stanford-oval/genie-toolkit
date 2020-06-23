@@ -17,7 +17,7 @@ const readline = require('readline');
 const Tp = require('thingpedia');
 
 const ParserClient = require('./lib/parserclient');
-const { DatasetStringifier } = require('../lib/dataset-parsers');
+const { DatasetStringifier } = require('../lib/dataset-tools/parsers');
 
 const ThingTalk = require('thingtalk');
 
