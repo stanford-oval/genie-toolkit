@@ -87,6 +87,12 @@ learn_more_offer = {
     'are you interested to hear more about it ?';
 }
 
+yes_please_phrase = {
+    'yes';
+    'yes , please';
+    'yeah';
+}
+
 ok_thanks_phrase = {
     'ok thank you that is all i need .';
     'ok thanks that is all i need .';
@@ -135,4 +141,11 @@ nevermind_phrase = {
     'never mind then';
     'alright , never mind';
     'too bad , alright';
+}
+
+ask_recommend_phrase = {
+    'which one would you recommend ?';
+    'which 1 would you recommend ?';
+    'what is your favorite ?';
+    'surprise me ! just pick one please .';
 }

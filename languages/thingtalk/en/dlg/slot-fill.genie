@@ -115,6 +115,29 @@ verbose_search_answer = {
     generic_preamble_for_answer query:anything_phrase => query;
 }
 
+verbose_search_answer_with_action = {
+    // complete answer with another action phrase, like "I am looking for a bla restaurant. I will need to book it for 3 people."
+    query:verbose_search_answer ('.' | ',') generic_preamble_for_action action:coref_action_command => {
+        // check that one of the parameters of action has the right type to param pass into the action
+        let idArg = query.schema.getArgument('id');
+        if (!idArg)
+            return null;
+
+        let found = false;
+        for (let arg of action.schema.iterateArguments()) {
+            if (!arg.is_input)
+                continue
+            if (arg.type.equals(idArg.type)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            return null;
+        return [query, action];
+    };
+}
+
 question_npp_filter_pair = {
     ctx:ctx_with_result_noquestion f1:npp_filter 'or' f2:npp_filter =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
@@ -203,7 +226,7 @@ precise_search_question_answer_pair = {
     ) => {
         if (!D.isQueryAnswerValidForQuestion(table, questions))
             return null;
-        return [questions, table];
+        return [questions, table, null];
     };
 
     ( questions:direct_search_question_with_preamble '<sep>' table:verbose_search_answer [weight=0.1]
@@ -211,8 +234,34 @@ precise_search_question_answer_pair = {
     ) => {
         if (!D.isQueryAnswerValidForQuestion(table, questions))
             return null;
-        return [questions, table];
+        return [questions, table, null];
     };
+
+    ( questions:direct_search_question '<sep>' table_action:verbose_search_answer_with_action
+    | questions:yesno_search_question'<sep>' ('yes' | 'yes ,' | '') table_action:verbose_search_answer_with_action
+    ) => {
+        const [table, action] = table_action;
+        if (!D.isQueryAnswerValidForQuestion(table, questions))
+            return null;
+        return [questions, table, action];
+    };
+
+    ( questions:direct_search_question_with_preamble '<sep>' table_action:verbose_search_answer_with_action [weight=0.1]
+    | questions:yesno_search_question_with_preamble '<sep>' ('yes' | 'yes ,' | '') table_action:verbose_search_answer_with_action [weight=0.1]
+    ) => {
+        const [table, action] = table_action;
+        if (!D.isQueryAnswerValidForQuestion(table, questions))
+            return null;
+        return [questions, table, action];
+    };
+}
+
+search_question_ask_recommend_pair = {
+    ( questions:direct_search_question '<sep>' ask_recommend_phrase
+    | questions:yesno_search_question '<sep>' ask_recommend_phrase
+    | questions:direct_search_question_with_preamble '<sep>' ask_recommend_phrase
+    | questions:yesno_search_question_with_preamble '<sep>' ask_recommend_phrase
+    ) => questions;
 }
 
 search_question = {
@@ -227,16 +276,66 @@ generic_dontcare_phrase = {
     'it does not matter . can you suggest one ?';
     'i' ('do not have a' | 'have no') 'preference .' => '';
     'i' ('do not have a' | 'have no') 'preference . what do you recommend ?' => '';
-    'i have no preference . please make a recommendation .';
+    'i have no preference . please make a recommendation .' => '';
+    'i have no preference . which' ('one' | '1') 'is best ?' => '';
+}
+
+no_dontcare_phrase = {
+    'no' ('.' | ',') 'can you suggest one ?' => '';
+    'no' ('.' | ',') 'please make a recommendation .' => '';
+    'no' ('.' | ',') 'which' ('one' | '1') 'is best ?' => '';
+    'no' ('.' | ',') 'you choose for me !' => '';
+    'no' ('.' | ',') 'surprise me !' => '';
+    'i have no preference . please make a recommendation .' => '';
 }
 
 specific_dontcare_phrase = {
     ( 'the' param:out_param_Any 'does not matter .'
+    | 'the' param:out_param_Any 'is not an issue .'
+    | 'the' param:out_param_Any 'is not important .'
     | 'the' param:out_param_Any 'does not matter . can you suggest one ?'
     | 'i' ('do not have a' | 'have no') 'preference of ' param:out_param_Any '.'
     | 'i' ('do not have a' | 'have no') 'preference of ' param:out_param_Any '. what do you recommend ?'
     | 'i have no preference of ' param:out_param_Any '. please make a recommendation .'
     ) => new Ast.BooleanExpression.DontCare(null, param.name);
+
+    ('i do not care that it has' | 'it need not have' | 'i do not need') param:npp_filter => {
+        if (!param.value.isBoolean)
+            return null;
+        return new Ast.BooleanExpression.DontCare(null, param.name);
+    };
+}
+
+coref_constant = {
+    ( ctx:ctx_multidomain ('the' | 'the same') base:base_table '\'s' param:out_param_Any '.'
+    | ctx:ctx_multidomain generic_preamble_for_answer ('the' | 'the same') base:base_table '\'s' param:out_param_Any '.'
+    | ctx:ctx_multidomain 'the same' param:out_param_Any 'as' 'the' base:base_table '.'
+    | ctx:ctx_multidomain generic_preamble_for_answer 'the same' param:out_param_Any 'as' 'the' base:base_table  '.'
+    | ctx:ctx_multidomain ('the same as the' | 'the') param:out_param_Any 'of' 'the' base:base_table '.'
+    | ctx:ctx_multidomain generic_preamble_for_answer ('the same as the' | 'the') param:out_param_Any 'of' 'the' base:base_table  '.'
+    ) => {
+        const previous = ctx.previousDomain;
+        assert(previous);
+        if (previous.results.results.length === 0)
+            return null;
+        const ctxStmt = previous.stmt;
+        const ctxSchema = ctxStmt.table ? ctxStmt.table.schema : ctxStmt.actions[0].schema;
+        if (ctxSchema.class.name !== base.schema.class.name)
+            return null;
+        const result = previous.results.results[0];
+        if (!result.value[param.name])
+            return null;
+        return result.value[param.name];
+    };
+}
+
+imprecise_search_coref_answer = {
+    ( slot:coref_constant
+    | slot:coref_npp_filter
+    | slot:coref_apv_filter
+    | slot:coref_pvp_filter
+    | slot:coref_preposition_filter
+    ) => slot;
 }
 
 imprecise_search_question_answer_pair = {
@@ -250,14 +349,27 @@ imprecise_search_question_answer_pair = {
     | questions:one_param_yesno_direct_search_question_with_preamble '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_search_answer [weight=2]
     ) => D.impreciseSearchQuestionAnswerPair(questions, answer);
 
+    ( questions:one_param_direct_search_question '<sep>' answer:imprecise_search_coref_answer
+    | questions:disjunctive_search_question '<sep>' answer:imprecise_search_coref_answer [weight=2]
+    | questions:one_param_yesno_direct_search_question '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_search_coref_answer
+    ) => D.impreciseSearchQuestionAnswerPair(questions, answer);
+
+    ( questions:one_param_direct_search_question_with_preamble '<sep>'  ('yes' | 'yes ,' | '') answer:imprecise_search_coref_answer
+    | questions:disjunctive_search_question_with_preamble '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_search_coref_answer
+    | questions:one_param_yesno_direct_search_question_with_preamble '<sep>' ('yes' | 'yes ,' | '') answer:imprecise_search_coref_answer [weight=2]
+    ) => D.impreciseSearchQuestionAnswerPair(questions, answer);
 
     ( questions:one_param_direct_search_question '<sep>' generic_dontcare_phrase [weight=0.1]
     | questions:disjunctive_search_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
     | questions:one_param_yesno_direct_search_question '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
+    | questions:disjunctive_search_question '<sep>' ('no' | 'no ,' | '') no_dontcare_phrase [weight=0.1]
+    | questions:one_param_yesno_direct_search_question '<sep>' ('no' | 'no ,' | '') no_dontcare_phrase [weight=0.1]
 
     | questions:one_param_direct_search_question_with_preamble '<sep>' generic_dontcare_phrase [weight=0.1]
     | questions:disjunctive_search_question_with_preamble '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
     | questions:one_param_yesno_direct_search_question_with_preamble '<sep>' ('no' | 'no ,' | '') generic_dontcare_phrase [weight=0.1]
+    | questions:disjunctive_search_question_with_preamble '<sep>' ('no' | 'no ,' | '') no_dontcare_phrase [weight=0.1]
+    | questions:one_param_yesno_direct_search_question_with_preamble '<sep>' ('no' | 'no ,' | '') no_dontcare_phrase [weight=0.1]
     ) => D.impreciseSearchQuestionAnswerPair(questions, new Ast.BooleanExpression.DontCare(null, questions[0]));
 
 
@@ -303,6 +415,16 @@ imprecise_slot_fill_answer_phrase = {
     ) => slot;
 }
 
+imprecise_slot_fill_coref_answer = {
+    ( slot:coref_constant
+    | slot:coref_npp_input_param
+    | slot:coref_apv_input_param
+    | slot:coref_pvp_input_param
+    | slot:coref_preposition_input_param
+    ) => slot;
+}
+
+
 imprecise_slot_fill_answer = {
     ans:imprecise_slot_fill_answer_phrase ('please' | '') '.' => ans;
 
@@ -322,6 +444,9 @@ verbose_slot_fill_answer = {
 
 imprecise_slot_fill_question_answer_pair = {
     questions:one_param_slot_fill_question '<sep>' answer:imprecise_slot_fill_answer
+        => D.impreciseSlotFillQuestionAnswerPair(questions, answer);
+
+    questions:one_param_slot_fill_question '<sep>' answer:imprecise_slot_fill_coref_answer
         => D.impreciseSlotFillQuestionAnswerPair(questions, answer);
 }
 

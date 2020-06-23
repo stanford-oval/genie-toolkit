@@ -46,6 +46,7 @@ context ctx_init,
     ctx_greet,
     ctx_cancel,
     ctx_end,
+    ctx_multidomain,
     ctx_with_result,
     ctx_with_action,
     ctx_without_action,
@@ -92,25 +93,35 @@ context function (state) {
     case 'cancel':
         return [['ctx_cancel'], info];
 
-    case 'action_question':
-        return [['ctx_with_result', 'ctx_completed_action_success'], info];
+    case 'action_question': {
+        const tags = [];
+        if (info.isMultiDomain)
+            tags.push('ctx_multidomain');
+        tags.push('ctx_with_result', 'ctx_completed_action_success');
+        return [tags, info];
+    }
 
+    case 'ask_recommend':
     case 'execute': {
         const tags = [];
+        if (info.isMultiDomain)
+            tags.push('ctx_multidomain');
 
         if (info.nextInfo !== null) {
+            tags.push('ctx_with_action');
+
             // we have an action we want to execute, or a query that needs confirmation
             if (info.nextInfo.chainParameter === null || info.nextInfo.chainParameterFilled) {
                 // we don't need to fill any parameter from the current query
 
                 if (info.nextInfo.isComplete) {
-                    return [['ctx_confirm_action'], info];
+                    tags.push('ctx_confirm_action');
+                    return [tags, info];
                 } else {
-                    return [['ctx_incomplete_action', 'ctx_incomplete_action_after_search'], info];
+                    tags.push('ctx_incomplete_action', 'ctx_incomplete_action_after_search');
+                    return [tags, info];
                 }
             }
-
-            tags.push('ctx_with_action');
 
             if (!info.nextInfo.isComplete)
                 tags.push('ctx_incomplete_action');
@@ -123,11 +134,12 @@ context function (state) {
         assert(info.resultInfo, `expected result info`);
         if (!info.resultInfo.isTable) {
             if (info.resultInfo.hasError)
-                return [['ctx_completed_action_error'], info];
+                tags.push('ctx_completed_action_error');
             else if (info.resultInfo.hasEmptyResult)
-                return [['ctx_completed_action_success'], info];
+                tags.push('ctx_completed_action_success');
             else
-                return [['ctx_with_result', 'ctx_completed_action_success'], info];
+                tags.push('ctx_with_result', 'ctx_completed_action_success');
+            return [tags, info];
         }
 
         if (info.resultInfo.hasEmptyResult) {
@@ -185,7 +197,7 @@ context function (state) {
         } else {
             if (info.resultInfo.hasSingleResult || info.resultInfoQuestion) // we can recommend
                 tags.push('ctx_single_result_search_command')
-            else // we can refine
+            else if (state.dialogueAct !== 'ask_recommend')// we can refine
                 tags.push('ctx_search_command');
 
             // we can /show the result
@@ -294,6 +306,8 @@ $agent = {
             return D.makeSimpleState(ctx, 'sys_recommend_one', null);
         } else {
             const chainParam = D.findChainParam(topResult, action);
+            if (!chainParam)
+                return null;
             return D.addActionParam(ctx, 'sys_recommend_one', action, chainParam, topResult.value.id, 'proposed');
         }
     };
@@ -341,9 +355,15 @@ $root = {
         return D.checkStateIsValid(ctx, sysState, userState);
     };
 
+    ( ctx:ctx_cancel anything_else_phrase '<sep>' stmt:initial_command
+    | ctx:ctx_cancel anything_else_phrase '<sep>' yes_please_phrase stmt:initial_command
+    ) => D.startNewRequest(ctx, stmt);
+
     // action results
     ctx:ctx_completed_action_success action_success_terminal_pair
         => D.actionSuccessTerminalPair(ctx);
+    ctx:ctx_completed_action_success pair:action_success_restart_pair
+        => D.actionSuccessRestartPair(ctx, pair);
     ctx:ctx_completed_action_success question:action_success_question_pair
         => D.actionSuccessQuestionPair(ctx, question);
 
@@ -361,6 +381,8 @@ $root = {
         D.preciseSearchQuestionAnswer(ctx, qa);
     ctx:ctx_search_command qa:imprecise_search_question_answer_pair [weight=5] =>
         D.impreciseSearchQuestionAnswer(ctx, qa);
+    ctx:ctx_search_command questions:search_question_ask_recommend_pair [weight=1] =>
+        D.searchQuestionAskRecommendPair(ctx, questions);
 
     ctx:ctx_incomplete_action qa:precise_slot_fill_question_answer_pair
         => D.preciseSlotFillQuestionAnswer(ctx, qa);
@@ -397,4 +419,6 @@ $root = {
         => D.listProposalSearchQuestionPair(ctx, pair);
     ctx:ctx_complete_search_command pair:list_proposal_related_question_pair [weight=1]
         => D.listProposalRelatedQuestionPair(ctx, pair);
+    ctx:ctx_complete_search_command prop:list_proposal_ask_recommend_pair [weight=1]
+        => D.listProposalAskRecommendPair(ctx, prop);
 }

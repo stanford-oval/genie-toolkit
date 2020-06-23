@@ -94,11 +94,9 @@ proposal_info_action_pair = {
 // the action can come from the context (if the user expressed it earlier), or it can
 // be offered immediately
 system_recommendation = {
-    /* FIXME making a recommendation without saying anything about it seems weird?
-    ( ctx_with_action proposal:question_system_direct_proposal_short '.' [weight=10]
-    | ctx_with_action proposal:actionable_system_direct_proposal_short '.'
+    ( ctx_with_action proposal:question_system_recommendation_short '.'
+    | ctx_with_action proposal:actionable_system_recommendation_short '.'
     ) => proposal;
-    */
 
     ctx_with_action proposal:actionable_system_recommendation_short '.' learn_more_offer => {
         // reset the action to null if the agent explicitly asks to "learn more"
@@ -134,8 +132,8 @@ system_recommendation = {
     direct_user_question_answer;
 
     // recommendations after a search, followed by an offer to make an action
-    ( proposal:actionable_system_recommendation_short '. it' pair:proposal_info_action_pair
-    | proposal:user_question_answer_begin pair:proposal_info_action_pair
+    ( proposal:actionable_system_recommendation_short '. it' pair:proposal_info_action_pair [weight=2]
+    | proposal:user_question_answer_begin pair:proposal_info_action_pair [weight=2]
     ) => {
         const [info, action] = pair;
         proposal = D.checkRecommendation(proposal, info);
@@ -190,7 +188,7 @@ recommendation_accept_phrase_with_action = {
 }
 
 positive_recommendation_reply_pair = {
-    prop:system_recommendation '<sep>' accept_phrase [repeat=true] => {
+    prop:system_recommendation '<sep>' accept_phrase [weight=2] => {
         const { topResult, action: actionProposal } = prop;
         // if the user did not give an action earlier, and no action
         // was proposed by the agent right now, the flow is roughly
@@ -205,7 +203,7 @@ positive_recommendation_reply_pair = {
         return [topResult, actionProposal, actionProposal];
     };
 
-    prop:system_recommendation '<sep>' acceptedAction:recommendation_accept_phrase_with_action => {
+    prop:system_recommendation '<sep>' acceptedAction:recommendation_accept_phrase_with_action [weight=2] => {
         const { topResult, action: actionProposal } = prop;
         if (actionProposal !== null && !C.isSameFunction(actionProposal.schema, acceptedAction.schema))
             return null;
@@ -271,6 +269,7 @@ positive_recommendation_reply_by_name_pair = {
 
 recommendation_search_question_pair = {
     ( prop:system_recommendation '<sep>' ('no ,' | '') questions:simple_user_search_question
+    | prop:system_recommendation '<sep>' ('no ,' | '') questions:thingpedia_user_question '?' [weight=0.3]
     | prop:system_recommendation '<sep>' questions:boolean_user_search_question
     ) => {
         const { topResult, info, action } = prop;

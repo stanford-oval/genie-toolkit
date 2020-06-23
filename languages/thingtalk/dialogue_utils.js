@@ -33,6 +33,8 @@ const {
     addActionParam,
     addAction,
     addQuery,
+    addQueryAndAction,
+    addNewItem,
     replaceAction,
     setOrAddInvocationParam,
 } = require('./state_manip');
@@ -335,20 +337,19 @@ function mergePreambleAndRequest(pair, request) {
     ]), request.schema)];
 }
 
-function initialRequest(stmt) {
+function adjustStatementsForInitialRequest(stmt) {
     if (stmt.stream && _loader.flags.nostream)
         return null;
-
-    let history = [];
 
     if (stmt.table && !C.checkValidQuery(stmt.table))
         return null;
 
+    const newStatements = [];
     if (stmt.table && stmt.actions.some((a) => !a.isNotify)) {
         // split into two statements, one getting the data, and the other using it
 
         const queryStmt = new Ast.Statement.Command(null, stmt.table, [C.notifyAction()]);
-        history.push(new Ast.DialogueHistoryItem(null, queryStmt, null, false));
+        newStatements.push(queryStmt);
 
         const newActions = stmt.actions.map((a) => a.clone());
         for (let action of newActions) {
@@ -369,9 +370,8 @@ function initialRequest(stmt) {
             }
         }
         const actionStmt = new Ast.Statement.Command(null, null, newActions);
-        history.push(new Ast.DialogueHistoryItem(null, actionStmt, null, false));
+        newStatements.push(actionStmt);
     } else {
-        let newStatements = [];
         if (!stmt.table) {
             for (let action of stmt.actions) {
                 for (let param of action.invocation.in_params) {
@@ -390,15 +390,41 @@ function initialRequest(stmt) {
                     }
                 }
             }
-            assert(newStatements.length > 0);
         }
         newStatements.push(stmt);
-
-        for (let stmt of newStatements)
-            history.push(new Ast.DialogueHistoryItem(null, stmt, null, false));
     }
 
+    return newStatements;
+}
+
+function initialRequest(stmt) {
+    const newStatements = adjustStatementsForInitialRequest(stmt);
+    if (newStatements === null)
+        return null;
+
+    const history = newStatements.map((stmt) => new Ast.DialogueHistoryItem(null, stmt, null, 'accepted'));
     return new Ast.DialogueState(null, 'org.thingpedia.dialogue.transaction', 'execute', null, history);
+}
+
+function getStatementDevice(stmt) {
+    if (stmt.table)
+        return stmt.table.schema.class.name;
+    else
+        return stmt.actions[0].schema.class.name;
+}
+
+function startNewRequest(ctx, stmt) {
+    if (getStatementDevice(ctx.current.stmt) === getStatementDevice(stmt))
+        return null;
+
+    const newStatements = adjustStatementsForInitialRequest(stmt);
+    if (newStatements === null)
+        return null;
+
+    const newItems = newStatements.map((stmt) => new Ast.DialogueHistoryItem(null, stmt, null, 'accepted'));
+    const userState = addNewItem(ctx, 'execute', null, 'accepted', ...newItems);
+    const sysState = makeSimpleState(ctx, 'sys_anything_else', null);
+    return checkStateIsValid(ctx, sysState, userState);
 }
 
 /**
@@ -719,19 +745,22 @@ function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
 function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
     let cloneTable = ctxTable.clone();
 
-    let filterTable;
-    [cloneTable, filterTable] = findOrMakeFilterTable(cloneTable);
-    //if (ctxFilterTable === null)
-    //    return null;
-    assert(filterTable.isFilter);
-    assert(filterTable.isFilter && ((filterTable.table.isCompute && filterTable.table.table.isInvocation) || filterTable.table.isInvocation));
-    //assert(filterTable.isFilter && filterTable.table.isInvocation);
+    let refinedFilter;
+    if (newFilter !== null) {
+        let filterTable;
+        [cloneTable, filterTable] = findOrMakeFilterTable(cloneTable);
+        //if (ctxFilterTable === null)
+        //    return null;
+        assert(filterTable.isFilter);
+        assert(filterTable.isFilter && ((filterTable.table.isCompute && filterTable.table.table.isInvocation) || filterTable.table.isInvocation));
+        //assert(filterTable.isFilter && filterTable.table.isInvocation);
 
-    const refinedFilter = refineFilter(filterTable.filter, newFilter);
-    if (refinedFilter === null)
-        return null;
+        refinedFilter = refineFilter(filterTable.filter, newFilter);
+        if (refinedFilter === null)
+            return null;
 
-    filterTable.filter = refinedFilter;
+        filterTable.filter = refinedFilter;
+    }
 
     if (newProjection) {
         // if we have a new projection, we remove the projection entirely and replace it
@@ -756,7 +785,8 @@ function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
         assert(!cloneTable.isProjection);
 
         if (oldProjection) {
-            newProjection = oldProjection.filter((pname) => !C.filterUsesParam(refinedFilter, pname));
+            if (newFilter !== null)
+                newProjection = oldProjection.filter((pname) => !C.filterUsesParam(refinedFilter, pname));
 
             // if the projection is now empty, we don't add
             // the projection will be empty if
@@ -822,20 +852,71 @@ function isGoodSlotFillQuestion(ctx, questions) {
     return true;
 }
 
-function preciseSearchQuestionAnswer(ctx, [questions, answer]) {
-    const answerFunctions = C.getFunctionNames(answer);
+function addParametersFromContext(toInvocation, fromInvocation) {
+    let newParams = new Set;
+    for (let in_param of toInvocation.in_params) {
+        if (in_param.value.isUndefined)
+            continue;
+        newParams.add(in_param.name);
+    }
+
+    let cloned = false;
+
+    for (let in_param of fromInvocation.in_params) {
+        if (in_param.value.isUndefined)
+            continue;
+        if (newParams.has(in_param.name))
+            continue;
+
+        if (!cloned) {
+            toInvocation = toInvocation.clone();
+            cloned = true;
+        }
+
+        setOrAddInvocationParam(toInvocation, in_param.name, in_param.value);
+    }
+
+    return toInvocation;
+}
+
+function preciseSearchQuestionAnswer(ctx, [questions, answerTable, answerAction]) {
+    const answerFunctions = C.getFunctionNames(answerTable);
     assert(answerFunctions.length === 1);
     if (answerFunctions[0] !== ctx.currentFunction)
         return null;
     const currentTable = ctx.current.stmt.table;
     if (!isValidSearchQuestion(currentTable, questions))
         return null;
-    assert(answer.isFilter && ((answer.table.isCompute && answer.table.table.isInvocation) || answer.table.isInvocation));
+    assert(answerTable.isFilter && ((answerTable.table.isCompute && answerTable.table.table.isInvocation) || answerTable.table.isInvocation));
 
-    const newTable = queryRefinement(currentTable, answer.filter, refineFilterToAnswerQuestion);
+    if (answerAction !== null) {
+        const answerFunctions = C.getFunctionNames(answerAction);
+        assert(answerFunctions.length === 1);
+        assert(answerAction instanceof Ast.Invocation);
+        if (ctx.nextFunction !== null) {
+            if (answerFunctions[0] !== ctx.nextFunction)
+                return null;
+
+            // check that we don't fill the chain parameter through this path:
+            // the chain parameter can only be filled if the agent shows the results
+            for (let in_param of answerAction.in_params) {
+                if (in_param.name === ctx.nextInfo.chainParameter &&
+                    !ctx.nextInfo.chainParameterFilled)
+                    return null;
+            }
+
+            answerAction = addParametersFromContext(answerAction, getActionInvocation(ctx.next));
+        }
+    }
+
+    const newTable = queryRefinement(currentTable, answerTable.filter, refineFilterToAnswerQuestion);
     if (newTable === null)
         return null;
-    const userState = addQuery(ctx, 'execute', newTable, 'accepted');
+    let userState;
+    if (answerAction !== null)
+        userState = addQueryAndAction(ctx, 'execute', newTable, answerAction, 'accepted');
+    else
+        userState = addQuery(ctx, 'execute', newTable, 'accepted');
     let sysState;
     if (questions.length === 0)
         sysState = makeSimpleState(ctx, 'sys_generic_search_question', null);
@@ -852,6 +933,7 @@ function preciseSlotFillQuestionAnswer(ctx, [questions, answer]) {
     if (!isGoodSlotFillQuestion(ctx, questions))
         return null;
     assert(answer instanceof Ast.Invocation);
+    addParametersFromContext(answer, getActionInvocation(ctx.next));
 
     // check that we don't fill the chain parameter through this path:
     // the chain parameter can only be filled if the agent shows the results
@@ -924,6 +1006,20 @@ function impreciseSearchQuestionAnswer(ctx, [questions, answer]) {
     return checkStateIsValid(ctx, sysState, userState);
 }
 
+function searchQuestionAskRecommendPair(ctx, questions) {
+    assert(Array.isArray(questions));
+    const currentTable = ctx.current.stmt.table;
+    if (!isValidSearchQuestion(currentTable, questions))
+        return null;
+    const userState = makeSimpleState(ctx, 'ask_recommend', null);
+    let sysState;
+    if (questions.length > 0)
+        sysState = makeSimpleState(ctx, 'sys_search_question', questions);
+    else
+        sysState = makeSimpleState(ctx, 'sys_generic_search_question', null);
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
 
 function impreciseSlotFillQuestionAnswer(ctx, [questions, answer]) {
     assert(Array.isArray(questions));
@@ -968,7 +1064,6 @@ function findChainParam(topResult, action) {
             break;
         }
     }
-    assert(chainParam);
     return chainParam;
 }
 
@@ -1001,6 +1096,8 @@ function positiveRecommendationReplyPair(ctx, [topResult, actionProposal, accept
         userState = makeSimpleState(ctx, 'learn_more', null);
     } else {
         const chainParam = findChainParam(topResult, acceptedAction);
+        if (!chainParam)
+            return null;
         userState = addActionParam(ctx, 'execute', acceptedAction, chainParam, topResult.value.id, 'accepted');
     }
 
@@ -1009,6 +1106,8 @@ function positiveRecommendationReplyPair(ctx, [topResult, actionProposal, accept
         sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
     } else {
         const chainParam = findChainParam(topResult, actionProposal);
+        if (!chainParam)
+            return null;
         sysState = addActionParam(ctx, 'sys_recommend_one', actionProposal, chainParam, topResult.value.id, 'proposed');
     }
     return checkStateIsValid(ctx, sysState, userState);
@@ -1031,9 +1130,15 @@ function listProposalSearchQuestionPair(ctx, [results, name, actionProposal, que
         return false;
 
     const currentTable = ctx.current.stmt.table;
-    const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
-    const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
-        questions.map(([qname, qtype]) => qname));
+    let newTable;
+    if (name !== null) {
+        const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
+        newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
+            questions.map(([qname, qtype]) => qname));
+    } else {
+        newTable = queryRefinement(currentTable, null, null,
+            questions.map(([qname, qtype]) => qname));
+    }
     if (newTable === null)
         return null;
 
@@ -1048,6 +1153,20 @@ function listProposalSearchQuestionPair(ctx, [results, name, actionProposal, que
 
     return checkStateIsValid(ctx, sysState, userState);
 }
+
+function listProposalAskRecommendPair(ctx, [results, info, actionProposal]) {
+    const userState = makeSimpleState(ctx, 'ask_recommend', null);
+
+    let dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
+    let sysState;
+    if (actionProposal === null)
+        sysState = makeSimpleState(ctx, dialogueAct, null);
+    else
+        sysState = addAction(ctx, dialogueAct, actionProposal, 'proposed');
+
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
 
 function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, questions]) {
     if (!areQuestionsValidForContext(ctx, questions))
@@ -1075,6 +1194,8 @@ function recommendationSearchQuestionPair(ctx, [topResult, actionProposal, quest
         sysState = makeSimpleState(ctx, sysDialogueAct, null);
     } else {
         const chainParam = findChainParam(topResult, actionProposal);
+        if (!chainParam)
+            return null;
         sysState = addActionParam(ctx, sysDialogueAct, actionProposal, chainParam, topResult.value.id, 'proposed');
     }
 
@@ -1094,6 +1215,8 @@ function recommendationCancelPair(ctx, { topResult, action: actionProposal }) {
         sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
     } else {
         const chainParam = findChainParam(topResult, actionProposal);
+        if (!chainParam)
+            return null;
         sysState = addActionParam(ctx, 'sys_recommend_one', actionProposal, chainParam, topResult.value.id, 'proposed');
     }
 
@@ -1145,6 +1268,8 @@ function positiveListProposalReplyPair(ctx, [results, actionProposal, name, acce
         userState = addQuery(ctx, 'execute', newTable, 'accepted');
     } else {
         const chainParam = findChainParam(results[0], acceptedAction);
+        if (!chainParam)
+            return null;
         userState = addActionParam(ctx, 'execute', acceptedAction, chainParam, name, 'accepted');
     }
 
@@ -1215,6 +1340,9 @@ function emptySearchChangePair(ctx, [question, phrase]) {
         return null;
 
     const currentTable = ctx.current.stmt.table;
+    if (!C.isSameFunction(ctx.current.stmt.table.schema, phrase.schema))
+        return null;
+
     const newTable = queryRefinement(currentTable, phrase.filter, refineFilterToChangeFilter);
     if (newTable === null)
         return null;
@@ -1250,6 +1378,8 @@ function addDontCare(stmt, dontcare) {
 function contextualAction(ctx, action) {
     assert(action instanceof Ast.Invocation);
     const ctxInvocation = getActionInvocation(ctx.next);
+    if (ctxInvocation.selector.isBuiltin)
+        return null;
     if (!C.isSameFunction(ctxInvocation.schema, action.schema))
         return null;
     if (action.in_params.length === 0) // common case, no new parameters
@@ -1353,6 +1483,8 @@ function recommendationRelatedQuestionPair(ctx, [{ topResult, action: actionProp
         sysState = makeSimpleState(ctx, 'sys_recommend_one', null);
     } else {
         const chainParam = findChainParam(topResult, actionProposal);
+        if (!chainParam)
+            return null;
         sysState = addActionParam(ctx, 'sys_recommend_one', actionProposal, chainParam, topResult.value.id, 'proposed');
     }
 
@@ -1465,7 +1597,20 @@ function checkActionErrorMessage(ctx, action) {
 
 function actionSuccessTerminalPair(ctx) {
     const sysState = makeSimpleState(ctx, 'sys_action_success', null);
-    const userState = makeSimpleState(ctx, 'end', null);
+    const userState = makeSimpleState(ctx, 'cancel', null);
+    return checkStateIsValid(ctx, sysState, userState);
+}
+
+function actionSuccessRestartPair(ctx, [action, newStmt]) {
+    if (getStatementDevice(ctx.current.stmt) === getStatementDevice(newStmt))
+        return null;
+    const newStatements = adjustStatementsForInitialRequest(newStmt);
+    if (newStatements === null)
+        return null;
+
+    const newItems = newStatements.map((stmt) => new Ast.DialogueHistoryItem(null, stmt, null, 'accepted'));
+    const userState = addNewItem(ctx, 'execute', null, 'accepted', ...newItems);
+    const sysState = makeSimpleState(ctx, 'sys_action_success', null);
     return checkStateIsValid(ctx, sysState, userState);
 }
 
@@ -1555,6 +1700,7 @@ module.exports = {
     // user dialogue acts
     mergePreambleAndRequest,
     initialRequest,
+    startNewRequest,
     refineFilterToAnswerQuestion,
     refineFilterToChangeFilter,
     contextualAction,
@@ -1567,6 +1713,7 @@ module.exports = {
     impreciseSlotFillQuestionAnswerPair,
     impreciseSearchQuestionAnswer,
     impreciseSlotFillQuestionAnswer,
+    searchQuestionAskRecommendPair,
     proposalReplyPair,
     negativeRecommendationReplyPair,
     positiveRecommendationReplyPair,
@@ -1577,8 +1724,10 @@ module.exports = {
     positiveListProposalReplyPair,
     listProposalSearchQuestionPair,
     listProposalRelatedQuestionPair,
+    listProposalAskRecommendPair,
     emptySearchChangePair,
     actionSuccessTerminalPair,
+    actionSuccessRestartPair,
     actionSuccessQuestionPair,
     actionErrorTerminalPair,
     actionErrorChangeParamPair,

@@ -96,13 +96,18 @@ empty_search_error = {
 
     sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
     '.' 'would you like' ('a different' | 'another') p:out_param_Any '?' => {
-        if (!base.schema.hasArgument(p))
+        if (!base.schema.hasArgument(p.name))
+            return null;
+        if (p === 'id')
             return null;
         return [base, p];
     };
 
-    sorry_preamble 'i cannot find any result for your search . would you like' ('a different' | 'another') p:out_param_Any '?'
-        => [null, p];
+    sorry_preamble 'i cannot find any result for your search . would you like' ('a different' | 'another') p:out_param_Any '?' => {
+        if (p.name === 'id')
+            return null;
+        return [null, p];
+    };
 }
 
 empty_search_change_request = {

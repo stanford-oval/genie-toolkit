@@ -249,7 +249,7 @@ class NextStatementInfo {
 }
 
 class ContextInfo {
-    constructor(state, currentFunctionSchema, resultInfo, currentIdx, nextIdx, nextFunctionSchema, nextInfo) {
+    constructor(state, currentFunctionSchema, resultInfo, previousDomainIdx, currentIdx, nextIdx, nextFunctionSchema, nextInfo) {
         this.state = state;
 
         assert(currentFunctionSchema === null || currentFunctionSchema instanceof Ast.FunctionDef);
@@ -261,6 +261,8 @@ class ContextInfo {
             this.currentFunction = currentFunctionSchema.class.name + ':' + currentFunctionSchema.name;
         }
         this.resultInfo = resultInfo;
+        this.isMultiDomain = previousDomainIdx !== null;
+        this.previousDomainIdx = previousDomainIdx;
         this.currentIdx = currentIdx;
 
         assert(nextFunctionSchema === null || nextFunctionSchema instanceof Ast.FunctionDef);
@@ -287,6 +289,10 @@ class ContextInfo {
         return null;
     }
 
+    get previousDomain() {
+        return this.previousDomainIdx !== null ? this.state.history[this.previousDomainIdx] : null;
+    }
+
     get current() {
         return this.currentIdx !== null ? this.state.history[this.currentIdx] : null;
     }
@@ -297,24 +303,38 @@ class ContextInfo {
 
     clone() {
         return new ContextInfo(this.state.clone(), this.currentFunctionSchema, this.resultInfo,
-            this.currentIdx, this.nextIdx, this.nextFunctionSchema, this.nextInfo);
+            this.previousDomainIdx, this.currentIdx, this.nextIdx, this.nextFunctionSchema, this.nextInfo);
     }
+}
+
+function getDevice(functions) {
+    const devices = new Set;
+    for (let fn of functions)
+        devices.add(fn.class.name);
+    assert(devices.size === 1);
+    return Array.from(devices)[0];
 }
 
 function getContextInfo(state) {
     assert (!state.dialogueAct.startsWith('sys_'), `Unexpected system dialogue act ${state.dialogueAct}`);
 
-    let nextItemIdx = null, nextInfo = null, currentFunction = null, nextFunction = null, currentResultInfo = null,
-        currentItemIdx = null;
+    let nextItemIdx = null, nextInfo = null, currentFunction = null, nextFunction = null, currentDevice = null, currentResultInfo = null,
+        previousDomainItemIdx = null, currentItemIdx = null;
     for (let idx = 0; idx < state.history.length; idx ++) {
         const item = state.history[idx];
         const functions = C.getFunctions(item.stmt);
+        const device = getDevice(functions);
+        assert(typeof device === 'string');
+        if (currentDevice && device !== currentDevice)
+            previousDomainItemIdx = currentItemIdx;
         if (item.results === null) {
             nextItemIdx = idx;
             nextFunction = functions[functions.length-1];
             nextInfo = new NextStatementInfo(state.history[currentItemIdx], currentResultInfo, item);
             break;
         }
+
+        currentDevice = device;
         currentFunction = functions[functions.length-1];
         currentItemIdx = idx;
         currentResultInfo = new ResultInfo(state, item);
@@ -323,9 +343,11 @@ function getContextInfo(state) {
         assert(nextInfo);
     if (nextItemIdx !== null && currentItemIdx !== null)
         assert(nextItemIdx === currentItemIdx + 1);
+    if (previousDomainItemIdx !== null)
+        assert(currentItemIdx !== null && previousDomainItemIdx <= currentItemIdx);
 
     return new ContextInfo(state, currentFunction, currentResultInfo,
-        currentItemIdx, nextItemIdx, nextFunction, nextInfo);
+        previousDomainItemIdx, currentItemIdx, nextItemIdx, nextFunction, nextInfo);
 }
 
 function isUserAskingResultQuestion(ctx) {
@@ -367,7 +389,7 @@ function getActionInvocation(historyItem) {
     return historyItem.stmt.actions[0].invocation;
 }
 
-function addNewItem(ctx, dialogueAct, dialogueActParam, newHistoryItem, confirm) {
+function addNewItem(ctx, dialogueAct, dialogueActParam, confirm, ...newHistoryItem) {
     const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, []);
 
     if (confirm === 'proposed') {
@@ -378,7 +400,7 @@ function addNewItem(ctx, dialogueAct, dialogueActParam, newHistoryItem, confirm)
                 break;
             newState.history.push(ctx.state.history[i]);
         }
-        newState.history.push(newHistoryItem);
+        newState.history.push(...newHistoryItem);
     } else {
         // wipe everything from state after the current program
         // this will remove all previously accepted and/or proposed actions
@@ -388,7 +410,7 @@ function addNewItem(ctx, dialogueAct, dialogueActParam, newHistoryItem, confirm)
             for (let i = 0; i <= ctx.currentIdx; i++)
                 newState.history.push(ctx.state.history[i]);
         }
-        newState.history.push(newHistoryItem);
+        newState.history.push(...newHistoryItem);
     }
 
     return newState;
@@ -409,7 +431,7 @@ function setOrAddInvocationParam(newInvocation, pname, value) {
     }
     if (!found) {
         newInvocation.in_params.push(new Ast.InputParam(null, pname, value));
-        newInvocation.in_params((p1, p2) => {
+        newInvocation.in_params.sort((p1, p2) => {
             if (p1.name < p2.name)
                 return -1;
             if (p1.name > p2.name)
@@ -487,14 +509,14 @@ function addActionParam(ctx, dialogueAct, action, pname, value, confirm) {
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
 
-    return addNewItem(ctx, dialogueAct, null, newHistoryItem, confirm);
+    return addNewItem(ctx, dialogueAct, null, confirm, newHistoryItem);
 }
 
 function replaceAction(ctx, dialogueAct, action, confirm) {
     let newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, action, action.schema)]);
     let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
 
-    return addNewItem(ctx, dialogueAct, null, newHistoryItem, confirm);
+    return addNewItem(ctx, dialogueAct, null, confirm, newHistoryItem);
 }
 
 function addAction(ctx, dialogueAct, action, confirm) {
@@ -533,7 +555,7 @@ function addAction(ctx, dialogueAct, action, confirm) {
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
 
-    return addNewItem(ctx, dialogueAct, null, newHistoryItem, confirm);
+    return addNewItem(ctx, dialogueAct, null, confirm, newHistoryItem);
 }
 
 function addQuery(ctx, dialogueAct, newTable, confirm) {
@@ -556,6 +578,18 @@ function addQuery(ctx, dialogueAct, newTable, confirm) {
     return newState;
 }
 
+function addQueryAndAction(ctx, dialogueAct, newTable, newAction, confirm) {
+    let newTableStmt = new Ast.Statement.Command(null, newTable, [C.notifyAction()]);
+    let newTableHistoryItem = new Ast.DialogueHistoryItem(null, newTableStmt, null, confirm);
+
+    // add the new table history item right after the current one, and replace everything after that
+
+    let newActionStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, newAction, newAction.schema)]);
+    let newActionHistoryItem = new Ast.DialogueHistoryItem(null, newActionStmt, null, confirm);
+
+    return addNewItem(ctx, dialogueAct, null, confirm, newTableHistoryItem, newActionHistoryItem);
+}
+
 module.exports = {
     POLICY_NAME,
     INITIAL_CONTEXT_INFO,
@@ -568,9 +602,11 @@ module.exports = {
 
     // manipulate states to create new states
     makeSimpleState,
+    addNewItem,
     addActionParam,
     addAction,
     addQuery,
+    addQueryAndAction,
     replaceAction,
     setOrAddInvocationParam,
 };
