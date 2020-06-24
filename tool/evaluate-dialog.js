@@ -16,7 +16,6 @@ const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('./lib/parserclient');
-const TokenizerService = require('../lib/tokenizer');
 const MultiJSONDatabase = require('./lib/multi_json_database');
 const { KEYS, DialogueEvaluatorStream, CollectDialogueStatistics } = require('../lib/dialogue_evaluator');
 
@@ -102,9 +101,6 @@ module.exports = {
         if (args.thingpedia)
             tpClient = new Tp.FileClient(args);
         const parser = ParserClient.get(args.url, args.locale);
-        let tokenizer = null;
-        if (!args.tokenized)
-            tokenizer = TokenizerService.get('local', true);
         await parser.start();
 
         let database;
@@ -115,7 +111,7 @@ module.exports = {
 
         const output = readAllLines(args.input_file, '====')
             .pipe(new DialogueParser())
-            .pipe(new DialogueEvaluatorStream(parser, tokenizer, {
+            .pipe(new DialogueEvaluatorStream(parser, {
                 locale: args.locale,
                 targetLanguage: args.target_language,
                 thingpediaClient: tpClient,
@@ -142,7 +138,5 @@ module.exports = {
         args.output.end();
 
         await parser.stop();
-        if (tokenizer)
-            await tokenizer.end();
     }
 };
