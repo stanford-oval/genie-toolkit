@@ -1,9 +1,0 @@
-*~
-
-node_modules/
-po/almond-dialog-agent.pot
-po/*.mo
-po/*.json
-
-coverage/
-.nyc_output/

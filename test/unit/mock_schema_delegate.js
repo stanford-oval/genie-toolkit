@@ -12,7 +12,7 @@ const Tp = require('thingpedia');
 
 module.exports = new Tp.FileClient({
     locale: 'en',
-    thingpedia: path.resolve(path.dirname(module.filename), './data/en-US/thingpedia.tt'),
-    entities: path.resolve(path.dirname(module.filename), './data/en-US/entities.json'),
-    dataset: path.resolve(path.dirname(module.filename), './data/en-US/dataset.tt')
+    thingpedia: path.resolve(path.dirname(module.filename), '../data/en-US/thingpedia.tt'),
+    entities: path.resolve(path.dirname(module.filename), '../data/en-US/entities.json'),
+    dataset: path.resolve(path.dirname(module.filename), '../data/en-US/dataset.tt')
 });

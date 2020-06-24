@@ -1,0 +1,1026 @@
+# Spanish translations for almond package.
+# Copyright (C) 2016 The Stanford Mobile and Social Research Group
+# This file is distributed under the same license as the almond-dialog-agent package.
+# Rubén Mur Monclús <maitrella@gmail.com>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: almond-dialog-agent 1.7.3\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-23 17:39-0700\n"
+"PO-Revision-Date: 2020-01-10 14:45+0100\n"
+"Last-Translator: Rubén Mur Monclús <maitrella@gmail.com>\n"
+"Language-Team: Spanish - Spain <maitrella@gmail.com>\n"
+"Language: es_ES\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Generator: Gtranslator 3.34.0\n"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:32
+msgid "Media (news, comics, meme, etc)"
+msgstr "Medios de comunicación (noticias, cómics, memes, etc)"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:33
+msgid "Social Networks (facebook, twitter, etc)"
+msgstr "Redes sociales (facebook, twitter, etc.)"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:34
+msgid "Home (camera, tv, etc)"
+msgstr "Hogar (cámara, tv, etc.)"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:35
+msgid "Communication (phone, email, messenger, etc)"
+msgstr "Comunicación (teléfono, correo electrónico, mensajería, etc.)"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:36
+msgid "Services (weather, calendar, todo list, etc)"
+msgstr "Servicios (clima, calendario, lista de tareas, etc.)"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:37
+msgid "Data Management (cloud drives)"
+msgstr "Gestión de datos (unidades en la nube)"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:40
+msgid "Pick one from the following categories or simply type in."
+msgstr "Elija una de las siguientes categorías o escriba directamente."
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:42
+msgid "Do it now"
+msgstr "Hazlo ahora"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:44
+msgid "Just notify me"
+msgstr "Notifícame"
+
+# Atrás, volver?
+#: lib/dialogue-agent/legacy-dialogs/make.js:52
+#: lib/dialogue-agent/legacy-dialogs/make.js:74
+#: lib/dialogue-agent/legacy-dialogs/make.js:121
+#: lib/dialogue-agent/legacy-dialogs/make.js:142
+#: lib/dialogue-agent/legacy-dialogs/make.js:355
+#: lib/dialogue-agent/legacy-dialogs/make.js:372
+#: lib/dialogue-agent/legacy-dialogs/make.js:465
+#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:128
+msgid "Back"
+msgstr "Volver"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:62
+msgid "Pick a command from the following devices"
+msgstr "Elija un comando de los siguientes dispositivos"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:73
+#: lib/dialogue-agent/legacy-dialogs/make.js:141
+msgid "More…"
+msgstr "Más…"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:91
+#, fuzzy
+msgid "when ${utterance} change notify me"
+msgstr "cuando %s cambie notifícame"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:105
+#, fuzzy
+msgid "${utterance} notify me"
+msgstr "Notifícame"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:113
+#, fuzzy
+msgid "when ${utterance} change"
+msgstr "cuando %s cambia"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:118
+#, fuzzy
+msgid "Can't find a compatible command from ${device}, choose another device."
+msgstr ""
+"No puedo encontrar un comando compatible para %s, elija otro dispositivo."
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:135
+msgid "Pick a command below."
+msgstr "Elija un comando."
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:253
+msgid "now"
+msgstr "ahora"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:255
+msgid "notify me"
+msgstr "notifícame"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:273
+msgid "Do you want to use your own account or others?"
+msgstr "¿Quiere usar su cuenta u otras?"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:274
+msgid "Use my own account"
+msgstr "Usar mi cuenta"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:274
+msgid "Use others' account"
+msgstr "Usar la cuenta de otro"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:279
+msgid "Whose account do you want to use?"
+msgstr "¿La cuenta de quién quiere utilizar?"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:309
+msgid "When"
+msgstr "Cuando"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:315
+msgid "Get"
+msgstr "Obtener"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:321
+msgid "Do"
+msgstr "Hacer"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:324
+msgid "Add more commands and filters or run your command if you are ready."
+msgstr ""
+"Agregue múltiples comandos y filtros o ejecute su comando cuando esté listo."
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:326
+#: lib/dialogue-agent/legacy-dialogs/make.js:429
+msgid "Add a filter"
+msgstr "Agregar un filtro"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:327
+#: lib/dialogue-agent/legacy-dialogs/make.js:430
+msgid "Run it"
+msgstr "Ejecutarlo"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:329
+msgid "Click on one of the following buttons to start adding commands."
+msgstr "Pulse uno de los siguientes botones para comenzar a agregar comandos."
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:357
+msgid "Pick the command you want to add filters to:"
+msgstr "Elija el comando al que desea agregar el filtro:"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:366
+msgid "Pick the filter you want to add:"
+msgstr "Elija el filtro que quiere agregar:"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:427
+msgid "Choose a different command"
+msgstr "Elija un comando diferente"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:432
+#, fuzzy
+msgid ""
+"Your command is: ${command}. You can add more filters or run your command if "
+"you are ready."
+msgstr ""
+"Su comando es: %s. Puede agregar más filtros o ejecutar su comando cuando "
+"esté listo."
+
+#.
+#. let filterCandidates = {
+#. trigger: makeFilterCandidates(rule.trigger),
+#. query: makeFilterCandidates(rule.query),
+#. action: makeFilterCandidates(rule.action)
+#. };
+#. let scope = {};
+#. let filterDescription = [
+#. rule.trigger.isSpecified ? Describe.describePermissionFunction(dlg.manager.gettext, rule.trigger, 'trigger', scope) : '',
+#. rule.query.isSpecified ? Describe.describePermissionFunction(dlg.manager.gettext, rule.query, 'query', scope) : '',
+#. rule.action.isSpecified ? Describe.describePermissionFunction(dlg.manager.gettext, rule.action, 'action', scope) : ''
+#. ];
+#.
+#. let primTypes = [];
+#. let filterCommandChoices = [];
+#. if (filterCandidates.trigger.length > 0) {
+#. primTypes.push('trigger');
+#. filterCommandChoices.push(dlg._("When: %s").format(filterDescription[0]));
+#. }
+#. if (filterCandidates.query.length > 0) {
+#. primTypes.push('query');
+#. filterCommandChoices.push(dlg._("Get: %s").format(filterDescription[1]));
+#. }
+#. if (filterCandidates.action.length > 0) {
+#. primTypes.push('action');
+#. filterCommandChoices.push(dlg._("Do: %s").format(filterDescription[2]));
+#. }
+#. filterCommandChoices.push(dlg._("Done"));
+#. filterCommandChoices.push(dlg._("Back"));
+#.
+#. let prim;
+#. let choice;
+#. if (!firstTime || primTypes.length > 1) {
+#. choice = await dlg.askChoices(dlg._("Pick the part you want to add restrictions to:"), filterCommandChoices);
+#. if (choice === filterCommandChoices.length - 2) {
+#. // done!
+#. return rule;
+#. }
+#. if (choice === filterCommandChoices.length - 1) {
+#. // go back to the top
+#. return null;
+#. }
+#. prim = rule[primTypes[choice]];
+#. } else {
+#. prim = rule[primTypes[0]];
+#. choice = 0;
+#. }
+#. let prim = rule[primTypes[choice]];
+#.
+#: lib/dialogue-agent/legacy-dialogs/make.js:461
+#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:91
+msgid "Choose the filter you want to add:"
+msgstr "Elija el filtro que desea agregar:"
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:45
+msgid ""
+"Sorry, I did not understand that. Use ‘help’ to learn what I can do for you."
+msgstr ""
+"Lo siento, no entiendí. Utilice 'ayuda' para aprender lo que puedo hacer por "
+"usted."
+
+#. don't sort the examples, they come already sorted from Thingpedia
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:53
+msgid "if"
+msgstr "si"
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:56
+msgid ""
+"Sorry, I did not understand that. Try the following instead, or use the "
+"Train button to teach me:"
+msgstr ""
+"Lo siento, no entiendí. Pruebe los siguientes comandos en su lugar, o "
+"utilice el botón Entrenar para enseñarme."
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:58
+msgid "Sorry, I did not understand that. Try the following instead:"
+msgstr "Lo siento, no entiendí. Pruebe los siguientes comandos en su lugar:"
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:64
+msgid "Make Your Own Rule"
+msgstr "Cree su propia regla"
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:94
+#, fuzzy
+msgid "Did you mean ${command}?"
+msgstr "¿Quiso decir %s?"
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:119
+msgid "none of the above"
+msgstr "Ninguno de estos."
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:121
+msgid "Did you mean any of the following?"
+msgstr "¿Quiso decir uno de los comandos siguientes?"
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:135
+msgid "Your last command was a button. I know what a button means. 😛"
+msgstr "Su último comando fue un botón. Sé lo que significa un botón. 😛"
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:159
+msgid "Thanks, I made a note of that."
+msgstr "Gracias, lo tendré en cuenta."
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:32
+msgid "Discovery is not available in this installation of Almond."
+msgstr "La búsqueda no está disponible en esta versión de Almond."
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:36
+msgid ""
+"Sorry, to discover new devices you must log in to your personal account."
+msgstr ""
+"Lo siento, pero para conectar nuevos dispositivos debe iniciar sesión en su "
+"cuenta personal."
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:37
+#: lib/dialogue-agent/legacy-dialogs/device_choice.js:29
+#: lib/dialogue-agent/legacy-dialogs/config.js:54
+#: lib/dialogue-agent/legacy-dialogs/permission_rule.js:28
+#: lib/dialogue-agent/legacy-dialogs/rule.js:91
+#: lib/dialogue-agent/legacy-dialogs/rule.js:206
+msgid "Register for Almond"
+msgstr "Regístrese en Almond"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:48
+#, fuzzy
+msgid "Searching for ${device}…"
+msgstr "Buscando dispositivos cercanos…"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:50
+msgid "Searching for devices nearby…"
+msgstr "Buscando dispositivos cercanos…"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:61
+#, fuzzy
+msgid "Discovery failed: ${error}."
+msgstr "Búsqueda fallida: %s"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:69
+#, fuzzy
+msgid "Can't find any ${device} around."
+msgstr "No puedo encontrar ningún dispositivo alrededor."
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:71
+msgid "Can't find any device around."
+msgstr "No puedo encontrar ningún dispositivo alrededor."
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:77
+#, fuzzy
+msgid "I found a ${device}. Do you want to set it up now?"
+msgstr "Encontré %s. ¿Quiere configurarlo ahora?"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:85
+msgid "I found the following devices. Which one do you want to set up?"
+msgstr "Encontré los siguientes dispositivos. ¿Cuál quiere configurar?"
+
+#: lib/dialogue-agent/legacy-dialogs/device_choice.js:28
+msgid ""
+"Sorry, I did not understand that. You might need to enable a new skill "
+"before I understand that command. To do so, please log in to your personal "
+"account."
+msgstr ""
+"Lo siento, no entendí. Es posible que deba habilitar una nueva habilidad "
+"antes para que pueda entender ese comando. Para hacer esto, por favor inicie "
+"sesión en su cuenta personal."
+
+#: lib/dialogue-agent/legacy-dialogs/device_choice.js:31
+msgid ""
+"Sorry, I did not understand that. You might need to enable a new skill "
+"before I understand that command."
+msgstr ""
+"Lo siento, no entendí. Es posible que deba habilitar una nueva habilidad "
+"antes para que pueda enteder el comando."
+
+# skill = habilidad
+#: lib/dialogue-agent/legacy-dialogs/device_choice.js:32
+msgid "Configure a new skill"
+msgstr "Configure una nueva habilidad"
+
+#: lib/dialogue-agent/legacy-dialogs/device_choice.js:62
+msgid "Remote devices are not supported in this version of Almond."
+msgstr ""
+"Los dispositivos remotos no son compatibles con esta versión de Almond."
+
+#: lib/dialogue-agent/legacy-dialogs/device_choice.js:97
+#, fuzzy
+msgid "I cannot find any “${name}” device. Which ${device} do you want to use?"
+msgstr ""
+"No puedo encontrar ningún dispositvo \"%s\". ¿Cuál %s. quiere utilizar?"
+
+#: lib/dialogue-agent/legacy-dialogs/device_choice.js:108
+#, fuzzy
+msgid ""
+"You have multiple ${?“${name}” }${device} devices. Which one do you want to "
+"use?"
+msgstr ""
+"Tiene varios dispositivos de tipo %2$s que se llaman \"%1$s\". ¿Cuál quiere "
+"utilizar?"
+
+#: lib/dialogue-agent/legacy-dialogs/messaging.js:21
+msgid ""
+"You need a Matrix account: I talk to other Almonds via the secure Matrix "
+"messaging service."
+msgstr ""
+"Necesita una cuenta Matrix: hablo con otros Almond a través del servicios de "
+"mensajería segura de Matrix."
+
+#: lib/dialogue-agent/legacy-dialogs/messaging.js:22
+msgid "Register a new Matrix account now"
+msgstr "Registre ahora una nueva cuenta Matrix"
+
+#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:23
+msgid "Okay, I'll remember that."
+msgstr "Okay, lo tendré en cuenta."
+
+#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:236
+msgid "Yes this time"
+msgstr "Sí esta vez"
+
+#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:238
+msgid "Always from anybody (no restrictions)"
+msgstr "Siempre de cualquier persona (sin restricciones)"
+
+#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:242
+#, fuzzy
+msgid "Always from ${principal} (no restrictions)"
+msgstr "Siempre de %s (sin restricciones)"
+
+#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:247
+#, fuzzy
+msgid "Always from ${principal} (this exact request)"
+msgstr "Siempre de %s (solo esta solicitud exacta)"
+
+#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:252
+msgid "Always from anybody"
+msgstr "Siempre de cualquier persona"
+
+#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:256
+#, fuzzy
+msgid "Always from ${principal}"
+msgstr "Siempre de %s"
+
+#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:261
+msgid "No"
+msgstr "No"
+
+#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:262
+msgid "Only if…"
+msgstr "Solo sí…"
+
+#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:275
+#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:289
+#: lib/dialogue-agent/legacy-dialogs/permission_rule.js:59
+#: lib/dialogue-agent/legacy-dialogs/permission_rule.js:87
+#, fuzzy
+msgid "Okay, so ${permission}. Is that correct?"
+msgstr "Okay, entonces quiere que haga %s. ¿Es correcto?"
+
+#: lib/dialogue-agent/legacy-dialogs/slot_filling.js:40
+msgid "me"
+msgstr "yo"
+
+#: lib/dialogue-agent/legacy-dialogs/slot_filling.js:98
+#, fuzzy
+msgid "Cannot find a messaging account for ${contact}."
+msgstr "No puedo encontrar una cuenta de mensajería para %s."
+
+#: lib/dialogue-agent/legacy-dialogs/slot_filling.js:115
+#, fuzzy
+msgid "You chose ${array}."
+msgstr "Ha elegido %s."
+
+#: lib/dialogue-agent/legacy-dialogs/slot_filling.js:118
+msgid "Would you like to add more elements to the list?"
+msgstr "¿Quiere agregar más elementos a la lista?"
+
+#: lib/dialogue-agent/legacy-dialogs/slot_filling.js:305
+msgid "A description of the result"
+msgstr "Una descripción del resultado"
+
+#: lib/dialogue-agent/legacy-dialogs/slot_filling.js:313
+msgid "None of above"
+msgstr "Ninguno de estos"
+
+#: lib/dialogue-agent/legacy-dialogs/notifications.js:57
+#, fuzzy
+msgid "Notification from ${app}: ${message}"
+msgstr "Notificación de %s: %s"
+
+#: lib/dialogue-agent/legacy-dialogs/notifications.js:63
+#, fuzzy
+msgid "Notification from ${app}"
+msgstr "Notificación de %s"
+
+#: lib/dialogue-agent/legacy-dialogs/notifications.js:80
+#, fuzzy
+msgid "${app} had an error: ${error}."
+msgstr "%s tuvo un error: %s."
+
+#: lib/dialogue-agent/legacy-dialogs/notifications.js:82
+#: lib/dialogue-agent/legacy-dialogs/init.js:53
+#: lib/dialogue-agent/dialogue_loop.js:330
+#, fuzzy
+msgid "Sorry, that did not work: ${error}."
+msgstr "Lo siento, hubo un error: %s."
+
+#: lib/dialogue-agent/legacy-dialogs/discovery_delegate.js:26
+#: lib/dialogue-agent/legacy-dialogs/config.js:42
+msgid "The account has been set up."
+msgstr "La cuenta ha sido configurada."
+
+#: lib/dialogue-agent/legacy-dialogs/discovery_delegate.js:28
+#: lib/dialogue-agent/legacy-dialogs/config.js:44
+msgid "The device has been set up."
+msgstr "El dispositivo ha sido configurado."
+
+#: lib/dialogue-agent/legacy-dialogs/discovery_delegate.js:30
+#: lib/dialogue-agent/legacy-dialogs/config.js:46
+msgid "The service has been set up."
+msgstr "El servicio ha sido configurado."
+
+#: lib/dialogue-agent/legacy-dialogs/discovery_delegate.js:36
+#, fuzzy
+msgid "Configuration failed: ${error}."
+msgstr "Configuración fallida: %s"
+
+#: lib/dialogue-agent/legacy-dialogs/ask_anything.js:21
+#, fuzzy
+msgid "Question from ${app}: ${question}."
+msgstr "Pregunta de %s: %s"
+
+#: lib/dialogue-agent/legacy-dialogs/config.js:34
+#, fuzzy
+msgid "Please enter the ${label}."
+msgstr "Por favor introduzca el %s"
+
+#: lib/dialogue-agent/legacy-dialogs/config.js:51
+#, fuzzy
+msgid "Sorry, to enable ${device}, you must log in to your personal account."
+msgstr ""
+"Lo siento, para habilitar %s, debe iniciar sesión en su cuenta personal."
+
+#: lib/dialogue-agent/legacy-dialogs/config.js:65
+#, fuzzy
+msgid "I'm sorry, I can't find ${device} in my database."
+msgstr "Lo siento, no puedo encontrar %s en mi base de datos."
+
+#: lib/dialogue-agent/legacy-dialogs/config.js:70
+#, fuzzy
+msgid "${device} has been enabled successfully."
+msgstr "%s se ha habilitado correctamente."
+
+#: lib/dialogue-agent/legacy-dialogs/config.js:78
+#, fuzzy
+msgid "Choose one of the following to configure ${device}."
+msgstr "Elija uno de los siguientes para configurar %s."
+
+#: lib/dialogue-agent/legacy-dialogs/config.js:84
+#: lib/dialogue-agent/legacy-dialogs/config.js:91
+#: lib/dialogue-agent/legacy-dialogs/config.js:119
+#, fuzzy
+msgid "Configure ${device}"
+msgstr "Configure %s"
+
+#: lib/dialogue-agent/legacy-dialogs/config.js:98
+#, fuzzy
+msgid "Sorry, I don't know how to configure ${device}."
+msgstr "Lo siento, no sé cómo configurar %s."
+
+#: lib/dialogue-agent/legacy-dialogs/config.js:110
+#, fuzzy
+msgid "I'm sorry, but ${device} is not supported on this version of Almond."
+msgstr "Lo siento, pero %s no es compatible con esta versión de Almond."
+
+#: lib/dialogue-agent/legacy-dialogs/config.js:116
+#, fuzzy
+msgid "OK, here's the link to configure ${device}."
+msgstr "OK, aquí está el enlace para configurar %s."
+
+#: lib/dialogue-agent/legacy-dialogs/config.js:127
+#, fuzzy
+msgid "I'm sorry, I don't know how to configure ${device}."
+msgstr "Lo siento, pero no sé cómo configurar %s."
+
+#: lib/dialogue-agent/legacy-dialogs/contact_search.js:213
+msgid "You don't have a valid address book available."
+msgstr "No tiene una libreta de direcciones disponible."
+
+#: lib/dialogue-agent/legacy-dialogs/contact_search.js:218
+msgid "No contact matches your search."
+msgstr "Ningún contacto coincide con su búsqueda."
+
+#: lib/dialogue-agent/legacy-dialogs/contact_search.js:224
+msgid "Who do you want to contact?"
+msgstr "¿Con quién desea contactar?"
+
+#: lib/dialogue-agent/legacy-dialogs/contact_search.js:262
+#, fuzzy
+msgid "Multiple contacts match “${name}”. Who do you mean?"
+msgstr "Más de un contacto coincide con \"%s\". ¿A quién se refiere?"
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:25
+#: lib/dialogue-agent/legacy-dialogs/init.js:59
+msgid "Hello! I'm Almond, your virtual assistant."
+msgstr "¡Hola! Mi nombre es Almond y soy su asistente virtual."
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:26
+msgid ""
+"I am part of a research project of Stanford University. I am capable of "
+"understanding actions and events over web services. Please keep in mind: I "
+"do not chat. Check out the Thingpedia to find out what I understand, or type "
+"‘help’."
+msgstr ""
+"Soy parte de un proyecto de investigación de la Universidad de Stanford. Soy "
+"capaz de comprender acciones y eventos aplicables a servicios web. Por favor "
+"tenga en cuenta: no chateo. Eche un vistazo a Thingpedia para averiguar lo "
+"que entiendo, o escriba ‘ayuda’."
+
+#. await dlg.reply(dlg._("You can also configure your personal accounts. To do so, try ‘configure‘ followed by the type of account (e.g., ‘configure twitter’ or ‘configure nest’)."));
+#. await dlg.reply(dlg._("If you need help at any point, try ‘help’."));
+#: lib/dialogue-agent/legacy-dialogs/init.js:27
+#: lib/dialogue-agent/legacy-dialogs/init.js:95
+msgid "To start, how about you try one of these examples:"
+msgstr "Para comenzar, qué tal probar uno de estos ejemplos:"
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:30
+#: lib/dialogue-agent/legacy-dialogs/init.js:98
+msgid "Get a #cat gif"
+msgstr "Obtén un gif de #gato"
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:33
+#: lib/dialogue-agent/legacy-dialogs/init.js:101
+msgid "Show me the New York Times"
+msgstr "Muéstrame el New York Times"
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:36
+#: lib/dialogue-agent/legacy-dialogs/init.js:104
+msgid "Show me the weather for San Francisco"
+msgstr "Muéstrame el tiempo que hace en San Francisco"
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:39
+#: lib/dialogue-agent/legacy-dialogs/init.js:107
+msgid "What's the stock price of Google?"
+msgstr "¿Cúal es el precio de las acciones de Google?"
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:44
+msgid "Welcome back!"
+msgstr "¡Bienvenido de nuevo!"
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:54
+msgid "You should try again later."
+msgstr "Inténtelo nuevamente más tarde."
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:62
+msgid ""
+"I am part of a research project of Stanford University. I am capable of "
+"understanding actions and events over web services."
+msgstr ""
+"Soy parte de un proyecto de investigación de la Universidad de Stanford. Soy "
+"capaz de comprender acciones y eventos aplicables a servicios web."
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:63
+msgid ""
+"Please keep in mind: I do not chat, and I do not understand questions very "
+"well. Please check out the Thingpedia to find out what I understand, or type "
+"‘help’."
+msgstr ""
+"Por favor tenga en cuenta: no chateo, y no comprendo muy bien las preguntas "
+"Eche un vistazo a Thingpedia para averiguar lo que entiendo, o escriba "
+"‘ayuda’."
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:66
+msgid ""
+"I am part of a research project of Stanford University. Would you like to "
+"participate?"
+msgstr ""
+"Soy parte de un proyecto de investigación de la Universidad de Stanford. "
+"¿Quiere participar?"
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:67
+msgid ""
+"With your consent, I will record the commands you give me for training. "
+"Recording the commands will allow me to improve my understanding of natural "
+"language. I will collect what you type, not your data, or what I reply."
+msgstr ""
+"Con su consentimiento, grabaré los comandos que introduzca. Grabar los "
+"comandos me permitirá mejorar mi comprensión del idioma. Solo recopilaré lo "
+"que escriba, no sus datos o mis respuestas."
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:68
+msgid ""
+"If you would like to participate, please review our consent form, and keep "
+"it for your records:"
+msgstr ""
+"Si desea participar, lea nuestro formulario de consentimiento, y guarde una "
+"copia personal:"
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:70
+msgid "Consent Form"
+msgstr "Formulario de consentimiento"
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:77
+msgid "Do you consent to recording your commands?"
+msgstr "¿Permite la recopilación de sus comandos?"
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:85
+msgid ""
+"Thank you! If you change your mind, you can change the option from Settings."
+msgstr ""
+"¡Gracias! Si cambia de opinión, puede cambiar la opción desde la "
+"Configuración."
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:87
+msgid ""
+"Okay, I will not store any command from this Almond. If you change your "
+"mind, you can change the option from Settings."
+msgstr ""
+"Okay, no almacenaré ningún comando de este Almond. Si cambia de opinión, "
+"puedes cambiar la opción de la Configuración."
+
+# ¿CheatSheet?
+#: lib/dialogue-agent/legacy-dialogs/init.js:89
+msgid ""
+"Okay, on to what I can do: I am capable of understanding actions and events "
+"over web services and smart devices. I do not chat, and I do not understand "
+"questions very well. Please check out the Cheatsheet (from the menu) to find "
+"out what I understand, or type ‘help’."
+msgstr ""
+"Okay, continuando con lo que puedo hacer: soy capaz de entender acciones y "
+"eventos aplicables a servicios web en línea y dispositivos inteligentes. No "
+"chateo, y no comprendo muy bien las preguntas. Eche un vistazo a la Guía de "
+"comandos (desde el menú) para averiguar lo que entiendo o escriba ‘ayuda’."
+
+#: lib/dialogue-agent/legacy-dialogs/permission_rule.js:27
+msgid ""
+"Sorry, to allow access to your devices you must log in to your personal "
+"account."
+msgstr ""
+"Lo siento, para permitir el acceso a sus dispositivos debe iniciar sesión en "
+"su cuenta personal."
+
+#: lib/dialogue-agent/legacy-dialogs/permission_rule.js:99
+#, fuzzy
+msgid "Okay, I'm going to remember: ${permission}."
+msgstr "Okay, voy a configurar: %s."
+
+#: lib/dialogue-agent/legacy-dialogs/entity_lookup.js:87
+#, fuzzy
+msgid "Sorry, I cannot find any ${entity_type} matching “${name}”."
+msgstr "Lo siento, pero no encuentro ningún %s que coincida con \"%s\"."
+
+#: lib/dialogue-agent/legacy-dialogs/entity_lookup.js:117
+#, fuzzy
+msgid "Sorry, I cannot find any location matching “${location}”."
+msgstr ""
+"Lo siento, pero no puedo encontrar ninguna ubicación que coincida con \"%s\"."
+
+#: lib/dialogue-agent/legacy-dialogs/user_context.js:63
+msgid "Where are you now?"
+msgstr "¿Donde está ahora?"
+
+#: lib/dialogue-agent/legacy-dialogs/user_context.js:67
+msgid "What is your home address?"
+msgstr "¿Cuál es la dirección de su domicilio?"
+
+#: lib/dialogue-agent/legacy-dialogs/user_context.js:72
+msgid "What is your work address?"
+msgstr "¿Cuál es la dirección de su trabajo?"
+
+#: lib/dialogue-agent/legacy-dialogs/user_context.js:77
+msgid "What time does your morning begin?"
+msgstr "¿A qué hora comienza su mañana?"
+
+#: lib/dialogue-agent/legacy-dialogs/user_context.js:82
+msgid "What time does your evening begin?"
+msgstr "¿A qué hora comienza la noche para usted?"
+
+#: lib/dialogue-agent/legacy-dialogs/rule.js:30
+#, fuzzy
+msgid "Omlet User @${username}"
+msgstr "Usuario de Omlet @%s"
+
+#: lib/dialogue-agent/legacy-dialogs/rule.js:90
+#: lib/dialogue-agent/legacy-dialogs/rule.js:205
+msgid ""
+"Sorry, to execute this command you must log in to your personal account."
+msgstr ""
+"Lo siento, para ejecutar este comando debe iniciar sesión en su cuenta "
+"personal."
+
+#. ask the user before displaying further results
+#: lib/dialogue-agent/legacy-dialogs/rule.js:158
+msgid "Show more results"
+msgstr "Mostrar más resultados"
+
+#: lib/dialogue-agent/legacy-dialogs/rule.js:181
+msgid "Sorry, I did not find any result for that."
+msgstr "Lo siento, no he encontrado ningún resultado."
+
+#: lib/dialogue-agent/legacy-dialogs/rule.js:189
+#, fuzzy
+msgid ""
+"Okay, so you want me to ${command}${? (as asked by ${source})}. Is that "
+"right?"
+msgstr ""
+"Okay, entonces quiere que yo %s (según lo solicitado por %s). ¿Es correcto?"
+
+#: lib/dialogue-agent/legacy-dialogs/rule.js:267
+#, fuzzy
+msgid "I'm going to ${command} (as asked by ${source})."
+msgstr "Voy a %s (según lo solicitado por %s)."
+
+#: lib/dialogue-agent/legacy-dialogs/rule.js:271
+#, fuzzy
+msgid "Okay, I'm going to ${command}."
+msgstr "Okay, voy a %s"
+
+#: lib/dialogue-agent/almond.js:378
+#, fuzzy
+msgid "Sorry, I had an error processing your command: ${error}"
+msgstr "Lo siento, tuve un error al procesar el comando: %s"
+
+#: lib/dialogue-agent/almond.js:411 lib/dialogue-agent/dialogue_loop.js:326
+#, fuzzy
+msgid "Sorry, I had an error processing your command: ${error}."
+msgstr "Lo siento, tuve un error al procesar el comando: %s"
+
+#: lib/dialogue-agent/policies/legacy.js:62
+msgid "Sorry, I don't know how to do that yet."
+msgstr "Lo siento, pero todavía no sé cómo hacer lo que me pidió."
+
+#: lib/dialogue-agent/policies/legacy.js:65
+msgid "I agree, but to what?"
+msgstr "Estoy de acuerdo, pero ... ¿en qué?"
+
+# ¡De ninguna manera! o ¡no existe!
+#: lib/dialogue-agent/policies/legacy.js:68
+msgid "No way!"
+msgstr "¡No existe!"
+
+#: lib/dialogue-agent/policies/legacy.js:170
+msgid "Yes what?"
+msgstr "Sí ¿qué?"
+
+#: lib/dialogue-agent/policies/legacy.js:186
+msgid "Please click on one of the provided choices."
+msgstr "Por favor pulse en una de las opciones que se muestran."
+
+#: lib/dialogue-agent/policies/transaction.js:391
+#, fuzzy
+msgid "Ok, so you want me to ${confirmation}. Is that right?"
+msgstr "Okay, quiere que yo %s. ¿Es correcto?"
+
+#: lib/dialogue-agent/policies/transaction.js:454
+#, fuzzy
+msgid "What would you like to know?"
+msgstr "%s le gustaría %s."
+
+#: lib/dialogue-agent/dispatcher.js:132
+msgid "Sorry, but that's not what I asked."
+msgstr "Lo siento, pero eso no es lo que pedí."
+
+#: lib/dialogue-agent/dispatcher.js:149
+msgid "In fact, I did not ask for anything at all!"
+msgstr "De hecho, ¡no pedí nada!"
+
+#: lib/dialogue-agent/dispatcher.js:151
+msgid "Sorry, I need you to confirm the last question first."
+msgstr "Lo siento, necesito que confirme primero la última pregunta."
+
+#: lib/dialogue-agent/dispatcher.js:153
+msgid "Could you choose one of the following?"
+msgstr "¿Podría elegir uno de los siguientes?"
+
+#: lib/dialogue-agent/dispatcher.js:171
+msgid "Could you give me a number?"
+msgstr "¿Podría insertar un número?"
+
+#: lib/dialogue-agent/dispatcher.js:173
+msgid "Could you give me a date?"
+msgstr "¿Podría insertar una fecha?"
+
+#: lib/dialogue-agent/dispatcher.js:175
+msgid "Could you give me a time of day?"
+msgstr "¿Podría insertar una hora del día?"
+
+#: lib/dialogue-agent/dispatcher.js:177
+msgid "Could you upload a picture?"
+msgstr "¿Podría subir una foto?"
+
+#: lib/dialogue-agent/dispatcher.js:179
+msgid "Could you give me a place?"
+msgstr "¿Podría insertar un lugar?"
+
+#: lib/dialogue-agent/dispatcher.js:181
+msgid "Could you give me a phone number?"
+msgstr "¿Podría insertar un número de teléfono?"
+
+#: lib/dialogue-agent/dispatcher.js:183
+msgid "Could you give me an email address?"
+msgstr "¿Podría insertar una dirección de correo electrónico?"
+
+#. ValueCategory.RawString puts Almond in raw mode,
+#. so we accept almost everything
+#. but this will happen if the user clicks a button
+#. or upload a picture
+#: lib/dialogue-agent/dispatcher.js:189
+msgid ""
+"Which is interesting, because I'll take anything at all. Just type your mind!"
+msgstr ""
+"Lo cual es interesante, porque me va bien cualquier cosa. ¡Libera tu "
+"imaginación!"
+
+#: lib/dialogue-agent/dispatcher.js:191
+msgid "I'm looking for a command."
+msgstr "Buscando un comando."
+
+#: lib/dialogue-agent/dispatcher.js:193
+msgid "I'm looking for a filter"
+msgstr "Buscando un filtro"
+
+#: lib/dialogue-agent/dispatcher.js:195
+msgid "In fact, I'm not even sure what I asked. Sorry!"
+msgstr "De hecho, no estoy completamente seguro de lo que pedí. ¡Lo siento!"
+
+#: lib/dialogue-agent/dispatcher.js:202
+#, fuzzy
+msgid "Sorry, I did not understand that: ${error}. Can you rephrase it?"
+msgstr "Lo siento, no entiendí: %s ¿Puede reformularlo?"
+
+#: lib/dialogue-agent/dispatcher.js:206
+msgid "Sorry, I did not understand that. Can you rephrase it?"
+msgstr "Lo siento, no entiendí. ¿Puede reformularlo?"
+
+#: lib/dialogue-agent/dispatcher.js:210
+#, fuzzy
+msgid "Sorry, I did not understand that: ${error}."
+msgstr "Lo siento, no entiendí: %s "
+
+#: lib/dialogue-agent/dispatcher.js:212
+msgid "Sorry, I did not understand that."
+msgstr "Lo siento, no entiendí."
+
+#: lib/dialogue-agent/dispatcher.js:219
+msgid "I'm sorry, you don't have permission to do that."
+msgstr "Lo siento, no tiene permiso para hacer eso."
+
+#: lib/dialogue-agent/dispatcher.js:223
+msgid "Consider it done."
+msgstr "Considérelo hecho."
+
+#: lib/dialogue-agent/dispatcher.js:260
+msgid "Sorry I couldn't help on that."
+msgstr "Lo siento, no pude ayudar."
+
+#: lib/engine/devices/builtins/thingengine.builtin.js:65
+#: lib/engine/devices/builtins/thingengine.builtin.js:82
+#, fuzzy
+msgid "Sorry, I cannot access your location in this version of Almond."
+msgstr "Lo siento, pero %s no es compatible con esta versión de Almond."
+
+#, javascript-format
+#~ msgid "Sorry, that did not work: %s"
+#~ msgstr "Lo siento, hubo un error: %s"
+
+#, javascript-format
+#~ msgid "You have multiple %s devices. Which one do you want to use?"
+#~ msgstr "Tiene varios dispositivos de tipo %s. ¿Cuál quiere utilizar?"
+
+#, javascript-format
+#~ msgid "Searching for %s…"
+#~ msgstr "Buscando %s…"
+
+#, javascript-format
+#~ msgid "Can't find any %s around."
+#~ msgstr "No puedo encontrar ningún %s alrededor."
+
+#, javascript-format
+#~ msgid "You have trained me with %d sentence."
+#~ msgid_plural "You have trained me with %d sentences."
+#~ msgstr[0] "Me ha entrenado con %d oración."
+#~ msgstr[1] "Me ha entrenado con %d oraciones."
+
+#, javascript-format
+#~ msgid "get %s"
+#~ msgstr "obtén %s"
+
+#, javascript-format
+#~ msgid "%s notify me"
+#~ msgstr "%s notifícame"
+
+#, javascript-format
+#~ msgid "When: %s"
+#~ msgstr "Cuando: %s"
+
+#, javascript-format
+#~ msgid "Get: %s"
+#~ msgstr "Obtener: %s"
+
+#, javascript-format
+#~ msgid "Do: %s"
+#~ msgstr "Hacer: %s"
+
+#, javascript-format
+#~ msgid "Syntax error at %s line %d: %s"
+#~ msgstr "Error de sintaxis en %s línea %d: %s"
+
+#, javascript-format
+#~ msgid "%s wants to %s"
+#~ msgstr "%s quiere %s"
+
+#, javascript-format
+#~ msgid "Okay, so %s. Is that right?"
+#~ msgstr "Okay, entonces %s. ¿Es correcto?"
+
+#, javascript-format
+#~ msgid "Use the %s from %s"
+#~ msgstr "Usa %s de %s"
+
+#~ msgid "a time interval"
+#~ msgstr "un intervalo de tiempo"
+
+#~ msgid "a length"
+#~ msgstr "un longitud"
+
+#~ msgid "a speed"
+#~ msgstr "una velocidad"
+
+#~ msgid "a weight"
+#~ msgstr "un peso"
+
+#~ msgid "a pressure"
+#~ msgstr "una presión"
+
+#~ msgid "a temperature"
+#~ msgstr "una temperatura"
+
+#~ msgid "an energy"
+#~ msgstr "una energía"
+
+#~ msgid "a size"
+#~ msgstr "un tamaño"
+
+#, javascript-format
+#~ msgid "I'm looking for %s in any of the supported units (%s)."
+#~ msgstr "Me gustaría %s en una de las unidades de medidas admitidas (%s)."
+
+#~ msgid "User cancelled"
+#~ msgstr "Cancelado por el usuario"
