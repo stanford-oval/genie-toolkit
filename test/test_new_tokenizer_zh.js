@@ -55,7 +55,10 @@ const TEST_CASES = [
     ['一万', '10000', 'NUMBER_0', { NUMBER_0: 1e4 }],
     ['一百万', '1000000', 'NUMBER_0', { NUMBER_0: 1e6 }],
     ['二百万', '2000000', 'NUMBER_0', { NUMBER_0: 2e6 }],
-    ['一百万二千三', '1002003', 'NUMBER_0', { NUMBER_0: 1002003 }],
+    ['一百万二千三百', '1002300', 'NUMBER_0', { NUMBER_0: 1002300 }],
+    // trailing multiplier can be omitted
+    ['一百万二千三', '1002300', 'NUMBER_0', { NUMBER_0: 1002300 }],
+    // but "零" resets
     ['一百二十万零三', '1200003', 'NUMBER_0', { NUMBER_0: 1200003 }],
     ['一百', '100', 'NUMBER_0', { NUMBER_0: 100 }],
     ['一百一', '110', 'NUMBER_0', { NUMBER_0: 110 }],
@@ -66,6 +69,15 @@ const TEST_CASES = [
     ['三十万', '300000', 'NUMBER_0', { NUMBER_0: 300000 }],
     ['三十一万五千', '315000', 'NUMBER_0', { NUMBER_0: 315000 }],
     ['三十一万五', '315000', 'NUMBER_0', { NUMBER_0: 315000 }],
+    ['一万零二百', '10200', 'NUMBER_0', { NUMBER_0: 10200 }],
+    ['一万二百零三', '10203', 'NUMBER_0', { NUMBER_0: 10203 }],
+    ['一万零二百三', '10230', 'NUMBER_0', { NUMBER_0: 10230 }],
+    ['一万二百三', '10230', 'NUMBER_0', { NUMBER_0: 10230 }],
+    ['一万二', '12000', 'NUMBER_0', { NUMBER_0: 12000 }],
+    ['一百二十万', '1200000', 'NUMBER_0', { NUMBER_0: 1200000 }],
+    ['一百万零二千', '1002000', 'NUMBER_0', { NUMBER_0: 1002000 }],
+    // the following is invalid, we can parse it however we like
+    ['一百万二', '1002000', 'NUMBER_0', { NUMBER_0: 1002000 }],
 
     // ordinals
     ['我要第1个', '我 要 第 1 个', '我 要 第 1 个', {}],
@@ -121,6 +133,9 @@ const TEST_CASES = [
     // dates
     ['6月1号', 'XXXX-06-01', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
     ['6月1日', 'XXXX-06-01', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
+    ['6月1日星期天', 'XXXX-06-01', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
+    ['6月1日，星期天', 'XXXX-06-01', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
+    ['6月1日星期一', 'XXXX-06-01', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
     ['2020年6月1号', '2020-06-01', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
     ['六月一号', 'XXXX-06-01', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
     ['二〇二〇年六月一号', '2020-06-01', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
@@ -134,14 +149,18 @@ const TEST_CASES = [
     ['2020年4月3号', '2020-04-03', 'DATE_0', { DATE_0: { year: 2020, month: 4, day: 3, hour: 0, minute: 0, second: 0, timezone: undefined } }],
     ['2020年6月', '2020-06-XX', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: -1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
     ['2020年六月', '2020-06-XX', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: -1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
+
     // three special dates which are normally referred in abbreviation
-    ['六一', 'XXXX-06-01', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
-    ['五一', 'XXXX-05-01', 'DATE_0', { DATE_0: { year: -1, month: 5, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
-    ['十一', 'XXXX-10-01', 'DATE_0', { DATE_0: { year: -1, month: 10, day: 1, hour: 0, minute: 0, second: 0, timezone: undefined } }],
+    // these turn into small numbers and the neural network learns to predict a date
+    ['六一', '6 一', '6 一', {}],
+    ['五一', '5 一', '5 一', {}],
+    ['十一', '11', '11', {}],
 
     // with times
     ['6月1号1:15', 'XXXX-06-01T01:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 1, minute: 15, second: 0, timezone: undefined } }],
     ['6月1号在1:15', 'XXXX-06-01T01:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 1, minute: 15, second: 0, timezone: undefined } }],
+    ['6月1号星期天1:15', 'XXXX-06-01T01:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 1, minute: 15, second: 0, timezone: undefined } }],
+    ['6月1号星期天在1:15', 'XXXX-06-01T01:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 1, minute: 15, second: 0, timezone: undefined } }],
     ['6月1号7:15', 'XXXX-06-01T07:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 7, minute: 15, second: 0, timezone: undefined } }],
     ['六月一号在7:15', 'XXXX-06-01T07:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 7, minute: 15, second: 0, timezone: undefined } }],
     ['六月一号在7点15分', 'XXXX-06-01T07:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 7, minute: 15, second: 0, timezone: undefined } }],
