@@ -25,7 +25,6 @@ const Ast = ThingTalk.Ast;
 const { choose } = require('../lib/random');
 const { clean, posTag } = require('../lib/utils');
 const StreamUtils = require('../lib/stream-utils');
-//const Tokenizer = require('../lib/tokenizer');
 
 function* get(obj, propertyList, offset) {
     if (offset === propertyList.length) {

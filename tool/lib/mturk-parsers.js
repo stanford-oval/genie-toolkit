@@ -12,6 +12,7 @@
 
 const Stream = require('stream');
 
+const I18n = require('../../lib/i18n');
 const { ParaphraseValidator } = require('../../lib/validator');
 
 // Parse the raw output of Amazon MTurk paraphrasing into easier to handle objects
@@ -319,14 +320,15 @@ class ValidationRejecter extends Stream.Transform {
 }
 
 class ParaphrasingRejecter extends Stream.Transform {
-    constructor(schemaRetriever, tokenizer, options) {
+    constructor(schemaRetriever, options) {
         super({
             readableObjectMode: true,
             writableObjectMode: true
         });
 
         this._schemas = schemaRetriever;
-        this._tokenizer = tokenizer;
+        this._langPack = I18n.get(options.locale);
+        this._tokenizer = this._langPack.getTokenizer();
 
         this._locale = options.locale;
         this._sentencesPerTask = options.sentencesPerTask;
@@ -339,7 +341,7 @@ class ParaphrasingRejecter extends Stream.Transform {
     }
 
     async _validate(paraobj) {
-        const paraphrase = new ParaphraseValidator(this._schemas, this._tokenizer, this._locale,
+        const paraphrase = new ParaphraseValidator(this._schemas, this._langPack, this._tokenizer, this._locale,
             paraobj, this._counter);
 
         try {

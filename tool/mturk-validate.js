@@ -19,7 +19,6 @@ const ThingTalk = require('thingtalk');
 const { ParaphraseValidatorFilter } = require('../lib/validator');
 const { DatasetStringifier } = require('../lib/dataset-parsers');
 
-const TokenizerService = require('../lib/tokenizer');
 const MT = require('./lib/mturk-parsers');
 const StreamUtils = require('../lib/stream-utils');
 
@@ -112,7 +111,6 @@ module.exports = {
     async execute(args) {
         const tpClient = new Tp.FileClient(args);
         const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
-        const tokenizer = TokenizerService.get(process.env.GENIE_USE_TOKENIZER, true);
 
         let validationRejects = Promise.resolve();
         let validationCounts;
@@ -154,7 +152,7 @@ module.exports = {
                 delimiter: ',',
                 relax_column_count: true
             }))
-            .pipe(new MT.ParaphrasingRejecter(schemaRetriever, tokenizer, {
+            .pipe(new MT.ParaphrasingRejecter(schemaRetriever, {
                 sentencesPerTask: args.sentences_per_task,
                 paraphrasesPerSentence: args.paraphrases_per_sentence,
                 locale: args.locale,
@@ -177,7 +175,7 @@ module.exports = {
                 contextual: args.contextual,
                 skipRejected: true
             }))
-            .pipe(new ParaphraseValidatorFilter(schemaRetriever, tokenizer, {
+            .pipe(new ParaphraseValidatorFilter(schemaRetriever, {
                 locale: args.locale,
                 debug: args.debug,
                 validationCounts,
@@ -215,7 +213,5 @@ module.exports = {
             validationRejects,
             paraphrasingRejects
         ]);
-
-        tokenizer.end();
     }
 };

@@ -13,7 +13,6 @@ const ThingTalk = require('thingtalk');
 const Tp = require('thingpedia');
 const qs = require('qs');
 
-const TokenizerService = require('../../lib/tokenizer');
 const Predictor = require('../../lib/predictor');
 const Utils = require('../../lib/utils');
 const I18n = require('../../lib/i18n');
@@ -28,9 +27,9 @@ const POLICY_TASK = 'almond_dialogue_policy';
 class LocalParserClient {
     constructor(modeldir, locale) {
         this._locale = locale;
-        this._tokenizer = TokenizerService.get('local');
         this._predictor = new Predictor('local', modeldir);
         this._langPack = I18n.get(locale);
+        this._tokenizer = this._langPack.getTokenizer();
     }
 
     async start() {
@@ -38,11 +37,10 @@ class LocalParserClient {
     }
     async stop() {
         await this._predictor.stop();
-        await this._tokenizer.end();
     }
 
     async tokenize(utterance, contextEntities) {
-        const tokenized = await this._tokenizer.tokenize(this._locale, utterance);
+        const tokenized = this._tokenizer.tokenize(utterance);
         Utils.renumberEntities(tokenized, contextEntities);
         return tokenized;
 
@@ -54,7 +52,7 @@ class LocalParserClient {
             entities = Utils.makeDummyEntities(utterance);
             Object.assign(entities, contextEntities);
         } else {
-            const tokenized = await this._tokenizer.tokenize(this._locale, utterance);
+            const tokenized = this._tokenizer.tokenize(utterance);
             Utils.renumberEntities(tokenized, contextEntities);
             tokens = tokenized.tokens;
             entities = tokenized.entities;
