@@ -12,7 +12,7 @@
 
 const Stream = require('stream');
 
-const { ParaphraseValidator } = require('../../lib/validator');
+const { ParaphraseValidator } = require('../../lib/dataset-tools/mturk/validator');
 
 // Parse the raw output of Amazon MTurk paraphrasing into easier to handle objects
 //

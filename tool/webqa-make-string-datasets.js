@@ -17,7 +17,7 @@ const ThingTalk = require('thingtalk');
 const csvstringify = require('csv-stringify');
 
 const Tokenizer = require('../lib/tokenizer');
-const StreamUtils = require('../lib/stream-utils');
+const StreamUtils = require('../lib/utils/stream-utils');
 const { makeMetadata } = require('./lib/webqa-metadata');
 const { PROPERTIES_NO_FILTER } = require('./lib/webqa-manual-annotations');
 

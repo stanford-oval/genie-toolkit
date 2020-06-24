@@ -16,9 +16,9 @@ const fs = require('fs');
 const JSONStream = require('JSONStream');
 const assert = require('assert');
 
-const StreamUtils = require('../lib/stream-utils');
-const { getBestEntityMatch } = require('../lib/entity-finder');
-const Utils = require('../lib/utils');
+const StreamUtils = require('../lib/utils/stream-utils');
+const { getBestEntityMatch } = require('../lib/utils/entity-finder');
+const Utils = require('../lib/utils/misc-utils');
 
 const TokenizerService = require('../lib/tokenizer');
 const { DialogueParser } = require('./lib/dialog_parser');

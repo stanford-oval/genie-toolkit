@@ -11,10 +11,10 @@
 
 const fs = require('fs');
 const Stream = require('stream');
-const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
+const { DatasetParser, DatasetStringifier } = require('../lib/dataset-tools/parsers');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
-const StreamUtils = require('../lib/stream-utils');
+const StreamUtils = require('../lib/utils/stream-utils');
 
 
 const FROM = [

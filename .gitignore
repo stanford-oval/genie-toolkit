@@ -9,9 +9,15 @@ bundle/
 *.pyc
 __pycache__
 
-lib/genie-compiler/grammar.js
+lib/sentence-generator/compiler/grammar.js
+po/tmp
+po/POTFILES
+po/genie-toolkit.pot
+po/*.mo
+po/*.json
 
 *.tgz
+*.tt.json
 
 workdir*
 dataset.tt

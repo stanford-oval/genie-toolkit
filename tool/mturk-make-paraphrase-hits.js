@@ -14,9 +14,9 @@ const Stream = require('stream');
 const csvparse = require('csv-parse');
 const csvstringify = require('csv-stringify');
 
-const StreamUtils = require('../lib/stream-utils');
+const StreamUtils = require('../lib/utils/stream-utils');
 const { NUM_SENTENCES_PER_TASK } = require('./lib/constants');
-const { clean } = require('../lib/utils');
+const { clean } = require('../lib/utils/misc-utils');
 
 class ParaphraseHITCreator extends Stream.Transform {
     constructor(sentencesPerTask) {

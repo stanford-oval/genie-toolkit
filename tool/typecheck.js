@@ -16,10 +16,10 @@ const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const util = require('util');
 
-const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
+const { DatasetParser, DatasetStringifier } = require('../lib/dataset-tools/parsers');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const StreamUtils = require('../lib/stream-utils');
-const Utils = require('../lib/utils');
+const StreamUtils = require('../lib/utils/stream-utils');
+const Utils = require('../lib/utils/misc-utils');
 
 class CacheParser extends Stream.Transform {
     constructor() {

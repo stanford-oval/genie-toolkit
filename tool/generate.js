@@ -14,7 +14,7 @@ const fs = require('fs');
 const Tp = require('thingpedia');
 
 const { BasicSentenceGenerator } = require('../lib/sentence-generator');
-const { DatasetStringifier } = require('../lib/dataset-parsers');
+const { DatasetStringifier } = require('../lib/dataset-tools/parsers');
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 const ProgressBar = require('./lib/progress_bar');
 const { ActionSetFlag } = require('./lib/argutils');

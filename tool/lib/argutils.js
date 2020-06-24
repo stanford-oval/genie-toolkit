@@ -13,7 +13,7 @@ const fs = require('fs');
 const byline = require('byline');
 const argparse = require('argparse');
 
-const StreamUtils = require('../../lib/stream-utils');
+const StreamUtils = require('../../lib/utils/stream-utils');
 
 function maybeCreateReadStream(filename) {
     if (filename === '-')

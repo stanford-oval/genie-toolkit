@@ -15,7 +15,7 @@ const Stream = require('stream');
 const fs = require('fs');
 const seedrandom = require('seedrandom');
 
-const StreamUtils = require('../lib/stream-utils');
+const StreamUtils = require('../lib/utils/stream-utils');
 const { isExecutable } = require('../lib/languages/dlgthingtalk/state_utils');
 const { findFilterTable } = require('../languages/thingtalk/ast_manip');
 

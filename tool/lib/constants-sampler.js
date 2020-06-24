@@ -9,8 +9,8 @@
 // See COPYING for details
 "use strict";
 
-const { choose } = require('../../lib/random');
-const { sampleString } = require('../../lib/utils');
+const { choose } = require('../../lib/utils/random');
+const { sampleString } = require('../../lib/utils/misc-utils');
 const i18n = require('../../lib/i18n');
 
 function getEntityType(type) {

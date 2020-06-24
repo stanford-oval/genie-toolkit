@@ -22,9 +22,9 @@ const Inflectors = require('en-inflectors').Inflectors;
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 
-const { choose } = require('../lib/random');
-const { clean, posTag } = require('../lib/utils');
-const StreamUtils = require('../lib/stream-utils');
+const { choose } = require('../lib/utils/random');
+const { clean, posTag } = require('../lib/utils/misc-utils');
+const StreamUtils = require('../lib/utils/stream-utils');
 //const Tokenizer = require('../lib/tokenizer');
 
 function* get(obj, propertyList, offset) {

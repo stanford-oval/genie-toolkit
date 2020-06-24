@@ -16,7 +16,7 @@ const ThingTalk = require('thingtalk');
 
 const { parseConstantFile } = require('./lib/constant-file');
 const Annotator = require('./lib/webqa-canonical-annotator');
-const StreamUtils = require('../lib/stream-utils');
+const StreamUtils = require('../lib/utils/stream-utils');
 
 async function loadClassDef(thingpedia) {
     const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
