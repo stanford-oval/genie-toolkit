@@ -15,10 +15,10 @@ const path = require('path');
 const stream = require('stream');
 const seedrandom = require('seedrandom');
 
-const { BasicSentenceGenerator } = require('../lib/sentence-generator');
-const DatasetAugmenter = require('../lib/dataset_augmenter');
-const Utils = require('../lib/utils');
-const FileParameterProvider = require('../tool/lib/file_parameter_provider');
+const { BasicSentenceGenerator } = require('../../lib/sentence-generator');
+const DatasetAugmenter = require('../../lib/dataset_augmenter');
+const Utils = require('../../lib/utils');
+const FileParameterProvider = require('../../tool/lib/file_parameter_provider');
 
 const ThingTalk = require('thingtalk');
 const NNSyntax = ThingTalk.NNSyntax;

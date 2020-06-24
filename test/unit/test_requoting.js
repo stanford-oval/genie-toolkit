@@ -11,7 +11,7 @@
 
 const assert = require('assert');
 
-const { requoteSentence, requoteProgram } = require('../lib/requoting');
+const { requoteSentence, requoteProgram } = require('../../lib/dataset-tools/requoting');
 
 const SENTENCE_TEST_CASES = [
     ['tweet hello world', 'now => @com.twitter.post param:status:String = " hello world "', 'tweet QUOTED_STRING'],

@@ -10,7 +10,7 @@
 "use strict";
 
 const assert = require('assert');
-const StreamUtils = require('../lib/stream-utils');
+const StreamUtils = require('../../lib/utils/stream-utils');
 
 async function readall(readable) {
     return new Promise((resolve, reject) => {

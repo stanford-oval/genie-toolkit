@@ -13,7 +13,7 @@ const ThingTalk = require('thingtalk');
 const seedrandom = require('seedrandom');
 const Tp = require('thingpedia');
 
-const DatasetAugmenter = require('../../lib/dataset_augmenter');
+const DatasetAugmenter = require('../../lib/dataset-tools/augmentation');
 const FileParameterProvider = require('../lib/file_parameter_provider');
 
 module.exports = async function worker(args, shard) {

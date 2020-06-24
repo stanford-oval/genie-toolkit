@@ -14,9 +14,9 @@
 
 const net = require('net');
 const assert = require('assert');
-const JsonDatagramSocket = require('../lib/json_datagram_socket');
+const JsonDatagramSocket = require('../../lib/utils/json_datagram_socket');
 
-const { LocalTokenizer } = require('../lib/tokenizer');
+const { LocalTokenizer } = require('../../lib/tokenizer');
 
 function delay(ms) {
     return new Promise((resolve, reject) => {

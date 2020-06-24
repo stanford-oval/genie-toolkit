@@ -15,8 +15,8 @@ const path = require('path');
 const stream = require('stream');
 const seedrandom = require('seedrandom');
 
-const { BasicSentenceGenerator } = require('../lib/sentence-generator');
-const { makeDummyEntities } = require('../lib/utils');
+const { BasicSentenceGenerator } = require('../../lib/sentence-generator');
+const { makeDummyEntities } = require('../../lib/utils');
 
 const ThingTalk = require('thingtalk');
 const NNSyntax = ThingTalk.NNSyntax;

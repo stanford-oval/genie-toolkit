@@ -11,7 +11,7 @@
 
 const assert = require('assert');
 
-const zh_tw = require('../lib/i18n/traditional-chinese');
+const zh_tw = require('../../lib/i18n/traditional-chinese');
 
 const SENTENCE_TEST_CASES = [
     ["給 我 一杯 drip coffee", "給 我 一杯 濾掛式 咖啡"],

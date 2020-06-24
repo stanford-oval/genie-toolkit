@@ -12,7 +12,7 @@
 const seedrandom = require('seedrandom');
 const assert = require('assert');
 
-const random = require('../lib/random');
+const random = require('../../lib/utils/random');
 
 function testChoice(rng) {
     assert.strictEqual(random.uniform([1,2,3,4], rng), 4);

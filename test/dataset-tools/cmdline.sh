@@ -3,7 +3,7 @@
 set -e
 set -x
 
-srcdir=`dirname $0`/..
+srcdir=`dirname $0`/../..
 srcdir=`realpath $srcdir`
 
 export TMPDIR=$srcdir
