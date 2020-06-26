@@ -18,12 +18,12 @@ const util = require('util');
 const ThingTalk = require('thingtalk');
 const crypto = require('crypto');
 
-const StreamUtils = require('../lib/stream-utils');
-const { makeMetadata } = require('./lib/webqa-metadata');
+const StreamUtils = require('../../lib/stream-utils');
+const { makeMetadata } = require('./metadata');
 const {
     PROPERTY_RENAMES,
     ENUM_VALUE_NORMALIZE
-} = require('./lib/webqa-manual-annotations');
+} = require('./manual-annotations');
 
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
@@ -526,7 +526,7 @@ class Normalizer {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('webqa-normalize-data', {
+        const parser = subparsers.addParser('autoqa-normalize-data', {
             addHelp: true,
             description: "Normalize schema.org JSON+LD files to match their ThingTalk representation."
         });

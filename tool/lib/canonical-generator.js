@@ -16,9 +16,9 @@ const Inflectors = require('en-inflectors').Inflectors;
 const child_process = require('child_process');
 const utils = require('../../lib/utils');
 
-const AnnotationExtractor = require('./webqa-template-extractor');
+const CanonicalExtractor = require('./canonical-extractor');
 const { makeLookupKeys } = require('../../lib/sample-utils');
-const { PROPERTY_CANONICAL_OVERRIDE } = require('./webqa-manual-annotations');
+const { PROPERTY_CANONICAL_OVERRIDE } = require('../autoqa/manual-annotations');
 const { posTag } = require('../../lib/i18n/american-english');
 
 const ANNOTATED_PROPERTIES = Object.keys(PROPERTY_CANONICAL_OVERRIDE);
@@ -33,7 +33,7 @@ function typeToEntityType(type) {
         return null;
 }
 
-class AutoCanonicalAnnotator {
+class AutoCanonicalGenerator {
     constructor(classDef, constants, queries, parameterDatasets, options) {
         this.class = classDef;
         this.constants = constants;
@@ -139,7 +139,7 @@ class AutoCanonicalAnnotator {
         }
 
         if (this.algorithm !== 'heuristics-only') {
-            const args = [path.resolve(path.dirname(module.filename), './bert-annotator.py'), 'all'];
+            const args = [path.resolve(path.dirname(module.filename), './bert-canonical-annotator.py'), 'all'];
             if (this.is_paraphraser)
                 args.push('--is-paraphraser');
             if (this.gpt2_ordering)
@@ -157,7 +157,7 @@ class AutoCanonicalAnnotator {
 
             const output = util.promisify(fs.writeFile);
             if (this.options.debug)
-                await output(`./bert-annotator-in.json`, JSON.stringify(queries, null, 2));
+                await output(`./bert-canonical-annotator-in.json`, JSON.stringify(queries, null, 2));
 
             const stdout = await new Promise((resolve, reject) => {
                 child.stdin.write(JSON.stringify(queries));
@@ -173,13 +173,13 @@ class AutoCanonicalAnnotator {
             });
 
             if (this.options.debug)
-                await output(`./bert-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
+                await output(`./bert-canonical-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
 
             const {synonyms, adjectives } = JSON.parse(stdout);
             if (this.bert || this.adj)
                 this._updateCanonicals(synonyms, adjectives);
             if (this.bart) {
-                const extractor = new AnnotationExtractor(this.class, this.queries, this.paraphraser_model, this.options);
+                const extractor = new CanonicalExtractor(this.class, this.queries, this.paraphraser_model, this.options);
                 await extractor.run(synonyms, queries);
             }
         }
@@ -343,4 +343,4 @@ class AutoCanonicalAnnotator {
     }
 }
 
-module.exports = AutoCanonicalAnnotator;
+module.exports = AutoCanonicalGenerator;
