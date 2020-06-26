@@ -16,10 +16,10 @@ const path = require('path');
 const ThingTalk = require('thingtalk');
 const csvstringify = require('csv-stringify');
 
-const I18N = require('../lib/i18n');
-const StreamUtils = require('../lib/stream-utils');
-const { makeMetadata } = require('./lib/webqa-metadata');
-const { PROPERTIES_NO_FILTER } = require('./lib/webqa-manual-annotations');
+const I18N = require('../../lib/i18n');
+const StreamUtils = require('../../lib/stream-utils');
+const { makeMetadata } = require('./metadata');
+const { PROPERTIES_NO_FILTER } = require('./manual-annotations');
 
 class ParamDatasetGenerator {
     constructor(locale, debug, className) {
@@ -202,13 +202,12 @@ class ParamDatasetGenerator {
 
         manifest.end();
         await StreamUtils.waitFinish(manifest);
-        await this._tokenizer.end();
     }
 }
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('webqa-make-string-datasets', {
+        const parser = subparsers.addParser('autoqa-make-string-datasets', {
             addHelp: true,
             description: "Extract string datasets from a WebQA normalized data file."
         });

@@ -16,7 +16,7 @@ const Type = ThingTalk.Type;
 const fs = require('fs');
 const util = require('util');
 
-const StreamUtils = require('../lib/stream-utils');
+const StreamUtils = require('../../lib/stream-utils');
 
 const DEFAULT_ENTITIES = [
     {"type":"tt:contact","name":"Contact Identity","is_well_known":1,"has_ner_support":0},
@@ -233,7 +233,7 @@ class SchemaTrimmer {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('webqa-trim-class', {
+        const parser = subparsers.addParser('autoqa-trim-class', {
             addHelp: true,
             description: "Reduce a WebQA class file to the subset of fields that have data."
         });

@@ -18,10 +18,10 @@ const Ast = ThingTalk.Ast;
 const fs = require('fs');
 const util = require('util');
 
-const { clean } = require('../lib/utils');
-const { pluralize, posTag } = require('../lib/i18n/american-english');
-const { isHumanEntity } = require('../languages/thingtalk/utils');
-const StreamUtils = require('../lib/stream-utils');
+const { clean } = require('../../lib/utils');
+const { pluralize, posTag } = require('../../lib/i18n/american-english');
+const { isHumanEntity } = require('../../languages/thingtalk/utils');
+const StreamUtils = require('../../lib/stream-utils');
 
 const {
     BUILTIN_TYPEMAP,
@@ -39,7 +39,7 @@ const {
     PROPERTIES_DROP_WITH_GEO,
     STRUCT_INCLUDE_THING_PROPERTIES,
     STRING_FILE_OVERRIDES
-} = require('./lib/webqa-manual-annotations');
+} = require('./manual-annotations');
 
 const keepAnnotation = false;
 
@@ -729,7 +729,7 @@ class SchemaProcessor {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('webqa-process-schemaorg', {
+        const parser = subparsers.addParser('autoqa-process-schemaorg', {
             addHelp: true,
             description: "Process a schema.org JSON+LD definition into a Thingpedia class."
         });

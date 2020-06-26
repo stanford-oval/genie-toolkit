@@ -51,15 +51,13 @@ const subcommands = {
 
     'dataset': require('./dataset'),
 
-    'webqa-process-schemaorg': require('./webqa-process-schemaorg'),
-    'webqa-auto-primitive': require('./webqa-auto-primitive'),
-    'webqa-normalize-data': require('./webqa-normalize-data'),
-    'webqa-make-string-datasets': require('./webqa-make-string-datasets'),
-    'webqa-trim-class': require('./webqa-trim-class'),
-    'webqa-paraphrase-transfer': require('./webqa-paraphrase-transfer'),
-    'webqa-update-canonicals': require('./webqa-update-canonicals'),
-    'webqa-retrieve-wikidata-labels': require('./webqa-retrieve-wikidata-labels'),
-    'webqa-annotation-diffchecker': require('./webqa-annotation-diffchecker'),
+    'autoqa-process-schemaorg': require('./autoqa/process-schemaorg'),
+    'autoqa-normalize-data': require('./autoqa/normalize-data'),
+    'autoqa-make-string-datasets': require('./autoqa/make-string-datasets'),
+    'autoqa-trim-class': require('./autoqa/trim-class'),
+    'autogen-annotations': require('./autogen-annotations'),
+    'autoqa-retrieve-wikidata-labels': require('./autoqa/retrieve-wikidata-labels'),
+    'canonical-diffchecker': require('./canonical-diffchecker'),
 
     'auto-annotate-multiwoz': require('./auto-annotate-multiwoz'),
     'convert-thingtalk-to-multidst': require('./convert-thingtalk-to-multidst'),
