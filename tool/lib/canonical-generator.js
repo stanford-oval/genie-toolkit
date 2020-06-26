@@ -39,7 +39,7 @@ class AutoCanonicalGenerator {
         this.constants = constants;
         this.queries = queries;
 
-        this.algorithm = options.algorithm;
+        this.algorithm = options.algorithm ? options.algorithm.split(',') : [];
         this.pruning = options.pruning;
         this.mask = options.mask;
         this.is_paraphraser = options.is_paraphraser;
@@ -51,13 +51,6 @@ class AutoCanonicalGenerator {
         this.parameterDatasetPaths = {};
 
         this.options = options;
-
-        if (['all', 'bert', 'no-adj', 'no-bart'].includes(this.algorithm))
-            this.bert = true;
-        if (['all', 'bart', 'no-adj', 'no-bert'].includes(this.algorithm))
-            this.bart = true;
-        if (['all', 'adj', 'no-bert', 'no-bart'].includes(this.algorithm))
-            this.adj = true;
     }
 
     async generate() {
@@ -138,7 +131,7 @@ class AutoCanonicalGenerator {
             }
         }
 
-        if (this.algorithm !== 'heuristics-only') {
+        if (this.algorithm.length > 0) {
             const args = [path.resolve(path.dirname(module.filename), './bert-canonical-annotator.py'), 'all'];
             if (this.is_paraphraser)
                 args.push('--is-paraphraser');
@@ -176,9 +169,9 @@ class AutoCanonicalGenerator {
                 await output(`./bert-canonical-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
 
             const {synonyms, adjectives } = JSON.parse(stdout);
-            if (this.bert || this.adj)
+            if (this.algorithm.includes('bert') || this.algorithm.includes('adj'))
                 this._updateCanonicals(synonyms, adjectives);
-            if (this.bart) {
+            if (this.algorithm.includes('bart')) {
                 const extractor = new CanonicalExtractor(this.class, this.queries, this.paraphraser_model, this.options);
                 await extractor.run(synonyms, queries);
             }
@@ -231,10 +224,10 @@ class AutoCanonicalGenerator {
                     continue;
                 let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
 
-                if (this.adj && adjectives.includes(`${qname}.${arg}`))
+                if (this.algorithm.includes('adj') && adjectives.includes(`${qname}.${arg}`))
                     canonicals['adjective'] = ['#'];
 
-                if (this.bert) {
+                if (this.algorithm.includes('bert')) {
                     for (let type in candidates[qname][arg]) {
                         for (let candidate in candidates[qname][arg][type]) {
                             if (this._hasConflict(qname, arg, type, candidate))

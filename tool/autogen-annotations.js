@@ -57,9 +57,8 @@ module.exports = {
             defaultValue: false
         });
         parser.addArgument('--algorithm', {
-            choices: ['all', 'heuristics-only', 'bert', 'bart', 'adj', 'no-bert', 'no-bart', 'no-adj'],
-            help: 'Different algorithms to generate canonicals',
-            defaultValue: 'all'
+            help: 'Different algorithms to generate canonicals including bert, bart, adj, split by comma (no space)',
+            defaultValue: null
         });
         parser.addArgument('--pruning', {
             required: false,
