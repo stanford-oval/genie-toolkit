@@ -24,7 +24,7 @@ const TokenizerService = require('../lib/tokenizer');
 const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
-const ParserClient = require('./lib/parserclient');
+const ParserClient = require('../lib/prediction/parserclient');
 
 
 class DialogueToDSTStream extends Stream.Transform {
@@ -205,7 +205,7 @@ class DialogueToDSTStream extends Stream.Transform {
         const goldUserState = this._target.computeNewState(context, goldUserTarget);
         const goldSlots = this._extractSlots(goldUserState);
 
-        const parsed = await this._parser.sendUtterance(tokens.join(' '), true, contextCode, contextEntities);
+        const parsed = await this._parser.sendUtterance(tokens.join(' '), contextCode, contextEntities, { tokenized: true });
 
         const predictions = parsed.candidates
             .filter((beam) => beam.score !== 'Infinity') // ignore exact matches

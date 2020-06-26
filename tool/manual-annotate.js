@@ -16,7 +16,7 @@ const csvstringify = require('csv-stringify');
 const readline = require('readline');
 const Tp = require('thingpedia');
 
-const ParserClient = require('./lib/parserclient');
+const ParserClient = require('../lib/prediction/parserclient');
 const { DatasetStringifier } = require('../lib/dataset-tools/parsers');
 
 const ThingTalk = require('thingtalk');
@@ -199,7 +199,7 @@ class Trainer extends events.EventEmitter {
         if (!id)
             id = this._serial;
 
-        const parsed = await this._parser.sendUtterance(utterance, /* tokenized */ false, /* context */ undefined, /* contextEntities */ {});
+        const parsed = await this._parser.sendUtterance(utterance, /* context */ undefined, /* contextEntities */ {});
 
         if (oldTargetCode) {
             try {

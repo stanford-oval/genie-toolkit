@@ -18,7 +18,7 @@ const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 
-const ParserClient = require('./lib/parserclient');
+const ParserClient = require('../lib/prediction/parserclient');
 const { DialogueSerializer } = require('./lib/dialog_parser');
 const StreamUtils = require('../lib/utils/stream-utils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
@@ -270,7 +270,7 @@ class Converter extends stream.Readable {
             contextEntities = {};
         }
 
-        const parsed = await parser.sendUtterance(utterance, false, contextCode, contextEntities);
+        const parsed = await parser.sendUtterance(utterance, contextCode, contextEntities);
         return (await Promise.all(parsed.candidates.map(async (cand) => {
             try {
                 const program = ThingTalk.NNSyntax.fromNN(cand.code, parsed.entities);

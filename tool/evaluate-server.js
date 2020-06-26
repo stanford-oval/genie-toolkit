@@ -16,7 +16,7 @@ const fs = require('fs');
 const { DatasetParser } = require('../lib/dataset-tools/parsers');
 const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('../lib/dataset-tools/evaluation/sentence_evaluator');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const ParserClient = require('./lib/parserclient');
+const ParserClient = require('../lib/prediction/parserclient');
 
 function csvDisplay(args, complexity, result, with_numeric=false, without_numeric=false) {
     let buffer = '';
