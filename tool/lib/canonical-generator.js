@@ -195,7 +195,7 @@ class AutoCanonicalGenerator {
     async _loadParameterDatasetPaths() {
         const rows = (await (util.promisify(fs.readFile))(this.parameterDatasets, { encoding: 'utf8' })).split('\n');
         for (let row of rows) {
-            let [, key, path] = row.split('\t');
+            let [/*type*/, /*locale*/, key, path] = row.split('\t');
             this.parameterDatasetPaths[key] = path;
         }
     }
