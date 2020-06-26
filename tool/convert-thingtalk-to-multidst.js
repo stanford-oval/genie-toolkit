@@ -19,7 +19,7 @@ const assert = require('assert');
 
 const MultiDST = require('../lib/languages/multidst/ast');
 const StreamUtils = require('../lib/utils/stream-utils');
-const { getBestEntityMatch } = require('../lib/utils/entity-finder');
+const { getBestEntityMatch } = require('../lib/dialogue-agent/entity-linking/entity-finder');
 const { uniform } = require('../lib/utils/random');
 
 const ProgressBar = require('./lib/progress_bar');
@@ -44,6 +44,16 @@ class DialogueToDSTStream extends Stream.Transform {
         this._cachedEntityMatches = new Map;
     }
 
+    _getIDs(type) {
+        return this._database.get(type).map((entry) => {
+            return {
+                value: entry.id.value,
+                name: entry.id.display,
+                canonical: entry.id.display
+            };
+        });
+    }
+
     _resolveEntity(value) {
         if (!this._database || (!value.value && !value.display))
             return null;
@@ -51,7 +61,7 @@ class DialogueToDSTStream extends Stream.Transform {
         const cacheKey = value.type + '/' + value.value + '/' + value.display;
         let resolved = this._cachedEntityMatches.get(cacheKey);
         if (!resolved) {
-            resolved = getBestEntityMatch(value.value, value.display, this._database.get(value.type));
+            resolved = getBestEntityMatch(value.value, value.display, this._getIDs(value.type));
             this._cachedEntityMatches.set(cacheKey, resolved);
         }
         return resolved;

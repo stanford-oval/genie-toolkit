@@ -16,7 +16,7 @@ const fs = require('fs');
 const seedrandom = require('seedrandom');
 
 const StreamUtils = require('../lib/utils/stream-utils');
-const { isExecutable } = require('../lib/languages/dlgthingtalk/state_utils');
+const { isExecutable } = require('../lib/dialogue-agent/dialogue_state_utils');
 const { findFilterTable } = require('../languages/thingtalk/ast_manip');
 
 const { DialogueParser } = require('./lib/dialog_parser');
