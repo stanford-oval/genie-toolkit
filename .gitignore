@@ -2,6 +2,7 @@
 node_modules/
 coverage/
 bundle/
+home/
 .nyc_output/
 .idea/
 .vscode/

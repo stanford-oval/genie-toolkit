@@ -26,6 +26,7 @@
     "ip": "^1.1.5",
     "matrix-js-sdk": "0.9.2",
     "morgan": "^1.9.1",
+    "node-gettext": "^2.0.0",
     "q": "^1.5.0",
     "qs": "^6.7.0",
     "query-validation": "^0.1.0",
@@ -44,7 +45,6 @@
     "coveralls": "^3.0.0",
     "eslint": "^7.2.0",
     "jsdoc": "^3.6.3",
-    "node-gettext": "^2.0.0",
     "nyc": "^15.0.0",
     "pegjs": "^0.10.0"
   },
@@ -69,5 +69,8 @@
       "thingtalk",
       "thingpedia"
     ]
+  },
+  "optionalDependencies": {
+    "pulseaudio2": "^0.3.1"
   }
 }
