@@ -59,6 +59,8 @@ const subcommands = {
     'autoqa-retrieve-wikidata-labels': require('./autoqa/retrieve-wikidata-labels'),
     'canonical-diffchecker': require('./canonical-diffchecker'),
 
+    'sgd-process-schema': require('./sgd/process-schema'),
+
     'auto-annotate-multiwoz': require('./auto-annotate-multiwoz'),
     'convert-thingtalk-to-multidst': require('./convert-thingtalk-to-multidst'),
     'extract-predicted-slots': require('./extract-predicted-slots'),
