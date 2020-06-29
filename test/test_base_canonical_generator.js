@@ -20,6 +20,9 @@ const TEST_CASES = [
     ['datePublished', Type.Date, { base: ['date published'] }],
     ['review', Type.Array(Type.Entity('org.schema.Restaurant:Review')), { base: ['reviews'] }],
     ['servesCuisine', Type.String, { verb: ["serves # cuisine"], base: ["cuisine"] }],
+
+    ['from_location', Type.Location, { base: ['location'], passive_verb: ['from'] }],
+    ['to_location', Type.Location, { base: ['location'], passive_verb: ['to'] }]
 ];
 
 
