@@ -18,6 +18,7 @@ const Ast = ThingTalk.Ast;
 
 const { clean } = require('../../lib/utils');
 const StreamUtils = require('../../lib/stream-utils');
+const baseCanonical = require('../lib/base-canonical-generator');
 const { PROPERTY_TYPE_OVERRIDE } = require('./manual-annotations');
 
 function preprocess_values(v) {
@@ -89,7 +90,7 @@ class SchemaProcessor {
                 slots[slot.name] = {
                     type,
                     annotations: {
-                        nl: { canonical:  { base: [clean(slot.name)] }},
+                        nl: { canonical: baseCanonical({}, slot.name, type)},
                         impl: { description: new Ast.Value.String(slot.description)}
                     }
                 };
