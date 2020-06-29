@@ -37,5 +37,7 @@ do_test([
     ('./test_random'),
     ('./test_new_tokenizer_en'),
     ('./test_new_tokenizer_it'),
-    ('./test_new_tokenizer_zh')
+    ('./test_new_tokenizer_zh'),
+
+    ('./test_base_canonical_generator')
 ]);
