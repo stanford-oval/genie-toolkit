@@ -2524,7 +2524,7 @@ rimraf@2.6.3:
   dependencies:
     glob "^7.1.3"
 
-rimraf@^2.6.1, rimraf@^2.6.3:
+rimraf@^2.6.1:
   version "2.7.1"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.7.1.tgz#35797f13a7fdadc566142c29d4f07ccad483e3ec"
   integrity sha512-uWjbaKIK3T1OSVptzX7Nl6PvQ3qAGtKEtVRjRuazjfL3Bx5eI409VZSqgND+4UNnmzLVdPj9FqFJNPqBZFve4w==
@@ -2723,10 +2723,10 @@ stemmer@^1.0.5:
   resolved "https://registry.yarnpkg.com/stemmer/-/stemmer-1.0.5.tgz#fd89beaf8bff5d04b6643bfffcaed0fc420deec0"
   integrity sha512-SLq7annzSKRDStasOJJoftCSCzBCKmBmH38jC4fDtCunAqOzpTpIm9zmaHmwNJiZ8gLe9qpVdBVbEG2DC5dE2A==
 
-string-interp@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/string-interp/-/string-interp-0.1.0.tgz#d1501e268ffcf4723ac15ea9f14486870bed92b7"
-  integrity sha512-IpdjjxHgiO+AKlhmeUSl4U/M/vLf/Qy5t5MwG/Ij8+l8yNBemLgjgtn13WCKaw78FrKi1DDKrs0gnDJnMiUgBw==
+string-interp@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/string-interp/-/string-interp-0.3.1.tgz#27f14d690828e1a88eaa11d6145d234933b84e3c"
+  integrity sha512-SObZ/Gzoe0YTH3B8tD5/hPyX3SksgUV0Az+MCLl7Pzh40BTAysC1A46rDRzOEdREegU0iTrpFwBhc/Jc0MKyzQ==
   dependencies:
     thingtalk-units "^0.1.0"
 
@@ -2912,18 +2912,18 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-thingpedia@~2.7.0:
-  version "2.7.0"
-  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.7.0.tgz#36c8a33a714d4e879feda5121f39a86bc4335f3c"
-  integrity sha512-v1YzGWnlfy/Ej9Aw4ERauiXqlzBs/2T/fT+On+Rhhc7GRJidNtgFHhY+6oRT5QwqMuVYjKDO1QvBmn1CxPKVNA==
+thingpedia@~2.8.0-alpha.1:
+  version "2.8.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.8.0-alpha.1.tgz#d870fc5433136f5c67dd25199231c53f953af0e7"
+  integrity sha512-nyqmNyejIIjNa0tnETsQZeVhKFZOFWVkx2Gh0C8N54BrU37VdKuNsxMG3+fsgiapTTkdHag6YM2ebAyPfWn0lg==
   dependencies:
     feedparser "^2.2.9"
     gettext-parser "^4.0.2"
     ip "^1.1.0"
     oauth "^0.9.14"
-    string-interp "^0.1.0"
-    thingtalk "~1.10.0"
-    tmp "^0.1.0"
+    string-interp "^0.3.1"
+    thingtalk "~1.11.0-alpha.1"
+    tmp "^0.2.1"
     xml2js "^0.4.17"
 
 thingtalk-units@^0.1.0:
@@ -2931,16 +2931,16 @@ thingtalk-units@^0.1.0:
   resolved "https://registry.yarnpkg.com/thingtalk-units/-/thingtalk-units-0.1.0.tgz#c3b69bc0c7d0a3ba5bfad3ccf02dc1c291d1abc8"
   integrity sha512-rV5/jZw9fBk3OgYi/HrA1LsTmD5w0gYDlsc1US3/ePR5szaUxwMUtN8UAPYaUorOiW0Qcjm1plvssOC97EkedQ==
 
-thingtalk@~1.10.0:
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.10.0.tgz#dd80e80ef6fccf9dd878aa1e7c3f3abad7add700"
-  integrity sha512-wJbH2GR85shpQHTFF9FN7qjPkK+VXtdFbLJGXOfEkaMKo14dAREw8KGMwAsYhNKW+MlrTJtBPOf+kZaW6HXN2A==
+thingtalk@~1.11.0-alpha.1:
+  version "1.11.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.11.0-alpha.1.tgz#225b8e7f26e59a4dbcd510743530a4c45f380710"
+  integrity sha512-M2arPippxrqzU1hxm2ZjU8x+srxc5cuwAs23SF5fqV48JM4OyHhErvnNq/NnnyiVq4KleCl3enMPJoC1gODxIg==
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
     consumer-queue "^1.0.0"
     smtlib "^0.1.1"
-    string-interp "^0.1.0"
+    string-interp "^0.3.1"
     thingtalk-units "^0.1.0"
 
 "through@>=2.2.7 <3":
@@ -2948,12 +2948,12 @@ thingtalk@~1.10.0:
   resolved "https://registry.yarnpkg.com/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha1-DdTJ/6q8NXlgsbckEV1+Doai4fU=
 
-tmp@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.1.0.tgz#ee434a4e22543082e294ba6201dcc6eafefa2877"
-  integrity sha512-J7Z2K08jbGcdA1kkQpJSqLF6T0tdQqpR2pnSUXsIchbPdTI9v3e85cLW0d6WDhwuAleOV71j2xWs8qMPfK7nKw==
+tmp@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.2.1.tgz#8457fc3037dcf4719c251367a1af6500ee1ccf14"
+  integrity sha512-76SUhtfqR2Ijn+xllcI5P1oyannHNHByD80W1q447gU3mp9G9PSpGdWmjUOHRDPiHYacIk66W7ubDTuPF3BEtQ==
   dependencies:
-    rimraf "^2.6.3"
+    rimraf "^3.0.0"
 
 to-fast-properties@^2.0.0:
   version "2.0.0"

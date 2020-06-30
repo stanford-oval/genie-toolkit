@@ -34,9 +34,9 @@
     "sockaddr": "^1.0.1",
     "sqlite3": "^4.0.2",
     "stemmer": "^1.0.5",
-    "string-interp": "^0.1.0",
-    "thingpedia": "~2.7.0",
-    "thingtalk": "~1.10.0",
+    "string-interp": "^0.3.1",
+    "thingpedia": "~2.8.0-alpha.1",
+    "thingtalk": "~1.11.0-alpha.1",
     "thingtalk-units": "^0.1.0",
     "uuid": "^7.0.0",
     "ws": "^7.3.0"
