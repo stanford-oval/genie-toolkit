@@ -19,7 +19,7 @@ const ThingTalk = require('thingtalk');
 const crypto = require('crypto');
 
 const StreamUtils = require('../../lib/stream-utils');
-const { makeMetadata } = require('./metadata');
+const { makeMetadata } = require('../lib/metadata');
 const {
     PROPERTY_RENAMES,
     ENUM_VALUE_NORMALIZE

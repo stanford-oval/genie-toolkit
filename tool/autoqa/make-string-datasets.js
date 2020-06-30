@@ -18,7 +18,7 @@ const csvstringify = require('csv-stringify');
 
 const I18N = require('../../lib/i18n');
 const StreamUtils = require('../../lib/stream-utils');
-const { makeMetadata } = require('./metadata');
+const { makeMetadata } = require('../lib/metadata');
 const { PROPERTIES_NO_FILTER } = require('./manual-annotations');
 
 class ParamDatasetGenerator {

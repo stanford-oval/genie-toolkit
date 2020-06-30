@@ -60,6 +60,7 @@ const subcommands = {
     'canonical-diffchecker': require('./canonical-diffchecker'),
 
     'sgd-process-schema': require('./sgd/process-schema'),
+    'sgd-normalize-data': require('./sgd/normalize-data'),
 
     'auto-annotate-multiwoz': require('./auto-annotate-multiwoz'),
     'convert-thingtalk-to-multidst': require('./convert-thingtalk-to-multidst'),

@@ -20,17 +20,7 @@ const { clean } = require('../../lib/utils');
 const StreamUtils = require('../../lib/stream-utils');
 const baseCanonical = require('../lib/base-canonical-generator');
 const { PROPERTY_TYPE_OVERRIDE } = require('./manual-annotations');
-
-function preprocess_values(v) {
-    // replace dash with space
-    v = v.replace(/-/g, ' ');
-    // camelcase the value
-    v = v.replace(/(?:^|\s+|-)[A-Za-z]/g, (letter) => letter.trim().toUpperCase());
-    // add underscore prefix if value starts with number
-    if (/^\d.*/.test(v))
-        v = '_' + v;
-    return v;
-}
+const { cleanEnumValue }  = require('./utils');
 
 function predictType(slot) {
     if (slot.name in PROPERTY_TYPE_OVERRIDE)
@@ -42,7 +32,7 @@ function predictType(slot) {
             return Type.Boolean;
         if (slot.possible_values.every((v) => !isNaN(v)))
             return Type.Number;
-        return Type.Enum(slot.possible_values.map(preprocess_values));
+        return Type.Enum(slot.possible_values.map(cleanEnumValue));
     }
     if (slot.name === 'phone_number')
         return Type.Entity('tt:phone_number');
