@@ -89,7 +89,6 @@ class CommandLineHandler {
 
     _quit() {
         console.log('Bye\n');
-        this._rl.close();
         this._engine.stop();
     }
 
@@ -257,7 +256,7 @@ module.exports = {
         rl.setPrompt('$ ');
 
         await engine.open();
-        const conversation = await engine.assistant.getOrOpenConversation('main', new LocalUser(), {
+        const conversation = await engine.assistant.openConversation('main', new LocalUser(), {
             nluServerUrl: args.nlu_server,
             nlgServerUrl: args.nlg_server,
             debug: false,
@@ -265,12 +264,13 @@ module.exports = {
         });
         await conversation.addOutput(new CommandLineDelegate(rl));
 
-        new CommandLineHandler(engine, conversation);
+        new CommandLineHandler(engine, conversation, rl);
         await conversation.start();
         rl.prompt();
 
         await engine.run();
 
+        rl.close();
         await engine.close();
     }
 };
