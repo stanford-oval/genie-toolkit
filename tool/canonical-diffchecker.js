@@ -100,7 +100,7 @@ function prettyprintDiff(base, diff) {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('webqa-annotation-diffchecker', {
+        const parser = subparsers.addParser('canonical-diffchecker', {
             addHelp: true,
             description: "Retrieve the labels of properties from wikidata."
         });

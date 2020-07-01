@@ -64,7 +64,6 @@ module.exports = {
             help: 'Process a contextual dataset.',
             defaultValue: false
         });
-
         parser.addArgument('--quoted-fraction', {
             type: Number,
             defaultValue: 0.1,
@@ -148,6 +147,16 @@ module.exports = {
             action: 'storeTrue',
             help: 'Take extra effort to use parameters that are simple and do not include punctuation marks',
             defaultValue: false
+        });
+        parser.addArgument('--sampling-type', {
+            choices: ['default', 'random'],
+            help: 'Random strategy assigns random weights to parameters instead of reading from file',
+            defaultValue: false
+        });
+        parser.addArgument('--num-attempts', {
+            type: Number,
+            defaultValue: 10000,
+            help: 'Maximum number of attempts to replace a parameter value'
         });
         parser.addArgument('--debug', {
             nargs: 0,
