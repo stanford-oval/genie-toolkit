@@ -11,7 +11,7 @@
 
 const assert = require('assert');
 
-const Tokenizer = require('../lib/i18n/tokenizer/italian');
+const Tokenizer = require('../../lib/i18n/tokenizer/italian');
 
 const TEST_CASES = [
     // order is input, raw, processed, entities
