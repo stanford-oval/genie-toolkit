@@ -44,6 +44,7 @@ const subcommands = {
     'evaluate-dialog': require('./evaluate-dialog'),
     'demo-dialog': require('./demo-dialog'),
     'server': require('./server'),
+    'assistant': require('./assistant'),
 
     'dataset': require('./dataset'),
 

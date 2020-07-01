@@ -18,42 +18,15 @@ const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 
-const ParserClient = require('./lib/parserclient');
+const ParserClient = require('../lib/prediction/parserclient');
 const { DialogueSerializer } = require('./lib/dialog_parser');
 const StreamUtils = require('../lib/utils/stream-utils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
 const ProgressBar = require('./lib/progress_bar');
-const editDistance = require('../lib/utils/edit-distance');
+const { getBestEntityMatch } = require('../lib/dialogue-agent/entity-linking/entity-finder');
 
 function undoTradePreprocessing(sentence) {
     return sentence.replace(/ -(ly|s)/g, '$1').replace(/\b24:([0-9]{2})\b/g, '00:$1');
-}
-
-
-function getBestEntityMatch(searchTerm, candidates) {
-    // based only on character-level edit distance, instead of token overlap
-    // that is normally used
-    // this is necessary to address typos and other problems in the annotations
-
-    let best = undefined, bestScore = undefined;
-
-    // try an exact match first (faster)
-    for (let cand of candidates) {
-        if (searchTerm === cand.id.display)
-            return cand.id;
-    }
-
-    // now find the one with minimum edit distance
-    for (let cand of candidates) {
-        let score = editDistance(searchTerm, cand.id.display);
-
-        if (bestScore === undefined || score < bestScore) {
-            bestScore = score;
-            best = cand.id;
-        }
-    }
-
-    return best;
 }
 
 const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
@@ -270,7 +243,7 @@ class Converter extends stream.Readable {
             contextEntities = {};
         }
 
-        const parsed = await parser.sendUtterance(utterance, false, contextCode, contextEntities);
+        const parsed = await parser.sendUtterance(utterance, contextCode, contextEntities);
         return (await Promise.all(parsed.candidates.map(async (cand) => {
             try {
                 const program = ThingTalk.NNSyntax.fromNN(cand.code, parsed.entities);
@@ -340,8 +313,18 @@ class Converter extends stream.Readable {
         return agentTarget;
     }
 
+    _getIDs(type) {
+        return this._database.get(type).map((entry) => {
+            return {
+                value: entry.id.value,
+                name: entry.id.display,
+                canonical: entry.id.display
+            };
+        });
+    }
+
     _resolveEntity(value) {
-        const resolved = getBestEntityMatch(value.display, this._database.get(value.type));
+        const resolved = getBestEntityMatch(value.display, this._getIDs(value.type));
         value.value = resolved.value;
 
         // do not override the display field, it should match the sentence instead

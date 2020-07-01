@@ -20,13 +20,35 @@ const C = require('../ast_manip');
 
 // import thingpedia info
 const _tpLoader = require('../load-thingpedia');
+
+function special(specialType) {
+    return new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Special(null, specialType));
+}
 }
 
 import '../common';
 import './constants';
-import './bookkeeping';
+
+bookkeeping = {
+    'debug' => special('debug');
+
+    ('cancel'
+    | 'never mind'
+    ) => special('nevermind');
+
+    ('stop'
+    | 'shut up'
+    | 'shush'
+    | 'quiet'
+    | 'close'
+    ) => special('stop');
+
+    c:constant_Any => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Answer(null, c));
+}
 
 $root = {
+    bookkeeping;
+
     ( 'get' query:thingpedia_query
     | query:thingpedia_get_command
     ) if complete => C.makeProgram(new Ast.Statement.Command(null, query, [C.notifyAction()]));

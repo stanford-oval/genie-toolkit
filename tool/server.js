@@ -19,7 +19,7 @@ const ThingTalk = require('thingtalk');
 
 const Utils = require('../lib/utils/misc-utils');
 const TokenizerService = require('../lib/tokenizer');
-const Predictor = require('../lib/predictor');
+const Predictor = require('../lib/prediction/predictor');
 const I18n = require('../lib/i18n');
 
 function learn(req, res) {

@@ -16,7 +16,7 @@ const path = require('path');
 const Tp = require('thingpedia');
 
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
-const ParserClient = require('./lib/parserclient');
+const ParserClient = require('../lib/prediction/parserclient');
 const I18n = require('../lib/i18n');
 const MultiJSONDatabase = require('./lib/multi_json_database');
 const { SentenceGenerator } = require('../lib/sentence-generator');
@@ -244,7 +244,7 @@ class DialogAgent extends events.EventEmitter {
     async _handleInput() {
         this._state = 'loading';
 
-        const parsed = await this._parser.sendUtterance(this._utterance, false, this._contextCode, this._contextEntities);
+        const parsed = await this._parser.sendUtterance(this._utterance, this._contextCode, this._contextEntities);
         const [userState,] = await this._getProgramPrediction(parsed.candidates, parsed.entities, 'UT: ');
         if (userState === null) {
             console.log(`A: Sorry, I did not understand that.`);

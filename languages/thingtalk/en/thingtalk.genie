@@ -32,12 +32,9 @@ import './computation';
 import './who_questions';
 import './schema.org';
 import './commands';
-import './bookkeeping';
 import './stream_tables';
 
 $root = {
-    ?bookkeeping bookkeeping [weight=0.1];
-
     thingpedia_program if complete;
 
     ?remote_commands remote_command [weight=0.1];

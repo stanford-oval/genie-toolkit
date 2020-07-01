@@ -18,7 +18,7 @@ const ThingTalk = require('thingtalk');
 
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 const StreamUtils = require('../lib/utils/stream-utils');
-const ParserClient = require('./lib/parserclient');
+const ParserClient = require('../lib/prediction/parserclient');
 const { DialogueParser, DialogueSerializer } = require('./lib/dialog_parser');
 const { readAllLines } = require('./lib/argutils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
@@ -488,7 +488,7 @@ class Annotator extends events.EventEmitter {
         }
 
         const parser = this._dialogueState === 'agent' ? this._agentParser : this._userParser;
-        const parsed = await parser.sendUtterance(this._utterance, false, contextCode, contextEntities);
+        const parsed = await parser.sendUtterance(this._utterance, contextCode, contextEntities);
 
         this._state = 'top3';
         this._preprocessed = parsed.tokens.join(' ');

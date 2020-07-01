@@ -17,7 +17,7 @@ const TokenizerService = require('../lib/tokenizer');
 const { KEYS, DialogueEvaluatorStream, CollectDialogueStatistics } = require('../lib/dataset-tools/evaluation/dialogue_evaluator');
 const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const ParserClient = require('./lib/parserclient');
+const ParserClient = require('../lib/prediction/parserclient');
 const MultiJSONDatabase = require('./lib/multi_json_database');
 
 module.exports = {
