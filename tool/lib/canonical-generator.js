@@ -16,9 +16,9 @@ const Inflectors = require('en-inflectors').Inflectors;
 const child_process = require('child_process');
 const utils = require('../../lib/utils/misc-utils');
 
-const AnnotationExtractor = require('./webqa-template-extractor');
+const CanonicalExtractor = require('./canonical-extractor');
 const { makeLookupKeys } = require('../../lib/dataset-tools/mturk/sample-utils');
-const { PROPERTY_CANONICAL_OVERRIDE } = require('./webqa-manual-annotations');
+const { PROPERTY_CANONICAL_OVERRIDE } = require('../autoqa/manual-annotations');
 const { posTag } = require('../../lib/i18n/american-english');
 
 const ANNOTATED_PROPERTIES = Object.keys(PROPERTY_CANONICAL_OVERRIDE);
@@ -33,13 +33,13 @@ function typeToEntityType(type) {
         return null;
 }
 
-class AutoCanonicalAnnotator {
+class AutoCanonicalGenerator {
     constructor(classDef, constants, queries, parameterDatasets, options) {
         this.class = classDef;
         this.constants = constants;
         this.queries = queries;
 
-        this.algorithm = options.algorithm;
+        this.algorithm = options.algorithm ? options.algorithm.split(',') : [];
         this.pruning = options.pruning;
         this.mask = options.mask;
         this.is_paraphraser = options.is_paraphraser;
@@ -51,13 +51,6 @@ class AutoCanonicalAnnotator {
         this.parameterDatasetPaths = {};
 
         this.options = options;
-
-        if (['all', 'bert', 'no-adj', 'no-bart'].includes(this.algorithm))
-            this.bert = true;
-        if (['all', 'bart', 'no-adj', 'no-bert'].includes(this.algorithm))
-            this.bart = true;
-        if (['all', 'adj', 'no-bert', 'no-bart'].includes(this.algorithm))
-            this.adj = true;
     }
 
     async generate() {
@@ -138,8 +131,8 @@ class AutoCanonicalAnnotator {
             }
         }
 
-        if (this.algorithm !== 'heuristics-only') {
-            const args = [path.resolve(path.dirname(module.filename), './bert-annotator.py'), 'all'];
+        if (this.algorithm.length > 0) {
+            const args = [path.resolve(path.dirname(module.filename), './bert-canonical-annotator.py'), 'all'];
             if (this.is_paraphraser)
                 args.push('--is-paraphraser');
             if (this.gpt2_ordering)
@@ -157,7 +150,7 @@ class AutoCanonicalAnnotator {
 
             const output = util.promisify(fs.writeFile);
             if (this.options.debug)
-                await output(`./bert-annotator-in.json`, JSON.stringify(queries, null, 2));
+                await output(`./bert-canonical-annotator-in.json`, JSON.stringify(queries, null, 2));
 
             const stdout = await new Promise((resolve, reject) => {
                 child.stdin.write(JSON.stringify(queries));
@@ -173,13 +166,13 @@ class AutoCanonicalAnnotator {
             });
 
             if (this.options.debug)
-                await output(`./bert-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
+                await output(`./bert-canonical-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
 
             const {synonyms, adjectives } = JSON.parse(stdout);
-            if (this.bert || this.adj)
+            if (this.algorithm.includes('bert') || this.algorithm.includes('adj'))
                 this._updateCanonicals(synonyms, adjectives);
-            if (this.bart) {
-                const extractor = new AnnotationExtractor(this.class, this.queries, this.paraphraser_model, this.options);
+            if (this.algorithm.includes('bart')) {
+                const extractor = new CanonicalExtractor(this.class, this.queries, this.paraphraser_model, this.options);
                 await extractor.run(synonyms, queries);
             }
         }
@@ -202,7 +195,7 @@ class AutoCanonicalAnnotator {
     async _loadParameterDatasetPaths() {
         const rows = (await (util.promisify(fs.readFile))(this.parameterDatasets, { encoding: 'utf8' })).split('\n');
         for (let row of rows) {
-            let [, key, path] = row.split('\t');
+            let [/*type*/, /*locale*/, key, path] = row.split('\t');
             this.parameterDatasetPaths[key] = path;
         }
     }
@@ -231,10 +224,10 @@ class AutoCanonicalAnnotator {
                     continue;
                 let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
 
-                if (this.adj && adjectives.includes(`${qname}.${arg}`))
+                if (this.algorithm.includes('adj') && adjectives.includes(`${qname}.${arg}`))
                     canonicals['adjective'] = ['#'];
 
-                if (this.bert) {
+                if (this.algorithm.includes('bert')) {
                     for (let type in candidates[qname][arg]) {
                         for (let candidate in candidates[qname][arg][type]) {
                             if (this._hasConflict(qname, arg, type, candidate))
@@ -343,4 +336,4 @@ class AutoCanonicalAnnotator {
     }
 }
 
-module.exports = AutoCanonicalAnnotator;
+module.exports = AutoCanonicalGenerator;

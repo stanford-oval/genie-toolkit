@@ -45,7 +45,7 @@ function clean(raw) {
 
 module.exports = {
     initArgparse(subparsers) {
-        subparsers.addParser('webqa-retrieve-wikidata-labels', {
+        subparsers.addParser('autoqa-retrieve-wikidata-labels', {
             addHelp: true,
             description: "Retrieve the labels of properties from wikidata."
         });

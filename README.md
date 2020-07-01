@@ -58,19 +58,6 @@ NOTE: Genie assumes all files are UTF-8, and ignores the current POSIX locale (L
 enviornment varialbes). Legacy encodings such as ISO-8859-1 or Big5 are not supported and could
 cause problems.
 
-### Step 0. (Optional) Setup
-
-At various points Genie will call a tokenizer to preprocess the sentences and apply argument
-identification. By default, it will use the REST API provided by <https://almond-nl.stanford.edu/>.
-This can be very slow, especially with large datasets, as it involves one HTTP/1.1 request per sentence.
-
-Alternatively, you should set up a local instance of [almond-tokenizer](https://github.com/stanford-oval/almond-tokenizer),
-listening on localhost port 8888. If you do so, set the environment variable `GENIE_USE_TOKENIZER=local`.
-This avoids the network communication and also uses a more efficient protocol.
-
-Note that correct preprocessing of Location values with a local tokenizer requires MapQuest API key.
-Please refer to the almond-tokenizer documentation for details.
-
 #### Step 1. Synthesize Sentences.
 
 To synthesize a set of sentences, use:

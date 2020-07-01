@@ -417,10 +417,12 @@ module.exports = {
                         ex.target_code = newProgram;
                         callback(null, ex);
                     } catch(e) {
-                        console.error(`Failed to requote`);
+                        console.error('**************');
+                        console.error('Failed to requote');
                         console.error(ex.id);
                         console.error(ex.preprocessed);
                         console.error(ex.target_code);
+                        console.error('**************');
                         if (args.skip_errors)
                             callback(null);
                         else

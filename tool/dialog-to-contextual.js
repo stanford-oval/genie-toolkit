@@ -14,10 +14,10 @@ const Stream = require('stream');
 const fs = require('fs');
 
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
-const TokenizerService = require('../lib/tokenizer');
 const { DatasetStringifier } = require('../lib/dataset-tools/parsers');
 const StreamUtils = require('../lib/utils/stream-utils');
 const Utils = require('../lib/utils/misc-utils');
+const I18n = require('../lib/i18n');
 
 const ProgressBar = require('./lib/progress_bar');
 const { DialogueParser } = require('./lib/dialog_parser');
@@ -40,17 +40,17 @@ class DialogueToTurnStream extends Stream.Transform {
         this._tokenized = options.tokenized;
         this._tokenizer = null;
         if (!this._tokenized)
-            this._tokenizer = TokenizerService.get('local', true);
+            this._tokenizer = I18n.get(this._locale).getTokenizer();
     }
 
-    async _preprocess(sentence, contextEntities) {
+    _preprocess(sentence, contextEntities) {
         let tokenized;
         if (this._tokenized) {
             const tokens = sentence.split(' ');
             const entities = Utils.makeDummyEntities(sentence);
             tokenized = { tokens, entities };
         } else {
-            tokenized = await this._tokenizer.tokenize(this._locale, sentence);
+            tokenized = this._tokenizer.tokenize(sentence);
         }
         Utils.renumberEntities(tokenized, contextEntities);
         return tokenized;
@@ -71,7 +71,7 @@ class DialogueToTurnStream extends Stream.Transform {
         const agentTarget = await this._target.parse(turn.agent_target, this._options);
         const agentCode = await this._target.serializePrediction(agentTarget, '', contextEntities, 'agent');
 
-        const { tokens, } = await this._preprocess(turn.agent, contextEntities);
+        const { tokens, } = this._preprocess(turn.agent, contextEntities);
 
         if (this._dedupe) {
             const key = this._getDedupeKey(contextCode, tokens);
@@ -114,7 +114,7 @@ class DialogueToTurnStream extends Stream.Transform {
             contextEntities = {};
         }
 
-        const { tokens, entities } = await this._preprocess(turn.user, contextEntities);
+        const { tokens, entities } = this._preprocess(turn.user, contextEntities);
         const userTarget = await this._target.parse(turn.user_target, this._options);
         const code = await this._target.serializePrediction(userTarget, tokens, entities, 'user');
 
@@ -156,8 +156,6 @@ class DialogueToTurnStream extends Stream.Transform {
     }
 
     _flush(callback) {
-        if (this._tokenizer)
-            this._tokenizer.end();
         process.nextTick(callback);
     }
 }

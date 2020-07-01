@@ -16,8 +16,8 @@ const Grammar = ThingTalk.Grammar;
 const Library = ThingTalk.Ast.Input.Library;
 
 const ProgressBar = require('./progress_bar');
-const TokenizerService = require('../../lib/tokenizer');
 const { tokenizeExample } = require('../../lib/utils/misc-utils');
+const I18n = require('../../lib/i18n');
 
 module.exports = class ThingTalkDataset {
     constructor(options) {
@@ -71,7 +71,7 @@ module.exports = class ThingTalkDataset {
 
     async preprocess() {
         if (this._tokenizer === null)
-            this._tokenizer = TokenizerService.get(process.env.GENIE_USE_TOKENIZER, true);
+            this._tokenizer = I18n.get(this._locale).getTokenizer();
         const language = this._dataset.language;
         const bar = new ProgressBar(this._dataset.examples.length);
         for (let index in this._dataset.examples) {

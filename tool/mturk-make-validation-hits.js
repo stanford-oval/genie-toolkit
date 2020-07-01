@@ -19,7 +19,6 @@ const ThingTalk = require('thingtalk');
 
 const { ParaphraseValidatorFilter } = require('../lib/dataset-tools/mturk/validator');
 const ValidationHITCreator = require('../lib/dataset-tools/mturk/paraphrase-validation');
-const TokenizerService = require('../lib/tokenizer');
 const { ArrayAccumulator, ArrayStream, waitFinish } = require('../lib/utils/stream-utils');
 
 const { ParaphrasingParser, ParaphrasingAccumulator } = require('./lib/mturk-parsers');
@@ -83,7 +82,6 @@ module.exports = {
     async execute(args) {
         const tpClient = new Tp.FileClient(args);
         const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
-        const tokenizer = TokenizerService.get(process.env.GENIE_USE_TOKENIZER, true);
         const rng = seedrandom.alea(args.random_seed);
 
         process.stdin.setEncoding('utf8');
@@ -101,7 +99,7 @@ module.exports = {
                 sentencesPerTask: args.sentences_per_task,
                 paraphrasesPerSentence: args.paraphrases_per_sentence
             }))
-            .pipe(new ParaphraseValidatorFilter(schemaRetriever, tokenizer, {
+            .pipe(new ParaphraseValidatorFilter(schemaRetriever, {
                 locale: args.locale,
                 debug: args.debug
             }))
@@ -121,7 +119,5 @@ module.exports = {
             .pipe(args.output);
 
         await waitFinish(args.output);
-
-        tokenizer.end();
     }
 };

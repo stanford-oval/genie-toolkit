@@ -14,9 +14,10 @@ const assert = require('assert');
 const util = require('util');
 const ThingTalk = require('thingtalk');
 
-const { parseConstantFile } = require('./lib/constant-file');
-const Annotator = require('./lib/webqa-canonical-annotator');
 const StreamUtils = require('../lib/utils/stream-utils');
+
+const { parseConstantFile } = require('./lib/constant-file');
+const AnnotationGenerator = require('./lib/annotation-generator');
 
 async function loadClassDef(thingpedia) {
     const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
@@ -26,7 +27,7 @@ async function loadClassDef(thingpedia) {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('webqa-update-canonicals', {
+        const parser = subparsers.addParser('autogen-annotations', {
             addHelp: true,
             description: "Use BERT to expand canonicals"
         });
@@ -57,9 +58,8 @@ module.exports = {
             defaultValue: false
         });
         parser.addArgument('--algorithm', {
-            choices: ['all', 'heuristics-only', 'bert', 'bart', 'adj', 'no-bert', 'no-bart', 'no-adj'],
-            help: 'Different algorithms to generate canonicals',
-            defaultValue: 'all'
+            help: 'Different algorithms to generate canonicals including bert, bart, adj, split by comma (no space)',
+            defaultValue: null
         });
         parser.addArgument('--pruning', {
             required: false,
@@ -115,9 +115,9 @@ module.exports = {
         } else {
             const options = args;
             const constants = await parseConstantFile(args.locale, args.constants);
-            const generator = new Annotator(classDef, constants, args.queries.split(','), args.parameter_datasets, options);
-            const updatedClassDef = await generator.generate();
-            args.output.end(updatedClassDef.prettyprint());
+            const generator = new AnnotationGenerator(classDef, constants, args.queries.split(','), args.parameter_datasets, options);
+            const annotatedClassDef = await generator.generate();
+            args.output.end(annotatedClassDef.prettyprint());
         }
 
         StreamUtils.waitFinish(args.output);

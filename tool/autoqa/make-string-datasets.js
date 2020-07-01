@@ -16,12 +16,11 @@ const path = require('path');
 const ThingTalk = require('thingtalk');
 const csvstringify = require('csv-stringify');
 
-const Tokenizer = require('../lib/tokenizer');
-const StreamUtils = require('../lib/utils/stream-utils');
-const { makeMetadata } = require('./lib/webqa-metadata');
-const { PROPERTIES_NO_FILTER } = require('./lib/webqa-manual-annotations');
+const I18N = require('../../lib/i18n');
+const StreamUtils = require('../../lib/utils/stream-utils');
 
-const MAX_CHARS = 200;
+const { makeMetadata } = require('./metadata');
+const { PROPERTIES_NO_FILTER } = require('./manual-annotations');
 
 class ParamDatasetGenerator {
     constructor(locale, debug, className) {
@@ -33,7 +32,7 @@ class ParamDatasetGenerator {
         this._meta = {};
         this._stringFiles = new Map;
 
-        this._tokenizer = Tokenizer.get('local', true);
+        this._tokenizer = I18N.get(locale).getTokenizer();
     }
 
     _getStringFile(stringFileName, isEntity) {
@@ -132,37 +131,8 @@ class ParamDatasetGenerator {
         }
     }
 
-    async _tokenizeOne(str) {
-        // chunk long sentences into chunks of at most 1000 characters
-
-        if (str.length < MAX_CHARS)
-            return this._tokenizer.tokenize(this._locale, str);
-
-        // very crude chunking, might break a word in the middle
-        // this is mostly ok anyway cause we'll pick a substring anyway
-        const output = [];
-        for (let i = 0; i < str.length; i += MAX_CHARS) {
-            const chunk = str.substring(i, i+MAX_CHARS);
-            const { tokens } = await this._tokenizer.tokenize(this._locale, chunk);
-            // refuse to do anything if we have any entity (we'll drop this string later anyway)
-            if (tokens.some((tok) => /^[A-Z]/.test(tok)))
-                return { tokens: [], entities: {} };
-
-            output.push(...tokens);
-        }
-
-        return { tokens: output, entities: {} };
-    }
-
-    async _tokenizeAll(strings) {
-        let output = [];
-        for (let i = 0; i < strings.length; i += 100) {
-            console.log(`${i}/${strings.length}`);
-            const slice = strings.slice(i, i+100);
-            const tokenized = await Promise.all(slice.map((str) => this._tokenizeOne(str)));
-            output.push(...tokenized);
-        }
-        return output;
+    _tokenizeAll(strings) {
+        return strings.map((str) => this._tokenizer.tokenize(str));
     }
 
     async output(outputDir, manifestFile, appendManifest) {
@@ -178,7 +148,7 @@ class ParamDatasetGenerator {
                 if (this._debug)
                     console.log(`Found ${fileContent.file.length} examples for entity file ${fileId}`);
 
-                const tokenized = await this._tokenizeAll(fileContent.file.map((entity) => entity.name));
+                const tokenized = this._tokenizeAll(fileContent.file.map((entity) => entity.name));
                 const data = [];
                 for (let i = 0; i < fileContent.file.length; i++) {
                     const entity = fileContent.file[i];
@@ -208,7 +178,7 @@ class ParamDatasetGenerator {
 
                 const strings = Array.from(fileContent.file.keys());
                 const weights = Array.from(fileContent.file.values());
-                const tokenized = await this._tokenizeAll(strings);
+                const tokenized = this._tokenizeAll(strings);
 
                 for (let i = 0; i < strings.length; i++) {
                     const value = strings[i];
@@ -233,13 +203,12 @@ class ParamDatasetGenerator {
 
         manifest.end();
         await StreamUtils.waitFinish(manifest);
-        await this._tokenizer.end();
     }
 }
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('webqa-make-string-datasets', {
+        const parser = subparsers.addParser('autoqa-make-string-datasets', {
             addHelp: true,
             description: "Extract string datasets from a WebQA normalized data file."
         });

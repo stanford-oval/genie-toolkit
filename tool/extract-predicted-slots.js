@@ -19,8 +19,8 @@ const assert = require('assert');
 const StreamUtils = require('../lib/utils/stream-utils');
 const { getBestEntityMatch } = require('../lib/dialogue-agent/entity-linking/entity-finder');
 const Utils = require('../lib/utils/misc-utils');
+const I18n = require('../lib/i18n');
 
-const TokenizerService = require('../lib/tokenizer');
 const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
@@ -34,7 +34,7 @@ class DialogueToDSTStream extends Stream.Transform {
         this._locale = options.locale;
         this._database = options.database;
         this._tokenized = options.tokenized;
-        this._tokenizer = options.tokenizer;
+        this._tokenizer = I18n.get(options.locale).getTokenizer();
         this._parser = options.parser;
 
         this._options = options;
@@ -44,14 +44,14 @@ class DialogueToDSTStream extends Stream.Transform {
         this._cachedEntityMatches = new Map;
     }
 
-    async _preprocess(sentence, contextEntities) {
+    _preprocess(sentence, contextEntities) {
         let tokenized;
         if (this._tokenized) {
             const tokens = sentence.split(' ');
             const entities = Utils.makeDummyEntities(sentence);
             tokenized = { tokens, entities };
         } else {
-            tokenized = await this._tokenizer.tokenize(this._locale, sentence);
+            tokenized = this._tokenizer.tokenize(sentence);
         }
         Utils.renumberEntities(tokenized, contextEntities);
         return tokenized;
@@ -210,7 +210,7 @@ class DialogueToDSTStream extends Stream.Transform {
             contextEntities = {};
         }
 
-        const { tokens, entities } = await this._preprocess(turn.user, contextEntities);
+        const { tokens, entities } = this._preprocess(turn.user, contextEntities);
         const goldUserTarget = await this._target.parse(turn.user_target, this._options);
         const goldUserState = this._target.computeNewState(context, goldUserTarget);
         const goldSlots = this._extractSlots(goldUserState);
@@ -337,9 +337,6 @@ module.exports = {
         if (args.thingpedia)
             tpClient = new Tp.FileClient(args);
         const parser = ParserClient.get(args.url, args.locale);
-        let tokenizer = null;
-        if (!args.tokenized)
-            tokenizer = TokenizerService.get('local', true);
         await parser.start();
 
         let database;
@@ -357,7 +354,6 @@ module.exports = {
                 thingpediaClient: tpClient,
                 database: database,
                 parser: parser,
-                tokenizer: tokenizer,
             }))
             .pipe(JSONStream.stringifyObject(undefined, undefined, undefined, 2))
             .pipe(args.output);
@@ -365,6 +361,5 @@ module.exports = {
         await StreamUtils.waitFinish(args.output);
 
         await parser.stop();
-        await tokenizer.end();
     }
 };
