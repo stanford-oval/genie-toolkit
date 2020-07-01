@@ -19,7 +19,7 @@ const utils = require('../../lib/utils');
 const CanonicalExtractor = require('./canonical-extractor');
 const { makeLookupKeys } = require('../../lib/sample-utils');
 const { PROPERTY_CANONICAL_OVERRIDE } = require('../autoqa/manual-annotations');
-const { posTag } = require('../../lib/i18n/american-english');
+const EnglishLanguagePack = require('../../lib/i18n/american-english');
 
 const ANNOTATED_PROPERTIES = Object.keys(PROPERTY_CANONICAL_OVERRIDE);
 
@@ -51,6 +51,8 @@ class AutoCanonicalGenerator {
         this.parameterDatasetPaths = {};
 
         this.options = options;
+
+        this._langPack = new EnglishLanguagePack();
     }
 
     async generate() {
@@ -256,7 +258,7 @@ class AutoCanonicalGenerator {
         if (candidate === 'is' || candidate === 'are')
             return false;
 
-        return ['VBP', 'VBZ', 'VBD'].includes(posTag([candidate])[0]);
+        return ['VBP', 'VBZ', 'VBD'].includes(this._langPack.posTag([candidate])[0]);
     }
 
     _hasConflict(query, currentArg, currentPos, currentCanonical) {
