@@ -279,9 +279,10 @@ class ThingpediaLoader {
             }
 
             const match = /^([a-zA-Z_]+)_(true|false)$/.exec(key);
-            assert(match);
-            if (match === null)
+            if (match === null) {
+                console.error(`Invalid canonical key ${key} for boolean output parameter ${functionName}:${arg.name}`);
                 continue;
+            }
             let cat = match[1];
             const value = new Ast.Value.Boolean(match[2] === 'true');
 
