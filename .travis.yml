@@ -2,26 +2,37 @@ branches:
   except:
   - "/^wip/"
 language: node_js
-node_js:
-- '10'
-- '12'
-matrix:
-  allow_failures:
-  - node_js: '12'
-before_install:
-- yarn global add greenkeeper-lockfile@1
-- sudo apt-get update -q -y
-- sudo apt-get install -y realpath
-before_script:
-- greenkeeper-lockfile-update
-after_script: greenkeeper-lockfile-upload
-script:
-- yarn lint
-- TZ="America/Los_Angeles" yarn test
-after_success: yarn run coverage
+node_js: '10'
+dist: xenial
 env:
   global:
   - COVERALLS_PARALLEL=true
+
+jobs:
+  include:
+    -
+      name: "Unit Tests"
+      install:
+      - travis_retry yarn
+      script:
+      - yarn lint
+      - TZ="America/Los_Angeles" yarn run nyc node ./test
+      after_success: yarn run coverage
+    -
+      name: "Command-line Tests"
+      install:
+      - travis_retry yarn
+      script: yarn run nyc ./test/cmdline.sh
+      after_success: yarn run coverage
+    -
+      name: "Starter Code Tests (Basic)"
+      install:
+      - pyenv global 3.6.7
+      - ./travis/install-starter-deps.sh
+      - travis_retry yarn
+      script: yarn run nyc ./test/basic-starter.sh
+      after_success: yarn run coverage
+
 notifications:
   webhooks: https://coveralls.io/webhook
   slack:

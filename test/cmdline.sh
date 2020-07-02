@@ -1,22 +1,8 @@
 #!/bin/bash
 
-set -e
-set -x
-
-srcdir=`dirname $0`/..
-srcdir=`realpath $srcdir`
-
-export TMPDIR=$srcdir
-workdir=`mktemp -d $TMPDIR/genie-XXXXXX`
-workdir=`realpath $workdir`
-
-on_error() {
-    rm -fr $workdir
-}
+. $(dirname $0)/common.sh
+do_setup
 trap on_error ERR INT TERM
-
-oldpwd=`pwd`
-cd $workdir
 
 node $srcdir/tool/genie.js && exit 1 || true
 
