@@ -18,11 +18,10 @@ const csvstringify = require('csv-stringify');
 
 const I18N = require('../../lib/i18n');
 const StreamUtils = require('../../lib/stream-utils');
-const { makeMetadata } = require('../lib/metadata');
-const { PROPERTIES_NO_FILTER } = require('./manual-annotations');
+const { makeMetadata } = require('./lib/metadata');
 
 class ParamDatasetGenerator {
-    constructor(locale, debug, className) {
+    constructor(locale, debug, className, dataset) {
         this._locale = locale;
         this._debug = debug;
         this._className = className;
@@ -32,6 +31,8 @@ class ParamDatasetGenerator {
         this._stringFiles = new Map;
 
         this._tokenizer = I18N.get(locale).getTokenizer();
+        this._manualAnnotations = require(`./${dataset}/manual-annotations`);
+        this._propertiesNoFilter = this._manualAnnotations.PROPERTIES_NO_FILTER;
     }
 
     _getStringFile(stringFileName, isEntity) {
@@ -105,7 +106,7 @@ class ParamDatasetGenerator {
             const key = path[path.length-1];
 
             // no string set needed if the field is not filterable
-            if (PROPERTIES_NO_FILTER.includes(key))
+            if (this._propertiesNoFilter.includes(key))
                 return;
 
             if (expectedType.type === 'tt:String') {
@@ -207,9 +208,14 @@ class ParamDatasetGenerator {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('autoqa-make-string-datasets', {
+        const parser = subparsers.addParser('make-string-datasets', {
             addHelp: true,
-            description: "Extract string datasets from a WebQA normalized data file."
+            description: "Extract string datasets from a AutoQA normalized data file."
+        });
+        parser.addArgument('--dataset', {
+            required: true,
+            choices: ['schemaorg', 'sgd'],
+            help: 'The dataset to run autoQA on.'
         });
         parser.addArgument(['-d', '--output-dir'], {
             required: true,
@@ -255,7 +261,7 @@ module.exports = {
     },
 
     async execute(args) {
-        const generator = new ParamDatasetGenerator(args.locale, args.debug, args.class_name);
+        const generator = new ParamDatasetGenerator(args.locale, args.debug, args.class_name, args.dataset);
         await generator.init(args.thingpedia);
 
         const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));

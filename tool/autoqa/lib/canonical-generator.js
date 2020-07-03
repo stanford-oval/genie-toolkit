@@ -14,14 +14,11 @@ const path = require('path');
 const stemmer = require('stemmer');
 const Inflectors = require('en-inflectors').Inflectors;
 const child_process = require('child_process');
-const utils = require('../../lib/utils');
+const utils = require('../../../lib/utils');
 
 const CanonicalExtractor = require('./canonical-extractor');
-const { makeLookupKeys } = require('../../lib/sample-utils');
-const { PROPERTY_CANONICAL_OVERRIDE } = require('../autoqa/manual-annotations');
-const { posTag } = require('../../lib/i18n/american-english');
-
-const ANNOTATED_PROPERTIES = Object.keys(PROPERTY_CANONICAL_OVERRIDE);
+const { makeLookupKeys } = require('../../../lib/sample-utils');
+const { posTag } = require('../../../lib/i18n/american-english');
 
 // extract entity type from type
 function typeToEntityType(type) {
@@ -51,6 +48,9 @@ class AutoCanonicalGenerator {
         this.parameterDatasetPaths = {};
 
         this.options = options;
+
+        this.manualAnnotations = require(`../${options.dataset}/manual-annotations`);
+        this.annotatedProperties = Object.keys(this.manualAnnotations.PROPERTY_CANONICAL_OVERRIDE);
     }
 
     async generate() {
@@ -65,14 +65,14 @@ class AutoCanonicalGenerator {
             for (let arg of query.iterateArguments()) {
                 queries[qname]['args'][arg.name] = {};
 
-                if (ANNOTATED_PROPERTIES.includes(arg.name) || arg.name === 'id')
+                if (this.annotatedProperties.includes(arg.name) || arg.name === 'id')
                     continue;
 
                 // TODO: bert on counted object only for these args
                 if (arg.metadata.counted_object)
                     continue;
 
-                if (arg.name.includes('.') && ANNOTATED_PROPERTIES.includes(arg.name.slice(arg.name.indexOf('.') + 1)))
+                if (arg.name.includes('.') && this.annotatedProperties.includes(arg.name.slice(arg.name.indexOf('.') + 1)))
                     continue;
 
                 // get the paths to the data

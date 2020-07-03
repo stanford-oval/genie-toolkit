@@ -18,11 +18,11 @@ const Ast = ThingTalk.Ast;
 const fs = require('fs');
 const util = require('util');
 
-const { clean } = require('../../lib/utils');
-const { pluralize } = require('../../lib/i18n/american-english');
+const { clean } = require('../../../lib/utils');
+const { pluralize } = require('../../../lib/i18n/american-english');
 const baseCanonical = require('../lib/base-canonical-generator');
-const { isHumanEntity } = require('../../languages/thingtalk/utils');
-const StreamUtils = require('../../lib/stream-utils');
+const { isHumanEntity } = require('../../../languages/thingtalk/utils');
+const StreamUtils = require('../../../lib/stream-utils');
 
 const {
     BUILTIN_TYPEMAP,
@@ -684,7 +684,7 @@ class SchemaProcessor {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('autoqa-process-schemaorg', {
+        const parser = subparsers.addParser('schemaorg-process-schema', {
             addHelp: true,
             description: "Process a schema.org JSON+LD definition into a Thingpedia class."
         });

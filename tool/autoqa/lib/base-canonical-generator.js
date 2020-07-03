@@ -9,8 +9,8 @@
 // See COPYING for details
 "use strict";
 
-const { clean } = require('../../lib/utils');
-const { pluralize, posTag } = require('../../lib/i18n/american-english');
+const { clean } = require('../../../lib/utils');
+const { pluralize, posTag } = require('../../../lib/i18n/american-english');
 
 function genBaseCanonical(canonical, name, ptype) {
     name = clean(name);

@@ -16,7 +16,7 @@ const util = require('util');
 const ThingTalk = require('thingtalk');
 const crypto = require('crypto');
 
-const StreamUtils = require('../../lib/stream-utils');
+const StreamUtils = require('../../../lib/stream-utils');
 const { makeMetadata } = require('../lib/metadata');
 const { cleanEnumValue } = require('./utils');
 

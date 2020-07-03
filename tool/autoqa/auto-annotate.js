@@ -14,9 +14,9 @@ const assert = require('assert');
 const util = require('util');
 const ThingTalk = require('thingtalk');
 
-const { parseConstantFile } = require('./lib/constant-file');
+const { parseConstantFile } = require('../lib/constant-file');
 const AnnotationGenerator = require('./lib/annotation-generator');
-const StreamUtils = require('../lib/stream-utils');
+const StreamUtils = require('../../lib/stream-utils');
 
 async function loadClassDef(thingpedia) {
     const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
@@ -26,9 +26,14 @@ async function loadClassDef(thingpedia) {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('autogen-annotations', {
+        const parser = subparsers.addParser('auto-annotate', {
             addHelp: true,
-            description: "Use BERT to expand canonicals"
+            description: "Automatically generate annotations including canonicals"
+        });
+        parser.addArgument('--dataset', {
+            required: true,
+            choices: ['schemaorg', 'sgd'],
+            help: 'The dataset to run autoQA on.'
         });
         parser.addArgument(['-o', '--output'], {
             required: true,
