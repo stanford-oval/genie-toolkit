@@ -61,7 +61,9 @@ class AutoCanonicalGenerator {
         const queries = {};
         for (let qname of this.queries) {
             let query = this.class.queries[qname];
-            queries[qname] = {canonical: query.canonical, args: {}};
+            queries[qname] = { canonical: query.canonical, args: {} };
+            if (Array.isArray(queries[qname].canonical))
+                queries[qname].canonical = queries[qname].canonical[0];
 
             let typeCounts = this._getArgTypeCount(qname);
             for (let arg of query.iterateArguments()) {
@@ -131,8 +133,9 @@ class AutoCanonicalGenerator {
 
                 const samples = this._retrieveSamples(qname, arg);
                 if (samples) {
-                    queries[qname]['args'][arg.name]['canonicals'] = arg.metadata.canonical;
-                    queries[qname]['args'][arg.name]['values'] = samples;
+                    const argobj = queries[qname]['args'][arg.name];
+                    argobj['canonicals'] = arg.metadata.canonical;
+                    argobj['values'] = samples;
                 }
             }
         }
