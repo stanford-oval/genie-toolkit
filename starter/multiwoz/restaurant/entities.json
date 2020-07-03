@@ -1,0 +1,11 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "type": "uk.ac.cam.multiwoz.Restaurant:Restaurant",
+      "name": "Restaurant",
+      "is_well_known": false,
+      "has_ner_support": true
+    }
+  ]
+}
