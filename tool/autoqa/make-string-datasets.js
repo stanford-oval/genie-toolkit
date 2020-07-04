@@ -26,6 +26,7 @@ class ParamDatasetGenerator {
         this._debug = debug;
         this._className = className;
         this._prefix = `${className}:`;
+        this._dataset = dataset;
 
         this._meta = {};
         this._stringFiles = new Map;
@@ -69,6 +70,10 @@ class ParamDatasetGenerator {
         const typemeta = this._meta[type];
         if (!typemeta)
             return;
+
+        // sgd dataset, field is per-service instead of per function
+        if (this._dataset === 'sgd')
+            type = type.substring(0, type.lastIndexOf('_'));
 
         // if the same base class comes through multiple paths, avoid
         // visiting twice and duplicating the objects

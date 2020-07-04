@@ -19,7 +19,7 @@ const Ast = ThingTalk.Ast;
 const { clean } = require('../../../lib/utils');
 const StreamUtils = require('../../../lib/stream-utils');
 const baseCanonical = require('../lib/base-canonical-generator');
-const { PROPERTY_TYPE_OVERRIDE } = require('./manual-annotations');
+const { PROPERTY_TYPE_OVERRIDE, STRING_FILE_OVERRIDES } = require('./manual-annotations');
 const { cleanEnumValue }  = require('./utils');
 
 function predictType(slot) {
@@ -84,6 +84,11 @@ class SchemaProcessor {
                         impl: { description: new Ast.Value.String(slot.description)}
                     }
                 };
+                if (type.isString) {
+                    const fileId = `com.google.sgd:${service.service_name}_${slot.name}`;
+                    slots[slot.name].annotations.impl['string_values'] =
+                        new Ast.Value.String(STRING_FILE_OVERRIDES[slot.name] || fileId);
+                }
                 if (type.isNumber && slot.possible_values.length > 0) {
                     let min_number = parseInt(slot.possible_values[0]);
                     let max_number = parseInt(slot.possible_values[slot.possible_values.length - 1]);
