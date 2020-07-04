@@ -99,7 +99,7 @@ wikidata-property-labels.json:
 
 models/paraphraser-bart:
 	mkdir models
-	wget https://almond-static.stanford.edu/test-data/paraphraser-bart.tar.xz
+	wget --no-verbose https://almond-static.stanford.edu/test-data/paraphraser-bart.tar.xz
 	tar -C models -xvf paraphraser-bart.tar.xz
 
 $(experiment)/schema.org.tt: $(geniedir)/tool/autoqa/process-schemaorg.js ./wikidata-property-labels.json
@@ -127,7 +127,7 @@ $(experiment)/synthetic-d%.tsv: $(experiment)/schema.tt $(dataset_file) $(genied
 	  --template $(geniedir)/languages/$(template_file) \
 	  --thingpedia $(experiment)/schema.tt --entities $(experiment)/entities.json --dataset $(dataset_file) \
 	  --target-pruning-size $(target_pruning_size) \
-	  -o $@.tmp $(generate_flags) --maxdepth $$(echo $* | cut -f1 -d'-') \
+	  -o $@.tmp --no-debug $(generate_flags) --maxdepth $$(echo $* | cut -f1 -d'-') \
 	  --random-seed $@ --id-prefix $*:
 	mv $@.tmp $@
 

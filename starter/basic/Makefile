@@ -91,7 +91,7 @@ $(experiment)/synthetic.tsv : $(experiment)/thingpedia.tt $(experiment)/dataset.
 	$(genie) generate \
 	  --template $(geniedir)/languages/$(template_file) \
 	  --thingpedia $(experiment)/thingpedia.tt --entities $(experiment)/entities.json --dataset $(experiment)/dataset.tt \
-	  -o $@.tmp --debug $(generate_flags) --random-seed $@
+	  -o $@.tmp --no-debug $(generate_flags) --random-seed $@
 	mv $@.tmp $@
 
 shared-parameter-datasets.tsv:
