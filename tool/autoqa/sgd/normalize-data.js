@@ -20,53 +20,6 @@ const StreamUtils = require('../../../lib/stream-utils');
 const { makeMetadata } = require('../lib/metadata');
 const { cleanEnumValue } = require('./utils');
 
-const SECOND = 1000;
-const MINUTE = 60 * SECOND;
-const HOUR = 60 * MINUTE;
-const DAY = 24 * HOUR;
-const MONTH = 30 * DAY;
-const YEAR = 365 * DAY;
-
-function parseDuration(form) {
-    const match = /^P([0-9]+Y)?([0-9]+M)?([0-9]+D)?T?([0-9]+H)?([0-9]+M)?([0-9]+S)?/.exec(form);
-
-    const [, year, month, day, hour, minute, second] = match;
-
-    let value = 0;
-    if (year)
-        value += parseInt(year) * YEAR;
-    if (month)
-        value += parseInt(month) * MONTH;
-    if (day)
-        value += parseInt(day) * DAY;
-    if (hour)
-        value += parseInt(hour) * HOUR;
-    if (minute)
-        value += parseInt(minute) * MINUTE;
-    if (second)
-        value += parseInt(second) * SECOND;
-    return value;
-}
-
-function parseMeasure(str) {
-    const match = /^(-?(?:(?:0|[1-9][0-9]*)\.[0-9]*(?:[eE][+-]?[0-9]+)?|\.[0-9]+(?:[eE][+-]?[0-9]+)?|(?:0|[1-9][0-9]*)(?:[eE][+-]?[0-9]+)?))\s+([a-zA-Z]+)$/.exec(str);
-    if (!match) {
-        console.error(`Invalid measurement value ${str}`);
-        return undefined;
-    }
-
-    let [, value, unit] = match;
-
-    try {
-        ThingTalk.Units.normalizeUnit(unit);
-    } catch (e) {
-        console.error(`Invalid measurement unit ${unit}`);
-        return undefined;
-    }
-
-    return ThingTalk.Units.transformToBaseUnit(parseFloat(value), unit);
-}
-
 function hash(obj) {
     const str = JSON.stringify(obj);
     const hasher = crypto.createHash('sha1');
@@ -136,13 +89,13 @@ class Normalizer {
             } else if (expectedType.type === 'tt:Number') {
                 return parseFloat(value);
             } else if (expectedType.type === 'tt:Duration') {
-                return parseDuration(value);
+                return ThingTalk.Units.transformToBaseUnit(parseFloat(value), 'min');
             } else if (expectedType.type === 'tt:Measure') {
-                return parseMeasure(value);
+                throw new Error(`No measurement type in sgd dataset`);
             } else if (expectedType.type.startsWith('tt:Enum(')) {
                 const enumerands = expectedType.type.substring('tt:Enum('.length, expectedType.type.length - 1).split(/,/g);
                 value = cleanEnumValue(value);
-                if (value === undefined)
+                if (value === undefined || value === 'Dontcare')
                     return undefined;
                 if (!enumerands.includes(value)) {
                     console.error(`Expected enumerated value for ${arg}, got`, value);
