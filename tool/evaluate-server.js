@@ -26,10 +26,16 @@ function csvDisplay(args, complexity, result, with_numeric=false, without_numeri
     let prefix = '';
     if (with_numeric) {
         prefix = `with_numeric_`;
-        buffer += `with_numeric, ` + String(result[`${prefix}total`]);
+        if (!result[`${prefix}total`])
+            return;
+
+        buffer += `with_numeric,` + String(result[`${prefix}total`]);
     } else if (without_numeric) {
         prefix = `without_numeric_`;
-        buffer += `without_numeric, ` + String(result[`${prefix}total`]);
+        if (!result[`${prefix}total`])
+            return;
+
+        buffer += `without_numeric,` + String(result[`${prefix}total`]);
     } else if (complexity === null) {
         buffer += 'all,';
         buffer += String(result.total);
