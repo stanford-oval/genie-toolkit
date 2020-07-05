@@ -91,7 +91,11 @@ class Normalizer {
             } else if (expectedType.type === 'tt:Duration') {
                 return ThingTalk.Units.transformToBaseUnit(parseFloat(value), 'min');
             } else if (expectedType.type === 'tt:Measure') {
-                throw new Error(`No measurement type in sgd dataset`);
+                if (arg === 'temperature')
+                    return ThingTalk.Units.transformToBaseUnit(parseFloat(value), 'F');
+                if (arg === 'wind')
+                    return ThingTalk.Units.transformToBaseUnit(parseFloat(value), 'mph');
+                throw new Error(`Not recognized measurement type`);
             } else if (expectedType.type.startsWith('tt:Enum(')) {
                 const enumerands = expectedType.type.substring('tt:Enum('.length, expectedType.type.length - 1).split(/,/g);
                 value = cleanEnumValue(value);

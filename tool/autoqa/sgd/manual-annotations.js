@@ -13,6 +13,12 @@ const Type = ThingTalk.Type;
 
 const PROPERTY_TYPE_OVERRIDE = {
     'approximate_ride_duration': Type.Measure('ms'),
+    'precipitation': Type.Number,
+    'humidity': Type.Number,
+    'wind': Type.Measure('mps'),
+    'temperature': Type.Measure('C'),
+    'balance': Type.Currency,
+    'price_per_night': Type.Currency,
     'rent': Type.Currency,
 };
 
