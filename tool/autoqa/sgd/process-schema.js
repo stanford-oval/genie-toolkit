@@ -10,6 +10,7 @@
 "use strict";
 const fs = require('fs');
 const util = require('util');
+const assert = require('assert');
 
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
@@ -60,6 +61,9 @@ class SchemaProcessor {
         this._cache = args.cache_file;
         this._url = args.url;
         this._manual = args.manual;
+        this._queryOnly = args.query_only;
+        this._include = args.include ? args.include.split(',') : null;
+        this._exclude = args.exclude ? args.exclude.split(',') : null;
     }
 
     async run() {
@@ -74,6 +78,14 @@ class SchemaProcessor {
         let queries = {};
         let actions = {};
         for (let service of JSON.parse(schema)) {
+            if (this._include && !this._include.includes(service.service_name))
+                continue;
+            else if (this._exclude && this._exclude.includes(service.service_name))
+                continue;
+            // if include & exclude are both missing, use first available service for conflicted ones
+            else if (!this._include && !this._exclude && !service.service_name.endsWith('_1'))
+                continue;
+
             let slots = {};
             for (let slot of service.slots) {
                 let type = predictType(slot);
@@ -101,6 +113,9 @@ class SchemaProcessor {
                 let name = service.service_name + '_' + intent.name;
 
                 let functionType = intent.is_transactional ? 'action' : 'query';
+                if (this._queryOnly && functionType === 'action')
+                    continue;
+
                 let args = [];
                 for (let arg of intent.required_slots) {
                     let type = slots[arg].type;
@@ -182,9 +197,27 @@ module.exports = {
             help: 'Enable manual annotations.',
             defaultValue: false
         });
+        parser.addArgument('--query-only', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Enable manual annotations.',
+            defaultValue: false
+        });
+        parser.addArgument('--include', {
+            required: false,
+            defaultValue: null,
+            help: 'services to include in the schema, split by comma (no space)'
+        });
+        parser.addArgument('--exclude', {
+            required: false,
+            defaultValue: null,
+            help: 'services to exclude in the schema, split by comma (no space)'
+        });
     },
 
     async execute(args) {
+        // include & exclude cannot be specified at the same time
+        assert(!args.include || !args.exclude);
         const schemaProcessor = new SchemaProcessor(args);
         schemaProcessor.run();
     }
