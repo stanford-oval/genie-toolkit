@@ -34,7 +34,7 @@ class AutoCanonicalGenerator {
     constructor(classDef, constants, queries, parameterDatasets, options) {
         this.class = classDef;
         this.constants = constants;
-        this.queries = queries;
+        this.queries = queries ? queries : Object.keys(classDef.queries);
 
         this.algorithm = options.algorithm ? options.algorithm.split(',') : [];
         this.pruning = options.pruning;
@@ -50,7 +50,7 @@ class AutoCanonicalGenerator {
         this.options = options;
 
         this.manualAnnotations = require(`../${options.dataset}/manual-annotations`);
-        this.annotatedProperties = Object.keys(this.manualAnnotations.PROPERTY_CANONICAL_OVERRIDE);
+        this.annotatedProperties = Object.keys(this.manualAnnotations.MANUAL_PROPERTY_CANONICAL_OVERRIDE);
     }
 
     async generate() {

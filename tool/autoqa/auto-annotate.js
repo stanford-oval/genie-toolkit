@@ -52,8 +52,9 @@ module.exports = {
             help: 'Path to ThingTalk file containing class definitions.'
         });
         parser.addArgument('--queries', {
-            required: true,
-            help: `List of query functions to include, split by comma (no space).`
+            required: false,
+            default: null,
+            help: `List of query functions to include, split by comma (no space). Include all queries if not specified`,
         });
         parser.addArgument('--skip', {
             nargs: 0,
@@ -119,7 +120,8 @@ module.exports = {
         } else {
             const options = args;
             const constants = await parseConstantFile(args.locale, args.constants);
-            const generator = new AnnotationGenerator(classDef, constants, args.queries.split(','), args.parameter_datasets, options);
+            const queries = args.queries ? args.queries.split(',') : null;
+            const generator = new AnnotationGenerator(classDef, constants, queries, args.parameter_datasets, options);
             const annotatedClassDef = await generator.generate();
             args.output.end(annotatedClassDef.prettyprint());
         }
