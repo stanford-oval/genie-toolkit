@@ -370,18 +370,22 @@ class BertLM:
         return examples
 
     @staticmethod
-    def load_values(path):
+    def load_values(type_and_path):
         """
-        Load values from a given tsv file
+        Load values from a given file
         :param path: a string of the path to the tsv file
         :return: an array of string values
         """
-        values = []
-        with open(path, 'r', encoding='utf-8') as tsvfile:
-            rows = csv.reader(tsvfile, delimiter='\t')
-            for row in rows:
-                if len(row) > 1:
-                    values.append(row[1])
+        _type, path = type_and_path
+
+        if _type == 'string':
+            with open(path, 'r', encoding='utf-8') as tsvfile:
+                rows = csv.reader(tsvfile, delimiter='\t')
+                values = [row[1] for row in rows if len(row) > 1]
+        else:
+            with open(path, 'r', encoding='utf-8') as jsonfile:
+                data = json.load(jsonfile)
+                values = [row['canonical'] for row in data['data']]
         return values
 
     @staticmethod

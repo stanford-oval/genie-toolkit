@@ -11,7 +11,7 @@
 const fs = require('fs');
 const util = require('util');
 const child_process = require('child_process');
-const { posTag } = require('../../lib/utils');
+const EnglishLanguagePack = require('../../lib/i18n/american-english');
 
 class AnnotationExtractor {
     constructor(klass, queries, model, options) {
@@ -19,6 +19,7 @@ class AnnotationExtractor {
         this.model = model;
         this.queries = queries;
         this.options = options;
+        this._langPack = new EnglishLanguagePack();
 
         this.newCanonicals = {};
     }
@@ -152,7 +153,7 @@ class AnnotationExtractor {
             if (paraphrase.endsWith('.') || paraphrase.endsWith('?') || paraphrase.endsWith('!'))
                 paraphrase = paraphrase.slice(0, -1);
 
-            let tags = posTag(paraphrase.split(' '));
+            let tags = this._langPack.posTag(paraphrase.split(' '));
 
             let prefixes = [];
             if (origin.startsWith('who ')) {

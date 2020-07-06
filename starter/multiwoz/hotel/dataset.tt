@@ -1,0 +1,18 @@
+dataset @uk.ac.cam.multiwoz.Hotel {
+  query := @uk.ac.cam.multiwoz.Hotel.Hotel(), type == enum(guest_house)
+  #_[preprocessed=["guest house", "guesthouse"]];
+
+  action := @uk.ac.cam.multiwoz.Hotel.make_booking()
+  #_[preprocessed=["book a hotel",
+                   "make a hotel booking"]];
+
+  action (p_hotel : Entity(uk.ac.cam.multiwoz.Hotel:Hotel)) :=
+    @uk.ac.cam.multiwoz.Hotel.make_booking(hotel=p_hotel)
+  #_[preprocessed=["book ${p_hotel}",
+                   "reserve ${p_hotel}",
+                   "find a room at ${p_hotel}",
+                   "get a room at ${p_hotel}",
+                   "make a reservation at ${p_hotel}",
+                   "make a hotel booking for ${p_hotel}",
+                   "make a booking at ${p_hotel}"]];
+}

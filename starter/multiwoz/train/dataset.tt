@@ -1,0 +1,18 @@
+dataset @uk.ac.cam.multiwoz.Train {
+  action := @uk.ac.cam.multiwoz.Train.make_booking()
+  #_[preprocessed=["book a train ride",
+                   "make a train ride booking",
+                   "book a train ticket",
+                   "buy a train ticket",
+                   "purchase a train ticket"]];
+
+  action (p_train : Entity(uk.ac.cam.multiwoz.Train:Train)) :=
+    @uk.ac.cam.multiwoz.Train.make_booking(train=p_train)
+  #_[preprocessed=["book ${p_train}",
+                   "buy a ticket on ${p_train}",
+                   "make a booking for ${p_train}"]];
+
+  action (p_book_people : Number, p_train : Entity(uk.ac.cam.multiwoz.Train:Train)) :=
+    @uk.ac.cam.multiwoz.Train.make_booking(train=p_train)
+  #_[preprocessed=["buy ${p_book_people} tickets on ${p_train}"]];
+}

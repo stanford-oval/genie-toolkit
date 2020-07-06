@@ -28,8 +28,8 @@
     "seedrandom": "^3.0.0",
     "sockaddr": "^1.0.1",
     "stemmer": "^1.0.5",
-    "thingpedia": "~2.7.0",
-    "thingtalk": "~1.10.0",
+    "thingpedia": "~2.8.0-alpha.1",
+    "thingtalk": "~1.11.0-alpha.1",
     "thingtalk-units": "^0.1.0"
   },
   "devDependencies": {
