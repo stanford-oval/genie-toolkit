@@ -17,6 +17,7 @@ const child_process = require('child_process');
 const utils = require('../../../lib/utils');
 
 const CanonicalExtractor = require('./canonical-extractor');
+const genBaseCanonical = require('./base-canonical-generator');
 const { makeLookupKeys } = require('../../../lib/sample-utils');
 const { posTag } = require('../../../lib/i18n/american-english');
 
@@ -49,8 +50,12 @@ class AutoCanonicalGenerator {
 
         this.options = options;
 
-        this.manualAnnotations = require(`../${options.dataset}/manual-annotations`);
-        this.annotatedProperties = Object.keys(this.manualAnnotations.MANUAL_PROPERTY_CANONICAL_OVERRIDE);
+        if (fs.existsSync(`../${options.dataset}/manual-annotations`)) {
+            this.manualAnnotations = require(`../${options.dataset}/manual-annotations`);
+            this.annotatedProperties = Object.keys(this.manualAnnotations.MANUAL_PROPERTY_CANONICAL_OVERRIDE);
+        } else {
+            this.annotatedProperties = [];
+        }
     }
 
     async generate() {
@@ -83,6 +88,11 @@ class AutoCanonicalGenerator {
                 // some args don't have canonical: e.g., id, name
                 if (!arg.metadata.canonical)
                     continue;
+
+                if (this.options.remove_existing_canonicals) {
+                    arg.metadata.canonical = {};
+                    genBaseCanonical(arg.metadata.canonical, arg.name, arg.type);
+                }
 
                 // remove query name in arg name, normally it's repetitive
                 for (let type in arg.metadata.canonical) {

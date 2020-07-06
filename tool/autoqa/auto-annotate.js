@@ -32,7 +32,7 @@ module.exports = {
         });
         parser.addArgument('--dataset', {
             required: true,
-            choices: ['schemaorg', 'sgd'],
+            choices: ['schemaorg', 'sgd', 'multiwoz'],
             help: 'The dataset to run autoQA on.'
         });
         parser.addArgument(['-o', '--output'], {
@@ -60,6 +60,12 @@ module.exports = {
             nargs: 0,
             action: 'storeTrue',
             help: 'Skip the entire process.',
+            defaultValue: false
+        });
+        parser.addArgument('--remove-existing-canonicals', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Remove all existing canonical annotations',
             defaultValue: false
         });
         parser.addArgument('--algorithm', {
