@@ -11,10 +11,10 @@
 
 const assert = require('assert');
 
-const Tokenizer = require('../../lib/i18n/tokenizer/english');
+const I18n = require('../../lib/i18n');
 
 const TEST_CASES = [
-    // order is input, raw, processed, entities
+    // order is input, raw, processed, entities, detokenized
 
     // basics: splitting on spaces, casing, punctuation, emojis
     ['post on twitter', 'post on twitter', 'post on twitter', {}],
@@ -462,8 +462,36 @@ const TEST_CASES = [
      { DATE_0: { year: 2016, month: 5, day: 4, hour: 0, minute: 0, second: 0, timezone: undefined } }],
 ];
 
+const DETOKENIZER_TEST_CASES = [
+    // order is input, tokenized, detokenized
+
+    ['post on twitter', 'post on twitter', 'post on twitter'],
+    ['post    on      twitter', 'post on twitter', 'post on twitter'],
+    ['post    on \n \t   twitter', 'post on twitter', 'post on twitter'],
+    ['Post on Twitter.', 'post on twitter .', 'post on twitter.'],
+    ['Post on Twitter???', 'post on twitter ? ? ?', 'post on twitter???'],
+    ['Post 😗 on Twitter', 'post 😗 on twitter', 'post 😗 on twitter'],
+    ['make a twitter-post', 'make a twitter-post', 'make a twitter-post'],
+    ['make a twitter-', 'make a twitter -', 'make a twitter -'],
+
+    // abbreviations
+    ['so e.g. this is a sentence, ie. something you type',
+     'so e.g. this is a sentence , ie. something you type',
+     'so e.g. this is a sentence, ie. something you type'],
+    ['Prof. Monica S. Lam, Ph.D',
+     'prof. monica s. lam , ph.d',
+     'prof. monica s. lam, ph.d'],
+    ['dr. so and so , m.d.',
+     'dr. so and so , m.d.',
+     'dr. so and so, m.d.'],
+    ['apple computers inc., microsoft corp., another company ltd.',
+     'apple computers inc. , microsoft corp. , another company ltd.',
+     'apple computers inc., microsoft corp., another company ltd.'],
+];
+
 function main() {
-    const tokenizer = new Tokenizer();
+    const langPack = I18n.get('en-US');
+    const tokenizer = langPack.getTokenizer();
 
     let anyFailed = false;
     for (let [input, raw, processed, entities] of TEST_CASES) {
@@ -472,6 +500,18 @@ function main() {
             assert.strictEqual(tokenized.rawTokens.join(' '), raw);
             assert.strictEqual(tokenized.tokens.join(' '), processed);
             assert.deepStrictEqual(tokenized.entities, entities);
+        } catch(e) {
+            console.error(`Test case "${input}" failed`); //"
+            console.error(e);
+            anyFailed = true;
+        }
+    }
+
+    for (let [input, processed, expected] of DETOKENIZER_TEST_CASES) {
+        const tokenized = tokenizer.tokenize(input);
+        try {
+            assert.strictEqual(tokenized.tokens.join(' '), processed);
+            assert.deepStrictEqual(langPack.detokenizeSentence(tokenized.tokens), expected);
         } catch(e) {
             console.error(`Test case "${input}" failed`); //"
             console.error(e);

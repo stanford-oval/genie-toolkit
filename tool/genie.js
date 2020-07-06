@@ -34,6 +34,7 @@ const subcommands = {
     'resample': require('./resample'),
     'split-train-eval': require('./split-train-eval'),
     'typecheck': require('./typecheck'),
+    'deduplicate': require('./deduplicate'),
 
     'train': require('./train'),
     'predict': require('./predict'),

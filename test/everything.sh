@@ -9,4 +9,4 @@ srcdir=`dirname $0`/..
 node $srcdir/test/unit/index.js
 
 # run functional tests
-$srcdir/test/dataset-tools/cmdline.sh
+$srcdir/test/cmdline.sh

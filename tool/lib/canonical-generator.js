@@ -19,7 +19,7 @@ const utils = require('../../lib/utils/misc-utils');
 const CanonicalExtractor = require('./canonical-extractor');
 const { makeLookupKeys } = require('../../lib/dataset-tools/mturk/sample-utils');
 const { PROPERTY_CANONICAL_OVERRIDE } = require('../autoqa/manual-annotations');
-const { posTag } = require('../../lib/i18n/american-english');
+const EnglishLanguagePack = require('../../lib/i18n/american-english');
 
 const ANNOTATED_PROPERTIES = Object.keys(PROPERTY_CANONICAL_OVERRIDE);
 
@@ -51,6 +51,8 @@ class AutoCanonicalGenerator {
         this.parameterDatasetPaths = {};
 
         this.options = options;
+
+        this._langPack = new EnglishLanguagePack();
     }
 
     async generate() {
@@ -59,7 +61,9 @@ class AutoCanonicalGenerator {
         const queries = {};
         for (let qname of this.queries) {
             let query = this.class.queries[qname];
-            queries[qname] = {canonical: query.canonical, args: {}};
+            queries[qname] = { canonical: query.canonical, args: {} };
+            if (Array.isArray(queries[qname].canonical))
+                queries[qname].canonical = queries[qname].canonical[0];
 
             let typeCounts = this._getArgTypeCount(qname);
             for (let arg of query.iterateArguments()) {
@@ -76,9 +80,13 @@ class AutoCanonicalGenerator {
                     continue;
 
                 // get the paths to the data
-                let p = path.dirname(this.parameterDatasets) + '/' + this._getDatasetPath(qname, arg);
-                if (p && fs.existsSync(p))
-                    queries[qname]['args'][arg.name]['path'] = p;
+                let datasetTypeAndPath = this._getDatasetPath(qname, arg);
+                if (!datasetTypeAndPath)
+                    continue;
+                let [datasetType, datasetPath] = datasetTypeAndPath;
+                datasetPath = path.dirname(this.parameterDatasets) + '/' + datasetPath;
+                if (datasetPath && fs.existsSync(datasetPath))
+                    queries[qname]['args'][arg.name]['path'] = [datasetType, datasetPath];
 
                 // some args don't have canonical: e.g., id, name
                 if (!arg.metadata.canonical)
@@ -125,8 +133,9 @@ class AutoCanonicalGenerator {
 
                 const samples = this._retrieveSamples(qname, arg);
                 if (samples) {
-                    queries[qname]['args'][arg.name]['canonicals'] = arg.metadata.canonical;
-                    queries[qname]['args'][arg.name]['values'] = samples;
+                    const argobj = queries[qname]['args'][arg.name];
+                    argobj['canonicals'] = arg.metadata.canonical;
+                    argobj['values'] = samples;
                 }
             }
         }
@@ -195,8 +204,8 @@ class AutoCanonicalGenerator {
     async _loadParameterDatasetPaths() {
         const rows = (await (util.promisify(fs.readFile))(this.parameterDatasets, { encoding: 'utf8' })).split('\n');
         for (let row of rows) {
-            let [/*type*/, /*locale*/, key, path] = row.split('\t');
-            this.parameterDatasetPaths[key] = path;
+            let [type, /*locale*/, key, path] = row.split('\t');
+            this.parameterDatasetPaths[key] = [type, path];
         }
     }
 
@@ -256,7 +265,7 @@ class AutoCanonicalGenerator {
         if (candidate === 'is' || candidate === 'are')
             return false;
 
-        return ['VBP', 'VBZ', 'VBD'].includes(posTag([candidate])[0]);
+        return ['VBP', 'VBZ', 'VBD'].includes(this._langPack.posTag([candidate])[0]);
     }
 
     _hasConflict(query, currentArg, currentPos, currentCanonical) {

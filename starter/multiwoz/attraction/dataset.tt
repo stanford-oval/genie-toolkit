@@ -1,0 +1,4 @@
+dataset @uk.ac.cam.multiwoz.Attraction {
+  query (p_type : String) := @uk.ac.cam.multiwoz.Attraction.Attraction(), type =~ p_type
+  #_[preprocessed=["${p_type}"]];
+}

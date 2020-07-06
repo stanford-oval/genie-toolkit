@@ -19,7 +19,7 @@ const fs = require('fs');
 const util = require('util');
 
 const { clean } = require('../../lib/utils/misc-utils');
-const { pluralize, posTag } = require('../../lib/i18n/american-english');
+const EnglishLanguagePack = require('../../lib/i18n/american-english');
 const { isHumanEntity } = require('../../languages/thingtalk/utils');
 const StreamUtils = require('../../lib/utils/stream-utils');
 
@@ -120,6 +120,8 @@ class SchemaProcessor {
 
         this._wikidata_path = args.wikidata_path;
         this._wikidata_labels = {};
+
+        this._langPack = new EnglishLanguagePack();
     }
 
 
@@ -275,7 +277,7 @@ class SchemaProcessor {
             if (propertyname.startsWith('numberOf'))
                 metadata.counted_object = [ clean(propertyname.slice('numberOf'.length)) ];
             if (propertyname.endsWith('Count'))
-                metadata.counted_object = [ pluralize(clean(propertyname.slice(0, -'Count'.length)))];
+                metadata.counted_object = [ this._langPack.pluralize(clean(propertyname.slice(0, -'Count'.length)))];
 
             if (PROPERTIES_NO_FILTER.includes(propertyname)) {
                 annotation['filterable'] = new Ast.Value.Boolean(false);
@@ -333,7 +335,7 @@ class SchemaProcessor {
             return;
 
         if (ptype && ptype.isArray)
-            name = pluralize(name);
+            name = this._langPack.pluralize(name);
 
         if (name.endsWith(' content') && ptype.isMeasure) {
             name = name.substring(0, name.length - ' content'.length);
@@ -346,14 +348,14 @@ class SchemaProcessor {
             canonical.base = (canonical.base || [] ).concat(name);
         } else if (name.startsWith('is ')) {
             name = name.substring('is '.length);
-            let tags = posTag(name.split(' '));
+            let tags = this._langPack.posTag(name.split(' '));
 
             if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1]) || name.endsWith(' of'))
                 canonical.reverse_property = (canonical.reverse_property || []).concat([name]);
             else if (['VBN', 'JJ', 'JJR'].includes(tags[0]))
                 canonical.passive_verb = (canonical.passive_verb || []).concat([name]);
         } else {
-            let tags = posTag(name.split(' '));
+            let tags = this._langPack.posTag(name.split(' '));
             if (['VBP', 'VBZ', 'VBD'].includes(tags[0])) {
                 if (tags.length === 2 && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
                     canonical.verb = (canonical.verb || []).concat([name.replace(' ', ' # ')]);
@@ -660,7 +662,7 @@ class SchemaProcessor {
                 if (propertyname.startsWith('numberOf'))
                     metadata.counted_object = [ clean(propertyname.slice('numberOf'.length)) ];
                 if (propertyname.endsWith('Count'))
-                    metadata.counted_object = [ pluralize(clean(propertyname.slice(0, -'Count'.length)))];
+                    metadata.counted_object = [ this._langPack.pluralize(clean(propertyname.slice(0, -'Count'.length)))];
 
                 const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, propertyname, type, {
                     nl: metadata,

@@ -16,8 +16,8 @@ const stream = require('stream');
 const seedrandom = require('seedrandom');
 
 const { BasicSentenceGenerator } = require('../../lib/sentence-generator');
-const DatasetAugmenter = require('../../lib/dataset_augmenter');
-const Utils = require('../../lib/utils');
+const DatasetAugmenter = require('../../lib/dataset-tools/augmentation');
+const Utils = require('../../lib/utils/misc-utils');
 const FileParameterProvider = require('../../tool/lib/file_parameter_provider');
 
 const ThingTalk = require('thingtalk');
@@ -41,7 +41,7 @@ async function main() {
     const generatorOptions = {
         rng,
         locale: 'en-US',
-        templateFiles: [path.resolve(path.dirname(module.filename), '../languages/thingtalk/en/thingtalk.genie')],
+        templateFiles: [path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/thingtalk.genie')],
         targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,
         flags: {
@@ -70,12 +70,13 @@ async function main() {
         noQuoteExpandFactor: 10,
 
         locale: 'en-US',
+        paramLocale: 'en',
         rng,
         debug: true,
     };
 
     const generator = new BasicSentenceGenerator(generatorOptions);
-    const constProvider = new FileParameterProvider(path.resolve(path.dirname(module.filename), './data/parameter-datasets.tsv'));
+    const constProvider = new FileParameterProvider(path.resolve(path.dirname(module.filename), '../data/en-US/parameter-datasets.tsv'), 'en');
     await constProvider.open();
     const augmenter = new DatasetAugmenter(_schemaRetriever, constProvider, _tpClient, augmentOptions);
     const writer = new stream.Writable({

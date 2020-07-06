@@ -1,0 +1,498 @@
+[
+  {
+    "address": "124 tenison road",
+    "area": "east",
+    "internet": true,
+    "parking": false,
+    "id": {
+      "value": "0",
+      "display": "a and b guest house"
+    },
+    "phone": "01223315702",
+    "postcode": "cb12dp",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "moderate"
+  },
+  {
+    "address": "154 chesterton road",
+    "area": "north",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "1",
+      "display": "acorn guest house"
+    },
+    "phone": "01223353888",
+    "postcode": "cb41da",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "moderate"
+  },
+  {
+    "address": "56 saint barnabas road",
+    "area": "centre",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "2",
+      "display": "alexander bed and breakfast"
+    },
+    "phone": "01223525725",
+    "postcode": "cb12de",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "cheap"
+  },
+  {
+    "address": "517a coldham lane",
+    "area": "east",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "3",
+      "display": "allenbell"
+    },
+    "phone": "01223210353",
+    "postcode": "cb13js",
+    "stars": 4,
+    "n": "yes",
+    "type": "guest_house",
+    "price_range": "cheap"
+  },
+  {
+    "address": "63 milton road",
+    "area": "north",
+    "internet": false,
+    "parking": false,
+    "id": {
+      "value": "4",
+      "display": "alpha milton guest house"
+    },
+    "phone": "01223311625",
+    "postcode": "cb41xa",
+    "stars": 3,
+    "type": "guest_house",
+    "price_range": "moderate"
+  },
+  {
+    "address": "82 arbury road",
+    "area": "north",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "5",
+      "display": "arbury lodge guesthouse"
+    },
+    "phone": "01223364319",
+    "postcode": "cb42je",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "moderate"
+  },
+  {
+    "address": "52 gilbert road",
+    "area": "north",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "6",
+      "display": "archway house"
+    },
+    "phone": "01223575314",
+    "postcode": "cb43pe",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "moderate"
+  },
+  {
+    "address": "74 chesterton road",
+    "area": "north",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "7",
+      "display": "ashley hotel"
+    },
+    "phone": "01223350059",
+    "postcode": "cb41er",
+    "stars": 2,
+    "type": "hotel",
+    "price_range": "moderate"
+  },
+  {
+    "address": "710 newmarket road",
+    "area": "east",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "8",
+      "display": "autumn house"
+    },
+    "phone": "01223575122",
+    "postcode": "cb58rs",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "cheap"
+  },
+  {
+    "address": "62 gilbert road",
+    "area": "north",
+    "internet": true,
+    "parking": false,
+    "id": {
+      "value": "9",
+      "display": "avalon"
+    },
+    "phone": "01223353071",
+    "postcode": "cb43pd",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "moderate"
+  },
+  {
+    "address": "5 mowbray road",
+    "area": "south",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "10",
+      "display": "aylesbray lodge guest house"
+    },
+    "phone": "01223240089",
+    "postcode": "cb17sr",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "moderate"
+  },
+  {
+    "address": "151 hills road",
+    "area": "south",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "11",
+      "display": "bridge guest house"
+    },
+    "phone": "01223247942",
+    "postcode": "cb28rj",
+    "stars": 3,
+    "type": "guest_house",
+    "price_range": "moderate"
+  },
+  {
+    "address": "138 perne road",
+    "area": "east",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "12",
+      "display": "carolina bed and breakfast"
+    },
+    "phone": "01223247015",
+    "postcode": "cb13nx",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "moderate"
+  },
+  {
+    "address": "328a histon road",
+    "area": "north",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "13",
+      "display": "city centre north b and b"
+    },
+    "phone": "01223312843",
+    "postcode": "cb43ht",
+    "stars": 0,
+    "type": "guest_house",
+    "price_range": "cheap"
+  },
+  {
+    "address": "sleeperz hotel, station road",
+    "area": "centre",
+    "internet": true,
+    "parking": false,
+    "id": {
+      "value": "14",
+      "display": "cityroomz"
+    },
+    "phone": "01223304050",
+    "postcode": "cb12tz",
+    "stars": 0,
+    "type": "hotel",
+    "price_range": "moderate"
+  },
+  {
+    "address": "41 warkworth street",
+    "area": "centre",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "15",
+      "display": "el shaddai"
+    },
+    "phone": "01223327978",
+    "postcode": "cb11eg",
+    "stars": 0,
+    "type": "guest_house",
+    "price_range": "cheap"
+  },
+  {
+    "address": "15-17 norman way, coldhams business park",
+    "area": "east",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "16",
+      "display": "express by holiday inn cambridge"
+    },
+    "phone": "01223866800",
+    "postcode": "cb13lh",
+    "stars": 2,
+    "type": "hotel",
+    "price_range": "expensive"
+  },
+  {
+    "address": "144 thornton road",
+    "area": "west",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "17",
+      "display": "finches bed and breakfast"
+    },
+    "phone": "01223276653",
+    "postcode": "cb30nd",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "cheap"
+  },
+  {
+    "address": "gonville place",
+    "area": "centre",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "18",
+      "display": "gonville hotel"
+    },
+    "phone": "01223366611",
+    "postcode": "cb11ly",
+    "stars": 3,
+    "type": "hotel",
+    "price_range": "expensive"
+  },
+  {
+    "address": "156 chesterton road",
+    "area": "north",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "19",
+      "display": "hamilton lodge"
+    },
+    "phone": "01223365664",
+    "postcode": "cb41da",
+    "stars": 3,
+    "type": "guest_house",
+    "price_range": "moderate"
+  },
+  {
+    "address": "96 barton road",
+    "area": "west",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "20",
+      "display": "hobsons house"
+    },
+    "phone": "01223304906",
+    "postcode": "cb39lh",
+    "stars": 3,
+    "type": "guest_house",
+    "price_range": "moderate"
+  },
+  {
+    "address": "78-80 milton road",
+    "area": "north",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "21",
+      "display": "home from home"
+    },
+    "phone": "01223323555",
+    "postcode": "cb41la",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "moderate"
+  },
+  {
+    "address": "kingfisher way, hinchinbrook business park, huntingdon",
+    "area": "west",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "22",
+      "display": "huntingdon marriott hotel"
+    },
+    "phone": "01480446000",
+    "postcode": "pe296fl",
+    "stars": 4,
+    "type": "hotel",
+    "price_range": "expensive"
+  },
+  {
+    "address": "172 chesterton road",
+    "area": "north",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "23",
+      "display": "kirkwood house"
+    },
+    "phone": "01223306283",
+    "postcode": "cb41da",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "moderate"
+  },
+  {
+    "address": "732-734 newmarket road",
+    "area": "east",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "24",
+      "display": "leverton house"
+    },
+    "phone": "01223292094",
+    "postcode": "cb58rs",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "cheap"
+  },
+  {
+    "address": "78-80 milton road",
+    "area": "north",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "25",
+      "display": "limehouse"
+    },
+    "phone": "01223300552",
+    "postcode": "cb42je",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "moderate"
+  },
+  {
+    "address": "365 milton road",
+    "area": "north",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "26",
+      "display": "lovell lodge"
+    },
+    "phone": "01223425478",
+    "postcode": "cb41sr",
+    "stars": 2,
+    "type": "hotel",
+    "price_range": "moderate"
+  },
+  {
+    "address": "53 roseford road",
+    "area": "south",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "27",
+      "display": "rosa s bed and breakfast"
+    },
+    "phone": "01223512596",
+    "postcode": "cb22ha",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "cheap"
+  },
+  {
+    "address": "back lane, cambourne",
+    "area": "west",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "28",
+      "display": "the cambridge belfry"
+    },
+    "phone": "01954714600",
+    "postcode": "cb236bw",
+    "stars": 4,
+    "type": "hotel",
+    "price_range": "cheap"
+  },
+  {
+    "address": "53-57 lensfield road",
+    "area": "south",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "29",
+      "display": "the lensfield hotel"
+    },
+    "phone": "01223355017",
+    "postcode": "cb21en",
+    "stars": 3,
+    "type": "hotel",
+    "price_range": "expensive"
+  },
+  {
+    "address": "regent street",
+    "area": "centre",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "30",
+      "display": "university arms hotel"
+    },
+    "phone": "01223351241",
+    "postcode": "cb21ad",
+    "stars": 4,
+    "type": "hotel",
+    "price_range": "expensive"
+  },
+  {
+    "address": "warkworth terrace",
+    "area": "east",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "31",
+      "display": "warkworth house"
+    },
+    "phone": "01223363682",
+    "postcode": "cb11ee",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "moderate"
+  },
+  {
+    "address": "152 chesterton road",
+    "area": "north",
+    "internet": true,
+    "parking": true,
+    "id": {
+      "value": "32",
+      "display": "worth house"
+    },
+    "phone": "01223316074",
+    "postcode": "cb41da",
+    "stars": 4,
+    "type": "guest_house",
+    "price_range": "cheap"
+  }
+]
