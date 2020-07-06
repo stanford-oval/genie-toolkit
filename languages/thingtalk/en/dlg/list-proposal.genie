@@ -17,16 +17,7 @@
 // - a question about an element of the list (= "list_proposal_search_question_pair")
 
 {
-    const assert = require('assert');
-    const ThingTalk = require('thingtalk');
-    const Ast = ThingTalk.Ast;
-    const Type = ThingTalk.Type;
-
-    const C = require('../../ast_manip');
-    const D = require('../../dialogue_utils');
-
-    // import thingpedia info
-    const _tpLoader = require('../../load-thingpedia');
+    const D = require('../../dialogue_acts');
 }
 
 // a "list proposal" consists of the first few results of the current query,
@@ -37,12 +28,7 @@ system_list_proposal = {
          'would you like to learn more ?' | 'would you like to learn more about either of them ?' |
          'would you like to know more about them ?' | 'would you like to hear more about them ?' |
          'are you interested to hear more about any of them ?')
-        => {
-        const { ctx, results } = name_list;
-        if (ctx.resultInfo.projection !== null)
-            return null;
-        return [results, null, ctx.nextInfo && ctx.nextInfo.isAction ? D.getActionInvocation(ctx.next) : null];
-    };
+        => D.checkListProposal(name_list, null);
 
     ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' ('they' | 'all of them') 'are' info:result_info_phrase '.'
         => D.checkListProposal(name_list, info);
@@ -53,57 +39,8 @@ system_list_proposal = {
         return D.checkListProposal(name_list, info);
     };
 
-    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_list_proposal => {
-        const { ctx, results } = name_list;
-        const resultType = results[0].value.id.getType();
-        if (!C.hasArgumentOfType(action, resultType))
-            return null;
-        const ctxAction = ctx.nextInfo && ctx.nextInfo.isAction ? D.getActionInvocation(ctx.next) : null;
-        if (ctxAction && !C.isSameFunction(ctxAction.schema, action.schema))
-            return null;
-
-        return [results, null, action];
-    };
-}
-
-
-verbose_negative_list_proposal_reply_pair = {
-    ( prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:answer_noun_phrase
-    | prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for' | 'i do not like' | 'i do not want') phrase:anything_phrase
-    ) => {
-        const [results, info, action] = prop;
-        if (info === null)
-            return null;
-        if (!D.isValidNegativePreambleForInfo(info, phrase))
-            return null;
-        return [results, action, phrase];
-    };
-}
-
-negative_list_proposal_reply_pair = {
-    prop:system_list_proposal '<sep>' ('no ,' | 'no' | '') request:negative_proposal_answer => {
-        const [results, info, action] = prop;
-        const proposalType = results[0].value.id.getType();
-        const idType = request.schema.getArgType('id');
-
-        if (!idType || !idType.equals(proposalType))
-            return null;
-        return [results, action, request];
-    };
-
-    pair:verbose_negative_list_proposal_reply_pair [weight=5] => {
-        const [results, action, preamble] = pair;
-        // convert the preamble into a request by negating it
-
-        // shallow clone
-        assert(preamble instanceof Ast.Table.Filter);
-        const clone = new Ast.Table.Filter(null, preamble.table, preamble.filter, preamble.schema);
-        clone.filter = new Ast.BooleanExpression.Not(null, clone.filter);
-        return [results, action, clone];
-    };
-
-    pair:verbose_negative_list_proposal_reply_pair request:negative_proposal_answer
-        => D.mergePreambleAndRequest(pair, request);
+    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_list_proposal
+        => D.addActionToListProposal(name_list, action);
 }
 
 generic_list_proposal_accept_phrase = {
@@ -130,161 +67,8 @@ list_proposal_tell_me_more = {
     ('ok' | 'yeah' | '') name:constant_name 'sounds' ('good' | 'really good' | 'nice' | 'interesting') '.' tell_me_more_phrase => name;
 }
 
-positive_list_proposal_reply_pair = {
-    prop:system_list_proposal '<sep>' name:generic_list_proposal_accept_phrase => {
-        const [results, info, actionProposal] = prop;
-        let good = false;
-        for (let result of results) {
-            if (result.value.id.equals(name)) {
-                good = true;
-                break;
-            }
-        }
-        if (!good)
-            return false;
-
-        return [results, actionProposal, name, actionProposal];
-    };
-
-    prop:system_list_proposal '<sep>' name:list_proposal_accept_phrase_must_have_action => {
-        const [results, info, actionProposal] = prop;
-        if (actionProposal === null)
-            return null;
-        let good = false;
-        for (let result of results) {
-            if (result.value.id.equals(name)) {
-                good = true;
-                break;
-            }
-        }
-        if (!good)
-            return false;
-
-        return [results, actionProposal, name, actionProposal];
-    };
-
-    prop:system_list_proposal '<sep>' accept:list_proposal_accept_phrase_with_action => {
-        const [results, info, actionProposal] = prop;
-        const [name, acceptedAction] = accept;
-        if (actionProposal !== null && !C.isSameFunction(actionProposal.schema, acceptedAction.schema))
-            return null;
-        let good = false;
-        for (let result of results) {
-            if (result.value.id.equals(name)) {
-                good = true;
-                break;
-            }
-        }
-        if (!good)
-            return false;
-
-        return [results, actionProposal, name, acceptedAction];
-    };
-
-    prop:system_list_proposal '<sep>' action:list_proposal_accept_phrase_with_action_by_name => {
-        const [results, info, actionProposal] = prop;
-        if (actionProposal !== null && !C.isSameFunction(actionProposal.schema, action.schema))
-            return null;
-
-        const idType = results[0].value.id.getType();
-        let name = null;
-        const acceptedAction = action.clone();
-        // find the chain parameter for the action, extract the name, and set the param to undefined
-        // as the rest of the code expects
-        for (let in_param of acceptedAction.in_params) {
-            const arg = action.schema.getArgument(in_param.name);
-            assert(arg);
-            if (arg.type.equals(idType)) {
-                name = in_param.value;
-                in_param.value = new Ast.Value.Undefined(true);
-                break;
-            }
-        }
-        if (!name)
-            return null;
-        let good = false;
-        for (let result of results) {
-            if (result.value.id.equals(name)) {
-                good = true;
-                break;
-            }
-        }
-        return [results, actionProposal, name, acceptedAction];
-    };
-
-    prop:system_list_proposal '<sep>' name:list_proposal_tell_me_more => {
-        const [results, info, actionProposal] = prop;
-        let good = false;
-        for (let result of results) {
-            if (result.value.id.equals(name)) {
-                good = true;
-                break;
-            }
-        }
-        if (!good)
-            return false;
-
-        // set the action to null, which will hit the "tell me more" path
-        return [results, actionProposal, name, null];
-    };
-}
-
-list_proposal_search_question_pair = {
-    ( prop:system_list_proposal '<sep>' params:simple_user_search_question
-    | prop:system_list_proposal '<sep>' params:simple_user_search_question_for_list
-    | prop:system_list_proposal '<sep>' params:boolean_user_search_question_for_list
-    ) => {
-        const [results, info, action] = prop;
-        if (info !== null) {
-            for (let [pname, type] of params) {
-                assert(typeof pname === 'string');
-                if (info.has(pname))
-                    return null;
-                if (!info.schema.hasArgument(pname))
-                    return null;
-                if (type !== null && !info.schema.getArgType(pname).equals(type))
-                    return null;
-            }
-        }
-        return [results, null, action, params];
-    };
-
-    ( prop:system_list_proposal '<sep>' question:user_search_question_with_name
-    | prop:system_list_proposal '<sep>' question:boolean_user_search_question_with_name
-    ) => {
-        const [name, params] = question;
-        const [results, info, action] = prop;
-        let good = false;
-        for (let result of results) {
-            if (!result.value.id)
-                continue;
-            if (result.value.id.equals(name)) {
-                good = true;
-                break;
-            }
-        }
-        if (!good)
-            return null;
-
-        if (info !== null) {
-            for (let [pname, type] of params) {
-                assert(typeof pname === 'string');
-                if (info.has(pname))
-                    return null;
-                if (!info.schema.hasArgument(pname))
-                    return null;
-                if (type !== null && !info.schema.getArgType(pname).equals(type))
-                    return null;
-            }
-        }
-        return [results, name, action, params];
-    };
-}
-
-list_proposal_ask_recommend_pair = {
-    prop:system_list_proposal '<sep>' ask_recommend_phrase => prop;
-}
-
-list_proposal_related_question_pair = {
-    prop:system_list_proposal '<sep>' question:related_question => [prop, question];
+positive_list_proposal_reply = {
+    name:generic_list_proposal_accept_phrase => [name, null, false];
+    name:list_proposal_accept_phrase_must_have_action => [name, null, true];
+    accept:list_proposal_accept_phrase_with_action => accept;
 }

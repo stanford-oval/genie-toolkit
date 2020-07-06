@@ -19,7 +19,7 @@
     const Type = ThingTalk.Type;
 
     const C = require('../../ast_manip');
-    const D = require('../../dialogue_utils');
+    const D = require('../../dialogue_acts');
 
     // import thingpedia info
     const _tpLoader = require('../../load-thingpedia');
@@ -68,28 +68,6 @@ action_success_phrase = {
 
     ctx:ctx_completed_action_success 'i' action:complete_past_action_phrase '.' info:direct_result_info_phrase
         => D.makeCompleteActionSuccessPhrase(ctx, action, info);
-}
-
-action_success_terminal_pair = {
-    action:action_success_phrase anything_else_phrase '<sep>' thanks_phrase ('goodbye !' | '') => action;
-}
-
-action_success_restart_pair = {
-    action:action_success_phrase anything_else_phrase '<sep>' stmt:initial_command => [action, stmt];
-    action:action_success_phrase anything_else_phrase '<sep>' yes_please_phrase stmt:initial_command => [action, stmt];
-}
-
-action_success_question_pair = {
-    action:action_success_phrase anything_else_phrase '<sep>' questions:simple_user_search_question => {
-        for (let [qname, qtype] of questions) {
-            const arg = action.schema.getArgument(qname);
-            if (!arg || arg.is_input)
-                return null;
-            if (qtype !== null && !qtype.equals(arg.type))
-                return null;
-        }
-        return questions.map(([qname, qtype]) => qname);
-    };
 }
 
 short_action_error_message = {
@@ -141,39 +119,11 @@ two_param_try_different_param_question = {
 }
 
 action_error_phrase = {
-    sorry_preamble ctx:short_action_error_message '.' => [ctx.currentFunctionSchema, []];
+    sorry_preamble ctx:short_action_error_message '.' => D.makeActionErrorPhrase(ctx, []);
 
     ( sorry_preamble ctx:short_action_error_message '.' questions:one_param_try_different_param_question [weight=1]
     | sorry_preamble ctx:short_action_error_message '.' questions:two_param_try_different_param_question [weight=0.5]
     | sorry_preamble ctx:long_action_error_message '.' questions:one_param_try_different_param_question [weight=1]
     | sorry_preamble ctx:long_action_error_message '.' questions:two_param_try_different_param_question [weight=0.5]
-    ) => {
-        const schema = ctx.currentFunctionSchema;
-        for (let q of questions) {
-            const arg = schema.getArgument(q);
-            if (!arg || !arg.is_input)
-                return null;
-        }
-        return [schema, questions];
-    };
-}
-
-action_error_terminal_pair = {
-    error:action_error_phrase '<sep>' no_thanks_phrase => error;
-    error:action_error_phrase '<sep>' nevermind_phrase => error;
-}
-
-action_error_change_param_pair = {
-    error:action_error_phrase '<sep>' ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('can you try' | 'how about') answer:imprecise_slot_fill_answer_phrase '?' => {
-        const [schema, questions] = error;
-        if (answer instanceof Ast.Value) {
-            if (questions.length !== 1)
-                return null;
-            answer = new Ast.InputParam(null, questions[0], answer);
-        }
-        const arg = schema.getArgument(answer.name);
-        if (!arg || !arg.is_input || !arg.type.equals(answer.value.getType()))
-            return null;
-        return [error, answer];
-    };
+    ) => D.makeActionErrorPhrase(ctx, questions);
 }

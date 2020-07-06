@@ -33,11 +33,6 @@ function arraySubset(small, big) {
     return true;
 }
 
-/**
- * Enable assertions
- */
-const DEBUG = true;
-
 // Helper classes for info that we extract from the current context
 // These exist to minimize AST traversals during expansion
 
@@ -50,109 +45,7 @@ const DEBUG = true;
 
 const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
 
-const USER_DIALOGUE_ACTS = new Set([
-    // user says hi!
-    'greet',
-    // user issues a ThingTalk program
-    'execute',
-    // user wants to see the result of the previous program (in reply to a generic search question)
-    'ask_recommend',
-
-    // user insists in reiterating the same search after an empty search error
-    'insist',
-
-    // user wants to see more output from the previous result
-    'learn_more',
-
-    // user asks to see an output parameter from the previous result
-    'action_question',
-
-    // user says closes the dialogue mid-way (in the middle of a search)
-    'cancel',
-
-    // user terminates the dialogue after the agent asked if there is anything
-    // else the user wants
-    // "end" is a terminal state, it has no continuations
-    'end',
-]);
-
-const USER_STATE_MUST_HAVE_PARAM = new Set([
-    'action_question'
-]);
-
-const SYSTEM_DIALOGUE_ACTS = new Set([
-    // agent says hi back
-    'sys_greet',
-    // agent asks a question to refine a query (with or without a parameter)
-    'sys_search_question',
-    'sys_generic_search_question',
-    // agent asks a question to slot fill a program
-    'sys_slot_fill',
-    // agent recommends one, two, or three results from the program (with or without an action)
-    'sys_recommend_one',
-    'sys_recommend_two',
-    'sys_recommend_three',
-    // agent proposes a refined query
-    'sys_propose_refined_query',
-    // agent asks the user what they would like to hear
-    'sys_learn_more_what',
-    // agent informs that the search is empty (with and without a slot-fill question)
-    'sys_empty_search_question',
-    'sys_empty_search',
-
-    // agent executed the action successfully (and shows the result of the action)
-    'sys_action_success',
-
-    // agent had an error in executing the action (with and without a slot-fill question)
-    'sys_action_error_question',
-    'sys_action_error',
-
-    // agent asks if anything else is needed
-    'sys_anything_else',
-
-    // agent says good bye
-    'sys_goodbye',
-]);
-
-const SYSTEM_STATE_MUST_HAVE_PARAM = new Set([
-    'sys_search_question',
-    'sys_slot_fill',
-    'sys_empty_search_question',
-    'sys_action_error_question',
-]);
-
 const INITIAL_CONTEXT_INFO = {};
-
-/**
- * Check the dialogue state for internal consistency and invariants of the policy
- *
- * This method is called by all $root templates
- * If debugging is disabled, this method does nothing (and we just hope for the best!)
- */
-function checkStateIsValid(ctx, sysState, userState) {
-    if (!DEBUG)
-        return [sysState, userState];
-
-    assert(USER_DIALOGUE_ACTS.has(userState.dialogueAct), `invalid user dialogue act ${userState.dialogueAct}`);
-    if (USER_STATE_MUST_HAVE_PARAM.has(userState.dialogueAct))
-        assert(userState.dialogueActParam);
-    else
-        assert(userState.dialogueActParam === null);
-
-    if (ctx === INITIAL_CONTEXT_INFO) {
-        // user speaks first
-        assert(sysState === null);
-        return [sysState, userState];
-    }
-
-    assert(SYSTEM_DIALOGUE_ACTS.has(sysState.dialogueAct), `invalid system dialogue act ${sysState.dialogueAct}`);
-    if (SYSTEM_STATE_MUST_HAVE_PARAM.has(sysState.dialogueAct))
-        assert(sysState.dialogueActParam);
-    else
-        assert(sysState.dialogueActParam === null);
-
-    return [sysState, userState];
-}
 
 const LARGE_RESULT_THRESHOLD = 10;
 function isLargeResultSet(result) {
@@ -249,7 +142,8 @@ class NextStatementInfo {
 }
 
 class ContextInfo {
-    constructor(state, currentFunctionSchema, resultInfo, previousDomainIdx, currentIdx, nextIdx, nextFunctionSchema, nextInfo) {
+    constructor(state, currentFunctionSchema, resultInfo, previousDomainIdx, currentIdx,
+        nextIdx, nextFunctionSchema, nextInfo, aux = null) {
         this.state = state;
 
         assert(currentFunctionSchema === null || currentFunctionSchema instanceof Ast.FunctionDef);
@@ -275,6 +169,11 @@ class ContextInfo {
         }
         this.nextIdx = nextIdx;
         this.nextInfo = nextInfo;
+        this.aux = aux;
+    }
+
+    toString() {
+        return `ContextInfo(${this.state.prettyprint()})`;
     }
 
     get results() {
@@ -302,8 +201,10 @@ class ContextInfo {
     }
 
     clone() {
-        return new ContextInfo(this.state.clone(), this.currentFunctionSchema, this.resultInfo,
-            this.previousDomainIdx, this.currentIdx, this.nextIdx, this.nextFunctionSchema, this.nextInfo);
+        return new ContextInfo(this.state.clone(),
+            this.currentFunctionSchema, this.resultInfo, this.previousDomainIdx, this.currentIdx,
+            this.nextIdx, this.nextFunctionSchema, this.nextInfo,
+            this.aux);
     }
 }
 
@@ -316,10 +217,9 @@ function getDevice(functions) {
 }
 
 function getContextInfo(state) {
-    assert (!state.dialogueAct.startsWith('sys_'), `Unexpected system dialogue act ${state.dialogueAct}`);
-
     let nextItemIdx = null, nextInfo = null, currentFunction = null, nextFunction = null, currentDevice = null, currentResultInfo = null,
         previousDomainItemIdx = null, currentItemIdx = null;
+    let proposedSkip = 0;
     for (let idx = 0; idx < state.history.length; idx ++) {
         const item = state.history[idx];
         const functions = C.getFunctions(item.stmt);
@@ -327,12 +227,20 @@ function getContextInfo(state) {
         assert(typeof device === 'string');
         if (currentDevice && device !== currentDevice)
             previousDomainItemIdx = currentItemIdx;
+        if (item.confirm === 'proposed') {
+            proposedSkip ++;
+            continue;
+        }
         if (item.results === null) {
             nextItemIdx = idx;
             nextFunction = functions[functions.length-1];
             nextInfo = new NextStatementInfo(state.history[currentItemIdx], currentResultInfo, item);
             break;
         }
+
+        // proposed items must come after the current item
+        // (but they can come before or after the next item, depending on what we're proposing)
+        assert(proposedSkip === 0);
 
         currentDevice = device;
         currentFunction = functions[functions.length-1];
@@ -342,7 +250,7 @@ function getContextInfo(state) {
     if (nextItemIdx !== null)
         assert(nextInfo);
     if (nextItemIdx !== null && currentItemIdx !== null)
-        assert(nextItemIdx === currentItemIdx + 1);
+        assert(nextItemIdx === currentItemIdx + 1 + proposedSkip);
     if (previousDomainItemIdx !== null)
         assert(currentItemIdx !== null && previousDomainItemIdx <= currentItemIdx);
 
@@ -417,7 +325,19 @@ function addNewItem(ctx, dialogueAct, dialogueActParam, confirm, ...newHistoryIt
 }
 
 function makeSimpleState(ctx, dialogueAct, dialogueActParam) {
-    return new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, ctx.state.history);
+    // a "simple state" carries the current executed/confirmed/accepted items, but not the
+    // proposed ones
+
+    const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, []);
+    if (ctx === INITIAL_CONTEXT_INFO)
+        return newState;
+
+    for (let i = 0; i < ctx.state.history.length; i++) {
+        if (ctx.state.history[i].confirm === 'proposed')
+            break;
+        newState.history.push(ctx.state.history[i]);
+    }
+    return newState;
 }
 
 function setOrAddInvocationParam(newInvocation, pname, value) {
@@ -562,18 +482,18 @@ function addQuery(ctx, dialogueAct, newTable, confirm) {
     let newStmt = new Ast.Statement.Command(null, newTable, [C.notifyAction()]);
     let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
 
-    // add the new history item right after the current one, without removing any element
-    // NOTE: this assumes that ctx comes from the user's, so it will not have any proposal
-    // in it, otherwise we'd have to remove all proposals between the current item and the next
-    // accepted item
+    // add the new history item right after the current one, and remove all proposed elements
 
     assert(ctx.currentIdx !== null);
     const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, null, []);
     for (let i = 0; i <= ctx.currentIdx; i++)
         newState.history.push(ctx.state.history[i]);
     newState.history.push(newHistoryItem);
-    for (let i = ctx.currentIdx + 1; i < ctx.state.history.length; i++)
+    for (let i = ctx.currentIdx + 1; i < ctx.state.history.length; i++) {
+        if (ctx.state.history[i].confirm === 'proposed')
+            continue;
         newState.history.push(ctx.state.history[i]);
+    }
 
     return newState;
 }
@@ -590,15 +510,179 @@ function addQueryAndAction(ctx, dialogueAct, newTable, newAction, confirm) {
     return addNewItem(ctx, dialogueAct, null, confirm, newTableHistoryItem, newActionHistoryItem);
 }
 
+/**
+ * Construct a full formal reply from the agent.
+ *
+ * The reply contains:
+ * - the agent state (a ThingTalk dialogue state passed to the NLU and NLG networks)
+ * - the agent reply tags (a list of strings that define the context tags on the user side)
+ * - the interaction state (the expected type of the reply, if any, and a boolean indicating raw mode)
+ * - extra information for the new context
+ */
+function makeAgentReply(ctx, state, aux = null, expectedType = null, options = {}) {
+    assert(state instanceof Ast.DialogueState);
+    assert(state.dialogueAct.startsWith('sys_'));
+    assert(expectedType === null || expectedType instanceof ThingTalk.Type);
+
+    const newContext = getContextInfo(state);
+    // set the auxiliary information, which is used by the semantic functions of the user
+    // to see if the continuation is compatible with the specific reply from the agent
+    newContext.aux = aux;
+
+    let mainTag;
+    if (state.dialogueAct === 'sys_generic_search_question')
+        mainTag = 'ctx_sys_search_question';
+    else if (state.dialogueAct.endsWith('_question') && state.dialogueAct !== 'sys_search_question')
+        mainTag = 'ctx_' + state.dialogueAct.substring(0, state.dialogueAct.length - '_question'.length);
+    else if (state.dialogueAct.startsWith('sys_recommend_') && state.dialogueAct !== 'sys_recommend_one')
+        mainTag = 'ctx_sys_recommend_many';
+    else
+        mainTag = 'ctx_' + state.dialogueAct;
+    return {
+        state,
+        context: newContext,
+        tags: ['ctx_sys_any', mainTag, ...getContextTags(newContext)],
+        expect: expectedType,
+
+        // if true, enter raw mode for this user's turn
+        // (this is used for slot filling free-form strings)
+        raw: !!options.raw
+    };
+}
+
+function tagContextForAgent(ctx) {
+    switch (ctx.state.dialogueAct){
+    case 'end':
+        // no continuations are possible after explicit "end" (which means the user said
+        // "no thanks" after the agent asked "is there anything else I can do for you")
+        // but we still tag the context to generate something in inference mode
+        return ['ctx_end'];
+
+    case 'greet':
+        assert(ctx.state.history.length === 0, `expected empty history for greet`);
+        return ['ctx_greet'];
+
+    case 'cancel':
+        return ['ctx_cancel'];
+
+    case 'action_question':
+        return ['ctx_completed_action_success'];
+
+    case 'learn_more':
+        assert(ctx.results);
+        return ['ctx_learn_more'];
+
+    case 'execute':
+    case 'ask_recommend':
+        if (ctx.nextInfo !== null) {
+            // we have an action we want to execute, or a query that needs confirmation
+            if (ctx.nextInfo.chainParameter === null || ctx.nextInfo.chainParameterFilled) {
+                // we don't need to fill any parameter from the current query
+
+                if (ctx.nextInfo.isComplete)
+                    return ['ctx_confirm_action'];
+                else
+                    return ['ctx_incomplete_action_after_search'];
+            }
+        }
+
+        // we must have a result
+        assert(ctx.resultInfo, `expected result info`);
+        if (!ctx.resultInfo.isTable) {
+            if (ctx.resultInfo.hasError)
+                return ['ctx_completed_action_error'];
+            else if (ctx.resultInfo.hasEmptyResult)
+                return ['ctx_completed_action_success'];
+            else
+                return ['ctx_completed_action_success'];
+        }
+
+        if (ctx.resultInfo.hasEmptyResult) {
+            // note: aggregation cannot be empty (it would be zero)
+            return ['ctx_empty_search_command'];
+        }
+
+        if (ctx.resultInfo.isQuestion) {
+            if (ctx.resultInfo.isAggregation) {
+                // "how many restaurants nearby have more than 500 reviews?"
+                return ['ctx_aggregation_question'];
+            } else if (ctx.resultInfo.argMinMaxField !== null) {
+                /* FIXME
+                const [field, direction] = info.resultInfo.argMinMaxField;
+                // for now, we treat these as single result questions
+                if (field === 'distance') // "find the nearest starbucks"
+                    tags.push('ctx_distance_argminmax_question');
+                else // "what is the highest rated restaurant nearby?"
+                    tags.push('ctx_argminmax_question');
+                */
+                return ['ctx_single_result_search_command', 'ctx_complete_search_command'];
+            } else if (ctx.resultInfo.hasSingleResult) {
+                // "what is the rating of Terun?"
+                // FIXME if we want to answer differently, we need to change this one
+                return ['ctx_single_result_search_command', 'ctx_complete_search_command'];
+            } else {
+                // "what's the food and price range of restaurants nearby?"
+                // we treat these the same as "find restaurants nearby", but we make sure
+                // that the necessary fields are computed
+                return ['ctx_search_command', 'ctx_complete_search_command'];
+            }
+        } else {
+            if (ctx.resultInfo.hasSingleResult || ctx.resultInfoQuestion) // we can recommend
+                return ['ctx_single_result_search_command', 'ctx_complete_search_command'];
+            else if (ctx.state.dialogueAct !== 'ask_recommend') // we can refine
+                return ['ctx_search_command', 'ctx_complete_search_command'];
+            else
+                return ['ctx_complete_search_command'];
+        }
+
+    default:
+        throw new Error(`Unexpected user dialogue act ${ctx.state.dialogueAct}`);
+    }
+}
+
+function getContextTags(ctx) {
+    const tags = [];
+    if (ctx.isMultiDomain)
+        tags.push('ctx_multidomain');
+
+    if (ctx.nextInfo !== null) {
+        tags.push('ctx_with_action');
+
+        if (!ctx.nextInfo.isComplete)
+            tags.push('ctx_incomplete_action');
+    } else {
+        if (ctx.resultInfo && ctx.resultInfo.isTable)
+            tags.push('ctx_without_action');
+    }
+    if (!ctx.resultInfo || ctx.resultInfo.hasEmptyResult)
+        return tags;
+
+    assert(ctx.results.length > 0);
+    tags.push('ctx_with_result');
+    if (isUserAskingResultQuestion(ctx)) {
+        tags.push('ctx_with_result_question');
+    } else {
+        tags.push('ctx_with_result_noquestion');
+        if (ctx.nextInfo)
+            tags.push('ctx_with_result_and_action');
+
+        if (ctx.resultInfo.projection === null)
+            tags.push('ctx_without_projection');
+    }
+    return tags;
+}
+
 module.exports = {
     POLICY_NAME,
     INITIAL_CONTEXT_INFO,
+    makeAgentReply,
 
     // compute derived information of the state
     getContextInfo,
+    getContextTags,
+    tagContextForAgent,
     getActionInvocation,
     isUserAskingResultQuestion,
-    checkStateIsValid,
 
     // manipulate states to create new states
     makeSimpleState,

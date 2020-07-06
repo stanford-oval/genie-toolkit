@@ -24,7 +24,7 @@
     const Type = ThingTalk.Type;
 
     const C = require('../../ast_manip');
-    const D = require('../../dialogue_utils');
+    const D = require('../../dialogue_acts');
 
     // import thingpedia info
     const _tpLoader = require('../../load-thingpedia');
@@ -126,7 +126,7 @@ system_recommendation = {
     | proposal:user_question_answer_begin 'is' filter:pvp_filter '.'
     | proposal:user_question_answer_begin 'is' filter:apv_filter '.'
     | proposal:user_question_answer_begin 'has' filter:npp_filter '.'
-    ) => D.makeShortUserQuestionAnswer(proposal, filter);
+    ) => D.makeAnswerStyleRecommendation(proposal, filter);
 
     // even shorter answers to single questions
     direct_user_question_answer;
@@ -147,167 +147,16 @@ system_recommendation = {
     };
 }
 
-verbose_negative_recommendation_reply_pair = {
-    ( prop:system_recommendation '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:answer_noun_phrase
-    | prop:system_recommendation '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for' | 'i do not like' | 'i do not want') phrase:anything_phrase
-    ) => {
-        const { topResult, info, action } = prop;
-        if (info === null || !D.isValidNegativePreambleForInfo(info, phrase))
-            return null;
-        return [topResult, action, phrase];
-    };
-}
-
-negative_recommendation_reply_pair = {
-    prop:system_recommendation '<sep>' ('no ,' | 'no' | '') request:negative_proposal_answer => {
-        const { topResult, action } = prop;
-        const proposalType = topResult.value.id.getType();
-        const idType = request.schema.getArgType('id');
-
-        if (!idType || !idType.equals(proposalType))
-            return null;
-        return [topResult, action, request];
-    };
-
-    pair:verbose_negative_recommendation_reply_pair [weight=5] => {
-        const [topResult, action, preamble] = pair;
-        // convert the preamble into a request by negating it
-        // shallow clone
-        assert(preamble instanceof Ast.Table.Filter);
-        const clone = new Ast.Table.Filter(null, preamble.table, preamble.filter, preamble.schema);
-        clone.filter = new Ast.BooleanExpression.Not(null, clone.filter);
-        return [topResult, action, clone];
-    };
-
-    pair:verbose_negative_recommendation_reply_pair request:negative_proposal_answer
-        => D.mergePreambleAndRequest(pair, request);
-}
-
 recommendation_accept_phrase_with_action = {
     accept_phrase generic_preamble_for_action action:coref_action_command => action;
 }
 
-positive_recommendation_reply_pair = {
-    prop:system_recommendation '<sep>' accept_phrase [weight=2] => {
-        const { topResult, action: actionProposal } = prop;
-        // if the user did not give an action earlier, and no action
-        // was proposed by the agent right now, the flow is roughly
-        //
-        // U: hello i am looking for a restaurant
-        // A: how about the ... ?
-        // U: sure I like that
-        //
-        // this doesn't make much sense, so we don't want this flow
-        if (actionProposal === null)
-            return null;
-        return [topResult, actionProposal, actionProposal];
-    };
-
-    prop:system_recommendation '<sep>' acceptedAction:recommendation_accept_phrase_with_action [weight=2] => {
-        const { topResult, action: actionProposal } = prop;
-        if (actionProposal !== null && !C.isSameFunction(actionProposal.schema, acceptedAction.schema))
-            return null;
-        return [topResult, actionProposal, acceptedAction];
-    };
-
-    ( prop:system_recommendation '<sep>' tell_me_more_phrase [weight=0.5]
-    | prop:system_recommendation '<sep>' accept_phrase tell_me_more_phrase [weight=0.5]
-    ) => {
-        const { topResult, action: actionProposal } = prop;
-        // set the action to null, which will hit the "tell me more" path
-        return [topResult, actionProposal, null];
-    };
+recommendation_accept_phrase_by_name = {
+    name:generic_list_proposal_accept_phrase => [name, null];
+    name:list_proposal_accept_phrase_must_have_action => [name, null];
+    accept:list_proposal_accept_phrase_with_action => accept;
 }
-
-positive_recommendation_reply_by_name_pair = {
-    prop:system_recommendation '<sep>' name:generic_list_proposal_accept_phrase => {
-        const { topResult, action: actionProposal } = prop;
-        // if the user did not give an action earlier, and no action
-        // was proposed by the agent right now, the flow is roughly
-        //
-        // U: hello i am looking for a restaurant
-        // A: how about the ... ?
-        // U: sure I like that
-        //
-        // this doesn't make much sense, so we don't want this flow
-        if (actionProposal === null)
-            return null;
-        if (!topResult.value.id.equals(name))
-            return null;
-        return [topResult, actionProposal, actionProposal];
-    };
-
-    prop:system_recommendation '<sep>' name:list_proposal_accept_phrase_must_have_action => {
-        const { topResult, action: actionProposal } = prop;
-        if (actionProposal === null)
-            return null;
-        if (!topResult.value.id.equals(name))
-            return null;
-        return [topResult, actionProposal, actionProposal];
-    };
-
-    prop:system_recommendation '<sep>' accept:list_proposal_accept_phrase_with_action => {
-        const { topResult, action: actionProposal } = prop;
-        const [name, acceptedAction] = accept;
-        if (actionProposal !== null && !C.isSameFunction(actionProposal.schema, acceptedAction.schema))
-            return null;
-        if (!topResult.value.id.equals(name))
-            return null;
-
-        return [topResult, actionProposal, acceptedAction];
-    };
-
-    prop:system_recommendation '<sep>' name:list_proposal_tell_me_more => {
-        const { topResult, action: actionProposal } = prop;
-        if (!topResult.value.id.equals(name))
-            return null;
-        // set the action to null, which will hit the "tell me more" path
-        return [topResult, actionProposal, null];
-    };
-}
-
-
-recommendation_search_question_pair = {
-    ( prop:system_recommendation '<sep>' ('no ,' | '') questions:simple_user_search_question
-    | prop:system_recommendation '<sep>' ('no ,' | '') questions:thingpedia_user_question '?' [weight=0.3]
-    | prop:system_recommendation '<sep>' questions:boolean_user_search_question
-    ) => {
-        const { topResult, info, action } = prop;
-        if (info !== null) {
-            for (const [pname, ptype] of questions) {
-                if (info.has(pname))
-                    return null;
-                if (!info.schema.hasArgument(pname))
-                    return null;
-                if (ptype !== null && !info.schema.getArgType(pname).equals(ptype))
-                    return null;
-            }
-        }
-        return [topResult, action, questions];
-    };
-}
-
-
-recommendation_cancel_pair = {
-    // "thanks" without "yes" or "no" is always good
-    prop:system_recommendation '<sep>' thanks_phrase ('goodbye !' | '') => prop;
-
-    // "ok thanks" is good if there was no question
-    prop:system_recommendation '<sep>' ok_thanks_phrase ('goodbye !' | '') => {
-        if (prop.action || prop.hasLearnMore)
-            return null;
-        return prop;
-    };
-
-    // "no thanks" is good if there was a question
-    prop:system_recommendation '<sep>' no_thanks_phrase ('goodbye !' | '') => {
-        if (!prop.action && !prop.hasLearnMore)
-            return null;
-        return prop;
-    };
-}
-
 
 recommendation_related_question_pair = {
-    prop:system_recommendation '<sep>' question:related_question => [prop, question];
+    prop:system_recommendation '<sep>'  => [prop, question];
 }

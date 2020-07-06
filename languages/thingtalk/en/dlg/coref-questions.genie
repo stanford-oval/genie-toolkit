@@ -17,7 +17,7 @@
     const Type = ThingTalk.Type;
 
     const C = require('../../ast_manip');
-    const D = require('../../dialogue_utils');
+    const D = require('../../dialogue_acts');
 
     // import thingpedia info
     const _tpLoader = require('../../load-thingpedia');
@@ -237,4 +237,19 @@ boolean_user_search_question_with_name = {
             return null;
         return [name, [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]]];
     };
+}
+
+user_search_question = {
+    ('no ,' | '') questions:simple_user_search_question => questions;
+    ('no ,' | '') questions:thingpedia_user_question '?' [weight=0.3] => questions;
+    questions:boolean_user_search_question => questions;
+}
+
+user_search_question_for_list = {
+    questions:simple_user_search_question => [null, questions];
+    questions:simple_user_search_question_for_list => [null, questions];
+    questions:boolean_user_search_question_for_list => [null, questions];
+
+    user_search_question_with_name;
+    boolean_user_search_question_with_name;
 }

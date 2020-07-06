@@ -17,7 +17,7 @@
     const Type = ThingTalk.Type;
 
     const C = require('../../ast_manip');
-    const D = require('../../dialogue_utils');
+    const D = require('../../dialogue_acts');
     const { SlotBag, checkAndAddSlot } = require('../../slot_bag');
 
     // import thingpedia info
