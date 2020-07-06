@@ -16,7 +16,7 @@ const stream = require('stream');
 const seedrandom = require('seedrandom');
 
 const { BasicSentenceGenerator } = require('../../lib/sentence-generator');
-const { makeDummyEntities } = require('../../lib/utils');
+const { makeDummyEntities } = require('../../lib/utils/misc-utils');
 
 const ThingTalk = require('thingtalk');
 const NNSyntax = ThingTalk.NNSyntax;
@@ -109,8 +109,8 @@ async function doTest(filename) {
 }
 
 async function main() {
-    await doTest(path.resolve(path.dirname(module.filename), '../languages/thingtalk/en/thingtalk.genie'));
-    await doTest(path.resolve(path.dirname(module.filename), '../languages/thingtalk/en/basic.genie'));
+    await doTest(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/thingtalk.genie'));
+    await doTest(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/basic.genie'));
 }
 module.exports = main;
 if (!module.parent)
