@@ -11,7 +11,7 @@
 
 const assert = require('assert');
 
-const Tokenizer = require('../../lib/i18n/tokenizer/italian');
+const I18n = require('../../lib/i18n');
 
 const TEST_CASES = [
     // order is input, raw, processed, entities
@@ -176,8 +176,22 @@ const TEST_CASES = [
     ['1/6/2020 alle 3:15', '2020-06-01T03:15:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 3, minute: 15, second: 0, timezone: undefined } }],
 ];
 
+const DETOKENIZER_TEST_CASES = [
+    // order is input, tokenized, detokenized
+
+    ['post on twitter', 'post on twitter', 'post on twitter'],
+    ['post    on      twitter', 'post on twitter', 'post on twitter'],
+    ['post    on \n \t   twitter', 'post on twitter', 'post on twitter'],
+    ['Post on Twitter.', 'post on twitter .', 'post on twitter.'],
+    ['Post on Twitter???', 'post on twitter ? ? ?', 'post on twitter???'],
+    ['Post 😗 on Twitter', 'post 😗 on twitter', 'post 😗 on twitter'],
+    ['make a twitter-post', 'make a twitter-post', 'make a twitter-post'],
+    ['make a twitter-', 'make a twitter -', 'make a twitter -'],
+];
+
 function main() {
-    const tokenizer = new Tokenizer();
+    const langPack = I18n.get('it-IT');
+    const tokenizer = langPack.getTokenizer();
 
     let anyFailed = false;
     for (let [input, raw, processed, entities] of TEST_CASES) {
@@ -186,6 +200,18 @@ function main() {
             assert.strictEqual(tokenized.rawTokens.join(' '), raw);
             assert.strictEqual(tokenized.tokens.join(' '), processed);
             assert.deepStrictEqual(tokenized.entities, entities);
+        } catch(e) {
+            console.error(`Test case "${input}" failed`); //"
+            console.error(e);
+            anyFailed = true;
+        }
+    }
+
+    for (let [input, processed, expected] of DETOKENIZER_TEST_CASES) {
+        const tokenized = tokenizer.tokenize(input);
+        try {
+            assert.strictEqual(tokenized.tokens.join(' '), processed);
+            assert.deepStrictEqual(langPack.detokenizeSentence(tokenized.tokens), expected);
         } catch(e) {
             console.error(`Test case "${input}" failed`); //"
             console.error(e);

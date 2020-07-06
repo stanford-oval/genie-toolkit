@@ -11,7 +11,7 @@
 
 const assert = require('assert');
 
-const zh_tw = require('../../lib/i18n/traditional-chinese');
+const I18n = require('../../lib/i18n');
 
 const SENTENCE_TEST_CASES = [
     ["給 我 一杯 drip coffee", "給 我 一杯 濾掛式 咖啡"],
@@ -25,9 +25,11 @@ const SENTENCE_TEST_CASES = [
 ];
 
 function testPostProcessSynthetic() {
+    const langPack = I18n.get('zh-tw');
+
     for (let i = 0; i < SENTENCE_TEST_CASES.length; i++) {
         let [original, processed] = SENTENCE_TEST_CASES[i];
-        let result = zh_tw.postprocessSynthetic(original, "");
+        let result = langPack.postprocessSynthetic(original, "");
         assert.strictEqual(processed, result);
     }
 }

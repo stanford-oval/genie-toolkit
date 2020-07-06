@@ -1126,7 +1126,7 @@ class @com.steampowered
 
   query get_steam_id(in req name: String #_[prompt="What is the Steam name? (Go to a Steam profile and enter the NAME from the URL https://steamcommunity.com/id/NAME)"] #_[canonical="name"],
                      out id: Entity(com.steampowered:user_id) #_[canonical="id"])
-  #_[canonical="get user's steam ID"]
+  #_[canonical="steam id"]
   #_[confirmation="get steam ID of ${name}"]
   #_[formatted=[{type="text",text="Your Steam ID is ${id}"}]]
   #[confirm=false];
@@ -1136,7 +1136,7 @@ class @com.google.contacts
   monitorable list query get_contacts(out name: String #_[canonical="name"],
                                       out email: Entity(tt:email_address) #_[canonical="email"],
                                       out phone_number: Entity(tt:phone_number) #_[canonical="phone number"])
-  #_[canonical="get my Google contacts"]
+  #_[canonical="my google contacts"]
   #_[confirmation="retrieve your Google contacts"]
   #_[formatted=[{type="text",text="Name: ${name}"}, {type="text",text="Email: ${email}"}, {type="text",text="Phone Number: $phone_number"}]]
   #[confirm=false];
@@ -1460,56 +1460,56 @@ class @com.tesla.car
                                      out battery_level: Number #_[canonical="battery level"],
                                      out charge_port_door_open: Boolean #_[canonical="charge port door open"],
                                      out charge_port_latch: String #_[canonical="charge port latch"])
-  #_[canonical="get the charge state of the Tesla car"]
-  #_[confirmation="the charge state of your Tesla car"]
+  #_[canonical="get the charge state of the tesla car"]
+  #_[confirmation="the charge state of your tesla car"]
   #[confirm=false];
 
   monitorable query get_climate_state(out inside_temperature: Measure(C) #_[canonical="inside temperature"],
                                       out temperature_setting: Measure(C) #_[canonical="temperature setting"],
                                       out conditioner_on: Boolean #_[canonical="conditioner on"])
-  #_[canonical="get the climate state of the Tesla car"]
-  #_[confirmation="the climate state of your Tesla car"]
+  #_[canonical="get the climate state of the tesla car"]
+  #_[confirmation="the climate state of your tesla car"]
   #[confirm=false];
 
   monitorable query get_drive_state(out location: Location #_[canonical="location"])
-  #_[canonical="get the location of the Tesla car"]
-  #_[confirmation="the location of your Tesla car"]
+  #_[canonical="get the location of the tesla car"]
+  #_[confirmation="the location of your tesla car"]
   #[confirm=false];
 
   monitorable query get_mobile_enabled(out mobile_enabled: Boolean #_[canonical="mobile enabled"])
-  #_[canonical="is your Tesla car remotely accessible"]
-  #_[confirmation="remote accessibility of your Tesla "]
+  #_[canonical="is your tesla car remotely accessible"]
+  #_[confirmation="remote accessibility of your tesla "]
   #[confirm=false];
 
   monitorable query get_vehicle_state(out odometer: Number #_[canonical="odometer"],
                                       out locked: Boolean #_[canonical="locked"])
-  #_[canonical="get state on Tesla"]
-  #_[confirmation="your Tesla car state"]
+  #_[canonical="get state on tesla"]
+  #_[confirmation="your tesla car state"]
   #[confirm=false];
 
   action flash()
   #_[canonical="flash your tesla car"]
-  #_[confirmation="flash your Tesla car"]
+  #_[confirmation="flash your tesla car"]
   #[confirm=true];
 
   action honk_horn()
-  #_[canonical="honk your Tesla car"]
-  #_[confirmation="honk the horn on your Tesla car"]
+  #_[canonical="honk your tesla car"]
+  #_[confirmation="honk the horn on your tesla car"]
   #[confirm=true];
 
-  action set_air_conditioning(in req power: Enum(on,off) #_[prompt="Do you want to turn the air-conditioner on your Tesla car on or off?"] #_[canonical="power"])
-  #_[canonical="set power on the Tesla air-conditioner"]
-  #_[confirmation="turn $power your Tesla air-conditioner"]
+  action set_air_conditioning(in req power: Enum(on,off) #_[prompt="Do you want to turn the air-conditioner on your tesla car on or off?"] #_[canonical="power"])
+  #_[canonical="set power on the tesla air-conditioner"]
+  #_[confirmation="turn $power your tesla air-conditioner"]
   #[confirm=true];
 
   action set_temperature(in req value: Measure(C) #_[prompt="What temperature do you want to set?"] #_[canonical="value"])
-  #_[canonical="set target temperature of the Tesla car"]
-  #_[confirmation="set the temperature of your Tesla car to $value"]
+  #_[canonical="set target temperature of the tesla car"]
+  #_[confirmation="set the temperature of your tesla car to $value"]
   #[confirm=true];
 
   action wake_up()
-  #_[canonical="wake up your Tesla car"]
-  #_[confirmation="wake up your Tesla car"]
+  #_[canonical="wake up your tesla car"]
+  #_[confirmation="wake up your tesla car"]
   #[confirm=true];
 }
 class @com.fitbit
@@ -1575,7 +1575,7 @@ class @com.arstechnica
   monitorable list query index(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                                out link: Entity(tt:url) #_[canonical="link"],
                                out updated: Date #_[canonical="updated"])
-  #_[canonical="get ars technica index"]
+  #_[canonical="ars technica index"]
   #_[confirmation="latest articles published by Ars Technica"]
   #[confirm=false];
 }
@@ -1584,7 +1584,7 @@ class @org.hackernews
   monitorable list query frontpage(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                                    out link: Entity(tt:url) #_[canonical="link"],
                                    out updated: Date #_[canonical="updated"])
-  #_[canonical="get hacker news frontpage"]
+  #_[canonical="hacker news frontpage"]
   #_[confirmation="front page of Hacker News"]
   #[confirm=false];
 }
@@ -1593,7 +1593,7 @@ class @com.time
   monitorable list query top_stories(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                                      out link: Entity(tt:url) #_[canonical="link"],
                                      out updated: Date #_[canonical="updated"])
-  #_[canonical="get top stories on Time Magazine"]
+  #_[canonical="top stories on time magazine"]
   #_[confirmation="top stories on Time Magazine"]
   #[confirm=false];
 }
@@ -1603,7 +1603,7 @@ class @com.bbc
                                      out link: Entity(tt:url) #_[canonical="link"],
                                      out updated: Date #_[canonical="updated"],
                                      out description: String #_[canonical="description"] #[string_values="tt:news_description"])
-  #_[canonical="get top stories on BBC News"]
+  #_[canonical="top stories on bbc news"]
   #_[confirmation="top stories on BBC News"]
   #[confirm=false];
 }
@@ -1613,7 +1613,7 @@ class @com.huffingtonpost
                                    out link: Entity(tt:url) #_[canonical="link"],
                                    out updated: Date #_[canonical="updated"],
                                    out description: String #_[canonical="description"] #[string_values="tt:news_description"])
-  #_[canonical="get front page of HuffPost"]
+  #_[canonical="front page of huffpost"]
   #_[confirmation="front page of HuffPost"]
   #[confirm=false];
 }
@@ -1623,7 +1623,7 @@ class @com.nba
                               out link: Entity(tt:url) #_[canonical="link"],
                               out updated: Date #_[canonical="updated"],
                               out description: String #_[canonical="description"] #[string_values="tt:news_description"])
-  #_[canonical="get latest NBA news"]
+  #_[canonical="latest nba news"]
   #_[confirmation="latest NBA news"]
   #[confirm=false];
 }
@@ -1633,7 +1633,7 @@ class @org.sup
                                    out link: Entity(tt:url) #_[canonical="link"],
                                    out updated: Date #_[canonical="updated"],
                                    out description: String #_[canonical="description"] #[string_values="tt:news_description"])
-  #_[canonical="get new books by Stanford Press"]
+  #_[canonical="new books by stanford press"]
   #_[confirmation="new books by Stanford Press"]
   #[confirm=false];
 }
@@ -1643,7 +1643,7 @@ class @com.wired
                                      out link: Entity(tt:url) #_[canonical="link"],
                                      out updated: Date #_[canonical="updated"],
                                      out description: String #_[canonical="description"] #[string_values="tt:news_description"])
-  #_[canonical="get top stories on Wired"]
+  #_[canonical="top stories on wired"]
   #_[confirmation="top stories on Wired"]
   #[confirm=false];
 }
@@ -1652,7 +1652,7 @@ class @org.slashdot
   monitorable list query news(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                               out link: Entity(tt:url) #_[canonical="link"],
                               out updated: Date #_[canonical="updated"])
-  #_[canonical="get latest news on Slashdot"]
+  #_[canonical="latest news on slashdot"]
   #_[confirmation="latest news on Slashdot"]
   #[confirm=false];
 }
@@ -1661,7 +1661,7 @@ class @com.macrumors
   monitorable list query stories(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                                  out link: Entity(tt:url) #_[canonical="link"],
                                  out updated: Date #_[canonical="updated"])
-  #_[canonical="get stories on MacRumors"]
+  #_[canonical="stories on macrumors"]
   #_[confirmation="top stories on MacRumors"]
   #[confirm=false];
 }
@@ -1670,7 +1670,7 @@ class @com.engadget
   monitorable list query news(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                               out link: Entity(tt:url) #_[canonical="link"],
                               out updated: Date #_[canonical="updated"])
-  #_[canonical="get latest news on Engadget"]
+  #_[canonical="latest news on engadget"]
   #_[confirmation="latest news on Engadget"]
   #[confirm=false];
 }
@@ -1680,7 +1680,7 @@ class @com.abcnews
                                      out link: Entity(tt:url) #_[canonical="link"],
                                      out updated: Date #_[canonical="updated"],
                                      out description: String #_[canonical="description"] #[string_values="tt:news_description"])
-  #_[canonical="get top stories on ABC News"]
+  #_[canonical="top stories on abc news"]
   #_[confirmation="top stories on ABC News"]
   #[confirm=false];
 }
@@ -1689,7 +1689,7 @@ class @com.nature
   monitorable list query articles(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                                   out link: Entity(tt:url) #_[canonical="link"],
                                   out updated: Date #_[canonical="updated"])
-  #_[canonical="get articles on Nature"]
+  #_[canonical="articles on nature"]
   #_[confirmation="articles on Nature"]
   #[confirm=false];
 }
@@ -1698,7 +1698,7 @@ class @com.matrix67
   monitorable list query posts(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                                out link: Entity(tt:url) #_[canonical="link"],
                                out updated: Date #_[canonical="updated"])
-  #_[canonical="get latest posts on Matrix67"]
+  #_[canonical="latest posts on matrix67"]
   #_[confirmation="posts on Matrix67"]
   #[confirm=false];
 }
@@ -1708,7 +1708,7 @@ class @com.medium
                                   out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                                   out link: Entity(tt:url) #_[canonical="link"],
                                   out updated: Date #_[canonical="updated"])
-  #_[canonical="get articles on medium"]
+  #_[canonical="articles on medium"]
   #_[confirmation="articles by $author"]
   #[confirm=false];
 }
@@ -1718,7 +1718,7 @@ class @com.ted
                                out link: Entity(tt:url) #_[canonical="link"],
                                out updated: Date #_[canonical="updated"],
                                out description: String #_[canonical="description"] #[string_values="tt:news_description"])
-  #_[canonical="get talks on TED"]
+  #_[canonical="talks on ted"]
   #_[confirmation="talks on BBC News"]
   #[confirm=false];
 }
@@ -1727,7 +1727,7 @@ class @org.mozilla
   monitorable list query articles(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                                   out link: Entity(tt:url) #_[canonical="link"],
                                   out updated: Date #_[canonical="updated"])
-  #_[canonical="get articles on the Mozilla Blog"]
+  #_[canonical="articles on the mozilla blog"]
   #_[confirmation="articles on the Mozilla Blog"]
   #[confirm=false];
 }
@@ -1736,7 +1736,7 @@ class @com.starwars
   monitorable list query news(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                               out link: Entity(tt:url) #_[canonical="link"],
                               out updated: Date #_[canonical="updated"])
-  #_[canonical="get latest Star Wars news"]
+  #_[canonical="latest star wars news"]
   #_[confirmation="latest Star Wars news"]
   #[confirm=false];
 }
@@ -1744,7 +1744,7 @@ class @edu.stanford.news
 #_[canonical="stanford news"] {
   monitorable list query get(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                              out url: Entity(tt:url) #_[canonical="url"])
-  #_[canonical="Stanford news"]
+  #_[canonical="stanford news"]
   #_[confirmation="stanford news"]
   #[confirm=false];
 }
@@ -1753,7 +1753,7 @@ class @com.techcrunch
   monitorable list query news(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                               out link: Entity(tt:url) #_[canonical="link"],
                               out updated: Date #_[canonical="updated"])
-  #_[canonical="get news on TechCrunch"]
+  #_[canonical="news on techcrunch"]
   #_[confirmation="latest news on TechCrunch"]
   #[confirm=false];
 }
@@ -1770,7 +1770,7 @@ class @com.lifehacker
   monitorable list query articles(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                                   out link: Entity(tt:url) #_[canonical="link"],
                                   out updated: Date #_[canonical="updated"])
-  #_[canonical="get articles on LifeHacker"]
+  #_[canonical="articles on lifehacker"]
   #_[confirmation="articles on LifeHacker"]
   #[confirm=false];
 }
@@ -1779,7 +1779,7 @@ class @com.howtogeek
   monitorable list query articles(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                                   out link: Entity(tt:url) #_[canonical="link"],
                                   out updated: Date #_[canonical="updated"])
-  #_[canonical="get articles on How-To Geek"]
+  #_[canonical="articles on how-to geek"]
   #_[confirmation="articles on How-To Geek"]
   #[confirm=false];
 }
@@ -1796,7 +1796,7 @@ class @com.cnn
   monitorable list query top_stories(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                                      out link: Entity(tt:url) #_[canonical="link"],
                                      out updated: Date #_[canonical="updated"])
-  #_[canonical="get top stories on CNN News"]
+  #_[canonical="top stories on cnn news"]
   #_[confirmation="top stories on CNN News"]
   #[confirm=false];
 }
@@ -1805,7 +1805,7 @@ class @com.fortune
   monitorable list query news(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                               out link: Entity(tt:url) #_[canonical="link"],
                               out updated: Date #_[canonical="updated"])
-  #_[canonical="get news on Fortune"]
+  #_[canonical="news on fortune"]
   #_[confirmation="news on Fortune"]
   #[confirm=false];
 }
@@ -1814,7 +1814,7 @@ class @com.businessinsider
   monitorable list query news(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                               out link: Entity(tt:url) #_[canonical="link"],
                               out updated: Date #_[canonical="updated"])
-  #_[canonical="get latest news on Business Insider"]
+  #_[canonical="latest news on business insider"]
   #_[confirmation="news on Business Insider"]
   #[confirm=false];
 }
@@ -1865,7 +1865,7 @@ class @com.poemist
 class @com.whatdoestrumpthink
 #_[canonical="what does trump think"] {
   query get(out text: String #_[canonical="text"])
-  #_[canonical="Trump quotes"]
+  #_[canonical="trump quotes"]
   #_[confirmation="a random Trump quote"]
   #[confirm=false];
 }
@@ -1968,7 +1968,7 @@ class @com.mashable
   monitorable list query news(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                               out link: Entity(tt:url) #_[canonical="link"],
                               out updated: Date #_[canonical="updated"])
-  #_[canonical="get Mashable news"]
+  #_[canonical="mashable news"]
   #_[confirmation="latest news on Mashable"]
   #[confirm=false];
 }
@@ -1977,7 +1977,7 @@ class @com.gamespot
   monitorable list query news(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                               out link: Entity(tt:url) #_[canonical="link"],
                               out updated: Date #_[canonical="updated"])
-  #_[canonical="get Gamespot news"]
+  #_[canonical="gamespot news"]
   #_[confirmation="latest news on Gamespot"]
   #[confirm=false];
 }
@@ -2003,7 +2003,7 @@ class @com.wikicfp
                                 out city: String #_[canonical="city"],
                                 out deadline: Date #_[canonical="deadline"],
                                 out link: Entity(tt:url) #_[canonical="link"])
-  #_[canonical="get events from wikicfp"]
+  #_[canonical="events from wikicfp"]
   #_[confirmation="information of $query on wikicfp"]
   #[confirm=false];
 }
@@ -2027,14 +2027,14 @@ class @org.acm
   monitorable list query cacm(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                               out link: Entity(tt:url) #_[canonical="link"],
                               out updated: Date #_[canonical="updated"])
-  #_[canonical="get acm cacm"]
+  #_[canonical="acm cacm"]
   #_[confirmation="latest articles in Communications of the ACM"]
   #[confirm=false];
 
   monitorable list query xrds(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                               out link: Entity(tt:url) #_[canonical="link"],
                               out updated: Date #_[canonical="updated"])
-  #_[canonical="get acm xrds"]
+  #_[canonical="acm xrds"]
   #_[confirmation="latest articles in ACM Crossroads (XRDS)"]
   #[confirm=false];
 }
@@ -2044,7 +2044,7 @@ class @edu.stanford.almond.blog
                                out link: Entity(tt:url) #_[canonical="link"],
                                out updated: Date #_[canonical="updated"],
                                out description: String #_[canonical="description"] #[string_values="tt:news_description"])
-  #_[canonical="get almond blog"]
+  #_[canonical="almond blog"]
   #_[confirmation="latest posts in the Almond Blog"]
   #[confirm=false];
 }
@@ -2062,7 +2062,7 @@ class @co.alphavantage
   monitorable query get_price(in req company: Entity(tt:stock_id) #_[prompt="What company do you want to check?"] #_[canonical="company"],
                               out price: Currency #_[canonical="price"],
                               out change: Number #_[canonical="change"])
-  #_[canonical="get stock price"]
+  #_[canonical="stock price"]
   #_[confirmation="stock price of ${company}"]
   #_[formatted=[{type="text",text="The current stock price of ${company} is ${price}."}]]
   #[confirm=false];

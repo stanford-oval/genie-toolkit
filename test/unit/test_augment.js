@@ -70,12 +70,13 @@ async function main() {
         noQuoteExpandFactor: 10,
 
         locale: 'en-US',
+        paramLocale: 'en',
         rng,
         debug: true,
     };
 
     const generator = new BasicSentenceGenerator(generatorOptions);
-    const constProvider = new FileParameterProvider(path.resolve(path.dirname(module.filename), './data/parameter-datasets.tsv'));
+    const constProvider = new FileParameterProvider(path.resolve(path.dirname(module.filename), './data/en-US/parameter-datasets.tsv'), 'en');
     await constProvider.open();
     const augmenter = new DatasetAugmenter(_schemaRetriever, constProvider, _tpClient, augmentOptions);
     const writer = new stream.Writable({

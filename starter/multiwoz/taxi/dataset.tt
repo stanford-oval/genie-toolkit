@@ -1,0 +1,9 @@
+dataset @uk.ac.cam.multiwoz.Taxi {
+  action := @uk.ac.cam.multiwoz.Taxi.make_booking()
+  #_[preprocessed=["book a taxi ride",
+                   "book a taxi",
+                   "get a taxi",
+                   "find a taxi",
+                   "call a taxi",
+                   "get a cab"]];
+}

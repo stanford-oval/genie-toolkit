@@ -11,7 +11,7 @@
 
 const assert = require('assert');
 
-const Tokenizer = require('../../lib/i18n/tokenizer/chinese');
+const I18n = require('../../lib/i18n');
 
 const TEST_CASES = [
     // order is input, raw, processed, entities
@@ -176,7 +176,8 @@ const TEST_CASES = [
 ];
 
 function main() {
-    const tokenizer = new Tokenizer();
+    const langPack = I18n.get('zh-CN');
+    const tokenizer = langPack.getTokenizer();
 
     let anyFailed = false;
     for (let [input, raw, processed, entities] of TEST_CASES) {

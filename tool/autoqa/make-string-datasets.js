@@ -23,10 +23,11 @@ const { makeMetadata } = require('./metadata');
 const { PROPERTIES_NO_FILTER } = require('./manual-annotations');
 
 class ParamDatasetGenerator {
-    constructor(locale, debug, className) {
+    constructor(locale, debug, maxValueLength, className) {
         this._locale = locale;
         this._debug = debug;
         this._className = className;
+        this._maxValueLength = maxValueLength;
         this._prefix = `${className}:`;
 
         this._meta = {};
@@ -160,6 +161,9 @@ class ParamDatasetGenerator {
                         continue;
 
                     entity.canonical = tokens.join(' ');
+                    if (this._maxValueLength >= 0 && entity.canonical.length > this._maxValueLength)
+                        continue;
+
                     data.push(entity);
                 }
 
@@ -190,7 +194,11 @@ class ParamDatasetGenerator {
                     if (tokens.length === 0 || tokens.some((tok) => /^[A-Z]/.test(tok)))
                         continue;
 
-                    output.write([value, tokens.join(' '), weight]);
+                    const tokenizedString = tokens.join(' ');
+                    if (this._maxValueLength >= 0 && tokenizedString.length > this._maxValueLength)
+                        continue;
+
+                    output.write([value, tokenizedString, weight]);
                 }
 
                 output.end();
@@ -237,6 +245,15 @@ module.exports = {
             required: true,
             help: 'Path to JSON file with normalized WebQA data.'
         });
+        parser.addArgument('--max-value-length', {
+            required: false,
+            defaultValue: 500,
+            help: 'Ignore values longer than this (unit: number of UTF-16 code points after tokenization).'
+        });
+        parser.addArgument('--class-name', {
+            required: false,
+            help: 'The name of the device class, used to decide class-specific types'
+        });
         parser.addArgument('--debug', {
             nargs: 0,
             action: 'storeTrue',
@@ -249,14 +266,11 @@ module.exports = {
             dest: 'debug',
             help: 'Disable debugging.',
         });
-        parser.addArgument('--class-name', {
-            required: false,
-            help: 'The name of the device class, used to decide class-specific types'
-        });
     },
 
     async execute(args) {
-        const generator = new ParamDatasetGenerator(args.locale, args.debug, args.class_name);
+        const generator = new ParamDatasetGenerator(args.locale, args.debug,
+            args.max_value_length, args.class_name);
         await generator.init(args.thingpedia);
 
         const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));
