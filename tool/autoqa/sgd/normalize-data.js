@@ -149,6 +149,9 @@ class Normalizer {
                         continue;
 
                     let fname = frame.service + '_' + frame.service_call.method;
+                    if (!(fname in this.meta))
+                        continue;
+
                     if (!(fname in this.output))
                         this.output[fname] = {};
 
