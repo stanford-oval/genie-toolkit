@@ -13,27 +13,32 @@ const assert = require('assert');
 const ThingTalk = require('thingtalk');
 const Type = ThingTalk.Type;
 
-const baseCanonical = require('../tool/lib/base-canonical-generator');
+const baseCanonical = require('../tool/autoqa/lib/base-canonical-generator');
 
 const TEST_CASES = [
-    ['author', Type.Entity('org.schema.Restaurant:Person'), { base: ['author'] }],
-    ['datePublished', Type.Date, { base: ['date published'] }],
-    ['review', Type.Array(Type.Entity('org.schema.Restaurant:Review')), { base: ['reviews'] }],
-    ['servesCuisine', Type.String, { verb: ["serves # cuisine"], base: ["cuisine"] }],
+    ['author', Type.Entity('org.schema.Restaurant:Person'), { default: 'property', base: ['author'] }],
+    ['datePublished', Type.Date, { default: 'property', base: ['date published'] }],
+    ['review', Type.Array(Type.Entity('org.schema.Restaurant:Review')), { default: 'property', base: ['reviews'] }],
+    ['servesCuisine', Type.String, { default: 'verb', verb: ["serves # cuisine"], base: ["cuisine"] }],
 
-    ['from_location', Type.Location, { base: ['location'], passive_verb: ['from'] }],
-    ['to_location', Type.Location, { base: ['location'], passive_verb: ['to'] }]
+    ['from_location', Type.Location, { default: 'passive_verb', base: ['from location'], passive_verb: ['from'] }],
+    ['to_location', Type.Location, { default: 'passive_verb', base: ['to location'], passive_verb: ['to'] }],
+
+    ['has_wifi', Type.Boolean, { default: 'property', property_true: ['wifi'], property_false: ['no wifi'] } ],
+    ['refundable', Type.Boolean, { default: 'adjective', adjective_true: ['refundable'] }],
+    ['is_unisex', Type.Boolean, { default: 'adjective', adjective_true: ['unisex'] }]
 ];
 
 
 function main() {
     let anyFailed = false;
     for (let [name, type, expected] of TEST_CASES) {
-        const canonical = baseCanonical({}, name, type);
+        const canonical = {};
+        baseCanonical(canonical, name, type);
         try {
             assert.deepStrictEqual(canonical, expected);
         } catch(e) {
-            console.error(`Test case "${name}" failed`); //"
+            console.error(`Test case "${name}" failed`);
             console.error(e);
             anyFailed = true;
         }

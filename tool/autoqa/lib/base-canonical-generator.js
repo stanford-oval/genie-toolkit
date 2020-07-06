@@ -12,6 +12,17 @@
 const { clean } = require('../../../lib/utils');
 const { pluralize, posTag } = require('../../../lib/i18n/american-english');
 
+function updateDefault(canonical, type) {
+    if (!canonical.default)
+        canonical.default = type === 'base' ? 'property' : type;
+}
+function updateCanonical(canonical, type, values) {
+    updateDefault(canonical, type);
+    if (!Array.isArray(values))
+        values = [values];
+    canonical[type] = (canonical[type] || []).concat(values);
+}
+
 function genBaseCanonical(canonical, name, ptype) {
     name = clean(name);
     if (name.endsWith(' value'))
@@ -20,51 +31,98 @@ function genBaseCanonical(canonical, name, ptype) {
     if (ptype && ptype.isArray)
         name = pluralize(name);
 
+    const tags = posTag(name.split(' '));
+
+    // e.g., saturatedFatContent
     if (name.endsWith(' content') && ptype.isMeasure) {
         name = name.substring(0, name.length - ' content'.length);
         let base = [name + ' content', name, name + ' amount'];
         let verb = ['contains #' + name.replace(/ /g, '_')];
-        canonical.verb = (canonical.verb || []).concat(verb);
-        canonical.base = (canonical.base || []).concat(base);
-    } else if (name.startsWith('has ')) {
-        name = [name.substring('has '.length)];
-        canonical.base = (canonical.base || [] ).concat(name);
-    } else if (name.startsWith('is ')) {
-        name = name.substring('is '.length);
-        let tags = posTag(name.split(' '));
+        updateCanonical(canonical, 'verb', verb);
+        updateCanonical(canonical, 'base', base);
+        return;
+    }
 
-        if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1]) || name.endsWith(' of'))
-            canonical.reverse_property = (canonical.reverse_property || []).concat([name]);
-        else if (['VBN', 'JJ', 'JJR'].includes(tags[0]))
-            canonical.passive_verb = (canonical.passive_verb || []).concat([name]);
-    } else {
-        let tags = posTag(name.split(' '));
-        if (['VBP', 'VBZ', 'VBD'].includes(tags[0])) {
-            if (tags.length === 2 && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
-                canonical.verb = (canonical.verb || []).concat([name.replace(' ', ' # ')]);
-                canonical.base = (canonical.base || []).concat([name.split(' ')[1]]);
-            } else {
-                canonical.verb = (canonical.verb || []).concat([name]);
-            }
-        } else if (name.endsWith(' of')) {
-            let noun = name.slice(0, -' of'.length);
-            let canonicals = [name, `# ${noun}`, `# 's ${noun}`];
-            canonical.reverse_property = (canonical.reverse_property || []).concat(canonicals);
-        } else if (tags.length === 2 && (tags[0] === 'IN' || tags[0] === 'TO') && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
-            let [preposition, noun] = name.split(' ');
-            canonical.passive_verb = (canonical.passive_verb || []).concat([preposition]);
-            canonical.base = (canonical.base || []).concat([noun]);
-        } else if (['IN', 'VBN', 'VBG', 'TO'].includes(tags[0])) {
-            canonical.passive_verb = (canonical.passive_verb || []).concat([name]);
-        } else if (['JJ', 'JJR'].includes(tags[0]) && !['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
-            // this one is actually somewhat problematic
-            // e.g., all non-words are recognized as JJ, including issn, dateline, funder
-            canonical.passive_verb = (canonical.passive_verb || []).concat([name]);
+    // e.g. hasWifi, hasDeliveryMethod
+    if (name.startsWith('has ')) {
+        name = name.substring('has '.length);
+        if (ptype.isBoolean) {
+            updateDefault(canonical, 'property');
+            updateCanonical(canonical, 'property_true', name);
+            updateCanonical(canonical, 'property_false', `no ${name}`);
         } else {
-            canonical.base = (canonical.base || []).concat(name);
+            updateCanonical(canonical, 'base', name);
+        }
+        return;
+    }
+
+    // e.g., isBasedOn, is_unisex
+    if (name.startsWith('is ')) {
+        name = name.substring('is '.length);
+        if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1]) || name.endsWith(' of')) {
+            updateCanonical(canonical, 'reverse_property');
+            updateCanonical(canonical, ptype.isBoolean ? 'reverse_property_true' : 'reverse_property', name);
+            return;
+        } else if (['VBN', 'JJ', 'JJR'].includes(tags[1])) {
+            if (ptype.isBoolean) {
+                updateDefault(canonical, 'adjective');
+                updateCanonical(canonical, 'adjective_true', name);
+            } else {
+                updateCanonical(canonical, 'passive_verb', name);
+            }
+            return;
         }
     }
-    return canonical;
+
+    // e.g, servesCuisine
+    if (['VBP', 'VBZ', 'VBD'].includes(tags[0])) {
+        if (!ptype.isBoolean && tags.length === 2 && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
+            updateCanonical(canonical, 'verb', name.replace(' ', ' # '));
+            updateCanonical(canonical, 'base', name.split(' ')[1]);
+        } else {
+            updateDefault(canonical, 'verb');
+            updateCanonical(canonical, ptype.isBoolean ? 'verb_true' : 'verb', name);
+        }
+        return;
+    }
+
+    // e.g., memberOf
+    if (name.endsWith(' of')) {
+        let noun = name.slice(0, -' of'.length);
+        let candidates = [name, `# ${noun}`, `# 's ${noun}`];
+        updateCanonical(canonical, 'reverse_property', candidates);
+        return;
+    }
+
+    // e.g., from_location, to_location, inAlbum
+    if (tags.length === 2 && (tags[0] === 'IN' || tags[0] === 'TO') && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
+        let preposition = name.split(' ')[0];
+        updateDefault(canonical, 'passive_verb');
+        updateCanonical(canonical, ptype.isBoolean ? 'passive_verb_true' : 'passive_verb', preposition);
+        updateCanonical(canonical, 'base', name);
+        return;
+    }
+
+    if (['IN', 'VBN', 'VBG', 'TO'].includes(tags[0])) {
+        updateDefault(canonical, 'passive_verb');
+        updateCanonical(canonical, ptype.isBoolean ? 'passive_verb_true' : 'passive_verb', name);
+        return;
+    }
+
+    if (['JJ', 'JJR'].includes(tags[0]) && !['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
+        // this one is actually somewhat problematic
+        // e.g., all non-words are recognized as JJ, including issn, dateline, funder
+        if (ptype.isBoolean) {
+            updateDefault(canonical, 'adjective');
+            updateCanonical(canonical, 'adjective_true', name);
+        } else {
+            updateCanonical(canonical, 'passive_verb', name);
+        }
+        return;
+    }
+
+    // fallback to base
+    updateCanonical(canonical, 'base', name);
 }
 
 module.exports = genBaseCanonical;
