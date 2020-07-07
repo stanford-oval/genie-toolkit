@@ -24,6 +24,7 @@ const StreamUtils = require('../lib/utils/stream-utils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
 const ProgressBar = require('./lib/progress_bar');
 const { getBestEntityMatch } = require('../lib/dialogue-agent/entity-linking/entity-finder');
+const TargetLanguages = require('../lib/languages');
 
 function undoTradePreprocessing(sentence) {
     return sentence.replace(/ -(ly|s)/g, '$1').replace(/\b24:([0-9]{2})\b/g, '00:$1');
@@ -206,7 +207,7 @@ class Converter extends stream.Readable {
         this._userParser = ParserClient.get(args.user_nlu_server, 'en-US');
         this._agentParser = ParserClient.get(args.agent_nlu_server, 'en-US');
 
-        this._target = require('../lib/languages/dlgthingtalk');
+        this._target = TargetLanguages.get('thingtalk');
         this._simulatorOverrides = new Map;
         const simulatorOptions = {
             rng: seedrandom.alea('almond is awesome'),

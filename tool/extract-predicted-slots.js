@@ -20,6 +20,7 @@ const StreamUtils = require('../lib/utils/stream-utils');
 const { getBestEntityMatch } = require('../lib/dialogue-agent/entity-linking/entity-finder');
 const Utils = require('../lib/utils/misc-utils');
 const I18n = require('../lib/i18n');
+const TargetLanguages = require('../lib/languages');
 
 const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
@@ -39,7 +40,7 @@ class DialogueToDSTStream extends Stream.Transform {
 
         this._options = options;
         this._debug = options.debug;
-        this._target = require('../lib/languages/dlgthingtalk');
+        this._target = TargetLanguages.get('thingtalk');
 
         this._cachedEntityMatches = new Map;
     }

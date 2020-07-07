@@ -15,7 +15,7 @@ const events = require('events');
 const path = require('path');
 const Tp = require('thingpedia');
 
-const { AVAILABLE_LANGUAGES } = require('../lib/languages');
+const TargetLanguages = require('../lib/languages');
 const ParserClient = require('../lib/prediction/parserclient');
 const I18n = require('../lib/i18n');
 const MultiJSONDatabase = require('./lib/multi_json_database');
@@ -42,7 +42,7 @@ class DialogAgent extends events.EventEmitter {
         this._state = 'loading';
         this._serial = 0;
 
-        this._target = require('../lib/languages/' + options.target_language);
+        this._target = TargetLanguages.get(options.target_language);
         this._targetOptions = {
             thingpediaClient: tpClient,
             schemaRetriever: this._schemas
@@ -289,8 +289,8 @@ module.exports = {
         });
         parser.addArgument(['-t', '--target-language'], {
             required: false,
-            defaultValue: 'dlgthingtalk',
-            choices: AVAILABLE_LANGUAGES,
+            defaultValue: 'thingtalk',
+            choices: TargetLanguages.AVAILABLE_LANGUAGES,
             help: `The programming language to generate`
         });
         parser.addArgument('--database-file', {

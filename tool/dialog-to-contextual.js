@@ -13,7 +13,7 @@ const Tp = require('thingpedia');
 const Stream = require('stream');
 const fs = require('fs');
 
-const { AVAILABLE_LANGUAGES } = require('../lib/languages');
+const TargetLanguages = require('../lib/languages');
 const { DatasetStringifier } = require('../lib/dataset-tools/parsers');
 const StreamUtils = require('../lib/utils/stream-utils');
 const Utils = require('../lib/utils/misc-utils');
@@ -34,7 +34,7 @@ class DialogueToTurnStream extends Stream.Transform {
         this._side = options.side;
         this._flags = options.flags;
         this._idPrefix = options.idPrefix;
-        this._target = require('../lib/languages/' + options.targetLanguage);
+        this._target = TargetLanguages.get(options.targetLanguage);
         this._dedupe = options.deduplicate ? new Set : undefined;
 
         this._tokenized = options.tokenized;
@@ -194,7 +194,7 @@ module.exports = {
         parser.addArgument(['-t', '--target-language'], {
             required: false,
             defaultValue: 'thingtalk',
-            choices: AVAILABLE_LANGUAGES,
+            choices: TargetLanguages.AVAILABLE_LANGUAGES,
             help: `The programming language to generate`
         });
         parser.addArgument('--side', {
