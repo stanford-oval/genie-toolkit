@@ -205,7 +205,7 @@ function createSentence(sentence, contextEntities, spansBySentencePos) {
     let entityRemap = {};
     for (let entity of contextEntities) {
         const [, type, num] = /^(.+)_([0-9]+)$/.exec(entity);
-        entityNumbers[type] = Math.max(num+1, entityNumbers[type] || 0);
+        entityNumbers[type] = Math.max(parseInt(num)+1, entityNumbers[type] || 0);
         entityRemap[entity] = entity;
     }
 
