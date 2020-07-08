@@ -11,7 +11,7 @@
 
 const Tp = require('thingpedia');
 
-const { getBestEntityMatch } = require('../lib/legacy-dialogs/entity_lookup');
+const { getBestEntityMatch } = require('../../lib/dialogue-agent/entity-linking/entity-finder');
 
 const THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
 
@@ -90,7 +90,7 @@ async function main() {
             console.error(`Generated: null`);
             failed = true;
         } else {
-            const best = getBestEntityMatch(searchTerm, candidates);
+            const best = getBestEntityMatch(searchTerm, entityType, candidates);
 
             if (expectedValue === null && expectedDisplay === 0) {
                 console.error(`Test Case ${i+1} failed`);

@@ -75,7 +75,17 @@ class DialogueToDSTStream extends Stream.Transform {
         const cacheKey = value.type + '/' + value.value + '/' + value.display;
         let resolved = this._cachedEntityMatches.get(cacheKey);
         if (!resolved) {
-            resolved = getBestEntityMatch(value.value, value.display, this._getIDs(value.type));
+            const ids = this._getIDs(value.type);
+            if (value.value) {
+                for (let id of ids) {
+                    if (id.value === value.value) {
+                        resolved = id;
+                        break;
+                    }
+                }
+            }
+            if (!resolved)
+                resolved = getBestEntityMatch(value.display, value.type, ids);
             this._cachedEntityMatches.set(cacheKey, resolved);
         }
         return resolved;
@@ -91,7 +101,7 @@ class DialogueToDSTStream extends Stream.Transform {
             const resolved = this._resolveEntity(value);
             assert(resolved);
             if (resolved)
-                return resolved.display;
+                return resolved.canonical;
             return value.display;
         }
         // everything else (time, currency, number, enum, string), use JS value

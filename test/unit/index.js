@@ -29,13 +29,16 @@ async function do_test(array) {
 
 // test lib scripts
 do_test([
+    ('./test_misc'),
+    ('./test_random'),
     ('./test_stream_utils'),
     ('./test_requoting'),
     ('./test_sentence_generator'),
     ('./test_augment'),
     ('./test_i18n_chinese'),
-    ('./test_random'),
     ('./test_new_tokenizer_en'),
     ('./test_new_tokenizer_it'),
-    ('./test_new_tokenizer_zh')
+    ('./test_new_tokenizer_zh'),
+    ('./test_helpers'),
+    ('./test_entities'),
 ]);

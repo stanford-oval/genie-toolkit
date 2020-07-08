@@ -1,7 +1,8 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of Genie
 //
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
 // Copyright 2018 Google LLC
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
@@ -16,7 +17,7 @@ const assert = require('assert');
 const ThingTalk = require('thingtalk');
 const _mockThingpediaClient = require('./mock_schema_delegate');
 
-const Helpers = require('../lib/helpers');
+const Helpers = require('../../lib/dialogue-agent/helpers');
 
 function testCleanKind() {
     assert.strictEqual(Helpers.cleanKind('uk.co.thedogapi'), 'Thedogapi');

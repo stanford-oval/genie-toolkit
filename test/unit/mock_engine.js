@@ -368,7 +368,7 @@ class MockMessagingManager {
     getSelf() {
         return this.account;
     }
-    
+
     isSelf(principal) {
         return principal === this.account;
     }
@@ -461,6 +461,10 @@ const _mockPlatform = {
     //locale: 'it',
     type: 'test',
     disableGPS: false,
+
+    getCacheDir() {
+        return './cache';
+    },
 
     hasCapability(cap) {
         return cap === 'gettext' || cap === 'contacts' || cap === 'gps';
