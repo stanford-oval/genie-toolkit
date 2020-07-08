@@ -120,18 +120,32 @@ class SchemaProcessor {
                 for (let arg of intent.required_slots) {
                     let type = slots[arg].type;
                     let annotations = slots[arg].annotations;
-                    args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.IN_REQ, arg, type, annotations));
+                    if (functionType === 'action') {
+                        args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.IN_REQ, arg, type, annotations));
+                    }
+                    else {
+                        // all query parameters are out parameters for now
+                        args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, arg, type, annotations));
+                    }
                 }
                 for (let arg of Object.keys(intent.optional_slots)) {
                     let type = slots[arg].type;
                     let annotations = slots[arg].annotations;
-                    args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.IN_OPT, arg, type, annotations));
+                    if (functionType === 'action') {
+                        args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.IN_OPT, arg, type, annotations));
+                    }
+                    else {
+                        // all query parameters are out parameters for now
+                        args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, arg, type, annotations));
+                    }
                 }
                 for (let arg of intent.result_slots) {
                     // results_slots also includes args in required/optional slots, skip them
                     if (intent.required_slots.includes(arg) || Object.keys(intent.optional_slots).includes(arg))
                         continue;
                     let type = slots[arg].type;
+                    // for now, result slots are non-filterable as they are never queried for in dialogues
+                    slots[arg].annotations.impl['filterable'] = new Ast.Value.Boolean(false);
                     let annotations = slots[arg].annotations;
                     args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, arg, type, annotations));
                 }
