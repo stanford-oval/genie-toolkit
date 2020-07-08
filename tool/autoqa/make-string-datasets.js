@@ -32,8 +32,14 @@ class ParamDatasetGenerator {
         this._stringFiles = new Map;
 
         this._tokenizer = I18N.get(locale).getTokenizer();
-        this._manualAnnotations = require(`./${dataset}/manual-annotations`);
-        this._propertiesNoFilter = this._manualAnnotations.PROPERTIES_NO_FILTER;
+
+
+        if (fs.existsSync(`../${dataset}/manual-annotations`)) {
+            let manualAnnotations = require(`../${dataset}/manual-annotations`);
+            this._propertiesNoFilter = manualAnnotations.PROPERTIES_NO_FILTER;
+        } else {
+            this._propertiesNoFilter = [];
+        }
     }
 
     _getStringFile(stringFileName, isEntity) {
@@ -219,7 +225,7 @@ module.exports = {
         });
         parser.addArgument('--dataset', {
             required: true,
-            choices: ['schemaorg', 'sgd'],
+            choices: ['schemaorg', 'sgd', 'wikidata', 'multiwoz'],
             help: 'The dataset to run autoQA on.'
         });
         parser.addArgument(['-d', '--output-dir'], {
