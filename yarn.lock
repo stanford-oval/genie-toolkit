@@ -2936,10 +2936,9 @@ thingtalk-units@^0.1.0:
   resolved "https://registry.yarnpkg.com/thingtalk-units/-/thingtalk-units-0.1.0.tgz#c3b69bc0c7d0a3ba5bfad3ccf02dc1c291d1abc8"
   integrity sha512-rV5/jZw9fBk3OgYi/HrA1LsTmD5w0gYDlsc1US3/ePR5szaUxwMUtN8UAPYaUorOiW0Qcjm1plvssOC97EkedQ==
 
-thingtalk@~1.11.0-alpha.1:
+"thingtalk@git://github.com/stanford-oval/thingtalk#wip/relax-entity-check-2", thingtalk@~1.11.0-alpha.1:
   version "1.11.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.11.0-alpha.1.tgz#225b8e7f26e59a4dbcd510743530a4c45f380710"
-  integrity sha512-M2arPippxrqzU1hxm2ZjU8x+srxc5cuwAs23SF5fqV48JM4OyHhErvnNq/NnnyiVq4KleCl3enMPJoC1gODxIg==
+  resolved "git://github.com/stanford-oval/thingtalk#9e8428ac943fb3bda86d2bb73da6ecda4d31b9ef"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
