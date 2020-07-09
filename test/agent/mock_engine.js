@@ -11,35 +11,39 @@
 
 const ThingTalk = require('thingtalk');
 const Tp = require('thingpedia');
+const Gettext = require('node-gettext');
+const uuid = require('uuid');
 
-const AsyncQueue = require('consumer-queue');
+const { MockPlatform } = require('../unit/mock_utils');
 
-const _mockThingpediaClient = require('./mock_schema_delegate');
+class MockAppExecutor {
+    constructor(schemas, code, options) {
+        this._schemas = schemas;
 
-class MockPreferences {
-    constructor() {
-        this._store = {};
+        this.name = options.name;
+        this.description = options.description;
+        this.code = code;
+        this.state = options;
+        this.uniqueId = options.uniqueId;
 
-        // change this line to test the initialization dialog
-        this._store['sabrina-initialized'] = true;
-        this._store['sabrina-name'] = "Alice Tester";
-        this._store['experimental-contextual-model'] = false;
+        console.log('MOCK: App ' + options.name + ' with code ' + code + ' loaded');
     }
 
-    get(name) {
-        return this._store[name];
+    async compile() {
+        const compiler = new ThingTalk.Compiler(this._schemas);
+        await compiler.compileCode(this.code);
     }
 
-    set(name, value) {
-        console.log(`preferences set ${name} = ${value}`);
-        this._store[name] = value;
+    async runCommand(delegate) {
+        // do nothing, return no result
     }
 }
 
 class MockAppDatabase {
-    constructor(schemas) {
+    constructor(schemas, gettext) {
         this._apps = {};
         this._schemas = schemas;
+        this._gettext = gettext;
 
         this._apps['app-foo'] = { name: 'Execute Foo',
             description: 'This app fooes', code: 'now => @builtin.foo();', state: {},
@@ -56,38 +60,16 @@ class MockAppDatabase {
         return this._apps[appId];
     }
 
-    createApp(program, options) {
-        if (program.principal !== null) {
-            if (!(program.rules[0].actions.length > 0 &&
-                  program.rules[0].actions[0].isInvocation &&
-                  program.rules[0].actions[0].invocation.selector.isBuiltin &&
-                  program.rules[0].actions[0].invocation.channel === 'return'))
-                return null;
-        }
-
+    async createApp(program, options) {
         const code = program.prettyprint();
-        console.log('MOCK: App ' + options.name + ' with code ' + code + ' loaded');
-        this._apps[options.uniqueId] = {
-            name: options.name,
-            description: options.description,
-            code: code,
-            state: options,
-            uniqueId: options.uniqueId
-        };
-        var compiler = new ThingTalk.Compiler(this._schemas);
-
-        const queue = new AsyncQueue();
-        let _resolve, _reject;
-        new Promise((resolve, reject) => {
-            _resolve = resolve;
-            _reject = reject;
-        });
-        queue.push({ item: { isDone: true }, resolve: _resolve, reject: _reject });
-        return compiler.compileCode(code).then(() => {
-            return {
-                mainOutput: queue
-            };
-        });
+        if (!options.uniqueId)
+            options.uniqueId = uuid.v4();
+        if (!options.name)
+            options.name = ThingTalk.Describe.getProgramName(this._gettext, program);
+        const app = new MockAppExecutor(this._schemas, code, options);
+        this._apps[options.uniqueId] = app;
+        await app.compile();
+        return app;
     }
 }
 
@@ -260,7 +242,8 @@ class MockDeviceDatabase {
             return Promise.resolve(this._devices['com.bing'] = new MockBingDevice());
         } else {
             console.log('MOCK: Loading device ' + JSON.stringify(blob));
-            return Promise.resolve(new MockUnknownDevice(blob.kind));
+            const device = new MockUnknownDevice(blob.kind);
+            return Promise.resolve(this._devices[device.uniqueId] = device);
         }
     }
 
@@ -428,10 +411,6 @@ class MockPermissionManager {
     }
 }
 
-var Gettext = require('node-gettext');
-var _gettext = new Gettext();
-_gettext.setLocale('en-US');
-
 const THINGPEDIA_URL = process.env.THINGPEDIA_URL || 'https://almond-dev.stanford.edu/thingpedia';
 
 const _gpsApi = {
@@ -447,33 +426,26 @@ const _gpsApi = {
     }
 };
 
-const _mockPlatform = {
-    _prefs: new MockPreferences(),
-
-    getSharedPreferences() {
-        return this._prefs;
-    },
-    getDeveloperKey() {
-        return null;
-    },
-
-    locale: 'en-US',
-    //locale: 'it',
-    type: 'test',
-    disableGPS: false,
+class TestPlatform extends MockPlatform {
+    constructor() {
+        super();
+        this.disableGPS = false;
+        this._gettext = new Gettext();
+        this._gettext.setLocale('en-US');
+    }
 
     getCacheDir() {
         return './cache';
-    },
+    }
 
     hasCapability(cap) {
         return cap === 'gettext' || cap === 'contacts' || cap === 'gps';
-    },
+    }
 
     getCapability(cap) {
         switch (cap) {
         case 'gettext':
-            return _gettext;
+            return this._gettext;
         case 'contacts':
             return new MockAddressBook();
         case 'gps':
@@ -483,29 +455,43 @@ const _mockPlatform = {
             return null;
         }
     }
-};
+}
 
 module.exports.createMockEngine = function(thingpediaUrl) {
+    const platform = new TestPlatform();
     var thingpedia;
-    if (thingpediaUrl === 'mock')
-        thingpedia = _mockThingpediaClient;
+    if (typeof thingpediaUrl === 'string')
+        thingpedia = new Tp.HttpClient(platform, thingpediaUrl || THINGPEDIA_URL);
     else
-        thingpedia = new Tp.HttpClient(_mockPlatform, thingpediaUrl || THINGPEDIA_URL);
+        thingpedia = thingpediaUrl;
     var schemas = new ThingTalk.SchemaRetriever(thingpedia, null, true);
 
-    return {
-        platform: _mockPlatform,
+    let gettext = platform.getCapability('gettext');
+    const engine = {
+        platform: platform,
         thingpedia: thingpedia,
         schemas: schemas,
         devices: new MockDeviceDatabase(),
-        apps: new MockAppDatabase(schemas),
+        apps: new MockAppDatabase(schemas, gettext),
         discovery: new MockDiscoveryClient(),
         messaging: new MockMessagingManager(),
         remote: new MockRemote(schemas),
         permissions: new MockPermissionManager(schemas),
 
-        createApp(program, options) {
+        createApp(program, options = {}) {
             return this.apps.createApp(program, options);
         }
     };
+    engine.gettext = function(string) {
+        return gettext.dgettext('genie-toolkit', string);
+    };
+    engine.ngettext = function(msg, msgplural, count) {
+        return gettext.dngettext('genie-toolkit', msg, msgplural, count);
+    };
+    engine.pgettext = function(msgctx, msg) {
+        return gettext.dpgettext('genie-toolkit', msgctx, msg);
+    };
+    engine._ = this.gettext;
+
+    return engine;
 };

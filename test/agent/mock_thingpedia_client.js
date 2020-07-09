@@ -17,9 +17,18 @@ const path = require('path');
 const util = require('util');
 const ThingpediaDeviceFactories = require('./thingpedia-device-factories.json');
 
-class MockThingpediaClient extends Tp.BaseClient {
-    constructor() {
-        super(null);
+const _rssFactory = {
+    "type":"form",
+    "category":"online",
+    "kind":"org.thingpedia.rss",
+    "text":"RSS Feed",
+    "fields":[{"name":"url","label":"Feed URL","type":"text"}]
+};
+
+module.exports = class MockThingpediaClient extends Tp.BaseClient {
+    constructor(testRunner) {
+        super();
+        this._testRunner = testRunner;
         this._devices = null;
         this._entities = null;
 
@@ -32,7 +41,7 @@ class MockThingpediaClient extends Tp.BaseClient {
         return null;
     }
     get locale() {
-        return this._locale;
+        return 'en-US';
     }
 
     async getModuleLocation() {
@@ -41,8 +50,8 @@ class MockThingpediaClient extends Tp.BaseClient {
     async getKindByDiscovery(id) {
         throw new Error(`Cannot perform device discovery using MockThingpediaClient`);
     }
-    async clickExample() {
-        throw new Error(`Cannot click examples using MockThingpediaClient`);
+    async clickExample(ex) {
+        this._testRunner.writeLine('Clicked example ' + ex);
     }
 
     async getAllEntityTypes() {
@@ -174,6 +183,29 @@ class MockThingpediaClient extends Tp.BaseClient {
     getDeviceList(klass, page, page_size) {
         return Promise.resolve(ThingpediaDeviceFactories.devices.filter((d) => d.subcategory === klass).slice(page*page_size, page*page_size + page_size + 1));
     }
+    async getDeviceSetup(kinds) {
+        const ret = {};
+        for (const k of kinds) {
+            if (k === 'messaging' || k === 'org.thingpedia.builtin.matrix')
+                ret[k] = {type:'interactive',category:'online', kind:'org.thingpedia.builtin.matrix', name:"Matrix Account"};
+            else if (k === 'com.lg.tv.webos2')
+                ret[k] = {type: 'discovery', discoveryType: 'upnp', text: 'LG WebOS TV'};
+            else if (k === 'org.thingpedia.builtin.bluetooth.generic')
+                ret[k] = {type: 'discovery', discoveryType: 'bluetooth', text: 'Generic Bluetooth Device'};
+            else if (k === 'com.tumblr.blog')
+                ret[k] = {type: 'multiple', choices: [{ type: 'oauth2', kind: 'com.tumblr', text: "Tumblr Account" }, { type: 'form', kind: 'com.tumblr2', text: 'Some other Tumblr Thing' }]};
+            else if (k === 'com.instagram')
+                ret[k] = {type: 'oauth2', kind: 'com.instagram', text: 'Instagram'};
+            else if (k === 'org.thingpedia.rss')
+                ret[k] = _rssFactory;
+            else if (k === 'org.thingpedia.builtin.thingengine.home' || k === 'car')
+                ret[k] = {type: 'multiple', choices: [] };
+            else
+                ret[k] = {type:'none',kind:k,text: k};
+        }
+        return ret;
+    }
+
     async getAllDeviceNames() {
         await this._ensureLoaded();
 
@@ -224,5 +256,4 @@ class MockThingpediaClient extends Tp.BaseClient {
     getAllExamples() {
         return util.promisify(fs.readFile)(this._datasetfilename, { encoding: 'utf8' });
     }
-}
-module.exports = new MockThingpediaClient();
+};

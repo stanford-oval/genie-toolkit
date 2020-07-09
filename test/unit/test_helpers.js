@@ -9,18 +9,23 @@
 // See COPYING for details
 "use strict";
 
-const Helpers = require('../../lib/dialogue-agent/helpers');
+const Tp = require('thingpedia');
+const ThingTalk = require('thingtalk');
 
-const Mock = require('./mock_engine');
+const { MockPlatform } = require('./mock_utils');
+const Helpers = require('../../lib/dialogue-agent/helpers');
 
 const CATEGORIES = ['media', 'social-network', 'home', 'communication', 'health', 'service', 'data-management'];
 
-async function test(engine) {
+
+async function test(tpClient) {
+    const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
+
     for (const category of CATEGORIES) {
         console.log('category', category);
 
         for (let page = 0; ; page++) {
-            const devices = await engine.thingpedia.getDeviceList(category, page, 10);
+            const devices = await tpClient.getDeviceList(category, page, 10);
             let hasMore = false;
             if (devices.length > 10) {
                 hasMore = true;
@@ -28,8 +33,8 @@ async function test(engine) {
             }
             for (let device of devices) {
                 console.log('device', '@' + device.primary_kind);
-                const examples = await engine.thingpedia.getExamplesByKinds([device.primary_kind], true);
-                await Helpers.loadExamples(examples, engine.schemas);
+                const examples = await tpClient.getExamplesByKinds([device.primary_kind], true);
+                await Helpers.loadExamples(examples, schemas);
             }
             if (!hasMore)
                 break;
@@ -38,8 +43,9 @@ async function test(engine) {
 }
 
 async function main() {
-    const engine = Mock.createMockEngine('https://almond-dev.stanford.edu/thingpedia');
-    await test(engine);
+    const platform = new MockPlatform();
+    const tpClient = new Tp.HttpClient(platform, 'https://almond-dev.stanford.edu/thingpedia');
+    await test(tpClient);
 }
 if (module.parent)
     module.exports = main;
