@@ -17,7 +17,7 @@ const Tp = require('thingpedia');
 const manifests = fs.readFileSync(path.resolve(path.dirname(module.filename), 'collection.tt'))
     .toString('utf8').split('====');
 
-const Builtins = require('../../../lib/devices/builtins');
+const Builtins = require('../../../lib/engine/devices/builtins');
 
 class TestSubdevice extends Tp.BaseDevice {
     constructor(engine, state, master) {

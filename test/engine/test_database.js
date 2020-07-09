@@ -12,6 +12,13 @@
 const assert = require('assert');
 require('./test-classes/test_database');
 
+async function collectOutputs(app) {
+    let into = [];
+    for await (const output of app.mainOutput)
+        into.push(output);
+    return into;
+}
+
 async function testSimpleDatabaseQuery(engine) {
     await engine.devices.addSerialized({ kind: 'org.thingpedia.builtin.test.test_database' });
 
@@ -21,15 +28,11 @@ async function testSimpleDatabaseQuery(engine) {
 
     assert(engine.apps.hasApp(app.uniqueId));
 
-    let what = await app.mainOutput.next();
-    assert(what.item.isNotification);
-    what.resolve();
-    assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test.test_database:q1');
-    assert.deepStrictEqual(what.item.outputValue, { foo: ':-)' });
-
-    what = await app.mainOutput.next();
-    assert(what.item.isDone);
-    what.resolve();
+    const outputs = await collectOutputs(app);
+    assert.deepStrictEqual(outputs, [{
+        outputType: 'org.thingpedia.builtin.test.test_database:q1',
+        outputValue: { foo: ':-)' }
+    }]);
 }
 
 async function testJoinDatabaseQuery(engine) {
@@ -44,15 +47,11 @@ async function testJoinDatabaseQuery(engine) {
 
     assert(engine.apps.hasApp(app.uniqueId));
 
-    let what = await app.mainOutput.next();
-    assert(what.item.isNotification);
-    what.resolve();
-    assert.strictEqual(what.item.outputType, 'org.thingpedia.builtin.test.test_database:q1+org.thingpedia.builtin.test.test_database:q2');
-    assert.deepStrictEqual(what.item.outputValue, { foo: ':-)', bar: '(-:' });
-
-    what = await app.mainOutput.next();
-    assert(what.item.isDone);
-    what.resolve();
+    const outputs = await collectOutputs(app);
+    assert.deepStrictEqual(outputs, [{
+        outputType: 'org.thingpedia.builtin.test.test_database:q1+org.thingpedia.builtin.test.test_database:q2',
+        outputValue: { foo: ':-)', bar: '(-:' }
+    }]);
 }
 
 async function testAggregateDatabaseQuery(engine) {
@@ -64,18 +63,14 @@ async function testAggregateDatabaseQuery(engine) {
 
     assert(engine.apps.hasApp(app.uniqueId));
 
-    let what = await app.mainOutput.next();
-    assert(what.item.isNotification);
-    what.resolve();
-    assert.strictEqual(what.item.outputType, 'count(org.thingpedia.builtin.test.test_database:q1)');
-    assert.deepStrictEqual(what.item.outputValue, { count: 1 });
-
-    what = await app.mainOutput.next();
-    assert(what.item.isDone);
-    what.resolve();
+    const outputs = await collectOutputs(app);
+    assert.deepStrictEqual(outputs, [{
+        outputType: 'count(org.thingpedia.builtin.test.test_database:q1)',
+        outputValue: { count: 1 }
+    }]);
 }
 
-module.exports = async function testDevices(engine) {
+module.exports = async function testDatabase(engine) {
     await testSimpleDatabaseQuery(engine);
     await testJoinDatabaseQuery(engine);
     await testAggregateDatabaseQuery(engine);

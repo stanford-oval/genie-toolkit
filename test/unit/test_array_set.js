@@ -11,7 +11,7 @@
 
 const assert = require('assert');
 
-const ArraySet = require('../../lib/util/array_set');
+const ArraySet = require('../../lib/engine/util/array_set');
 
 function testBasic() {
     const set = new ArraySet();

@@ -11,7 +11,7 @@
 
 const assert = require('assert');
 
-const DeviceView = require('../../lib/devices/device_view');
+const DeviceView = require('../../lib/engine/devices/device_view');
 
 const SUCCESS = {};
 const FAILURE = {};
@@ -191,7 +191,7 @@ async function testDeviceMethods(engine) {
         const buffer = [];
 
         stream.on('data', (d) => {
-            assert(d.hasOwnProperty('__timestamp'));
+            assert(Object.prototype.hasOwnProperty.call(d, '__timestamp'));
             delete d.__timestamp;
             buffer.push(d);
         });

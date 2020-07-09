@@ -12,7 +12,7 @@
 const assert = require('assert');
 const Tp = require('thingpedia');
 
-const protocol = require('../../lib/tiers/protocol');
+const protocol = require('../../lib/engine/tiers/protocol');
 
 const TEST_CASES = [
     // primitives

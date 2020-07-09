@@ -11,7 +11,7 @@
 
 const assert = require('assert');
 
-const LinkedList = require('../../lib/util/linked_list');
+const LinkedList = require('../../lib/engine/util/linked_list');
 
 function testBasic() {
     const list = new LinkedList();

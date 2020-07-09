@@ -27,15 +27,14 @@ class MockAppExecutor {
         this.uniqueId = options.uniqueId;
 
         console.log('MOCK: App ' + options.name + ' with code ' + code + ' loaded');
+
+        // TODO: put some real outputs here for testing
+        this.mainOutput = [];
     }
 
     async compile() {
         const compiler = new ThingTalk.Compiler(this._schemas);
         await compiler.compileCode(this.code);
-    }
-
-    async runCommand(delegate) {
-        // do nothing, return no result
     }
 }
 

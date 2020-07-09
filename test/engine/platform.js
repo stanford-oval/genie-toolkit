@@ -18,10 +18,6 @@ const os = require('os');
 const path = require('path');
 const child_process = require('child_process');
 const Gettext = require('node-gettext');
-const smtlib = require('smtlib');
-const LocalCVC4Solver = smtlib.LocalCVC4Solver;
-
-const MockMessaging = require('./mock_messaging');
 
 require('./test-classes/collection');
 
@@ -141,7 +137,6 @@ class Platform extends Tp.BasePlatform {
     constructor(homedir) {
         super();
         homedir = homedir || getFilesDir();
-        this._assistant = null;
 
         this._gettext = new Gettext();
 
@@ -163,7 +158,6 @@ class Platform extends Tp.BasePlatform {
         }
 
         this._btApi = null;
-        this._messaging = new MockMessaging();
     }
 
     getPlatformDevice() {
@@ -172,10 +166,6 @@ class Platform extends Tp.BasePlatform {
             class: fs.readFileSync(path.resolve(__dirname, './test-classes/test_platform.tt')).toString(),
             module: require('./test-classes/test_platform')
         };
-    }
-
-    setAssistant(ad) {
-        this._assistant = ad;
     }
 
     get type() {
@@ -188,14 +178,6 @@ class Platform extends Tp.BasePlatform {
 
     get timezone() {
         return this._timezone;
-    }
-
-    // Check if we need to load and run the given thingengine-module on
-    // this platform
-    // (eg we don't need discovery on the cloud, and we don't need graphdb,
-    // messaging or the apps on the phone client)
-    hasFeature(feature) {
-        return true;
     }
 
     // Check if this platform has the required capability
@@ -227,16 +209,7 @@ class Platform extends Tp.BasePlatform {
         case 'notify-api':
             return true;
 */
-        case 'assistant':
-            return true;
-
         case 'gettext':
-            return true;
-
-        case 'smt-solver':
-            return true;
-
-        case 'messaging':
             return true;
 
         default:
@@ -252,8 +225,6 @@ class Platform extends Tp.BasePlatform {
         switch(cap) {
         case 'code-download':
             return _unzipApi;
-        case 'smt-solver':
-            return LocalCVC4Solver;
 
 /*
         case 'notify-api':
@@ -288,14 +259,8 @@ class Platform extends Tp.BasePlatform {
             return _telephoneApi;
 */
 
-        case 'assistant':
-            return this._assistant;
-
         case 'gettext':
             return this._gettext;
-
-        case 'messaging':
-            return this._messaging;
 
         default:
             return null;

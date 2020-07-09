@@ -26,6 +26,13 @@ jobs:
       - TZ="America/Los_Angeles" yarn run nyc node ./test/agent
       after_success: yarn run coverage
     -
+      name: "Engine Tests"
+      install:
+      - travis_retry yarn
+      script:
+      - TZ="America/Los_Angeles" yarn run nyc node ./test/engine
+      after_success: yarn run coverage
+    -
       name: "Command-line Tests"
       install:
       - travis_retry yarn

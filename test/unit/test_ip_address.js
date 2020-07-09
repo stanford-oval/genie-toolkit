@@ -11,7 +11,7 @@
 
 const assert = require('assert');
 
-const IpAddress = require('../../lib/util/ip_address');
+const IpAddress = require('../../lib/engine/util/ip_address');
 
 async function main() {
     const addresses = await IpAddress.getServerAddresses();

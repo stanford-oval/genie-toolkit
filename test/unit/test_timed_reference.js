@@ -11,7 +11,7 @@
 
 const assert = require('assert');
 
-const TimedReference = require('../../lib/util/timed_ref');
+const TimedReference = require('../../lib/engine/util/timed_ref');
 
 function delay(ms) {
     return new Promise((resolve) => {

@@ -12,7 +12,7 @@
 const Tp = require('thingpedia');
 const fs = require('fs');
 const path = require('path');
-const Builtins = require('../../../lib/devices/builtins');
+const Builtins = require('../../../lib/engine/devices/builtins');
 
 class TestDatabaseDevice extends Tp.BaseDevice {
     constructor(engine, state) {
