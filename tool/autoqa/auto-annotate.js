@@ -32,7 +32,7 @@ module.exports = {
         });
         parser.addArgument('--dataset', {
             required: true,
-            choices: ['schemaorg', 'sgd', 'multiwoz', 'wikidata'],
+            choices: ['schemaorg', 'sgd', 'multiwoz', 'wikidata', 'custom'],
             help: 'The dataset to run autoQA on.'
         });
         parser.addArgument(['-o', '--output'], {

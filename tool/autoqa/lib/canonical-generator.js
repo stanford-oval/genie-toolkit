@@ -51,7 +51,7 @@ class AutoCanonicalGenerator {
 
         this.options = options;
 
-        if (fs.existsSync(`../${options.dataset}/manual-annotations`)) {
+        if (options.dataset !== 'custom' && fs.existsSync(`../${options.dataset}/manual-annotations`)) {
             this.manualAnnotations = require(`../${options.dataset}/manual-annotations`);
             this.annotatedProperties = Object.keys(this.manualAnnotations.MANUAL_PROPERTY_CANONICAL_OVERRIDE);
         } else {

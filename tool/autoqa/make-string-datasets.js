@@ -35,7 +35,7 @@ class ParamDatasetGenerator {
         this._tokenizer = I18N.get(locale).getTokenizer();
 
 
-        if (fs.existsSync(`../${dataset}/manual-annotations`)) {
+        if (dataset !== 'custom' && fs.existsSync(`../${dataset}/manual-annotations`)) {
             let manualAnnotations = require(`../${dataset}/manual-annotations`);
             this._propertiesNoFilter = manualAnnotations.PROPERTIES_NO_FILTER;
         } else {
@@ -233,7 +233,7 @@ module.exports = {
         });
         parser.addArgument('--dataset', {
             required: true,
-            choices: ['schemaorg', 'sgd', 'wikidata', 'multiwoz'],
+            choices: ['schemaorg', 'sgd', 'wikidata', 'multiwoz', 'custom'],
             help: 'The dataset to run autoQA on.'
         });
         parser.addArgument(['-d', '--output-dir'], {
