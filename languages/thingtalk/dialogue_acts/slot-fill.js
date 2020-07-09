@@ -44,6 +44,24 @@ function isGoodSlotFillQuestion(ctx, questions) {
     return true;
 }
 
+function useRawModeForSlotFill(arg) {
+    // raw mode bypasses _all_ natural language understanding
+    // it is used to take in free-form inputs like messages or titles
+
+    const type = arg.type;
+    if (!type.isString)
+        return false;
+
+    // if the developer specified what to do for the argument, it is authoritative
+    const annotation = arg.getAnnotation('raw_mode');
+    if (annotation !== undefined)
+        return annotation;
+
+    // use raw mode for free-form text parameters
+    return ['tt:short_free_text', 'tt:long_free_text'].includes(arg.getAnnotation('string_values'));
+}
+
+
 function makeSlotFillQuestion(ctx, questions) {
     if (!isGoodSlotFillQuestion(ctx, questions))
         return null;
@@ -51,8 +69,11 @@ function makeSlotFillQuestion(ctx, questions) {
     assert(questions.length > 0);
     if (questions.length === 1) {
         const action = getActionInvocation(ctx.next);
-        const type = action.schema.getArgument(questions[0]).type;
-        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_slot_fill', questions), null, type);
+        const arg = action.schema.getArgument(questions[0]);
+        const type = arg.type;
+
+        let raw = useRawModeForSlotFill(arg);
+        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_slot_fill', questions), null, type, { raw });
     }
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_slot_fill', questions));
 }

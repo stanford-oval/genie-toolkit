@@ -540,16 +540,38 @@ function makeAgentReply(ctx, state, aux = null, expectedType = null, options = {
         mainTag = 'ctx_sys_recommend_many';
     else
         mainTag = 'ctx_' + state.dialogueAct;
+
+    // if true, the interaction is done and the agent should stop listening
+    // these dialogue acts are considered to "end" the conversation:
+    // sys_recommend_*, sys_action_success, sys_action_error
+    // provided no thingtalk statement is left to do (accepted or proposed)
+    // the user can still continue, but the agent won't be listening unless woken up
+    // (specific semantic functions can override)
+    let end = options.end;
+    if (end === undefined) {
+        end = !state.history.some((item) => item.results === null) &&
+            (state.dialogueAct.startsWith('sys_recommend_') ||
+            ['sys_action_success', 'sys_action_error', 'sys_end'].includes(state.dialogueAct));
+    }
+
     return {
         state,
         context: newContext,
         tags: ['ctx_sys_any', mainTag, ...getContextTags(newContext)],
         expect: expectedType,
 
+        end: end,
         // if true, enter raw mode for this user's turn
         // (this is used for slot filling free-form strings)
         raw: !!options.raw
     };
+}
+
+function setEndBit(reply, value) {
+    const newReply = {};
+    Object.assign(newReply, reply);
+    newReply.end = value;
+    return newReply;
 }
 
 function tagContextForAgent(ctx) {
@@ -678,6 +700,7 @@ module.exports = {
     POLICY_NAME,
     INITIAL_CONTEXT_INFO,
     makeAgentReply,
+    setEndBit,
 
     // compute derived information of the state
     getContextInfo,
