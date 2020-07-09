@@ -62,6 +62,20 @@ function recommendationSearchQuestionReply(ctx, questions) {
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }
 
+function learnMoreSearchQuestionReply(ctx, questions) {
+    const topResult = ctx.results[0];
+    if (!areQuestionsValidForContext(ctx, questions))
+        return false;
+
+    const currentTable = ctx.current.stmt.table;
+    const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
+    const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
+        questions.map(([qname, qtype]) => qname));
+    if (newTable === null)
+        return null;
+    return addQuery(ctx, 'execute', newTable, 'accepted');
+}
+
 function listProposalSearchQuestionReply(ctx, [name, questions]) {
     const proposal = ctx.aux;
     const [results, info] = proposal;
@@ -113,5 +127,6 @@ function listProposalSearchQuestionReply(ctx, [name, questions]) {
 
 module.exports = {
     recommendationSearchQuestionReply,
+    learnMoreSearchQuestionReply,
     listProposalSearchQuestionReply
 };

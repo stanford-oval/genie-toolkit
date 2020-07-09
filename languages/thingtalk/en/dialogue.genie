@@ -99,7 +99,7 @@ context
     ctx_sys_empty_search,
     ctx_sys_end,
     ctx_sys_greet,
-    ctx_sys_learn_more,
+    ctx_sys_learn_more_what,
     ctx_sys_propose_refined_query,
     ctx_sys_recommend_many,
     ctx_sys_recommend_one,
@@ -272,6 +272,8 @@ $user = {
     // a filter on ID
     ctx:ctx_sys_recommend_one questions:user_search_question
         => D.recommendationSearchQuestionReply(ctx, questions);
+    ctx:ctx_sys_learn_more_what questions:user_search_question
+        => D.learnMoreSearchQuestionReply(ctx, questions);
 
     // accepting list proposals
     ctx:ctx_sys_recommend_many reply:positive_list_proposal_reply [weight=10 * 0.7]
@@ -291,4 +293,5 @@ $user = {
     ctx:ctx_sys_recommend_many question:related_question => question;
     ctx:ctx_sys_recommend_many questions:user_search_question_for_list
         => D.listProposalSearchQuestionReply(ctx, questions);
+
 }
