@@ -39,6 +39,9 @@ class CommandLineDelegate {
         // write the new hypothesis
         this._rl.write(hypothesis);
     }
+    setExpected(expect) {
+        console.log('>> expecting: ' + expect);
+    }
 
     addMessage(msg) {
         switch (msg.type) {
@@ -65,10 +68,6 @@ class CommandLineDelegate {
 
         case 'button':
             console.log('>> button: ' + msg.title + ' ' + JSON.stringify(msg.json));
-            break;
-
-        case 'ask-special':
-            console.log('>> ask special ' + msg.askSpecialType);
             break;
         }
     }

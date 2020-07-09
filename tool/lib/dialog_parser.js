@@ -61,16 +61,22 @@ class DialogueSerializer extends Stream.Transform {
 
 const KEY_SEQUENCE_WITH_ANNOTATION = ['context', 'agent', 'agent_target', 'user', 'user_target'];
 const KEY_SEQUENCE_WITHOUT_ANNOTATION = ['agent', 'user'];
+const KEY_SEQUENCE_INVERTED = ['user', 'agent'];
 
 class DialogueParser extends Stream.Transform {
-    constructor({ withAnnotations = true } = {}) {
+    constructor({ withAnnotations = true, invertTurns = false } = {}) {
         super({ objectMode: true });
 
         this._buffer = [];
         this._i = 0;
         this._id = undefined;
         this._withAnnotations = withAnnotations;
-        this._keySequence = withAnnotations ? KEY_SEQUENCE_WITH_ANNOTATION : KEY_SEQUENCE_WITHOUT_ANNOTATION;
+        if (withAnnotations)
+            this._keySequence = KEY_SEQUENCE_WITH_ANNOTATION;
+        else if (invertTurns)
+            this._keySequence = KEY_SEQUENCE_INVERTED;
+        else
+            this._keySequence = KEY_SEQUENCE_WITHOUT_ANNOTATION;
     }
 
     _transform(line, encoding, callback) {
