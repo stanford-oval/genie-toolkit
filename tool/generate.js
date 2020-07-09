@@ -87,14 +87,15 @@ module.exports = {
         });
         
         parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
-            help: 'Enable debugging.',
-            defaultValue: true
+            nargs: '?',
+            constant: 1,
+            defaultValue: 0,
+            help: 'Enable debugging. Can be specified with an argument between 0 and 5 to choose the verbosity level.',
         });
         parser.addArgument('--no-debug', {
             nargs: 0,
-            action: 'storeFalse',
+            constant: 0,
+            action: 'storeConst',
             dest: 'debug',
             help: 'Disable debugging.',
         });

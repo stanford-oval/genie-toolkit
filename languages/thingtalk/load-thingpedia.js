@@ -42,8 +42,10 @@ class ThingpediaLoader {
         this._langPack = langPack;
 
         this._tpClient = options.thingpediaClient;
-        if (!options.schemaRetriever)
-            options.schemaRetriever = new SchemaRetriever(this._tpClient, null, !options.debug);
+        if (!options.schemaRetriever) {
+            options.schemaRetriever = new SchemaRetriever(this._tpClient, null,
+                options.debug < this._runtime.LogLevel.DUMP_TEMPLATES);
+        }
         this._schemas = options.schemaRetriever;
 
         this._options = options;
@@ -585,7 +587,7 @@ class ThingpediaLoader {
                 grammarCat = 'thingpedia_get_command';
             }
 
-            if (this._options.debug && preprocessed[0].startsWith(','))
+            if (this._options.debug >= this._runtime.LogLevel.INFO && preprocessed[0].startsWith(','))
                 console.log(`WARNING: template ${ex.id} starts with , but is not a query`);
 
             const chunks = this._addPrimitiveTemplate(grammarCat, preprocessed, ex.value);
@@ -827,15 +829,15 @@ class ThingpediaLoader {
             return;
 
         if (await this._isIdEntity(idType.type)) {
-            if (this._options.debug)
+            if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
                 console.log('Loaded type ' + idType.type + ' as id type');
             this._idTypes.add(typestr);
         } else {
             if (idType.has_ner_support) {
-                if (this._options.debug)
+                if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
                     console.log('Loaded type ' + idType.type + ' as generic entity');
             } else {
-                if (this._options.debug)
+                if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
                     console.log('Loaded type ' + idType.type + ' as non-constant type');
                 this._nonConstantTypes.add(typestr);
             }
@@ -1014,7 +1016,7 @@ class ThingpediaLoader {
             datasets = await Grammar.parse(code).datasets;
         }
 
-        if (this._options.debug) {
+        if (this._options.debug >= this._runtime.LogLevel.INFO) {
             const countTemplates = datasets.map((d) => d.examples.length).reduce((a, b) => a+b, 0);
             console.log('Loaded ' + devices.length + ' devices');
             console.log('Loaded ' + countTemplates + ' templates');
