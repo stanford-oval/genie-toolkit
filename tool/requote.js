@@ -37,13 +37,14 @@ function findSpanContaining(index, spansBySentencePos) {
         if (index >= span.begin && index < span.end)
             return span;
     }
-    return undefined;
+    return false;
 }
 
 
 function findSubstring(sequence, substring, spansBySentencePos, allowOverlapping, handle_heuristics=false, param_locale='en-US') {
     let paramLangPack = i18n.get(param_locale);
     let parsedWithArticle = false;
+    let allFoundIndices = [];
     for (let i = 0; i < sequence.length - substring.length + 1; i++) {
         let found = substringIsFound(sequence, substring, i);
         for (let j = 0; j < substring.length; j++) {
@@ -78,10 +79,17 @@ function findSubstring(sequence, substring, spansBySentencePos, allowOverlapping
                     parsedWithArticle = true;
             }
         }
-        if (found && (allowOverlapping || !findSpanContaining(i, spansBySentencePos)))
-            return [i, parsedWithArticle];
+        if (found && (allowOverlapping || !findSpanContaining(i, spansBySentencePos))) {
+            if (allowOverlapping)
+                allFoundIndices.push([i, parsedWithArticle]);
+            else
+                return [i, parsedWithArticle];
+        }
     }
-    return [-1, false];
+    if (allowOverlapping)
+        return allFoundIndices;
+    else
+        return [-1, false];
 }
 
 
@@ -303,19 +311,21 @@ function findSpanPositions(id, sentence, program, requote_numbers, handle_heuris
         if (idx < 0) {
             // skip requoting "small" numbers that do not exist in the sentence
             if (SMALL_NUMBER_REGEX.test(substring)) {
-                ignoredProgramSpans.push({begin: begin_index, end:end_index, type:span_type});
+                ignoredProgramSpans.push({begin: begin_index, end: end_index, type: span_type});
                 continue;
             } else {
-                let [idx, parsedWithArticle] = findSubstring(sentence, substring, spansBySentencePos, true /* allow overlapping */, handle_heuristics, param_locale);
-                if (idx < 0) {
+                let allFoundIndices = findSubstring(sentence, substring, spansBySentencePos, true /* allow overlapping */, handle_heuristics, param_locale);
+                if (!allFoundIndices.length) {
                     console.log(program.join(' '));
                     throw new Error(`Cannot find span ${substring.join(' ')} in sentence id ${id}`);
                 } else {
                     // in rare cases, program span tokens might be present in multiple sentence spans
                     // so we check all of them one by one until a full span match is found
-                    const overlappingSpans = findSpansContaining(idx, spansBySentencePos);
-                    for (let i = 0; i < overlappingSpans.length; i++) {
-                        if (!overlappingSpans[i] || idx !== overlappingSpans[i].begin || idx + end_index - begin_index + parsedWithArticle !== overlappingSpans[i].end) {
+
+                    for (let i = 0; i < allFoundIndices.length; i++) {
+                        let [idx, parsedWithArticle] = allFoundIndices[i];
+                        const overlappingSpan = findSpanContaining(idx, spansBySentencePos);
+                        if (!overlappingSpan || idx !== overlappingSpan.begin || idx + end_index - begin_index + parsedWithArticle !== overlappingSpan.end) {
                             if (i === spansBySentencePos.length)
                                 throw new Error(`Found span ${substring.join(' ')} that overlaps another span but is not identical in sentence id ${id}`);
                         } else {
@@ -323,7 +333,7 @@ function findSpanPositions(id, sentence, program, requote_numbers, handle_heuris
                             spansByProgramPos.push({
                                 begin: begin_index,
                                 end: end_index,
-                                sentenceSpan: overlappingSpans[i]
+                                sentenceSpan: overlappingSpan
                             });
                             break;
                         }
@@ -332,6 +342,7 @@ function findSpanPositions(id, sentence, program, requote_numbers, handle_heuris
                 }
             }
         }
+
 
         const sentenceSpanBegin = idx;
         const sentenceSpanEnd = idx + end_index - begin_index + parsedWithArticle;
@@ -473,7 +484,6 @@ module.exports = {
                             callback(null);
                         else
                             callback(e);
-
                     }
                 },
 
