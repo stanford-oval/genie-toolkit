@@ -26,6 +26,14 @@ const TEST_CASES = [
     ['make a twitter-post', 'make a twitter-post', 'make a twitter-post', {}],
     ['make a twitter-', 'make a twitter -', 'make a twitter -', {}],
 
+    // numbers and words together
+    ['train tr0123', 'train tr0123', 'train tr0123', {}],
+    ['train tr-0123', 'train tr -123', 'train tr NUMBER_0', { NUMBER_0: -123 }],
+    ['abc123def', 'abc123def', 'abc123def', {}],
+    ['5kW', '5 kw', '5 kw', {}],
+    ['9gag', '9 gag', '9 gag', {}],
+    ['9-gag', '9 -gag', '9 -gag', {}],
+
     // more complex emojis (multiple codepoints with ZWJ, skin token modifiers, etc.)
     // two bros with their smaller bros
     ['👨‍👩‍👧‍👦', '👨‍👩‍👧‍👦', '👨‍👩‍👧‍👦', {}],

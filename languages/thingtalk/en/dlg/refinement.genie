@@ -23,10 +23,7 @@
     const Type = ThingTalk.Type;
 
     const C = require('../../ast_manip');
-    const D = require('../../dialogue_utils');
-
-    // import thingpedia info
-    const _tpLoader = require('../../load-thingpedia');
+    const D = require('../../dialogue_acts');
 }
 
 search_result_preamble = {
@@ -49,94 +46,19 @@ system_generic_proposal = {
     ) => D.makeRefinementProposal(ctx, proposal);
 }
 
-verbose_negative_proposal_reply_pair = {
-    /* FIXME
-    ( prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:answer_noun_phrase
-    | prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') ('i am not in the mood for' | 'i do not like' | 'i do not want') phrase:anything_phrase
-    ) => {
-        if (!D.isValidNegativePreambleForInfo(prop, preamble))
-            return null;
-        return [prop, preamble];
-    };
-    */
+negative_proposal_request = {
+    counterproposal_preamble ('a' | 'any') request:answer_noun_phrase '.' => request;
+    counterproposal_preamble request:anything_phrase '.' => request;
 }
 
-negative_proposal_reply_pair = {
-    prop:system_generic_proposal '<sep>' ('no ,' | 'no' | '') request:negative_proposal_answer => {
-        if (!C.isSameFunction(prop.schema, request.schema))
-            return null;
-        const refined = D.refineFilterToChangeFilter(prop.filter, request.filter);
-        if (refined === null)
-            return null;
-        return [prop, request];
-    };
-
-    pair:verbose_negative_proposal_reply_pair [weight=5] => {
-        const [prop, preamble] = pair;
-        // convert the preamble into a request by negating it
-        // shallow clone
-        assert(preamble instanceof Ast.Table.Filter);
-        const clone = new Ast.Table.Filter(null, preamble.table, preamble.filter, preamble.schema);
-        clone.filter = new Ast.BooleanExpression.Not(null, clone.filter);
-        return [prop, clone];
-    };
-
-    pair:verbose_negative_proposal_reply_pair request:negative_proposal_answer
-        => D.mergePreambleAndRequest(pair, request);
+negative_proposal_answer_preamble = {
+    ( ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:answer_noun_phrase
+    | ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:anything_phrase
+    ) => phrase;
 }
 
-positive_proposal_reply_pair = {
-    prop:system_generic_proposal '<sep>' accept_phrase => [prop, prop];
-}
-
-
-empty_search_error = {
-    !inference sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
-    '.' => [base, null];
-
-    sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
-    '.' 'would you like' ('a different' | 'another') p:out_param_Any '?' => {
-        if (!base.schema.hasArgument(p.name))
-            return null;
-        if (p === 'id')
-            return null;
-        return [base, p];
-    };
-
-    sorry_preamble 'i cannot find any result for your search . would you like' ('a different' | 'another') p:out_param_Any '?' => {
-        if (p.name === 'id')
-            return null;
-        return [null, p];
-    };
-}
-
-empty_search_change_request = {
-    ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') 'a' phrase:answer_noun_phrase '?' => phrase;
-    ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') phrase:anything_phrase '?' => phrase;
-}
-
-empty_search_change_pair = {
-    error:empty_search_error '<sep>' phrase:empty_search_change_request => {
-        const [base, param] = error;
-        if (base !== null && !C.isSameFunction(base.schema, phrase.schema))
-            return null;
-        if (param !== null && !C.filterUsesParam(phrase.filter, param.name))
-            return null;
-        return [param, phrase];
-    };
-
-    error:empty_search_error '<sep>' ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') answer:imprecise_search_answer_phrase '?' => {
-        const [base, param] = error;
-        if (base === null || param === null)
-            return null;
-        if (answer instanceof Ast.Value)
-            answer = C.makeFilter(param, '==', answer);
-        if (answer === null)
-            return null;
-        if (answer.name !== param.name)
-            return null;
-        if (!C.checkFilter(base, answer))
-            return null;
-        return [param, new Ast.Table.Filter(null, base, answer, base.schema)];
-    };
+negative_proposal_reply = {
+    ('no ,' | 'no' | '') request:negative_proposal_request => [null, request];
+    preamble:negative_proposal_answer_preamble => [preamble, null];
+    preamble:negative_proposal_answer_preamble request:negative_proposal_request => [preamble, request];
 }

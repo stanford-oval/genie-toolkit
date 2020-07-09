@@ -16,7 +16,7 @@ const seedrandom = require('seedrandom');
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
-const { AVAILABLE_LANGUAGES } = require('../lib/languages');
+const TargetLanguages = require('../lib/languages');
 const StreamUtils = require('../lib/utils/stream-utils');
 const ParserClient = require('../lib/prediction/parserclient');
 const { DialogueParser, DialogueSerializer } = require('./lib/dialog_parser');
@@ -41,7 +41,7 @@ class Annotator extends events.EventEmitter {
         this._schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
         this._userParser = ParserClient.get(options.user_nlu_server, options.locale);
         this._agentParser = ParserClient.get(options.agent_nlu_server, options.locale);
-        this._target = require('../lib/languages/' + options.target_language);
+        this._target = TargetLanguages.get(options.target_language);
 
         this._simulatorOverrides = new Map;
         const simulatorOptions = {
@@ -565,8 +565,8 @@ module.exports = {
         });
         parser.addArgument(['-t', '--target-language'], {
             required: false,
-            defaultValue: 'dlgthingtalk',
-            choices: AVAILABLE_LANGUAGES,
+            defaultValue: 'thingtalk',
+            choices: TargetLanguages.AVAILABLE_LANGUAGES,
             help: `The programming language to generate`
         });
         parser.addArgument('--database-file', {

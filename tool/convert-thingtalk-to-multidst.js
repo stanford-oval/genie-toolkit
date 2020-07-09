@@ -21,6 +21,7 @@ const MultiDST = require('../lib/languages/multidst/ast');
 const StreamUtils = require('../lib/utils/stream-utils');
 const { getBestEntityMatch } = require('../lib/dialogue-agent/entity-linking/entity-finder');
 const { uniform } = require('../lib/utils/random');
+const TargetLanguages = require('../lib/languages');
 
 const ProgressBar = require('./lib/progress_bar');
 const { DialogueParser } = require('./lib/dialog_parser');
@@ -39,7 +40,7 @@ class DialogueToDSTStream extends Stream.Transform {
 
         this._options = options;
         this._debug = options.debug;
-        this._inputTarget = require('../lib/languages/dlgthingtalk');
+        this._inputTarget = TargetLanguages.get('thingtalk');
 
         this._cachedEntityMatches = new Map;
     }

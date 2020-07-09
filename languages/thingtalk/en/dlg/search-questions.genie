@@ -1,0 +1,266 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+// Slot fill templates: the agent asks a question, and the user replies
+//
+// There are two types slot-fill templates:
+// - for searches: the agent is trying to add a filter
+// - for actions/queries w/ parameters: the agent is trying to add a parameter
+
+{
+    const assert = require('assert');
+    const ThingTalk = require('thingtalk');
+    const Ast = ThingTalk.Ast;
+    const Type = ThingTalk.Type;
+
+    const C = require('../../ast_manip');
+    const D = require('../../dialogue_acts');
+
+    // import thingpedia info
+    const _tpLoader = require('../../load-thingpedia');
+}
+
+one_param_direct_search_question = {
+    ( 'what' p:out_param_Any prefer_question_phrase '?'
+    | p:thingpedia_search_question '?'
+    ) => {
+        if (p.name === 'id')
+            return null;
+        return [p.name];
+    };
+}
+
+one_param_direct_search_question_with_preamble = {
+    search_result_preamble question:one_param_direct_search_question => question;
+}
+
+two_param_direct_search_question = {
+    ( 'what' p1:out_param_Any 'and' p2:out_param_Any prefer_question_phrase '?'
+    | p1:thingpedia_search_question 'and' 'what' p2:out_param_Any prefer_question_phrase '?'
+    | 'what' p1:out_param_Any prefer_question_phrase 'and' p2:thingpedia_search_question '?'
+    ) => {
+        if (p1.name === 'id' || p2.name === 'id' || p1.name === p2.name)
+            return null;
+        return [p1.name, p2.name];
+    };
+}
+
+one_param_yesno_direct_search_question = {
+    ( 'any preference of' p:out_param_Any '?'
+    | 'do you have a specific' p:out_param_Any 'in mind?'
+    | 'do you have a preference of' p:out_param_Any '?'
+    | 'do you have a preferred' p:out_param_Any '?'
+    | 'are you looking for a specific' p:out_param_Any '?'
+    | 'are you interested in a specific' p:out_param_Any '?'
+    ) => {
+        if (p.name === 'id')
+            return null;
+        return [p.name];
+    };
+}
+
+one_param_yesno_direct_search_question_with_preamble = {
+    search_result_preamble question:one_param_yesno_direct_search_question => question;
+}
+
+two_param_yesno_direct_search_question = {
+    ( 'any preference of' p1:out_param_Any 'or' p2:out_param_Any '?'
+    | 'do you have a specific' p1:out_param_Any 'or' p2:out_param_Any 'in mind?'
+    | 'do you have a preference of' p1:out_param_Any 'or' p2:out_param_Any '?'
+    | 'do you have a preferred' p1:out_param_Any 'or' p2:out_param_Any '?'
+    | 'are you looking for a specific' p1:out_param_Any 'or' p2:out_param_Any '?'
+    | 'are you interested in a specific' p1:out_param_Any 'or' p2:out_param_Any '?'
+    ) => {
+        if (p1.name === 'id' || p2.name === 'id' || p1.name === p2.name)
+            return null;
+        return [p1.name, p2.name];
+    };
+}
+
+question_npp_filter_pair = {
+    ctx:ctx_with_result_noquestion f1:npp_filter 'or' f2:npp_filter =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
+    ctx:ctx_with_result_noquestion f1:npp_filter 'or' c:constant_Any  =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, new Ast.BooleanExpression.Atom(null, f1.name, f1.operator, c));
+}
+question_apv_filter_pair = {
+    ctx:ctx_with_result_noquestion f1:apv_filter 'or' f2:apv_filter =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
+}
+question_avp_filter_pair = {
+    ctx:ctx_with_result_noquestion f1:avp_filter 'or' c:constant_Any =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, new Ast.BooleanExpression.Atom(null, f1.name, f1.operator, c));
+}
+question_preposition_filter_pair = {
+    ctx:ctx_with_result_noquestion f1:preposition_filter 'or' f2:preposition_filter =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
+}
+question_pvp_filter_pair = {
+    ctx:ctx_with_result_noquestion f1:pvp_filter 'or' f2:pvp_filter =>
+        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
+}
+
+disjunctive_search_question = {
+    ( ('are you looking for' | 'would you like' | 'do you need') 'something with' question:question_npp_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'something' question:question_apv_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'something' question:question_preposition_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'something' question:question_pvp_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'something that' question:question_avp_filter_pair '?'
+    ) => {
+        const [pname, ptype] = question;
+        return [pname];
+    };
+
+    ( ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table ('with' | 'that has') question:question_npp_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'a' question:question_apv_filter_pair table:base_table '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table question:question_pvp_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table question:question_preposition_filter_pair '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table 'that' question:question_avp_filter_pair '?'
+    ) => {
+        const [pname, ptype] = question;
+        const tableptype = table.schema.getArgType(pname);
+        if (!tableptype || !ptype.equals(tableptype) || table.schema.getArgument(pname).getAnnotation('filterable') === false)
+            return null;
+        return [pname];
+    };
+}
+
+generic_question = {
+    'which one would you like ?' => [];
+    'do you have a specific one in mind ?' => [];
+    'do you have any more information to narrow down the search ?' => [];
+}
+
+simple_search_question = {
+    one_param_direct_search_question;
+    two_param_direct_search_question;
+
+    disjunctive_search_question;
+
+    one_param_yesno_direct_search_question;
+    two_param_yesno_direct_search_question;
+}
+
+search_question = {
+    simple_search_question;
+    search_result_preamble question:simple_search_question [weight=0.1] => question;
+}
+
+
+verbose_search_answer = {
+    // complete answer, like "I am looking for a bla restaurant"
+    generic_preamble_for_answer ('a' | 'the') query:answer_noun_phrase => query;
+
+    // complete answer that uses a generic phrase, like "I'm looking for something that serves bla"
+    generic_preamble_for_answer query:anything_phrase => query;
+}
+
+verbose_search_answer_with_action = {
+    // complete answer with another action phrase, like "I am looking for a bla restaurant. I will need to book it for 3 people."
+    query:verbose_search_answer ('.' | ',') generic_preamble_for_action action:coref_action_command => {
+        // check that one of the parameters of action has the right type to param pass into the action
+        let idArg = query.schema.getArgument('id');
+        if (!idArg)
+            return null;
+
+        let found = false;
+        for (let arg of action.schema.iterateArguments()) {
+            if (!arg.is_input)
+                continue
+            if (arg.type.equals(idArg.type)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            return null;
+        return [query, action];
+    };
+}
+
+precise_search_question_answer = {
+    table:verbose_search_answer => [table, null, false];
+    ('yes' | 'yes ,' | '') table:verbose_search_answer => [table, null, true];
+    table_action:verbose_search_answer_with_action => [...table_action, false];
+    ('yes' | 'yes ,' | '') table_action:verbose_search_answer_with_action => [...table_action, true];
+}
+
+specific_dontcare_phrase = {
+    ( 'the' param:out_param_Any 'does not matter .'
+    | 'the' param:out_param_Any 'is not an issue .'
+    | 'the' param:out_param_Any 'is not important .'
+    | 'the' param:out_param_Any 'does not matter . can you suggest one ?'
+    | 'i' ('do not have a' | 'have no') 'preference of ' param:out_param_Any '.'
+    | 'i' ('do not have a' | 'have no') 'preference of ' param:out_param_Any '. what do you recommend ?'
+    | 'i have no preference of ' param:out_param_Any '. please make a recommendation .'
+    ) => new Ast.BooleanExpression.DontCare(null, param.name);
+
+    ('i do not care that it has' | 'it need not have' | 'i do not need') param:npp_filter => {
+        if (!param.value.isBoolean)
+            return null;
+        return new Ast.BooleanExpression.DontCare(null, param.name);
+    };
+}
+
+coref_constant = {
+    ( ctx:ctx_multidomain ('the' | 'the same') base:base_table '\'s' param:out_param_Any '.'
+    | ctx:ctx_multidomain generic_preamble_for_answer ('the' | 'the same') base:base_table '\'s' param:out_param_Any '.'
+    | ctx:ctx_multidomain 'the same' param:out_param_Any 'as' 'the' base:base_table '.'
+    | ctx:ctx_multidomain generic_preamble_for_answer 'the same' param:out_param_Any 'as' 'the' base:base_table  '.'
+    | ctx:ctx_multidomain ('the same as the' | 'the') param:out_param_Any 'of' 'the' base:base_table '.'
+    | ctx:ctx_multidomain generic_preamble_for_answer ('the same as the' | 'the') param:out_param_Any 'of' 'the' base:base_table  '.'
+    ) => {
+        const previous = ctx.previousDomain;
+        assert(previous);
+        if (previous.results.results.length === 0)
+            return null;
+        const ctxStmt = previous.stmt;
+        const ctxSchema = ctxStmt.table ? ctxStmt.table.schema : ctxStmt.actions[0].schema;
+        if (ctxSchema.class.name !== base.schema.class.name)
+            return null;
+        const result = previous.results.results[0];
+        if (!result.value[param.name])
+            return null;
+        return result.value[param.name];
+    };
+}
+
+imprecise_search_coref_answer = {
+    ( slot:coref_constant
+    | slot:coref_npp_filter
+    | slot:coref_apv_filter
+    | slot:coref_pvp_filter
+    | slot:coref_preposition_filter
+    ) => slot;
+}
+
+
+imprecise_search_answer_phrase = {
+    ( slot:constant_Any
+    | slot:npp_filter
+    | slot:apv_filter
+    | slot:pvp_filter
+    | slot:preposition_filter
+    ) => slot;
+}
+
+imprecise_search_answer = {
+    ans:imprecise_search_answer_phrase ('please' | '') '.' => ans;
+
+    generic_preamble_for_answer ans:imprecise_search_answer_phrase '.' => ans;
+}
+
+imprecise_search_question_answer = {
+    imprecise_search_answer;
+    imprecise_search_coref_answer;
+    generic_dontcare_phrase [weight=0.1] => 'dontcare';
+    no_dontcare_phrase [weight=0.1] => 'dontcare';
+    specific_dontcare_phrase;
+}
