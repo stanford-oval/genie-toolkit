@@ -15,7 +15,7 @@ const path = require('path');
 const stream = require('stream');
 const seedrandom = require('seedrandom');
 
-const { BasicSentenceGenerator } = require('../../lib/sentence-generator');
+const { BasicSentenceGenerator } = require('../../lib/sentence-generator/batch');
 const DatasetAugmenter = require('../../lib/dataset-tools/augmentation');
 const Utils = require('../../lib/utils/misc-utils');
 const FileParameterProvider = require('../../tool/lib/file_parameter_provider');

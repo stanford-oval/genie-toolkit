@@ -13,7 +13,7 @@ const seedrandom = require('seedrandom');
 const fs = require('fs');
 const Tp = require('thingpedia');
 
-const { BasicSentenceGenerator } = require('../lib/sentence-generator');
+const { BasicSentenceGenerator } = require('../lib/sentence-generator/batch');
 const { DatasetStringifier } = require('../lib/dataset-tools/parsers');
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 const ProgressBar = require('./lib/progress_bar');

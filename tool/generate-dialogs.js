@@ -16,7 +16,7 @@ const Tp = require('thingpedia');
 const seedrandom = require('seedrandom');
 
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
-const { DialogueGenerator } = require('../lib/sentence-generator');
+const { DialogueGenerator } = require('../lib/sentence-generator/batch');
 const StreamUtils = require('../lib/utils/stream-utils');
 
 const { DialogueSerializer } = require('./lib/dialog_parser');

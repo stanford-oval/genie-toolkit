@@ -19,7 +19,7 @@ const TargetLanguages = require('../lib/languages');
 const ParserClient = require('../lib/prediction/parserclient');
 const I18n = require('../lib/i18n');
 const MultiJSONDatabase = require('./lib/multi_json_database');
-const { SentenceGenerator } = require('../lib/sentence-generator');
+const SentenceGenerator = require('../lib/sentence-generator/generator');
 
 const ThingTalk = require('thingtalk');
 
