@@ -20,7 +20,7 @@ const { clean } = require('../../../lib/utils');
 const CanonicalExtractor = require('./canonical-extractor');
 const genBaseCanonical = require('./base-canonical-generator');
 const { makeLookupKeys } = require('../../../lib/sample-utils');
-const { posTag } = require('../../../lib/i18n/american-english');
+const EnglishLanguagePack = require('../../../lib/i18n/american-english');
 
 // extract entity type from type
 function typeToEntityType(type) {
@@ -57,11 +57,11 @@ class AutoCanonicalGenerator {
         } else {
             this.annotatedProperties = [];
         }
+        this._langPack = new EnglishLanguagePack();
     }
 
     async generate() {
         await this._loadParameterDatasetPaths();
-
         const functions = {};
         for (let fname of this.functions) {
             let func = this.class.queries[fname] || this.class.actions[fname];
@@ -70,6 +70,8 @@ class AutoCanonicalGenerator {
                 canonical: func.canonical || clean(fname),
                 args: {}
             };
+            if (Array.isArray(functions[fname].canonical))
+                functions[fname].canonical = functions[fname].canonical[0];
 
             let typeCounts = this._getArgTypeCount(func);
             for (let arg of func.iterateArguments()) {
@@ -144,8 +146,9 @@ class AutoCanonicalGenerator {
 
                 const samples = this._retrieveSamples(fname, arg);
                 if (samples) {
-                    functions[fname]['args'][arg.name]['canonicals'] = arg.metadata.canonical;
-                    functions[fname]['args'][arg.name]['values'] = samples;
+                    const argobj = functions[fname]['args'][arg.name];
+                    argobj['canonicals'] = arg.metadata.canonical;
+                    argobj['values'] = samples;
                 }
             }
         }
@@ -280,7 +283,7 @@ class AutoCanonicalGenerator {
         if (candidate === 'is' || candidate === 'are')
             return false;
 
-        return ['VBP', 'VBZ', 'VBD'].includes(posTag([candidate])[0]);
+        return ['VBP', 'VBZ', 'VBD'].includes(this._langPack.posTag([candidate])[0]);
     }
 
     _hasConflict(fname, currentArg, currentPos, currentCanonical) {

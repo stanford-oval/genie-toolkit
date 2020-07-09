@@ -19,10 +19,11 @@ const fs = require('fs');
 const util = require('util');
 
 const { clean } = require('../../../lib/utils');
-const { pluralize } = require('../../../lib/i18n/american-english');
-const baseCanonical = require('../lib/base-canonical-generator');
+const EnglishLanguagePack = require('../../../lib/i18n/american-english');
+const genBaseCanonical = require('../lib/base-canonical-generator');
 const { isHumanEntity } = require('../../../languages/thingtalk/utils');
 const StreamUtils = require('../../../lib/stream-utils');
+
 
 const {
     BUILTIN_TYPEMAP,
@@ -121,6 +122,8 @@ class SchemaProcessor {
 
         this._wikidata_path = args.wikidata_path;
         this._wikidata_labels = {};
+
+        this._langPack = new EnglishLanguagePack();
     }
 
 
@@ -276,7 +279,7 @@ class SchemaProcessor {
             if (propertyname.startsWith('numberOf'))
                 metadata.counted_object = [ clean(propertyname.slice('numberOf'.length)) ];
             if (propertyname.endsWith('Count'))
-                metadata.counted_object = [ pluralize(clean(propertyname.slice(0, -'Count'.length)))];
+                metadata.counted_object = [ this._langPack.pluralize(clean(propertyname.slice(0, -'Count'.length)))];
 
             if (PROPERTIES_NO_FILTER.includes(propertyname)) {
                 annotation['filterable'] = new Ast.Value.Boolean(false);
@@ -333,7 +336,7 @@ class SchemaProcessor {
         if (!/^[a-z ]+$/.test(name))
             return;
 
-        return baseCanonical(canonical, name, ptype);
+        genBaseCanonical(canonical, name, ptype);
     }
 
     async run() {
@@ -615,7 +618,7 @@ class SchemaProcessor {
                 if (propertyname.startsWith('numberOf'))
                     metadata.counted_object = [ clean(propertyname.slice('numberOf'.length)) ];
                 if (propertyname.endsWith('Count'))
-                    metadata.counted_object = [ pluralize(clean(propertyname.slice(0, -'Count'.length)))];
+                    metadata.counted_object = [ this._langPack.pluralize(clean(propertyname.slice(0, -'Count'.length)))];
 
                 const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, propertyname, type, {
                     nl: metadata,

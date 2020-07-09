@@ -1,0 +1,194 @@
+class @uk.ac.cam.multiwoz.Restaurant
+#_[name="Cambridge Restaurants"]
+#_[description="Fake data used by MultiWOZ"]
+#_[canonical="cambridge restaurants"]
+{
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  /*list query history(out id : Entity(uk.ac.cam.multiwoz.Restaurant:Restaurant)
+                     #[string_values="uk.ac.cam.multiwoz.Restaurant:name"]
+                     #_[canonical={
+                        base=["name"],
+                        property=[]
+                     }],
+                     out date : Date
+                     #_[canonical={
+                        default="preposition",
+                        base=["reservation date"],
+                        property=[],
+                        preposition=["on #"]
+                     }],
+                     out food : String
+                     #[string_values="uk.ac.cam.multiwoz.Restaurant:food"]
+                     #[conflict_filter=['id']]
+                     #_[prompt=["what would you like to eat", "what are you in the mood for"]]
+                     #_[canonical={
+                       default="property",
+                       base=["cuisine", "type of cuisine", "food", "type of food"],
+                       property=["# food", "# cuisine"],
+                       adjective=["#"],
+                       verb=["serves # cuisine", "serves # food", "offer # cuisine", "offer # food", "serves", "offers"]
+                     }],
+                     out price_range : Enum(cheap, moderate, expensive)
+                     #[conflict_filter=['id']]
+                     #_[canonical={
+                       default="adjective",
+                       base=["price range"],
+                       property=[],
+                       adjective=["#", "# -ly priced"]
+                     }],
+                     out area : Enum(centre, south, north, east, west)
+                     #_[canonical={
+                       default="preposition",
+                       base=["area", "area of the city", "part of town"],
+                       property=[],
+                       preposition=["in the #", "in the # area", "in the # part of town",
+                                    "near the #", "near the # area", "near the # part of town",
+                                    "around the #", "around the # area", "around the # part of town"]
+                     }],
+                     out phone : Entity(tt:phone_number)
+                     #[filterable=false]
+                     #_[canonical={
+                       default="base",
+                       base=["phone number", "phone"]
+                     }],
+                     out address : String
+                     #[filterable=false]
+                     #_[canonical={
+                       default="base",
+                       base=["address", "location"]
+                     }],
+                     out postcode : String
+                     #[filterable=false]
+                     #_[canonical={
+                       default="base",
+                       base=["post code", "postcode", "zip code"]
+                     }]
+                     )
+  #[minimal_projection=["id"]]
+  #_[canonical=["restaurants i booked recently", "restaurants i booked last"]]
+  #_[canonical_short=["restaurant"]]
+  #_[confirmation="reservation history"]
+  #_[result="you booked ${id} on ${date}"]
+  #[confirm=false];
+  */
+
+  list query Restaurant(out id : Entity(uk.ac.cam.multiwoz.Restaurant:Restaurant)
+                        #[conflict_filter=['food', 'price_range']]
+                        #[unique=true]
+                        #[string_values="uk.ac.cam.multiwoz.Restaurant:name"]
+                        #_[canonical={
+                          base=["name"],
+                          passive_verb=["named #", "called #"],
+                          property=["name #"]
+                        }],
+                        out food : String
+                        #[string_values="uk.ac.cam.multiwoz.Restaurant:food"]
+                        #[conflict_filter=['id']]
+                        #_[prompt=["what would you like to eat", "what are you in the mood for"]]
+                        #_[canonical={
+                          default="property",
+                          base=["cuisine", "type of cuisine", "food", "type of food"],
+                          property=["# food", "# cuisine"],
+                          adjective=["#"],
+                          passive_verb=["serving #", "serving # food", "serving # cuisine"],
+                          verb=["serves # cuisine", "serves # food", "offer # cuisine", "offer # food", "serves", "offers"]
+                        }],
+                        out price_range : Enum(cheap, moderate, expensive)
+                        #[conflict_filter=['id']]
+                        #_[question=["how many stars does it have"]]
+                        #_[canonical={
+                          default="adjective",
+                          base=["price", "price range"],
+                          property=["# food"],
+                          adjective=["#", "# -ly priced"],
+                          adjective_enum={ expensive=["upscale", "fancy", "fine dining"] },
+                          preposition=["in the # price range"]
+                        }],
+                        out area : Enum(centre, south, north, east, west)
+                        #_[canonical={
+                          default="preposition",
+                          base=["area", "area of the city", "part of town"],
+                          property=[],
+                          preposition=["in the #", "in the # area", "in the # part of town",
+                                       "near the #", "near the # area", "near the # part of town",
+                                       "around the #", "around the # area", "around the # part of town",
+                                       "in the # of cambridge", "in # cambridge"],
+                          preposition_enum={ centre=["in the city centre"] }
+                        }],
+                        out phone : Entity(tt:phone_number)
+                        #[filterable=false]
+                        #_[canonical={
+                          default="base",
+                          base=["phone number", "phone", "number"]
+                        }],
+                        out address : String
+                        #[filterable=false]
+                        #_[canonical={
+                          default="base",
+                          base=["address", "location"],
+                          passive_verb=["located at #"],
+                          preposition=["at #"]
+                        }],
+                        out postcode : String
+                        #[filterable=false]
+                        #_[canonical={
+                          default="base",
+                          base=["post code", "postcode", "zip code"]
+                        }]
+                        )
+  #[minimal_projection=["id"]]
+  // FIXME default_projection doesn't do what we want here...
+  //#[default_projection=["id", "link", "cuisines", "image_url"]]
+  #_[canonical=["restaurant", "food place", "place to eat", "place to dine", "good restaurant", "nice restaurant",
+                "restaurant in cambridge", "place to eat in cambridge", "place to eat in the city"]]
+  #_[confirmation="restaurants"]
+  //#[related=["uk.ac.cam.multiwoz.Restaurant:history"]]
+  #[confirm=false];
+
+  action make_reservation(in req restaurant : Entity(uk.ac.cam.multiwoz.Restaurant:Restaurant)
+                          #[string_values="uk.ac.cam.multiwoz.Restaurant:name"]
+                          #_[prompt="what restaurant would you like to book?"],
+                          in req book_time : Time
+                          #_[prompt=["what time is your reservation for",
+                                     "what time do you need your reservation for",
+                                     "at what time is your reservation"]]
+                          #_[canonical={
+                            default="preposition",
+                            base=["time", "reservation time"],
+                            preposition=["at #"]
+                          }],
+                          in req book_day : Enum(monday, tuesday, wednesday, thursday, friday, saturday, sunday)
+                          #_[prompt=["what day is your reservation for",
+                                     "what day do you need your reservation for",
+                                     "on which day do you want your reservation"]]
+                          #_[canonical={
+                            default="preposition",
+                            base=["day", "date"],
+                            preposition=["for #", "on #"]
+                          }],
+                          in req book_people : Number
+                          #[min_number=1]
+                          #[max_number=7]
+                          #_[prompt=["how many people is your reservation for",
+                                     "for how many people do you need a reservation",
+                                     "how many people"]]
+                          #_[canonical={
+                            default="preposition",
+                            base=["number of people"],
+                            preposition=["for # people", "for #"]
+                          }],
+                          out reference_number : String
+                          #_[canonical={
+                            default="base",
+                            base=["reference number", "confirmation number", "booking reference"]
+                          }])
+  #_[confirmation="make a reservation at ${restaurant}"]
+  // multiwoz people don't ask for a confirmation before doing the booking...
+  #[confirm=false]
+  #_[on_error={
+     no_slot_available=["there are no tables available on ${book_day} for ${book_time}",
+                        "all slots are taken at ${book_time} on ${book_day}"]
+  }];
+}

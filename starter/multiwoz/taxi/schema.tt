@@ -1,0 +1,67 @@
+class @uk.ac.cam.multiwoz.Taxi
+#_[name="Cambridge Taxi"]
+#_[description="Fake data used by MultiWOZ"]
+#_[canonical="cambridge taxi"]
+{
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+  action make_booking(in req destination : String
+                      #_[prompt=["what is your destination", "where to", "where will you be heading"]]
+                      #[string_values="uk.ac.cam.multiwoz.Taxi:destination"]
+                      #_[canonical={
+                        default="preposition",
+                        base=["destination", "destination address", "arrival"],
+                        preposition=["to #", "to go to #", "arriving to #",
+                          // FIXME these are not precise, we'll need the proper handling of action templates
+                          // (see https://wiki.almond.stanford.edu/LUInet/Transactions/Actions)
+                          "that arrives at #", "that arrives to #", "that should arrive to #", "that drops me off at #"
+                        ],
+                        property=["drop off at #", "arrival #", "arrival at #"]
+                      }],
+                      in req departure : String
+                      #_[prompt=["where will you be departing from", "where will you be leaving from"]]
+                      #[string_values="uk.ac.cam.multiwoz.Taxi:departure"]
+                      #_[canonical={
+                        default="preposition",
+                        base=["departure", "departure address", "pickup"],
+                        preposition=["from #", "leaving from #",
+                          // FIXME these are not precise, we'll need the proper handling of action templates
+                          // (see https://wiki.almond.stanford.edu/LUInet/Transactions/Actions)
+                          "that departs from #", "that should depart from #", "that picks me up at #"
+                        ],
+
+                        property=["pick up at #", "departure #", "departure from #", "departure at #"]
+                      }],
+                      in opt arrive_by : Time
+                      #_[prompt=["when do you want to arrive", "when do you want to be dropped off", "by when do you want to arrive"]]
+                      #_[canonical={
+                        default="preposition",
+                        base=["arrival time", "dropoff time"],
+                        preposition=["arriving by #", "arriving at #", "arriving before #",
+                                     "dropping me off at #", "dropping me off at #",
+                                     "to arrive before #", "arriving not later than #"]
+                      }],
+                      in opt leave_at : Time
+                      #_[prompt=["when do you want to leave", "when do you want to be picked up"]]
+                      #_[canonical={
+                        default="preposition",
+                        base=["time", "departure time", "pickup time"],
+                        preposition=["leaving at #", "leaving #", "leaving after #", "to leave after #",
+                                     "leaving not before #", "picking me up at #", "to pick me up at #",
+                                     "to pick me up after #"]
+                      }],
+                      out car : String
+                      #[string_values="uk.ac.cam.multiwoz.Taxi:car"]
+                      #_[canonical={
+                        default="base",
+                        base=["car", "type of car"]
+                      }])
+  #[require_either=[['arrive_by', 'leave_at']]]
+  #_[confirmation="make a booking for a taxi for ${leave_at}"]
+  // multiwoz people don't ask for a confirmation before doing the booking...
+  #[confirm=false]
+  #_[on_error={
+     invalid_departure=["the departure location ${departure} is not valid"],
+     invalid_destination=["the destination location ${destination} is not valid"]
+  }];
+}

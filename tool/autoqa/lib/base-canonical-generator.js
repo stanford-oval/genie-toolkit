@@ -10,7 +10,7 @@
 "use strict";
 
 const { clean } = require('../../../lib/utils');
-const { pluralize, posTag } = require('../../../lib/i18n/american-english');
+const EnglishLanguagePack = require('../../../lib/i18n/american-english');
 
 function updateDefault(canonical, type) {
     if (!canonical.default)
@@ -24,14 +24,15 @@ function updateCanonical(canonical, type, values) {
 }
 
 function genBaseCanonical(canonical, name, ptype) {
+    const languagePack = new EnglishLanguagePack();
     name = clean(name);
     if (name.endsWith(' value'))
         name = name.substring(0, name.length - ' value'.length);
 
     if (ptype && ptype.isArray)
-        name = pluralize(name);
+        name = languagePack.pluralize(name);
 
-    const tags = posTag(name.split(' '));
+    const tags = languagePack.posTag(name.split(' '));
 
     // e.g., saturatedFatContent
     if (name.endsWith(' content') && ptype.isMeasure) {

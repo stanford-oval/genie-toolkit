@@ -1,0 +1,49 @@
+dataset @uk.ac.cam.multiwoz.MultiDomain {
+  query (p_type : String) := @uk.ac.cam.multiwoz.Attraction.Attraction(), type =~ p_type
+  #_[preprocessed=["${p_type}"]];
+
+  query := @uk.ac.cam.multiwoz.Hotel.Hotel(), type == enum(guest_house)
+  #_[preprocessed=["guest house", "guesthouse"]];
+
+  action := @uk.ac.cam.multiwoz.Hotel.make_booking()
+  #_[preprocessed=["book a hotel",
+                   "make a hotel booking"]];
+
+  action (p_hotel : Entity(uk.ac.cam.multiwoz.Hotel:Hotel)) :=
+    @uk.ac.cam.multiwoz.Hotel.make_booking(hotel=p_hotel)
+  #_[preprocessed=["book ${p_hotel}",
+                   "reserve ${p_hotel}",
+                   "make a hotel booking for ${p_hotel}",
+                   "make a booking at ${p_hotel}"]];
+
+  action := @uk.ac.cam.multiwoz.Restaurant.make_reservation()
+  #_[preprocessed=["book a restaurant",
+                   "make a restaurant reservation"]];
+
+  action (p_restaurant : Entity(uk.ac.cam.multiwoz.Restaurant:Restaurant)) :=
+    @uk.ac.cam.multiwoz.Restaurant.make_reservation(restaurant=p_restaurant)
+  #_[preprocessed=["book ${p_restaurant}",
+                   "reserve ${p_restaurant}",
+                   "make a restaurant reservation for ${p_restaurant}",
+                   "make a reservation at ${p_restaurant}"]];
+
+  action := @uk.ac.cam.multiwoz.Taxi.make_booking()
+  #_[preprocessed=["book a taxi ride",
+                   "book a taxi",
+                   "get a taxi",
+                   "find a taxi",
+                   "call a taxi",
+                   "get a cab"]];
+
+  action := @uk.ac.cam.multiwoz.Train.make_booking()
+  #_[preprocessed=["book a train ride",
+                   "make a train ride booking",
+                   "book a train ticket",
+                   "buy a train ticket",
+                   "purchase a train ticket"]];
+
+  action (p_train : Entity(uk.ac.cam.multiwoz.Train:Train)) :=
+    @uk.ac.cam.multiwoz.Train.make_booking(train=p_train)
+  #_[preprocessed=["book ${p_train}",
+                   "make a booking for ${p_train}"]];
+}

@@ -1,0 +1,87 @@
+class @uk.ac.cam.multiwoz.Attraction
+#_[name="Cambridge Attraction"]
+#_[description="Fake data used by MultiWOZ"]
+#_[canonical="cambridge attraction"]
+{
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  list query Attraction(out id : Entity(uk.ac.cam.multiwoz.Attraction:Attraction)
+                       #[unique=true]
+                       #[string_values="uk.ac.cam.multiwoz.Attraction:name"]
+                       #_[canonical={
+                         base=["name"],
+                         passive_verb=["named #", "called #"],
+                         property=["name #"]
+                       }],
+                       out area : Enum(east, north, centre, south, west)
+                       #_[prompt=["what area would you like to visit", "where in cambridge would you like to go"]]
+                       #_[canonical={
+                         default="preposition",
+                         base=["area", "area of the city", "part of town"],
+                         property=[],
+                         preposition=["in the #", "in the # area", "in the # part of town",
+                                      "near the #", "near the # area", "near the # part of town",
+                                      "around the #", "around the # area", "around the # part of town",
+                                      "in the # of cambridge", "in # cambridge"]
+                       }],
+                       out type : String
+                       #[string_values="uk.ac.cam.multiwoz.Attraction:type"]
+                       #_[pluralize=true]
+                       #_[canonical={
+                         default="adjective",
+                         base=["attraction type", "type", "type of attraction"],
+                         property=["type #"],
+                         adjective=["#"]
+                       }],
+                       out phone : Entity(tt:phone_number)
+                        #[filterable=false]
+                        #_[canonical={
+                          default="base",
+                          base=["phone number", "phone", "number"]
+                        }],
+                        out address : String
+                        #[filterable=false]
+                        #_[canonical={
+                          default="base",
+                          base=["address", "location"],
+                          passive_verb=["located at #"],
+                          preposition=["at #"]
+                        }],
+                        out postcode : String
+                        #[filterable=false]
+                        #_[canonical={
+                          default="base",
+                          base=["post code", "postcode", "zip code"]
+                        }],
+                        out openhours : String
+                        #[filterable=false]
+                        #_[canonical={
+                          default="base",
+                          base=["opening hours", "opening time"],
+                          property=[],
+                          verb=["opens #"]
+                        }],
+                        out price_range : Enum(free, cheap, moderate, expensive)
+                        #[filterable=false]
+                        #_[canonical={
+                          default="adjective",
+                          base=["price", "price range"],
+                          property=[],
+                          adjective=["#", "# -ly priced"]
+                        }],
+                        out entrance_fee : String // we don't care to track the precise type of this because it's not filterable
+                        #[filterable=false]
+                        #_[canonical={
+                          default="adjective",
+                          base=["fee", "entrance fee", "ticket cost"],
+                          property=["# fee", "# entrance fee"]
+                        }]
+                        )
+  #[minimal_projection=["id"]]
+  #_[canonical=["attraction",  "local attraction", "sight", "thing to do", "place to visit",
+                "attraction in cambridge", "thing to do in cambridge", "place to visit in cambridge",
+                "thing to do in town", "place to visit around town", "place to visit in the city"]]
+  #_[confirmation="attractions"]
+  #[confirm=false];
+}

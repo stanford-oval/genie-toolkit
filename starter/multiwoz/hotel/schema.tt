@@ -1,0 +1,143 @@
+class @uk.ac.cam.multiwoz.Hotel
+#_[name="Cambridge Hotel"]
+#_[description="Fake data used by MultiWOZ"]
+#_[canonical="cambridge hotel"]
+{
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  list query Hotel(out id : Entity(uk.ac.cam.multiwoz.Hotel:Hotel)
+                   #[conflict_filter=['area', 'price_range']]
+                   #[unique=true]
+                   #[string_values="uk.ac.cam.multiwoz.Hotel:name"]
+                   #_[canonical={
+                     base=["name"],
+                     passive_verb=["named #", "called #"],
+                     property=["name #"]
+                   }],
+                   out area : Enum(east, north, centre, south, west)
+                   #_[prompt=["what area would you like to stay", "where in cambridge would you like to stay"]]
+                   #_[canonical={
+                     default="preposition",
+                     base=["area", "area of the city", "part of town"],
+                     property=[],
+                     preposition=["in the #", "in the # area", "in the # part of town",
+                                  "near the #", "near the # area", "near the # part of town",
+                                  "around the #", "around the # area", "around the # part of town",
+                                  "in the # of cambridge", "in # cambridge"]
+                   }],
+                   out price_range : Enum(cheap, moderate, expensive)
+                   #[conflict_filter=['id']]
+                   #_[question=["how expensive is it", "how pricey is it"]]
+                   #_[canonical={
+                     default="adjective",
+                     base=["price", "price range"],
+                     property=[],
+                     adjective=["#", "# -ly priced"],
+                     adjective_enum={ expensive=["upscale", "fancy"] },
+                     preposition=["in the # price range"]
+                   }],
+                   out type : Enum(hotel, guest_house)
+                   #_[canonical={
+                     default="base",
+                     base=["type"]
+                   }],
+                   out stars : Number
+                   #[min_number=1]
+                   #[max_number=5]
+                   #_[question=["how many stars does it have"]]
+                   #_[canonical={
+                     default="adjective",
+                     base=["stars"],
+                     property=["# stars", "# stars rating", "# star rating"],
+                     adjective=["# star", "# -star"]
+                   }],
+                   out parking : Boolean
+                   #_[canonical={
+                     default="property",
+                     property_true=["parking", "available parking", "free parking", "free parking available"],
+                     property_false=["no parking"]
+                   }],
+                   out internet : Boolean
+                   #_[question=["is the internet free", "is the wifi free"]]
+                   #_[canonical={
+                     default="property",
+                     property_true=["internet", "free internet", "free internet available",
+                                    "wifi", "free wifi", "free wifi available"],
+                     property_false=["no internet", "no wifi"]
+                   }],
+                   out phone : Entity(tt:phone_number)
+                   #[filterable=false]
+                   #_[canonical={
+                     default="base",
+                     base=["phone number", "phone", "number"]
+                   }],
+                   out address : String
+                   #[filterable=false]
+                   #_[canonical={
+                     default="base",
+                     base=["address", "location"],
+                     passive_verb=["located at #"],
+                     preposition=["at #"]
+                   }],
+                   out postcode : String
+                   #[filterable=false]
+                   #_[canonical={
+                     default="base",
+                     base=["post code", "postcode", "zip code"]
+                   }]
+                   )
+  #[minimal_projection=["id"]]
+  #_[canonical=["hotel", "accommodation", "place to stay", "place to sleep", "good hotel", "nice hotel",
+                "hotel in cambridge", "place to stay in cambridge", "accomodation in cambridge",
+                "place where i can stay", "place to stay in the city"]]
+  #_[confirmation="hotels"]
+  #[confirm=false];
+
+  action make_booking(in req hotel : Entity(uk.ac.cam.multiwoz.Hotel:Hotel)
+                      #[string_values="uk.ac.cam.multiwoz.Hotel:name"]
+                      #_[prompt="what hotel would you like to book?"],
+                      in req book_day : Enum(monday, tuesday, wednesday, thursday, friday, saturday, sunday)
+                      #_[prompt=["what day is your booking for",
+                                 "what day do you need your booking for",
+                                 "on which day do you want your booking"]]
+                      #_[canonical={
+                        default="preposition",
+                        base=["day", "date"],
+                        preposition=["for #", "on #"]
+                      }],
+                      in req book_people : Number
+                      #[min_number=1]
+                      #[max_number=8]
+                      #_[prompt=["how many people is your booking for",
+                                 "for how many people do you need a booking",
+                                 "how many people"]]
+                      #_[canonical={
+                        default="preposition",
+                        base=["number of people"],
+                        preposition=["for # people", "for #"]
+                      }],
+                      in req book_stay : Number
+                      #[min_number=1]
+                      #[max_number=8]
+                      #_[prompt=["how many nights is your booking for",
+                                 "for how long do you need a booking",
+                                 "how long will your stay be",
+                                 "how many nights"]]
+                      #_[canonical={
+                        default="preposition",
+                        base=["length of stay", "duration"],
+                        preposition=["for # nights", "for # days"]
+                      }],
+                      out reference_number : String
+                      #_[canonical={
+                        default="base",
+                        base=["reference number", "confirmation number", "booking reference"]
+                      }])
+  #_[confirmation="make a booking at ${hotel}"]
+  #[confirm=false]
+  #_[on_error={
+     no_slot_available=["there are no rooms available on ${book_day} at ${hotel}",
+                        "all rooms are booked at ${hotel} on ${book_day}"]
+  }];
+}
