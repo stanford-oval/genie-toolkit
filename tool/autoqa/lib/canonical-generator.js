@@ -14,13 +14,14 @@ const path = require('path');
 const stemmer = require('stemmer');
 const Inflectors = require('en-inflectors').Inflectors;
 const child_process = require('child_process');
-const utils = require('../../../lib/utils');
 
-const { clean } = require('../../../lib/utils');
+const utils = require('../../../lib/utils/misc-utils');
+const { makeLookupKeys } = require('../../../lib/dataset-tools/mturk/sample-utils');
+const EnglishLanguagePack = require('../../../lib/i18n/american-english');
+const { clean } = require('../../../lib/utils/misc-utils');
+
 const CanonicalExtractor = require('./canonical-extractor');
 const genBaseCanonical = require('./base-canonical-generator');
-const { makeLookupKeys } = require('../../../lib/sample-utils');
-const EnglishLanguagePack = require('../../../lib/i18n/american-english');
 
 // extract entity type from type
 function typeToEntityType(type) {

@@ -17,7 +17,7 @@
     const Type = ThingTalk.Type;
 
     const C = require('../../ast_manip');
-    const D = require('../../dialogue_utils');
+    const D = require('../../dialogue_acts');
 
     // import thingpedia info
     const _tpLoader = require('../../load-thingpedia');
@@ -132,5 +132,15 @@ action_by_name_command = {
 
     ( action:contextual_action_phrase param:preposition_input_param
     | action:contextual_action_phrase ('with' | 'having') param:npp_input_param
+    ) => C.addInvocationInputParam(action, param);
+}
+
+// sentences from the agent
+action_description_phrase = {
+    coref_action_phrase;
+    action:thingpedia_action if complete => action.invocation;
+
+    ( action:action_description_phrase param:preposition_input_param
+    | action:action_description_phrase ('with' | 'having') param:npp_input_param
     ) => C.addInvocationInputParam(action, param);
 }

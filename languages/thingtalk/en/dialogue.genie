@@ -15,13 +15,12 @@
     const Type = ThingTalk.Type;
 
     const C = require('../ast_manip');
-    const D = require('../dialogue_utils');
-
-    // import thingpedia info
-    const _tpLoader = require('../load-thingpedia');
+    const S = require('../state_manip');
+    const D = require('../dialogue_acts');
 }
 
 import '../common';
+// basic ThingTalk functionality
 import './constants';
 import './timers';
 import './filters';
@@ -31,21 +30,33 @@ import './computation';
 import './who_questions';
 import './stream_tables';
 import './commands';
+
+// common dialogue elements
 import './dlg/shared';
+import './dlg/results';
 import './dlg/coref-actions';
+
+// specific interactions
+// keep this in alphabetical order
+import './dlg/action-confirm';
+import './dlg/action-results';
 import './dlg/coref-questions';
+import './dlg/empty-search';
+import './dlg/initial-request';
 import './dlg/list-proposal';
 import './dlg/recommendation';
 import './dlg/refinement';
-import './dlg/results';
-import './dlg/slot-fill';
 import './dlg/related-questions';
-import './dlg/action-results';
+import './dlg/search-questions';
+import './dlg/slot-fill';
 
-context ctx_init,
-    ctx_greet,
-    ctx_cancel,
-    ctx_end,
+// declare contexts
+context
+    // initial (null) context
+    ctx_init,
+
+    // context tags applied to both agent and user contexts
+    // these should be returned by S.getContextTags()
     ctx_multidomain,
     ctx_with_result,
     ctx_with_action,
@@ -54,6 +65,12 @@ context ctx_init,
     ctx_with_result_question,
     ctx_with_result_noquestion,
     ctx_without_projection,
+
+    // result states (used to interpret user utterances)
+    // these should be returned by S.tagContextForAgent()
+    ctx_greet,
+    ctx_cancel,
+    ctx_end,
     ctx_search_command,
     ctx_aggregation_question,
     ctx_distance_argminmax_question,
@@ -69,356 +86,217 @@ context ctx_init,
     ctx_confirm_action,
     ctx_incomplete_action,
     ctx_incomplete_action_after_search,
-    ctx_learn_more;
+    ctx_learn_more,
 
-context function (state) {
+    // agent states (used to continue the conversation with more user utterances)
+    // these more or less map to the agent dialogue acts, except we don't distinguish
+    // acts with questions and acts without questions (the distinction is there only
+    // for the purposes of type-checking)
+    ctx_sys_any,
+
+    ctx_sys_action_success,
+    ctx_sys_action_error,
+    ctx_sys_anything_else,
+    ctx_sys_confirm_action,
+    ctx_sys_empty_search,
+    ctx_sys_end,
+    ctx_sys_greet,
+    ctx_sys_learn_more_what,
+    ctx_sys_propose_refined_query,
+    ctx_sys_recommend_many,
+    ctx_sys_recommend_one,
+    ctx_sys_search_question,
+    ctx_sys_slot_fill;
+
+
+// map a concrete dialogue state (produced by the simulation or the neural network)
+// to an abstract dialogue state defined in the state machine, as well as
+// a set of auxiliary tags that are used to prune the generation
+// this function also computes the "context", which is the state augmented with derived
+// information used by the semantic functions
+function context(state) {
     if (state === null)
-        return [['ctx_init'], D.INITIAL_CONTEXT_INFO];
+        return [['ctx_init'], S.INITIAL_CONTEXT_INFO];
+
     assert(state instanceof Ast.DialogueState, `expected a dialogue state Ast node`);
-    if (state.policy !== D.POLICY_NAME)
+    if (state.policy !== S.POLICY_NAME)
         return null;
-    const info = D.getContextInfo(state);
-
-    // no continuations are possible after explicit "end" (which means the user said
-    // "no thanks" after the agent asked "is there anything else I can do for you")
-    // but we still tag the context to generate something in inference mode
-    if (state.dialogueAct === 'end')
-        return [['ctx_end'], info];
-
-    switch (state.dialogueAct) {
-    case 'greet':
-        assert(state.history.length === 0, `expected empty history for greet`);
-        return [['ctx_greet'], info];
-
-    case 'cancel':
-        return [['ctx_cancel'], info];
-
-    case 'action_question': {
-        const tags = [];
-        if (info.isMultiDomain)
-            tags.push('ctx_multidomain');
-        tags.push('ctx_with_result', 'ctx_completed_action_success');
-        return [tags, info];
-    }
-
-    case 'ask_recommend':
-    case 'execute': {
-        const tags = [];
-        if (info.isMultiDomain)
-            tags.push('ctx_multidomain');
-
-        if (info.nextInfo !== null) {
-            tags.push('ctx_with_action');
-
-            // we have an action we want to execute, or a query that needs confirmation
-            if (info.nextInfo.chainParameter === null || info.nextInfo.chainParameterFilled) {
-                // we don't need to fill any parameter from the current query
-
-                if (info.nextInfo.isComplete) {
-                    tags.push('ctx_confirm_action');
-                    return [tags, info];
-                } else {
-                    tags.push('ctx_incomplete_action', 'ctx_incomplete_action_after_search');
-                    return [tags, info];
-                }
-            }
-
-            if (!info.nextInfo.isComplete)
-                tags.push('ctx_incomplete_action');
-        } else {
-            if (info.resultInfo && info.resultInfo.isTable)
-                tags.push('ctx_without_action');
-        }
-
-        // we must have a result
-        assert(info.resultInfo, `expected result info`);
-        if (!info.resultInfo.isTable) {
-            if (info.resultInfo.hasError)
-                tags.push('ctx_completed_action_error');
-            else if (info.resultInfo.hasEmptyResult)
-                tags.push('ctx_completed_action_success');
-            else
-                tags.push('ctx_with_result', 'ctx_completed_action_success');
-            return [tags, info];
-        }
-
-        if (info.resultInfo.hasEmptyResult) {
-            // note: aggregation cannot be empty (it would be zero)
-            tags.push('ctx_empty_search_command');
-            return [tags, info];
-        }
-
-        tags.push('ctx_with_result');
-        if (D.isUserAskingResultQuestion(info)) {
-            tags.push('ctx_with_result_question');
-        } else {
-            tags.push('ctx_with_result_noquestion');
-            if (info.nextInfo)
-                tags.push('ctx_with_result_and_action');
-
-            if (info.resultInfo.projection === null)
-                tags.push('ctx_without_projection');
-        }
-
-        if (info.resultInfo.isQuestion) {
-            if (info.resultInfo.isAggregation) {
-                // "how many restaurants nearby have more than 500 reviews?"
-                tags.push('ctx_aggregation_question');
-            } else if (info.resultInfo.argMinMaxField !== null) {
-                const [field, direction] = info.resultInfo.argMinMaxField;
-
-                /* FIXME
-                // for now, we treat these as single result questions
-                if (field === 'distance') // "find the nearest starbucks"
-                    tags.push('ctx_distance_argminmax_question');
-                else // "what is the highest rated restaurant nearby?"
-                    tags.push('ctx_argminmax_question');
-                */
-                tags.push('ctx_single_result_search_command');
-
-                // we can recommend/show the result right away, even if many match
-                tags.push('ctx_complete_search_command');
-            } else if (info.resultInfo.hasSingleResult) {
-                // "what is the rating of Terun?"
-                // FIXME if we want to answer differently, we need to change this one
-                tags.push('ctx_single_result_search_command');
-
-                // we can recommend/show the result right away, even if many match
-                tags.push('ctx_complete_search_command');
-            } else {
-                // "what's the food and price range of restaurants nearby?"
-                // we treat these the same as "find restaurants nearby", but we make sure
-                // that the necessary fields are computed
-                tags.push('ctx_search_command');
-
-                // we can recommend/show the result right away, even if many match
-                tags.push('ctx_complete_search_command');
-            }
-        } else {
-            if (info.resultInfo.hasSingleResult || info.resultInfoQuestion) // we can recommend
-                tags.push('ctx_single_result_search_command')
-            else if (state.dialogueAct !== 'ask_recommend')// we can refine
-                tags.push('ctx_search_command');
-
-            // we can /show the result
-            tags.push('ctx_complete_search_command');
-        }
-
-        return [tags, info];
-    }
-
-    case 'learn_more':
-        assert(info.results);
-        return [['ctx_learn_more'], info];
-
-    default:
-        throw new Error(`Unexpected user dialogue act ${info.dialogueAct}`);
-    }
+    const ctx = S.getContextInfo(state);
+    // get the main context tags for this context (the abstract state, in paper terminology)
+    const tags = S.tagContextForAgent(ctx);
+    // add auxiliary tags used for pruning
+    tags.push(...S.getContextTags(ctx));
+    return [tags, ctx];
 }
 
-system_learn_more = {
-    'what would you like to know ?';
-    'what would you like to hear ?';
-}
-
-learn_more_search_question_pair = {
-    ( system_learn_more '<sep>' questions:simple_user_search_question
-    | system_learn_more '<sep>' questions:boolean_user_search_question
-    ) => {
-        return [null, null, questions];
-    };
-}
-
-initial_command = {
-    action_command [weight=0.5];
-    search_command [weight=2];
-    complete_question [weight=0.5];
-    projection_question [weight=0.1];
-
-    ( stmt:search_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-    | stmt:action_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-    ) => D.addDontCare(stmt, dontcare);
-
-    // TODO
-    /*
-    ?remote_commands remote_command [weight=0.1];
-    ?policies policy_command [weight=0.2];
-    */
-
-    ?timer stmt:timer_rule [weight=0.2] => stmt;
-    !nostream {
-        monitor_command [weight=0.1];
-        when_command [weight=0.1];
-    }
-
-    prog:thingpedia_program if complete => {
-        if (prog.rules.length !== 1)
-            return null;
-        return prog.rules[0];
-    };
-
-}
 
 $agent = {
-    ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
-        => D.makeSimpleState(ctx, 'sys_greet', null);
+    ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+    | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+    ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null));
 
     ctx:ctx_cancel anything_else_phrase
-        => D.makeSimpleState(ctx, 'sys_anything_else', null);
+        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null));
 
     ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
-        => D.makeSimpleState(ctx, 'sys_end', null);
+        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null));
+
+    // action results
+    action_success_phrase;
+    action:action_success_phrase anything_else_phrase => action;
+    action_error_phrase;
+
+    // confirming an action
+    action_confirm_phrase;
 
     // empty search error
-    ctx:ctx_empty_search_command error:empty_search_error => {
-        const [base, question] = error;
-        if (base !== null && !C.isSameFunction(base.schema, ctx.current.stmt.table.schema))
-            return null;
-        if (question !== null && !D.isGoodEmptySearchQuestion(ctx, question.name))
-            return null;
-        return D.makeSimpleState(ctx, question ? 'sys_empty_search_question' : 'sys_empty_search', question.name);
-    };
+    ctx:ctx_empty_search_command error:empty_search_error
+        => D.makeEmptySearchError(ctx, error);
 
-    // query refinement (through proposal or slot fill)
-    ctx:ctx_search_command questions:search_question => {
-        if (!D.isGoodSearchQuestion(ctx, questions))
-            return null;
-        if (questions.length === 0)
-            return D.makeSimpleState(ctx, 'sys_generic_search_question', null);
-        else
-            return D.makeSimpleState(ctx, 'sys_search_question', questions);
-    };
+    // query refinement (through proposal or search question)
+    !inference prop:system_generic_proposal => prop;
+    ctx:ctx_search_command questions:search_question
+        => D.makeSearchQuestion(ctx, questions);
 
-    ctx:ctx_incomplete_action_after_search questions:slot_fill_question => {
-        if (!D.isGoodSlotFillQuestion(ctx, questions))
-            return null;
-        return D.makeSimpleState(ctx, 'sys_slot_fill', questions);
-    };
-
-    ctx:ctx_search_command proposal:system_generic_proposal [weight=0.5] =>
-        D.addQuery(ctx, 'sys_propose_refined_query', proposal, 'proposed');
+    // slot filling of actions
+    ctx:ctx_incomplete_action_after_search questions:slot_fill_question
+        => D.makeSlotFillQuestion(ctx, questions);
 
     // action recommendation (through one or a list)
 
-    ctx:ctx_complete_search_command proposal:system_recommendation => {
-        const { topResult, action } = proposal;
-        if (action === null) {
-            return D.makeSimpleState(ctx, 'sys_recommend_one', null);
-        } else {
-            const chainParam = D.findChainParam(topResult, action);
-            if (!chainParam)
-                return null;
-            return D.addActionParam(ctx, 'sys_recommend_one', action, chainParam, topResult.value.id, 'proposed');
-        }
-    };
+    ctx:ctx_complete_search_command proposal:system_recommendation
+        => D.makeRecommendationReply(ctx, proposal);
 
-    ctx:ctx_complete_search_command proposal:system_list_proposal [weight=10] => {
-        const [results, /*info*/, action] = proposal;
-        const dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
-        if (action === null)
-            return D.makeSimpleState(ctx, dialogueAct, null);
-        else
-            return D.addAction(ctx, dialogueAct, action, 'proposed');
-    };
+    ctx:ctx_complete_search_command proposal:system_list_proposal [weight=10]
+        => D.makeListProposalReply(ctx, proposal);
 
+    // learn more
     ctx:ctx_learn_more system_learn_more
-        => D.makeSimpleState(ctx, 'sys_learn_more_what', null);
+        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_learn_more_what', null));
 }
 
-$root = {
-    /*ctx:ctx_init greeting [weight=0.01] =>
-        D.checkStateIsValid(ctx, null, new Ast.DialogueState(null, D.POLICY_NAME, 'greet', null, []));
-    */
-
+$user = {
+    ctx:ctx_init greeting [weight=0.01]
+        => S.makeSimpleState(ctx, 'greet', null);
     ( ctx:ctx_init stmt:initial_command [weight=0.5]
     | ctx:ctx_init greeting stmt:initial_command [weight=0.5]
-    ) => {
-        const userState = D.initialRequest(stmt);
-        if (userState === null)
-            return null;
-        return D.checkStateIsValid(ctx, null, userState);
-    };
+    | ctx:ctx_sys_greet stmt:initial_command
+    ) => D.initialRequest(stmt);
 
-    ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?' '<sep>' stmt:initial_command => {
-        const userState = D.initialRequest(stmt);
-        if (userState === null)
-            return null;
-        const sysState = D.makeSimpleState(ctx, 'sys_greet', null);
-        return D.checkStateIsValid(ctx, sysState, userState);
-    };
+    // do you need anything else?
+    ( ctx:ctx_sys_anything_else no_thanks_phrase ('goodbye !' | '') [weight=0.01]
+    | ctx:ctx_sys_anything_else thanks_phrase ('goodbye !' | '') [weight=0.01]
+    ) => S.makeSimpleState(ctx, 'end', null);
 
-    ( ctx:ctx_cancel anything_else_phrase '<sep>' no_thanks_phrase ('goodbye !' | '') [weight=0.01]
-    | ctx:ctx_cancel anything_else_phrase '<sep>' thanks_phrase ('goodbye !' | '') [weight=0.01]
-    ) => {
-        const userState = D.makeSimpleState(ctx, 'end', null);
-        const sysState = D.makeSimpleState(ctx, 'sys_anything_else', null);
-        return D.checkStateIsValid(ctx, sysState, userState);
-    };
-
-    ( ctx:ctx_cancel anything_else_phrase '<sep>' stmt:initial_command
-    | ctx:ctx_cancel anything_else_phrase '<sep>' yes_please_phrase stmt:initial_command
+    ( ctx:ctx_sys_anything_else stmt:initial_command
+    | ctx:ctx_sys_anything_else yes_please_phrase stmt:initial_command
     ) => D.startNewRequest(ctx, stmt);
 
     // action results
-    ctx:ctx_completed_action_success action_success_terminal_pair
-        => D.actionSuccessTerminalPair(ctx);
-    ctx:ctx_completed_action_success pair:action_success_restart_pair
-        => D.actionSuccessRestartPair(ctx, pair);
-    ctx:ctx_completed_action_success question:action_success_question_pair
-        => D.actionSuccessQuestionPair(ctx, question);
+    ctx:ctx_sys_action_success thanks_phrase ('goodbye !' | '')
+        => S.makeSimpleState(ctx, 'cancel', null);
+    ctx:ctx_sys_action_success questions:simple_user_search_question
+        => D.actionSuccessQuestion(ctx, questions);
 
-    ctx:ctx_completed_action_error error:action_error_terminal_pair [weight=0.1]
-        => D.actionErrorTerminalPair(ctx, error);
-    ctx:ctx_completed_action_error pair:action_error_change_param_pair
-        => D.actionErrorChangeParamPair(ctx, pair);
+    ( ctx:ctx_sys_action_success stmt:initial_command
+    | ctx:ctx_sys_action_success yes_please_phrase stmt:initial_command
+    ) => D.startNewRequest(ctx, stmt);
 
-    // empty search error
-    ctx:ctx_empty_search_command pair:empty_search_change_pair
-        => D.emptySearchChangePair(ctx, pair);
+    ( ctx:ctx_sys_action_error no_thanks_phrase
+    | ctx:ctx_sys_action_error nevermind_phrase
+    ) => S.makeSimpleState(ctx, 'cancel', null);
 
-    // query refinement (through proposal or slot fill)
-    ctx:ctx_search_command qa:precise_search_question_answer_pair [weight=5] =>
-        D.preciseSearchQuestionAnswer(ctx, qa);
-    ctx:ctx_search_command qa:imprecise_search_question_answer_pair [weight=5] =>
-        D.impreciseSearchQuestionAnswer(ctx, qa);
-    ctx:ctx_search_command questions:search_question_ask_recommend_pair [weight=1] =>
-        D.searchQuestionAskRecommendPair(ctx, questions);
+    ctx:ctx_sys_action_error ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('can you try' | 'how about') answer:imprecise_slot_fill_answer_phrase '?'
+        => D.actionErrorChangeParam(ctx, answer);
 
-    ctx:ctx_incomplete_action qa:precise_slot_fill_question_answer_pair
-        => D.preciseSlotFillQuestionAnswer(ctx, qa);
-    ctx:ctx_incomplete_action qa:imprecise_slot_fill_question_answer_pair
-        => D.impreciseSlotFillQuestionAnswer(ctx, qa);
+    // empty search errors
+    ctx:ctx_sys_empty_search req:precise_empty_search_change_request
+        => D.preciseEmptySearchChangeRequest(ctx, req);
+    ctx:ctx_sys_empty_search req:imprecise_empty_search_change_request
+        => D.impreciseEmptySearchChangeRequest(ctx, req);
 
-    ( ctx:ctx_search_command pair:negative_proposal_reply_pair [weight=0.5]
-    | ctx:ctx_search_command pair:positive_proposal_reply_pair [weight=0.5]
-    ) =>
-        D.proposalReplyPair(ctx, pair);
+    // search questions
+    ctx:ctx_sys_search_question answer:precise_search_question_answer
+        => D.preciseSearchQuestionAnswer(ctx, answer);
+    ctx:ctx_sys_search_question answer:imprecise_search_question_answer
+        => D.impreciseSearchQuestionAnswer(ctx, answer);
 
-    // action recommendation (through one or a list)
+    // slot fill questions
+    ctx:ctx_sys_slot_fill answer:precise_slot_fill_answer
+        => D.preciseSlotFillAnswer(ctx, answer);
+    ctx:ctx_sys_slot_fill answer:imprecise_slot_fill_answer
+        => D.impreciseSlotFillAnswer(ctx, answer);
 
-    ctx:ctx_complete_search_command pair:positive_recommendation_reply_pair [weight=0.7]
-        => D.positiveRecommendationReplyPair(ctx, pair);
-    ctx:ctx_complete_search_command pair:negative_recommendation_reply_pair [weight=0.6]
-        => D.negativeRecommendationReplyPair(ctx, pair);
-    ctx:ctx_complete_search_command pair:positive_recommendation_reply_by_name_pair [weight=0.7]
-        => D.positiveRecommendationReplyPair(ctx, pair);
-    ctx:ctx_complete_search_command pair:recommendation_search_question_pair [weight=1]
-        => D.recommendationSearchQuestionPair(ctx, pair);
-    ctx:ctx_complete_search_command pair:recommendation_cancel_pair [weight=1]
-        => D.recommendationCancelPair(ctx, pair);
-    ctx:ctx_learn_more pair:learn_more_search_question_pair [weight=1]
-        => D.recommendationSearchQuestionPair(ctx, pair);
-    ctx:ctx_complete_search_command pair:recommendation_related_question_pair [weight=1]
-        => D.recommendationRelatedQuestionPair(ctx, pair);
+    // asking for a recommendation
+    ctx:ctx_sys_recommend_many ask_recommend_phrase
+        => S.makeSimpleState(ctx, 'ask_recommend', null);
+    ctx:ctx_sys_search_question ask_recommend_phrase
+        => S.makeSimpleState(ctx, 'ask_recommend', null);
 
-    ctx:ctx_complete_search_command pair:positive_list_proposal_reply_pair [weight=10 * 0.7]
-        => D.positiveListProposalReplyPair(ctx, pair);
-    ctx:ctx_complete_search_command pair:negative_list_proposal_reply_pair [weight=10 * 0.3]
-        => D.negativeListProposalReplyPair(ctx, pair);
-    ctx:ctx_complete_search_command pair:list_proposal_search_question_pair [weight=10]
-        => D.listProposalSearchQuestionPair(ctx, pair);
-    ctx:ctx_complete_search_command pair:list_proposal_related_question_pair [weight=1]
-        => D.listProposalRelatedQuestionPair(ctx, pair);
-    ctx:ctx_complete_search_command prop:list_proposal_ask_recommend_pair [weight=1]
-        => D.listProposalAskRecommendPair(ctx, prop);
+    // refinement from a query proposal
+    ctx:ctx_sys_propose_refined_query accept_phrase [weight=0.5]
+        => D.positiveProposalReply(ctx); // ctx.aux contains the proposal from the agent
+    ctx:ctx_sys_propose_refined_query reply:negative_proposal_reply [weight=0.5]
+        => D.negativeProposalReply(ctx, reply);
+
+    // accepting recommendations
+    ctx:ctx_sys_recommend_one accept_phrase [weight=0.7]
+        => D.positiveRecommendationReply(ctx, null, null);
+    ctx:ctx_sys_recommend_one acceptedAction:recommendation_accept_phrase_with_action [weight=0.7]
+        => D.positiveRecommendationReply(ctx, acceptedAction, null);
+    ctx:ctx_sys_recommend_one name:recommendation_accept_phrase_by_name [weight=0.7]
+        => D.positiveRecommendationReply(ctx, null, name);
+
+    // accepting recommendation to learn more
+    ( ctx:ctx_sys_recommend_one tell_me_more_phrase [weight=0.5]
+    | ctx:ctx_sys_recommend_one accept_phrase tell_me_more_phrase [weight=0.5]
+    ) => D.recommendationLearnMoreReply(ctx, null);
+    ctx:ctx_sys_recommend_one name:list_proposal_tell_me_more
+        => D.recommendationLearnMoreReply(ctx, name);
+
+    // refinement from a recommendation
+    ctx:ctx_sys_recommend_one reply:negative_proposal_reply [weight=0.6]
+        => D.negativeRecommendationReply(ctx, reply);
+
+    // cancelling the transaction from a recommendation
+    // "thanks" without "yes" or "no" is always good
+    ctx:ctx_sys_recommend_one thanks_phrase ('goodbye !' | '')
+        => D.recommendationCancelReply(ctx, true);
+    // "ok thanks" is good if there was no question
+    ctx:ctx_sys_recommend_one ok_thanks_phrase ('goodbye !' | '')
+        => D.recommendationCancelReply(ctx, !ctx.aux.action && !ctx.aux.hasLearnMore);
+    // "no thanks" is good if there was a question
+    ctx:ctx_sys_recommend_one no_thanks_phrase ('goodbye !' | '')
+        => D.recommendationCancelReply(ctx, ctx.aux.action || ctx.aux.hasLearnMore);
+
+    // continuing with a question
+    // a "related question" is one that uses a different Thingpedia primitive (connected
+    // by the #[related_question] annotation)
+    ctx:ctx_sys_recommend_one question:related_question => question;
+    // a "user search question" is one that uses the same Thingpedia primitive, and adds
+    // a filter on ID
+    ctx:ctx_sys_recommend_one questions:user_search_question
+        => D.recommendationSearchQuestionReply(ctx, questions);
+    ctx:ctx_sys_learn_more_what questions:user_search_question
+        => D.learnMoreSearchQuestionReply(ctx, questions);
+
+    // accepting list proposals
+    ctx:ctx_sys_recommend_many reply:positive_list_proposal_reply [weight=10 * 0.7]
+        => D.positiveListProposalReply(ctx, reply);
+    ctx:ctx_sys_recommend_many action:list_proposal_accept_phrase_with_action_by_name [weight=10 * 0.7]
+        => D.positiveListProposalReplyActionByName(ctx, action);
+
+    // accepting list proposal to learn more
+    ctx:ctx_sys_recommend_many name:list_proposal_tell_me_more
+        => D.listProposalLearnMoreReply(ctx, name);
+
+    // refinement from a list proposal
+    ctx:ctx_sys_recommend_many reply:negative_proposal_reply [weight=0.6]
+        => D.negativeListProposalReply(ctx, reply);
+
+    // continuing with a question
+    ctx:ctx_sys_recommend_many question:related_question => question;
+    ctx:ctx_sys_recommend_many questions:user_search_question_for_list
+        => D.listProposalSearchQuestionReply(ctx, questions);
+
 }

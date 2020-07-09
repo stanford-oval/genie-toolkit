@@ -1,0 +1,23 @@
+# basic
+# Let's start simple...
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @com.facebook.post();
+
+A: What do you want to post?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill param:status ; now => @com.facebook.post ; // {}
+A: >> expecting = raw_string
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @com.facebook.post(status="hello world");
+
+A: Ok, do you want me to post on facebook saying hello world?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action ; now => @com.facebook.post param:status = QUOTED_STRING_0 ; // {"QUOTED_STRING_0":"hello world"}
+A: >> expecting = yesno
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @com.facebook.post(status="hello world") #[confirm=enum(confirmed)];
+
+A: I post hello world on facebook for you. Anything else for you today?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.facebook.post param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world"}
+A: >> expecting = null

@@ -17,12 +17,11 @@ const seedrandom = require('seedrandom');
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
-const { ParaphraseValidatorFilter } = require('../lib/validator');
-const ValidationHITCreator = require('../lib/validation');
+const { ParaphraseValidatorFilter } = require('../lib/dataset-tools/mturk/validator');
+const ValidationHITCreator = require('../lib/dataset-tools/mturk/paraphrase-validation');
+const { ArrayAccumulator, ArrayStream, waitFinish } = require('../lib/utils/stream-utils');
 
 const { ParaphrasingParser, ParaphrasingAccumulator } = require('./lib/mturk-parsers');
-const { ArrayAccumulator, ArrayStream, waitFinish } = require('../lib/stream-utils');
-
 const { NUM_SENTENCES_PER_TASK, NUM_PARAPHRASES_PER_SENTENCE, NUM_SUBMISSIONS_PER_TASK } = require('./lib/constants');
 
 module.exports = {

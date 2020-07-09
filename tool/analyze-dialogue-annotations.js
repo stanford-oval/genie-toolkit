@@ -15,9 +15,10 @@ const Stream = require('stream');
 const fs = require('fs');
 const seedrandom = require('seedrandom');
 
-const StreamUtils = require('../lib/stream-utils');
-const { isExecutable } = require('../lib/languages/dlgthingtalk/state_utils');
+const StreamUtils = require('../lib/utils/stream-utils');
+const { isExecutable } = require('../lib/dialogue-agent/dialogue_state_utils');
 const { findFilterTable } = require('../languages/thingtalk/ast_manip');
+const TargetLanguages = require('../lib/languages');
 
 const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
@@ -149,7 +150,7 @@ class DialogueAnalyzer extends Stream.Transform {
 
         this._options = options;
         this._debug = options.debug;
-        this._target = require('../lib/languages/dlgthingtalk');
+        this._target = TargetLanguages.get('thingtalk');
 
         this._simulatorOverrides = new Map;
         const simulatorOptions = {

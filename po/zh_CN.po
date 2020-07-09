@@ -1,0 +1,825 @@
+# Chinese translations for thingengine-platform-cloud package
+# Copyright (C) 2016 THE thingengine-platform-cloud'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the thingengine-platform-cloud package.
+# Giovanni Campagna <silei@stanford.edu>, 2016.
+msgid ""
+msgstr ""
+"Project-Id-Version: thingengine-core 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-23 17:39-0700\n"
+"PO-Revision-Date: 2016-08-16 16:37-0700\n"
+"Last-Translator: Silei Xu <silei@stanford.edu>\n"
+"Language-Team: Chinese (simplified)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:37
+#, fuzzy
+msgid "Data Management (cloud drives)"
+msgstr "数据管理"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:40
+msgid "Pick one from the following categories or simply type in."
+msgstr ""
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:42
+#, fuzzy
+msgid "Do it now"
+msgstr "快试试吧！"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:62
+#, fuzzy
+msgid "Pick a command from the following devices"
+msgstr "你有以下设备："
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:255
+#, fuzzy
+msgid "notify me"
+msgstr "如果%s就通知我"
+
+#: lib/dialogue-agent/legacy-dialogs/make.js:279
+#, fuzzy
+msgid "Whose account do you want to use?"
+msgstr "你想让我显示什么的列表呢？"
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:45
+msgid ""
+"Sorry, I did not understand that. Use ‘help’ to learn what I can do for you."
+msgstr "对不起，我没有理解你的意思。使用“帮助”可以查看我能做些什么。"
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:56
+#, fuzzy
+msgid ""
+"Sorry, I did not understand that. Try the following instead, or use the "
+"Train button to teach me:"
+msgstr "我没有理解你的意思。你可以试试下列命令，或者使用训练按钮来教我。"
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:58
+#, fuzzy
+msgid "Sorry, I did not understand that. Try the following instead:"
+msgstr "我没有理解你的意思。你可以试试下列命令："
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:94
+#, fuzzy
+msgid "Did you mean ${command}?"
+msgstr "你是说%s吗？"
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:119
+msgid "none of the above"
+msgstr "这些都不是"
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:121
+msgid "Did you mean any of the following?"
+msgstr "你是指下面这些吗？"
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:135
+msgid "Your last command was a button. I know what a button means. 😛"
+msgstr "你的上一条命令是一个按钮。我知道按钮的含义。 😛"
+
+#: lib/dialogue-agent/legacy-dialogs/fallback.js:159
+msgid "Thanks, I made a note of that."
+msgstr "谢谢，我记下了"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:32
+#, fuzzy
+msgid "Discovery is not available in this installation of Almond."
+msgstr "该Sabrina版本不支持设备搜索功能。"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:48
+#, fuzzy
+msgid "Searching for ${device}…"
+msgstr "正在搜索附近的设备……"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:50
+msgid "Searching for devices nearby…"
+msgstr "正在搜索附近的设备……"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:61
+#, fuzzy
+msgid "Discovery failed: ${error}."
+msgstr "搜索失败：%s"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:69
+#, fuzzy
+msgid "Can't find any ${device} around."
+msgstr "未在附近找到任何设备。"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:71
+msgid "Can't find any device around."
+msgstr "未在附近找到任何设备。"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:77
+#, fuzzy
+msgid "I found a ${device}. Do you want to set it up now?"
+msgstr "我找到一个%s。你想现在设置该设备吗？"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery.js:85
+msgid "I found the following devices. Which one do you want to set up?"
+msgstr "我找到以下设备，你想要设置哪一个？"
+
+#: lib/dialogue-agent/legacy-dialogs/device_choice.js:31
+#, fuzzy
+msgid ""
+"Sorry, I did not understand that. You might need to enable a new skill "
+"before I understand that command."
+msgstr "对不起，我没有理解你的意思。使用“帮助”可以查看我能做些什么。"
+
+#: lib/dialogue-agent/legacy-dialogs/device_choice.js:32
+#, fuzzy
+msgid "Configure a new skill"
+msgstr "设置%s"
+
+#: lib/dialogue-agent/legacy-dialogs/device_choice.js:97
+#, fuzzy
+msgid "I cannot find any “${name}” device. Which ${device} do you want to use?"
+msgstr "我找到以下设备，你想要设置哪一个？"
+
+#: lib/dialogue-agent/legacy-dialogs/device_choice.js:108
+#, fuzzy
+msgid ""
+"You have multiple ${?“${name}” }${device} devices. Which one do you want to "
+"use?"
+msgstr "你有好几个%s。你想使用哪个？"
+
+#: lib/dialogue-agent/legacy-dialogs/slot_filling.js:40
+#, fuzzy
+msgid "me"
+msgstr "家居"
+
+#: lib/dialogue-agent/legacy-dialogs/slot_filling.js:313
+#, fuzzy
+msgid "None of above"
+msgstr "这些都不是"
+
+#: lib/dialogue-agent/legacy-dialogs/notifications.js:57
+#, fuzzy
+msgid "Notification from ${app}: ${message}"
+msgstr "来自%s的通知：%s"
+
+#: lib/dialogue-agent/legacy-dialogs/notifications.js:63
+#, fuzzy
+msgid "Notification from ${app}"
+msgstr "来自%s的通知"
+
+#: lib/dialogue-agent/legacy-dialogs/notifications.js:80
+#, fuzzy
+msgid "${app} had an error: ${error}."
+msgstr "%s有一个错误：%s."
+
+#: lib/dialogue-agent/legacy-dialogs/notifications.js:82
+#: lib/dialogue-agent/legacy-dialogs/init.js:53
+#: lib/dialogue-agent/dialogue_loop.js:330
+#, fuzzy
+msgid "Sorry, that did not work: ${error}."
+msgstr "对不起，任务失败：%s。"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery_delegate.js:26
+#: lib/dialogue-agent/legacy-dialogs/config.js:42
+#, fuzzy
+msgid "The account has been set up."
+msgstr "设备已经完成设置。"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery_delegate.js:28
+#: lib/dialogue-agent/legacy-dialogs/config.js:44
+msgid "The device has been set up."
+msgstr "设备已经完成设置。"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery_delegate.js:30
+#: lib/dialogue-agent/legacy-dialogs/config.js:46
+#, fuzzy
+msgid "The service has been set up."
+msgstr "设备已经完成设置。"
+
+#: lib/dialogue-agent/legacy-dialogs/discovery_delegate.js:36
+#, fuzzy
+msgid "Configuration failed: ${error}."
+msgstr "设置失败：%s。"
+
+#: lib/dialogue-agent/legacy-dialogs/config.js:65
+#, fuzzy
+msgid "I'm sorry, I can't find ${device} in my database."
+msgstr "对不起我无法在我的数据库中找到%s。"
+
+#: lib/dialogue-agent/legacy-dialogs/config.js:78
+#, fuzzy
+msgid "Choose one of the following to configure ${device}."
+msgstr "请选择一个选项。"
+
+#: lib/dialogue-agent/legacy-dialogs/config.js:84
+#: lib/dialogue-agent/legacy-dialogs/config.js:91
+#: lib/dialogue-agent/legacy-dialogs/config.js:119
+#, fuzzy
+msgid "Configure ${device}"
+msgstr "设置%s"
+
+#: lib/dialogue-agent/legacy-dialogs/config.js:98
+#, fuzzy
+msgid "Sorry, I don't know how to configure ${device}."
+msgstr "对不起，我不知道怎么设置%s。"
+
+#: lib/dialogue-agent/legacy-dialogs/config.js:116
+#, fuzzy
+msgid "OK, here's the link to configure ${device}."
+msgstr "好的，这是设置%s的链接。"
+
+#: lib/dialogue-agent/legacy-dialogs/config.js:127
+#, fuzzy
+msgid "I'm sorry, I don't know how to configure ${device}."
+msgstr "对不起，我不知道怎么设置%s。"
+
+#: lib/dialogue-agent/legacy-dialogs/contact_search.js:213
+#, fuzzy
+msgid "You don't have a valid address book available."
+msgstr "你还没有设置任何设备。"
+
+#: lib/dialogue-agent/legacy-dialogs/contact_search.js:224
+#, fuzzy
+msgid "Who do you want to contact?"
+msgstr "你想让我显示什么的列表呢？"
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:25
+#: lib/dialogue-agent/legacy-dialogs/init.js:59
+#, fuzzy
+msgid "Hello! I'm Almond, your virtual assistant."
+msgstr "嗨！我是Sabrina，我是你的虚拟助理。"
+
+#: lib/dialogue-agent/legacy-dialogs/init.js:44
+#, fuzzy
+msgid "Welcome back!"
+msgstr "欢迎回来，%s！"
+
+#: lib/dialogue-agent/legacy-dialogs/user_context.js:63
+msgid "Where are you now?"
+msgstr "你在哪儿？"
+
+#: lib/dialogue-agent/legacy-dialogs/user_context.js:67
+msgid "What is your home address?"
+msgstr "你的家在哪儿？"
+
+#: lib/dialogue-agent/legacy-dialogs/user_context.js:72
+msgid "What is your work address?"
+msgstr "你在哪儿办公？"
+
+#: lib/dialogue-agent/legacy-dialogs/user_context.js:77
+#, fuzzy
+msgid "What time does your morning begin?"
+msgstr "你在哪儿办公？"
+
+#: lib/dialogue-agent/legacy-dialogs/rule.js:181
+#, fuzzy
+msgid "Sorry, I did not find any result for that."
+msgstr "不好意思，我没有理解你的意思。"
+
+#: lib/dialogue-agent/legacy-dialogs/rule.js:189
+#, fuzzy
+msgid ""
+"Okay, so you want me to ${command}${? (as asked by ${source})}. Is that "
+"right?"
+msgstr "Ok，所以你想要我%s，对吗？"
+
+#: lib/dialogue-agent/almond.js:378
+#, fuzzy
+msgid "Sorry, I had an error processing your command: ${error}"
+msgstr "对不起，我在执行你的命令“%s”时出现错误。"
+
+#: lib/dialogue-agent/almond.js:411 lib/dialogue-agent/dialogue_loop.js:326
+#, fuzzy
+msgid "Sorry, I had an error processing your command: ${error}."
+msgstr "对不起，我在执行你的命令“%s”时出现错误。"
+
+#: lib/dialogue-agent/policies/legacy.js:62
+#, fuzzy
+msgid "Sorry, I don't know how to do that yet."
+msgstr "对不起，我不知道怎么设置%s。"
+
+#: lib/dialogue-agent/policies/legacy.js:65
+msgid "I agree, but to what?"
+msgstr "我同意，但是你指啥？"
+
+#: lib/dialogue-agent/policies/legacy.js:68
+msgid "No way!"
+msgstr "这不可能！"
+
+#: lib/dialogue-agent/policies/legacy.js:170
+msgid "Yes what?"
+msgstr "是啥？"
+
+#: lib/dialogue-agent/policies/legacy.js:186
+msgid "Please click on one of the provided choices."
+msgstr "请选择一个提供的选项。"
+
+#: lib/dialogue-agent/policies/transaction.js:386
+#, fuzzy
+msgid "Hello! How can I help you?"
+msgstr "有什么能帮助您吗？"
+
+#: lib/dialogue-agent/policies/transaction.js:391
+#, fuzzy
+msgid "Ok, so you want me to ${confirmation}. Is that right?"
+msgstr "Ok，所以你想要我%s，对吗？"
+
+#: lib/dialogue-agent/policies/transaction.js:445
+#, fuzzy
+msgid "Here is what I found."
+msgstr "我可以为你做这些。"
+
+#: lib/dialogue-agent/dispatcher.js:132
+#, fuzzy
+msgid "Sorry, but that's not what I asked."
+msgstr "我没有问这个。"
+
+#: lib/dialogue-agent/dispatcher.js:149
+msgid "In fact, I did not ask for anything at all!"
+msgstr "其实我什么也没问！"
+
+#: lib/dialogue-agent/dispatcher.js:153
+#, fuzzy
+msgid "Could you choose one of the following?"
+msgstr "请选择一个选项。"
+
+#: lib/dialogue-agent/dispatcher.js:177
+#, fuzzy
+msgid "Could you upload a picture?"
+msgstr "你需要上传一个图片。"
+
+#: lib/dialogue-agent/dispatcher.js:183
+#, fuzzy
+msgid "Could you give me an email address?"
+msgstr "我需要一个邮箱地址。"
+
+#. ValueCategory.RawString puts Almond in raw mode,
+#. so we accept almost everything
+#. but this will happen if the user clicks a button
+#. or upload a picture
+#: lib/dialogue-agent/dispatcher.js:189
+msgid ""
+"Which is interesting, because I'll take anything at all. Just type your mind!"
+msgstr "啥都行，想说啥就说啥！"
+
+#: lib/dialogue-agent/dispatcher.js:191
+#, fuzzy
+msgid "I'm looking for a command."
+msgstr "我需要一个位置。"
+
+#: lib/dialogue-agent/dispatcher.js:193
+#, fuzzy
+msgid "I'm looking for a filter"
+msgstr "我需要一个位置。"
+
+#: lib/dialogue-agent/dispatcher.js:195
+msgid "In fact, I'm not even sure what I asked. Sorry!"
+msgstr "其实我也不知道我在问什么。对不起！"
+
+#: lib/dialogue-agent/dispatcher.js:202
+#, fuzzy
+msgid "Sorry, I did not understand that: ${error}. Can you rephrase it?"
+msgstr "不好意思，我没有理解“%s”。你可以换个说法吗？"
+
+#: lib/dialogue-agent/dispatcher.js:206
+msgid "Sorry, I did not understand that. Can you rephrase it?"
+msgstr "不好意思，我没有理解你的饿意思。你可以换个说法吗？"
+
+#: lib/dialogue-agent/dispatcher.js:210
+#, fuzzy
+msgid "Sorry, I did not understand that: ${error}."
+msgstr "不好意思，我没有理解“%s”。"
+
+#: lib/dialogue-agent/dispatcher.js:212
+msgid "Sorry, I did not understand that."
+msgstr "不好意思，我没有理解你的意思。"
+
+#: lib/dialogue-agent/dispatcher.js:223
+msgid "Consider it done."
+msgstr "搞定。"
+
+#: lib/dialogue-agent/dispatcher.js:260
+#, fuzzy
+msgid "Sorry I couldn't help on that."
+msgstr "不好意思，我没有理解你的意思。"
+
+#: lib/engine/apps/app_executor.js:158
+msgid "This app has no description"
+msgstr "该应用没有描述"
+
+#: lib/engine/devices/builtins/thingengine.builtin.js:20
+msgid "I know, right?"
+msgstr "这我知道好吗。"
+
+#: lib/engine/devices/builtins/thingengine.builtin.js:21
+msgid "No need to be sorry."
+msgstr "你不需要道歉。"
+
+#: lib/engine/devices/builtins/thingengine.builtin.js:22
+msgid "At your service."
+msgstr "乐意效劳。"
+
+#: lib/engine/devices/builtins/thingengine.builtin.js:34
+#, fuzzy
+msgid "Miscellaneous Interfaces"
+msgstr "其他"
+
+#: lib/engine/devices/builtins/thingengine.builtin.js:35
+#, fuzzy
+msgid "Time, randomness and other non-device specific things."
+msgstr "时间和其他非设备特定的Things。"
+
+#: lib/engine/devices/builtins/bluetooth.generic.js:36
+#, fuzzy
+msgid "Generic Bluetooth Device ${alias}"
+msgstr "通用蓝牙设备 %s"
+
+#: lib/engine/devices/builtins/bluetooth.generic.js:39
+msgid "This is a Bluetooth device of unknown or generic type"
+msgstr "这是一个未知类型或通用类型蓝牙设备"
+
+#: lib/engine/devices/builtins/bluetooth.generic.js:47
+#, fuzzy
+msgid "This Almond has no bluetooth capability"
+msgstr "当前平台没有蓝牙功能"
+
+#: lib/engine/devices/builtins/matrix/index.js:189
+#, fuzzy
+msgid "Matrix Account of ${userId}"
+msgstr "%s的Omlet账户"
+
+#~ msgid "Missing $F parameter for feed shared app"
+#~ msgstr "共享订阅应用缺少参数 $F"
+
+#, javascript-format
+#~ msgid "%s is not a feed shared app"
+#~ msgstr "%s 不是一个共享订阅应用"
+
+#~ msgid ""
+#~ "This is your Omlet Account. You can use it to communicate and share data "
+#~ "with your friends!"
+#~ msgstr "这是你的Omlet账户。你可以使用它来与你朋友交流、共享数据！"
+
+#~ msgid "You"
+#~ msgstr "你"
+
+#, javascript-format
+#~ msgid "ThingEngine %s"
+#~ msgstr "ThingEngine %s"
+
+#~ msgid "This is your own ThingEngine."
+#~ msgstr "这是你的ThingEngine."
+
+#, javascript-format
+#~ msgid "Timer at %s elapsed."
+#~ msgstr "%s时设置的计时器到时了。"
+
+#~ msgid "Builtin Interfaces"
+#~ msgstr "内置接口"
+
+#, javascript-format
+#~ msgid "Current time is %s"
+#~ msgstr "当前时间是 %s"
+
+#~ msgid "Timer Elapsed"
+#~ msgstr "计时器时间到"
+
+#~ msgid "Phone"
+#~ msgstr "手机"
+
+#~ msgid "Access your phone capabilities from Sabrina."
+#~ msgstr "从Sabrina访问你的手机功能"
+
+#~ msgid "Execute"
+#~ msgstr "执行"
+
+#, javascript-format
+#~ msgid "Searching for %s…"
+#~ msgstr "正在搜索%s……"
+
+#, javascript-format
+#~ msgid "Can't find any %s around."
+#~ msgstr "未在附近找到%s。"
+
+#~ msgid "Sorry, you'll have to try and rephrase it once again."
+#~ msgstr "对不起，你可能得换一种说法。"
+
+#~ msgid ""
+#~ "I did not understand that. Can you rephrase it? I'll try to learn from "
+#~ "your paraphrase."
+#~ msgstr "我没有理解你的意思。你能换个说法吗？我会试着学习你的解释。"
+
+#~ msgid "Ok, how about…"
+#~ msgstr "OK，下面这些呢？"
+
+#, javascript-format
+#~ msgid "Thanks, I learned ‘%s’ as ‘%s’"
+#~ msgstr "谢谢，我知道了，“%s”是“%s”的意思。"
+
+#, javascript-format
+#~ msgid "You have trained me with %d sentence."
+#~ msgid_plural "You have trained me with %d sentences."
+#~ msgstr[0] "你已经训练我了%d条命令。"
+#~ msgstr[1] "你已经训练我了%d条命令。"
+
+#~ msgid "You haven't told me anything yet, so I cannot learn."
+#~ msgstr "你还没跟我说任何东西，所以我没法学习。"
+
+#~ msgid "Ok, can you rephrase that?"
+#~ msgstr "OK，你可以试着换个说法吗？"
+
+#~ msgid ""
+#~ "I'm a little confused, I'm already in training mode, why are you asking "
+#~ "me to train again?"
+#~ msgstr "我有点困惑，我已经在训练模式了，你为什么还让我训练？"
+
+#~ msgid "Yes, you can? Then, well, do it..."
+#~ msgstr "是？那就去执行吧……"
+
+#~ msgid "Media"
+#~ msgstr "媒体"
+
+#~ msgid "Social Networks"
+#~ msgstr "社交网络"
+
+#~ msgid "Communication"
+#~ msgstr "通讯"
+
+#~ msgid "Health and Fitness"
+#~ msgstr "健康"
+
+#~ msgid "Services"
+#~ msgstr "服务"
+
+#, javascript-format
+#~ msgid "Here's what I can do for you on %s."
+#~ msgstr "以下是我能在%s上为你做的。"
+
+#, javascript-format
+#~ msgid "There is no example commands for %s."
+#~ msgstr "%s 目前没有示例命令。"
+
+#~ msgid ""
+#~ "Try add examples at https://thingengine.stanford.edu/thingpedia/devices "
+#~ "if you are testing as a developer."
+#~ msgstr ""
+#~ "如果你正在做开发测试，你可以在 https://thingengine.stanford.edu/"
+#~ "thingpedia/devices 添加示例命令。"
+
+#~ msgid ""
+#~ "Here is a list of what I can do. Click on each of the categories to see "
+#~ "corresponding devices."
+#~ msgstr "这是我目前能做的一些事，点击各个分类可以看到相应的设备。"
+
+#, javascript-format
+#~ msgid "Sorry, support of %s is still in development ..."
+#~ msgstr "对不起，对 %s 的支持仍在开发中……"
+
+#, javascript-format
+#~ msgid ""
+#~ "Here is the list of what I support for %s. Click on each of them to list "
+#~ "their commands."
+#~ msgstr "这是我目前支持的 %s 设备。点击任意一个可以看到它们相应的命令。"
+
+#~ msgid "Here's what you can also try:"
+#~ msgstr "你也可以试试以下这些："
+
+#~ msgid "‘list devices’: get the devices you have."
+#~ msgstr "“设备列表”：显示你所有的设备。"
+
+#~ msgid ""
+#~ "‘list commands’: list the commands available for the devices you have."
+#~ msgstr "“命令列表”：显示你的设备所支持的命令。"
+
+#~ msgid ""
+#~ "‘help ____’: give you some example commands you can do with a device or "
+#~ "services."
+#~ msgstr "“帮助 ____”： 显示相应设备或服务的一些示例命令。"
+
+#~ msgid ""
+#~ "‘discover ____’: search for devices match the name or type you give me."
+#~ msgstr "“搜索 ____”：搜索相应的设备或类别。"
+
+#~ msgid "‘configure ____’: set up and configure devices."
+#~ msgstr "“设置 ____”：设置相应的设备。"
+
+#~ msgid "Unnamed (multiple partecipants)"
+#~ msgstr "未命名（多个参与者）"
+
+#, javascript-format
+#~ msgid "Syntax error at %s line %d: %s"
+#~ msgstr "语法错误：%s（第%d行）：%s"
+
+#, javascript-format
+#~ msgid "Can I call you %s?"
+#~ msgstr "我可以叫您“%s”吗？"
+
+#~ msgid "What's your name?"
+#~ msgstr "你叫什么名字？"
+
+#, javascript-format
+#~ msgid "Hi %s, nice to meet you."
+#~ msgstr "你好%s，很高兴认识你。"
+
+#~ msgid "Ok, what's your name then?"
+#~ msgstr "好吧，那你叫什么名字呢？"
+
+#~ msgid "Ok, now I'm ready to use all my powers to help you."
+#~ msgstr "OK，现在我已经准备好帮助你了。"
+
+#~ msgid "If you don't know what to say, try ‘list commands’."
+#~ msgstr "如果你不知道该说些什么，试试“设备列表”。"
+
+#~ msgid "If you need help at any point, try ‘help’."
+#~ msgstr "如果你在任何时候需要帮助，输入“帮助”或者使用帮助按钮。"
+
+#~ msgid "You'll want to start by setting up your devices and accounts though."
+#~ msgstr "你可能想要先设置一下账户和设备。"
+
+#~ msgid ""
+#~ "To do so, try ‘configure‘ followed by the type of device or account (e."
+#~ "g., ‘configure twitter’ or ‘configure tv’), or try ‘discover’ and I'll "
+#~ "take a look at what you have."
+#~ msgstr ""
+#~ "你可以通过“设置”命令加上设备或账户的名称（例如“设置推特”或“设置电视”）来添"
+#~ "加设备或账户，活着你可以使用“搜索”命令，我会搜索周围的设备。"
+
+#~ msgid "devices"
+#~ msgstr "设备"
+
+#~ msgid "commands"
+#~ msgstr "命令"
+
+#~ msgid "Try add some devices first."
+#~ msgstr "试试先添加一些设备。"
+
+#~ msgid "Query"
+#~ msgstr "查询"
+
+#, javascript-format
+#~ msgid "%s if %s"
+#~ msgstr "%s，如果%s"
+
+#~ msgid "Messaging is not available, cannot choose a feed."
+#~ msgstr "无效消息，无法找到源。"
+
+#, javascript-format
+#~ msgid "What is the value of argument %s?"
+#~ msgstr "参数%s的值是多少？"
+
+#~ msgid "Monitor"
+#~ msgstr "监控"
+
+#, javascript-format
+#~ msgid "I'm so sorry, I can't find %s in my database."
+#~ msgstr "对不起，我在我的数据库中找不到%s。"
+
+#, javascript-format
+#~ msgid "%s doesn't need configuration."
+#~ msgstr "%s并不需要设置哦。"
+
+#, javascript-format
+#~ msgid "You might want to configure one of: %s"
+#~ msgstr "你也许想要设置下面这些：%s。"
+
+#~ msgid "Go to My Goods"
+#~ msgstr "前往我的东西"
+
+#~ msgid ""
+#~ "You can configure devices by command ‘configure ____’, e.g., ‘configure "
+#~ "twitter’."
+#~ msgstr "你可以通过“设置____”命令来设置设备，例如“设置推特”。"
+
+#, javascript-format
+#~ msgid "Hi, %s."
+#~ msgstr "你好，%s。"
+
+#~ msgid "Unless you're Canadian. Then I won't stop you."
+#~ msgstr "除非你是加拿大人。那我不会阻止你。"
+
+#, javascript-format
+#~ msgid "You don't have a %s"
+#~ msgstr "你并没有%s。"
+
+#~ msgid "Go to Dashboard"
+#~ msgstr "前往我的东西"
+
+#~ msgid "here"
+#~ msgstr "这里"
+
+#~ msgid "at home"
+#~ msgstr "在家"
+
+#~ msgid "at work"
+#~ msgstr "在公司"
+
+#~ msgid "on"
+#~ msgstr "开"
+
+#~ msgid "off"
+#~ msgstr "关"
+
+#, javascript-format
+#~ msgid "%s on %s"
+#~ msgstr "%s在%s上"
+
+#, javascript-format
+#~ msgid " and %s is %s"
+#~ msgstr "并且%s是%s"
+
+#, javascript-format
+#~ msgid " and %s has %s"
+#~ msgstr "并且%s有%s"
+
+#, javascript-format
+#~ msgid " and %s contains %s"
+#~ msgstr "并且%s包含%s"
+
+#, javascript-format
+#~ msgid " and %s is less than %s"
+#~ msgstr "并且%s少于%s"
+
+#, javascript-format
+#~ msgid " and %s is greater than %s"
+#~ msgstr "并且%s多于%s"
+
+#~ msgid ""
+#~ "If you're unsure what to say, try 'list commands', or just give me a word "
+#~ "and I'll try to find commands related to it."
+#~ msgstr ""
+#~ "如果你不知道该说什么，试试“命令列表”，或者给我一个词，我会寻找相关的命令。"
+
+#~ msgid "I'm a little confused, sorry. What where we talking about?"
+#~ msgstr "我懵逼了，我们在说啥？"
+
+#~ msgid "Ok forget it."
+#~ msgstr "好吧，算了。"
+
+#~ msgid "a time interval"
+#~ msgstr "一个时间间隔"
+
+#~ msgid "a length"
+#~ msgstr "一个长度"
+
+#~ msgid "a speed"
+#~ msgstr "一个速度"
+
+#~ msgid "a weight"
+#~ msgstr "一个重量"
+
+#~ msgid "a pressure"
+#~ msgstr "一个压强"
+
+#~ msgid "a temperature"
+#~ msgstr "一个温度"
+
+#~ msgid "an energy"
+#~ msgstr "一个能量"
+
+#~ msgid "Just answer yes or no."
+#~ msgstr "请回答是或否。"
+
+#, javascript-format
+#~ msgid "I'm looking for %s in any of the supported units (%s)."
+#~ msgstr "我在搜索%s在所有支持的单位(%s)中。"
+
+#~ msgid "I'm looking for a number."
+#~ msgstr "我需要一个数字。"
+
+#~ msgid "I'm looking for a point in time."
+#~ msgstr "我需要一个时间点。"
+
+#~ msgid "I'm looking for a time of day."
+#~ msgstr "我需要一天中的一个时间。"
+
+#~ msgid "I'm looking for a phone number."
+#~ msgstr "我需要一个电话号码。"
+
+#~ msgid "Try ‘list devices’ to see the devices you have."
+#~ msgstr "试试“设备列表”命令可以查看你的所有设备。"
+
+#~ msgid "Time"
+#~ msgstr "时间"
+
+#~ msgid "Sorry, we don't support %s for now."
+#~ msgstr "不好意思，我们现在还不支持%s。"
+
+#~ msgid "Discovering…"
+#~ msgstr "搜索中……"
+
+#~ msgid "What device do you want to discover?"
+#~ msgstr "你想要我搜索什么设备？"
+
+#~ msgid "So sorry that I can't find %s in my database."
+#~ msgstr "真抱歉我无法在我的数据库中找到%s。"
+
+#~ msgid ""
+#~ "Sorry, I did not understand that. Searching the web for “%s” instead."
+#~ msgstr "对不起，我没有理解你的意思。在网页中搜索“%s”。"
+
+#~ msgid "Sorry I did not understand that. Did you mean %s?"
+#~ msgstr "对不起，我没有理解你的意思。你是指“%s”?"
+
+#~ msgid "Alright, here's a list of commands you can try:"
+#~ msgstr "好的，你可以试试这些命令："
+
+#~ msgid ""
+#~ "‘list devices/queries/commands’: get the devices you have, example "
+#~ "queries, or available commands."
+#~ msgstr "“设备/查询/命令 列表’: 查看你所有的设备，查询命令。 "

@@ -11,20 +11,7 @@
 // Shared templates and utilities, mostly collecting actual phrases or groups of phrases
 // rather than complex logic
 
-{
-    const assert = require('assert');
-    const ThingTalk = require('thingtalk');
-    const Ast = ThingTalk.Ast;
-    const Type = ThingTalk.Type;
-
-    const C = require('../../ast_manip');
-    const D = require('../../dialogue_utils');
-
-    // import thingpedia info
-    const _tpLoader = require('../../load-thingpedia');
-}
-
-negative_proposal_answer_preamble = {
+counterproposal_preamble = {
     'i was thinking more of';
     'i would like';
     'i am looking for';
@@ -32,11 +19,6 @@ negative_proposal_answer_preamble = {
     'can you find';
     'is there';
     'that does not sound great , do you have';
-}
-
-negative_proposal_answer = {
-    negative_proposal_answer_preamble ('a' | 'any') request:answer_noun_phrase => request;
-    negative_proposal_answer_preamble request:anything_phrase => request;
 }
 
 the_base_noun_phrase = {
@@ -148,4 +130,35 @@ ask_recommend_phrase = {
     'which 1 would you recommend ?';
     'what is your favorite ?';
     'surprise me ! just pick one please .';
+}
+
+generic_dontcare_phrase = {
+    'it does not matter .';
+    'it does not matter . can you suggest one ?';
+    'i' ('do not have a' | 'have no') 'preference .' => '';
+    'i' ('do not have a' | 'have no') 'preference . what do you recommend ?' => '';
+    'i have no preference . please make a recommendation .' => '';
+    'i have no preference . which' ('one' | '1') 'is best ?' => '';
+}
+
+no_dontcare_phrase = {
+    'no' ('.' | ',') 'can you suggest one ?' => '';
+    'no' ('.' | ',') 'please make a recommendation .' => '';
+    'no' ('.' | ',') 'which' ('one' | '1') 'is best ?' => '';
+    'no' ('.' | ',') 'you choose for me !' => '';
+    'no' ('.' | ',') 'surprise me !' => '';
+    'i have no preference . please make a recommendation .' => '';
+}
+
+prefer_question_phrase = {
+    'do you want';
+    'would you prefer';
+    'would you like';
+    'are you interested in';
+    'are you looking for';
+}
+
+system_learn_more = {
+    'what would you like to know ?';
+    'what would you like to hear ?';
 }

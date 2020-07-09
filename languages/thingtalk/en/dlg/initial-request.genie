@@ -1,0 +1,51 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+{
+    const assert = require('assert');
+    const ThingTalk = require('thingtalk');
+    const Ast = ThingTalk.Ast;
+    const Type = ThingTalk.Type;
+
+    const C = require('../../ast_manip');
+    const D = require('../../dialogue_acts');
+
+    // import thingpedia info
+    const _tpLoader = require('../../load-thingpedia');
+}
+
+initial_command = {
+    action_command [weight=0.5];
+    search_command [weight=2];
+    complete_question [weight=0.5];
+    projection_question [weight=0.1];
+
+    ( stmt:search_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+    | stmt:action_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+    ) => D.addInitialDontCare(stmt, dontcare);
+
+    // TODO
+    /*
+    ?remote_commands remote_command [weight=0.1];
+    ?policies policy_command [weight=0.2];
+    */
+
+    ?timer stmt:timer_rule [weight=0.2] => stmt;
+    !nostream {
+        monitor_command [weight=0.1];
+        when_command [weight=0.1];
+    }
+
+    prog:thingpedia_program if complete => {
+        if (prog.rules.length !== 1)
+            return null;
+        return prog.rules[0];
+    };
+}

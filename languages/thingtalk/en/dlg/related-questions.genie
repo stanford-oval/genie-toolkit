@@ -18,16 +18,7 @@
 // - closing the dialogue (= "recommendation_cancel_pair")
 
 {
-    const assert = require('assert');
-    const ThingTalk = require('thingtalk');
-    const Ast = ThingTalk.Ast;
-    const Type = ThingTalk.Type;
-
-    const C = require('../../ast_manip');
-    const D = require('../../dialogue_utils');
-
-    // import thingpedia info
-    const _tpLoader = require('../../load-thingpedia');
+    const D = require('../../dialogue_acts');
 }
 
 related_question = {

@@ -16,10 +16,10 @@ const Tp = require('thingpedia');
 const seedrandom = require('seedrandom');
 
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
-const { DialogueGenerator } = require('../lib/sentence-generator');
+const { DialogueGenerator } = require('../lib/sentence-generator/batch');
+const StreamUtils = require('../lib/utils/stream-utils');
 
 const { DialogueSerializer } = require('./lib/dialog_parser');
-const StreamUtils = require('../lib/stream-utils');
 const { ActionSetFlag } = require('./lib/argutils');
 
 const DIALOG_SERIALIZERS = {
@@ -148,14 +148,15 @@ module.exports = {
         });
 
         parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
-            help: 'Enable debugging.',
-            defaultValue: true
+            nargs: '?',
+            constant: 1,
+            defaultValue: 0,
+            help: 'Enable debugging. Can be specified with an argument between 0 and 5 to choose the verbosity level.',
         });
         parser.addArgument('--no-debug', {
             nargs: 0,
-            action: 'storeFalse',
+            constant: 0,
+            action: 'storeConst',
             dest: 'debug',
             help: 'Disable debugging.',
         });

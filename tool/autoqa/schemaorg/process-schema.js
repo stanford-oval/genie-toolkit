@@ -18,12 +18,12 @@ const Ast = ThingTalk.Ast;
 const fs = require('fs');
 const util = require('util');
 
-const { clean } = require('../../../lib/utils');
+const { clean } = require('../../../lib/utils/misc-utils');
 const EnglishLanguagePack = require('../../../lib/i18n/american-english');
-const genBaseCanonical = require('../lib/base-canonical-generator');
 const { isHumanEntity } = require('../../../languages/thingtalk/utils');
-const StreamUtils = require('../../../lib/stream-utils');
+const StreamUtils = require('../../../lib/utils/stream-utils');
 
+const genBaseCanonical = require('../lib/base-canonical-generator');
 
 const {
     BUILTIN_TYPEMAP,

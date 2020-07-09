@@ -1,0 +1,60 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+// Refinement templates: the search is NOT complete (0, or more than 1 result), and the
+// agent doesn't want to show results
+//
+// These include proposals, and empty search errors.
+// A proposal is when the agent proposed a refined search; the user answers:
+// - some form of "yes"
+// - some form of "no" followed by another search refinement
+
+{
+    const assert = require('assert');
+    const ThingTalk = require('thingtalk');
+    const Ast = ThingTalk.Ast;
+    const Type = ThingTalk.Type;
+
+    const C = require('../../ast_manip');
+    const D = require('../../dialogue_acts');
+
+    // import thingpedia info
+    const _tpLoader = require('../../load-thingpedia');
+}
+
+
+empty_search_error = {
+    !inference sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
+    '.' => [base, null];
+
+    sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
+    '.' 'would you like' ('a different' | 'another') p:out_param_Any '?' => {
+        if (!base.schema.hasArgument(p.name))
+            return null;
+        if (p === 'id')
+            return null;
+        return [base, p];
+    };
+
+    sorry_preamble 'i cannot find any result for your search . would you like' ('a different' | 'another') p:out_param_Any '?' => {
+        if (p.name === 'id')
+            return null;
+        return [null, p];
+    };
+}
+
+precise_empty_search_change_request = {
+    ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') 'a' phrase:answer_noun_phrase '?' => phrase;
+    ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') phrase:anything_phrase '?' => phrase;
+}
+imprecise_empty_search_change_request = {
+    ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') answer:imprecise_search_answer_phrase '?'
+        => answer;
+}

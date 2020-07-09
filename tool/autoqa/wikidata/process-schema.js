@@ -8,12 +8,14 @@
 //
 // See COPYING for details
 "use strict";
+
 const fs = require('fs');
 const util = require('util');
 const assert = require('assert');
-
 const ThingTalk = require('thingtalk');
-const StreamUtils = require('../../../lib/stream-utils');
+
+const StreamUtils = require('../../../lib/utils/stream-utils');
+
 const genBaseCanonical = require('../lib/base-canonical-generator');
 
 class SchemaProcessor {

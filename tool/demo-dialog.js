@@ -15,11 +15,11 @@ const events = require('events');
 const path = require('path');
 const Tp = require('thingpedia');
 
-const { AVAILABLE_LANGUAGES } = require('../lib/languages');
-const ParserClient = require('./lib/parserclient');
+const TargetLanguages = require('../lib/languages');
+const ParserClient = require('../lib/prediction/parserclient');
 const I18n = require('../lib/i18n');
 const MultiJSONDatabase = require('./lib/multi_json_database');
-const { SentenceGenerator } = require('../lib/sentence-generator');
+const SentenceGenerator = require('../lib/sentence-generator/generator');
 
 const ThingTalk = require('thingtalk');
 
@@ -42,7 +42,7 @@ class DialogAgent extends events.EventEmitter {
         this._state = 'loading';
         this._serial = 0;
 
-        this._target = require('../lib/languages/' + options.target_language);
+        this._target = TargetLanguages.get(options.target_language);
         this._targetOptions = {
             thingpediaClient: tpClient,
             schemaRetriever: this._schemas
@@ -244,7 +244,7 @@ class DialogAgent extends events.EventEmitter {
     async _handleInput() {
         this._state = 'loading';
 
-        const parsed = await this._parser.sendUtterance(this._utterance, false, this._contextCode, this._contextEntities);
+        const parsed = await this._parser.sendUtterance(this._utterance, this._contextCode, this._contextEntities);
         const [userState,] = await this._getProgramPrediction(parsed.candidates, parsed.entities, 'UT: ');
         if (userState === null) {
             console.log(`A: Sorry, I did not understand that.`);
@@ -289,8 +289,8 @@ module.exports = {
         });
         parser.addArgument(['-t', '--target-language'], {
             required: false,
-            defaultValue: 'dlgthingtalk',
-            choices: AVAILABLE_LANGUAGES,
+            defaultValue: 'thingtalk',
+            choices: TargetLanguages.AVAILABLE_LANGUAGES,
             help: `The programming language to generate`
         });
         parser.addArgument('--database-file', {

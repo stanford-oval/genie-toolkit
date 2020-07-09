@@ -16,7 +16,7 @@ const Type = ThingTalk.Type;
 const fs = require('fs');
 const util = require('util');
 
-const StreamUtils = require('../../../lib/stream-utils');
+const StreamUtils = require('../../../lib/utils/stream-utils');
 
 const DEFAULT_ENTITIES = [
     {"type":"tt:contact","name":"Contact Identity","is_well_known":1,"has_ner_support":0},

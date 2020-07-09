@@ -13,10 +13,10 @@ const Tp = require('thingpedia');
 const Stream = require('stream');
 const fs = require('fs');
 
-const { AVAILABLE_LANGUAGES } = require('../lib/languages');
-const { DatasetStringifier } = require('../lib/dataset-parsers');
-const StreamUtils = require('../lib/stream-utils');
-const Utils = require('../lib/utils');
+const TargetLanguages = require('../lib/languages');
+const { DatasetStringifier } = require('../lib/dataset-tools/parsers');
+const StreamUtils = require('../lib/utils/stream-utils');
+const Utils = require('../lib/utils/misc-utils');
 const I18n = require('../lib/i18n');
 
 const ProgressBar = require('./lib/progress_bar');
@@ -34,7 +34,7 @@ class DialogueToTurnStream extends Stream.Transform {
         this._side = options.side;
         this._flags = options.flags;
         this._idPrefix = options.idPrefix;
-        this._target = require('../lib/languages/' + options.targetLanguage);
+        this._target = TargetLanguages.get(options.targetLanguage);
         this._dedupe = options.deduplicate ? new Set : undefined;
 
         this._tokenized = options.tokenized;
@@ -69,7 +69,9 @@ class DialogueToTurnStream extends Stream.Transform {
         const [contextCode, contextEntities] = this._target.serializeNormalized(agentContext);
 
         const agentTarget = await this._target.parse(turn.agent_target, this._options);
-        const agentCode = await this._target.serializePrediction(agentTarget, '', contextEntities, 'agent');
+        const agentCode = await this._target.serializePrediction(agentTarget, '', contextEntities, 'agent', {
+            locale: this._locale
+        });
 
         const { tokens, } = this._preprocess(turn.agent, contextEntities);
 
@@ -116,7 +118,9 @@ class DialogueToTurnStream extends Stream.Transform {
 
         const { tokens, entities } = this._preprocess(turn.user, contextEntities);
         const userTarget = await this._target.parse(turn.user_target, this._options);
-        const code = await this._target.serializePrediction(userTarget, tokens, entities, 'user');
+        const code = await this._target.serializePrediction(userTarget, tokens, entities, 'user', {
+            locale: this._locale
+        });
 
         if (this._dedupe) {
             const key = this._getDedupeKey(contextCode, tokens);
@@ -194,7 +198,7 @@ module.exports = {
         parser.addArgument(['-t', '--target-language'], {
             required: false,
             defaultValue: 'thingtalk',
-            choices: AVAILABLE_LANGUAGES,
+            choices: TargetLanguages.AVAILABLE_LANGUAGES,
             help: `The programming language to generate`
         });
         parser.addArgument('--side', {

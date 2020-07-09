@@ -14,9 +14,11 @@ const assert = require('assert');
 const util = require('util');
 const ThingTalk = require('thingtalk');
 
+const StreamUtils = require('../../lib/utils/stream-utils');
+
 const { parseConstantFile } = require('../lib/constant-file');
+
 const AnnotationGenerator = require('./lib/annotation-generator');
-const StreamUtils = require('../../lib/stream-utils');
 
 async function loadClassDef(thingpedia) {
     const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));

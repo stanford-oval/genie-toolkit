@@ -17,7 +17,8 @@ const ThingTalk = require('thingtalk');
 const csvstringify = require('csv-stringify');
 
 const I18N = require('../../lib/i18n');
-const StreamUtils = require('../../lib/stream-utils');
+const StreamUtils = require('../../lib/utils/stream-utils');
+
 const { makeMetadata } = require('./lib/metadata');
 
 class ParamDatasetGenerator {

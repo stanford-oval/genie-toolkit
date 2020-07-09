@@ -17,8 +17,8 @@ const qv = require('query-validation');
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
-const Utils = require('../lib/utils');
-const Predictor = require('../lib/predictor');
+const Utils = require('../lib/utils/misc-utils');
+const Predictor = require('../lib/prediction/predictor');
 const I18n = require('../lib/i18n');
 
 function learn(req, res) {

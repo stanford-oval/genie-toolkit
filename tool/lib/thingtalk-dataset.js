@@ -16,8 +16,8 @@ const Grammar = ThingTalk.Grammar;
 const Library = ThingTalk.Ast.Input.Library;
 
 const ProgressBar = require('./progress_bar');
+const { tokenizeExample } = require('../../lib/utils/misc-utils');
 const I18n = require('../../lib/i18n');
-const { tokenizeExample } = require('../../lib/utils');
 
 module.exports = class ThingTalkDataset {
     constructor(options) {

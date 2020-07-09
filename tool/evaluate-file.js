@@ -16,9 +16,9 @@ const Stream = require('stream');
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 
-const { DatasetParser } = require('../lib/dataset-parsers');
-const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('../lib/evaluators');
-const StreamUtils = require('../lib/stream-utils');
+const { DatasetParser } = require('../lib/dataset-tools/parsers');
+const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('../lib/dataset-tools/evaluation/sentence_evaluator');
+const StreamUtils = require('../lib/utils/stream-utils');
 
 module.exports = {
     initArgparse(subparsers) {

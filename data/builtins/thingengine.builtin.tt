@@ -1,0 +1,96 @@
+class @org.thingpedia.builtin.thingengine.builtin
+#_[name="Miscellaneous Interfaces"]
+#_[description="Commands that are always available and don't belong to any specific device or account. Mostly related to time and randomness, because the universe is chaos and those always there. Also debugging."]
+{
+  import loader from @org.thingpedia.builtin();
+  import config from @org.thingpedia.config.builtin();
+
+  monitorable query get_gps(out location: Location #_[prompt="What location are you interested in?"] #_[canonical="location"],
+                            out altitude: Measure(m) #_[canonical="altitude"],
+                            out bearing: Number #_[canonical="bearing"],
+                            out speed: Measure(mps) #_[canonical="speed"])
+  #_[canonical="get current location"]
+  #_[confirmation="your location"]
+  #_[confirmation_remote="$__person's location"]
+  #_[formatted=[{type="text",text="Current Location: ${location}"}]]
+  #[poll_interval=0ms]
+  #[doc="get last known GPS location"]
+  #[confirm=false];
+
+  query get_time(out time: Date)
+  #_[canonical="get time"]
+  #_[confirmation="the current time"]
+  #_[formatted=[{type="text",text="Current time is ${time:time}."}]]
+  #[doc="get the current time; this is equivalent to $now() and exists mostly so that Sabrina can codegen it"]
+  #[confirm=false];
+
+  query get_date(out date: Date)
+  #_[canonical="get date"]
+  #_[confirmation="today's date"]
+  #_[formatted=[{type="text",text="Today is ${date:date}."}]]
+  #[doc="get the current date; this is equivalent to $now() and exists mostly so that Sabrina can codegen it; also equivalent to get_time() but the default formatting is different"]
+  #[confirm=false];
+
+  query get_random_between(in opt low: Number #_[prompt="What should be the lower bound?"],
+                           in opt high: Number #_[prompt="What should be the upper bound?"],
+                           out random: Number)
+  #_[canonical="get random integer"]
+  #_[confirmation="a random integer between $low and $high"]
+  #_[formatted=[{type="text",text="${random}"}]]
+  #[doc="get a uniform random integer between `low` and `high`; this is equivalent to $random() and some rounding/mod operation"]
+  #[confirm=false];
+
+  list query get_commands(in req device: Entity(tt:device) #_[prompt="What device do you want help for?"],
+                          out program: Entity(tt:program))
+  #_[canonical="list commands"]
+  #_[confirmation="the list of commands of $device"]
+  #_[formatted=[{type="text",text="${program}"}]]
+  #[doc="retrieve the list of supported commands for the given device"]
+  #[confirm=false];
+
+  query canned_reply(in req intent: Enum(hello,cool,sorry,thank_you),
+                   out text : String)
+  #_[canonical="get canned reply"]
+  #_[confirmation="a reply to ${intent}"]
+  #_[formatted=["${text}"]]
+  #[doc="provide a canned reply to some common intents"]
+  #[confirm=false];
+
+  action debug_log(in req message: String #_[prompt="What should I write in the logs?"])
+  #_[canonical="log"]
+  #_[confirmation="write $message in the developer logs"]
+  #_[confirmation_remote="write $message in the developer logs on $__person's phone"]
+  #[doc="log a message in the developer logs"]
+  #[confirm=false];
+
+  action configure(in req device: Entity(tt:device) #_[prompt="What device do you want to configure?"])
+  #_[canonical="configure"]
+  #_[confirmation="configure a new $device"]
+  #_[confirmation_remote="configure a new $device on $__person's Almond"]
+  #[doc="configure a specific device by type"]
+  #[confirm=false];
+
+  action say(in req message: String #_[prompt="What do you want me to say?"],
+             out message_output: String #_[canonical="message"])
+  #_[result="${message_output}"]
+  #_[canonical="say"]
+  #_[confirmation="send me a message $message"]
+  #_[confirmation_remote="send $__person message $message"]
+  #[doc="makes Almond say something; this is the codegennable version of @$notify"]
+  #[confirm=false];
+
+  action discover()
+  #_[canonical="discover"]
+  #_[confirmation="search for new devices"]
+  #_[confirmation_remote="search for new devices on $__person's Almond"]
+  #[doc="start interactive discovery for new devices"]
+  #[confirm=false];
+
+  action open_url(in req url: Entity(tt:url) #_[prompt="What URL do you want to open?"])
+  #_[canonical="open url on builtin"]
+  #_[confirmation="open $url"]
+  #_[confirmation_remote="open $url in $__person's PC"]
+  #[doc="open a file/link"]
+  #[confirm=false];
+}
+

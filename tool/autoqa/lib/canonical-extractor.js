@@ -8,9 +8,11 @@
 //
 // See COPYING for details
 "use strict";
+
 const fs = require('fs');
 const util = require('util');
 const child_process = require('child_process');
+
 const EnglishLanguagePack = require('../../../lib/i18n/american-english');
 
 class AnnotationExtractor {

@@ -14,7 +14,7 @@ const Stream = require('stream');
 const csvparse = require('csv-parse');
 const csvstringify = require('csv-stringify');
 
-const StreamUtils = require('../lib/stream-utils');
+const StreamUtils = require('../lib/utils/stream-utils');
 
 class Parser extends Stream.Transform {
     constructor(options) {

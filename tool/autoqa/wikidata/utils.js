@@ -8,6 +8,7 @@
 //
 // See COPYING for details
 "use strict";
+
 const Tp = require('thingpedia');
 const URL = 'https://query.wikidata.org/sparql';
 
@@ -46,7 +47,7 @@ async function getPropertyLabel(propertyId) {
  */
 async function getPropertyList(domainId) {
     const query = `SELECT ?property WHERE {
-        wd:${domainId} wdt:P1963 ?property . 
+        wd:${domainId} wdt:P1963 ?property .
     }`;
     const result = await wikidataQuery(query);
     return result.map((r) => r.property.value.slice('http://www.wikidata.org/entity/'.length));

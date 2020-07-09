@@ -16,15 +16,16 @@ const fs = require('fs');
 const JSONStream = require('JSONStream');
 const assert = require('assert');
 
-const StreamUtils = require('../lib/stream-utils');
-const { getBestEntityMatch } = require('../lib/entity-finder');
-const Utils = require('../lib/utils');
+const StreamUtils = require('../lib/utils/stream-utils');
+const { getBestEntityMatch } = require('../lib/dialogue-agent/entity-linking/entity-finder');
+const Utils = require('../lib/utils/misc-utils');
 const I18n = require('../lib/i18n');
+const TargetLanguages = require('../lib/languages');
 
 const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
-const ParserClient = require('./lib/parserclient');
+const ParserClient = require('../lib/prediction/parserclient');
 
 
 class DialogueToDSTStream extends Stream.Transform {
@@ -39,7 +40,7 @@ class DialogueToDSTStream extends Stream.Transform {
 
         this._options = options;
         this._debug = options.debug;
-        this._target = require('../lib/languages/dlgthingtalk');
+        this._target = TargetLanguages.get('thingtalk');
 
         this._cachedEntityMatches = new Map;
     }
@@ -57,6 +58,16 @@ class DialogueToDSTStream extends Stream.Transform {
         return tokenized;
     }
 
+    _getIDs(type) {
+        return this._database.get(type).map((entry) => {
+            return {
+                value: entry.id.value,
+                name: entry.id.display,
+                canonical: entry.id.display
+            };
+        });
+    }
+
     _resolveEntity(value) {
         if (!this._database || (!value.value && !value.display))
             return null;
@@ -64,7 +75,17 @@ class DialogueToDSTStream extends Stream.Transform {
         const cacheKey = value.type + '/' + value.value + '/' + value.display;
         let resolved = this._cachedEntityMatches.get(cacheKey);
         if (!resolved) {
-            resolved = getBestEntityMatch(value.value, value.display, this._database.get(value.type));
+            const ids = this._getIDs(value.type);
+            if (value.value) {
+                for (let id of ids) {
+                    if (id.value === value.value) {
+                        resolved = id;
+                        break;
+                    }
+                }
+            }
+            if (!resolved)
+                resolved = getBestEntityMatch(value.display, value.type, ids);
             this._cachedEntityMatches.set(cacheKey, resolved);
         }
         return resolved;
@@ -80,7 +101,7 @@ class DialogueToDSTStream extends Stream.Transform {
             const resolved = this._resolveEntity(value);
             assert(resolved);
             if (resolved)
-                return resolved.display;
+                return resolved.canonical;
             return value.display;
         }
         // everything else (time, currency, number, enum, string), use JS value
@@ -205,7 +226,7 @@ class DialogueToDSTStream extends Stream.Transform {
         const goldUserState = this._target.computeNewState(context, goldUserTarget);
         const goldSlots = this._extractSlots(goldUserState);
 
-        const parsed = await this._parser.sendUtterance(tokens.join(' '), true, contextCode, contextEntities);
+        const parsed = await this._parser.sendUtterance(tokens.join(' '), contextCode, contextEntities, { tokenized: true });
 
         const predictions = parsed.candidates
             .filter((beam) => beam.score !== 'Infinity') // ignore exact matches

@@ -9,7 +9,7 @@
 // See COPYING for details
 "use strict";
 
-const { clean } = require('../../../lib/utils');
+const { clean } = require('../../../lib/utils/misc-utils');
 const EnglishLanguagePack = require('../../../lib/i18n/american-english');
 
 function updateDefault(canonical, type) {

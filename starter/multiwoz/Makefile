@@ -117,7 +117,7 @@ multidomain/test/annotated.txt : $(foreach v,$(all_domains),$(v)/test/annotated.
 
 $(experiment)/synthetic-%.txt : $(schema_deps) $(dataset_file) $(template_deps)
 	$(genie) generate-dialogs \
-	  --locale en-US --target-language dlgthingtalk \
+	  --locale en-US --target-language thingtalk \
 	  --template $(geniedir)/languages/$(template_file) \
 	  --thingpedia $(experiment)/schema.tt --entities $(experiment)/entities.json --dataset $(dataset_file) \
 	  -o $@.tmp -f txt $(generate_flags) --no-debug $(custom_gen_flags) --random-seed $@ \
@@ -129,7 +129,7 @@ $(experiment)/synthetic.txt: $(foreach v,$(subdataset_ids),$(experiment)/synthet
 
 $(experiment)/synthetic-%.user.tsv : $(experiment)/synthetic-%.txt $(schema_deps)
 	$(genie) dialog-to-contextual \
-	  --locale en-US --target-language dlgthingtalk --deduplicate \
+	  --locale en-US --target-language thingtalk --deduplicate \
 	  --thingpedia $(experiment)/schema.tt --side user --flags S --id-prefix $*: \
 	  -o $@.tmp $<
 	mv $@.tmp $@
@@ -140,7 +140,7 @@ $(experiment)/synthetic.user.tsv: $(foreach v,$(subdataset_ids),$(experiment)/sy
 
 $(experiment)/synthetic-%.agent.tsv : $(experiment)/synthetic-%.txt $(schema_deps)
 	$(genie) dialog-to-contextual \
-	  --locale en-US --target-language dlgthingtalk --deduplicate \
+	  --locale en-US --target-language thingtalk --deduplicate \
 	  --thingpedia $(experiment)/schema.tt --side agent --flags S --id-prefix $*: \
 	  -o $@.tmp $<
 	mv $@.tmp $@
@@ -151,7 +151,7 @@ $(experiment)/synthetic.agent.tsv: $(foreach v,$(subdataset_ids),$(experiment)/s
 
 $(experiment)/augmented.user.tsv : $(experiment)/synthetic.user.tsv $($(experiment)_paraphrase_user) shared-parameter-datasets.tsv
 	$(genie) augment -o $@.tmp \
-	  --locale en-US --target-language dlgthingtalk --contextual \
+	  --locale en-US --target-language thingtalk --contextual \
 	  --thingpedia $(experiment)/schema.tt --parameter-datasets shared-parameter-datasets.tsv \
 	  --synthetic-expand-factor 2 --quoted-paraphrasing-expand-factor 60 --no-quote-paraphrasing-expand-factor 20 --quoted-fraction 0.0 \
 	  --no-debug $($(experiment)_paraphrase_user) $(experiment)/synthetic.user.tsv --parallelize $(parallel)
@@ -196,14 +196,14 @@ clean:
 
 $(experiment)/$(eval_set)/agent.tsv : $(experiment)/$(eval_set)/annotated.txt $(schema_deps)
 	$(genie) dialog-to-contextual \
-	  --locale en-US --target-language dlgthingtalk --no-tokenized \
+	  --locale en-US --target-language thingtalk --no-tokenized \
 	  --thingpedia $(experiment)/schema.tt --side agent --flags E \
 	  -o $@.tmp $<
 	mv $@.tmp $@
 
 $(experiment)/$(eval_set)/user.tsv : $(experiment)/$(eval_set)/annotated.txt $(schema_deps)
 	$(genie) dialog-to-contextual \
-	  --locale en-US --target-language dlgthingtalk --no-tokenized \
+	  --locale en-US --target-language thingtalk --no-tokenized \
 	  --thingpedia $(experiment)/schema.tt --side user --flags E \
 	  -o $@.tmp $<
 	mv $@.tmp $@
@@ -236,7 +236,7 @@ $(experiment)/$(eval_set)/%.dialogue.results: $(experiment)/models/%/best.pth $(
 	$(genie) evaluate-dialog \
 	  --url "file://$(abspath $(dir $<))" \
 	  --thingpedia $(experiment)/schema.tt \
-	  --target-language dlgthingtalk \
+	  --target-language thingtalk \
 	  $(experiment)/$(eval_set)/annotated.txt \
 	  --database-file $(experiment)/database-map.tsv \
 	  --debug --csv-prefix $(eval_set) --csv $(evalflags) \

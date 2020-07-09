@@ -13,8 +13,8 @@ const seedrandom = require('seedrandom');
 const fs = require('fs');
 const Tp = require('thingpedia');
 
-const { BasicSentenceGenerator } = require('../lib/sentence-generator');
-const { DatasetStringifier } = require('../lib/dataset-parsers');
+const { BasicSentenceGenerator } = require('../lib/sentence-generator/batch');
+const { DatasetStringifier } = require('../lib/dataset-tools/parsers');
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 const ProgressBar = require('./lib/progress_bar');
 const { ActionSetFlag } = require('./lib/argutils');
@@ -87,14 +87,15 @@ module.exports = {
         });
         
         parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
-            help: 'Enable debugging.',
-            defaultValue: true
+            nargs: '?',
+            constant: 1,
+            defaultValue: 0,
+            help: 'Enable debugging. Can be specified with an argument between 0 and 5 to choose the verbosity level.',
         });
         parser.addArgument('--no-debug', {
             nargs: 0,
-            action: 'storeFalse',
+            constant: 0,
+            action: 'storeConst',
             dest: 'debug',
             help: 'Disable debugging.',
         });

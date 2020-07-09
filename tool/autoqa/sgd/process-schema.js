@@ -17,8 +17,9 @@ const ThingTalk = require('thingtalk');
 const Type = ThingTalk.Type;
 const Ast = ThingTalk.Ast;
 
-const { clean } = require('../../../lib/utils');
-const StreamUtils = require('../../../lib/stream-utils');
+const { clean } = require('../../../lib/utils/misc-utils');
+const StreamUtils = require('../../../lib/utils/stream-utils');
+
 const baseCanonical = require('../lib/base-canonical-generator');
 const { PROPERTY_TYPE_OVERRIDE, STRING_FILE_OVERRIDES } = require('./manual-annotations');
 const { cleanEnumValue }  = require('./utils');

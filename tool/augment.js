@@ -12,11 +12,11 @@
 
 const fs = require('fs');
 
-const { DatasetParser, DatasetStringifier } = require('../lib/dataset-parsers');
-const parallelize = require('../lib/parallelize');
+const { DatasetParser, DatasetStringifier } = require('../lib/dataset-tools/parsers');
+const parallelize = require('../lib/utils/parallelize');
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 
-const StreamUtils = require('../lib/stream-utils');
+const StreamUtils = require('../lib/utils/stream-utils');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ProgressBar = require('./lib/progress_bar');
 
