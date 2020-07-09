@@ -70,7 +70,9 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[doc="configure a specific device by type"]
   #[confirm=false];
 
-  action say(in req message: String #_[prompt="What do you want me to say?"])
+  action say(in req message: String #_[prompt="What do you want me to say?"],
+             out message_output: String #_[canonical="message"])
+  #_[result="${message_output}"]
   #_[canonical="say"]
   #_[confirmation="send me a message $message"]
   #_[confirmation_remote="send $__person message $message"]

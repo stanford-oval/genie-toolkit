@@ -83,14 +83,6 @@ short_action_error_message = {
     };
 }
 
-action_description_phrase = {
-    coref_action_phrase;
-
-    ( action:action_description_phrase param:preposition_input_param
-    | action:action_description_phrase ('with' | 'having') param:npp_input_param
-    ) => C.addInvocationInputParam(action, param);
-}
-
 long_action_error_message = {
     ('i could not' | 'it was not possible to') action:action_description_phrase (':' | 'because') ctx:short_action_error_message
         => D.checkActionErrorMessage(ctx, action);

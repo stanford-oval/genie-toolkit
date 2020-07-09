@@ -15,7 +15,7 @@ const path = require('path');
 const stream = require('stream');
 const seedrandom = require('seedrandom');
 
-const { BasicSentenceGenerator } = require('../../lib/sentence-generator');
+const { BasicSentenceGenerator } = require('../../lib/sentence-generator/batch');
 const { makeDummyEntities } = require('../../lib/utils/misc-utils');
 
 const ThingTalk = require('thingtalk');

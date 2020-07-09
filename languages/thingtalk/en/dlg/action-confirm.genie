@@ -1,0 +1,34 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+// Action result templates: used after executing the action
+// Either the action was successful, and we're done, or
+// the action failed, and we give the user an option to try again
+
+{
+    const assert = require('assert');
+    const ThingTalk = require('thingtalk');
+    const Ast = ThingTalk.Ast;
+    const Type = ThingTalk.Type;
+
+    const C = require('../../ast_manip');
+    const D = require('../../dialogue_acts');
+
+    // import thingpedia info
+    const _tpLoader = require('../../load-thingpedia');
+}
+
+action_confirm_phrase = {
+    ( ctx:ctx_confirm_action 'ok , do you want me to' action:action_description_phrase '?'
+    | ctx:ctx_confirm_action 'ok ,' ('i am going to ' | 'you want to' | 'you would like to')
+        action:action_description_phrase '.' ('do you confirm' | 'is that it' | 'is that correct' |
+        'is that right') '?'
+    ) => D.makeActionConfirmationPhrase(ctx, action);
+}

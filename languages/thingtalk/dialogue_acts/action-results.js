@@ -28,10 +28,10 @@ const {
     isInfoPhraseCompatibleWithResult
 } = require('./common');
 
-
 function makeThingpediaActionSuccessPhrase(ctx, info) {
     const results = ctx.results;
-    assert(results.length === 1);
+    if (results.length !== 1)
+        return null;
 
     const topResult = results[0];
     if (!isInfoPhraseCompatibleWithResult(topResult, info))
@@ -42,7 +42,6 @@ function makeThingpediaActionSuccessPhrase(ctx, info) {
 
 function makeCompleteActionSuccessPhrase(ctx, action, info) {
     const results = ctx.results;
-    assert(results.length === 1);
 
     // check the action is the same we actually executed, and all the parameters we're mentioning
     // match the actual parameters of the action
@@ -69,6 +68,8 @@ function makeCompleteActionSuccessPhrase(ctx, action, info) {
     }
 
     if (info !== null) {
+        if (results.length < 1)
+            return null;
         assert(info instanceof SlotBag);
         const topResult = results[0];
         if (!isInfoPhraseCompatibleWithResult(topResult, info))

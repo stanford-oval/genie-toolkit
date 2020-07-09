@@ -325,7 +325,7 @@ class Converter extends stream.Readable {
     }
 
     _resolveEntity(value) {
-        const resolved = getBestEntityMatch(value.display, this._getIDs(value.type));
+        const resolved = getBestEntityMatch(value.display, value.type, this._getIDs(value.type));
         value.value = resolved.value;
 
         // do not override the display field, it should match the sentence instead
