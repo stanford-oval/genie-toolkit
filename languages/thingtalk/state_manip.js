@@ -340,6 +340,14 @@ function makeSimpleState(ctx, dialogueAct, dialogueActParam) {
     return newState;
 }
 
+function sortByName(p1, p2) {
+    if (p1.name < p2.name)
+        return -1;
+    if (p1.name > p2.name)
+        return 1;
+    return 0;
+}
+
 function setOrAddInvocationParam(newInvocation, pname, value) {
     let found = false;
     for (let in_param of newInvocation.in_params) {
@@ -351,13 +359,7 @@ function setOrAddInvocationParam(newInvocation, pname, value) {
     }
     if (!found) {
         newInvocation.in_params.push(new Ast.InputParam(null, pname, value));
-        newInvocation.in_params.sort((p1, p2) => {
-            if (p1.name < p2.name)
-                return -1;
-            if (p1.name > p2.name)
-                return 1;
-            return 0;
-        });
+        newInvocation.in_params.sort(sortByName);
     }
 }
 
@@ -685,6 +687,7 @@ module.exports = {
     isUserAskingResultQuestion,
 
     // manipulate states to create new states
+    sortByName,
     makeSimpleState,
     addNewItem,
     addActionParam,

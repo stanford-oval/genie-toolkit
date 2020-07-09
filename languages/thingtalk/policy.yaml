@@ -40,6 +40,8 @@ dialogueActs:
     # agent informs that the search is empty (with and without a slot-fill question)
     - sys_empty_search_question
     - sys_empty_search
+    # agent confirms the action before executing it
+    - sys_confirm_action
     # agent executed the action successfully (and shows the result of the action)
     - sys_action_success
     # agent had an error in executing the action (with and without a slot-fill question)

@@ -10,6 +10,7 @@
 "use strict";
 
 Object.assign(module.exports,
+    require('./action-confirm'),
     require('./action-results'),
     require('./coref-actions'),
     require('./coref-questions'),

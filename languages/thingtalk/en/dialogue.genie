@@ -38,6 +38,7 @@ import './dlg/coref-actions';
 
 // specific interactions
 // keep this in alphabetical order
+import './dlg/action-confirm';
 import './dlg/action-results';
 import './dlg/coref-questions';
 import './dlg/empty-search';
@@ -96,6 +97,7 @@ context
     ctx_sys_action_success,
     ctx_sys_action_error,
     ctx_sys_anything_else,
+    ctx_sys_confirm_action,
     ctx_sys_empty_search,
     ctx_sys_end,
     ctx_sys_greet,
@@ -143,6 +145,9 @@ $agent = {
     action_success_phrase;
     action:action_success_phrase anything_else_phrase => action;
     action_error_phrase;
+
+    // confirming an action
+    action_confirm_phrase;
 
     // empty search error
     ctx:ctx_empty_search_command error:empty_search_error
