@@ -61,7 +61,7 @@ function genBaseCanonical(canonical, name, ptype) {
     if (name.startsWith('is ')) {
         name = name.substring('is '.length);
         if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1]) || name.endsWith(' of')) {
-            updateCanonical(canonical, 'reverse_property');
+            updateDefault(canonical, 'reverse_property');
             updateCanonical(canonical, ptype.isBoolean ? 'reverse_property_true' : 'reverse_property', name);
             return;
         } else if (['VBN', 'JJ', 'JJR'].includes(tags[1])) {
