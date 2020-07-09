@@ -18,21 +18,29 @@ const csvstringify = require('csv-stringify');
 
 const I18N = require('../../lib/i18n');
 const StreamUtils = require('../../lib/stream-utils');
-const { makeMetadata } = require('./metadata');
-const { PROPERTIES_NO_FILTER } = require('./manual-annotations');
+const { makeMetadata } = require('./lib/metadata');
 
 class ParamDatasetGenerator {
-    constructor(locale, debug, maxValueLength, className) {
+    constructor(locale, debug, maxValueLength, className, dataset) {
         this._locale = locale;
         this._debug = debug;
         this._className = className;
         this._maxValueLength = maxValueLength;
         this._prefix = `${className}:`;
+        this._dataset = dataset;
 
         this._meta = {};
         this._stringFiles = new Map;
 
         this._tokenizer = I18N.get(locale).getTokenizer();
+
+
+        if (dataset !== 'custom' && fs.existsSync(`../${dataset}/manual-annotations`)) {
+            let manualAnnotations = require(`../${dataset}/manual-annotations`);
+            this._propertiesNoFilter = manualAnnotations.PROPERTIES_NO_FILTER;
+        } else {
+            this._propertiesNoFilter = [];
+        }
     }
 
     _getStringFile(stringFileName, isEntity) {
@@ -70,6 +78,10 @@ class ParamDatasetGenerator {
         if (!typemeta)
             return;
 
+        // sgd dataset, field is per-service instead of per function
+        if (this._dataset === 'sgd')
+            type = type.substring(0, type.lastIndexOf('_'));
+
         // if the same base class comes through multiple paths, avoid
         // visiting twice and duplicating the objects
         if (visitedTypes.has(type))
@@ -106,7 +118,7 @@ class ParamDatasetGenerator {
             const key = path[path.length-1];
 
             // no string set needed if the field is not filterable
-            if (PROPERTIES_NO_FILTER.includes(key))
+            if (this._propertiesNoFilter.includes(key))
                 return;
 
             if (expectedType.type === 'tt:String') {
@@ -215,9 +227,14 @@ class ParamDatasetGenerator {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('autoqa-make-string-datasets', {
+        const parser = subparsers.addParser('make-string-datasets', {
             addHelp: true,
-            description: "Extract string datasets from a WebQA normalized data file."
+            description: "Extract string datasets from a AutoQA normalized data file."
+        });
+        parser.addArgument('--dataset', {
+            required: true,
+            choices: ['schemaorg', 'sgd', 'wikidata', 'multiwoz', 'custom'],
+            help: 'The dataset to run autoQA on.'
         });
         parser.addArgument(['-d', '--output-dir'], {
             required: true,
@@ -269,7 +286,7 @@ module.exports = {
 
     async execute(args) {
         const generator = new ParamDatasetGenerator(args.locale, args.debug,
-            args.max_value_length, args.class_name);
+            args.max_value_length, args.class_name, args.dataset);
         await generator.init(args.thingpedia);
 
         const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));

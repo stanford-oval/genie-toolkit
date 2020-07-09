@@ -95,31 +95,31 @@ custom_train_nlu_flags ?=
 .SECONDARY:
 
 wikidata-property-labels.json:
-	$(genie) autoqa-retrieve-wikidata-labels > $@
+	$(genie) retrieve-wikidata-labels > $@
 
 models/paraphraser-bart:
 	mkdir models
 	wget --no-verbose https://almond-static.stanford.edu/test-data/paraphraser-bart.tar.xz
 	tar -C models -xvf paraphraser-bart.tar.xz
 
-$(experiment)/schema.org.tt: $(geniedir)/tool/autoqa/process-schemaorg.js ./wikidata-property-labels.json
-	$(genie) autoqa-process-schemaorg -o $@ $(process_schemaorg_flags) --class-name $($(experiment)_class_name) --white-list $($(experiment)_white_list)
+$(experiment)/schema.org.tt: $(geniedir)/tool/autoqa/schemaorg/process-schema.js ./wikidata-property-labels.json
+	$(genie) schemaorg-process-schema -o $@ $(process_schemaorg_flags) --class-name $($(experiment)_class_name) --white-list $($(experiment)_white_list)
 
 emptydataset.tt:
 	echo 'dataset @empty {}' > $@
 
-$(experiment)/data.json : $(experiment)/schema.org.tt source-data/$(experiment)/*.json $(geniedir)/tool/autoqa/normalize-data.js
-	$(genie) autoqa-normalize-data --data-output $@ --thingpedia $(experiment)/schema.org.tt source-data/$(experiment)/*.json --class-name $($(experiment)_class_name)
+$(experiment)/data.json : $(experiment)/schema.org.tt source-data/$(experiment)/*.json $(geniedir)/tool/autoqa/schemaorg/normalize-data.js
+	$(genie) schemaorg-normalize-data --data-output $@ --thingpedia $(experiment)/schema.org.tt source-data/$(experiment)/*.json --class-name $($(experiment)_class_name)
 
 $(experiment)/schema.trimmed.tt : $(experiment)/schema.org.tt $(experiment)/data.json
-	$(genie) autoqa-trim-class --thingpedia $(experiment)/schema.org.tt -o $@ --data ./$(experiment)/data.json --entities $(experiment)/entities.json
+	$(genie) schemaorg-trim-class --thingpedia $(experiment)/schema.org.tt -o $@ --data ./$(experiment)/data.json --entities $(experiment)/entities.json
 
 $(experiment)/constants.tsv: $(experiment)/parameter-datasets.tsv $(experiment)/schema.trimmed.tt
 	$(genie) sample-constants -o $@ --parameter-datasets $(experiment)/parameter-datasets.tsv --thingpedia $(experiment)/schema.trimmed.tt --devices $($(experiment)_class_name)
 	cat $(geniedir)/data/en-US/constants.tsv >> $@
 
 $(experiment)/schema.tt: $(experiment)/constants.tsv $(experiment)/schema.trimmed.tt $(experiment)/parameter-datasets.tsv models/paraphraser-bart
-	$(genie) autogen-annotations -o $@.tmp --constants $(experiment)/constants.tsv --thingpedia $(experiment)/schema.trimmed.tt --queries $($(experiment)_white_list) $(update_canonical_flags) --parameter-datasets $(experiment)/parameter-datasets.tsv
+	$(genie) auto-annotate -o $@.tmp --constants $(experiment)/constants.tsv --thingpedia $(experiment)/schema.trimmed.tt --functions $($(experiment)_white_list) $(update_canonical_flags) --parameter-datasets $(experiment)/parameter-datasets.tsv --dataset schemaorg
 	mv $@.tmp $@
 
 $(experiment)/synthetic-d%.tsv: $(experiment)/schema.tt $(dataset_file) $(geniedir)/languages/thingtalk/en/*.genie
@@ -142,7 +142,7 @@ shared-parameter-datasets.tsv:
 
 $(experiment)/parameter-datasets.tsv : $(experiment)/schema.trimmed.tt $(experiment)/data.json shared-parameter-datasets.tsv
 	sed 's|\tshared-parameter-datasets|\t../shared-parameter-datasets|g' shared-parameter-datasets.tsv > $@
-	$(genie) autoqa-make-string-datasets --manifest $@.local -d $(experiment)/parameter-datasets --thingpedia $(experiment)/schema.trimmed.tt --data $(experiment)/data.json --class-name $($(experiment)_class_name)
+	$(genie) make-string-datasets --manifest $@.local -d $(experiment)/parameter-datasets --thingpedia $(experiment)/schema.trimmed.tt --data $(experiment)/data.json --class-name $($(experiment)_class_name) --dataset schemaorg
 	cat $@.local >> $@
 	rm $@.local
 

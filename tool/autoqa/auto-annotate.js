@@ -14,9 +14,9 @@ const assert = require('assert');
 const util = require('util');
 const ThingTalk = require('thingtalk');
 
-const { parseConstantFile } = require('./lib/constant-file');
+const { parseConstantFile } = require('../lib/constant-file');
 const AnnotationGenerator = require('./lib/annotation-generator');
-const StreamUtils = require('../lib/stream-utils');
+const StreamUtils = require('../../lib/stream-utils');
 
 async function loadClassDef(thingpedia) {
     const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
@@ -26,9 +26,14 @@ async function loadClassDef(thingpedia) {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('autogen-annotations', {
+        const parser = subparsers.addParser('auto-annotate', {
             addHelp: true,
-            description: "Use BERT to expand canonicals"
+            description: "Automatically generate annotations including canonicals"
+        });
+        parser.addArgument('--dataset', {
+            required: true,
+            choices: ['schemaorg', 'sgd', 'multiwoz', 'wikidata', 'custom'],
+            help: 'The dataset to run autoQA on.'
         });
         parser.addArgument(['-o', '--output'], {
             required: true,
@@ -46,14 +51,21 @@ module.exports = {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('--queries', {
-            required: true,
-            help: `List of query functions to include, split by comma (no space).`
+        parser.addArgument('--functions', {
+            required: false,
+            default: null,
+            help: `List of functions to include, split by comma (no space). Include all functions if not specified`,
         });
         parser.addArgument('--skip', {
             nargs: 0,
             action: 'storeTrue',
             help: 'Skip the entire process.',
+            defaultValue: false
+        });
+        parser.addArgument('--remove-existing-canonicals', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Remove all existing canonical annotations',
             defaultValue: false
         });
         parser.addArgument('--algorithm', {
@@ -114,7 +126,8 @@ module.exports = {
         } else {
             const options = args;
             const constants = await parseConstantFile(args.locale, args.constants);
-            const generator = new AnnotationGenerator(classDef, constants, args.queries.split(','), args.parameter_datasets, options);
+            const functions = args.functions ? args.functions.split(',') : null;
+            const generator = new AnnotationGenerator(classDef, constants, functions, args.parameter_datasets, options);
             const annotatedClassDef = await generator.generate();
             args.output.end(annotatedClassDef.prettyprint());
         }
