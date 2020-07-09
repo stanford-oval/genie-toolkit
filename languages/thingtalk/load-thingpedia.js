@@ -167,8 +167,11 @@ class ThingpediaLoader {
             if (typeof prompt === 'string')
                 prompt = [prompt];
 
-            for (let form of prompt)
+            for (let form of prompt) {
+                if (form.endsWith('?'))
+                    form = form.substring(0, form.length-1).trim();
                 this._grammar.addRule('thingpedia_slot_fill_question', [form], this._runtime.simpleCombine(() => pname));
+            }
         }
 
         // FIXME boolean types are not handled, they have no way to specify the true/false phrase
