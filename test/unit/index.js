@@ -31,6 +31,7 @@ async function do_test(array) {
 do_test([
     ('./test_array_set'),
     ('./test_augment'),
+    ('./test_base_canonical_generator'),
     ('./test_engine_protocol'),
     ('./test_entities'),
     ('./test_helpers'),
@@ -47,4 +48,5 @@ do_test([
     ('./test_stream_utils'),
     ('./test_timed_reference'),
     ('./test_timers'),
+    ('./test_wikidata_utils'),
 ]);

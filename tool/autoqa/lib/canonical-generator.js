@@ -14,14 +14,14 @@ const path = require('path');
 const stemmer = require('stemmer');
 const Inflectors = require('en-inflectors').Inflectors;
 const child_process = require('child_process');
-const utils = require('../../lib/utils/misc-utils');
+
+const utils = require('../../../lib/utils/misc-utils');
+const { makeLookupKeys } = require('../../../lib/dataset-tools/mturk/sample-utils');
+const EnglishLanguagePack = require('../../../lib/i18n/american-english');
+const { clean } = require('../../../lib/utils/misc-utils');
 
 const CanonicalExtractor = require('./canonical-extractor');
-const { makeLookupKeys } = require('../../lib/dataset-tools/mturk/sample-utils');
-const { PROPERTY_CANONICAL_OVERRIDE } = require('../autoqa/manual-annotations');
-const EnglishLanguagePack = require('../../lib/i18n/american-english');
-
-const ANNOTATED_PROPERTIES = Object.keys(PROPERTY_CANONICAL_OVERRIDE);
+const genBaseCanonical = require('./base-canonical-generator');
 
 // extract entity type from type
 function typeToEntityType(type) {
@@ -34,10 +34,10 @@ function typeToEntityType(type) {
 }
 
 class AutoCanonicalGenerator {
-    constructor(classDef, constants, queries, parameterDatasets, options) {
+    constructor(classDef, constants, functions, parameterDatasets, options) {
         this.class = classDef;
         this.constants = constants;
-        this.queries = queries;
+        this.functions = functions ? functions : Object.keys(classDef.queries).concat(Object.keys(classDef.actions));
 
         this.algorithm = options.algorithm ? options.algorithm.split(',') : [];
         this.pruning = options.pruning;
@@ -52,52 +52,66 @@ class AutoCanonicalGenerator {
 
         this.options = options;
 
+        if (options.dataset !== 'custom' && fs.existsSync(`../${options.dataset}/manual-annotations`)) {
+            this.manualAnnotations = require(`../${options.dataset}/manual-annotations`);
+            this.annotatedProperties = Object.keys(this.manualAnnotations.MANUAL_PROPERTY_CANONICAL_OVERRIDE);
+        } else {
+            this.annotatedProperties = [];
+        }
         this._langPack = new EnglishLanguagePack();
     }
 
     async generate() {
         await this._loadParameterDatasetPaths();
+        const functions = {};
+        for (let fname of this.functions) {
+            let func = this.class.queries[fname] || this.class.actions[fname];
+            functions[fname] = {
+                type: this.class.queries[fname] ? 'query' : 'action',
+                canonical: func.canonical || clean(fname),
+                args: {}
+            };
+            if (Array.isArray(functions[fname].canonical))
+                functions[fname].canonical = functions[fname].canonical[0];
 
-        const queries = {};
-        for (let qname of this.queries) {
-            let query = this.class.queries[qname];
-            queries[qname] = { canonical: query.canonical, args: {} };
-            if (Array.isArray(queries[qname].canonical))
-                queries[qname].canonical = queries[qname].canonical[0];
+            let typeCounts = this._getArgTypeCount(func);
+            for (let arg of func.iterateArguments()) {
+                functions[fname]['args'][arg.name] = {};
 
-            let typeCounts = this._getArgTypeCount(qname);
-            for (let arg of query.iterateArguments()) {
-                queries[qname]['args'][arg.name] = {};
-
-                if (ANNOTATED_PROPERTIES.includes(arg.name) || arg.name === 'id')
+                if (this.annotatedProperties.includes(arg.name) || arg.name === 'id')
                     continue;
 
                 // TODO: bert on counted object only for these args
                 if (arg.metadata.counted_object)
                     continue;
 
-                if (arg.name.includes('.') && ANNOTATED_PROPERTIES.includes(arg.name.slice(arg.name.indexOf('.') + 1)))
+                if (arg.name.includes('.') && this.annotatedProperties.includes(arg.name.slice(arg.name.indexOf('.') + 1)))
                     continue;
 
                 // get the paths to the data
-                let datasetTypeAndPath = this._getDatasetPath(qname, arg);
+                let datasetTypeAndPath = this._getDatasetPath(fname, arg);
                 if (!datasetTypeAndPath)
                     continue;
                 let [datasetType, datasetPath] = datasetTypeAndPath;
                 datasetPath = path.dirname(this.parameterDatasets) + '/' + datasetPath;
                 if (datasetPath && fs.existsSync(datasetPath))
-                    queries[qname]['args'][arg.name]['path'] = [datasetType, datasetPath];
+                    functions[fname]['args'][arg.name]['path'] = [datasetType, datasetPath];
 
                 // some args don't have canonical: e.g., id, name
                 if (!arg.metadata.canonical)
                     continue;
 
-                // remove query name in arg name, normally it's repetitive
+                if (this.options.remove_existing_canonicals) {
+                    arg.metadata.canonical = {};
+                    genBaseCanonical(arg.metadata.canonical, arg.name, arg.type);
+                }
+
+                // remove function name in arg name, normally it's repetitive
                 for (let type in arg.metadata.canonical) {
                     if (Array.isArray(arg.metadata.canonical[type])) {
                         arg.metadata.canonical[type] = arg.metadata.canonical[type].map((c) => {
-                            if (c.startsWith(qname.toLowerCase() + ' '))
-                                return c.slice(qname.toLowerCase().length + 1);
+                            if (c.startsWith(fname.toLowerCase() + ' '))
+                                return c.slice(fname.toLowerCase().length + 1);
                             return c;
                         });
                     }
@@ -107,11 +121,11 @@ class AutoCanonicalGenerator {
                 if (arg.metadata.canonical.base && !arg.metadata.canonical.property)
                     arg.metadata.canonical.property = [...arg.metadata.canonical.base];
 
-                let typestr = typeToEntityType(query.getArgType(arg.name));
+                let typestr = typeToEntityType(func.getArgType(arg.name));
 
                 if (typestr && typeCounts[typestr] === 1) {
                     // if an entity is unique, allow dropping the property name entirely
-                    if (!this.queries.includes(typestr.substring(typestr.indexOf(':') + 1)))
+                    if (!this.functions.includes(typestr.substring(typestr.indexOf(':') + 1)))
                         arg.metadata.canonical.property.push('#');
 
                     // if it's the only people entity, adding adjective form
@@ -131,9 +145,9 @@ class AutoCanonicalGenerator {
                     }
                 }
 
-                const samples = this._retrieveSamples(qname, arg);
+                const samples = this._retrieveSamples(fname, arg);
                 if (samples) {
-                    const argobj = queries[qname]['args'][arg.name];
+                    const argobj = functions[fname]['args'][arg.name];
                     argobj['canonicals'] = arg.metadata.canonical;
                     argobj['values'] = samples;
                 }
@@ -159,10 +173,10 @@ class AutoCanonicalGenerator {
 
             const output = util.promisify(fs.writeFile);
             if (this.options.debug)
-                await output(`./bert-canonical-annotator-in.json`, JSON.stringify(queries, null, 2));
+                await output(`./bert-canonical-annotator-in.json`, JSON.stringify(functions, null, 2));
 
             const stdout = await new Promise((resolve, reject) => {
-                child.stdin.write(JSON.stringify(queries));
+                child.stdin.write(JSON.stringify(functions));
                 child.stdin.end();
                 child.on('error', reject);
                 child.stdout.on('error', reject);
@@ -174,23 +188,27 @@ class AutoCanonicalGenerator {
                 child.stdout.on('end', () => resolve(buffer));
             });
 
-            if (this.options.debug)
-                await output(`./bert-canonical-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
+            if (this.options.debug) {
+                try {
+                    await output(`./bert-canonical-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
+                } catch (e) {
+                     await output(`./bert-canonical-annotator-out.json`, stdout);
+                }
+            }
 
             const {synonyms, adjectives } = JSON.parse(stdout);
             if (this.algorithm.includes('bert') || this.algorithm.includes('adj'))
                 this._updateCanonicals(synonyms, adjectives);
             if (this.algorithm.includes('bart')) {
-                const extractor = new CanonicalExtractor(this.class, this.queries, this.paraphraser_model, this.options);
-                await extractor.run(synonyms, queries);
+                const extractor = new CanonicalExtractor(this.class, this.functions, this.paraphraser_model, this.options);
+                await extractor.run(synonyms, functions);
             }
         }
 
         return this.class;
     }
 
-    _getArgTypeCount(qname) {
-        const schema = this.class.queries[qname];
+    _getArgTypeCount(schema) {
         const count = {};
         for (let arg of schema.iterateArguments()) {
             let typestr = typeToEntityType(schema.getArgType(arg.name));
@@ -227,19 +245,20 @@ class AutoCanonicalGenerator {
     }
 
     _updateCanonicals(candidates, adjectives) {
-        for (let qname of this.queries) {
-            for (let arg in candidates[qname]) {
+        for (let fname of this.functions) {
+            let func = this.class.queries[fname] || this.class.actions[fname];
+            for (let arg in candidates[fname]) {
                 if (arg === 'id')
                     continue;
-                let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
+                let canonicals = func.getArgument(arg).metadata.canonical;
 
-                if (this.algorithm.includes('adj') && adjectives.includes(`${qname}.${arg}`))
+                if (this.algorithm.includes('adj') && adjectives.includes(`${fname}.${arg}`))
                     canonicals['adjective'] = ['#'];
 
                 if (this.algorithm.includes('bert')) {
-                    for (let type in candidates[qname][arg]) {
-                        for (let candidate in candidates[qname][arg][type]) {
-                            if (this._hasConflict(qname, arg, type, candidate))
+                    for (let type in candidates[fname][arg]) {
+                        for (let candidate in candidates[fname][arg][type]) {
+                            if (this._hasConflict(fname, arg, type, candidate))
                                 continue;
                             if (type === 'reverse_verb' && !this._isVerb(candidate))
                                 continue;
@@ -268,10 +287,11 @@ class AutoCanonicalGenerator {
         return ['VBP', 'VBZ', 'VBD'].includes(this._langPack.posTag([candidate])[0]);
     }
 
-    _hasConflict(query, currentArg, currentPos, currentCanonical) {
-        currentArg = this.class.queries[query].getArgument(currentArg);
+    _hasConflict(fname, currentArg, currentPos, currentCanonical) {
+        const func = this.class.queries[fname] || this.class.actions[fname];
+        currentArg = func.getArgument(currentArg);
         const currentStringset = currentArg.getImplementationAnnotation('string_values');
-        for (let arg of this.class.queries[query].iterateArguments()) {
+        for (let arg of func.iterateArguments()) {
             if (arg.name === currentArg.name)
                 continue;
 

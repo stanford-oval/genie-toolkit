@@ -18,10 +18,12 @@ const Ast = ThingTalk.Ast;
 const fs = require('fs');
 const util = require('util');
 
-const { clean } = require('../../lib/utils/misc-utils');
-const EnglishLanguagePack = require('../../lib/i18n/american-english');
-const { isHumanEntity } = require('../../languages/thingtalk/utils');
-const StreamUtils = require('../../lib/utils/stream-utils');
+const { clean } = require('../../../lib/utils/misc-utils');
+const EnglishLanguagePack = require('../../../lib/i18n/american-english');
+const { isHumanEntity } = require('../../../languages/thingtalk/utils');
+const StreamUtils = require('../../../lib/utils/stream-utils');
+
+const genBaseCanonical = require('../lib/base-canonical-generator');
 
 const {
     BUILTIN_TYPEMAP,
@@ -334,53 +336,7 @@ class SchemaProcessor {
         if (!/^[a-z ]+$/.test(name))
             return;
 
-        if (ptype && ptype.isArray)
-            name = this._langPack.pluralize(name);
-
-        if (name.endsWith(' content') && ptype.isMeasure) {
-            name = name.substring(0, name.length - ' content'.length);
-            let base = [name + ' content', name, name + ' amount'];
-            let verb = ['contains #' + name.replace(/ /g, '_')];
-            canonical.verb = (canonical.verb || []).concat(verb);
-            canonical.base = (canonical.base || []).concat(base);
-        } else if (name.startsWith('has ')) {
-            name = [name.substring('has '.length)];
-            canonical.base = (canonical.base || [] ).concat(name);
-        } else if (name.startsWith('is ')) {
-            name = name.substring('is '.length);
-            let tags = this._langPack.posTag(name.split(' '));
-
-            if (['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1]) || name.endsWith(' of'))
-                canonical.reverse_property = (canonical.reverse_property || []).concat([name]);
-            else if (['VBN', 'JJ', 'JJR'].includes(tags[0]))
-                canonical.passive_verb = (canonical.passive_verb || []).concat([name]);
-        } else {
-            let tags = this._langPack.posTag(name.split(' '));
-            if (['VBP', 'VBZ', 'VBD'].includes(tags[0])) {
-                if (tags.length === 2 && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
-                    canonical.verb = (canonical.verb || []).concat([name.replace(' ', ' # ')]);
-                    canonical.base = (canonical.base || []).concat([name.split(' ')[1]]);
-                } else {
-                    canonical.verb = (canonical.verb || []).concat([name]);
-                }
-            } else if (name.endsWith(' of')) {
-                let noun = name.slice(0, -' of'.length);
-                let canonicals = [name, `# ${noun}`, `# 's ${noun}`];
-                canonical.reverse_property = (canonical.reverse_property || []).concat(canonicals);
-            } else if (tags.length === 2 && tags[0] === 'IN' && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
-                let [preposition, noun] = name.split(' ');
-                canonical.passive_verb = (canonical.passive_verb || []).concat([preposition]);
-                canonical.base = (canonical.base || []).concat([noun]);
-            } else if (['IN', 'VBN', 'VBG'].includes(tags[0])) {
-                canonical.passive_verb = (canonical.passive_verb || []).concat([name]);
-            } else if (['JJ', 'JJR'].includes(tags[0]) && !['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[tags.length - 1])) {
-                // this one is actually somewhat problematic
-                // e.g., all non-words are recognized as JJ, including issn, dateline, funder
-                canonical.passive_verb = (canonical.passive_verb || []).concat([name]);
-            } else {
-                canonical.base = (canonical.base || []).concat(name);
-            }
-        }
+        genBaseCanonical(canonical, name, ptype);
     }
 
     async run() {
@@ -731,7 +687,7 @@ class SchemaProcessor {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('autoqa-process-schemaorg', {
+        const parser = subparsers.addParser('schemaorg-process-schema', {
             addHelp: true,
             description: "Process a schema.org JSON+LD definition into a Thingpedia class."
         });

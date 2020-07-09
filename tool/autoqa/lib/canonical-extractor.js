@@ -13,7 +13,7 @@ const fs = require('fs');
 const util = require('util');
 const child_process = require('child_process');
 
-const EnglishLanguagePack = require('../../lib/i18n/american-english');
+const EnglishLanguagePack = require('../../../lib/i18n/american-english');
 
 class AnnotationExtractor {
     constructor(klass, queries, model, options) {

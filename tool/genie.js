@@ -49,12 +49,18 @@ const subcommands = {
 
     'dataset': require('./dataset'),
 
-    'autoqa-process-schemaorg': require('./autoqa/process-schemaorg'),
-    'autoqa-normalize-data': require('./autoqa/normalize-data'),
-    'autoqa-make-string-datasets': require('./autoqa/make-string-datasets'),
-    'autoqa-trim-class': require('./autoqa/trim-class'),
-    'autogen-annotations': require('./autogen-annotations'),
-    'autoqa-retrieve-wikidata-labels': require('./autoqa/retrieve-wikidata-labels'),
+    'schemaorg-process-schema': require('./autoqa/schemaorg/process-schema'),
+    'schemaorg-normalize-data': require('./autoqa/schemaorg/normalize-data'),
+    'schemaorg-trim-class': require('./autoqa/schemaorg/trim-class'),
+
+    'sgd-process-schema': require('./autoqa/sgd/process-schema'),
+    'sgd-normalize-data': require('./autoqa/sgd/normalize-data'),
+
+    'wikidata-process-schema': require('./autoqa/wikidata/process-schema'),
+
+    'auto-annotate': require('./autoqa/auto-annotate'),
+    'make-string-datasets': require('./autoqa/make-string-datasets'),
+    'retrieve-wikidata-labels': require('./autoqa/retrieve-wikidata-labels'),
     'canonical-diffchecker': require('./canonical-diffchecker'),
 
     'auto-annotate-multiwoz': require('./auto-annotate-multiwoz'),

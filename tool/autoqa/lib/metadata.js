@@ -12,6 +12,7 @@
 const assert = require('assert');
 
 const LOCATION_TYPE = {
+    display: { isArray: false, type: 'tt:String' },
     latitude: { isArray: false, type: 'tt:Number' },
     longitude: { isArray: false, type: 'tt:Number' }
 };

@@ -18,9 +18,9 @@ const util = require('util');
 const ThingTalk = require('thingtalk');
 const crypto = require('crypto');
 
-const StreamUtils = require('../../lib/utils/stream-utils');
+const StreamUtils = require('../../../lib/utils/stream-utils');
 
-const { makeMetadata } = require('./metadata');
+const { makeMetadata } = require('../lib/metadata');
 
 const {
     PROPERTY_RENAMES,
@@ -528,7 +528,7 @@ class Normalizer {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('autoqa-normalize-data', {
+        const parser = subparsers.addParser('schemaorg-normalize-data', {
             addHelp: true,
             description: "Normalize schema.org JSON+LD files to match their ThingTalk representation."
         });
