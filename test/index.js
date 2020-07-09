@@ -38,6 +38,6 @@ do_test([
     ('./test_new_tokenizer_en'),
     ('./test_new_tokenizer_it'),
     ('./test_new_tokenizer_zh'),
-
-    ('./test_base_canonical_generator')
+    ('./test_base_canonical_generator'),
+    ('./test_wikidata_utils')
 ]);
