@@ -670,6 +670,8 @@ class ThingpediaLoader {
         const id = q.getArgument('id');
         if (!id.type.isEntity)
             return;
+        if (id.getImplementationAnnotation('filterable') === false)
+            return;
 
         const idType = id.type;
         const entity = this._entities[idType.type];
