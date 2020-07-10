@@ -770,11 +770,13 @@ class ThingpediaLoader {
             this._addPrimitiveTemplate('thingpedia_result', form, new SlotBag(functionDef));
     }
 
-    async _loadDevice(device) {
-        this._grammar.addRule('constant_Entity__tt__device', [device.kind_canonical],
-            this._runtime.simpleCombine(() => new Ast.Value.Entity(device.kind, 'tt:device', null)));
+    async _loadDevice(kind) {
+        const classDef = await this._schemas.getFullMeta(kind);
 
-        const classDef = await this._schemas.getFullMeta(device.kind);
+        if (classDef.metadata.canonical) {
+            this._grammar.addRule('constant_Entity__tt__device', [classDef.metadata.canonical],
+                this._runtime.simpleCombine(() => new Ast.Value.Entity(kind, 'tt:device', null)));
+        }
 
         const whitelist = classDef.getImplementationAnnotation('whitelist');
         let queries = Object.keys(classDef.queries);
@@ -875,10 +877,6 @@ class ThingpediaLoader {
             [preprocessed],
             {}
         );
-    }
-
-    async _getDataset(kind) {
-        return await this._tpClient.getExamplesByKinds([kind]);
     }
 
     // takes an expansion (array), a canonical (a string), and another expansion to replace the canonical
@@ -1002,14 +1000,30 @@ class ThingpediaLoader {
         }
     }
 
+    async _getAllDeviceNames() {
+        const devices = await this._tpClient.getAllDeviceNames();
+        return devices.map((d) => d.kind);
+    }
+
+    async _getDataset(kind) {
+        return await this._tpClient.getExamplesByKinds([kind]);
+    }
+
     async _loadMetadata() {
-        const [devices, idTypes] = await Promise.all([
-            this._tpClient.getAllDeviceNames(),
-            this._tpClient.getAllEntityTypes()
-        ]);
+        const idTypes = await this._tpClient.getAllEntityTypes();
+
+        let devices;
+        if (this._options.onlyDevices)
+            devices = this._options.onlyDevices;
+        else
+            devices = await this._getAllDeviceNames();
+
+        // called for no devices (inference mode, during init before the first command)
+        if (devices.length === 0)
+            return;
 
         let datasets = await Promise.all(devices.map(async (d) => {
-            return Grammar.parse(await this._getDataset(d.kind)).datasets[0];
+            return Grammar.parse(await this._getDataset(d)).datasets[0];
         }));
         datasets = datasets.filter((d) => !!d);
         if (datasets.length === 0) {
