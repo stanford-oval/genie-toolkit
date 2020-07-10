@@ -164,36 +164,6 @@ class MockEmailDevice {
     }
 }
 
-class MockBluetoothDevice {
-    constructor(who, paired) {
-        this.name = "Bluetooth Device " + who;
-        this.description = 'This is a bluetooth device of some sort';
-        this.kind = 'mock.bluetooth';
-        this.uniqueId = 'mock.bluetooth-' + who;
-        this.discoveredBy = 'phone';
-        this.paired = paired;
-    }
-
-    completeDiscovery(delegate) {
-        if (this.paired) {
-            delegate.configDone();
-            return Promise.resolve();
-        }
-
-        console.log('MOCK: Pairing with ' + this.uniqueId);
-        return delegate.confirm('Do you confirm the code 123456?').then((res) => {
-            if (!res) {
-                delegate.configFailed(new Error('Cancelled'));
-                return;
-            }
-
-            console.log('MOCK: Pairing done');
-            this.paired = true;
-            delegate.configDone();
-        });
-    }
-}
-
 class MockBingQuery {
     constructor() {
         this.uniqueId = 'com.bing-web_search';
@@ -333,19 +303,6 @@ class MockDeviceDatabase {
     }
 }
 
-class MockDiscoveryClient {
-    runDiscovery(_timeout, type) {
-        if (type === 'bluetooth' || !type)
-            return Promise.resolve([new MockBluetoothDevice('foo', true), new MockBluetoothDevice('bar', false)]);
-        else
-            return Promise.resolve([]);
-    }
-
-    stopDiscovery() {
-        return Promise.resolve();
-    }
-}
-
 const MOCK_ADDRESS_BOOK_DATA = [
     { displayName: 'Mom Corp Inc.', alternativeDisplayName: 'Mom Corp Inc.',
       isPrimary: true, starred: false, timesContacted: 0, type: 'work',
@@ -397,76 +354,6 @@ class MockAddressBook {
                 return contact.email_address === principal.substr('email:'.length);
             return null;
         }) || null);
-    }
-}
-
-class MockMessagingManager {
-    constructor() {
-        this.isAvailable = true;
-        this.type = 'mock';
-        this.account = 'mock-account:123456-SELF';
-    }
-
-    getSelf() {
-        return this.account;
-    }
-
-    isSelf(principal) {
-        return principal === this.account;
-    }
-
-    getIdentities() {
-        return ['phone:+15555555555'];
-    }
-
-    getUserByAccount(account) {
-        if (account === 'mock-account:123456789')
-            return Promise.resolve({ name: "Some Guy" });
-        else
-            return Promise.resolve(null);
-    }
-
-    getAccountForIdentity(identity) {
-        if (identity === 'phone:+XXXXXXXXX')
-            return Promise.resolve(null);
-        return Promise.resolve('mock-account:MOCK1234-' + identity);
-    }
-}
-
-class MockRemote {
-    constructor(schemas) {
-        this._schemas = schemas;
-    }
-
-
-    installProgramRemote(principal, identity, uniqueId, program) {
-        console.log('MOCK: Sending rule to ' + principal + ': ' + program.prettyprint());
-        return Promise.resolve();
-    }
-}
-
-class MockPermissionManager {
-    constructor(schemas) {
-        this._Schemas = schemas;
-    }
-
-    addPermission(permissionRule, extra) {
-        console.log('Added permission rule ' + permissionRule.prettyprint());
-        return Promise.resolve();
-    }
-
-    checkCanBeAllowed(principal, program) {
-        if (program.prettyprint(true) === `now => @com.facebook.post(status="MOCK DISALLOWED PROGRAM");`)
-            return Promise.resolve(false);
-
-        return Promise.resolve(true);
-    }
-
-    checkIsAllowed(principal, program) {
-        if (program.prettyprint(true) === `now => @com.facebook(id="com.facebook-33").post(status="MOCK DISALLOWED PROGRAM");`)
-            return Promise.resolve(null);
-
-        return Promise.resolve(program);
     }
 }
 
@@ -525,10 +412,6 @@ module.exports.createMockEngine = function(thingpedia, rng) {
         schemas: schemas,
         devices: new MockDeviceDatabase(),
         apps: new MockAppDatabase(schemas, gettext, rng),
-        discovery: new MockDiscoveryClient(),
-        messaging: new MockMessagingManager(),
-        remote: new MockRemote(schemas),
-        permissions: new MockPermissionManager(schemas),
 
         createApp(program, options = {}) {
             return this.apps.createApp(program, options);
