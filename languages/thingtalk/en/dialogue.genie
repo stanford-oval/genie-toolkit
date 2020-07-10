@@ -129,6 +129,21 @@ function context(state) {
     return [tags, ctx];
 }
 
+// handle answers generated from the UI
+function answer(state, answer) {
+    const ctx = S.getContextInfo(state);
+    switch (state.dialogueAct) {
+    case 'sys_slot_fill':
+        return D.impreciseSlotFillAnswer(ctx, answer);
+    case 'sys_search_question':
+        return D.impreciseSearchQuestionAnswer(ctx, answer);
+    case 'sys_confirm_action':
+        // TODO
+        return null;
+    default:
+        return null;
+    }
+}
 
 $agent = {
     ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
