@@ -125,8 +125,26 @@ function listProposalSearchQuestionReply(ctx, [name, questions]) {
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }
 
+function corefConstant(ctx, base, param) {
+    const previous = ctx.previousDomain;
+    assert(previous);
+    if (previous.results.results.length === 0)
+        return null;
+    const ctxStmt = previous.stmt;
+    const ctxSchema = ctxStmt.table ? ctxStmt.table.schema : ctxStmt.actions[0].schema;
+    if (!ctxSchema.class) // FIXME not sure how this happens...
+        return null;
+    if (ctxSchema.class.name !== base.schema.class.name)
+        return null;
+    const result = previous.results.results[0];
+    if (!result.value[param.name])
+        return null;
+    return result.value[param.name];
+}
+
 module.exports = {
     recommendationSearchQuestionReply,
     learnMoreSearchQuestionReply,
-    listProposalSearchQuestionReply
+    listProposalSearchQuestionReply,
+    corefConstant
 };

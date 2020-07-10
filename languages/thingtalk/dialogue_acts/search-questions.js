@@ -29,6 +29,7 @@ const {
 } = require('./refinement-helpers');
 const {
     isValidSearchQuestion,
+    isSimpleFilterTable,
     addParametersFromContext
 } = require('./common');
 
@@ -81,7 +82,7 @@ function makeSearchQuestion(ctx, questions) {
         return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_generic_search_question', null));
 
     if (questions.length === 1) {
-        const type = ctx.currentFunctionSchema.getArgument(questions[0]).type;
+        const type = ctx.current.stmt.table.schema.getArgument(questions[0]).type;
         return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_search_question', questions), null, type);
     }
 
@@ -115,13 +116,17 @@ function preciseSearchQuestionAnswer(ctx, [answerTable, answerAction]) {
         return null;
 
     const answerFunctions = C.getFunctionNames(answerTable);
-    assert(answerFunctions.length === 1);
+    if (answerFunctions.length !== 1)
+        return null;
     if (answerFunctions[0] !== ctx.currentFunction)
         return null;
     const currentTable = ctx.current.stmt.table;
     if (!isValidSearchQuestion(currentTable, questions || []))
         return null;
-    assert(answerTable.isFilter && ((answerTable.table.isCompute && answerTable.table.table.isInvocation) || answerTable.table.isInvocation));
+
+    // TODO we need to push down the filter, if possible
+    if (!isSimpleFilterTable(answerTable))
+        return null;
 
     if (answerAction !== null) {
         const answerFunctions = C.getFunctionNames(answerAction);

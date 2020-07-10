@@ -217,20 +217,7 @@ coref_constant = {
     | ctx:ctx_multidomain generic_preamble_for_answer 'the same' param:out_param_Any 'as' 'the' base:base_table  '.'
     | ctx:ctx_multidomain ('the same as the' | 'the') param:out_param_Any 'of' 'the' base:base_table '.'
     | ctx:ctx_multidomain generic_preamble_for_answer ('the same as the' | 'the') param:out_param_Any 'of' 'the' base:base_table  '.'
-    ) => {
-        const previous = ctx.previousDomain;
-        assert(previous);
-        if (previous.results.results.length === 0)
-            return null;
-        const ctxStmt = previous.stmt;
-        const ctxSchema = ctxStmt.table ? ctxStmt.table.schema : ctxStmt.actions[0].schema;
-        if (ctxSchema.class.name !== base.schema.class.name)
-            return null;
-        const result = previous.results.results[0];
-        if (!result.value[param.name])
-            return null;
-        return result.value[param.name];
-    };
+    ) => D.corefConstant(ctx, base, param);
 }
 
 imprecise_search_coref_answer = {

@@ -46,6 +46,8 @@ function adjustStatementsForInitialRequest(stmt) {
 
             const in_params = action.invocation.in_params;
             for (let in_param of in_params) {
+                if (in_param.value.isEvent) // TODO
+                    return null;
                 if (!in_param.value.isVarRef)
                     continue;
                 if (in_param.value.name.startsWith('__const_'))

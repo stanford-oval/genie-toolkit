@@ -20,7 +20,8 @@ const {
     addQuery
 } = require('../state_manip');
 const {
-    isFilterCompatibleWithInfo
+    isFilterCompatibleWithInfo,
+    isSimpleFilterTable
 } = require('./common');
 
 /**
@@ -162,8 +163,10 @@ function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
         //if (ctxFilterTable === null)
         //    return null;
         assert(filterTable.isFilter);
-        assert(filterTable.isFilter && ((filterTable.table.isCompute && filterTable.table.table.isInvocation) || filterTable.table.isInvocation));
-        //assert(filterTable.isFilter && filterTable.table.isInvocation);
+
+        // TODO we need to push down the filter, if possible
+        if (!isSimpleFilterTable(filterTable))
+            return null;
 
         refinedFilter = refineFilter(filterTable.filter, newFilter);
         if (refinedFilter === null)
@@ -378,7 +381,10 @@ function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
 function proposalReply(ctx, request, refinementFunction) {
     if (!C.isSameFunction(ctx.currentFunctionSchema, request.schema))
         return null;
-    assert(request.isFilter && ((request.table.isCompute && request.table.table.isInvocation) || request.table.isInvocation));
+
+    // TODO we need to push down the filter, if possible
+    if (!isSimpleFilterTable(request))
+        return null;
 
     const currentTable = ctx.current.stmt.table;
     const newTable = queryRefinement(currentTable, request.filter, refinementFunction);

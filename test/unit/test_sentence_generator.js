@@ -15,10 +15,11 @@ const path = require('path');
 const stream = require('stream');
 const seedrandom = require('seedrandom');
 
-const { BasicSentenceGenerator } = require('../../lib/sentence-generator/batch');
+const { BasicSentenceGenerator, DialogueGenerator } = require('../../lib/sentence-generator/batch');
 const { makeDummyEntities } = require('../../lib/utils/misc-utils');
 
 const ThingTalk = require('thingtalk');
+const Grammar = ThingTalk.Grammar;
 const NNSyntax = ThingTalk.NNSyntax;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 
@@ -58,7 +59,7 @@ async function processOne(id, sentence, code) {
     }
 }
 
-async function doTest(filename) {
+async function doTestBasic(filename) {
     const options = {
         rng: seedrandom.alea('almond is awesome'),
         locale: 'en-US',
@@ -67,8 +68,6 @@ async function doTest(filename) {
         thingpediaClient: _tpClient,
         flags: {
             turking: false,
-            remote_commands: true,
-            policies: true,
             aggregation: true,
             bookkeeping: true,
             triple_commands: true,
@@ -108,9 +107,86 @@ async function doTest(filename) {
     });
 }
 
+async function tryTypecheck(code) {
+    if (!code)
+        return;
+    try {
+        await Grammar.parseAndTypecheck(code, _schemaRetriever);
+    } catch(e) {
+        console.error(code);
+        throw e;
+    }
+}
+
+async function processDialogue(dlg) {
+    for (let turn of dlg.turns) {
+        await tryTypecheck(turn.context);
+        await tryTypecheck(turn.agent_target);
+        await tryTypecheck(turn.user_target);
+    }
+}
+
+
+async function doTestDialogue(filename) {
+    const options = {
+        rng: seedrandom.alea('almond is awesome'),
+        locale: 'en-US',
+        templateFiles: [filename],
+        targetLanguage: 'thingtalk',
+        thingpediaClient: _tpClient,
+        flags: {
+            turking: false,
+            aggregation: true,
+            bookkeeping: true,
+            triple_commands: true,
+            undefined_filter: true,
+            timer: true,
+            projection: true,
+            projection_with_filter: true,
+            dialogues: true,
+            multifilters: true,
+            schema_org: true,
+
+            // TODO
+            notablejoin: true,
+            nostream: true
+        },
+        targetPruningSize: 15,
+        maxDepth: 9,
+        maxTurns: 3,
+        minibatchSize: 300,
+        numMinibatches: 1,
+        debug: 1
+    };
+
+    const generator = new DialogueGenerator(options);
+    const writer = new stream.Writable({
+        objectMode: true,
+
+        write(dlg, encoding, callback) {
+            processDialogue(dlg).then(() => {
+                callback(null);
+            }, (e) => {
+                callback(e);
+            });
+        },
+
+        flush(callback) {
+            process.nextTick(callback);
+        }
+    });
+    generator.pipe(writer);
+
+    await new Promise((resolve, reject) => {
+        writer.on('finish', resolve);
+        writer.on('error', reject);
+    });
+}
+
 async function main() {
-    await doTest(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/thingtalk.genie'));
-    await doTest(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/basic.genie'));
+    await doTestBasic(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/thingtalk.genie'));
+    await doTestBasic(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/basic.genie'));
+    await doTestDialogue(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/dialogue.genie'));
 }
 module.exports = main;
 if (!module.parent)
