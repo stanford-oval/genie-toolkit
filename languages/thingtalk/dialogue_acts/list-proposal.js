@@ -35,7 +35,7 @@ const {
     proposalReply,
 } = require('./refinement-helpers');
 
-function checkListProposal(nameList, info) {
+function checkListProposal(nameList, info, hasLearnMore) {
     const { ctx, results } = nameList;
     const resultType = results[0].value.id.getType();
 
@@ -55,7 +55,7 @@ function checkListProposal(nameList, info) {
     }
 
     const action = ctx.nextInfo && ctx.nextInfo.isAction ? getActionInvocation(ctx.next) : null;
-    return [results, info, action];
+    return [results, info, action, hasLearnMore];
 }
 
 function addActionToListProposal(nameList, action) {
@@ -67,16 +67,19 @@ function addActionToListProposal(nameList, action) {
     if (ctxAction && !C.isSameFunction(ctxAction.schema, action.schema))
         return null;
 
-    return [results, null, action];
+    return [results, null, action, false];
 }
 
 function makeListProposalReply(ctx, proposal) {
-    const [results, /*info*/, action] = proposal;
+    const [results, /*info*/, action, hasLearnMore] = proposal;
+    const options = {};
+    if (action || hasLearnMore)
+        options.end = false;
     const dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
     if (action === null)
-        return makeAgentReply(ctx, makeSimpleState(ctx, dialogueAct, null), proposal);
+        return makeAgentReply(ctx, makeSimpleState(ctx, dialogueAct, null), proposal, null, options);
     else
-        return makeAgentReply(ctx, addAction(ctx, dialogueAct, action, 'proposed'), proposal);
+        return makeAgentReply(ctx, addAction(ctx, dialogueAct, action, 'proposed'), proposal, null, options);
 }
 
 function positiveListProposalReply(ctx, [name, acceptedAction, mustHaveAction]) {

@@ -502,7 +502,7 @@ function checkValidQuery(table) {
     return true;
 }
 
-function makeProgram(rule, principal = null) {
+function makeProgram(rule) {
     assert(rule instanceof Ast.Statement);
 
     // FIXME: A hack for schema.org only to drop certain programs
@@ -515,7 +515,7 @@ function makeProgram(rule, principal = null) {
         if (_loader.flags.nostream)
             return null;
     }
-    return new Ast.Program(null, [], [], [rule], principal);
+    return new Ast.Program(null, [], [], [rule], null);
 }
 
 function combineStreamCommand(stream, command) {
@@ -761,7 +761,7 @@ function addFilter(table, filter, forceAdd = false) {
     // different story is when the filter being added is in the next sentence,
     // because then we expect to paraphrase only the second filter, and hopefully not mess up
     //
-    // hence, addFilterToProgram/addFilterToPolicy (which are contextual) pass forceAdd = true,
+    // hence, addFilterToProgram (which are contextual) pass forceAdd = true,
     // which skips the 2 filter heuristic
     if (!forceAdd && !_loader.flags.multifilters && table.isFilter && _loader.flags.turking)
         return null;
@@ -840,30 +840,6 @@ function addFilterToProgram(program, filter) {
     return clone;
 }
 
-function addFilterToPolicy(policy, filter) {
-    const clone = policy.clone();
-
-    if (clone.action.isSpecified) {
-        if (checkFilter(clone.action, filter)) {
-            clone.action.filter = new Ast.BooleanExpression.And(null, [clone.action.filter, filter]).optimize();
-            return clone;
-        }
-    }
-
-    if (clone.query.isSpecified) {
-        if (checkFilter(clone.query, filter)) {
-            clone.query.filter = new Ast.BooleanExpression.And(null, [clone.query.filter, filter]).optimize();
-            return clone;
-        }
-    }
-
-    if (!filter.isExternal)
-        return null;
-
-    clone.principal = new Ast.BooleanExpression.And(null, [clone.principal, filter]).optimize();
-    return clone;
-}
-
 function tableToStream(table, projArg) {
     if (!table.schema.is_monitorable)
         return null;
@@ -873,55 +849,6 @@ function tableToStream(table, projArg) {
     else
         stream = new Ast.Stream.Monitor(null, table, projArg, table.schema);
     return stream;
-}
-
-function inParamsToFilters(in_params) {
-    const operands = [];
-    for (let param of in_params) {
-        if (param.value.isUndefined)
-            continue;
-        operands.push(new Ast.BooleanExpression.Atom(null, param.name, '==', param.value));
-    }
-    return new Ast.BooleanExpression.And(null, operands);
-}
-
-function makePolicy(principal, table, action) {
-    if (action && action.invocation && action.invocation.selector.attributes.length)
-        return null;
-
-    const policyAction = action ?
-        new Ast.PermissionFunction.Specified(null, action.invocation.selector.kind, action.invocation.channel, inParamsToFilters(action.invocation.in_params), action.invocation.schema) :
-        Ast.PermissionFunction.Builtin;
-
-    let policyQuery = Ast.PermissionFunction.Builtin;
-    if (table) {
-        /*if (!table.schema.remote_confirmation || table.schema.remote_confirmation.indexOf('$__person') < 0)
-            return null;*/
-
-        if (table.isFilter && table.table.isInvocation) {
-            if (table.table.invocation.selector.attributes.length)
-                return null;
-
-            const queryfilter = new Ast.BooleanExpression.And(null, [inParamsToFilters(table.table.invocation.in_params), table.filter]);
-            policyQuery = new Ast.PermissionFunction.Specified(null, table.table.invocation.selector.kind, table.table.invocation.channel, queryfilter,
-                table.table.invocation.schema);
-        } else if (table.isInvocation) {
-            if (table.invocation.selector.attributes.length)
-                return null;
-
-            const queryfilter = inParamsToFilters(table.invocation.in_params);
-            policyQuery = new Ast.PermissionFunction.Specified(null, table.invocation.selector.kind, table.invocation.channel, queryfilter,
-                table.invocation.schema);
-        } else {
-            return null;
-        }
-    }
-
-    const sourcepredicate = principal ?
-        new Ast.BooleanExpression.Atom(null, 'source', '==', principal) :
-        Ast.BooleanExpression.True;
-
-    return new Ast.PermissionRule(null, sourcepredicate, policyQuery, policyAction);
 }
 
 function builtinSayAction(pname) {
@@ -1808,8 +1735,6 @@ module.exports = {
     timeGetPredicate,
 
     makeProgram,
-    //combineRemoteProgram,
-    makePolicy,
     combineStreamCommand,
 
     checkNotSelfJoinStream,
@@ -1873,7 +1798,6 @@ module.exports = {
     fillNextSlot,
     addTimerToProgram,
     addFilterToProgram,
-    addFilterToPolicy,
     makeMonitor,
 
     // joins

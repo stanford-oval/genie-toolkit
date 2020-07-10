@@ -28,15 +28,15 @@ system_list_proposal = {
          'would you like to learn more ?' | 'would you like to learn more about either of them ?' |
          'would you like to know more about them ?' | 'would you like to hear more about them ?' |
          'are you interested to hear more about any of them ?')
-        => D.checkListProposal(name_list, null);
+        => D.checkListProposal(name_list, null, true);
 
     ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' ('they' | 'all of them') 'are' info:result_info_phrase '.'
-        => D.checkListProposal(name_list, info);
+        => D.checkListProposal(name_list, info, true);
 
     ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' 'both are' info:result_info_phrase '.' => {
         if (name_list.results.length !== 2)
             return null;
-        return D.checkListProposal(name_list, info);
+        return D.checkListProposal(name_list, info, true);
     };
 
     ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_list_proposal

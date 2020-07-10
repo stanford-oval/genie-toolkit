@@ -195,7 +195,7 @@ $root = {
         }
     };
 
-     ( q:complete_query_program 'how about' p:constant_Any '?'
+    ( q:complete_query_program 'how about' p:constant_Any '?'
     |  q:complete_query_program 'show me' p:constant_Any 'instead'
     ) => C.replaceAnyParameterFromContext(q, p);
 
@@ -240,7 +240,4 @@ $root = {
             return null;
         return C.addFilterToProgram(prog, filter, _tpLoader);
     };
-
-    prog:policy ('only if' | 'do this only if' | 'and only when' | 'only when') filter:atom_filter => C.addFilterToPolicy(prog, filter, _tpLoader);
-    prog:policy ('only if' | 'do this only if' | 'and only when' | 'only when') filter:get_predicate_filter => C.addFilterToPolicy(prog, filter, _tpLoader);
 }

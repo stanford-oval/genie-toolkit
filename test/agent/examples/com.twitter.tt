@@ -1,0 +1,194 @@
+dataset @com.twitter language "en" {
+    stream := monitor (@com.twitter.home_timeline())
+    #_[utterances=["when someone i follow tweets","when i receive a tweet","when there is a new tweet in my timeline","when somebody i follow on twitter posts","when there is a new post on my twitter timeline"]]
+    #_[preprocessed=["when someone i follow tweets","when i receive a tweet","when there is a new tweet in my timeline","when somebody i follow on twitter posts","when there is a new post on my twitter timeline"]]
+    #[id=28017000] #[click_count=11] #[like_count=1]
+    #[name=""];
+    stream (p_author :Entity(tt:username)) := monitor ((@com.twitter.home_timeline()), author == p_author)
+    #_[utterances=["when user ${p_author:no-undefined} tweets","when i receive a tweet from ${p_author:no-undefined}"]]
+    #_[preprocessed=["when user ${p_author:no-undefined} tweets","when i receive a tweet from ${p_author:no-undefined}"]]
+    #[id=28017005] #[click_count=7] #[like_count=0]
+    #[name=""];
+    stream (p_in_reply_to :Entity(tt:username)) := monitor ((@com.twitter.home_timeline()), in_reply_to == p_in_reply_to)
+    #_[utterances=["when someone i follow replies to user ${p_in_reply_to} on twitter"]]
+    #_[preprocessed=["when someone i follow replies to user ${p_in_reply_to} on twitter"]]
+    #[id=28017007] #[click_count=1] #[like_count=0]
+    #[name=""];
+    stream := monitor (@com.twitter.direct_messages())
+    #_[utterances=["when i receive a direct message on twitter","when somebody dms me","when somebody sends me a direct message","when somebody sends me a message on twitter","when somebody messages me on twitter","when i get a message on twitter"]]
+    #_[preprocessed=["when i receive a direct message on twitter","when somebody dms me","when somebody sends me a direct message","when somebody sends me a message on twitter","when somebody messages me on twitter","when i get a message on twitter"]]
+    #[id=28017008] #[click_count=2] #[like_count=1]
+    #[name=""];
+    stream (p_sender :Entity(tt:username)) := monitor ((@com.twitter.direct_messages()), sender == p_sender)
+    #_[utterances=["when i receive a direct message from ${p_sender:no-undefined} on twitter","if i receive a dm on twitter from ${p_sender:no-undefined}","when ${p_sender:no-undefined} dms me","when ${p_sender:no-undefined} sends me a direct message on twitter"]]
+    #_[preprocessed=["when i receive a direct message from ${p_sender:no-undefined} on twitter","if i receive a dm on twitter from ${p_sender:no-undefined}","when ${p_sender:no-undefined} dms me","when ${p_sender:no-undefined} sends me a direct message on twitter"]]
+    #[id=28017014] #[click_count=1] #[like_count=1]
+    #[name=""];
+    stream := monitor (@com.twitter.my_tweets())
+    #_[utterances=["when i tweet","when i post something to twitter","when i make a new tweet","when i make a new twitter post"]]
+    #_[preprocessed=["when i tweet","when i post something to twitter","when i make a new tweet","when i make a new twitter post"]]
+    #[id=28017018] #[click_count=4] #[like_count=1]
+    #[name=""];
+    stream (p_in_reply_to :Entity(tt:username)) := monitor ((@com.twitter.my_tweets()), in_reply_to == p_in_reply_to)
+    #_[utterances=["when i reply to ${p_in_reply_to} on twitter","when i make a new tweet in reply to ${p_in_reply_to} on twitter","when i mention $p_in_reply_to on twitter"]]
+    #_[preprocessed=["when i reply to ${p_in_reply_to} on twitter","when i make a new tweet in reply to ${p_in_reply_to} on twitter","when i mention ${p_in_reply_to} on twitter"]]
+    #[id=28017022] #[click_count=1] #[like_count=0]
+    #[name=""];
+    query (p_text :String) := (@com.twitter.search()), text =~ p_text
+    #_[utterances=["tweets matching ${p_text} on twitter","${p_text:const} tweets","recent tweets about $p_text"]]
+    #_[preprocessed=["tweets matching ${p_text} on twitter","${p_text:const} tweets","recent tweets about ${p_text}"]]
+    #[id=28017025] #[click_count=4] #[like_count=1]
+    #[name=""];
+    query := @com.twitter.search()
+    #_[utterances=["recent tweets","the latest tweets"]]
+    #_[preprocessed=["recent tweets","the latest tweets"]]
+    #[id=28017028] #[click_count=12] #[like_count=1]
+    #[name=""];
+    query (p_author :Entity(tt:username)) := (@com.twitter.search()), author == p_author
+    #_[utterances=["recent tweets from ${p_author:no-undefined}","recents posts from ${p_author:no-undefined} on twitter"]]
+    #_[preprocessed=["recent tweets from ${p_author:no-undefined}","recents posts from ${p_author:no-undefined} on twitter"]]
+    #[id=28017030] #[click_count=2] #[like_count=1]
+    #[name=""];
+    query (p_author :Entity(tt:username), p_text :String) := (@com.twitter.search()), (text =~ p_text && author == p_author)
+    #_[utterances=["recent tweets from ${p_author} matching ${p_text}","recents posts on twitter from ${p_author:no-undefined} matching $p_text"]]
+    #_[preprocessed=["recent tweets from ${p_author} matching ${p_text}","recents posts on twitter from ${p_author:no-undefined} matching ${p_text}"]]
+    #[id=28017032] #[click_count=2] #[like_count=1]
+    #[name=""];
+    query (p_in_reply_to :Entity(tt:username)) := (@com.twitter.search()), in_reply_to == p_in_reply_to
+    #_[utterances=["recent tweets in reply to ${p_in_reply_to}"]]
+    #_[preprocessed=["recent tweets in reply to ${p_in_reply_to}"]]
+    #[id=28017034] #[click_count=1] #[like_count=0]
+    #[name=""];
+    query (p_in_reply_to :Entity(tt:username), p_text :String) := (@com.twitter.search()), (text =~ p_text && in_reply_to == p_in_reply_to)
+    #_[utterances=["recent tweets in reply to ${p_in_reply_to} matching ${p_text}"]]
+    #_[preprocessed=["recent tweets in reply to ${p_in_reply_to} matching ${p_text}"]]
+    #[id=28017035] #[click_count=1] #[like_count=0]
+    #[name=""];
+    query (p_hashtag :Entity(tt:hashtag)) := (@com.twitter.search()), contains(hashtags, p_hashtag)
+    #_[utterances=["tweets with hashtag ${p_hashtag} on twitter","tweets with hashtag ${p_hashtag}","tweets about $p_hashtag"]]
+    #_[preprocessed=["tweets with hashtag ${p_hashtag} on twitter","tweets with hashtag ${p_hashtag}","tweets about ${p_hashtag}"]]
+    #[id=28017036] #[click_count=1] #[like_count=0]
+    #[name=""];
+    query (p_count :Number, p_hashtag :Entity(tt:hashtag)) := (@com.twitter.search(count=p_count)), contains(hashtags, p_hashtag)
+    #_[utterances=["${p_count:const} recent tweets with hashtag $p_hashtag"]]
+    #_[preprocessed=["${p_count:const} recent tweets with hashtag ${p_hashtag}"]]
+    #[id=28017039] #[click_count=1] #[like_count=0]
+    #[name=""];
+    query (p_author :Entity(tt:username), p_hashtag :Entity(tt:hashtag)) := (@com.twitter.search()), (contains(hashtags, p_hashtag) && author == p_author)
+    #_[utterances=["tweets from ${p_author} with hashtag $p_hashtag","posts on twitter from $p_author with hashtag $p_hashtag"]]
+    #_[preprocessed=["tweets from ${p_author} with hashtag ${p_hashtag}","posts on twitter from ${p_author} with hashtag ${p_hashtag}"]]
+    #[id=28017040] #[click_count=1] #[like_count=0]
+    #[name=""];
+    query (p_hashtag :Entity(tt:hashtag), p_in_reply_to :Entity(tt:username)) := (@com.twitter.search()), (contains(hashtags, p_hashtag) && in_reply_to == p_in_reply_to)
+    #_[utterances=["tweets with hashtag ${p_hashtag} in reply to ${p_in_reply_to}"]]
+    #_[preprocessed=["tweets with hashtag ${p_hashtag} in reply to ${p_in_reply_to}"]]
+    #[id=28017042] #[click_count=1] #[like_count=0]
+    #[name=""];
+    query (p_author :Entity(tt:username), p_in_reply_to :Entity(tt:username)) := (@com.twitter.search()), (author == p_author && in_reply_to == p_in_reply_to)
+    #_[utterances=["posts on twitter from $p_author in reply to ${p_in_reply_to}"]]
+    #_[preprocessed=["posts on twitter from ${p_author} in reply to ${p_in_reply_to}"]]
+    #[id=28017043] #[click_count=1] #[like_count=0]
+    #[name=""];
+    action (p_status :String) := @com.twitter.post(status=p_status)
+    #_[utterances=["tweet ${p_status}","post on twitter saying ${p_status}","post ${p_status} on twitter","tweet that ${p_status:const}","make a post on twitter that says $p_status","make a tweet on twitter that says $p_status"]]
+    #_[preprocessed=["tweet ${p_status}","post on twitter saying ${p_status}","post ${p_status} on twitter","tweet that ${p_status:const}","make a post on twitter that says ${p_status}","make a tweet on twitter that says ${p_status}"]]
+    #[id=28017044] #[click_count=1] #[like_count=0]
+    #[name=""];
+    action (p_to :Entity(tt:username), p_message :String) := @com.twitter.send_direct_message(to=p_to, message=p_message)
+    #_[utterances=["send a dm on twitter to ${p_to} saying ${p_message}","send a direct message on twitter to ${p_to} saying ${p_message}","dm ${p_to} on twitter saying ${p_message}","send a message on twitter to ${p_to} saying ${p_message}"]]
+    #_[preprocessed=["send a dm on twitter to ${p_to} saying ${p_message}","send a direct message on twitter to ${p_to} saying ${p_message}","dm ${p_to} on twitter saying ${p_message}","send a message on twitter to ${p_to} saying ${p_message}"]]
+    #[id=28017050] #[click_count=1] #[like_count=0]
+    #[name=""];
+    action (p_caption :String) := @com.twitter.post_picture(caption=p_caption, picture_url=$?)
+    #_[utterances=["tweet a picture with caption ${p_caption}","post a picture on twitter saying ${p_caption}"]]
+    #_[preprocessed=["tweet a picture with caption ${p_caption}","post a picture on twitter saying ${p_caption}"]]
+    #[id=28017054] #[click_count=1] #[like_count=0]
+    #[name=""];
+    action := @com.twitter.post_picture(caption=$?, picture_url=$?)
+    #_[utterances=["tweet a picture","post a picture on twitter"]]
+    #_[preprocessed=["tweet a picture","post a picture on twitter"]]
+    #[id=28017056] #[click_count=2] #[like_count=0]
+    #[name=""];
+    action (p_user_name :Entity(tt:username)) := @com.twitter.follow(user_name=p_user_name)
+    #_[utterances=["follow ${p_user_name} on twitter","become a follower of ${p_user_name} on twitter","be a twitter follower of ${p_user_name}","become a twitter follower of ${p_user_name}"]]
+    #_[preprocessed=["follow ${p_user_name} on twitter","become a follower of ${p_user_name} on twitter","be a twitter follower of ${p_user_name}","become a twitter follower of ${p_user_name}"]]
+    #[id=28017058] #[click_count=1] #[like_count=1]
+    #[name=""];
+    action (p_user_name :Entity(tt:username)) := @com.twitter.unfollow(user_name=p_user_name)
+    #_[utterances=["unfollow ${p_user_name} on twitter","stop following ${p_user_name} on twitter"]]
+    #_[preprocessed=["unfollow ${p_user_name} on twitter","stop following ${p_user_name} on twitter"]]
+    #[id=28017062] #[click_count=1] #[like_count=0]
+    #[name=""];
+    query := @com.twitter.home_timeline()
+    #_[utterances=["tweets from anyone i follow","tweets in my timeline"]]
+    #_[preprocessed=["tweets from anyone i follow","tweets in my timeline"]]
+    #[id=28017064] #[click_count=2] #[like_count=1]
+    #[name=""];
+    query (p_text :String) := (@com.twitter.home_timeline()), text =~ p_text
+    #_[utterances=["tweets from anyone i follow that contain ${p_text}","tweets from anyone i follow that match ${p_text}"]]
+    #_[preprocessed=["tweets from anyone i follow that contain ${p_text}","tweets from anyone i follow that match ${p_text}"]]
+    #[id=28017066] #[click_count=1] #[like_count=0]
+    #[name=""];
+    query (p_in_reply_to :Entity(tt:username)) := (@com.twitter.my_tweets()), in_reply_to == p_in_reply_to
+    #_[utterances=["my twitter replies to ${p_in_reply_to}","my twitter mentions to $p_in_reply_to","my tweets that mention $p_in_reply_to"]]
+    #_[preprocessed=["my twitter replies to ${p_in_reply_to}","my twitter mentions to ${p_in_reply_to}","my tweets that mention ${p_in_reply_to}"]]
+    #[id=28017068] #[click_count=1] #[like_count=0]
+    #[name=""];
+    query := @com.twitter.my_tweets()
+    #_[utterances=["my tweets","my posts on twitter","my recent tweets","tweets i made"]]
+    #_[preprocessed=["my tweets","my posts on twitter","my recent tweets","tweets i made"]]
+    #[id=28017071] #[click_count=1] #[like_count=0]
+    #[name=""];
+    query := @com.twitter.direct_messages()
+    #_[utterances=["my twitter direct messages","the direct messages i received on twitter","the messages i got on twitter","my twitter messages","my twitter dms"]]
+    #_[preprocessed=["my twitter direct messages","the direct messages i received on twitter","the messages i got on twitter","my twitter messages","my twitter dms"]]
+    #[id=28017075] #[click_count=1] #[like_count=0]
+    #[name=""];
+    query (p_in_reply_to :Entity(tt:username)) := (@com.twitter.home_timeline()), in_reply_to == p_in_reply_to
+    #_[utterances=["tweets from anyone i follow in reply to ${p_in_reply_to}"]]
+    #_[preprocessed=["tweets from anyone i follow in reply to ${p_in_reply_to}"]]
+    #[id=28017080] #[click_count=1] #[like_count=0]
+    #[name=""];
+    query (p_hashtag :Entity(tt:hashtag)) := (@com.twitter.my_tweets()), contains(hashtags, p_hashtag)
+    #_[utterances=["my tweets with hashtag ${p_hashtag}","tweets i made with hashtag ${p_hashtag}"]]
+    #_[preprocessed=["my tweets with hashtag ${p_hashtag}","tweets i made with hashtag ${p_hashtag}"]]
+    #[id=28017081] #[click_count=1] #[like_count=0]
+    #[name=""];
+    query (p_hashtag :Entity(tt:hashtag)) := (@com.twitter.home_timeline()), contains(hashtags, p_hashtag)
+    #_[utterances=["tweets from people i follow about ${p_hashtag:const}"]]
+    #_[preprocessed=["tweets from people i follow about ${p_hashtag:const}"]]
+    #[id=28017083] #[click_count=1] #[like_count=1]
+    #[name=""];
+    action (p_tweet_id :Entity(com.twitter:id)) := @com.twitter.retweet(tweet_id=p_tweet_id)
+    #_[utterances=["retweet ${p_tweet_id}","retweet $p_tweet_id to my followers"]]
+    #_[preprocessed=["retweet ${p_tweet_id}","retweet ${p_tweet_id} to my followers"]]
+    #[id=28017084] #[click_count=1] #[like_count=0]
+    #[name=""];
+    program := {
+  monitor (@com.twitter.home_timeline()) => @com.twitter.retweet(tweet_id=tweet_id);
+}
+    #_[utterances=["automatically retweet anyone i follow"]]
+    #_[preprocessed=["automatically retweet anyone i follow"]]
+    #[id=28017086] #[click_count=1] #[like_count=0]
+    #[name=""];
+    action (p_picture_url :Entity(tt:picture)) := @com.twitter.post_picture(picture_url=p_picture_url, caption=$?)
+    #_[utterances=["post ${p_picture_url} on twitter","upload $p_picture_url to twitter","make a tweet containing $p_picture_url"]]
+    #_[preprocessed=["post ${p_picture_url} on twitter","upload ${p_picture_url} to twitter","make a tweet containing ${p_picture_url}"]]
+    #[id=28017087] #[click_count=1] #[like_count=0]
+    #[name=""];
+    action (p_picture_url :Entity(tt:picture), p_caption :String) := @com.twitter.post_picture(picture_url=p_picture_url, caption=p_caption)
+    #_[utterances=["post ${p_picture_url} on twitter with caption ${p_caption}","caption ${p_picture_url} as ${p_caption:const} and post it on twitter","upload ${p_picture_url} on twitter with caption ${p_caption}"]]
+    #_[preprocessed=["post ${p_picture_url} on twitter with caption ${p_caption}","caption ${p_picture_url} as ${p_caption:const} and post it on twitter","upload ${p_picture_url} on twitter with caption ${p_caption}"]]
+    #[id=28017090] #[click_count=1] #[like_count=0]
+    #[name=""];
+    action := @com.twitter.post(status=$?)
+    #_[utterances=["tweet something","make a tweet","make a twitter post","post on twitter"]]
+    #_[preprocessed=["tweet something","make a tweet","make a twitter post","post on twitter"]]
+    #[id=28017093] #[click_count=1] #[like_count=0]
+    #[name=""];
+    action (p_to :Entity(tt:username)) := @com.twitter.send_direct_message(to=p_to, message=$?)
+    #_[utterances=["send a message to $p_to on twitter","send a twitter message to $p_to","send a twitter direct message to $p_to","send a twitter dm to $p_to","dm $p_to on twitter"]]
+    #_[preprocessed=["send a message to ${p_to} on twitter","send a twitter message to ${p_to}","send a twitter direct message to ${p_to}","send a twitter dm to ${p_to}","dm ${p_to} on twitter"]]
+    #[id=28017097] #[click_count=1] #[like_count=0]
+    #[name=""];
+}

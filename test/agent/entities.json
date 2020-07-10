@@ -8,6 +8,12 @@
       "has_ner_support": true
     },
     {
+      "type": "com.yelp:restaurant",
+      "name": "Restaurant",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
       "type": "com.gmail:email_id",
       "name": "GMail Email ID",
       "is_well_known": 0,
