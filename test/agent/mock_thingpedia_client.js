@@ -246,11 +246,7 @@ module.exports = class MockThingpediaClient extends Tp.BaseClient {
     async getExamplesByKinds(kinds) {
         assert.strictEqual(kinds.length, 1);
 
-        if (['com.facebook', 'com.phdcomics', 'com.xkcd', 'com.yahoo.finance', 'gov.nasa', 'org.thingpedia.builtin.thingengine.phone',
-             'uk.ac.cam.multiwoz.Restaurant'].includes(kinds[0]))
-            return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), 'examples/' + kinds[0] + '.tt'), { encoding: 'utf8' });
-        else
-            return `dataset @empty {}`;
+        return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), 'examples/' + kinds[0] + '.tt'), { encoding: 'utf8' });
     }
 
     getAllExamples() {

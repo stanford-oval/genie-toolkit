@@ -215,20 +215,13 @@ async function test(testRunner, dlg, i) {
 
     testRunner.reset();
 
-    try {
-        // reset the conversation
-        if (i > 0)
-            await roundtrip(testRunner, '\\r bookkeeping special special:stop', null);
+    // reset the conversation
+    if (i > 0)
+        await roundtrip(testRunner, '\\r bookkeeping special special:stop', null);
 
-        for (let turn of dlg) {
-            if (!await roundtrip(testRunner, turn.user, turn.agent))
-                return;
-        }
-    } catch(e) {
-        console.error('Test Case #' + (i+1) + ': failed with exception');
-        console.error('Error: ' + e.message);
-        console.error(e.stack);
-        testRunner.anyFailed = true;
+    for (let turn of dlg) {
+        if (!await roundtrip(testRunner, turn.user, turn.agent))
+            return;
     }
 }
 
@@ -246,7 +239,7 @@ async function main(limit = Infinity) {
     const conversation = new Conversation(engine, 'test', new MockUser(), {
         nluServerUrl: nluServerUrl,
         nlgServerUrl: null,
-        debug: false,
+        debug: true,
         testMode: true,
         showWelcome: true,
         anonymous: false,
@@ -260,9 +253,6 @@ async function main(limit = Infinity) {
     const TEST_CASES = await loadTestCases();
     for (let i = 0; i < Math.min(limit, TEST_CASES.length); i++)
         await test(testRunner, TEST_CASES[i], i);
-
-    if (testRunner.anyFailed)
-        throw new Error('Test failed');
 
     console.log('Done');
     process.exit(0);
