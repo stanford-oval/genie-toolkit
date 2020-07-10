@@ -40,7 +40,7 @@
     "thingpedia": "~2.8.0-alpha.1",
     "thingtalk": "~1.11.0-alpha.2",
     "thingtalk-units": "^0.1.0",
-    "uuid": "^7.0.0",
+    "uuid": "^8.2.0",
     "ws": "^7.3.0"
   },
   "devDependencies": {
