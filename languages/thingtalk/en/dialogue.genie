@@ -158,7 +158,7 @@ $agent = {
 
     // action results
     action_success_phrase;
-    action:action_success_phrase anything_else_phrase => action;
+    action:action_success_phrase anything_else_phrase => S.setEndBit(action, false);
     action_error_phrase;
 
     // confirming an action
