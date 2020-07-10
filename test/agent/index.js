@@ -57,6 +57,10 @@ class TestRunner {
 
     reset() {
         this.rng.reset();
+        this.nextTurn();
+    }
+
+    nextTurn() {
         this._buffer = '';
     }
 
@@ -185,7 +189,7 @@ async function loadTestCases() {
 }
 
 async function roundtrip(testRunner, input, expected) {
-    testRunner.reset();
+    testRunner.nextTurn();
 
     const conversation = testRunner.conversation;
     if (input.startsWith('\\r {'))
@@ -214,7 +218,7 @@ async function test(testRunner, dlg, i) {
     try {
         // reset the conversation
         if (i > 0)
-            await roundtrip(testRunner, ['bookkeeping', 'special', 'special:stop'], null);
+            await roundtrip(testRunner, '\\r bookkeeping special special:stop', null);
 
         for (let turn of dlg) {
             if (!await roundtrip(testRunner, turn.user, turn.agent))
@@ -230,9 +234,10 @@ async function test(testRunner, dlg, i) {
 
 async function main(limit = Infinity) {
     const testRunner = new TestRunner();
+    const rng = testRunner.rng.makeRNG();
 
     const tpClient = new MockThingpediaClient(testRunner);
-    const engine = MockEngine.createMockEngine(tpClient);
+    const engine = MockEngine.createMockEngine(tpClient, rng);
 
     // intercept createApp
     const delegate = new TestDelegate(testRunner);
@@ -245,7 +250,7 @@ async function main(limit = Infinity) {
         testMode: true,
         showWelcome: true,
         anonymous: false,
-        rng: testRunner.rng.makeRNG(),
+        rng: rng,
     });
     testRunner.conversation = conversation;
     await mockNLU(conversation);

@@ -126,15 +126,18 @@ function makeAnswerStyleRecommendation({ topResult, ctx, action }, filter) {
 }
 
 function makeRecommendationReply(ctx, proposal) {
-    const { topResult, action } = proposal;
+    const { topResult, action, hasLearnMore } = proposal;
+    const options = {};
+    if (action || hasLearnMore)
+        options.end = false;
     if (action === null) {
-        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_recommend_one', null), proposal);
+        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_recommend_one', null), proposal, null, options);
     } else {
         const chainParam = findChainParam(topResult, action);
         if (!chainParam)
             return null;
         return makeAgentReply(ctx, addActionParam(ctx, 'sys_recommend_one', action, chainParam, topResult.value.id, 'proposed'),
-            proposal);
+            proposal, null, options);
     }
 }
 

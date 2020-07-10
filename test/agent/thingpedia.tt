@@ -1757,7 +1757,7 @@ class @com.yelp
 #_[canonical="yelp"]
 {
   import loader from @org.thingpedia.v2();
-  import config from @org.thingpedia.config.none(api_key="cyAtJUkZ8pGOCX_eB1-xpQxpwoAvTRKwFgHV5x2mWrM1xYzNkG99aTFz_7MUjQG_7scwLc-1RsKvnexI8ioIcje_964wTiYrckbllFl-_cACmOfAMvkuSj8ihCxgXXYx");
+  import config from @org.thingpedia.config.none(api_key="$?");
 
   list query restaurant(out id: Entity(com.yelp:restaurant)
                         #[conflict_filter=["cuisines", "price_range"]]
@@ -1828,7 +1828,6 @@ class @com.yelp
   #_[canonical="restaurant"]
   #_[confirmation="restaurants on Yelp"]
   #[minimal_projection=["id"]]
-  #[default_projection=["id", "link", "cuisines", "image_url"]]
   #_[formatted=[{
     type="rdl",
     displayTitle="${id}",

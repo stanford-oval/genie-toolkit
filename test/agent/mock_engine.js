@@ -9,40 +9,97 @@
 // See COPYING for details
 "use strict";
 
+const assert = require('assert');
 const ThingTalk = require('thingtalk');
-const Tp = require('thingpedia');
+const Ast = ThingTalk.Ast;
 const Gettext = require('node-gettext');
 const uuid = require('uuid');
+const AsyncQueue = require('consumer-queue');
 
 const { MockPlatform } = require('../unit/mock_utils');
+const {
+    ResultGenerator,
+    SimulationExecEnvironment,
+} = require('../../lib/dialogue-agent/execution/simulation_exec_environment');
+
+
+class QueueOutputDelegate {
+    constructor() {
+        this._queue = new AsyncQueue();
+    }
+
+    [Symbol.asyncIterator]() {
+        return this;
+    }
+    next() {
+        return this._queue.pop();
+    }
+
+    done() {
+        this._queue.push({ done: true });
+    }
+    output(outputType, outputValue) {
+        this._queue.push({ done: false, value: { outputType, outputValue } });
+    }
+    notifyError(error) {
+        this._queue.push({ done: false, value: error });
+    }
+}
 
 class MockAppExecutor {
-    constructor(schemas, code, options) {
+    constructor(simulator, schemas, program, options) {
+        this._simulator = simulator;
         this._schemas = schemas;
+        this._rng = options.rng;
 
         this.name = options.name;
         this.description = options.description;
-        this.code = code;
+        this.code = program.prettyprint();
         this.state = options;
         this.uniqueId = options.uniqueId;
 
-        console.log('MOCK: App ' + options.name + ' with code ' + code + ' loaded');
+        console.log('MOCK: App ' + options.name + ' with code ' + this.code + ' loaded');
 
-        // TODO: put some real outputs here for testing
-        this.mainOutput = [];
+        this._program = program;
+        assert(this._program.rules.length === 1);
+        this.mainOutput = new QueueOutputDelegate();
     }
 
     async compile() {
         const compiler = new ThingTalk.Compiler(this._schemas);
-        await compiler.compileCode(this.code);
+        this._compiled = await compiler.compileCode(this.code);
+    }
+
+    async execute() {
+        const overrides = new Map;
+        const generator = new ResultGenerator(this._rng, overrides);
+        for (let slot of this._program.iterateSlots2()) {
+            if (slot instanceof Ast.Selector)
+                continue;
+            generator.addCandidate(slot.get());
+        }
+        this._simulator.generator = generator;
+        this._simulator.output = async (outputType, outputValue) => {
+            return this.mainOutput.output(outputType, outputValue);
+        };
+        this._simulator.reportError = async (msg, err) => {
+            return this.mainOutput.notifyError(err);
+        };
+        await this._compiled.command(this._simulator);
+        this.mainOutput.done();
     }
 }
 
 class MockAppDatabase {
-    constructor(schemas, gettext) {
+    constructor(schemas, gettext, rng) {
         this._apps = {};
         this._schemas = schemas;
         this._gettext = gettext;
+        this._rng = rng;
+        assert(rng);
+        this._simulator = new SimulationExecEnvironment('en-US', this._schemas, null, {
+            rng, simulateErrors: false
+        });
 
         this._apps['app-foo'] = { name: 'Execute Foo',
             description: 'This app fooes', code: 'now => @builtin.foo();', state: {},
@@ -60,14 +117,17 @@ class MockAppDatabase {
     }
 
     async createApp(program, options) {
-        const code = program.prettyprint();
         if (!options.uniqueId)
             options.uniqueId = uuid.v4();
         if (!options.name)
             options.name = ThingTalk.Describe.getProgramName(this._gettext, program);
-        const app = new MockAppExecutor(this._schemas, code, options);
+        options.rng = this._rng;
+        const app = new MockAppExecutor(this._simulator, this._schemas, program, options);
         this._apps[options.uniqueId] = app;
         await app.compile();
+
+        // execute asynchronously
+        app.execute();
         return app;
     }
 }
@@ -410,8 +470,6 @@ class MockPermissionManager {
     }
 }
 
-const THINGPEDIA_URL = process.env.THINGPEDIA_URL || 'https://almond-dev.stanford.edu/thingpedia';
-
 const _gpsApi = {
     async getCurrentLocation() {
         // at stanford, on the ground, facing north, standing still
@@ -456,14 +514,9 @@ class TestPlatform extends MockPlatform {
     }
 }
 
-module.exports.createMockEngine = function(thingpediaUrl) {
+module.exports.createMockEngine = function(thingpedia, rng) {
     const platform = new TestPlatform();
-    var thingpedia;
-    if (typeof thingpediaUrl === 'string')
-        thingpedia = new Tp.HttpClient(platform, thingpediaUrl || THINGPEDIA_URL);
-    else
-        thingpedia = thingpediaUrl;
-    var schemas = new ThingTalk.SchemaRetriever(thingpedia, null, true);
+    const schemas = new ThingTalk.SchemaRetriever(thingpedia, null, true);
 
     let gettext = platform.getCapability('gettext');
     const engine = {
@@ -471,7 +524,7 @@ module.exports.createMockEngine = function(thingpediaUrl) {
         thingpedia: thingpedia,
         schemas: schemas,
         devices: new MockDeviceDatabase(),
-        apps: new MockAppDatabase(schemas, gettext),
+        apps: new MockAppDatabase(schemas, gettext, rng),
         discovery: new MockDiscoveryClient(),
         messaging: new MockMessagingManager(),
         remote: new MockRemote(schemas),
