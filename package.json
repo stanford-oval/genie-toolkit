@@ -27,7 +27,7 @@
     "ip": "^1.1.5",
     "js-yaml": "^3.14.0",
     "morgan": "^1.9.1",
-    "node-gettext": "^2.0.0",
+    "node-gettext": "^3.0.0",
     "q": "^1.5.0",
     "qs": "^6.7.0",
     "query-validation": "^0.1.0",
