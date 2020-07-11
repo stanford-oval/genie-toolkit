@@ -42,6 +42,7 @@ do_test([
     ('./test_new_tokenizer_en'),
     ('./test_new_tokenizer_it'),
     ('./test_new_tokenizer_zh'),
+    ('./test_priority_queue'),
     ('./test_random'),
     ('./test_requoting'),
     ('./test_sentence_generator'),
