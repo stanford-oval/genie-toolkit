@@ -40,6 +40,7 @@ jobs:
       after_success: yarn run coverage
     -
       name: "Starter Code Tests (Basic)"
+      if: type != pull_request
       install:
       - pyenv global 3.6.7
       - ./travis/install-starter-deps.sh
@@ -48,6 +49,7 @@ jobs:
       after_success: yarn run coverage
     -
       name: "Starter Code Tests (Schema.org)"
+      if: type != pull_request
       install:
       - pyenv global 3.6.7
       - ./travis/install-starter-deps.sh
@@ -56,6 +58,7 @@ jobs:
       after_success: yarn run coverage
     -
       name: "Starter Code Tests (MultiWOZ)"
+      if: type != pull_request
       install:
       - pyenv global 3.6.7
       - ./travis/install-starter-deps.sh
