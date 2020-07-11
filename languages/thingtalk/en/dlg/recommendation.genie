@@ -41,9 +41,9 @@ action_recommendation = {
 }
 
 actionable_system_recommendation_short = {
-    ctx:ctx_with_result_noquestion proposal:thingpedia_result if complete
+    ctx:ctx_with_result_noquestion proposal:thingpedia_result if complete [priority=2]
         => D.makeThingpediaRecommendation(ctx, proposal);
-    ctx:ctx_with_result_noquestion proposal:thingpedia_result if complete
+    ctx:ctx_with_result_noquestion proposal:thingpedia_result if complete [priority=2]
         => D.makeThingpediaRecommendation(ctx, proposal);
 
     ( ctx:ctx_with_result_and_action 'i' ('recommend' | 'suggest') proposal:constant_name

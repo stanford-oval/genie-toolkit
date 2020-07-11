@@ -44,7 +44,7 @@ result_name_pair = {
 }
 
 result_name_list = {
-    ctx:ctx_with_result n1:constant_name ('and' | 'or') n2:constant_name => {
+    ctx:ctx_with_result n1:constant_name ('and' | 'or') n2:constant_name [priority=2] => {
         const results = ctx.results;
         assert(results.length > 0);
         if (results.length < 2)
@@ -59,7 +59,7 @@ result_name_list = {
         return { ctx, results: results.slice(0, 2) };
     };
 
-    pair:result_name_pair ('and' | 'or') n3:constant_name => {
+    pair:result_name_pair ('and' | 'or') n3:constant_name [priority=3] => {
         const ctx = pair.ctx;
         const results = ctx.results;
         assert(results.length > 0);

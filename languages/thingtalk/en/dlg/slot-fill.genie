@@ -28,8 +28,8 @@
 }
 
 one_param_slot_fill_question = {
-    ( 'what' p:input_param prefer_question_phrase '?'
-    | p:thingpedia_slot_fill_question '?'
+    ( p:thingpedia_slot_fill_question '?' [priority=0.1]
+    | 'what' p:input_param prefer_question_phrase '?'
     ) => [p];
 }
 
@@ -45,7 +45,7 @@ two_param_slot_fill_question = {
 }
 
 slot_fill_question = {
-    one_param_slot_fill_question;
+    one_param_slot_fill_question [priority=0.1];
     two_param_slot_fill_question;
 }
 

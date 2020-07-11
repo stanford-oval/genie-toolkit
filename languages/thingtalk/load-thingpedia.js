@@ -35,6 +35,19 @@ const ANNOTATION_RENAME = {
     'implicit_identity': 'npv'
 };
 
+const ANNOTATION_PRIORITY = {
+    'base': 0,
+    'npp': 0,
+    'npi': 0,
+    'avp': 0.4,
+    'reverse_verb': 0.4,
+    'adj': 0.5,
+    'preposition': 0.4,
+    'pvp': 0.2,
+    'apv': 0.2,
+    'npv': 1
+};
+
 class ThingpediaLoader {
     async init(runtime, grammar, langPack, options) {
         this._runtime = runtime;
@@ -225,9 +238,14 @@ class ThingpediaLoader {
             if (!Array.isArray(annotvalue))
                 annotvalue = [annotvalue];
 
+            const attributes = { priority: ANNOTATION_PRIORITY[cat] };
+            assert(Number.isFinite(attributes.priority), cat);
+            if (cat === canonical['default'])
+                attributes.priority += 1;
+
             for (let form of annotvalue) {
                 if (cat === 'base') {
-                    this._grammar.addRule('input_param', [form], this._runtime.simpleCombine(() => pname));
+                    this._grammar.addRule('input_param', [form], this._runtime.simpleCombine(() => pname), attributes);
                 } else {
                     let [before, after] = form.split('#');
                     before = (before || '').trim();
@@ -247,8 +265,8 @@ class ThingpediaLoader {
                         expansion = [constant];
                         corefexpansion = [corefconst];
                     }
-                    this._grammar.addRule(cat + '_input_param', expansion, this._runtime.simpleCombine((value) => new Ast.InputParam(null, pname, value)));
-                    this._grammar.addRule('coref_' + cat + '_input_param', corefexpansion, this._runtime.simpleCombine((value) => new Ast.InputParam(null, pname, value)));
+                    this._grammar.addRule(cat + '_input_param', expansion, this._runtime.simpleCombine((value) => new Ast.InputParam(null, pname, value)), attributes);
+                    this._grammar.addRule('coref_' + cat + '_input_param', corefexpansion, this._runtime.simpleCombine((value) => new Ast.InputParam(null, pname, value)), attributes);
                 }
             }
         }
@@ -293,9 +311,12 @@ class ThingpediaLoader {
 
             if (cat in ANNOTATION_RENAME)
                 cat = ANNOTATION_RENAME[cat];
+            const attributes = { priority: ANNOTATION_PRIORITY[cat] };
+            if (cat === canonical['default'])
+                attributes.priority += 1;
 
             for (let form of annotvalue)
-                 this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, '==', value, false)));
+                 this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, '==', value, false)), attributes);
         }
     }
 
@@ -407,13 +428,18 @@ class ThingpediaLoader {
                     annotvalue = [];
             }
 
+            const attributes = { priority: ANNOTATION_PRIORITY[cat] };
+            assert(Number.isFinite(attributes.priority), cat);
+            if (cat === canonical['default'])
+                attributes.priority += 1;
+
             if (cat === 'npv') {
                 if (typeof annotvalue !== 'boolean')
                     throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${functionName}`);
                 if (annotvalue) {
                     const expansion = [constant];
-                    this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
-                    this._grammar.addRule('coref_' + cat + '_filter', [corefconst], this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
+                    this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)), attributes);
+                    this._grammar.addRule('coref_' + cat + '_filter', [corefconst], this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)), attributes);
                 }
                 continue;
             }
@@ -425,7 +451,7 @@ class ThingpediaLoader {
                         forms = [forms];
                     const value = new Ast.Value.Enum(enumerand);
                     for (let form of forms)
-                        this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, op, value, false)));
+                        this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, op, value, false)), attributes);
                 }
             } else {
                 if (!Array.isArray(annotvalue))
@@ -438,21 +464,21 @@ class ThingpediaLoader {
                             const expansion = [form, constant];
                             this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
                             const corefexpansion = [form, corefconst];
-                            this._grammar.addRule('coref_npp_filter', corefexpansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
+                            this._grammar.addRule('coref_npp_filter', corefexpansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)), attributes);
 
                             if (canUseBothForm) {
                                 const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
-                                this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
+                                this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)), attributes);
                             }
                         }
                     } else if (cat === 'reverse_verb') {
                         if (isHumanEntity(ptype)) {
                             let expansion = [form];
-                            this._grammar.addRule('who_reverse_verb_projection', expansion, this._runtime.simpleCombine(() => pvar));
+                            this._grammar.addRule('who_reverse_verb_projection', expansion, this._runtime.simpleCombine(() => pvar), attributes);
                         }
 
                         let expansion = [canonical.base[0], form];
-                        this._grammar.addRule('reverse_verb_projection', expansion, this._runtime.simpleCombine(() => pvar));
+                        this._grammar.addRule('reverse_verb_projection', expansion, this._runtime.simpleCombine(() => pvar), attributes);
 
                     } else {
                         let [before, after] = form.split('#');
@@ -481,10 +507,10 @@ class ThingpediaLoader {
                             corefexpansion = [corefconst];
                             pairexpansion = [new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
                         }
-                        this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
-                        this._grammar.addRule('coref_' + cat + '_filter', corefexpansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
+                        this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)), attributes);
+                        this._grammar.addRule('coref_' + cat + '_filter', corefexpansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)), attributes);
                         if (canUseBothForm)
-                            this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)));
+                            this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)), attributes);
                     }
                 }
             }

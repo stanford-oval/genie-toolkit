@@ -96,8 +96,8 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
 // proposals/recommendations from the agent
 
 action_coref_recommendation = {
-    ( 'would you like to' action:coref_action_phrase '?'
-    | 'would you like me to' action:coref_action_phrase ' for you ?'
+    ( 'would you like to' action:coref_action_phrase '?' [priority=1]
+    | 'would you like me to' action:coref_action_phrase ' for you ?' [priority=1]
     ) if complete => {
         if (action.in_params.some((ip) => !ip.value.isUndefined))
             return null;
@@ -106,7 +106,7 @@ action_coref_recommendation = {
 }
 
 action_coref_list_proposal = {
-    'would you like to' action:list_coref_action_phrase '?' if complete => {
+    'would you like to' action:list_coref_action_phrase '?' if complete [priority=1] => {
         if (action.in_params.some((ip) => !ip.value.isUndefined))
             return null;
         return action;

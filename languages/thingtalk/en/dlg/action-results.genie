@@ -57,16 +57,16 @@ generic_action_success_phrase = {
 }
 
 action_success_phrase = {
-    ctx:ctx_completed_action_success generic_excitement_phrase result:thingpedia_result if complete
+    ctx:ctx_completed_action_success generic_excitement_phrase result:thingpedia_result if complete [priority=5]
         => D.makeThingpediaActionSuccessPhrase(ctx, result);
 
-    ctx:ctx_completed_action_success generic_excitement_phrase generic_action_success_phrase result:direct_result_info_phrase
+    ctx:ctx_completed_action_success generic_excitement_phrase generic_action_success_phrase result:direct_result_info_phrase [priority=1]
         => D.makeThingpediaActionSuccessPhrase(ctx, result);
 
     ctx:ctx_completed_action_success 'i' action:complete_past_action_phrase '.'
         => D.makeCompleteActionSuccessPhrase(ctx, action, null);
 
-    ctx:ctx_completed_action_success 'i' action:complete_past_action_phrase '.' info:direct_result_info_phrase
+    ctx:ctx_completed_action_success 'i' action:complete_past_action_phrase '.' info:direct_result_info_phrase [priority=2]
         => D.makeCompleteActionSuccessPhrase(ctx, action, info);
 }
 
@@ -113,9 +113,9 @@ two_param_try_different_param_question = {
 action_error_phrase = {
     sorry_preamble ctx:short_action_error_message '.' => D.makeActionErrorPhrase(ctx, []);
 
-    ( sorry_preamble ctx:short_action_error_message '.' questions:one_param_try_different_param_question [weight=1]
+    ( sorry_preamble ctx:short_action_error_message '.' questions:one_param_try_different_param_question [weight=1, priority=0.5]
     | sorry_preamble ctx:short_action_error_message '.' questions:two_param_try_different_param_question [weight=0.5]
-    | sorry_preamble ctx:long_action_error_message '.' questions:one_param_try_different_param_question [weight=1]
+    | sorry_preamble ctx:long_action_error_message '.' questions:one_param_try_different_param_question [weight=1, priority=0.5]
     | sorry_preamble ctx:long_action_error_message '.' questions:two_param_try_different_param_question [weight=0.5]
     ) => D.makeActionErrorPhrase(ctx, questions);
 }
