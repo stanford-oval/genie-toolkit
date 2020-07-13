@@ -60,6 +60,13 @@ function makeActionConfirmationPhrase(ctx, action) {
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_confirm_action', null), null, Type.Boolean);
 }
 
+function actionConfirmAcceptPhrase(ctx) {
+    const clone = ctx.clone();
+    clone.next.confirm = 'confirmed';
+    return clone.state;
+}
+
 module.exports = {
-    makeActionConfirmationPhrase
+    makeActionConfirmationPhrase,
+    actionConfirmAcceptPhrase
 };

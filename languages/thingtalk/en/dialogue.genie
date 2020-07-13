@@ -217,6 +217,10 @@ $user = {
     | ctx:ctx_sys_anything_else yes_please_phrase stmt:initial_command
     ) => D.startNewRequest(ctx, stmt);
 
+    // action confirmations
+    ctx:ctx_sys_confirm_action accept_phrase
+        => D.actionConfirmAcceptPhrase(ctx);
+
     // action results
     ctx:ctx_sys_action_success thanks_phrase ('goodbye !' | '')
         => S.makeSimpleState(ctx, 'cancel', null);
