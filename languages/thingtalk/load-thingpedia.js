@@ -75,13 +75,10 @@ class ThingpediaLoader {
 
         this._allTypes = new Map;
         this._idTypes = new Set;
-        this._nonConstantTypes = new Set;
         this._entities = new Map;
         this.types = {
             all: this._allTypes,
             id: this._idTypes,
-            nonConstant: this._nonConstantTypes,
-            entities: this._entities
         };
         this.params = {
             in: new Map,
@@ -154,9 +151,6 @@ class ThingpediaLoader {
                     this._grammar.addRule('constant_' + typestr, [clean(entry)],
                         this._runtime.simpleCombine(() => value));
                 }
-            } else if (type.isEntity) {
-                if (!this._nonConstantTypes.has(typestr) && !this._idTypes.has(typestr))
-                    this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + type.type, type);
             }
         }
         return typestr;
@@ -814,6 +808,12 @@ class ThingpediaLoader {
                 this._runtime.simpleCombine(() => new Ast.Value.Entity(kind, 'tt:device', null)));
         }
 
+        for (let entity of classDef.entities) {
+            const hasNer = entity.impl_annotations.has_ner ?
+                entity.impl_annotations.has_ner.toJS() : true;
+            await this._loadEntityType(classDef.kind + ':' + entity.name, hasNer, true);
+        }
+
         const whitelist = classDef.getImplementationAnnotation('whitelist');
         let queries = Object.keys(classDef.queries);
         let actions = Object.keys(classDef.actions);
@@ -863,23 +863,28 @@ class ThingpediaLoader {
         return false;
     }
 
-    async _loadIdType(idType) {
-        let typestr = typeToStringSafe(Type.Entity(idType.type));
-        if (this._idTypes.has(typestr))
+    async _loadEntityType(entityType, hasNerSupport, override = false) {
+        const ttType = Type.Entity(entityType);
+        let typestr = typeToStringSafe(ttType);
+        if (!override && this._idTypes.has(typestr))
             return;
 
-        if (await this._isIdEntity(idType.type)) {
+        this._entities[entityType] = { has_ner_support: hasNerSupport };
+
+        if (await this._isIdEntity(entityType)) {
             if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
-                console.log('Loaded type ' + idType.type + ' as id type');
+                console.log('Loaded entity ' + entityType + ' as id entity');
             this._idTypes.add(typestr);
         } else {
-            if (idType.has_ner_support) {
+            if (hasNerSupport) {
                 if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
-                    console.log('Loaded type ' + idType.type + ' as generic entity');
+                    console.log('Loaded entity ' + entityType + ' as generic entity');
+
+                this._grammar.declareSymbol('constant_' + typestr);
+                this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + entityType, ttType);
             } else {
                 if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
-                    console.log('Loaded type ' + idType.type + ' as non-constant type');
-                this._nonConstantTypes.add(typestr);
+                    console.log('Loaded entity ' + entityType + ' as non-constant entity');
             }
         }
     }
@@ -1046,7 +1051,7 @@ class ThingpediaLoader {
     }
 
     async _loadMetadata() {
-        const idTypes = await this._tpClient.getAllEntityTypes();
+        const entityTypes = await this._tpClient.getAllEntityTypes();
 
         let devices;
         if (this._options.onlyDevices)
@@ -1074,14 +1079,10 @@ class ThingpediaLoader {
             console.log('Loaded ' + countTemplates + ' templates');
         }
 
-        for (let entity of idTypes) {
-            this._entities[entity.type] = entity;
-            await this._loadIdType(entity);
-        }
-
+        for (let entity of entityTypes)
+            await this._loadEntityType(entity.type, entity.has_ner_support);
         for (let device of devices)
             await this._loadDevice(device);
-
         for (let dataset of datasets)
             await this._loadDataset(dataset);
     }
