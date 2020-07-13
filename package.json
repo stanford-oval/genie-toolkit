@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "repository": "https://github.com/stanford-oval/genie-toolkit.git",
   "author": "Giovanni Campagna <gcampagn@cs.stanford.edu>",
-  "license": "GPL-3.0+",
+  "license": "Apache-2.0",
   "bin": {
     "genie": "./tool/genie.js"
   },
