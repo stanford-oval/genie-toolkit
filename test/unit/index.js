@@ -44,6 +44,7 @@ do_test([
     ('./test_new_tokenizer_zh'),
     ('./test_random'),
     ('./test_requoting'),
+    ('./test_requote'),
     ('./test_sentence_generator'),
     ('./test_stream_utils'),
     ('./test_timed_reference'),

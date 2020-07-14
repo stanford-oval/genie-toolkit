@@ -25,7 +25,7 @@ const NUMBER_MATCH_REGEX = /^([0-9|۰-۹]+)$/;
 const SMALL_NUMBER_REGEX = /^-?(۱۰|۱۱|۱۲|10|11|12|[0-9|۰-۹])$/;
 
 
-function do_replace_numbers(token, requote_numbers) {
+function doReplaceNumbers(token, requote_numbers) {
     // 1) check if token is an Arabic or English number
 
     return requote_numbers && NUMBER_MATCH_REGEX.test(token);
@@ -40,6 +40,14 @@ function findSpanContaining(index, spansBySentencePos) {
     return false;
 }
 
+function substringIsFound(sequence, substring, i) {
+    for (let j = 0; j < substring.length; j++) {
+        if (sequence[i+j] !== substring[j])
+            return false;
+    }
+    return true;
+}
+
 
 function findSubstring(sequence, substring, spansBySentencePos, allowOverlapping, handle_heuristics=false, param_locale='en-US') {
     let paramLangPack = i18n.get(param_locale);
@@ -47,34 +55,17 @@ function findSubstring(sequence, substring, spansBySentencePos, allowOverlapping
     let allFoundIndices = [];
     for (let i = 0; i < sequence.length - substring.length + 1; i++) {
         let found = substringIsFound(sequence, substring, i);
-        for (let j = 0; j < substring.length; j++) {
-            if (sequence[i+j] !== substring[j]) {
-                found = false;
-                break;
-            }
-        }
         if (handle_heuristics) {
             if (!found) {
-                found = true;
-                let pluraziedSubstring = paramLangPack.pluralize(substring.join(' ')).split(' ');
-                if (pluraziedSubstring.join(' ') === substring.join(' '))
-                    pluraziedSubstring = (substring.join(' ') + 's').split(' ');
-                for (let j = 0; j < pluraziedSubstring.length; j++) {
-                    if (sequence[i + j] !== pluraziedSubstring[j]) {
-                        found = false;
-                        break;
-                    }
-                }
+                let pluralised_substring = paramLangPack.pluralize(substring.join(' ')).split(' ');
+                if (pluralised_substring.join(' ') === substring.join(' '))
+                    pluralised_substring = (substring.join(' ') + 's').split(' ');
+                found = substringIsFound(sequence, pluralised_substring, i);
             }
             if (!found) {
-                found = true;
                 let article_added_substring = paramLangPack.addDefiniteArticle(substring. join(' ')).split(' ');
-                for (let j = 0; j < article_added_substring.length; j++) {
-                    if (sequence[i + j] !== article_added_substring[j]) {
-                        found = false;
-                        break;
-                    }
-                }
+                found = substringIsFound(sequence, article_added_substring, i);
+                // need to include the definitive article when requoting sentence
                 if (found)
                     parsedWithArticle = true;
             }
@@ -98,7 +89,7 @@ function findSpanType(program, begin_index, end_index, requote_numbers, string_n
     if (begin_index > 1 && program[begin_index-2] === 'location:') {
         spanType = 'LOCATION';
 
-    } else if (do_replace_numbers(program[begin_index], requote_numbers)
+    } else if (doReplaceNumbers(program[begin_index], requote_numbers)
         && !(program[end_index+1].startsWith('^^'))){
         // catch purely numeric postal_codes or phone_numbers
         if (string_number)
@@ -153,7 +144,7 @@ function createProgram(program, spansByProgramPos, entityRemap, requote_numbers,
         } else if (ENTITY_MATCH_REGEX.test(token)) {
             assert(entityRemap[token]);
             newProgram.push(entityRemap[token]);
-        } else if (do_replace_numbers(token, requote_numbers)){
+        } else if (doReplaceNumbers(token, requote_numbers)){
             const currentSpan = spansByProgramPos[programSpanIndex];
             if (!currentSpan || findSpanContaining(i, ignoredProgramSpans)) {
                 newProgram.push(token);
@@ -273,7 +264,7 @@ function getProgSpans(program, requote_numbers) {
                 let prog_span = {begin: begin_index, end: end_index, span_type:span_type};
                 allProgSpans.push(prog_span);
             }
-        } else if (!in_string && do_replace_numbers(token, requote_numbers)){
+        } else if (!in_string && doReplaceNumbers(token, requote_numbers)){
             begin_index = i;
             end_index = begin_index + 1;
             span_type = findSpanType(program, begin_index, end_index, requote_numbers, false);
@@ -342,7 +333,6 @@ function findSpanPositions(id, sentence, program, requote_numbers, handle_heuris
                 }
             }
         }
-
 
         const sentenceSpanBegin = idx;
         const sentenceSpanEnd = idx + end_index - begin_index + parsedWithArticle;
@@ -495,5 +485,6 @@ module.exports = {
             .pipe(args.output);
 
         await StreamUtils.waitFinish(args.output);
-    }
+    },
+    requoteSentence
 };
