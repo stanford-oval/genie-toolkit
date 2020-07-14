@@ -972,14 +972,18 @@ class ThingpediaLoader {
         if (devices.length === 0)
             return;
 
-        let datasets = await Promise.all(devices.map(async (d) => {
-            return Grammar.parse(await this._getDataset(d)).datasets[0];
-        }));
-        datasets = datasets.filter((d) => !!d);
-        if (datasets.length === 0) {
+        // note: no typecheck() when loading dataset.tt
+        // each example is typechecked individually so you can concatenate extraneous
+        // datasets and they will be removed
+        let datasets;
+        if (this._options.onlyDevices) {
+            datasets = await Promise.all(devices.map(async (d) => {
+                return Grammar.parse(await this._getDataset(d)).datasets[0];
+            }));
+            datasets = datasets.filter((d) => !!d);
+        } else {
             const code = await this._tpClient.getAllExamples();
-            console.log(code);
-            datasets = await Grammar.parse(code).datasets;
+            datasets = Grammar.parse(code).datasets;
         }
 
         if (this._options.debug >= this._runtime.LogLevel.INFO) {
