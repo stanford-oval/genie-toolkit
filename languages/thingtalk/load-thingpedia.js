@@ -29,7 +29,14 @@ const Grammar = ThingTalk.Grammar;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 const Units = ThingTalk.Units;
 
-const { clean, typeToStringSafe, makeFilter, makeAndFilter, isHumanEntity } = require('./utils');
+const {
+    clean,
+    typeToStringSafe,
+    makeFilter,
+    makeAndFilter,
+    isHumanEntity,
+    tokenizeExample
+} = require('./utils');
 const { SlotBag } = require('./slot_bag');
 
 function identity(x) {
@@ -607,6 +614,12 @@ class ThingpediaLoader {
                     this._grammar.addRule(grammarCat, [''], this._runtime.simpleCombine(() => ex.value));
                 }
             }
+        }
+
+        if (!ex.preprocessed || ex.preprocessed.length === 0) {
+            // preprocess here...
+            const tokenizer = this._langPack.getTokenizer();
+            ex.preprocessed = ex.utterances.map((utterance) => tokenizeExample(tokenizer, utterance, ex.id));
         }
 
         for (let preprocessed of ex.preprocessed) {
