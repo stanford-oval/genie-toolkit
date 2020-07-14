@@ -20,8 +20,11 @@ See [doc/install.md](doc/install.md) for details and installation instructions.
 
 ## License
 
-This package is covered by the GNU General Public License, version 3
-or any later version. See [LICENSE](LICENSE) for details.
+This package is covered by the Apache 2.0 license. See [LICENSE](LICENSE) for details.
+Note that this package depends on several nodejs modules by third-parties, each with
+their own license. In particular, some modules might have licensing requirements that
+are more restrictive than Genie's. It is your responsability to comply with Genie's
+copyright license, as well as all licenses of included dependencies.
 
 ## Reproducing The Results In Our Papers
 
