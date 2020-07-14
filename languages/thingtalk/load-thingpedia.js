@@ -889,24 +889,6 @@ class ThingpediaLoader {
         }
     }
 
-    async _loadCanonical(kind) {
-        if (kind.startsWith('org.thingpedia.dynamic.by_kinds.'))
-            kind = kind.substring('org.thingpedia.dynamic.by_kinds.'.length);
-        try {
-            const classDef = await this._schemas.getFullMeta(kind);
-            const canonicals = {};
-            Object.keys(classDef.queries).forEach((q) => {
-                canonicals[q] = classDef.queries[q].metadata.canonical;
-            });
-            Object.keys(classDef.actions).forEach((a) => {
-                canonicals[a] = classDef.actions[a].metadata.canonical;
-            });
-            return canonicals;
-        } catch (e) {
-            return undefined;
-        }
-    }
-
     makeExample(type, args, value, preprocessed) {
         return new Ast.Example(
             null,
@@ -954,83 +936,10 @@ class ThingpediaLoader {
         return false;
     }
 
-
-    async _expandDataset(canonical, expander, rules) {
-        const filter = expander.example.value.filter;
-        await Promise.all(rules.map((rule) =>  {
-            if (rule.category !== 'thingpedia_query')
-                return;
-            if (expander.example.id !== -1 && expander.example.id === rule.example.id)
-                return;
-
-
-            // skip rules with filter on the same parameter
-            // TODO: replace this with more robust check and move to _conflictExample
-            if (rule.example.value.isFilter) {
-                if (filter.isAtom && rule.example.value.filter.isAtom) {
-                    if (filter.name === rule.example.value.filter.name)
-                        return;
-                }
-            }
-
-            // skip rules if the same input parameter is used
-            if (this._conflictExample(expander.example, rule.example))
-                return;
-
-            const args = Object.assign({}, expander.example.args);
-            for (let arg of Object.keys(rule.example.args)) {
-                // skip rules use the same arguments
-                // (in most cases, this will skip rules with same input or have filters on the same param
-                //  but if the value of the input/filter is a constant, then this won't work)
-                if (arg in args)
-                    return;
-                args[arg] = rule.example.args[arg];
-            }
-
-            const value = new Ast.Table.Filter(rule.example.value, filter, null);
-            const preprocessed = this._expandExpansion(expander.expansion, canonical, rule.expansion);
-
-            const ex = this.makeExample('query', args, value, preprocessed);
-            this._safeLoadTemplate(ex);
-        }));
-    }
-
     // load dataset for one device
     async _loadDataset(dataset) {
-        const kind = dataset.name.substr(1);
-        let rules = {};
-        for (let ex of dataset.examples) {
-            const newrules = await this._safeLoadTemplate(ex);
-
-            let invocation;
-            for (let [, inv] of ex.iteratePrimitives())
-                invocation = inv;
-
-            if (invocation.channel in rules)
-                rules[invocation.channel] = rules[invocation.channel].concat(newrules);
-            else
-                rules[invocation.channel] = newrules;
-        }
-
-        if (!this._options.flags.expand_primitives)
-            return;
-        const canonicals = await this._loadCanonical(kind);
-        if (!canonicals)
-            return;
-        for (let channel in rules) {
-            const canonical = canonicals[channel].toLowerCase().trim();
-            for (let rule of rules[channel]) {
-                if (rule.category !== 'thingpedia_query')
-                    continue;
-                const re = new RegExp(canonical, "g");
-                const matches = rule.expansion.join(' ').match(re);
-                if (!matches || matches.length !== 1)
-                    continue;
-                if (!rule.example.value.isFilter || !rule.example.value.table.isInvocation)
-                    continue;
-                await this._expandDataset(canonical, rule, rules[channel]);
-            }
-        }
+        for (let ex of dataset.examples)
+            await this._safeLoadTemplate(ex);
     }
 
     async _safeLoadTemplate(ex) {
