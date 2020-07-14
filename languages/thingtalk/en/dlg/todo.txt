@@ -19,3 +19,9 @@ For MultiWOZ searches:
 - "lets go with the XXX one" after a list proposal
 - "recommend one" offering information
 - dontcare + projection
+
+Stuff that was temporarily disabled:
+- non-ID parameter passing
+
+Generally useful stuff:
+- boolean questions at the beginning of the dialogue

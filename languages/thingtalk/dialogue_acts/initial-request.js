@@ -63,6 +63,10 @@ function adjustStatementsForInitialRequest(stmt) {
                 if (in_param.value.name.startsWith('__const_'))
                     continue;
 
+                // TODO: parameter passing for non ID parameter
+                if (in_param.value.name !== 'id')
+                    return null;
+
                 // parameter passing
                 // FIXME we need a new ThingTalk value type...
                 in_param.value = new Ast.Value.Undefined(true);
