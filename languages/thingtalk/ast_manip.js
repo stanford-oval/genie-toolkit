@@ -102,8 +102,9 @@ function betaReduce(ast, pname, value) {
 
         const varref = slot.get();
         if (varref.isVarRef && varref.name === pname) {
-            // no parameter passing into device attributes
-            if (value.isVarRef && !value.name.startsWith('__const') && slot.tag.startsWith('attribute.'))
+            // no parameter passing or undefined into device attributes
+            if ((value.isUndefined || value.isVarRef && !value.name.startsWith('__const'))
+                && slot.tag.startsWith('attribute.'))
                 return null;
 
             slot.set(value);
@@ -125,9 +126,12 @@ function betaReduce(ast, pname, value) {
 }
 
 function unassignInputParameter(schema, passign, pname) {
-    let arg = schema.getArgument(passign).clone();
-    arg.name = pname;
-    return schema.addArguments([arg]);
+    let arg = schema.getArgument(pname);
+    if (!arg)
+        return schema;
+    arg = arg.clone();
+    arg.name = passign;
+    return schema.removeArgument(pname).addArguments([arg]);
 }
 
 // perform eta reduction
@@ -1570,6 +1574,8 @@ function makeAggComputeArgMinMaxExpression(table, operation, field, list, result
 }
 
 function isSameFunction(fndef1, fndef2) {
+    if (!fndef1.class || !fndef2.class) // a join
+        return false;
     return fndef1.class.name === fndef2.class.name &&
         fndef1.name === fndef2.name;
 }

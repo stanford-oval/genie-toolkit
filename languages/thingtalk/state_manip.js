@@ -218,14 +218,6 @@ class ContextInfo {
     }
 }
 
-function getDevice(functions) {
-    const devices = new Set;
-    for (let fn of functions)
-        devices.add(fn.class.name);
-    assert(devices.size === 1);
-    return Array.from(devices)[0];
-}
-
 function getContextInfo(state) {
     let nextItemIdx = null, nextInfo = null, currentFunction = null, nextFunction = null, currentDevice = null, currentResultInfo = null,
         previousDomainItemIdx = null, currentItemIdx = null;
@@ -233,7 +225,7 @@ function getContextInfo(state) {
     for (let idx = 0; idx < state.history.length; idx ++) {
         const item = state.history[idx];
         const functions = C.getFunctions(item.stmt);
-        const device = getDevice(functions);
+        const device = functions[functions.length-1].class.name;
         assert(typeof device === 'string');
         if (currentDevice && device !== currentDevice)
             previousDomainItemIdx = currentItemIdx;

@@ -201,11 +201,16 @@ function findChainParam(topResult, action) {
     return chainParam;
 }
 
+function isSimpleFilterTable(table) {
+    return table.isFilter && ((table.table.isCompute && table.table.table.isInvocation) || table.table.isInvocation);
+}
+
 module.exports = {
     isFilterCompatibleWithInfo,
     isFilterCompatibleWithResult,
     isInfoPhraseCompatibleWithResult,
     isValidSearchQuestion,
+    isSimpleFilterTable,
     findChainParam,
     addParametersFromContext
 };

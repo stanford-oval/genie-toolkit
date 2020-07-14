@@ -47,6 +47,8 @@ function relatedQuestion(ctx, stmt) {
     if (C.isSameFunction(currentTable.schema, newTable.schema))
         return null;
 
+    if (!currentTable.schema.getAnnotation) // FIXME ExpressionSignature that is not a FunctionDef - not sure how it happens...
+        return null;
     const related = currentTable.schema.getAnnotation('related');
     if (!related)
         return null;
