@@ -96,9 +96,11 @@ function makeThingpediaRecommendation(ctx, info) {
 
 function checkRecommendation({ topResult, action: nextAction }, info) {
     assert(info instanceof SlotBag);
+    if (!topResult.value.id)
+        return null;
+
     const resultType = topResult.value.id.getType();
     const idType = info.schema.getArgType('id');
-
     if (!idType || !idType.equals(resultType))
         return null;
 
@@ -109,6 +111,8 @@ function checkRecommendation({ topResult, action: nextAction }, info) {
 }
 
 function checkActionForRecommendation({ topResult, info, action: nextAction }, action) {
+    if (!topResult.value.id)
+        return null;
     const resultType = topResult.value.id.getType();
 
     if (nextAction !== null) {
