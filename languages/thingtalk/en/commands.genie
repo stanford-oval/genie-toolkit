@@ -434,7 +434,7 @@ explicit_when_condition = {
             return null;
         if (_tpLoader.flags.turking && table.schema.is_list)
             return null;
-        table = C.addFilter(table, filter);
+        table = C.addFilter(table, filter, { ifFilter: true });
         if (!table)
             return null;
         return C.tableToStream(table, null);
@@ -445,7 +445,7 @@ explicit_when_condition = {
             return null;
         if (!table.schema.is_monitorable || table.schema.is_list)
             return null;
-        table = C.addFilter(table, filter);
+        table = C.addFilter(table, filter, { ifFilter: true });
         if (!table)
             return null;
         return C.tableToStream(table, null);

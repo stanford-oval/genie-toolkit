@@ -749,7 +749,7 @@ function normalizeFilter(table, filter) {
     return filter;
 }
 
-function addFilter(table, filter) {
+function addFilter(table, filter, options = {}) {
     filter = normalizeFilter(table, filter);
     if (!filter)
         return null;
@@ -759,6 +759,11 @@ function addFilter(table, filter) {
 
     // when an "unique" parameter has been used in the table
     if (table.schema.no_filter)
+        return null;
+
+    // if the query is single result, only add "if" filters, not "with" filters
+    // ("if" filters are only used with streams)
+    if (!table.schema.is_list && !options.ifFilter)
         return null;
 
     if (table.isProjection) {

@@ -133,6 +133,8 @@ function addInitialDontCare(stmt, dontcare) {
         return null;
     if (arg.getAnnotation('filterable') === false)
         return null;
+    if (!stmt.table.schema.is_list)
+        return null;
 
     let clone = stmt.clone();
     let [cloneTable, filterTable] = findOrMakeFilterTable(clone.table);

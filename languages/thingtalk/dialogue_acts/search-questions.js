@@ -58,6 +58,8 @@ function isGoodSearchQuestion(ctx, questions) {
 }
 
 function checkFilterPairForDisjunctiveQuestion(ctx, f1, f2) {
+    if (!ctx.currentFunctionSchema.is_list)
+        return null;
     if (f1.name !== f2.name)
         return null;
     if (!f1.value.getType().equals(f2.value.getType()))

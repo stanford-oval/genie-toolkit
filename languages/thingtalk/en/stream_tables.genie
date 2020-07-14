@@ -51,11 +51,11 @@ if_filtered_table = {
 }
 
 one_if_filter_table = {
-    !nofilter table:complete_table 'if' filter:if_filter => C.addFilter(table, filter);
+    !nofilter table:complete_table 'if' filter:if_filter => C.addFilter(table, filter, { ifFilter: true });
 }
 
 two_if_filter_table = {
-    !nofilter table:one_if_filter_table 'and' filter:if_filter => C.addFilter(table, filter);
+    !nofilter table:one_if_filter_table 'and' filter:if_filter => C.addFilter(table, filter, { ifFilter: true });
 }
 
 // non-verb filter:
@@ -433,7 +433,7 @@ stream = {
     !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:edge_filter => {
         if (!table.schema.is_monitorable || !C.checkFilter(table, filter) || table.schema.is_list)
             return null;
-        table = C.addFilter(table, filter);
+        table = C.addFilter(table, filter, { ifFilter: true });
         if (!table)
             return null;
         return C.tableToStream(table, null);
@@ -443,7 +443,7 @@ stream = {
             return null;
         if (_tpLoader.flags.turking && table.schema.is_list)
             return null;
-        table = C.addFilter(table, filter);
+        table = C.addFilter(table, filter, { ifFilter: true });
         if (!table)
             return null;
         return C.tableToStream(table, null);
