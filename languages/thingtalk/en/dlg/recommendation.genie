@@ -99,6 +99,32 @@ proposal_info_action_pair = {
     };
 }
 
+actionable_system_display_result_short = {
+    ctx:ctx_with_result info:thingpedia_result '.' if complete
+        => D.makeDisplayResult(ctx, info);
+}
+
+// a non-list result
+system_nonlist_result = {
+    actionable_system_display_result_short;
+
+    ctx:ctx_with_result info:direct_result_info_phrase
+        => D.makeDisplayResult(ctx, info);
+    phrase:actionable_system_display_result_short extra:direct_result_info_phrase
+        => D.combineDisplayResult(phrase, extra);
+
+    // TODO: offer an action on the result (needs non-ID parameter passing to be useful)
+    //proposal:actionable_system_display_result_short action:action_coref_recommendation
+    //    => D.checkActionForDisplayResult(proposal, action);
+
+    proposal:actionable_system_display_result_short anything_else_phrase => {
+        const clone = {};
+        Object.assign(clone, proposal);
+        clone.hasAnythingElse = true;
+        return clone;
+    };
+}
+
 // a recommendation consists of the first result of the current query,
 // and action to do with it
 // the action can come from the context (if the user expressed it earlier), or it can

@@ -117,7 +117,7 @@ function getStatementDevice(stmt) {
 }
 
 function startNewRequest(ctx, stmt) {
-    if (getStatementDevice(ctx.current.stmt) === getStatementDevice(stmt))
+    if (_loader.flags.strict_multidomain && getStatementDevice(ctx.current.stmt) === getStatementDevice(stmt))
         return null;
 
     const newStatements = adjustStatementsForInitialRequest(stmt);

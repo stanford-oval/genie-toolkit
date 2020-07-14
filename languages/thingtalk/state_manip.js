@@ -84,6 +84,7 @@ class ResultInfo {
             assert(!table.isCompute);
             this.isQuestion = !!(table.isProjection || table.isCompute || table.isIndex || table.isAggregation);
             this.isAggregation = !!table.isAggregation;
+            this.isList = table.schema.is_list;
             this.argMinMaxField = getTableArgMinMax(table);
             assert(this.argMinMaxField === null || this.isQuestion);
             this.projection = table.isProjection ? table.args.slice() : null;
@@ -628,7 +629,9 @@ function tagContextForAgent(ctx) {
             return ['ctx_empty_search_command'];
         }
 
-        if (ctx.resultInfo.isQuestion) {
+        if (!ctx.resultInfo.isList) {
+            return ['ctx_display_nonlist_result'];
+        } else if (ctx.resultInfo.isQuestion) {
             if (ctx.resultInfo.isAggregation) {
                 // "how many restaurants nearby have more than 500 reviews?"
                 return ['ctx_aggregation_question'];
