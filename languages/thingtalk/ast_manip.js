@@ -749,7 +749,7 @@ function normalizeFilter(table, filter) {
     return filter;
 }
 
-function addFilter(table, filter, forceAdd = false) {
+function addFilter(table, filter) {
     filter = normalizeFilter(table, filter);
     if (!filter)
         return null;
@@ -762,27 +762,15 @@ function addFilter(table, filter, forceAdd = false) {
         return null;
 
     if (table.isProjection) {
-        const added = addFilter(table.table, filter, forceAdd);
+        const added = addFilter(table.table, filter);
         if (added === null)
             return null;
         return new Ast.Table.Projection(null, added, table.args, table.schema);
     }
 
-    // under normal conditions, we don't want to add a second filter to an already
-    // filtered table (= add 2 filters) for turking, because the resulting sentence
-    // would be clunky
-    //
-    // different story is when the filter being added is in the next sentence,
-    // because then we expect to paraphrase only the second filter, and hopefully not mess up
-    //
-    // hence, addFilterToProgram (which are contextual) pass forceAdd = true,
-    // which skips the 2 filter heuristic
-    if (!forceAdd && !_loader.flags.multifilters && table.isFilter && _loader.flags.turking)
-        return null;
-
     if (table.isFilter) {
         // if we already have a filter, don't add a new complex filter
-        if (!forceAdd && !filter.isAtom && !(filter.isNot && filter.expr.isAtom))
+        if (!filter.isAtom && !(filter.isNot && filter.expr.isAtom))
              return null;
 
         if (checkFilterUniqueness(table, filter))

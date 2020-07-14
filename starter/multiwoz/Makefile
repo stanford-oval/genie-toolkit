@@ -17,7 +17,6 @@ template_file ?= thingtalk/en/dialogue.genie
 dataset_file ?= $(experiment)/dataset.tt
 synthetic_flags ?= \
 	dialogues \
-	multifilters \
 	nostream \
 	notablejoin \
 	projection \

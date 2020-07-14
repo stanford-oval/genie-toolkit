@@ -60,8 +60,6 @@ synthetic_flags ?= \
 	aggregation \
 	schema_org \
 	filter_join \
-	multifilter \
-	multifilters \
 	no_stream
 target_pruning_size ?= 1000
 generate_flags = $(foreach v,$(synthetic_flags),--set-flag $(v))

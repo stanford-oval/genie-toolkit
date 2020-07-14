@@ -154,7 +154,6 @@ async function doTestDialogue(filename) {
             projection: true,
             projection_with_filter: true,
             dialogues: true,
-            multifilters: true,
             schema_org: true,
 
             // TODO
