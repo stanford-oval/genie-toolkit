@@ -61,7 +61,7 @@ function recommendationSearchQuestionReply(ctx, questions) {
     }
 
     if (!areQuestionsValidForContext(ctx, questions))
-        return false;
+        return null;
 
     const currentTable = ctx.current.stmt.table;
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
@@ -75,7 +75,7 @@ function recommendationSearchQuestionReply(ctx, questions) {
 function learnMoreSearchQuestionReply(ctx, questions) {
     const topResult = ctx.results[0];
     if (!areQuestionsValidForContext(ctx, questions))
-        return false;
+        return null;
 
     const currentTable = ctx.current.stmt.table;
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
@@ -117,7 +117,7 @@ function listProposalSearchQuestionReply(ctx, [name, questions]) {
     }
 
     if (!areQuestionsValidForContext(ctx, questions))
-        return false;
+        return null;
 
     const currentTable = ctx.current.stmt.table;
     let newTable;

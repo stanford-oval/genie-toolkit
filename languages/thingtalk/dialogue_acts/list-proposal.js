@@ -112,7 +112,7 @@ function positiveListProposalReply(ctx, [name, acceptedAction, mustHaveAction]) 
         }
     }
     if (!good)
-        return false;
+        return null;
 
     if (acceptedAction === null)
         acceptedAction = actionProposal;
@@ -186,7 +186,7 @@ function listProposalLearnMoreReply(ctx, name) {
         }
     }
     if (!good)
-        return false;
+        return null;
 
     const currentTable = ctx.current.stmt.table;
     const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
