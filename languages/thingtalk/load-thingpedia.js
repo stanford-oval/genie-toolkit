@@ -389,6 +389,8 @@ class ThingpediaLoader {
             canonical = { base: [clean(pname)] };
         else if (typeof arg.metadata.canonical === 'string')
             canonical = { base: [arg.metadata.canonical] };
+        else if (Array.isArray(arg.metadata.canonical))
+            canonical = { base: arg.metadata.canonical };
         else
             canonical = arg.metadata.canonical;
 
