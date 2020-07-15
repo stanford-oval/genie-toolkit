@@ -61,7 +61,10 @@ function makeActionConfirmationPhrase(ctx, action) {
 
 function actionConfirmAcceptPhrase(ctx) {
     const clone = ctx.clone();
+    assert(clone.next.confirm === 'accepted');
     clone.next.confirm = 'confirmed';
+    clone.state.dialogueAct = 'execute';
+    clone.state.dialogueActParam = null;
     return clone.state;
 }
 
