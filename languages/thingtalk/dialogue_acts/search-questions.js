@@ -27,7 +27,6 @@ const Ast = ThingTalk.Ast;
 const C = require('../ast_manip');
 
 const {
-    getActionInvocation,
     makeAgentReply,
     makeSimpleState,
     addQuery,
@@ -156,7 +155,7 @@ function preciseSearchQuestionAnswer(ctx, [answerTable, answerAction]) {
                     return null;
             }
 
-            answerAction = addParametersFromContext(answerAction, getActionInvocation(ctx.next));
+            answerAction = addParametersFromContext(answerAction, C.getInvocation(ctx.next));
         }
     }
 

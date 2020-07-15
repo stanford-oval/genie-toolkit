@@ -1603,14 +1603,11 @@ function filterUsesParam(filter, pname) {
     return used;
 }
 
-function addInvocationInputParam(invocation, param) {
+function checkInvocationInputParam(invocation, param) {
     assert(invocation instanceof Ast.Invocation);
     const arg = invocation.schema.getArgument(param.name);
     if (!arg || !arg.is_input || !isConstantAssignable(param.value, arg.type))
-        return null;
-    if (param.value.getType().isDate)
-        console.log(param, arg);
-    assert(!param.value.getType().isDate);
+        return false;
 
     if (arg.type.isNumber || arg.type.isMeasure) {
         let min = -Infinity;
@@ -1624,8 +1621,15 @@ function addInvocationInputParam(invocation, param) {
 
         const value = param.value.toJS();
         if (value < min || value > max)
-            return null;
+            return false;
     }
+
+    return true;
+}
+
+function addInvocationInputParam(invocation, param) {
+    if (!checkInvocationInputParam(invocation, param))
+        return null;
 
     const clone = invocation.clone();
     for (let existing of clone.in_params) {
@@ -1643,7 +1647,8 @@ function addInvocationInputParam(invocation, param) {
 }
 
 function addActionInputParam(action, param) {
-    assert(action instanceof Ast.Action.Invocation || action instanceof Ast.Table.Invocation);
+    if (!(action instanceof Ast.Action.Invocation || action instanceof Ast.Table.Invocation))
+        return null;
     const newInvocation = addInvocationInputParam(action.invocation, param);
     if (newInvocation === null)
         return null;
@@ -1724,14 +1729,29 @@ function findFilterTable(root) {
     return table;
 }
 
+function getInvocation(historyItem) {
+    assert(historyItem instanceof Ast.DialogueHistoryItem);
+
+    let invocation = undefined;
+    historyItem.visit(new class extends Ast.NodeVisitor {
+        visitInvocation(inv) {
+            invocation = inv;
+            return false; // no need to recurse
+        }
+    });
+    return invocation;
+}
+
 module.exports = {
+    // helpers
     typeToStringSafe,
-    getFunctionNames,
-    getFunctions,
     isSameFunction,
     hasArgumentOfType,
     isConstantAssignable,
     filterUsesParam,
+    getFunctionNames,
+    getFunctions,
+    getInvocation,
 
     // constants
     addUnit,
@@ -1761,6 +1781,7 @@ module.exports = {
     getDoCommand,
     whenDoRule,
     whenGetStream,
+    checkInvocationInputParam,
     addInvocationInputParam,
     addActionInputParam,
     replaceSlotBagPlaceholder,

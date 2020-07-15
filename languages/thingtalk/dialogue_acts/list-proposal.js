@@ -27,7 +27,6 @@ const Ast = ThingTalk.Ast;
 const C = require('../ast_manip');
 
 const {
-    getActionInvocation,
     makeAgentReply,
     makeSimpleState,
     addActionParam,
@@ -64,7 +63,7 @@ function checkListProposal(nameList, info, hasLearnMore) {
             return null;
     }
 
-    const action = ctx.nextInfo && ctx.nextInfo.isAction ? getActionInvocation(ctx.next) : null;
+    const action = ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next) : null;
     return [results, info, action, hasLearnMore];
 }
 
@@ -73,7 +72,7 @@ function addActionToListProposal(nameList, action) {
     const resultType = results[0].value.id.getType();
     if (!C.hasArgumentOfType(action, resultType))
         return null;
-    const ctxAction = ctx.nextInfo && ctx.nextInfo.isAction ? getActionInvocation(ctx.next) : null;
+    const ctxAction = ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next) : null;
     if (ctxAction && !C.isSameFunction(ctxAction.schema, action.schema))
         return null;
 

@@ -86,7 +86,11 @@ imprecise_slot_fill_answer = {
 }
 
 precise_slot_fill_answer = {
-    // complete answer, like "I am looking to book it for ... at ..."
-    generic_preamble_for_action action:coref_action_command => action;
-    generic_preamble_for_action action:action_by_name_command => action;
+    // complete answer (action or get command), like "I am looking to book it for ... at ..."
+    generic_preamble_for_action action:action_continuation_command => action;
+
+    // complete answer (query), like "I am looking for the weather in ..."
+    ( generic_preamble_for_answer generic_article query:continuation_query
+    | generic_verb_for_search generic_article query:continuation_query
+    ) => query;
 }

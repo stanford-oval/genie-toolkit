@@ -28,7 +28,6 @@ const C = require('../ast_manip');
 
 const { SlotBag, checkAndAddSlot } = require('../slot_bag');
 const {
-    getActionInvocation,
     makeAgentReply,
     makeSimpleState,
     addActionParam,
@@ -80,7 +79,7 @@ function makeRecommendation(ctx, name) {
     if (!id || !id.equals(name))
         return null;
 
-    return { topResult, ctx, info: null, action: ctx.nextInfo && ctx.nextInfo.isAction ? getActionInvocation(ctx.next) : null };
+    return { topResult, ctx, info: null, action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next) : null };
 }
 
 function makeThingpediaRecommendation(ctx, info) {
@@ -94,7 +93,7 @@ function makeThingpediaRecommendation(ctx, info) {
     if (!isInfoPhraseCompatibleWithResult(topResult, info))
         return null;
 
-    return { topResult, ctx, info, action: ctx.nextInfo && ctx.nextInfo.isAction ? getActionInvocation(ctx.next) : null };
+    return { topResult, ctx, info, action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next) : null };
 }
 
 
@@ -157,7 +156,7 @@ function makeDisplayResult(ctx, info) {
     if (info === null)
         return null;
 
-    return { topResult, ctx, info, action: ctx.nextInfo && ctx.nextInfo.isAction ? getActionInvocation(ctx.next) : null, hasAnythingElse: false };
+    return { topResult, ctx, info, action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next) : null, hasAnythingElse: false };
 }
 
 function combineDisplayResult(proposal, newInfo) {

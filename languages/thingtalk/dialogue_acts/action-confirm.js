@@ -27,7 +27,6 @@ const Type = ThingTalk.Type;
 const C = require('../ast_manip');
 
 const {
-    getActionInvocation,
     makeAgentReply,
     makeSimpleState,
     sortByName,
@@ -35,7 +34,7 @@ const {
 
 
 function makeActionConfirmationPhrase(ctx, action) {
-    const ctxInvocation = getActionInvocation(ctx.next);
+    const ctxInvocation = C.getInvocation(ctx.next);
     if (ctxInvocation.selector.isBuiltin)
         return null;
     if (!C.isSameFunction(ctxInvocation.schema, action.schema))
