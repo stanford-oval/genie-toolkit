@@ -214,10 +214,8 @@ async function roundtrip(testRunner, input, expected) {
     if (expected !== null && testRunner.buffer.trim() !== expected.trim()) {
         console.error('Invalid reply: ' + testRunner.buffer.trim());
         console.error('\nExpected: ' + expected.trim());
-        testRunner.anyFailed = true;
-        return false;
+        throw new Error('test failed');
     }
-    return true;
 }
 
 async function test(testRunner, dlg, i) {
@@ -229,10 +227,8 @@ async function test(testRunner, dlg, i) {
     if (i > 0)
         await roundtrip(testRunner, '\\r bookkeeping special special:stop', null);
 
-    for (let turn of dlg) {
-        if (!await roundtrip(testRunner, turn.user, turn.agent))
-            return;
-    }
+    for (let turn of dlg)
+        await roundtrip(testRunner, turn.user, turn.agent);
 }
 
 async function main(limit = Infinity) {

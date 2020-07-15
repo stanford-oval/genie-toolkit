@@ -73,10 +73,11 @@ tell_me_more_phrase = {
 }
 
 learn_more_offer = {
-    'would you like to learn more ?';
-    'would you like to know more about it ?';
-    'would you like to hear more about it ?';
-    'are you interested to hear more about it ?';
+    // give a small boost to anything with a learn more
+    'would you like to learn more ?' [priority=0.1];
+    'would you like to know more about it ?' [priority=0.1];
+    'would you like to hear more about it ?' [priority=0.1];
+    'are you interested to hear more about it ?' [priority=0.1];
 }
 
 yes_please_phrase = {

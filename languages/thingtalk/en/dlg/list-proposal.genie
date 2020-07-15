@@ -40,7 +40,7 @@ system_list_proposal = {
          'are you interested to hear more about any of them ?')
         => D.checkListProposal(name_list, null, true);
 
-    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' ('they' | 'all of them') 'are' info:result_info_phrase '.'
+    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' ('they' | 'all of them') 'are' info:result_info_phrase '.' [priority=2]
         => D.checkListProposal(name_list, info, true);
 
     ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' 'both are' info:result_info_phrase '.' => {
@@ -49,7 +49,7 @@ system_list_proposal = {
         return D.checkListProposal(name_list, info, true);
     };
 
-    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_list_proposal
+    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_list_proposal [priority=1]
         => D.addActionToListProposal(name_list, action);
 }
 

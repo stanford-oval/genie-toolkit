@@ -45,7 +45,7 @@ empty_search_error = {
     '.' => [base, null];
 
     sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
-    '.' 'would you like' ('a different' | 'another') p:out_param_Any '?' => {
+    '.' 'would you like' ('a different' | 'another') p:out_param_Any '?' [priority=1] => {
         if (!base.schema.hasArgument(p.name))
             return null;
         if (p === 'id')

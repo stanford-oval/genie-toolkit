@@ -38,13 +38,13 @@
 }
 
 one_param_slot_fill_question = {
-    ( 'what' p:input_param prefer_question_phrase '?'
-    | p:thingpedia_slot_fill_question '?'
+    ( p:thingpedia_slot_fill_question '?' [priority=0.1]
+    | 'what' p:input_param prefer_question_phrase '?'
     ) => [p];
 }
 
 two_param_slot_fill_question = {
-    ( 'what' p1:input_param 'and' p2:out_param_Any prefer_question_phrase '?'
+    ( 'what' p1:input_param 'and' p2:input_param prefer_question_phrase '?'
     | p1:thingpedia_slot_fill_question 'and' 'what' p2:input_param prefer_question_phrase '?'
     | 'what' p1:input_param prefer_question_phrase 'and' p2:thingpedia_slot_fill_question '?'
     ) => {
@@ -55,7 +55,7 @@ two_param_slot_fill_question = {
 }
 
 slot_fill_question = {
-    one_param_slot_fill_question;
+    one_param_slot_fill_question [priority=0.1];
     two_param_slot_fill_question;
 }
 
