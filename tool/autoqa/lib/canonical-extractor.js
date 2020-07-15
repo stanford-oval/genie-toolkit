@@ -54,7 +54,7 @@ class AnnotationExtractor {
                 if (!(arg in this.newCanonicals))
                     continue;
 
-                let canonicals = this.class.queries[qname].getArgument(arg).metadata.canonical;
+                let canonicals = (this.class.queries[qname] || this.class.actions[qname]).getArgument(arg).metadata.canonical;
                 for (let typeNewCanonical in this.newCanonicals[arg]) {
                     for (let newCanonical of this.newCanonicals[arg][typeNewCanonical]) {
                         if (!(newCanonical.startsWith('# ') || newCanonical.endsWith(' #') || newCanonical.includes(' # ')))
