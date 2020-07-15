@@ -94,7 +94,7 @@ function betaReduce(ast, pname, value) {
             continue;
 
         if (pname in slot.scope) {
-            // if the parameter is in scope of the slot, it means we're in a filter andthe same parameter name
+            // if the parameter is in scope of the slot, it means we're in a filter and the same parameter name
             // is returned by the stream/table, which shadows the example/declaration parameter we're
             // trying to replace, hence we ignore this slot
             continue;
