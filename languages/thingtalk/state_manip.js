@@ -574,7 +574,7 @@ function makeAgentReply(ctx, state, aux = null, expectedType = null, options = {
     if (end === undefined) {
         end = !state.history.some((item) => item.results === null) &&
             (state.dialogueAct.startsWith('sys_recommend_') ||
-            ['sys_action_success', 'sys_action_error', 'sys_end'].includes(state.dialogueAct));
+            ['sys_action_success', 'sys_action_error', 'sys_end', 'sys_display_result'].includes(state.dialogueAct));
     }
 
     return {

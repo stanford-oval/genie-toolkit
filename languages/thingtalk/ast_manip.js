@@ -1603,6 +1603,10 @@ function checkInvocationInputParam(invocation, param) {
         return false;
 
     if (arg.type.isNumber || arg.type.isMeasure) {
+        // __const varref, likely
+        if (!param.value.isNumber && !param.value.isMeasure)
+            return false;
+
         let min = -Infinity;
         let minArg = arg.getImplementationAnnotation('min_number');
         if (minArg !== undefined)
