@@ -320,6 +320,8 @@ $user = {
         => D.recommendationSearchQuestionReply(ctx, questions);
     ctx:ctx_sys_learn_more_what questions:user_search_question
         => D.learnMoreSearchQuestionReply(ctx, questions);
+    ctx:ctx_sys_display_result questions:user_search_question
+        => D.displayResultSearchQuestionReply(ctx, questions);
 
     // accepting list proposals
     ctx:ctx_sys_recommend_many reply:positive_list_proposal_reply [weight=10 * 0.7]
