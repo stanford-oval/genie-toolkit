@@ -175,13 +175,12 @@ class ThingpediaLoader {
     _recordInputParam(functionName, arg) {
         const pname = arg.name;
         const ptype = arg.type;
-        //const key = pname + '+' + ptype;
+        const key = pname + '+' + ptype;
+        const typestr = this._recordType(ptype);
         // FIXME match functionName
         //if (this.params.out.has(key))
         //    return;
-        //this.params.out.add(key);
-
-        const typestr = this._recordType(ptype);
+        this.params.out.set(key, [pname, typestr]);
 
         // compound types are handled by recursing into their fields through iterateArguments()
         // except FIXME that probably won't work? we need to create a record object...
