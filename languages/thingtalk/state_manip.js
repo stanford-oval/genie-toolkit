@@ -435,14 +435,14 @@ function addActionParam(ctx, dialogueAct, action, pname, value, confirm) {
             in_params,
             action.schema
         );
-        if (action.functionType === 'action') {
+        if (action.schema.functionType === 'action') {
             newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
                 newInvocation, action.schema.removeArgument(pname)
             )]);
         } else {
             newStmt = new Ast.Statement.Command(null, new Ast.Table.Invocation(null,
                 newInvocation, action.schema.removeArgument(pname)),
-                [new Ast.Action.Notify(null)]);
+                [C.notifyAction()]);
         }
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
@@ -488,14 +488,14 @@ function addAction(ctx, dialogueAct, action, confirm) {
             [],
             action.schema
         );
-        if (action.functionType === 'action') {
+        if (action.schema.functionType === 'action') {
             newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
                 newInvocation, action.schema
             )]);
         } else {
             newStmt = new Ast.Statement.Command(null, new Ast.Table.Invocation(null,
                 newInvocation, action.schema),
-                [new Ast.Action.Notify(null)]);
+                [C.notifyAction()]);
         }
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
