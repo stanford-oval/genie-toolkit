@@ -30,10 +30,10 @@ const { parseConstantFile } = require('../lib/constant-file');
 
 const AnnotationGenerator = require('./lib/annotation-generator');
 
-async function loadClassDef(thingpedia) {
+async function loadClassDefs(thingpedia) {
     const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
-    assert(library.isLibrary && library.classes.length === 1);
-    return library.classes[0];
+    assert(library.isLibrary);
+    return library.classes;
 }
 
 module.exports = {
@@ -131,17 +131,23 @@ module.exports = {
     },
 
     async execute(args) {
-        const classDef = await loadClassDef(args.thingpedia);
+        const classDefs = await loadClassDefs(args.thingpedia);
 
         if (args.skip) {
-            args.output.end(classDef.prettyprint());
+            for (let classDef of classDefs)
+                args.output.write(classDef.prettyprint() + '\n');
+            args.output.end();
         } else {
             const options = args;
             const constants = await parseConstantFile(args.locale, args.constants);
             const functions = args.functions ? args.functions.split(',') : null;
-            const generator = new AnnotationGenerator(classDef, constants, functions, args.parameter_datasets, options);
-            const annotatedClassDef = await generator.generate();
-            args.output.end(annotatedClassDef.prettyprint());
+
+            for (let classDef of classDefs) {
+                const generator = new AnnotationGenerator(classDef, constants, functions, args.parameter_datasets, options);
+                const annotatedClassDef = await generator.generate();
+                args.output.write(annotatedClassDef.prettyprint());
+            }
+            args.output.end();
         }
 
         StreamUtils.waitFinish(args.output);
