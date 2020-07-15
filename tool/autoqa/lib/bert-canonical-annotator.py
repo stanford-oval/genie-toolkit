@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from transformers import BertTokenizer, BertForMaskedLM, GPT2Tokenizer, GPT2LMHeadModel
 
 BLACK_LIST = ['a', 'an', 'the', 'its', 'their', 'his', 'her']
-
+ALL_CATEGORIES = ['base', 'property', 'verb', 'passive_verb', 'reverse_property', 'reverse_verb', 'preposition']
 
 def split_canonical(canonical):
     """
@@ -51,7 +51,7 @@ def template_query(cat, query_canonical='', prefix='', value='', suffix=''):
             f"{question_start} {prefix} {value} {suffix} ?".split(),
             f"show me a {query_canonical} that {prefix} {value} {suffix} .".split()
         ]
-    if cat == 'passive_verb':
+    if cat in ('passive_verb', 'preposition'):
         return [
             f"show me a {query_canonical} {prefix} {value} {suffix} .".split(),
             f"{question_start} is {prefix} {value} {suffix} .".split()
@@ -300,7 +300,7 @@ class BertLM:
             return examples
 
         arg_canonicals = self.queries[query_name]['args'][arg_name]['canonicals']
-        for category in ['base', 'property', 'verb', 'passive_verb', 'reverse_property', 'reverse_verb']:
+        for category in ALL_CATEGORIES:
             if category in arg_canonicals:
                 examples[category] = {"examples": [], "candidates": []}
 
