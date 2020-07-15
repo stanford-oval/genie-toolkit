@@ -61,12 +61,10 @@ module.exports = {
             help: 'Number of samples per entity or string value'
         });
         parser.addArgument('--devices', {
-            required: true,
+            required: false,
             help: `The list of devices to sample, separated by comma`
         });
-
     },
-
 
     async execute(args) {
         const options = {
@@ -79,6 +77,8 @@ module.exports = {
         const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
         const constProvider = new FileParameterProvider(args.parameter_datasets);
         await constProvider.open();
+        if (!options.devices)
+            options.devices = (await tpClient.getAllDeviceNames()).map((dev) => dev.kind).join(',');
 
         const sampler = new ConstantSampler(schemaRetriever, constProvider, options);
 
