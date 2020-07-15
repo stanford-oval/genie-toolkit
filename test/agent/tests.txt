@@ -99,7 +99,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), price == enum(expensive) => notify;
 
-A: I see str:ENTITY_com.yelp:restaurant::1: or str:ENTITY_com.yelp:restaurant::7:. They're restaurants rated 1 star.
+A: I have found str:ENTITY_com.yelp:restaurant::1: and str:ENTITY_com.yelp:restaurant::7:. They are restaurants rated 1 star.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two ; now => ( @com.yelp.restaurant ) filter param:price == enum:expensive => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_2 ] , param:price = enum:expensive , param:rating = 1 , param:reviewCount = NUMBER_0 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] #[ count = NUMBER_1 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"str:ENTITY_com.yelp:restaurant::1:","display":null},"PICTURE_0":"str:ENTITY_tt:picture::49:","URL_0":"str:ENTITY_tt:url::45:","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"str:ENTITY_com.yelp:restaurant_cuisine::25:","display":null},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"str:ENTITY_com.yelp:restaurant_cuisine::41:","display":null},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_2":{"value":"str:ENTITY_com.yelp:restaurant_cuisine::47:","display":null},"NUMBER_0":55,"LOCATION_0":{"latitude":30,"longitude":-48,"display":null},"PHONE_NUMBER_0":"str:ENTITY_tt:phone_number::37:","NUMBER_1":19}
 A: >> expecting = command
 
@@ -127,11 +127,10 @@ A: The current weather in Palo Alto, California is raining.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = 7 unit:mps , param:humidity = NUMBER_0 , param:cloudiness = 7 , param:fog = NUMBER_0 , param:status = enum:raining , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":41},"NUMBER_0":15,"PICTURE_0":"str:ENTITY_tt:picture::40:"}
 A: >> expecting = null
 
-# TODO
 # what's the temperature?
-#U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-#U: now => [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
-#
-#A: The temperature is 41C.
-#A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":41}}
-#A: >> expecting = command
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
+
+A: The temperature is 41 C.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => [ param:temperature ] of ( @org.thingpedia.weather.current param:location = LOCATION_0 ) => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":41}}
+A: >> expecting = null

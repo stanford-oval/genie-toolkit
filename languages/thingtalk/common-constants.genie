@@ -54,18 +54,42 @@ constant_Entity__tt__program  = {}
 constant_Entity__tt__device   = {}
 constant_Boolean = {}
 
-constant_Measure_byte = {}
-constant_Measure_kg = {}
-constant_Measure_C = {}
-constant_Measure_m = {}
-constant_Measure_mps = {}
-constant_Measure_Pa = {}
-constant_Measure_kcal = {}
-constant_Measure_W = {}
-constant_Measure_lx = {}
-constant_Measure_lm = {}
-constant_Measure_dB = {}
-constant_Measure_dBm = {}
+constant_Measure_byte = {
+    ?inference const(MEASURE_byte, Type.Measure('byte'));
+}
+constant_Measure_kg = {
+    ?inference const(MEASURE_kg, Type.Measure('kg'));
+}
+constant_Measure_C = {
+    ?inference const(MEASURE_C, Type.Measure('C'));
+}
+constant_Measure_m = {
+    ?inference const(MEASURE_m, Type.Measure('m'));
+}
+constant_Measure_mps = {
+    ?inference const(MEASURE_mps, Type.Measure('mps'));
+}
+constant_Measure_Pa = {
+    ?inference const(MEASURE_Pa, Type.Measure('Pa'));
+}
+constant_Measure_kcal = {
+    ?inference const(MEASURE_kcal, Type.Measure('kcal'));
+}
+constant_Measure_W = {
+    ?inference const(MEASURE_W, Type.Measure('W'));
+}
+constant_Measure_lx = {
+    ?inference const(MEASURE_lx, Type.Measure('lx'));
+}
+constant_Measure_lm = {
+    ?inference const(MEASURE_lm, Type.Measure('lm'));
+}
+constant_Measure_dB = {
+    ?inference const(MEASURE_dB, Type.Measure('dB'));
+}
+constant_Measure_dBm = {
+    ?inference const(MEASURE_dBm, Type.Measure('byte'));
+}
 
 // this is used for equality filtering, so !turking anything that is weird when equality compared
 constant_Any = {
