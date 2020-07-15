@@ -123,7 +123,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The current weather in Palo Alto, California is raining.
+A: The weather in Palo Alto, California is raining.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = 7 unit:mps , param:humidity = NUMBER_0 , param:cloudiness = 7 , param:fog = NUMBER_0 , param:status = enum:raining , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":41},"NUMBER_0":15,"PICTURE_0":"str:ENTITY_tt:picture::40:"}
 A: >> expecting = null
 
@@ -133,4 +133,21 @@ U: now => [temperature] of @org.thingpedia.weather.current(location=new Location
 
 A: The temperature is 41 C.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => [ param:temperature ] of ( @org.thingpedia.weather.current param:location = LOCATION_0 ) => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":41}}
+A: >> expecting = null
+
+====
+# 5-weather-slot-fill
+# getting the weather again
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @org.thingpedia.weather.current() => notify;
+
+A: What location do you want the current weather for?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill param:location ; now => @org.thingpedia.weather.current => notify ; // {}
+A: >> expecting = location
+
+# let's use the location picker!
+U: \t bookkeeping(answer(new Location(37.442156, -122.1634471, "Palo Alto, California")));
+
+A: The weather in Palo Alto, California is raining.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = 7 unit:mps , param:humidity = NUMBER_0 , param:cloudiness = 7 , param:fog = NUMBER_0 , param:status = enum:raining , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":41},"NUMBER_0":15,"PICTURE_0":"str:ENTITY_tt:picture::40:"}
 A: >> expecting = null

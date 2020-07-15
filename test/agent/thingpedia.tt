@@ -485,6 +485,50 @@ class @org.thingpedia.weather
   import loader from @org.thingpedia.v2();
   import config from @org.thingpedia.config.none();
 
+  monitorable query current(in req location: Location
+                            #_[prompt="what location do you want the current weather for?"]
+                            #_[canonical={
+                              default="preposition",
+                              base=["location", "position", "place"],
+                              property=[],
+                              preposition=["in #", "at #", "around #", "for location #", "for #"]
+                            }],
+                            out temperature: Measure(C)
+                            #_[canonical="temperature"]
+                            // from the coldest artic to the death valley, in one filter
+                            #[min_number=-10C]
+                            #[max_number=50C],
+                            out wind_speed: Measure(mps)
+                            #_[canonical="wind speed"]
+                            #[min_number=0kmph]
+                            #[max_number=150kmph],
+                            out humidity: Number
+                            #_[canonical="humidity"]
+                            #[min_number=0]
+                            #[max_number=100],
+                            out cloudiness: Number
+                            #_[canonical="cloudiness"]
+                            #[min_number=0]
+                            #[max_number=100],
+                            out fog: Number
+                            #_[canonical="fog"]
+                            #[min_number=0]
+                            #[max_number=100],
+                            out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy)
+                            #_[canonical="status"],
+                            out icon: Entity(tt:picture)
+                            #_[canonical="icon"])
+  #_[result=["the current weather in ${location} is ${status} . the temperature is ${temperature} and the humidity is ${humidity} % .",
+             "the current weather in ${location} is ${status}",
+             "the weather in ${location} is ${status}",
+             "it is ${status} today in ${location} and the temperature is ${temperature}"]]
+  #_[canonical=["current weather", "weather", "weather outside"]]
+  #_[confirmation="the current weather for $location"]
+  #_[formatted=[{type="text",text="Current weather for ${location}: ${status}, temperature ${temperature:C} C, wind speed ${wind_speed:mps} m/s, humidity ${humidity}%, cloudiness ${cloudiness}%, fog ${fog}%."}]]
+  #[poll_interval=3600000ms]
+  #[doc="Information about current weather"]
+  #[confirm=false];
+
   monitorable query sunrise(in req location: Location
                             #_[prompt="what location do you want sun time info for?"]
                             #_[canonical={
@@ -544,50 +588,6 @@ class @org.thingpedia.weather
   #_[formatted=[{type="text",text="Moon phase on ${date:date} for ${location}: ${phase}."}]]
   #[poll_interval=86400000ms]
   #[doc="Information about moon times and moon phase"]
-  #[confirm=false];
-
-  monitorable query current(in req location: Location
-                            #_[prompt="what location do you want the current weather for?"]
-                            #_[canonical={
-                              default="preposition",
-                              base=["location", "position", "place"],
-                              property=[],
-                              preposition=["in #", "at #", "around #", "for location #", "for #"]
-                            }],
-                            out temperature: Measure(C)
-                            #_[canonical="temperature"]
-                            // from the coldest artic to the death valley, in one filter
-                            #[min_number=-10C]
-                            #[max_number=50C],
-                            out wind_speed: Measure(mps)
-                            #_[canonical="wind speed"]
-                            #[min_number=0kmph]
-                            #[max_number=150kmph],
-                            out humidity: Number
-                            #_[canonical="humidity"]
-                            #[min_number=0]
-                            #[max_number=100],
-                            out cloudiness: Number
-                            #_[canonical="cloudiness"]
-                            #[min_number=0]
-                            #[max_number=100],
-                            out fog: Number
-                            #_[canonical="fog"]
-                            #[min_number=0]
-                            #[max_number=100],
-                            out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy)
-                            #_[canonical="status"],
-                            out icon: Entity(tt:picture)
-                            #_[canonical="icon"])
-  #_[result=["the current weather in ${location} is ${status} . the temperature is ${temperature} and the humidity is ${humidity} % .",
-             "the current weather in ${location} is ${status}",
-             "the weather in ${location} is ${status}",
-             "it is ${status} today in ${location} and the temperature is ${temperature}"]]
-  #_[canonical=["current weather", "weather", "weather outside"]]
-  #_[confirmation="the current weather for $location"]
-  #_[formatted=[{type="text",text="Current weather for ${location}: ${status}, temperature ${temperature:C} C, wind speed ${wind_speed:mps} m/s, humidity ${humidity}%, cloudiness ${cloudiness}%, fog ${fog}%."}]]
-  #[poll_interval=3600000ms]
-  #[doc="Information about current weather"]
   #[confirm=false];
 }
 
