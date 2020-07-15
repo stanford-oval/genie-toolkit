@@ -27,18 +27,16 @@ const Ast = ThingTalk.Ast;
 const C = require('../ast_manip');
 
 const {
-    getActionInvocation,
     makeAgentReply,
     makeSimpleState,
-    replaceAction,
+    mergeParameters,
+    setOrAddInvocationParam,
+    addNewItem,
 } = require('../state_manip');
-const {
-    addParametersFromContext
-} = require('./common');
 
 
 function isGoodSlotFillQuestion(ctx, questions) {
-    const action = getActionInvocation(ctx.next);
+    const action = C.getInvocation(ctx.next);
     assert(action instanceof Ast.Invocation);
     for (let q of questions) {
         assert(typeof q === 'string');
@@ -79,7 +77,7 @@ function makeSlotFillQuestion(ctx, questions) {
 
     assert(questions.length > 0);
     if (questions.length === 1) {
-        const action = getActionInvocation(ctx.next);
+        const action = C.getInvocation(ctx.next);
         const arg = action.schema.getArgument(questions[0]);
         const type = arg.type;
 
@@ -113,10 +111,7 @@ function preciseSlotFillAnswer(ctx, answer) {
     assert(answerFunctions.length === 1);
     if (answerFunctions[0] !== ctx.nextFunction)
         return null;
-    if (!isGoodSlotFillQuestion(ctx, questions))
-        return null;
     assert(answer instanceof Ast.Invocation);
-    addParametersFromContext(answer, getActionInvocation(ctx.next));
 
     // check that we don't fill the chain parameter through this path:
     // the chain parameter can only be filled if the agent shows the results
@@ -126,7 +121,14 @@ function preciseSlotFillAnswer(ctx, answer) {
             return null;
     }
 
-    return replaceAction(ctx, 'execute', answer, 'accepted');
+    const clone = ctx.next.clone();
+    clone.confirm = 'accepted';
+    clone.results = null;
+    const newInvocation = C.getInvocation(clone);
+    // modify in place
+    mergeParameters(newInvocation, answer);
+
+    return addNewItem(ctx, 'execute', null, 'accepted', clone);
 }
 
 function impreciseSlotFillAnswer(ctx, answer) {
@@ -144,16 +146,20 @@ function impreciseSlotFillAnswer(ctx, answer) {
         answer = new Ast.InputParam(null, questions[0], answer);
     }
 
-    const currentAction = getActionInvocation(ctx.next);
-    if (!isGoodSlotFillQuestion(ctx, questions))
-        return null;
     assert(answer instanceof Ast.InputParam);
     if (answer.name === ctx.nextInfo.chainParameter)
         return null;
-    const newAction = C.addInvocationInputParam(currentAction, answer);
-    if (newAction === null)
+
+    const clone = ctx.next.clone();
+    clone.confirm = 'accepted';
+    clone.results = null;
+    const newAction = C.getInvocation(clone);
+    if (!C.checkInvocationInputParam(newAction, answer))
         return null;
-    return replaceAction(ctx, 'execute', newAction, 'accepted');
+
+    // modify in place
+    setOrAddInvocationParam(newAction, answer.name, answer.value);
+    return addNewItem(ctx, 'execute', null, 'accepted', clone);
 }
 
 module.exports = {

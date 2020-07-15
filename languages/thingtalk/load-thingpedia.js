@@ -29,7 +29,14 @@ const Grammar = ThingTalk.Grammar;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 const Units = ThingTalk.Units;
 
-const { clean, typeToStringSafe, makeFilter, makeAndFilter, isHumanEntity } = require('./utils');
+const {
+    clean,
+    typeToStringSafe,
+    makeFilter,
+    makeAndFilter,
+    isHumanEntity,
+    tokenizeExample
+} = require('./utils');
 const { SlotBag } = require('./slot_bag');
 
 function identity(x) {
@@ -75,13 +82,10 @@ class ThingpediaLoader {
 
         this._allTypes = new Map;
         this._idTypes = new Set;
-        this._nonConstantTypes = new Set;
         this._entities = new Map;
         this.types = {
             all: this._allTypes,
             id: this._idTypes,
-            nonConstant: this._nonConstantTypes,
-            entities: this._entities
         };
         this.params = {
             in: new Map,
@@ -154,9 +158,6 @@ class ThingpediaLoader {
                     this._grammar.addRule('constant_' + typestr, [clean(entry)],
                         this._runtime.simpleCombine(() => value));
                 }
-            } else if (type.isEntity) {
-                if (!this._nonConstantTypes.has(typestr) && !this._idTypes.has(typestr))
-                    this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + type.type, type);
             }
         }
         return typestr;
@@ -174,13 +175,12 @@ class ThingpediaLoader {
     _recordInputParam(functionName, arg) {
         const pname = arg.name;
         const ptype = arg.type;
-        //const key = pname + '+' + ptype;
+        const key = pname + '+' + ptype;
+        const typestr = this._recordType(ptype);
         // FIXME match functionName
         //if (this.params.out.has(key))
         //    return;
-        //this.params.out.add(key);
-
-        const typestr = this._recordType(ptype);
+        this.params.out.set(key, [pname, typestr]);
 
         // compound types are handled by recursing into their fields through iterateArguments()
         // except FIXME that probably won't work? we need to create a record object...
@@ -388,6 +388,8 @@ class ThingpediaLoader {
             canonical = { base: [clean(pname)] };
         else if (typeof arg.metadata.canonical === 'string')
             canonical = { base: [arg.metadata.canonical] };
+        else if (Array.isArray(arg.metadata.canonical))
+            canonical = { base: arg.metadata.canonical };
         else
             canonical = arg.metadata.canonical;
 
@@ -615,6 +617,12 @@ class ThingpediaLoader {
             }
         }
 
+        if (!ex.preprocessed || ex.preprocessed.length === 0) {
+            // preprocess here...
+            const tokenizer = this._langPack.getTokenizer();
+            ex.preprocessed = ex.utterances.map((utterance) => tokenizeExample(tokenizer, utterance, ex.id));
+        }
+
         for (let preprocessed of ex.preprocessed) {
             let grammarCat = 'thingpedia_' + ex.type;
 
@@ -814,6 +822,12 @@ class ThingpediaLoader {
                 this._runtime.simpleCombine(() => new Ast.Value.Entity(kind, 'tt:device', null)));
         }
 
+        for (let entity of classDef.entities) {
+            const hasNer = entity.impl_annotations.has_ner ?
+                entity.impl_annotations.has_ner.toJS() : true;
+            await this._loadEntityType(classDef.kind + ':' + entity.name, hasNer, true);
+        }
+
         const whitelist = classDef.getImplementationAnnotation('whitelist');
         let queries = Object.keys(classDef.queries);
         let actions = Object.keys(classDef.actions);
@@ -863,42 +877,29 @@ class ThingpediaLoader {
         return false;
     }
 
-    async _loadIdType(idType) {
-        let typestr = typeToStringSafe(Type.Entity(idType.type));
-        if (this._idTypes.has(typestr))
+    async _loadEntityType(entityType, hasNerSupport, override = false) {
+        const ttType = Type.Entity(entityType);
+        let typestr = typeToStringSafe(ttType);
+        if (!override && this._idTypes.has(typestr))
             return;
 
-        if (await this._isIdEntity(idType.type)) {
+        this._entities[entityType] = { has_ner_support: hasNerSupport };
+
+        if (await this._isIdEntity(entityType)) {
             if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
-                console.log('Loaded type ' + idType.type + ' as id type');
+                console.log('Loaded entity ' + entityType + ' as id entity');
             this._idTypes.add(typestr);
         } else {
-            if (idType.has_ner_support) {
+            if (hasNerSupport) {
                 if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
-                    console.log('Loaded type ' + idType.type + ' as generic entity');
+                    console.log('Loaded entity ' + entityType + ' as generic entity');
+
+                this._grammar.declareSymbol('constant_' + typestr);
+                this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + entityType, ttType);
             } else {
                 if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
-                    console.log('Loaded type ' + idType.type + ' as non-constant type');
-                this._nonConstantTypes.add(typestr);
+                    console.log('Loaded entity ' + entityType + ' as non-constant entity');
             }
-        }
-    }
-
-    async _loadCanonical(kind) {
-        if (kind.startsWith('org.thingpedia.dynamic.by_kinds.'))
-            kind = kind.substring('org.thingpedia.dynamic.by_kinds.'.length);
-        try {
-            const classDef = await this._schemas.getFullMeta(kind);
-            const canonicals = {};
-            Object.keys(classDef.queries).forEach((q) => {
-                canonicals[q] = classDef.queries[q].metadata.canonical;
-            });
-            Object.keys(classDef.actions).forEach((a) => {
-                canonicals[a] = classDef.actions[a].metadata.canonical;
-            });
-            return canonicals;
-        } catch (e) {
-            return undefined;
         }
     }
 
@@ -949,83 +950,10 @@ class ThingpediaLoader {
         return false;
     }
 
-
-    async _expandDataset(canonical, expander, rules) {
-        const filter = expander.example.value.filter;
-        await Promise.all(rules.map((rule) =>  {
-            if (rule.category !== 'thingpedia_query')
-                return;
-            if (expander.example.id !== -1 && expander.example.id === rule.example.id)
-                return;
-
-
-            // skip rules with filter on the same parameter
-            // TODO: replace this with more robust check and move to _conflictExample
-            if (rule.example.value.isFilter) {
-                if (filter.isAtom && rule.example.value.filter.isAtom) {
-                    if (filter.name === rule.example.value.filter.name)
-                        return;
-                }
-            }
-
-            // skip rules if the same input parameter is used
-            if (this._conflictExample(expander.example, rule.example))
-                return;
-
-            const args = Object.assign({}, expander.example.args);
-            for (let arg of Object.keys(rule.example.args)) {
-                // skip rules use the same arguments
-                // (in most cases, this will skip rules with same input or have filters on the same param
-                //  but if the value of the input/filter is a constant, then this won't work)
-                if (arg in args)
-                    return;
-                args[arg] = rule.example.args[arg];
-            }
-
-            const value = new Ast.Table.Filter(rule.example.value, filter, null);
-            const preprocessed = this._expandExpansion(expander.expansion, canonical, rule.expansion);
-
-            const ex = this.makeExample('query', args, value, preprocessed);
-            this._safeLoadTemplate(ex);
-        }));
-    }
-
     // load dataset for one device
     async _loadDataset(dataset) {
-        const kind = dataset.name.substr(1);
-        let rules = {};
-        for (let ex of dataset.examples) {
-            const newrules = await this._safeLoadTemplate(ex);
-
-            let invocation;
-            for (let [, inv] of ex.iteratePrimitives())
-                invocation = inv;
-
-            if (invocation.channel in rules)
-                rules[invocation.channel] = rules[invocation.channel].concat(newrules);
-            else
-                rules[invocation.channel] = newrules;
-        }
-
-        if (!this._options.flags.expand_primitives)
-            return;
-        const canonicals = await this._loadCanonical(kind);
-        if (!canonicals)
-            return;
-        for (let channel in rules) {
-            const canonical = canonicals[channel].toLowerCase().trim();
-            for (let rule of rules[channel]) {
-                if (rule.category !== 'thingpedia_query')
-                    continue;
-                const re = new RegExp(canonical, "g");
-                const matches = rule.expansion.join(' ').match(re);
-                if (!matches || matches.length !== 1)
-                    continue;
-                if (!rule.example.value.isFilter || !rule.example.value.table.isInvocation)
-                    continue;
-                await this._expandDataset(canonical, rule, rules[channel]);
-            }
-        }
+        for (let ex of dataset.examples)
+            await this._safeLoadTemplate(ex);
     }
 
     async _safeLoadTemplate(ex) {
@@ -1046,7 +974,7 @@ class ThingpediaLoader {
     }
 
     async _loadMetadata() {
-        const idTypes = await this._tpClient.getAllEntityTypes();
+        const entityTypes = await this._tpClient.getAllEntityTypes();
 
         let devices;
         if (this._options.onlyDevices)
@@ -1058,14 +986,18 @@ class ThingpediaLoader {
         if (devices.length === 0)
             return;
 
-        let datasets = await Promise.all(devices.map(async (d) => {
-            return Grammar.parse(await this._getDataset(d)).datasets[0];
-        }));
-        datasets = datasets.filter((d) => !!d);
-        if (datasets.length === 0) {
+        // note: no typecheck() when loading dataset.tt
+        // each example is typechecked individually so you can concatenate extraneous
+        // datasets and they will be removed
+        let datasets;
+        if (this._options.onlyDevices) {
+            datasets = await Promise.all(devices.map(async (d) => {
+                return Grammar.parse(await this._getDataset(d)).datasets[0];
+            }));
+            datasets = datasets.filter((d) => !!d);
+        } else {
             const code = await this._tpClient.getAllExamples();
-            console.log(code);
-            datasets = await Grammar.parse(code).datasets;
+            datasets = Grammar.parse(code).datasets;
         }
 
         if (this._options.debug >= this._runtime.LogLevel.INFO) {
@@ -1074,14 +1006,10 @@ class ThingpediaLoader {
             console.log('Loaded ' + countTemplates + ' templates');
         }
 
-        for (let entity of idTypes) {
-            this._entities[entity.type] = entity;
-            await this._loadIdType(entity);
-        }
-
+        for (let entity of entityTypes)
+            await this._loadEntityType(entity.type, entity.has_ner_support);
         for (let device of devices)
             await this._loadDevice(device);
-
         for (let dataset of datasets)
             await this._loadDataset(dataset);
     }

@@ -63,6 +63,10 @@ function adjustStatementsForInitialRequest(stmt) {
                 if (in_param.value.name.startsWith('__const_'))
                     continue;
 
+                // TODO: parameter passing for non ID parameter
+                if (in_param.value.name !== 'id')
+                    return null;
+
                 // parameter passing
                 // FIXME we need a new ThingTalk value type...
                 in_param.value = new Ast.Value.Undefined(true);
@@ -113,7 +117,7 @@ function getStatementDevice(stmt) {
 }
 
 function startNewRequest(ctx, stmt) {
-    if (getStatementDevice(ctx.current.stmt) === getStatementDevice(stmt))
+    if (_loader.flags.strict_multidomain && getStatementDevice(ctx.current.stmt) === getStatementDevice(stmt))
         return null;
 
     const newStatements = adjustStatementsForInitialRequest(stmt);
@@ -132,6 +136,8 @@ function addInitialDontCare(stmt, dontcare) {
     if (!arg || arg.is_input)
         return null;
     if (arg.getAnnotation('filterable') === false)
+        return null;
+    if (!stmt.table.schema.is_list)
         return null;
 
     let clone = stmt.clone();

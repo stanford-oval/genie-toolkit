@@ -33,6 +33,8 @@ dialogueActs:
     - sys_recommend_one
     - sys_recommend_two
     - sys_recommend_three
+    # agent displays the result of a non-list query
+    - sys_display_result
     # agent proposes a refined query
     - sys_propose_refined_query
     # agent asks the user what they would like to hear

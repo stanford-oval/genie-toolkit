@@ -97,6 +97,7 @@ context
     ctx_incomplete_action,
     ctx_incomplete_action_after_search,
     ctx_learn_more,
+    ctx_display_nonlist_result,
 
     // agent states (used to continue the conversation with more user utterances)
     // these more or less map to the agent dialogue acts, except we don't distinguish
@@ -108,6 +109,7 @@ context
     ctx_sys_action_error,
     ctx_sys_anything_else,
     ctx_sys_confirm_action,
+    ctx_sys_display_result,
     ctx_sys_empty_search,
     ctx_sys_end,
     ctx_sys_greet,
@@ -171,6 +173,10 @@ $agent = {
     action:action_success_phrase anything_else_phrase => S.setEndBit(action, false);
     action_error_phrase;
 
+    // query results
+    ctx:ctx_display_nonlist_result proposal:system_nonlist_result
+        => D.makeDisplayResultReply(ctx, proposal);
+
     // confirming an action
     action_confirm_phrase;
 
@@ -217,14 +223,24 @@ $user = {
     | ctx:ctx_sys_anything_else yes_please_phrase stmt:initial_command
     ) => D.startNewRequest(ctx, stmt);
 
-    // action results
-    ctx:ctx_sys_action_success thanks_phrase ('goodbye !' | '')
-        => S.makeSimpleState(ctx, 'cancel', null);
+    // action confirmations
+    ctx:ctx_sys_confirm_action accept_phrase
+        => D.actionConfirmAcceptPhrase(ctx);
+
+    // action and non-list query results
+    ( ctx:ctx_sys_action_success thanks_phrase ('goodbye !' | '')
+    | ctx:ctx_sys_display_result thanks_phrase ('goodbye !' | '')
+    ) => S.makeSimpleState(ctx, 'cancel', null);
     ctx:ctx_sys_action_success questions:simple_user_search_question
         => D.actionSuccessQuestion(ctx, questions);
 
+    ctx:ctx_sys_display_result repeat_command_phrase
+        => D.repeatCommandReply(ctx);
+
     ( ctx:ctx_sys_action_success stmt:initial_command
     | ctx:ctx_sys_action_success yes_please_phrase stmt:initial_command
+    | ctx:ctx_sys_display_result stmt:initial_command
+    | ctx:ctx_sys_display_result yes_please_phrase stmt:initial_command
     ) => D.startNewRequest(ctx, stmt);
 
     ( ctx:ctx_sys_action_error no_thanks_phrase
@@ -304,6 +320,8 @@ $user = {
         => D.recommendationSearchQuestionReply(ctx, questions);
     ctx:ctx_sys_learn_more_what questions:user_search_question
         => D.learnMoreSearchQuestionReply(ctx, questions);
+    ctx:ctx_sys_display_result questions:user_search_question
+        => D.displayResultSearchQuestionReply(ctx, questions);
 
     // accepting list proposals
     ctx:ctx_sys_recommend_many reply:positive_list_proposal_reply [weight=10 * 0.7]

@@ -27,7 +27,6 @@ const Ast = ThingTalk.Ast;
 const C = require('../ast_manip');
 
 const {
-    getActionInvocation,
     makeAgentReply,
     makeSimpleState,
     addQuery,
@@ -58,6 +57,8 @@ function isGoodSearchQuestion(ctx, questions) {
 }
 
 function checkFilterPairForDisjunctiveQuestion(ctx, f1, f2) {
+    if (!ctx.currentFunctionSchema.is_list)
+        return null;
     if (f1.name !== f2.name)
         return null;
     if (!f1.value.getType().equals(f2.value.getType()))
@@ -154,7 +155,7 @@ function preciseSearchQuestionAnswer(ctx, [answerTable, answerAction]) {
                     return null;
             }
 
-            answerAction = addParametersFromContext(answerAction, getActionInvocation(ctx.next));
+            answerAction = addParametersFromContext(answerAction, C.getInvocation(ctx.next));
         }
     }
 

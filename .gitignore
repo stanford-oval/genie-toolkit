@@ -21,10 +21,6 @@ po/*.json
 *.tt.json
 
 workdir*
-dataset.tt
-thingpedia.json
-entities.json
-thingpedia.tt
 genienlp/
 
 env/

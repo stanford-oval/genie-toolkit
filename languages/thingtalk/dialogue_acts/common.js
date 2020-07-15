@@ -187,7 +187,6 @@ function addParametersFromContext(toInvocation, fromInvocation) {
     return toInvocation;
 }
 
-
 function findChainParam(topResult, action) {
     const resultType = topResult.value.id.getType();
 
@@ -212,5 +211,5 @@ module.exports = {
     isValidSearchQuestion,
     isSimpleFilterTable,
     findChainParam,
-    addParametersFromContext
+    addParametersFromContext,
 };

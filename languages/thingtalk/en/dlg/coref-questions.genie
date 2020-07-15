@@ -152,6 +152,8 @@ boolean_user_search_question = {
     ) => {
         if (!C.checkFilter(base, param))
             return null;
+        if (!base.schema.is_list)
+            return null;
         if (param.name === 'id')
             return null;
         return [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]];

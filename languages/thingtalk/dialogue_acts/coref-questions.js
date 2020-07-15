@@ -35,12 +35,19 @@ const {
 
 
 function areQuestionsValidForContext(ctx, questions) {
+    const schema = ctx.currentFunctionSchema;
+
+    // if the function only contains one parameter, do not generate projection for it
+    if (Object.keys(schema.out).length === 1)
+        return null;
+
     for (const [qname, qtype] of questions) {
         assert(typeof qname === 'string');
         assert(qtype === null || qtype instanceof Type);
-        if (!ctx.currentFunctionSchema.hasArgument(qname))
+        const arg = schema.getArgument(qname);
+        if (!arg || arg.is_input)
             return false;
-        if (qtype !== null && !ctx.currentFunctionSchema.getArgType(qname).equals(qtype))
+        if (qtype !== null && !arg.type.equals(qtype))
             return false;
     }
     return true;
@@ -80,6 +87,18 @@ function learnMoreSearchQuestionReply(ctx, questions) {
     const currentTable = ctx.current.stmt.table;
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
     const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
+        questions.map(([qname, qtype]) => qname));
+    if (newTable === null)
+        return null;
+    return addQuery(ctx, 'execute', newTable, 'accepted');
+}
+
+function displayResultSearchQuestionReply(ctx, questions) {
+    if (!areQuestionsValidForContext(ctx, questions))
+        return null;
+
+    const currentTable = ctx.current.stmt.table;
+    const newTable = queryRefinement(currentTable, null, refineFilterToAnswerQuestion,
         questions.map(([qname, qtype]) => qname));
     if (newTable === null)
         return null;
@@ -154,6 +173,7 @@ function corefConstant(ctx, base, param) {
 
 module.exports = {
     recommendationSearchQuestionReply,
+    displayResultSearchQuestionReply,
     learnMoreSearchQuestionReply,
     listProposalSearchQuestionReply,
     corefConstant

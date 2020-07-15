@@ -258,8 +258,4 @@ module.exports = class MockThingpediaClient extends Tp.BaseClient {
 
         return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), 'examples/' + kinds[0] + '.tt'), { encoding: 'utf8' });
     }
-
-    getAllExamples() {
-        return util.promisify(fs.readFile)(this._datasetfilename, { encoding: 'utf8' });
-    }
 };

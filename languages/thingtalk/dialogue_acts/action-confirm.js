@@ -27,7 +27,6 @@ const Type = ThingTalk.Type;
 const C = require('../ast_manip');
 
 const {
-    getActionInvocation,
     makeAgentReply,
     makeSimpleState,
     sortByName,
@@ -35,7 +34,7 @@ const {
 
 
 function makeActionConfirmationPhrase(ctx, action) {
-    const ctxInvocation = getActionInvocation(ctx.next);
+    const ctxInvocation = C.getInvocation(ctx.next);
     if (ctxInvocation.selector.isBuiltin)
         return null;
     if (!C.isSameFunction(ctxInvocation.schema, action.schema))
@@ -60,6 +59,16 @@ function makeActionConfirmationPhrase(ctx, action) {
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_confirm_action', null), null, Type.Boolean);
 }
 
+function actionConfirmAcceptPhrase(ctx) {
+    const clone = ctx.clone();
+    assert(clone.next.confirm === 'accepted');
+    clone.next.confirm = 'confirmed';
+    clone.state.dialogueAct = 'execute';
+    clone.state.dialogueActParam = null;
+    return clone.state;
+}
+
 module.exports = {
-    makeActionConfirmationPhrase
+    makeActionConfirmationPhrase,
+    actionConfirmAcceptPhrase
 };

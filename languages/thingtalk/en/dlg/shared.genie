@@ -173,3 +173,10 @@ system_learn_more = {
     'what would you like to know ?';
     'what would you like to hear ?';
 }
+
+repeat_command_phrase = {
+    'again !';
+    'another one';
+    'do this again';
+    'do it again';
+}

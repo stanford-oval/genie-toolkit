@@ -28,7 +28,6 @@ const C = require('../ast_manip');
 
 const { SlotBag } = require('../slot_bag');
 const {
-    getActionInvocation,
     makeAgentReply,
     makeSimpleState,
     setOrAddInvocationParam,
@@ -56,7 +55,7 @@ function makeCompleteActionSuccessPhrase(ctx, action, info) {
     // check the action is the same we actually executed, and all the parameters we're mentioning
     // match the actual parameters of the action
     assert(action instanceof Ast.Invocation);
-    const ctxInvocation = getActionInvocation(ctx.current);
+    const ctxInvocation = C.getInvocation(ctx.current);
     if (!C.isSameFunction(ctxInvocation.schema, action.schema))
         return null;
 
@@ -97,7 +96,7 @@ function checkThingpediaErrorMessage(ctx, msg) {
     if (error.isEnum && error.value !== msg.code)
         return null;
 
-    const action = getActionInvocation(ctx.current);
+    const action = C.getInvocation(ctx.current);
     for (let in_param of action.in_params) {
         if (msg.bag.has(in_param.name) && !msg.bag.get(in_param.name).equals(in_param.value))
             return null;
@@ -111,7 +110,7 @@ function checkActionErrorMessage(ctx, action) {
     // match the actual parameters of the action
     if (!C.isSameFunction(ctx.currentFunctionSchema, action.schema))
         return null;
-    const ctxInvocation = getActionInvocation(ctx.current);
+    const ctxInvocation = C.getInvocation(ctx.current);
     for (let newParam of action.in_params) {
         if (newParam.value.isUndefined)
             continue;
@@ -163,7 +162,7 @@ function actionErrorChangeParam(ctx, answer) {
     if (!arg || !arg.is_input || !arg.type.equals(answer.value.getType()))
         return null;
 
-    const action = getActionInvocation(ctx.current);
+    const action = C.getInvocation(ctx.current);
     if (!action)
         return null;
     const clone = action.clone();

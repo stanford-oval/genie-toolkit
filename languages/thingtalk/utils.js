@@ -99,8 +99,93 @@ function isHumanEntity(type) {
     return false;
 }
 
+const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})/;
+
+function* split(pattern, regexp) {
+    // a split that preserves capturing parenthesis
+
+    let clone = new RegExp(regexp, 'g');
+    let match = clone.exec(pattern);
+
+    let i = 0;
+    while (match !== null) {
+        if (match.index > i)
+            yield pattern.substring(i, match.index);
+        yield match;
+        i = clone.lastIndex;
+        match = clone.exec(pattern);
+    }
+    if (i < pattern.length)
+        yield pattern.substring(i, pattern.length);
+}
+
+function splitParams(utterance) {
+    return Array.from(split(utterance, PARAM_REGEX));
+}
+
+function tokenizeExample(tokenizer, utterance, id) {
+    let replaced = '';
+    let params = [];
+
+    for (let chunk of splitParams(utterance.trim())) {
+        if (chunk === '')
+            continue;
+        if (typeof chunk === 'string') {
+            replaced += chunk;
+            continue;
+        }
+
+        let [match, param1, param2, opt] = chunk;
+        if (match === '$$') {
+            replaced += '$';
+            continue;
+        }
+        let param = param1 || param2;
+        replaced += ' ____ ';
+        params.push([param, opt]);
+    }
+
+    const tokenized = tokenizer.tokenize(replaced);
+    const tokens = tokenized.tokens;
+    const entities = tokenized.entities;
+
+    if (Object.keys(entities).length > 0)
+        throw new Error(`Error in Example ${id}: Cannot have entities in the utterance`);
+
+    let preprocessed = '';
+    let first = true;
+    for (let token of tokens) {
+        if (token === '____') {
+            let [param, opt] = params.shift();
+            if (opt)
+                token = '${' + param + ':' + opt + '}';
+            else
+                token = '${' + param + '}';
+        } else if (token === '$') {
+            token = '$$';
+        }
+        if (!first)
+            preprocessed += ' ';
+        preprocessed += token;
+        first = false;
+    }
+
+    return preprocessed;
+}
+
+function isSameFunction(fndef1, fndef2) {
+    if (!fndef1.class || !fndef2.class) // a join
+        return false;
+    return fndef1.class.name === fndef2.class.name &&
+        fndef1.name === fndef2.name;
+}
+
 module.exports = {
     clean,
+
+    split,
+    splitParams,
+    tokenizeExample,
 
     isUnaryTableToTableOp(table) {
         return table.isFilter ||
@@ -128,6 +213,7 @@ module.exports = {
     isUnaryTableToStreamOp(stream) {
         return stream.isMonitor;
     },
+    isSameFunction,
 
     typeToStringSafe,
     makeFilter,

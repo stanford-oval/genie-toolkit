@@ -25,6 +25,8 @@ const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 
+const { isSameFunction } = require('./utils');
+
 class SlotBag {
     constructor(schema) {
         this.schema = schema;
@@ -32,7 +34,7 @@ class SlotBag {
     }
 
     static merge(b1, b2) {
-        if (b1.schema !== null && b2.schema !== null && b1.schema !== b2.schema)
+        if (b1.schema !== null && b2.schema !== null && !isSameFunction(b1.schema, b2.schema))
             return null;
         const newbag = new SlotBag(b1.schema || b2.schema);
         for (let [key, value] of b1.entries())

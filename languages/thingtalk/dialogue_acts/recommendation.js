@@ -28,10 +28,10 @@ const C = require('../ast_manip');
 
 const { SlotBag, checkAndAddSlot } = require('../slot_bag');
 const {
-    getActionInvocation,
     makeAgentReply,
     makeSimpleState,
     addActionParam,
+    addNewItem,
 } = require('../state_manip');
 const {
     isInfoPhraseCompatibleWithResult,
@@ -79,7 +79,7 @@ function makeRecommendation(ctx, name) {
     if (!id || !id.equals(name))
         return null;
 
-    return { topResult, ctx, info: null, action: ctx.nextInfo && ctx.nextInfo.isAction ? getActionInvocation(ctx.next) : null };
+    return { topResult, ctx, info: null, action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next) : null };
 }
 
 function makeThingpediaRecommendation(ctx, info) {
@@ -87,18 +87,23 @@ function makeThingpediaRecommendation(ctx, info) {
     assert(results.length > 0);
 
     const topResult = results[0];
+    if (!topResult.value.id)
+        return null;
+
     if (!isInfoPhraseCompatibleWithResult(topResult, info))
         return null;
 
-    return { topResult, ctx, info, action: ctx.nextInfo && ctx.nextInfo.isAction ? getActionInvocation(ctx.next) : null };
+    return { topResult, ctx, info, action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next) : null };
 }
 
 
 function checkRecommendation({ topResult, action: nextAction }, info) {
     assert(info instanceof SlotBag);
+    if (!topResult.value.id)
+        return null;
+
     const resultType = topResult.value.id.getType();
     const idType = info.schema.getArgType('id');
-
     if (!idType || !idType.equals(resultType))
         return null;
 
@@ -109,6 +114,8 @@ function checkRecommendation({ topResult, action: nextAction }, info) {
 }
 
 function checkActionForRecommendation({ topResult, info, action: nextAction }, action) {
+    if (!topResult.value.id)
+        return null;
     const resultType = topResult.value.id.getType();
 
     if (nextAction !== null) {
@@ -135,6 +142,40 @@ function makeAnswerStyleRecommendation({ topResult, ctx, action }, filter) {
     return checkRecommendation({ topResult, action }, info);
 }
 
+
+function makeDisplayResult(ctx, info) {
+    const results = ctx.results;
+    assert(results.length > 0);
+    const topResult = results[0];
+
+    if (ctx.currentFunctionSchema.is_list)
+        return null;
+    if (!isInfoPhraseCompatibleWithResult(topResult, info))
+        return null;
+    info = checkInfoPhrase(ctx, info);
+    if (info === null)
+        return null;
+
+    return { topResult, ctx, info, action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next) : null, hasAnythingElse: false };
+}
+
+function combineDisplayResult(proposal, newInfo) {
+    const { ctx, info:oldInfo } = proposal;
+    const results = ctx.results;
+    assert(results.length > 0);
+    const topResult = results[0];
+    assert (isInfoPhraseCompatibleWithResult(topResult, newInfo));
+
+    newInfo = SlotBag.merge(oldInfo, newInfo);
+    if (newInfo === null)
+        return null;
+
+    const newProposal = {};
+    Object.assign(newProposal, proposal);
+    newProposal.info = newInfo;
+    return newProposal;
+}
+
 function makeRecommendationReply(ctx, proposal) {
     const { topResult, action, hasLearnMore } = proposal;
     const options = {};
@@ -149,6 +190,14 @@ function makeRecommendationReply(ctx, proposal) {
         return makeAgentReply(ctx, addActionParam(ctx, 'sys_recommend_one', action, chainParam, topResult.value.id, 'proposed'),
             proposal, null, options);
     }
+}
+
+function makeDisplayResultReply(ctx, proposal) {
+    const { action, hasAnythingElse } = proposal;
+    const options = {};
+    if (action || hasAnythingElse)
+        options.end = false;
+    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null), proposal, null, options);
 }
 
 function negativeRecommendationReply(ctx, [preamble, request]) {
@@ -211,6 +260,18 @@ function recommendationLearnMoreReply(ctx, name) {
     return makeSimpleState(ctx, 'learn_more', null);
 }
 
+function repeatCommandReply(ctx) {
+    if (ctx.next)
+        return null;
+    if (ctx.currentFunctionSchema.is_monitorable)
+        return null;
+
+    const clone = ctx.current.clone();
+    clone.results = null;
+    clone.confirm = 'accepted';
+    return addNewItem(ctx, 'execute', null, 'accepted', clone);
+}
+
 module.exports = {
     makeActionRecommendation,
     makeRecommendation,
@@ -218,10 +279,14 @@ module.exports = {
     makeAnswerStyleRecommendation,
     checkRecommendation,
     checkActionForRecommendation,
+    makeDisplayResult,
+    combineDisplayResult,
     makeRecommendationReply,
+    makeDisplayResultReply,
 
     positiveRecommendationReply,
     negativeRecommendationReply,
     recommendationCancelReply,
     recommendationLearnMoreReply,
+    repeatCommandReply,
 };

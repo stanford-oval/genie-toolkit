@@ -29,7 +29,6 @@ synthetic_flags ?= \
 	aggregation \
 	bookkeeping \
 	configure_actions \
-	multifilters \
 	policies \
 	projection \
 	projection_with_filter \

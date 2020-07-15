@@ -84,6 +84,7 @@ class ResultInfo {
             assert(!table.isCompute);
             this.isQuestion = !!(table.isProjection || table.isCompute || table.isIndex || table.isAggregation);
             this.isAggregation = !!table.isAggregation;
+            this.isList = table.schema.is_list;
             this.argMinMaxField = getTableArgMinMax(table);
             assert(this.argMinMaxField === null || this.isQuestion);
             this.projection = table.isProjection ? table.args.slice() : null;
@@ -295,10 +296,6 @@ function isUserAskingResultQuestion(ctx) {
     return !arraySubset(currentProjection, previousResultInfo.projection);
 }
 
-function getActionInvocation(historyItem) {
-    return historyItem.stmt.actions[0].invocation;
-}
-
 function addNewItem(ctx, dialogueAct, dialogueActParam, confirm, ...newHistoryItem) {
     const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, []);
 
@@ -365,13 +362,23 @@ function setOrAddInvocationParam(newInvocation, pname, value) {
     }
 }
 
+function mergeParameters(toInvocation, fromInvocation) {
+    for (let in_param of fromInvocation.in_params) {
+        if (in_param.value.isUndefined)
+            continue;
+        setOrAddInvocationParam(toInvocation, in_param.name, in_param.value);
+    }
+
+    return toInvocation;
+}
+
 function addActionParam(ctx, dialogueAct, action, pname, value, confirm) {
     assert(action instanceof Ast.Invocation);
     assert(['accepted', 'confirmed', 'proposed'].indexOf(confirm) >= 0);
 
     let newHistoryItem;
     if (ctx.nextInfo) {
-        const nextInvocation = getActionInvocation(ctx.next);
+        const nextInvocation = C.getInvocation(ctx.next);
         const isSameFunction = C.isSameFunction(nextInvocation.schema, action.schema);
 
         if (isSameFunction) {
@@ -388,7 +395,7 @@ function addActionParam(ctx, dialogueAct, action, pname, value, confirm) {
             //   addNewItem() will wipe everything and we'll only one
 
             newHistoryItem = ctx.next.clone();
-            const newInvocation = getActionInvocation(newHistoryItem);
+            const newInvocation = C.getInvocation(newHistoryItem);
             setOrAddInvocationParam(newInvocation, pname, value);
             // also add the new parameters from this action, if any
             for (let param of action.in_params) {
@@ -421,15 +428,22 @@ function addActionParam(ctx, dialogueAct, action, pname, value, confirm) {
                 in_params.push(new Ast.InputParam(null, arg.name, new Ast.Value.Undefined(true)));
         }
 
-        let newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
-            new Ast.Invocation(null,
-                action.selector,
-                action.channel,
-                in_params,
-                action.schema
-            ),
-            action.schema.removeArgument(pname)
-        )]);
+        let newStmt;
+        let newInvocation = new Ast.Invocation(null,
+            action.selector,
+            action.channel,
+            in_params,
+            action.schema
+        );
+        if (action.functionType === 'action') {
+            newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
+                newInvocation, action.schema.removeArgument(pname)
+            )]);
+        } else {
+            newStmt = new Ast.Statement.Command(null, new Ast.Table.Invocation(null,
+                newInvocation, action.schema.removeArgument(pname)),
+                [new Ast.Action.Notify(null)]);
+        }
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
 
@@ -449,7 +463,7 @@ function addAction(ctx, dialogueAct, action, confirm) {
 
     let newHistoryItem;
     if (ctx.nextInfo) {
-        const nextInvocation = getActionInvocation(ctx.next);
+        const nextInvocation = C.getInvocation(ctx.next);
         if (C.isSameFunction(nextInvocation.schema, action.schema)) {
             assert(ctx.next.results === null);
             // case 1:
@@ -467,15 +481,22 @@ function addAction(ctx, dialogueAct, action, confirm) {
     }
 
     if (!newHistoryItem) {
-        let newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
-            new Ast.Invocation(null,
-                action.selector,
-                action.channel,
-                [],
-                action.schema
-            ),
+        let newStmt;
+        let newInvocation = new Ast.Invocation(null,
+            action.selector,
+            action.channel,
+            [],
             action.schema
-        )]);
+        );
+        if (action.functionType === 'action') {
+            newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
+                newInvocation, action.schema
+            )]);
+        } else {
+            newStmt = new Ast.Statement.Command(null, new Ast.Table.Invocation(null,
+                newInvocation, action.schema),
+                [new Ast.Action.Notify(null)]);
+        }
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
 
@@ -553,7 +574,7 @@ function makeAgentReply(ctx, state, aux = null, expectedType = null, options = {
     if (end === undefined) {
         end = !state.history.some((item) => item.results === null) &&
             (state.dialogueAct.startsWith('sys_recommend_') ||
-            ['sys_action_success', 'sys_action_error', 'sys_end'].includes(state.dialogueAct));
+            ['sys_action_success', 'sys_action_error', 'sys_end', 'sys_display_result'].includes(state.dialogueAct));
     }
 
     return {
@@ -628,7 +649,9 @@ function tagContextForAgent(ctx) {
             return ['ctx_empty_search_command'];
         }
 
-        if (ctx.resultInfo.isQuestion) {
+        if (!ctx.resultInfo.isList) {
+            return ['ctx_display_nonlist_result'];
+        } else if (ctx.resultInfo.isQuestion) {
             if (ctx.resultInfo.isAggregation) {
                 // "how many restaurants nearby have more than 500 reviews?"
                 return ['ctx_aggregation_question'];
@@ -708,7 +731,6 @@ module.exports = {
     getContextInfo,
     getContextTags,
     tagContextForAgent,
-    getActionInvocation,
     isUserAskingResultQuestion,
 
     // manipulate states to create new states
@@ -720,5 +742,6 @@ module.exports = {
     addQuery,
     addQueryAndAction,
     replaceAction,
+    mergeParameters,
     setOrAddInvocationParam,
 };

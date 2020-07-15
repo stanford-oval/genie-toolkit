@@ -26,7 +26,7 @@ const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 const Units = require('thingtalk-units');
 
-const { typeToStringSafe } = require('./utils');
+const { typeToStringSafe, isSameFunction } = require('./utils');
 const Utils = require('./utils');
 const { notifyAction } = ThingTalk.Generate;
 
@@ -94,7 +94,7 @@ function betaReduce(ast, pname, value) {
             continue;
 
         if (pname in slot.scope) {
-            // if the parameter is in scope of the slot, it means we're in a filter andthe same parameter name
+            // if the parameter is in scope of the slot, it means we're in a filter and the same parameter name
             // is returned by the stream/table, which shadows the example/declaration parameter we're
             // trying to replace, hence we ignore this slot
             continue;
@@ -749,7 +749,7 @@ function normalizeFilter(table, filter) {
     return filter;
 }
 
-function addFilter(table, filter, forceAdd = false) {
+function addFilter(table, filter, options = {}) {
     filter = normalizeFilter(table, filter);
     if (!filter)
         return null;
@@ -761,28 +761,21 @@ function addFilter(table, filter, forceAdd = false) {
     if (table.schema.no_filter)
         return null;
 
+    // if the query is single result, only add "if" filters, not "with" filters
+    // ("if" filters are only used with streams)
+    if (!table.schema.is_list && !options.ifFilter)
+        return null;
+
     if (table.isProjection) {
-        const added = addFilter(table.table, filter, forceAdd);
+        const added = addFilter(table.table, filter);
         if (added === null)
             return null;
         return new Ast.Table.Projection(null, added, table.args, table.schema);
     }
 
-    // under normal conditions, we don't want to add a second filter to an already
-    // filtered table (= add 2 filters) for turking, because the resulting sentence
-    // would be clunky
-    //
-    // different story is when the filter being added is in the next sentence,
-    // because then we expect to paraphrase only the second filter, and hopefully not mess up
-    //
-    // hence, addFilterToProgram (which are contextual) pass forceAdd = true,
-    // which skips the 2 filter heuristic
-    if (!forceAdd && !_loader.flags.multifilters && table.isFilter && _loader.flags.turking)
-        return null;
-
     if (table.isFilter) {
         // if we already have a filter, don't add a new complex filter
-        if (!forceAdd && !filter.isAtom && !(filter.isNot && filter.expr.isAtom))
+        if (!filter.isAtom && !(filter.isNot && filter.expr.isAtom))
              return null;
 
         if (checkFilterUniqueness(table, filter))
@@ -1573,13 +1566,6 @@ function makeAggComputeArgMinMaxExpression(table, operation, field, list, result
 
 }
 
-function isSameFunction(fndef1, fndef2) {
-    if (!fndef1.class || !fndef2.class) // a join
-        return false;
-    return fndef1.class.name === fndef2.class.name &&
-        fndef1.name === fndef2.name;
-}
-
 function hasArgumentOfType(invocation, type) {
     for (let arg of invocation.schema.iterateArguments()) {
         if (!arg.is_input)
@@ -1610,16 +1596,17 @@ function filterUsesParam(filter, pname) {
     return used;
 }
 
-function addInvocationInputParam(invocation, param) {
+function checkInvocationInputParam(invocation, param) {
     assert(invocation instanceof Ast.Invocation);
     const arg = invocation.schema.getArgument(param.name);
     if (!arg || !arg.is_input || !isConstantAssignable(param.value, arg.type))
-        return null;
-    if (param.value.getType().isDate)
-        console.log(param, arg);
-    assert(!param.value.getType().isDate);
+        return false;
 
     if (arg.type.isNumber || arg.type.isMeasure) {
+        // __const varref, likely
+        if (!param.value.isNumber && !param.value.isMeasure)
+            return false;
+
         let min = -Infinity;
         let minArg = arg.getImplementationAnnotation('min_number');
         if (minArg !== undefined)
@@ -1631,8 +1618,15 @@ function addInvocationInputParam(invocation, param) {
 
         const value = param.value.toJS();
         if (value < min || value > max)
-            return null;
+            return false;
     }
+
+    return true;
+}
+
+function addInvocationInputParam(invocation, param) {
+    if (!checkInvocationInputParam(invocation, param))
+        return null;
 
     const clone = invocation.clone();
     for (let existing of clone.in_params) {
@@ -1650,7 +1644,8 @@ function addInvocationInputParam(invocation, param) {
 }
 
 function addActionInputParam(action, param) {
-    assert(action instanceof Ast.Action.Invocation || action instanceof Ast.Table.Invocation);
+    if (!(action instanceof Ast.Action.Invocation || action instanceof Ast.Table.Invocation))
+        return null;
     const newInvocation = addInvocationInputParam(action.invocation, param);
     if (newInvocation === null)
         return null;
@@ -1731,14 +1726,29 @@ function findFilterTable(root) {
     return table;
 }
 
+function getInvocation(historyItem) {
+    assert(historyItem instanceof Ast.DialogueHistoryItem);
+
+    let invocation = undefined;
+    historyItem.visit(new class extends Ast.NodeVisitor {
+        visitInvocation(inv) {
+            invocation = inv;
+            return false; // no need to recurse
+        }
+    });
+    return invocation;
+}
+
 module.exports = {
+    // helpers
     typeToStringSafe,
-    getFunctionNames,
-    getFunctions,
     isSameFunction,
     hasArgumentOfType,
     isConstantAssignable,
     filterUsesParam,
+    getFunctionNames,
+    getFunctions,
+    getInvocation,
 
     // constants
     addUnit,
@@ -1768,6 +1778,7 @@ module.exports = {
     getDoCommand,
     whenDoRule,
     whenGetStream,
+    checkInvocationInputParam,
     addInvocationInputParam,
     addActionInputParam,
     replaceSlotBagPlaceholder,
