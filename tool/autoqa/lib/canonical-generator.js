@@ -111,54 +111,63 @@ class AutoCanonicalGenerator {
                 if (!arg.metadata.canonical)
                     continue;
 
+                let canonical = arg.metadata.canonical;
                 if (this.options.remove_existing_canonicals) {
-                    arg.metadata.canonical = {};
-                    genBaseCanonical(arg.metadata.canonical, arg.name, arg.type);
+                    canonical = {};
+                    genBaseCanonical(canonical, arg.name, arg.type);
+                } else {
+                    if (typeof canonical === 'string')
+                        canonical = { base: [canonical] };
+                    else if (Array.isArray(canonical))
+                        canonical = { base: canonical };
+                }
+                arg.metadata.canonical = canonical;
+                for (let type in canonical) {
+                    if (!Array.isArray(canonical[type]))
+                        canonical[type] = [canonical[type]];
                 }
 
                 // remove function name in arg name, normally it's repetitive
-                for (let type in arg.metadata.canonical) {
-                    if (Array.isArray(arg.metadata.canonical[type])) {
-                        arg.metadata.canonical[type] = arg.metadata.canonical[type].map((c) => {
-                            if (c.startsWith(fname.toLowerCase() + ' '))
-                                return c.slice(fname.toLowerCase().length + 1);
-                            return c;
-                        });
-                    }
+                for (let type in canonical) {
+                    canonical[type] = canonical[type].map((c) => {
+                        if (c.startsWith(fname.toLowerCase() + ' '))
+                            return c.slice(fname.toLowerCase().length + 1);
+                        return c;
+                    });
                 }
 
                 // copy base canonical if property canonical is missing
-                if (arg.metadata.canonical.base && !arg.metadata.canonical.property)
-                    arg.metadata.canonical.property = [...arg.metadata.canonical.base];
+                if (canonical.base && !canonical.property)
+                    canonical.property = [...canonical.base];
 
                 let typestr = typeToEntityType(func.getArgType(arg.name));
 
                 if (typestr && typeCounts[typestr] === 1) {
                     // if an entity is unique, allow dropping the property name entirely
                     if (!this.functions.includes(typestr.substring(typestr.indexOf(':') + 1)))
-                        arg.metadata.canonical.property.push('#');
+                        canonical.property.push('#');
 
                     // if it's the only people entity, adding adjective form
                     // E.g., author for review - bob's review
                     //       byArtist for MusicRecording - bob's song
                     if (typestr.endsWith(':Person'))
-                        arg.metadata.canonical.adjective = ["# 's", '#'];
+                        canonical.adjective = ["# 's", '#'];
                 }
 
                 // if property is missing, try to use entity type info
-                if (!('property' in arg.metadata.canonical)) {
+                if (!('property' in canonical)) {
                     // only apply this if there is only one property uses this entity type
                     if (typestr && typeCounts[typestr] === 1) {
                         let base = utils.clean(typestr.substring(typestr.indexOf(':') + 1));
-                        arg.metadata.canonical['property'] = [base];
-                        arg.metadata.canonical['base'] = [base];
+                        canonical['property'] = [base];
+                        canonical['base'] = [base];
                     }
                 }
 
                 const samples = this._retrieveSamples(fname, arg);
                 if (samples) {
                     const argobj = functions[fname]['args'][arg.name];
-                    argobj['canonicals'] = arg.metadata.canonical;
+                    argobj['canonicals'] = canonical;
                     argobj['values'] = samples;
                 }
             }
@@ -261,6 +270,12 @@ class AutoCanonicalGenerator {
                 if (arg === 'id')
                     continue;
                 let canonicals = func.getArgument(arg).metadata.canonical;
+                if (!canonicals)
+                    throw new Error(`Missing canonical form for ${arg} in @${func.class.name}.${func.name}`);
+                if (typeof canonicals === 'string')
+                    canonicals = { base: [canonicals] };
+                else if (Array.isArray(canonicals))
+                    canonicals = { base: canonicals };
 
                 if (this.algorithm.includes('adj') && adjectives.includes(`${fname}.${arg}`))
                     canonicals['adjective'] = ['#'];
