@@ -32,6 +32,7 @@ const {
     makeAgentReply,
     makeSimpleState,
     addActionParam,
+    addNewItem,
 } = require('../state_manip');
 const {
     isInfoPhraseCompatibleWithResult,
@@ -260,6 +261,18 @@ function recommendationLearnMoreReply(ctx, name) {
     return makeSimpleState(ctx, 'learn_more', null);
 }
 
+function repeatCommandReply(ctx) {
+    if (ctx.next)
+        return null;
+    if (ctx.currentFunctionSchema.is_monitorable)
+        return null;
+
+    const clone = ctx.current.clone();
+    clone.results = null;
+    clone.confirm = 'accepted';
+    return addNewItem(ctx, 'execute', null, 'accepted', clone);
+}
+
 module.exports = {
     makeActionRecommendation,
     makeRecommendation,
@@ -276,4 +289,5 @@ module.exports = {
     negativeRecommendationReply,
     recommendationCancelReply,
     recommendationLearnMoreReply,
+    repeatCommandReply,
 };

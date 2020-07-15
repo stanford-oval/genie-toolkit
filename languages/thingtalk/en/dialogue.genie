@@ -234,6 +234,9 @@ $user = {
     ctx:ctx_sys_action_success questions:simple_user_search_question
         => D.actionSuccessQuestion(ctx, questions);
 
+    ctx:ctx_sys_display_result repeat_command_phrase
+        => D.repeatCommandReply(ctx);
+
     ( ctx:ctx_sys_action_success stmt:initial_command
     | ctx:ctx_sys_action_success yes_please_phrase stmt:initial_command
     | ctx:ctx_sys_display_result stmt:initial_command
