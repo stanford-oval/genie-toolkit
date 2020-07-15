@@ -173,6 +173,13 @@ function tokenizeExample(tokenizer, utterance, id) {
     return preprocessed;
 }
 
+function isSameFunction(fndef1, fndef2) {
+    if (!fndef1.class || !fndef2.class) // a join
+        return false;
+    return fndef1.class.name === fndef2.class.name &&
+        fndef1.name === fndef2.name;
+}
+
 module.exports = {
     clean,
 
@@ -206,6 +213,7 @@ module.exports = {
     isUnaryTableToStreamOp(stream) {
         return stream.isMonitor;
     },
+    isSameFunction,
 
     typeToStringSafe,
     makeFilter,

@@ -26,7 +26,7 @@ const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 const Units = require('thingtalk-units');
 
-const { typeToStringSafe } = require('./utils');
+const { typeToStringSafe, isSameFunction } = require('./utils');
 const Utils = require('./utils');
 const { notifyAction } = ThingTalk.Generate;
 
@@ -1564,13 +1564,6 @@ function makeAggComputeArgMinMaxExpression(table, operation, field, list, result
     const sort = new Ast.Table.Sort(null, compute, operation, direction, compute.schema);
     return new Ast.Table.Index(null, sort, [new Ast.Value.Number(1)], compute.schema);
 
-}
-
-function isSameFunction(fndef1, fndef2) {
-    if (!fndef1.class || !fndef2.class) // a join
-        return false;
-    return fndef1.class.name === fndef2.class.name &&
-        fndef1.name === fndef2.name;
 }
 
 function hasArgumentOfType(invocation, type) {
