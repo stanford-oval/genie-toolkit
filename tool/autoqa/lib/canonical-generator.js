@@ -371,6 +371,10 @@ class AutoCanonicalGenerator {
     }
 
     _retrieveSamples(qname, arg) {
+        //TODO: also use enum canonicals?
+        if (arg.type.isEnum)
+            return arg.type.entries.slice(0, 10).map(clean);
+
         const keys = makeLookupKeys('@' + this.class.kind + '.' + qname, arg.name, arg.type);
         let samples;
         for (let key of keys) {
