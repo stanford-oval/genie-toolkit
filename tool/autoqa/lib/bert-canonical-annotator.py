@@ -137,6 +137,8 @@ class BertLM:
             for arg in queries[query]['args']:
                 if 'path' in queries[query]['args'][arg]:
                     self.values[query][arg] = self.load_values(queries[query]['args'][arg]['path'])
+                elif 'values' in queries[query]['args'][arg]:
+                    self.values[query][arg] = self.queries[query]['args'][arg]['values']
 
     def predict_one(self, table, arg, query, word, k):
         """
@@ -373,7 +375,7 @@ class BertLM:
     def load_values(type_and_path):
         """
         Load values from a given file
-        :param path: a string of the path to the tsv file
+        :param type_and_path: a string of the path to the tsv file
         :return: an array of string values
         """
         _type, path = type_and_path
