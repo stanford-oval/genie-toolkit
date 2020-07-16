@@ -9,6 +9,7 @@ from transformers import BertTokenizer, BertForMaskedLM, GPT2Tokenizer, GPT2LMHe
 BLACK_LIST = ['a', 'an', 'the', 'its', 'their', 'his', 'her']
 ALL_CATEGORIES = ['base', 'property', 'verb', 'passive_verb', 'reverse_property', 'reverse_verb', 'preposition']
 
+
 def split_canonical(canonical):
     """
     Split a canonical into prefix and suffix based on value sign #
@@ -139,6 +140,8 @@ class BertLM:
                     self.values[query][arg] = self.load_values(queries[query]['args'][arg]['path'])
                 elif 'values' in queries[query]['args'][arg]:
                     self.values[query][arg] = self.queries[query]['args'][arg]['values']
+                else:
+                    self.values[query][arg] = []
 
     def predict_one(self, table, arg, query, word, k):
         """
@@ -264,6 +267,8 @@ class BertLM:
                                 result[canonical].append(sentence)
                             else:
                                 result[canonical] = [sentence]
+                    if len(result) == 0:
+                        continue
                     max_count = max([len(x) for x in result.values()])
                     pruned = self.prune_canonicals(result, max_count)
                     candidates[query][arg][category] = pruned
@@ -337,7 +342,7 @@ class BertLM:
                 for canonical in arg_canonicals[category]:
                     count_prefix = 0
                     count_suffix = 0
-                    for value in self.queries[query_name]['args'][arg_name]['values']:
+                    for value in self.values[query_name][arg_name]:
                         if '#' not in canonical:
                             prefix_queries = template_query(category, query_canonical, canonical, value, '')
                             suffix_queries = template_query(category, query_canonical, '', value, canonical)
@@ -353,7 +358,7 @@ class BertLM:
                     arg_canonicals[category].remove(canonical)
                     arg_canonicals[category].append(f"# {canonical}")
 
-        for value in self.queries[query_name]['args'][arg_name]['values']:
+        for value in self.values[query_name][arg_name]:
             for category in arg_canonicals:
                 if category in ['default', 'adjective', 'implicit_identity', 'base', 'reverse_verb']:
                     continue
