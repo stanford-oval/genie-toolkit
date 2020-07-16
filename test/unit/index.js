@@ -43,6 +43,7 @@ do_test([
     ('./test_array_set'),
     ('./test_augment'),
     ('./test_base_canonical_generator'),
+    ('./test_bert_canonical_generator'),
     ('./test_engine_protocol'),
     ('./test_entities'),
     ('./test_helpers'),
