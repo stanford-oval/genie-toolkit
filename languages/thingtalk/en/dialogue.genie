@@ -227,7 +227,9 @@ $user = {
     ctx:ctx_sys_confirm_action accept_phrase [weight=0.9]
         => D.actionConfirmAcceptPhrase(ctx);
     ctx:ctx_sys_confirm_action reject_phrase [weight=0.1]
-        => S.makeSimpleState(ctx, 'cancel', null);
+        => D.actionConfirmRejectPhrase(ctx);
+    // ctx:ctx_sys_confirm_action reject_phrase ('can you try' | 'how about') answer:imprecise_slot_fill_answer_phrase [weight=0.1]
+    //     => D.actionConfirmChangeParam(ctx, answer);
 
     // action and non-list query results
     ( ctx:ctx_sys_action_success thanks_phrase ('goodbye !' | '')

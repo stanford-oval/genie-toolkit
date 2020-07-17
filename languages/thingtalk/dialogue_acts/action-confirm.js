@@ -22,6 +22,7 @@
 const assert = require('assert');
 
 const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 
 const C = require('../ast_manip');
@@ -30,6 +31,8 @@ const {
     makeAgentReply,
     makeSimpleState,
     sortByName,
+    setOrAddInvocationParam,
+    replaceAction,
 } = require('../state_manip');
 
 
@@ -68,7 +71,38 @@ function actionConfirmAcceptPhrase(ctx) {
     return clone.state;
 }
 
+function actionConfirmRejectPhrase(ctx) {
+    // remove last action in history so it's not carried over into the cancel state
+    return makeSimpleState(ctx, 'cancel', null, true);
+}
+
+// function actionConfirmChangeParam(ctx, answer) {
+//     // console.log(ctx);
+//     // console.log(answer);
+//     const schema = ctx.nextFunctionSchema;
+//     const questions = ctx.dialogueActParam || [];
+//     if (answer instanceof Ast.Value) {
+//         if (questions.length !== 1)
+//             return null;
+//         answer = new Ast.InputParam(null, questions[0], answer);
+//     }
+//     const arg = schema.getArgument(answer.name);
+//     if (!arg || !arg.is_input || !arg.type.equals(answer.value.getType()))
+//         return null;
+
+//     // console.log(ctx.state.history[0]);
+//     const action = C.getInvocation(ctx.state.history[0]);
+//     // console.log(action);
+//     if (!action)
+//         return null;
+//     const clone = action.clone();
+//     setOrAddInvocationParam(clone, answer.name, answer.value);
+//     return replaceAction(ctx, 'execute', clone, 'accepted');
+// }
+
 module.exports = {
     makeActionConfirmationPhrase,
-    actionConfirmAcceptPhrase
+    actionConfirmAcceptPhrase,
+    actionConfirmRejectPhrase
+    // actionConfirmChangeParam
 };
