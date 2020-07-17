@@ -24,15 +24,18 @@ const fs = require('fs');
 const Stream = require('stream');
 const assert = require('assert');
 
+const i18n = require('../lib/i18n');
+
 const { DatasetParser, DatasetStringifier } = require('../lib/dataset-tools/parsers');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const StreamUtils = require('../lib/utils/stream-utils');
 
-const ENTITY_MATCH_REGEX = /^([A-Z].*)_[0-9]+$/;
-const NUMBER_MATCH_REGEX = /^([0-9]+)$/;
-const SMALL_NUMBER_REGEX = /^-?10|11|12|[0-9]$/;
+const ENTITY_MATCH_REGEX = /^([A-Z].*)_[0-9|۰-۹]+$/;
+const NUMBER_MATCH_REGEX = /^([0-9|۰-۹]+)$/;
+const SMALL_NUMBER_REGEX = /^-?(۱۰|۱۱|۱۲|10|11|12|[0-9|۰-۹])$/;
 
-function do_replace_numbers(token, requote_numbers) {
+
+function doReplaceNumbers(token, requote_numbers) {
     // 1) check if token is an Arabic or English number
 
     return requote_numbers && NUMBER_MATCH_REGEX.test(token);
@@ -44,24 +47,50 @@ function findSpanContaining(index, spansBySentencePos) {
         if (index >= span.begin && index < span.end)
             return span;
     }
-    return undefined;
+    return false;
+}
+
+function substringIsFound(sequence, substring, i) {
+    for (let j = 0; j < substring.length; j++) {
+        if (sequence[i+j] !== substring[j])
+            return false;
+    }
+    return true;
 }
 
 
-function findSubstring(sequence, substring, spansBySentencePos, allowOverlapping) {
+function findSubstring(sequence, substring, spansBySentencePos, allowOverlapping, handle_heuristics=false, param_locale='en-US') {
+    let paramLangPack = i18n.get(param_locale);
+    let parsedWithArticle = false;
+    let allFoundIndices = [];
     for (let i = 0; i < sequence.length - substring.length + 1; i++) {
-        let found = true;
-
-        for (let j = 0; j < substring.length; j++) {
-            if (sequence[i+j] !== substring[j]) {
-                found = false;
-                break;
+        let found = substringIsFound(sequence, substring, i);
+        if (handle_heuristics) {
+            if (!found) {
+                let pluralised_substring = paramLangPack.pluralize(substring.join(' ')).split(' ');
+                if (pluralised_substring.join(' ') === substring.join(' '))
+                    pluralised_substring = (substring.join(' ') + 's').split(' ');
+                found = substringIsFound(sequence, pluralised_substring, i);
+            }
+            if (!found) {
+                let article_added_substring = paramLangPack.addDefiniteArticle(substring. join(' ')).split(' ');
+                found = substringIsFound(sequence, article_added_substring, i);
+                // need to include the definitive article when requoting sentence
+                if (found)
+                    parsedWithArticle = true;
             }
         }
-        if (found && (allowOverlapping || !findSpanContaining(i, spansBySentencePos)))
-            return i;
+        if (found && (allowOverlapping || !findSpanContaining(i, spansBySentencePos))) {
+            if (allowOverlapping)
+                allFoundIndices.push([i, parsedWithArticle]);
+            else
+                return [i, parsedWithArticle];
+        }
     }
-    return -1;
+    if (allowOverlapping)
+        return allFoundIndices;
+    else
+        return [-1, false];
 }
 
 
@@ -70,7 +99,7 @@ function findSpanType(program, begin_index, end_index, requote_numbers, string_n
     if (begin_index > 1 && program[begin_index-2] === 'location:') {
         spanType = 'LOCATION';
 
-    } else if (do_replace_numbers(program[begin_index], requote_numbers)
+    } else if (doReplaceNumbers(program[begin_index], requote_numbers)
         && !(program[end_index+1].startsWith('^^'))){
         // catch purely numeric postal_codes or phone_numbers
         if (string_number)
@@ -125,7 +154,7 @@ function createProgram(program, spansByProgramPos, entityRemap, requote_numbers,
         } else if (ENTITY_MATCH_REGEX.test(token)) {
             assert(entityRemap[token]);
             newProgram.push(entityRemap[token]);
-        } else if (do_replace_numbers(token, requote_numbers)){
+        } else if (doReplaceNumbers(token, requote_numbers)){
             const currentSpan = spansByProgramPos[programSpanIndex];
             if (!currentSpan || findSpanContaining(i, ignoredProgramSpans)) {
                 newProgram.push(token);
@@ -185,7 +214,7 @@ function createSentence(sentence, contextEntities, spansBySentencePos) {
     let entityRemap = {};
     for (let entity of contextEntities) {
         const [, type, num] = /^(.+)_([0-9]+)$/.exec(entity);
-        entityNumbers[type] = Math.max(num+1, entityNumbers[type] || 0);
+        entityNumbers[type] = Math.max(parseInt(num)+1, entityNumbers[type] || 0);
         entityRemap[entity] = entity;
     }
 
@@ -245,7 +274,7 @@ function getProgSpans(program, requote_numbers) {
                 let prog_span = {begin: begin_index, end: end_index, span_type:span_type};
                 allProgSpans.push(prog_span);
             }
-        } else if (!in_string && do_replace_numbers(token, requote_numbers)){
+        } else if (!in_string && doReplaceNumbers(token, requote_numbers)){
             begin_index = i;
             end_index = begin_index + 1;
             span_type = findSpanType(program, begin_index, end_index, requote_numbers, false);
@@ -264,7 +293,7 @@ function getProgSpans(program, requote_numbers) {
 }
 
 
-function findSpanPositions(id, sentence, program, requote_numbers) {
+function findSpanPositions(id, sentence, program, requote_numbers, handle_heuristics, param_locale) {
     const spansBySentencePos = [];
     const spansByProgramPos = [];
 
@@ -279,37 +308,44 @@ function findSpanPositions(id, sentence, program, requote_numbers) {
 
         // first try without overlapping parameters, then try with overlapping parameters
         // (this is mostly useful for parameters that used twice, which happens in some dialogue dataset)
-        let idx = findSubstring(sentence, substring, spansBySentencePos, false /* allow overlapping */);
+        let [idx, parsedWithArticle] = findSubstring(sentence, substring, spansBySentencePos, false /* allow overlapping */, handle_heuristics, param_locale);
         if (idx < 0) {
             // skip requoting "small" numbers that do not exist in the sentence
             if (SMALL_NUMBER_REGEX.test(substring)) {
-                ignoredProgramSpans.push({begin: begin_index, end:end_index, type:span_type});
+                ignoredProgramSpans.push({begin: begin_index, end: end_index, type: span_type});
                 continue;
             } else {
-                idx = findSubstring(sentence, substring, spansBySentencePos, true /* allow overlapping */);
-                if (idx < 0) {
+                let allFoundIndices = findSubstring(sentence, substring, spansBySentencePos, true /* allow overlapping */, handle_heuristics, param_locale);
+                if (!allFoundIndices.length) {
                     console.log(program.join(' '));
                     throw new Error(`Cannot find span ${substring.join(' ')} in sentence id ${id}`);
                 } else {
-                    const overlappingSpan = findSpanContaining(idx, spansBySentencePos);
-                    assert(overlappingSpan);
-                    if (idx !== overlappingSpan.begin || idx + end_index - begin_index !== overlappingSpan.end)
-                        throw new Error(`Found span ${substring.join(' ')} that overlaps another span but is not identical in sentence id ${id}`);
+                    // in rare cases, program span tokens might be present in multiple sentence spans
+                    // so we check all of them one by one until a full span match is found
 
-                    // otherwise, the two spans are identical, so we don't create a new span
-                    spansByProgramPos.push({
-                        begin: begin_index,
-                        end: end_index,
-                        sentenceSpan: overlappingSpan
-                    });
+                    for (let i = 0; i < allFoundIndices.length; i++) {
+                        let [idx, parsedWithArticle] = allFoundIndices[i];
+                        const overlappingSpan = findSpanContaining(idx, spansBySentencePos);
+                        if (!overlappingSpan || idx !== overlappingSpan.begin || idx + end_index - begin_index + parsedWithArticle !== overlappingSpan.end) {
+                            if (i === spansBySentencePos.length)
+                                throw new Error(`Found span ${substring.join(' ')} that overlaps another span but is not identical in sentence id ${id}`);
+                        } else {
+                            // otherwise, the two spans are identical, so we don't create a new span
+                            spansByProgramPos.push({
+                                begin: begin_index,
+                                end: end_index,
+                                sentenceSpan: overlappingSpan
+                            });
+                            break;
+                        }
+                    }
                     continue;
                 }
             }
         }
 
-
         const sentenceSpanBegin = idx;
-        const sentenceSpanEnd = idx + end_index - begin_index;
+        const sentenceSpanEnd = idx + end_index - begin_index + parsedWithArticle;
         const spanType = span_type;
 
         const sentenceSpan = { begin: sentenceSpanBegin, end: sentenceSpanEnd, type: spanType, mapTo: undefined };
@@ -329,7 +365,7 @@ function findSpanPositions(id, sentence, program, requote_numbers) {
 }
 
 
-function requoteSentence(id, context, sentence, program, mode, requote_numbers) {
+function requoteSentence(id, context, sentence, program, mode, requote_numbers, handle_heuristics, param_locale) {
     sentence = sentence.split(' ');
     program = program.split(' ');
 
@@ -341,7 +377,7 @@ function requoteSentence(id, context, sentence, program, mode, requote_numbers) 
         }
     }
 
-    let [spansBySentencePos, spansByProgramPos, ignoredProgramSpans] = findSpanPositions(id, sentence, program, requote_numbers);
+    let [spansBySentencePos, spansByProgramPos, ignoredProgramSpans] = findSpanPositions(id, sentence, program, requote_numbers, handle_heuristics, param_locale);
 
     if (spansBySentencePos.length === 0)
         return [sentence.join(' '), program.join(' ')];
@@ -411,6 +447,16 @@ module.exports = {
             type: maybeCreateReadStream,
             help: 'Input datasets to evaluate (in TSV format); use - for standard input'
         });
+        parser.addArgument('--handle-heuristics', {
+            action: 'storeTrue',
+            help: 'Handle cases where augmentation introduced non-matching parameters in sentence and program',
+            defaultValue: false
+        });
+        parser.addArgument('--param-locale', {
+            type: String,
+            help: 'BGP 47 locale tag of the language for parameter values',
+            defaultValue: 'en-US'
+        });
     },
 
     async execute(args) {
@@ -422,7 +468,8 @@ module.exports = {
                 transform(ex, encoding, callback) {
                     try {
                         const [newSentence, newProgram] =
-                            requoteSentence(ex.id, ex.context, ex.preprocessed, ex.target_code, args.mode, args.requote_numbers);
+                            requoteSentence(ex.id, ex.context, ex.preprocessed, ex.target_code, args.mode,
+                                args.requote_numbers, args.handle_heuristics, args.param_locale);
                         ex.preprocessed = newSentence;
                         ex.target_code = newProgram;
                         callback(null, ex);
@@ -437,7 +484,6 @@ module.exports = {
                             callback(null);
                         else
                             callback(e);
-
                     }
                 },
 
@@ -449,5 +495,6 @@ module.exports = {
             .pipe(args.output);
 
         await StreamUtils.waitFinish(args.output);
-    }
+    },
+    requoteSentence
 };
