@@ -317,7 +317,6 @@ function findSpanPositions(id, sentence, program, requote_numbers, handle_heuris
             } else {
                 let allFoundIndices = findSubstring(sentence, substring, spansBySentencePos, true /* allow overlapping */, handle_heuristics, param_locale);
                 if (!allFoundIndices.length) {
-                    console.log(program.join(' '));
                     throw new Error(`Cannot find span ${substring.join(' ')} in sentence id ${id}`);
                 } else {
                     // in rare cases, program span tokens might be present in multiple sentence spans
