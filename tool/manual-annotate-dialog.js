@@ -217,7 +217,7 @@ class Annotator extends events.EventEmitter {
 
             const clone = {};
             Object.assign(clone, this._entities);
-            ThingTalk.NNSyntax.toNN(program, this._preprocessed, clone, { allocateEntities: true });
+            ThingTalk.NNSyntax.toNN(program, this._preprocessed, clone, { allocateEntities: false });
         } catch(e) {
             console.log(`${e.name}: ${e.message}`);
             this._rl.setPrompt('TT: ');
