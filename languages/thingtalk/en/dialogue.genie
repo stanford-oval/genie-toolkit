@@ -158,9 +158,16 @@ function answer(state, answer) {
 }
 
 $agent = {
-    ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
-    | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
-    ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null));
+    !inference {
+        ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+        | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+        ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null));
+    }
+    ?inference {
+        ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what can i do for you') '?'
+        | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what can i do for you') '?'
+        ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null));
+    }
 
     ctx:ctx_cancel anything_else_phrase
         => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null));
