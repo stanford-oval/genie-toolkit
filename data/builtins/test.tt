@@ -9,6 +9,7 @@ class @org.thingpedia.builtin.test
   monitorable list query get_data(in req size: Measure(byte) #_[prompt="How much fake data do you want?"],
                                   in opt count: Number,
                                   out data: String)
+  #_[result="the answer is ${data}"]
   #_[canonical="get data on test"]
   #_[confirmation="generate $size of fake data"]
   #_[confirmation_remote="generate $size of fake data on $__person's Almond"]
@@ -18,6 +19,7 @@ class @org.thingpedia.builtin.test
   #[confirm=false];
 
   query next_sequence(out number: Number)
+  #_[result="the answer is ${number}"]
   #_[canonical="get sequence number on test"]
   #_[confirmation="return the next test number"]
   #_[formatted=[{type="text",text="${number}"}]]
@@ -26,6 +28,7 @@ class @org.thingpedia.builtin.test
 
   query dup_data(in req data_in: String #_[prompt="What data do you want to duplicate?"],
                  out data_out: String)
+  #_[result="the answer is ${data_out}"]
   #_[canonical="duplicate data on test"]
   #_[confirmation="duplicate ${data_in} data"]
   #_[formatted=[{type="text",text="${data_out}"}]]
