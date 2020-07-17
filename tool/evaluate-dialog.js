@@ -19,7 +19,6 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Tp = require('thingpedia');
 const fs = require('fs');
 
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
@@ -28,6 +27,7 @@ const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('../lib/prediction/parserclient');
 const MultiJSONDatabase = require('./lib/multi_json_database');
+const FileThingpediaClient = require('./lib/file_thingpedia_client');
 
 module.exports = {
     initArgparse(subparsers) {
@@ -94,6 +94,10 @@ module.exports = {
             required: false,
             help: `Path to a file pointing to JSON databases used to simulate queries.`,
         });
+        parser.addArgument('--parameter-datasets', {
+            required: true,
+            help: 'TSV file containing the paths to datasets for strings and entity types.'
+        });
         parser.addArgument('--csv', {
             nargs: 0,
             action: 'storeTrue',
@@ -109,7 +113,7 @@ module.exports = {
     async execute(args) {
         let tpClient = null;
         if (args.thingpedia)
-            tpClient = new Tp.FileClient(args);
+            tpClient = new FileThingpediaClient(args);
         const parser = ParserClient.get(args.url, args.locale);
         await parser.start();
 

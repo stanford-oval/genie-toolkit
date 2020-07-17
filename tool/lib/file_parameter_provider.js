@@ -39,6 +39,8 @@ module.exports = class FileParameterProvider {
         this._paramLocale = param_locale || 'en-US';
         this._dirname = path.dirname(filename);
         this._paths = new Map;
+
+        this._loaded = false;
     }
 
     async open() {
@@ -58,10 +60,11 @@ module.exports = class FileParameterProvider {
                 this._paths.set(stringOrEntity + '+' + type, path.resolve(this._dirname, filepath));
         });
 
-        return new Promise((resolve, reject) => {
+        await new Promise((resolve, reject) => {
             input.on('end', resolve);
             input.on('error', reject);
         });
+        this._loaded = true;
     }
 
     async close() {
@@ -111,17 +114,24 @@ module.exports = class FileParameterProvider {
     }
 
     async _getEntities(stringType) {
-        const filepath = this._paths.get('entity+' + stringType);
-        if (!filepath)
-            return [];
-
-        const parsed = JSON.parse(await util.promisify(fs.readFile)(filepath));
-        return parsed.data.map((e) => {
+        return (await this.getEntity(stringType)).map((e) => {
             return { preprocessed: e.canonical, weight: 1.0, value:e.value, name:e.name };
         });
     }
 
-    get(valueListType, valueListName) {
+    async getEntity(stringType) {
+        if (!this._loaded)
+            await this.open();
+        const filepath = this._paths.get('entity+' + stringType);
+        if (!filepath)
+            return [];
+
+        return JSON.parse(await util.promisify(fs.readFile)(filepath)).data;
+    }
+
+    async get(valueListType, valueListName) {
+        if (!this._loaded)
+            await this.open();
         switch (valueListType) {
         case 'string':
             return this._getStrings(valueListName);
