@@ -7,7 +7,16 @@ import torch.nn.functional as F
 from transformers import BertTokenizer, BertForMaskedLM, GPT2Tokenizer, GPT2LMHeadModel
 
 BLACK_LIST = ['a', 'an', 'the', 'its', 'their', 'his', 'her']
-ALL_CATEGORIES = ['base', 'property', 'verb', 'passive_verb', 'reverse_property', 'reverse_verb', 'preposition']
+ALL_CATEGORIES = [
+    'base',
+    'property', 'property_true', 'property_false',
+    'verb', 'verb_true', 'verb_false',
+    'passive_verb', 'passive_verb_true', 'passive_verb_false',
+    'reverse_property', 'reverse_property_true', 'reverse_property_false',
+    'reverse_verb',
+    'preposition', 'preposition_true', 'preposition_false',
+    'adjective_true', 'adjective_false'
+]
 
 
 def split_canonical(canonical):
@@ -47,19 +56,43 @@ def template_query(cat, query_canonical='', prefix='', value='', suffix=''):
             f"show me a {query_canonical} with {prefix} {value} {suffix} .".split(),
             f"{question_start} has {prefix} {value} {suffix} ?".split()
         ]
+    if cat == 'property_true' or cat == 'property_false':
+        return [
+            f"show me a {query_canonical} with {prefix} .".split(),
+            f"{question_start} has {prefix} ?".split()
+        ]
     if cat == 'verb':
         return [
             f"{question_start} {prefix} {value} {suffix} ?".split(),
             f"show me a {query_canonical} that {prefix} {value} {suffix} .".split()
         ]
+    if cat == 'verb_true' or cat == 'verb_false':
+        return [
+            f"{question_start} {prefix} ?".split(),
+            f"show me a {query_canonical} that {prefix} .".split()
+        ]
     if cat in ('passive_verb', 'preposition'):
         return [
             f"show me a {query_canonical} {prefix} {value} {suffix} .".split(),
-            f"{question_start} is {prefix} {value} {suffix} .".split()
+            f"{question_start} is {prefix} {value} {suffix} ?".split()
+        ]
+    if cat in ('passive_verb_true', 'passive_verb_false', 'preposition_true', 'preposition_false'):
+        return [
+            f"show me a {query_canonical} {prefix} .".split(),
+            f"{question_start} is {prefix} .".split()
         ]
     if cat == 'reverse_property':
         return [
             f"{question_start} is a {prefix} {value} {suffix} ?".split()
+        ]
+    if cat == 'reverse_property_true' or cat == 'reverse_property_false':
+        return [
+            f"{question_start} is a {prefix} ?".split()
+        ]
+    if cat == 'adjective_true' or cat == 'adjective_false':
+        return [
+            f"show me a {prefix} {query_canonical} .".split(),
+            f"{question_start} is {prefix} ?".split()
         ]
     # currently only do this for human properties
     if cat == 'reverse_verb':
@@ -333,6 +366,18 @@ class BertLM:
                         "value": []
                     })
 
+        for category in arg_canonicals:
+            if category.endswith('_true') or category.endswith('_false'):
+                for canonical in arg_canonicals[category]:
+                    for query in template_query(category, query_canonical, canonical):
+                        mask_indices = list(map(lambda x: query.index(x), canonical.split()))
+                        examples[category]['examples'].append({
+                            'canonical': canonical,
+                            "query": ' '.join(query),
+                            "masks": {"prefix": mask_indices, "suffix": []},
+                            "value": []
+                        })
+
         # check where to put value
         if self.gpt2_ordering:
             for category in arg_canonicals:
@@ -361,6 +406,8 @@ class BertLM:
         for value in self.values[query_name][arg_name]:
             for category in arg_canonicals:
                 if category in ['default', 'adjective', 'implicit_identity', 'base', 'reverse_verb']:
+                    continue
+                if category.endswith('_true') or category.endswith('_false'):
                     continue
                 for canonical in arg_canonicals[category]:
                     prefix, suffix = split_canonical(canonical)

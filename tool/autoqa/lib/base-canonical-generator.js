@@ -133,7 +133,8 @@ function genBaseCanonical(canonical, name, ptype) {
     }
 
     // fallback to base
-    updateCanonical(canonical, 'base', name);
+    updateDefault(canonical, 'property');
+    updateCanonical(canonical, ptype.isBoolean? 'property_true' : 'base', name);
 }
 
 module.exports = genBaseCanonical;

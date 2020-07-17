@@ -41,6 +41,16 @@ const input = {
           "italian",
           "seafood"
         ]
+      },
+      "parking": {
+        "canonicals": {
+          "default": [
+            "property"
+          ],
+          "property_true": [
+            "parking"
+          ]
+        }
       }
     }
   }
@@ -105,14 +115,37 @@ const expected_output = {
             "show me a restaurant that serves seafood foods ."
           ]
         }
+      },
+      "parking": {
+        "property_true": {
+          "parking": [
+            "show me a restaurant with parking .",
+            "which restaurant has parking ?"
+          ],
+          "parked": [
+            "show me a restaurant with parked .",
+            "which restaurant has parked ?"
+          ],
+          "park": [
+            "show me a restaurant with park .",
+            "which restaurant has park ?"
+          ],
+          "garage": [
+            "show me a restaurant with garage .",
+            "which restaurant has garage ?"
+          ],
+          "space": [
+            "show me a restaurant with space .",
+            "which restaurant has space ?"
+          ]
+        }
       }
     }
   },
   "adjectives": [
     "Restaurant.servesCuisine"
   ]
-}
-;
+};
 
 
 async function main() {
@@ -135,7 +168,7 @@ async function main() {
         child.stdout.on('end', () => resolve(buffer));
     });
 
-    assert(JSON.parse(stdout), expected_output);
+    assert.deepStrictEqual(JSON.parse(stdout), expected_output);
 }
 module.exports = main;
 if (!module.parent)
