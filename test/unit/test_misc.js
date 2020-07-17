@@ -28,6 +28,7 @@ const ThingTalk = require('thingtalk');
 const _mockThingpediaClient = require('./mock_schema_delegate');
 
 const Helpers = require('../../lib/dialogue-agent/helpers');
+const { getProgramIcon } = require('../../lib/utils/icons');
 
 function testCleanKind() {
     assert.strictEqual(Helpers.cleanKind('uk.co.thedogapi'), 'Thedogapi');
@@ -58,7 +59,7 @@ async function testGetIcon() {
     for (let [code, expected] of TEST_CASES) {
         const program = await ThingTalk.Grammar.parseAndTypecheck(code, schemas, false);
 
-        const icon = Helpers.getProgramIcon(program);
+        const icon = getProgramIcon(program);
         assert.strictEqual(icon, expected);
     }
 }
