@@ -13,6 +13,8 @@ jobs:
     -
       name: "Unit Tests"
       install:
+      - pyenv global 3.6.7
+      - pip install --user torch transformers
       - travis_retry yarn
       script:
       - yarn lint

@@ -154,7 +154,7 @@ async function main() {
         'all',
         '--no-mask'
     ];
-    const child = child_process.spawn(`python3`, args, {stdio: ['pipe', 'pipe', 'inherit']});
+    const child = child_process.spawn(`python`, args, {stdio: ['pipe', 'pipe', 'inherit']});
     const stdout = await new Promise((resolve, reject) => {
         child.stdin.write(JSON.stringify(input));
         child.stdin.end();
