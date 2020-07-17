@@ -236,7 +236,10 @@ class DialogueToDSTStream extends Stream.Transform {
         const goldUserState = this._target.computeNewState(context, goldUserTarget);
         const goldSlots = this._extractSlots(goldUserState);
 
-        const parsed = await this._parser.sendUtterance(tokens.join(' '), contextCode, contextEntities, { tokenized: true });
+        const parsed = await this._parser.sendUtterance(tokens.join(' '), contextCode, contextEntities, {
+            tokenized: true,
+            skip_typechecking: true
+        });
 
         const predictions = parsed.candidates
             .filter((beam) => beam.score !== 'Infinity') // ignore exact matches

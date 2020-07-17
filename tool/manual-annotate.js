@@ -209,7 +209,10 @@ class Trainer extends events.EventEmitter {
         if (!id)
             id = this._serial;
 
-        const parsed = await this._parser.sendUtterance(utterance, /* context */ undefined, /* contextEntities */ {});
+        const parsed = await this._parser.sendUtterance(utterance, /* context */ undefined, /* contextEntities */ {}, {
+            tokenized: false,
+            skip_typechecking: true
+        });
 
         if (oldTargetCode) {
             try {

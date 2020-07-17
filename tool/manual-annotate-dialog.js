@@ -498,7 +498,10 @@ class Annotator extends events.EventEmitter {
         }
 
         const parser = this._dialogueState === 'agent' ? this._agentParser : this._userParser;
-        const parsed = await parser.sendUtterance(this._utterance, contextCode, contextEntities);
+        const parsed = await parser.sendUtterance(this._utterance, contextCode, contextEntities, {
+            tokenized: false,
+            skip_typechecking: true
+        });
 
         this._state = 'top3';
         this._preprocessed = parsed.tokens.join(' ');

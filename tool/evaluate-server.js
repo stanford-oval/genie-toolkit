@@ -158,7 +158,7 @@ module.exports = {
 
         const output = readAllLines(args.input_file)
             .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true }))
-            .pipe(new SentenceEvaluatorStream(parser, schemas, args.tokenized, args.debug, args.complexity_metric))
+            .pipe(new SentenceEvaluatorStream(args.locale, parser, schemas, args.tokenized, args.debug, args.complexity_metric))
             .pipe(new CollectSentenceStatistics({ maxComplexity: args.max_complexity }));
 
         const result = await output.read();
