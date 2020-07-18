@@ -33,6 +33,7 @@ const {
     sortByName,
     setOrAddInvocationParam,
     replaceAction,
+    POLICY_NAME,
 } = require('../state_manip');
 
 
@@ -72,37 +73,36 @@ function actionConfirmAcceptPhrase(ctx) {
 }
 
 function actionConfirmRejectPhrase(ctx) {
-    // remove last action in history so it's not carried over into the cancel state
-    return makeSimpleState(ctx, 'cancel', null, true);
+    return new Ast.DialogueState(null, POLICY_NAME, 'cancel', null, []);
 }
 
-// function actionConfirmChangeParam(ctx, answer) {
-//     // console.log(ctx);
-//     // console.log(answer);
-//     const schema = ctx.nextFunctionSchema;
-//     const questions = ctx.dialogueActParam || [];
-//     if (answer instanceof Ast.Value) {
-//         if (questions.length !== 1)
-//             return null;
-//         answer = new Ast.InputParam(null, questions[0], answer);
-//     }
-//     const arg = schema.getArgument(answer.name);
-//     if (!arg || !arg.is_input || !arg.type.equals(answer.value.getType()))
-//         return null;
+function actionConfirmChangeParam(ctx, answer) {
+    const questions = ctx.dialogueActParam || [];
+    if (answer instanceof Ast.Value) {
+        if (questions.length !== 1)
+            return null;
+        answer = new Ast.InputParam(null, questions[0], answer);
+    }
 
-//     // console.log(ctx.state.history[0]);
-//     const action = C.getInvocation(ctx.state.history[0]);
-//     // console.log(action);
-//     if (!action)
-//         return null;
-//     const clone = action.clone();
-//     setOrAddInvocationParam(clone, answer.name, answer.value);
-//     return replaceAction(ctx, 'execute', clone, 'accepted');
-// }
+    const action = C.getInvocation(ctx.state.history[0]);
+    if (!action) return null;
+
+    // don't continue with queries
+    if (action.schema._functionType === "query") return null;
+
+    // don't accept in params that don't apply to this specific action
+    const allowedParams = new Set(Object.keys(ctx.nextFunctionSchema._inReq));
+    allowedParams.add(Object.keys(ctx.nextFunctionSchema._inOpt));
+    if (!allowedParams.has(answer.name)) return null;
+
+    const clone = action.clone();
+    setOrAddInvocationParam(clone, answer.name, answer.value);
+    return replaceAction(ctx, 'execute', clone, 'accepted');
+}
 
 module.exports = {
     makeActionConfirmationPhrase,
     actionConfirmAcceptPhrase,
-    actionConfirmRejectPhrase
-    // actionConfirmChangeParam
+    actionConfirmRejectPhrase,
+    actionConfirmChangeParam
 };

@@ -323,7 +323,7 @@ function addNewItem(ctx, dialogueAct, dialogueActParam, confirm, ...newHistoryIt
     return newState;
 }
 
-function makeSimpleState(ctx, dialogueAct, dialogueActParam, dropActions = false) {
+function makeSimpleState(ctx, dialogueAct, dialogueActParam) {
     // a "simple state" carries the current executed/confirmed/accepted items, but not the
     // proposed ones
 
@@ -331,12 +331,10 @@ function makeSimpleState(ctx, dialogueAct, dialogueActParam, dropActions = false
     if (ctx === INITIAL_CONTEXT_INFO)
         return newState;
 
-    if (!dropActions) {
-        for (let i = 0; i < ctx.state.history.length; i++) {
-            if (ctx.state.history[i].confirm === 'proposed')
-                break;
-            newState.history.push(ctx.state.history[i]);
-        }
+    for (let i = 0; i < ctx.state.history.length; i++) {
+        if (ctx.state.history[i].confirm === 'proposed')
+            break;
+        newState.history.push(ctx.state.history[i]);
     }
 
     return newState;

@@ -228,8 +228,8 @@ $user = {
         => D.actionConfirmAcceptPhrase(ctx);
     ctx:ctx_sys_confirm_action reject_phrase [weight=0.1]
         => D.actionConfirmRejectPhrase(ctx);
-    // ctx:ctx_sys_confirm_action reject_phrase ('can you try' | 'how about') answer:imprecise_slot_fill_answer_phrase [weight=0.1]
-    //     => D.actionConfirmChangeParam(ctx, answer);
+    ctx:ctx_sys_confirm_action reject_phrase ('can you try' | 'how about') answer:imprecise_slot_fill_answer_phrase [weight=0.1]
+        => D.actionConfirmChangeParam(ctx, answer);
 
     // action and non-list query results
     ( ctx:ctx_sys_action_success thanks_phrase ('goodbye !' | '')
