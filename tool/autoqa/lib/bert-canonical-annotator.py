@@ -7,7 +7,17 @@ import torch.nn.functional as F
 from transformers import BertTokenizer, BertForMaskedLM, GPT2Tokenizer, GPT2LMHeadModel
 
 BLACK_LIST = ['a', 'an', 'the', 'its', 'their', 'his', 'her']
-ALL_CATEGORIES = ['base', 'property', 'verb', 'passive_verb', 'reverse_property', 'reverse_verb', 'preposition']
+ALL_CATEGORIES = [
+    'base',
+    'property', 'property_true', 'property_false',
+    'verb', 'verb_true', 'verb_false',
+    'passive_verb', 'passive_verb_true', 'passive_verb_false',
+    'reverse_property', 'reverse_property_true', 'reverse_property_false',
+    'reverse_verb',
+    'preposition', 'preposition_true', 'preposition_false',
+    'adjective_true', 'adjective_false'
+]
+
 
 def split_canonical(canonical):
     """
@@ -46,19 +56,44 @@ def template_query(cat, query_canonical='', prefix='', value='', suffix=''):
             f"show me a {query_canonical} with {prefix} {value} {suffix} .".split(),
             f"{question_start} has {prefix} {value} {suffix} ?".split()
         ]
+    if cat == 'property_true' or cat == 'property_false':
+        # both true and false uses "with" instead of "without"
+        return [
+            f"show me a {query_canonical} with {prefix} .".split(),
+            f"{question_start} has {prefix} ?".split()
+        ]
     if cat == 'verb':
         return [
             f"{question_start} {prefix} {value} {suffix} ?".split(),
             f"show me a {query_canonical} that {prefix} {value} {suffix} .".split()
         ]
+    if cat == 'verb_true' or cat == 'verb_false':
+        return [
+            f"{question_start} {prefix} ?".split(),
+            f"show me a {query_canonical} that {prefix} .".split()
+        ]
     if cat in ('passive_verb', 'preposition'):
         return [
             f"show me a {query_canonical} {prefix} {value} {suffix} .".split(),
-            f"{question_start} is {prefix} {value} {suffix} .".split()
+            f"{question_start} is {prefix} {value} {suffix} ?".split()
+        ]
+    if cat in ('passive_verb_true', 'passive_verb_false', 'preposition_true', 'preposition_false'):
+        return [
+            f"show me a {query_canonical} {prefix} .".split(),
+            f"{question_start} is {prefix} .".split()
         ]
     if cat == 'reverse_property':
         return [
             f"{question_start} is a {prefix} {value} {suffix} ?".split()
+        ]
+    if cat == 'reverse_property_true' or cat == 'reverse_property_false':
+        return [
+            f"{question_start} is a {prefix} ?".split()
+        ]
+    if cat == 'adjective_true' or cat == 'adjective_false':
+        return [
+            f"show me a {prefix} {query_canonical} .".split(),
+            f"{question_start} is {prefix} ?".split()
         ]
     # currently only do this for human properties
     if cat == 'reverse_verb':
@@ -137,6 +172,10 @@ class BertLM:
             for arg in queries[query]['args']:
                 if 'path' in queries[query]['args'][arg]:
                     self.values[query][arg] = self.load_values(queries[query]['args'][arg]['path'])
+                elif 'values' in queries[query]['args'][arg]:
+                    self.values[query][arg] = self.queries[query]['args'][arg]['values']
+                else:
+                    self.values[query][arg] = []
 
     def predict_one(self, table, arg, query, word, k):
         """
@@ -262,6 +301,8 @@ class BertLM:
                                 result[canonical].append(sentence)
                             else:
                                 result[canonical] = [sentence]
+                    if len(result) == 0:
+                        continue
                     max_count = max([len(x) for x in result.values()])
                     pruned = self.prune_canonicals(result, max_count)
                     candidates[query][arg][category] = pruned
@@ -326,6 +367,18 @@ class BertLM:
                         "value": []
                     })
 
+        for category in arg_canonicals:
+            if category.endswith('_true') or category.endswith('_false'):
+                for canonical in arg_canonicals[category]:
+                    for query in template_query(category, query_canonical, canonical):
+                        mask_indices = list(map(lambda x: query.index(x), canonical.split()))
+                        examples[category]['examples'].append({
+                            'canonical': canonical,
+                            "query": ' '.join(query),
+                            "masks": {"prefix": mask_indices, "suffix": []},
+                            "value": []
+                        })
+
         # check where to put value
         if self.gpt2_ordering:
             for category in arg_canonicals:
@@ -335,7 +388,7 @@ class BertLM:
                 for canonical in arg_canonicals[category]:
                     count_prefix = 0
                     count_suffix = 0
-                    for value in self.queries[query_name]['args'][arg_name]['values']:
+                    for value in self.values[query_name][arg_name]:
                         if '#' not in canonical:
                             prefix_queries = template_query(category, query_canonical, canonical, value, '')
                             suffix_queries = template_query(category, query_canonical, '', value, canonical)
@@ -351,9 +404,11 @@ class BertLM:
                     arg_canonicals[category].remove(canonical)
                     arg_canonicals[category].append(f"# {canonical}")
 
-        for value in self.queries[query_name]['args'][arg_name]['values']:
+        for value in self.values[query_name][arg_name]:
             for category in arg_canonicals:
                 if category in ['default', 'adjective', 'implicit_identity', 'base', 'reverse_verb']:
+                    continue
+                if category.endswith('_true') or category.endswith('_false'):
                     continue
                 for canonical in arg_canonicals[category]:
                     prefix, suffix = split_canonical(canonical)
@@ -373,7 +428,7 @@ class BertLM:
     def load_values(type_and_path):
         """
         Load values from a given file
-        :param path: a string of the path to the tsv file
+        :param type_and_path: a string of the path to the tsv file
         :return: an array of string values
         """
         _type, path = type_and_path

@@ -86,7 +86,7 @@ class AutoCanonicalGenerator {
 
             let typeCounts = this._getArgTypeCount(func);
             for (let arg of func.iterateArguments()) {
-                functions[fname]['args'][arg.name] = {};
+                const argobj = {};
 
                 if (this.annotatedProperties.includes(arg.name) || arg.name === 'id')
                     continue;
@@ -98,18 +98,18 @@ class AutoCanonicalGenerator {
                 if (arg.name.includes('.') && this.annotatedProperties.includes(arg.name.slice(arg.name.indexOf('.') + 1)))
                     continue;
 
-                // get the paths to the data
-                let datasetTypeAndPath = this._getDatasetPath(fname, arg);
-                if (!datasetTypeAndPath)
-                    continue;
-                let [datasetType, datasetPath] = datasetTypeAndPath;
-                datasetPath = path.dirname(this.parameterDatasets) + '/' + datasetPath;
-                if (datasetPath && fs.existsSync(datasetPath))
-                    functions[fname]['args'][arg.name]['path'] = [datasetType, datasetPath];
-
                 // some args don't have canonical: e.g., id, name
                 if (!arg.metadata.canonical)
                     continue;
+
+                // get the paths to the data
+                let datasetTypeAndPath = this._getDatasetPath(fname, arg);
+                if (datasetTypeAndPath) {
+                    let [datasetType, datasetPath] = datasetTypeAndPath;
+                    datasetPath = path.dirname(this.parameterDatasets) + '/' + datasetPath;
+                    if (datasetPath && fs.existsSync(datasetPath))
+                        argobj['path'] = [datasetType, datasetPath];
+                }
 
                 let canonical = arg.metadata.canonical;
                 if (this.options.remove_existing_canonicals) {
@@ -163,13 +163,13 @@ class AutoCanonicalGenerator {
                         canonical['base'] = [base];
                     }
                 }
+                argobj['canonicals'] = canonical;
 
                 const samples = this._retrieveSamples(fname, arg);
-                if (samples) {
-                    const argobj = functions[fname]['args'][arg.name];
-                    argobj['canonicals'] = canonical;
+                if (samples)
                     argobj['values'] = samples;
-                }
+
+                functions[fname]['args'][arg.name] = argobj;
             }
         }
 
@@ -371,6 +371,10 @@ class AutoCanonicalGenerator {
     }
 
     _retrieveSamples(qname, arg) {
+        //TODO: also use enum canonicals?
+        if (arg.type.isEnum)
+            return arg.type.entries.slice(0, 10).map(clean);
+
         const keys = makeLookupKeys('@' + this.class.kind + '.' + qname, arg.name, arg.type);
         let samples;
         for (let key of keys) {
