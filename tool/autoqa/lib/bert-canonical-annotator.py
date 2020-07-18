@@ -57,6 +57,7 @@ def template_query(cat, query_canonical='', prefix='', value='', suffix=''):
             f"{question_start} has {prefix} {value} {suffix} ?".split()
         ]
     if cat == 'property_true' or cat == 'property_false':
+        # both true and false uses "with" instead of "without"
         return [
             f"show me a {query_canonical} with {prefix} .".split(),
             f"{question_start} has {prefix} ?".split()
