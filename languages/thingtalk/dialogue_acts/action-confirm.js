@@ -73,7 +73,9 @@ function actionConfirmAcceptPhrase(ctx) {
 }
 
 function actionConfirmRejectPhrase(ctx) {
-    return new Ast.DialogueState(null, POLICY_NAME, 'cancel', null, []);
+    const clone = ctx.clone();
+    clone.next.confirm = 'proposed';
+    return makeSimpleState(clone, 'cancel', null);
 }
 
 function actionConfirmChangeParam(ctx, answer) {
