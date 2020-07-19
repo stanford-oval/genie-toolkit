@@ -22,7 +22,6 @@
 const assert = require('assert');
 
 const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 
 const C = require('../ast_manip');
@@ -33,7 +32,6 @@ const {
     sortByName,
     setOrAddInvocationParam,
     replaceAction,
-    POLICY_NAME,
 } = require('../state_manip');
 
 
@@ -79,24 +77,14 @@ function actionConfirmRejectPhrase(ctx) {
 }
 
 function actionConfirmChangeParam(ctx, answer) {
-    const questions = ctx.dialogueActParam || [];
-    if (answer instanceof Ast.Value) {
-        if (questions.length !== 1)
-            return null;
-        answer = new Ast.InputParam(null, questions[0], answer);
-    }
 
-    const action = C.getInvocation(ctx.state.history[0]);
+    const action = C.getInvocation(ctx.next);
     if (!action) return null;
 
-    // don't continue with queries
-    if (action.schema._functionType === "query") return null;
-
     // don't accept in params that don't apply to this specific action
-    const allowedParams = new Set(Object.keys(ctx.nextFunctionSchema._inReq));
-    allowedParams.add(Object.keys(ctx.nextFunctionSchema._inOpt));
-    if (!allowedParams.has(answer.name)) return null;
-
+    const arg = ctx.nextFunctionSchema.getArgument(answer.name);
+    if (!arg || !arg.is_input) return null;
+    
     const clone = action.clone();
     setOrAddInvocationParam(clone, answer.name, answer.value);
     return replaceAction(ctx, 'execute', clone, 'accepted');
