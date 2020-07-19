@@ -87,7 +87,7 @@ function actionConfirmChangeParam(ctx, answer) {
     
     const clone = action.clone();
     setOrAddInvocationParam(clone, answer.name, answer.value);
-    return replaceAction(ctx, 'execute', clone, 'accepted');
+    return replaceAction(ctx, 'execute', clone, 'confirmed');
 }
 
 module.exports = {
