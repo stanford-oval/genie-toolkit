@@ -83,8 +83,9 @@ function actionConfirmChangeParam(ctx, answer) {
 
     // don't accept in params that don't apply to this specific action
     const arg = ctx.nextFunctionSchema.getArgument(answer.name);
-    if (!arg || !arg.is_input) return null;
-    
+    if (!arg || !arg.is_input || !arg.type.equals(answer.value.getType()))
+        return null;
+
     const clone = action.clone();
     setOrAddInvocationParam(clone, answer.name, answer.value);
     return replaceAction(ctx, 'execute', clone, 'confirmed');
