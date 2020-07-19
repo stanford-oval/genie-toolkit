@@ -18,6 +18,12 @@ node $srcdir/tool/genie.js requote $srcdir/test/data/en-US/samples-en-hard.tsv -
 diff -u $srcdir/test/data/en-US/samples-en-hard-qpis.tsv ./samples-en-hard-qpis.tsv
 
 
+# (requote) collect erred examples in a separate folder
+node $srcdir/tool/genie.js requote $srcdir/test/data/en-US/samples-erred.tsv --output ./samples-erred-requoted.tsv --output-errors ./samples-erred.tsv --skip-errors  --mode replace
+test -s ./samples-erred-requoted.tsv || exit 1
+test -s ./samples-erred.tsv || exit 1
+
+
 ## test augment.js and requote.js
 # first augment input dataset
 node $srcdir/tool/genie.js augment $srcdir/test/data/fa/para-restaurants-fixed.tsv --output ./para-restaurants-aug.tsv --random-seed 123 -l en-US --param-local fa --thingpedia $srcdir/data/fa/restaurants/schema.tt --parameter-datasets $srcdir/data/fa/restaurants/parameter-datasets.tsv --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 1 --no-quote-paraphrasing-expand-factor 1 --quoted-fraction 0.0 --debug

@@ -1,0 +1,2 @@
+DLG1	no i don't want food places having price range equal to expensive and gastropub as type of cuisine .	$dialogue @org.thingpedia.dialogue.transaction.execute ; now => ( @uk.ac.cam.multiwoz.Restaurant.Restaurant ) filter not param:price_range == enum:expensive or not param:food =~ " fooo " and param:food =~ " gastropub " and true param:area => notify ; now => @uk.ac.cam.multiwoz.Restaurant.make_reservation param:book_day = enum:thursday ;
+FOO1	restaurants in palo alto	now => @com.yelp.restaurant filter param:geo == location: " palo alto " => notify

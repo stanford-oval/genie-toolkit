@@ -23,6 +23,7 @@
 const fs = require('fs');
 const Stream = require('stream');
 const assert = require('assert');
+const ConditionalDatasetSplitter = require('../lib/dataset-tools/conditional-splitter');
 
 const i18n = require('../lib/i18n');
 
@@ -409,6 +410,8 @@ function requoteSentence(id, context, sentence, program, mode, requote_numbers, 
 }
 
 
+
+
 module.exports = {
     initArgparse(subparsers) {
         const parser = subparsers.addParser('requote', {
@@ -456,14 +459,28 @@ module.exports = {
             help: 'BGP 47 locale tag of the language for parameter values',
             defaultValue: 'en-US'
         });
+        parser.addArgument('--output-errors', {
+            type: fs.createWriteStream,
+            help: 'If provided, examples which fail to be requoted are written in this file as well as being printed to stdout '
+        });
     },
 
     async execute(args) {
+
+        const promises = [];
+
+        let outputErrors = null;
+        const output = new DatasetStringifier();
+        promises.push(StreamUtils.waitFinish(output.pipe(args.output)));
+        if (args.output_errors) {
+            outputErrors = new DatasetStringifier();
+            promises.push(StreamUtils.waitFinish(outputErrors.pipe(args.output_errors)));
+        }
+
         readAllLines(args.input_file)
             .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true }))
             .pipe(new Stream.Transform({
                 objectMode: true,
-
                 transform(ex, encoding, callback) {
                     try {
                         const [newSentence, newProgram] =
@@ -471,7 +488,10 @@ module.exports = {
                                 args.requote_numbers, args.handle_heuristics, args.param_locale);
                         ex.preprocessed = newSentence;
                         ex.target_code = newProgram;
-                        callback(null, ex);
+                        ex.is_ok = true;
+                        this.push(ex);
+                        callback();
+
                     } catch(e) {
                         console.error('**************');
                         console.error('Failed to requote');
@@ -479,10 +499,13 @@ module.exports = {
                         console.error(ex.preprocessed);
                         console.error(ex.target_code);
                         console.error('**************');
-                        if (args.skip_errors)
-                            callback(null);
-                        else
+                        ex.is_ok = false;
+                        if (args.skip_errors) {
+                            this.push(ex);
+                            callback();
+                        } else {
                             callback(e);
+                        }
                     }
                 },
 
@@ -490,10 +513,12 @@ module.exports = {
                     process.nextTick(callback);
                 }
             }))
-            .pipe(new DatasetStringifier())
-            .pipe(args.output);
+            .pipe(new ConditionalDatasetSplitter({
+                output: output,
+                outputErrors: outputErrors
+            }));
 
-        await StreamUtils.waitFinish(args.output);
+        return Promise.all(promises);
     },
     requoteSentence
 };
