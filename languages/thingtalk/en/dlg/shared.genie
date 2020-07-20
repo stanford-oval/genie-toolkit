@@ -63,6 +63,15 @@ accept_phrase = {
     'sounds good';
 }
 
+reject_phrase = {
+    'no';
+    'actually , no';
+    'that will not work';
+    'no , thank you';
+    'not yet';
+    'actually , not yet';
+}
+
 tell_me_more_phrase = {
     'can you tell me more ?';
     'can you tell me more about it ?';

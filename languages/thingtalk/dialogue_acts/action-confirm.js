@@ -30,6 +30,8 @@ const {
     makeAgentReply,
     makeSimpleState,
     sortByName,
+    setOrAddInvocationParam,
+    replaceAction,
 } = require('../state_manip');
 
 
@@ -68,7 +70,30 @@ function actionConfirmAcceptPhrase(ctx) {
     return clone.state;
 }
 
+function actionConfirmRejectPhrase(ctx) {
+    const clone = ctx.clone();
+    clone.next.confirm = 'proposed';
+    return makeSimpleState(clone, 'cancel', null);
+}
+
+function actionConfirmChangeParam(ctx, answer) {
+
+    const action = C.getInvocation(ctx.next);
+    if (!action) return null;
+
+    // don't accept in params that don't apply to this specific action
+    const arg = ctx.nextFunctionSchema.getArgument(answer.name);
+    if (!arg || !arg.is_input || !arg.type.equals(answer.value.getType()))
+        return null;
+
+    const clone = action.clone();
+    setOrAddInvocationParam(clone, answer.name, answer.value);
+    return replaceAction(ctx, 'execute', clone, 'confirmed');
+}
+
 module.exports = {
     makeActionConfirmationPhrase,
-    actionConfirmAcceptPhrase
+    actionConfirmAcceptPhrase,
+    actionConfirmRejectPhrase,
+    actionConfirmChangeParam
 };

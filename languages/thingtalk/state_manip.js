@@ -336,6 +336,7 @@ function makeSimpleState(ctx, dialogueAct, dialogueActParam) {
             break;
         newState.history.push(ctx.state.history[i]);
     }
+
     return newState;
 }
 
