@@ -62,11 +62,12 @@ class AutoCanonicalGenerator {
 
         this.options = options;
 
-        if (options.dataset !== 'custom' && fs.existsSync(`../${options.dataset}/manual-annotations`)) {
-            this.manualAnnotations = require(`../${options.dataset}/manual-annotations`);
-            this.annotatedProperties = Object.keys(this.manualAnnotations.MANUAL_PROPERTY_CANONICAL_OVERRIDE);
-        } else {
-            this.annotatedProperties = [];
+        this.annotatedProperties = [];
+        const file = path.resolve(path.dirname(module.filename), `../${options.dataset}/manual-annotations.js`);
+        if (options.dataset !== 'custom' && fs.existsSync(file)) {
+            const manualAnnotations = require(`../${options.dataset}/manual-annotations`);
+            if (manualAnnotations.PROPERTY_CANONICAL_OVERRIDE)
+                this.annotatedProperties = Object.keys(manualAnnotations.PROPERTY_CANONICAL_OVERRIDE);
         }
         this._langPack = new EnglishLanguagePack();
     }
@@ -215,7 +216,7 @@ class AutoCanonicalGenerator {
                 }
             }
 
-            const {synonyms, adjectives } = JSON.parse(stdout);
+            const { synonyms, adjectives } = JSON.parse(stdout);
             if (this.algorithm.includes('bert') || this.algorithm.includes('adj'))
                 this._updateCanonicals(synonyms, adjectives);
             if (this.algorithm.includes('bart')) {

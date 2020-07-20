@@ -46,11 +46,12 @@ class ParamDatasetGenerator {
         this._tokenizer = I18N.get(locale).getTokenizer();
 
 
-        if (dataset !== 'custom' && fs.existsSync(`../${dataset}/manual-annotations`)) {
-            let manualAnnotations = require(`../${dataset}/manual-annotations`);
-            this._propertiesNoFilter = manualAnnotations.PROPERTIES_NO_FILTER;
-        } else {
-            this._propertiesNoFilter = [];
+        this._propertiesNoFilter = [];
+        const file = path.resolve(path.dirname(module.filename), `../${dataset}/manual-annotations.js`);
+        if (dataset !== 'custom' && fs.existsSync(file)) {
+            const manualAnnotations = require(`../${dataset}/manual-annotations`);
+            if (manualAnnotations.PROPERTIES_NO_FILTER)
+                this._propertiesNoFilter = manualAnnotations.PROPERTIES_NO_FILTER;
         }
     }
 
