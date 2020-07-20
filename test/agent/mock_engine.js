@@ -142,14 +142,6 @@ class MockAppDatabase {
     }
 }
 
-class MockNineGagDevice {
-    constructor() {
-        this.name = "NineGag";
-        this.kind = 'ninegag';
-        this.uniqueId = '9gag';
-    }
-}
-
 class MockTwitterDevice {
     constructor(who) {
         this.name = "Twitter Account " + who;
@@ -163,14 +155,6 @@ class MockYoutubeDevice {
         this.name = "Youtube Account " + who;
         this.kind = 'com.youtube';
         this.uniqueId = 'youtube-' + who;
-    }
-}
-
-class MockEmailDevice {
-    constructor(who) {
-        this.name = "Email Sender";
-        this.kind = 'emailsender';
-        this.uniqueId = 'emailsender';
     }
 }
 
@@ -231,14 +215,22 @@ class MockBuiltinDevice {
 
 var _cnt = 0;
 
+const UNIQUE_DEVICES = new Set(['com.yelp', 'org.thingpedia.weather']);
 class MockUnknownDevice {
     constructor(kind) {
-        var id = ++_cnt;
+        if (UNIQUE_DEVICES.has(kind)) {
+            this.name = "Some Device " + kind;
+            this.description = 'This is a device of some sort';
+            this.kind = kind;
+            this.uniqueId = kind;
+        } else {
+            var id = ++_cnt;
 
-        this.name = "Some Device " + id;
-        this.description = 'This is a device of some sort';
-        this.kind = kind;
-        this.uniqueId = kind + '-' + id;
+            this.name = "Some Device " + id;
+            this.description = 'This is a device of some sort';
+            this.kind = kind;
+            this.uniqueId = kind + '-' + id;
+        }
     }
 }
 
@@ -254,8 +246,6 @@ class MockLightbulb {
 class MockDeviceDatabase {
     constructor() {
         this._devices = {};
-        this._devices['9gag'] = new MockNineGagDevice();
-        this._devices['emailsender'] = new MockEmailDevice();
         this._devices['twitter-foo'] = new MockTwitterDevice('foo');
         this._devices['twitter-bar'] = new MockTwitterDevice('bar');
         this._devices['youtube-foo'] = new MockYoutubeDevice('foo');
