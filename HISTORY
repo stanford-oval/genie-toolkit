@@ -1,3 +1,46 @@
+0.7.0-beta.1
+============
+
+* The library is now covered by the Apache 2.0 license, which allows it to
+  be used in proprietary applications as well [#208].
+* The almond-dialog-agent and thingengine-core library have been merged in
+  this repository, which now contains all the code necessary to produce a
+  functional dialogue agent. Legacy functionality (including all code to
+  support permission control) was removed. An example assistant is provided as
+  the command "genie assistant". The example has speech support if the pulseaudio
+  library is available. The library API has also been cleaned up, which should
+  reduce code duplication between different Almond platforms [#184, #185,
+  #187, #189, #192, #196, #197, #217].
+* The format of dialogue templates was changed to separate user and agent templates,
+  and all dialogue templates were rewritten accordingly. This separation reduces
+  duplication as the same agent-only templates are used at inference time by the
+  agent. It also allows more fine-grained control of what the agent replies at
+  inference time, and it allows the agent to include metadata that controls the
+  UI in the reply [#194, #200, #206].
+* New command: "auto-annotate". This command will use pretrained language models
+  (BERT and BART) to automatically generate the natural language annotations
+  associated with a skill [#164, #195, #211, #214].
+* Commands formerly prefixed with "webqa-" are now prefixed with "autoqa-" [#186].
+* A number of new commands were added, specific to the MultiWOZ dataset [#176].
+* It is now possible to specify a different locale for parameters when augmenting
+  a dataset. Parameter dataset files must now include the locale of the file [#162].
+* Added new templates for Q&A, in particular around projections [#173].
+* Added new templates for dialogues, in particular around multidomain dialogues,
+  queries that return a single result, queries that have input parameters, and
+  actions that need input parameters [#177, #210, #216].
+* The almond-tokenizer was replaced with a faster and more precise tokenizer
+  implemented in JS. This simplifies the installation of Genie, and simplifies
+  deployment of Genie with local NLP instead of remote NLP [#178, #213].
+* Skeleton support for more languages was added; this support is still pending
+  templates or a training set in the target language [#190].
+* PPDB augmentation was removed, as it was ineffective [#179].
+* Documentation has been updated, and should now be clearer in how install Genie
+  and quickly generate a dataset. "Starter" code is now available in the form
+  of Makefiles that can be used to quickly set up Genie for various use cases [#191].
+* Misc bug fixes [#162, #164, #174, #176, #181, #183, #199, #205, #207, #212, #234].
+* Updated dependencies [#166, #167, #168, #169, #170, #171, #180, #182, #201, #202,
+  #203, #209, #218].
+
 0.6.2
 =====
 
