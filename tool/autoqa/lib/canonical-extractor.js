@@ -44,6 +44,8 @@ class AnnotationExtractor {
                     continue;
 
                 let input = this.generateInput(synonyms[qname][arg]);
+                if (input.length === 0)
+                    continue;
                 let output = await this._paraphrase(input.join('\n'), arg);
                 let values = queries[qname]['args'][arg]['values'];
                 for (let i = 0; i < input.length; i++)

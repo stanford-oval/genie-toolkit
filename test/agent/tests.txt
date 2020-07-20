@@ -5,21 +5,21 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.facebook.post();
 
 A: What do you want to post?
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill param:status ; now => @com.facebook.post ; // {}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill param:status ; now => @com.facebook.post attribute:id = GENERIC_ENTITY_tt:device_id_0 ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":null}}
 A: >> expecting = raw_string
 
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.facebook.post(status="hello world");
 
 A: Ok, do you want me to post hello world on facebook?
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action ; now => @com.facebook.post param:status = QUOTED_STRING_0 ; // {"QUOTED_STRING_0":"hello world"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action ; now => @com.facebook.post attribute:id = GENERIC_ENTITY_tt:device_id_0 param:status = QUOTED_STRING_0 ; // {"QUOTED_STRING_0":"hello world","GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":null}}
 A: >> expecting = yesno
 
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.facebook.post(status="hello world") #[confirm=enum(confirmed)];
 
 A: I post hello world on facebook for you.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.facebook.post param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.facebook.post attribute:id = GENERIC_ENTITY_tt:device_id_0 param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world","GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":null}}
 A: >> expecting = null
 
 ====
@@ -30,27 +30,27 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.facebook.post();
 
 A: What do you want to post?
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill param:status ; now => @com.facebook.post ; // {}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill param:status ; now => @com.facebook.post attribute:id = GENERIC_ENTITY_tt:device_id_0 ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":null}}
 A: >> expecting = raw_string
 
 U: hello world
 
 A: Ok, do you want me to post hello world on facebook?
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action ; now => @com.facebook.post param:status = QUOTED_STRING_0 ; // {"QUOTED_STRING_0":"hello world"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action ; now => @com.facebook.post attribute:id = GENERIC_ENTITY_tt:device_id_0 param:status = QUOTED_STRING_0 ; // {"QUOTED_STRING_0":"hello world","GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":null}}
 A: >> expecting = yesno
 
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.facebook.post(status="hello world") #[confirm=enum(confirmed)];
 
 A: I post hello world on facebook for you.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.facebook.post param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.facebook.post attribute:id = GENERIC_ENTITY_tt:device_id_0 param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world","GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":null}}
 A: >> expecting = null
 
 # U: No thanks, goodbye
 U: \t $dialogue @org.thingpedia.dialogue.transaction.end;
 
 A: Alright, bye!
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_end ; now => @com.facebook.post param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_end ; now => @com.facebook.post attribute:id = GENERIC_ENTITY_tt:device_id_0 param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world","GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":null}}
 A: >> expecting = null
 
 ====
@@ -60,21 +60,21 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.twitter.post();
 
 A: What do you want to tweet?
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill param:status ; now => @com.twitter.post ; // {}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill param:status ; now => @com.twitter.post attribute:id = GENERIC_ENTITY_tt:device_id_0 ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"twitter-foo","display":null}}
 A: >> expecting = raw_string
 
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.twitter.post(status="hello world");
 
 A: Ok, do you want me to tweet that hello world?
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action ; now => @com.twitter.post param:status = QUOTED_STRING_0 ; // {"QUOTED_STRING_0":"hello world"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action ; now => @com.twitter.post attribute:id = GENERIC_ENTITY_tt:device_id_0 param:status = QUOTED_STRING_0 ; // {"QUOTED_STRING_0":"hello world","GENERIC_ENTITY_tt:device_id_0":{"value":"twitter-foo","display":null}}
 A: >> expecting = yesno
 
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.twitter.post(status="hello world") #[confirm=enum(confirmed)];
 
 A: I post on twitter saying hello world for you.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.twitter.post param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.twitter.post attribute:id = GENERIC_ENTITY_tt:device_id_0 param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world","GENERIC_ENTITY_tt:device_id_0":{"value":"twitter-foo","display":null}}
 A: >> expecting = null
 
 ====

@@ -180,12 +180,50 @@ function isSameFunction(fndef1, fndef2) {
         fndef1.name === fndef2.name;
 }
 
+function isExecutable(stmt) {
+    let hasUndefined = false;
+    const visitor = new class extends Ast.NodeVisitor {
+        visitInvocation(invocation) {
+            const requireEither = invocation.schema.getAnnotation('require_either');
+            if (requireEither) {
+                const params = new Set;
+                for (let in_param of invocation.in_params)
+                    params.add(in_param.name);
+
+                for (let requirement of requireEither) {
+                    let satisfied = false;
+                    for (let option of requirement) {
+                        if (params.has(option)) {
+                            satisfied = true;
+                            break;
+                        }
+                    }
+                    if (!satisfied)
+                        hasUndefined = true;
+                }
+            }
+
+            return true;
+        }
+
+        visitValue(value) {
+            if (value.isUndefined)
+                hasUndefined = true;
+            return true;
+        }
+    };
+    stmt.visit(visitor);
+    return !hasUndefined;
+}
+
 module.exports = {
     clean,
 
     split,
     splitParams,
     tokenizeExample,
+
+    isExecutable,
 
     isUnaryTableToTableOp(table) {
         return table.isFilter ||
