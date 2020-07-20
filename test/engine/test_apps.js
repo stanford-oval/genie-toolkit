@@ -208,7 +208,8 @@ function testWhen(engine, conversation) {
         engine.assistant.addNotificationOutput(delegate);
 
         engine.createApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
-            { icon: 'org.foo', uniqueId: 'uuid-foo-' + conversation, name: 'some app', description: 'some app description' }).then((app) => {
+            { icon: 'org.foo', uniqueId: 'uuid-foo-' + conversation, name: 'some app', description: 'some app description' }).then(async (app) => {
+            await collectOutputs(app);
             assert.strictEqual(app.icon, 'org.foo');
             assert.strictEqual(app.uniqueId, 'uuid-foo-' + conversation);
         }).catch(reject);

@@ -37,7 +37,10 @@ class PredictStream extends Stream.Transform {
     }
     
     async _process(ex) {
-        const parsed = await this._parser.sendUtterance(ex.preprocessed, ex.context, {}, { tokenized: this._tokenized });
+        const parsed = await this._parser.sendUtterance(ex.preprocessed, ex.context, {}, {
+            tokenized: this._tokenized,
+            skip_typechecking: true
+        });
 
         const predictions = parsed.candidates
             .filter((beam) => beam.score !== 'Infinity') // ignore exact matches

@@ -254,7 +254,10 @@ class DialogAgent extends events.EventEmitter {
     async _handleInput() {
         this._state = 'loading';
 
-        const parsed = await this._parser.sendUtterance(this._utterance, this._contextCode, this._contextEntities);
+        const parsed = await this._parser.sendUtterance(this._utterance, this._contextCode, this._contextEntities, {
+            tokenized: false,
+            skip_typechecking: true
+        });
         const [userState,] = await this._getProgramPrediction(parsed.candidates, parsed.entities, 'UT: ');
         if (userState === null) {
             console.log(`A: Sorry, I did not understand that.`);

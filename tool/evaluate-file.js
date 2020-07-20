@@ -112,7 +112,7 @@ module.exports = {
                     process.nextTick(callback);
                 }
             }))
-            .pipe(new SentenceEvaluatorStream(null, schemas, true, args.debug))
+            .pipe(new SentenceEvaluatorStream(args.locale, null, schemas, true, args.debug))
             .pipe(new CollectSentenceStatistics());
 
         const result = await output.read();

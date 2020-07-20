@@ -254,7 +254,10 @@ class Converter extends stream.Readable {
             contextEntities = {};
         }
 
-        const parsed = await parser.sendUtterance(utterance, contextCode, contextEntities);
+        const parsed = await parser.sendUtterance(utterance, contextCode, contextEntities, {
+            tokenized: false,
+            skip_typechecking: true
+        });
         return (await Promise.all(parsed.candidates.map(async (cand) => {
             try {
                 const program = ThingTalk.NNSyntax.fromNN(cand.code, parsed.entities);
