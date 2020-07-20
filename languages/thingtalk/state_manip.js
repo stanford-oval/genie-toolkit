@@ -24,6 +24,7 @@ const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 
 const C = require('./ast_manip');
+const { isExecutable } = require('./utils');
 
 // NOTE: this version of arraySubset uses ===
 // the one in array_utils uses .equals()
@@ -113,7 +114,7 @@ class NextStatementInfo {
 
         this.chainParameter = null;
         this.chainParameterFilled = false;
-        this.isComplete = C.isCompleteCommand(nextItem.stmt);
+        this.isComplete = isExecutable(nextItem.stmt);
 
         if (!this.isAction)
             return;
