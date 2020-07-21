@@ -3,8 +3,9 @@ import argparse
 import json
 import sys
 import torch
-import torch.nn.functional as F
 from transformers import BertTokenizer, BertForMaskedLM, GPT2Tokenizer, GPT2LMHeadModel
+
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 BLACK_LIST = ['a', 'an', 'the', 'its', 'their', 'his', 'her']
 ALL_CATEGORIES = [
@@ -107,7 +108,7 @@ def template_query(cat, query_canonical='', prefix='', value='', suffix=''):
 class GPT2Ranker:
     def __init__(self):
         self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
-        self.model = GPT2LMHeadModel.from_pretrained('gpt2')
+        self.model = GPT2LMHeadModel.from_pretrained('gpt2').to(device)
         self.model.eval()
 
     def rank(self, phrases):
@@ -115,11 +116,12 @@ class GPT2Ranker:
         Return the indices of elements in `phrases` in descending naturalness order. So phrases[GPT2Ranker.rank(phrases)[0]] is the most natural phrase
         :param phrases: a list of strings
         """
-        return sorted(range(len(phrases)), key=lambda i: self.score(phrases[i]), reverse=False) # lower score means more natural sentence
+        return sorted(range(len(phrases)), key=lambda i: self.score(phrases[i]), reverse=False)
+        # lower score means more natural sentence
 
     def score(self, sentence):
         indexed_tokens = self.tokenizer.encode(sentence)
-        tokens_tensor = torch.tensor(indexed_tokens)
+        tokens_tensor = torch.tensor(indexed_tokens).to(device)
 
         with torch.no_grad():
             outputs = self.model(
@@ -151,7 +153,7 @@ class BertLM:
         self.tokenizer = BertTokenizer.from_pretrained(model_name_or_path)
 
         # Load pre-trained model (weights)
-        self.model = BertForMaskedLM.from_pretrained(model_name_or_path)
+        self.model = BertForMaskedLM.from_pretrained(model_name_or_path).to('cuda')
         self.model.eval()
 
         self.gpt2_ordering = gpt2_ordering
@@ -231,9 +233,9 @@ class BertLM:
             position_ids = list(range(len(indexed_tokens)))
 
         # Convert inputs to PyTorch tensors
-        tokens_tensor = torch.tensor([indexed_tokens])
-        segments_tensors = torch.tensor([segments_ids])
-        position_tensors = torch.tensor([position_ids])
+        tokens_tensor = torch.tensor([indexed_tokens]).to(device)
+        segments_tensors = torch.tensor([segments_ids]).to(device)
+        position_tensors = torch.tensor([position_ids]).to(device)
 
         # Predict all tokens
         with torch.no_grad():
