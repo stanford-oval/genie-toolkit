@@ -153,7 +153,7 @@ class BertLM:
         self.tokenizer = BertTokenizer.from_pretrained(model_name_or_path)
 
         # Load pre-trained model (weights)
-        self.model = BertForMaskedLM.from_pretrained(model_name_or_path).to('cuda')
+        self.model = BertForMaskedLM.from_pretrained(model_name_or_path).to(device)
         self.model.eval()
 
         self.gpt2_ordering = gpt2_ordering
