@@ -28,10 +28,13 @@ const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('../lib/d
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('../lib/prediction/parserclient');
 
-function csvDisplay(args, complexity, result, with_numeric=false, without_numeric=false) {
+function csvDisplay(args, complexity, result, device, with_numeric=false, without_numeric=false) {
     let buffer = '';
     if (args.csv_prefix)
         buffer = args.csv_prefix + ',';
+
+    if (args.split_by_device)
+        buffer += device + ',';
 
     let prefix = '';
     if (with_numeric) {
@@ -105,6 +108,12 @@ module.exports = {
             help: 'Process a contextual dataset.',
             defaultValue: false
         });
+        parser.addArgument('--split-by-device', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Compute evaluation statistics separating examples by Thingpedia device',
+            defaultValue: false
+        });
         parser.addArgument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
@@ -159,28 +168,31 @@ module.exports = {
         const output = readAllLines(args.input_file)
             .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true }))
             .pipe(new SentenceEvaluatorStream(args.locale, parser, schemas, args.tokenized, args.debug, args.complexity_metric))
-            .pipe(new CollectSentenceStatistics({ maxComplexity: args.max_complexity }));
+            .pipe(new CollectSentenceStatistics({ maxComplexity: args.max_complexity ,
+                                                  splitByDevice: args.split_by_device}));
 
         const result = await output.read();
 
-        if (args.csv) {
-            csvDisplay(args, null, result);
-            if (args.max_complexity) {
-                for (let complexity = 0; complexity < args.max_complexity; complexity++)
-                    csvDisplay(args, complexity, result);
-                csvDisplay(args, '>=' + args.max_complexity, result);
+        for (let device in result) {
+            if (args.csv) {
+                csvDisplay(args, null, result[device], device);
+                if (args.max_complexity) {
+                    for (let complexity = 0; complexity < args.max_complexity; complexity++)
+                        csvDisplay(args, complexity, result[device], device);
+                    csvDisplay(args, '>=' + args.max_complexity, result[device], device);
+                } else {
+                    for (let complexity = 0; complexity < 10; complexity++)
+                        csvDisplay(args, complexity, result);
+                }
+                csvDisplay(args, null, result, device, true);
+                csvDisplay(args, null, result, device, false, true);
             } else {
-                for (let complexity = 0; complexity < 10; complexity++)
-                    csvDisplay(args, complexity, result);
-            }
-            csvDisplay(args, null, result, true);
-            csvDisplay(args, null, result, false, true);
-        } else {
-            for (let key in result) {
-                if (Array.isArray(result[key]))
-                    args.output.write(`${key} = [${result[key].join(', ')}]\n`);
-                else
-                    args.output.write(`${key} = ${result[key]}\n`);
+                for (let key in result[device]) {
+                    if (Array.isArray(result[device][key]))
+                        args.output.write(`${device + ', ' + key} = [${result[device][key].join(', ')}]\n`);
+                    else
+                        args.output.write(`${device + ', ' + key} = ${result[device][key]}\n`);
+                }
             }
         }
         args.output.end();
