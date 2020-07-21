@@ -165,15 +165,21 @@ class BertLM:
         self.pruning_threshold = pruning_threshold
         self.queries = queries
         self.canonicals = {}  # canonical of queries
-        self.values = {}  # values of arguments
+        self.values = {}  # all the values of each argument
+        self.example_values = {}  # example values (constants.tsv) of each argument
         for query in queries:
             self.canonicals[query] = queries[query]['canonical']
             self.values[query] = {}
+            self.example_values[query] = {}
             for arg in queries[query]['args']:
+                if 'values' in queries[query]['args'][arg]:
+                    self.example_values[query][arg] = self.queries[query]['args'][arg]['values']
+                else:
+                    self.example_values[query][arg] = []
                 if 'path' in queries[query]['args'][arg]:
                     self.values[query][arg] = self.load_values(queries[query]['args'][arg]['path'])
                 elif 'values' in queries[query]['args'][arg]:
-                    self.values[query][arg] = self.queries[query]['args'][arg]['values']
+                    self.values[query][arg] = self.example_values[query][arg]
                 else:
                     self.values[query][arg] = []
 
@@ -388,7 +394,7 @@ class BertLM:
                 for canonical in arg_canonicals[category]:
                     count_prefix = 0
                     count_suffix = 0
-                    for value in self.values[query_name][arg_name]:
+                    for value in self.example_values[query_name][arg_name]:
                         if '#' not in canonical:
                             prefix_queries = template_query(category, query_canonical, canonical, value, '')
                             suffix_queries = template_query(category, query_canonical, '', value, canonical)
@@ -404,7 +410,7 @@ class BertLM:
                     arg_canonicals[category].remove(canonical)
                     arg_canonicals[category].append(f"# {canonical}")
 
-        for value in self.values[query_name][arg_name]:
+        for value in self.example_values[query_name][arg_name]:
             for category in arg_canonicals:
                 if category in ['default', 'adjective', 'implicit_identity', 'base', 'reverse_verb']:
                     continue
