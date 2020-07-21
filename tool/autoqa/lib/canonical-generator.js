@@ -103,6 +103,10 @@ class AutoCanonicalGenerator {
                 if (!arg.metadata.canonical)
                     continue;
 
+                // skip compound types
+                if (arg.type.isCompound)
+                    continue;
+
                 // get the paths to the data
                 let datasetTypeAndPath = this._getDatasetPath(fname, arg);
                 if (datasetTypeAndPath) {
