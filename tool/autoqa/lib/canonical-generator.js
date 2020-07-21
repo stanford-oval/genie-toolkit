@@ -62,11 +62,12 @@ class AutoCanonicalGenerator {
 
         this.options = options;
 
-        if (options.dataset !== 'custom' && fs.existsSync(`../${options.dataset}/manual-annotations`)) {
-            this.manualAnnotations = require(`../${options.dataset}/manual-annotations`);
-            this.annotatedProperties = Object.keys(this.manualAnnotations.MANUAL_PROPERTY_CANONICAL_OVERRIDE);
-        } else {
-            this.annotatedProperties = [];
+        this.annotatedProperties = [];
+        const file = path.resolve(path.dirname(module.filename), `../${options.dataset}/manual-annotations.js`);
+        if (options.dataset !== 'custom' && fs.existsSync(file)) {
+            const manualAnnotations = require(`../${options.dataset}/manual-annotations`);
+            if (manualAnnotations.PROPERTY_CANONICAL_OVERRIDE)
+                this.annotatedProperties = Object.keys(manualAnnotations.PROPERTY_CANONICAL_OVERRIDE);
         }
         this._langPack = new EnglishLanguagePack();
     }
@@ -191,6 +192,7 @@ class AutoCanonicalGenerator {
             const child = child_process.spawn(`python3`, args, {stdio: ['pipe', 'pipe', 'inherit']});
 
             const output = util.promisify(fs.writeFile);
+            const startTime = new Date();
             if (this.options.debug)
                 await output(`./bert-canonical-annotator-in.json`, JSON.stringify(functions, null, 2));
 
@@ -210,17 +212,24 @@ class AutoCanonicalGenerator {
             if (this.options.debug) {
                 try {
                     await output(`./bert-canonical-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
+                    const time = Math.round((new Date() - startTime) / 1000);
+                    console.log(`Bert annotator took ${time} seconds to run.`);
                 } catch (e) {
                      await output(`./bert-canonical-annotator-out.json`, stdout);
                 }
             }
 
-            const {synonyms, adjectives } = JSON.parse(stdout);
+            const { synonyms, adjectives } = JSON.parse(stdout);
             if (this.algorithm.includes('bert') || this.algorithm.includes('adj'))
                 this._updateCanonicals(synonyms, adjectives);
             if (this.algorithm.includes('bart')) {
+                const startTime = new Date();
                 const extractor = new CanonicalExtractor(this.class, this.functions, this.paraphraser_model, this.options);
                 await extractor.run(synonyms, functions);
+                if (this.options.debug) {
+                    const time = Math.round((new Date() - startTime) / 1000);
+                    console.log(`Bart annotator took ${time} seconds to run.`);
+                }
             }
         }
 
