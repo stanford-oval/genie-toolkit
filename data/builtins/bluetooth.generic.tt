@@ -1,7 +1,0 @@
-class @org.thingpedia.builtin.bluetooth.generic
-#_[name="Generic Bluetooth Device"]
-#_[description="The most generic of Bluetooth classes, it supports no operation at all. It is used if nothing more specific is found."]
-{
-  import loader from @org.thingpedia.builtin();
-  import config from @org.thingpedia.config.discovery.bluetooth(uuids=[]);
-}
