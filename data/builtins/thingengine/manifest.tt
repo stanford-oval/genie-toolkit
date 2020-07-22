@@ -1,6 +1,8 @@
 class @org.thingpedia.builtin.thingengine
 #_[thingpedia_name="Almond Configuration"]
 #_[thingpedia_description="A placeholder for configuration parameters of Almond. This device is created and loaded automatically by the system."]
+#_[name="Almond Configuration"]
+#_[description="A placeholder for configuration parameters of Almond. This device is created and loaded automatically by the system."]
 #[system=true]
 #[repository="https://github.com/stanford-oval/genie-toolkit"]
 #[subcategory="service"]
