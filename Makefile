@@ -1,6 +1,6 @@
 all = \
 	$(patsubst %.po,%.mo,$(wildcard po/*.po)) \
-	$(patsubst data/builtins/%.tt,lib/engine/devices/builtins/%.tt.json,$(wildcard data/builtins/*.tt)) \
+	$(patsubst data/builtins/%/manifest.tt,lib/engine/devices/builtins/%.tt.json,$(wildcard data/builtins/*/*.tt)) \
 	lib/engine/db/schema.json \
 	lib/sentence-generator/compiler/grammar.js
 
@@ -27,7 +27,7 @@ bundle/%.zip: bundle/%
 	node -e 'console.log(JSON.stringify(require("fs").readFileSync(process.argv[1]).toString("utf8")))' $< > $@.tmp
 	mv $@.tmp $@
 
-lib/engine/devices/builtins/%.tt.json : data/builtins/%.tt
+lib/engine/devices/builtins/%.tt.json : data/builtins/%/manifest.tt
 	node -e 'console.log(JSON.stringify(require("fs").readFileSync(process.argv[1]).toString("utf8")))' $< > $@.tmp
 	mv $@.tmp $@
 

@@ -28,7 +28,6 @@ class MockPreferences {
         // change this line to test the initialization dialog
         this._store['sabrina-initialized'] = true;
         this._store['sabrina-name'] = "Alice Tester";
-        this._store['experimental-contextual-model'] = false;
     }
 
     get(name) {

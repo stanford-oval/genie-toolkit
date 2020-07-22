@@ -1,7 +1,13 @@
 class @org.thingpedia.builtin.test
+#_[thingpedia_name="Test Device"]
+#_[thingpedia_description="Test Almond in various ways"]
 #_[name="Test Device"]
 #_[description="Test Almond in various ways"]
 #[system=true]
+#[repository="https://github.com/stanford-oval/genie-toolkit"]
+#[subcategory="service"]
+#[license="Apache-2.0"]
+#[license_gplcompatible=true]
 {
   import loader from @org.thingpedia.builtin();
   import config from @org.thingpedia.config.builtin();

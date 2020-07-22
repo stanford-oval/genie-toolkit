@@ -257,7 +257,6 @@ module.exports = {
         const platform = new Platform(path.resolve(args.workdir), args.locale, args.thingpediaUrl, args.wake_word_model);
         const prefs = platform.getSharedPreferences();
         prefs.set('developer-dir', args.thingpedia_dir);
-        prefs.set('experimental-contextual-model', true);
         prefs.set('experimental-use-neural-nlg', !!args.nlg_server);
         const engine = new Engine(platform);
 
