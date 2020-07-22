@@ -29,7 +29,8 @@ const ThingTalk = require('thingtalk');
 const TargetLanguages = require('../lib/languages');
 const StreamUtils = require('../lib/utils/stream-utils');
 const ParserClient = require('../lib/prediction/parserclient');
-const { DialogueParser, DialogueSerializer } = require('./lib/dialog_parser');
+const { DialogueParser, DialogueSerializer } = require('../lib/dataset-tools/parsers');
+
 const { readAllLines } = require('./lib/argutils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
 

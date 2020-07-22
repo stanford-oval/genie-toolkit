@@ -31,8 +31,8 @@ const { getBestEntityMatch } = require('../lib/dialogue-agent/entity-linking/ent
 const Utils = require('../lib/utils/misc-utils');
 const I18n = require('../lib/i18n');
 const TargetLanguages = require('../lib/languages');
+const { DialogueParser } = require('../lib/dataset-tools/parsers');
 
-const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
 const ParserClient = require('../lib/prediction/parserclient');

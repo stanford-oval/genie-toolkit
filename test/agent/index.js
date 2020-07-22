@@ -29,7 +29,7 @@ const path = require('path');
 const yaml = require('js-yaml');
 const seedrandom = require('seedrandom');
 
-const { DialogueParser } = require('../../tool/lib/dialog_parser');
+const { DialogueParser } = require('../../lib/dataset-tools/parsers');
 const StreamUtils = require('../../lib/utils/stream-utils');
 const Conversation = require('../../lib/dialogue-agent/conversation');
 

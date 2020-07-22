@@ -29,7 +29,7 @@ const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 
 const ParserClient = require('../lib/prediction/parserclient');
-const { DialogueSerializer } = require('./lib/dialog_parser');
+const { DialogueSerializer } = require('../lib/dataset-tools/parsers');
 const StreamUtils = require('../lib/utils/stream-utils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
 const ProgressBar = require('./lib/progress_bar');

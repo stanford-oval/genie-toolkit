@@ -29,8 +29,8 @@ const StreamUtils = require('../lib/utils/stream-utils');
 const { isExecutable } = require('../lib/dialogue-agent/dialogue_state_utils');
 const { findFilterTable } = require('../languages/thingtalk/ast_manip');
 const TargetLanguages = require('../lib/languages');
+const { DialogueParser } = require('../lib/dataset-tools/parsers');
 
-const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
 
