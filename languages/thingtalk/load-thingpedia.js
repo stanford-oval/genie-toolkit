@@ -768,8 +768,18 @@ class ThingpediaLoader {
                 this._recordOutputParam(functionName, arg);
         }
 
-        if (functionDef.functionType === 'query')
+        if (functionDef.functionType === 'query') {
+            if (functionDef.is_list && functionDef.hasArgument('id')) {
+                const idarg = functionDef.getArgument('id');
+                if (idarg.type.isEntity && idarg.type.type === functionName) {
+                    this.idQueries.set(functionName, functionDef);
+                    this._idTypes.add(typeToStringSafe(idarg.type));
+                }
+            }
+
             await this._makeExampleFromQuery(functionDef);
+        }
+
         if (functionDef.metadata.result)
             await this._loadCustomResultString(functionDef);
         if (functionDef.metadata.on_error)
@@ -825,7 +835,7 @@ class ThingpediaLoader {
         for (let entity of classDef.entities) {
             const hasNer = entity.impl_annotations.has_ner ?
                 entity.impl_annotations.has_ner.toJS() : true;
-            await this._loadEntityType(classDef.kind + ':' + entity.name, hasNer, true);
+            this._loadEntityType(classDef.kind + ':' + entity.name, hasNer);
         }
 
         const whitelist = classDef.getImplementationAnnotation('whitelist');
@@ -840,65 +850,30 @@ class ThingpediaLoader {
         await Promise.all(actions.map((name) => classDef.actions[name]).map(this._loadFunction.bind(this)));
     }
 
-    async _isIdEntity(idEntity) {
-        // FIXME this is kind of a bad heuristic
-        if (idEntity.endsWith(':id'))
-            return true;
-
-        let [prefix, suffix] = idEntity.split(':');
-        if (prefix === 'tt')
-            return false;
-        if (this.idQueries.has(idEntity))
-            return true;
-
-        if (this.globalWhiteList && !this.globalWhiteList.includes(suffix))
-            return false;
-
-        let classDef;
-        try {
-            classDef = await this._schemas.getFullMeta(prefix);
-        } catch(e) {
-            // ignore if the class does not exist
-            return false;
-        }
-        const whitelist = classDef.getImplementationAnnotation('whitelist');
-        if (classDef.queries[suffix]) {
-            if (whitelist && whitelist.length > 0 && !whitelist.includes(suffix))
-                return false;
-            const query = classDef.queries[suffix];
-            if (query.hasArgument('id')) {
-                const id = query.getArgument('id');
-                if (id.type.isEntity && id.type.type === idEntity) {
-                    this.idQueries.set(idEntity, query);
-                    return true;
-                }
-            }
-        }
-        return false;
+    _loadEntityType(entityType, hasNerSupport) {
+        this._entities[entityType] = { has_ner_support: hasNerSupport };
     }
 
-    async _loadEntityType(entityType, hasNerSupport, override = false) {
-        const ttType = Type.Entity(entityType);
-        let typestr = typeToStringSafe(ttType);
-        if (!override && this._idTypes.has(typestr))
-            return;
+    _addEntityConstants() {
+        for (let entityType in this._entities) {
+            const ttType = Type.Entity(entityType);
+            let typestr = typeToStringSafe(ttType);
+            const { has_ner_support } = this._entities[entityType];
 
-        this._entities[entityType] = { has_ner_support: hasNerSupport };
-
-        if (await this._isIdEntity(entityType)) {
-            if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
-                console.log('Loaded entity ' + entityType + ' as id entity');
-            this._idTypes.add(typestr);
-        } else {
-            if (hasNerSupport) {
+            if (this._idTypes.has(typestr)) {
                 if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
-                    console.log('Loaded entity ' + entityType + ' as generic entity');
-
-                this._grammar.declareSymbol('constant_' + typestr);
-                this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + entityType, ttType);
+                    console.log('Loaded entity ' + entityType + ' as id entity');
             } else {
-                if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
-                    console.log('Loaded entity ' + entityType + ' as non-constant entity');
+                if (has_ner_support) {
+                    if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
+                        console.log('Loaded entity ' + entityType + ' as generic entity');
+
+                    this._grammar.declareSymbol('constant_' + typestr);
+                    this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + entityType, ttType);
+                } else {
+                    if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
+                        console.log('Loaded entity ' + entityType + ' as non-constant entity');
+                }
             }
         }
     }
@@ -1007,9 +982,10 @@ class ThingpediaLoader {
         }
 
         for (let entity of entityTypes)
-            await this._loadEntityType(entity.type, entity.has_ner_support);
+            this._loadEntityType(entity.type, entity.has_ner_support);
         for (let device of devices)
             await this._loadDevice(device);
+        this._addEntityConstants();
         for (let dataset of datasets)
             await this._loadDataset(dataset);
     }
