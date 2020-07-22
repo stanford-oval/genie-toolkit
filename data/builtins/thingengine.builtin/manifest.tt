@@ -84,27 +84,27 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[doc="get a uniform random integer between `low` and `high`"]
   #[confirm=false];
 
-  list query device(out id : Entity(tt:device)
-                    #_[canonical={
-                       base=["name"],
-                       passive_verb=["named #", "called #"],
-                    }],
-                    out description : String
-                    #_[canonical={
-                       base=["description"]
-                    }]
-                    #[string_values="tt:short_free_text"],
-                    out category : Enum(service, media, social_network, communication, home, health, data_management)
-                    #_[canonical={
-                       base=["category"],
-                       adjective=["#"],
-                       preposition=["in the # category"]
-                    }],
-                    out website : Entity(tt:url)
-                    #_[canonical={
-                       base=["website", "link", "url"]
-                    }]
-                    )
+  monitorable list query device(out id : Entity(tt:device)
+                                #_[canonical={
+                                   base=["name"],
+                                   passive_verb=["named #", "called #"],
+                                }],
+                                out description : String
+                                #_[canonical={
+                                   base=["description"]
+                                }]
+                                #[string_values="tt:short_free_text"],
+                                out category : Enum(service, media, social_network, communication, home, health, data_management)
+                                #_[canonical={
+                                   base=["category"],
+                                   adjective=["#"],
+                                   preposition=["in the # category"]
+                                }],
+                                out website : Entity(tt:url)
+                                #_[canonical={
+                                   base=["website", "link", "url"]
+                                }]
+                                )
   #_[canonical=["device", "skill", "thingpedia device", "supported skill"]]
   #_[confirmation="Thingpedia devices"]
   #_[formatted=[{type="text",text="${random}"}]]

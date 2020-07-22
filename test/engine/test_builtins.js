@@ -22,18 +22,8 @@
 const assert = require('assert');
 
 const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
 
-async function testGetCommands(engine) {
-    const device = engine.devices.getDevice('thingengine-own-global');
-
-    const result = await device.get_get_commands({ device: new Tp.Value.Entity('com.xkcd', 'tt:device', 'XKCD') });
-
-    for (let ex of result)
-        assert(ex.program instanceof ThingTalk.Ast.Example);
-}
-
-async function testOtherBuiltins(engine) {
+async function testGetDateTime(engine) {
     const device = engine.devices.getDevice('thingengine-own-global');
 
     const now = new Date;
@@ -44,18 +34,38 @@ async function testOtherBuiltins(engine) {
     assert(date.date <= now.getTime() + 10000);
 
     const [time] = await device.get_get_time();
-    assert(time.time instanceof Date);
-    assert(time.time >= now);
-    assert(time.time <= now.getTime() + 10000);
+    assert(time.time instanceof Tp.Value.Time);
+}
+
+async function testGetCommands(engine) {
+    const device = engine.devices.getDevice('thingengine-own-global');
+
+    const devices = await device.get_device();
+    for (const d of devices) {
+        assert(d.id instanceof Tp.Value.Entity);
+        assert(typeof d.id.value === 'string');
+        assert(typeof d.id.display === 'string');
+        assert(typeof d.description === 'string');
+        assert(typeof d.category === 'string');
+    }
+
+    const result = await device.get_commands({ device: new Tp.Value.Entity('com.xkcd', 'tt:device', 'XKCD') });
+
+    for (let ex of result) {
+        assert(typeof ex.id === 'string');
+        assert(typeof ex.device === 'string');
+        assert(ex.program instanceof Tp.Value.Entity);
+    }
+}
+
+async function testOtherBuiltins(engine) {
+    const device = engine.devices.getDevice('thingengine-own-global');
 
     const [random] = await device.get_get_random_between({ low: 0, high: 7 });
     assert.strictEqual(typeof random.random, 'number');
     assert(random.random >= 0);
     assert(random.random <= 7);
     assert.strictEqual(Math.floor(random.random), random.random);
-
-    const [hello] = await device.get_canned_reply({ intent: 'hello' });
-    assert.deepStrictEqual(hello, { text: "Hi!" });
 }
 
 function testBuiltinsAreExpected(engine) {
@@ -82,6 +92,7 @@ async function testPlatformDevice(engine) {
 
 module.exports = async function testBuiltins(engine) {
     await testBuiltinsAreExpected(engine);
+    await testGetDateTime(engine);
     await testGetCommands(engine);
     await testOtherBuiltins(engine);
     await testPlatformDevice(engine);
