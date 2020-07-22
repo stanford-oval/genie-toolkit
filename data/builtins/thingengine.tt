@@ -1,9 +1,0 @@
-class @org.thingpedia.builtin.thingengine
-#_[name="Almond Configuration"]
-#_[description="A placeholder for configuration parameters of Almond. This device is created and loaded automatically by the system."]
-#[system=true]
-{
-  import loader from @org.thingpedia.builtin();
-  import config from @org.thingpedia.config.builtin();
-}
-
