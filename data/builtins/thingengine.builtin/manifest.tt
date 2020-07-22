@@ -111,6 +111,7 @@ class @org.thingpedia.builtin.thingengine.builtin
   #_[confirmation="Thingpedia devices"]
   #_[formatted=[{type="text",text="${random}"}]]
   #[doc="list supported Thingpedia devices"]
+  #[poll_interval=1day]
   #[confirm=false];
 
   list query commands(out id : Entity(tt:command_id),
