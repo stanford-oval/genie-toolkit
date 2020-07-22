@@ -23,7 +23,7 @@ const fs = require('fs');
 
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 const { KEYS, DialogueEvaluatorStream, CollectDialogueStatistics } = require('../lib/dataset-tools/evaluation/dialogue_evaluator');
-const { DialogueParser } = require('./lib/dialog_parser');
+const { DialogueParser } = require('../lib/dataset-tools/parsers');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const ParserClient = require('../lib/prediction/parserclient');
 const MultiJSONDatabase = require('./lib/multi_json_database');

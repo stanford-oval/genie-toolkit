@@ -32,9 +32,9 @@ const StreamUtils = require('../lib/utils/stream-utils');
 const { getBestEntityMatch } = require('../lib/dialogue-agent/entity-linking/entity-finder');
 const { uniform } = require('../lib/utils/random');
 const TargetLanguages = require('../lib/languages');
+const { DialogueParser } = require('../lib/dataset-tools/parsers');
 
 const ProgressBar = require('./lib/progress_bar');
-const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 const MultiJSONDatabase = require('./lib/multi_json_database');
 

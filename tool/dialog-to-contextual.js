@@ -24,13 +24,12 @@ const Stream = require('stream');
 const fs = require('fs');
 
 const TargetLanguages = require('../lib/languages');
-const { DatasetStringifier } = require('../lib/dataset-tools/parsers');
+const { DatasetStringifier, DialogueParser } = require('../lib/dataset-tools/parsers');
 const StreamUtils = require('../lib/utils/stream-utils');
 const Utils = require('../lib/utils/misc-utils');
 const I18n = require('../lib/i18n');
 
 const ProgressBar = require('./lib/progress_bar');
-const { DialogueParser } = require('./lib/dialog_parser');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
 
 class DialogueToTurnStream extends Stream.Transform {

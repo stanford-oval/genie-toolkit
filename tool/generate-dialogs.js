@@ -28,8 +28,8 @@ const seedrandom = require('seedrandom');
 const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 const { DialogueGenerator } = require('../lib/sentence-generator/batch');
 const StreamUtils = require('../lib/utils/stream-utils');
+const { DialogueSerializer } = require('../lib/dataset-tools/parsers');
 
-const { DialogueSerializer } = require('./lib/dialog_parser');
 const { ActionSetFlag } = require('./lib/argutils');
 
 const DIALOG_SERIALIZERS = {
