@@ -19,6 +19,7 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
 
+const assert = require('assert');
 const fs = require('fs');
 const util = require('util');
 const child_process = require('child_process');
@@ -33,23 +34,36 @@ class AnnotationExtractor {
         this.options = options;
         this._langPack = new EnglishLanguagePack();
 
+        this._input =[];
+        this._output = [];
         this.newCanonicals = {};
     }
 
     async run(synonyms, queries) {
+        const slices = {};
         for (let qname of this.queries) {
-            let query_canonical = queries[qname]['canonical'];
+            slices[qname] = {};
             for (let arg in synonyms[qname]) {
                 if (arg === 'id' || Object.keys(synonyms[qname][arg]).length === 0)
                     continue;
 
-                let input = this.generateInput(synonyms[qname][arg]);
-                if (input.length === 0)
-                    continue;
-                let output = await this._paraphrase(input.join('\n'), arg);
-                let values = queries[qname]['args'][arg]['values'];
-                for (let i = 0; i < input.length; i++)
-                    this.extractCanonical(arg, input[i], output[i], values, query_canonical);
+                const startIndex = this._input.length;
+                this.generateInput(synonyms[qname][arg]);
+                const endIndex = this._input.length;
+                slices[qname][arg] = [startIndex, endIndex];
+            }
+        }
+
+        await this._paraphrase();
+        assert.strictEqual(this._input.length, this._output.length);
+
+        for (let qname of this.queries) {
+            const query_canonical = queries[qname]['canonical'];
+            for (let arg in synonyms[qname]) {
+                const values = queries[qname]['args'][arg]['values'];
+                const slice = slices[qname][arg];
+                for (let i = slice[0]; i < slice[1]; i++)
+                    this.extractCanonical(arg, i, values, query_canonical);
             }
 
             for (let arg in synonyms[qname]) {
@@ -94,10 +108,10 @@ class AnnotationExtractor {
         return false;
     }
 
-    async _paraphrase(input, arg) {
+    async _paraphrase() {
         // if debug file exists, use them directly
-        if (fs.existsSync(`./paraphraser-out-${arg}.json`))
-            return JSON.parse(fs.readFileSync(`./paraphraser-out-${arg}.json`, 'utf-8'));
+        if (fs.existsSync(`./paraphraser-out.json`))
+            this._output = JSON.parse(fs.readFileSync(`./paraphraser-out.json`, 'utf-8'));
 
         // genienlp run-paraphrase --input_column 0 --skip_heuristics --model_name_or_path xxx --temperature 1 1 1 --num_beams 4 --pipe_mode
         const args = [
@@ -107,16 +121,17 @@ class AnnotationExtractor {
             `--model_name_or_path`, this.model,
             `--temperature`, `1`, `1`, `1`,
             `--num_beams`, `4`,
-            `--pipe_mode`
+            `--pipe_mode`,
+            `--batch_size`, `64`
         ];
         const child = child_process.spawn(`genienlp`, args, { stdio: ['pipe', 'pipe', 'inherit'] });
 
         const output = util.promisify(fs.writeFile);
         if (this.options.debug)
-            await output(`./paraphraser-in-${arg}.tsv`, input);
+            await output(`./paraphraser-in.tsv`, this._input.join('\n'));
 
         const stdout = await new Promise((resolve, reject) => {
-            child.stdin.write(input);
+            child.stdin.write(this._input.join('\n'));
             child.stdin.end();
             child.on('error', reject);
             child.stdout.on('error', reject);
@@ -129,24 +144,25 @@ class AnnotationExtractor {
         });
 
         if (this.options.debug)
-            await output(`./paraphraser-out-${arg}.json`, JSON.stringify(JSON.parse(stdout), null, 2));
+            await output(`./paraphraser-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
 
-        return JSON.parse(stdout);
+        this._output = JSON.parse(stdout);
     }
 
     generateInput(candidates) {
-        const input = [];
         for (let category in candidates) {
             if (category === 'base')
                 continue;
             let canonical = Object.keys(candidates[category])[0];
             for (let sentence of candidates[category][canonical])
-                input.push(`${sentence}`);
+                this._input.push(`${sentence}`);
         }
-        return input;
     }
 
-    extractCanonical(arg, origin, paraphrases, values, query_canonical) {
+    extractCanonical(arg, index, values, query_canonical) {
+        const origin = this._input[index];
+        const paraphrases = this._output[index];
+
         if (!(arg in this.newCanonicals))
             this.newCanonicals[arg] = {};
 
