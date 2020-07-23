@@ -1,3 +1,13 @@
+0.7.0-beta.2
+============
+
+* The contextual dialogue model is now unconditionally used by the agent;
+  to use a non-contextual model, use Almond 1.* instead [#237].
+* Autoannotation is now significantly faster, due to better use of batching when
+  calling the pretrained models [#235, #236].
+* Parsing and serialization of dialogue datasets is now part of the public API [#241,
+* Misc bug fixes [#220, #237, #242].
+
 0.7.0-beta.1
 ============
 
