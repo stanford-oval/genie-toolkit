@@ -164,7 +164,7 @@ class Converter extends stream.Readable {
     }
 
     async _doAgentTurn(context, contextInfo, turn, agentUtterance) {
-        let frame = turn.frames[0]; // always only just frame with system
+        const frame = turn.frames[0]; // always only just frame with system
         let agentTarget;
         let actNames = frame.actions.map((action) => action.act);
         if (actNames.includes('INFORM')) {
@@ -184,8 +184,24 @@ class Converter extends stream.Readable {
         } else if (actNames.includes('OFFER')) {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_recommend_one', null, []);
         } else if (actNames.includes('OFFER_INTENT')) {
-            // TODO should construct & recommend a proposed action
-            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []);
+            // construct action class and intent
+            let tpClass = 'com.google.sgd';
+            const selector = new Ast.Selector.Device(null, tpClass, null, null);
+            let action = turn.frames[0].actions;
+            const fullIntentName = frame.service + '_' + action[0]['values'][0];
+            const activeIntent = this._schemaObj[frame.service]['intents'][action[0]['values'][0]];
+
+            // OFFER_INTENT should only tag actions
+            assert(activeIntent.is_transactional);
+
+            // create proposed action item
+            let invocation = new Ast.Invocation(null, selector, fullIntentName, [], null);
+            let statement = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
+            let actionItem = [new Ast.DialogueHistoryItem(null, statement, null, 'proposed')];
+
+            // assign agent target
+            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_recommend_one', null, actionItem);
+
         } else if (actNames.includes('NOTIFY_SUCCESS')) {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'action_success', null, []);
         } else if (actNames.includes('NOTIFY_FAILURE')) {
