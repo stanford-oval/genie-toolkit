@@ -149,21 +149,43 @@ class Converter extends stream.Readable {
         }
     }
 
-    async _getContextInfo(state) {
-        let next = null, current = null;
-        for (let idx = 0; idx < state.history.length; idx ++) {
-            const item = state.history[idx];
-            if (item.results === null) {
-                next = item;
-                break;
-            }
-            current = item;
+    async _generateProposed(context, frame, selectedSlots) {
+        const tpClass = 'com.google.sgd';
+        const selector = new Ast.Selector.Device(null, tpClass, null, null);
+        let intentName;
+        for (let action of frame.actions) {
+            if (action.act === 'OFFER_INTENT')
+                intentName = action.canonical_values[0];
         }
+        const fullIntentName = frame.service + '_' + intentName;
+        const proposedIntent = this._schemaObj[frame.service]['intents'][intentName];
 
-        return { current, next };
+        let newItems = [];
+        // Only actions for now (TODO adapt for proposed queries as well)
+        if (proposedIntent.is_transactional) {
+            // This is an action
+            const invocation = new Ast.Invocation(null, selector, fullIntentName, [], null);
+            for (let key in selectedSlots[frame.service]) {
+                if (!proposedIntent.required_slots.includes(key) &&
+                    !Object.keys(proposedIntent.optional_slots).includes(key))
+                    continue;
+                let ttValue = predictType(this._schemaObj[frame.service]['slots'][key], selectedSlots[frame.service][key][0]);
+                invocation.in_params.push(new Ast.InputParam(null, key, ttValue));
+            }
+            const statement = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
+            newItems.push(new Ast.DialogueHistoryItem(null, statement, null, 'proposed'));
+        } else {
+            // This is a query
+            console.error('big no no');
+            return new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, newItems);
+                // TODO do query
+        }
+        const agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_recommend_one', null, newItems);
+        await agentTarget.typecheck(this._schemas);
+        return agentTarget;
     }
 
-    async _doAgentTurn(context, contextInfo, turn, agentUtterance) {
+    async _doAgentTurn(context, turn, agentUtterance, selectedSlots) {
         const frame = turn.frames[0]; // always only just frame with system
         let agentTarget;
         let actNames = frame.actions.map((action) => action.act);
@@ -178,30 +200,12 @@ class Converter extends stream.Readable {
             }
             let requestActs = frame.actions.filter((action) => action.act === 'REQUEST');
             agentTarget.dialogueActParam = requestActs.map((act) => act.slot);
-        } else if (actNames.includes('CONFIRM') ||
-                   actNames.includes('INFORM_COUNT')) {
-            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []); // TODO
         } else if (actNames.includes('OFFER')) {
-            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_recommend_one', null, []);
+            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'recommend_one', null, []); // maybe more than one? not sure
         } else if (actNames.includes('OFFER_INTENT')) {
-            // construct action class and intent
-            let tpClass = 'com.google.sgd';
-            const selector = new Ast.Selector.Device(null, tpClass, null, null);
-            let action = turn.frames[0].actions;
-            const fullIntentName = frame.service + '_' + action[0]['values'][0];
-            const activeIntent = this._schemaObj[frame.service]['intents'][action[0]['values'][0]];
-
-            // OFFER_INTENT should only tag actions
-            assert(activeIntent.is_transactional);
-
-            // create proposed action item
-            let invocation = new Ast.Invocation(null, selector, fullIntentName, [], null);
-            let statement = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
-            let actionItem = [new Ast.DialogueHistoryItem(null, statement, null, 'proposed')];
-
-            // assign agent target
-            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_recommend_one', null, actionItem);
-
+            agentTarget = this._generateProposed(context, frame, selectedSlots);
+        } else if (actNames.includes('CONFIRM')) {
+            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []);
         } else if (actNames.includes('NOTIFY_SUCCESS')) {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'action_success', null, []);
         } else if (actNames.includes('NOTIFY_FAILURE')) {
@@ -217,7 +221,7 @@ class Converter extends stream.Readable {
         return agentTarget;
     }
 
-    async _doUserExecute(context, contextInfo, frame, userUtterance, slotBag) {
+    async _generateExecute(context, frame) {
         const tpClass = 'com.google.sgd';
         const selector = new Ast.Selector.Device(null, tpClass, null, null);
         const fullIntentName = frame.service + '_' + frame.state.active_intent;
@@ -226,7 +230,7 @@ class Converter extends stream.Readable {
         if (activeIntent.is_transactional) {
             // This is an action
             const invocation = new Ast.Invocation(null, selector, fullIntentName, [], null);
-            for (let key of Object.keys(frame.state.slot_values)) {
+            for (let key in frame.state.slot_values) {
                 if (!activeIntent.required_slots.includes(key) &&
                     !Object.keys(activeIntent.optional_slots).includes(key))
                     continue;
@@ -241,7 +245,7 @@ class Converter extends stream.Readable {
                 new Ast.Invocation(null, selector, fullIntentName, [], null),
                 null);
             const filterClauses = [];
-            for (let key of Object.keys(frame.state.slot_values)) {
+            for (let key in frame.state.slot_values) {
                 let value = frame.state.slot_values[key][0];
                 if (value == 'dontcare') {
                     filterClauses.push(new Ast.BooleanExpression.DontCare(null, key));
@@ -267,7 +271,21 @@ class Converter extends stream.Readable {
         return userTarget;
     }
 
-    async _doUserTurn(context, contextInfo, turn, userUtterance, slotBag) {
+    async _updateSelectedSlots(frame, selectedSlots) {
+        for (let action of frame.actions) {
+            if (action.act === 'SELECT') {
+                if (!Object.keys(selectedSlots).includes(frame.service))
+                    selectedSlots[frame.service] = {};
+                if (action.slot === '') {
+                    for (let slot in frame.state.slot_values)
+                        selectedSlots[frame.service][slot] = frame.state.slot_values[slot];
+                } else
+                    selectedSlots[frame.service + '_' + action.slot] = action.values;
+            }
+        }
+    }
+
+    async _doUserTurn(context, turn, userUtterance, selectedSlots) {
         let frame = turn.frames[0];
         if (turn.frames.length > 1) {
             for (let candidateFrame of turn.frames) {
@@ -277,21 +295,23 @@ class Converter extends stream.Readable {
         }
         let userTarget;
         let actNames = frame.actions.map((action) => action.act);
+        if (actNames.includes('SELECT'))
+            userTarget = this._updateSelectedSlots(frame, selectedSlots); // No 'else' after this, because we probably want to annotate some other way'
         if (actNames.includes('INFORM') ||
             actNames.includes('INFORM_INTENT') ||
             actNames.includes('AFFIRM') ||
             actNames.includes('REQUEST') ||
             actNames.includes('REQUEST_ALTS')) { // execute
-            userTarget = await this._doUserExecute(context, contextInfo, frame, userUtterance, slotBag);
-        } else if (actNames.includes('GOODBYE') ||
-                   actNames.includes('SELECT')) { // cancel
+            userTarget = await this._generateExecute(context, frame);
+        } else if (actNames.includes('GOODBYE')) {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'cancel', null, []);
         } else if (actNames.includes('THANK_YOU') ||
                    actNames.includes('REQ_MORE')) {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'end', null, []);
         } else if (actNames.includes('AFFIRM_INTENT')) {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'affirm_intent', null, []); // TODO
-        } else if (actNames.includes('NEGATE')) {
+        } else if (actNames.includes('NEGATE') ||
+                   actNames.includes('SELECT')) {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'cancel', null, []);
         } else {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'uncaught', null, []);
@@ -303,8 +323,7 @@ class Converter extends stream.Readable {
     async _doDialogue(dlg) {
         const id = dlg.dialogue_id;
 
-        let context = null, contextInfo = { current: null, next: null },
-            simulatorState = undefined, slotBag = new Map;
+        let context = null, simulatorState = undefined, selectedSlots = {};
         const turns = [];
         for (let idx = 0; idx < dlg.turns.length; idx = idx+2) { // NOTE: we are ignoring the last agent halfTurn
             const uHalfTurn = dlg.turns[idx];
@@ -340,11 +359,10 @@ class Converter extends stream.Readable {
                             return onerank - tworank;
                         });
                     }
-                    contextInfo = this._getContextInfo(context);
                     contextCode = context.prettyprint();
 
                     // do the agent
-                    const agentTarget = await this._doAgentTurn(context, contextInfo, aHalfTurn, agentUtterance);
+                    const agentTarget = await this._doAgentTurn(context, aHalfTurn, agentUtterance, selectedSlots);
                     const oldContext = context;
                     context = this._target.computeNewState(context, agentTarget, 'agent');
                     const prediction = this._target.computePrediction(oldContext, context, 'agent');
@@ -353,7 +371,7 @@ class Converter extends stream.Readable {
                 }
 
                 const userUtterance = uHalfTurn.utterance;
-                const userTarget = await this._doUserTurn(context, contextInfo, uHalfTurn, userUtterance, slotBag);
+                const userTarget = await this._doUserTurn(context, uHalfTurn, userUtterance, selectedSlots);
                 const oldContext = context;
                 context = this._target.computeNewState(context, userTarget, 'user');
                 const prediction = this._target.computePrediction(oldContext, context, 'user');
