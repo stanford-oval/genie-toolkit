@@ -168,7 +168,7 @@ class Converter extends stream.Readable {
         let agentTarget;
         let actNames = frame.actions.map((action) => action.act);
         if (actNames.includes('INFORM')) {
-            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'recommend_one', null, []);
+            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_recommend_one', null, []);
         } else if (actNames.includes('REQUEST')) {
             const isSearchQuestion = context.history.slice(-1).pop().stmt.table !== null;
             if (isSearchQuestion) {
@@ -181,9 +181,11 @@ class Converter extends stream.Readable {
         } else if (actNames.includes('CONFIRM') ||
                    actNames.includes('INFORM_COUNT')) {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []); // TODO
-        } else if (actNames.includes('OFFER') ||
-                   actNames.includes('OFFER_INTENT')) {
-            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []); // TODO
+        } else if (actNames.includes('OFFER')) {
+            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_recommend_one', null, []);
+        } else if (actNames.includes('OFFER_INTENT')) {
+            // TODO should construct & recommend a proposed action
+            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []);
         } else if (actNames.includes('NOTIFY_SUCCESS')) {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'action_success', null, []);
         } else if (actNames.includes('NOTIFY_FAILURE')) {
