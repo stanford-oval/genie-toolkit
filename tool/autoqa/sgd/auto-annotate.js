@@ -24,6 +24,7 @@ const StreamUtils = require('../../../lib/utils/stream-utils');
 const MultiJSONDatabase = require('../../lib/multi_json_database');
 const ProgressBar = require('../../lib/progress_bar');
 const { getBestEntityMatch } = require('../../../lib/dialogue-agent/entity-linking/entity-finder');
+const { makeDate } = require('../../../languages/thingtalk/ast_manip');
 
 const TargetLanguages = require('../../../lib/languages');
 const { cleanEnumValue }  = require('./utils');
@@ -65,6 +66,44 @@ function parseTime(v) {
     return new Ast.Value.Time(new Ast.Time.Absolute(0, 0, 0));
 }
 
+function parseDate(v) {
+    let now = new Date();
+    let base;
+    if (v.includes('today'))
+        return makeDate(new Ast.DateEdge('start_of', 'day'), '+', null);
+    else if (v === 'tomorrow')
+        return makeDate(new Ast.DateEdge('start_of', 'day'), '+', new Ast.Value.Measure(1, 'day'))
+    else if (v === 'day after tomorrow')
+        return makeDate(new Ast.DateEdge('start_of', 'day'), '+', new Ast.Value.Measure(2, 'day'))
+    let match = /([0-9]?[0-9]) ?(st|nd|rd|th)/.exec(v);
+    if (match !== null) { // From looking at the data: it is then either "march" or "this month"
+        let day = parseInt(match[1]);
+        let month = v.includes('march') ? 2 : now.getMonth();
+        let year = v.includes('2019') ? 2019 : now.getFullYear(); // From looking at the data, it is either 2019 or unspecified
+        return new Ast.Value.Date(new Date(year, month, day));
+    }
+    // From looking at the data, if we are still executing this function, there
+    // must be at least one day of the week mentioned in the date, so we want
+    // to find out which one.
+    let targetDayOfWeek = 0;
+    for (let dayName of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']) {
+        if (v.includes(dayName))
+            break;
+        targetDayOfWeek++
+    }
+    // Now, it's either this week (if the targetDOW is yet to come, and "next
+    // week" is not specified), or it's in the next week.
+    if (!v.includes('next week') && targetDayOfWeek > ((now.getDay() + 6) % 7)) { // javascript weeks begin on sunday
+        return makeDate(new Ast.DateEdge('start_of', 'week'), '+',
+                        new Ast.Value.Measure(targetDayOfWeek, 'day'));
+    } else {
+        return makeDate(new Ast.DateEdge('start_of', 'week'), '+',
+                        new Ast.Value.Measure(targetDayOfWeek + 7, 'day'));
+    }
+    // Shouldn't get to here...
+    throw 'Could not parse date: ' + v;
+}
+
 // adapted from ./process-schema.js
 function predictType(slot, val) {
     if (slot.name === 'approximate_ride_duration')
@@ -95,10 +134,9 @@ function predictType(slot, val) {
     if (slot.name.endsWith('_time') || slot.name === 'time')
         return parseTime(val);
     if (slot.name.endsWith('_date') || slot.name === 'date')
-        return new Ast.Value.String('2019-03-01'); // TODO
+        return parseDate(val.toLowerCase());
     if (slot.name.endsWith('_location') || slot.name === 'location' ||
         slot.name.endsWith('_address') || slot.name === 'address') {
-        console.error('beep');
         return new Ast.Value.Location(0, 0, 'test location'); //TODO
     }
     if (slot.name.endsWith('_fare') || slot.name === 'fare' ||
@@ -152,7 +190,7 @@ class Converter extends stream.Readable {
     async _generateProposed(context, frame, selectedSlots) {
         const tpClass = 'com.google.sgd';
         const selector = new Ast.Selector.Device(null, tpClass, null, null);
-        let intentName;
+        let intentName = selectedSlots.activeIntent.name;
         for (let action of frame.actions) {
             if (action.act === 'OFFER_INTENT')
                 intentName = action.canonical_values[0];
@@ -161,7 +199,7 @@ class Converter extends stream.Readable {
         const proposedIntent = this._schemaObj[frame.service]['intents'][intentName];
 
         let newItems = [];
-        // Only actions for now (TODO adapt for proposed queries as well)
+        // Only actions for now
         if (proposedIntent.is_transactional) {
             // This is an action
             const invocation = new Ast.Invocation(null, selector, fullIntentName, [], null);
@@ -174,11 +212,34 @@ class Converter extends stream.Readable {
             }
             const statement = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
             newItems.push(new Ast.DialogueHistoryItem(null, statement, null, 'proposed'));
-        } else {
-            // This is a query
-            console.error('big no no');
-            return new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, newItems);
-                // TODO do query
+        } else { // This is a query
+            const invocationTable = new Ast.Table.Invocation(null,
+                new Ast.Invocation(null, selector, fullIntentName, [], null),
+                null);
+            const filterClauses = [];
+            for (let key in selectedSlots[frame.service]) {
+                if (!proposedIntent.required_slots.includes(key) &&
+                    !Object.keys(proposedIntent.optional_slots).includes(key))
+                    continue;
+                let value = selectedSlots[frame.service][key][0];
+                if (value == 'dontcare') {
+                    filterClauses.push(new Ast.BooleanExpression.DontCare(null, key));
+                    continue;
+                }
+                let ttValue = predictType(this._schemaObj[frame.service]['slots'][key], value);
+                let op = '==';
+                if (ttValue.isString)
+                    op = '=~';
+                filterClauses.push(new Ast.BooleanExpression.Atom(null, key, op, ttValue));
+            }
+            const filterTable = filterClauses.length > 0 ?
+                                new Ast.Table.Filter(null, invocationTable, new Ast.BooleanExpression.And(null, filterClauses), null) :
+                                invocationTable;
+            const projTable = frame.state.requested_slots.length > 0 ?
+                              new Ast.Table.Projection(null, filterTable, frame.state.requested_slots, null) :
+                              filterTable;
+            const tableStmt = new Ast.Statement.Command(null, projTable, [new Ast.Action.Notify(null, 'notify', null)]);
+            newItems.push(new Ast.DialogueHistoryItem(null, tableStmt, null, 'accepted'));
         }
         const agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_recommend_one', null, newItems);
         await agentTarget.typecheck(this._schemas);
@@ -201,19 +262,18 @@ class Converter extends stream.Readable {
             let requestActs = frame.actions.filter((action) => action.act === 'REQUEST');
             agentTarget.dialogueActParam = requestActs.map((act) => act.slot);
         } else if (actNames.includes('OFFER')) {
-            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'recommend_one', null, []); // maybe more than one? not sure
-        } else if (actNames.includes('OFFER_INTENT')) {
+            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_recommend_one', null, []); // maybe more than one? not sure
+        } else if (actNames.includes('OFFER_INTENT'),
+                   actNames.includes('CONFIRM')) {
             agentTarget = this._generateProposed(context, frame, selectedSlots);
-        } else if (actNames.includes('CONFIRM')) {
-            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []);
         } else if (actNames.includes('NOTIFY_SUCCESS')) {
-            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'action_success', null, []);
+            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_action_success', null, []);
         } else if (actNames.includes('NOTIFY_FAILURE')) {
-            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'action_error', null, []); // TODO
+            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_action_error', null, []); // TODO
         } else if (actNames.includes('REQ_MORE')) {
-            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'anything_else', null, []);
+            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_anything_else', null, []);
         } else if (actNames.includes('GOODBYE')) {
-            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'goodbye', null, []);
+            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_goodbye', null, []);
         } else {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []);
         }
@@ -221,12 +281,13 @@ class Converter extends stream.Readable {
         return agentTarget;
     }
 
-    async _generateExecute(context, frame) {
+    async _generateExecute(context, frame, selectedSlots) {
         const tpClass = 'com.google.sgd';
         const selector = new Ast.Selector.Device(null, tpClass, null, null);
         const fullIntentName = frame.service + '_' + frame.state.active_intent;
         const newItems = [];
         const activeIntent = this._schemaObj[frame.service]['intents'][frame.state.active_intent];
+        selectedSlots.activeIntent = activeIntent;
         if (activeIntent.is_transactional) {
             // This is an action
             const invocation = new Ast.Invocation(null, selector, fullIntentName, [], null);
@@ -302,7 +363,7 @@ class Converter extends stream.Readable {
             actNames.includes('AFFIRM') ||
             actNames.includes('REQUEST') ||
             actNames.includes('REQUEST_ALTS')) { // execute
-            userTarget = await this._generateExecute(context, frame);
+            userTarget = await this._generateExecute(context, frame, selectedSlots);
         } else if (actNames.includes('GOODBYE')) {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'cancel', null, []);
         } else if (actNames.includes('THANK_YOU') ||
