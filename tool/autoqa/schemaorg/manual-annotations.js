@@ -386,6 +386,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['actor', 'actress'],
         property: ['#'],
         passive_verb: ['played by', 'acted by'],
+        verb: ['stars'],
         reverse_verb: ['acted', 'acted in', 'was in']
     },
     director: {
