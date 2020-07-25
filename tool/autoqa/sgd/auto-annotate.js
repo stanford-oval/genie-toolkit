@@ -250,7 +250,9 @@ class Converter extends stream.Readable {
         const frame = turn.frames[0]; // always only just frame with system
         let agentTarget;
         let actNames = frame.actions.map((action) => action.act);
-        if (actNames.includes('INFORM')) {
+        if (actNames.includes('NOTIFY_SUCCESS')) {
+            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_action_success', null, []);
+        } else if (actNames.includes('INFORM')) {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_recommend_one', null, []);
         } else if (actNames.includes('REQUEST')) {
             const isSearchQuestion = context.history.slice(-1).pop().stmt.table !== null;
@@ -266,10 +268,8 @@ class Converter extends stream.Readable {
         } else if (actNames.includes('OFFER_INTENT'),
                    actNames.includes('CONFIRM')) {
             agentTarget = this._generateProposed(context, frame, selectedSlots);
-        } else if (actNames.includes('NOTIFY_SUCCESS')) {
-            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_action_success', null, []);
         } else if (actNames.includes('NOTIFY_FAILURE')) {
-            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_action_error', null, []); // TODO
+            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_action_error', null, []); // Error tags get added in the doDialogue loop
         } else if (actNames.includes('REQ_MORE')) {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_anything_else', null, []);
         } else if (actNames.includes('GOODBYE')) {
@@ -281,15 +281,14 @@ class Converter extends stream.Readable {
         return agentTarget;
     }
 
-    async _generateExecute(context, frame, selectedSlots) {
+    async _generateExecute(context, frame, selectedSlots, confirmed = false) {
         const tpClass = 'com.google.sgd';
         const selector = new Ast.Selector.Device(null, tpClass, null, null);
         const fullIntentName = frame.service + '_' + frame.state.active_intent;
         const newItems = [];
         const activeIntent = this._schemaObj[frame.service]['intents'][frame.state.active_intent];
         selectedSlots.activeIntent = activeIntent;
-        if (activeIntent.is_transactional) {
-            // This is an action
+        if (activeIntent.is_transactional) { // This is an action
             const invocation = new Ast.Invocation(null, selector, fullIntentName, [], null);
             for (let key in frame.state.slot_values) {
                 if (!activeIntent.required_slots.includes(key) &&
@@ -299,7 +298,7 @@ class Converter extends stream.Readable {
                 invocation.in_params.push(new Ast.InputParam(null, key, ttValue));
             }
             const actionStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
-            newItems.push(new Ast.DialogueHistoryItem(null, actionStmt, null, 'accepted'));
+            newItems.push(new Ast.DialogueHistoryItem(null, actionStmt, null, confirmed ? 'confirmed' : 'accepted'));
         } else {
             // This is a query
             const invocationTable = new Ast.Table.Invocation(null,
@@ -325,7 +324,7 @@ class Converter extends stream.Readable {
                               new Ast.Table.Projection(null, filterTable, frame.state.requested_slots, null) :
                               filterTable;
             const tableStmt = new Ast.Statement.Command(null, projTable, [new Ast.Action.Notify(null, 'notify', null)]);
-            newItems.push(new Ast.DialogueHistoryItem(null, tableStmt, null, 'accepted'));
+            newItems.push(new Ast.DialogueHistoryItem(null, tableStmt, null, confirmed ? 'confirmed' : 'accepted'));
         }
         const userTarget = new Ast.DialogueState(null, POLICY_NAME, 'execute', null, newItems);
         await userTarget.typecheck(this._schemas);
@@ -360,17 +359,24 @@ class Converter extends stream.Readable {
             userTarget = this._updateSelectedSlots(frame, selectedSlots); // No 'else' after this, because we probably want to annotate some other way'
         if (actNames.includes('INFORM') ||
             actNames.includes('INFORM_INTENT') ||
-            actNames.includes('AFFIRM') ||
-            actNames.includes('REQUEST') ||
+            actNames.includes('AFFIRM_INTENT') ||
             actNames.includes('REQUEST_ALTS')) { // execute
             userTarget = await this._generateExecute(context, frame, selectedSlots);
+        } else if (actNames.includes('AFFIRM')) {
+            userTarget = await this._generateExecute(context, frame, selectedSlots, true);
+        } else if (actNames.includes('REQUEST')) {
+            if (selectedSlots.activeIntent.is_transactional) {
+                // Action question. First, get the params, then build the state
+                let requestActs = frame.actions.filter((action) => action.act === 'REQUEST');
+                let slots =  requestActs.map((act) => act.slot);
+                userTarget = new Ast.DialogueState(null, POLICY_NAME, 'action_question', slots, []);
+            } else // it's a query with a projection
+                userTarget = await this._generateExecute(context, frame, selectedSlots);
         } else if (actNames.includes('GOODBYE')) {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'cancel', null, []);
         } else if (actNames.includes('THANK_YOU') ||
                    actNames.includes('REQ_MORE')) {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'end', null, []);
-        } else if (actNames.includes('AFFIRM_INTENT')) {
-            userTarget = new Ast.DialogueState(null, POLICY_NAME, 'affirm_intent', null, []); // TODO
         } else if (actNames.includes('NEGATE') ||
                    actNames.includes('SELECT')) {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'cancel', null, []);
@@ -379,6 +385,15 @@ class Converter extends stream.Readable {
         }
 
         return userTarget;
+    }
+
+    async _fakeError(turn, context) {
+        if (!turn.frames[0].actions.map((action) => action.act).includes('NOTIFY_FAILURE'))
+            return;
+        let err = new Ast.Value.Enum('generic_error');
+        let lastAction = context.history.pop();
+        lastAction.results = new Ast.DialogueHistoryResultList(null, [], new Ast.Value.Number(0), false, err);
+        context.history.push(lastAction);
     }
 
     async _doDialogue(dlg) {
@@ -397,6 +412,8 @@ class Converter extends stream.Readable {
                     agentUtterance = aHalfTurn.utterance;
                     // "execute" the context
                     [context, simulatorState] = await this._simulator.execute(context, simulatorState);
+                    // fake an action error in the last action if needed
+                    await this._fakeError(aHalfTurn, context);
 
                     for (let item of context.history) {
                         if (item.results === null)
@@ -458,18 +475,6 @@ class Converter extends stream.Readable {
     }
 
     async run(data) {
-        /*
-        console.log('==== BEGIN TESTING ====');
-        //let testvar = ThingTalk.Grammar.parse("$dialogue @org.thingpedia.dialogue.execute; now => [area] of @uk.ac.cam.multiwoz.Hotel.Hotel(), (price_range == enum(moderate) && stars == 4) => notify;");
-        let testvar = ThingTalk.Grammar.parse('$dialogue @org.thingpedia.dialogue.execute; now => @com.google.sgd.Restaurants_1_FindRestaurants() => notify;')
-        await testvar.typecheck(this._schemas);
-        console.log('\n')
-        console.log(testvar);
-        console.log('\n')
-        console.log(ThingTalk.NNSyntax.toNN(testvar, '', {}, { allocateEntities: false }));
-        console.log('\n')
-        console.log('==== END TESTING ====');
-        */
         for (let i = 0; i < data.length; i++) {
             this.push(await this._doDialogue(data[i]));
             this.emit('progress', i/data.length);
