@@ -580,10 +580,10 @@ class SchemaProcessor {
 
             const args = [
                 new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'id', Type.Entity(this._prefix + typename), {
-                    nl: { canonical: { base: ['name'] } },
+                    nl: { canonical: { base: ['name'], passive_verb: ['called', 'named'] } },
                     impl: {
                         'unique': new Ast.Value.Boolean(true),
-                        'filterable': new Ast.Value.Boolean(false) // no filter on id, if it has ner support, we'll generate prim for it
+                        'filterable': new Ast.Value.Boolean(true)
                     }
                 })
             ];
@@ -596,7 +596,7 @@ class SchemaProcessor {
                     nl: {},
                     impl: {
                         'org_schema_type': new Ast.Value.String('Text'),
-                        'filterable': new Ast.Value.Boolean(false) // no filter on name, if it has ner support, we'll generate prim for it
+                        'filterable': new Ast.Value.Boolean(true)
                     }
                 });
                 recursiveAddStringValues(arg, this._prefix + typename + '_name');
