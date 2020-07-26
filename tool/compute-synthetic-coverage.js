@@ -62,10 +62,19 @@ module.exports = {
         let totalCount = 0;
         const newPrograms = new Set();
         args.evaluation_set.setEncoding('utf8');
-        const evaluation = args.evaluation_set.pipe(csvparse({ relax: true, delimiter: '\t' }));
+        const evaluation = args.evaluation_set.pipe(csvparse({ relax: true, delimiter: '\t', relax_column_count: true }));
         evaluation.on('data', (line) => {
-            const requoted = Array.from(requoteProgram(line[2])).join(' ');
-            if (!programs.has(requoted)) {
+            const candidates = line.slice(2);
+            let covered = false;
+            let requoted;
+            for (let thingtalk of candidates) {
+                requoted = Array.from(requoteProgram(thingtalk)).join(' ');
+                if (programs.has(requoted)) {
+                    covered = true;
+                    break;
+                }
+            }
+            if (!covered) {
                 newPrograms.add(requoted);
                 newCount += 1;
             }
@@ -73,7 +82,7 @@ module.exports = {
         });
         await waitEnd(evaluation);
 
-        console.log(`${newCount / totalCount * 100}% (${newCount} / ${totalCount}) programs are not covered:`);
+        console.log(`${Math.round(newCount * 100 / totalCount)}% (${newCount} / ${totalCount}) programs are not covered:`);
         for (let program of newPrograms)
             console.log(program);
     }
