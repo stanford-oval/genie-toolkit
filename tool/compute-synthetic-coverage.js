@@ -49,18 +49,22 @@ module.exports = {
     },
 
     async execute(args) {
-        const programs = new Set();
+        let syntheticSize = 0;
+        const syntheticPrograms = {}; // counter of unique programs in synthetic set
         args.synthetic_set.setEncoding('utf8');
         const synthetic = args.synthetic_set.pipe(csvparse({ relax: true, delimiter: '\t' }));
         synthetic.on('data', (line) => {
             const requoted = Array.from(requoteProgram(line[2])).join(' ');
-            programs.add(requoted);
+            syntheticPrograms[requoted] = (syntheticPrograms[requoted] || 0) + 1;
+            syntheticSize += 1;
         });
         await waitEnd(synthetic);
 
         let newCount = 0;
-        let totalCount = 0;
         const newPrograms = new Set();
+
+        let evaluationSize = 0;
+        const evaluationPrograms = {}; // counter of unique programs in evaluation set
         args.evaluation_set.setEncoding('utf8');
         const evaluation = args.evaluation_set.pipe(csvparse({ relax: true, delimiter: '\t', relax_column_count: true }));
         evaluation.on('data', (line) => {
@@ -69,7 +73,7 @@ module.exports = {
             let requoted;
             for (let thingtalk of candidates) {
                 requoted = Array.from(requoteProgram(thingtalk)).join(' ');
-                if (programs.has(requoted)) {
+                if (requoted in syntheticPrograms) {
                     covered = true;
                     break;
                 }
@@ -78,12 +82,25 @@ module.exports = {
                 newPrograms.add(requoted);
                 newCount += 1;
             }
-            totalCount += 1;
+            evaluationPrograms[requoted] = (evaluationPrograms[requoted] || 0) + 1;
+            evaluationSize += 1;
         });
         await waitEnd(evaluation);
 
-        console.log(`${Math.round(newCount * 100 / totalCount)}% (${newCount} / ${totalCount}) programs are not covered:`);
-        for (let program of newPrograms)
-            console.log(program);
+        console.log(`${Object.keys(syntheticPrograms).length} unique programs in synthetic set`);
+        console.log(`${Object.keys(evaluationPrograms).length} unique programs in evaluation set`);
+        console.log(`${newPrograms.size} programs are not covered.`);
+        const coverage = (newCount * 100 / evaluationSize).toFixed(2);
+        console.log(`In total, ${coverage}% (${newCount} / ${evaluationSize}) evaluation examples are not covered.`);
+
+        console.log(`% in evaluation set\t% in synthetic set\tprogram`);
+        let sumPercentInSynthetic = 0;
+        for (let program in evaluationPrograms) {
+            const percentInEvaluation = (evaluationPrograms[program] * 100 / evaluationSize);
+            const percentInSynthetic = ((syntheticPrograms[program] || 0) * 100 / syntheticSize);
+            sumPercentInSynthetic += percentInSynthetic;
+            console.log(`${percentInEvaluation.toFixed(2)}%\t${percentInSynthetic.toFixed(2)}%\t${program}`);
+        }
+        console.log(`100.00%\t${sumPercentInSynthetic.toFixed(2)}%`);
     }
 };
