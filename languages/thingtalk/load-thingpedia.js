@@ -982,7 +982,7 @@ class ThingpediaLoader {
         }
 
         for (let entity of entityTypes)
-            this._loadEntityType(entity.type, entity.has_ner_support);
+            this._loadEntityType(entity.type, entity.type.startsWith('tt:') && entity.has_ner_support);
         for (let device of devices)
             await this._loadDevice(device);
         this._addEntityConstants();
