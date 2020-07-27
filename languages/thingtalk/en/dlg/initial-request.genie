@@ -32,7 +32,7 @@
 }
 
 initial_command = {
-    action_command [weight=0.5];
+    action_command [weight=2];
     search_command [weight=2];
     complete_question [weight=0.5];
     projection_question [weight=0.1];
