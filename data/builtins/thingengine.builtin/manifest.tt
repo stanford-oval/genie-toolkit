@@ -95,7 +95,8 @@ class @org.thingpedia.builtin.thingengine.builtin
                                 #_[canonical={
                                    base=["description"]
                                 }]
-                                #[string_values="tt:short_free_text"],
+                                #[string_values="tt:short_free_text"]
+                                #[filterable=false],
                                 out category : Enum(service, media, social_network, communication, home, health, data_management)
                                 #_[canonical={
                                    base=["category"],
@@ -106,7 +107,7 @@ class @org.thingpedia.builtin.thingengine.builtin
                                 #_[canonical={
                                    base=["website", "link", "url"]
                                 }]
-                                )
+                                #[filterable=false])
   #_[canonical=["device", "skill", "thingpedia device", "supported skill"]]
   #_[confirmation="Thingpedia devices"]
   #_[formatted=[{type="text",text="${random}"}]]
