@@ -21,7 +21,7 @@
 
 const assert = require('assert');
 
-const { requoteSentence, requoteProgram } = require('../../lib/dataset-tools/requoting');
+const { requoteSentence, requoteProgram, getFunctions, getDevices } = require('../../lib/dataset-tools/requoting');
 
 const SENTENCE_TEST_CASES = [
     ['tweet hello world', 'now => @com.twitter.post param:status:String = " hello world "', 'tweet QUOTED_STRING'],
@@ -82,9 +82,42 @@ function testRequotePrograms() {
     }
 }
 
+const FUNCTION_TEST_CASES = [
+    ['now => @com.twitter.post param:status:String = " hello world "', '@com.twitter.post'],
+    ['$dialogue @org.thingpedia.dialogue.transaction.execute ; now => @foo.bar.baz param:status:String = QUOTED_STRING_0 => notify() ;', '@foo.bar.baz'],
+    ['$dialogue @dialogue.policy.execute ; now => @foo.bar.baz param:status:String = " $dialogue string " => notify() ; now => @baz.bar.foo param:location:Location ', '@foo.bar.baz @baz.bar.foo']
+];
+
+function testGetFunctions() {
+    for (let i = 0; i < FUNCTION_TEST_CASES.length; i++) {
+        let [program, expected] = FUNCTION_TEST_CASES[i];
+
+        let generated = Array.from(getFunctions(program)).join(' ');
+        assert.strictEqual(generated, expected);
+    }
+}
+
+const DEVICE_TEST_CASES = [
+    ['now => @com.twitter.post param:status:String = " hello world "', '@com.twitter'],
+    ['$dialogue @org.thingpedia.dialogue.transaction.execute; now => @foo.bar.baz param:status:String = QUOTED_STRING_0 => notify();', '@foo.bar'],
+    ['$dialogue @dialogue.policy.execute ; now => @foo.bar.baz param:status:String = " $dialogue string " => notify() ; now => @baz.bar.foo param:location:Location ', '@foo.bar @baz.bar'],
+    ['$dialogue @dialogue.policy.execute ; now => @foo.bar.boo ; now => @baz.bar.foo param:status:String = " status string " ; now => @foo.bar.baz ', '@foo.bar @baz.bar @foo.bar']
+];
+
+function testGetDevices() {
+    for (let i = 0; i < DEVICE_TEST_CASES.length; i++) {
+        let [program, expected] = DEVICE_TEST_CASES[i];
+
+        let generated = Array.from(getDevices(program)).join(' ');
+        assert.strictEqual(generated, expected);
+    }
+}
+
 async function main() {
     testRequoteSentence();
     testRequotePrograms();
+    testGetFunctions();
+    testGetDevices();
 }
 module.exports = main;
 if (!module.parent)
