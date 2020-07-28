@@ -1042,7 +1042,7 @@ class ThingpediaLoader {
     }
 
     async _getDataset(kind) {
-        return await this._tpClient.getExamplesByKinds([kind]);
+        return this._tpClient.getExamplesByKinds([kind]);
     }
 
     async _loadMetadata() {

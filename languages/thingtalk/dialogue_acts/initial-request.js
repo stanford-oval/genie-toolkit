@@ -56,8 +56,8 @@ function adjustStatementsForInitialRequest(stmt) {
 
         assert(stmt.actions.length === 1);
         const action = stmt.actions[0];
-        assert (action.isInvocation);
-        assert (action.invocation.selector.isDevice);
+        assert(action.isInvocation);
+        assert(action.invocation.selector.isDevice);
         const confirm = C.normalizeConfirmAnnotation(action.invocation.schema);
 
         // if confirm === auto, we leave the compound command as is, but add the [1] clause
@@ -102,8 +102,8 @@ function adjustStatementsForInitialRequest(stmt) {
 
         assert(stmt.actions.length === 1);
         const action = stmt.actions[0];
-        assert (action.isInvocation);
-        assert (action.invocation.selector.isDevice);
+        assert(action.isInvocation);
+        assert(action.invocation.selector.isDevice);
 
         // for "confirm=auto", the query is added to a compound command
         // and for "confirm=display_result", the query is added as a separate statement
@@ -148,11 +148,11 @@ function adjustStatementsForInitialRequest(stmt) {
             const type = clone.invocation.schema.getArgType(param.name);
             if (!type.isEntity || !_loader.idQueries.has(type.type))
                 continue;
-            assert (param.value.isUndefined);
+            assert(param.value.isUndefined);
 
             // this assertion will fire if there are two entity parameters of
             // ID type in the same action
-            assert (newTable === undefined);
+            assert(newTable === undefined);
 
             const query = _loader.idQueries.get(type.type);
             newTable = new Ast.Table.Invocation(null,

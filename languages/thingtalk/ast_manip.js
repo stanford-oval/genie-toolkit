@@ -320,12 +320,12 @@ function addUnit(unit, num) {
 }
 
 function resolveProjection(args, schema) {
-    assert (args.length >= 1);
+    assert(args.length >= 1);
     args = new Set(args);
     for (let arg of schema.minimal_projection)
         args.add(arg);
     for (let arg of args)
-        assert (schema.hasArgument(arg));
+        assert(schema.hasArgument(arg));
     // if default_projection is non-empty, it's overwritten after a projection
     schema.default_projection = [];
     if (schema.annotations)
@@ -732,7 +732,7 @@ function checkFilter(table, filter) {
     throw new Error(`Unexpected filter type ${filter}`);
 }
 
-function *iterateFilters(table) {
+function* iterateFilters(table) {
     if (table.isInvocation || table.isVarRef || table.isResultRef)
         return;
 
@@ -746,7 +746,7 @@ function *iterateFilters(table) {
     }
 }
 
-function *iterateFields(filter) {
+function* iterateFields(filter) {
     assert(filter instanceof Ast.BooleanExpression);
     if (filter.isAnd) {
         for (let operand of filter.operands)
