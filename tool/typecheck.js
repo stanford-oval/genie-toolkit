@@ -116,6 +116,26 @@ class TypecheckStream extends Stream.Transform {
         console.log('Any other input is interpreted as a ThingTalk program');
     }
 
+    _cacheable(from, to) {
+        if (to === 'null')
+            return true;
+
+        // if the number of quotes changed in from/to, then the mapping depends on
+        // the sentence as well, so the program is not cacheable
+        const fromqcount = from.split(' ').filter((t) => t === '"').length;
+        const toqcount = to.split(' ').filter((t) => t === '"').length;
+        return fromqcount === toqcount;
+    }
+
+    _doCache(to) {
+        if (!this._cacheable(this._current.target_code, to))
+            return;
+        const cacheEntry = { from: this._current.target_code, to };
+        this._cache.set(this._current.target_code, cacheEntry);
+        if (this._cacheOut)
+            this._cacheOut.write(cacheEntry);
+    }
+
     async _learn(line) {
         try {
             const program = await ThingTalk.Grammar.parseAndTypecheck(line, this._schemas, false);
@@ -124,10 +144,7 @@ class TypecheckStream extends Stream.Transform {
             Object.assign(clone, this._entities);
             const code = ThingTalk.NNSyntax.toNN(program, this._current.preprocessed, clone).join(' ');
 
-            const cacheEntry = { from: this._current.target_code, to: code };
-            this._cache.set(this._current.target_code, cacheEntry);
-            if (this._cacheOut)
-                this._cacheOut.write(cacheEntry);
+            this._doCache(code);
             this._current.target_code = code;
             this._resolve(true);
         } catch(e) {
@@ -161,6 +178,12 @@ class TypecheckStream extends Stream.Transform {
             return;
         } catch(e) {
             if (this._cache.has(ex.target_code)) {
+                const cached = this._cache.get(ex.target_code);
+                if (cached.to === 'null') {
+                    this._droppedOut.write(this._current);
+                    return;
+                }
+
                 ex.target_code = this._cache.get(ex.target_code).to;
                 this.push(ex);
                 return;
@@ -177,14 +200,16 @@ class TypecheckStream extends Stream.Transform {
                 ok = await new Promise((resolve, reject) => {
                     this._resolve = resolve;
                     if (program)
-                        this._rl.write(program.prettyprint());
+                        this._rl.write(program.prettyprint().replace(/\n/g, ' '));
                     this._rl.prompt();
                 });
             }
-            if (ok)
+            if (ok) {
                 this.push(this._current);
-            else
+            } else {
+                this._doCache('null');
                 this._droppedOut.write(this._current);
+            }
         }
     }
 
