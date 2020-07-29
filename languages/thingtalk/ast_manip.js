@@ -364,7 +364,7 @@ function makeEventStreamProjection(table) {
     return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), ['$event'], table.schema);
 }
 
-function makeTypeBasedTableProjection(table, ptype, ptypestr) {
+function makeTypeBasedTableProjection(table, ptype, ptypestr = typeToStringSafe(ptype)) {
     if (table.isProjection)
         return null;
 
@@ -1028,14 +1028,21 @@ function arrayFilterTableJoin(into, filteredTable) {
 function tableJoinReplacePlaceholder(into, pname, projection) {
     if (projection === null)
         return null;
-    if (!projection.isProjection || !projection.table || projection.args.length !== 1)
+    const intotype = into.schema.inReq[pname];
+    if (!intotype)
+        return null;
+    if (!projection.isProjection) {
+        projection = makeTypeBasedTableProjection(projection, intotype);
+        if (projection === null)
+            return null;
+    }
+    if (projection.args.length !== 1)
         throw new TypeError('???');
     const joinArg = projection.args[0];
     if (joinArg === '$event' && ['p_body', 'p_message', 'p_caption', 'p_status'].indexOf(pname) < 0)
         return null;
     const ptype = joinArg === '$event' ? Type.String : projection.schema.out[joinArg];
-    const intotype = into.schema.inReq[pname];
-    if (!intotype || !ptype.equals(intotype))
+    if (!ptype.equals(intotype))
         return null;
 
     let [passign, etaReduced] = etaReduceTable(into, pname);
@@ -1072,7 +1079,15 @@ function actionReplaceParamWith(into, pname, projection) {
 function actionReplaceParamWithTable(into, pname, projection) {
     if (projection === null)
         return null;
-    if (!projection.isProjection || !projection.table || projection.args.length !== 1)
+    const intotype = into.schema.inReq[pname];
+    if (!intotype)
+        return null;
+    if (!projection.isProjection) {
+        projection = makeTypeBasedTableProjection(projection, intotype);
+        if (projection === null)
+            return null;
+    }
+    if (projection.args.length !== 1)
         throw new TypeError('???');
     const reduced = actionReplaceParamWith(into, pname, projection);
     if (reduced === null)

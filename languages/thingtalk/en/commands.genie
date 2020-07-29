@@ -551,19 +551,6 @@ complete_action = {
 
 say_command = {}
 
-action_command = {
-    // now => say
-    say_command [weight=0.01];
-
-    // now => do
-    complete_action;
-    generic_preamble_for_action action:complete_action => action;
-
-    // now => get => do
-    generic_preamble_for_action action:complete_forward_get_do_command [weight=0.1] => action;
-    !turking generic_preamble_for_action action:backward_get_do_command if complete [weight=0.1] => action;
-}
-
 if (_tpLoader.standardSchemas.say) {
     timer_rule = {
         'send me a reminder' stream:timer => new Ast.Statement.Rule(null, stream, [C.builtinSayAction()]);
