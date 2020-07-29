@@ -34,6 +34,14 @@ const {
     findOrMakeFilterTable
 } = require('./refinement-helpers');
 
+function tableUsesIDFilter(table) {
+    const filterTable = C.findFilterTable(table);
+    if (!filterTable)
+        return false;
+
+    return C.filterUsesParam(filterTable.filter, 'id');
+}
+
 function adjustStatementsForInitialRequest(stmt) {
     if (stmt.stream && _loader.flags.nostream)
         return null;
@@ -46,16 +54,29 @@ function adjustStatementsForInitialRequest(stmt) {
         // query + action
         // split into two statements, one getting the data, and the other using it
 
-        const queryStmt = new Ast.Statement.Command(null, stmt.table, [C.notifyAction()]);
-        newStatements.push(queryStmt);
+        assert(stmt.actions.length === 1);
+        const action = stmt.actions[0];
+        assert (action.isInvocation);
+        assert (action.invocation.selector.isDevice);
+        const confirm = C.normalizeConfirmAnnotation(action.invocation.schema);
 
-        const newActions = stmt.actions.map((a) => a.clone());
-        for (let action of newActions) {
-            if (!action.isInvocation)
-                throw new TypeError('???');
-            assert (action.invocation.selector.isDevice);
+        // if confirm === auto, we leave the compound command as is, but add the [1] clause
+        // to the query if necessary
+        // otherwise, we split the compound command
+        if (confirm === 'auto') {
+            let newTable;
+            if (tableUsesIDFilter(stmt.table) && !stmt.table.isIndex)
+                newTable = new Ast.Table.Index(null, stmt.table, [new Ast.Value.Number(1)], stmt.table.schema);
+            else
+                newTable = stmt.table;
+            const compoundStmt = new Ast.Statement.Command(null, newTable, stmt.actions);
+            newStatements.push(compoundStmt);
+        } else {
+            const queryStmt = new Ast.Statement.Command(null, stmt.table, [C.notifyAction()]);
+            newStatements.push(queryStmt);
 
-            const in_params = action.invocation.in_params;
+            const newAction = action.clone();
+            const in_params = newAction.invocation.in_params;
             for (let in_param of in_params) {
                 if (in_param.value.isEvent) // TODO
                     return null;
@@ -72,35 +93,86 @@ function adjustStatementsForInitialRequest(stmt) {
                 // FIXME we need a new ThingTalk value type...
                 in_param.value = new Ast.Value.Undefined(true);
             }
+            const actionStmt = new Ast.Statement.Command(null, null, [newAction]);
+            newStatements.push(actionStmt);
         }
-        const actionStmt = new Ast.Statement.Command(null, null, newActions);
-        newStatements.push(actionStmt);
     } else if (!stmt.table) {
         // action only
-        // add a query statement, if the action refers to an ID entity
+        // add a query, if the action refers to an ID entity
 
-        for (let action of stmt.actions) {
-            for (let param of action.invocation.in_params) {
-                const type = action.invocation.schema.getArgType(param.name);
-                if (!type.isEntity || !_loader.idQueries.has(type.type))
-                    continue;
+        assert(stmt.actions.length === 1);
+        const action = stmt.actions[0];
+        assert (action.isInvocation);
+        assert (action.invocation.selector.isDevice);
 
-                const query = _loader.idQueries.get(type.type);
-                const invtable = new Ast.Table.Invocation(null,
-                        new Ast.Invocation(null,
-                            new Ast.Selector.Device(null, query.class.name, null, null),
-                            query.name,
-                            [],
-                            query),
-                        query);
-                if (param.value.isEntity)
-                    return null;
+        // for "confirm=auto", the query is added to a compound command
+        // and for "confirm=display_result", the query is added as a separate statement
+        // this is necessary to be consistent and avoid ambiguity between
+        // "play some song" (empty parameter) and "play songs" (parameter replaced with bare table)
+        //
+        // so for example, "book some restaurant" becomes
+        // ```
+        // $dialogue @org.thingpedia.dialogue.transaction.execute;
+        // now => @uk.ac.cam.multiwoz.Restaurant.Restaurant() => notify;
+        // now => @uk.ac.cam.multiwoz.Restaurant.make_booking() => notify;
+        // ```
+        //
+        // and "play some song" becomes:
+        // ```
+        // $dialogue @org.thingpedia.dialogue.transaction.execute;
+        // now => @com.spotify.song() => @com.spotify.play_song(song=id);
+        // ```
 
-                assert (param.value.isUndefined);
-                newStatements.push(new Ast.Statement.Command(null, invtable, [C.notifyAction()]));
-            }
+        // first, check that we did not already have an entity parameter
+        // (we need to reject that)
+
+        let hasIDArg = false;
+        for (let param of action.invocation.in_params) {
+            const type = action.invocation.schema.getArgType(param.name);
+            if (!type.isEntity || !_loader.idQueries.has(type.type))
+                continue;
+            hasIDArg = true;
+            if (param.value.isEntity)
+                return null;
         }
-        newStatements.push(stmt);
+        if (!hasIDArg) {
+            newStatements.push(stmt);
+            return newStatements;
+        }
+
+        const confirm = C.normalizeConfirmAnnotation(action.invocation.schema);
+        const clone = action.clone();
+
+        let newTable;
+        for (let param of clone.invocation.in_params) {
+            const type = clone.invocation.schema.getArgType(param.name);
+            if (!type.isEntity || !_loader.idQueries.has(type.type))
+                continue;
+            assert (param.value.isUndefined);
+
+            // this assertion will fire if there are two entity parameters of
+            // ID type in the same action
+            assert (newTable === undefined);
+
+            const query = _loader.idQueries.get(type.type);
+            newTable = new Ast.Table.Invocation(null,
+                    new Ast.Invocation(null,
+                        new Ast.Selector.Device(null, query.class.name, null, null),
+                        query.name,
+                        [],
+                        query),
+                    query);
+
+            if (confirm === 'auto')
+                param.value = new Ast.Value.VarRef('id');
+        }
+
+        if (confirm === 'auto') {
+            newStatements.push(new Ast.Statement.Command(null, newTable, [clone]));
+        } else {
+            newStatements.push(new Ast.Statement.Command(null, newTable, [C.notifyAction()]));
+            newStatements.push(new Ast.Statement.Command(null, null, [clone]));
+        }
     } else {
         newStatements.push(stmt);
     }

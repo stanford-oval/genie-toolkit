@@ -26,7 +26,7 @@ const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 const Units = require('thingtalk-units');
 
-const { typeToStringSafe, isSameFunction } = require('./utils');
+const { typeToStringSafe, isSameFunction, normalizeConfirmAnnotation } = require('./utils');
 const Utils = require('./utils');
 const { notifyAction } = ThingTalk.Generate;
 
@@ -1787,6 +1787,7 @@ module.exports = {
     getFunctionNames,
     getFunctions,
     getInvocation,
+    normalizeConfirmAnnotation,
 
     // constants
     addUnit,

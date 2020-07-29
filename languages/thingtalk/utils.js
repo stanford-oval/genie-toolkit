@@ -216,6 +216,37 @@ function isExecutable(stmt) {
     return !hasUndefined;
 }
 
+/**
+ * Normalize the #[confirm] annotation.
+ *
+ * #[confirm] is a three-state enum annotation with values:
+ * - #[confirm=enum(confirm)]: must confirm explicitly with all parameters before the
+ *   function is called (using a statement with #[confirm=enum(confirmed)] annotation)
+ * - #[confirm=enum(display_result)]: the result of any query that feeds into the parameters
+ *   of this function should be displayed before the function is executed; this is encoded
+ *   by splitting any compound statement into two statements, executed sequentially
+ * - #[confirm=enum(auto)]: the function can be called without explicit confirmation, even
+ *   if some of the parameters are coming from other functions; this is the only #[confirm]
+ *   that allows the function to be called multiple times in a single statement
+ *
+ * For legacy/ease of development reasons, if unspecified #[confirm] defaults to "confirm"
+ * for actions (full confirmation before executing side effects) and "display_result" for
+ * queries (splitting table joins into two statements).
+ *
+ * Also, #[confirm] can be specified as a boolean: "true" means "confirm" and "false" means
+ * "display_result".
+ */
+function normalizeConfirmAnnotation(fndef) {
+    const value = fndef.getAnnotation('confirm');
+    if (value === undefined) // unspecified
+        return fndef.functionType === 'action' ? 'confirm' : 'display_result';
+
+    if (typeof value === 'boolean')
+        return value ? 'confirm' : 'display_result';
+
+    return value;
+}
+
 module.exports = {
     clean,
 
@@ -224,6 +255,7 @@ module.exports = {
     tokenizeExample,
 
     isExecutable,
+    normalizeConfirmAnnotation,
 
     isUnaryTableToTableOp(table) {
         return table.isFilter ||
