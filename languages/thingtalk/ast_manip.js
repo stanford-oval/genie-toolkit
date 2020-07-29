@@ -511,9 +511,22 @@ function makeSortedTable(table, pname, direction = 'desc') {
 }
 
 function checkValidQuery(table) {
-    // all queries are valid, actually
-    // filter conflicts are handled elsewhere
-    return true;
+    // check that the query does not include "id ==" (it should be "id =~")
+    // this check is only applied at the first turn (or first turn of a new domain)
+    const filterTable = findFilterTable(table);
+    if (!filterTable)
+        return true;
+
+    let hasIDFilter = false;
+    filterTable.filter.visit(new class extends Ast.NodeVisitor {
+        visitAtomBooleanExpression(expr) {
+            if (expr.name === 'id' && expr.operator === '==')
+                hasIDFilter = true;
+            return true;
+        }
+    });
+
+    return !hasIDFilter;
 }
 
 function makeProgram(rule) {

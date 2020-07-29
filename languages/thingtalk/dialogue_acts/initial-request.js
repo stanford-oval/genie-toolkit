@@ -43,6 +43,7 @@ function adjustStatementsForInitialRequest(stmt) {
 
     const newStatements = [];
     if (stmt.table && stmt.actions.some((a) => !a.isNotify)) {
+        // query + action
         // split into two statements, one getting the data, and the other using it
 
         const queryStmt = new Ast.Statement.Command(null, stmt.table, [C.notifyAction()]);
@@ -74,26 +75,33 @@ function adjustStatementsForInitialRequest(stmt) {
         }
         const actionStmt = new Ast.Statement.Command(null, null, newActions);
         newStatements.push(actionStmt);
-    } else {
-        if (!stmt.table) {
-            for (let action of stmt.actions) {
-                for (let param of action.invocation.in_params) {
-                    if (param.value.isUndefined) {
-                        const type = action.invocation.schema.getArgType(param.name);
-                        if (type.isEntity && _loader.idQueries.has(type.type)) {
-                            const query = _loader.idQueries.get(type.type);
-                            newStatements.push(new Ast.Statement.Command(null, new Ast.Table.Invocation(null,
-                                new Ast.Invocation(null,
-                                    new Ast.Selector.Device(null, query.class.name, null, null),
-                                    query.name,
-                                    [],
-                                    query),
-                                query), [C.notifyAction()]));
-                        }
-                    }
-                }
+    } else if (!stmt.table) {
+        // action only
+        // add a query statement, if the action refers to an ID entity
+
+        for (let action of stmt.actions) {
+            for (let param of action.invocation.in_params) {
+                const type = action.invocation.schema.getArgType(param.name);
+                if (!type.isEntity || !_loader.idQueries.has(type.type))
+                    continue;
+
+                const query = _loader.idQueries.get(type.type);
+                const invtable = new Ast.Table.Invocation(null,
+                        new Ast.Invocation(null,
+                            new Ast.Selector.Device(null, query.class.name, null, null),
+                            query.name,
+                            [],
+                            query),
+                        query);
+                if (param.value.isEntity)
+                    return null;
+
+                assert (param.value.isUndefined);
+                newStatements.push(new Ast.Statement.Command(null, invtable, [C.notifyAction()]));
             }
         }
+        newStatements.push(stmt);
+    } else {
         newStatements.push(stmt);
     }
 

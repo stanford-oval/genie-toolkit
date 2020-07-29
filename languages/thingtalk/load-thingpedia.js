@@ -860,20 +860,20 @@ class ThingpediaLoader {
             let typestr = typeToStringSafe(ttType);
             const { has_ner_support } = this._entities[entityType];
 
-            if (this._idTypes.has(typestr)) {
-                if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
-                    console.log('Loaded entity ' + entityType + ' as id entity');
-            } else {
-                if (has_ner_support) {
+            if (has_ner_support || this._idTypes.has(typestr)) {
+                if (this._idTypes.has(typestr)) {
                     if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
-                        console.log('Loaded entity ' + entityType + ' as generic entity');
-
-                    this._grammar.declareSymbol('constant_' + typestr);
-                    this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + entityType, ttType);
+                        console.log('Loaded entity ' + entityType + ' as id entity');
                 } else {
                     if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
-                        console.log('Loaded entity ' + entityType + ' as non-constant entity');
+                        console.log('Loaded entity ' + entityType + ' as generic entity');
                 }
+
+                this._grammar.declareSymbol('constant_' + typestr);
+                this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + entityType, ttType);
+            } else {
+                if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
+                    console.log('Loaded entity ' + entityType + ' as non-constant entity');
             }
         }
     }
