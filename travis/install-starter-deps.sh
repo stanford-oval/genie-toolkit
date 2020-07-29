@@ -7,7 +7,7 @@ set -o pipefail
 srcdir=`dirname $0`/..
 srcdir=`realpath $srcdir`
 
-which genienlp >/dev/null 2>&1 || pip3 install --user 'git+https://github.com/stanford-oval/genienlp@845e4a4b03e3902babc71b3edbc61bf99a5013ac#egg=genienlp'
+which genienlp >/dev/null 2>&1 || pip3 install --user 'git+https://github.com/stanford-oval/genienlp@198d544aad36996cdb4eda811f2ce2b78f50a3f9#egg=genienlp'
 which genienlp
 
 yarn global add thingpedia-cli
