@@ -1032,6 +1032,9 @@ function tableJoinReplacePlaceholder(into, pname, projection) {
     if (!intotype)
         return null;
     if (!projection.isProjection) {
+        if (intotype.isString || (intotype.isEntity && intotype.type === 'tt:picture'))
+            return null;
+
         projection = makeTypeBasedTableProjection(projection, intotype);
         if (projection === null)
             return null;
@@ -1083,6 +1086,9 @@ function actionReplaceParamWithTable(into, pname, projection) {
     if (!intotype)
         return null;
     if (!projection.isProjection) {
+        if (intotype.isString || (intotype.isEntity && intotype.type === 'tt:picture'))
+            return null;
+
         projection = makeTypeBasedTableProjection(projection, intotype);
         if (projection === null)
             return null;
