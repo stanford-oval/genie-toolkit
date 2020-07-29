@@ -173,7 +173,23 @@ module.exports = {
 
         const result = await output.read();
 
-        for (let device in result) {
+        const devices = Object.keys(result);
+        devices.sort((d1, d2) => {
+            // sort 'generic' first, then alphabetical
+            // sadly, 'g' > '@'
+            if (d1 === d2)
+                return 0;
+            if (d1 === 'generic')
+                return -1;
+            if (d2 === 'generic')
+                return 1;
+            if (d1 < d2)
+                return -1;
+            else
+                return 1;
+        });
+
+        for (let device of devices) {
             if (args.csv) {
                 csvDisplay(args, null, result[device], device);
                 if (args.max_complexity) {

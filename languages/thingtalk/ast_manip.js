@@ -1041,6 +1041,12 @@ function actionReplaceParamWith(into, pname, projection) {
     const joinArg = projection.args[0];
     if (joinArg === '$event' && ['p_body', 'p_message', 'p_caption', 'p_status'].indexOf(pname) < 0)
         return null;
+    if (_loader.flags.dialogues) {
+        if (joinArg !== 'id')
+            return null;
+        if (projection.table.isInvocation)
+            return null;
+    }
     const ptype = joinArg === '$event' ? Type.String : projection.schema.out[joinArg];
     const intotype = into.schema.inReq[pname];
     if (!intotype || !ptype.equals(intotype))
@@ -1078,6 +1084,8 @@ function getDoCommand(command, pname, joinArg) {
     let actiontype = command.actions[0].schema.inReq[pname];
     if (!actiontype)
         return null;
+    if (_loader.flags.dialogues && joinArg.name !== 'id')
+        return null;
     let commandtype = joinArg.isEvent ? Type.String : command.table.schema.out[joinArg.name];
     if (!commandtype || !commandtype.equals(actiontype))
         return null;
@@ -1093,6 +1101,8 @@ function whenDoRule(rule, pname, joinArg) {
     //    throw new TypeError('???');
     let actiontype = rule.actions[0].schema.inReq[pname];
     if (!actiontype)
+        return null;
+    if (_loader.flags.dialogues && joinArg.name !== 'id')
         return null;
     let commandtype = joinArg.isEvent ? Type.String : rule.stream.schema.out[joinArg.name];
     if (!commandtype || !commandtype.equals(actiontype))

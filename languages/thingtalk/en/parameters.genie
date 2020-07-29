@@ -105,65 +105,35 @@ the_out_param_triple = {
 }
 
 pair_projection = {
-    ?projection_with_filter {
-        ( ('both' | '') outParams:the_out_param_pair 'of' table:with_filtered_table
-        | outParams:the_out_param_triple 'of the' table:with_arg_min_max_table
-        ) => C.makeMultiFieldProjection('table', table, outParams);
-    }
-    !projection_with_filter {
-        ( ('both' | '') outParams:the_out_param_pair 'of' table:complete_table
-        | outParams:the_out_param_triple 'of the' table:with_arg_min_max_table
-        ) => C.makeMultiFieldProjection('table', table, outParams);
-    }
+    ( ('both' | '') outParams:the_out_param_pair 'of' table:with_filtered_table
+    | outParams:the_out_param_triple 'of the' table:with_arg_min_max_table
+    ) => C.makeMultiFieldProjection('table', table, outParams);
 }
 
 where_question = {
-    ?projection_with_filter {
-        ( 'where is the' table:with_filtered_table
-        | 'where is the' table:with_arg_min_max_table
-        ) => C.makeSingleFieldProjection('table', Type.Location, table, 'geo');
-    }
-    !projection_with_filter {
-        'where is' table:complete_table => C.makeSingleFieldProjection('table', Type.Location, table, 'geo');
-    }
+    ( 'where is the' table:with_filtered_table
+    | 'where is the' table:with_arg_min_max_table
+    ) => C.makeSingleFieldProjection('table', Type.Location, table, 'geo');
 }
 
 reverse_verb_projection_table = {
-    ?projection_with_filter {
-        ( p:reverse_verb_projection ('the' | '') table:with_filtered_table
-        | p:reverse_verb_projection ('the' | '') table:with_arg_min_max_table
-        ) => {
-            if (!table.schema.out[p.name])
-                return null;
-            return C.makeProjection(table, p.name);
-        };
-    }
-    !projection_with_filter {
-        p:reverse_verb_projection ('the' | '') table:complete_table => {
-            if (!table.schema.out[p.name])
-                return null;
-            return C.makeProjection(table, p.name);
-        };
-    }
+    ( p:reverse_verb_projection ('the' | '') table:with_filtered_table
+    | p:reverse_verb_projection ('the' | '') table:with_arg_min_max_table
+    ) => {
+        if (!table.schema.out[p.name])
+            return null;
+        return C.makeProjection(table, p.name);
+    };
 }
 
 who_reverse_verb_projection_table = {
-    ?projection_with_filter {
-        ( p:who_reverse_verb_projection ('the' | '') table:with_filtered_table
-        | p:who_reverse_verb_projection ('the' | '') table:with_arg_min_max_table
-        ) => {
-            if (!table.schema.out[p.name])
-                return null;
-            return C.makeProjection(table, p.name);
-        };
-    }
-    !projection_with_filter {
-        p:who_reverse_verb_projection ('the' | '') table:complete_table => {
-            if (!table.schema.out[p.name])
-                return null;
-            return C.makeProjection(table, p.name);
-        };
-    }
+    ( p:who_reverse_verb_projection ('the' | '') table:with_filtered_table
+    | p:who_reverse_verb_projection ('the' | '') table:with_arg_min_max_table
+    ) => {
+        if (!table.schema.out[p.name])
+            return null;
+        return C.makeProjection(table, p.name);
+    };
 }
 
 for (let [typestr, type] of _tpLoader.types.all) {
@@ -180,43 +150,27 @@ for (let [typestr, type] of _tpLoader.types.all) {
             */
         }
 
-        if (_tpLoader.flags.projection_with_filter) {
-            $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:with_filtered_table =>
-                C.makeSingleFieldProjection('table', type, table, outParam.name);
-            $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of the' table:with_arg_min_max_table =>
-                C.makeSingleFieldProjection('table', type, table, outParam.name);
-            $('verb_projection_' + typestr) = outParam:$('out_param_' + typestr) ('do' | 'does') ('the' | '') table:with_filtered_table 'have' =>
-                C.makeSingleFieldProjection('table', type, table, outParam.name, true);
-            $('verb_projection_' + typestr) = outParam:$('out_param_' + typestr) ('do' | 'does') ('the' | '') table:with_arg_min_max_table 'have' =>
-                C.makeSingleFieldProjection('table', type, table, outParam.name, true);
-            $('stream_projection_' + typestr) = !nostream outParam:$('the_out_param_' + typestr) 'of new' table:with_filtered_table =>
-                C.makeSingleFieldProjection('stream', type, table, outParam.name);
-            $('stream_projection_' + typestr) = !nostream outParam:$('the_out_param_' + typestr) 'of the new' table:with_arg_min_max_table =>
-                C.makeSingleFieldProjection('stream', type, table, outParam.name);
-        } else {
-            $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:complete_table =>
-                C.makeSingleFieldProjection('table', type, table, outParam.name);
-            $('verb_projection_' + typestr) = outParam:$('out_param_' + typestr) ('do' | 'does') ('the' | '') table:complete_table 'have' =>
-                C.makeSingleFieldProjection('table', type, table, outParam.name, true);
-            $('stream_projection_' + typestr) = !nostream outParam:$('the_out_param_' + typestr) 'of new' table:complete_table =>
-                C.makeSingleFieldProjection('stream', type, table, outParam.name);
-        }
+        $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of' table:with_filtered_table =>
+            C.makeSingleFieldProjection('table', type, table, outParam.name);
+        $('projection_' + typestr) = outParam:$('the_out_param_' + typestr) 'of the' table:with_arg_min_max_table =>
+            C.makeSingleFieldProjection('table', type, table, outParam.name);
+        $('verb_projection_' + typestr) = outParam:$('out_param_' + typestr) ('do' | 'does') ('the' | '') table:with_filtered_table 'have' =>
+            C.makeSingleFieldProjection('table', type, table, outParam.name, true);
+        $('verb_projection_' + typestr) = outParam:$('out_param_' + typestr) ('do' | 'does') ('the' | '') table:with_arg_min_max_table 'have' =>
+            C.makeSingleFieldProjection('table', type, table, outParam.name, true);
+        $('stream_projection_' + typestr) = !nostream outParam:$('the_out_param_' + typestr) 'of new' table:with_filtered_table =>
+            C.makeSingleFieldProjection('stream', type, table, outParam.name);
+        $('stream_projection_' + typestr) = !nostream outParam:$('the_out_param_' + typestr) 'of the new' table:with_arg_min_max_table =>
+            C.makeSingleFieldProjection('stream', type, table, outParam.name);
 
         projection_Any = $('projection_' + typestr);
         verb_projection_Any = $('verb_projection_' + typestr);
 
         if (typestr !== 'Entity__tt__picture' && typestr !== 'String') {
-            if (_tpLoader.flags.projection_with_filter) {
-                $('single_projection_' + typestr) = table:with_filtered_table => C.makeTypeBasedTableProjection(table, type, typestr);
+            $('single_projection_' + typestr) = table:with_filtered_table => C.makeTypeBasedTableProjection(table, type, typestr);
 
-                $('single_stream_projection_' + typestr) = !nostream 'new' table:with_filtered_table =>
-                    C.makeTypeBasedStreamProjection(table, type, typestr);
-            } else {
-                $('single_projection_' + typestr) = table:complete_table => C.makeTypeBasedTableProjection(table, type, typestr);
-
-                $('single_stream_projection_' + typestr) = !nostream 'new' table:complete_table =>
-                    C.makeTypeBasedStreamProjection(table, type, typestr);
-            }
+            $('single_stream_projection_' + typestr) = !nostream 'new' table:with_filtered_table =>
+                C.makeTypeBasedStreamProjection(table, type, typestr);
         }
     }
 }
