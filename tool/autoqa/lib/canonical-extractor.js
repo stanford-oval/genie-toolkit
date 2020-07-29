@@ -116,6 +116,7 @@ class AnnotationExtractor {
         // genienlp run-paraphrase --input_column 0 --skip_heuristics --model_name_or_path xxx --temperature 1 1 1 --num_beams 4 --pipe_mode
         const args = [
             `run-paraphrase`,
+            `--task`, `paraphrase`,
             `--input_column`, `0`,
             `--skip_heuristics`,
             `--model_name_or_path`, this.model,
