@@ -1,3 +1,14 @@
+0.7.0-beta.3
+============
+
+* Extended parameter replacement to measurements, when replacing numbers [#246].
+* Added an option to split the evaluation of models by device [#248].
+* The template flag "projection_with_filter" was removed and is now treated
+  as if it is always set [#250].
+* Misc bug fixes [#244, #246, #250, #251].
+* Templates were tuned to improve quality on the new version of Thingpedia [#250].
+* Updated dependencies [#243, #253].
+
 0.7.0-beta.2
 ============
 
