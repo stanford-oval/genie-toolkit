@@ -182,6 +182,26 @@ constant_pairs = {
     c1:constant_Any 'and' c2:constant_Any => {
         if (!c1.getType().equals(c2.getType()))
             return null;
+        if (c1.equals(c2))
+            return null;
+        return [c1, c2];
+    };
+}
+constant_or_pairs = {
+    c1:constant_Any 'or' c2:constant_Any => {
+        if (!c1.getType().equals(c2.getType()))
+            return null;
+        if (c1.equals(c2))
+            return null;
+        return [c1, c2];
+    };
+}
+constant_nor_pairs = {
+    c1:constant_Any 'nor' c2:constant_Any => {
+        if (!c1.getType().equals(c2.getType()))
+            return null;
+        if (c1.equals(c2))
+            return null;
         return [c1, c2];
     };
 }

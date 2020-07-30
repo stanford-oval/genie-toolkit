@@ -152,13 +152,10 @@ edge_filter = {
 }
 
 either_filter = {
-    'the' param:out_param_Any ('is' | 'is equal to' | 'is one of' | 'is either') v1:constant_Any 'or' v2:constant_Any => {
+    'the' param:out_param_Any ('is' | 'is equal to' | 'is one of' | 'is either') pair:constant_or_pairs => {
         // param is a Value.VarRef
         //console.log('param: ' + param.name);
-        if (!v1.getType().equals(v2.getType()))
-            return null;
-        if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
-            return null;
+        const [v1, v2] = pair;
         if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
             v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
             return null;
@@ -167,13 +164,10 @@ either_filter = {
             return null;
         return C.makeFilter(param, 'in_array', new Ast.Value.Array([v1, v2]));
     };
-    'the' param:out_param_Any 'is' ('not' | 'neither') v1:constant_Any 'nor' v2:constant_Any => {
+    'the' param:out_param_Any 'is' ('not' | 'neither') pair:constant_nor_pairs => {
         // param is a Value.VarRef
         //console.log('param: ' + param.name);
-        if (!v1.getType().equals(v2.getType()))
-            return null;
-        if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
-            return null;
+        const [v1, v2] = pair;
         if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
             v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
             return null;
@@ -328,12 +322,12 @@ with_filter = {
     x:constant_Any 'in' p:the_out_param_Array__Any => C.makeFilter(p, 'contains', x);
 
     // array contain and
-    !turking p:out_param_Array__Any 'containing both' x:constant_Any 'and' y:constant_Any => C.makeAndFilter(p, 'contains', [x, y]);
-    !turking 'both' x:constant_Any 'and' y:constant_Any 'in' p:the_out_param_Array__Any => C.makeAndFilter(p, 'contains', [x, y]);
+    !turking p:out_param_Array__Any 'containing' both_prefix pair:constant_pairs => C.makeAndFilter(p, 'contains', pair);
+    !turking both_prefix pair:constant_pairs 'in' p:the_out_param_Array__Any => C.makeAndFilter(p, 'contains', pair);
 
     // array contain or
-    p:out_param_Array__Any 'containing either' x:constant_Any 'or' y:constant_Any => C.makeOrFilter(p, 'contains', [x, y]);
-    'either' x:constant_Any 'or' y:constant_Any 'in' p:the_out_param_Array__Any => C.makeOrFilter(p, 'contains', [x, y]);
+    p:out_param_Array__Any 'containing either' pair:constant_or_pairs => C.makeOrFilter(p, 'contains', pair);
+    'either' pair:constant_or_pairs 'in' p:the_out_param_Array__Any => C.makeOrFilter(p, 'contains', pair);
 
     // array but
     !turking p:out_param_String ('containing' | 'including') x:constant_String ('but not'| 'without' | 'but no') y:constant_String => C.makeButFilter(p, 'contains', [x, y]);
