@@ -56,6 +56,11 @@ function makeThingpediaActionSuccessPhrase(ctx, info) {
 function makeCompleteActionSuccessPhrase(ctx, action, info) {
     const results = ctx.results;
 
+    // TODO: multiple action results at once:
+    // "I played Foo, Bar, and Baz for you."
+    if (results.length > 1)
+        return null;
+
     // check the action is the same we actually executed, and all the parameters we're mentioning
     // match the actual parameters of the action
     assert(action instanceof Ast.Invocation);
