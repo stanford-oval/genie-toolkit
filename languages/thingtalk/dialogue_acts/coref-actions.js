@@ -36,7 +36,6 @@ function contextualAction(ctx, action) {
     if (action.in_params.length === 0) // common case, no new parameters
         return ctxInvocation;
 
-    const clone = ctxInvocation.clone();
     for (let newParam of action.in_params) {
         if (newParam.value.isUndefined)
             continue;
@@ -62,17 +61,35 @@ function contextualAction(ctx, action) {
                 return null;
         }
 
+        for (let oldParam of ctxInvocation.in_params) {
+            if (oldParam.value.isUndefined)
+                continue;
+            if (newParam.name !== oldParam.name)
+                continue;
+
+            if (!newParam.value.equals(oldParam.value))
+                return null;
+        }
+    }
+
+    // semi-shallow clone
+    const clone = new Ast.Invocation(null, ctxInvocation.selector, ctxInvocation.channel,
+        ctxInvocation.in_params.map((ip) => new Ast.InputParam(null, ip.name, ip.value)),
+        ctxInvocation.schema);
+    for (let newParam of action.in_params) {
+        if (newParam.value.isUndefined)
+            continue;
+
         let found = false;
         for (let oldParam of clone.in_params) {
             if (newParam.name === oldParam.name) {
                 if (oldParam.value.isUndefined)
                     oldParam.value = newParam.value;
-                else if (!newParam.value.equals(oldParam.value))
-                    return null;
                 found = true;
                 break;
             }
         }
+
         if (!found)
             clone.in_params.push(newParam);
     }

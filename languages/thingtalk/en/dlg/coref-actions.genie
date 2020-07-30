@@ -158,7 +158,7 @@ coref_action_command = {
 }
 
 action_by_name_command = {
-    ctx:ctx_with_action base:contextual_action_phrase if complete
+    ctx:ctx_incomplete_action base:contextual_action_phrase if complete
         => D.contextualAction(ctx, base);
     ctx:ctx_without_action base:contextual_action_phrase => base;
 
@@ -169,11 +169,11 @@ action_by_name_command = {
 
 // an action command that continues an existing action command (used for slot-filling)
 action_continuation_command = {
-    ( ctx:ctx_with_action base:coref_action_phrase
-    | ctx:ctx_with_action base:contextual_action_phrase
+    ( ctx:ctx_incomplete_action base:coref_action_phrase
+    | ctx:ctx_incomplete_action base:contextual_action_phrase
     ) if complete => D.contextualAction(ctx, base);
-    ( ctx:ctx_with_action base:thingpedia_action
-    | ctx:ctx_with_action base:thingpedia_get_command
+    ( ctx:ctx_incomplete_action base:thingpedia_action
+    | ctx:ctx_incomplete_action base:thingpedia_get_command
     ) if complete => {
         if (!base.isInvocation)
             return null;
@@ -186,7 +186,7 @@ action_continuation_command = {
 }
 
 continuation_query = {
-    ctx:ctx_with_action base:complete_table => {
+    ctx:ctx_incomplete_action base:complete_table => {
         if (!base.isInvocation)
             return null;
         return D.contextualAction(ctx, base.invocation);
