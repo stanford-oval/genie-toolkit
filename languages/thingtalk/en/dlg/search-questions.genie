@@ -153,7 +153,7 @@ simple_search_question = {
     one_param_direct_search_question [priority=0.1];
     two_param_direct_search_question;
 
-    !inference disjunctive_search_question;
+    ?disjunctive_search_questions disjunctive_search_question;
 
     one_param_yesno_direct_search_question [priority=0.1];
     two_param_yesno_direct_search_question;
