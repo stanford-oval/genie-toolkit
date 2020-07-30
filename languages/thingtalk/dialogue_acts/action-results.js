@@ -42,6 +42,10 @@ function makeThingpediaActionSuccessPhrase(ctx, info) {
     if (results.length !== 1)
         return null;
 
+    const ctxInvocation = C.getInvocation(ctx.current);
+    if (!C.isSameFunction(ctxInvocation.schema, info.schema))
+        return null;
+
     const topResult = results[0];
     if (!isInfoPhraseCompatibleWithResult(topResult, info))
         return null;
