@@ -1640,10 +1640,10 @@ function filterUsesParam(filter, pname) {
     return used;
 }
 
-function checkInvocationInputParam(invocation, param) {
+function checkInvocationInputParam(invocation, param, options = {}) {
     assert(invocation instanceof Ast.Invocation);
     const arg = invocation.schema.getArgument(param.name);
-    if (!arg || !arg.is_input || !isConstantAssignable(param.value, arg.type))
+    if (!arg || (!arg.is_input && !options.allowOutput) || !isConstantAssignable(param.value, arg.type))
         return false;
 
     if (arg.type.isNumber || arg.type.isMeasure) {
@@ -1668,8 +1668,8 @@ function checkInvocationInputParam(invocation, param) {
     return true;
 }
 
-function addInvocationInputParam(invocation, param) {
-    if (!checkInvocationInputParam(invocation, param))
+function addInvocationInputParam(invocation, param, options) {
+    if (!checkInvocationInputParam(invocation, param, options))
         return null;
 
     const clone = invocation.clone();

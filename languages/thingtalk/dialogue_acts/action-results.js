@@ -65,15 +65,38 @@ function makeCompleteActionSuccessPhrase(ctx, action, info) {
 
         let found = false;
         for (let oldParam of ctxInvocation.in_params) {
+            assert(!oldParam.value.isUndefined); // we ran the action, so it cannot have $? params
+
             if (newParam.name === oldParam.name) {
-                if (!newParam.value.equals(oldParam.value))
+                // newParam is a constant, but oldParam might be a param passing
+                if (!oldParam.value.isVarRef && !newParam.value.equals(oldParam.value))
                     return null;
                 found = true;
                 break;
             }
         }
-        if (!found)
-            return null;
+        if (!found) {
+            const arg = action.schema.getArgument(newParam.name);
+            if (arg.is_input)
+                return null;
+
+            // if newParam is an output parameter that we appended to describe the result
+            // of the action, we allow it to be missing from the action, and we'll check
+            // against the result entry
+        }
+
+        // check also the result entry, if we have one
+        // this checks that input parameters are correct, if they were parameter passed
+        // and checks that the output parameters are correct
+        if (results.length >= 1) {
+            const topResult = results[0];
+            const resultValue = topResult.value[newParam.name];
+            if (!resultValue)
+                return null;
+
+            if (!resultValue.equals(newParam.value))
+                return null;
+        }
     }
 
     if (info !== null) {
