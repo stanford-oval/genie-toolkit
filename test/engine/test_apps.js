@@ -77,8 +77,11 @@ async function testDoSay(engine) {
 
     const outputs = await collectOutputs(app);
     assert.deepStrictEqual(outputs, [{
-        outputType: 'org.thingpedia.builtin.thingengine.builtin:say',
-        outputValue: { message_output: 'test message' }
+        outputType: 'org.thingpedia.builtin.thingengine.builtin:action/say',
+        outputValue: {
+            message: 'test message',
+            message_output: 'test message'
+        }
     }]);
 }
 
@@ -715,8 +718,9 @@ async function testSayContext(engine, icon = null) {
 
     const outputs = await collectOutputs(app);
     assert.deepStrictEqual(outputs, [{
-        outputType: 'org.thingpedia.builtin.thingengine.builtin:say',
+        outputType: 'org.thingpedia.builtin.thingengine.builtin:action/say',
         outputValue: {
+            message: 'Selected text',
             message_output: 'Selected text'
         }
     }]);
