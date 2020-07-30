@@ -33,31 +33,24 @@ const {
 
 function relatedQuestion(ctx, stmt) {
     const currentTable = ctx.current.stmt.table;
-    if (!currentTable)
-        return null;
 
     if (!stmt.isCommand || !stmt.table)
         return null;
-    if (!C.checkValidQuery(stmt.table))
-        return null;
     if (stmt.actions.some((a) => !a.isNotify))
         return null;
-
     let newTable = stmt.table;
+    if (!newTable.schema.class)
+        return null;
+
     if (C.isSameFunction(currentTable.schema, newTable.schema))
         return null;
-
-    if (!currentTable.schema.getAnnotation) // FIXME ExpressionSignature that is not a FunctionDef - not sure how it happens...
-        return null;
+    let functionName = newTable.schema.class.kind + ':' + newTable.schema.name;
     const related = currentTable.schema.getAnnotation('related');
-    if (!related)
+    if (!related.includes(functionName))
         return null;
 
-    const functionNames = C.getFunctionNames(newTable);
-    for (let fn of functionNames) {
-        if (!related.includes(fn))
-            return null;
-    }
+    if (!C.checkValidQuery(stmt.table))
+        return null;
 
     let ctxFilterTable, newFilterTable;
     [newTable, newFilterTable] = findOrMakeFilterTable(newTable.clone());

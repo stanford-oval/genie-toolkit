@@ -691,6 +691,16 @@ function tagContextForAgent(ctx) {
     }
 }
 
+function ctxCanHaveRelatedQuestion(ctx) {
+    const currentTable = ctx.current.stmt.table;
+    if (!currentTable)
+        return false;
+    const related = currentTable.schema.getAnnotation('related');
+    if (!currentTable.schema.getAnnotation) // FIXME ExpressionSignature that is not a FunctionDef - not sure how it happens...
+        return false;
+    return related && related.length;
+}
+
 function getContextTags(ctx) {
     const tags = [];
     if (ctx.isMultiDomain)
@@ -710,6 +720,8 @@ function getContextTags(ctx) {
 
     assert(ctx.results.length > 0);
     tags.push('ctx_with_result');
+    if (ctxCanHaveRelatedQuestion(ctx))
+        tags.push('ctx_for_related_question');
     if (isUserAskingResultQuestion(ctx)) {
         tags.push('ctx_with_result_question');
     } else {

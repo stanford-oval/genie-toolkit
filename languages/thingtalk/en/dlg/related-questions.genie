@@ -32,7 +32,7 @@
 }
 
 related_question = {
-    ctx:ctx_with_result stmt:search_command [weight=0.1] => D.relatedQuestion(ctx, stmt);
-    ctx:ctx_with_result stmt:complete_question => D.relatedQuestion(ctx, stmt);
-    ctx:ctx_with_result stmt:projection_question [weight=0.1] => D.relatedQuestion(ctx, stmt);
+    ctx:ctx_for_related_question stmt:search_command [weight=0.1] => D.relatedQuestion(ctx, stmt);
+    ctx:ctx_for_related_question stmt:complete_question => D.relatedQuestion(ctx, stmt);
+    ctx:ctx_for_related_question stmt:projection_question [weight=0.1] => D.relatedQuestion(ctx, stmt);
 }
