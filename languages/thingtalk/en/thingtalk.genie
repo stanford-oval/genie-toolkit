@@ -59,7 +59,7 @@ $root = {
       stmt:say_command [weight=0.1]
 
       // now => do
-    | stmt:complete_action;
+    | stmt:complete_action
     | generic_preamble_for_action stmt:complete_action
 
       // now => get => do
