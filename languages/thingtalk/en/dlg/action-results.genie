@@ -79,10 +79,10 @@ action_success_phrase = {
     ctx:ctx_completed_action_success generic_excitement_phrase generic_action_success_phrase result:direct_result_info_phrase [priority=1]
         => D.makeThingpediaActionSuccessPhrase(ctx, result);
 
-    ctx:ctx_completed_action_success 'i' action:complete_past_action_phrase '.'
+    ctx:ctx_completed_action_success generic_excitement_phrase 'i' action:complete_past_action_phrase '.' [priority=2]
         => D.makeCompleteActionSuccessPhrase(ctx, action, null);
 
-    ctx:ctx_completed_action_success 'i' action:complete_past_action_phrase '.' info:direct_result_info_phrase [priority=2]
+    ctx:ctx_completed_action_success generic_excitement_phrase 'i' action:complete_past_action_phrase '.' info:direct_result_info_phrase [priority=2]
         => D.makeCompleteActionSuccessPhrase(ctx, action, info);
 
     // purely generic fallback, so we always say something, even if we cannot use a better template
