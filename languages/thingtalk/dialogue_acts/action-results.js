@@ -120,6 +120,9 @@ function makeCompleteActionSuccessPhrase(ctx, action, info) {
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_success', null), info);
 }
 
+function makeGenericActionSuccessPhrase(ctx) {
+    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_success', null), null);
+}
 
 function checkThingpediaErrorMessage(ctx, msg) {
     if (!C.isSameFunction(ctx.currentFunctionSchema, msg.bag.schema))
@@ -216,6 +219,7 @@ function actionSuccessQuestion(ctx, questions) {
 module.exports = {
     makeThingpediaActionSuccessPhrase,
     makeCompleteActionSuccessPhrase,
+    makeGenericActionSuccessPhrase,
     checkThingpediaErrorMessage,
     checkActionErrorMessage,
     makeActionErrorPhrase,
