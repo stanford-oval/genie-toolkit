@@ -19,7 +19,7 @@ const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 
 const ParserClient = require('../../../lib/prediction/parserclient');
-const { DialogueSerializer } = require('../../lib/dialog_parser');
+const { DialogueSerializer } = require('../../../lib/dataset-tools/parsers');
 const StreamUtils = require('../../../lib/utils/stream-utils');
 const MultiJSONDatabase = require('../../lib/multi_json_database');
 const ProgressBar = require('../../lib/progress_bar');
@@ -78,9 +78,12 @@ function parseDate(v) {
     let match = /([0-9]?[0-9]) ?(st|nd|rd|th)/.exec(v);
     if (match !== null) { // From looking at the data: it is then either "march" or "this month"
         let day = parseInt(match[1]);
+        /*
         let month = v.includes('march') ? 2 : now.getMonth();
         let year = v.includes('2019') ? 2019 : now.getFullYear(); // From looking at the data, it is either 2019 or unspecified
         return new Ast.Value.Date(new Date(year, month, day));
+        */
+        return new Ast.Value.Date(new Ast.DatePiece('day', day)); // TODO this only works in thingtalk/wip/date-piece. Also, needs refinement, both here, as well as there
     }
     // From looking at the data, if we are still executing this function, there
     // must be at least one day of the week mentioned in the date, so we want
@@ -114,8 +117,6 @@ function predictType(slot, val) {
         return new Ast.Value.Measure('C', val);
     if (['precipitation', 'humidity'].includes(slot.name))
         return new Ast.Value.Number(parseInt(val) || 0);
-    if (['balance', 'price_per_night', 'rent'].includes(slot.name))
-        return new Ast.Value.Currency(val);
     if (slot.is_categorical && slot.possible_values.length > 0) {
         if (slot.possible_values.length === 2
             && slot.possible_values.includes('True')
@@ -135,13 +136,10 @@ function predictType(slot, val) {
         return parseTime(val);
     if (slot.name.endsWith('_date') || slot.name === 'date')
         return parseDate(val.toLowerCase());
-    if (slot.name.endsWith('_location') || slot.name === 'location' ||
-        slot.name.endsWith('_address') || slot.name === 'address') {
-        return new Ast.Value.Location(0, 0, 'test location'); //TODO
-    }
     if (slot.name.endsWith('_fare') || slot.name === 'fare' ||
-        slot.name.endsWith('_price') || slot.name === 'price')
-        return new Ast.Value.Currency(val);
+        slot.name.endsWith('_price') || slot.name === 'price' ||
+        ['balance', 'price_per_night', 'rent'].includes(slot.name))
+        return new Ast.Value.Currency(val.value, val.code);
 
     return new Ast.Value.String(val);
 }
@@ -190,22 +188,21 @@ class Converter extends stream.Readable {
     async _generateProposed(context, frame, selectedSlots) {
         const tpClass = 'com.google.sgd';
         const selector = new Ast.Selector.Device(null, tpClass, null, null);
-        let intentName = selectedSlots.activeIntent.name;
+        let intentName = selectedSlots[frame.service].activeIntent.name;
         for (let action of frame.actions) {
             if (action.act === 'OFFER_INTENT')
                 intentName = action.canonical_values[0];
         }
         const fullIntentName = frame.service + '_' + intentName;
         const proposedIntent = this._schemaObj[frame.service]['intents'][intentName];
-
         let newItems = [];
-        // Only actions for now
         if (proposedIntent.is_transactional) {
             // This is an action
             const invocation = new Ast.Invocation(null, selector, fullIntentName, [], null);
             for (let key in selectedSlots[frame.service]) {
-                if (!proposedIntent.required_slots.includes(key) &&
-                    !Object.keys(proposedIntent.optional_slots).includes(key))
+                if ((!proposedIntent.required_slots.includes(key) &&
+                     !Object.keys(proposedIntent.optional_slots).includes(key)) ||
+                     selectedSlots[frame.service][key][0] === 'dontcare') // TODO revisit this later. Is it right to just skip it? actions can't take dontcares, right?
                     continue;
                 let ttValue = predictType(this._schemaObj[frame.service]['slots'][key], selectedSlots[frame.service][key][0]);
                 invocation.in_params.push(new Ast.InputParam(null, key, ttValue));
@@ -265,7 +262,7 @@ class Converter extends stream.Readable {
             agentTarget.dialogueActParam = requestActs.map((act) => act.slot);
         } else if (actNames.includes('OFFER')) {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_recommend_one', null, []); // maybe more than one? not sure
-        } else if (actNames.includes('OFFER_INTENT'),
+        } else if (actNames.includes('OFFER_INTENT') ||
                    actNames.includes('CONFIRM')) {
             agentTarget = this._generateProposed(context, frame, selectedSlots);
         } else if (actNames.includes('NOTIFY_FAILURE')) {
@@ -287,9 +284,15 @@ class Converter extends stream.Readable {
         const fullIntentName = frame.service + '_' + frame.state.active_intent;
         const newItems = [];
         const activeIntent = this._schemaObj[frame.service]['intents'][frame.state.active_intent];
-        selectedSlots.activeIntent = activeIntent;
+        if (!Object.keys(selectedSlots).includes(frame.service))
+            selectedSlots[frame.service] = {};
+        selectedSlots[frame.service].activeIntent = activeIntent;
         if (activeIntent.is_transactional) { // This is an action
             const invocation = new Ast.Invocation(null, selector, fullIntentName, [], null);
+            let confirmedState = (confirmed &&
+                                  activeIntent.required_slots.every(val => val in frame.state.slot_values)) ?
+                                 'confirmed' :
+                                 'accepted';
             for (let key in frame.state.slot_values) {
                 if (!activeIntent.required_slots.includes(key) &&
                     !Object.keys(activeIntent.optional_slots).includes(key))
@@ -298,7 +301,7 @@ class Converter extends stream.Readable {
                 invocation.in_params.push(new Ast.InputParam(null, key, ttValue));
             }
             const actionStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
-            newItems.push(new Ast.DialogueHistoryItem(null, actionStmt, null, confirmed ? 'confirmed' : 'accepted'));
+            newItems.push(new Ast.DialogueHistoryItem(null, actionStmt, null, confirmedState));
         } else {
             // This is a query
             const invocationTable = new Ast.Table.Invocation(null,
@@ -306,6 +309,9 @@ class Converter extends stream.Readable {
                 null);
             const filterClauses = [];
             for (let key in frame.state.slot_values) {
+                if (!activeIntent.required_slots.includes(key) &&
+                    !Object.keys(activeIntent.optional_slots).includes(key))
+                    continue;
                 let value = frame.state.slot_values[key][0];
                 if (value == 'dontcare') {
                     filterClauses.push(new Ast.BooleanExpression.DontCare(null, key));
@@ -334,8 +340,6 @@ class Converter extends stream.Readable {
     async _updateSelectedSlots(frame, selectedSlots) {
         for (let action of frame.actions) {
             if (action.act === 'SELECT') {
-                if (!Object.keys(selectedSlots).includes(frame.service))
-                    selectedSlots[frame.service] = {};
                 if (action.slot === '') {
                     for (let slot in frame.state.slot_values)
                         selectedSlots[frame.service][slot] = frame.state.slot_values[slot];
@@ -349,14 +353,14 @@ class Converter extends stream.Readable {
         let frame = turn.frames[0];
         if (turn.frames.length > 1) {
             for (let candidateFrame of turn.frames) {
-                if (!['SELECT', 'NEGATE_INTENT', 'THANK_YOU'].includes(candidateFrame.actions[0]))
+                if (!['SELECT', 'NEGATE_INTENT', 'THANK_YOU'].includes(candidateFrame.actions[0].act))
                     frame = candidateFrame;
             }
         }
         let userTarget;
         let actNames = frame.actions.map((action) => action.act);
         if (actNames.includes('SELECT'))
-            userTarget = this._updateSelectedSlots(frame, selectedSlots); // No 'else' after this, because we probably want to annotate some other way'
+            userTarget = this._updateSelectedSlots(frame, selectedSlots); // we update selectedSlots, but we still don't have an annotation
         if (actNames.includes('INFORM') ||
             actNames.includes('INFORM_INTENT') ||
             actNames.includes('AFFIRM_INTENT') ||
@@ -365,7 +369,7 @@ class Converter extends stream.Readable {
         } else if (actNames.includes('AFFIRM')) {
             userTarget = await this._generateExecute(context, frame, selectedSlots, true);
         } else if (actNames.includes('REQUEST')) {
-            if (selectedSlots.activeIntent.is_transactional) {
+            if (selectedSlots[frame.service].activeIntent.is_transactional) {
                 // Action question. First, get the params, then build the state
                 let requestActs = frame.actions.filter((action) => action.act === 'REQUEST');
                 let slots =  requestActs.map((act) => act.slot);
@@ -409,7 +413,7 @@ class Converter extends stream.Readable {
                 let contextCode = '', agentUtterance = '', agentTargetCode = '';
 
                 if (context !== null) {
-                    agentUtterance = aHalfTurn.utterance;
+                    agentUtterance = aHalfTurn.utterance.replace(/\n/g, ' '); // Some utterances are multiline
                     // "execute" the context
                     [context, simulatorState] = await this._simulator.execute(context, simulatorState);
                     // fake an action error in the last action if needed
@@ -448,13 +452,12 @@ class Converter extends stream.Readable {
 
                 }
 
-                const userUtterance = uHalfTurn.utterance;
+                const userUtterance = uHalfTurn.utterance.replace(/\n/g, ' ');
                 const userTarget = await this._doUserTurn(context, uHalfTurn, userUtterance, selectedSlots);
                 const oldContext = context;
                 context = this._target.computeNewState(context, userTarget, 'user');
                 const prediction = this._target.computePrediction(oldContext, context, 'user');
                 const userTargetCode = prediction.prettyprint();
-                //const userTargetCode = userTarget.prettyprint();
                 
                 turns.push({
                     context: contextCode,
