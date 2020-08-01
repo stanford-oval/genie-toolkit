@@ -27,21 +27,8 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const child_process = require('child_process');
-const stream = require('stream');
 const util = require('util');
 const Gettext = require('node-gettext');
-let PulseAudio;
-try {
-    PulseAudio = require('pulseaudio2');
-} catch(e) {
-    PulseAudio = null;
-}
-let snowboy;
-try {
-    snowboy = require('snowboy');
-} catch(e) {
-    snowboy = null;
-}
 
 const _unzipApi = {
     unzip(zipPath, dir) {
@@ -85,47 +72,10 @@ function safeMkdirSync(dir) {
     }
 }
 
-class SnowboyDetectorStream extends stream.Writable {
-    constructor(modelPath) {
-        super();
-
-        let models = new snowboy.Models();
-        const modelName = path.basename(modelPath);
-        models.add({
-             file: path.resolve(modelPath),
-             sensitivity: '0.6',
-
-             // remove '.pmdl' or '.umdl' extension
-             hotwords: modelName.substring(0, modelName.length-5)
-        });
-
-        this._detector = new snowboy.Detector({
-            resource: path.resolve(path.dirname(modelPath), 'common.res'),
-            models: models,
-            audioGain: 1.0,
-            applyFrontend: true,
-        });
-
-        this._detector.on('silence', () => {
-            this.emit('silence');
-        });
-        this._detector.on('sound', () => {
-            this.emit('sound');
-        });
-        this._detector.on('hotword', (index, hotword, buffer) => {
-            this.emit('wakeword', hotword);
-        });
-    }
-
-    _write(chunk, encoding, callback) {
-        this._detector.write(chunk, encoding, callback);
-    }
-}
-
 module.exports = class Platform extends Tp.BasePlatform {
     // Initialize the platform code
     // Will be called before instantiating the engine
-    constructor(homedir, locale, thingpediaUrl, snowboyPath) {
+    constructor(homedir, locale, thingpediaUrl) {
         super();
 
         this._locale = locale;
@@ -141,19 +91,6 @@ module.exports = class Platform extends Tp.BasePlatform {
         this._prefs = new Tp.Helpers.FilePreferences(this._filesDir + '/prefs.db');
 
         this._tpClient = new Tp.HttpClient(this, thingpediaUrl);
-
-        if (PulseAudio) {
-            this._pulse = new PulseAudio({
-                client: "genie-toolkit"
-            });
-        } else {
-            this._pulse = null;
-        }
-
-        if (snowboy && snowboyPath)
-            this._wakeWordDetector = new SnowboyDetectorStream(snowboyPath);
-        else
-            this._wakeWordDetector = null;
     }
 
     get type() {
@@ -193,13 +130,6 @@ module.exports = class Platform extends Tp.BasePlatform {
         case 'content-api':
             return true;
 
-        case 'pulseaudio':
-        case 'sound':
-            return this._pulse !== null;
-
-        case 'wakeword-detector':
-            return this._wakeWordDetector !== null;
-
         default:
             return false;
         }
@@ -219,11 +149,6 @@ module.exports = class Platform extends Tp.BasePlatform {
             return this._gettext;
         case 'content-api':
             return _contentApi;
-        case 'sound':
-        case 'pulseaudio': // legacy name for "sound"
-            return this._pulse;
-        case 'wakeword-detector':
-            return this._wakeWordDetector;
         default:
             return null;
         }
