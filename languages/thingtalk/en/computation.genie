@@ -41,43 +41,28 @@ with_arg_min_max_table = {}
 // within distance
 one_within_filter_table = {
     !turking {
-        !nofilter table:complete_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
-        => C.makeWithinGeoDistanceExpression(table, HERE, distance);
-
-        !nofilter table:complete_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
-        => C.makeWithinGeoDistanceExpression(table, place, distance);
+        !nofilter table:complete_table filter:within_filter
+        => C.makeWithinGeoDistanceExpression(table, filter.place, filter.distance);
     }
 }
 
 two_within_filter_table = {
     !turking {
         !nofilter (
-              table:one_with_filter_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
-            | table:one_which_filter_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
-            | table:one_clean_filter_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
-        ) => C.makeWithinGeoDistanceExpression(table, HERE, distance);
-
-        !nofilter (
-              table:one_with_filter_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
-            | table:one_which_filter_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
-            | table:one_clean_filter_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
-        ) => C.makeWithinGeoDistanceExpression(table, place, distance);
+              table:one_with_filter_table filter:within_filter
+            | table:one_which_filter_table filter:within_filter
+            | table:one_clean_filter_table filter:within_filter
+        ) => C.makeWithinGeoDistanceExpression(table, filter.place, filter.distance);
     }
 }
 
 three_within_filter_table = {
     !turking {
         !nofilter (
-              table:two_with_filter_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
-            | table:two_which_filter_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
-            | table:two_clean_filter_table 'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location')
-        ) => C.makeWithinGeoDistanceExpression(table, HERE, distance);
-
-        !nofilter (
-              table:two_with_filter_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
-            | table:two_which_filter_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
-            | table:two_clean_filter_table 'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
-        ) => C.makeWithinGeoDistanceExpression(table, place, distance);
+              table:two_with_filter_table filter:within_filter
+            | table:two_which_filter_table filter:within_filter
+            | table:two_clean_filter_table filter:within_filter
+        ) => C.makeWithinGeoDistanceExpression(table, filter.place, filter.distance);
     }
 }
 

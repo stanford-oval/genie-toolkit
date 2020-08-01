@@ -491,3 +491,10 @@ whose_npp_filter = {
 quality_filter = {
     ('good' | 'great' | 'nice' | 'decent') => C.makeFilter(new Ast.Value.VarRef('aggregateRating.ratingValue'), '>=', new Ast.Value.Number(4));
 }
+
+within_filter = {
+    'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location') => ({ distance, place: HERE });
+
+    'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
+        => ({ distance, place });
+}
