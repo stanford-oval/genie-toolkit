@@ -35,6 +35,7 @@ const {
     makeFilter,
     makeAndFilter,
     isHumanEntity,
+    interrogativePronoun,
     tokenizeExample
 } = require('./utils');
 const { SlotBag } = require('./slot_bag');
@@ -91,6 +92,7 @@ class ThingpediaLoader {
             in: new Map,
             out: new Map,
         };
+        this.projections = new Map;
         this.idQueries = new Map;
         this.compoundArrays = {};
         if (this._options.whiteList)
@@ -483,19 +485,40 @@ class ThingpediaLoader {
                                 this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values) => makeAndFilter(this, pvar, op, values, false)), attributes);
                             }
                         }
-                    } else if (cat === 'reverse_verb') {
-                        if (isHumanEntity(ptype)) {
-                            let expansion = [form];
-                            this._grammar.addRule('who_reverse_verb_projection', expansion, this._runtime.simpleCombine(() => pvar), attributes);
+                    } else {
+                        if (pname !== 'id' && ['avp', 'pvp', 'preposition', 'reverse_verb'].includes(cat) && (Array.isArray(form) || !form.includes('#') || form.endsWith(' #'))) {
+                            const pronounType = interrogativePronoun(ptype);
+
+                            // FIXME: if two params with the same name have different interrogative pronouns, this approach is problematic...
+                            if (!(pname in this.projections))
+                                this.projections[pname] = {};
+                            if (!(cat in this.projections[pname]))
+                                this.projections[pname][cat] = [];
+
+                            // always have what question for projection
+                            for (let base of canonical.base)
+                                this._addProjections(pname, pronounType, cat, base, form);
+
+                            // add non-what question when applicable
+                            // `base` is no longer need for non-what question, thus leave as empty string
+                            if (pronounType !== 'what')
+                                this._addProjections(pname, pronounType, cat, '', form);
                         }
 
-                        let expansion = [canonical.base[0], form];
-                        this._grammar.addRule('reverse_verb_projection', expansion, this._runtime.simpleCombine(() => pvar), attributes);
+                        if (Array.isArray(form))
+                            form = form.join(' ');
 
-                    } else {
-                        let [before, after] = form.split('#');
-                        before = (before || '').trim();
-                        after = (after || '').trim();
+                        let before, after;
+
+                        if (cat === 'reverse_verb') {
+                            // reverse_verb always have value in front
+                            before = '';
+                            after = form.trim();
+                        } else {
+                            [before, after] = form.split('#');
+                            before = (before || '').trim();
+                            after = (after || '').trim();
+                        }
 
                         let expansion, corefexpansion, pairexpansion;
                         if (before && after) {
@@ -527,6 +550,29 @@ class ThingpediaLoader {
                 }
             }
         }
+    }
+
+    _addProjections(pname, pronounType, posCategory, base, canonical) {
+        const pronouns = {
+            'what': ['what', 'which'],
+            'when': ['when', 'what time'],
+            'where': ['where'],
+            'who': ['who']
+        };
+        assert(pronounType in pronouns);
+        const formWithoutPlaceholder = Array.isArray(canonical) ? canonical.join(' ') : canonical.replace(' #', '');
+
+        // if base is included in the form, skip
+        // e.g.,  "what award does xxx won" makes sense, but "what award does xx won award" does not
+        if (base && formWithoutPlaceholder.split(' ').includes(base))
+            return;
+
+        for (let pronoun of pronouns[pronounType]) {
+            if (Array.isArray(canonical))
+                this.projections[pname][posCategory].push([`${canonical[1]} ${pronoun}`, base, canonical[0]]);
+            this.projections[pname][posCategory].push([pronoun, base, formWithoutPlaceholder]);
+        }
+
     }
 
     async _loadTemplate(ex) {

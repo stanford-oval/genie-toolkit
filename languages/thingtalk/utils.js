@@ -99,6 +99,38 @@ function isHumanEntity(type) {
     return false;
 }
 
+function isLocationEntity(type) {
+    if (type.isLocation)
+        return true;
+    if (type.isArray)
+        return isLocationEntity(type.elem);
+
+    // FIXME: other types that can be asked by "where" question (e.g., organization)
+    return false;
+}
+
+function isTimeEntity(type) {
+    if (type.isDate)
+        return true;
+    if (type.isTime)
+        return true;
+
+    // FIXME: other types that can be asked by "when" question (e.g., opening hour)
+    return false;
+}
+
+function interrogativePronoun(type) {
+    if (isHumanEntity(type))
+        return 'who';
+    if (isLocationEntity(type))
+        return 'where';
+    if (isTimeEntity(type))
+        return 'when';
+
+    // FIXME: other interrogative pronouns (e.g., "how" for health condition, "how much" for price)
+    return 'what';
+}
+
 const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})/;
 
 function* split(pattern, regexp) {
@@ -289,5 +321,8 @@ module.exports = {
     makeFilter,
     makeAndFilter,
 
-    isHumanEntity
+    isHumanEntity,
+    isLocationEntity,
+    isTimeEntity,
+    interrogativePronoun
 };

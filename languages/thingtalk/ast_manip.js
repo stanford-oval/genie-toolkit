@@ -427,7 +427,10 @@ function makeSingleFieldProjection(ftype, ptype, table, pname) {
     assert(ftype === 'table' || ftype === 'stream');
     assert(typeof pname === 'string');
 
-    if (!table.schema.out[pname] || !Type.isAssignable(table.schema.out[pname], ptype))
+    if (!table.schema.out[pname])
+        return null;
+
+    if (ptype && !Type.isAssignable(table.schema.out[pname], ptype))
         return null;
 
     if (ftype === 'table') {
@@ -443,7 +446,6 @@ function makeSingleFieldProjection(ftype, ptype, table, pname) {
         return makeStreamProjection(stream, pname);
     }
 }
-
 
 function makeMultiFieldProjection(ftype, table, outParams) {
     const names = [];

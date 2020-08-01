@@ -116,24 +116,48 @@ where_question = {
     ) => C.makeSingleFieldProjection('table', Type.Location, table, 'geo');
 }
 
-reverse_verb_projection_table = {
-    ( p:reverse_verb_projection ('the' | '') table:with_filtered_table
-    | p:reverse_verb_projection ('the' | '') table:with_arg_min_max_table
-    ) => {
-        if (!table.schema.out[p.name])
-            return null;
-        return C.makeProjection(table, p.name);
-    };
-}
+for (let pname in _tpLoader.projections) {
+    for (let cat in _tpLoader.projections[pname]) {
+        if (cat === 'pvp' || cat === 'preposition') {
+            for (let [pronoun, base, pvp] of _tpLoader.projections[pname][cat]) {
+                question_projection_table = #(pronoun) #(base) ('is'|'was'|'are'|'were') ('the' | '') table:with_filtered_table #(pvp) =>
+                    C.makeSingleFieldProjection('table', null, table, pname);
+                command_projection_table = #(base) ('that'|'which'|'') ('the' | '') table:with_filtered_table ('is'|'was'|'are'|'were') #(pvp) =>
+                    C.makeSingleFieldProjection('table', null, table, pname);
 
-who_reverse_verb_projection_table = {
-    ( p:who_reverse_verb_projection ('the' | '') table:with_filtered_table
-    | p:who_reverse_verb_projection ('the' | '') table:with_arg_min_max_table
-    ) => {
-        if (!table.schema.out[p.name])
-            return null;
-        return C.makeProjection(table, p.name);
-    };
+                $(pronoun + '_question_projection_table') = #(pronoun) #(base) ('is'|'was'|'are'|'were') ('the' | '') table:with_arg_min_max_table #(pvp) =>
+                    C.makeSingleFieldProjection('table', null, table, pname);
+                command_projection_table = #(base) ('that'|'which'|'') ('the' | '') table:with_arg_min_max_table ('is'|'was'|'are'|'were') #(pvp) =>
+                    C.makeSingleFieldProjection('table', null, table, pname);
+            }
+        }
+        if (cat === 'avp') {
+            for (let [pronoun, base, verb] of _tpLoader.projections[pname][cat]) {
+                question_projection_table = #(pronoun) #(base) ('do'|'does'|'did') ('the' | '') table:with_filtered_table #(verb) =>
+                    C.makeSingleFieldProjection('table', null, table, pname);
+                command_projection_table = #(base) ('that'|'which'|'') ('the' | '') table:with_filtered_table #(verb) =>
+                    C.makeSingleFieldProjection('table', null, table, pname);
+
+                question_projection_table = #(pronoun) #(base) ('do'|'does'|'did') ('the' | '') table:with_arg_min_max_table #(verb) =>
+                    C.makeSingleFieldProjection('table', null, table, pname);
+                command_projection_table = #(base) ('that'|'which'|'') ('the' | '') table:with_arg_min_max_table #(verb) =>
+                    C.makeSingleFieldProjection('table', null, table, pname);
+            }
+        }
+        if (cat === 'reverse_verb') {
+            for (let [pronoun, base, verb] of _tpLoader.projections[pname][cat]) {
+                question_projection_table = #(pronoun) #(base) #(verb) ('the' | '') table:with_filtered_table  =>
+                    C.makeSingleFieldProjection('table', null, table, pname);
+                command_projection_table = #(base) ('that'|'which'|'') #(verb) ('the' | '') table:with_filtered_table =>
+                    C.makeSingleFieldProjection('table', null, table, pname);
+
+                question_projection_table = #(pronoun) #(base) #(verb) ('the' | '') table:with_arg_min_max_table  =>
+                    C.makeSingleFieldProjection('table', null, table, pname);
+                command_projection_table = #(base) ('that'|'which'|'') #(verb) ('the' | '') table:with_arg_min_max_table =>
+                    C.makeSingleFieldProjection('table', null, table, pname);
+            }
+        }
+    }
 }
 
 for (let [typestr, type] of _tpLoader.types.all) {
