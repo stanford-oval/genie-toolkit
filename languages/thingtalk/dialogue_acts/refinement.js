@@ -53,6 +53,8 @@ function makeRefinementProposal(ctx, proposal) {
     // this if() can be false only with weird primitive templates
     if (!(proposal.isFilter && proposal.table.isInvocation))
         return null;
+    if (!C.isSameFunction(ctx.currentFunctionSchema, proposal.schema))
+        return null;
 
     const ctxFilterTable = C.findFilterTable(ctx.current.stmt.table);
     if (ctxFilterTable === null)
