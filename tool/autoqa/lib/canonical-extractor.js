@@ -109,6 +109,12 @@ class AnnotationExtractor {
     }
 
     async _paraphrase() {
+        // skip paraphrase when no input generated
+        if (this._input.length === 0) {
+            this._output = [];
+            return;
+        }
+
         // if debug file exists, use them directly
         if (fs.existsSync(`./paraphraser-out.json`))
             this._output = JSON.parse(fs.readFileSync(`./paraphraser-out.json`, 'utf-8'));
