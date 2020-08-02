@@ -1,3 +1,27 @@
+0.7.0-beta.4
+============
+
+* New command: "genie preprocess-string-dataset". Can convert a list of string
+  values to a properly formatted TSV string dataset [#255].
+* Handling of ID constants in the templates was changed to allow secondary
+  entities that appear in a query without a join [#254].
+* The templates were reorganized to allow more query+actions compounds to be
+  generated at lower depth [#254].
+* Actions can now be specified to be executed as a compound command with the
+  query, without splitting the query into a separate statement [#254].
+* The implementation of action output parameters was finished [#254].
+* API users can now keep a conversation alive even after it becomes inactive
+  [#256].
+* The speech handler has been tested and fixed. Speech support in the demo
+  assistant platform (the "genie assistant" command-line tool) has been removed
+  [#256, #257].
+* The speech handler can now be enabled and disabled at runtime. It was also
+  extended to consider screen lock, if screen lock is enabled [#254].
+* Added some additional postprocessing for agent replies [#254].
+* The "genie auto-annotate" command now accepts a "--batch-size" option, to
+  run on smaller GPUs [#258].
+* Misc. template fixes and speedups [#254].
+
 0.7.0-beta.3
 ============
 
