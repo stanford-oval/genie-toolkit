@@ -114,6 +114,7 @@ one_which_filter_table = {
     !nofilter table:complete_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
     !nofilter table:complete_table ('which' | 'that') 'have' filter:npp_filter => C.addFilter(table, filter);
     !nofilter table:complete_table ('which' | 'that') 'have' filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:complete_table ('which' | 'that') filter:reverse_verb_filter => C.addFilter(table, filter);
 }
 
 one_clean_filter_table = {
@@ -144,6 +145,7 @@ two_which_filter_table = {
     !nofilter table:one_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
     !nofilter table:one_with_filter_table ('' | ',') ('which' | 'that') 'have' filter:npp_filter => C.addFilter(table, filter);
     !nofilter table:one_with_filter_table ('' | ',') ('which' | 'that') 'have' filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:one_with_filter_table ('' | ',') ('which' | 'that') filter:reverse_verb_filter => C.addFilter(table, filter);
 
     !nofilter table:one_which_filter_table ('' | ',') 'and' ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
     !nofilter table:one_which_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
@@ -151,6 +153,7 @@ two_which_filter_table = {
     !nofilter table:one_which_filter_table ('' | ',') 'and' ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
     !nofilter table:one_which_filter_table ('' | ',') 'and' 'have' filter:npp_filter => C.addFilter(table, filter);
     !nofilter table:one_which_filter_table ('' | ',') 'and' 'have' filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:one_which_filter_table ('' | ',') 'and' filter:reverse_verb_filter => C.addFilter(table, filter);
 
     !nofilter table:one_clean_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
     !nofilter table:one_clean_filter_table ('' | ',') ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
@@ -158,6 +161,7 @@ two_which_filter_table = {
     !nofilter table:one_clean_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
     !nofilter table:one_clean_filter_table ('' | ',') ('which' | 'that') 'have' filter:npp_filter => C.addFilter(table, filter);
     !nofilter table:one_clean_filter_table ('' | ',') ('which' | 'that') 'have' filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:one_clean_filter_table ('' | ',') ('which' | 'that') filter:reverse_verb_filter => C.addFilter(table, filter);
 
     !nofilter filter:apv_filter table:one_which_filter_table => C.addFilter(table, filter);
 }
@@ -187,20 +191,26 @@ three_which_filter_table = {
     !nofilter table:two_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
     !nofilter table:two_with_filter_table ('' | ',') ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
     !nofilter table:two_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
+    !nofilter table:two_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
     !nofilter table:two_with_filter_table ('' | ',') ('which' | 'that') 'have' filter:npp_filter => C.addFilter(table, filter);
     !nofilter table:two_with_filter_table ('' | ',') ('which' | 'that') 'have' filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:two_with_filter_table ('' | ',') ('which' | 'that') filter:reverse_verb_filter => C.addFilter(table, filter);
 
     !nofilter table:two_which_filter_table ('' | ',') 'and' ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
     !nofilter table:two_which_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
     !nofilter table:two_which_filter_table ('' | ',') 'and' ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
+    !nofilter table:two_which_filter_table ('' | ',') 'and' ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
     !nofilter table:two_which_filter_table ('' | ',') 'and' 'have' filter:npp_filter => C.addFilter(table, filter);
     !nofilter table:two_which_filter_table ('' | ',') 'and' 'have' filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:two_which_filter_table ('' | ',') 'and' filter:reverse_verb_filter => C.addFilter(table, filter);
 
     !nofilter table:two_clean_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
     !nofilter table:two_clean_filter_table ('' | ',') ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
     !nofilter table:two_clean_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
     !nofilter table:two_clean_filter_table ('' | ',') ('which' | 'that') 'have' filter:npp_filter => C.addFilter(table, filter);
     !nofilter table:two_clean_filter_table ('' | ',') ('which' | 'that') 'have' filter:with_filter => C.addFilter(table, filter);
+    !nofilter table:two_clean_filter_table ('' | ',') ('which' | 'that') filter:reverse_verb_filter => C.addFilter(table, filter);
 
     !nofilter filter:apv_filter table:two_which_filter_table => C.addFilter(table, filter);
 }

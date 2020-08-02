@@ -169,6 +169,14 @@ apv_input_param = {}
 coref_apv_filter = {}
 coref_apv_input_param = {}
 
+// filters & input parameters on reverese_verb parameter
+// reverese verb: verb-phrase parameter where value is the subject of the verb phrase
+// e.g., "moveis that Bob directed"
+reverse_verb_filter = {}
+apv_input_param = {}
+coref_reverse_verb_filter = {}
+coref_reverse_verb_input_param = {}
+
 // projections
 question_projection_table = {}
 command_projection_table = {}
