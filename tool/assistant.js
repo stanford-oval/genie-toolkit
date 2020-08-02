@@ -247,14 +247,10 @@ module.exports = {
             required: false,
             help: 'NLP server URL to use for NLG; must be specified to use neural NLG.'
         });
-        parser.addArgument('--wake-word-model', {
-            required: false,
-            help: 'Path to a wake-word model to use.'
-        });
     },
 
     async execute(args) {
-        const platform = new Platform(path.resolve(args.workdir), args.locale, args.thingpediaUrl, args.wake_word_model);
+        const platform = new Platform(path.resolve(args.workdir), args.locale, args.thingpediaUrl);
         const prefs = platform.getSharedPreferences();
         prefs.set('developer-dir', args.thingpedia_dir);
         prefs.set('experimental-use-neural-nlg', !!args.nlg_server);
