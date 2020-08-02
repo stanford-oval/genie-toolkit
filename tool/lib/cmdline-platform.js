@@ -197,7 +197,7 @@ module.exports = class Platform extends Tp.BasePlatform {
         case 'sound':
             return this._pulse !== null;
 
-        case 'wake-word-detector':
+        case 'wakeword-detector':
             return this._wakeWordDetector !== null;
 
         default:
@@ -222,7 +222,7 @@ module.exports = class Platform extends Tp.BasePlatform {
         case 'sound':
         case 'pulseaudio': // legacy name for "sound"
             return this._pulse;
-        case 'wake-word-detector':
+        case 'wakeword-detector':
             return this._wakeWordDetector;
         default:
             return null;
