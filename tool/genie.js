@@ -56,6 +56,7 @@ const subcommands = {
     'assistant': require('./assistant'),
 
     'dataset': require('./dataset'),
+    'preprocess-string-dataset': require('./preprocess-string-dataset'),
 
     'schemaorg-process-schema': require('./autoqa/schemaorg/process-schema'),
     'schemaorg-normalize-data': require('./autoqa/schemaorg/normalize-data'),

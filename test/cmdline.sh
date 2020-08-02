@@ -41,6 +41,10 @@ node $srcdir/tool/genie.js download-dataset -o dataset.tt
 
 node $srcdir/tool/genie.js dataset -i dataset.tt -o foo.tt --thingpedia thingpedia.tt --actions clean
 
+# preprocess string datasets
+node $srcdir/tool/genie.js preprocess-string-dataset -o com.spotify:genre.tsv $srcdir/test/data/en-US/spotify-genres.txt
+diff -u com.spotify:genre.tsv $srcdir/test/data/en-US/expected-spotify-genre.tsv
+
 # generate
 node $srcdir/tool/genie.js generate --help
 node $srcdir/tool/genie.js generate --maxdepth 2 \
