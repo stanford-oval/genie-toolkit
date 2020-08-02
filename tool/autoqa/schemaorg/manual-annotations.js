@@ -398,13 +398,16 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     // music
     inAlbum: {
         base: ['album'],
-        passive_verb: ['in', 'in album', 'included in'],
-        reverse_verb: ['contains', 'includes']
+        preposition: ['in', 'in album', 'on', 'on album'],
+        passive_verb: [['included', 'in']],
+        verb: [['appears', 'in'], ['appears', 'on']],
+        reverse_verb: ['have', 'has', 'contains', 'includes']
     },
     byArtist: {
-        base: ['artist', 'singer'],
+        base: ['artist', 'singer', 'band'],
         adjective: ['# \'s', '#'],
-        passive_verb: ['by', 'by artist'],
+        preposition: ['by', 'by artist'],
+        passive_verb: [['created', 'by'], ['sang', 'by'], ['performed', 'by']],
         reverse_verb: ['sings', 'sang']
     }
 };
