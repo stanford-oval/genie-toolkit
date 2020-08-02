@@ -129,7 +129,7 @@ class AnnotationExtractor {
             `--temperature`, `1`, `1`, `1`,
             `--num_beams`, `4`,
             `--pipe_mode`,
-            `--batch_size`, `64`
+            `--batch_size`, this.options.batch_size
         ];
         const child = child_process.spawn(`genienlp`, args, { stdio: ['pipe', 'pipe', 'inherit'] });
 

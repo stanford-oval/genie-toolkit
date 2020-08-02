@@ -84,6 +84,12 @@ module.exports = {
             help: 'Different algorithms to generate canonicals including bert, bart, adj, split by comma (no space)',
             defaultValue: null
         });
+        parser.addArgument('--batch-size', {
+            required: false,
+            type: Number,
+            defaultValue: 64,
+            help: `The batch size for auto paraphrase`
+        });
         parser.addArgument('--pruning', {
             required: false,
             type: Number,
