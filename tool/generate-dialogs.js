@@ -21,7 +21,6 @@
 
 const fs = require('fs');
 const JSONStream = require('JSONStream');
-const Stream = require('stream');
 const Tp = require('thingpedia');
 const seedrandom = require('seedrandom');
 
@@ -45,26 +44,6 @@ const DIALOG_SERIALIZERS = {
         return new DialogueSerializer({ annotations: false });
     }
 };
-
-class SimpleCountStream extends Stream.Transform {
-    constructor(N) {
-        super({ objectMode: true });
-
-        this._i = 0;
-        this._N = N;
-    }
-
-    _transform(element, encoding, callback) {
-        this._i ++;
-        if (this._i % 100 === 0)
-            this.emit('progress', this._i/this._N);
-        callback(null, element);
-    }
-
-    _flush(callback) {
-        callback();
-    }
-}
 
 module.exports = {
     initArgparse(subparsers) {
@@ -177,8 +156,6 @@ module.exports = {
     },
 
     async execute(args) {
-        const counter = new SimpleCountStream(args.target_size);
-
         let tpClient = null;
         if (args.thingpedia)
             tpClient = new Tp.FileClient(args);
@@ -198,7 +175,6 @@ module.exports = {
             debug: args.debug,
         };
         new DialogueGenerator(options)
-            .pipe(counter)
             .pipe(DIALOG_SERIALIZERS[args.output_format.replace('-', '_')]())
             .pipe(args.output);
 

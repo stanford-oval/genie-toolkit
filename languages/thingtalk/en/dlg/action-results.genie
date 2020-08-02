@@ -37,9 +37,9 @@
 
 for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
     thingpedia_action_past = {
-        ( action:thingpedia_action_past 'it'
-        | action:thingpedia_action_past 'this'
-        | action:thingpedia_action_past 'that'
+        ( action:thingpedia_action_past 'it' [priority=-0.01]
+        | action:thingpedia_action_past 'this' [priority=-0.01]
+        | action:thingpedia_action_past 'that' [priority=-0.01]
         ) [-> pname] => {
             const type = action.schema.getArgType(pname);
             if (!type || !type.isEntity)
@@ -50,15 +50,21 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
 }
 
 complete_past_action_phrase = {
-    action:thingpedia_action_past 'for you' if complete => {
+    ( action:thingpedia_action_past
+    | action:thingpedia_action_past 'for you'
+    ) if complete => {
         if (!(action instanceof Ast.Action.Invocation))
             return null;
         return action.invocation;
     };
 
-    ( action:complete_past_action_phrase param:preposition_input_param
-    | action:complete_past_action_phrase ('with' | 'having') param:npp_input_param
+    ( action:complete_past_action_phrase param:preposition_input_param [priority=0.1]
+    | action:complete_past_action_phrase ('with' | 'having') param:npp_input_param [priority=0.1]
     ) => C.addInvocationInputParam(action, param);
+
+    ( action:complete_past_action_phrase param:preposition_filter [priority=0.1]
+    | action:complete_past_action_phrase ('with' | 'having') param:npp_filter [priority=0.1]
+    ) => C.addInvocationInputParam(action, new Ast.InputParam(null, param.name, param.value), { allowOutput: true });
 }
 
 generic_action_success_phrase = {
@@ -73,11 +79,15 @@ action_success_phrase = {
     ctx:ctx_completed_action_success generic_excitement_phrase generic_action_success_phrase result:direct_result_info_phrase [priority=1]
         => D.makeThingpediaActionSuccessPhrase(ctx, result);
 
-    ctx:ctx_completed_action_success 'i' action:complete_past_action_phrase '.'
+    ctx:ctx_completed_action_success generic_excitement_phrase 'i' action:complete_past_action_phrase '.' [priority=2]
         => D.makeCompleteActionSuccessPhrase(ctx, action, null);
 
-    ctx:ctx_completed_action_success 'i' action:complete_past_action_phrase '.' info:direct_result_info_phrase [priority=2]
+    ctx:ctx_completed_action_success generic_excitement_phrase 'i' action:complete_past_action_phrase '.' info:direct_result_info_phrase [priority=2]
         => D.makeCompleteActionSuccessPhrase(ctx, action, info);
+
+    // purely generic fallback, so we always say something, even if we cannot use a better template
+    ctx:ctx_completed_action_success generic_excitement_phrase generic_action_success_phrase [priority=-10]
+        => D.makeGenericActionSuccessPhrase(ctx);
 }
 
 short_action_error_message = {

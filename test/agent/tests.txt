@@ -18,7 +18,7 @@ A: >> expecting = yesno
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.facebook.post(status="hello world") #[confirm=enum(confirmed)];
 
-A: I post hello world on facebook for you.
+A: Alright, I posted hello world on facebook.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.facebook.post attribute:id = GENERIC_ENTITY_tt:device_id_0 param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world","GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":null}}
 A: >> expecting = null
 
@@ -42,7 +42,7 @@ A: >> expecting = yesno
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.facebook.post(status="hello world") #[confirm=enum(confirmed)];
 
-A: I post hello world on facebook for you.
+A: Alright, I posted hello world on facebook.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.facebook.post attribute:id = GENERIC_ENTITY_tt:device_id_0 param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world","GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":null}}
 A: >> expecting = null
 
@@ -73,7 +73,7 @@ A: >> expecting = yesno
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.twitter.post(status="hello world") #[confirm=enum(confirmed)];
 
-A: I post on twitter saying hello world for you.
+A: Alright, I tweeted hello world.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.twitter.post attribute:id = GENERIC_ENTITY_tt:device_id_0 param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world","GENERIC_ENTITY_tt:device_id_0":{"value":"twitter-foo","display":null}}
 A: >> expecting = null
 

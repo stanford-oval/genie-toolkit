@@ -266,17 +266,17 @@ class ThingpediaLoader {
                         expansion = [before, constant, after];
                         corefexpansion = [before, corefconst, after];
                     } else if (before) {
-                        expansion = [before, constant];
-                        corefexpansion = [before, corefconst];
+                        expansion = [before, constant, ''];
+                        corefexpansion = [before, corefconst, ''];
                     } else if (after) {
-                        expansion = [constant, after];
-                        corefexpansion = [corefconst, after];
+                        expansion = ['', constant, after];
+                        corefexpansion = ['', corefconst, after];
                     } else {
-                        expansion = [constant];
-                        corefexpansion = [corefconst];
+                        expansion = ['', constant, ''];
+                        corefexpansion = ['', corefconst, ''];
                     }
-                    this._grammar.addRule(cat + '_input_param', expansion, this._runtime.simpleCombine((value) => new Ast.InputParam(null, pname, value)), attributes);
-                    this._grammar.addRule('coref_' + cat + '_input_param', corefexpansion, this._runtime.simpleCombine((value) => new Ast.InputParam(null, pname, value)), attributes);
+                    this._grammar.addRule(cat + '_input_param', expansion, this._runtime.simpleCombine((_1, value, _2) => new Ast.InputParam(null, pname, value)), attributes);
+                    this._grammar.addRule('coref_' + cat + '_input_param', corefexpansion, this._runtime.simpleCombine((_1, value, _2) => new Ast.InputParam(null, pname, value)), attributes);
                 }
             }
         }
@@ -474,13 +474,13 @@ class ThingpediaLoader {
                         this._addOutParam(functionName, pname, ptype, typestr, form.trim());
                         if (!canonical.npp && !canonical.property) {
                             const expansion = [form, constant];
-                            this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)));
+                            this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((_, value) => makeFilter(this, pvar, op, value, false)));
                             const corefexpansion = [form, corefconst];
-                            this._grammar.addRule('coref_npp_filter', corefexpansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)), attributes);
+                            this._grammar.addRule('coref_npp_filter', corefexpansion, this._runtime.simpleCombine((_, value) => makeFilter(this, pvar, op, value, false)), attributes);
 
                             if (canUseBothForm) {
                                 const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
-                                this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)), attributes);
+                                this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values) => makeAndFilter(this, pvar, op, values, false)), attributes);
                             }
                         }
                     } else if (cat === 'reverse_verb') {
@@ -505,24 +505,24 @@ class ThingpediaLoader {
                             pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
                         } else if (before) {
                             // "named #"
-                            expansion = [before, constant];
-                            corefexpansion = [before, corefconst];
-                            pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                            expansion = [before, constant, ''];
+                            corefexpansion = [before, corefconst, ''];
+                            pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), ''];
                         } else if (after) {
                             // "# -ly priced"
-                            expansion = [constant, after];
-                            corefexpansion = [corefconst, after];
-                            pairexpansion = [new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
+                            expansion = ['', constant, after];
+                            corefexpansion = ['', corefconst, after];
+                            pairexpansion = ['', new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
                         } else {
                             // "#" (as in "# restaurant")
-                            expansion = [constant];
-                            corefexpansion = [corefconst];
-                            pairexpansion = [new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
+                            expansion = ['', constant, ''];
+                            corefexpansion = ['', corefconst, ''];
+                            pairexpansion = ['', new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), ''];
                         }
-                        this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)), attributes);
-                        this._grammar.addRule('coref_' + cat + '_filter', corefexpansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)), attributes);
+                        this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((_1, value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
+                        this._grammar.addRule('coref_' + cat + '_filter', corefexpansion, this._runtime.simpleCombine((_1, value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
                         if (canUseBothForm)
-                            this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_, values) => makeAndFilter(this, pvar, op, values, false)), attributes);
+                            this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values, _3) => makeAndFilter(this, pvar, op, values, false)), attributes);
                     }
                 }
             }
@@ -860,20 +860,20 @@ class ThingpediaLoader {
             let typestr = typeToStringSafe(ttType);
             const { has_ner_support } = this._entities[entityType];
 
-            if (this._idTypes.has(typestr)) {
-                if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
-                    console.log('Loaded entity ' + entityType + ' as id entity');
-            } else {
-                if (has_ner_support) {
+            if (has_ner_support || this._idTypes.has(typestr)) {
+                if (this._idTypes.has(typestr)) {
                     if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
-                        console.log('Loaded entity ' + entityType + ' as generic entity');
-
-                    this._grammar.declareSymbol('constant_' + typestr);
-                    this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + entityType, ttType);
+                        console.log('Loaded entity ' + entityType + ' as id entity');
                 } else {
                     if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
-                        console.log('Loaded entity ' + entityType + ' as non-constant entity');
+                        console.log('Loaded entity ' + entityType + ' as generic entity');
                 }
+
+                this._grammar.declareSymbol('constant_' + typestr);
+                this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + entityType, ttType);
+            } else {
+                if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
+                    console.log('Loaded entity ' + entityType + ' as non-constant entity');
             }
         }
     }

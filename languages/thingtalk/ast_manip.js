@@ -26,7 +26,7 @@ const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 const Units = require('thingtalk-units');
 
-const { typeToStringSafe, isSameFunction } = require('./utils');
+const { typeToStringSafe, isSameFunction, normalizeConfirmAnnotation } = require('./utils');
 const Utils = require('./utils');
 const { notifyAction } = ThingTalk.Generate;
 
@@ -364,7 +364,7 @@ function makeEventStreamProjection(table) {
     return new Ast.Stream.Projection(null, new Ast.Stream.Monitor(null, table, null, table.schema), ['$event'], table.schema);
 }
 
-function makeTypeBasedTableProjection(table, ptype, ptypestr) {
+function makeTypeBasedTableProjection(table, ptype, ptypestr = typeToStringSafe(ptype)) {
     if (table.isProjection)
         return null;
 
@@ -511,9 +511,22 @@ function makeSortedTable(table, pname, direction = 'desc') {
 }
 
 function checkValidQuery(table) {
-    // all queries are valid, actually
-    // filter conflicts are handled elsewhere
-    return true;
+    // check that the query does not include "id ==" (it should be "id =~")
+    // this check is only applied at the first turn (or first turn of a new domain)
+    const filterTable = findFilterTable(table);
+    if (!filterTable)
+        return true;
+
+    let hasIDFilter = false;
+    filterTable.filter.visit(new class extends Ast.NodeVisitor {
+        visitAtomBooleanExpression(expr) {
+            if (expr.name === 'id' && expr.operator === '==')
+                hasIDFilter = true;
+            return true;
+        }
+    });
+
+    return !hasIDFilter;
 }
 
 function makeProgram(rule) {
@@ -1015,14 +1028,24 @@ function arrayFilterTableJoin(into, filteredTable) {
 function tableJoinReplacePlaceholder(into, pname, projection) {
     if (projection === null)
         return null;
-    if (!projection.isProjection || !projection.table || projection.args.length !== 1)
+    const intotype = into.schema.inReq[pname];
+    if (!intotype)
+        return null;
+    if (!projection.isProjection) {
+        if (intotype.isString || (intotype.isEntity && intotype.type === 'tt:picture'))
+            return null;
+
+        projection = makeTypeBasedTableProjection(projection, intotype);
+        if (projection === null)
+            return null;
+    }
+    if (projection.args.length !== 1)
         throw new TypeError('???');
     const joinArg = projection.args[0];
     if (joinArg === '$event' && ['p_body', 'p_message', 'p_caption', 'p_status'].indexOf(pname) < 0)
         return null;
     const ptype = joinArg === '$event' ? Type.String : projection.schema.out[joinArg];
-    const intotype = into.schema.inReq[pname];
-    if (!intotype || !ptype.equals(intotype))
+    if (!ptype.equals(intotype))
         return null;
 
     let [passign, etaReduced] = etaReduceTable(into, pname);
@@ -1059,7 +1082,18 @@ function actionReplaceParamWith(into, pname, projection) {
 function actionReplaceParamWithTable(into, pname, projection) {
     if (projection === null)
         return null;
-    if (!projection.isProjection || !projection.table || projection.args.length !== 1)
+    const intotype = into.schema.inReq[pname];
+    if (!intotype)
+        return null;
+    if (!projection.isProjection) {
+        if (intotype.isString || (intotype.isEntity && intotype.type === 'tt:picture'))
+            return null;
+
+        projection = makeTypeBasedTableProjection(projection, intotype);
+        if (projection === null)
+            return null;
+    }
+    if (projection.args.length !== 1)
         throw new TypeError('???');
     const reduced = actionReplaceParamWith(into, pname, projection);
     if (reduced === null)
@@ -1606,10 +1640,10 @@ function filterUsesParam(filter, pname) {
     return used;
 }
 
-function checkInvocationInputParam(invocation, param) {
+function checkInvocationInputParam(invocation, param, options = {}) {
     assert(invocation instanceof Ast.Invocation);
     const arg = invocation.schema.getArgument(param.name);
-    if (!arg || !arg.is_input || !isConstantAssignable(param.value, arg.type))
+    if (!arg || (!arg.is_input && !options.allowOutput) || !isConstantAssignable(param.value, arg.type))
         return false;
 
     if (arg.type.isNumber || arg.type.isMeasure) {
@@ -1634,8 +1668,8 @@ function checkInvocationInputParam(invocation, param) {
     return true;
 }
 
-function addInvocationInputParam(invocation, param) {
-    if (!checkInvocationInputParam(invocation, param))
+function addInvocationInputParam(invocation, param, options) {
+    if (!checkInvocationInputParam(invocation, param, options))
         return null;
 
     const clone = invocation.clone();
@@ -1759,6 +1793,7 @@ module.exports = {
     getFunctionNames,
     getFunctions,
     getInvocation,
+    normalizeConfirmAnnotation,
 
     // constants
     addUnit,

@@ -209,21 +209,11 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
     }
 
     thingpedia_action_past = {
-        a:thingpedia_action v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(a, pname, v);
+        a:thingpedia_action_past v:$('constant_' + typestr) [-> pname { isConstant: true }] [priority=1.5] => C.replacePlaceholderWithConstant(a, pname, v);
     }
 
     thingpedia_error_message = {
-        msg:thingpedia_error_message v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replaceErrorMessagePlaceholder(msg, pname, v);
-    }
-
-    if (typestr.startsWith('Entity')) {
-        thingpedia_action_past = {
-            a:thingpedia_action v:constant_name [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(a, pname, v);
-        }
-
-        thingpedia_error_message = {
-            msg:thingpedia_error_message v:constant_name [-> pname { isConstant: true }] => C.replaceErrorMessagePlaceholder(msg, pname, v);
-        }
+        msg:thingpedia_error_message v:$('constant_' + typestr) [-> pname { isConstant: true }] [priority=1.5] => C.replaceErrorMessagePlaceholder(msg, pname, v);
     }
 
     thingpedia_program = {

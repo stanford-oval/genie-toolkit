@@ -308,8 +308,16 @@ for (let [pname, [typestr, pcanonical]] of _tpLoader.params.in.values()) {
 
         // replace $-placeholders with projection-based parameter passing
 
-        table_join_replace_placeholder = q:thingpedia_query p:$('single_projection_' + typestr) [-> pname] => C.tableJoinReplacePlaceholder(q, pname, p);
-        action_replace_param_with_table = a:thingpedia_action p:$('single_projection_' + typestr) [-> pname] => C.actionReplaceParamWithTable(a, pname, p);
+        table_join_replace_placeholder = {
+            ( q:thingpedia_query p:with_filtered_table
+            | q:thingpedia_query p:complete_table
+            ) [-> pname] => C.tableJoinReplacePlaceholder(q, pname, p);
+        }
+        action_replace_param_with_table = {
+            ( a:thingpedia_action p:with_filtered_table
+            | a:thingpedia_action p:complete_table
+            ) [-> pname] => C.actionReplaceParamWithTable(a, pname, p);
+        }
         action_replace_param_with_stream = a:thingpedia_action p:$('single_stream_projection_' + typestr) [-> pname] => C.actionReplaceParamWithStream(a, pname, p);
 
         if (_tpLoader.types.id.has(typestr)) {

@@ -75,6 +75,7 @@ context
     ctx_with_result_question,
     ctx_with_result_noquestion,
     ctx_without_projection,
+    ctx_for_related_question,
 
     // result states (used to interpret user utterances)
     // these should be returned by S.tagContextForAgent()
@@ -214,7 +215,7 @@ $agent = {
 }
 
 $user = {
-    ctx:ctx_init greeting [weight=0.01]
+    ctx:ctx_init greeting [weight=0.01, expandchoice=false]
         => S.makeSimpleState(ctx, 'greet', null);
     ( ctx:ctx_init stmt:initial_command [weight=0.5]
     | ctx:ctx_init greeting stmt:initial_command [weight=0.5]

@@ -54,10 +54,23 @@ $root = {
         ) => C.makeProgram(stmt);
     }
 
-    ( stmt:action_command [weight=3]
+    (
+      // now => say
+      stmt:say_command [weight=0.1]
+
+      // now => do
+    | stmt:complete_action
+    | generic_preamble_for_action stmt:complete_action
+
+      // now => get => do
+    | generic_preamble_for_action stmt:complete_forward_get_do_command [weight=0.1]
+
     | stmt:search_command
     | stmt:complete_question [weight=0.1]
     | stmt:projection_question [weight=0.1]
     ) => C.makeProgram(stmt);
+
+    !turking generic_preamble_for_action stmt:backward_get_do_command if complete [weight=0.1]
+        => C.makeProgram(stmt);
 }
 
