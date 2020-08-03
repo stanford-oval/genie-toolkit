@@ -129,6 +129,7 @@ class SchemaProcessor {
         this._hasGeo = false;
         this._prefix = `${this._className}:`;
         this._white_list = args.white_list.split(',');
+        this._entities = [];
 
         this._wikidata_path = args.wikidata_path;
         this._wikidata_labels = {};
@@ -225,6 +226,9 @@ class SchemaProcessor {
         let tttype = this.typeToThingTalk(best, typeHierarchy, manualAnnotation);
         if (!tttype)
             return [undefined, undefined];
+
+        if (tttype.isEntity && tttype.type.startsWith(this._prefix) && !this._entities.includes(tttype.type))
+            this._entities.push(tttype.type);
 
         // an array of booleans or enums does not make much sense
         if (tttype.isBoolean || tttype.isEnum)
@@ -672,9 +676,14 @@ class SchemaProcessor {
             new Ast.ImportStmt.Mixin(null, ['config'], 'org.thingpedia.config.none', [])
         ];
 
+        const entities = this._entities.map((entityType) => {
+            const name = entityType.slice(this._prefix.length);
+            return new Ast.EntityDef(null, name, {});
+        });
+
         const classdef = new Ast.ClassDef(null,
             `${this._className}`,
-            [], { queries, imports }, {
+            [], { queries, imports, entities }, {
             nl: {
                 name: `${this._className.slice(this._className.lastIndexOf('.') + 1)} in Schema.org`,
                 description: 'Scraped data from websites that support schema.org'
