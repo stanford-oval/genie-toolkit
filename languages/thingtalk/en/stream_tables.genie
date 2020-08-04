@@ -307,99 +307,155 @@ two_verb_filter_table = {
     !nofilter table:one_verb_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
 }
 
+generic_argminmax = {
+    ('maximum' | 'highest') p:out_param_Number => [p, 'desc'];
+    ('minimum' | 'lowest') p:out_param_Number => [p, 'asc'];
+
+    ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => [p, 'desc'];
+    ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => [p, 'asc'];
+
+    ('longest' | 'most lasting') p:out_param_Measure_ms => [p, 'desc'];
+    'shortest' p:out_param_Measure_ms => [p, 'asc'];
+
+    ('maximum' | 'largest') p:out_param_Measure_byte => [p, 'desc'];
+    ('minimum' | 'smallest') p:out_param_Measure_byte => [p, 'asc'];
+
+    ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => [p, 'desc'];
+    ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => [p, 'asc'];
+
+    ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => [p, 'desc'];
+    ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => [p, 'asc'];
+
+    ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => [p, 'desc'];
+    ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => [p, 'asc'];
+
+    ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => [p, 'desc'];
+    ('slowest' | 'most slowly') p:out_param_Measure_mps => [p, 'asc'];
+
+    ('latest'| 'most recent') p:out_param_Date => [p, 'desc'];
+    ('earliest' | 'soonest') p:out_param_Date => [p, 'asc'];
+
+    ('latest'| 'most recent') p:out_param_Time => [p, 'desc'];
+    ('earliest' | 'soonest') p:out_param_Time => [p, 'asc'];
+}
 
 // arg min max
 with_arg_min_max_table = {
-    ?aggregation {
-    t:complete_table ('with' | 'which has') 'the' ('maximum' | 'highest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('with' | 'which has') 'the' ('minimum' | 'lowest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('with' | 'which has') 'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('with' | 'which has') 'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('with' | 'which has') 'the' ('longest' | 'most lasting') p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('with' | 'which has') 'the shortest' p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('with' | 'which has') 'the' ('maximum' | 'largest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('with' | 'which has') 'the' ('minimum' | 'smallest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('with' | 'which has') 'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('with' | 'which has') 'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('with' | 'which has') 'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('with' | 'which has') 'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('with' | 'which has') 'the' ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('with' | 'which has') 'the' ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('with' | 'which has') 'the' ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('with' | 'which has') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('with' | 'which has') 'the' ('latest'| 'most recent') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('with' | 'which has') 'the' ('latest'| 'most recent') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'asc');
+    // note: the *_argminmax templates expect "the" to be prepended in front,
+    // except for (avp_argminmax, pvp_argminmax and preposition_argminmax)
+    // for the whole expression, "the" will be prepended by the template that uses
+    // "with_arg_min_max_table"
 
-    t:with_filtered_table ('with' | 'which has') 'the' ('maximum' | 'highest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('minimum' | 'lowest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('longest' | 'most lasting') p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('with' | 'which has') 'the shortest' p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('maximum' | 'largest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('minimum' | 'smallest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('latest'| 'most recent') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('latest'| 'most recent') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('with' | 'which has') 'the' ('earliest' | 'soonest') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'asc');
+    ?aggregation {
+    ( t:complete_table ('with' | 'which has' | 'which have') 'the' argminmax:generic_argminmax
+    | t:complete_table ('with' | 'which has' | 'which have') 'the' argminmax:npp_argminmax
+    | t:complete_table ('that' | 'which') argminmax:avp_argminmax
+    | t:complete_table ('that' | 'which') ('is' | 'are') argminmax:pvp_argminmax
+    | t:complete_table ('that' | 'which') ('is' | 'are') 'the' argminmax:apv_argminmax
+    | argminmax:apv_argminmax t:complete_table
+    | t:complete_table ('that' | 'which') ('is' | 'are') argminmax:preposition_argminmax
+
+    | t:one_clean_filter_table ('with' | 'which has' | 'which have') 'the' argminmax:generic_argminmax
+    | t:one_clean_filter_table ('with' | 'which has' | 'which have') argminmax:npp_argminmax
+    | t:one_clean_filter_table ('that' | 'which') argminmax:avp_argminmax
+    | t:one_clean_filter_table ('that' | 'which') ('is' | 'are') argminmax:pvp_argminmax
+    | t:one_clean_filter_table ('that' | 'which') ('is' | 'are') 'the' argminmax:apv_argminmax
+    | argminmax:apv_argminmax t:one_clean_filter_table
+    | t:one_clean_filter_table ('that' | 'which') ('is' | 'are') argminmax:preposition_argminmax
+
+    | t:one_with_filter_table 'and the' argminmax:generic_argminmax
+    | t:one_with_filter_table 'and the' argminmax:npp_argminmax
+    | t:one_with_filter_table ('that' | 'which') argminmax:avp_argminmax
+    | t:one_with_filter_table ('that' | 'which') ('is' | 'are') argminmax:pvp_argminmax
+    | t:one_with_filter_table ('that' | 'which') ('is' | 'are') 'the' argminmax:apv_argminmax
+    | argminmax:apv_argminmax t:one_with_filter_table
+    | t:one_with_filter_table ('that' | 'which') ('is' | 'are') argminmax:preposition_argminmax
+
+    | t:two_with_filter_table 'and the' argminmax:generic_argminmax
+    | t:two_with_filter_table 'and the' argminmax:npp_argminmax
+    | t:two_with_filter_table ('that' | 'which') argminmax:avp_argminmax
+    | t:two_with_filter_table ('that' | 'which') ('is' | 'are') argminmax:pvp_argminmax
+    | t:two_with_filter_table ('that' | 'which') ('is' | 'are') 'the' argminmax:apv_argminmax
+    | argminmax:apv_argminmax t:two_with_filter_table
+    | t:two_with_filter_table ('that' | 'which') ('is' | 'are') argminmax:preposition_argminmax
+
+    | t:one_which_filter_table 'and have the' argminmax:generic_argminmax
+    | t:one_which_filter_table 'and have the' argminmax:npp_argminmax
+    | t:one_which_filter_table 'and' argminmax:avp_argminmax
+    | t:one_which_filter_table 'and' ('is' | 'are') argminmax:pvp_argminmax
+    | t:one_which_filter_table 'and' ('is' | 'are') 'the' argminmax:apv_argminmax
+    | argminmax:apv_argminmax t:one_which_filter_table
+    | t:one_which_filter_table 'and' ('is' | 'are') argminmax:preposition_argminmax
+
+    | t:two_which_filter_table 'and have the' argminmax:generic_argminmax
+    | t:two_which_filter_table 'and have the' argminmax:npp_argminmax
+    | t:two_which_filter_table 'and' argminmax:avp_argminmax
+    | t:two_which_filter_table 'and' ('is' | 'are') argminmax:pvp_argminmax
+    | t:two_which_filter_table 'and' ('is' | 'are') 'the' argminmax:apv_argminmax
+    | argminmax:apv_argminmax t:two_which_filter_table
+    | t:two_which_filter_table 'and' ('is' | 'are') argminmax:preposition_argminmax
+    ) => C.makeArgMaxMinTable(t, argminmax[0].name, argminmax[1]);
     }
 }
 
 have_arg_min_max_table = {
     ?aggregation {
-    t:complete_table ('has' | 'gets') 'the' ('maximum' | 'highest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('has' | 'gets') 'the' ('minimum' | 'lowest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('has' | 'gets') 'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('has' | 'gets') 'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('has' | 'gets') 'the' ('longest' | 'most lasting') p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('has' | 'gets') 'the shortest' p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('has' | 'gets') 'the' ('maximum' | 'largest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('has' | 'gets') 'the' ('minimum' | 'smallest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('has' | 'gets') 'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('has' | 'gets') 'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('has' | 'gets') 'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('has' | 'gets') 'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('has' | 'gets') 'the' ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('has' | 'gets') 'the' ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('has' | 'gets') 'the' ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('has' | 'gets') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('has' | 'gets') 'the' ('latest'| 'most recent') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('has' | 'gets') 'the' ('earliest' | 'soonest') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:complete_table ('has' | 'gets') 'the' ('latest'| 'most recent') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:complete_table ('has' | 'gets') 'the' ('earliest' | 'soonest') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'asc');
-    }
+    ( t:complete_table ('has' | 'gets') 'the' argminmax:generic_argminmax
+    | t:complete_table ('has' | 'gets') 'the' argminmax:npp_argminmax
+    | t:complete_table argminmax:avp_argminmax
+    | t:complete_table ('is' | 'are') argminmax:pvp_argminmax
+    | t:complete_table ('is' | 'are') 'the' argminmax:apv_argminmax
+    | t:complete_table ('is' | 'are') argminmax:preposition_argminmax
 
-    ?aggregation {
-    t:with_filtered_table ('has' | 'gets') 'the' ('maximum' | 'highest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('minimum' | 'lowest') p:out_param_Number => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('longest' | 'most lasting') p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('has' | 'gets') 'the shortest' p:out_param_Measure_ms => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('maximum' | 'largest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('minimum' | 'smallest') p:out_param_Measure_byte => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('slowest' | 'most slowly') p:out_param_Measure_mps => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('latest'| 'most recent') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('earliest' | 'soonest') p:out_param_Date => C.makeArgMaxMinTable(t, p.name, 'asc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('latest'| 'most recent') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'desc');
-    t:with_filtered_table ('has' | 'gets') 'the' ('earliest' | 'soonest') p:out_param_Time => C.makeArgMaxMinTable(t, p.name, 'asc');
+    | t:with_filtered_table ('has' | 'gets') 'the' argminmax:generic_argminmax
+    | t:with_filtered_table ('has' | 'gets') 'the' argminmax:npp_argminmax
+    | t:with_filtered_table argminmax:avp_argminmax
+    | t:with_filtered_table ('is' | 'are') argminmax:pvp_argminmax
+    | t:with_filtered_table ('is' | 'are') 'the' argminmax:apv_argminmax
+    | t:with_filtered_table ('is' | 'are') argminmax:preposition_argminmax
+
+    | t:one_have_filter_table ('and' | 'and has') 'the' argminmax:generic_argminmax
+    | t:one_have_filter_table ('and' | 'and has') 'the' argminmax:npp_argminmax
+    | t:one_have_filter_table 'and' argminmax:avp_argminmax
+    | t:one_have_filter_table 'and' ('is' | 'are') argminmax:pvp_argminmax
+    | t:one_have_filter_table 'and' ('is' | 'are') 'the' argminmax:apv_argminmax
+    | t:one_have_filter_table 'and' ('is' | 'are') argminmax:preposition_argminmax
+
+    | t:one_verb_filter_table ('and' | 'and has') 'the' argminmax:generic_argminmax
+    | t:one_verb_filter_table ('and' | 'and has') 'the' argminmax:npp_argminmax
+    | t:one_verb_filter_table 'and' argminmax:avp_argminmax
+    | t:one_verb_filter_table 'and' ('is' | 'are') argminmax:pvp_argminmax
+    | t:one_verb_filter_table 'and' ('is' | 'are') 'the' argminmax:apv_argminmax
+    | t:one_verb_filter_table 'and' ('is' | 'are') argminmax:preposition_argminmax
+
+    | t:one_be_filter_table ('and' | 'and has') 'the' argminmax:generic_argminmax
+    | t:one_be_filter_table ('and' | 'and has') 'the' argminmax:npp_argminmax
+    | t:one_be_filter_table 'and' argminmax:avp_argminmax
+    | t:one_be_filter_table 'and' ('' | 'is' | 'are') argminmax:pvp_argminmax
+    | t:one_be_filter_table 'and' ('' | 'is' | 'are') 'the' argminmax:apv_argminmax
+    | t:one_be_filter_table 'and' ('' | 'is' | 'are') argminmax:preposition_argminmax
+
+    | t:two_have_filter_table ('and' | 'and has') 'the' argminmax:generic_argminmax
+    | t:two_have_filter_table ('and' | 'and has') 'the' argminmax:npp_argminmax
+    | t:two_have_filter_table 'and' argminmax:avp_argminmax
+    | t:two_have_filter_table 'and' ('is' | 'are') argminmax:pvp_argminmax
+    | t:two_have_filter_table 'and' ('is' | 'are') 'the' argminmax:apv_argminmax
+    | t:two_have_filter_table 'and' ('is' | 'are') argminmax:preposition_argminmax
+
+    | t:two_verb_filter_table ('and' | 'and has') 'the' argminmax:generic_argminmax
+    | t:two_verb_filter_table ('and' | 'and has') 'the' argminmax:npp_argminmax
+    | t:two_verb_filter_table 'and' argminmax:avp_argminmax
+    | t:two_verb_filter_table 'and' ('is' | 'are') argminmax:pvp_argminmax
+    | t:two_verb_filter_table 'and' ('is' | 'are') 'the' argminmax:apv_argminmax
+    | t:two_verb_filter_table 'and' ('is' | 'are') argminmax:preposition_argminmax
+
+    | t:two_be_filter_table ('and' | 'and has') 'the' argminmax:generic_argminmax
+    | t:two_be_filter_table ('and' | 'and has') 'the' argminmax:npp_argminmax
+    | t:two_be_filter_table 'and' argminmax:avp_argminmax
+    | t:two_be_filter_table 'and' ('' | 'is' | 'are') argminmax:pvp_argminmax
+    | t:two_be_filter_table 'and' ('' | 'is' | 'are') 'the' argminmax:apv_argminmax
+    | t:two_be_filter_table 'and' ('' | 'is' | 'are') argminmax:preposition_argminmax
+    ) => C.makeArgMaxMinTable(t, argminmax[0].name, argminmax[1]);
     }
 }
 

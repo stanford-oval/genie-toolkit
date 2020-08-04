@@ -423,10 +423,14 @@ class ThingpediaLoader {
                 continue;
 
             let annotvalue = canonical[cat];
-            let isEnum = false;
+            let isEnum = false, argMinMax = undefined;
             if (vtype.isEnum && cat.endsWith('_enum')) {
                 cat = cat.substring(0, cat.length - '_enum'.length);
                 isEnum = true;
+            } else if (cat.endsWith('_argmin') || cat.endsWith('_argmax')) {
+                // _argmin is the same length as _argmax
+                cat = cat.substring(0, cat.length - '_argmin'.length);
+                argMinMax = cat.endsWith('_argmin') ? 'asc' : 'desc';
             }
 
             if (cat in ANNOTATION_RENAME)
@@ -465,6 +469,12 @@ class ThingpediaLoader {
                     for (let form of forms)
                         this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, op, value, false)), attributes);
                 }
+            } else if (argMinMax) {
+                if (!Array.isArray(annotvalue))
+                    annotvalue = [annotvalue];
+
+                for (let form of annotvalue)
+                    this._grammar.addRule(cat + '_argminmax', [form], this._runtime.simpleCombine(() => [pvar, argMinMax]), attributes);
             } else {
                 if (!Array.isArray(annotvalue))
                     annotvalue = [annotvalue];
