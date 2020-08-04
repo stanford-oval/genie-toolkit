@@ -395,6 +395,12 @@ with_arg_min_max_table = {
     | argminmax:apv_argminmax t:two_which_filter_table
     | t:two_which_filter_table 'and' ('is' | 'are') argminmax:preposition_argminmax
     ) => C.makeArgMaxMinTable(t, argminmax[0].name, argminmax[1]);
+
+    ( argminmax:apv_argminmax count:constant_Number t:with_filtered_table
+    | count:constant_Number argminmax:apv_argminmax t:with_filtered_table
+    )
+        => C.makeArgMaxMinTable(t, argminmax[0].name, argminmax[1], count);
+
     }
 }
 

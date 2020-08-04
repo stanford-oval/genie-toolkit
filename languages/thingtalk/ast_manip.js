@@ -487,6 +487,9 @@ function makeArgMaxMinTable(table, pname, direction, count) {
         return null;
 
     count = count || new Ast.Value.Number(1);
+    if (count.isNumber && count.value <= 0)
+        return null;
+
     return new Ast.Table.Slice(null, t_sort, new Ast.Value.Number(1), count, t_sort.schema);
 }
 
