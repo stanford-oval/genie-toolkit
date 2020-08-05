@@ -499,8 +499,10 @@ class ThingpediaLoader {
                                 this.projections[pname][cat] = [];
 
                             // always have what question for projection
-                            for (let base of canonical.base)
-                                this._addProjections(pname, 'what', cat, base, form);
+                            if (canonical.base) {
+                                for (let base of Array.isArray(canonical.base) ? canonical.base : [canonical.base])
+                                    this._addProjections(pname, 'what', cat, base, form);
+                            }
 
                             // add non-what question when applicable
                             // `base` is no longer need for non-what question, thus leave as empty string
