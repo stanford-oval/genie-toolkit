@@ -424,6 +424,7 @@ function isEqualityFilteredOnParameter(table, pname) {
 }
 
 function makeSingleFieldProjection(ftype, ptype, table, pname) {
+    assert(table);
     assert(ftype === 'table' || ftype === 'stream');
     assert(typeof pname === 'string');
 

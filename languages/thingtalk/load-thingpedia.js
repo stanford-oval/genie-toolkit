@@ -576,7 +576,7 @@ class ThingpediaLoader {
 
                 // for when question, we can drop the prep entirely
                 if (pronounType === 'when')
-                    this.projections[pname][posCategory].push(pronoun, base, verb);
+                    this.projections[pname][posCategory].push([pronoun, base, verb]);
             }
             this.projections[pname][posCategory].push([pronoun, base, tokens.join(' ')]);
         }
