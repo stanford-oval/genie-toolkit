@@ -571,6 +571,10 @@ class ThingpediaLoader {
             if (canonicalWithoutPlaceholder.includes('/')) {
                 const [verb, prep] = canonicalWithoutPlaceholder.split('/').map((span) => span.trim());
                 this.projections[pname][posCategory].push([`${prep} ${pronoun}`, base, verb]);
+
+                // for when question, we can drop the prep entirely
+                if (pronounType === 'when')
+                    this.projections[pname][posCategory].push(pronoun, base, verb);
             }
             this.projections[pname][posCategory].push([pronoun, base, tokens.join(' ')]);
         }
