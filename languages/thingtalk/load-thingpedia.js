@@ -486,7 +486,10 @@ class ThingpediaLoader {
                             }
                         }
                     } else {
-                        if (pname !== 'id' && ['avp', 'pvp', 'preposition', 'reverse_verb'].includes(cat) && (!form.includes('#') || form.endsWith(' #'))) {
+                        if (cat === 'avp' && form.startsWith('# '))
+                            cat = 'reverse_verb';
+
+                        if (pname !== 'id' && ['avp', 'pvp', 'preposition', 'reverse_verb'].includes(cat)) {
                             const pronounType = interrogativePronoun(ptype);
 
                             // FIXME: if two params with the same name have different interrogative pronouns, this approach is problematic...
@@ -505,18 +508,12 @@ class ThingpediaLoader {
                                 this._addProjections(pname, pronounType, cat, '', form);
                         }
 
+                        // remove slash in the canonical form
                         form = form.split('/').map((span) => span.trim()).join(' ');
-                        let before, after;
 
-                        if (cat === 'reverse_verb') {
-                            // reverse_verb always have value in front
-                            before = '';
-                            after = form.trim();
-                        } else {
-                            [before, after] = form.split('#');
-                            before = (before || '').trim();
-                            after = (after || '').trim();
-                        }
+                        let [before, after] = form.split('#');
+                        before = (before || '').trim();
+                        after = (after || '').trim();
 
                         let expansion, corefexpansion, pairexpansion;
                         if (before && after) {
@@ -559,15 +556,20 @@ class ThingpediaLoader {
         };
         assert(pronounType in pronouns);
 
+        // for pos other than reverse verb, # can only be at the end if exists
+        if (posCategory !== 'reverse_verb' && canonical.includes('#') && !canonical.endsWith('#'))
+            return;
+        const canonicalWithoutPlaceholder = canonical.replace('#', '').trim();
+
         // if base is included in the form, skip
         // e.g.,  "what award does xxx won" makes sense, but "what award does xx won award" does not
-        const tokens = canonical.replace('/', ' ').replace('#', ' ').split(/\s+/g);
+        const tokens = canonicalWithoutPlaceholder.replace('/', ' ').split(/\s+/g);
         if (base && tokens.includes(base))
             return;
 
         for (let pronoun of pronouns[pronounType]) {
-            if (canonical.includes('/')) {
-                const [verb, prep] = canonical.split('/').map((span) => span.trim());
+            if (canonicalWithoutPlaceholder.includes('/')) {
+                const [verb, prep] = canonicalWithoutPlaceholder.split('/').map((span) => span.trim());
                 this.projections[pname][posCategory].push([`${prep} ${pronoun}`, base, verb]);
             }
             this.projections[pname][posCategory].push([pronoun, base, tokens.join(' ')]);
