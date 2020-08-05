@@ -344,11 +344,13 @@ for (let [pname, [typestr, pcanonical]] of _tpLoader.params.in.values()) {
 
         table_join_replace_placeholder = {
             ( q:thingpedia_query p:with_filtered_table
+            | q:thingpedia_query p:with_arg_min_max_table
             | q:thingpedia_query p:complete_table
             ) [-> pname] => C.tableJoinReplacePlaceholder(q, pname, p);
         }
         action_replace_param_with_table = {
             ( a:thingpedia_action p:with_filtered_table
+            | a:thingpedia_action p:with_arg_min_max_table
             | a:thingpedia_action p:complete_table
             ) [-> pname] => C.actionReplaceParamWithTable(a, pname, p);
         }
