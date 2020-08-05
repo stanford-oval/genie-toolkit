@@ -65,7 +65,7 @@ function adjustStatementsForInitialRequest(stmt) {
         // otherwise, we split the compound command
         if (confirm === 'auto') {
             let newTable;
-            if (tableUsesIDFilter(stmt.table) && !stmt.table.isIndex)
+            if (tableUsesIDFilter(stmt.table) && !stmt.table.isIndex && !stmt.table.isSlice)
                 newTable = new Ast.Table.Index(null, stmt.table, [new Ast.Value.Number(1)], stmt.table.schema);
             else
                 newTable = stmt.table;
