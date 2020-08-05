@@ -39,6 +39,17 @@ constant_Number = {
     !turking {
     'zero' => new Ast.Value.Number(0);
     'one'  => new Ast.Value.Number(1);
+    'two'  => new Ast.Value.Number(2);
+    'three'  => new Ast.Value.Number(3);
+    'four'  => new Ast.Value.Number(4);
+    'five'  => new Ast.Value.Number(5);
+    'six'  => new Ast.Value.Number(6);
+    'seven'  => new Ast.Value.Number(7);
+    'eight'  => new Ast.Value.Number(8);
+    'nine'  => new Ast.Value.Number(9);
+    'ten'  => new Ast.Value.Number(10);
+    'eleven'  => new Ast.Value.Number(11);
+    'twelve'  => new Ast.Value.Number(12);
     }
 }
 
