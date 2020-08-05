@@ -229,6 +229,13 @@ function positiveRecommendationReply(ctx, acceptedAction, name) {
         // where the agent will propose an action the following turn.
         if (actionProposal === null) {
             const clone = ctx.clone();
+
+            // make sure user is talking about the correct entity
+            if (!name)
+                return null;
+            if (name[0].value !== ctx.aux.topResult.value.id.value)
+                return null;
+
             return makeSimpleState(clone, 'confirm', null);
         }
 
