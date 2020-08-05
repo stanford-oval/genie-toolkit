@@ -349,13 +349,13 @@ complete_question = {
         | ('what' | 'which') table:two_be_filter_table '?'
         | ('what' | 'which') table:two_have_filter_table '?'
         | ('what' | 'which') table:two_verb_filter_table '?'
-        | ('what' | 'which') 'are' ('the' | '') table:with_filtered_table '?'
-        | ('what' | 'which') 'are' ('the' | '') table:one_with_filter_table '?'
-        | ('what' | 'which') 'are' ('the' | '') table:one_which_filter_table '?'
-        | ('what' | 'which') 'are' ('the' | '') table:one_clean_filter_table '?'
-        | ('what' | 'which') 'are' ('the' | '') table:two_with_filter_table '?'
-        | ('what' | 'which') 'are' ('the' | '') table:two_which_filter_table '?'
-        | ('what' | 'which') 'are' ('the' | '') table:two_clean_filter_table '?'
+        | ('what' | 'which') ('are' | 'is') ('the' | '') table:with_filtered_table '?'
+        | ('what' | 'which') ('are' | 'is') ('the' | '') table:one_with_filter_table '?'
+        | ('what' | 'which') ('are' | 'is') ('the' | '') table:one_which_filter_table '?'
+        | ('what' | 'which') ('are' | 'is') ('the' | '') table:one_clean_filter_table '?'
+        | ('what' | 'which') ('are' | 'is') ('the' | '') table:two_with_filter_table '?'
+        | ('what' | 'which') ('are' | 'is') ('the' | '') table:two_which_filter_table '?'
+        | ('what' | 'which') ('are' | 'is') ('the' | '') table:two_clean_filter_table '?'
     ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
 
 
@@ -372,7 +372,7 @@ complete_question = {
 
     // now => get join get => notify
     (
-          ('what' | 'which') 'are' ('the' | '') table:with_filtered_table_join
+          ('what' | 'which') ('are' | 'is') ('the' | '') table:with_filtered_table_join
         | ('what' | 'which') table:have_filtered_table_join
     ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
 
