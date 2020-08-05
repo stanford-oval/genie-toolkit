@@ -511,7 +511,7 @@ class ThingpediaLoader {
                         }
 
                         // remove slash in the canonical form
-                        form = form.split('/').map((span) => span.trim()).join(' ');
+                        form = form.split('|').map((span) => span.trim()).join(' ');
 
                         let [before, after] = form.split('#');
                         before = (before || '').trim();
@@ -565,13 +565,13 @@ class ThingpediaLoader {
 
         // if base is included in the form, skip
         // e.g.,  "what award does xxx won" makes sense, but "what award does xx won award" does not
-        const tokens = canonicalWithoutPlaceholder.replace('/', ' ').split(/\s+/g);
+        const tokens = canonicalWithoutPlaceholder.replace('|', ' ').split(/\s+/g);
         if (base && tokens.includes(base))
             return;
 
         for (let pronoun of pronouns[pronounType]) {
-            if (canonicalWithoutPlaceholder.includes('/')) {
-                const [verb, prep] = canonicalWithoutPlaceholder.split('/').map((span) => span.trim());
+            if (canonicalWithoutPlaceholder.includes('|')) {
+                const [verb, prep] = canonicalWithoutPlaceholder.split('|').map((span) => span.trim());
                 this.projections[pname][posCategory].push([`${prep} ${pronoun}`, base, verb]);
 
                 // for when question, we can drop the prep entirely

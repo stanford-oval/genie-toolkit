@@ -180,7 +180,7 @@ const PROPERTY_CANONICAL_OVERRIDE = {
 const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     // restaurants
     'datePublished': {
-        passive_verb: ["published / on #", "written / on #"],
+        passive_verb: ["published | on #", "written | on #"],
         base: ["date published"]
     },
     'ratingValue': {
@@ -223,11 +223,11 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         ],
         verb: [
         // who went to Stanford
-        "went / to #", "graduated / from #", "attended #", "studied / at #"
+        "went | to #", "graduated | from #", "attended #", "studied | at #"
         ],
         passive_verb: [
         // who was educated at Stanford ...
-        "educated / at #", "graduated / from #"
+        "educated | at #", "graduated | from #"
         ]
     },
     award: {
@@ -248,7 +248,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
             'member of #'
         ],
         passive_verb: [
-            'affiliated / with #', 'affiliated / to #'
+            'affiliated | with #', 'affiliated | to #'
         ]
     },
     worksFor: {
@@ -256,9 +256,9 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         reverse_property: [
             'employee of #', '# employee'
         ],
-        verb: ['works / for #', 'works / at #', 'worked / at #', 'worked / for #'],
+        verb: ['works | for #', 'works | at #', 'worked | at #', 'worked | for #'],
         passive_verb: [
-            'employed / at #', 'employed / by #',
+            'employed | at #', 'employed | by #',
         ]
     },
 
@@ -267,7 +267,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['author', 'creator'],
         preposition: ['by'],
         passive_verb: [
-            'written / by', 'created / by', 'authored / by', 'uploaded / by', 'submitted / by'
+            'written | by', 'created | by', 'authored | by', 'uploaded | by', 'submitted | by'
         ],
         verb: ['# wrote', '# authored']
 
@@ -276,7 +276,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['publisher'],
         preposition: ['by'],
         passive_verb: [
-            'made / by', 'published / by'
+            'made | by', 'published | by'
         ],
     },
 
@@ -339,7 +339,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['brand'],
         adjective: ['#'],
         preposition: ['by', 'from'],
-        passive_verb: ['manufactured / by #', 'made / by #']
+        passive_verb: ['manufactured | by #', 'made | by #']
     },
 
     // books
@@ -347,7 +347,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['language'],
         adjective: ['#'],
         preposition: ['in'],
-        passive_verb: ['written / in #'],
+        passive_verb: ['written | in #'],
         reverse_property: ['# version of']
     },
     bookEdition: {
@@ -375,7 +375,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
     creator: {
         base: ['creator', 'producer'],
-        passive_verb: ['created / by', 'produced / by', 'made / by'],
+        passive_verb: ['created | by', 'produced | by', 'made | by'],
         verb: ['# created', '# creates', '# produced', '# made']
     },
     duration: {
@@ -385,12 +385,12 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     actor: {
         base: ['actor', 'actress'],
         property: ['#'],
-        passive_verb: ['played / by', 'acted / by'],
-        verb: ['stars', '# acted', '# acted / in', '# was in']
+        passive_verb: ['played | by', 'acted | by'],
+        verb: ['stars', '# acted', '# acted | in', '# was in']
     },
     director: {
         base: ['director'],
-        passive_verb: ['directed / by'],
+        passive_verb: ['directed | by'],
         verb: ['# directs', '# directed']
     },
 
@@ -398,14 +398,14 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     inAlbum: {
         base: ['album'],
         preposition: ['in', 'in album', 'on', 'on album'],
-        passive_verb: ['included / in #'],
-        verb: ['appears / in #', 'appears / on #', '# have', '# has', '# contains', '# includes'],
+        passive_verb: ['included | in #'],
+        verb: ['appears | in #', 'appears | on #', '# have', '# has', '# contains', '# includes'],
     },
     byArtist: {
         base: ['artist', 'singer', 'band'],
         adjective: ['# \'s', '#'],
         preposition: ['by', 'by artist'],
-        passive_verb: ['created / by', 'sang / by', 'performed / by'],
+        passive_verb: ['created | by', 'sang | by', 'performed | by'],
         verb: ['# sings', '# sang']
     }
 };
