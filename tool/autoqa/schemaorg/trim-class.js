@@ -27,6 +27,7 @@ const fs = require('fs');
 const util = require('util');
 
 const StreamUtils = require('../../../lib/utils/stream-utils');
+const { WHITELISTED_PROPERTIES_BY_DOMAIN } = require('./manual-annotations');
 
 const DEFAULT_ENTITIES = [
     {"type":"tt:contact","name":"Contact Identity","is_well_known":1,"has_ner_support":0},
@@ -56,11 +57,13 @@ function titleCase(str) {
 }
 
 class SchemaTrimmer {
-    constructor(classDef, data, entities) {
+    constructor(classDef, data, entities, domain) {
         this._classDef = classDef;
         this._className = classDef.name;
         this._data = data;
         this._entities = entities;
+
+        this._propertyWhitelist = domain ? WHITELISTED_PROPERTIES_BY_DOMAIN[domain] : null;
     }
 
     get class() {
@@ -172,6 +175,8 @@ class SchemaTrimmer {
 
         for (let fieldname in type.fields) {
             const field = type.fields[fieldname];
+            if (this._whiteListed(`${arg.name}.${fieldname}`))
+                continue;
             if (!field.annotations['org_schema_has_data'] || !field.annotations['org_schema_has_data'].value) {
                 delete type.fields[fieldname];
                 continue;
@@ -210,10 +215,14 @@ class SchemaTrimmer {
             if (argname.indexOf('.') >= 0)
                 continue;
             const arg = tabledef.getArgument(argname);
-            if (!(arg.annotations['org_schema_has_data'] && arg.annotations['org_schema_has_data'].value))
-                continue;
+
+            if (!this._whiteListed(argname)) {
+                if (!(arg.annotations['org_schema_has_data'] && arg.annotations['org_schema_has_data'].value))
+                    continue;
+            }
 
             this._removeFieldsWithoutData(arg);
+
             newArgs.push(arg);
 
             if (argname === 'address')
@@ -253,6 +262,10 @@ class SchemaTrimmer {
 
         this._classDef.entities = Array.from(usedEntities).map((name) => new Ast.EntityDef(null, name, {}));
     }
+
+    _whiteListed(property) {
+        return this._propertyWhitelist && this._propertyWhitelist.includes(property);
+    }
 }
 
 module.exports = {
@@ -277,7 +290,10 @@ module.exports = {
             required: true,
             help: 'Path to JSON file with normalized WebQA data.'
         });
-
+        parser.addArgument('--domain', {
+            required: false,
+            help: 'The domain of current experiment, used for domain-specific manual overrides.'
+        });
         parser.addArgument('--debug', {
             nargs: 0,
             action: 'storeTrue',
@@ -297,7 +313,7 @@ module.exports = {
         const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));
         const entities = DEFAULT_ENTITIES.slice();
 
-        const trimmer = new SchemaTrimmer(classDef, data, entities);
+        const trimmer = new SchemaTrimmer(classDef, data, entities, args.domain);
         trimmer.trim();
 
         args.output.end(trimmer.class.prettyprint());

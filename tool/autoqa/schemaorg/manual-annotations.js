@@ -111,6 +111,7 @@ const PROPERTY_FORCE_NOT_ARRAY = new Set([
 const PROPERTY_TYPE_OVERRIDE = {
     'telephone': Type.Entity('tt:phone_number'),
     'email': Type.Entity('tt:email_address'),
+    'faxNumber': Type.Entity('tt:email_address'),
     'image': Type.Entity('tt:picture'),
     'logo': Type.Entity('tt:picture'),
     'checkinTime': Type.Time,
@@ -135,8 +136,14 @@ const PROPERTY_TYPE_OVERRIDE = {
     'genre': Type.Array(Type.String),
     'creator': Type.Array(Type.Entity('org.schema.Movie:Person')),
     'contentRating': Type.String,
+    'byArtist': Type.Entity('org.schema.Music:Person'),
 
-    'byArtist': Type.Entity('org.schema.Music:Person')
+    'openingHours': Type.RecurrentTimeSpecification,
+    'priceRange': Type.Enum(['cheap', 'moderate', 'expensive', 'luxury']),
+    'workLocation': Type.Location,
+
+    'inLanguage': Type.Entity('tt:iso_lang_code'),
+    'knowsLanguage': Type.Entity('tt:iso_lang_code')
 };
 
 const PROPERTY_CANONICAL_OVERRIDE = {
@@ -479,12 +486,21 @@ const ENUM_VALUE_NORMALIZE = {
     }
 };
 
+const WHITELISTED_PROPERTIES_BY_DOMAIN = {
+    'restaurants': ['acceptsReservations', 'starRating', 'starRating.ratingValue', 'openingHours', 'email', 'smokingAllowed', 'priceRange'],
+    'hotels': ['petsAllowed', 'starRating', 'starRating.ratingValue', 'priceRange', 'email', 'faxNumber'],
+    'linkedin': ['jobTitle', 'email', 'telephone', 'faxNumber', 'knowsLanguage', 'workLocation'],
+    'books': ['abridged', 'datePublished'],
+    'music': ['genre', 'datePublished', 'inLanguage', 'duration', 'numTracks']
+};
+
 
 module.exports = {
     BUILTIN_TYPEMAP,
 
     BLACKLISTED_TYPES,
     BLACKLISTED_PROPERTIES,
+    WHITELISTED_PROPERTIES_BY_DOMAIN,
 
     STRUCTURED_HIERARCHIES,
     NON_STRUCT_TYPES,
