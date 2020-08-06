@@ -53,7 +53,10 @@ function makeFilter(loader, pname, op, value, negate = false) {
     if (ptype.isEntity && ptype.type === 'tt:url')
         return null;
     if (op === 'contains') {
-        ptype = Type.Array(vtype);
+        if (loader.params.out.has(pname.name + '+' + Type.RecurrentTimeSpecification))
+            ptype = Type.RecurrentTimeSpecification;
+        else
+            ptype = Type.Array(vtype);
         if (vtype.isString)
             op = 'contains~';
     } else if (op === '==' && vtype.isString) {
@@ -114,8 +117,8 @@ function isTimeEntity(type) {
         return true;
     if (type.isTime)
         return true;
-
-    // FIXME: other types that can be asked by "when" question (e.g., opening hour)
+    if (type.isRecurrentTimeSpecification)
+        return true;
     return false;
 }
 

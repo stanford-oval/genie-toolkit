@@ -78,6 +78,7 @@ out_param_Measure_kg   = {}
 out_param_Measure_C    = {}
 out_param_Measure_m    = {}
 out_param_Measure_mps  = {}
+out_param_RecurrentTimeSpecification = {}
 
 out_param_Array__Numeric = {
     out_param_Array__Number;

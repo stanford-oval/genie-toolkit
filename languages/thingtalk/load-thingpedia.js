@@ -410,6 +410,9 @@ class ThingpediaLoader {
             if (ptype.isArray) {
                 vtype = ptype.elem;
                 op = 'contains';
+            } else if (ptype.isRecurrentTimeSpecification) {
+                vtype = Type.Date;
+                op = 'contains';
             } else if (pname === 'id') {
                 vtype = Type.String;
             }

@@ -615,9 +615,12 @@ function checkAtomFilter(table, filter) {
     ptype = table.schema.out[filter.name];
     vtype = ptype;
     if (filter.operator === 'contains') {
-        if (!vtype.isArray)
+        if (ptype.isArray)
+            vtype = vtype.elem;
+        else if (ptype.isRecurrentTimeSpecification)
+            vtype = Type.Date;
+        else
             return false;
-        vtype = ptype.elem;
     } else if (filter.operator === 'contains~') {
         if (!vtype.isArray || (!vtype.elem.isEntity && !vtype.elem.isString))
             return false;
