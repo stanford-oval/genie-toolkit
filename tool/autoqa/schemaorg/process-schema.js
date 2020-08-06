@@ -56,8 +56,12 @@ const {
 const keepAnnotation = false;
 
 function getId(id) {
-    assert(id.startsWith('http://schema.org/'));
-    return id.substring('http://schema.org/'.length);
+    if (id.startsWith('http://schema.org/'))
+        id = id.substring('http://schema.org/'.length);
+    // add "_" prefix for id starts with a number
+    if (/^\d/.test(id))
+        id = '_' + id;
+    return id;
 }
 
 function getIncludes(includes) {
@@ -408,58 +412,62 @@ class SchemaProcessor {
                 if (BLACKLISTED_TYPES.has(getId(triple['@id'])))
                     continue;
 
-                if (triple['@type'].startsWith('http://schema.org/')) {
-                    // an enum declaration
-                    const enumtype = getId(triple['@type']);
-                    const enumvalue = getId(triple['@id']);
-                    ensureEnum(enumtype);
-                    enums[enumtype].push(enumvalue);
-                    continue;
-                }
+                if (!Array.isArray(triple['@type']))
+                    triple['@type'] = [triple['@type']];
 
-                switch (triple['@type']) {
-                case 'rdf:Property': {
-                    // ignore deprecated stuff
-                    if (triple['http://schema.org/supersededBy'])
+                for (let type of triple['@type']) {
+                    if (type.startsWith('http://schema.org/')) {
+                        // an enum declaration
+                        const enumtype = getId(type);
+                        const enumvalue = getId(triple['@id']);
+                        ensureEnum(enumtype);
+                        enums[enumtype].push(enumvalue);
                         continue;
-
-
-                    const domains = getIncludes(triple['http://schema.org/domainIncludes']);
-                    const ranges = getIncludes(triple['http://schema.org/rangeIncludes']);
-                    const name = getId(triple['@id']);
-                    const comment = triple['rdfs:comment'];
-
-                    if (BLACKLISTED_PROPERTIES.has(name))
-                        continue;
-
-                    for (let domain of domains) {
-                        if (domain in BUILTIN_TYPEMAP)
-                            continue;
-                        if (BLACKLISTED_TYPES.has(domain))
-                            continue;
-
-                        ensureType(domain);
-                        typeHierarchy[domain].properties[name] = {
-                            types: ranges,
-                            comment
-                        };
                     }
-                    break;
-                }
-                case 'rdfs:Class': {
-                    const name = getId(triple['@id']);
-                    const comment = triple['rdfs:comment'];
-                    const _extends = getIncludes(triple['rdfs:subClassOf'] || []);
-                    ensureType(name);
-                    typeHierarchy[name].extends = _extends.filter((ex) => !BLACKLISTED_TYPES.has(ex));
-                    if (typeHierarchy[name].extends.length === 0 && name !== 'Thing')
-                        typeHierarchy[name].extends = ['Thing'];
-                    typeHierarchy[name].comment = comment;
-                    break;
-                }
 
-                default:
-                    throw new Error(`don't know how to handle a triple of type ${triple['@type']}`); //'
+                    switch (type) {
+                    case 'rdf:Property': {
+                        // ignore deprecated stuff
+                        if (triple['http://schema.org/supersededBy'])
+                            continue;
+
+
+                        const domains = getIncludes(triple['http://schema.org/domainIncludes']);
+                        const ranges = getIncludes(triple['http://schema.org/rangeIncludes']);
+                        const name = getId(triple['@id']);
+                        const comment = triple['rdfs:comment'];
+
+                        if (BLACKLISTED_PROPERTIES.has(name))
+                            continue;
+
+                        for (let domain of domains) {
+                            if (domain in BUILTIN_TYPEMAP)
+                                continue;
+                            if (BLACKLISTED_TYPES.has(domain))
+                                continue;
+
+                            ensureType(domain);
+                            typeHierarchy[domain].properties[name] = {
+                                types: ranges,
+                                comment
+                            };
+                        }
+                        break;
+                    }
+                    case 'rdfs:Class': {
+                        const name = getId(triple['@id']);
+                        const comment = triple['rdfs:comment'];
+                        const _extends = getIncludes(triple['rdfs:subClassOf'] || []);
+                        ensureType(name);
+                        typeHierarchy[name].extends = _extends.filter((ex) => !BLACKLISTED_TYPES.has(ex));
+                        if (typeHierarchy[name].extends.length === 0 && name !== 'Thing')
+                            typeHierarchy[name].extends = ['Thing'];
+                        typeHierarchy[name].comment = comment;
+                        break;
+                    }
+                    default:
+                        throw new Error(`don't know how to handle a triple of type ${type}`); //'
+                    }
                 }
             } catch(e) {
                 console.error('Triple failed');
@@ -721,7 +729,8 @@ module.exports = {
         });
         parser.addArgument(['--url'], {
             required: false,
-            defaultValue: 'https://schema.org/version/3.9/schema.jsonld',
+            // FIXME: replace it with a link with fixed version number 9.0 (couldn't find one currently)
+            defaultValue: 'https://schema.org/version/latest/schemaorg-current-http.jsonld',
             help: 'The schema.org URL to retrieve the definitions from.'
         });
         parser.addArgument('--manual', {

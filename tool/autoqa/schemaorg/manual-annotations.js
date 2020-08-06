@@ -88,7 +88,7 @@ const BLACKLISTED_PROPERTIES = new Set([
 ]);
 
 const STRUCTURED_HIERARCHIES = [
-    'StructuredValue', 'Rating', 'Offer',
+    'StructuredValue', 'Rating', // Offer (Offer introduce a loop in the latest version of schema.org)
 
     // FIXME Review is too messy to represent as a structured value, either you lose info or you get cycles
     // 'Review'
