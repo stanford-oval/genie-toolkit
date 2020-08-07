@@ -43,6 +43,7 @@ const {
     NON_STRUCT_TYPES,
     PROPERTY_CANONICAL_OVERRIDE,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE,
+    MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN,
     MANUAL_TABLE_CANONICAL_OVERRIDE,
     PROPERTY_FORCE_NOT_ARRAY,
     PROPERTY_FORCE_ARRAY,
@@ -124,6 +125,7 @@ function recursiveAddStringValues(arg, fileId) {
 
 class SchemaProcessor {
     constructor(args) {
+        this._domain = args.domain;
         this._output = args.output;
         this._cache = args.cache_file;
         this._className = args.class_name;
@@ -318,6 +320,21 @@ class SchemaProcessor {
         return Type.Compound(startingTypename, fields);
     }
 
+    loadPropertyCanonicalOverride(name) {
+        // 1. check for domain-specific manual property override
+        if (this._manual && this._domain && name in MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN[this._domain])
+            return MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN[this._domain][name];
+
+        // 2. check for global manual property override
+        if (this._manual && name in MANUAL_PROPERTY_CANONICAL_OVERRIDE)
+            return MANUAL_PROPERTY_CANONICAL_OVERRIDE[name];
+
+        // 3. check default property type override (which is applied even for baseline)
+        if (name in PROPERTY_CANONICAL_OVERRIDE)
+            return PROPERTY_CANONICAL_OVERRIDE[name];
+        return null;
+    }
+
     makeArgCanonical(name, ptype) {
         function cleanName(name) {
             name = clean(name);
@@ -326,13 +343,11 @@ class SchemaProcessor {
             return name;
         }
 
-        if (name in PROPERTY_CANONICAL_OVERRIDE)
-            return PROPERTY_CANONICAL_OVERRIDE[name];
-        if (this._manual && name in MANUAL_PROPERTY_CANONICAL_OVERRIDE)
-            return MANUAL_PROPERTY_CANONICAL_OVERRIDE[name];
+        let canonical = this.loadPropertyCanonicalOverride(name);
+        if (canonical)
+            return canonical;
 
-        let canonical = {};
-
+        canonical = {};
         const candidates = name in this._wikidata_labels ? this._wikidata_labels[name].labels : [cleanName(name)];
         for (let candidate of [...new Set(candidates)])
             this.addCanonical(canonical, candidate, ptype);
@@ -642,6 +657,18 @@ class SchemaProcessor {
                 if (propertyname.endsWith('Count'))
                     metadata.counted_object = [ this._langPack.pluralize(clean(propertyname.slice(0, -'Count'.length)))];
 
+                let elemType = type;
+                while (elemType.isArray)
+                    elemType = elemType.elem;
+
+                if (elemType.isCompound) {
+                    for (let field in elemType.fields) {
+                        const canonicalOverride = this.loadPropertyCanonicalOverride(`${propertyname}.${field}`);
+                        if (canonicalOverride)
+                            elemType.fields[field].nl_annotations.canonical = canonicalOverride;
+                    }
+                }
+
                 const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, propertyname, type, {
                     nl: metadata,
                     impl: annotation
@@ -732,6 +759,10 @@ module.exports = {
             // FIXME: replace it with a link with fixed version number 9.0 (couldn't find one currently)
             defaultValue: 'https://schema.org/version/latest/schemaorg-current-http.jsonld',
             help: 'The schema.org URL to retrieve the definitions from.'
+        });
+        parser.addArgument('--domain', {
+            required: false,
+            help: 'The domain of current experiment, used for domain-specific manual overrides.'
         });
         parser.addArgument('--manual', {
             nargs: 0,

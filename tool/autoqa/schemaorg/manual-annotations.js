@@ -105,7 +105,8 @@ const PROPERTY_FORCE_ARRAY = new Set([
 ]);
 
 const PROPERTY_FORCE_NOT_ARRAY = new Set([
-    'offers'
+    'offers',
+    'starRating'
 ]);
 
 const PROPERTY_TYPE_OVERRIDE = {
@@ -143,7 +144,7 @@ const PROPERTY_TYPE_OVERRIDE = {
     'workLocation': Type.Location,
 
     'inLanguage': Type.Entity('tt:iso_lang_code'),
-    'knowsLanguage': Type.Entity('tt:iso_lang_code')
+    'knowsLanguage': Type.Array(Type.Entity('tt:iso_lang_code'))
 };
 
 const PROPERTY_CANONICAL_OVERRIDE = {
@@ -206,6 +207,18 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         property: ["# cuisine", "# food"],
         base: ["cuisine", "food type"]
     },
+    'priceRange': {
+        adjective: ["#"]
+    },
+    'openingHours': {
+        verb: ["opens | at", "opens | on"]
+    },
+    'acceptsReservation': {
+        verb_true: ["accepts reservation"]
+    },
+    'smokingAllowed': {
+        property_true: ['smoking allowed']
+    },
 
     // hotels
     'amenityFeature': {
@@ -217,6 +230,9 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
     'checkoutTime': {
         base: ['checkout time', 'check out time', 'check-out time']
+    },
+    'petsAllowed': {
+        property_true: ['pets allowed']
     },
 
     // linkedin
@@ -267,6 +283,14 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         passive_verb: [
             'employed | at #', 'employed | by #',
         ]
+    },
+    jobTitle: {
+        base: ['job title', 'position'],
+        reverse_property: ['#']
+    },
+    knowsLanguage: {
+        base: ['languages mastered'],
+        verb: ['knows', 'masters', 'understands']
     },
 
     // recipes
@@ -369,6 +393,9 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['number of pages'],
         property: ['# pages']
     },
+    abridged: {
+        property_true: ['abridged']
+    },
 
     // movies
     contentRating: {
@@ -414,6 +441,25 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         preposition: ['by', 'by artist'],
         passive_verb: ['created | by', 'sang | by', 'performed | by'],
         verb: ['# sings', '# sang']
+    },
+    numTracks: {
+        base: ['number of tracks', 'number of songs']
+    }
+};
+
+const MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN = {
+    'restaurants': {
+        'starRating.ratingValue': {
+            base: ["star rating", "michelin rating", "michelin star"],
+            adjective: ["michelin # -star", "michelin # star"],
+            passive_verb: ["rated # star by michelin guide"]
+        }
+    },
+    'hotels': {
+        'starRating.ratingValue': {
+            base: ["star rating"],
+            adjective: ["# star", "# -star"],
+        }
     }
 };
 
@@ -506,6 +552,7 @@ module.exports = {
     NON_STRUCT_TYPES,
     PROPERTY_CANONICAL_OVERRIDE,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE,
+    MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN,
     MANUAL_TABLE_CANONICAL_OVERRIDE,
 
     PROPERTY_FORCE_NOT_ARRAY,
