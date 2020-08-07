@@ -20,9 +20,9 @@
 "use strict";
 
 const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
 const fs = require('fs');
 
+const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 const { DatasetParser } = require('../lib/dataset-tools/parsers');
 const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('../lib/dataset-tools/evaluation/sentence_evaluator');
 const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
@@ -122,6 +122,12 @@ module.exports = {
             default: 'en-US',
             help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
         });
+        parser.add_argument('-t', '--target-language', {
+            required: false,
+            default: 'thingtalk',
+            choices: AVAILABLE_LANGUAGES,
+            help: `The programming language to generate`
+        });
         parser.add_argument('--debug', {
             action: 'store_true',
             help: 'Enable debugging.',
@@ -161,17 +167,27 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new Tp.FileClient(args);
-        const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
+        let tpClient = null;
+        if (args.thingpedia)
+            tpClient = new Tp.FileClient(args);
         const parser = ParserClient.get(args.url, args.locale);
         await parser.start();
 
         const output = readAllLines(args.input_file)
             .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true }))
-            .pipe(new SentenceEvaluatorStream(args.locale, parser, schemas, args.tokenized, args.debug, args.complexity_metric))
-            .pipe(new CollectSentenceStatistics({ minComplexity: args.min_complexity,
-                                                  maxComplexity: args.max_complexity ,
-                                                  splitByDevice: args.split_by_device}));
+            .pipe(new SentenceEvaluatorStream(parser, {
+                locale: args.locale,
+                targetLanguage: args.target_language,
+                thingpediaClient: tpClient,
+                tokenized: args.tokenized,
+                debug: args.debug,
+                complexityMetric: args.complexity_metric
+            }))
+            .pipe(new CollectSentenceStatistics({
+                minComplexity: args.min_complexity,
+                maxComplexity: args.max_complexity,
+                splitByDevice: args.split_by_device
+            }));
 
         const result = await output.read();
 

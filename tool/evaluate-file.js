@@ -24,8 +24,8 @@ const csvparse = require('csv-parse');
 const byline = require('byline');
 const Stream = require('stream');
 const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
 
+const { AVAILABLE_LANGUAGES } = require('../lib/languages');
 const { DatasetParser } = require('../lib/dataset-tools/parsers');
 const { SentenceEvaluatorStream, CollectSentenceStatistics } = require('../lib/dataset-tools/evaluation/sentence_evaluator');
 const StreamUtils = require('../lib/utils/stream-utils');
@@ -55,6 +55,12 @@ module.exports = {
             default: 'en-US',
             help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
         });
+        parser.add_argument('-t', '--target-language', {
+            required: false,
+            default: 'thingtalk',
+            choices: AVAILABLE_LANGUAGES,
+            help: `The programming language to generate`
+        });
         parser.add_argument('--contextual', {
             action: 'store_true',
             help: 'Process a contextual dataset.',
@@ -77,8 +83,9 @@ module.exports = {
     },
 
     async execute(args) {
-        const tpClient = new Tp.FileClient(args);
-        const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
+        let tpClient = null;
+        if (args.thingpedia)
+            tpClient = new Tp.FileClient(args);
 
         const columns = args.contextual ?
             ['id', 'context', 'sentence', 'target_code', 'prediction'] :
@@ -108,7 +115,14 @@ module.exports = {
                     process.nextTick(callback);
                 }
             }))
-            .pipe(new SentenceEvaluatorStream(args.locale, null, schemas, true, args.debug))
+            .pipe(new SentenceEvaluatorStream(null, {
+                locale: args.locale,
+                targetLanguage: args.target_language,
+                thingpediaClient: tpClient,
+                tokenized: args.tokenized,
+                debug: args.debug,
+                complexityMetric: args.complexity_metric
+            }))
             .pipe(new CollectSentenceStatistics());
 
         const result = await output.read();
