@@ -487,11 +487,20 @@ function makeArgMaxMinTable(table, pname, direction, count) {
         return null;
 
     count = count || new Ast.Value.Number(1);
+    if (count.isNumber && count.value <= 0)
+        return null;
+
     return new Ast.Table.Slice(null, t_sort, new Ast.Value.Number(1), count, t_sort.schema);
 }
 
 function makeSortedTable(table, pname, direction = 'desc') {
-    if (!table.schema.out[pname] || !table.schema.out[pname].isNumeric())
+    assert(typeof pname === 'string');
+    assert(direction === 'asc' || direction === 'desc');
+
+    const type = table.schema.out[pname];
+    // String are comparable but we don't want to sort alphabetically here
+    // (we need to use isComparable because Date/Time are comparable but not numeric)
+    if (!type || !type.isComparable() || type.isString)
         return null;
     if (!table.schema.is_list || table.isIndex) //avoid conflict with primitives
         return null;

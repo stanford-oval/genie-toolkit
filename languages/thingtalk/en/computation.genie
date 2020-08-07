@@ -242,18 +242,6 @@ compute_question = {
 
 with_arg_min_max_table = {
     !turking {
-        ('best' | 'top-rated' | 'top rated') table:with_filtered_table => {
-            if (!table.schema.out['aggregateRating.ratingValue'])
-                return null;
-            return C.makeArgMaxMinTable(table, 'aggregateRating.ratingValue', 'desc');
-        };
-
-        ('best' | 'top') count:constant_Number table:with_filtered_table => {
-            if (!table.schema.out['aggregateRating.ratingValue'])
-                return null;
-            return C.makeArgMaxMinTable(table, 'aggregateRating.ratingValue', 'desc', count);
-        };
-
         ('nearest' | 'closest') table:complete_table ('' | 'from here' | 'to here' | 'to me')  => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
                 return null;
