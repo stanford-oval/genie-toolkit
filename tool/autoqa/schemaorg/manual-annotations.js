@@ -501,11 +501,11 @@ const STRUCT_INCLUDE_THING_PROPERTIES = new Set([
 
 
 const STRING_FILE_OVERRIDES = {
-    'org.schema.Restaurant:Restaurant_name': 'com.yelp:restaurant_names',
+    'org.schema.Restaurant:Restaurant_name': 'org.openstreetmap:restaurant',
     'org.schema.Person:Person_name': 'tt:person_full_name',
     'org.schema.Person:Person_alumniOf': 'tt:university_names',
     'org.schema.Person:Person_worksFor': 'tt:company_name',
-    'org.schema.Hotel:Hotel_name': 'tt:hotel_name',
+    'org.schema.Hotel:Hotel_name': 'org.openstreetmap:hotel',
     'org.schema.Music:MusicRecording_byArtist': 'tt:song_artist',
     'org.schema.Music:MusicAlbum_byArtist': 'tt:song_artist',
     'org.schema.Music:MusicRecording_inAlbum': 'tt:song_album',
