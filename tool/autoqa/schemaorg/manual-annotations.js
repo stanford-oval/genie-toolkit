@@ -189,11 +189,14 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     // restaurants
     'datePublished': {
         passive_verb: ["published | on #", "written | on #"],
-        base: ["date published"]
+        base: ["date published"],
+        adjective_argmax: ['most recent', 'latest', 'last'],
+        adjective_argmin: ['earliest']
     },
     'ratingValue': {
         passive_verb: ["rated # star"],
-        base: ["rating"]
+        base: ["rating"],
+        adjective_argmax: ['top-rated', 'best']
     },
     'reviewRating': {
         base: ["rating"]
@@ -391,7 +394,9 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
     numberOfPages: {
         base: ['number of pages'],
-        property: ['# pages']
+        property: ['# pages'],
+        adjective_argmax: ['longest'],
+        adjective_argmin: ['shortest']
     },
     abridged: {
         property_true: ['abridged']
@@ -414,7 +419,9 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
     duration: {
         base: ['duration', 'length'],
-        adjective: ['# long']
+        adjective: ['# long'],
+        adjective_argmax: ['longest'],
+        adjective_argmin: ['shortest']
     },
     actor: {
         base: ['actor', 'actress'],
