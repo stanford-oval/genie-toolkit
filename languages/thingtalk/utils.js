@@ -64,8 +64,6 @@ function makeFilter(loader, pname, op, value, negate = false) {
     }
     if (!loader.params.out.has(pname.name + '+' + ptype) && pname.name !== 'id')
         return null;
-    if (loader.flags.turking && value.isEnum)
-        return null;
 
     let f = new Ast.BooleanExpression.Atom(null, pname.name, op, value);
     if (negate)
