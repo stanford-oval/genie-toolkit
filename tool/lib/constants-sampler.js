@@ -114,6 +114,12 @@ module.exports = class ConstantSampler {
                                 constants.push([`param:@${device}.${f}:${arg}:Entity(${entityType})`, `null`, sample]);
                             });
                         }
+
+                        if (arg === 'id') {
+                            samples.forEach((sample) => {
+                                constants.push([`param:@${device}.${f}:${arg}:String`, sample]);
+                            });
+                        }
                     } else if (isString(argument.type)) {
                         samples.forEach((sample) => {
                             constants.push([`param:@${device}.${f}:${arg}:String`, sample]);
