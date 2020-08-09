@@ -42,7 +42,8 @@ const DEFAULT_ENTITIES = [
     {"type":"tt:picture","name":"Picture","is_well_known":1,"has_ner_support":0},
     {"type":"tt:program","name":"Program","is_well_known":1,"has_ner_support":0},
     {"type":"tt:url","name":"URL","is_well_known":1,"has_ner_support":0},
-    {"type":"tt:username","name":"Username","is_well_known":1,"has_ner_support":0}
+    {"type":"tt:username","name":"Username","is_well_known":1,"has_ner_support":0},
+    {"type":"tt:iso_lang_code","name":"ISO Language Code","is_well_known":0,"has_ner_support":1}
 ];
 
 

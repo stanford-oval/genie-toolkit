@@ -322,7 +322,8 @@ class SchemaProcessor {
 
     loadPropertyCanonicalOverride(name) {
         // 1. check for domain-specific manual property override
-        if (this._manual && this._domain && name in MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN[this._domain])
+        if (this._manual && this._domain && this._domain in MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN
+            && name in MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN[this._domain])
             return MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN[this._domain][name];
 
         // 2. check for global manual property override

@@ -85,6 +85,9 @@ const BLACKLISTED_PROPERTIES = new Set([
     'thumbnailUrl',
     'trailer',
 
+    // hotel properties: we ended up not using brand
+    'brand'
+
 ]);
 
 const STRUCTURED_HIERARCHIES = [
@@ -112,7 +115,7 @@ const PROPERTY_FORCE_NOT_ARRAY = new Set([
 const PROPERTY_TYPE_OVERRIDE = {
     'telephone': Type.Entity('tt:phone_number'),
     'email': Type.Entity('tt:email_address'),
-    'faxNumber': Type.Entity('tt:email_address'),
+    'faxNumber': Type.Entity('tt:phone_number'),
     'image': Type.Entity('tt:picture'),
     'logo': Type.Entity('tt:picture'),
     'checkinTime': Type.Time,
@@ -472,7 +475,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN = {
 
 const MANUAL_TABLE_CANONICAL_OVERRIDE = {
     'Restaurant': ['restaurant', 'diner', 'place', 'joint', 'eatery', 'canteen', 'cafeteria', 'cafe'],
-    'Hotel': ['hotel', 'resort', 'lodging', 'model', 'place'],
+    'Hotel': ['hotel', 'resort', 'lodging', 'motel', 'place'],
     'MusicRecording': ['song', 'music recording', 'music'],
     'MusicAlbum': ['album']
 };
@@ -480,8 +483,6 @@ const MANUAL_TABLE_CANONICAL_OVERRIDE = {
 const PROPERTIES_NO_FILTER = [
     'name', // no filter on name, if the id has ner support, we'll generate prim for it
     'description', // we consider a question not answerable if we don't have specific property for it
-    'priceRange',
-    'brand',
 
     // ID properties or opaque strings
     'gtin13',
