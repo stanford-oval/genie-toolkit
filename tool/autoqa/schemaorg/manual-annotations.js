@@ -214,6 +214,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ["cuisine", "food type"]
     },
     'priceRange': {
+        base: ['price range'],
         adjective: ["#"]
     },
     'openingHours': {
@@ -461,14 +462,14 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN = {
     'restaurants': {
         'starRating.ratingValue': {
             base: ["star rating", "michelin rating", "michelin star"],
-            adjective: ["michelin # -star", "michelin # star"],
+            adjective: ["michelin # star", "michelin # star"],
             passive_verb: ["rated # star by michelin guide"]
         }
     },
     'hotels': {
         'starRating.ratingValue': {
             base: ["star rating"],
-            adjective: ["# star", "# -star"],
+            adjective: ["# star"]
         }
     }
 };
@@ -483,6 +484,11 @@ const MANUAL_TABLE_CANONICAL_OVERRIDE = {
 const PROPERTIES_NO_FILTER = [
     'name', // no filter on name, if the id has ner support, we'll generate prim for it
     'description', // we consider a question not answerable if we don't have specific property for it
+
+    'telephone',
+    'email',
+    'faxNumber',
+    'hasMap',
 
     // ID properties or opaque strings
     'gtin13',
