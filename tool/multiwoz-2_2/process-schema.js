@@ -1,0 +1,245 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Silei Xu <silei@cs.stanford.edu>
+// Author: Ryan Othniel Kearns <kearns@cs.stanford.edu>
+"use strict";
+const fs = require('fs');
+const util = require('util');
+const assert = require('assert');
+
+const Tp = require('thingpedia');
+const ThingTalk = require('thingtalk');
+const Type = ThingTalk.Type;
+const Ast = ThingTalk.Ast;
+
+const { clean } = require('../../lib/utils/misc-utils');
+const StreamUtils = require('../../lib/utils/stream-utils');
+
+const baseCanonical = require('./lib/base-canonical-generator');
+const { PROPERTY_TYPE_OVERRIDE, STRING_FILE_OVERRIDES } = require('./manual-annotations');
+const { cleanEnumValue }  = require('./utils');
+
+function predictType(slot) {
+    if (slot.name in PROPERTY_TYPE_OVERRIDE)
+        return PROPERTY_TYPE_OVERRIDE[slot.name];
+    if (slot.is_categorical && slot.possible_values.length > 0) {
+        if (slot.possible_values.length === 2
+            && slot.possible_values.includes('True')
+            && slot.possible_values.includes('False'))
+            return Type.Boolean;
+        if (slot.possible_values.every((v) => !isNaN(v)))
+            return Type.Number;
+        return Type.Enum(slot.possible_values.map(cleanEnumValue));
+    }
+    if (slot.name.endsWith('-phone'))
+        return Type.Entity('tt:phone_number');
+    // if (slot.name.startsWith('number_of_') || slot.name.endsWith('_number') || slot.name === 'number' ||
+    //     slot.name.endsWith('_size') || slot.name === 'size' ||
+    //     slot.name.endsWith('_rating') || slot.name === 'rating')
+    //     return Type.Number;
+    // if (slot.name.endsWith('_time') || slot.name === 'time')
+    //     return Type.Time;
+    // if (slot.name.endsWith('_date') || slot.name === 'date')
+    //     return Type.Date;
+    // if (slot.name.endsWith('_location') || slot.name === 'location' ||
+    //     slot.name.endsWith('_address') || slot.name === 'address')
+    //     return Type.Location;
+    // if (slot.name.endsWith('_fare') || slot.name === 'fare' ||
+    //     slot.name.endsWith('_price') || slot.name === 'price')
+    //     return Type.Currency;
+
+    console.log('No conventional type detected for ' + slot.name + ', assuming String.');
+
+    return Type.String;
+}
+
+class SchemaProcessor {
+    constructor(args) {
+        this._output = args.output;
+        this._cache = args.cache_file;
+        this._manual = args.manual;
+        this._queryOnly = args.query_only;
+        this._include = args.include ? args.include.split(',') : null;
+        this._exclude = args.exclude ? args.exclude.split(',') : null;
+    }
+
+    async run() {
+        let schema;
+        if (await util.promisify(fs.exists)(this._cache)) {
+            schema = await util.promisify(fs.readFile)(this._cache, { encoding: 'utf8' });
+        }
+
+        let queries = {};
+        let actions = {};
+        for (let service of JSON.parse(schema)) {
+            if (this._include && !this._include.includes(service.service_name))
+                continue;
+            else if (this._exclude && this._exclude.includes(service.service_name))
+                continue;
+
+            let slots = {};
+            for (let slot of service.slots) {
+                let type = predictType(slot);
+                slots[slot.name] = {
+                    type,
+                    annotations: {
+                        nl: { canonical: baseCanonical({}, slot.name, type)},
+                        impl: { description: new Ast.Value.String(slot.description)}
+                    }
+                };
+                if (type.isString) {
+                    const fileId = `uk.ac.cam.multiwoz.2.2:${service.service_name}_${slot.name}`;
+                    slots[slot.name].annotations.impl['string_values'] =
+                        new Ast.Value.String(STRING_FILE_OVERRIDES[slot.name] || fileId);
+                }
+                if (type.isNumber && slot.possible_values.length > 0) {
+                    let min_number = parseInt(slot.possible_values[0]);
+                    let max_number = parseInt(slot.possible_values[slot.possible_values.length - 1]);
+                    slots[slot.name].annotations.impl['min_number'] = new Ast.Value.Number(min_number);
+                    slots[slot.name].annotations.impl['max_number'] = new Ast.Value.Number(max_number);
+                }
+            }
+
+            for (let intent of service.intents) {
+                let name = service.service_name + '_' + intent.name;
+
+                let functionType = intent.is_transactional ? 'action' : 'query';
+                if (this._queryOnly && functionType === 'action')
+                    continue;
+
+                let args = [];
+                for (let arg of intent.required_slots) {
+                    let type = slots[arg].type;
+                    let annotations = slots[arg].annotations;
+                    if (functionType === 'action') {
+                        args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.IN_REQ, arg, type, annotations));
+                    }
+                    else {
+                        // all query parameters are out parameters for now
+                        args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, arg, type, annotations));
+                    }
+                }
+                for (let arg of Object.keys(intent.optional_slots)) {
+                    let type = slots[arg].type;
+                    let annotations = slots[arg].annotations;
+                    if (functionType === 'action') {
+                        args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.IN_OPT, arg, type, annotations));
+                    }
+                    else {
+                        // all query parameters are out parameters for now
+                        args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, arg, type, annotations));
+                    }
+                }
+                // for (let arg of intent.result_slots) {
+                //     // results_slots also includes args in required/optional slots, skip them
+                //     if (intent.required_slots.includes(arg) || Object.keys(intent.optional_slots).includes(arg))
+                //         continue;
+                //     let type = slots[arg].type;
+                //     // for now, result slots are non-filterable as they are never queried for in dialogues
+                //     slots[arg].annotations.impl['filterable'] = new Ast.Value.Boolean(false);
+                //     let annotations = slots[arg].annotations;
+                //     args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, arg, type, annotations));
+                // }
+
+                let functionDef = new Ast.FunctionDef(null, functionType, null, name, null, {
+                        is_list: true,
+                        is_monitorable: false,
+                    }, args, {
+                        nl: { canonical: clean(intent.name), confirmation: clean(intent.name) },
+                        impl: { description: new Ast.Value.String(intent.description) }
+                    });
+                if (functionType === 'query')
+                    queries[name] = functionDef;
+                else
+                    actions[name] = functionDef;
+            }
+        }
+
+        const imports = [
+            new Ast.ImportStmt.Mixin(null, ['loader'], 'org.thingpedia.v2', []),
+            new Ast.ImportStmt.Mixin(null, ['config'], 'org.thingpedia.config.none', [])
+        ];
+
+        const classdef = new Ast.ClassDef(null, 'uk.ac.cam.multiwoz.2.2', null,
+            { imports, queries, actions }, {
+                nl: {
+                    name: `MultiWOZ 2.2`,
+                    description: 'Fake data used by MultiWOZ'
+                },
+            }, {
+                is_abstract: false
+            });
+
+        this._output.end(classdef.prettyprint());
+        await StreamUtils.waitFinish(this._output);
+    }
+}
+
+
+module.exports = {
+    initArgparse(subparsers) {
+        const parser = subparsers.addParser('multiwoz-2_2-process-schema', {
+            addHelp: true,
+            description: "Process a schema JSON definition into a Thingpedia class."
+        });
+        parser.addArgument(['-o', '--output'], {
+            required: true,
+            type: fs.createWriteStream
+        });
+        parser.addArgument(['-i', '--input'], {
+            required: false,
+            defaultValue: './schema.json',
+            help: 'Path to a cache file containing the schema definitions.'
+        });
+        parser.addArgument(['--cache-file'], {
+            required: true,
+            defaultValue: './schema.json',
+            help: 'Path to a cache file containing the schema definitions.'
+        });
+        parser.addArgument('--manual', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Enable manual annotations.',
+            defaultValue: false
+        });
+        parser.addArgument('--query-only', {
+            nargs: 0,
+            action: 'storeTrue',
+            help: 'Enable manual annotations.',
+            defaultValue: false
+        });
+        parser.addArgument('--include', {
+            required: false,
+            defaultValue: null,
+            help: 'services to include in the schema, split by comma (no space)'
+        });
+        parser.addArgument('--exclude', {
+            required: false,
+            defaultValue: null,
+            help: 'services to exclude in the schema, split by comma (no space)'
+        });
+    },
+
+    async execute(args) {
+        // include & exclude cannot be specified at the same time
+        assert(!args.include || !args.exclude);
+        const schemaProcessor = new SchemaProcessor(args);
+        schemaProcessor.run();
+    }
+};

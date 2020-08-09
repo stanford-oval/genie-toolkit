@@ -67,6 +67,9 @@ const subcommands = {
 
     'wikidata-process-schema': require('./autoqa/wikidata/process-schema'),
 
+    'multiwoz-2_2-process-schema': require('./multiwoz-2_2/process-schema'),
+    'multiwoz-2_2-auto-annotate': require('./multiwoz-2_2/auto-annotate'),
+
     'auto-annotate': require('./autoqa/auto-annotate'),
     'make-string-datasets': require('./autoqa/make-string-datasets'),
     'retrieve-wikidata-labels': require('./autoqa/retrieve-wikidata-labels'),
