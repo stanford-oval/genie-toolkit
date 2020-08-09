@@ -397,15 +397,15 @@ class ThingpediaLoader {
 
         let vtype = ptype;
         let op = '==';
+
         // true if slot can use a form with "both", that is, "serves both chinese and italian"
-        // (this is false if the slot uses >= or <=, because "arrives by 7pm and 8pm" doesn't make sense
-        let canUseBothForm = true;
+        // this should be only allowed for operator 'contains', and it's disabled for turking mode
+        // FIXME: allow `=~` for long text (note: we turn == into =~ in MakeFilter)
+        let canUseBothForm = false;
 
         if (arg.annotations.slot_operator) {
             op = arg.annotations.slot_operator.toJS();
             assert(['==', '>=', '<=', 'contains'].includes(op));
-            if (op === '>=' || op === '<=')
-                canUseBothForm = false;
         } else {
             if (ptype.isArray) {
                 vtype = ptype.elem;
@@ -417,6 +417,10 @@ class ThingpediaLoader {
                 vtype = Type.String;
             }
         }
+
+        if (!this._options.flags.turking && op === 'contains')
+            canUseBothForm = true;
+
         const vtypestr = this._recordType(vtype);
         if (vtypestr === null)
             return;
