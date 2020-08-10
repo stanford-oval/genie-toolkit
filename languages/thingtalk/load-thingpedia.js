@@ -35,6 +35,7 @@ const {
     makeFilter,
     makeAndFilter,
     isHumanEntity,
+    interrogativePronoun,
     tokenizeExample
 } = require('./utils');
 const { SlotBag } = require('./slot_bag');
@@ -91,6 +92,7 @@ class ThingpediaLoader {
             in: new Map,
             out: new Map,
         };
+        this.projections = new Map;
         this.idQueries = new Map;
         this.compoundArrays = {};
         if (this._options.whiteList)
@@ -423,10 +425,14 @@ class ThingpediaLoader {
                 continue;
 
             let annotvalue = canonical[cat];
-            let isEnum = false;
+            let isEnum = false, argMinMax = undefined;
             if (vtype.isEnum && cat.endsWith('_enum')) {
                 cat = cat.substring(0, cat.length - '_enum'.length);
                 isEnum = true;
+            } else if (cat.endsWith('_argmin') || cat.endsWith('_argmax')) {
+                // _argmin is the same length as _argmax
+                cat = cat.substring(0, cat.length - '_argmin'.length);
+                argMinMax = cat.endsWith('_argmin') ? 'asc' : 'desc';
             }
 
             if (cat in ANNOTATION_RENAME)
@@ -465,6 +471,12 @@ class ThingpediaLoader {
                     for (let form of forms)
                         this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, op, value, false)), attributes);
                 }
+            } else if (argMinMax) {
+                if (!Array.isArray(annotvalue))
+                    annotvalue = [annotvalue];
+
+                for (let form of annotvalue)
+                    this._grammar.addRule(cat + '_argminmax', [form], this._runtime.simpleCombine(() => [pvar, argMinMax]), attributes);
             } else {
                 if (!Array.isArray(annotvalue))
                     annotvalue = [annotvalue];
@@ -483,16 +495,34 @@ class ThingpediaLoader {
                                 this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values) => makeAndFilter(this, pvar, op, values, false)), attributes);
                             }
                         }
-                    } else if (cat === 'reverse_verb') {
-                        if (isHumanEntity(ptype)) {
-                            let expansion = [form];
-                            this._grammar.addRule('who_reverse_verb_projection', expansion, this._runtime.simpleCombine(() => pvar), attributes);
+                    } else {
+                        if (cat === 'avp' && form.startsWith('# '))
+                            cat = 'reverse_verb';
+
+                        if (pname !== 'id' && ['avp', 'pvp', 'preposition', 'reverse_verb'].includes(cat)) {
+                            const pronounType = interrogativePronoun(ptype);
+
+                            // FIXME: if two params with the same name have different interrogative pronouns, this approach is problematic...
+                            if (!(pname in this.projections))
+                                this.projections[pname] = {};
+                            if (!(cat in this.projections[pname]))
+                                this.projections[pname][cat] = [];
+
+                            // always have what question for projection
+                            if (canonical.base) {
+                                for (let base of Array.isArray(canonical.base) ? canonical.base : [canonical.base])
+                                    this._addProjections(pname, 'what', cat, base, form);
+                            }
+
+                            // add non-what question when applicable
+                            // `base` is no longer need for non-what question, thus leave as empty string
+                            if (pronounType !== 'what')
+                                this._addProjections(pname, pronounType, cat, '', form);
                         }
 
-                        let expansion = [canonical.base[0], form];
-                        this._grammar.addRule('reverse_verb_projection', expansion, this._runtime.simpleCombine(() => pvar), attributes);
+                        // remove slash in the canonical form
+                        form = form.split('|').map((span) => span.trim()).join(' ');
 
-                    } else {
                         let [before, after] = form.split('#');
                         before = (before || '').trim();
                         after = (after || '').trim();
@@ -527,6 +557,40 @@ class ThingpediaLoader {
                 }
             }
         }
+    }
+
+    _addProjections(pname, pronounType, posCategory, base, canonical) {
+        const pronouns = {
+            'what': ['what', 'which'],
+            'when': ['when', 'what time'],
+            'where': ['where'],
+            'who': ['who']
+        };
+        assert(pronounType in pronouns);
+
+        // for pos other than reverse verb, # can only be at the end if exists
+        if (posCategory !== 'reverse_verb' && canonical.includes('#') && !canonical.endsWith('#'))
+            return;
+        const canonicalWithoutPlaceholder = canonical.replace('#', '').trim();
+
+        // if base is included in the form, skip
+        // e.g.,  "what award does xxx won" makes sense, but "what award does xx won award" does not
+        const tokens = canonicalWithoutPlaceholder.replace('|', ' ').split(/\s+/g);
+        if (base && tokens.includes(base))
+            return;
+
+        for (let pronoun of pronouns[pronounType]) {
+            if (canonicalWithoutPlaceholder.includes('|')) {
+                const [verb, prep] = canonicalWithoutPlaceholder.split('|').map((span) => span.trim());
+                this.projections[pname][posCategory].push([`${prep} ${pronoun}`, base, verb]);
+
+                // for when question, we can drop the prep entirely
+                if (pronounType === 'when')
+                    this.projections[pname][posCategory].push([pronoun, base, verb]);
+            }
+            this.projections[pname][posCategory].push([pronoun, base, tokens.join(' ')]);
+        }
+
     }
 
     async _loadTemplate(ex) {

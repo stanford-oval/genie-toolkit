@@ -118,6 +118,7 @@ both_prefix = {
 
 npp_filter = {}
 npp_input_param = {}
+npp_argminmax = {}
 coref_npp_filter = {}
 coref_npp_input_param = {}
 
@@ -126,6 +127,7 @@ coref_npp_input_param = {}
 // e.g.: "owner of <company>", "student in <university>"
 npi_filter = {}
 npi_input_param = {}
+npi_argminmax = {}
 coref_npi_filter = {}
 coref_npi_input_param = {}
 
@@ -134,6 +136,7 @@ coref_npi_input_param = {}
 // e.g.: "called <nickname>", "born on <date>"
 pvp_filter = {}
 pvp_input_param = {}
+pvp_argminmax = {}
 coref_pvp_filter = {}
 coref_pvp_input_param = {}
 
@@ -142,6 +145,7 @@ coref_pvp_input_param = {}
 // e.g.: "at <time>", "in <area>"
 preposition_filter = {}
 preposition_input_param = {}
+preposition_argminmax = {}
 coref_preposition_filter = {}
 coref_preposition_input_param = {}
 
@@ -150,6 +154,7 @@ coref_preposition_input_param = {}
 // e.g.: "owns <company>", "studied in <university>"
 avp_filter = {}
 avp_input_param = {}
+avp_argminmax = {}
 coref_avp_filter = {}
 coref_avp_input_param = {}
 
@@ -158,6 +163,7 @@ coref_avp_input_param = {}
 // e.g.: "Bob is a PhD", the parameter `academic_degree` is implicit, and should be inferred by the value "PhD"
 npv_filter = {}
 npv_input_param = {}
+npv_argminmax = {}
 coref_npv_filter = {}
 coref_npv_input_param = {}
 
@@ -166,13 +172,22 @@ coref_npv_input_param = {}
 // e.g.: "Bob is left-handed"
 apv_filter = {}
 apv_input_param = {}
+apv_argminmax = {}
 coref_apv_filter = {}
 coref_apv_input_param = {}
 
-// projection in reversed verb form
-// e.g., "who [wrote] book X", "which [album includes] song Y"
-reverse_verb_projection = {}
-who_reverse_verb_projection = {}
+// filters & input parameters on reverese_verb parameter
+// reverese verb: verb-phrase parameter where value is the subject of the verb phrase
+// e.g., "moveis that Bob directed"
+reverse_verb_filter = {}
+apv_input_param = {}
+coref_reverse_verb_filter = {}
+coref_reverse_verb_input_param = {}
+
+// projections
+question_projection_table = {}
+command_projection_table = {}
+
 
 constant_name = {}
 

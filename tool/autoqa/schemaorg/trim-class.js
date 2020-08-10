@@ -73,6 +73,8 @@ class SchemaTrimmer {
 
         for (let tablename in this._classDef.queries)
             this._removeArgumentsWithoutData(tablename);
+
+        this._updateEntityDeclarations();
     }
 
     _markHasData(annotations) {
@@ -239,6 +241,18 @@ class SchemaTrimmer {
             });
     }
 
+    _updateEntityDeclarations() {
+        const usedEntities = new Set();
+
+        for (let tablename in this._classDef.queries) {
+            for (let arg of this._classDef.queries[tablename].iterateArguments()) {
+                if (arg.type.isEntity && arg.type.type.startsWith(this._className))
+                    usedEntities.add(arg.type.type.slice(`${this._className}:`.length));
+            }
+        }
+
+        this._classDef.entities = Array.from(usedEntities).map((name) => new Ast.EntityDef(null, name, {}));
+    }
 }
 
 module.exports = {

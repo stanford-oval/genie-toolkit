@@ -331,6 +331,11 @@ search_command = {
         | ('show me' | 'tell me') 'what is' proj:projection_Any [weight=0.45]
         | generic_lookup_preamble proj:pair_projection [weight=0.1]
     ) => C.sayProjection(proj);
+
+    (
+          generic_lookup_preamble proj:command_projection_table
+        | ('show me' | 'tell me') 'what is the' proj:command_projection_table
+    ) => C.sayProjection(proj);
 }
 
 complete_question = {
@@ -415,9 +420,9 @@ projection_question = {
             return null;
         return C.sayProjection(proj);
     };
-    'who' proj:who_reverse_verb_projection_table '?' => C.sayProjection(proj);
-    ('what' | 'which') proj:reverse_verb_projection_table '?' => C.sayProjection(proj);
     ('what' | 'which') proj:verb_projection_Any '?' => C.sayProjection(proj);
+
+    proj:question_projection_table '?' => C.sayProjection(proj);
 
     // now => get => say(...) (where questions)
     ?turking 'where is the' table:with_filtered_table =>
