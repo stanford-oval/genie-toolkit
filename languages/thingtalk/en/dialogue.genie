@@ -215,7 +215,7 @@ $agent = {
         => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_learn_more_what', null));
 
     // answer simple confirm state with recommendation
-    ctx:ctx_confirm proposal:system_recommendation
+    ctx:ctx_confirm proposal:system_confirmed_recommendation
         => D.makeRecommendationReply(ctx, proposal);
 }
 

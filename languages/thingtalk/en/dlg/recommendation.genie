@@ -183,6 +183,12 @@ system_recommendation = {
     };
 }
 
+// recommendations following a user confirm state
+system_confirmed_recommendation = {
+    ctx:ctx_confirm ('would you like to' | 'would you like me to') action:contextual_action_phrase [weight=0.1]
+        => D.makeActionRecommendation(ctx, action);
+}
+
 recommendation_accept_phrase_with_action = {
     accept_phrase generic_preamble_for_action action:coref_action_command => action;
 }
