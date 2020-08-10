@@ -159,7 +159,7 @@ function predictType(slot, val) {
         slot.name.endsWith('_size') || slot.name === 'size' ||
         slot.name.endsWith('_rating') || slot.name === 'rating')
         return new Ast.Value.Number(parseInt(val) || 0);
-    if (slot.name.endsWith('_time') || slot.name === 'time')
+    if (slot.name.endsWith('_time') || slot.name === 'time' || slot.name.endsWith('booktime'))
         return parseTime(val);
     if (slot.name.endsWith('leaveat') || slot.name.endsWith('arriveby'))
         return parseTime(val);
@@ -339,11 +339,13 @@ class Converter extends stream.Readable {
             new Ast.Invocation(null, selector, fullIntentName, [], null),
             null);
         const filterClauses = [];
+
+        let schema = await this._schemas.getFullSchema(tpClass);
+        let func = schema.getFunction('query', SERVICE_MAP[frame.service]);
+
         for (let key in filters) {
 
             // don't push filters that our current schema doesn't tolerate
-            let schema = await this._schemas.getFullSchema(tpClass);
-            let func = schema.getFunction('query', SERVICE_MAP[frame.service]);
             if (!func.out[SLOT_MAP[key]])
                 continue;
 
@@ -368,17 +370,26 @@ class Converter extends stream.Readable {
         return new Ast.DialogueHistoryItem(null, tableStmt, null, false);
     }
 
-    async _generateAction(context, frame, fullIntentName, params, selector, activeIntent) {
+    async _generateAction(context, frame, fullIntentName, params, selector, activeIntent, tpClass) {
         /* Generates an action for the user target */
 
         const invocation = new Ast.Invocation(null, selector, fullIntentName, [], null);
         let confirmedState = false;
+
+        let schema = await this._schemas.getFullSchema(tpClass);
+        let func = schema.getFunction('action', fullIntentName);
+
         for (let key in params) {
             if (!activeIntent.required_slots.includes(key) &&
                 !Object.keys(activeIntent.optional_slots).includes(key))
                 continue;
-            let ttValue = predictType(this._schemaObj[frame.service]['slots'][key], params[key][0]);
-            invocation.in_params.push(new Ast.InputParam(null, key, ttValue));
+            
+            // don't push parameters that our current schema doesn't tolerate
+            if (!func.inOpt[SLOT_MAP[key]] && !func.inReq[SLOT_MAP[key]])
+                continue;
+
+            let ttValue = predictType(this._schemaObj[frame.service]['slots'][key], params[key]);
+            invocation.in_params.push(new Ast.InputParam(null, SLOT_MAP[key], ttValue));
         }
         const actionStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
         return new Ast.DialogueHistoryItem(null, actionStmt, null, confirmedState);
@@ -406,14 +417,13 @@ class Converter extends stream.Readable {
 
         if (activeIntent.is_transactional) {
             // this is an action
-            let params = [];
-            for (let i = 0; i < frame.state.slot_values.length; i++) {
-                // FIXME: we don't handle reference numbers quite yet
-                if (frame.state.slot_values[i].endsWith('-ref'))
+            let params = {};
+            for (let key in frame.state.slot_values) {
+                if (frame.state.slot_values[key][0].endsWith('-ref'))
                     continue;
-                params.push(SLOT_MAP[frame.state.slot_values[i]]);
+                params[key] = frame.state.slot_values[key][0];
             }
-            let actionItem = await this._generateAction(context, frame, intentName, params, selector, activeIntent);
+            let actionItem = await this._generateAction(context, frame, intentName, params, selector, activeIntent, tpClass);
             items.push(actionItem);
         } else {
             // this is a query
