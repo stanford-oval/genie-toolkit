@@ -41,6 +41,38 @@ const { cleanEnumValue, SERVICE_MAP, ACTION_MAP, SLOT_MAP }  = require('./utils'
 
 const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
 
+const SEARCH_SLOTS = new Set([
+    'restaurant-name',
+    'restaurant-food',
+    'restaurant-area',
+    'restaurant-price-range',
+    'hotel-name',
+    'hotel-area',
+    'hotel-type',
+    'hotel-price-range',
+    'hotel-parking',
+    'hotel-stars',
+    'hotel-internet',
+    'attraction-name',
+    'attraction-area',
+    'attraction-type',
+    'train-name',
+    'train-day',
+    'train-departure',
+    'train-destination',
+    'train-leave-at',
+    'train-leaveat',
+    'train-arrive-by',
+    'train-arriveby'
+]);
+
+function getStatementDomain(stmt) {
+    if (stmt.table)
+        return stmt.table.schema.class.name;
+    else
+        return stmt.actions[0].schema.class.name;
+}
+
 // From auto-annotate-multiwoz.js
 function parseTime(v) {
     if (/^[0-9]+:[0-9]+/.test(v)) {
@@ -178,14 +210,18 @@ class Converter extends stream.Readable {
         super({ objectMode: true });
         this._tpClient = new Tp.FileClient(args);
         this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, true);
+        this._userParser = ParserClient.get(args.user_nlu_server, 'en-US');
+        this._agentParser = ParserClient.get(args.agent_nlu_server, 'en-US');
 
         this._target = TargetLanguages.get('thingtalk');
+        this._simulatorOverrides = new Map;
         const simulatorOptions = {
             rng: seedrandom.alea('almond is awesome'),
             locale: 'en-US',
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
             forceEntityResolution: true,
+            overrides: this._simulatorOverrides
         };
         this._database = new MultiJSONDatabase(args.database_file);
         simulatorOptions.database = this._database;
@@ -197,6 +233,8 @@ class Converter extends stream.Readable {
 
     async start() {
         await this._database.load();
+        await this._userParser.start();
+        await this._agentParser.start();
         // Make map for service, slot, intent lookup
         const services = JSON.parse(await util.promisify(fs.readFile)(this._schema_json_file, { encoding: 'utf8' }));
         this._schemaObj = {};
@@ -212,269 +250,319 @@ class Converter extends stream.Readable {
             serviceObj['intents'] = intents;
             this._schemaObj[service.service_name] = serviceObj;
         }
+        console.error('succesfully started');
+    }
+    async stop() {
+        await this._userParser.stop();
+        await this._agentParser.stop();
     }
 
-    async _generateProposed(context, frame, selectedSlots) {
-        const tpClass = 'com.google.sgd';
-        const selector = new Ast.Selector.Device(null, tpClass, null, null);
-        let intentName = selectedSlots[frame.service].activeIntent.name;
-        for (let action of frame.actions) {
-            if (action.act === 'OFFER_INTENT')
-                intentName = action.canonical_values[0];
+
+    async _parseUtterance(context, parser, utterance, forSide) {
+        let contextCode, contextEntities;
+        if (context !== null) {
+            context = this._target.prepareContextForPrediction(context, forSide);
+            [contextCode, contextEntities] = this._target.serializeNormalized(context);
+        } else {
+            contextCode = ['null'];
+            contextEntities = {};
         }
-        const fullIntentName = frame.service + '_' + intentName;
-        const proposedIntent = this._schemaObj[frame.service]['intents'][intentName];
-        let newItems = [];
-        if (proposedIntent.is_transactional) {
-            // This is an action
-            const invocation = new Ast.Invocation(null, selector, fullIntentName, [], null);
-            for (let key in selectedSlots[frame.service]) {
-                if ((!proposedIntent.required_slots.includes(key) &&
-                     !Object.keys(proposedIntent.optional_slots).includes(key)) ||
-                     selectedSlots[frame.service][key][0] === 'dontcare') // TODO revisit this later. Is it right to just skip it? actions can't take dontcares, right?
-                    continue;
-                let ttValue = predictType(this._schemaObj[frame.service]['slots'][key], selectedSlots[frame.service][key][0]);
-                invocation.in_params.push(new Ast.InputParam(null, key, ttValue));
+
+        const parsed = await parser.sendUtterance(utterance, contextCode, contextEntities, {
+            tokenized: false,
+            skip_typechecking: true
+        });
+        return (await Promise.all(parsed.candidates.map(async (cand) => {
+            try {
+                const program = ThingTalk.NNSyntax.fromNN(cand.code, parsed.entities);
+                await program.typecheck(this._schemas);
+
+                // convert the program to NN syntax once, which will force the program to be syntactically normalized
+                // (and therefore rearrange slot-fill by name rather than Thingpedia order)
+                ThingTalk.NNSyntax.toNN(program, '', {}, { allocateEntities: true });
+                return program;
+            } catch(e) {
+                return null;
             }
-            const statement = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
-            newItems.push(new Ast.DialogueHistoryItem(null, statement, null, 'proposed'));
-        } else { // This is a query
-            const invocationTable = new Ast.Table.Invocation(null,
-                new Ast.Invocation(null, selector, fullIntentName, [], null),
-                null);
-            const filterClauses = [];
-            for (let key in selectedSlots[frame.service]) {
-                if (!proposedIntent.required_slots.includes(key) &&
-                    !Object.keys(proposedIntent.optional_slots).includes(key))
-                    continue;
-                let value = selectedSlots[frame.service][key][0];
-                if (value == 'dontcare') {
-                    filterClauses.push(new Ast.BooleanExpression.DontCare(null, key));
-                    continue;
-                }
-                let ttValue = predictType(this._schemaObj[frame.service]['slots'][key], value);
-                let op = '==';
-                if (ttValue.isString)
-                    op = '=~';
-                filterClauses.push(new Ast.BooleanExpression.Atom(null, key, op, ttValue));
+        }))).filter((c) => c !== null);
+    }
+
+    async _getContextInfo(state) {
+        let next = null, current = null;
+        for (let idx = 0; idx < state.history.length; idx ++) {
+            const item = state.history[idx];
+            if (item.results === null) {
+                next = item;
+                break;
             }
-            const filterTable = filterClauses.length > 0 ?
-                                new Ast.Table.Filter(null, invocationTable, new Ast.BooleanExpression.And(null, filterClauses), null) :
-                                invocationTable;
-            const projTable = frame.state.requested_slots.length > 0 ?
-                              new Ast.Table.Projection(null, filterTable, frame.state.requested_slots, null) :
-                              filterTable;
-            const tableStmt = new Ast.Statement.Command(null, projTable, [new Ast.Action.Notify(null, 'notify', null)]);
-            newItems.push(new Ast.DialogueHistoryItem(null, tableStmt, null, 'accepted'));
+            current = item;
         }
-        const agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_recommend_one', null, newItems);
-        await agentTarget.typecheck(this._schemas);
+
+        return { current, next };
+    }
+
+    _getIDs(type) {
+        return this._database.get(type).map((entry) => {
+            return {
+                value: entry.id.value,
+                name: entry.id.display,
+                canonical: entry.id.display
+            };
+        });
+    }
+
+    _resolveEntity(value) {
+        const resolved = getBestEntityMatch(value.display, value.type, this._getIDs(value.type));
+        value.value = resolved.value;
+
+        // do not override the display field, it should match the sentence instead
+        // it will be overridden later when round-tripped through the executor
+        //value.display = resolved.display;
+    }
+
+    async _doAgentTurn(context, contextInfo, turn, agentUtterance) {
+        const parsedAgent = await this._parseUtterance(context, this._agentParser, agentUtterance, 'agent');
+
+        let agentTarget;
+        if (parsedAgent.length === 0) {
+            // oops, bad
+            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []);
+        } else {
+            agentTarget = parsedAgent[0];
+        }
+
+        if (agentTarget.dialogueAct === 'sys_propose_refined_query') {
+            // this is basically never parsed right, so we override it
+            agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []);
+        }
+
+        /*
+        // add some heuristics using the "system_acts" annotation
+        const requestedSlots = turn.system_acts.filter((act) => typeof act === 'string');
+        if (requestedSlots.length > 0) {
+            if (requestedSlots.some((slot) => SEARCH_SLOTS_FOR_SYSTEM.has(slot))) {
+                if (contextInfo.current && contextInfo.current.results.results.length === 0)
+                    agentTarget.dialogueAct = 'sys_empty_search_question';
+                else
+                    agentTarget.dialogueAct = 'sys_search_question';
+            } else {
+                if (contextInfo.current && contextInfo.current.error)
+                    agentTarget.dialogueAct = 'sys_action_error_question';
+                else
+                    agentTarget.dialogueAct = 'sys_slot_fill';
+            }
+
+            agentTarget.dialogueActParam = requestedSlots.map((slot) => REQUESTED_SLOT_MAP[slot] || slot);
+        }
+        */
+
+        if (agentTarget.history.length === 0 && contextInfo.next)
+            agentTarget.history.push(contextInfo.next.clone());
+
         return agentTarget;
     }
 
-    async _doAgentTurn(context, turn, agentUtterance, selectedSlots) {
-        /* Return an agentTarget object corresponding to the current agent turn. */
-
-        // FIXME spoof a simple 'sys_invalid' for now to just test whether user is working
-        return new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []);
-
-        // const frame = turn.frames[0]; // always only just frame with system
-        // let agentTarget;
-        // let actNames = frame.actions.map((action) => action.act);
-        // if (actNames.includes('NOTIFY_SUCCESS')) {
-        //     agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_action_success', null, []);
-        // } else if (actNames.includes('INFORM')) {
-        //     agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_recommend_one', null, []);
-        // } else if (actNames.includes('REQUEST')) {
-        //     const isSearchQuestion = context.history.slice(-1).pop().stmt.table !== null;
-        //     if (isSearchQuestion) {
-        //         agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_search_question', null, []);
-        //     } else {
-        //         agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_slot_fill', null, context.history.slice(-1));
-        //     }
-        //     let requestActs = frame.actions.filter((action) => action.act === 'REQUEST');
-        //     agentTarget.dialogueActParam = requestActs.map((act) => act.slot);
-        // } else if (actNames.includes('OFFER')) {
-        //     agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_recommend_one', null, []); // maybe more than one? not sure
-        // } else if (actNames.includes('OFFER_INTENT') ||
-        //            actNames.includes('CONFIRM')) {
-        //     agentTarget = this._generateProposed(context, frame, selectedSlots);
-        // } else if (actNames.includes('NOTIFY_FAILURE')) {
-        //     agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_action_error', null, []); // Error tags get added in the doDialogue loop
-        // } else if (actNames.includes('REQ_MORE')) {
-        //     agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_anything_else', null, []);
-        // } else if (actNames.includes('GOODBYE')) {
-        //     agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_goodbye', null, []);
-        // } else {
-        //     agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []);
-        // }
-
-        // return agentTarget;
-    }
-
-    async _updateSelectedSlots(frame, selectedSlots) {
-        for (let action of frame.actions) {
-            if (action.act === 'SELECT') {
-                if (action.slot === '') {
-                    for (let slot in frame.state.slot_values)
-                        selectedSlots[frame.service][slot] = frame.state.slot_values[slot];
-                } else
-                    selectedSlots[frame.service + '_' + action.slot] = action.values;
-            }
-        }
-    }
-
-    async _generateQuery(frame, projections, filters, selector, fullIntentName, tpClass) {
-        /* Generate a query for the user target.
-
-        @param context:     context of the dialogue so far
-        @param frame:       map object encapsulating one domain of the active
-                            intent of this user turn
-        @param projections: list of strings indicating the slot values the
-                            user wants projected
-        @param filters:     map of the slots and values the user wants to include
-                            as filters */
-
-        const invocationTable = new Ast.Table.Invocation(null,
-            new Ast.Invocation(null, selector, fullIntentName, [], null),
-            null);
-        const filterClauses = [];
-        for (let key in filters) {
-
-            // don't push filters that our current schema doesn't tolerate
-            let schema = await this._schemas.getFullSchema(tpClass);
-            let func = schema.getFunction('query', SERVICE_MAP[frame.service]);
-            if (!func.out[SLOT_MAP[key]])
-                continue;
-
-            let value = filters[key];
-            if (value == 'dontcare') {
-                filterClauses.push(new Ast.BooleanExpression.DontCare(null, SLOT_MAP[key]));
-                continue;
-            }
-            let ttValue = predictType(this._schemaObj[frame.service]['slots'][key], value);
-            let op = '==';
-            if (ttValue.isString)
-                op = '=~';
-            filterClauses.push(new Ast.BooleanExpression.Atom(null, SLOT_MAP[key], op, ttValue));
-        }
-        const filterTable = filterClauses.length > 0 ?
-                            new Ast.Table.Filter(null, invocationTable, new Ast.BooleanExpression.And(null, filterClauses), null) :
-                            invocationTable;
-        const projTable =   projections.length > 0 ?
-                            new Ast.Table.Projection(null, filterTable, projections, null) :
-                            filterTable;
-        const tableStmt = new Ast.Statement.Command(null, projTable, [new Ast.Action.Notify(null, 'notify', null)]);
-        return new Ast.DialogueHistoryItem(null, tableStmt, null, false);
-    }
-
-    async _generateAction(context, frame, fullIntentName, params, selector, activeIntent) {
-        /* Generates an action for the user target */
-
-        const invocation = new Ast.Invocation(null, selector, fullIntentName, [], null);
-        let confirmedState = false;
-        for (let key in params) {
-            if (!activeIntent.required_slots.includes(key) &&
-                !Object.keys(activeIntent.optional_slots).includes(key))
-                continue;
-            let ttValue = predictType(this._schemaObj[frame.service]['slots'][key], params[key][0]);
-            invocation.in_params.push(new Ast.InputParam(null, key, ttValue));
-        }
-        const actionStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
-        return new Ast.DialogueHistoryItem(null, actionStmt, null, confirmedState);
-    }
-
-    async _getDialogueHistoryItem(context, frame) {
-        /* Given one frame of the current user turn, return a DialogueHistoryItem for the
-            active_intent of that frame. */
-
-        const items = [];
-        const serviceName = SERVICE_MAP[frame.service];
-        if (!serviceName) {
-            // we don't support this domain yet
-            return new Ast.DialogueState(null, POLICY_NAME, 'invalid', null, []);
-        }
-        const tpClass = 'uk.ac.cam.multiwoz.' + serviceName;
-        const selector = new Ast.Selector.Device(null, tpClass, null, null);
-        const intentName = ACTION_MAP[frame.state.active_intent];
-        const activeIntent = this._schemaObj[frame.service]['intents'][frame.state.active_intent];
-
-        // if (!Object.keys(selectedSlots).includes(frame.service))
-        //     selectedSlots[frame.service] = {};
-
-        // selectedSlots[frame.service].activeIntent = activeIntent;
-
-        if (activeIntent.is_transactional) {
-            // this is an action
-            let params = [];
-            for (let i = 0; i < frame.state.slot_values.length; i++) {
-                // FIXME: we don't handle reference numbers quite yet
-                if (frame.state.slot_values[i].endsWith('-ref'))
-                    continue;
-                params.push(SLOT_MAP[frame.state.slot_values[i]]);
-            }
-            let actionItem = await this._generateAction(context, frame, intentName, params, selector, activeIntent);
-            items.push(actionItem);
-        } else {
-            // this is a query
-            let projections = [];
-            for (let i = 0; i < frame.state.requested_slots.length; i++) {
-                // don't handle reference numbers quite yet
-                if (frame.state.requested_slots[i].endsWith('-ref'))
-                    continue;
-                projections.push(SLOT_MAP[frame.state.requested_slots[i]]);
-            }
-            let filters = {};
+    async _doUserTurn(context, contextInfo, turn, selectedSlots, slotBag) {
+        let userUtterance = turn['utterance'];
+        const allSlots = new Map;
+        for (let frame of turn.frames) {
             for (let key in frame.state.slot_values) {
-                // don't handle reference numbers quite yet
-                if (frame.state.slot_values[key][0].endsWith('-ref'))
+                let slotName = key.replace(/ /g, '-').replace(/pricerange/, 'price-range').replace(/bookpeople/, 'book-people').replace(/bookday/, 'book-day').replace(/bookstay/, 'book-stay').replace(/booktime/, 'book-time');
+                let value = frame.state.slot_values[key][0];
+                value = value.replace(/guesthouse/, 'guest_house');
+                if (/^(hospital|bus|police)-/.test(slotName))
                     continue;
-                filters[key] = frame.state.slot_values[key][0];
+                allSlots.set(slotName, value);
+            }
+        }
+
+        const newSearchSlots = new Map;
+        const newActionSlots = new Map;
+        let domain = undefined;
+        for (let [key, value] of allSlots) {
+            if (slotBag.get(key) !== value) {
+                slotBag.set(key, value);
+                domain = key.split('-')[0];
+
+                if (SEARCH_SLOTS.has(key))
+                    newSearchSlots.set(key, value);
+                else
+                    newActionSlots.set(key, value);
+            }
+        }
+
+        if (newSearchSlots.size === 0 && newActionSlots.size === 0) {
+            // no slot given at this turn
+            // parse the utterance and hope for the best...
+            const parsedUser = await this._parseUtterance(context, this._userParser, userUtterance, 'user');
+
+            let userTarget;
+            if (parsedUser.length === 0) {
+                // oops, bad
+                userTarget = new Ast.DialogueState(null, POLICY_NAME, 'invalid', null, []);
+            } else {
+                userTarget = parsedUser[0];
             }
 
-            let queryItem = await this._generateQuery(frame, projections, filters, selector, serviceName, tpClass);
-            items.push(queryItem);
+            // remove all new info from it, copy everything over
+            userTarget.history.length = 0;
+            if (contextInfo.next)
+                userTarget.history.push(contextInfo.next.clone());
+
+            return userTarget;
+
+        } else {
+            const newItems = [];
+
+            const queryname = domain[0].toUpperCase() + domain.substring(1);
+            const action = queryname === 'Restaurant' ? 'make_reservation' : 'make_booking';
+            const tpClass = 'uk.ac.cam.multiwoz.' + queryname;
+            const selector = new Ast.Selector.Device(null, tpClass, null, null);
+
+            // if the only new search slot is name, and we'll be executing the action for this
+            // domain, we move the name to an action slot instead
+            // TODO LUCAS && actionDomains.has(domain) ?
+            if (contextInfo.current && getStatementDomain(contextInfo.current.stmt) === domain) {
+                const searchKeys = Array.from(newSearchSlots.keys());
+                if (searchKeys.length === 1 && searchKeys[0].endsWith('name')) {
+                    newActionSlots.set(searchKeys[0], newSearchSlots.get(searchKeys[0]));
+                    newSearchSlots.delete(searchKeys[0]);
+                }
+            }
+
+            if (newSearchSlots.size && domain !== 'taxi') {
+                const invocationTable = new Ast.Table.Invocation(null,
+                    new Ast.Invocation(null, selector, queryname, [], null),
+                    null);
+
+                const filterClauses = [];
+                for (let [key, value] of slotBag) {
+                    if (!key.startsWith(domain))
+                        continue;
+                    if (!SEARCH_SLOTS.has(key))
+                        continue;
+
+                    let param = key.split('-').slice(1).join('_');
+                    if (param === 'name')
+                        param = 'id';
+                    if (param === 'arriveby')
+                        param = 'arrive_by';
+                    if (param === 'leaveat')
+                        param = 'leave_at';
+                    let ttValue;
+
+                    if (value === 'dontcare') {
+                        filterClauses.push(new Ast.BooleanExpression.DontCare(null, param));
+                    } else if (value === 'hotel|guesthouse' && key === 'hotel-type') {
+                        filterClauses.push(new Ast.BooleanExpression.Atom(null, 'type', 'in_array', new Ast.Value.Array([
+                            new Ast.Value.Enum('hotel'),
+                            new Ast.Value.Enum('guest_house')
+                        ])));
+                    } else {
+                        if (param === 'internet' || param === 'parking')
+                            ttValue = new Ast.Value.Boolean(value !== 'no');
+                        else if (param === 'leave_at' || param === 'arrive_by')
+                            ttValue = parseTime(value);
+                        else if (param === 'id' && contextInfo.current && getStatementDomain(contextInfo.current.stmt) === domain)
+                            ttValue = new Ast.Value.Entity(null, tpClass + ':' + queryname, value);
+                        else if (param === 'stars')
+                            ttValue = new Ast.Value.Number(parseInt(value) || 0);
+                        else if (param === 'area' || param === 'price_range' || param === 'day' || key === 'hotel-type')
+                            ttValue = new Ast.Value.Enum(value.replace(/\s+/g, '_'));
+                        else
+                            ttValue = new Ast.Value.String(value);
+                        if (ttValue.isEntity)
+                            this._resolveEntity(ttValue);
+
+                        let op = '==';
+                        if (ttValue.isString)
+                            op = '=~';
+                        else if (param === 'leave_at')
+                            op = '>=';
+                        else if (param === 'arrive_by')
+                            op = '<=';
+
+                        filterClauses.push(new Ast.BooleanExpression.Atom(null, param, op, ttValue));
+                    }
+                }
+
+                const filterTable = new Ast.Table.Filter(null, invocationTable,
+                    new Ast.BooleanExpression.And(null, filterClauses), null);
+
+                const tableStmt = new Ast.Statement.Command(null, filterTable, [new Ast.Action.Notify(null, 'notify', null)]);
+                newItems.push(new Ast.DialogueHistoryItem(null, tableStmt, null, 'accepted'));
+            }
+
+            if (newActionSlots.size && domain !== 'attraction') {
+                const invocation = new Ast.Invocation(null, selector, action, [], null);
+
+                for (let [key, value] of slotBag) {
+                    if (!key.startsWith(domain))
+                        continue;
+                    if (SEARCH_SLOTS.has(key) && !key.endsWith('name'))
+                        continue;
+
+                    let param = key.split('-').slice(1).join('_');
+                    if (param === 'name')
+                        param = domain;
+                    if (param === 'arriveby')
+                        param = 'arrive_by';
+                    if (param === 'leaveat')
+                        param = 'leave_at';
+
+                    if (value === 'dontcare') {
+                        // ???
+                        // ignore
+                        continue;
+                    }
+
+                    let ttValue;
+                    if (param === 'leave_at' || param === 'arrive_by' || param === 'book_time')
+                        ttValue = parseTime(value);
+                    else if (param === 'book_people' || param === 'book_stay')
+                        ttValue = new Ast.Value.Number(parseInt(value) || 0);
+                    else if (param === 'book_day' || param === 'day')
+                        ttValue = new Ast.Value.Enum(value);
+                    else if (param === domain)
+                        ttValue = new Ast.Value.Entity(null, tpClass + ':' + queryname, value);
+                    else
+                        ttValue = new Ast.Value.String(value);
+                    if (ttValue.isEntity)
+                        this._resolveEntity(ttValue);
+
+                    invocation.in_params.push(new Ast.InputParam(null, param, ttValue));
+                }
+
+                const actionStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
+                newItems.push(new Ast.DialogueHistoryItem(null, actionStmt, null, 'accepted'));
+            } else if (contextInfo.next) {
+                newItems.push(contextInfo.next.clone());
+            }
+
+            const userTarget = new Ast.DialogueState(null, POLICY_NAME, 'execute', null, newItems);
+            await userTarget.typecheck(this._schemas);
+            return userTarget;
         }
-        // return items;
-        const userTarget = new Ast.DialogueState(null, POLICY_NAME, 'execute', null, items);
-        await userTarget.typecheck(this._schemas);
-        return userTarget;
+        throw 'wtf';
     }
 
-    async _doUserTurn(context, turn, selectedSlots) {
-        /* Return a userTarget object corresponding to one half-turn of the current dialogue. */
-        let userTarget;
-        let newItems = [];
-        for (let i = 0; i < turn.frames.length; i++) {   
-            let frame = turn.frames[i];
-            if (frame.state.active_intent === 'NONE')
-                continue;
+    _extractSimulatorOverrides(utterance) {
+        const car = /\b(black|white|red|yellow|blue|grey) (toyota|skoda|bmw|honda|ford|audi|lexus|volvo|volkswagen|tesla)\b/.exec(utterance);
+        if (car)
+            this._simulatorOverrides.set('car', car[0]);
 
-            // let item = await this._getDialogueHistoryItem(context, frame);
-            userTarget = await this._getDialogueHistoryItem(context, frame);
-            // newItems.push(item);
+        for (let token of utterance.split(' ')) {
+            // a reference number is an 8 character token containing both letters and numbers
+            if (token.length === 8 && /[a-z]/.test(token) && /[0-9]/.test(token))
+                this._simulatorOverrides.set('reference_number', token);
         }
-        // userTarget = new Ast.DialogueState(null, POLICY_NAME, 'execute', null, newItems);
-
-        // FIXME if no intents were found, apply a simple cancel state for now
-        if (!userTarget)
-            userTarget = new Ast.DialogueState(null, POLICY_NAME, 'cancel', null, []);
-        return userTarget;
-    }
-
-    async _fakeError(turn, context) {
-        if (!turn.frames[0].actions.map((action) => action.act).includes('NOTIFY_FAILURE'))
-            return;
-        let err = new Ast.Value.Enum('generic_error');
-        let lastAction = context.history.pop();
-        lastAction.results = new Ast.DialogueHistoryResultList(null, [], new Ast.Value.Number(0), false, err);
-        context.history.push(lastAction);
     }
 
     async _doDialogue(dlg) {
         const id = dlg.dialogue_id;
 
-        let context = null, simulatorState = undefined, selectedSlots = {};
+        let context = null, contextInfo = { current: null, next: null },
+            simulatorState = undefined, selectedSlots = {}, slotBag = new Map;
         const turns = [];
         for (let idx = 0; idx < dlg.turns.length; idx = idx+2) { // NOTE: we are ignoring the last agent halfTurn
             const uHalfTurn = dlg.turns[idx];
@@ -484,7 +572,10 @@ class Converter extends stream.Readable {
                 let contextCode = '', agentUtterance = '', agentTargetCode = '';
 
                 if (context !== null) {
+                    // use the next turn to find the values of the action output parameters (reference_number and car) if any
+                    this._simulatorOverrides.clear();
                     agentUtterance = aHalfTurn.utterance.replace(/\n/g, ' '); // Some utterances are multiline
+                    this._extractSimulatorOverrides(agentUtterance);
                     // "execute" the context
                     [context, simulatorState] = await this._simulator.execute(context, simulatorState);
                     // fake an action error in the last action if needed
@@ -512,10 +603,11 @@ class Converter extends stream.Readable {
                             return onerank - tworank;
                         });
                     }
+                    contextInfo = this._getContextInfo(context);
                     contextCode = context.prettyprint();
 
                     // do the agent
-                    const agentTarget = await this._doAgentTurn(context, aHalfTurn, agentUtterance, selectedSlots);
+                    const agentTarget = await this._doAgentTurn(context, contextInfo, aHalfTurn, agentUtterance);
                     const oldContext = context;
                     context = this._target.computeNewState(context, agentTarget, 'agent');
                     const prediction = this._target.computePrediction(oldContext, context, 'agent');
@@ -524,7 +616,7 @@ class Converter extends stream.Readable {
                 }
 
                 const userUtterance = uHalfTurn.utterance.replace(/\n/g, ' ');
-                const userTarget = await this._doUserTurn(context, uHalfTurn, selectedSlots);
+                const userTarget = await this._doUserTurn(context, contextInfo, uHalfTurn, selectedSlots, slotBag);
                 const oldContext = context;
                 context = this._target.computeNewState(context, userTarget, 'user');
                 const prediction = this._target.computePrediction(oldContext, context, 'user');
@@ -537,6 +629,11 @@ class Converter extends stream.Readable {
                     user: userUtterance,
                     user_target: userTargetCode,
                 });
+
+                // use the next turn to find the values of the action output parameters (reference_number and car) if any
+                this._simulatorOverrides.clear();
+                if (idx < dlg.turns.length-2)
+                    this._extractSimulatorOverrides(dlg.turns[idx+2].utterance);
 
             } catch(e) {
                 console.error(`Failed in dialogue ${id}`);
@@ -585,6 +682,16 @@ module.exports = {
         parser.addArgument('--schema-json', {
             required: true,
             help: `Path to the original schema.json from MultiWOZ 2.2`,
+        });
+        parser.addArgument('--user-nlu-server', {
+            required: false,
+            defaultValue: 'http://127.0.0.1:8400',
+            help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
+        });
+        parser.addArgument('--agent-nlu-server', {
+            required: false,
+            defaultValue: 'http://127.0.0.1:8400',
+            help: `The URL of the natural language server to parse agent utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
         });
         parser.addArgument('input_file', {
             help: 'Input dialog file'
