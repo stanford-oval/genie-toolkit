@@ -1,3 +1,12 @@
+0.7.0-beta.5
+============
+
+* Added canonical forms and templates for domain-specific argmin/argmax [#260].
+* Expanded templates for projection, with type-appropriate wh- questions [#261].
+* Added hooks to the execution environment so devices can be notified when
+  a program ends. This can be used to batch the execution of multiple actions
+  in the same program [#259].
+
 0.7.0-beta.4
 ============
 
