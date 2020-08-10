@@ -115,23 +115,23 @@ function parseDate(v) {
     }
 }
 
-// adapted from ./process-schema.js
 function predictType(slot, val) {
-    if (slot.name === 'approximate_ride_duration')
-        return new Ast.Value.Measure('ms', val);
-    if (slot.name === 'wind')
-        return new Ast.Value.Measure('mps', val);
-    if (slot.name === 'temperature')
-        return new Ast.Value.Measure('C', val);
-    if (['precipitation', 'humidity'].includes(slot.name))
-        return new Ast.Value.Number(parseInt(val) || 0);
+    /**
+     * Given a slot from the MultiWOZ 2.2 schema, return an object of
+     * the corresponding ThingTalk type.
+     * 
+     * @param {map} slot - the slot from the MultiWOZ 2.2 ontology
+     * @param {string} val - the value the slot takes
+     * @return {Ast.Value} - the slot in proper ThingTalk format
+     */
     if (slot.is_categorical && slot.possible_values.length > 0) {
+        // check for Boolean
         if (slot.possible_values.length === 2
             && slot.possible_values.includes('True')
             && slot.possible_values.includes('False'))
             return new Ast.Value.Boolean(val !== 'False');
         
-        // HACK for parking and internet enums
+        // turn parking and internet enums into Booleans
         if (slot.possible_values.length === 3
             && slot.possible_values.includes('free')
             && slot.possible_values.includes('yes')
@@ -153,21 +153,21 @@ function predictType(slot, val) {
 
         return new Ast.Value.Enum(val);
     }
-    if (slot.name === 'phone_number')
+    if (slot.name.endsWith('-number'))
         return new Ast.Value.Entity(null, 'tt:phone_number', val);
-    if (slot.name.startsWith('number_of_') || slot.name.endsWith('_number') || slot.name === 'number' ||
-        slot.name.endsWith('_size') || slot.name === 'size' ||
-        slot.name.endsWith('_rating') || slot.name === 'rating')
+
+    if (slot.name.endsWith('-bookpeople') ||
+        slot.name.endsWith('-bookstay') ||
+        slot.name.endsWith('-stars'))
         return new Ast.Value.Number(parseInt(val) || 0);
-    if (slot.name.endsWith('_time') || slot.name === 'time' || slot.name.endsWith('booktime'))
+
+    if (slot.name.endsWith('-leaveat') ||
+        slot.name.endsWith('-arriveby') ||
+        slot.name.endsWith('booktime'))
         return parseTime(val);
-    if (slot.name.endsWith('leaveat') || slot.name.endsWith('arriveby'))
-        return parseTime(val);
-    if (slot.name.endsWith('_date') || slot.name === 'date')
-        return parseDate(val.toLowerCase());
-    if (slot.name.endsWith('_fare') || slot.name === 'fare' ||
-        slot.name.endsWith('_price') || slot.name === 'price' ||
-        ['balance', 'price_per_night', 'rent'].includes(slot.name))
+
+    if (slot.name.endsWith('-entrancefee') ||
+        slot.name.endsWith('-price'))
         return new Ast.Value.Currency(val.value, val.code);
 
     return new Ast.Value.String(val);
