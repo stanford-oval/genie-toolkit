@@ -19,17 +19,13 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
+process.on('unhandledRejection', (up) => { throw up; });
+
 const ThingTalk = require('thingtalk');
 const fs = require('fs');
 const util = require('util');
 
-function stringEscape(str) {
-    if (str === null || str === undefined)
-        return 'null';
-    return '"' + str.replace(/(["\\])/g, '\\$1').replace(/\n/g, '\\n') + '"';
-    // the following comment fixes broken syntax highlighting in GtkSourceView
-    //]/
-}
+const { stringEscape } = require('../lib/utils/escaping');
 
 function extract(key, str) {
     if (typeof str === 'string') {
