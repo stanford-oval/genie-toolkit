@@ -178,6 +178,10 @@ function makeAndFilter(param, op, values, negate = false) {
     return Utils.makeAndFilter(_loader, param, op, values, negate);
 }
 
+function makeDateRangeFilter(param, values) {
+    return Utils.makeDateRangeFilter(_loader, param, values);
+}
+
 function makeOrFilter(param, op, values, negate  =false) {
     if (values.length !== 2)
         return null;
@@ -1850,6 +1854,7 @@ module.exports = {
     makeAndFilter,
     makeOrFilter,
     makeButFilter,
+    makeDateRangeFilter,
     makeAggregateFilter,
     makeAggregateFilterWithFilter,
     checkFilter,

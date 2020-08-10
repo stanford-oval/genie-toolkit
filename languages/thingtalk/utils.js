@@ -86,6 +86,16 @@ function makeAndFilter(loader, param, op, values, negate=false) {
     return f;
 }
 
+function makeDateRangeFilter(loader, param, values) {
+    if (values.length !== 2)
+        return null;
+    const operands = [
+        makeFilter(loader, param, '>=', values[0]),
+        makeFilter(loader, param, '<=', values[1])
+    ];
+    return new Ast.BooleanExpression.And(null, operands);
+}
+
 function isHumanEntity(type) {
     if (type.isEntity)
         return isHumanEntity(type.type);
@@ -321,6 +331,7 @@ module.exports = {
     typeToStringSafe,
     makeFilter,
     makeAndFilter,
+    makeDateRangeFilter,
 
     isHumanEntity,
     isLocationEntity,

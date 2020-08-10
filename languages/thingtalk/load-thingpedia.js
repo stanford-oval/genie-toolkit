@@ -34,6 +34,7 @@ const {
     typeToStringSafe,
     makeFilter,
     makeAndFilter,
+    makeDateRangeFilter,
     isHumanEntity,
     interrogativePronoun,
     tokenizeExample
@@ -534,32 +535,38 @@ class ThingpediaLoader {
                         before = (before || '').trim();
                         after = (after || '').trim();
 
-                        let expansion, corefexpansion, pairexpansion;
+                        let expansion, corefexpansion, pairexpansion, daterangeexpansion;
                         if (before && after) {
                             // "rated # stars"
                             expansion = [before, constant, after];
                             corefexpansion = [before, corefconst, after];
                             pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
+                            daterangeexpansion = [before, new this._runtime.NonTerminal('constant_date_range'), after];
                         } else if (before) {
                             // "named #"
                             expansion = [before, constant, ''];
                             corefexpansion = [before, corefconst, ''];
                             pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), ''];
+                            daterangeexpansion = [before, new this._runtime.NonTerminal('constant_date_range'), ''];
                         } else if (after) {
                             // "# -ly priced"
                             expansion = ['', constant, after];
                             corefexpansion = ['', corefconst, after];
                             pairexpansion = ['', new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
+                            daterangeexpansion = ['', new this._runtime.NonTerminal('constant_date_range'), after];
                         } else {
                             // "#" (as in "# restaurant")
                             expansion = ['', constant, ''];
                             corefexpansion = ['', corefconst, ''];
                             pairexpansion = ['', new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), ''];
+                            daterangeexpansion = ['', new this._runtime.NonTerminal('constant_date_range'), ''];
                         }
                         this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((_1, value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
                         this._grammar.addRule('coref_' + cat + '_filter', corefexpansion, this._runtime.simpleCombine((_1, value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
                         if (canUseBothForm)
                             this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values, _3) => makeAndFilter(this, pvar, op, values, false)), attributes);
+                        if (ptype.isDate)
+                            this._grammar.addRule(cat + '_filter', daterangeexpansion, this._runtime.simpleCombine((_1, values, _2) => makeDateRangeFilter(this, pvar, values)), attributes);
                     }
                 }
             }
