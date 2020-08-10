@@ -214,10 +214,9 @@ $agent = {
     ctx:ctx_learn_more system_learn_more
         => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_learn_more_what', null));
 
-    // answer simple confirm state
-    // FIXME this should instantiate a new action proposal
-    ctx:ctx_confirm anything_else_phrase
-        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null));
+    // answer simple confirm state with recommendation
+    ctx:ctx_confirm proposal:system_recommendation
+        => D.makeRecommendationReply(ctx, proposal);
 }
 
 $user = {
