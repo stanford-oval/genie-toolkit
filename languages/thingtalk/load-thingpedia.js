@@ -35,7 +35,6 @@ const {
     makeFilter,
     makeAndFilter,
     makeDateRangeFilter,
-    makeDate,
     isHumanEntity,
     interrogativePronoun,
     tokenizeExample
@@ -116,8 +115,6 @@ class ThingpediaLoader {
         this._recordType(Type.Number);
         for (let unit of Units.BaseUnits)
             this._recordType(Type.Measure(unit));
-        if (!this._options.flags.turking)
-            this._loadDate();
 
         await this._loadMetadata();
     }
@@ -835,86 +832,6 @@ class ThingpediaLoader {
             span,
             {}
         ));
-    }
-
-    _loadDate() {
-        const months = [
-            ['january', 'jan'],
-            ['february', 'feb'],
-            ['march', 'mar'],
-            ['april', 'apr'],
-            ['may'],
-            ['june', 'jun'],
-            ['july', 'jul'],
-            ['august', 'aug'],
-            ['september', 'sep', 'sept'],
-            ['october', 'oct'],
-            ['november', 'nov'],
-            ['december', 'dec']
-        ];
-        const weekdays = {
-            'monday': ['monday', 'mon'],
-            'tuesday': ['tuesday', 'tue'],
-            'wednesday': ['wednesday', 'wed'],
-            'thursday': ['thursday', 'thu'],
-            'friday': ['friday', 'fri'],
-            'saturday': ['saturday', 'sat'],
-            'sunday': ['sunday', 'sun'],
-        };
-
-        let expansion;
-        this._grammar.declareSymbol('constant_date_range');
-        this._grammar.declareSymbol('constant_Date');
-
-        // year
-        expansion = [new this._runtime.NonTerminal('constant_Number')];
-        this._grammar.addRule('constant_date_range', expansion, this._runtime.simpleCombine((value) => [
-            makeDate(new Ast.DatePiece(value.value, null, null, null), '+', null),
-            makeDate(new Ast.DatePiece(value.value, null, null, null), '+', new Ast.Value.Measure(1, 'year'))
-        ]));
-        expansion = [new this._runtime.NonTerminal('constant_Number'), 's']; // 90s
-        this._grammar.addRule('constant_date_range', expansion, this._runtime.simpleCombine((value, _2) => [
-            makeDate(new Ast.DatePiece(value.value, null, null, null), '+', null),
-            makeDate(new Ast.DatePiece(value.value, null, null, null), '+', new Ast.Value.Measure(10, 'year'))
-        ]));
-
-        // year + month
-        for (let month = 1; month <= 12; month ++) {
-            for (let phrase of months[month-1]) {
-                expansion = [phrase, 'of', new this._runtime.NonTerminal('constant_Number')];
-                this._grammar.addRule('constant_date_range', expansion, this._runtime.simpleCombine((_1, _2, value) => [
-                    makeDate(new Ast.DatePiece(value.value, month, null, null), '+', null),
-                    makeDate(new Ast.DatePiece(value.value, month, null, null), '+', new Ast.Value.Measure(1, 'mon'))
-                ]));
-            }
-        }
-
-        // months
-        for (let month = 1; month <= 12; month ++) {
-            for (let phrase of months[month-1]) {
-                expansion = [phrase];
-                this._grammar.addRule('constant_date_range', expansion, this._runtime.simpleCombine((_1) => [
-                    makeDate(new Ast.DatePiece(null, month, null, null), '+', null),
-                    makeDate(new Ast.DatePiece(null, month, null, null), '+', new Ast.Value.Measure(1, 'mon'))
-                ]));
-            }
-        }
-
-        // weekdays
-        for (let day in weekdays) {
-            for (let phrase of weekdays[day]) {
-                expansion = [phrase];
-                this._grammar.addRule('constant_Date', expansion,
-                    this._runtime.simpleCombine((_1) => makeDate(new Ast.WeekDayDate(day, null), '+', null)));
-                expansion = ['next', phrase];
-                this._grammar.addRule('constant_Date', expansion,
-                    this._runtime.simpleCombine((_1, _2) => makeDate(new Ast.WeekDayDate(day, null), '+', new Ast.Value.Measure(1, 'week'))));
-                expansion = ['last', phrase];
-                this._grammar.addRule('constant_Date', expansion,
-                    this._runtime.simpleCombine((_1, _2) => makeDate(new Ast.WeekDayDate(day, null), '-', new Ast.Value.Measure(1, 'week'))));
-            }
-        }
-
     }
 
     async _loadFunction(functionDef) {

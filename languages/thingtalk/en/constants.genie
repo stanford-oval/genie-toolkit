@@ -27,6 +27,32 @@ const Type = ThingTalk.Type;
 
 // import the combinator library
 const C = require('../ast_manip');
+const _tpLoader = require('../load-thingpedia');
+
+const MONTHS = [
+    ['january', 'jan'],
+    ['february', 'feb'],
+    ['march', 'mar'],
+    ['april', 'apr'],
+    ['may'],
+    ['june', 'jun'],
+    ['july', 'jul'],
+    ['august', 'aug'],
+    ['september', 'sep', 'sept'],
+    ['october', 'oct'],
+    ['november', 'nov'],
+    ['december', 'dec']
+];
+const WEEKDAYS = {
+    'monday': ['monday', 'mon'],
+    'tuesday': ['tuesday', 'tue'],
+    'wednesday': ['wednesday', 'wed'],
+    'thursday': ['thursday', 'thu'],
+    'friday': ['friday', 'fri'],
+    'saturday': ['saturday', 'sat'],
+    'sunday': ['sunday', 'sun'],
+};
+
 }
 
 constant_Number = {
@@ -71,8 +97,36 @@ constant_date_range = {
             'next month' => [C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', new Ast.Value.Measure(1, 'mon'))];
             'next year'  => [C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', new Ast.Value.Measure(1, 'year'))];
         }
+
+        // year
+        year:constant_Number => [
+            C.makeDate(new Ast.DatePiece(year.value, null, null, null), '+', null),
+            C.makeDate(new Ast.DatePiece(year.value, null, null, null), '+', new Ast.Value.Measure(1, 'year'))
+        ];
+        year:constant_Number 's' => [
+            C.makeDate(new Ast.DatePiece(year.value, null, null, null), '+', null),
+            C.makeDate(new Ast.DatePiece(year.value, null, null, null), '+', new Ast.Value.Measure(10, 'year'))
+        ];
     }
 }
+
+// months
+if (!_tpLoader.flags.turking) {
+    for (let month = 1; month <= 12; month ++) {
+        for (let phrase of MONTHS[month-1]) {
+            constant_date_range = #(phrase) => [
+                C.makeDate(new Ast.DatePiece(null, month, null, null), '+', null),
+                C.makeDate(new Ast.DatePiece(null, month, null, null), '+', new Ast.Value.Measure(1, 'mon'))
+            ];
+            constant_date_range = #(phrase) 'of' year:constant_Number => [
+                C.makeDate(new Ast.DatePiece(year.value, month, null, null), '+', null),
+                C.makeDate(new Ast.DatePiece(year.value, month, null, null), '+', new Ast.Value.Measure(1, 'mon'))
+            ];
+        }
+    }
+}
+
+
 
 constant_Date = {
     !inference {
@@ -84,6 +138,17 @@ constant_Date = {
                 duration:constant_Measure_ms 'from now' => C.makeDate(null, '+', duration);
                 duration:constant_Measure_ms 'after' pt:constant_date_point  => C.makeDate(pt, '+', duration);
             }
+        }
+    }
+}
+
+// weekdays
+if (!_tpLoader.flags.turking) {
+    for (let day in WEEKDAYS) {
+        for (let phrase of WEEKDAYS[day]) {
+            constant_Date = #(phrase) => C.makeDate(new Ast.WeekDayDate(day, null), '+', null);
+            constant_Date = 'last' #(phrase) => C.makeDate(new Ast.WeekDayDate(day, null), '+', new Ast.Value.Measure(1, 'week'));
+            constant_Date = 'next' #(phrase) => C.makeDate(new Ast.WeekDayDate(day, null), '+', new Ast.Value.Measure(1, 'week'));
         }
     }
 }
