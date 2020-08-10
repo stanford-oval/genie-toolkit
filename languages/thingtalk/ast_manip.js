@@ -33,14 +33,7 @@ const { notifyAction } = ThingTalk.Generate;
 const _loader = require('./load-thingpedia');
 
 function makeDate(base, operator, offset) {
-    if (!(base instanceof Ast.Value))
-        base = new Ast.Value.Date(base);
-    if (offset === null)
-        return base;
-
-    const value = new Ast.Value.Computation(operator, [base, offset],
-        [Type.Date, Type.Measure('ms'), Type.Date], Type.Date);
-    return value;
+    return Utils.makeDate(base, operator, offset);
 }
 
 function getFunctionNames(ast) {

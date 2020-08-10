@@ -96,6 +96,17 @@ function makeDateRangeFilter(loader, param, values) {
     return new Ast.BooleanExpression.And(null, operands);
 }
 
+function makeDate(base, operator, offset) {
+    if (!(base instanceof Ast.Value))
+        base = new Ast.Value.Date(base);
+    if (offset === null)
+        return base;
+
+    const value = new Ast.Value.Computation(operator, [base, offset],
+        [Type.Date, Type.Measure('ms'), Type.Date], Type.Date);
+    return value;
+}
+
 function isHumanEntity(type) {
     if (type.isEntity)
         return isHumanEntity(type.type);
@@ -332,6 +343,7 @@ module.exports = {
     makeFilter,
     makeAndFilter,
     makeDateRangeFilter,
+    makeDate,
 
     isHumanEntity,
     isLocationEntity,
