@@ -200,11 +200,12 @@ class SchemaTrimmer {
             return;
         }
 
+        const hasName = tabledef.annotations['org_schema_has_name'] && tabledef.annotations['org_schema_has_name'].value;
         this._entities.push({
             type: this._className + ':' + tablename,
             name: titleCase(Array.isArray(tabledef.canonical) ? tabledef.canonical[0] : tabledef.canonical),
             is_well_known: false,
-            has_ner_support: tabledef.annotations['org_schema_has_name'] && tabledef.annotations['org_schema_has_name'].value
+            has_ner_support: hasName
         });
 
         let newArgs = [];
@@ -216,6 +217,10 @@ class SchemaTrimmer {
             if (argname.indexOf('.') >= 0)
                 continue;
             const arg = tabledef.getArgument(argname);
+
+            // set id to non-filterable for table without name (e.g., Review)
+            if (argname === 'id' && !hasName)
+                arg.impl_annotations.filterable = new Ast.Value.Boolean(false);
 
             if (!this._whiteListed(argname)) {
                 if (!(arg.annotations['org_schema_has_data'] && arg.annotations['org_schema_has_data'].value))
