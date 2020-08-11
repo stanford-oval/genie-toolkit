@@ -229,6 +229,10 @@ class SchemaProcessor {
             return [best, Type.Number];
         }
 
+        // HACK (version 9.0 has Organization over Person for author)
+        if (propname === 'author')
+            best = 'Person';
+
         let tttype = this.typeToThingTalk(best, typeHierarchy, manualAnnotation);
         if (!tttype)
             return [undefined, undefined];
