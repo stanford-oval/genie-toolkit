@@ -55,7 +55,7 @@ module.exports = {
         const synthetic = args.synthetic_set.pipe(csvparse({ relax: true, delimiter: '\t' }));
         synthetic.on('data', (line) => {
             const requoted = Array.from(requoteProgram(line[2])).join(' ');
-            const requotedNoType = requoted.replace(/(param:[a-zA-Z_]+):\S+/g, '$1');
+            const requotedNoType = requoted.replace(/(param:[a-zA-Z_.]+):\S+/g, '$1');
             syntheticPrograms[requotedNoType] = (syntheticPrograms[requotedNoType] || 0) + 1;
             syntheticSize += 1;
         });
@@ -74,7 +74,7 @@ module.exports = {
             let requoted, requotedNoType;
             for (let thingtalk of candidates) {
                 requoted = Array.from(requoteProgram(thingtalk)).join(' ');
-                requotedNoType = requoted.replace(/(param:[a-zA-Z_]+):\S+/g, '$1');
+                requotedNoType = requoted.replace(/(param:[a-zA-Z_.]+):\S+/g, '$1');
                 if (requotedNoType in syntheticPrograms) {
                     covered = true;
                     break;
