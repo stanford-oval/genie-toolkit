@@ -938,7 +938,7 @@ class ThingpediaLoader {
             let typestr = typeToStringSafe(ttType);
             const { has_ner_support } = this._entities[entityType];
 
-            if (has_ner_support || this._idTypes.has(typestr)) {
+            if (has_ner_support) {
                 if (this._idTypes.has(typestr)) {
                     if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
                         console.log('Loaded entity ' + entityType + ' as id entity');
