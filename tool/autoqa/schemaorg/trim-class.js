@@ -200,7 +200,7 @@ class SchemaTrimmer {
             return;
         }
 
-        const hasName = tabledef.annotations['org_schema_has_name'] && tabledef.annotations['org_schema_has_name'].value;
+        const hasName = !!tabledef.getImplementationAnnotation('org_schema_has_name');
         this._entities.push({
             type: this._className + ':' + tablename,
             name: titleCase(Array.isArray(tabledef.canonical) ? tabledef.canonical[0] : tabledef.canonical),
@@ -266,7 +266,12 @@ class SchemaTrimmer {
             }
         }
 
-        this._classDef.entities = Array.from(usedEntities).map((name) => new Ast.EntityDef(null, name, {}));
+        this._classDef.entities = Array.from(usedEntities).map((name) => {
+            let hasNER = false;
+            if (name in this._classDef.queries)
+                hasNER = !!this._classDef.queries[name].getImplementationAnnotation('org_schema_has_name');
+            return new Ast.EntityDef(null, name, { impl : { has_ner: new Ast.Value.Boolean(hasNER) }});
+        });
     }
 
     _whiteListed(property) {
