@@ -153,6 +153,24 @@ if (!_tpLoader.flags.turking) {
     }
 }
 
+constant_Measure_ms = {
+    !inference {
+        !turking num:constant_Number 'ms' => C.addUnit('ms', num);
+        !turking num:constant_Number 'milliseconds' => C.addUnit('ms', num);
+        !turking num:constant_Number 's' => C.addUnit('s', num);
+        !turking num:constant_Number 'seconds' => C.addUnit('s', num);
+        num:constant_Number 'min' => C.addUnit('min', num);
+        num:constant_Number 'minutes' => C.addUnit('min', num);
+        num:constant_Number 'h' => C.addUnit('h', num);
+        num:constant_Number 'hours' => C.addUnit('h', num);
+        num:constant_Number 'days' => C.addUnit('day', num);
+        !turking num:constant_Number 'weeks' => C.addUnit('week', num);
+        !turking num:constant_Number 'months' => C.addUnit('mon', num);
+        !turking num:constant_Number 'years' => C.addUnit('year', num);
+
+    }
+}
+
 constant_Measure_byte = {
     !inference {
         !turking num:constant_Number 'byte' => C.addUnit('byte', num);
