@@ -46,7 +46,6 @@ constant_Time = const(TIME, Type.Time);
 constant_Date = const(DATE, Type.Date);
 constant_Location = const(LOCATION, Type.Location);
 constant_RecurrentTimeSpecification = const(RECURRENT_TIME_SPECIFICATION, Type.RecurrentTimeSpecification);
-constant_Measure_ms = const(DURATION, Type.Measure('ms'));
 
 constant_Entity__tt__picture  = {}
 constant_Entity__tt__function = {}
@@ -54,6 +53,9 @@ constant_Entity__tt__program  = {}
 constant_Entity__tt__device   = {}
 constant_Boolean = {}
 
+constant_Measure_ms = {
+    ?inference const(MEASURE_ms, Type.Measure('ms'));
+}
 constant_Measure_byte = {
     ?inference const(MEASURE_byte, Type.Measure('byte'));
 }
