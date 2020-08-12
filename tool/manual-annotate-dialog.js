@@ -563,12 +563,6 @@ module.exports = {
         parser.add_argument('--dropped', {
             required: true,
         });
-        parser.add_argument('--offset', {
-            required: false,
-            type: parseInt,
-            default: 1,
-            help: `Start from the nth dialogue of the input tsv file.`
-        });
         parser.add_argument('-l', '--locale', {
             required: false,
             default: 'en-US',
@@ -598,6 +592,12 @@ module.exports = {
             default: 'http://127.0.0.1:8400',
             help: `The URL of the natural language server to parse agent utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
         });
+        parser.add_argument('--offset', {
+            required: false,
+            type: parseInt,
+            default: 1,
+            help: `Start from the nth dialogue of the input tsv file.`
+        });
         parser.add_argument('--existing-annotations', {
             action: 'store_true',
             help: 'The input file already has annotations.',
@@ -616,6 +616,14 @@ module.exports = {
         parser.add_argument('--max-turns', {
             required: false,
             help: 'Auto-annotate after the given number of turns',
+        });
+        parser.add_argument('--append', {
+            action: 'store_true',
+            help: 'Append to the output file instead of overwriting (implied by --edit-mode or --offset > 1)',
+        });
+        parser.add_argument('--no-append', {
+            action: 'store_true',
+            help: 'Overwrite the output file instead of appending (overrides --append, --edit-mode and --offset)',
         });
         parser.add_argument('input_file', {
             nargs: '+',
@@ -638,9 +646,21 @@ module.exports = {
 
 
         const learned = new DialogueSerializer({ annotations: true });
-        learned.pipe(fs.createWriteStream(args.annotated, { flags: ((args.offset > 1 && !args.edit_mode) ? 'a' : 'w') }));
+        let appendLearned, appendDropped;
+        if (args.no_append) {
+            appendLearned = false;
+            appendDropped = false;
+        } else if (args.append) {
+            appendLearned = true;
+            appendDropped = true;
+        } else {
+            appendLearned = (args.offset > 1 && !args.edit_mode);
+            appendDropped = (args.offset > 1 || args.edit_mode);
+        }
+
+        learned.pipe(fs.createWriteStream(args.annotated, { flags: (appendLearned ? 'a' : 'w') }));
         const dropped = new DialogueSerializer({ annotations: false });
-        dropped.pipe(fs.createWriteStream(args.dropped, { flags: ((args.offset > 1 || args.edit_mode) ? 'a' : 'w') }));
+        dropped.pipe(fs.createWriteStream(args.dropped, { flags: (appendDropped ? 'a' : 'w') }));
 
         if (args.edit_mode) {
             // copy over the existing dialogues if we're in editing mode
