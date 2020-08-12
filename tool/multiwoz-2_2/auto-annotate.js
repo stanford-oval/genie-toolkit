@@ -321,7 +321,7 @@ class Converter extends stream.Readable {
     }
 
     async _doAgentTurn(context, contextInfo, turn, agentUtterance) {
-        const parsedAgent = await this._parseUtterance(context, this._agentParser, agentUtterance, 'agent');
+        const parsedAgent = await this._parseUtterance(context, this._agentParser, agentUtterance.toLowerCase(), 'agent');
 
         let agentTarget;
         if (parsedAgent.length === 0) {
@@ -362,15 +362,17 @@ class Converter extends stream.Readable {
         return agentTarget;
     }
 
-    async _doUserTurn(context, contextInfo, turn, selectedSlots, slotBag) {
-        let userUtterance = turn['utterance'];
+    async _doUserTurn(context, contextInfo, turn, selectedSlots, slotBag, trainId) {
+        let userUtterance = turn['utterance'].toLowerCase();
         const allSlots = new Map;
         for (let frame of turn.frames) {
             for (let key in frame.state.slot_values) {
                 let slotName = key.replace(/ /g, '-').replace(/pricerange/, 'price-range').replace(/bookpeople/, 'book-people').replace(/bookday/, 'book-day').replace(/bookstay/, 'book-stay').replace(/booktime/, 'book-time');
-                let value = frame.state.slot_values[key][0];
+                let value = frame.state.slot_values[key][0].toLowerCase();
                 value = value.replace(/guesthouse/, 'guest_house');
                 if (/^(hospital|bus|police)-/.test(slotName))
+                    continue;
+                if (value === 'unknown')
                     continue;
                 allSlots.set(slotName, value);
             }
@@ -391,7 +393,7 @@ class Converter extends stream.Readable {
             }
         }
 
-        if (newSearchSlots.size === 0 && newActionSlots.size === 0) {
+        if (newSearchSlots.size === 0 && newActionSlots.size === 0 && (domain !== 'train' || trainId === null)) {
             // no slot given at this turn
             // parse the utterance and hope for the best...
             const parsedUser = await this._parseUtterance(context, this._userParser, userUtterance, 'user');
@@ -412,6 +414,11 @@ class Converter extends stream.Readable {
             return userTarget;
 
         } else {
+            if (domain === 'train' && trainId !== null) {
+                newActionSlots.set('train-id', trainId);
+                slotBag.set('train-name', trainId);
+            }
+
             const newItems = [];
 
             const queryname = domain[0].toUpperCase() + domain.substring(1);
@@ -558,12 +565,21 @@ class Converter extends stream.Readable {
         }
     }
 
+    _lookForTrainId(utt, trainId) {
+        let matches = utt.toLowerCase().match(/tr[0-9]{4}/ig);
+        if (matches !== null)
+            return matches.slice(-1).pop();
+        return trainId;
+    }
+
     async _doDialogue(dlg) {
         const id = dlg.dialogue_id;
 
         let context = null, contextInfo = { current: null, next: null },
             simulatorState = undefined, selectedSlots = {}, slotBag = new Map;
         const turns = [];
+        // trainIds don't show up in the annotation, so we look for them in the utterances and keep track of them separately.
+        let trainId = null;
         for (let idx = 0; idx < dlg.turns.length; idx = idx+2) { // NOTE: we are ignoring the last agent halfTurn
             const uHalfTurn = dlg.turns[idx];
             const aHalfTurn = dlg.turns[idx-1];
@@ -574,7 +590,8 @@ class Converter extends stream.Readable {
                 if (context !== null) {
                     // use the next turn to find the values of the action output parameters (reference_number and car) if any
                     this._simulatorOverrides.clear();
-                    agentUtterance = aHalfTurn.utterance.replace(/\n/g, ' '); // Some utterances are multiline
+                    agentUtterance = aHalfTurn.utterance.replace(/\n/g, ' ').toLowerCase(); // Some utterances are multiline
+                    trainId = this._lookForTrainId(agentUtterance, trainId);
                     this._extractSimulatorOverrides(agentUtterance);
                     // "execute" the context
                     [context, simulatorState] = await this._simulator.execute(context, simulatorState);
@@ -615,8 +632,9 @@ class Converter extends stream.Readable {
 
                 }
 
-                const userUtterance = uHalfTurn.utterance.replace(/\n/g, ' ');
-                const userTarget = await this._doUserTurn(context, contextInfo, uHalfTurn, selectedSlots, slotBag);
+                const userUtterance = uHalfTurn.utterance.replace(/\n/g, ' ').toLowerCase();
+                trainId = this._lookForTrainId(userUtterance, trainId);
+                const userTarget = await this._doUserTurn(context, contextInfo, uHalfTurn, selectedSlots, slotBag, trainId);
                 const oldContext = context;
                 context = this._target.computeNewState(context, userTarget, 'user');
                 const prediction = this._target.computePrediction(oldContext, context, 'user');
@@ -633,7 +651,7 @@ class Converter extends stream.Readable {
                 // use the next turn to find the values of the action output parameters (reference_number and car) if any
                 this._simulatorOverrides.clear();
                 if (idx < dlg.turns.length-2)
-                    this._extractSimulatorOverrides(dlg.turns[idx+2].utterance);
+                    this._extractSimulatorOverrides(dlg.turns[idx+2].utterance.toLowerCase());
 
             } catch(e) {
                 console.error(`Failed in dialogue ${id}`);
@@ -715,6 +733,7 @@ module.exports = {
 
         await converter.start();
         await converter.run(data);
+        await converter.stop();
 
         console.log('Finished, waiting for pending writes...');
         await promise;
