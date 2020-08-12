@@ -61,6 +61,7 @@ class Annotator extends events.EventEmitter {
             thingpediaClient: tpClient,
             schemaRetriever: this._schemas,
             overrides: this._simulatorOverrides,
+            interactive: true
         };
         if (options.database_file) {
             this._database = new MultiJSONDatabase(options.database_file);

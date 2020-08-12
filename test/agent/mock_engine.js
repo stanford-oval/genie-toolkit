@@ -30,7 +30,7 @@ const { MockPlatform } = require('../unit/mock_utils');
 const {
     ResultGenerator,
     SimulationExecEnvironment,
-} = require('../../lib/dialogue-agent/execution/simulation_exec_environment');
+} = require('../../lib/dialogue-agent/simulator/simulation_exec_environment');
 
 
 class QueueOutputDelegate {
@@ -295,7 +295,9 @@ class MockDeviceDatabase {
         return this._devices[id];
     }
 
-    getAllDevices() {
+    getAllDevices(kind) {
+        if (kind)
+            return this.getAllDevicesOfKind(kind);
         return Object.keys(this._devices).map((k) => { return this._devices[k]; });
     }
 
@@ -402,6 +404,20 @@ class TestPlatform extends MockPlatform {
     }
 }
 
+function toDeviceInfo(d) {
+    const deviceKlass = 'physical';
+    return {
+        uniqueId: d.uniqueId,
+        name: d.name,
+        description: d.description,
+        kind: d.kind,
+        version: 0,
+        class: deviceKlass,
+        ownerTier: d.ownerTier,
+        isTransient: d.isTransient
+    };
+}
+
 module.exports.createMockEngine = function(thingpedia, rng, database) {
     const platform = new TestPlatform();
     const schemas = new ThingTalk.SchemaRetriever(thingpedia, null, true);
@@ -416,6 +432,15 @@ module.exports.createMockEngine = function(thingpedia, rng, database) {
 
         createApp(program, options = {}) {
             return this.apps.createApp(program, options);
+        },
+
+        getDeviceInfos(kind) {
+            const devices = this.devices.getAllDevices(kind);
+            return devices.map((d) => toDeviceInfo(d));
+        },
+
+        createDevice(blob) {
+            return this.devices.addSerialized(blob);
         }
     };
     engine.gettext = function(string) {
