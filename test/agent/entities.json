@@ -14,6 +14,30 @@
       "has_ner_support": true
     },
     {
+      "type": "com.spotify:song",
+      "name": "Song",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "com.spotify:artist",
+      "name": "Artist",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "com.spotify:album",
+      "name": "Album",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "com.spotify:playlist",
+      "name": "Playlist",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
       "type": "com.gmail:email_id",
       "name": "GMail Email ID",
       "is_well_known": 0,

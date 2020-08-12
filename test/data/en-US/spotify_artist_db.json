@@ -1,0 +1,212 @@
+[
+    {
+        "id":{
+            "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+            "display":"Drake"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "popularity":98
+    },
+    {
+        "id":{
+            "value":"spotify:artist:0p4ViyfJUTW0IT4SCBLexf",
+            "display":"Drakeo the Ruler"
+        },
+        "genres":[
+            "cali rap",
+            "vapor trap",
+            "west coast trap"
+        ],
+        "popularity":59
+    },
+    {
+        "id":{
+            "value":"spotify:artist:5c3GLXai8YOMid29ZEuR9y",
+            "display":"Nick Drake"
+        },
+        "genres":[
+            "british folk",
+            "folk",
+            "folk rock",
+            "freak folk",
+            "indie folk",
+            "melancholia",
+            "rock",
+            "singer-songwriter",
+            "slowcore"
+        ],
+        "popularity":64
+    },
+    {
+        "id":{
+            "value":"spotify:artist:29ijED2bnnprp2TciAK1aO",
+            "display":"Drake White"
+        },
+        "genres":[
+            "contemporary country"
+        ],
+        "popularity":52
+    },
+    {
+        "id":{
+            "value":"spotify:artist:03ilIKH0i08IxmjKcn63ne",
+            "display":"Drake Bell"
+        },
+        "genres":[
+            "post-teen pop"
+        ],
+        "popularity":57
+    },
+    {
+        "id":{
+            "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+            "display":"Taylor Swift"
+        },
+        "genres":[
+            "pop"
+        ],
+        "popularity":98
+    },
+    {
+        "id":{
+            "value":"spotify:artist:5WiLThuSBwqF7SMRrzQbG6",
+            "display":"Taylor Swiftman"
+        },
+        "genres":[
+
+        ],
+        "popularity":15
+    },
+    {
+        "id":{
+            "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+            "display":"Ariana Grande"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "popularity":93
+    },
+    {
+        "id":{
+            "value":"spotify:artist:54Aus3mqSXzHDr5MJMFJal",
+            "display":"Ariana Grande-Butera"
+        },
+        "genres":[
+
+        ],
+        "popularity":0
+    },
+    {
+        "id":{
+            "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+            "display":"Justin Bieber"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "popularity":93
+    },
+    {
+        "id":{
+            "value":"spotify:artist:2jbVYkCL5DzSpMcBAMynIB",
+            "display":"Justin Drew Bieber"
+        },
+        "genres":[
+
+        ],
+        "popularity":0
+    },
+    {
+        "id":{
+            "value":"spotify:artist:4MxPfrznCu6spQU6FAvCty",
+            "display":"Justin Bieber Tribute Team"
+        },
+        "genres":[
+            "fake"
+        ],
+        "popularity":0
+    },
+    {
+        "id":{
+            "value":"spotify:artist:6tsJx0uLuthk2a6MsSIxTQ",
+            "display":"Justin Bieber's Karaoke Band"
+        },
+        "genres":[
+
+        ],
+        "popularity":0
+    },
+    {
+        "id":{
+            "value":"spotify:artist:7IfN1vxLIF5uJF4yDnTd20",
+            "display":"Justin Bieber Cover Band"
+        },
+        "genres":[
+
+        ],
+        "popularity":0
+    },
+    {
+        "id":{
+            "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+            "display":"Maroon 5"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "popularity":89
+    },
+    {
+        "id":{
+            "value":"spotify:artist:6SrK1wioiqWe9Sa0OYxSmA",
+            "display":"Maroon 5"
+        },
+        "genres":[
+
+        ],
+        "popularity":2
+    },
+    {
+        "id":{
+            "value":"spotify:artist:1TrIllyzbD3OS5g0BMNZLJ",
+            "display":"\ub9c8\ub860 \ud30c\uc774\ube0c (Maroon 5)"
+        },
+        "genres":[
+
+        ],
+        "popularity":0
+    },
+    {
+        "id":{
+            "value":"spotify:artist:3ZnbHqf6qeVB52jlbWB7f3",
+            "display":"Karaoke - Maroon 5"
+        },
+        "genres":[
+
+        ],
+        "popularity":1
+    },
+    {
+        "id":{
+            "value":"spotify:artist:4Pd9bJuyrEaS3G3lz809Ws",
+            "display":"Maroon 5 Tribute Team"
+        },
+        "genres":[
+            "fake"
+        ],
+        "popularity":0
+    }
+]

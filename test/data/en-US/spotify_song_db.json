@@ -1,0 +1,5429 @@
+[
+    {
+        "id":{
+            "value":"spotify:track:7qwt4xUIqQWCu1DJf96g2k",
+            "display":"Hello?"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3l0CmX0FuQjFxr8SK7Vqag",
+                "display":"Clairo"
+            },
+            {
+                "value":"spotify:artist:3lLHpTOJ11tWiUNGYN14gt",
+                "display":"Rejjie Snow"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3NEDQmYF1roygFssVEwkwv",
+            "display":"diary 001"
+        },
+        "genres":[
+            "bedroom pop",
+            "boston indie",
+            "indie pop"
+        ],
+        "release_date":"2018-05-25",
+        "popularity":75,
+        "energy":47,
+        "danceability":83
+    },
+    {
+        "id":{
+            "value":"spotify:track:2r6OAV3WsYtXuXjvJ1lIDi",
+            "display":"Hello (feat. A Boogie Wit da Hoodie)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0eDvMgVFoNV3TpwtrVCoTj",
+                "display":"Pop Smoke"
+            },
+            {
+                "value":"spotify:artist:31W5EY0aAly4Qieq6OFu6I",
+                "display":"A Boogie Wit da Hoodie"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2MDU46hcBn3u94s46BOSdv",
+            "display":"Shoot For The Stars Aim For The Moon (Deluxe)"
+        },
+        "genres":[
+            "brooklyn drill"
+        ],
+        "release_date":"2020-07-20",
+        "popularity":78,
+        "energy":64,
+        "danceability":90
+    },
+    {
+        "id":{
+            "value":"spotify:track:4sPmO7WMQUAf45kwMOtONw",
+            "display":"Hello"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:4dpARuHxo51G3z768sgnrY",
+                "display":"Adele"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:0K4pIOOsfJ9lK8OjrZfXzd",
+            "display":"25"
+        },
+        "genres":[
+            "british soul",
+            "pop",
+            "uk pop"
+        ],
+        "release_date":"2016-06-24",
+        "popularity":72,
+        "energy":45,
+        "danceability":48
+    },
+    {
+        "id":{
+            "value":"spotify:track:7a2IJHzw9WJjoknwdnCop0",
+            "display":"hello!"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1dy5WNgIKQU6ezkpZs4y8z",
+                "display":"ROLE MODEL"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5xNYe96E1oMXdS1FdboZZv",
+            "display":"oh, how perfect"
+        },
+        "genres":[
+            "alternative r&b",
+            "bedroom pop",
+            "indie cafe pop",
+            "indie pop",
+            "indie r&b",
+            "pop"
+        ],
+        "release_date":"2019-11-13",
+        "popularity":64,
+        "energy":46,
+        "danceability":79
+    },
+    {
+        "id":{
+            "value":"spotify:track:2c62Xf5Po1YSa1N6LOjPHy",
+            "display":"Hello My Old Heart"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3Fe3pszR2t4TOBVz41B1WR",
+                "display":"The Oh Hellos"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1a3UYpjNVB67soVfvtHoG8",
+            "display":"The Oh Hellos EP"
+        },
+        "genres":[
+            "folk-pop",
+            "indie folk",
+            "indiecoustica",
+            "san marcos tx indie",
+            "shimmer pop",
+            "stomp and holler"
+        ],
+        "release_date":"2011-12-01",
+        "popularity":65,
+        "energy":29,
+        "danceability":55
+    },
+    {
+        "id":{
+            "value":"spotify:track:0mHyWYXmmCB9iQyK18m3FQ",
+            "display":"Hello"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3gMaNLQm7D9MornNILzdSl",
+                "display":"Lionel Richie"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3alZBOvPaK3hgMEEymw4Yr",
+            "display":"Can't Slow Down"
+        },
+        "genres":[
+            "adult standards",
+            "disco",
+            "mellow gold",
+            "motown",
+            "quiet storm",
+            "soft rock"
+        ],
+        "release_date":"1983-01-01",
+        "popularity":59,
+        "energy":24,
+        "danceability":48
+    },
+    {
+        "id":{
+            "value":"spotify:track:1p61zyWNtBhbbAFzg4HUiq",
+            "display":"Hello Beautiful"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1qDDkysTxJvFandHwP9CMx",
+                "display":"Noah Schnacky"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:4ueD9HmKArqBLe9d5yEEDT",
+            "display":"Hello Beautiful"
+        },
+        "genres":[
+            "contemporary country",
+            "country pop"
+        ],
+        "release_date":"2018-01-27",
+        "popularity":63,
+        "energy":47,
+        "danceability":50
+    },
+    {
+        "id":{
+            "value":"spotify:track:30Chv2SmIry70YwtmtaKnj",
+            "display":"Hello"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:6l3HvQ5sa6mXTsMTB19rO5",
+                "display":"J. Cole"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:7viNUmZZ8ztn2UB4XB3jIL",
+            "display":"2014 Forest Hills Drive"
+        },
+        "genres":[
+            "conscious hip hop",
+            "hip hop",
+            "north carolina hip hop",
+            "rap"
+        ],
+        "release_date":"2014-12-09",
+        "popularity":59,
+        "energy":70,
+        "danceability":63
+    },
+    {
+        "id":{
+            "value":"spotify:track:6vmAgl2y9MpoZKrVUXrPe5",
+            "display":"Hello Darlin'"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:7gi3jmwpUpNWdswT8eEprF",
+                "display":"Conway Twitty"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:7jHxaZCVO8ITJOtQzexSI8",
+            "display":"Hello Darlin'"
+        },
+        "genres":[
+            "arkansas country",
+            "country"
+        ],
+        "release_date":"1970-03-23",
+        "popularity":60,
+        "energy":23,
+        "danceability":27
+    },
+    {
+        "id":{
+            "value":"spotify:track:0vZ97gHhemKm6c64hTfJNA",
+            "display":"Hello, Goodbye - Remastered 2009"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3WrFJ7ztbogyGnTHbHJFl2",
+                "display":"The Beatles"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2BtE7qm1qzM80p9vLSiXkj",
+            "display":"Magical Mystery Tour (Remastered)"
+        },
+        "genres":[
+            "beatlesque",
+            "british invasion",
+            "classic rock",
+            "merseybeat",
+            "psychedelic rock",
+            "rock"
+        ],
+        "release_date":"1967-11-27",
+        "popularity":66,
+        "energy":73,
+        "danceability":47
+    },
+    {
+        "id":{
+            "value":"spotify:track:4wVOKKEHUJxHCFFNUWDn0B",
+            "display":"Chicago Freestyle (feat. Giveon)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            },
+            {
+                "value":"spotify:artist:4fxd5Ee7UefO4CUXgwJ7IP",
+                "display":"Giveon"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6OQ9gBfg5EXeNAEwGSs6jK",
+            "display":"Dark Lane Demo Tapes"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2020-05-01",
+        "popularity":88,
+        "energy":44,
+        "danceability":73
+    },
+    {
+        "id":{
+            "value":"spotify:track:127QTOFJsJQp5LbJbu3A1y",
+            "display":"Toosie Slide"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3xIwVbGJuAcovYIhzbLO3J",
+            "display":"Toosie Slide"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2020-04-03",
+        "popularity":91,
+        "energy":45,
+        "danceability":83
+    },
+    {
+        "id":{
+            "value":"spotify:track:5ry2OE6R2zPQFDO85XkgRb",
+            "display":"Money In The Grave (Drake ft. Rick Ross)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            },
+            {
+                "value":"spotify:artist:1sBkRIssrMs1AbVkOJbc7a",
+                "display":"Rick Ross"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:00HZxSA1sOS9T3nA950sg4",
+            "display":"The Best In The World Pack"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2019-06-15",
+        "popularity":84,
+        "energy":50,
+        "danceability":83
+    },
+    {
+        "id":{
+            "value":"spotify:track:6DCZcSspjsKoFjzjrWoCdn",
+            "display":"God's Plan"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1ATL5GLyefJaxhQzSPVrLX",
+            "display":"Scorpion"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2018-06-29",
+        "popularity":84,
+        "energy":44,
+        "danceability":75
+    },
+    {
+        "id":{
+            "value":"spotify:track:0TlLq3lA83rQOYtrqBqSct",
+            "display":"Nonstop"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1ATL5GLyefJaxhQzSPVrLX",
+            "display":"Scorpion"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2018-06-29",
+        "popularity":81,
+        "energy":41,
+        "danceability":91
+    },
+    {
+        "id":{
+            "value":"spotify:track:466cKvZn1j45IpxDdYZqdA",
+            "display":"Toosie Slide"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6OQ9gBfg5EXeNAEwGSs6jK",
+            "display":"Dark Lane Demo Tapes"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2020-05-01",
+        "popularity":85,
+        "energy":49,
+        "danceability":83
+    },
+    {
+        "id":{
+            "value":"spotify:track:3CA9pLiwRIGtUBiMjbZmRw",
+            "display":"Nice For What"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1ATL5GLyefJaxhQzSPVrLX",
+            "display":"Scorpion"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2018-06-29",
+        "popularity":79,
+        "energy":90,
+        "danceability":58
+    },
+    {
+        "id":{
+            "value":"spotify:track:6Kj17Afjo1OKJYpf5VzCeo",
+            "display":"Pain 1993 (with Playboi Carti)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            },
+            {
+                "value":"spotify:artist:699OTQXzgjhIYAHMy9RyPD",
+                "display":"Playboi Carti"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6OQ9gBfg5EXeNAEwGSs6jK",
+            "display":"Dark Lane Demo Tapes"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2020-05-01",
+        "popularity":78,
+        "energy":37,
+        "danceability":82
+    },
+    {
+        "id":{
+            "value":"spotify:track:5mCPDVBb16L4XQwDdbRUpz",
+            "display":"Passionfruit"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1lXY618HWkwYKJWBRYR4MK",
+            "display":"More Life"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2017-03-18",
+        "popularity":80,
+        "energy":46,
+        "danceability":80
+    },
+    {
+        "id":{
+            "value":"spotify:track:2G7V7zsVDxg1yRsu7Ew9RJ",
+            "display":"In My Feelings"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1ATL5GLyefJaxhQzSPVrLX",
+            "display":"Scorpion"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2018-06-29",
+        "popularity":81,
+        "energy":62,
+        "danceability":83
+    },
+    {
+        "id":{
+            "value":"spotify:track:047fCsbO4NdmwCBn8pcUXl",
+            "display":"Marvins Room"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6X1x82kppWZmDzlXXK3y3q",
+            "display":"Take Care (Deluxe)"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2011-11-15",
+        "popularity":75,
+        "energy":26,
+        "danceability":49
+    },
+    {
+        "id":{
+            "value":"spotify:track:1zi7xx7UVEFkmKfv06H8x0",
+            "display":"One Dance"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            },
+            {
+                "value":"spotify:artist:3tVQdUvClmAT7URs9V3rsp",
+                "display":"WizKid"
+            },
+            {
+                "value":"spotify:artist:77DAFfvm3O9zT5dIoG0eIO",
+                "display":"Kyla"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:40GMAhriYJRO1rsY4YdrZb",
+            "display":"Views"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2016-05-06",
+        "popularity":82,
+        "energy":62,
+        "danceability":79
+    },
+    {
+        "id":{
+            "value":"spotify:track:5H4mXWKcicuLKDn4Jy0sK7",
+            "display":"Time Flies"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6OQ9gBfg5EXeNAEwGSs6jK",
+            "display":"Dark Lane Demo Tapes"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2020-05-01",
+        "popularity":75,
+        "energy":47,
+        "danceability":86
+    },
+    {
+        "id":{
+            "value":"spotify:track:6n3HGiq4v35D6eFOSwqYuo",
+            "display":"Teenage Fever"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1lXY618HWkwYKJWBRYR4MK",
+            "display":"More Life"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2017-03-18",
+        "popularity":75,
+        "energy":28,
+        "danceability":76
+    },
+    {
+        "id":{
+            "value":"spotify:track:4Kz4RdRCceaA9VgTqBhBfa",
+            "display":"The Motto"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            },
+            {
+                "value":"spotify:artist:55Aa2cqylxrFIXC767Z865",
+                "display":"Lil Wayne"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6X1x82kppWZmDzlXXK3y3q",
+            "display":"Take Care (Deluxe)"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2011-11-15",
+        "popularity":73,
+        "energy":44,
+        "danceability":76
+    },
+    {
+        "id":{
+            "value":"spotify:track:2aSC2xhRxOLiiZZVjhbylH",
+            "display":"Hold On, We're Going Home"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            },
+            {
+                "value":"spotify:artist:4HzKw8XcD0piJmDrrPRCYk",
+                "display":"Majid Jordan"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1XslIirSxfAhhxRdn4Li9t",
+            "display":"Nothing Was The Same"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2013-01-01",
+        "popularity":71,
+        "energy":41,
+        "danceability":77
+    },
+    {
+        "id":{
+            "value":"spotify:track:05aZ9sAU1YXndHv0FMi9iW",
+            "display":"Demons (feat. Fivio Foreign & Sosa Geek)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            },
+            {
+                "value":"spotify:artist:14CHVeJGrR5xgUGQFV5BVM",
+                "display":"Fivio Foreign"
+            },
+            {
+                "value":"spotify:artist:2UyyBkpzN5w3hzZBZGvRZb",
+                "display":"Sosa Geek"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6OQ9gBfg5EXeNAEwGSs6jK",
+            "display":"Dark Lane Demo Tapes"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2020-05-01",
+        "popularity":74,
+        "energy":76,
+        "danceability":54
+    },
+    {
+        "id":{
+            "value":"spotify:track:343YBumqHu19cGoGARUTsd",
+            "display":"Fake Love"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1lXY618HWkwYKJWBRYR4MK",
+            "display":"More Life"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2017-03-18",
+        "popularity":75,
+        "energy":48,
+        "danceability":92
+    },
+    {
+        "id":{
+            "value":"spotify:track:7eYAHC0RbBF9eaqWzT34Aq",
+            "display":"Desires (with Future)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            },
+            {
+                "value":"spotify:artist:1RyvyyTE3xzB2ZywiAwp0i",
+                "display":"Future"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6OQ9gBfg5EXeNAEwGSs6jK",
+            "display":"Dark Lane Demo Tapes"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2020-05-01",
+        "popularity":74,
+        "energy":50,
+        "danceability":81
+    },
+    {
+        "id":{
+            "value":"spotify:track:27GmP9AWRs744SzKcpJsTZ",
+            "display":"Jumpman"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            },
+            {
+                "value":"spotify:artist:1RyvyyTE3xzB2ZywiAwp0i",
+                "display":"Future"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1ozpmkWcCHwsQ4QTnxOOdT",
+            "display":"What A Time To Be Alive"
+        },
+        "genres":[
+            "canadian hip hop",
+            "canadian pop",
+            "hip hop",
+            "pop rap",
+            "rap",
+            "toronto rap"
+        ],
+        "release_date":"2015-09-20",
+        "popularity":74,
+        "energy":55,
+        "danceability":85
+    },
+    {
+        "id":{
+            "value":"spotify:track:4R2kfaDFhslZEMJqAFNpdd",
+            "display":"cardigan"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":93,
+        "energy":58,
+        "danceability":61
+    },
+    {
+        "id":{
+            "value":"spotify:track:4pvb0WLRcMtbPGmtejJJ6y",
+            "display":"exile (feat. Bon Iver)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            },
+            {
+                "value":"spotify:artist:4LEiUm1SRbFMgfqnQTwUbQ",
+                "display":"Bon Iver"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":92,
+        "energy":38,
+        "danceability":29
+    },
+    {
+        "id":{
+            "value":"spotify:track:0Jlcvv8IykzHaSmj49uNW8",
+            "display":"the 1"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":91,
+        "energy":35,
+        "danceability":77
+    },
+    {
+        "id":{
+            "value":"spotify:track:2Eeur20xVqfUoM3Q7EFPFt",
+            "display":"the last great american dynasty"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":89,
+        "energy":66,
+        "danceability":68
+    },
+    {
+        "id":{
+            "value":"spotify:track:1MgV7FIyNxIG7WzMRJV5HC",
+            "display":"my tears ricochet"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":88,
+        "energy":26,
+        "danceability":45
+    },
+    {
+        "id":{
+            "value":"spotify:track:3hUxzQpSfdDqwM3ZTFQY0K",
+            "display":"august"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":88,
+        "energy":62,
+        "danceability":53
+    },
+    {
+        "id":{
+            "value":"spotify:track:6VsvKPJ4xjVNKpI8VVZ3SV",
+            "display":"invisible string"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":87,
+        "energy":45,
+        "danceability":65
+    },
+    {
+        "id":{
+            "value":"spotify:track:0ZNU020wNYvgW84iljPkPP",
+            "display":"mirrorball"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":87,
+        "energy":41,
+        "danceability":55
+    },
+    {
+        "id":{
+            "value":"spotify:track:6KJqZcs9XDgVck7Lg9QOTC",
+            "display":"seven"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":87,
+        "energy":48,
+        "danceability":59
+    },
+    {
+        "id":{
+            "value":"spotify:track:7kt9e9LFSpN1zQtYEl19o1",
+            "display":"this is me trying"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":87,
+        "energy":47,
+        "danceability":51
+    },
+    {
+        "id":{
+            "value":"spotify:track:2NmsngXHeC1GQ9wWrzhOMf",
+            "display":"illicit affairs"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":86,
+        "energy":31,
+        "danceability":55
+    },
+    {
+        "id":{
+            "value":"spotify:track:5kI4eCXXzyuIUXjQra0Cxi",
+            "display":"betty"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":86,
+        "energy":37,
+        "danceability":59
+    },
+    {
+        "id":{
+            "value":"spotify:track:2QDyYdZyhlP2fp79KZX8Bi",
+            "display":"mad woman"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":85,
+        "energy":69,
+        "danceability":59
+    },
+    {
+        "id":{
+            "value":"spotify:track:7MbT4I8qGntX4fMdqMQgke",
+            "display":"peace"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":85,
+        "energy":27,
+        "danceability":64
+    },
+    {
+        "id":{
+            "value":"spotify:track:08fa9LFcFBTcilB3iq2e2A",
+            "display":"epiphany"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":85,
+        "energy":26,
+        "danceability":35
+    },
+    {
+        "id":{
+            "value":"spotify:track:6MWoRt97mnSTXZhu3ggi9C",
+            "display":"hoax"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":84,
+        "energy":18,
+        "danceability":66
+    },
+    {
+        "id":{
+            "value":"spotify:track:2hmafYGj1CXYKIYcMnX4lj",
+            "display":"cardigan - cabin in candlelight version"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3kqqalY92DENp7FiztDOjH",
+            "display":"cardigan (cabin in candlelight version)"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-30",
+        "popularity":68,
+        "energy":23,
+        "danceability":65
+    },
+    {
+        "id":{
+            "value":"spotify:track:6RRNNciQGZEXnqk8SQ9yv5",
+            "display":"You Need To Calm Down"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1NAmidJlEaVgA3MpcPFYGq",
+            "display":"Lover"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2019-08-23",
+        "popularity":83,
+        "energy":67,
+        "danceability":77
+    },
+    {
+        "id":{
+            "value":"spotify:track:3RauEVgRgj1IuWdJ9fDs70",
+            "display":"The Man"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1NAmidJlEaVgA3MpcPFYGq",
+            "display":"Lover"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2019-08-23",
+        "popularity":81,
+        "energy":65,
+        "danceability":77
+    },
+    {
+        "id":{
+            "value":"spotify:track:1dGr1c8CrMLDpV6mPbImSI",
+            "display":"Lover"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1NAmidJlEaVgA3MpcPFYGq",
+            "display":"Lover"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2019-08-23",
+        "popularity":81,
+        "energy":54,
+        "danceability":35
+    },
+    {
+        "id":{
+            "value":"spotify:track:6habFhsOp2NvshLv26DqMb",
+            "display":"Despacito"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:4V8Sr092TqfHkfAA5fXXqG",
+                "display":"Luis Fonsi"
+            },
+            {
+                "value":"spotify:artist:4VMYDCV2IEDYJArk749S6m",
+                "display":"Daddy Yankee"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5C0YLr4OoRGFDaqdMQmkeH",
+            "display":"VIDA"
+        },
+        "genres":[
+            "latin",
+            "latin pop",
+            "puerto rican pop",
+            "tropical"
+        ],
+        "release_date":"2019-02-01",
+        "popularity":80,
+        "energy":79,
+        "danceability":65
+    },
+    {
+        "id":{
+            "value":"spotify:track:6rPO02ozF3bM7NnOV4h6s2",
+            "display":"Despacito - Remix"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:4V8Sr092TqfHkfAA5fXXqG",
+                "display":"Luis Fonsi"
+            },
+            {
+                "value":"spotify:artist:4VMYDCV2IEDYJArk749S6m",
+                "display":"Daddy Yankee"
+            },
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3Gq2Dme9nesdgoqNNlcN8O",
+            "display":"Despacito Feat. Justin Bieber (Remix)"
+        },
+        "genres":[
+            "latin",
+            "latin pop",
+            "puerto rican pop",
+            "tropical"
+        ],
+        "release_date":"2017-04-17",
+        "popularity":75,
+        "energy":81,
+        "danceability":65
+    },
+    {
+        "id":{
+            "value":"spotify:track:5cj54CVe4pQZ9cUKgbsZrG",
+            "display":"Despacito x Shape Of You"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:26AHtbjWKiwYzsoGoUZq53",
+                "display":"Pentatonix"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2viOlnLfhPLDgx7hvBqLwW",
+            "display":"PTX Presents: Top Pop, Vol. I"
+        },
+        "genres":[
+            "a cappella"
+        ],
+        "release_date":"2018-04-13",
+        "popularity":57,
+        "energy":63,
+        "danceability":69
+    },
+    {
+        "id":{
+            "value":"spotify:track:4vxA3aI7l73i0Hi819OQhH",
+            "display":"Despacito"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0NxhAEPOSeCg6vypFr7yjU",
+                "display":"Madilyn Bailey"
+            },
+            {
+                "value":"spotify:artist:1qwVM2JnEMXbKgvZESGsRn",
+                "display":"Leroy Sanchez"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:0B75OuY7kuQXfz7qF5r2l3",
+            "display":"Despacito"
+        },
+        "genres":[
+            "viral pop"
+        ],
+        "release_date":"2017-05-25",
+        "popularity":60,
+        "energy":47,
+        "danceability":68
+    },
+    {
+        "id":{
+            "value":"spotify:track:3vqyauyYbp9MqUwrCEmWJ0",
+            "display":"Despacito"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0fIdQWpwzU2oEtsoyArDOL",
+                "display":"Ramon Ayala"
+            },
+            {
+                "value":"spotify:artist:5HPu6u2rDA0f6jp51xZAEq",
+                "display":"Erika Ender"
+            },
+            {
+                "value":"spotify:artist:4ejKsCPdZGT8gDnsJs50rT",
+                "display":"Luis Rodr\u00edguez"
+            },
+            {
+                "value":"spotify:artist:6Fi8CHfO8WGtu3yO8c2Mc4",
+                "display":"2CELLOS"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:4uRarQtP1NTEVKBtKu3Irc",
+            "display":"Despacito"
+        },
+        "genres":[
+            "banda",
+            "grupera",
+            "norteno",
+            "ranchera",
+            "regional mexican",
+            "tejano"
+        ],
+        "release_date":"2017-07-19",
+        "popularity":49,
+        "energy":49,
+        "danceability":64
+    },
+    {
+        "id":{
+            "value":"spotify:track:6ocbgoVGwYJhOv1GgI9NsF",
+            "display":"7 rings"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fYhqwDWXjbpjaIJPEfKFw",
+            "display":"thank u, next"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2019-02-08",
+        "popularity":87,
+        "energy":31,
+        "danceability":77
+    },
+    {
+        "id":{
+            "value":"spotify:track:0YEg2JfkMeJ1hTYqop4A5o",
+            "display":"7 Rings"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:00YTqRClk82aMchQQpYMd5",
+                "display":"Our Last Night"
+            },
+            {
+                "value":"spotify:artist:4gO25bbcu1eFNi8uDCvJFS",
+                "display":"Derek DiScanio"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:4FucFnCMKaD4qcNFlB0BwO",
+            "display":"7 Rings"
+        },
+        "genres":[
+            "metalcore",
+            "pop punk",
+            "post-screamo",
+            "screamo"
+        ],
+        "release_date":"2019-03-26",
+        "popularity":50,
+        "energy":92,
+        "danceability":59
+    },
+    {
+        "id":{
+            "value":"spotify:track:6va6SjWz457IOZidBppAhz",
+            "display":"7 rings - live"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5UACk85y1hNRSUtY0ss8pb",
+            "display":"k bye for now (swt live)"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2019-12-23",
+        "popularity":54,
+        "energy":73,
+        "danceability":44
+    },
+    {
+        "id":{
+            "value":"spotify:track:2fOmk4x4OJZsjK60kjW7KZ",
+            "display":"7 Rings"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1Vvvx45Apu6dQqwuZQxtgW",
+                "display":"Kidz Bop Kids"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:16QkUgvO36X6REmJZgecVJ",
+            "display":"KIDZ BOP 40"
+        },
+        "genres":[
+            "children's music"
+        ],
+        "release_date":"2019-11-15",
+        "popularity":44,
+        "energy":46,
+        "danceability":83
+    },
+    {
+        "id":{
+            "value":"spotify:track:6AyI8UGx8Y4peb7pLOy2pf",
+            "display":"7 rings (feat. 2 Chainz) - Remix"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            },
+            {
+                "value":"spotify:artist:17lzZA2AlOHwCwFALHttmp",
+                "display":"2 Chainz"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6FK2NjcZxGIGmFjKfOkrNi",
+            "display":"7 rings (Remix)"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2019-02-01",
+        "popularity":53,
+        "energy":34,
+        "danceability":78
+    },
+    {
+        "id":{
+            "value":"spotify:track:4HBZA5flZLE435QTztThqH",
+            "display":"Stuck with U (with Justin Bieber)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            },
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5mUdh6YWnUvf0MfklEk1oi",
+            "display":"Stuck with U"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2020-05-08",
+        "popularity":93,
+        "energy":45,
+        "danceability":59
+    },
+    {
+        "id":{
+            "value":"spotify:track:6ocbgoVGwYJhOv1GgI9NsF",
+            "display":"7 rings"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fYhqwDWXjbpjaIJPEfKFw",
+            "display":"thank u, next"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2019-02-08",
+        "popularity":87,
+        "energy":31,
+        "danceability":77
+    },
+    {
+        "id":{
+            "value":"spotify:track:3e9HZxeyfWwjeyPAMmWSSQ",
+            "display":"thank u, next"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fYhqwDWXjbpjaIJPEfKFw",
+            "display":"thank u, next"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2019-02-08",
+        "popularity":85,
+        "energy":65,
+        "danceability":71
+    },
+    {
+        "id":{
+            "value":"spotify:track:2qT1uLXPVPzGgFOx4jtEuo",
+            "display":"no tears left to cry"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3tx8gQqWbGwqIGZHqDNrGe",
+            "display":"Sweetener"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2018-08-17",
+        "popularity":82,
+        "energy":71,
+        "danceability":69
+    },
+    {
+        "id":{
+            "value":"spotify:track:0Ryd8975WihbObpp5cPW1t",
+            "display":"boyfriend (with Social House)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            },
+            {
+                "value":"spotify:artist:5UjifI1TYefXWn9GdqDOHl",
+                "display":"Social House"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3zVB99XMdbP9HTVNg0GJwV",
+            "display":"boyfriend"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2019-08-02",
+        "popularity":81,
+        "energy":79,
+        "danceability":40
+    },
+    {
+        "id":{
+            "value":"spotify:track:4kV4N9D1iKVxx1KLvtTpjS",
+            "display":"break up with your girlfriend, i'm bored"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fYhqwDWXjbpjaIJPEfKFw",
+            "display":"thank u, next"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2019-02-08",
+        "popularity":80,
+        "energy":55,
+        "danceability":72
+    },
+    {
+        "id":{
+            "value":"spotify:track:5OCJzvD7sykQEKHH7qAC3C",
+            "display":"God is a woman"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3tx8gQqWbGwqIGZHqDNrGe",
+            "display":"Sweetener"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2018-08-17",
+        "popularity":80,
+        "energy":65,
+        "danceability":60
+    },
+    {
+        "id":{
+            "value":"spotify:track:2meEiZKWkiN28gITzFwQo5",
+            "display":"Into You"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3OZgEywV4krCZ814pTJWr7",
+            "display":"Dangerous Woman"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2016-05-20",
+        "popularity":78,
+        "energy":73,
+        "danceability":62
+    },
+    {
+        "id":{
+            "value":"spotify:track:7xoUc6faLbCqZO6fQEYprd",
+            "display":"One Last Time"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6EVYTRG1drKdO8OnIQBeEj",
+            "display":"My Everything (Deluxe)"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2014-08-25",
+        "popularity":79,
+        "energy":59,
+        "danceability":62
+    },
+    {
+        "id":{
+            "value":"spotify:track:7l94dyN2hX9c6wWcZQuOGJ",
+            "display":"Dangerous Woman"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3OZgEywV4krCZ814pTJWr7",
+            "display":"Dangerous Woman"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2016-05-20",
+        "popularity":78,
+        "energy":60,
+        "danceability":66
+    },
+    {
+        "id":{
+            "value":"spotify:track:1pKeFVVUOPjFsOABub0OaV",
+            "display":"Side To Side"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            },
+            {
+                "value":"spotify:artist:0hCNtLu0JehylgoiP8L4Gh",
+                "display":"Nicki Minaj"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3OZgEywV4krCZ814pTJWr7",
+            "display":"Dangerous Woman"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2016-05-20",
+        "popularity":78,
+        "energy":73,
+        "danceability":65
+    },
+    {
+        "id":{
+            "value":"spotify:track:4OafepJy2teCjYJbvFE60J",
+            "display":"breathin"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3tx8gQqWbGwqIGZHqDNrGe",
+            "display":"Sweetener"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2018-08-17",
+        "popularity":76,
+        "energy":65,
+        "danceability":56
+    },
+    {
+        "id":{
+            "value":"spotify:track:1TEL6MlSSVLSdhOSddidlJ",
+            "display":"needy"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fYhqwDWXjbpjaIJPEfKFw",
+            "display":"thank u, next"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2019-02-08",
+        "popularity":74,
+        "energy":30,
+        "danceability":64
+    },
+    {
+        "id":{
+            "value":"spotify:track:4uTvPEr01pjTbZgl7jcKBD",
+            "display":"NASA"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fYhqwDWXjbpjaIJPEfKFw",
+            "display":"thank u, next"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2019-02-08",
+        "popularity":73,
+        "energy":45,
+        "danceability":74
+    },
+    {
+        "id":{
+            "value":"spotify:track:39LmTF9RgyakzSYX8txrow",
+            "display":"imagine"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fYhqwDWXjbpjaIJPEfKFw",
+            "display":"thank u, next"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2019-02-08",
+        "popularity":74,
+        "energy":47,
+        "danceability":72
+    },
+    {
+        "id":{
+            "value":"spotify:track:06EL94D0TA27Ik0Ke5usbj",
+            "display":"The Way"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            },
+            {
+                "value":"spotify:artist:4LLpKhyESsyAXpc4laK94U",
+                "display":"Mac Miller"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5xSvNPstcxHtR4ap2vvN8A",
+            "display":"Yours Truly"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2013-01-01",
+        "popularity":68,
+        "energy":87,
+        "danceability":64
+    },
+    {
+        "id":{
+            "value":"spotify:track:7vS3Y0IKjde7Xg85LWIEdP",
+            "display":"Problem"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            },
+            {
+                "value":"spotify:artist:5yG7ZAZafVaAlMTeBybKAL",
+                "display":"Iggy Azalea"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6EVYTRG1drKdO8OnIQBeEj",
+            "display":"My Everything (Deluxe)"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2014-08-25",
+        "popularity":75,
+        "energy":80,
+        "danceability":66
+    },
+    {
+        "id":{
+            "value":"spotify:track:6zegtH6XXd2PDPLvy1Y0n2",
+            "display":"Don\u2019t Call Me Angel (Charlie\u2019s Angels) (with Miley Cyrus & Lana Del Rey)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            },
+            {
+                "value":"spotify:artist:5YGY8feqx7naU7z4HrwZM6",
+                "display":"Miley Cyrus"
+            },
+            {
+                "value":"spotify:artist:00FQb4jTyendYWaN8pK0wa",
+                "display":"Lana Del Rey"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:4NBuascXb3uK0mFUYuJ63f",
+            "display":"Charlie's Angels (Original Motion Picture Soundtrack)"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2019-11-01",
+        "popularity":77,
+        "energy":75,
+        "danceability":64
+    },
+    {
+        "id":{
+            "value":"spotify:track:5J4ZkQpzMUFojo1CtAZYpn",
+            "display":"Love Me Harder"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            },
+            {
+                "value":"spotify:artist:1Xyo4u8uXC1ZmMpatF05PJ",
+                "display":"The Weeknd"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6EVYTRG1drKdO8OnIQBeEj",
+            "display":"My Everything (Deluxe)"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2014-08-25",
+        "popularity":74,
+        "energy":71,
+        "danceability":47
+    },
+    {
+        "id":{
+            "value":"spotify:track:4T652DlATVHe0jdLKaN3Bw",
+            "display":"in my head"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR",
+                "display":"Ariana Grande"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fYhqwDWXjbpjaIJPEfKFw",
+            "display":"thank u, next"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2019-02-08",
+        "popularity":72,
+        "energy":60,
+        "danceability":66
+    },
+    {
+        "id":{
+            "value":"spotify:track:2374M0fQpWi3dLnB54qaLX",
+            "display":"Africa"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0PFtn5NtBbbUNbU9EAmIWF",
+                "display":"TOTO"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:62U7xIHcID94o20Of5ea4D",
+            "display":"Toto IV"
+        },
+        "genres":[
+            "album rock",
+            "classic rock",
+            "mellow gold",
+            "rock",
+            "soft rock",
+            "yacht rock"
+        ],
+        "release_date":"1982-04-08",
+        "popularity":84,
+        "energy":37,
+        "danceability":67
+    },
+    {
+        "id":{
+            "value":"spotify:track:4RvWPyQ5RL0ao9LPZeSouE",
+            "display":"Everybody Wants To Rule The World"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:4bthk9UfsYUYdcFyqxmSUU",
+                "display":"Tears For Fears"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3myPwaMYjdwhtq0nFgeG6W",
+            "display":"Songs From The Big Chair (Super Deluxe Edition)"
+        },
+        "genres":[
+            "dance rock",
+            "new romantic",
+            "new wave",
+            "new wave pop",
+            "permanent wave",
+            "rock",
+            "soft rock",
+            "synthpop"
+        ],
+        "release_date":"1985-02-25",
+        "popularity":82,
+        "energy":79,
+        "danceability":64
+    },
+    {
+        "id":{
+            "value":"spotify:track:5tVA6TkbaAH9QMITTQRrNv",
+            "display":"Free Fallin'"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:2UZMlIwnkgAEDBsw1Rejkn",
+                "display":"Tom Petty"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5d71Imt5CIb7LpQwDMQ093",
+            "display":"Full Moon Fever"
+        },
+        "genres":[
+            "album rock",
+            "classic rock",
+            "country rock",
+            "folk rock",
+            "heartland rock",
+            "mellow gold",
+            "pop rock",
+            "rock",
+            "roots rock",
+            "singer-songwriter",
+            "soft rock"
+        ],
+        "release_date":"1989-01-01",
+        "popularity":79,
+        "energy":44,
+        "danceability":62
+    },
+    {
+        "id":{
+            "value":"spotify:track:2tUBqZG2AbRi7Q0BIrVrEj",
+            "display":"I Wanna Dance with Somebody (Who Loves Me)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:6XpaIBNiVzIetEPCWDvAFP",
+                "display":"Whitney Houston"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5Vdzprr5cOqXQo44eHeV7t",
+            "display":"Whitney"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "urban contemporary"
+        ],
+        "release_date":"1987-06-02",
+        "popularity":82,
+        "energy":82,
+        "danceability":70
+    },
+    {
+        "id":{
+            "value":"spotify:track:08mG3Y1vljYA6bvDt4Wqkj",
+            "display":"Back In Black"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:711MCceyCBcFnzjGY4Q7Un",
+                "display":"AC/DC"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6mUdeDZCsExyJLMdAfDuwh",
+            "display":"Back In Black"
+        },
+        "genres":[
+            "album rock",
+            "australian rock",
+            "hard rock",
+            "rock"
+        ],
+        "release_date":"1980-07-25",
+        "popularity":83,
+        "energy":70,
+        "danceability":31
+    },
+    {
+        "id":{
+            "value":"spotify:track:4bHsxqR3GMrXTxEPLuK5ue",
+            "display":"Don't Stop Believin'"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0rvjqX7ttXeg3mTy8Xscbt",
+                "display":"Journey"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:43wpzak9OmQfrjyksuGwp0",
+            "display":"Escape"
+        },
+        "genres":[
+            "album rock",
+            "classic rock",
+            "hard rock",
+            "mellow gold",
+            "rock",
+            "soft rock"
+        ],
+        "release_date":"1981",
+        "popularity":81,
+        "energy":74,
+        "danceability":50
+    },
+    {
+        "id":{
+            "value":"spotify:track:37ZJ0p5Jm13JPevGcx4SkF",
+            "display":"Livin' On A Prayer"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:58lV9VcRSjABbAbfWS6skp",
+                "display":"Bon Jovi"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:0kBfgEilUFCMIQY5IOjG4t",
+            "display":"Slippery When Wet"
+        },
+        "genres":[
+            "glam metal",
+            "rock"
+        ],
+        "release_date":"1986-08-16",
+        "popularity":83,
+        "energy":88,
+        "danceability":53
+    },
+    {
+        "id":{
+            "value":"spotify:track:7snQQk1zcKl8gZ92AnueZW",
+            "display":"Sweet Child O' Mine"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3qm84nBOXUEQ2vnTfUTTFC",
+                "display":"Guns N' Roses"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:28yHV3Gdg30AiB8h8em1eW",
+            "display":"Appetite For Destruction"
+        },
+        "genres":[
+            "glam metal",
+            "hard rock",
+            "rock"
+        ],
+        "release_date":"1987-07-21",
+        "popularity":74,
+        "energy":95,
+        "danceability":44
+    },
+    {
+        "id":{
+            "value":"spotify:track:4o6BgsqLIBViaGVbx5rbRk",
+            "display":"You Make My Dreams (Come True)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:77tT1kLj6mCWtFNqiOmP9H",
+                "display":"Daryl Hall & John Oates"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:4LniALl9S6YedTFdiZWOMS",
+            "display":"Voices"
+        },
+        "genres":[
+            "album rock",
+            "classic rock",
+            "folk rock",
+            "mellow gold",
+            "rock",
+            "soft rock",
+            "yacht rock"
+        ],
+        "release_date":"1980",
+        "popularity":79,
+        "energy":50,
+        "danceability":75
+    },
+    {
+        "id":{
+            "value":"spotify:track:43btz2xjMKpcmjkuRsvxyg",
+            "display":"Jack & Diane"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3lPQ2Fk5JOwGWAF3ORFCqH",
+                "display":"John Mellencamp"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:4gouGcdQn9OvjX42xnWrF0",
+            "display":"American Fool"
+        },
+        "genres":[
+            "album rock",
+            "classic rock",
+            "country rock",
+            "folk rock",
+            "heartland rock",
+            "mellow gold",
+            "pop rock",
+            "rock",
+            "singer-songwriter",
+            "soft rock"
+        ],
+        "release_date":"1982",
+        "popularity":76,
+        "energy":41,
+        "danceability":81
+    },
+    {
+        "id":{
+            "value":"spotify:track:2WfaOiMkCvy7F5fcp2zZ8L",
+            "display":"Take on Me"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:2jzc5TC5TVFLXQlBNiIUzE",
+                "display":"a-ha"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1ER3B6zev5JEAaqhnyyfbf",
+            "display":"Hunting High and Low"
+        },
+        "genres":[
+            "dance rock",
+            "new romantic",
+            "new wave",
+            "new wave pop",
+            "permanent wave",
+            "soft rock",
+            "synthpop"
+        ],
+        "release_date":"1985-06-01",
+        "popularity":84,
+        "energy":90,
+        "danceability":57
+    },
+    {
+        "id":{
+            "value":"spotify:track:0GONea6G2XdnHWjNZd6zt3",
+            "display":"Summer Of '69"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3Z02hBLubJxuFJfhacLSDc",
+                "display":"Bryan Adams"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2o2G49EPi4lua5zgxUKhLL",
+            "display":"Reckless (30th Anniversary / Deluxe Edition)"
+        },
+        "genres":[
+            "album rock",
+            "canadian pop",
+            "canadian singer-songwriter",
+            "classic canadian rock",
+            "heartland rock",
+            "mellow gold",
+            "rock",
+            "soft rock"
+        ],
+        "release_date":"1984-11-05",
+        "popularity":83,
+        "energy":83,
+        "danceability":50
+    },
+    {
+        "id":{
+            "value":"spotify:track:57JVGBtBLCfHw2muk5416J",
+            "display":"Another One Bites The Dust - Remastered 2011"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1dfeR4HaWDbWqFHLkxsg1d",
+                "display":"Queen"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6wPXUmYJ9mOWrKlLzZ5cCa",
+            "display":"The Game (Deluxe Remastered Version)"
+        },
+        "genres":[
+            "glam rock",
+            "rock"
+        ],
+        "release_date":"1980-06-27",
+        "popularity":73,
+        "energy":52,
+        "danceability":93
+    },
+    {
+        "id":{
+            "value":"spotify:track:5ChkMS8OtdzJeqyybCc9R5",
+            "display":"Billie Jean"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3fMbdgg4jU18AjLCKBhRSm",
+                "display":"Michael Jackson"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1C2h7mLntPSeVYciMRTF4a",
+            "display":"Thriller 25 Super Deluxe Edition"
+        },
+        "genres":[
+            "pop",
+            "r&b",
+            "soul"
+        ],
+        "release_date":"1982-11-30",
+        "popularity":82,
+        "energy":65,
+        "danceability":92
+    },
+    {
+        "id":{
+            "value":"spotify:track:2b9lp5A6CqSzwOrBfAFhof",
+            "display":"Crazy Train"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:6ZLTlhejhndI4Rh53vYhrY",
+                "display":"Ozzy Osbourne"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6aGfK3YpRxZ1rJfaNRckLH",
+            "display":"Blizzard of Ozz (Expanded Edition)"
+        },
+        "genres":[
+            "album rock",
+            "birmingham metal",
+            "hard rock",
+            "metal",
+            "rock"
+        ],
+        "release_date":"1980-09-20",
+        "popularity":77,
+        "energy":90,
+        "danceability":45
+    },
+    {
+        "id":{
+            "value":"spotify:track:2SiXAy7TuUkycRVbbWDEpo",
+            "display":"You Shook Me All Night Long"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:711MCceyCBcFnzjGY4Q7Un",
+                "display":"AC/DC"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6mUdeDZCsExyJLMdAfDuwh",
+            "display":"Back In Black"
+        },
+        "genres":[
+            "album rock",
+            "australian rock",
+            "hard rock",
+            "rock"
+        ],
+        "release_date":"1980-07-25",
+        "popularity":80,
+        "energy":76,
+        "danceability":53
+    },
+    {
+        "id":{
+            "value":"spotify:track:5RsUlxLto4NZbhJpqJbHfN",
+            "display":"Jessie's Girl"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:6IFXsrXBpwbIqtOUOiAa3p",
+                "display":"Rick Springfield"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:4KKFWTePKtgb6mOwFDqxYa",
+            "display":"Working Class Dog"
+        },
+        "genres":[
+            "album rock",
+            "australian rock",
+            "classic rock",
+            "dance rock",
+            "heartland rock",
+            "mellow gold",
+            "new wave pop",
+            "soft rock",
+            "yacht rock"
+        ],
+        "release_date":"1981",
+        "popularity":72,
+        "energy":83,
+        "danceability":72
+    },
+    {
+        "id":{
+            "value":"spotify:track:0G21yYKMZoHa30cYVi1iA8",
+            "display":"Welcome To The Jungle"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3qm84nBOXUEQ2vnTfUTTFC",
+                "display":"Guns N' Roses"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:28yHV3Gdg30AiB8h8em1eW",
+            "display":"Appetite For Destruction"
+        },
+        "genres":[
+            "glam metal",
+            "hard rock",
+            "rock"
+        ],
+        "release_date":"1987-07-21",
+        "popularity":72,
+        "energy":98,
+        "danceability":45
+    },
+    {
+        "id":{
+            "value":"spotify:track:11IzgLRXV7Cgek3tEgGgjw",
+            "display":"Under Pressure - Remastered"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1dfeR4HaWDbWqFHLkxsg1d",
+                "display":"Queen"
+            },
+            {
+                "value":"spotify:artist:0oSGxfWSnnOXhD2fKuz2Gy",
+                "display":"David Bowie"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:0xc5IpJM39eEEYSKDrm5kf",
+            "display":"Hot Space (Deluxe Remastered Version)"
+        },
+        "genres":[
+            "glam rock",
+            "rock"
+        ],
+        "release_date":"1982-05-03",
+        "popularity":72,
+        "energy":71,
+        "danceability":67
+    },
+    {
+        "id":{
+            "value":"spotify:track:5zA8vzDGqPl2AzZkEYQGKh",
+            "display":"Uptown Girl"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:6zFYqv1mOsgBRQbae3JJ9e",
+                "display":"Billy Joel"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3R3x4zIabsvpD3yxqLaUpc",
+            "display":"An Innocent Man"
+        },
+        "genres":[
+            "album rock",
+            "classic rock",
+            "folk rock",
+            "mellow gold",
+            "piano rock",
+            "rock",
+            "singer-songwriter",
+            "soft rock"
+        ],
+        "release_date":"1983-08-08",
+        "popularity":78,
+        "energy":94,
+        "danceability":70
+    },
+    {
+        "id":{
+            "value":"spotify:track:0ofHAoxe9vBkTCp2UQIavz",
+            "display":"Dreams - 2004 Remaster"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:08GQAI4eElDnROBrJRGE0X",
+                "display":"Fleetwood Mac"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:0BwWUstDMUbgq2NYONRqlu",
+            "display":"Rumours (Super Deluxe)"
+        },
+        "genres":[
+            "album rock",
+            "classic rock",
+            "mellow gold",
+            "rock",
+            "soft rock",
+            "yacht rock"
+        ],
+        "release_date":"1977-02-04",
+        "popularity":81,
+        "energy":49,
+        "danceability":82
+    },
+    {
+        "id":{
+            "value":"spotify:track:7e89621JPkKaeDSTQ3avtg",
+            "display":"Sweet Home Alabama"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:4MVyzYMgTwdP7Z49wAZHx0",
+                "display":"Lynyrd Skynyrd"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:54V1ljNtyzAm053oJqi0SH",
+            "display":"Second Helping"
+        },
+        "genres":[
+            "album rock",
+            "blues rock",
+            "classic rock",
+            "country rock",
+            "hard rock",
+            "mellow gold",
+            "rock",
+            "southern rock"
+        ],
+        "release_date":"1974-04-15",
+        "popularity":83,
+        "energy":60,
+        "danceability":59
+    },
+    {
+        "id":{
+            "value":"spotify:track:2RlgNHKcydI9sayD2Df2xp",
+            "display":"Mr. Blue Sky"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:7jefIIksOi1EazgRTfW2Pk",
+                "display":"Electric Light Orchestra"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3usnShwygMXVZB4IV5dwnU",
+            "display":"Out of the Blue"
+        },
+        "genres":[
+            "album rock",
+            "art rock",
+            "beatlesque",
+            "bow pop",
+            "classic rock",
+            "folk rock",
+            "glam rock",
+            "mellow gold",
+            "rock",
+            "soft rock",
+            "symphonic rock"
+        ],
+        "release_date":"1977",
+        "popularity":82,
+        "energy":33,
+        "danceability":38
+    },
+    {
+        "id":{
+            "value":"spotify:track:3gdewACMIVMEWVbyb8O9sY",
+            "display":"Rocket Man (I Think It's Going To Be A Long, Long Time)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3PhoLpVuITZKcymswpck5b",
+                "display":"Elton John"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2ei2X6ghPnw7YRwQtAH075",
+            "display":"Honky Chateau"
+        },
+        "genres":[
+            "glam rock",
+            "mellow gold",
+            "piano rock",
+            "soft rock"
+        ],
+        "release_date":"1972-05-19",
+        "popularity":82,
+        "energy":53,
+        "danceability":60
+    },
+    {
+        "id":{
+            "value":"spotify:track:7tFiyTwD0nx5a1eklYtX2J",
+            "display":"Bohemian Rhapsody - 2011 Mix"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1dfeR4HaWDbWqFHLkxsg1d",
+                "display":"Queen"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6X9k3hSsvQck2OfKYdBbXr",
+            "display":"A Night At The Opera (Deluxe Remastered Version)"
+        },
+        "genres":[
+            "glam rock",
+            "rock"
+        ],
+        "release_date":"1975-11-21",
+        "popularity":75,
+        "energy":40,
+        "danceability":39
+    },
+    {
+        "id":{
+            "value":"spotify:track:5e9TFTbltYBg2xThimr0rU",
+            "display":"The Chain - 2004 Remaster"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:08GQAI4eElDnROBrJRGE0X",
+                "display":"Fleetwood Mac"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:0BwWUstDMUbgq2NYONRqlu",
+            "display":"Rumours (Super Deluxe)"
+        },
+        "genres":[
+            "album rock",
+            "classic rock",
+            "mellow gold",
+            "rock",
+            "soft rock",
+            "yacht rock"
+        ],
+        "release_date":"1977-02-04",
+        "popularity":80,
+        "energy":67,
+        "danceability":54
+    },
+    {
+        "id":{
+            "value":"spotify:track:40riOy7x9W7GXjyGp4pjAv",
+            "display":"Hotel California - 2013 Remaster"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0ECwFtbIWEVNwjlrfc6xoL",
+                "display":"Eagles"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2widuo17g5CEC66IbzveRu",
+            "display":"Hotel California (2013 Remaster)"
+        },
+        "genres":[
+            "album rock",
+            "classic rock",
+            "country rock",
+            "folk rock",
+            "heartland rock",
+            "mellow gold",
+            "rock",
+            "soft rock",
+            "yacht rock"
+        ],
+        "release_date":"1976-12-08",
+        "popularity":83,
+        "energy":50,
+        "danceability":57
+    },
+    {
+        "id":{
+            "value":"spotify:track:5ihS6UUlyQAfmp48eSkxuQ",
+            "display":"Landslide"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:08GQAI4eElDnROBrJRGE0X",
+                "display":"Fleetwood Mac"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5VIQ3VaAoRKOEpJ0fewdvo",
+            "display":"Fleetwood Mac"
+        },
+        "genres":[
+            "album rock",
+            "classic rock",
+            "mellow gold",
+            "rock",
+            "soft rock",
+            "yacht rock"
+        ],
+        "release_date":"1975-07-11",
+        "popularity":78,
+        "energy":16,
+        "danceability":41
+    },
+    {
+        "id":{
+            "value":"spotify:track:2TVxnKdb3tqe1nhQWwwZCO",
+            "display":"Tiny Dancer"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3PhoLpVuITZKcymswpck5b",
+                "display":"Elton John"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2OZbaW9tgO62ndm375lFZr",
+            "display":"Madman Across The Water"
+        },
+        "genres":[
+            "glam rock",
+            "mellow gold",
+            "piano rock",
+            "soft rock"
+        ],
+        "release_date":"1971-11-05",
+        "popularity":80,
+        "energy":42,
+        "danceability":41
+    },
+    {
+        "id":{
+            "value":"spotify:track:7hQJA50XrCWABAu5v6QZ4i",
+            "display":"Don't Stop Me Now - 2011 Mix"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1dfeR4HaWDbWqFHLkxsg1d",
+                "display":"Queen"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:21HMAUrbbYSj9NiPPlGumy",
+            "display":"Jazz (Deluxe Remastered Version)"
+        },
+        "genres":[
+            "glam rock",
+            "rock"
+        ],
+        "release_date":"1978-11-10",
+        "popularity":74,
+        "energy":86,
+        "danceability":56
+    },
+    {
+        "id":{
+            "value":"spotify:track:1bp2IO61zbQrbWNmKKxg3f",
+            "display":"The Joker"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:6QtGlUje9TIkLrgPZrESuk",
+                "display":"Steve Miller Band"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5uYNj1HkZrWKAkhEYcGmJr",
+            "display":"The Joker"
+        },
+        "genres":[
+            "album rock",
+            "blues rock",
+            "classic rock",
+            "country rock",
+            "folk rock",
+            "hard rock",
+            "heartland rock",
+            "mellow gold",
+            "psychedelic rock",
+            "rock",
+            "roots rock",
+            "soft rock"
+        ],
+        "release_date":"1973-01-01",
+        "popularity":77,
+        "energy":44,
+        "danceability":59
+    },
+    {
+        "id":{
+            "value":"spotify:track:4yugZvBYaoREkJKtbG08Qr",
+            "display":"Take It Easy - 2013 Remaster"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0ECwFtbIWEVNwjlrfc6xoL",
+                "display":"Eagles"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:51B7LbLWgYLKBVSpkan8Z7",
+            "display":"Eagles (2013 Remaster)"
+        },
+        "genres":[
+            "album rock",
+            "classic rock",
+            "country rock",
+            "folk rock",
+            "heartland rock",
+            "mellow gold",
+            "rock",
+            "soft rock",
+            "yacht rock"
+        ],
+        "release_date":"1972",
+        "popularity":77,
+        "energy":67,
+        "danceability":57
+    },
+    {
+        "id":{
+            "value":"spotify:track:1QEEqeFIZktqIpPI4jSVSF",
+            "display":"More Than a Feeling"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:29kkCKKGXheHuoO829FxWK",
+                "display":"Boston"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2QLp07RO6anZHmtcKTEvSC",
+            "display":"Boston"
+        },
+        "genres":[
+            "album rock",
+            "art rock",
+            "classic rock",
+            "country rock",
+            "hard rock",
+            "mellow gold",
+            "rock",
+            "soft rock"
+        ],
+        "release_date":"1976",
+        "popularity":79,
+        "energy":68,
+        "danceability":37
+    },
+    {
+        "id":{
+            "value":"spotify:track:7MRyJPksH3G2cXHN8UKYzP",
+            "display":"American Girl"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:4tX2TplrkIP4v05BNC903e",
+                "display":"Tom Petty and the Heartbreakers"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6TLTd0P2CUI0Q29AQ1LyFi",
+            "display":"Tom Petty & The Heartbreakers"
+        },
+        "genres":[
+            "album rock",
+            "classic rock",
+            "country rock",
+            "folk rock",
+            "hard rock",
+            "heartland rock",
+            "mellow gold",
+            "pop rock",
+            "psychedelic rock",
+            "rock",
+            "roots rock",
+            "soft rock"
+        ],
+        "release_date":"1976-11-09",
+        "popularity":75,
+        "energy":82,
+        "danceability":55
+    },
+    {
+        "id":{
+            "value":"spotify:track:4xh7W7tlNMIczFhupCPniY",
+            "display":"Go Your Own Way - 2004 Remaster"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:08GQAI4eElDnROBrJRGE0X",
+                "display":"Fleetwood Mac"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:0BwWUstDMUbgq2NYONRqlu",
+            "display":"Rumours (Super Deluxe)"
+        },
+        "genres":[
+            "album rock",
+            "classic rock",
+            "mellow gold",
+            "rock",
+            "soft rock",
+            "yacht rock"
+        ],
+        "release_date":"1977-02-04",
+        "popularity":75,
+        "energy":94,
+        "danceability":58
+    },
+    {
+        "id":{
+            "value":"spotify:track:2zYzyRzz6pRmhPzyfMEC8s",
+            "display":"Highway to Hell"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:711MCceyCBcFnzjGY4Q7Un",
+                "display":"AC/DC"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:10v912xgTZbjAtYfyKWJCS",
+            "display":"Highway to Hell"
+        },
+        "genres":[
+            "album rock",
+            "australian rock",
+            "hard rock",
+            "rock"
+        ],
+        "release_date":"1979-07-27",
+        "popularity":83,
+        "energy":91,
+        "danceability":57
+    },
+    {
+        "id":{
+            "value":"spotify:track:2BY7ALEWdloFHgQZG6VMLA",
+            "display":"Brandy (You're a Fine Girl)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:5jJN1nmKXzRjodMl1THQeI",
+                "display":"Looking Glass"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5ThwnbpYrk9R1xXkAGCLIs",
+            "display":"Looking Glass"
+        },
+        "genres":[
+            "soft rock",
+            "sunshine pop"
+        ],
+        "release_date":"1972",
+        "popularity":75,
+        "energy":62,
+        "danceability":71
+    },
+    {
+        "id":{
+            "value":"spotify:track:7Ar4G7Ci11gpt6sfH9Cgz5",
+            "display":"Listen to the Music"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:39T6qqI0jDtSWWioX8eGJz",
+                "display":"The Doobie Brothers"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2x1Yi30lsWJUoBj1kmovnm",
+            "display":"Toulouse Street"
+        },
+        "genres":[
+            "album rock",
+            "art rock",
+            "blues rock",
+            "classic rock",
+            "country rock",
+            "folk rock",
+            "hard rock",
+            "heartland rock",
+            "mellow gold",
+            "rock",
+            "soft rock",
+            "yacht rock"
+        ],
+        "release_date":"1972",
+        "popularity":77,
+        "energy":59,
+        "danceability":64
+    },
+    {
+        "id":{
+            "value":"spotify:track:5DnT9a5IM3eMjKgXTWVJvi",
+            "display":"Have You Ever Seen The Rain"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3IYUhFvPQItj6xySrBmZkd",
+                "display":"Creedence Clearwater Revival"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3tbpe74iBR23O8uiQlLrXC",
+            "display":"Pendulum"
+        },
+        "genres":[
+            "album rock",
+            "classic rock",
+            "country rock",
+            "rock",
+            "roots rock",
+            "southern rock",
+            "swamp rock"
+        ],
+        "release_date":"1970-12-07",
+        "popularity":73,
+        "energy":47,
+        "danceability":74
+    },
+    {
+        "id":{
+            "value":"spotify:track:5QTxFnGygVM4jFQiBovmRo",
+            "display":"(Don't Fear) The Reaper"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:00tVTdpEhQQw1bqdu8RCx2",
+                "display":"Blue \u00d6yster Cult"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6C9WzlQANeoD0GW5B41YJt",
+            "display":"Agents Of Fortune"
+        },
+        "genres":[
+            "album rock",
+            "art rock",
+            "blues rock",
+            "classic rock",
+            "hard rock",
+            "metal",
+            "rock",
+            "soft rock"
+        ],
+        "release_date":"1976",
+        "popularity":76,
+        "energy":92,
+        "danceability":33
+    },
+    {
+        "id":{
+            "value":"spotify:track:364dI1bYnvamSnBJ8JcNzN",
+            "display":"Intentions"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            },
+            {
+                "value":"spotify:artist:0VRj0yCOv2FXJNP47XQnx5",
+                "display":"Quavo"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:55zg331p7m1EFA4uRggkwt",
+            "display":"Intentions"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2020-02-07",
+        "popularity":87,
+        "energy":55,
+        "danceability":81
+    },
+    {
+        "id":{
+            "value":"spotify:track:4umIPjkehX1r7uhmGvXiSV",
+            "display":"Intentions (feat. Quavo)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            },
+            {
+                "value":"spotify:artist:0VRj0yCOv2FXJNP47XQnx5",
+                "display":"Quavo"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:63iWSELt9V1kV6RSMxN7Ii",
+            "display":"Changes"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2020-02-14",
+        "popularity":87,
+        "energy":54,
+        "danceability":80
+    },
+    {
+        "id":{
+            "value":"spotify:track:0VXeNEtuiD77F2StUeUadK",
+            "display":"Love Yourself"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:74jDw6TsdKnT92V790QfvF",
+            "display":"Romantic Pop Songs"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2020-08-10",
+        "popularity":0,
+        "energy":43,
+        "danceability":78
+    },
+    {
+        "id":{
+            "value":"spotify:track:3bLgzYBldrfDaxNMoiSvgR",
+            "display":"Purpose"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:74jDw6TsdKnT92V790QfvF",
+            "display":"Romantic Pop Songs"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2020-08-10",
+        "popularity":0,
+        "energy":28,
+        "danceability":48
+    },
+    {
+        "id":{
+            "value":"spotify:track:4sssHGCCugDMe2Xi3KmuUn",
+            "display":"Get Me"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            },
+            {
+                "value":"spotify:artist:0cGUm45nv7Z6M6qdXYQGTX",
+                "display":"Kehlani"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:0EY0PUD0C3fVsKb8jEVMvQ",
+            "display":"Discover More Soul"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2020-08-10",
+        "popularity":0,
+        "energy":50,
+        "danceability":70
+    },
+    {
+        "id":{
+            "value":"spotify:track:50kpGaPAhYJ3sGmk6vplg0",
+            "display":"Love Yourself"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6Fr2rQkZ383FcMqFyT7yPr",
+            "display":"Purpose (Deluxe)"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2015-11-13",
+        "popularity":81,
+        "energy":37,
+        "danceability":60
+    },
+    {
+        "id":{
+            "value":"spotify:track:41L3O37CECZt3N7ziG2z7l",
+            "display":"Yummy"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1SN6N3fNkZk5oXQ9X46QZ3",
+            "display":"Yummy"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2020-01-03",
+        "popularity":82,
+        "energy":51,
+        "danceability":68
+    },
+    {
+        "id":{
+            "value":"spotify:track:2ZlCGeK30BLRNSPC832pNZ",
+            "display":"Forever (feat. Post Malone & Clever)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            },
+            {
+                "value":"spotify:artist:246dkjvS1zLTtiykXe5h60",
+                "display":"Post Malone"
+            },
+            {
+                "value":"spotify:artist:5yy76ufVriyvidNSvXlRU1",
+                "display":"Clever"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:63iWSELt9V1kV6RSMxN7Ii",
+            "display":"Changes"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2020-02-14",
+        "popularity":78,
+        "energy":48,
+        "danceability":82
+    },
+    {
+        "id":{
+            "value":"spotify:track:09CtPGIpYB4BrO8qb1RGsF",
+            "display":"Sorry"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6Fr2rQkZ383FcMqFyT7yPr",
+            "display":"Purpose (Deluxe)"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2015-11-13",
+        "popularity":80,
+        "energy":76,
+        "danceability":65
+    },
+    {
+        "id":{
+            "value":"spotify:track:6epn3r7S14KUqlReYr77hA",
+            "display":"Baby"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            },
+            {
+                "value":"spotify:artist:3ipn9JLAPI5GUEo4y4jcoi",
+                "display":"Ludacris"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3BmcYMh0KYsimWL6p2gPa9",
+            "display":"My World 2.0"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2010-01-01",
+        "popularity":76,
+        "energy":85,
+        "danceability":72
+    },
+    {
+        "id":{
+            "value":"spotify:track:4B0JvthVoAAuygILe3n4Bs",
+            "display":"What Do You Mean?"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6Fr2rQkZ383FcMqFyT7yPr",
+            "display":"Purpose (Deluxe)"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2015-11-13",
+        "popularity":78,
+        "energy":56,
+        "danceability":84
+    },
+    {
+        "id":{
+            "value":"spotify:track:16wAOAZ2OkqoIDN7TpChjR",
+            "display":"Yummy"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:63iWSELt9V1kV6RSMxN7Ii",
+            "display":"Changes"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2020-02-14",
+        "popularity":78,
+        "energy":50,
+        "danceability":67
+    },
+    {
+        "id":{
+            "value":"spotify:track:2o9LAypwGH4ctV0i9boo6d",
+            "display":"Come Around Me"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:63iWSELt9V1kV6RSMxN7Ii",
+            "display":"Changes"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2020-02-14",
+        "popularity":73,
+        "energy":68,
+        "danceability":64
+    },
+    {
+        "id":{
+            "value":"spotify:track:190jyVPHYjAqEaOGmMzdyk",
+            "display":"Beauty And A Beat"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            },
+            {
+                "value":"spotify:artist:0hCNtLu0JehylgoiP8L4Gh",
+                "display":"Nicki Minaj"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:70f70xLCpH7wHaVvB2oZT9",
+            "display":"Believe (Deluxe Edition)"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2012-06-15",
+        "popularity":70,
+        "energy":84,
+        "danceability":60
+    },
+    {
+        "id":{
+            "value":"spotify:track:40qyPyljksBEqlNw5sW37T",
+            "display":"Habitual"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:63iWSELt9V1kV6RSMxN7Ii",
+            "display":"Changes"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2020-02-14",
+        "popularity":70,
+        "energy":44,
+        "danceability":76
+    },
+    {
+        "id":{
+            "value":"spotify:track:5VwwpU7KsLhgfbMEecedhJ",
+            "display":"Get Me (feat. Kehlani)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            },
+            {
+                "value":"spotify:artist:0cGUm45nv7Z6M6qdXYQGTX",
+                "display":"Kehlani"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:63iWSELt9V1kV6RSMxN7Ii",
+            "display":"Changes"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2020-02-14",
+        "popularity":69,
+        "energy":50,
+        "danceability":83
+    },
+    {
+        "id":{
+            "value":"spotify:track:2IjyFRCRn8x1bEquOM3vxg",
+            "display":"Purpose"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6Fr2rQkZ383FcMqFyT7yPr",
+            "display":"Purpose (Deluxe)"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2015-11-13",
+        "popularity":70,
+        "energy":28,
+        "danceability":48
+    },
+    {
+        "id":{
+            "value":"spotify:track:3UGIZ8qcrMTwzLbx6Kttqt",
+            "display":"Boyfriend"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5cxMa6oLINJzmZ8lF7wWQN",
+            "display":"Believe"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2012-01-01",
+        "popularity":69,
+        "energy":55,
+        "danceability":71
+    },
+    {
+        "id":{
+            "value":"spotify:track:0aPZbnkMoWJaJ5CNVLCj8S",
+            "display":"That Should Be Me"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3BmcYMh0KYsimWL6p2gPa9",
+            "display":"My World 2.0"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2010-01-01",
+        "popularity":68,
+        "energy":60,
+        "danceability":55
+    },
+    {
+        "id":{
+            "value":"spotify:track:6eDApnV9Jdb1nYahOlbbUh",
+            "display":"One Time"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s",
+                "display":"Justin Bieber"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1rG5TDs3jYh6OU753I54CI",
+            "display":"My World"
+        },
+        "genres":[
+            "canadian pop",
+            "pop",
+            "post-teen pop"
+        ],
+        "release_date":"2009-01-01",
+        "popularity":68,
+        "energy":85,
+        "danceability":69
+    },
+    {
+        "id":{
+            "value":"spotify:track:2b8fOow8UzyDFAE27YhOZM",
+            "display":"Memories"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3nR9B40hYLKLcR0Eph3Goc",
+            "display":"Memories"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2019-09-20",
+        "popularity":90,
+        "energy":32,
+        "danceability":76
+    },
+    {
+        "id":{
+            "value":"spotify:track:3kwgqoBqTwoAH4nT29TYrq",
+            "display":"Nobody's Love"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2cDt5R89HP8ZCXhNAmZs27",
+            "display":"Nobody's Love"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":86,
+        "energy":56,
+        "danceability":48
+    },
+    {
+        "id":{
+            "value":"spotify:track:1LmN9SSHISbtp9LoaR5ZVJ",
+            "display":"Payphone"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            },
+            {
+                "value":"spotify:artist:137W8MRPWKqSmrBGDBFSop",
+                "display":"Wiz Khalifa"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5x7JzoE4A3DwwU6FPt8qws",
+            "display":"Overexposed"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2012-01-01",
+        "popularity":74,
+        "energy":75,
+        "danceability":73
+    },
+    {
+        "id":{
+            "value":"spotify:track:2iuZJX9X9P0GKaE93xcPjk",
+            "display":"Sugar"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2Auw0pTT6EcQdvHNimhLQI",
+            "display":"V"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2014-09-02",
+        "popularity":80,
+        "energy":78,
+        "danceability":74
+    },
+    {
+        "id":{
+            "value":"spotify:track:4llK75pXNWZz6KAho2Gp16",
+            "display":"She Will Be Loved - Radio Mix"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5zClcGCSWj926AMjvBNSLc",
+            "display":"Songs About Jane: 10th Anniversary Edition"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2002",
+        "popularity":80,
+        "energy":66,
+        "danceability":65
+    },
+    {
+        "id":{
+            "value":"spotify:track:6V1bu6o1Yo5ZXnsCJU8Ovk",
+            "display":"Girls Like You (feat. Cardi B)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            },
+            {
+                "value":"spotify:artist:4kYSro6naA4h99UJvo89HB",
+                "display":"Cardi B"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3ThQ5dvf9wlqB0C7evh5nH",
+            "display":"Red Pill Blues (Deluxe)"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2018-06-15",
+        "popularity":71,
+        "energy":54,
+        "danceability":85
+    },
+    {
+        "id":{
+            "value":"spotify:track:73vdf0OOCfmoHVorVyreHm",
+            "display":"What Lovers Do"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            },
+            {
+                "value":"spotify:artist:7tYKF4w9nC0nq9CsPZTHyP",
+                "display":"SZA"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:74jDw6TsdKnT92V790QfvF",
+            "display":"Romantic Pop Songs"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2020-08-10",
+        "popularity":0,
+        "energy":68,
+        "danceability":76
+    },
+    {
+        "id":{
+            "value":"spotify:track:3xLEURGjvCPWsP64dXQZQZ",
+            "display":"She Will Be Loved"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:74jDw6TsdKnT92V790QfvF",
+            "display":"Romantic Pop Songs"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2020-08-10",
+        "popularity":0,
+        "energy":65,
+        "danceability":65
+    },
+    {
+        "id":{
+            "value":"spotify:track:4gbVRS8gloEluzf0GzDOFc",
+            "display":"Maps"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2Auw0pTT6EcQdvHNimhLQI",
+            "display":"V"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2014-09-02",
+        "popularity":76,
+        "energy":71,
+        "danceability":74
+    },
+    {
+        "id":{
+            "value":"spotify:track:7LcfRTgAVTs5pQGEQgUEzN",
+            "display":"Moves Like Jagger - Studio Recording From The Voice Performance"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            },
+            {
+                "value":"spotify:artist:1l7ZsJRRS8wlW3WfJfPfNS",
+                "display":"Christina Aguilera"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:7strNUlU6xZqlVWBNUdOYv",
+            "display":"Hands All Over"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2010",
+        "popularity":70,
+        "energy":75,
+        "danceability":72
+    },
+    {
+        "id":{
+            "value":"spotify:track:6ECp64rv50XVz93WvxXMGF",
+            "display":"This Love"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5zClcGCSWj926AMjvBNSLc",
+            "display":"Songs About Jane: 10th Anniversary Edition"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2002",
+        "popularity":78,
+        "energy":86,
+        "danceability":71
+    },
+    {
+        "id":{
+            "value":"spotify:track:2j5hsQvApottzvTn4pFJWF",
+            "display":"What Lovers Do (feat. SZA)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            },
+            {
+                "value":"spotify:artist:7tYKF4w9nC0nq9CsPZTHyP",
+                "display":"SZA"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3ThQ5dvf9wlqB0C7evh5nH",
+            "display":"Red Pill Blues (Deluxe)"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2018-06-15",
+        "popularity":69,
+        "energy":59,
+        "danceability":79
+    },
+    {
+        "id":{
+            "value":"spotify:track:2bL2gyO6kBdLkNSkxXNh6x",
+            "display":"Animals"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2Auw0pTT6EcQdvHNimhLQI",
+            "display":"V"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2014-09-02",
+        "popularity":76,
+        "energy":74,
+        "danceability":27
+    },
+    {
+        "id":{
+            "value":"spotify:track:6FRLCMO5TUHTexlWo8ym1W",
+            "display":"Girls Like You (feat. Cardi B)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            },
+            {
+                "value":"spotify:artist:4kYSro6naA4h99UJvo89HB",
+                "display":"Cardi B"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:75iQSBSaztFIAun9qLLCnb",
+            "display":"Girls Like You (feat. Cardi B)"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2018-05-30",
+        "popularity":78,
+        "energy":54,
+        "danceability":85
+    },
+    {
+        "id":{
+            "value":"spotify:track:7sapKrjDij2fpDVj0GxP66",
+            "display":"She Will Be Loved"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1Rv9WRKyYhFaGbuYDaQunN",
+            "display":"Songs About Jane"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2002-06-25",
+        "popularity":73,
+        "energy":71,
+        "danceability":70
+    },
+    {
+        "id":{
+            "value":"spotify:track:4XNrMwGx1SqP01sqkGTDmo",
+            "display":"One More Night"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2pjfMmH52fryXVQuWTWOgP",
+            "display":"Overexposed (Deluxe)"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2012-01-01",
+        "popularity":67,
+        "energy":82,
+        "danceability":71
+    },
+    {
+        "id":{
+            "value":"spotify:track:5qII2n90lVdPDcgXEEVHNy",
+            "display":"Sunday Morning"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5zClcGCSWj926AMjvBNSLc",
+            "display":"Songs About Jane: 10th Anniversary Edition"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2002",
+        "popularity":71,
+        "energy":76,
+        "danceability":60
+    },
+    {
+        "id":{
+            "value":"spotify:track:6AvfZXpbb6r35DfF7gHPRq",
+            "display":"Wait"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3ThQ5dvf9wlqB0C7evh5nH",
+            "display":"Red Pill Blues (Deluxe)"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2018-06-15",
+        "popularity":64,
+        "energy":60,
+        "danceability":65
+    },
+    {
+        "id":{
+            "value":"spotify:track:1nueTG77MzNkJTKQ0ZdGzT",
+            "display":"Don't Wanna Know (feat. Kendrick Lamar)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            },
+            {
+                "value":"spotify:artist:2YZyLoL8N0Wb9xBt1NhZWg",
+                "display":"Kendrick Lamar"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:3ThQ5dvf9wlqB0C7evh5nH",
+            "display":"Red Pill Blues (Deluxe)"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2018-06-15",
+        "popularity":64,
+        "energy":61,
+        "danceability":78
+    },
+    {
+        "id":{
+            "value":"spotify:track:6KBYk8OFtod7brGuZ3Y67q",
+            "display":"Misery"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:04gDigrS5kc9YWfZHwBETP",
+                "display":"Maroon 5"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2H4DCvJiZknLngsD2Yqf6k",
+            "display":"Hands All Over (Deluxe)"
+        },
+        "genres":[
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2010",
+        "popularity":62,
+        "energy":81,
+        "danceability":70
+    },
+    {
+        "id":{
+            "value":"spotify:track:7oK9VyNzrYvRFo7nQEYkWN",
+            "display":"Mr. Brightside"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0C0XlULifJtAgn6ZNCW2eu",
+                "display":"The Killers"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:4undIeGmofnAYKhnDclN1w",
+            "display":"Hot Fuss"
+        },
+        "genres":[
+            "modern rock",
+            "permanent wave",
+            "rock"
+        ],
+        "release_date":"2004-06-15",
+        "popularity":78,
+        "energy":92,
+        "danceability":35
+    },
+    {
+        "id":{
+            "value":"spotify:track:4xkOaSrkexMciUUogZKVTS",
+            "display":"'Till I Collapse"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:7dGJo4pcD2V6oG8kP0tJRR",
+                "display":"Eminem"
+            },
+            {
+                "value":"spotify:artist:1Oa0bMld0A3u5OTYfMzp5h",
+                "display":"Nate Dogg"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2cWBwpqMsDJC1ZUwz813lo",
+            "display":"The Eminem Show"
+        },
+        "genres":[
+            "detroit hip hop",
+            "hip hop",
+            "rap"
+        ],
+        "release_date":"2002-05-26",
+        "popularity":83,
+        "energy":84,
+        "danceability":54
+    },
+    {
+        "id":{
+            "value":"spotify:track:4bPQs0PHn4xbipzdPfn6du",
+            "display":"I Write Sins Not Tragedies"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:20JZFwl6HVl6yg8a4H3ZqK",
+                "display":"Panic! At The Disco"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2YeOhhJg3OWpN0F1VYPxtW",
+            "display":"A Fever You Can't Sweat Out"
+        },
+        "genres":[
+            "baroque pop",
+            "emo",
+            "modern rock",
+            "pop punk"
+        ],
+        "release_date":"2005-09-27",
+        "popularity":75,
+        "energy":83,
+        "danceability":56
+    },
+    {
+        "id":{
+            "value":"spotify:track:4RCWB3V8V0dignt99LZ8vH",
+            "display":"Hey There Delilah"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1g1yxsNVPhMUl9GrMjEb2o",
+                "display":"Plain White T's"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:4vUClKTFaDWnsHE8rK52GY",
+            "display":"All That We Needed"
+        },
+        "genres":[
+            "neo mellow",
+            "pop",
+            "pop punk",
+            "pop rock"
+        ],
+        "release_date":"2005-01-01",
+        "popularity":80,
+        "energy":29,
+        "danceability":65
+    },
+    {
+        "id":{
+            "value":"spotify:track:2TfSHkHiFO4gRztVIkggkE",
+            "display":"Sugar, We're Goin Down"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:4UXqAaa6dQYAk18Lv7PEgX",
+                "display":"Fall Out Boy"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5nkUSlIhtoJZMOUlB0sNCp",
+            "display":"From Under The Cork Tree"
+        },
+        "genres":[
+            "emo",
+            "modern rock",
+            "pop punk"
+        ],
+        "release_date":"2005-05-03",
+        "popularity":78,
+        "energy":84,
+        "danceability":49
+    },
+    {
+        "id":{
+            "value":"spotify:track:5rb9QrpfcKFHM1EUbSIurX",
+            "display":"Yeah!"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:23zg3TcAtWQy7J6upgbUnj",
+                "display":"Usher"
+            },
+            {
+                "value":"spotify:artist:7sfl4Xt5KmfyDs2T3SVSMK",
+                "display":"Lil Jon"
+            },
+            {
+                "value":"spotify:artist:3ipn9JLAPI5GUEo4y4jcoi",
+                "display":"Ludacris"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1RM6MGv6bcl6NrAG8PGoZk",
+            "display":"Confessions (Expanded Edition)"
+        },
+        "genres":[
+            "atl hip hop",
+            "dance pop",
+            "pop",
+            "r&b",
+            "south carolina hip hop",
+            "urban contemporary"
+        ],
+        "release_date":"2004-03-23",
+        "popularity":81,
+        "energy":79,
+        "danceability":89
+    },
+    {
+        "id":{
+            "value":"spotify:track:2MLHyLy5z5l5YRp7momlgw",
+            "display":"Island In The Sun"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3jOstUTkEu2JkjvRdBA5Gu",
+                "display":"Weezer"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2OBSz5Nlto0Q5CtYPzPY7c",
+            "display":"Weezer (Green Album)"
+        },
+        "genres":[
+            "alternative rock",
+            "modern power pop",
+            "modern rock",
+            "permanent wave",
+            "pop punk",
+            "pop rock",
+            "rock"
+        ],
+        "release_date":"2001-05-15",
+        "popularity":78,
+        "energy":81,
+        "danceability":65
+    },
+    {
+        "id":{
+            "value":"spotify:track:3ZFTkvIE7kyPt6Nu3PEa7V",
+            "display":"Hips Don't Lie (feat. Wyclef Jean)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0EmeFodog0BfCgMzAIvKQp",
+                "display":"Shakira"
+            },
+            {
+                "value":"spotify:artist:7aBzpmFXB4WWpPl2F7RjBe",
+                "display":"Wyclef Jean"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5ppnlEoj4HdRRdRihnY3jU",
+            "display":"Oral Fixation, Vol. 2 (Expanded Edition)"
+        },
+        "genres":[
+            "colombian pop",
+            "dance pop",
+            "latin",
+            "latin pop",
+            "pop"
+        ],
+        "release_date":"2005-11-28",
+        "popularity":83,
+        "energy":82,
+        "danceability":77
+    },
+    {
+        "id":{
+            "value":"spotify:track:0d28khcov6AiegSCpG5TuT",
+            "display":"Feel Good Inc."
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3AA28KZvwAUcZuOKwyblJQ",
+                "display":"Gorillaz"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:0bUTHlWbkSQysoM3VsWldT",
+            "display":"Demon Days"
+        },
+        "genres":[
+            "alternative hip hop",
+            "art pop"
+        ],
+        "release_date":"2005-05-23",
+        "popularity":81,
+        "energy":70,
+        "danceability":81
+    },
+    {
+        "id":{
+            "value":"spotify:track:6GG73Jik4jUlQCkKg9JuGO",
+            "display":"The Middle"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3Ayl7mCk0nScecqOzvNp6s",
+                "display":"Jimmy Eat World"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:0UJhhj5bn5AGAjryFnhueP",
+            "display":"Bleed American"
+        },
+        "genres":[
+            "emo",
+            "modern power pop",
+            "modern rock",
+            "neo mellow",
+            "pop punk",
+            "pop rock",
+            "rock"
+        ],
+        "release_date":"2001-07-17",
+        "popularity":78,
+        "energy":84,
+        "danceability":64
+    },
+    {
+        "id":{
+            "value":"spotify:track:5fVZC9GiM4e8vu99W0Xf6J",
+            "display":"How to Save a Life"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0zOcE3mg9nS6l3yxt1Y0bK",
+                "display":"The Fray"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1IM3GwptCGYjRkzCBolyFK",
+            "display":"How To Save A Life"
+        },
+        "genres":[
+            "modern rock",
+            "neo mellow",
+            "piano rock",
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2005-09-13",
+        "popularity":81,
+        "energy":74,
+        "danceability":64
+    },
+    {
+        "id":{
+            "value":"spotify:track:0ZUo4YjG4saFnEJhdWp9Bt",
+            "display":"Before He Cheats"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:4xFUf1FHVy696Q1JQZMTRj",
+                "display":"Carrie Underwood"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:0kys2jaKAiDPfNBd4z7LAg",
+            "display":"Some Hearts"
+        },
+        "genres":[
+            "contemporary country",
+            "country",
+            "country dawn",
+            "country road",
+            "dance pop",
+            "oklahoma country",
+            "pop"
+        ],
+        "release_date":"2005-11-14",
+        "popularity":75,
+        "energy":74,
+        "danceability":51
+    },
+    {
+        "id":{
+            "value":"spotify:track:0I3q5fE6wg7LIfHGngUTnV",
+            "display":"Ms. Jackson"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1G9G7WwrXka3Z1r7aIDjI7",
+                "display":"OutKast"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2tm3Ht61kqqRZtIYsBjxEj",
+            "display":"Stankonia"
+        },
+        "genres":[
+            "atl hip hop",
+            "dirty south rap",
+            "hip hop",
+            "rap",
+            "southern hip hop"
+        ],
+        "release_date":"2000-10-31",
+        "popularity":79,
+        "energy":80,
+        "danceability":84
+    },
+    {
+        "id":{
+            "value":"spotify:track:2hKdd3qO7cWr2Jo0Bcs0MA",
+            "display":"Drops of Jupiter (Tell Me)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3FUY2gzHeIiaesXtOAdB7A",
+                "display":"Train"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6j6Zgm7vzAZegr48UppFVT",
+            "display":"Drops Of Jupiter"
+        },
+        "genres":[
+            "dance pop",
+            "neo mellow",
+            "pop",
+            "pop rock"
+        ],
+        "release_date":"2001-03-27",
+        "popularity":78,
+        "energy":64,
+        "danceability":46
+    },
+    {
+        "id":{
+            "value":"spotify:track:60a0Rd6pjrkxjPbaKzXjfq",
+            "display":"In the End"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:6XyY86QOPPrYVGvF9ch6wz",
+                "display":"Linkin Park"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6hPkbAV3ZXpGZBGUvL6jVM",
+            "display":"Hybrid Theory (Bonus Edition)"
+        },
+        "genres":[
+            "alternative metal",
+            "nu metal",
+            "post-grunge",
+            "rap metal"
+        ],
+        "release_date":"2000-10-24",
+        "popularity":83,
+        "energy":86,
+        "danceability":55
+    },
+    {
+        "id":{
+            "value":"spotify:track:1PS1QMdUqOal0ai3Gt7sDQ",
+            "display":"Gold Digger"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:5K4W6rqBFWDnAN6FQUkS6x",
+                "display":"Kanye West"
+            },
+            {
+                "value":"spotify:artist:7LnaAXbDVIL75IVPnndf7w",
+                "display":"Jamie Foxx"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5ll74bqtkcXlKE7wwkMq4g",
+            "display":"Late Registration"
+        },
+        "genres":[
+            "chicago rap",
+            "rap"
+        ],
+        "release_date":"2005-09-30",
+        "popularity":78,
+        "energy":69,
+        "danceability":62
+    },
+    {
+        "id":{
+            "value":"spotify:track:7lQ8MOhq6IN2w8EYcFNSUk",
+            "display":"Without Me"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:7dGJo4pcD2V6oG8kP0tJRR",
+                "display":"Eminem"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2cWBwpqMsDJC1ZUwz813lo",
+            "display":"The Eminem Show"
+        },
+        "genres":[
+            "detroit hip hop",
+            "hip hop",
+            "rap"
+        ],
+        "release_date":"2002-05-26",
+        "popularity":83,
+        "energy":66,
+        "danceability":90
+    },
+    {
+        "id":{
+            "value":"spotify:track:7i6r9KotUPQg3ozKKgEPIN",
+            "display":"Seven Nation Army"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:4F84IBURUo98rz4r61KF70",
+                "display":"The White Stripes"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:48Atx1uS9J4KL5iQt3weoS",
+            "display":"Elephant"
+        },
+        "genres":[
+            "alternative rock",
+            "blues rock",
+            "garage rock",
+            "modern blues rock",
+            "modern rock",
+            "permanent wave",
+            "punk blues",
+            "rock"
+        ],
+        "release_date":"2003-04-01",
+        "popularity":74,
+        "energy":46,
+        "danceability":73
+    },
+    {
+        "id":{
+            "value":"spotify:track:6ZOBP3NvffbU4SZcrnt1k6",
+            "display":"Kryptonite"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:2RTUTCvo6onsAnheUk3aL9",
+                "display":"3 Doors Down"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5gO2acKSOaJnP0Mcy8IpU6",
+            "display":"The Better Life"
+        },
+        "genres":[
+            "alternative metal",
+            "nu metal",
+            "pop rock",
+            "post-grunge"
+        ],
+        "release_date":"2000",
+        "popularity":78,
+        "energy":86,
+        "danceability":54
+    },
+    {
+        "id":{
+            "value":"spotify:track:2PpruBYCo4H7WOBJ7Q2EwM",
+            "display":"Hey Ya! - Radio Mix"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1G9G7WwrXka3Z1r7aIDjI7",
+                "display":"OutKast"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:1UsmQ3bpJTyK6ygoOOjG1r",
+            "display":"Speakerboxxx/The Love Below"
+        },
+        "genres":[
+            "atl hip hop",
+            "dirty south rap",
+            "hip hop",
+            "rap",
+            "southern hip hop"
+        ],
+        "release_date":"2003",
+        "popularity":79,
+        "energy":97,
+        "danceability":72
+    },
+    {
+        "id":{
+            "value":"spotify:track:7ytR5pFWmSjzHJIeQkgog4",
+            "display":"ROCKSTAR (feat. Roddy Ricch)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:4r63FhuTkUYltbVAg5TQnk",
+                "display":"DaBaby"
+            },
+            {
+                "value":"spotify:artist:757aE44tKEUQEqRuT6GnEB",
+                "display":"Roddy Ricch"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:623PL2MBg50Br5dLXC9E9e",
+            "display":"BLAME IT ON BABY"
+        },
+        "genres":[
+            "north carolina hip hop",
+            "rap"
+        ],
+        "release_date":"2020-04-17",
+        "popularity":100,
+        "energy":69,
+        "danceability":74
+    },
+    {
+        "id":{
+            "value":"spotify:track:2MbdDtCv5LUVjYy9RuGTgC",
+            "display":"WHATS POPPIN (feat. DaBaby, Tory Lanez & Lil Wayne) - Remix"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:2LIk90788K0zvyj2JJVwkJ",
+                "display":"Jack Harlow"
+            },
+            {
+                "value":"spotify:artist:2jku7tDXc6XoB6MO2hFuqg",
+                "display":"Tory Lanez"
+            },
+            {
+                "value":"spotify:artist:4r63FhuTkUYltbVAg5TQnk",
+                "display":"DaBaby"
+            },
+            {
+                "value":"spotify:artist:55Aa2cqylxrFIXC767Z865",
+                "display":"Lil Wayne"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:36jrqYRpGVpJqztuqCii22",
+            "display":"WHATS POPPIN (feat. DaBaby, Tory Lanez & Lil Wayne) [Remix]"
+        },
+        "genres":[
+            "deep underground hip hop",
+            "kentucky hip hop",
+            "pop rap",
+            "rap",
+            "trap"
+        ],
+        "release_date":"2020-06-24",
+        "popularity":93,
+        "energy":72,
+        "danceability":90
+    },
+    {
+        "id":{
+            "value":"spotify:track:0VjIjW4GlUZAMYd2vXMi3b",
+            "display":"Blinding Lights"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1Xyo4u8uXC1ZmMpatF05PJ",
+                "display":"The Weeknd"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:4yP0hdKOZPNshxUOjY0cZj",
+            "display":"After Hours"
+        },
+        "genres":[
+            "canadian contemporary r&b",
+            "canadian pop",
+            "pop"
+        ],
+        "release_date":"2020-03-20",
+        "popularity":99,
+        "energy":73,
+        "danceability":51
+    },
+    {
+        "id":{
+            "value":"spotify:track:4R2kfaDFhslZEMJqAFNpdd",
+            "display":"cardigan"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":93,
+        "energy":58,
+        "danceability":61
+    },
+    {
+        "id":{
+            "value":"spotify:track:4pvb0WLRcMtbPGmtejJJ6y",
+            "display":"exile (feat. Bon Iver)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            },
+            {
+                "value":"spotify:artist:4LEiUm1SRbFMgfqnQTwUbQ",
+                "display":"Bon Iver"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":92,
+        "energy":38,
+        "danceability":29
+    },
+    {
+        "id":{
+            "value":"spotify:track:5RqR4ZCCKJDcBLIn4sih9l",
+            "display":"Party Girl"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1XLWox9w1Yvbodui0SRhUQ",
+                "display":"StaySolidRocky"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:4NPX54YtocHqTOq6yXDEFM",
+            "display":"Party Girl"
+        },
+        "genres":[
+
+        ],
+        "release_date":"2020-04-21",
+        "popularity":93,
+        "energy":43,
+        "danceability":72
+    },
+    {
+        "id":{
+            "value":"spotify:track:0Jlcvv8IykzHaSmj49uNW8",
+            "display":"the 1"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":91,
+        "energy":35,
+        "danceability":77
+    },
+    {
+        "id":{
+            "value":"spotify:track:0PvFJmanyNQMseIFrU708S",
+            "display":"For The Night (feat. Lil Baby & DaBaby)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0eDvMgVFoNV3TpwtrVCoTj",
+                "display":"Pop Smoke"
+            },
+            {
+                "value":"spotify:artist:5f7VJjfbwm532GiveGC0ZK",
+                "display":"Lil Baby"
+            },
+            {
+                "value":"spotify:artist:4r63FhuTkUYltbVAg5TQnk",
+                "display":"DaBaby"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:7e7t0MCrNDcJZsPwUKjmOc",
+            "display":"Shoot For The Stars Aim For The Moon"
+        },
+        "genres":[
+            "brooklyn drill"
+        ],
+        "release_date":"2020-07-03",
+        "popularity":90,
+        "energy":58,
+        "danceability":82
+    },
+    {
+        "id":{
+            "value":"spotify:track:6gxKUmycQX7uyMwJcweFjp",
+            "display":"We Paid (feat. 42 Dugg)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:5f7VJjfbwm532GiveGC0ZK",
+                "display":"Lil Baby"
+            },
+            {
+                "value":"spotify:artist:45gHcnDnMC15sgx3VL7ROG",
+                "display":"42 Dugg"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6uhEg4ASZYLIilZFCBFy1r",
+            "display":"My Turn (Deluxe)"
+        },
+        "genres":[
+            "atl hip hop",
+            "atl trap",
+            "rap"
+        ],
+        "release_date":"2020-05-01",
+        "popularity":87,
+        "energy":54,
+        "danceability":92
+    },
+    {
+        "id":{
+            "value":"spotify:track:6EDO9iiTtwNv6waLwa1UUq",
+            "display":"POPSTAR (feat. Drake)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0QHgL1lAIqAw0HtD7YldmP",
+                "display":"DJ Khaled"
+            },
+            {
+                "value":"spotify:artist:3TVXtAsR1Inumwj472S9r4",
+                "display":"Drake"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5nNtpPsSUgb9Hlb3dF1gXa",
+            "display":"POPSTAR (feat. Drake)"
+        },
+        "genres":[
+            "dance pop",
+            "hip hop",
+            "miami hip hop",
+            "pop",
+            "pop rap",
+            "rap",
+            "southern hip hop",
+            "trap"
+        ],
+        "release_date":"2020-07-17",
+        "popularity":91,
+        "energy":56,
+        "danceability":80
+    },
+    {
+        "id":{
+            "value":"spotify:track:1ENdcyhqdylaLsPVgB83qq",
+            "display":"Rags2Riches (feat. ATR Son Son)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:45TgXXqMDdF8BkjA83OM7z",
+                "display":"Rod Wave"
+            },
+            {
+                "value":"spotify:artist:1nGRqM8VNcQOcFsOnhpInD",
+                "display":"ATR Son Son"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:5zCvAq0MLqUv0vE96iMbv2",
+            "display":"Pray 4 Love"
+        },
+        "genres":[
+            "florida rap"
+        ],
+        "release_date":"2020-04-03",
+        "popularity":88,
+        "energy":25,
+        "danceability":90
+    },
+    {
+        "id":{
+            "value":"spotify:track:6wJYhPfqk3KGhHRG76WzOh",
+            "display":"Blueberry Faygo"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:5zctI4wO9XSKS8XwcnqEHk",
+                "display":"Lil Mosey"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:6rBennOYWR1OZQnsU39PKL",
+            "display":"Blueberry Faygo"
+        },
+        "genres":[
+            "melodic rap",
+            "rap conscient",
+            "vapor trap"
+        ],
+        "release_date":"2020-02-07",
+        "popularity":90,
+        "energy":55,
+        "danceability":77
+    },
+    {
+        "id":{
+            "value":"spotify:track:39Yp9wwQiSRIDOvrVg7mbk",
+            "display":"THE SCOTTS"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:2PaZWGu5T5nHjY2xxAkFsT",
+                "display":"THE SCOTTS"
+            },
+            {
+                "value":"spotify:artist:0Y5tJX1MQlPlqiwlOH1tJY",
+                "display":"Travis Scott"
+            },
+            {
+                "value":"spotify:artist:0fA0VVWsXO9YnASrzqfmYu",
+                "display":"Kid Cudi"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:7q6zjWaLw8bN5nYiBWjrus",
+            "display":"THE SCOTTS"
+        },
+        "genres":[
+
+        ],
+        "release_date":"2020-04-24",
+        "popularity":91,
+        "energy":53,
+        "danceability":71
+    },
+    {
+        "id":{
+            "value":"spotify:track:1H7KnK26kc1YyellpbINEn",
+            "display":"The Woo (feat. 50 Cent & Roddy Ricch)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0eDvMgVFoNV3TpwtrVCoTj",
+                "display":"Pop Smoke"
+            },
+            {
+                "value":"spotify:artist:3q7HBObVc0L8jNeTe5Gofh",
+                "display":"50 Cent"
+            },
+            {
+                "value":"spotify:artist:757aE44tKEUQEqRuT6GnEB",
+                "display":"Roddy Ricch"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:7e7t0MCrNDcJZsPwUKjmOc",
+            "display":"Shoot For The Stars Aim For The Moon"
+        },
+        "genres":[
+            "brooklyn drill"
+        ],
+        "release_date":"2020-07-03",
+        "popularity":91,
+        "energy":61,
+        "danceability":49
+    },
+    {
+        "id":{
+            "value":"spotify:track:2Eeur20xVqfUoM3Q7EFPFt",
+            "display":"the last great american dynasty"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":89,
+        "energy":66,
+        "danceability":68
+    },
+    {
+        "id":{
+            "value":"spotify:track:7eJMfftS33KTjuF7lTsMCx",
+            "display":"death bed (coffee for your head)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:6bmlMHgSheBauioMgKv2tn",
+                "display":"Powfu"
+            },
+            {
+                "value":"spotify:artist:35l9BRT7MXmM8bv2WDQiyB",
+                "display":"beabadoobee"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2p9gK2BcdrloHNJwarc9gc",
+            "display":"death bed (coffee for your head)"
+        },
+        "genres":[
+
+        ],
+        "release_date":"2020-02-08",
+        "popularity":95,
+        "energy":43,
+        "danceability":72
+    },
+    {
+        "id":{
+            "value":"spotify:track:1MgV7FIyNxIG7WzMRJV5HC",
+            "display":"my tears ricochet"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":88,
+        "energy":26,
+        "danceability":45
+    },
+    {
+        "id":{
+            "value":"spotify:track:1jaTQ3nqY3oAAYyCTbIvnM",
+            "display":"WHATS POPPIN"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:2LIk90788K0zvyj2JJVwkJ",
+                "display":"Jack Harlow"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:7AaqMMiYMvnMB3RcS8u3EY",
+            "display":"Sweet Action"
+        },
+        "genres":[
+            "deep underground hip hop",
+            "kentucky hip hop",
+            "pop rap",
+            "rap",
+            "trap"
+        ],
+        "release_date":"2020-03-13",
+        "popularity":89,
+        "energy":60,
+        "danceability":92
+    },
+    {
+        "id":{
+            "value":"spotify:track:1IIKrJVP1C9N7iPtG6eOsK",
+            "display":"Go Crazy"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:7bXgB6jMjp9ATFy66eO08Z",
+                "display":"Chris Brown"
+            },
+            {
+                "value":"spotify:artist:50co4Is1HCEo8bhOyUWKpn",
+                "display":"Young Thug"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:7fZKtzZAsfH0kzeTivu5TG",
+            "display":"Slime & B"
+        },
+        "genres":[
+            "dance pop",
+            "pop",
+            "pop rap",
+            "r&b",
+            "rap"
+        ],
+        "release_date":"2020-05-08",
+        "popularity":91,
+        "energy":57,
+        "danceability":75
+    },
+    {
+        "id":{
+            "value":"spotify:track:3hUxzQpSfdDqwM3ZTFQY0K",
+            "display":"august"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "album":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "genres":[
+            "pop"
+        ],
+        "release_date":"2020-07-24",
+        "popularity":88,
+        "energy":62,
+        "danceability":53
+    }
+]

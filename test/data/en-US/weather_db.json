@@ -1,0 +1,17 @@
+[
+   {
+     "location":[
+        37.442156,
+        -122.1634471,
+        "Palo Alto, California"
+     ],
+      "temperature":41,
+      "wind_speed":7,
+      "humidity":15,
+      "cloudiness":7,
+      "fog":15,
+      "status":"raining",
+      "icon":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"
+
+   }
+]

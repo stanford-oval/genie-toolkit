@@ -101,13 +101,14 @@ class MockAppExecutor {
 }
 
 class MockAppDatabase {
-    constructor(schemas, gettext, rng) {
+    constructor(schemas, gettext, rng, database) {
         this._apps = {};
         this._schemas = schemas;
         this._gettext = gettext;
         this._rng = rng;
         assert(rng);
-        this._simulator = new SimulationExecEnvironment('en-US', this._schemas, null, {
+        this._database = database;
+        this._simulator = new SimulationExecEnvironment('en-US', this._schemas, this._database, {
             rng, simulateErrors: false
         });
 
@@ -401,7 +402,7 @@ class TestPlatform extends MockPlatform {
     }
 }
 
-module.exports.createMockEngine = function(thingpedia, rng) {
+module.exports.createMockEngine = function(thingpedia, rng, database) {
     const platform = new TestPlatform();
     const schemas = new ThingTalk.SchemaRetriever(thingpedia, null, true);
 
@@ -411,7 +412,7 @@ module.exports.createMockEngine = function(thingpedia, rng) {
         thingpedia: thingpedia,
         schemas: schemas,
         devices: new MockDeviceDatabase(),
-        apps: new MockAppDatabase(schemas, gettext, rng),
+        apps: new MockAppDatabase(schemas, gettext, rng, database),
 
         createApp(program, options = {}) {
             return this.apps.createApp(program, options);
