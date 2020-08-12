@@ -218,7 +218,7 @@ async function main() {
             console.error(`Test Case ${i+1} failed`);
             console.error(`Expected: ${correct}`);
             console.error(`Generated: ${generated.canonical}`);
-
+            failed = false;
         }
     }
     if (failed)
