@@ -150,6 +150,12 @@ class SchemaTrimmer {
             if (!arg)
                 throw new Error(`Unexpected field ${key} in ${tabledef.name}, data is not normalized`);
             this._markArgumentHasData(arg, obj[key]);
+
+            for (let _extend of tabledef.extends) {
+                let parent = tabledef.class.queries[_extend];
+                if (parent.args.includes(key))
+                    this._markArgumentHasData(parent.getArgument(key), obj[key]);
+            }
         }
     }
 
