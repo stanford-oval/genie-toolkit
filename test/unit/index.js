@@ -27,7 +27,6 @@ process.env.TEST_MODE = '1';
 // require everything, to get a complete view of code coverage
 require('../../lib/index');
 
-
 async function do_test(array) {
     if (typeof array !== 'undefined' && array instanceof Array ){
         for (let fn of array) {
@@ -37,7 +36,6 @@ async function do_test(array) {
     }
 }
 
-
 // test lib scripts
 do_test([
     ('./test_array_set'),
@@ -46,6 +44,7 @@ do_test([
     ('./test_bert_canonical_generator'),
     ('./test_engine_protocol'),
     ('./test_entities'),
+    ('./test_entity_match'),
     ('./test_helpers'),
     ('./test_i18n_chinese'),
     ('./test_ip_address'),
