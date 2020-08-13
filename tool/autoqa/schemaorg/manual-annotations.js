@@ -194,7 +194,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         passive_verb: ["published | on #", "written | on #"],
         base: ["date published"],
         adjective_argmax: ['most recent', 'latest', 'last'],
-        adjective_argmin: ['earliest']
+        adjective_argmin: ['earliest', 'first']
     },
     'ratingValue': {
         passive_verb: ["rated # star"],
