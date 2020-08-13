@@ -438,9 +438,9 @@ class ThingpediaLoader {
                 cat = cat.substring(0, cat.length - '_enum'.length);
                 isEnum = true;
             } else if (cat.endsWith('_argmin') || cat.endsWith('_argmax')) {
+                argMinMax = cat.endsWith('_argmin') ? 'asc' : 'desc';
                 // _argmin is the same length as _argmax
                 cat = cat.substring(0, cat.length - '_argmin'.length);
-                argMinMax = cat.endsWith('_argmin') ? 'asc' : 'desc';
             }
 
             if (cat in ANNOTATION_RENAME)
