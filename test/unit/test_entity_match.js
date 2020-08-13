@@ -136,6 +136,29 @@ const TEST_CASES = [
         ]
     ],
     [
+        "maroon 5",
+        "com.spotify:artist",
+        [{
+            type: 'com.spotify:artist',
+            value: 'spotify:artist:04gDigrS5kc9YWfZHwBETP',
+            canonical: 'maroon 5',
+            name: 'Maroon 5'
+        },
+        {
+            type: 'com.spotify:artist',
+            value: 'spotify:artist:3ZnbHqf6qeVB52jlbWB7f3',
+            canonical: 'karaoke - maroon 5',
+            name: 'Karaoke - Maroon 5'
+        },
+        {
+            type: 'com.spotify:artist',
+            value: 'spotify:artist:7yelyOYYjMhK8wifmIlX1o',
+            canonical: 'move like jagger originally performed by maroon 5 feat.c.aguillera',
+            name: 'Move Like Jagger Originally Performed By Maroon 5 Feat.C.Aguillera'
+        },
+        ]
+    ],
+    [
         "physical graffiti",
         "com.spotify:album",
         [{
