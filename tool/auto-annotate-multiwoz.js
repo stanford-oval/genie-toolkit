@@ -225,6 +225,8 @@ function getStatementDomain(stmt) {
         return stmt.actions[0].schema.class.name;
 }
 
+const USE_MANUAL_AGENT_ANNOTATION = false;
+
 class Converter extends stream.Readable {
     constructor(args) {
         super({ objectMode: true });
@@ -320,22 +322,24 @@ class Converter extends stream.Readable {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []);
         }
 
-        // add some heuristics using the "system_acts" annotation
-        const requestedSlots = turn.system_acts.filter((act) => typeof act === 'string');
-        if (requestedSlots.length > 0) {
-            if (requestedSlots.some((slot) => SEARCH_SLOTS_FOR_SYSTEM.has(slot))) {
-                if (contextInfo.current && contextInfo.current.results.results.length === 0)
-                    agentTarget.dialogueAct = 'sys_empty_search_question';
-                else
-                    agentTarget.dialogueAct = 'sys_search_question';
-            } else {
-                if (contextInfo.current && contextInfo.current.error)
-                    agentTarget.dialogueAct = 'sys_action_error_question';
-                else
-                    agentTarget.dialogueAct = 'sys_slot_fill';
-            }
+        if (USE_MANUAL_AGENT_ANNOTATION) {
+            // add some heuristics using the "system_acts" annotation
+            const requestedSlots = turn.system_acts.filter((act) => typeof act === 'string');
+            if (requestedSlots.length > 0) {
+                if (requestedSlots.some((slot) => SEARCH_SLOTS_FOR_SYSTEM.has(slot))) {
+                    if (contextInfo.current && contextInfo.current.results.results.length === 0)
+                        agentTarget.dialogueAct = 'sys_empty_search_question';
+                    else
+                        agentTarget.dialogueAct = 'sys_search_question';
+                } else {
+                    if (contextInfo.current && contextInfo.current.error)
+                        agentTarget.dialogueAct = 'sys_action_error_question';
+                    else
+                        agentTarget.dialogueAct = 'sys_slot_fill';
+                }
 
-            agentTarget.dialogueActParam = requestedSlots.map((slot) => REQUESTED_SLOT_MAP[slot] || slot);
+                agentTarget.dialogueActParam = requestedSlots.map((slot) => REQUESTED_SLOT_MAP[slot] || slot);
+            }
         }
 
         if (agentTarget.history.length === 0 && contextInfo.next)
