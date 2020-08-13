@@ -517,6 +517,7 @@ const STRING_FILE_OVERRIDES = {
     'org.schema.Music:MusicAlbum_byArtist': 'tt:song_artist',
     'org.schema.Music:MusicRecording_inAlbum': 'tt:song_album',
     'org.schema.Music:MusicRecording_name': 'tt:song_name',
+    'org.schema.Music:CreativeWork_genre': 'com.spotify:genre',
 };
 
 // maps old name to new name
