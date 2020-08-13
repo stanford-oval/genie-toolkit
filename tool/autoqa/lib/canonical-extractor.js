@@ -34,7 +34,7 @@ class AnnotationExtractor {
         this.options = options;
         this._langPack = new EnglishLanguagePack();
 
-        this._input =[];
+        this._input = [];
         this._output = [];
         this.newCanonicals = {};
     }
@@ -112,6 +112,12 @@ class AnnotationExtractor {
         // skip paraphrase when no input generated
         if (this._input.length === 0) {
             this._output = [];
+            return;
+        }
+
+        // in travis, we skip the paraphrasing step because it's too memory intensive
+        if (process.env.CI || process.env.TRAVIS) {
+            this._output = this._input.slice();
             return;
         }
 
