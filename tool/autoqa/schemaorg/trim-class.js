@@ -244,7 +244,7 @@ class SchemaTrimmer {
         }
 
         if (tabledef.args.includes('geo') && hasAddress && !hasGeo) {
-            newArgs.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'geo', Type.Location, {
+            const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'geo', Type.Location, {
                 nl: {
                     canonical: { base:["location", "address"] }
                 },
@@ -252,7 +252,27 @@ class SchemaTrimmer {
                     org_schema_type: new Ast.Value.String('GeoCoordinates'),
                     org_schema_has_data: new Ast.Value.Boolean(false)
                 }
-            }));
+            });
+            newArgs.push(arg);
+            hasGeo = arg;
+        }
+
+        // remove streetAddress & addressLocality if we already have geo
+        if (hasAddress && hasGeo) {
+            delete hasAddress.type.fields['addressLocality'];
+            delete hasAddress.type.fields['streetAddress'];
+        }
+        if (tabledef.hasArgument('address') && tabledef.hasArgument('geo')) {
+            for (let _extend of tabledef.extends) {
+                if (_extend in this._classDef.queries) {
+                    const parent = this._classDef.queries[_extend];
+                    const address = parent.getArgument('address');
+                    if (address) {
+                        delete address.type.fields['addressLocality'];
+                        delete address.type.fields['streetAddress'];
+                    }
+                }
+            }
         }
 
         this._classDef.queries[tablename] = new Ast.FunctionDef(null, 'query', this._classDef,
