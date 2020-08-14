@@ -36,6 +36,8 @@ const Conversation = require('../../lib/dialogue-agent/conversation');
 const MockThingpediaClient = require('./mock_thingpedia_client');
 const MockEngine = require('./mock_engine');
 
+const MultiJSONDatabase = require('../../tool/lib/multi_json_database');
+
 class RestartableRandomNumberGenerator {
     constructor() {
         this.reset();
@@ -232,11 +234,16 @@ async function test(testRunner, dlg, i) {
 }
 
 async function main(limit = Infinity) {
+
     const testRunner = new TestRunner();
     const rng = testRunner.rng.makeRNG();
 
+    const database_path = path.resolve(path.dirname(module.filename), '../data/en-US/dataset-map.tsv');
+    const database = new MultiJSONDatabase(database_path);
+    await database.load();
+
     const tpClient = new MockThingpediaClient(testRunner);
-    const engine = MockEngine.createMockEngine(tpClient, rng);
+    const engine = MockEngine.createMockEngine(tpClient, rng, database);
 
     // intercept createApp
     const delegate = new TestDelegate(testRunner);

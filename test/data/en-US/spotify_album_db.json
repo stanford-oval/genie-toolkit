@@ -1,0 +1,434 @@
+[
+    {
+        "id":{
+            "value":"spotify:album:5Dbax7G8SWrP9xyzkOvy2F",
+            "display":"The Wall"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0k17h0D3J5VfsdmQ1iZtE9",
+                "display":"Pink Floyd"
+            }
+        ],
+        "release_date":"1979-11-30",
+        "popularity":77
+    },
+    {
+        "id":{
+            "value":"spotify:album:283NWqNsCA9GwVHrJk59CG",
+            "display":"The Writing's On The Wall"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1Y8cdNmUJH7yBTd9yOvr5i",
+                "display":"Destiny's Child"
+            }
+        ],
+        "release_date":"1999-07-27",
+        "popularity":72
+    },
+    {
+        "id":{
+            "value":"spotify:album:2ZytN2cY4Zjrr9ukb2rqTP",
+            "display":"Off the Wall"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3fMbdgg4jU18AjLCKBhRSm",
+                "display":"Michael Jackson"
+            }
+        ],
+        "release_date":"1979-08-10",
+        "popularity":72
+    },
+    {
+        "id":{
+            "value":"spotify:album:2BOlaNQt6WJ1HO5pQcKHGh",
+            "display":"Bringing Down The Horse"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0jJNGWrpjGIHUdTTJiIYeB",
+                "display":"The Wallflowers"
+            }
+        ],
+        "release_date":"1996-01-01",
+        "popularity":65
+    },
+    {
+        "id":{
+            "value":"spotify:album:1GlOZiKHTgtJqEF2FRii9y",
+            "display":"Over The Garden Wall"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:4paO0IcImRazkM6c1RUt48",
+                "display":"The Blasting Company"
+            }
+        ],
+        "release_date":"2017-09-19",
+        "popularity":58
+    },
+    {
+        "id":{
+            "value":"spotify:album:0ETFjACtuP2ADo6LFhL6HN",
+            "display":"Abbey Road (Remastered)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3WrFJ7ztbogyGnTHbHJFl2",
+                "display":"The Beatles"
+            }
+        ],
+        "release_date":"1969-09-26",
+        "popularity":81
+    },
+    {
+        "id":{
+            "value":"spotify:album:5iT3F2EhjVQVrO4PKhsP8c",
+            "display":"Abbey Road (Super Deluxe Edition)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3WrFJ7ztbogyGnTHbHJFl2",
+                "display":"The Beatles"
+            }
+        ],
+        "release_date":"2019-09-27",
+        "popularity":64
+    },
+    {
+        "id":{
+            "value":"spotify:album:0sGgHg4QRIBACnetu6z45Z",
+            "display":"Guerra (+ Sessions Recorded at Abbey Road)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:39yVoqm6sYFvvqF1RciUVf",
+                "display":"Carlos Rivera"
+            }
+        ],
+        "release_date":"2018-09-07",
+        "popularity":73
+    },
+    {
+        "id":{
+            "value":"spotify:album:3i47d2tkJNfJc8F7mBGr6c",
+            "display":"Bob Baldwin Presents: Abbey Road and The Beatles"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:6URFeH3cWWv6tj2RazL9IP",
+                "display":"Bob Baldwin"
+            }
+        ],
+        "release_date":"2018-09-21",
+        "popularity":43
+    },
+    {
+        "id":{
+            "value":"spotify:album:00tUXbwwa6LigkT63sGXSR",
+            "display":"At Abbey Road"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:3UmBeGyNwr4iDWi1vTxWi8",
+                "display":"Gerry & The Pacemakers"
+            }
+        ],
+        "release_date":"1997-10-13",
+        "popularity":42
+    },
+    {
+        "id":{
+            "value":"spotify:album:2Y9IRtehByVkegoD7TcLfi",
+            "display":"Californication (Deluxe Edition)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0L8ExT028jH3ddEcZwqJJ5",
+                "display":"Red Hot Chili Peppers"
+            }
+        ],
+        "release_date":"1999-06-08",
+        "popularity":80
+    },
+    {
+        "id":{
+            "value":"spotify:album:0fLhefnjlIV3pGNF9Wo8CD",
+            "display":"Californication"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0L8ExT028jH3ddEcZwqJJ5",
+                "display":"Red Hot Chili Peppers"
+            }
+        ],
+        "release_date":"1999-06-08",
+        "popularity":67
+    },
+    {
+        "id":{
+            "value":"spotify:album:7D5PwIPPbO33hUMw39aDx8",
+            "display":"Californication"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:6i1GVNJCyyssRwXmnaeEFH",
+                "display":"Syn Cole"
+            }
+        ],
+        "release_date":"2016-11-11",
+        "popularity":44
+    },
+    {
+        "id":{
+            "value":"spotify:album:7IsAlRVXqh7CUOeFlAsk29",
+            "display":"Californication (Instrumental)"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:2FLK3ubX0vLLfbU5ViuJTN",
+                "display":"Nylonwings"
+            },
+            {
+                "value":"spotify:artist:1EJpc55zEC9JskUoeNsMih",
+                "display":"Rudi Salisbury"
+            }
+        ],
+        "release_date":"2020-01-24",
+        "popularity":32
+    },
+    {
+        "id":{
+            "value":"spotify:album:1gHEfSpE3I6xANjmYbt27k",
+            "display":"Season 4 Music from the Showtime Series Californication"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0LyfQWJT6nXafLPZqxe9Of",
+                "display":"Various Artists"
+            }
+        ],
+        "release_date":"2011-01-11",
+        "popularity":30
+    },
+    {
+        "id":{
+            "value":"spotify:album:4LH4d3cOWNNsVw41Gqt2kv",
+            "display":"The Dark Side of the Moon"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0k17h0D3J5VfsdmQ1iZtE9",
+                "display":"Pink Floyd"
+            }
+        ],
+        "release_date":"1973-03-01",
+        "popularity":75
+    },
+    {
+        "id":{
+            "value":"spotify:album:3t6eDNGmTJIHdU9PF0GJx2",
+            "display":"Dark Side of the Moon"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1eTft3tXynrKdo6XD7QHLL",
+                "display":"Moon Byul"
+            }
+        ],
+        "release_date":"2020-02-14",
+        "popularity":53
+    },
+    {
+        "id":{
+            "value":"spotify:album:5w6CyN2aEgajB8Gc6ylwvc",
+            "display":"The Flaming Lips And Stardeath And White Dwarfs With Henry Rollins And Peaches Doing Dark Side Of The Moon"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:16eRpMNXSQ15wuJoeqguaB",
+                "display":"The Flaming Lips"
+            },
+            {
+                "value":"spotify:artist:4867zBEJU90B3m4ZMRzDaF",
+                "display":"Stardeath And White Dwarfs"
+            }
+        ],
+        "release_date":"2009-12-22",
+        "popularity":26
+    },
+    {
+        "id":{
+            "value":"spotify:album:5Oh0IRAycoLI3bVV9msz6p",
+            "display":"VSQ Master Series: Pink Floyd's Dark Side of the Moon"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:6MERXsiRbur2oJZFgYRDKz",
+                "display":"Vitamin String Quartet"
+            }
+        ],
+        "release_date":"2010-08-10",
+        "popularity":16
+    },
+    {
+        "id":{
+            "value":"spotify:album:3PvJEq93GrQfoBavToO7Ou",
+            "display":"Dark Side of the Moon"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1whoHyyDCn7LqwFWdJjyqg",
+                "display":"Ernesto"
+            },
+            {
+                "value":"spotify:artist:0DSGM5gYROJmca17p842lZ",
+                "display":"Bastian"
+            }
+        ],
+        "release_date":"2005-06-07",
+        "popularity":9
+    },
+    {
+        "id":{
+            "value":"spotify:album:1azUkThwd2HfUDdeNeT147",
+            "display":"21"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:4dpARuHxo51G3z768sgnrY",
+                "display":"Adele"
+            }
+        ],
+        "release_date":"2011-01-19",
+        "popularity":78
+    },
+    {
+        "id":{
+            "value":"spotify:album:1AHZd3C3S8m8fFrhFxyk79",
+            "display":"21st Century Breakdown"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:7oPftvlwr6VrsViSDV7fJY",
+                "display":"Green Day"
+            }
+        ],
+        "release_date":"2009-05-15",
+        "popularity":70
+    },
+    {
+        "id":{
+            "value":"spotify:album:1p64R5tjTpC2oH24YLdQgq",
+            "display":"21st Century Liability"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:6Ad91Jof8Niiw0lGLLi3NW",
+                "display":"YUNGBLUD"
+            }
+        ],
+        "release_date":"2018-07-06",
+        "popularity":68
+    },
+    {
+        "id":{
+            "value":"spotify:album:1iQNqvcWTFwfUYnsGgMYBw",
+            "display":"We Are the 21st Century Ambassadors of Peace & Magic"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:55LHFEtIplWhsfyWZUwkf4",
+                "display":"Foxygen"
+            }
+        ],
+        "release_date":"2013-01-22",
+        "popularity":58
+    },
+    {
+        "id":{
+            "value":"spotify:album:2dGxINFRaJEwDRXohf5gTE",
+            "display":"21"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0f5nVCcR06GX8Qikz0COtT",
+                "display":"Omarion"
+            }
+        ],
+        "release_date":"2006-12-26",
+        "popularity":53
+    },
+    {
+        "id":{
+            "value":"spotify:album:2fenSS68JI1h4Fo296JfGr",
+            "display":"folklore"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "release_date":"2020-07-24",
+        "popularity":100
+    },
+    {
+        "id":{
+            "value":"spotify:album:0xS0iOtxQRoJvfcFcJA5Gv",
+            "display":"folklore"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:06HL4z0CvFAxyc27GXpf02",
+                "display":"Taylor Swift"
+            }
+        ],
+        "release_date":"2020-07-24",
+        "popularity":78
+    },
+    {
+        "id":{
+            "value":"spotify:album:6eRhLfRy1CbGTD0fkSrJob",
+            "display":"Folklore Riddim"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:0LyfQWJT6nXafLPZqxe9Of",
+                "display":"Various Artists"
+            }
+        ],
+        "release_date":"2017-11-24",
+        "popularity":48
+    },
+    {
+        "id":{
+            "value":"spotify:album:43qxerasfPdTnMQbXX6TVb",
+            "display":"Folklore and Superstition"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:6WMo39FU3nrpSz3qMgRKug",
+                "display":"Black Stone Cherry"
+            }
+        ],
+        "release_date":"2008-08-16",
+        "popularity":45
+    },
+    {
+        "id":{
+            "value":"spotify:album:3U8KQJKMc4G13gGkVYgDRq",
+            "display":"Folklore Tropical"
+        },
+        "artists":[
+            {
+                "value":"spotify:artist:1zVxAFV8uL5V816dzdHvYQ",
+                "display":"Aaron Y Su Grupo Ilusion"
+            }
+        ],
+        "release_date":"1996-01-01",
+        "popularity":45
+    }
+]

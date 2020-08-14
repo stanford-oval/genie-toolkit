@@ -46,6 +46,7 @@ genie-??????
 !test/data/en-US/samples-en-hard-qpis.tsv
 !test/data/en-US/samples-en-hard-requoted.tsv
 !test/data/en-US/thingpedia.tt
+!test/data/en-US/dataset-map.tsv
 !test/data/fa/*
 !test/data/thingpedia.tt
 !test/thingpedia.tt

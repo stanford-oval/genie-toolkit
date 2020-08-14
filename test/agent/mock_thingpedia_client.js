@@ -110,7 +110,10 @@ module.exports = class MockThingpediaClient extends Tp.BaseClient {
                 throw new Error('Invalid entity ' + entityDisplay);
             }
         } else {
-            throw new Error('Invalid entity type ' + entityType);
+            return {
+                data: [],
+                meta: { "name": entityDisplay }
+            };
         }
     }
 
