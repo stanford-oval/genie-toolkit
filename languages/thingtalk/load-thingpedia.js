@@ -328,8 +328,11 @@ class ThingpediaLoader {
             if (cat === canonical['default'])
                 attributes.priority += 1;
 
-            for (let form of annotvalue)
-                 this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, '==', value, false)), attributes);
+            for (let form of annotvalue) {
+                this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, '==', value, false)), attributes);
+                this._grammar.addRule(cat + '_boolean_projection', [form], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+            }
+
         }
     }
 
