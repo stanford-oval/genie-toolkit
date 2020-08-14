@@ -96,10 +96,11 @@ const TEST_CASES = [
     // phone numbers
     ['call +123456789', 'call +123456789', 'call PHONE_NUMBER_0', { PHONE_NUMBER_0: '+123456789' }],
     ['call 1-800-almond', 'call +1800256663', 'call PHONE_NUMBER_0', { PHONE_NUMBER_0: '+1800256663' }],
-    ['call 1 800 almond', 'call +1800256663', 'call PHONE_NUMBER_0', { PHONE_NUMBER_0: '+1800256663' }],
     ['call 650 123 4567', 'call +16501234567', 'call PHONE_NUMBER_0', { PHONE_NUMBER_0: '+16501234567' }],
     ['call 650 1234567', 'call +16501234567', 'call PHONE_NUMBER_0', { PHONE_NUMBER_0: '+16501234567' }],
     ['call 6501234567', 'call +16501234567', 'call PHONE_NUMBER_0', { PHONE_NUMBER_0: '+16501234567' }],
+    // not phone numbers
+    ['call 1000 almonds', 'call 1000 almonds', 'call NUMBER_0 almonds', { NUMBER_0: 1000 }],
 
     // urls
     ['open www.google.com', 'open http://www.google.com', 'open URL_0', { URL_0: 'http://www.google.com' }],
