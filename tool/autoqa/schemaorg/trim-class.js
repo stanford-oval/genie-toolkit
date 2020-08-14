@@ -27,7 +27,10 @@ const fs = require('fs');
 const util = require('util');
 
 const StreamUtils = require('../../../lib/utils/stream-utils');
-const { WHITELISTED_PROPERTIES_BY_DOMAIN } = require('./manual-annotations');
+const {
+    WHITELISTED_PROPERTIES_BY_DOMAIN,
+    BLACKLISTED_PROPERTIES_BY_DOMAIN
+} = require('./manual-annotations');
 
 const DEFAULT_ENTITIES = [
     {"type":"tt:contact","name":"Contact Identity","is_well_known":1,"has_ner_support":0},
@@ -65,6 +68,7 @@ class SchemaTrimmer {
         this._entities = entities;
 
         this._propertyWhitelist = domain ? WHITELISTED_PROPERTIES_BY_DOMAIN[domain] : null;
+        this._propertyBlacklist = domain ? BLACKLISTED_PROPERTIES_BY_DOMAIN[domain] : null;
     }
 
     get class() {
@@ -184,7 +188,9 @@ class SchemaTrimmer {
             const field = type.fields[fieldname];
             if (this._whiteListed(`${arg.name}.${fieldname}`))
                 continue;
-            if (!field.annotations['org_schema_has_data'] || !field.annotations['org_schema_has_data'].value) {
+            if (!field.annotations['org_schema_has_data']
+                || !field.annotations['org_schema_has_data'].value
+                || this._blackListed(`${arg.name}.${fieldname}`)) {
                 delete type.fields[fieldname];
                 continue;
             }
@@ -232,6 +238,9 @@ class SchemaTrimmer {
                 if (!(arg.annotations['org_schema_has_data'] && arg.annotations['org_schema_has_data'].value))
                     continue;
             }
+
+            if (this._blackListed(argname))
+                continue;
 
             this._removeFieldsWithoutData(arg);
 
@@ -302,6 +311,10 @@ class SchemaTrimmer {
 
     _whiteListed(property) {
         return this._propertyWhitelist && this._propertyWhitelist.includes(property);
+    }
+
+    _blackListed(property) {
+        return this._propertyBlacklist && this._propertyBlacklist.includes(property);
     }
 }
 

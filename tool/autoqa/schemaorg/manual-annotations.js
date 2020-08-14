@@ -90,6 +90,10 @@ const BLACKLISTED_PROPERTIES = new Set([
 
 ]);
 
+const BLACKLISTED_PROPERTIES_BY_DOMAIN = {
+    movies: ['author']
+};
+
 const STRUCTURED_HIERARCHIES = [
     'StructuredValue', 'Rating', // Offer (Offer introduce a loop in the latest version of schema.org)
 
@@ -597,6 +601,7 @@ module.exports = {
 
     BLACKLISTED_TYPES,
     BLACKLISTED_PROPERTIES,
+    BLACKLISTED_PROPERTIES_BY_DOMAIN,
     WHITELISTED_PROPERTIES_BY_DOMAIN,
 
     STRUCTURED_HIERARCHIES,
