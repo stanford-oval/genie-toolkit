@@ -429,6 +429,9 @@ projection_question = {
         C.sayProjection(C.makeSingleFieldProjection('table', Type.Location, table, 'geo'));
     !turking 'where' ('is' | 'are') ('' | 'the') table:with_filtered_table =>
         C.sayProjection(C.makeSingleFieldProjection('table', Type.Location, table, 'geo'));
+
+    // boolean questions
+    proj:boolean_projection '?' => C.sayProjection(proj);
 }
 
 explicit_when_condition = {
