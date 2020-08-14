@@ -191,15 +191,19 @@ const PROPERTY_CANONICAL_OVERRIDE = {
 const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     // restaurants
     'datePublished': {
-        passive_verb: ["published | on #", "written | on #"],
+        passive_verb: ["published on #", "written on #"],
         base: ["date published"],
         adjective_argmax: ['most recent', 'latest', 'last'],
-        adjective_argmin: ['earliest', 'first']
+        adjective_argmin: ['earliest', 'first'],
+        base_projection: ['date', 'year'],
+        passive_verb_projection: ['published | on', 'written | on']
     },
     'ratingValue': {
         passive_verb: ["rated # star"],
         base: ["rating"],
-        adjective_argmax: ['top-rated', 'best']
+        adjective_argmax: ['top-rated', 'best'],
+        projection_pronoun: ['how'],
+        passive_verb_projection: ['rated']
     },
     'reviewRating': {
         base: ["rating"]
@@ -211,26 +215,44 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         adjective: ["#"],
         verb: ["serves # cuisine", "serves # food", "offer # cuisine", "offer # food", "serves", "offers"],
         property: ["# cuisine", "# food"],
-        base: ["cuisine", "food type"]
+        base: ["cuisine", "food type"],
+        base_projection: ["food", "cuisine"],
+        verb_projection: ["serve", "offer", "have"],
     },
     'priceRange': {
         base: ['price range'],
-        adjective: ["#"]
+        adjective: ["#"],
     },
     'openingHours': {
-        verb: ["opens | at", "opens | on"]
+        verb: ["opens at", "opens on"],
+        verb_projection: ['open', 'close']
     },
     'acceptsReservation': {
         verb_true: ["accepts reservation"]
     },
     'smokingAllowed': {
-        property_true: ['smoking allowed']
+        property_true: ['smoking allowed'],
+        property_false: ['no smoking'],
+        verb_true: ['allows smoking']
+    },
+    author: {
+        base: ['author'],
+        preposition: ['by'],
+        passive_verb: [
+            'written by', 'authored by', 'uploaded by', 'submitted by'
+        ],
+        verb: ['# wrote', '# authored'],
+        base_projection: ['author', 'creator'],
+        reverse_verb_projection: ['wrote', 'authored'],
+        passive_verb_projection: ['written | by', 'authored | by']
     },
 
     // hotels
     'amenityFeature': {
         base: ['amenity', 'amenity feature'],
         verb: ['offers #', 'offer #', 'has #', 'have #'],
+        base_projection: ['amenity'],
+        verb_projection: ['']
     },
     'checkinTime': {
         base: ['checkin time', 'check in time', 'check-in time']
@@ -239,7 +261,9 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['checkout time', 'check out time', 'check-out time']
     },
     'petsAllowed': {
-        property_true: ['pets allowed']
+        property_true: ['pets allowed'],
+        property_false: ['no pets allowed'],
+        verb_true: ['allows pets']
     },
 
     // linkedin
@@ -253,15 +277,19 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         ],
         verb: [
         // who went to Stanford
-        "went | to #", "graduated | from #", "attended #", "studied | at #"
+        "went to #", "graduated from #", "attended #", "studied at #"
         ],
         passive_verb: [
         // who was educated at Stanford ...
-        "educated | at #", "graduated | from #"
-        ]
+        "educated at #"
+        ],
+        base_projection: ['college'],
+        verb_projection: ['graduate | from', 'go to', 'attend', 'study at'],
+        passive_ver_projection: ['educated | at',]
+
     },
     award: {
-        base: ['awards'],
+        base: ['awards', 'prize'],
         reverse_property: [
             // who is a nobel prize winner
             'winner of #', 'recipient of #',
@@ -270,51 +298,40 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         verb: [
         "has the award #", "has received the # award", "won the award for #", "won the # award",
         "received the # award", "received the #", "won the #", "won #", "holds the award for #", "holds the # award"
-        ]
-    },
-    affiliation: {
-        base: ['affiliations'],
-        reverse_property: [
-            'member of #'
         ],
-        passive_verb: [
-            'affiliated | with #', 'affiliated | to #'
-        ]
+        base_projection: ['award', 'prize'],
+        verb_projection: ['win', 'hold'],
+        passive_verb: ['received'],
     },
     worksFor: {
         base: ['employers'],
         reverse_property: [
             'employee of #', '# employee'
         ],
-        verb: ['works | for #', 'works | at #', 'worked | at #', 'worked | for #'],
+        verb: ['works for #', 'works at #', 'worked at #', 'worked for #'],
         passive_verb: [
-            'employed | at #', 'employed | by #',
-        ]
+            'employed at #', 'employed by #',
+        ],
+        base_projection: ['company', 'employer'],
+        verb_projection: ['work for', 'work | at']
     },
     jobTitle: {
-        base: ['job title', 'position'],
+        base: ['job title', 'position', 'title'],
         reverse_property: ['#']
     },
     knowsLanguage: {
         base: ['languages mastered'],
-        verb: ['knows', 'masters', 'understands']
+        verb: ['knows', 'masters', 'understands'],
+        base_projection: ['language'],
+        verb_projection: ['know', 'understand', 'master']
     },
 
     // recipes
-    author: {
-        base: ['author', 'creator'],
-        preposition: ['by'],
-        passive_verb: [
-            'written | by', 'created | by', 'authored | by', 'uploaded | by', 'submitted | by'
-        ],
-        verb: ['# wrote', '# authored']
-
-    },
     publisher: {
         base: ['publisher'],
         preposition: ['by'],
         passive_verb: [
-            'made | by', 'published | by'
+            'made by', 'published by'
         ],
     },
 
@@ -377,7 +394,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['brand'],
         adjective: ['#'],
         preposition: ['by', 'from'],
-        passive_verb: ['manufactured | by #', 'made | by #']
+        passive_verb: ['manufactured by #', 'made by #']
     },
 
     // books
@@ -385,8 +402,11 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['language'],
         adjective: ['#'],
         preposition: ['in'],
-        passive_verb: ['written | in #'],
-        reverse_property: ['# version of']
+        passive_verb: ['written in #'],
+        reverse_property: ['# version of'],
+        base_projection: ['language'],
+        preposition_projection: ['in'],
+        passive_verb_projection: ['written | in']
     },
     bookEdition: {
         base: ['edition'],
@@ -403,7 +423,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         adjective_argmin: ['shortest']
     },
     abridged: {
-        property_true: ['abridged']
+        adjective_true: ['abridged']
     },
 
     // movies
@@ -418,8 +438,11 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
     creator: {
         base: ['creator', 'producer'],
-        passive_verb: ['created | by', 'produced | by', 'made | by'],
-        verb: ['# created', '# creates', '# produced', '# made']
+        passive_verb: ['created by', 'produced by', 'made by'],
+        verb: ['# created', '# creates', '# produced', '# made'],
+        base_projection: ['creator', 'producer'],
+        reverse_verb_projection: ['created', 'produced', 'made'],
+        passive_verb_projection: ['created | by', 'produced | by', 'made | by']
     },
     duration: {
         base: ['duration', 'length'],
@@ -429,29 +452,42 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
     actor: {
         base: ['actor', 'actress'],
-        property: ['#'],
-        passive_verb: ['played | by', 'acted | by'],
-        verb: ['stars', '# acted', '# acted | in', '# was in']
+        property: ['#', '# in the cast'],
+        passive_verb: ['played by', 'acted by'],
+        verb: ['stars', '# acted', '# acted in', '# was in'],
+        base_projection: ['actor', 'actress'],
+        verb_projection: ['have'],
+        reverse_projection: ['acted in'],
+        preposition_projection: ['in']
     },
     director: {
         base: ['director'],
-        passive_verb: ['directed | by'],
-        verb: ['# directs', '# directed']
+        passive_verb: ['directed by'],
+        verb: ['# directs', '# directed'],
+        reverse_verb_projection: ['directed']
     },
 
     // music
     inAlbum: {
         base: ['album'],
         preposition: ['in', 'in album', 'on', 'on album'],
-        passive_verb: ['included | in #'],
-        verb: ['appears | in #', 'appears | on #', '# have', '# has', '# contains', '# includes'],
+        passive_verb: ['included in #'],
+        verb: ['appears in #', 'appears on #', '# have', '# has', '# contains', '# includes'],
+        base_projection: ['album'],
+        verb_projection: ['appear | in', 'appear | on'],
+        reverse_verb_projection: ['have', 'has', 'contain', 'contains', 'includes'],
+        passive_verb_projection: ['included | in', 'included | on'],
+        preposition_projection: ['in', 'on']
     },
     byArtist: {
         base: ['artist', 'singer', 'band'],
         adjective: ['# \'s', '#'],
         preposition: ['by', 'by artist'],
-        passive_verb: ['created | by', 'sang | by', 'performed | by'],
-        verb: ['# sings', '# sang']
+        passive_verb: ['created by', 'sang by', 'performed by'],
+        verb: ['# sings', '# sang'],
+        base_projection: ['artist', 'singer', 'band'],
+        passive_verb_projection: ['created | by', 'sang | by', 'performed | by'],
+        reverse_verb_projection: ['sing', 'sang']
     },
     numTracks: {
         base: ['number of tracks', 'number of songs']
