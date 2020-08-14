@@ -124,15 +124,15 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
 A: The weather in Palo Alto, California is raining.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = 7 unit:mps , param:humidity = NUMBER_0 , param:cloudiness = 7 , param:fog = NUMBER_0 , param:status = enum:raining , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":41},"NUMBER_0":15,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = 7 unit:mps , param:humidity = NUMBER_0 , param:cloudiness = 7 , param:fog = NUMBER_0 , param:status = enum:raining , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":18},"NUMBER_0":15,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
 # what's the temperature?
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The temperature is 41 C
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => [ param:temperature ] of ( @org.thingpedia.weather.current param:location = LOCATION_0 ) => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":41}}
+A: The temperature is 18 C
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => [ param:temperature ] of ( @org.thingpedia.weather.current param:location = LOCATION_0 ) => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":18}}
 A: >> expecting = null
 
 ====
@@ -149,7 +149,7 @@ A: >> expecting = location
 U: \t bookkeeping(answer(new Location(37.442156, -122.1634471, "Palo Alto, California")));
 
 A: The weather in Palo Alto, California is raining.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = 7 unit:mps , param:humidity = NUMBER_0 , param:cloudiness = 7 , param:fog = NUMBER_0 , param:status = enum:raining , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":41},"NUMBER_0":15,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = 7 unit:mps , param:humidity = NUMBER_0 , param:cloudiness = 7 , param:fog = NUMBER_0 , param:status = enum:raining , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":18},"NUMBER_0":15,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
 ====
