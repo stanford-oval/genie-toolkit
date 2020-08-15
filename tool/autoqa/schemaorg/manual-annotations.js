@@ -204,7 +204,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
     'ratingValue': {
         passive_verb: ["rated # star"],
-        base: ["rating"],
+        base: ["rating", "overall rating", "average rating", "customer rating", "review rating"],
         adjective_argmax: ['top-rated', 'best'],
         projection_pronoun: ['how'],
         passive_verb_projection: ['rated']
@@ -267,7 +267,8 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     'petsAllowed': {
         property_true: ['pets allowed'],
         property_false: ['no pets allowed'],
-        verb_true: ['allows pets']
+        verb_true: ['allows pets', 'accepts pets', 'accepts dog'],
+        adjective_true: ['pets friendly', 'dog friendly']
     },
 
     // linkedin
@@ -509,6 +510,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN = {
     'hotels': {
         'starRating.ratingValue': {
             base: ["star rating"],
+            property: ["# stars"],
             adjective: ["# star"]
         }
     }
@@ -559,6 +561,7 @@ const STRING_FILE_OVERRIDES = {
     'org.schema.Music:MusicRecording_inAlbum': 'tt:song_album',
     'org.schema.Music:MusicRecording_name': 'tt:song_name',
     'org.schema.Music:CreativeWork_genre': 'com.spotify:genre',
+    'org.schema.Book:Book_name': 'tt:book_title',
 };
 
 // maps old name to new name
