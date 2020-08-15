@@ -218,6 +218,7 @@ const TEST_CASES = [
     ['wake me up at 7:15am', 'wake me up at 7:15:00', 'wake me up at TIME_0', { TIME_0: { hour: 7, minute: 15, second: 0 } }],
     ['wake me up at 7:15:22 in the morning', 'wake me up at 7:15:22 in the morning', 'wake me up at TIME_0 in the morning', { TIME_0: { hour: 7, minute: 15, second: 22 } }],
     ['wake me up at 7:15:22am', 'wake me up at 7:15:22', 'wake me up at TIME_0', { TIME_0: { hour: 7, minute: 15, second: 22 } }],
+    ['a checkin time of 02:00 AM', 'a checkin time of 2:00:00', 'a checkin time of TIME_0', { TIME_0: { hour: 2, minute: 0, second: 0 } }],
 
     // pm marker
     ['wake me up at 7pm', 'wake me up at 19:00:00', 'wake me up at TIME_0', { TIME_0: { hour: 19, minute: 0, second: 0 } }],
@@ -231,6 +232,7 @@ const TEST_CASES = [
     ['wake me up at 7:15pm', 'wake me up at 19:15:00', 'wake me up at TIME_0', { TIME_0: { hour: 19, minute: 15, second: 0 } }],
     ['wake me up at 7:15:22 in the afternoon', 'wake me up at 19:15:22 in the afternoon', 'wake me up at TIME_0 in the afternoon', { TIME_0: { hour: 19, minute: 15, second: 22 } }],
     ['wake me up at 7:15:22pm', 'wake me up at 19:15:22', 'wake me up at TIME_0', { TIME_0: { hour: 19, minute: 15, second: 22 } }],
+    ['a checkin time of 02:00 PM', 'a checkin time of 14:00:00', 'a checkin time of TIME_0', { TIME_0: { hour: 14, minute: 0, second: 0 } }],
 
     // no markers
     ['wake me up at 7:15', 'wake me up at 7:15:00', 'wake me up at TIME_0', { TIME_0: { hour: 7, minute: 15, second: 0 } }],
