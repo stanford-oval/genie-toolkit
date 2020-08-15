@@ -356,6 +356,18 @@ complete_question = {
         | ('what' | 'which') 'are' ('the' | '') table:two_clean_filter_table '?'
     ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
 
+
+    (
+
+          ('is' | 'are') 'there' ('any' | '') table:with_filtered_table '?'
+        | ('is' | 'are') 'there' ('any' | '') table:one_with_filter_table '?'
+        | ('is' | 'are') 'there' ('any' | '') table:one_which_filter_table '?'
+        | ('is' | 'are') 'there' ('any' | '') table:one_clean_filter_table '?'
+        | ('is' | 'are') 'there' ('any' | '') table:two_with_filter_table '?'
+        | ('is' | 'are') 'there' ('any' | '') table:two_which_filter_table '?'
+        | ('is' | 'are') 'there' ('any' | '') table:two_clean_filter_table '?'
+    ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
+
     // now => get join get => notify
     (
           ('what' | 'which') 'are' ('the' | '') table:with_filtered_table_join
