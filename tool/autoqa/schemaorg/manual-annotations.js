@@ -290,7 +290,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         ],
         base_projection: ['college'],
         verb_projection: ['graduate | from', 'go to', 'attend', 'study at'],
-        passive_ver_projection: ['educated | at',]
+        passive_verb_projection: ['educated | at',]
 
     },
     award: {
@@ -462,7 +462,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         verb: ['stars', '# acted', '# acted in', '# was in'],
         base_projection: ['actor', 'actress'],
         verb_projection: ['have'],
-        reverse_projection: ['acted in'],
+        reverse_verb_projection: ['acted in'],
         preposition_projection: ['in']
     },
     director: {
