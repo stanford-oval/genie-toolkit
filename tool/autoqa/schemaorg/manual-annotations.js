@@ -481,7 +481,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         verb: ['appears in #', 'appears on #', '# have', '# has', '# contains', '# includes'],
         base_projection: ['album'],
         verb_projection: ['appear | in', 'appear | on'],
-        reverse_verb_projection: ['have', 'has', 'contain', 'contains', 'includes'],
+        reverse_verb_projection: ['have', 'has', 'have # on it', 'have # in it', 'has # on it', 'has # in it', 'contain', 'contains', 'includes'],
         passive_verb_projection: ['included | in', 'included | on'],
         preposition_projection: ['in', 'on']
     },
