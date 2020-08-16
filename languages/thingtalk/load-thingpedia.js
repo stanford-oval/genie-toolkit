@@ -597,18 +597,13 @@ class ThingpediaLoader {
     _addProjections(pname, pronoun, posCategory, base, canonical) {
         if (canonical.includes('|')) {
             const [verb, prep] = canonical.split('|').map((span) => span.trim());
-            this.projections[pname][posCategory].push([`${prep} ${pronoun}`, base, verb, '']);
+            this.projections[pname][posCategory].push([`${prep} ${pronoun}`, base, verb]);
 
             // for when question, we can drop the prep entirely
             if (pronoun === 'when' || pronoun === 'what time')
-                this.projections[pname][posCategory].push([pronoun, base, verb, '']);
-        } else if (canonical.includes('#')) {
-            assert(posCategory.startsWith('reverse_'));
-            const [before, after] = canonical.split('#').map((span) => span.trim());
-            this.projections[pname][posCategory].push([pronoun, base, before, after]);
-            return;
+                this.projections[pname][posCategory].push([pronoun, base, verb]);
         }
-        this.projections[pname][posCategory].push([pronoun, base, canonical.replace('|', ' '), '']);
+        this.projections[pname][posCategory].push([pronoun, base, canonical.replace('|', ' ')]);
 
     }
 
