@@ -435,6 +435,10 @@ function makeSingleFieldProjection(ftype, ptype, table, pname) {
     if (!table.schema.out[pname])
         return null;
 
+    let outParams = Object.keys(table.schema.out);
+    if (outParams.length === 1)
+        return table;
+
     if (ptype && !Type.isAssignable(table.schema.out[pname], ptype))
         return null;
 
