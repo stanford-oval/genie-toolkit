@@ -328,7 +328,8 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['languages mastered'],
         verb: ['knows', 'masters', 'understands'],
         base_projection: ['language'],
-        verb_projection: ['know', 'understand', 'master']
+        verb_projection: ['know', 'understand', 'master'],
+        adjective: ['# speaking']
     },
 
     // recipes
@@ -475,7 +476,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     // music
     inAlbum: {
         base: ['album'],
-        preposition: ['in', 'in album', 'on', 'on album'],
+        preposition: ['in', 'in album', 'on', 'on album', 'from', 'from album'],
         passive_verb: ['included in #'],
         verb: ['appears in #', 'appears on #', '# have', '# has', '# contains', '# includes'],
         base_projection: ['album'],
@@ -488,8 +489,8 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ['artist', 'singer', 'band'],
         adjective: ['# \'s', '#'],
         preposition: ['by', 'by artist'],
-        passive_verb: ['created by', 'sang by', 'performed by'],
-        verb: ['# sings', '# sang'],
+        passive_verb: ['created by', 'sang by', 'performed by', 'released by'],
+        verb: ['# sings', '# sang', '# release', '# publish'],
         base_projection: ['artist', 'singer', 'band'],
         passive_verb_projection: ['created | by', 'sang | by', 'performed | by'],
         reverse_verb_projection: ['sing', 'sang']
