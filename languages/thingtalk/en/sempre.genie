@@ -128,6 +128,7 @@ filtered_table = {
             return null;
         const newSchema = table.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT)
             .addArguments([new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'count', Type.Number)]);
+        newSchema.minimal_projection = [];
         const agg = new Ast.Table.Aggregation(null, table, '*', 'count', null, newSchema);
         return new Ast.Table.Projection(null, agg, ['count'], newSchema);
     };
@@ -141,6 +142,7 @@ filtered_table = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        newSchema.minimal_projection = [];
         const agg = new Ast.Table.Aggregation(null, t, p.name, 'sum', null, newSchema);
         return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
@@ -152,6 +154,7 @@ filtered_table = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        newSchema.minimal_projection = [];
         const agg = new Ast.Table.Aggregation(null, t, p.name, 'avg', null, newSchema);
         return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
