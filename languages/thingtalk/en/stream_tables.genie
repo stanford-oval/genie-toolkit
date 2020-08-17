@@ -104,7 +104,10 @@ one_with_filter_table = {
     !nofilter table:complete_table ('with' | 'having') filter:npp_filter => C.addFilter(table, filter);
 
     // within distance filtered table
-    one_within_filter_table;
+    !turking {
+        !nofilter table:complete_table filter:within_filter
+        => C.makeWithinGeoDistanceExpression(table, filter.place, filter.distance);
+    }
 }
 
 one_which_filter_table = {
@@ -135,7 +138,13 @@ two_with_filter_table = {
     !nofilter filter:apv_filter table:one_with_filter_table => C.addFilter(table, filter);
 
     // within distance filtered table
-    two_within_filter_table;
+    !turking {
+        !nofilter (
+              table:one_with_filter_table filter:within_filter
+            | table:one_which_filter_table filter:within_filter
+            | table:one_clean_filter_table filter:within_filter
+        ) => C.makeWithinGeoDistanceExpression(table, filter.place, filter.distance);
+    }
 }
 
 two_which_filter_table = {
@@ -184,7 +193,13 @@ three_with_filter_table = {
     !nofilter filter:apv_filter table:two_with_filter_table => C.addFilter(table, filter);
 
     // within distance filtered table
-    three_within_filter_table;
+    !turking {
+        !nofilter (
+              table:two_with_filter_table filter:within_filter
+            | table:two_which_filter_table filter:within_filter
+            | table:two_clean_filter_table filter:within_filter
+        ) => C.makeWithinGeoDistanceExpression(table, filter.place, filter.distance);
+    }
 }
 
 three_which_filter_table = {
