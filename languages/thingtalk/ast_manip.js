@@ -579,6 +579,22 @@ function combineStreamCommand(stream, command) {
 function checkComputeFilter(table, filter) {
     if (!filter.lhs.isComputation)
         return false;
+
+    // distance
+    if (filter.lhs.op === 'distance') {
+        assert.strictEqual(filter.lhs.operands.length, 2);
+        if (!filter.rhs.isMeasure || Units.normalizeUnit(filter.rhs.unit) !== 'm')
+            return false;
+        for (let operand of filter.lhs.operands) {
+            if (operand.isVarRef && !table.schema.hasArgument(operand.name))
+                return false;
+            if (!(operand.isVarRef || operand.isLocation))
+                return false;
+        }
+        return true;
+    }
+
+    // count, sum, avg, min, max
     if (filter.lhs.operands.length !== 1)
         return false;
     let param = filter.lhs.operands[0];
@@ -590,7 +606,6 @@ function checkComputeFilter(table, filter) {
     ptype = table.schema.out[param.name];
     if (!ptype.isArray)
         return false;
-
     if (filter.lhs.op === 'count') {
         vtype = Type.Number;
         let canonical = table.schema.getArgCanonical(param.name);
