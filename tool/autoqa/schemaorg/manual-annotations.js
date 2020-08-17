@@ -205,6 +205,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     'ratingValue': {
         passive_verb: ["rated # star"],
         base: ["rating", "overall rating", "average rating", "customer rating", "review rating"],
+        adjective: ['# star'],
         adjective_argmax: ['top-rated', 'best'],
         projection_pronoun: ['how'],
         passive_verb_projection: ['rated']
@@ -509,6 +510,13 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN = {
         }
     },
     'hotels': {
+        'aggregateRating.ratingValue': {
+            passive_verb: ["rated # star"],
+            base: ["rating", "overall rating", "average rating", "customer rating", "review rating"],
+            adjective_argmax: ['top-rated', 'best'],
+            projection_pronoun: ['how'],
+            passive_verb_projection: ['rated']
+        },
         'starRating.ratingValue': {
             base: ["star rating"],
             property: ["# stars"],
