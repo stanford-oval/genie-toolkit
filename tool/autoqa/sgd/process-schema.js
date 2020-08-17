@@ -56,9 +56,6 @@ function predictType(slot) {
         return Type.Time;
     if (slot.name.endsWith('_date') || slot.name === 'date')
         return Type.Date;
-    if (slot.name.endsWith('_location') || slot.name === 'location' ||
-        slot.name.endsWith('_address') || slot.name === 'address')
-        return Type.Location;
     if (slot.name.endsWith('_fare') || slot.name === 'fare' ||
         slot.name.endsWith('_price') || slot.name === 'price')
         return Type.Currency;

@@ -83,7 +83,7 @@ function parseDate(v) {
         let year = v.includes('2019') ? 2019 : now.getFullYear(); // From looking at the data, it is either 2019 or unspecified
         return new Ast.Value.Date(new Date(year, month, day));
         */
-        return new Ast.Value.Date(new Ast.DatePiece('day', day)); // TODO this only works in thingtalk/wip/date-piece. Also, needs refinement, both here, as well as there
+        return new Ast.Value.Date(new Ast.DatePiece(null, null, day, null)); // FIXME, waiting on a thingtalk PR
     }
     // From looking at the data, if we are still executing this function, there
     // must be at least one day of the week mentioned in the date, so we want
@@ -107,43 +107,6 @@ function parseDate(v) {
     throw 'Could not parse date: ' + v;
 }
 
-// adapted from ./process-schema.js
-function predictType(slot, val) {
-    if (slot.name === 'approximate_ride_duration')
-        return new Ast.Value.Measure('ms', val);
-    if (slot.name === 'wind')
-        return new Ast.Value.Measure('mps', val);
-    if (slot.name === 'temperature')
-        return new Ast.Value.Measure('C', val);
-    if (['precipitation', 'humidity'].includes(slot.name))
-        return new Ast.Value.Number(parseInt(val) || 0);
-    if (slot.is_categorical && slot.possible_values.length > 0) {
-        if (slot.possible_values.length === 2
-            && slot.possible_values.includes('True')
-            && slot.possible_values.includes('False'))
-            return new Ast.Value.Boolean(val !== 'False');
-        if (slot.possible_values.every((v) => !isNaN(v)))
-            return new Ast.Value.Number(parseInt(val) || 0);
-        return new Ast.Value.Enum(cleanEnumValue(val));
-    }
-    if (slot.name === 'phone_number')
-        return new Ast.Value.Entity(null, 'tt:phone_number', val);
-    if (slot.name.startsWith('number_of_') || slot.name.endsWith('_number') || slot.name === 'number' ||
-        slot.name.endsWith('_size') || slot.name === 'size' ||
-        slot.name.endsWith('_rating') || slot.name === 'rating')
-        return new Ast.Value.Number(parseInt(val) || 0);
-    if (slot.name.endsWith('_time') || slot.name === 'time')
-        return parseTime(val);
-    if (slot.name.endsWith('_date') || slot.name === 'date')
-        return parseDate(val.toLowerCase());
-    if (slot.name.endsWith('_fare') || slot.name === 'fare' ||
-        slot.name.endsWith('_price') || slot.name === 'price' ||
-        ['balance', 'price_per_night', 'rent'].includes(slot.name))
-        return new Ast.Value.Currency(val.value, val.code);
-
-    return new Ast.Value.String(val);
-}
-
 class Converter extends stream.Readable {
     constructor(args) {
         super({ objectMode: true });
@@ -162,6 +125,8 @@ class Converter extends stream.Readable {
         simulatorOptions.database = this._database;
         this._simulator = this._target.createSimulator(simulatorOptions);
         this._schema_json_file = args.schema_json;
+        this._entity_map_file = args.entity_map;
+        this._entityMap = null;
     }
 
     _read() {}
@@ -183,6 +148,68 @@ class Converter extends stream.Readable {
             serviceObj['intents'] = intents;
             this._schemaObj[service.service_name] = serviceObj;
         }
+        if (this._entity_map_file !== undefined)
+            this._entityMap = JSON.parse(await util.promisify(fs.readFile)(this._entity_map_file), { encoding: 'utf8' });
+    }
+
+    // adapted from ./process-schema.js
+    _generateValue(slot, val) {
+        for (let entity in this._entityMap) {
+            if (slot.name === this._entityMap[entity]['id'])
+                return new Ast.Value.Entity(null, 'com.google.sgd:' + entity, val);
+        }
+        if (slot.name === 'approximate_ride_duration')
+            return new Ast.Value.Measure('ms', val);
+        if (slot.name === 'wind')
+            return new Ast.Value.Measure('mps', val);
+        if (slot.name === 'temperature')
+            return new Ast.Value.Measure('C', val);
+        if (['precipitation', 'humidity'].includes(slot.name))
+            return new Ast.Value.Number(parseInt(val) || 0);
+        if (slot.is_categorical && slot.possible_values.length > 0) {
+            if (slot.possible_values.length === 2
+                && slot.possible_values.includes('True')
+                && slot.possible_values.includes('False'))
+                return new Ast.Value.Boolean(val !== 'False');
+            if (slot.possible_values.every((v) => !isNaN(v)))
+                return new Ast.Value.Number(parseInt(val) || 0);
+            return new Ast.Value.Enum(cleanEnumValue(val));
+        }
+        if (slot.name === 'phone_number')
+            return new Ast.Value.Entity(null, 'tt:phone_number', val);
+        if (slot.name.startsWith('number_of_') || slot.name.endsWith('_number') || slot.name === 'number' ||
+            slot.name.endsWith('_size') || slot.name === 'size' ||
+            slot.name.endsWith('_rating') || slot.name === 'rating')
+            return new Ast.Value.Number(parseInt(val) || 0);
+        if (slot.name.endsWith('_time') || slot.name === 'time')
+            return parseTime(val);
+        if (slot.name.endsWith('_date') || slot.name === 'date')
+            return parseDate(val.toLowerCase());
+        if (slot.name.endsWith('_fare') || slot.name === 'fare' ||
+            slot.name.endsWith('_price') || slot.name === 'price' ||
+            ['balance', 'price_per_night', 'rent'].includes(slot.name))
+            return new Ast.Value.Currency(val.value, val.code);
+
+        return new Ast.Value.String(val);
+    }
+
+    _getIDs(type) {
+        return this._database.get(type).map((entry) => {
+            return {
+                value: entry.id.value,
+                name: entry.id.display,
+                canonical: entry.id.display
+            };
+        });
+    }
+
+    _resolveEntity(value) {
+        const resolved = getBestEntityMatch(value.display, value.type, this._getIDs(value.type));
+        value.value = resolved.value;
+
+        // do not override the display field, it should match the sentence instead
+        // it will be overridden later when round-tripped through the executor
+        //value.display = resolved.display;
     }
 
     async _generateProposed(context, frame, selectedSlots) {
@@ -204,7 +231,13 @@ class Converter extends stream.Readable {
                      !Object.keys(proposedIntent.optional_slots).includes(key)) ||
                      selectedSlots[frame.service][key][0] === 'dontcare') // TODO revisit this later. Is it right to just skip it? actions can't take dontcares, right?
                     continue;
-                let ttValue = predictType(this._schemaObj[frame.service]['slots'][key], selectedSlots[frame.service][key][0]);
+                let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], selectedSlots[frame.service][key][0]);
+                for (let entity in this._entityMap) {
+                    if (key === this._entityMap[entity]['id'])
+                        key = key.replace('_name', '');
+                }
+                if (ttValue.isEntity)
+                    this._resolveEntity(ttValue);
                 invocation.in_params.push(new Ast.InputParam(null, key, ttValue));
             }
             const statement = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
@@ -219,14 +252,20 @@ class Converter extends stream.Readable {
                     !Object.keys(proposedIntent.optional_slots).includes(key))
                     continue;
                 let value = selectedSlots[frame.service][key][0];
-                if (value == 'dontcare') {
+                if (value === 'dontcare') {
                     filterClauses.push(new Ast.BooleanExpression.DontCare(null, key));
                     continue;
                 }
-                let ttValue = predictType(this._schemaObj[frame.service]['slots'][key], value);
+                let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], value);
                 let op = '==';
                 if (ttValue.isString)
                     op = '=~';
+                for (let entity in this._entityMap) {
+                    if (key === this._entityMap[entity]['id'])
+                        key = 'id';
+                }
+                if (ttValue.isEntity)
+                    this._resolveEntity(ttValue);
                 filterClauses.push(new Ast.BooleanExpression.Atom(null, key, op, ttValue));
             }
             const filterTable = filterClauses.length > 0 ?
@@ -295,9 +334,16 @@ class Converter extends stream.Readable {
                                  'accepted';
             for (let key in frame.state.slot_values) {
                 if (!activeIntent.required_slots.includes(key) &&
-                    !Object.keys(activeIntent.optional_slots).includes(key))
+                    !Object.keys(activeIntent.optional_slots).includes(key) ||
+                    frame.state.slot_values[key][0] === 'dontcare')
                     continue;
-                let ttValue = predictType(this._schemaObj[frame.service]['slots'][key], frame.state.slot_values[key][0]);
+                let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], frame.state.slot_values[key][0]);
+                for (let entity in this._entityMap) {
+                    if (key === this._entityMap[entity]['id'])
+                        key = key.replace('_name', '');
+                }
+                if (ttValue.isEntity)
+                    this._resolveEntity(ttValue);
                 invocation.in_params.push(new Ast.InputParam(null, key, ttValue));
             }
             const actionStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
@@ -313,14 +359,20 @@ class Converter extends stream.Readable {
                     !Object.keys(activeIntent.optional_slots).includes(key))
                     continue;
                 let value = frame.state.slot_values[key][0];
-                if (value == 'dontcare') {
+                if (value === 'dontcare') {
                     filterClauses.push(new Ast.BooleanExpression.DontCare(null, key));
                     continue;
                 }
-                let ttValue = predictType(this._schemaObj[frame.service]['slots'][key], value);
+                let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], value);
                 let op = '==';
                 if (ttValue.isString)
                     op = '=~';
+                for (let entity in this._entityMap) {
+                    if (key === this._entityMap[entity]['id'])
+                        key = 'id';
+                }
+                if (ttValue.isEntity)
+                    this._resolveEntity(ttValue);
                 filterClauses.push(new Ast.BooleanExpression.Atom(null, key, op, ttValue));
             }
             const filterTable = filterClauses.length > 0 ?
@@ -506,6 +558,10 @@ module.exports = {
         parser.addArgument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.',
+        });
+        parser.addArgument('--entity-map', {
+            required: false,
+            help: 'Path to a JSON containing a map from entities to service methods.'
         });
         parser.addArgument('--database-file', {
             required: false,

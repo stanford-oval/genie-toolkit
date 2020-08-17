@@ -45,10 +45,12 @@ class Normalizer {
 
         // the normalized file
         this.output = {};
+
+        this.entityMap = null;
     }
 
-    async init(thingpedia) {
-        const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
+    async init(args) {
+        const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(args.thingpedia, { encoding: 'utf8' }));
         assert(library.isLibrary && library.classes.length === 1);
         const classDef = library.classes[0];
         this._classDef = classDef;
@@ -68,6 +70,8 @@ class Normalizer {
                 fields: makeMetadata('com.google.sgd', fndef.args.map((argname) => fndef.getArgument(argname)))
             };
         }
+        if (args.entity_map !== undefined)
+            this.entityMap = JSON.parse(await util.promisify(fs.readFile)(args.entity_map), { encoding: 'utf8' });
     }
 
     _processField(fname, arg, value) {
@@ -144,7 +148,8 @@ class Normalizer {
             return;
 
         const processed = { '@id': hashId, '@type': fname };
-        for (let arg in result)
+        let slots = this.entityMap === null ? Object.keys(result) : this.entityMap[fname].slots;
+        for (let arg of slots)
             processed[arg] = this._processField(fname, arg, result[arg]);
         this.output[fname][hashId] = processed;
     }
@@ -160,6 +165,12 @@ class Normalizer {
                         continue;
 
                     let fname = frame.service + '_' + frame.service_call.method;
+                    if (this.entityMap !== null) {
+                        for (let entity in this.entityMap) {
+                            if (this.entityMap[entity].methods.includes(fname))
+                                fname = entity;
+                        }
+                    }
                     if (!(fname in this.meta))
                         continue;
 
@@ -190,7 +201,11 @@ module.exports = {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.add_argument('input_file', {
+        parser.addArgument('--entity-map', {
+            required: false,
+            help: 'Path to a JSON containing a map from entities to service methods.'
+        });
+        parser.addArgument('input_file', {
             nargs: '+',
             help: 'Input JSON+LD files to normalize. Multiple input files will be merged in one.'
         });
@@ -198,7 +213,7 @@ module.exports = {
 
     async execute(args) {
         const normalizer = new Normalizer();
-        await normalizer.init(args.thingpedia);
+        await normalizer.init(args);
         for (let filename of args.input_file)
             await normalizer.process(filename);
 
