@@ -253,23 +253,19 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
 
     // hotels
+    'starRating.ratingValue': {
+        base: ["star rating", "michelin rating", "michelin star"],
+        adjective: ["michelin # star", "michelin # star"],
+        passive_verb: ["rated # star by michelin guide"]
+    },
     'amenityFeature': {
-        base: ['amenity', 'amenity feature'],
-        verb: ['offers #', 'offer #', 'has #', 'have #'],
-        base_projection: ['amenity'],
-        verb_projection: ['']
-    },
-    'checkinTime': {
-        base: ['checkin time', 'check in time', 'check-in time']
-    },
-    'checkoutTime': {
-        base: ['checkout time', 'check out time', 'check-out time']
+        base: ['amenity feature'],
+        property: ['amenity feature', '#'],
     },
     'petsAllowed': {
+        base: ['pets allowed'],
         property_true: ['pets allowed'],
-        property_false: ['no pets allowed'],
-        verb_true: ['allows pets', 'accepts pets', 'accepts dog'],
-        adjective_true: ['pets friendly', 'dog friendly']
+        verb_true: ['allows pets']
     },
 
     // linkedin
@@ -507,20 +503,6 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN = {
             base: ["star rating", "michelin rating", "michelin star"],
             adjective: ["michelin # star", "michelin # star"],
             passive_verb: ["rated # star by michelin guide"]
-        }
-    },
-    'hotels': {
-        'aggregateRating.ratingValue': {
-            passive_verb: ["rated # star"],
-            base: ["rating", "overall rating", "average rating", "customer rating", "review rating"],
-            adjective_argmax: ['top-rated', 'best'],
-            projection_pronoun: ['how'],
-            passive_verb_projection: ['rated']
-        },
-        'starRating.ratingValue': {
-            base: ["star rating"],
-            property: ["# stars"],
-            adjective: ["# star"]
         }
     }
 };
