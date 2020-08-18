@@ -45,6 +45,7 @@ const {
     MANUAL_PROPERTY_CANONICAL_OVERRIDE,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN,
     MANUAL_TABLE_CANONICAL_OVERRIDE,
+    MANUAL_COUNTED_OBJECT_OVERRIDE,
     PROPERTY_FORCE_NOT_ARRAY,
     PROPERTY_FORCE_ARRAY,
     PROPERTY_TYPE_OVERRIDE,
@@ -300,9 +301,11 @@ class SchemaProcessor {
                 annotation['max_number'] = new Ast.Value.Number(5);
             }
 
-            if (propertyname.startsWith('numberOf'))
+            if (this._manual && propertyname in MANUAL_COUNTED_OBJECT_OVERRIDE)
+                metadata.counted_object = MANUAL_COUNTED_OBJECT_OVERRIDE[propertyname];
+            else if (propertyname.startsWith('numberOf'))
                 metadata.counted_object = [ clean(propertyname.slice('numberOf'.length)) ];
-            if (propertyname.endsWith('Count'))
+            else if (propertyname.endsWith('Count'))
                 metadata.counted_object = [ this._langPack.pluralize(clean(propertyname.slice(0, -'Count'.length)))];
 
             if (PROPERTIES_NO_FILTER.includes(propertyname)) {
@@ -657,9 +660,11 @@ class SchemaProcessor {
                 if (PROPERTIES_NO_FILTER.includes(propertyname))
                     annotation['filterable'] = new Ast.Value.Boolean(false);
 
-                if (propertyname.startsWith('numberOf'))
+                if (this._manual && propertyname in MANUAL_COUNTED_OBJECT_OVERRIDE)
+                    metadata.counted_object = MANUAL_COUNTED_OBJECT_OVERRIDE[propertyname];
+                else if (propertyname.startsWith('numberOf'))
                     metadata.counted_object = [ clean(propertyname.slice('numberOf'.length)) ];
-                if (propertyname.endsWith('Count'))
+                else if (propertyname.endsWith('Count'))
                     metadata.counted_object = [ this._langPack.pluralize(clean(propertyname.slice(0, -'Count'.length)))];
 
                 let elemType = type;
