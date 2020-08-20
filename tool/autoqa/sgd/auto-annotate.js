@@ -127,6 +127,7 @@ class Converter extends stream.Readable {
         this._schema_json_file = args.schema_json;
         this._entity_map_file = args.entity_map;
         this._entityMap = null;
+        this._onlyServices = args.only_services;
     }
 
     _read() {}
@@ -454,6 +455,16 @@ class Converter extends stream.Readable {
 
     async _doDialogue(dlg) {
         const id = dlg.dialogue_id;
+        
+        if (this._onlyServices) {
+            // check if this dialogue contains only the frames we want
+            for (let turn in dlg.turns) {
+                for (let frame in dlg.turns[turn].frames) {
+                    if (this._onlyServices.indexOf(dlg.turns[turn].frames[frame].service) < 0)
+                        return null;
+                }
+            }
+        }
 
         let context = null, simulatorState = undefined, selectedSlots = {};
         const turns = [];
@@ -573,6 +584,12 @@ module.exports = {
         });
         parser.addArgument('input_file', {
             help: 'Input dialog file'
+        });
+        parser.addArgument('--only-services', {
+            required: false,
+            nargs: '+',
+            defaultValue: null,
+            help: `Auto annotate only the services listed, if running experiment on limited domains.`
         });
     },
 
