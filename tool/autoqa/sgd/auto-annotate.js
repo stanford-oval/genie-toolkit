@@ -434,9 +434,10 @@ class Converter extends stream.Readable {
         } else if (actNames.includes('THANK_YOU') ||
                    actNames.includes('REQ_MORE')) {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'end', null, []);
-        } else if (actNames.includes('NEGATE') ||
-                   actNames.includes('SELECT')) {
+        } else if (actNames.includes('NEGATE')) {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'cancel', null, []);
+        } else if (actNames.includes('SELECT')) {
+            userTarget = new Ast.DialogueState(null, POLICY_NAME, 'confirm', null, []);
         } else {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'uncaught', null, []);
         }
