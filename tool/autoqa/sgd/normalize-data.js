@@ -70,7 +70,7 @@ class Normalizer {
                 fields: makeMetadata('com.google.sgd', fndef.args.map((argname) => fndef.getArgument(argname)))
             };
         }
-        if (args.entity_map !== undefined)
+        if (args.entity_map !== null)
             this.entityMap = JSON.parse(await util.promisify(fs.readFile)(args.entity_map), { encoding: 'utf8' });
     }
 
@@ -81,7 +81,7 @@ class Normalizer {
             if (expectedType.isArray)
                 return [];
             else
-                return undefined;
+                return null;
         }
 
         if (expectedType.isArray && !Array.isArray(value)) {
@@ -89,7 +89,7 @@ class Normalizer {
         } else if (!expectedType.isArray && Array.isArray(value)) {
             console.error(`Unexpected array for ${arg}`);
             if (value.length === 0)
-                return undefined;
+                return null;
             value = value[0];
         }
 
@@ -115,10 +115,10 @@ class Normalizer {
                 const enumerands = expectedType.type.substring('tt:Enum('.length, expectedType.type.length - 1).split(/,/g);
                 value = cleanEnumValue(value);
                 if (value === undefined || value === 'Dontcare')
-                    return undefined;
+                    return null;
                 if (!enumerands.includes(value)) {
                     console.error(`Expected enumerated value for ${arg}, got`, value);
-                    return undefined;
+                    return null;
                 }
                 return value;
             } else if (expectedType.type === 'tt:EntityLower') {
@@ -148,7 +148,7 @@ class Normalizer {
             return;
 
         const processed = { '@id': hashId, '@type': fname };
-        let slots = this.entityMap === null ? Object.keys(result) : this.entityMap[fname].slots;
+        let slots = this.entityMap === null ? Object.keys(this.meta[fname].fields) : this.entityMap[fname].slots;
         for (let arg of slots)
             processed[arg] = this._processField(fname, arg, result[arg]);
         this.output[fname][hashId] = processed;
@@ -161,7 +161,8 @@ class Normalizer {
                 for (let frame of turn.frames) {
                     if (!('service_call' in frame))
                         continue;
-                    if (!('service_results' in frame) || frame.service_results.length === 0)
+                    if (!('service_results' in frame) ||
+                        (frame.service_results.length === 0 && !frame.actions.map((action) => action.act).includes('NOTIFY_FAILURE'))) // If it's an action failure, there will be no service_results, but we'll still want to record the entity
                         continue;
 
                     let fname = frame.service + '_' + frame.service_call.method;
@@ -179,6 +180,11 @@ class Normalizer {
 
                     for (let result of frame.service_results)
                         this._processResult(fname, result);
+
+                    // If this was an action failure, there will be no results, so we get the entity info from the params
+                    if (frame.actions.map((action) => action.act).includes('NOTIFY_FAILURE')) {
+                        this._processResult(fname, frame.service_call.parameters);
+                    }
                 }
             }
         }
