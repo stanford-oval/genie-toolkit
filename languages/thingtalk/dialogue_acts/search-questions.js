@@ -178,7 +178,13 @@ function impreciseSearchQuestionAnswer(ctx, answer) {
         answer = new Ast.BooleanExpression.DontCare(null, questions[0]);
     } else if (answer instanceof Ast.BooleanExpression) {
         let pname;
-        if (answer.isNot) {
+        if (answer.isAnd) {
+            assert(answer.operands.length === 2 && answer.operands[0] instanceof Ast.BooleanExpression.Atom
+                   && answer.operands[1] instanceof Ast.BooleanExpression.Atom);
+            assert(answer.operands[0].name === answer.operands[1].name &&
+                   answer.operands[0].value.getType().equals(answer.operands[1].value.getType()));
+            pname = answer.operands[0].name;
+        } else if (answer.isNot) {
             assert(answer.expr.isAtom || answer.expr.isDontCare);
             pname = answer.expr.name;
         } else {
