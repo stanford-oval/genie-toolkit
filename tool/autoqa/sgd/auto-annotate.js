@@ -338,7 +338,19 @@ class Converter extends stream.Readable {
                     !Object.keys(activeIntent.optional_slots).includes(key) ||
                     frame.state.slot_values[key][0] === 'dontcare')
                     continue;
-                let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], frame.state.slot_values[key][0]);
+                
+                let val = frame.state.slot_values[key][0];
+                // check for INFORM state to grab canonical_value for ttValue
+                for (let i in frame.actions) {
+                    let action = frame.actions[i];
+                    if (action.act === 'INFORM' && action.slot === key) {
+                        // HACK: if the user INFORMs more than one value, we'll drop it
+                        // unsure if this will present an issue within SGD specifically
+                        val = action.canonical_values[0];
+                    }
+                }
+
+                let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], val);
                 for (let entity in this._entityMap) {
                     if (key === this._entityMap[entity]['id'])
                         key = key.replace('_name', '');
@@ -363,6 +375,15 @@ class Converter extends stream.Readable {
                 if (value === 'dontcare') {
                     filterClauses.push(new Ast.BooleanExpression.DontCare(null, key));
                     continue;
+                }
+                // check for INFORM state to grab canonical_value for ttValue
+                for (let i in frame.actions) {
+                    let action = frame.actions[i];
+                    if (action.act === 'INFORM' && action.slot === key) {
+                        // HACK: if the user INFORMs more than one value, we'll drop it
+                        // unsure if this will present an issue within SGD specifically
+                        value = action.canonical_values[0];
+                    }
                 }
                 let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], value);
                 let op = '==';
@@ -414,10 +435,12 @@ class Converter extends stream.Readable {
         let actNames = frame.actions.map((action) => action.act);
         if (actNames.includes('SELECT'))
             userTarget = this._updateSelectedSlots(frame, selectedSlots); // we update selectedSlots, but we still don't have an annotation
+        if (actNames.includes('REQUEST_ALTS')) {// this should and will be overwritten if the user provides some other act, e.g. INFORM
+            userTarget = new Ast.DialogueState(null, POLICY_NAME, 'ask_recommend', null, []);
+        }
         if (actNames.includes('INFORM') ||
             actNames.includes('INFORM_INTENT') ||
-            actNames.includes('AFFIRM_INTENT') ||
-            actNames.includes('REQUEST_ALTS')) { // execute
+            actNames.includes('AFFIRM_INTENT')) { // execute
             userTarget = await this._generateExecute(context, frame, selectedSlots);
         } else if (actNames.includes('AFFIRM')) {
             userTarget = await this._generateExecute(context, frame, selectedSlots, true);
@@ -438,7 +461,7 @@ class Converter extends stream.Readable {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'cancel', null, []);
         } else if (actNames.includes('SELECT')) {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'confirm', null, []);
-        } else {
+        } else if (!userTarget) {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'uncaught', null, []);
         }
 
