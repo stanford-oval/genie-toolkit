@@ -120,17 +120,17 @@ result_info_phrase = {
     // only "and" and "contains"
     // and furthermore, if the context is a projection, all projected fields must
     // appear as filters
-    ctx:ctx_with_result table:one_with_info_phrase [weight=0.33*2] => D.checkInfoPhrase(ctx, table);
-    ctx:ctx_with_result table:one_which_info_phrase [weight=0.33*2] => D.checkInfoPhrase(ctx, table);
-    ctx:ctx_with_result table:one_clean_info_phrase [weight=0.33*2] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:one_with_info_phrase [weight=0.33*2, priority=1] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:one_which_info_phrase [weight=0.33*2, priority=1] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:one_clean_info_phrase [weight=0.33*2, priority=1] => D.checkInfoPhrase(ctx, table);
 
-    ctx:ctx_with_result table:two_with_info_phrase [weight=0.33] => D.checkInfoPhrase(ctx, table);
-    ctx:ctx_with_result table:two_which_info_phrase [weight=0.33] => D.checkInfoPhrase(ctx, table);
-    ctx:ctx_with_result table:two_clean_info_phrase [weight=0.33] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:two_with_info_phrase [weight=0.33, priority=2] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:two_which_info_phrase [weight=0.33, priority=2] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:two_clean_info_phrase [weight=0.33, priority=2] => D.checkInfoPhrase(ctx, table);
 
-    ctx:ctx_with_result table:three_with_info_phrase [weight=0.33*0.5] => D.checkInfoPhrase(ctx, table);
-    ctx:ctx_with_result table:three_which_info_phrase [weight=0.33*0.5] => D.checkInfoPhrase(ctx, table);
-    ctx:ctx_with_result table:three_clean_info_phrase [weight=0.33*0.5] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:three_with_info_phrase [weight=0.33*0.5, priority=-1] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:three_which_info_phrase [weight=0.33*0.5, priority=-1] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:three_clean_info_phrase [weight=0.33*0.5, priority=-1] => D.checkInfoPhrase(ctx, table);
 }
 
 base_slot_bag = {
