@@ -213,10 +213,24 @@ class Converter extends stream.Readable {
         //value.display = resolved.display;
     }
 
-    async _generateProposed(context, frame, selectedSlots) {
+    _findSlotValue(key, frame, slotBag) {
+        // we get the key from state.slot_values, but the val from selectedSlots,
+        // so that we keep the canonical_values (e.g. "Italian" instead of "pasta and pizza")
+        // If it's not there, then we get it from the default value in the intent schema
+        // If it's not there either, we get it from the state (not canonical).
+        let activeIntent = slotBag[frame.service]['activeIntent'];
+        if (key in slotBag[frame.service])
+            return slotBag[frame.service][key][0];
+        else if (key in activeIntent.optional_slots)
+            return activeIntent.optional_slots[key];
+        else // FIXME probably a carry over slot from a different service, under a different name
+            return frame.state.slot_values[key][0];
+    }
+
+    async _generateProposed(context, frame, slotBag) {
         const tpClass = 'com.google.sgd';
         const selector = new Ast.Selector.Device(null, tpClass, null, null);
-        let intentName = selectedSlots[frame.service].activeIntent.name;
+        let intentName = slotBag[frame.service].activeIntent.name;
         for (let action of frame.actions) {
             if (action.act === 'OFFER_INTENT')
                 intentName = action.canonical_values[0];
@@ -227,12 +241,13 @@ class Converter extends stream.Readable {
         if (proposedIntent.is_transactional) {
             // This is an action
             const invocation = new Ast.Invocation(null, selector, fullIntentName, [], null);
-            for (let key in selectedSlots[frame.service]) {
+            for (let key in slotBag[frame.service]) {
                 if ((!proposedIntent.required_slots.includes(key) &&
                      !Object.keys(proposedIntent.optional_slots).includes(key)) ||
-                     selectedSlots[frame.service][key][0] === 'dontcare') // TODO revisit this later. Is it right to just skip it? actions can't take dontcares, right?
+                     slotBag[frame.service][key][0] === 'dontcare') // TODO revisit this later. Is it right to just skip it? actions can't take dontcares, right?
                     continue;
-                let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], selectedSlots[frame.service][key][0]);
+                let value = this._findSlotValue(key, frame, slotBag);
+                let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], value);
                 for (let entity in this._entityMap) {
                     if (key === this._entityMap[entity]['id'])
                         key = key.replace('_name', '');
@@ -248,11 +263,11 @@ class Converter extends stream.Readable {
                 new Ast.Invocation(null, selector, fullIntentName, [], null),
                 null);
             const filterClauses = [];
-            for (let key in selectedSlots[frame.service]) {
+            for (let key in slotBag[frame.service]) {
                 if (!proposedIntent.required_slots.includes(key) &&
                     !Object.keys(proposedIntent.optional_slots).includes(key))
                     continue;
-                let value = selectedSlots[frame.service][key][0];
+                let value = this._findSlotValue(key, frame, slotBag);
                 if (value === 'dontcare') {
                     filterClauses.push(new Ast.BooleanExpression.DontCare(null, key));
                     continue;
@@ -283,10 +298,17 @@ class Converter extends stream.Readable {
         return agentTarget;
     }
 
-    async _doAgentTurn(context, turn, agentUtterance, selectedSlots) {
+    async _doAgentTurn(context, turn, agentUtterance, slotBag) {
         const frame = turn.frames[0]; // always only just frame with system
         let agentTarget;
         let actNames = frame.actions.map((action) => action.act);
+        // first collect the offered slots in slotBag
+        if (actNames.includes('OFFER')) // overwrite or init - doesn't matter
+            slotBag.offered[frame.service] = {};
+        for (let action of frame.actions) {
+            if (action.act === 'OFFER')
+                slotBag.offered[frame.service][action.slot] = action.canonical_values;
+        }
         if (actNames.includes('NOTIFY_SUCCESS')) {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_action_success', null, []);
         } else if (actNames.includes('INFORM')) {
@@ -304,7 +326,7 @@ class Converter extends stream.Readable {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_recommend_one', null, []); // maybe more than one? not sure
         } else if (actNames.includes('OFFER_INTENT') ||
                    actNames.includes('CONFIRM')) {
-            agentTarget = this._generateProposed(context, frame, selectedSlots);
+            agentTarget = this._generateProposed(context, frame, slotBag);
         } else if (actNames.includes('NOTIFY_FAILURE')) {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_action_error', null, []); // Error tags get added in the doDialogue loop
         } else if (actNames.includes('REQ_MORE')) {
@@ -318,15 +340,15 @@ class Converter extends stream.Readable {
         return agentTarget;
     }
 
-    async _generateExecute(context, frame, selectedSlots, confirmed = false) {
+    async _generateExecute(context, frame, slotBag, confirmed = false) {
         const tpClass = 'com.google.sgd';
         const selector = new Ast.Selector.Device(null, tpClass, null, null);
         const fullIntentName = frame.service + '_' + frame.state.active_intent;
         const newItems = [];
         const activeIntent = this._schemaObj[frame.service]['intents'][frame.state.active_intent];
-        if (!Object.keys(selectedSlots).includes(frame.service))
-            selectedSlots[frame.service] = {};
-        selectedSlots[frame.service].activeIntent = activeIntent;
+        if (!Object.keys(slotBag).includes(frame.service))
+            slotBag[frame.service] = {};
+        slotBag[frame.service].activeIntent = activeIntent;
         if (activeIntent.is_transactional) { // This is an action
             const invocation = new Ast.Invocation(null, selector, fullIntentName, [], null);
             let confirmedState = (confirmed &&
@@ -339,18 +361,8 @@ class Converter extends stream.Readable {
                     frame.state.slot_values[key][0] === 'dontcare')
                     continue;
                 
-                let val = frame.state.slot_values[key][0];
-                // check for INFORM state to grab canonical_value for ttValue
-                for (let i in frame.actions) {
-                    let action = frame.actions[i];
-                    if (action.act === 'INFORM' && action.slot === key) {
-                        // HACK: if the user INFORMs more than one value, we'll drop it
-                        // unsure if this will present an issue within SGD specifically
-                        val = action.canonical_values[0];
-                    }
-                }
-
-                let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], val);
+                let value = this._findSlotValue(key, frame, slotBag);
+                let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], value);
                 for (let entity in this._entityMap) {
                     if (key === this._entityMap[entity]['id'])
                         key = key.replace('_name', '');
@@ -371,19 +383,10 @@ class Converter extends stream.Readable {
                 if (!activeIntent.required_slots.includes(key) &&
                     !Object.keys(activeIntent.optional_slots).includes(key))
                     continue;
-                let value = frame.state.slot_values[key][0];
+                let value = this._findSlotValue(key, frame, slotBag);
                 if (value === 'dontcare') {
                     filterClauses.push(new Ast.BooleanExpression.DontCare(null, key));
                     continue;
-                }
-                // check for INFORM state to grab canonical_value for ttValue
-                for (let i in frame.actions) {
-                    let action = frame.actions[i];
-                    if (action.act === 'INFORM' && action.slot === key) {
-                        // HACK: if the user INFORMs more than one value, we'll drop it
-                        // unsure if this will present an issue within SGD specifically
-                        value = action.canonical_values[0];
-                    }
                 }
                 let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], value);
                 let op = '==';
@@ -411,19 +414,24 @@ class Converter extends stream.Readable {
         return userTarget;
     }
 
-    async _updateSelectedSlots(frame, selectedSlots) {
+    _updateSlotBag(frame, slotBag) {
+        if (!Object.keys(slotBag).includes(frame.service))
+            slotBag[frame.service] = {};
         for (let action of frame.actions) {
             if (action.act === 'SELECT') {
                 if (action.slot === '') {
-                    for (let slot in frame.state.slot_values)
-                        selectedSlots[frame.service][slot] = frame.state.slot_values[slot];
+                    for (let slot in slotBag.offered[frame.service])
+                        slotBag[frame.service][slot] = slotBag.offered[frame.service][slot];
+                    slotBag.offered[frame.service] = {};
                 } else
-                    selectedSlots[frame.service + '_' + action.slot] = action.values;
+                    slotBag[frame.service][action.slot] = action.canonical_values;
             }
+            if (action.act === 'INFORM')
+                slotBag[frame.service][action.slot] = action.canonical_values;
         }
     }
 
-    async _doUserTurn(context, turn, userUtterance, selectedSlots) {
+    async _doUserTurn(context, turn, userUtterance, slotBag) {
         let frame = turn.frames[0];
         if (turn.frames.length > 1) {
             for (let candidateFrame of turn.frames) {
@@ -433,25 +441,26 @@ class Converter extends stream.Readable {
         }
         let userTarget;
         let actNames = frame.actions.map((action) => action.act);
-        if (actNames.includes('SELECT'))
-            userTarget = this._updateSelectedSlots(frame, selectedSlots); // we update selectedSlots, but we still don't have an annotation
+        if (actNames.includes('SELECT') ||
+            actNames.includes('INFORM'))
+            this._updateSlotBag(frame, slotBag); // we update slotBag, but we still don't have an annotation
         if (actNames.includes('REQUEST_ALTS')) {// this should and will be overwritten if the user provides some other act, e.g. INFORM
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'ask_recommend', null, []);
         }
         if (actNames.includes('INFORM') ||
             actNames.includes('INFORM_INTENT') ||
             actNames.includes('AFFIRM_INTENT')) { // execute
-            userTarget = await this._generateExecute(context, frame, selectedSlots);
+            userTarget = await this._generateExecute(context, frame, slotBag);
         } else if (actNames.includes('AFFIRM')) {
-            userTarget = await this._generateExecute(context, frame, selectedSlots, true);
+            userTarget = await this._generateExecute(context, frame, slotBag, true);
         } else if (actNames.includes('REQUEST')) {
-            if (selectedSlots[frame.service].activeIntent.is_transactional) {
+            if (slotBag[frame.service].activeIntent.is_transactional) {
                 // Action question. First, get the params, then build the state
                 let requestActs = frame.actions.filter((action) => action.act === 'REQUEST');
                 let slots =  requestActs.map((act) => act.slot);
                 userTarget = new Ast.DialogueState(null, POLICY_NAME, 'action_question', slots, []);
             } else // it's a query with a projection
-                userTarget = await this._generateExecute(context, frame, selectedSlots);
+                userTarget = await this._generateExecute(context, frame, slotBag);
         } else if (actNames.includes('GOODBYE')) {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'cancel', null, []);
         } else if (actNames.includes('THANK_YOU') ||
@@ -490,7 +499,7 @@ class Converter extends stream.Readable {
             }
         }
 
-        let context = null, simulatorState = undefined, selectedSlots = {};
+        let context = null, simulatorState = undefined, slotBag = {'offered': {}};
         const turns = [];
         for (let idx = 0; idx < dlg.turns.length; idx = idx+2) { // NOTE: we are ignoring the last agent halfTurn
             const uHalfTurn = dlg.turns[idx];
@@ -531,7 +540,7 @@ class Converter extends stream.Readable {
                     contextCode = context.prettyprint();
 
                     // do the agent
-                    const agentTarget = await this._doAgentTurn(context, aHalfTurn, agentUtterance, selectedSlots);
+                    const agentTarget = await this._doAgentTurn(context, aHalfTurn, agentUtterance, slotBag);
                     const oldContext = context;
                     context = this._target.computeNewState(context, agentTarget, 'agent');
                     const prediction = this._target.computePrediction(oldContext, context, 'agent');
@@ -540,7 +549,7 @@ class Converter extends stream.Readable {
                 }
 
                 const userUtterance = uHalfTurn.utterance.replace(/\n/g, ' ');
-                const userTarget = await this._doUserTurn(context, uHalfTurn, userUtterance, selectedSlots);
+                const userTarget = await this._doUserTurn(context, uHalfTurn, userUtterance, slotBag);
                 const oldContext = context;
                 context = this._target.computeNewState(context, userTarget, 'user');
                 const prediction = this._target.computePrediction(oldContext, context, 'user');
