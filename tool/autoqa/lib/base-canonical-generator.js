@@ -114,6 +114,21 @@ function genBaseCanonical(canonical, name, ptype) {
         return;
     }
 
+    // e.g., petsAllowed
+    if (ptype.isBoolean && tags.length >= 2 && ['VBN', 'VBD'].includes(tags[tags.length - 1])) {
+        let tokens = name.split(' ');
+        let noun = tokens.slice(0, tokens.length - 1);
+        let verb = tokens[tokens.length - 1];
+        let verb_phrases = [
+            [languagePack.toVB(verb), ...noun].join(' '),
+            [languagePack.toVBZ(verb), ...noun].join(' ')
+        ];
+        updateDefault(canonical, 'property');
+        updateCanonical(canonical, 'property_true', name);
+        updateCanonical(canonical, 'verb_true', verb_phrases);
+        return;
+    }
+
     if (['IN', 'VBN', 'VBG', 'TO'].includes(tags[0])) {
         updateDefault(canonical, 'passive_verb');
         updateCanonical(canonical, ptype.isBoolean ? 'passive_verb_true' : 'passive_verb', name);
