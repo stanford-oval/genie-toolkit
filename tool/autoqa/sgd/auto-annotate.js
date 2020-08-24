@@ -67,6 +67,9 @@ function parseTime(v) {
 }
 
 function parseDate(v) {
+    let date = new Date(v);
+    if (!isNaN(date)) // success in direct conversion
+        return new Ast.Value.Date(date);
     let now = new Date();
     let base;
     if (v.includes('today'))
@@ -83,8 +86,9 @@ function parseDate(v) {
         let year = v.includes('2019') ? 2019 : now.getFullYear(); // From looking at the data, it is either 2019 or unspecified
         return new Ast.Value.Date(new Date(year, month, day));
         */
-        return new Ast.Value.Date(new Ast.DatePiece(null, null, day, null)); // FIXME, waiting on a thingtalk PR
+        return new Ast.Value.Date(new Date(2019, 3, day)); // FIXME, waiting on a thingtalk PR
     }
+    throw 'problem, we shouldnt be here';
     // From looking at the data, if we are still executing this function, there
     // must be at least one day of the week mentioned in the date, so we want
     // to find out which one.
@@ -183,49 +187,59 @@ class Converter extends stream.Readable {
         //value.display = resolved.display;
     }
 
-    _findSlotValue(key, frame, slotBag) {
+    _findSlotValue(key, frame) {
         // we get the key from state.slot_values, but the val from selectedSlots,
         // so that we keep the canonical_values (e.g. "Italian" instead of "pasta and pizza")
         // If it's not there, then we get it from the default value in the intent schema
         // If it's not there either, we get it from the state (not canonical).
-        let activeIntent = slotBag[frame.service]['activeIntent'];
-        if (key in slotBag[frame.service]['selected'])
-            return slotBag[frame.service]['selected'][key][0];
-        else if (key in activeIntent.optional_slots)
+        let activeIntent = this._slotBag[frame.service]['activeIntent'];
+        if (key in this._slotBag[frame.service]['selected'])
+            return this._slotBag[frame.service]['selected'][key][0];
+        if (key in activeIntent.optional_slots)
             return activeIntent.optional_slots[key];
-        else // FIXME probably a carry over slot from a different service, under a different name
-            return frame.state.slot_values[key][0];
+        // probably a carry over slot from a different service, under a different name
+        // we will have to search in this._canonicalMap for the non-canonical value given now
+        for (let value of frame.state.slot_values[key])
+            if (value in this._canonicalMap)
+                return this._canonicalMap[value][0];
+        // last case: return the (possibly non-canonical) value from the state
+        return frame.state.slot_values[key][0];
     }
 
-    _updateSlotBag(frame, slotBag, isUserTurn) {
-        if (!Object.keys(slotBag).includes(frame.service))
-            slotBag[frame.service] = {'offered': {}, 'selected': {}, 'not': {}};
+    _updateSlotBag(frame, isUserTurn) {
+        if (!Object.keys(this._slotBag).includes(frame.service))
+            this._slotBag[frame.service] = {'offered': {}, 'selected': {}, 'not': {}};
         for (let action of frame.actions) {
-            if (action.act === 'OFFER')
-                slotBag[frame.service]['offered'][action.slot] = action.canonical_values;
+            if (action.act === 'OFFER') {
+                this._slotBag[frame.service]['offered'][action.slot] = action.canonical_values;
+                this._canonicalMap[action.values[0]] = action.canonical_values;
+            }
             if (action.act === 'SELECT') {
                 if (action.slot === '') {
-                    for (let slot in slotBag[frame.service]['offered'])
-                        slotBag[frame.service]['selected'][slot] = slotBag[frame.service]['offered'][slot];
-                    slotBag[frame.service]['offered'] = {};
-                } else
-                    slotBag[frame.service]['selected'][action.slot] = action.canonical_values;
+                    for (let slot in this._slotBag[frame.service]['offered'])
+                        this._slotBag[frame.service]['selected'][slot] = this._slotBag[frame.service]['offered'][slot];
+                    this._slotBag[frame.service]['offered'] = {};
+                } else {
+                    this._slotBag[frame.service]['selected'][action.slot] = action.canonical_values;
+                    this._canonicalMap[action.values[0]] = action.canonical_values;
+                }
             }
             if (action.act === 'REQUEST_ALTS') {
                 // we want to get the entity ids and add them to the list of "rejected ids"
-                for (let slot in slotBag[frame.service]['offered']) {
+                for (let slot in this._slotBag[frame.service]['offered']) {
                     if (this._getEntityName(slot) !== null) {
-                        if (slotBag[frame.service]['not'][slot] === undefined)
-                            slotBag[frame.service]['not'][slot] = [];
-                        slotBag[frame.service]['not'][slot] = slotBag[frame.service]['not'][slot].concat(slotBag[frame.service]['offered'][slot]);
+                        if (this._slotBag[frame.service]['not'][slot] === undefined)
+                            this._slotBag[frame.service]['not'][slot] = [];
+                        this._slotBag[frame.service]['not'][slot] = this._slotBag[frame.service]['not'][slot].concat(this._slotBag[frame.service]['offered'][slot]);
                     }
-                slotBag[frame.service]['offered'] = {};
+                this._slotBag[frame.service]['offered'] = {};
                 }
             }
             if (action.act === 'INFORM' && isUserTurn) {
-                slotBag[frame.service]['selected'][action.slot] = action.canonical_values;
+                this._slotBag[frame.service]['selected'][action.slot] = action.canonical_values;
+                this._canonicalMap[action.values[0]] = action.canonical_values;
                 // also erase the 'offered' section, since we are probably leaving it behind
-                slotBag[frame.service]['offered'] = {};
+                this._slotBag[frame.service]['offered'] = {};
             }
         }
     }
@@ -270,14 +284,14 @@ class Converter extends stream.Readable {
         return new Ast.Value.String(val);
     }
 
-    _generateParams(frame, slotBag, intent, isQuery, isUser) {
+    _generateParams(frame, intent, isQuery, isUser) {
         let params = [];
-        let slot_values = isUser ? frame.state.slot_values : slotBag[frame.service]['selected'];
+        let slot_values = isUser ? frame.state.slot_values : this._slotBag[frame.service]['selected'];
         for (let key in slot_values) {
             if ((!intent.required_slots.includes(key) &&
                  !Object.keys(intent.optional_slots).includes(key)))
                 continue;
-            let value = this._findSlotValue(key, frame, slotBag);
+            let value = this._findSlotValue(key, frame);
             if (value === 'dontcare') {
                 if (isQuery)
                     params.push(new Ast.BooleanExpression.DontCare(null, key));
@@ -304,9 +318,9 @@ class Converter extends stream.Readable {
         if (isQuery) {
             let idWasOffered = false;
             if (frame.actions.map((action) => action.act).includes('REQUEST')) {
-                for (let key in slotBag[frame.service]['offered']) {
+                for (let key in this._slotBag[frame.service]['offered']) {
                     if (this._getEntityName(key) !== null) {
-                        let value = slotBag[frame.service]['offered'][key][0];
+                        let value = this._slotBag[frame.service]['offered'][key][0];
                         let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], value);
                         key = 'id';
                         this._resolveEntity(ttValue);
@@ -317,11 +331,11 @@ class Converter extends stream.Readable {
                 }
             }
             if (!idWasOffered) {
-                for (let key in slotBag[frame.service]['not']) { // should be an id
+                for (let key in this._slotBag[frame.service]['not']) { // should be an id
                     if ((!intent.required_slots.includes(key) &&
                          !Object.keys(intent.optional_slots).includes(key)))
                         continue;
-                    for (let value of slotBag[frame.service]['not'][key]) {
+                    for (let value of this._slotBag[frame.service]['not'][key]) {
                         let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], value);
                         this._resolveEntity(ttValue);
                         params.push(new Ast.BooleanExpression.Not(null, new Ast.BooleanExpression.Atom(null, 'id', '==', ttValue)));
@@ -332,10 +346,10 @@ class Converter extends stream.Readable {
         return params;
     }
 
-    async _generateProposed(context, frame, slotBag) {
+    async _generateProposed(context, frame) {
         const tpClass = 'com.google.sgd';
         const selector = new Ast.Selector.Device(null, tpClass, null, null);
-        let intentName = slotBag[frame.service].activeIntent.name;
+        let intentName = this._slotBag[frame.service].activeIntent.name;
         for (let action of frame.actions) {
             if (action.act === 'OFFER_INTENT')
                 intentName = action.canonical_values[0];
@@ -345,7 +359,7 @@ class Converter extends stream.Readable {
         let newItems = [];
         if (proposedIntent.is_transactional) {
             // This is an action
-            let in_params = this._generateParams(frame, slotBag, proposedIntent, false, false);
+            let in_params = this._generateParams(frame, proposedIntent, false, false);
             const invocation = new Ast.Invocation(null, selector, fullIntentName, in_params, null);
             const statement = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
             newItems.push(new Ast.DialogueHistoryItem(null, statement, null, 'proposed'));
@@ -353,7 +367,7 @@ class Converter extends stream.Readable {
             const invocationTable = new Ast.Table.Invocation(null,
                 new Ast.Invocation(null, selector, fullIntentName, [], null),
                 null);
-            const filterClauses = this._generateParams(frame, slotBag, proposedIntent, true, false);
+            const filterClauses = this._generateParams(frame, proposedIntent, true, false);
             const filterTable = filterClauses.length > 0 ?
                                 new Ast.Table.Filter(null, invocationTable, new Ast.BooleanExpression.And(null, filterClauses), null) :
                                 invocationTable;
@@ -368,12 +382,12 @@ class Converter extends stream.Readable {
         return agentTarget;
     }
 
-    async _doAgentTurn(context, turn, agentUtterance, slotBag) {
+    async _doAgentTurn(context, turn, agentUtterance) {
         const frame = turn.frames[0]; // always only just frame with system
         let agentTarget;
         let actNames = frame.actions.map((action) => action.act);
         // first collect the offered slots in slotBag
-        this._updateSlotBag(frame, slotBag, false);
+        this._updateSlotBag(frame, false);
         if (actNames.includes('NOTIFY_SUCCESS')) {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_action_success', null, []);
         } else if (actNames.includes('INFORM')) {
@@ -391,7 +405,7 @@ class Converter extends stream.Readable {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_recommend_one', null, []); // maybe more than one? not sure
         } else if (actNames.includes('OFFER_INTENT') ||
                    actNames.includes('CONFIRM')) {
-            agentTarget = this._generateProposed(context, frame, slotBag);
+            agentTarget = this._generateProposed(context, frame);
         } else if (actNames.includes('NOTIFY_FAILURE')) {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_action_error', null, []); // Error tags get added in the doDialogue loop
         } else if (actNames.includes('REQ_MORE')) {
@@ -405,19 +419,19 @@ class Converter extends stream.Readable {
         return agentTarget;
     }
 
-    async _generateExecute(context, frame, slotBag, confirmed = false) {
+    async _generateExecute(context, frame, confirmed = false) {
         const tpClass = 'com.google.sgd';
         const selector = new Ast.Selector.Device(null, tpClass, null, null);
         const fullIntentName = frame.service + '_' + frame.state.active_intent;
         const newItems = [];
         const activeIntent = this._schemaObj[frame.service]['intents'][frame.state.active_intent];
-        slotBag[frame.service].activeIntent = activeIntent;
+        this._slotBag[frame.service].activeIntent = activeIntent;
         if (activeIntent.is_transactional) { // This is an action
             let confirmedState = (confirmed &&
                                   activeIntent.required_slots.every(val => val in frame.state.slot_values)) ?
                                  'confirmed' :
                                  'accepted';
-            let in_params = this._generateParams(frame, slotBag, activeIntent, false, true);
+            let in_params = this._generateParams(frame, activeIntent, false, true);
             const invocation = new Ast.Invocation(null, selector, fullIntentName, in_params, null);
             const actionStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
             newItems.push(new Ast.DialogueHistoryItem(null, actionStmt, null, confirmedState));
@@ -426,7 +440,7 @@ class Converter extends stream.Readable {
             const invocationTable = new Ast.Table.Invocation(null,
                 new Ast.Invocation(null, selector, fullIntentName, [], null),
                 null);
-            const filterClauses = this._generateParams(frame, slotBag, activeIntent, true, true);
+            const filterClauses = this._generateParams(frame, activeIntent, true, true);
             const filterTable = filterClauses.length > 0 ?
                                 new Ast.Table.Filter(null, invocationTable, new Ast.BooleanExpression.And(null, filterClauses), null) :
                                 invocationTable;
@@ -441,7 +455,7 @@ class Converter extends stream.Readable {
         return userTarget;
     }
 
-    async _doUserTurn(context, turn, userUtterance, slotBag) {
+    async _doUserTurn(context, turn, userUtterance) {
         let frame = turn.frames[0];
         if (turn.frames.length > 1) {
             for (let candidateFrame of turn.frames) {
@@ -451,7 +465,7 @@ class Converter extends stream.Readable {
         }
         let userTarget;
         let actNames = frame.actions.map((action) => action.act);
-        this._updateSlotBag(frame, slotBag, true);
+        this._updateSlotBag(frame, true);
         if (actNames.includes('REQUEST_ALTS')) {// this should and will be overwritten if the user provides some other act, e.g. INFORM
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'ask_recommend', null, []);
         }
@@ -460,9 +474,9 @@ class Converter extends stream.Readable {
             actNames.includes('AFFIRM_INTENT') ||
             actNames.includes('REQUEST_ALTS') ||
             actNames.includes('REQUEST')) { // execute
-            userTarget = await this._generateExecute(context, frame, slotBag);
+            userTarget = await this._generateExecute(context, frame);
         } else if (actNames.includes('AFFIRM')) {
-            userTarget = await this._generateExecute(context, frame, slotBag, true);
+            userTarget = await this._generateExecute(context, frame, true);
         } else if (actNames.includes('GOODBYE')) {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'cancel', null, []);
         } else if (actNames.includes('THANK_YOU') ||
@@ -501,7 +515,9 @@ class Converter extends stream.Readable {
             }
         }
 
-        let context = null, simulatorState = undefined, slotBag = {};
+        let context = null, simulatorState = undefined;
+        this._slotBag = {};
+        this._canonicalMap = {};
         const turns = [];
         for (let idx = 0; idx < dlg.turns.length; idx = idx+2) { // NOTE: we are ignoring the last agent halfTurn
             const uHalfTurn = dlg.turns[idx];
@@ -542,7 +558,7 @@ class Converter extends stream.Readable {
                     contextCode = context.prettyprint();
 
                     // do the agent
-                    const agentTarget = await this._doAgentTurn(context, aHalfTurn, agentUtterance, slotBag);
+                    const agentTarget = await this._doAgentTurn(context, aHalfTurn, agentUtterance);
                     const oldContext = context;
                     context = this._target.computeNewState(context, agentTarget, 'agent');
                     const prediction = this._target.computePrediction(oldContext, context, 'agent');
@@ -551,7 +567,7 @@ class Converter extends stream.Readable {
                 }
 
                 const userUtterance = uHalfTurn.utterance.replace(/\n/g, ' ');
-                const userTarget = await this._doUserTurn(context, uHalfTurn, userUtterance, slotBag);
+                const userTarget = await this._doUserTurn(context, uHalfTurn, userUtterance);
                 const oldContext = context;
                 context = this._target.computeNewState(context, userTarget, 'user');
                 const prediction = this._target.computePrediction(oldContext, context, 'user');
