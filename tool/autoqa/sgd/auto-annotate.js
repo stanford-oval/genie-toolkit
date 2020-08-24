@@ -153,12 +153,88 @@ class Converter extends stream.Readable {
             this._entityMap = JSON.parse(await util.promisify(fs.readFile)(this._entity_map_file), { encoding: 'utf8' });
     }
 
+    _getEntityName(slotName) {
+        // Check if the given slot name is actually an entity
+        // In which case it will be an id, or have a different name
+        // Return null if not an entity
+        for (let entity in this._entityMap) {
+            if (slotName === this._entityMap[entity]['id'])
+                return entity;
+        }
+        return null;
+    }
+
+    _getIDs(type) {
+        return this._database.get(type).map((entry) => {
+            return {
+                value: entry.id.value,
+                name: entry.id.display,
+                canonical: entry.id.display
+            };
+        });
+    }
+
+    _resolveEntity(value) {
+        const resolved = getBestEntityMatch(value.display, value.type, this._getIDs(value.type));
+        value.value = resolved.value;
+
+        // do not override the display field, it should match the sentence instead
+        // it will be overridden later when round-tripped through the executor
+        //value.display = resolved.display;
+    }
+
+    _findSlotValue(key, frame, slotBag) {
+        // we get the key from state.slot_values, but the val from selectedSlots,
+        // so that we keep the canonical_values (e.g. "Italian" instead of "pasta and pizza")
+        // If it's not there, then we get it from the default value in the intent schema
+        // If it's not there either, we get it from the state (not canonical).
+        let activeIntent = slotBag[frame.service]['activeIntent'];
+        if (key in slotBag[frame.service]['selected'])
+            return slotBag[frame.service]['selected'][key][0];
+        else if (key in activeIntent.optional_slots)
+            return activeIntent.optional_slots[key];
+        else // FIXME probably a carry over slot from a different service, under a different name
+            return frame.state.slot_values[key][0];
+    }
+
+    _updateSlotBag(frame, slotBag, isUserTurn) {
+        if (!Object.keys(slotBag).includes(frame.service))
+            slotBag[frame.service] = {'offered': {}, 'selected': {}, 'not': {}};
+        for (let action of frame.actions) {
+            if (action.act === 'OFFER')
+                slotBag[frame.service]['offered'][action.slot] = action.canonical_values;
+            if (action.act === 'SELECT') {
+                if (action.slot === '') {
+                    for (let slot in slotBag[frame.service]['offered'])
+                        slotBag[frame.service]['selected'][slot] = slotBag[frame.service]['offered'][slot];
+                    slotBag[frame.service]['offered'] = {};
+                } else
+                    slotBag[frame.service]['selected'][action.slot] = action.canonical_values;
+            }
+            if (action.act === 'REQUEST_ALTS') {
+                // we want to get the entity ids and add them to the list of "rejected ids"
+                for (let slot in slotBag[frame.service]['offered']) {
+                    if (this._getEntityName(slot) !== null) {
+                        if (slotBag[frame.service]['not'][slot] === undefined)
+                            slotBag[frame.service]['not'][slot] = [];
+                        slotBag[frame.service]['not'][slot] = slotBag[frame.service]['not'][slot].concat(slotBag[frame.service]['offered'][slot]);
+                    }
+                slotBag[frame.service]['offered'] = {};
+                }
+            }
+            if (action.act === 'INFORM' && isUserTurn) {
+                slotBag[frame.service]['selected'][action.slot] = action.canonical_values;
+                // also erase the 'offered' section, since we are probably leaving it behind
+                slotBag[frame.service]['offered'] = {};
+            }
+        }
+    }
+
     // adapted from ./process-schema.js
     _generateValue(slot, val) {
-        for (let entity in this._entityMap) {
-            if (slot.name === this._entityMap[entity]['id'])
-                return new Ast.Value.Entity(null, 'com.google.sgd:' + entity, val);
-        }
+        let entity = this._getEntityName(slot.name);
+        if (entity !== null)
+            return new Ast.Value.Entity(null, 'com.google.sgd:' + entity, val);
         if (slot.name === 'approximate_ride_duration')
             return new Ast.Value.Measure('ms', val);
         if (slot.name === 'wind')
@@ -194,37 +270,66 @@ class Converter extends stream.Readable {
         return new Ast.Value.String(val);
     }
 
-    _getIDs(type) {
-        return this._database.get(type).map((entry) => {
-            return {
-                value: entry.id.value,
-                name: entry.id.display,
-                canonical: entry.id.display
-            };
-        });
-    }
+    _generateParams(frame, slotBag, intent, isQuery, isUser) {
+        let params = [];
+        let slot_values = isUser ? frame.state.slot_values : slotBag[frame.service]['selected'];
+        for (let key in slot_values) {
+            if ((!intent.required_slots.includes(key) &&
+                 !Object.keys(intent.optional_slots).includes(key)))
+                continue;
+            let value = this._findSlotValue(key, frame, slotBag);
+            if (value === 'dontcare') {
+                if (isQuery)
+                    params.push(new Ast.BooleanExpression.DontCare(null, key));
+                continue; // actions don't take dontcares
+            }
 
-    _resolveEntity(value) {
-        const resolved = getBestEntityMatch(value.display, value.type, this._getIDs(value.type));
-        value.value = resolved.value;
+            let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], value);
+            if (this._getEntityName(key) !== null)
+                key = isQuery ? 'id' : key.replace('_name', '');
+            if (ttValue.isEntity)
+                this._resolveEntity(ttValue);
 
-        // do not override the display field, it should match the sentence instead
-        // it will be overridden later when round-tripped through the executor
-        //value.display = resolved.display;
-    }
-
-    _findSlotValue(key, frame, slotBag) {
-        // we get the key from state.slot_values, but the val from selectedSlots,
-        // so that we keep the canonical_values (e.g. "Italian" instead of "pasta and pizza")
-        // If it's not there, then we get it from the default value in the intent schema
-        // If it's not there either, we get it from the state (not canonical).
-        let activeIntent = slotBag[frame.service]['activeIntent'];
-        if (key in slotBag[frame.service])
-            return slotBag[frame.service][key][0];
-        else if (key in activeIntent.optional_slots)
-            return activeIntent.optional_slots[key];
-        else // FIXME probably a carry over slot from a different service, under a different name
-            return frame.state.slot_values[key][0];
+            let op = '==';
+            if (ttValue.isString)
+                op = '=~';
+            if (isQuery)
+                params.push(new Ast.BooleanExpression.Atom(null, key, op, ttValue));
+            else
+                params.push(new Ast.InputParam(null, key, ttValue));
+        }
+        // Now, if this is a query, there are two special cases to check for:
+        // a projection on an id that was offered in the previous turn, or
+        // a REQUEST_ALTS with an id in the 'not' part of slotBag
+        if (isQuery) {
+            let idWasOffered = false;
+            if (frame.actions.map((action) => action.act).includes('REQUEST')) {
+                for (let key in slotBag[frame.service]['offered']) {
+                    if (this._getEntityName(key) !== null) {
+                        let value = slotBag[frame.service]['offered'][key][0];
+                        let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], value);
+                        key = 'id';
+                        this._resolveEntity(ttValue);
+                        let op = '==';
+                        params.push(new Ast.BooleanExpression.Atom(null, key, op, ttValue));
+                        idWasOffered = true;
+                    }
+                }
+            }
+            if (!idWasOffered) {
+                for (let key in slotBag[frame.service]['not']) { // should be an id
+                    if ((!intent.required_slots.includes(key) &&
+                         !Object.keys(intent.optional_slots).includes(key)))
+                        continue;
+                    for (let value of slotBag[frame.service]['not'][key]) {
+                        let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], value);
+                        this._resolveEntity(ttValue);
+                        params.push(new Ast.BooleanExpression.Not(null, new Ast.BooleanExpression.Atom(null, 'id', '==', ttValue)));
+                    }
+                }
+            }
+        }
+        return params;
     }
 
     async _generateProposed(context, frame, slotBag) {
@@ -240,50 +345,15 @@ class Converter extends stream.Readable {
         let newItems = [];
         if (proposedIntent.is_transactional) {
             // This is an action
-            const invocation = new Ast.Invocation(null, selector, fullIntentName, [], null);
-            for (let key in slotBag[frame.service]) {
-                if ((!proposedIntent.required_slots.includes(key) &&
-                     !Object.keys(proposedIntent.optional_slots).includes(key)) ||
-                     slotBag[frame.service][key][0] === 'dontcare') // TODO revisit this later. Is it right to just skip it? actions can't take dontcares, right?
-                    continue;
-                let value = this._findSlotValue(key, frame, slotBag);
-                let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], value);
-                for (let entity in this._entityMap) {
-                    if (key === this._entityMap[entity]['id'])
-                        key = key.replace('_name', '');
-                }
-                if (ttValue.isEntity)
-                    this._resolveEntity(ttValue);
-                invocation.in_params.push(new Ast.InputParam(null, key, ttValue));
-            }
+            let in_params = this._generateParams(frame, slotBag, proposedIntent, false, false);
+            const invocation = new Ast.Invocation(null, selector, fullIntentName, in_params, null);
             const statement = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
             newItems.push(new Ast.DialogueHistoryItem(null, statement, null, 'proposed'));
         } else { // This is a query
             const invocationTable = new Ast.Table.Invocation(null,
                 new Ast.Invocation(null, selector, fullIntentName, [], null),
                 null);
-            const filterClauses = [];
-            for (let key in slotBag[frame.service]) {
-                if (!proposedIntent.required_slots.includes(key) &&
-                    !Object.keys(proposedIntent.optional_slots).includes(key))
-                    continue;
-                let value = this._findSlotValue(key, frame, slotBag);
-                if (value === 'dontcare') {
-                    filterClauses.push(new Ast.BooleanExpression.DontCare(null, key));
-                    continue;
-                }
-                let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], value);
-                let op = '==';
-                if (ttValue.isString)
-                    op = '=~';
-                for (let entity in this._entityMap) {
-                    if (key === this._entityMap[entity]['id'])
-                        key = 'id';
-                }
-                if (ttValue.isEntity)
-                    this._resolveEntity(ttValue);
-                filterClauses.push(new Ast.BooleanExpression.Atom(null, key, op, ttValue));
-            }
+            const filterClauses = this._generateParams(frame, slotBag, proposedIntent, true, false);
             const filterTable = filterClauses.length > 0 ?
                                 new Ast.Table.Filter(null, invocationTable, new Ast.BooleanExpression.And(null, filterClauses), null) :
                                 invocationTable;
@@ -303,12 +373,7 @@ class Converter extends stream.Readable {
         let agentTarget;
         let actNames = frame.actions.map((action) => action.act);
         // first collect the offered slots in slotBag
-        if (actNames.includes('OFFER')) // overwrite or init - doesn't matter
-            slotBag.offered[frame.service] = {};
-        for (let action of frame.actions) {
-            if (action.act === 'OFFER')
-                slotBag.offered[frame.service][action.slot] = action.canonical_values;
-        }
+        this._updateSlotBag(frame, slotBag, false);
         if (actNames.includes('NOTIFY_SUCCESS')) {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_action_success', null, []);
         } else if (actNames.includes('INFORM')) {
@@ -346,31 +411,14 @@ class Converter extends stream.Readable {
         const fullIntentName = frame.service + '_' + frame.state.active_intent;
         const newItems = [];
         const activeIntent = this._schemaObj[frame.service]['intents'][frame.state.active_intent];
-        if (!Object.keys(slotBag).includes(frame.service))
-            slotBag[frame.service] = {};
         slotBag[frame.service].activeIntent = activeIntent;
         if (activeIntent.is_transactional) { // This is an action
-            const invocation = new Ast.Invocation(null, selector, fullIntentName, [], null);
             let confirmedState = (confirmed &&
                                   activeIntent.required_slots.every(val => val in frame.state.slot_values)) ?
                                  'confirmed' :
                                  'accepted';
-            for (let key in frame.state.slot_values) {
-                if (!activeIntent.required_slots.includes(key) &&
-                    !Object.keys(activeIntent.optional_slots).includes(key) ||
-                    frame.state.slot_values[key][0] === 'dontcare')
-                    continue;
-                
-                let value = this._findSlotValue(key, frame, slotBag);
-                let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], value);
-                for (let entity in this._entityMap) {
-                    if (key === this._entityMap[entity]['id'])
-                        key = key.replace('_name', '');
-                }
-                if (ttValue.isEntity)
-                    this._resolveEntity(ttValue);
-                invocation.in_params.push(new Ast.InputParam(null, key, ttValue));
-            }
+            let in_params = this._generateParams(frame, slotBag, activeIntent, false, true);
+            const invocation = new Ast.Invocation(null, selector, fullIntentName, in_params, null);
             const actionStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
             newItems.push(new Ast.DialogueHistoryItem(null, actionStmt, null, confirmedState));
         } else {
@@ -378,28 +426,7 @@ class Converter extends stream.Readable {
             const invocationTable = new Ast.Table.Invocation(null,
                 new Ast.Invocation(null, selector, fullIntentName, [], null),
                 null);
-            const filterClauses = [];
-            for (let key in frame.state.slot_values) {
-                if (!activeIntent.required_slots.includes(key) &&
-                    !Object.keys(activeIntent.optional_slots).includes(key))
-                    continue;
-                let value = this._findSlotValue(key, frame, slotBag);
-                if (value === 'dontcare') {
-                    filterClauses.push(new Ast.BooleanExpression.DontCare(null, key));
-                    continue;
-                }
-                let ttValue = this._generateValue(this._schemaObj[frame.service]['slots'][key], value);
-                let op = '==';
-                if (ttValue.isString)
-                    op = '=~';
-                for (let entity in this._entityMap) {
-                    if (key === this._entityMap[entity]['id'])
-                        key = 'id';
-                }
-                if (ttValue.isEntity)
-                    this._resolveEntity(ttValue);
-                filterClauses.push(new Ast.BooleanExpression.Atom(null, key, op, ttValue));
-            }
+            const filterClauses = this._generateParams(frame, slotBag, activeIntent, true, true);
             const filterTable = filterClauses.length > 0 ?
                                 new Ast.Table.Filter(null, invocationTable, new Ast.BooleanExpression.And(null, filterClauses), null) :
                                 invocationTable;
@@ -414,23 +441,6 @@ class Converter extends stream.Readable {
         return userTarget;
     }
 
-    _updateSlotBag(frame, slotBag) {
-        if (!Object.keys(slotBag).includes(frame.service))
-            slotBag[frame.service] = {};
-        for (let action of frame.actions) {
-            if (action.act === 'SELECT') {
-                if (action.slot === '') {
-                    for (let slot in slotBag.offered[frame.service])
-                        slotBag[frame.service][slot] = slotBag.offered[frame.service][slot];
-                    slotBag.offered[frame.service] = {};
-                } else
-                    slotBag[frame.service][action.slot] = action.canonical_values;
-            }
-            if (action.act === 'INFORM')
-                slotBag[frame.service][action.slot] = action.canonical_values;
-        }
-    }
-
     async _doUserTurn(context, turn, userUtterance, slotBag) {
         let frame = turn.frames[0];
         if (turn.frames.length > 1) {
@@ -441,26 +451,18 @@ class Converter extends stream.Readable {
         }
         let userTarget;
         let actNames = frame.actions.map((action) => action.act);
-        if (actNames.includes('SELECT') ||
-            actNames.includes('INFORM'))
-            this._updateSlotBag(frame, slotBag); // we update slotBag, but we still don't have an annotation
+        this._updateSlotBag(frame, slotBag, true);
         if (actNames.includes('REQUEST_ALTS')) {// this should and will be overwritten if the user provides some other act, e.g. INFORM
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'ask_recommend', null, []);
         }
         if (actNames.includes('INFORM') ||
             actNames.includes('INFORM_INTENT') ||
-            actNames.includes('AFFIRM_INTENT')) { // execute
+            actNames.includes('AFFIRM_INTENT') ||
+            actNames.includes('REQUEST_ALTS') ||
+            actNames.includes('REQUEST')) { // execute
             userTarget = await this._generateExecute(context, frame, slotBag);
         } else if (actNames.includes('AFFIRM')) {
             userTarget = await this._generateExecute(context, frame, slotBag, true);
-        } else if (actNames.includes('REQUEST')) {
-            if (slotBag[frame.service].activeIntent.is_transactional) {
-                // Action question. First, get the params, then build the state
-                let requestActs = frame.actions.filter((action) => action.act === 'REQUEST');
-                let slots =  requestActs.map((act) => act.slot);
-                userTarget = new Ast.DialogueState(null, POLICY_NAME, 'action_question', slots, []);
-            } else // it's a query with a projection
-                userTarget = await this._generateExecute(context, frame, slotBag);
         } else if (actNames.includes('GOODBYE')) {
             userTarget = new Ast.DialogueState(null, POLICY_NAME, 'cancel', null, []);
         } else if (actNames.includes('THANK_YOU') ||
@@ -499,7 +501,7 @@ class Converter extends stream.Readable {
             }
         }
 
-        let context = null, simulatorState = undefined, slotBag = {'offered': {}};
+        let context = null, simulatorState = undefined, slotBag = {};
         const turns = [];
         for (let idx = 0; idx < dlg.turns.length; idx = idx+2) { // NOTE: we are ignoring the last agent halfTurn
             const uHalfTurn = dlg.turns[idx];
