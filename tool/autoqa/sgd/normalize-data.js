@@ -198,10 +198,56 @@ class Normalizer {
 
                     for (let result of frame.service_results)
                         this._processResult(fname, result, sortingKeys);
+                }
+            }
+        }
+        // now we repeat this loop once again to collect two exceptions
+        // that weren't collected in the first pass: entities that are provided
+        // by the user, but then the user changes their mind at confirmation time,
+        // and entities which are provided by the user but result in failed actions
+        // (so we never get results for these entities and we need to check again)
+        // Note that we don't want to immediately catch those, since the order might
+        // get messed up. They'll also have missing information, so we first want to
+        // try getting them through the normal route.
+        for (let dialog of input) {
+            let methodName;
+            for (let turn of dialog.turns) {
+                for (let frame of turn.frames) {
+                    // method names are not included in OFFER frames, so we
+                    // need to constantly keep track of the last mentioned
+                    // method name
+                    if (frame.state)
+                        methodName = frame.state.active_intent;
+                    let actNames = frame.actions.map((action) => action.act);
+                    if (!actNames.includes('NOTIFY_FAILURE') &&
+                        !actNames.includes('CONFIRM'))
+                        continue;
 
-                    // If this was an action failure, there will be no results, so we get the entity info from the params
-                    if (frame.actions.map((action) => action.act).includes('NOTIFY_FAILURE')) {
+                    if (frame.service_call)
+                        methodName = frame.service_call.method;
+                    let fname = frame.service + '_' + methodName;
+                    if (this.entityMap !== null) {
+                        for (let entity in this.entityMap) {
+                            if (this.entityMap[entity].methods.includes(fname))
+                                fname = entity;
+                        }
+                    }
+                    if (!(fname in this.meta))
+                        continue;
+
+                    if (!(fname in this.output))
+                        this.output[fname] = {};
+
+                    if (frame.actions.map((action) => action.act).includes('NOTIFY_FAILURE'))
                         this._processResult(fname, frame.service_call.parameters, {'sortLast': null});
+                    else { // it's CONFIRMs slots
+                        let params = {};
+                        for (let action of frame.actions) {
+                            if (action.act === 'CONFIRM')
+                                params[action.slot] = action.canonical_values[0];
+                        }
+                        console.error(params);
+                        this._processResult(fname, params, {'sortLast': null});
                     }
                 }
             }
