@@ -23,8 +23,10 @@ module.exports = {
     cleanEnumValue(v) {
         // replace dash with space
         v = v.replace(/-/g, ' ');
+        // replace space with underscore
+        v = v.replace(/\s/g, '_');
         // camelcase the value
-        v = v.replace(/(?:^|\s+|-)[A-Za-z]/g, (letter) => letter.trim().toUpperCase());
+        // v = v.replace(/(?:^|\s+|-)[A-Za-z]/g, (letter) => letter.trim().toUpperCase());
         // add underscore prefix if value starts with number
         if (/^\d.*/.test(v))
             v = '_' + v;
