@@ -46,6 +46,10 @@ class Normalizer {
         // the normalized file
         this.output = {};
 
+        this.includeOrder = false;
+        // keep track of incremental id for each entity type
+        this.dbIncIds = {};
+
         this.entityMap = null;
     }
 
@@ -72,6 +76,8 @@ class Normalizer {
         }
         if (args.entity_map !== null)
             this.entityMap = JSON.parse(await util.promisify(fs.readFile)(args.entity_map), { encoding: 'utf8' });
+        if (args.include_order)
+            this.includeOrder = true;
     }
 
     _processField(fname, arg, value) {
@@ -141,13 +147,22 @@ class Normalizer {
         return String(value);
     }
 
-    _processResult(fname, result) {
+    _processResult(fname, result, sortingKeys) {
         const hashId = 'https://thingpedia.stanford.edu/ns/uuid/sgd/' + hash(result);
+        if (Object.keys(this.dbIncIds).includes(fname))
+            this.dbIncIds[fname]++;
+        else
+            this.dbIncIds[fname] = 1;
+        let dbIncId = this.dbIncIds[fname];
 
         if (hashId in this.output[fname])
             return;
 
         const processed = { '@id': hashId, '@type': fname };
+        if (this.includeOrder) {
+            processed['@db_inc_id'] = dbIncId;
+            processed['@sorting_keys'] = sortingKeys;
+        }
         let slots = this.entityMap === null ? Object.keys(this.meta[fname].fields) : this.entityMap[fname].slots;
         for (let arg of slots)
             processed[arg] = this._processField(fname, arg, result[arg]);
@@ -161,6 +176,9 @@ class Normalizer {
                 for (let frame of turn.frames) {
                     if (!('service_call' in frame))
                         continue;
+                    // record which params were used to get this result, so we can
+                    // reverse engineer the db ordering later
+                    let sortingKeys = frame.service_call.parameters;
                     if (!('service_results' in frame) ||
                         (frame.service_results.length === 0 && !frame.actions.map((action) => action.act).includes('NOTIFY_FAILURE'))) // If it's an action failure, there will be no service_results, but we'll still want to record the entity
                         continue;
@@ -179,11 +197,11 @@ class Normalizer {
                         this.output[fname] = {};
 
                     for (let result of frame.service_results)
-                        this._processResult(fname, result);
+                        this._processResult(fname, result, sortingKeys);
 
                     // If this was an action failure, there will be no results, so we get the entity info from the params
                     if (frame.actions.map((action) => action.act).includes('NOTIFY_FAILURE')) {
-                        this._processResult(fname, frame.service_call.parameters);
+                        this._processResult(fname, frame.service_call.parameters, {'sortLast': null});
                     }
                 }
             }
@@ -210,6 +228,11 @@ module.exports = {
         parser.addArgument('--entity-map', {
             required: false,
             help: 'Path to a JSON containing a map from entities to service methods.'
+        });
+        parser.addArgument('--include-order', {
+            required: false,
+            action: 'storeTrue',
+            help: 'Include information for reconstruction of db ordering in the output.'
         });
         parser.addArgument('input_file', {
             nargs: '+',
