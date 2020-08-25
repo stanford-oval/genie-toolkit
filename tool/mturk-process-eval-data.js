@@ -60,26 +60,26 @@ class Parser extends Stream.Transform {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('mturk-process-eval-data', {
-            addHelp: true,
+        const parser = subparsers.add_parser('mturk-process-eval-data', {
+            add_help: true,
             description: "Extract the answers of an MTurk task collecting validation/test data."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument('--sentences-per-task', {
+        parser.add_argument('--sentences-per-task', {
             required: false,
             type: Number,
-            defaultValue: 5,
+            default: 5,
             help: "Number of sentences in each HIT"
         });
-        parser.addArgument('--id-prefix', {
+        parser.add_argument('--id-prefix', {
             required: false,
-            defaultValue: '',
+            default: '',
             help: "Prefix for all sentence IDs (to distinguish batches)"
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             help: 'MTurk result file to choose contexts from, split'
         });

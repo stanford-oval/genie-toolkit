@@ -28,37 +28,37 @@ const StreamUtils = require('../lib/utils/stream-utils');
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('download-snapshot', {
-            addHelp: true,
+        const parser = subparsers.add_parser('download-snapshot', {
+            add_help: true,
             description: "Download a snapshot of Thingpedia."
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en',
+            default: 'en',
             help: `BGP 47 locale tag of the natural language to download the snapshot for (defaults to 'en', English)`
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument(['--entities'], {
+        parser.add_argument('--entities', {
             required: true,
             type: fs.createWriteStream,
             help: `Filename where entities should be saved`
         });
-        parser.addArgument('--thingpedia-url', {
+        parser.add_argument('--thingpedia-url', {
             required: false,
-            defaultValue: DEFAULT_THINGPEDIA_URL,
+            default: DEFAULT_THINGPEDIA_URL,
             help: `base URL of Thingpedia server to contact; defaults to '${DEFAULT_THINGPEDIA_URL}'`
         });
-        parser.addArgument('--snapshot', {
+        parser.add_argument('--snapshot', {
             required: false,
-            defaultValue: '-1',
+            default: '-1',
             help: `identifier of the Thingpedia snapshot to download (or -1 for the latest snapshot)`
         });
-        parser.addArgument('--developer-key', {
+        parser.add_argument('--developer-key', {
             required: false,
-            defaultValue: '',
+            default: '',
             help: `developer key to use when contacting Thingpedia`
         });
     },

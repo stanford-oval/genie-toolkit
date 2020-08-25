@@ -257,36 +257,34 @@ class SchemaTrimmer {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('schemaorg-trim-class', {
-            addHelp: true,
+        const parser = subparsers.add_parser('schemaorg-trim-class', {
+            add_help: true,
             description: "Reduce a schema.org class file to the subset of fields that have data."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument(['--entities'], {
+        parser.add_argument('--entities', {
             required: true,
             help: 'Where to store the generated entities.json file',
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('--data', {
+        parser.add_argument('--data', {
             required: true,
             help: 'Path to JSON file with normalized WebQA data.'
         });
 
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });

@@ -175,82 +175,76 @@ class DialogueToTurnStream extends Stream.Transform {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('dialog-to-contextual', {
-            addHelp: true,
+        const parser = subparsers.add_parser('dialog-to-contextual', {
+            add_help: true,
             description: "Transform a dialog input file into a contextual dataset (turn by turn)."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
         });
-        parser.addArgument('--tokenized', {
-            required: false,
-            action: 'storeTrue',
-            defaultValue: true,
+        parser.add_argument('--tokenized', {
+            action: 'store_true',
+            default: true,
             help: "The dataset is already tokenized (this is the default)."
         });
-        parser.addArgument('--no-tokenized', {
-            required: false,
+        parser.add_argument('--no-tokenized', {
             dest: 'tokenized',
-            action: 'storeFalse',
+            action: 'store_false',
             help: "The dataset is not already tokenized."
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument(['-t', '--target-language'], {
+        parser.add_argument('-t', '--target-language', {
             required: false,
-            defaultValue: 'thingtalk',
+            default: 'thingtalk',
             choices: TargetLanguages.AVAILABLE_LANGUAGES,
             help: `The programming language to generate`
         });
-        parser.addArgument('--side', {
+        parser.add_argument('--side', {
             required: true,
             choices: ['user', 'agent'],
             help: 'Which side of the conversation should be extracted.'
         });
-        parser.addArgument('--flags', {
+        parser.add_argument('--flags', {
             required: false,
-            defaultValue: '',
+            default: '',
             help: 'Additional flags to add to the generated training examples.'
         });
-        parser.addArgument('--id-prefix', {
+        parser.add_argument('--id-prefix', {
             required: false,
-            defaultValue: '',
+            default: '',
             help: 'Prefix to add to all sentence IDs (useful to combine multiple datasets).'
         });
-        parser.addArgument('--deduplicate', {
-            nargs: 0,
-            action: 'storeTrue',
-            defaultValue: false,
+        parser.add_argument('--deduplicate', {
+            action: 'store_true',
+            default: false,
             help: 'Do not output duplicate turns (with the same preprocessed context and utterance)'
         });
-        parser.addArgument('--no-deduplicate', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-deduplicate', {
+            action: 'store_false',
             dest: 'deduplicate',
             help: 'Output duplicate turns (with the same preprocessed context and utterance)'
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input dialog file; use - for standard input'
         });
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });

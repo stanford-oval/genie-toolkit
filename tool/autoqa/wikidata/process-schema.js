@@ -58,15 +58,15 @@ class SchemaProcessor {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('wikidata-process-schema', {
-            addHelp: true,
+        const parser = subparsers.add_parser('wikidata-process-schema', {
+            add_help: true,
             description: "Generate base canonical for given a wikidata schema.tt"
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to original ThingTalk file containing class definitions.'
         });

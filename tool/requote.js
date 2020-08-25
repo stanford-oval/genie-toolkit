@@ -414,52 +414,51 @@ function requoteSentence(id, context, sentence, program, mode, requote_numbers, 
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('requote', {
-            addHelp: true,
+        const parser = subparsers.add_parser('requote', {
+            add_help: true,
             description: "Requote a dataset."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument('--contextual', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--contextual', {
+            action: 'store_true',
             help: 'Process a contextual dataset.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--mode', {
+        parser.add_argument('--mode', {
             type: String,
             help: 'Type of requoting (replace with placeholder, or just add quotation marks around params)',
             choices: ['replace', 'qpis'],
-            defaultValue: 'replace'
+            default: 'replace'
         });
-        parser.addArgument('--requote-numbers', {
-            action: 'storeTrue',
+        parser.add_argument('--requote-numbers', {
+            action: 'store_true',
             help: 'Requote numbers',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--skip-errors', {
-            action: 'storeTrue',
+        parser.add_argument('--skip-errors', {
+            action: 'store_true',
             help: 'Skip examples that we are unable to requote',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input datasets to evaluate (in TSV format); use - for standard input'
         });
-        parser.addArgument('--handle-heuristics', {
-            action: 'storeTrue',
+        parser.add_argument('--handle-heuristics', {
+            action: 'store_true',
             help: 'Handle cases where augmentation introduced non-matching parameters in sentence and program',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--param-locale', {
+        parser.add_argument('--param-locale', {
             type: String,
             help: 'BGP 47 locale tag of the language for parameter values',
-            defaultValue: 'en-US'
+            default: 'en-US'
         });
-        parser.addArgument('--output-errors', {
+        parser.add_argument('--output-errors', {
             type: fs.createWriteStream,
             help: 'If provided, examples which fail to be requoted are written in this file as well as being printed to stdout '
         });

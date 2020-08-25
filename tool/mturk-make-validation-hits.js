@@ -36,55 +36,53 @@ const { NUM_SENTENCES_PER_TASK, NUM_PARAPHRASES_PER_SENTENCE, NUM_SUBMISSIONS_PE
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('mturk-make-validation-hits', {
-            addHelp: true,
+        const parser = subparsers.add_parser('mturk-make-validation-hits', {
+            add_help: true,
             description: "Prepare the input file for the manual validation HITs."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('--sentences-per-task', {
+        parser.add_argument('--sentences-per-task', {
             required: false,
             type: Number,
-            defaultValue: NUM_SENTENCES_PER_TASK,
+            default: NUM_SENTENCES_PER_TASK,
             help: "Number of sentences in each HIT"
         });
-        parser.addArgument('--submissions-per-task', {
+        parser.add_argument('--submissions-per-task', {
             required: false,
             type: Number,
-            defaultValue: NUM_SUBMISSIONS_PER_TASK,
+            default: NUM_SUBMISSIONS_PER_TASK,
             help: "Number of submissions (workers) for each HIT"
         });
-        parser.addArgument('--paraphrases-per-sentence', {
+        parser.add_argument('--paraphrases-per-sentence', {
             required: false,
             type: Number,
-            defaultValue: NUM_PARAPHRASES_PER_SENTENCE,
+            default: NUM_PARAPHRASES_PER_SENTENCE,
             help: "Number of paraphrases collected for each sentence"
         });
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });
-        parser.addArgument('--random-seed', {
-            defaultValue: 'almond is awesome',
+        parser.add_argument('--random-seed', {
+            default: 'almond is awesome',
             help: 'Random seed'
         });
     },

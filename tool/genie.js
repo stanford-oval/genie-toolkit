@@ -80,15 +80,19 @@ const subcommands = {
 
 async function main() {
     const parser = new argparse.ArgumentParser({
-        addHelp: true,
+        add_help: true,
         description: "A tool to generate natural language semantic parsers for programming languages."
     });
 
-    const subparsers = parser.addSubparsers({ title: 'Available sub-commands', dest: 'subcommand' });
+    const subparsers = parser.add_subparsers({
+        title: 'Available sub-commands',
+        dest: 'subcommand',
+        required: true
+    });
     for (let subcommand in subcommands)
         subcommands[subcommand].initArgparse(subparsers);
 
-    const args = parser.parseArgs();
+    const args = parser.parse_args();
     await subcommands[args.subcommand].execute(args);    
 }
 main();

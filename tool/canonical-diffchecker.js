@@ -110,18 +110,18 @@ function prettyprintDiff(base, diff) {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('canonical-diffchecker', {
-            addHelp: true,
+        const parser = subparsers.add_parser('canonical-diffchecker', {
+            add_help: true,
             description: "Retrieve the labels of properties from wikidata."
         });
-        parser.addArgument('schemas', {
+        parser.add_argument('schemas', {
             nargs: 2,
-            description: "Two schema files to compare."
+            help: "Two schema files to compare."
         });
-        parser.addArgument('--queries', {
+        parser.add_argument('--queries', {
             required: true,
             nargs: '+',
-            description: "The name of queries to check."
+            help: "The name of queries to check."
         });
     },
 

@@ -28,41 +28,39 @@ const ProgressBar = require('./lib/progress_bar');
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('train', {
-            addHelp: true,
+        const parser = subparsers.add_parser('train', {
+            add_help: true,
             description: "Train a model on a Genie-generated dataset."
         });
-        parser.addArgument('--datadir', {
+        parser.add_argument('--datadir', {
             required: true,
             help: "Directory containing the train/eval/test set to train with."
         });
-        parser.addArgument('--outputdir', {
+        parser.add_argument('--outputdir', {
             required: true,
             help: "Directory where the final trained model will be placed."
         });
-        parser.addArgument('--workdir', {
+        parser.add_argument('--workdir', {
             required: true,
             help: "Temporary directory for preprocessed datasets, checkpoints and Tensorboard files."
         });
-        parser.addArgument('--config-file', {
+        parser.add_argument('--config-file', {
             required: false,
             help: "JSON configuration file setting hyper-parameters and parser options."
         });
-        parser.addArgument('--backend', {
+        parser.add_argument('--backend', {
             required: false,
-            defaultValue: Training.DEFAULT_BACKEND,
+            default: Training.DEFAULT_BACKEND,
             choices: Object.keys(Training.BACKENDS),
             help: "Which training backend to use (experimental)"
         });
 
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });

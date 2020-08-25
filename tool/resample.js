@@ -30,32 +30,31 @@ const { coin } = require('../lib/utils/random');
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('resample', {
-            addHelp: true,
+        const parser = subparsers.add_parser('resample', {
+            add_help: true,
             description: "Subsample a dataset."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument('--fraction', {
+        parser.add_argument('--fraction', {
             required: true,
             type: Number,
             help: "The portion of the dataset to sample."
         });
-        parser.addArgument('--contextual', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--contextual', {
+            action: 'store_true',
             help: 'Process a contextual dataset.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input datasets to evaluate (in TSV format); use - for standard input'
         });
-        parser.addArgument('--random-seed', {
-            defaultValue: 'almond is awesome',
+        parser.add_argument('--random-seed', {
+            default: 'almond is awesome',
             help: 'Random seed'
         });
     },

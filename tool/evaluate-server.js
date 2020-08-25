@@ -71,90 +71,85 @@ function csvDisplay(args, complexity, result, device, with_numeric=false, withou
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('evaluate-server', {
-            addHelp: true,
+        const parser = subparsers.add_parser('evaluate-server', {
+            add_help: true,
             description: "Evaluate a trained model on a Genie-generated dataset, by contacting a running Genie server."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: false,
-            defaultValue: process.stdout,
+            default: process.stdout,
             type: fs.createWriteStream,
-            description: "Write results to this file instead of stdout"
+            help: "Write results to this file instead of stdout"
         });
-        parser.addArgument('--url', {
+        parser.add_argument('--url', {
             required: false,
             help: "URL of the server to evaluate. Use a file:// URL pointing to a model directory to evaluate using a local instance of decanlp",
-            defaultValue: 'http://127.0.0.1:8400',
+            default: 'http://127.0.0.1:8400',
         });
-        parser.addArgument('--tokenized', {
+        parser.add_argument('--tokenized', {
             required: false,
-            action: 'storeTrue',
-            defaultValue: true,
+            action: 'store_true',
+            default: true,
             help: "The dataset is already tokenized (this is the default)."
         });
-        parser.addArgument('--no-tokenized', {
+        parser.add_argument('--no-tokenized', {
             required: false,
             dest: 'tokenized',
-            action: 'storeFalse',
+            action: 'store_false',
             help: "The dataset is not already tokenized."
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('--contextual', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--contextual', {
+            action: 'store_true',
             help: 'Process a contextual dataset.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--split-by-device', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--split-by-device', {
+            action: 'store_true',
             help: 'Compute evaluation statistics separating examples by Thingpedia device',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input datasets to evaluate (in TSV format); use - for standard input'
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
         });
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });
-        parser.addArgument('--csv', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--csv', {
+            action: 'store_true',
             help: 'Output a single CSV line',
         });
-        parser.addArgument('--csv-prefix', {
+        parser.add_argument('--csv-prefix', {
             required: false,
-            defaultValue: '',
+            default: '',
             help: `Prefix all output lines with this string`
         });
-        parser.addArgument('--complexity-metric', {
+        parser.add_argument('--complexity-metric', {
             choices: ['num_params', 'turn_number'],
-            defaultValue: 'num_params',
+            default: 'num_params',
             help: `Complexity metric to use to divide examples by complexity`
         });
-        parser.addArgument('--max-complexity', {
+        parser.add_argument('--max-complexity', {
             required: false,
             type: Number,
-            defaultValue: '',
+            default: '',
             help: 'Collapse all examples of complexity greater or equal to this',
         });
     },

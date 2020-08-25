@@ -552,73 +552,71 @@ class Annotator extends events.EventEmitter {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('manual-annotate-dialog', {
-            addHelp: true,
+        const parser = subparsers.add_parser('manual-annotate-dialog', {
+            add_help: true,
             description: `Interactively annotate a dialog dataset, by annotating each sentence turn-by-turn.`
         });
-        parser.addArgument('--annotated', {
+        parser.add_argument('--annotated', {
             required: true,
         });
-        parser.addArgument('--dropped', {
+        parser.add_argument('--dropped', {
             required: true,
         });
-        parser.addArgument('--offset', {
+        parser.add_argument('--offset', {
             required: false,
             type: parseInt,
-            defaultValue: 1,
+            default: 1,
             help: `Start from the nth dialogue of the input tsv file.`
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument(['-t', '--target-language'], {
+        parser.add_argument('-t', '--target-language', {
             required: false,
-            defaultValue: 'thingtalk',
+            default: 'thingtalk',
             choices: TargetLanguages.AVAILABLE_LANGUAGES,
             help: `The programming language to generate`
         });
-        parser.addArgument('--database-file', {
+        parser.add_argument('--database-file', {
             required: false,
             help: `Path to a file pointing to JSON databases used to simulate queries.`,
         });
-        parser.addArgument('--user-nlu-server', {
+        parser.add_argument('--user-nlu-server', {
             required: false,
-            defaultValue: 'http://127.0.0.1:8400',
+            default: 'http://127.0.0.1:8400',
             help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
         });
-        parser.addArgument('--agent-nlu-server', {
+        parser.add_argument('--agent-nlu-server', {
             required: false,
-            defaultValue: 'http://127.0.0.1:8400',
+            default: 'http://127.0.0.1:8400',
             help: `The URL of the natural language server to parse agent utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
         });
-        parser.addArgument('--existing-annotations', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--existing-annotations', {
+            action: 'store_true',
             help: 'The input file already has annotations.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--edit-mode', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--edit-mode', {
+            action: 'store_true',
             help: 'Edit an existing annotated dataset instead of creating a new one (implies --existing-annotations).',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--only-ids', {
+        parser.add_argument('--only-ids', {
             required: false,
             help: 'Only annotate the dialogues with the given IDs, comma-separated (must be given with --existing-annotations)',
-            defaultValue: ''
+            default: ''
         });
-        parser.addArgument('--max-turns', {
+        parser.add_argument('--max-turns', {
             required: false,
             help: 'Auto-annotate after the given number of turns',
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             type: fs.createReadStream,
             help: 'Input dialog file'

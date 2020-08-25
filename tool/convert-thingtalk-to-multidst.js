@@ -366,56 +366,53 @@ class SimpleCountStream extends Stream.Transform {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('convert-thingtalk-to-multidst', {
-            addHelp: true,
+        const parser = subparsers.add_parser('convert-thingtalk-to-multidst', {
+            add_help: true,
             description: "Transform a dialog input file in ThingTalk format into a dialogue state tracking dataset."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('--database-file', {
+        parser.add_argument('--database-file', {
             required: true,
             help: `Path to a file pointing to JSON databases used to simulate queries.`,
         });
-        parser.addArgument(['-N', '--input-size'], {
+        parser.add_argument('-N', '--input-size', {
             required: false,
             help: `Total number of dialogues in the input set (used for the progress bar).`,
         });
-        parser.addArgument('--replace-parameters', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--replace-parameters', {
+            action: 'store_true',
             help: 'Replace placeholders with values from the ontology.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input dialog file; use - for standard input'
         });
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });
-        parser.addArgument('--random-seed', {
-            defaultValue: 'almond is awesome',
+        parser.add_argument('--random-seed', {
+            default: 'almond is awesome',
             help: 'Random seed'
         });
     },

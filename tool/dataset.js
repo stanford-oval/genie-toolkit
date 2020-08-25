@@ -23,38 +23,37 @@ const ThingTalkDataset = require('./lib/thingtalk-dataset');
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('dataset', {
-            addHelp: true,
+        const parser = subparsers.add_parser('dataset', {
+            add_help: true,
             description: "Manipulate a dataset. Useful for translating a dataset."
         });
-        parser.addArgument(['-i', '--input'], {
+        parser.add_argument('-i', '--input', {
             required: true,
             help: 'Path to file containing primitive templates, in ThingTalk syntax.'
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             help: 'Path to output dataset.'
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to JSON file containing signature, type and mixin definitions.'
         });
-        parser.addArgument('--actions', {
+        parser.add_argument('--actions', {
             required: true,
             nargs: '*',
             choices: ['clean', 'preprocess'],
             help: 'Action to apply on a dataset.',
         });
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: true
+            default: true
         });
     },
 

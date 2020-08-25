@@ -287,60 +287,58 @@ class DialogAgent extends events.EventEmitter {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('demo-dialog', {
-            addHelp: true,
+        const parser = subparsers.add_parser('demo-dialog', {
+            add_help: true,
             description: `Test a dialogue agent interactively.`
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument(['-t', '--target-language'], {
+        parser.add_argument('-t', '--target-language', {
             required: false,
-            defaultValue: 'thingtalk',
+            default: 'thingtalk',
             choices: TargetLanguages.AVAILABLE_LANGUAGES,
             help: `The programming language to generate`
         });
-        parser.addArgument('--database-file', {
+        parser.add_argument('--database-file', {
             required: false,
             help: `Path to a file pointing to JSON databases used to simulate queries.`,
         });
-        parser.addArgument('--template', {
+        parser.add_argument('--template', {
             nargs: '+',
-            defaultValue: [path.resolve(path.dirname(module.filename), '../languages/thingtalk/en/dialogue.genie')],
+            default: [path.resolve(path.dirname(module.filename), '../languages/thingtalk/en/dialogue.genie')],
             help: 'Path to file containing construct templates, in Genie syntax.'
         });
-        parser.addArgument('--entities', {
+        parser.add_argument('--entities', {
             required: false,
             help: 'Path to JSON file containing entity type definitions.'
         });
-        parser.addArgument('--dataset', {
+        parser.add_argument('--dataset', {
             required: false,
             help: 'Path to file containing primitive templates, in ThingTalk syntax.'
         });
-        parser.addArgument('--server', {
+        parser.add_argument('--server', {
             required: false,
-            defaultValue: 'http://127.0.0.1:8400',
+            default: 'http://127.0.0.1:8400',
             help: `The URL of the natural language server.`
         });
-        parser.addArgument('--random-seed', {
-            defaultValue: 'almond is awesome',
+        parser.add_argument('--random-seed', {
+            default: 'almond is awesome',
             help: 'Random seed'
         });
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });

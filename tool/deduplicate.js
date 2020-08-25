@@ -28,21 +28,20 @@ const StreamUtils = require('../lib/utils/stream-utils');
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('deduplicate', {
-            addHelp: true,
+        const parser = subparsers.add_parser('deduplicate', {
+            add_help: true,
             description: "Deduplicate a dataset (remove identical utterances or pairs of context, utterance)."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument('--contextual', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--contextual', {
+            action: 'store_true',
             help: 'Process a contextual dataset.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input datasets to evaluate (in TSV format); use - for standard input'
