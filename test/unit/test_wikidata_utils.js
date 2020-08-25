@@ -33,15 +33,8 @@ const TEST_CASES_PROPERTY_LABELS = [
 ];
 
 const TEST_CASES_PROPERTY_LIST = [
-    ['Q5', [
-        'P18', 'P19', 'P20', 'P21', 'P22', 'P25', 'P26', 'P27', 'P39', 'P40', 'P102', 'P103', 'P106', 'P108', 'P119',
-        'P140', 'P172', 'P451', 'P463', 'P509', 'P569', 'P570', 'P734', 'P735', 'P937', 'P1050', 'P1196', 'P1317',
-        'P1412', 'P1477', 'P1559', 'P1636', 'P2048', 'P2067', 'P3342', 'P3373'
-    ]],
-    ['Q515', [
-        'P17', 'P18', 'P31', 'P41', 'P47', 'P94', 'P131', 'P150', 'P190', 'P227', 'P242', 'P268', 'P281', 'P421',
-        'P473', 'P571', 'P625', 'P910', 'P935', 'P948', 'P982', 'P1082', 'P1464', 'P1465', 'P1566', 'P1740', 'P1792',
-        'P2044', 'P2046', 'P4290']
+    ['Q5', ['P18', 'P19', 'P20', 'P21', 'P3373']],
+    ['Q515', ['P17', 'P18', 'P31', 'P41', 'P47', 'P4290']
 
     ]
 ];
@@ -67,7 +60,8 @@ async function main() {
     for (let [id, expected] of TEST_CASES_PROPERTY_LIST) {
         const properties = await getPropertyList(id);
         try {
-            assert.deepStrictEqual(properties, expected);
+            for (let expected_property of expected)
+                assert(properties.includes(expected_property));
         } catch(e) {
             console.error(`Test case "${id}" failed`);
             console.error(e);
