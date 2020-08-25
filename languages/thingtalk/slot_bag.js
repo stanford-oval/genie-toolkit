@@ -103,16 +103,9 @@ function checkAndAddSlot(bag, filter) {
             return null;
         const clone = bag.clone();
         if (clone.has(filter.name))
-            clone.get(filter.name).value.push(filter.value);
+            return null;
         else
             clone.set(filter.name, new Ast.Value.Array([filter.value]));
-        var values = new Set();
-        for (const value of (clone.get(filter.name).value)){
-            if (values.has(value.value))
-                return null;
-            else
-                values.add(value.value);
-        }
         return clone;
     } else {
         if (filter.operator !== '==' && filter.operator !== '=~')
