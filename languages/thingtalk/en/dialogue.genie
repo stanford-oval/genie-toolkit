@@ -99,6 +99,7 @@ context
     ctx_incomplete_action_after_search,
     ctx_learn_more,
     ctx_display_nonlist_result,
+    ctx_confirm,
 
     // agent states (used to continue the conversation with more user utterances)
     // these more or less map to the agent dialogue acts, except we don't distinguish
@@ -212,6 +213,10 @@ $agent = {
     // learn more
     ctx:ctx_learn_more system_learn_more
         => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_learn_more_what', null));
+
+    // answer simple confirm state with recommendation
+    ctx:ctx_confirm proposal:system_confirmed_recommendation
+        => D.makeRecommendationReply(ctx, proposal);
 }
 
 $user = {

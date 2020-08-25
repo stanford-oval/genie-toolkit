@@ -182,6 +182,9 @@ function makeRecommendationReply(ctx, proposal) {
     if (action || hasLearnMore)
         options.end = false;
     if (action === null) {
+        // we don't want 'confirm' to loop sys_recommend_one states
+        if (ctx.state.dialogueAct === 'confirm')
+            return null;
         return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_recommend_one', null), proposal, null, options);
     } else {
         const chainParam = findChainParam(topResult, action);
@@ -222,9 +225,19 @@ function positiveRecommendationReply(ctx, acceptedAction, name) {
         // A: how about the ... ?
         // U: sure I like that
         //
-        // this doesn't make much sense, so we don't want this flow
-        if (actionProposal === null)
-            return null;
+        // This falls into the simple "confirm" state category,
+        // where the agent will propose an action the following turn.
+        if (actionProposal === null) {
+            const clone = ctx.clone();
+
+            // make sure user is talking about the correct entity
+            if (!name)
+                return null;
+            if (name[0].value !== ctx.aux.topResult.value.id.value)
+                return null;
+
+            return makeSimpleState(clone, 'confirm', null);
+        }
 
         acceptedAction = actionProposal;
     }

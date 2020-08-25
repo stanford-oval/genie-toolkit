@@ -621,6 +621,9 @@ function tagContextForAgent(ctx) {
         assert(ctx.results);
         return ['ctx_learn_more'];
 
+    case 'confirm':
+        return ['ctx_confirm'];
+
     case 'execute':
     case 'ask_recommend':
         if (ctx.nextInfo !== null) {
