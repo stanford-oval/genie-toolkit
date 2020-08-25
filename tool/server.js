@@ -218,41 +218,39 @@ const NLG_PARAMS = {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('server', {
-            addHelp: true,
+        const parser = subparsers.add_parser('server', {
+            add_help: true,
             description: "Expose a Genie-compatible NLP API over HTTP."
         });
-        parser.addArgument(['-p', '--port'], {
+        parser.add_argument('-p', '--port', {
             required: false,
             help: "HTTP port to listen on",
-            defaultValue: 8400,
+            default: 8400,
         });
-        parser.addArgument('--nlu-model', {
+        parser.add_argument('--nlu-model', {
             required: true,
             help: "Path to the NLU model, pointing to a model directory.",
         });
-        parser.addArgument('--nlg-model', {
+        parser.add_argument('--nlg-model', {
             required: false,
             help: "Path to the NLU model, pointing to a model directory.",
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
         });
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });

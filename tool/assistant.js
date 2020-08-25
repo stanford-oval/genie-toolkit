@@ -215,35 +215,35 @@ class CommandLineHandler {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('assistant', {
-            addHelp: true,
+        const parser = subparsers.add_parser('assistant', {
+            add_help: true,
             description: "Test/demo the assistant interactively."
         });
-        parser.addArgument('--workdir', {
+        parser.add_argument('--workdir', {
             required: false,
-            defaultValue: process.cwd(),
+            default: process.cwd(),
             help: 'Directory where to store the assistant database and other files (defaults to the current working directory).'
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to use for the assistant (defaults to 'en-US', English)`
         });
-        parser.addArgument('--thingpedia-url', {
+        parser.add_argument('--thingpedia-url', {
             required: false,
-            defaultValue: THINGPEDIA_URL,
+            default: THINGPEDIA_URL,
             help: 'URL of Thingpedia to use.'
         });
-        parser.addArgument('--thingpedia-dir', {
+        parser.add_argument('--thingpedia-dir', {
             required: false,
             help: 'Path to a directory containing Thingpedia device definitions (overrides --thingpedia-url).'
         });
-        parser.addArgument('--nlu-server', {
+        parser.add_argument('--nlu-server', {
             required: false,
-            defaultValue: NL_SERVER_URL,
+            default: NL_SERVER_URL,
             help: 'NLP server URL to use for NLU (can be a file:/// URL).'
         });
-        parser.addArgument('--nlg-server', {
+        parser.add_argument('--nlg-server', {
             required: false,
             help: 'NLP server URL to use for NLG; must be specified to use neural NLG.'
         });

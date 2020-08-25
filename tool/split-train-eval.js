@@ -31,85 +31,81 @@ const { coin } = require('../lib/utils/random');
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('split-train-eval', {
-            addHelp: true,
+        const parser = subparsers.add_parser('split-train-eval', {
+            add_help: true,
             description: "Split a dataset into training and development sets."
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input datasets to augment (in TSV format); use - for standard input'
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
-        parser.addArgument(['--train'], {
+        parser.add_argument('--train', {
             required: true,
             type: fs.createWriteStream,
             help: 'Train file output path',
         });
-        parser.addArgument(['--eval'], {
+        parser.add_argument('--eval', {
             required: true,
             type: fs.createWriteStream,
             help: 'Eval file output path',
         });
-        parser.addArgument(['--test'], {
+        parser.add_argument('--test', {
             required: false,
             type: fs.createWriteStream,
             help: 'Test file output path',
-            defaultValue: null
+            default: null
         });
-        parser.addArgument(['--eval-probability'], {
+        parser.add_argument('--eval-probability', {
             type: Number,
             help: 'Eval probability',
-            defaultValue: 0.1,
+            default: 0.1,
         });
-        parser.addArgument(['--split-strategy'], {
+        parser.add_argument('--split-strategy', {
             help: 'Method to use to choose training and evaluation sentences',
-            defaultValue: 'sentence',
+            default: 'sentence',
             choices: DatasetSplitter.SPLIT_STRATEGIES,
         });
-        parser.addArgument(['-d', '--device'], {
+        parser.add_argument('-d', '--device', {
             action: 'append',
             metavar: 'DEVICE',
             help: 'Filter dataset to commands of the given device. This option can be passed multiple times to specify multiple devices',
             dest: 'forDevices',
         });
-        parser.addArgument('--contextual', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--contextual', {
+            action: 'store_true',
             help: 'Process a contextual dataset.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--eval-on-synthetic', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--eval-on-synthetic', {
+            action: 'store_true',
             help: 'Include synthetic data in eval/test.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--subsample', {
+        parser.add_argument('--subsample', {
             type: Number,
             help: 'Sample a fraction of the dataset',
-            defaultValue: 1.0
+            default: 1.0
         });
 
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });
-        parser.addArgument(['--random-seed'], {
+        parser.add_argument('--random-seed', {
             help: 'Random seed',
-            defaultValue: 'abcdefghi',
+            default: 'abcdefghi',
         });
     },
 

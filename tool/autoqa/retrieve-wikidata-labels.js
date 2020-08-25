@@ -55,8 +55,8 @@ function clean(raw) {
 
 module.exports = {
     initArgparse(subparsers) {
-        subparsers.addParser('retrieve-wikidata-labels', {
-            addHelp: true,
+        subparsers.add_parser('retrieve-wikidata-labels', {
+            add_help: true,
             description: "Retrieve the labels of properties from wikidata."
         });
     },

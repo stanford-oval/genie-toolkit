@@ -254,8 +254,8 @@ class Trainer extends events.EventEmitter {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('manual-annotate', {
-            addHelp: true,
+        const parser = subparsers.add_parser('manual-annotate', {
+            add_help: true,
             description: `Import a manually annotated dataset. For each command use ` +
                 `"$number": to select from the candidates, ` +
                 `"e $number": to edit on top of the selected thingtalk code, ` +
@@ -264,36 +264,36 @@ module.exports = {
                 `"d": drop the example,` +
                 `"d $comment": drop the example with some comment.`
         });
-        parser.addArgument('--annotated', {
+        parser.add_argument('--annotated', {
             required: false,
-            defaultValue: './annotated.tsv',
+            default: './annotated.tsv',
         });
-        parser.addArgument('--dropped', {
+        parser.add_argument('--dropped', {
             required: false,
-            defaultValue: './dropped.tsv',
+            default: './dropped.tsv',
         });
-        parser.addArgument('input', {
+        parser.add_argument('input', {
             type: fs.createReadStream,
             help: `The script expects a tsv input file with columns: id, utterance, preprocessed, target_code`
         });
-        parser.addArgument('--offset', {
+        parser.add_argument('--offset', {
             required: false,
             type: parseInt,
-            defaultValue: 1,
+            default: 1,
             help: `Start from the nth line of the input tsv file.`
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('--server', {
+        parser.add_argument('--server', {
             required: false,
-            defaultValue: 'https://almond-nl.stanford.edu',
+            default: 'https://almond-nl.stanford.edu',
             help: `The URL of the natural language server.`
         });
     },

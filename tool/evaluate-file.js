@@ -32,50 +32,46 @@ const StreamUtils = require('../lib/utils/stream-utils');
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('evaluate-file', {
-            addHelp: true,
+        const parser = subparsers.add_parser('evaluate-file', {
+            add_help: true,
             description: "Evaluate a trained model on a Genie-generated dataset, using a pre-generated prediction file."
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('--dataset', {
+        parser.add_argument('--dataset', {
             required: true,
             type: fs.createReadStream,
             help: 'Input dataset to evaluate (in TSV format)'
         });
-        parser.addArgument('--predictions', {
+        parser.add_argument('--predictions', {
             required: true,
             type: fs.createReadStream,
             help: 'Prediction results (in TSV format: id, prediction)'
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
         });
-        parser.addArgument('--contextual', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--contextual', {
+            action: 'store_true',
             help: 'Process a contextual dataset.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });
-        parser.addArgument('--csv', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--csv', {
+            action: 'store_true',
             help: 'Output a single CSV line',
         });
     },
