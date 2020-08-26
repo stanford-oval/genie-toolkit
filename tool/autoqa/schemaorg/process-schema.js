@@ -751,57 +751,54 @@ class SchemaProcessor {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('schemaorg-process-schema', {
-            addHelp: true,
+        const parser = subparsers.add_parser('schemaorg-process-schema', {
+            add_help: true,
             description: "Process a schema.org JSON+LD definition into a Thingpedia class."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument(['--cache-file'], {
+        parser.add_argument('--cache-file', {
             required: false,
-            defaultValue: './schema.jsonld',
+            default: './schema.jsonld',
             help: 'Path to a cache file containing the schema.org definitions.'
         });
-        parser.addArgument(['--url'], {
+        parser.add_argument('--url', {
             required: false,
             // FIXME: replace it with a link with fixed version number 9.0 (couldn't find one currently)
-            defaultValue: 'https://schema.org/version/latest/schemaorg-current-http.jsonld',
+            default: 'https://schema.org/version/latest/schemaorg-current-http.jsonld',
             help: 'The schema.org URL to retrieve the definitions from.'
         });
-        parser.addArgument('--domain', {
+        parser.add_argument('--domain', {
             required: false,
             help: 'The domain of current experiment, used for domain-specific manual overrides.'
         });
-        parser.addArgument('--manual', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--manual', {
+            action: 'store_true',
             help: 'Enable manual annotations.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--wikidata-path', {
+        parser.add_argument('--wikidata-path', {
             required: false,
             help: 'path to the json file with wikidata property labels'
         });
-        parser.addArgument('--always-base-canonical', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--always-base-canonical', {
+            action: 'store_true',
             help: `Always generate base canonical`,
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-always-base-canonical', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-always-base-canonical', {
+            action: 'store_false',
             help: `Do not always generate base canonical`,
             dest: `always_base_canonical`,
         });
-        parser.addArgument('--class-name', {
+        parser.add_argument('--class-name', {
             required: false,
             help: 'The name of the generated class, this will also affect the entity names',
-            defaultValue: 'org.schema'
+            default: 'org.schema'
         });
-        parser.addArgument('--white-list', {
+        parser.add_argument('--white-list', {
             required: true,
             help: 'A list of queries allowed to use in the class, split by comma (no space).'
         });

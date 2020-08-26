@@ -82,20 +82,20 @@ class TokenizerStream extends Stream.Transform {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('preprocess-string-dataset', {
-            addHelp: true,
+        const parser = subparsers.add_parser('preprocess-string-dataset', {
+            add_help: true,
             description: "Preprocess (tokenize) a string value dataset."
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to use for tokenization (defaults to 'en-US', English)`
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input string datasets to tokenize (in TSV format); use - for standard input'

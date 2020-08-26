@@ -51,7 +51,8 @@ music_paraphrase =
 eval_set ?= eval
 
 process_schemaorg_flags ?= --manual --wikidata-path ./wikidata-property-labels.json
-update_canonical_flags ?= --algorithm bert,adj,bart --paraphraser-model ./models/paraphraser-bart
+auto_annotate_flags ?= --algorithm bert,adj,bart --paraphraser-model ./models/paraphraser-bart
+auto_annotate_custom_flags ?=
 template_file ?= thingtalk/en/thingtalk.genie
 dataset_file ?= emptydataset.tt
 synthetic_flags ?= \
@@ -117,7 +118,7 @@ $(experiment)/constants.tsv: $(experiment)/parameter-datasets.tsv $(experiment)/
 	cat $(geniedir)/data/en-US/constants.tsv >> $@
 
 $(experiment)/schema.tt: $(experiment)/constants.tsv $(experiment)/schema.trimmed.tt $(experiment)/parameter-datasets.tsv models/paraphraser-bart
-	$(genie) auto-annotate -o $@.tmp --constants $(experiment)/constants.tsv --thingpedia $(experiment)/schema.trimmed.tt --functions $($(experiment)_white_list) $(update_canonical_flags) --parameter-datasets $(experiment)/parameter-datasets.tsv --dataset schemaorg
+	$(genie) auto-annotate -o $@.tmp --constants $(experiment)/constants.tsv --thingpedia $(experiment)/schema.trimmed.tt --functions $($(experiment)_white_list) $(auto_annotate_flags) $(auto_annotate_custom_flags) --parameter-datasets $(experiment)/parameter-datasets.tsv --dataset schemaorg
 	mv $@.tmp $@
 
 $(experiment)/synthetic-d%.tsv: $(experiment)/schema.tt $(dataset_file) $(geniedir)/languages/thingtalk/en/*.genie

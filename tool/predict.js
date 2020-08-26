@@ -62,62 +62,58 @@ class PredictStream extends Stream.Transform {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('predict', {
-            addHelp: true,
+        const parser = subparsers.add_parser('predict', {
+            add_help: true,
             description: "Compute predictions for Genie-generated dataset."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument('--url', {
+        parser.add_argument('--url', {
             required: false,
             help: "URL of the server to use. Use a file:// URL pointing to a model directory to predict using a local instance of decanlp",
-            defaultValue: 'http://127.0.0.1:8400',
+            default: 'http://127.0.0.1:8400',
         });
-        parser.addArgument('--contextual', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--contextual', {
+            action: 'store_true',
             help: 'Process a contextual dataset.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--tokenized', {
+        parser.add_argument('--tokenized', {
             required: false,
-            action: 'storeTrue',
-            defaultValue: true,
+            action: 'store_true',
+            default: true,
             help: "The dataset is already tokenized (this is the default)."
         });
-        parser.addArgument('--no-tokenized', {
+        parser.add_argument('--no-tokenized', {
             required: false,
             dest: 'tokenized',
-            action: 'storeFalse',
+            action: 'store_false',
             help: "The dataset is not already tokenized."
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input datasets to evaluate (in TSV format); use - for standard input'
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
         });
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });
-        parser.addArgument('--csv', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--csv', {
+            action: 'store_true',
             help: 'Output a single CSV line',
         });
     },

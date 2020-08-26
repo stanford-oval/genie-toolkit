@@ -239,58 +239,56 @@ class ParamDatasetGenerator {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('make-string-datasets', {
-            addHelp: true,
+        const parser = subparsers.add_parser('make-string-datasets', {
+            add_help: true,
             description: "Extract string datasets from a AutoQA normalized data file."
         });
-        parser.addArgument('--dataset', {
+        parser.add_argument('--dataset', {
             required: true,
             choices: ['schemaorg', 'sgd', 'wikidata', 'multiwoz', 'custom'],
             help: 'The dataset to run autoQA on.'
         });
-        parser.addArgument(['-d', '--output-dir'], {
+        parser.add_argument('-d', '--output-dir', {
             required: true,
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
-        parser.addArgument('--manifest', {
+        parser.add_argument('--manifest', {
             required: true,
             help: `Write a parameter dataset manifest to this location`
         });
-        parser.addArgument('--append-manifest', {
+        parser.add_argument('--append-manifest', {
             required: false,
-            action: 'storeTrue',
+            action: 'store_true',
             help: `append to the manifest instead of replacing`
         });
-        parser.addArgument('--data', {
+        parser.add_argument('--data', {
             required: true,
             help: 'Path to JSON file with normalized WebQA data.'
         });
-        parser.addArgument('--max-value-length', {
+        parser.add_argument('--max-value-length', {
             required: false,
-            defaultValue: 500,
+            default: 500,
             help: 'Ignore values longer than this (unit: number of UTF-16 code points after tokenization).'
         });
-        parser.addArgument('--class-name', {
+        parser.add_argument('--class-name', {
             required: false,
             help: 'The name of the device class, used to decide class-specific types'
         });
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });

@@ -199,68 +199,65 @@ class ContextSourceLoader extends Stream.Writable {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('sample', {
-            addHelp: true,
+        const parser = subparsers.add_parser('sample', {
+            add_help: true,
             description: "Choose which sentences to paraphrase, given a synthetic set."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to JSON file containing signature, type and mixin definitions.'
         });
-        parser.addArgument('--constants', {
+        parser.add_argument('--constants', {
             required: true,
             help: 'TSV file containing constant values to use.'
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input datasets to augment (in TSV format); use - for standard input'
         });
-        parser.addArgument(['-l', '--locale'], {
-            defaultValue: 'en-US',
+        parser.add_argument('-l', '--locale', {
+            default: 'en-US',
             help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
         });
-        parser.addArgument('--contextual', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--contextual', {
+            action: 'store_true',
             help: 'Process a contextual dataset.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--context-source', {
+        parser.add_argument('--context-source', {
             help: 'Source dataset from where contexts were extracted; used to choose a context sentence for each context.',
         });
-        parser.addArgument('--sampling-strategy', {
+        parser.add_argument('--sampling-strategy', {
             required: false,
             choices: ['byCode', 'bySentence', 'bySignature'],
             help: 'Which sampling strategy to use (defaults: bySignature).'
         });
-        parser.addArgument('--sampling-control', {
+        parser.add_argument('--sampling-control', {
             required: false,
             help: 'TSV file controlling sampling based on functions in the programs. Defaults to treating all functions equally.'
         });
-        parser.addArgument('--compound-only', {
+        parser.add_argument('--compound-only', {
             help: 'Keep only compound programs. (False if omitted)',
-            action: 'storeTrue'
+            action: 'store_true'
         });
 
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });
-        parser.addArgument('--random-seed', {
-            defaultValue: 'almond is awesome',
+        parser.add_argument('--random-seed', {
+            default: 'almond is awesome',
             help: 'Random seed'
         });
     },

@@ -542,28 +542,28 @@ class Normalizer {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('schemaorg-normalize-data', {
-            addHelp: true,
+        const parser = subparsers.add_parser('schemaorg-normalize-data', {
+            add_help: true,
             description: "Normalize schema.org JSON+LD files to match their ThingTalk representation."
         });
-        parser.addArgument('--data-output', {
+        parser.add_argument('--data-output', {
             type: fs.createWriteStream
         });
-        parser.addArgument('--meta-output', {
+        parser.add_argument('--meta-output', {
             type: fs.createWriteStream
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             help: 'Input JSON+LD files to normalize. Multiple input files will be merged in one.'
         });
-        parser.addArgument('--class-name', {
+        parser.add_argument('--class-name', {
             required: false,
             help: 'The name of the device class, used for decide class-specific types',
-            defaultValue: 'org.schema'
+            default: 'org.schema'
         });
     },
 

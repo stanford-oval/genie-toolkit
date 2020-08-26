@@ -39,9 +39,9 @@ function readAllLines(files, separator = '') {
 class ActionSetFlag extends argparse.Action {
     call(parser, namespace, values) {
         if (!namespace.flags)
-            namespace.set('flags', {});
+            namespace.flags = {};
         for (let value of values)
-            namespace.flags[value] = this.constant;
+            namespace.flags[value] = this.const;
     }
 }
 

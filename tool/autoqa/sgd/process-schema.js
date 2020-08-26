@@ -198,44 +198,42 @@ class SchemaProcessor {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('sgd-process-schema', {
-            addHelp: true,
+        const parser = subparsers.add_parser('sgd-process-schema', {
+            add_help: true,
             description: "Process a schema JSON definition into a Thingpedia class."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument(['--cache-file'], {
+        parser.add_argument('--cache-file', {
             required: false,
-            defaultValue: './schema.json',
+            default: './schema.json',
             help: 'Path to a cache file containing the schema definitions.'
         });
-        parser.addArgument(['--url'], {
+        parser.add_argument('--url', {
             required: false,
-            defaultValue: 'https://raw.githubusercontent.com/google-research-datasets/dstc8-schema-guided-dialogue/master/train/schema.json',
+            default: 'https://raw.githubusercontent.com/google-research-datasets/dstc8-schema-guided-dialogue/master/train/schema.json',
             help: 'The URL to retrieve the schema.'
         });
-        parser.addArgument('--manual', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--manual', {
+            action: 'store_true',
             help: 'Enable manual annotations.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--query-only', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--query-only', {
+            action: 'store_true',
             help: 'Enable manual annotations.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--include', {
+        parser.add_argument('--include', {
             required: false,
-            defaultValue: null,
+            default: null,
             help: 'services to include in the schema, split by comma (no space)'
         });
-        parser.addArgument('--exclude', {
+        parser.add_argument('--exclude', {
             required: false,
-            defaultValue: null,
+            default: null,
             help: 'services to exclude in the schema, split by comma (no space)'
         });
     },

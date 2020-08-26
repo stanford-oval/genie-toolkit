@@ -297,60 +297,58 @@ class DialogueToDSTStream extends Stream.Transform {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('extract-predicted-slots', {
-            addHelp: true,
+        const parser = subparsers.add_parser('extract-predicted-slots', {
+            add_help: true,
             description: "Transform a dialog input file in ThingTalk format into a dialogue state tracking prediction file."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: false,
-            defaultValue: process.stdout,
+            default: process.stdout,
             type: fs.createWriteStream,
-            description: "Write results to this file instead of stdout"
+            help: "Write results to this file instead of stdout"
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
         });
-        parser.addArgument('--url', {
+        parser.add_argument('--url', {
             required: false,
             help: "URL of the server to evaluate. Use a file:// URL pointing to a model directory to evaluate using a local instance of decanlp",
-            defaultValue: 'http://127.0.0.1:8400',
+            default: 'http://127.0.0.1:8400',
         });
-        parser.addArgument('--tokenized', {
+        parser.add_argument('--tokenized', {
             required: false,
-            action: 'storeTrue',
-            defaultValue: false,
+            action: 'store_true',
+            default: false,
             help: "The dataset is already tokenized."
         });
-        parser.addArgument('--no-tokenized', {
+        parser.add_argument('--no-tokenized', {
             required: false,
             dest: 'tokenized',
-            action: 'storeFalse',
+            action: 'store_false',
             help: "The dataset is not already tokenized (this is the default)."
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input datasets to evaluate (in dialog format); use - for standard input'
         });
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });
-        parser.addArgument('--database-file', {
+        parser.add_argument('--database-file', {
             required: false,
             help: `Path to a file pointing to JSON databases used to simulate queries.`,
         });

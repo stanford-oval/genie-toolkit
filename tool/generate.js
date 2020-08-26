@@ -31,102 +31,100 @@ const { ActionSetFlag } = require('./lib/argutils');
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('generate', {
-            addHelp: true,
+        const parser = subparsers.add_parser('generate', {
+            add_help: true,
             description: "Generate a new synthetic dataset, given a template file."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
-        parser.addArgument(['-t', '--target-language'], {
+        parser.add_argument('-t', '--target-language', {
             required: false,
-            defaultValue: 'thingtalk',
+            default: 'thingtalk',
             choices: AVAILABLE_LANGUAGES,
             help: `The programming language to generate`
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: false,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('--entities', {
+        parser.add_argument('--entities', {
             required: false,
             help: 'Path to JSON file containing entity type definitions.'
         });
-        parser.addArgument('--dataset', {
+        parser.add_argument('--dataset', {
             required: false,
             help: 'Path to file containing primitive templates, in ThingTalk syntax.'
         });
-        parser.addArgument('--template', {
+        parser.add_argument('--template', {
             required: true,
             nargs: '+',
             help: 'Path to file containing construct templates, in Genie syntax.'
         });
-        parser.addArgument('--set-flag', {
+        parser.add_argument('--set-flag', {
             required: false,
             nargs: 1,
             action: ActionSetFlag,
-            constant: true,
+            const: true,
             metavar: 'FLAG',
             help: 'Set a flag for the construct template file.',
         });
-        parser.addArgument('--unset-flag', {
+        parser.add_argument('--unset-flag', {
             required: false,
             nargs: 1,
             action: ActionSetFlag,
-            constant: false,
+            const: false,
             metavar: 'FLAG',
             help: 'Unset (clear) a flag for the construct template file.',
         });
-        parser.addArgument('--maxdepth', {
+        parser.add_argument('--maxdepth', {
             required: false,
             type: Number,
-            defaultValue: 5,
+            default: 5,
             help: 'Maximum depth of sentence generation',
         });
-        parser.addArgument('--target-pruning-size', {
+        parser.add_argument('--target-pruning-size', {
             required: false,
             type: Number,
-            defaultValue: 100000,
+            default: 100000,
             help: 'Approximate target size of the generate dataset, for each $root rule and each depth',
         });
         
-        parser.addArgument('--debug', {
+        parser.add_argument('--debug', {
             nargs: '?',
-            constant: 1,
-            defaultValue: 0,
+            const: 1,
+            default: 0,
             help: 'Enable debugging. Can be specified with an argument between 0 and 5 to choose the verbosity level.',
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            constant: 0,
-            action: 'storeConst',
+        parser.add_argument('--no-debug', {
+            const: 0,
+            action: 'store_const',
             dest: 'debug',
             help: 'Disable debugging.',
         });
-        parser.addArgument('--no-progress', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-progress', {
+            action: 'store_false',
             dest: 'progress',
-            defaultValue: true,
+            default: true,
             help: 'Disable the progress bar (implied if --debug is passed).',
         });
-        parser.addArgument('--random-seed', {
-            defaultValue: 'almond is awesome',
+        parser.add_argument('--random-seed', {
+            default: 'almond is awesome',
             help: 'Random seed'
         });
-        parser.addArgument('--white-list', {
+        parser.add_argument('--white-list', {
             required: false,
             help: `List of functions to include, split by comma (no space).`
         });
-        parser.addArgument('--id-prefix', {
+        parser.add_argument('--id-prefix', {
             required: false,
-            defaultValue: '',
+            default: '',
             help: 'Prefix to add to all sentence IDs (useful to combine multiple datasets).'
         });
     },

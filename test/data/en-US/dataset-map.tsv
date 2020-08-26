@@ -1,0 +1,5 @@
+com.yelp:restaurant	yelp_db.json
+com.spotify:song	spotify_song_db.json
+com.spotify:artist	spotify_artist_db.json
+com.spotify:album	spotify_album_db.json
+org.thingpedia.weather:current	weather_db.json

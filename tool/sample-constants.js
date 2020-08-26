@@ -31,36 +31,36 @@ const FileParameterProvider = require('./lib/file_parameter_provider');
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('sample-constants', {
-            addHelp: true,
+        const parser = subparsers.add_parser('sample-constants', {
+            add_help: true,
             description: "Sample constants for parameters from entities and string values."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to .tt file containing signature, type and mixin definitions.'
         });
-        parser.addArgument('--parameter-datasets', {
+        parser.add_argument('--parameter-datasets', {
             required: true,
             help: 'TSV file containing the paths to datasets for strings and entity types.'
         });
-        parser.addArgument('--random-seed', {
-            defaultValue: 'almond is awesome',
+        parser.add_argument('--random-seed', {
+            default: 'almond is awesome',
             help: 'Random seed'
         });
-        parser.addArgument('--sample-size', {
-            defaultValue: 10,
+        parser.add_argument('--sample-size', {
+            default: 10,
             help: 'Number of samples per entity or string value'
         });
-        parser.addArgument('--devices', {
+        parser.add_argument('--devices', {
             required: false,
             help: `The list of devices to sample, separated by comma`
         });

@@ -66,6 +66,7 @@ const subcommands = {
     'sgd-normalize-data': require('./autoqa/sgd/normalize-data'),
 
     'wikidata-process-schema': require('./autoqa/wikidata/process-schema'),
+    'wikidata-es-import': require('./autoqa/wikidata/es-import'),
 
     'auto-annotate': require('./autoqa/auto-annotate'),
     'make-string-datasets': require('./autoqa/make-string-datasets'),
@@ -80,15 +81,19 @@ const subcommands = {
 
 async function main() {
     const parser = new argparse.ArgumentParser({
-        addHelp: true,
+        add_help: true,
         description: "A tool to generate natural language semantic parsers for programming languages."
     });
 
-    const subparsers = parser.addSubparsers({ title: 'Available sub-commands', dest: 'subcommand' });
+    const subparsers = parser.add_subparsers({
+        title: 'Available sub-commands',
+        dest: 'subcommand',
+        required: true
+    });
     for (let subcommand in subcommands)
         subcommands[subcommand].initArgparse(subparsers);
 
-    const args = parser.parseArgs();
+    const args = parser.parse_args();
     await subcommands[args.subcommand].execute(args);    
 }
 main();

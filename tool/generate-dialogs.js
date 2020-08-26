@@ -47,110 +47,109 @@ const DIALOG_SERIALIZERS = {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('generate-dialogs', {
-            addHelp: true,
+        const parser = subparsers.add_parser('generate-dialogs', {
+            add_help: true,
             description: "Generate a new synthetic dialog dataset, given a template file."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
-        parser.addArgument(['-f', '--output-format'], {
+        parser.add_argument('-f', '--output-format', {
             required: false,
-            defaultValue: 'txt-only',
+            default: 'txt-only',
             choices: ['json', 'txt', 'txt-only'],
             help: `Output format`
         });
-        parser.addArgument(['--max-turns'], {
+        parser.add_argument('--max-turns', {
             required: false,
-            defaultValue: 7,
+            default: 7,
             type: Number,
             help: `Maximum number of turns per dialog`
         });
-        parser.addArgument(['-t', '--target-language'], {
+        parser.add_argument('-t', '--target-language', {
             required: false,
-            defaultValue: 'thingtalk',
+            default: 'thingtalk',
             choices: AVAILABLE_LANGUAGES,
             help: `The programming language to generate`
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: false,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('--entities', {
+        parser.add_argument('--entities', {
             required: false,
             help: 'Path to JSON file containing entity type definitions.'
         });
-        parser.addArgument('--dataset', {
+        parser.add_argument('--dataset', {
             required: false,
             help: 'Path to file containing primitive templates, in ThingTalk syntax.'
         });
-        parser.addArgument('--template', {
+        parser.add_argument('--template', {
             required: true,
             nargs: '+',
             help: 'Path to file containing construct templates, in Genie syntax.'
         });
-        parser.addArgument('--set-flag', {
+        parser.add_argument('--set-flag', {
             required: false,
             nargs: 1,
             action: ActionSetFlag,
-            constant: true,
+            const: true,
             metavar: 'FLAG',
             help: 'Set a flag for the construct template file.',
         });
-        parser.addArgument('--unset-flag', {
+        parser.add_argument('--unset-flag', {
             required: false,
             nargs: 1,
             action: ActionSetFlag,
-            constant: false,
+            const: false,
             metavar: 'FLAG',
             help: 'Unset (clear) a flag for the construct template file.',
         });
-        parser.addArgument('--maxdepth', {
+        parser.add_argument('--maxdepth', {
             required: false,
             type: Number,
-            defaultValue: 4,
+            default: 4,
             help: 'Maximum depth of sentence generation',
         });
-        parser.addArgument('--target-pruning-size', {
+        parser.add_argument('--target-pruning-size', {
             required: false,
             type: Number,
-            defaultValue: 100,
+            default: 100,
             help: 'Pruning target for each non-terminal',
         });
-        parser.addArgument(['-B', '--minibatch-size'], {
+        parser.add_argument('-B', '--minibatch-size', {
             required: false,
             type: Number,
-            defaultValue: 1000,
+            default: 1000,
             help: 'Number of partial dialogue to keep in the working set for each minibatch',
         });
-        parser.addArgument(['-n', '--num-minibatches'], {
+        parser.add_argument('-n', '--num-minibatches', {
             required: false,
-            defaultValue: 1,
+            default: 1,
             type: Number,
             help: `Number of minibatches of dialogues to generate`
         });
 
-        parser.addArgument('--debug', {
+        parser.add_argument('--debug', {
             nargs: '?',
-            constant: 1,
-            defaultValue: 0,
+            const: 1,
+            default: 0,
             help: 'Enable debugging. Can be specified with an argument between 0 and 5 to choose the verbosity level.',
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            constant: 0,
-            action: 'storeConst',
+        parser.add_argument('--no-debug', {
+            const: 0,
+            action: 'store_const',
             dest: 'debug',
             help: 'Disable debugging.',
         });
-        parser.addArgument('--random-seed', {
-            defaultValue: 'almond is awesome',
+        parser.add_argument('--random-seed', {
+            default: 'almond is awesome',
             help: 'Random seed'
         });
     },

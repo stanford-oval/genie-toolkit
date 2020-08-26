@@ -46,6 +46,7 @@ do_test([
     ('./test_bert_canonical_generator'),
     ('./test_engine_protocol'),
     ('./test_entities'),
+    ('./test_entity_match'),
     ('./test_helpers'),
     ('./test_i18n_chinese'),
     ('./test_ip_address'),

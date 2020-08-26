@@ -32,167 +32,157 @@ const ProgressBar = require('./lib/progress_bar');
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('augment', {
-            addHelp: true,
+        const parser = subparsers.add_parser('augment', {
+            add_help: true,
             description: "Apply parameter replacement and misc augmentations on a Genie dataset."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument(['-l', '--locale'], {
+        parser.add_argument('-l', '--locale', {
             required: false,
-            defaultValue: 'en-US',
+            default: 'en-US',
             help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
         });
-        parser.addArgument(['--param-locale'], {
+        parser.add_argument('--param-locale', {
             required: false,
             help: `BGP 47 locale tag of the language for parameter values (defaults to the same value as --locale)`
         });
-        parser.addArgument(['-t', '--target-language'], {
+        parser.add_argument('-t', '--target-language', {
             required: false,
-            defaultValue: 'thingtalk',
+            default: 'thingtalk',
             choices: AVAILABLE_LANGUAGES,
             help: `The programming language to generate`
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('--parameter-datasets', {
+        parser.add_argument('--parameter-datasets', {
             required: true,
             help: 'TSV file containing the paths to datasets for strings and entity types.'
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input datasets to augment (in TSV format); use - for standard input'
         });
-        parser.addArgument('--contextual', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--contextual', {
+            action: 'store_true',
             help: 'Process a contextual dataset.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--quoted-fraction', {
+        parser.add_argument('--quoted-fraction', {
             type: Number,
-            defaultValue: 0.1,
+            default: 0.1,
             metavar: 'FRACTION',
             help: 'Fraction of sentences that will not have their quoted parameters replaced',
         });
-        parser.addArgument('--untyped-string-probability', {
+        parser.add_argument('--untyped-string-probability', {
             type: Number,
-            defaultValue: 0.0,
+            default: 0.0,
             metavar: 'FRACTION',
             help: 'Fraction of sentences that will have generic text in their string parameters'
         });
-        parser.addArgument('--max-span-length', {
+        parser.add_argument('--max-span-length', {
             type: Number,
-            defaultValue: 10,
+            default: 10,
             metavar: 'LENGTH',
             help: 'Maximum length of a string parameter (in words)'
         });
-        parser.addArgument('--synthetic-expand-factor', {
+        parser.add_argument('--synthetic-expand-factor', {
             type: Number,
-            defaultValue: 5,
+            default: 5,
             metavar: 'FACTOR',
             help: 'Expansion factor of synthetic sentences (including augmented synthetic)'
         });
-        parser.addArgument('--quoted-paraphrasing-expand-factor', {
+        parser.add_argument('--quoted-paraphrasing-expand-factor', {
             type: Number,
-            defaultValue: 30,
+            default: 30,
             metavar: 'FACTOR',
             help: 'Expansion factor of paraphrased sentences with quoted parameters'
         });
-        parser.addArgument('--no-quote-paraphrasing-expand-factor', {
+        parser.add_argument('--no-quote-paraphrasing-expand-factor', {
             type: Number,
-            defaultValue: 10,
+            default: 10,
             metavar: 'FACTOR',
             help: 'Expansion factor of paraphrased sentences without quoted parameters)'
         });
-        parser.addArgument('--single-device-expand-factor', {
+        parser.add_argument('--single-device-expand-factor', {
             type: Number,
-            defaultValue: 5,
+            default: 5,
             metavar: 'FACTOR',
             help: 'Number of sentences to generate with "ask" or "tell" prefixes for single-device commands'
         });
-        parser.addArgument('--replace-locations', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--replace-locations', {
+            action: 'store_true',
             help: 'Replace LOCATION tokens with unquoted locations.',
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-replace-locations', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-replace-locations', {
+            action: 'store_false',
             dest: 'replace_locations',
             help: 'Do not replace LOCATION tokens with unquoted locations.',
         });
-        parser.addArgument('--replace-numbers', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--replace-numbers', {
+            action: 'store_true',
             help: 'Replace NUMBER tokens with actual values.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--no-replace-numbers', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-replace-numbers', {
+            action: 'store_false',
             dest: 'replace_numbers',
             help: 'Do not replace NUMBER tokens',
         });
-        parser.addArgument('--requotable', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--requotable', {
+            action: 'store_true',
             help: 'Replace parameters in a way that they can be requoted later (defaults to true).',
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-requotable', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-requotable', {
+            action: 'store_false',
             dest: 'requotable',
             help: 'Allow the replacement of a parameter in the sentence and in the program to differ (making requoting impossible).',
         });
-        parser.addArgument('--clean-parameters', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--clean-parameters', {
+            action: 'store_true',
             help: 'Take extra effort to use parameters that are simple and do not include punctuation marks',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--sampling-type', {
+        parser.add_argument('--sampling-type', {
             choices: ['default', 'random'],
             help: 'Random strategy assigns random weights to parameters instead of reading from file',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--num-attempts', {
+        parser.add_argument('--num-attempts', {
             type: Number,
-            defaultValue: 10000,
+            default: 10000,
             help: 'Maximum number of attempts to replace a parameter value'
         });
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: true
+            default: true
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });
-        parser.addArgument('--random-seed', {
-            defaultValue: 'almond is awesome',
+        parser.add_argument('--random-seed', {
+            default: 'almond is awesome',
             help: 'Random seed'
         });
-        parser.addArgument('--parallelize', {
+        parser.add_argument('--parallelize', {
             type: Number,
             help: 'Run N threads in parallel (requires --experimental-worker support)',
             metavar: 'N',
-            defaultValue: 1,
+            default: 1,
         });
-        parser.addArgument('--override-flags', {
+        parser.add_argument('--override-flags', {
             required: false,
-            defaultValue: '',
+            default: '',
             help: 'Override input sentence flags with the provided flag(s)'
         });
     },

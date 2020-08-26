@@ -176,21 +176,21 @@ class Normalizer {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('sgd-normalize-data', {
-            addHelp: true,
+        const parser = subparsers.add_parser('sgd-normalize-data', {
+            add_help: true,
             description: "Generate normalized data from dialogs to match their ThingTalk representation."
         });
-        parser.addArgument('--data-output', {
+        parser.add_argument('--data-output', {
             type: fs.createWriteStream
         });
-        parser.addArgument('--meta-output', {
+        parser.add_argument('--meta-output', {
             type: fs.createWriteStream
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             help: 'Input JSON+LD files to normalize. Multiple input files will be merged in one.'
         });

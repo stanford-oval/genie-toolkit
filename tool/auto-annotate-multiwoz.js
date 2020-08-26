@@ -726,38 +726,38 @@ class Converter extends stream.Readable {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('auto-annotate-multiwoz', {
-            addHelp: true,
+        const parser = subparsers.add_parser('auto-annotate-multiwoz', {
+            add_help: true,
             description: `Heuristically convert multiwoz annotations to ThingTalk.`
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('--database-file', {
+        parser.add_argument('--database-file', {
             required: false,
             help: `Path to a file pointing to JSON databases used to simulate queries.`,
         });
-        parser.addArgument('--user-nlu-server', {
+        parser.add_argument('--user-nlu-server', {
             required: false,
-            defaultValue: 'http://127.0.0.1:8400',
+            default: 'http://127.0.0.1:8400',
             help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
         });
-        parser.addArgument('--agent-nlu-server', {
+        parser.add_argument('--agent-nlu-server', {
             required: false,
-            defaultValue: 'http://127.0.0.1:8400',
+            default: 'http://127.0.0.1:8400',
             help: `The URL of the natural language server to parse agent utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
         });
-        parser.addArgument('--only-multidomain', {
+        parser.add_argument('--only-multidomain', {
             required: false,
-            action: 'storeTrue',
+            action: 'store_true',
             help: 'Only translate multi-domain dialogues'
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             help: 'Input dialog file'
         });
     },

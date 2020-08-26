@@ -76,18 +76,18 @@ class ParaphraseHITCreator extends Stream.Transform {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('mturk-make-paraphrase-hits', {
-            addHelp: true,
+        const parser = subparsers.add_parser('mturk-make-paraphrase-hits', {
+            add_help: true,
             description: "Prepare the input file for the manual paraphrase HITs."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument('--sentences-per-task', {
+        parser.add_argument('--sentences-per-task', {
             required: false,
             type: Number,
-            defaultValue: NUM_SENTENCES_PER_TASK,
+            default: NUM_SENTENCES_PER_TASK,
             help: "Number of sentences in each HIT"
         });
     },

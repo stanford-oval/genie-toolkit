@@ -229,65 +229,60 @@ class TypecheckStream extends Stream.Transform {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('typecheck', {
-            addHelp: true,
+        const parser = subparsers.add_parser('typecheck', {
+            add_help: true,
             description: "Typecheck a dataset, optionally applying transformations to ensure the types are correct."
         });
-        parser.addArgument(['-o', '--output'], {
+        parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument(['--dropped'], {
+        parser.add_argument('--dropped', {
             required: true,
             help: "Location where to save sentences that were dropped",
             type: fs.createWriteStream
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('--cache', {
+        parser.add_argument('--cache', {
             help: "Cache file with previously applied transformations."
         });
-        parser.addArgument('--contextual', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--contextual', {
+            action: 'store_true',
             help: 'Process a contextual dataset.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--interactive', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--interactive', {
+            action: 'store_true',
             help: 'Fix problems interactively.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--no-interactive', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-interactive', {
+            action: 'store_false',
             dest: 'interactive',
             help: 'Fix problems automatically with no interaction.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('input_file', {
+        parser.add_argument('input_file', {
             nargs: '+',
             type: maybeCreateReadStream,
             help: 'Input datasets to typecheck (in TSV format); use - for standard input'
         });
 
-        parser.addArgument('--debug', {
-            nargs: 0,
-            action: 'storeTrue',
+        parser.add_argument('--debug', {
+            action: 'store_true',
             help: 'Enable debugging.',
-            defaultValue: false
+            default: false
         });
-        parser.addArgument('--no-debug', {
-            nargs: 0,
-            action: 'storeFalse',
+        parser.add_argument('--no-debug', {
+            action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
         });
-        parser.addArgument('--random-seed', {
-            defaultValue: 'almond is awesome',
+        parser.add_argument('--random-seed', {
+            default: 'almond is awesome',
             help: 'Random seed'
         });
     },
