@@ -177,7 +177,7 @@ function adjustStatementsForInitialRequest(stmt) {
         newStatements.push(stmt);
     }
 
-    return newStatements;
+    return newStatements.map(C.adjustDefaultParameters);
 }
 
 function initialRequest(stmt) {

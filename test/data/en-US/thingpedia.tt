@@ -548,7 +548,8 @@ class @com.youtube
 }
 class @org.thingpedia.weather
 #_[canonical="weather api"] {
-  monitorable query current(in req location: Location #_[prompt="What location do you want the current weather for?"] #_[canonical="location"],
+  monitorable query current(in opt location: Location #_[prompt="What location do you want the current weather for?"] #_[canonical="location"]
+                            #[default=$context.location.current_location],
                             out temperature: Measure(C) #_[canonical="temperature"],
                             out wind_speed: Measure(mps) #_[canonical="wind speed"],
                             out humidity: Number #_[canonical="humidity"],

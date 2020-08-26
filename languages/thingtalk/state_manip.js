@@ -298,6 +298,8 @@ function isUserAskingResultQuestion(ctx) {
 }
 
 function addNewItem(ctx, dialogueAct, dialogueActParam, confirm, ...newHistoryItem) {
+    newHistoryItem = newHistoryItem.map(C.adjustDefaultParameters);
+
     const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, []);
 
     if (confirm === 'proposed') {
@@ -506,6 +508,7 @@ function addAction(ctx, dialogueAct, action, confirm) {
 }
 
 function addQuery(ctx, dialogueAct, newTable, confirm) {
+    newTable = C.adjustDefaultParameters(newTable);
     let newStmt = new Ast.Statement.Command(null, newTable, [C.notifyAction()]);
     let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
 
