@@ -641,7 +641,7 @@ function checkAtomFilter(table, filter) {
         if (ptype.isArray)
             vtype = vtype.elem;
         else if (ptype.isRecurrentTimeSpecification)
-            vtype = Type.Date;
+            vtype = [Type.Date, Type.Time];
         else
             return false;
     } else if (filter.operator === 'contains~') {
@@ -660,8 +660,17 @@ function checkAtomFilter(table, filter) {
         vtype = Type.String;
     }
 
-    if (!filter.value.getType().equals(vtype))
+    if (!Array.isArray(vtype))
+        vtype = [vtype];
+
+    let typeMatch = false;
+    for (let type of vtype) {
+        if (filter.value.getType().equals(type))
+            typeMatch = true;
+    }
+    if (!typeMatch)
         return false;
+
 
     if (vtype.isNumber || vtype.isMeasure) {
         let min = -Infinity;
