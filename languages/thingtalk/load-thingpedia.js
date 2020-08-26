@@ -613,7 +613,7 @@ class ThingpediaLoader {
             if (pronoun === 'when' || pronoun === 'what time')
                 this.projections[pname][posCategory].push([pronoun, base, verb]);
         }
-        this.projections[pname][posCategory].push([pronoun, base, canonical.replace('|', ' ')]); // lgtm [js/incomplete-sanitization]
+        this.projections[pname][posCategory].push([pronoun, base, canonical.replace(/\|/g, ' ')]);
 
 
     }
