@@ -19,7 +19,6 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
 const Inflectors = require('en-inflectors').Inflectors;
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
