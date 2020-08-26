@@ -53,7 +53,7 @@ function makeFilter(loader, pname, op, value, negate = false) {
     if (ptype.isEntity && ptype.type === 'tt:url')
         return null;
     if (op === 'contains') {
-        if (loader.params.out.has(pname.name + '+' + Type.RecurrentTimeSpecification))
+        if (loader.params.out.has(pname.name + '+' + Type.RecurrentTimeSpecification) && (vtype.isTime || vtype.isDate))
             ptype = Type.RecurrentTimeSpecification;
         else
             ptype = Type.Array(vtype);

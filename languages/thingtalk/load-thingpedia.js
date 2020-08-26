@@ -415,7 +415,7 @@ class ThingpediaLoader {
                 vtype = ptype.elem;
                 op = 'contains';
             } else if (ptype.isRecurrentTimeSpecification) {
-                vtype = Type.Date;
+                vtype = [Type.Date, Type.Time];
                 op = 'contains';
             } else if (pname === 'id') {
                 vtype = Type.String;
@@ -425,6 +425,16 @@ class ThingpediaLoader {
         if (!this._options.flags.turking && op === 'contains')
             canUseBothForm = true;
 
+        if (!Array.isArray(vtype))
+            vtype = [vtype];
+
+        for (let type of vtype)
+            this._recordOutputParamByType(functionName, pname, ptype, op, type, canonical, canUseBothForm);
+    }
+
+    _recordOutputParamByType(functionName, pname, ptype, op, vtype, canonical, canUseBothForm) {
+        const pvar = new Ast.Value.VarRef(pname);
+        const typestr = this._recordType(ptype);
         const vtypestr = this._recordType(vtype);
         if (vtypestr === null)
             return;
