@@ -508,7 +508,7 @@ const MANUAL_COUNTED_OBJECT_OVERRIDE = {
 const MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN = {
     'restaurants': {
         'starRating.ratingValue': {
-            base: ["star rating", "michelin rating", "michelin star"],
+            base: ["michelin star rating", "michelin rating", "michelin star"],
             adjective: ["michelin # star", "michelin # star"],
             passive_verb: ["rated # star by michelin guide"]
         }
