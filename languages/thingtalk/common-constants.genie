@@ -45,7 +45,6 @@ constant_Currency = const(CURRENCY, Type.Currency);
 constant_Time = const(TIME, Type.Time);
 constant_Date = const(DATE, Type.Date);
 constant_Location = const(LOCATION, Type.Location);
-constant_RecurrentTimeSpecification = const(RECURRENT_TIME_SPECIFICATION, Type.RecurrentTimeSpecification);
 
 constant_Entity__tt__picture  = {}
 constant_Entity__tt__function = {}

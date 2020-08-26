@@ -145,8 +145,10 @@ class ThingpediaLoader {
         this._allTypes.set(typestr, type);
 
         this._grammar.declareSymbol('out_param_' + typestr);
-        this._grammar.declareSymbol('placeholder_' + typestr);
+        if (type.isRecurrentTimeSpecification)
+            return null;
 
+        this._grammar.declareSymbol('placeholder_' + typestr);
         if (!this._grammar.hasSymbol('constant_' + typestr)) {
             if (!type.isEnum && !type.isEntity && !type.isArray)
                 throw new Error('Missing definition for type ' + typestr);
