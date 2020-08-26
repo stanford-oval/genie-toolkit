@@ -176,7 +176,7 @@ class SchemaTrimmer {
         }
     }
 
-    _removeFieldsWithoutData(arg) {
+    _removeFieldsWithoutData(arg, prefix='') {
         let type = arg.type;
         while (type.isArray)
             type = type.elem;
@@ -184,18 +184,20 @@ class SchemaTrimmer {
         if (!type.isCompound)
             return;
 
+        prefix = prefix + `${arg.name}.`;
+
         for (let fieldname in type.fields) {
             const field = type.fields[fieldname];
-            if (this._whiteListed(`${arg.name}.${fieldname}`))
+            if (this._whiteListed(`${prefix}${fieldname}`))
                 continue;
             if (!field.annotations['org_schema_has_data']
                 || !field.annotations['org_schema_has_data'].value
-                || this._blackListed(`${arg.name}.${fieldname}`)) {
+                || this._blackListed(`${prefix}${fieldname}`)) {
                 delete type.fields[fieldname];
                 continue;
             }
 
-            this._removeFieldsWithoutData(field);
+            this._removeFieldsWithoutData(field, prefix);
         }
     }
 
