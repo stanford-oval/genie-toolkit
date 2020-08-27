@@ -293,7 +293,7 @@ function makeAggregateFilterWithFilter(param, filter, aggregationOp, field, op, 
 
 
 function makeEdgeFilterStream(proj, op, value) {
-    if (proj.table.isAggregation)
+    if (!(proj instanceof Ast.Table.Projection))
         return null;
 
     let f = new Ast.BooleanExpression.Atom(null, proj.args[0], op, value);
@@ -985,6 +985,8 @@ function hasGetPredicate(filter) {
 }
 
 function makeGetPredicate(proj, op, value, negate = false) {
+    if (!proj.isProjection)
+        return null;
     if (!proj.table.isInvocation)
         return null;
     let arg = proj.args[0];

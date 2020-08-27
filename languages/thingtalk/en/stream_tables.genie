@@ -508,18 +508,20 @@ stream = {
         ('in case of changes' | 'in case of variations' | 'in case of updates' | 'if something changes' | 'when something changes' | 'if there are changes' | 'if there are updates') 'in' table:with_filtered_table => C.tableToStream(table, null);
 
         ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'anytime') proj:projection_Any 'changes' => {
-            if (proj.args[0] === 'picture_url')
-                return null;
-            if (proj.table.isAggregation)
-                return null;
-            let outParams = Object.keys(proj.table.schema.out);
             let stream;
-            if (outParams.length === 1 && _tpLoader.flags.turking)
-                return null;
-            if (outParams.length === 1)
-                stream = C.tableToStream(proj.table, null);
-            else
-                stream = C.tableToStream(proj.table, proj.args);
+            if (proj instanceof Ast.Table.Projection) {
+                if (proj.args[0] === 'picture_url')
+                    return null;
+                let outParams = Object.keys(proj.table.schema.out);
+                if (outParams.length === 1 && _tpLoader.flags.turking)
+                    return null;
+                if (outParams.length === 1)
+                    stream = C.tableToStream(proj.table, null);
+                else
+                    stream = C.tableToStream(proj.table, proj.args);
+            } else {
+                stream = C.tableToStream(proj, null);
+            }
             return stream;
         };
     }
