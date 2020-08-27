@@ -197,8 +197,8 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     'datePublished': {
         passive_verb: ["published on #", "written on #"],
         base: ["date published"],
-        adjective_argmax: ['most recent', 'latest', 'last'],
-        adjective_argmin: ['earliest', 'first'],
+        adjective_argmax: ['most recent', 'latest', 'last', 'newest'],
+        adjective_argmin: ['earliest', 'first', 'oldest'],
         base_projection: ['date', 'year'],
         passive_verb_projection: ['published | on', 'written | on']
     },
