@@ -120,8 +120,8 @@ function genBaseCanonical(canonical, name, ptype) {
         let noun = tokens.slice(0, tokens.length - 1);
         let verb = tokens[tokens.length - 1];
         let verb_phrases = [
-            [languagePack.toVB(verb), ...noun].join(' '),
-            [languagePack.toVBZ(verb), ...noun].join(' ')
+            [languagePack.toVerbBase(verb), ...noun].join(' '),
+            [languagePack.toVerbSingular(verb), ...noun].join(' ')
         ];
         updateDefault(canonical, 'property');
         updateCanonical(canonical, 'property_true', name);
