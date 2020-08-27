@@ -28,13 +28,6 @@ const { requoteProgram } = require('../lib/dataset-tools/requoting');
 const { readAllLines } = require('./lib/argutils');
 const { DatasetParser } = require('../lib/dataset-tools/parsers');
 
-function waitEnd(stream) {
-    return new Promise((resolve, reject) => {
-        stream.on('end', resolve);
-        stream.on('error', reject);
-    });
-}
-
 async function normalize(preprocessed, target_code, schemas) {
     const entities = Utils.makeDummyEntities(preprocessed);
     const sequence = target_code.split(' ');
@@ -84,13 +77,12 @@ module.exports = {
         args.training_set.setEncoding('utf8');
         const training = await readAllLines([args.training_set])
             .pipe(new DatasetParser({ preserveId: true }));
-        training.on('data', async (line) => {
+        for await (const line of training) {
             const normalized = await normalize(line.preprocessed, line.target_code, schemas);
             const requoted = Array.from(requoteProgram(normalized)).join(' ');
             trainingPrograms[requoted] = (trainingPrograms[requoted] || 0) + 1;
             trainingSize += 1;
-        });
-        await waitEnd(training);
+        }
 
         let newCount = 0;
         const newPrograms = new Set();
@@ -100,7 +92,7 @@ module.exports = {
         args.evaluation_set.setEncoding('utf8');
         const evaluation = await readAllLines([args.evaluation_set])
             .pipe(new DatasetParser({ preserveId: true, parseMultiplePrograms: true }));
-        evaluation.on('data', async (line) => {
+        for await (const line of evaluation) {
             const candidates = line.target_code;
             let covered = false;
             let requoted;
@@ -118,8 +110,7 @@ module.exports = {
             }
             evaluationPrograms[requoted] = (evaluationPrograms[requoted] || 0) + 1;
             evaluationSize += 1;
-        });
-        await waitEnd(evaluation);
+        }
 
         console.log(`${Object.keys(trainingPrograms).length} unique programs in training set`);
         console.log(`${Object.keys(evaluationPrograms).length} unique programs in evaluation set`);
