@@ -93,6 +93,8 @@ function makeDateRangeFilter(loader, param, values) {
         makeFilter(loader, param, '>=', values[0]),
         makeFilter(loader, param, '<=', values[1])
     ];
+    if (operands.includes(null))
+        return null;
     return new Ast.BooleanExpression.And(null, operands);
 }
 
