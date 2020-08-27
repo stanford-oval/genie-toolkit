@@ -43,6 +43,13 @@ function makeDate(base, operator, offset) {
     return value;
 }
 
+function makeMonthDateRange(year, month) {
+    return [
+        makeDate(new Ast.DatePiece(year, month, null, null), '+', null),
+        makeDate(new Ast.DatePiece(year, month, null, null), '+', new Ast.Value.Measure(1, 'mon'))
+    ];
+}
+
 function getFunctionNames(ast) {
     const functions = [];
     ast.visit(new class extends Ast.NodeVisitor {
@@ -1845,6 +1852,7 @@ module.exports = {
     // constants
     addUnit,
     makeDate,
+    makeMonthDateRange,
 
     // builtins
     notifyAction,
