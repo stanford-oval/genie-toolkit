@@ -103,6 +103,11 @@ module.exports = {
             default: NUM_PARAPHRASES_PER_SENTENCE,
             help: "Number of paraphrases collected for each sentence"
         });
+        parser.add_argument('--id-prefix', {
+            required: false,
+            default: '',
+            help: "Prefix to the id of each example"
+        });
         parser.add_argument('--debug', {
             action: 'store_true',
             help: 'Enable debugging.',
@@ -194,14 +199,14 @@ module.exports = {
                 transform(ex, encoding, callback) {
                     if (args.contextual) {
                         callback(null, {
-                            id: ex.id,
+                            id: `${args.id_prefix}${ex.id}`,
                             context: ex.context_preprocessed,
                             preprocessed: ex.preprocessed,
                             target_code: ex.target_preprocessed
                         });
                     } else {
                         callback(null, {
-                            id: ex.id,
+                            id: `${args.id_prefix}${ex.id}`,
                             preprocessed: ex.preprocessed,
                             target_code: ex.target_preprocessed
                         });

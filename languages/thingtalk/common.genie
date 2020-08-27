@@ -78,6 +78,7 @@ out_param_Measure_kg   = {}
 out_param_Measure_C    = {}
 out_param_Measure_m    = {}
 out_param_Measure_mps  = {}
+out_param_RecurrentTimeSpecification = {}
 
 out_param_Array__Numeric = {
     out_param_Array__Number;
@@ -121,6 +122,7 @@ npp_input_param = {}
 npp_argminmax = {}
 coref_npp_filter = {}
 coref_npp_input_param = {}
+npp_boolean_projection = {}
 
 // filters & input parameters on npi parameters
 // npi: Noun-phrase parameter for Identity of the subejct
@@ -130,6 +132,7 @@ npi_input_param = {}
 npi_argminmax = {}
 coref_npi_filter = {}
 coref_npi_input_param = {}
+npi_boolean_projection = {}
 
 // filters & input parameters on pvp parameters
 // pvp: Passive-Verb Phrase parameter
@@ -139,6 +142,7 @@ pvp_input_param = {}
 pvp_argminmax = {}
 coref_pvp_filter = {}
 coref_pvp_input_param = {}
+pvp_boolean_projection = {}
 
 // filters & input parameters on prep parameters
 // prep: preposition parameter
@@ -148,6 +152,7 @@ preposition_input_param = {}
 preposition_argminmax = {}
 coref_preposition_filter = {}
 coref_preposition_input_param = {}
+preposition_boolean_projection = {}
 
 // filters & input parameters on avp parameters
 // avp: Active-Verb Phrase parameter
@@ -157,6 +162,7 @@ avp_input_param = {}
 avp_argminmax = {}
 coref_avp_filter = {}
 coref_avp_input_param = {}
+avp_boolean_projection = {}
 
 // filters & input parameters on npv parameters
 // npv: implicit parameter with Noun-Phrase Value, i.e., the parameter itself will not appear in the sentence
@@ -166,6 +172,7 @@ npv_input_param = {}
 npv_argminmax = {}
 coref_npv_filter = {}
 coref_npv_input_param = {}
+npv_boolean_projection = {}
 
 // filters & input parameters on apv parameter
 // apv: implicit parameter with Adjective-Phrase Value (similar to npv, but in adjective form)
@@ -175,6 +182,7 @@ apv_input_param = {}
 apv_argminmax = {}
 coref_apv_filter = {}
 coref_apv_input_param = {}
+apv_boolean_projection = {}
 
 // filters & input parameters on reverese_verb parameter
 // reverese verb: verb-phrase parameter where value is the subject of the verb phrase

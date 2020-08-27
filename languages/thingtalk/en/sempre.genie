@@ -32,8 +32,8 @@ const HERE = new Ast.Value.Location(new Ast.Location.Relative('current_location'
 
 }
 
-import './constants';
 import '../common';
+import './constants';
 import '../common-constants';
 
 table = thingpedia_query if complete;
@@ -87,9 +87,9 @@ filtered_table = {
 
     // arg minmax
     ( table:table 'that has the smallest' p:out_param_Numeric
-    | table:filtered_table 'that has the smallest' p:out_param_Numeric ) => C.makeArgMaxMinTable(table, p, 'asc', 1);
+    | table:filtered_table 'that has the smallest' p:out_param_Numeric ) => C.makeArgMaxMinTable(table, p.name, 'asc');
     ( table:table 'that has the largest' p:out_param_Numeric
-    | table:filtered_table 'that has the largest' p:out_param_Numeric ) => C.makeArgMaxMinTable(table, p, 'desc', 1);
+    | table:filtered_table 'that has the largest' p:out_param_Numeric ) => C.makeArgMaxMinTable(table, p.name, 'desc');
 
     // arg minmax on count
     ( table:table 'that has the least number of' p:out_param_Array__Any
@@ -116,18 +116,9 @@ filtered_table = {
     | p:out_param_Any 'of' table:filtered_table
     | p:out_param_Array__Any 'of' table:table
     | p:out_param_Array__Any 'of' table:filtered_table ) => {
-        const name = p.name;
-        if (_tpLoader.flags.schema_org) {
-            if (name === 'id')
-                return null;
-        }
-        if (!table.schema.out[name])
+        if (p.name === 'id')
             return null;
-
-        if (name === 'picture_url' && _tpLoader.flags.turking)
-            return null;
-        const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
-        return new Ast.Table.Projection(null, table, [name], newSchema);
+        return C.makeSingleFieldProjection('table', null, table, p.name);
     };
 
     // count
@@ -137,6 +128,9 @@ filtered_table = {
             return null;
         const newSchema = table.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT)
             .addArguments([new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'count', Type.Number)]);
+        newSchema.minimal_projection = [];
+        if (newSchema.annotations)
+            newSchema.annotations.minimal_projection = new Ast.Value.Array([]);
         const agg = new Ast.Table.Aggregation(null, table, '*', 'count', null, newSchema);
         return new Ast.Table.Projection(null, agg, ['count'], newSchema);
     };
@@ -150,6 +144,9 @@ filtered_table = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        newSchema.minimal_projection = [];
+        if (newSchema.annotations)
+            newSchema.annotations.minimal_projection = new Ast.Value.Array([]);
         const agg = new Ast.Table.Aggregation(null, t, p.name, 'sum', null, newSchema);
         return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
@@ -161,6 +158,9 @@ filtered_table = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        newSchema.minimal_projection = [];
+        if (newSchema.annotations)
+            newSchema.annotations.minimal_projection = new Ast.Value.Array([]);
         const agg = new Ast.Table.Aggregation(null, t, p.name, 'avg', null, newSchema);
         return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };

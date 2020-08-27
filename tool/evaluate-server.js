@@ -152,6 +152,12 @@ module.exports = {
             default: '',
             help: 'Collapse all examples of complexity greater or equal to this',
         });
+        parser.addArgument('--min-complexity', {
+            required: false,
+            type: Number,
+            defaultValue: 0,
+            help: 'Collapse all examples of complexity smaller or equal to this'
+        });
     },
 
     async execute(args) {
@@ -163,7 +169,8 @@ module.exports = {
         const output = readAllLines(args.input_file)
             .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true }))
             .pipe(new SentenceEvaluatorStream(args.locale, parser, schemas, args.tokenized, args.debug, args.complexity_metric))
-            .pipe(new CollectSentenceStatistics({ maxComplexity: args.max_complexity ,
+            .pipe(new CollectSentenceStatistics({ minComplexity: args.min_complexity,
+                                                  maxComplexity: args.max_complexity ,
                                                   splitByDevice: args.split_by_device}));
 
         const result = await output.read();
@@ -187,12 +194,16 @@ module.exports = {
         for (let device of devices) {
             if (args.csv) {
                 csvDisplay(args, null, result[device], device);
+                if (args.min_complexity > 0)
+                    csvDisplay(args, '<=' + args.min_complexity, result[device], device);
+                else
+                    csvDisplay(args, 0, result[device], device);
                 if (args.max_complexity) {
-                    for (let complexity = 0; complexity < args.max_complexity; complexity++)
+                    for (let complexity = args.min_complexity + 1; complexity < args.max_complexity; complexity++)
                         csvDisplay(args, complexity, result[device], device);
                     csvDisplay(args, '>=' + args.max_complexity, result[device], device);
                 } else {
-                    for (let complexity = 0; complexity < 10; complexity++)
+                    for (let complexity = args.min_complexity + 1; complexity < 10; complexity++)
                         csvDisplay(args, complexity, result);
                 }
                 csvDisplay(args, null, result, device, true);

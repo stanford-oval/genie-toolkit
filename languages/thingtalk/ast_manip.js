@@ -43,6 +43,13 @@ function makeDate(base, operator, offset) {
     return value;
 }
 
+function makeMonthDateRange(year, month) {
+    return [
+        makeDate(new Ast.DatePiece(year, month, null, null), '+', null),
+        makeDate(new Ast.DatePiece(year, month, null, null), '+', new Ast.Value.Measure(1, 'mon'))
+    ];
+}
+
 function getFunctionNames(ast) {
     const functions = [];
     ast.visit(new class extends Ast.NodeVisitor {
@@ -178,6 +185,10 @@ function makeAndFilter(param, op, values, negate = false) {
     return Utils.makeAndFilter(_loader, param, op, values, negate);
 }
 
+function makeDateRangeFilter(param, values) {
+    return Utils.makeDateRangeFilter(_loader, param, values);
+}
+
 function makeOrFilter(param, op, values, negate  =false) {
     if (values.length !== 2)
         return null;
@@ -282,7 +293,7 @@ function makeAggregateFilterWithFilter(param, filter, aggregationOp, field, op, 
 
 
 function makeEdgeFilterStream(proj, op, value) {
-    if (proj.table.isAggregation)
+    if (!(proj instanceof Ast.Table.Projection))
         return null;
 
     let f = new Ast.BooleanExpression.Atom(null, proj.args[0], op, value);
@@ -431,6 +442,10 @@ function makeSingleFieldProjection(ftype, ptype, table, pname) {
     if (!table.schema.out[pname])
         return null;
 
+    let outParams = Object.keys(table.schema.out);
+    if (outParams.length === 1)
+        return table;
+
     if (ptype && !Type.isAssignable(table.schema.out[pname], ptype))
         return null;
 
@@ -571,6 +586,22 @@ function combineStreamCommand(stream, command) {
 function checkComputeFilter(table, filter) {
     if (!filter.lhs.isComputation)
         return false;
+
+    // distance
+    if (filter.lhs.op === 'distance') {
+        assert.strictEqual(filter.lhs.operands.length, 2);
+        if (!filter.rhs.isMeasure || Units.normalizeUnit(filter.rhs.unit) !== 'm')
+            return false;
+        for (let operand of filter.lhs.operands) {
+            if (operand.isVarRef && !table.schema.hasArgument(operand.name))
+                return false;
+            if (!(operand.isVarRef || operand.isLocation))
+                return false;
+        }
+        return true;
+    }
+
+    // count, sum, avg, min, max
     if (filter.lhs.operands.length !== 1)
         return false;
     let param = filter.lhs.operands[0];
@@ -582,7 +613,6 @@ function checkComputeFilter(table, filter) {
     ptype = table.schema.out[param.name];
     if (!ptype.isArray)
         return false;
-
     if (filter.lhs.op === 'count') {
         vtype = Type.Number;
         let canonical = table.schema.getArgCanonical(param.name);
@@ -615,9 +645,12 @@ function checkAtomFilter(table, filter) {
     ptype = table.schema.out[filter.name];
     vtype = ptype;
     if (filter.operator === 'contains') {
-        if (!vtype.isArray)
+        if (ptype.isArray)
+            vtype = vtype.elem;
+        else if (ptype.isRecurrentTimeSpecification)
+            vtype = [Type.Date, Type.Time];
+        else
             return false;
-        vtype = ptype.elem;
     } else if (filter.operator === 'contains~') {
         if (!vtype.isArray || (!vtype.elem.isEntity && !vtype.elem.isString))
             return false;
@@ -634,8 +667,17 @@ function checkAtomFilter(table, filter) {
         vtype = Type.String;
     }
 
-    if (!filter.value.getType().equals(vtype))
+    if (!Array.isArray(vtype))
+        vtype = [vtype];
+
+    let typeMatch = false;
+    for (let type of vtype) {
+        if (filter.value.getType().equals(type))
+            typeMatch = true;
+    }
+    if (!typeMatch)
         return false;
+
 
     if (vtype.isNumber || vtype.isMeasure) {
         let min = -Infinity;
@@ -943,6 +985,8 @@ function hasGetPredicate(filter) {
 }
 
 function makeGetPredicate(proj, op, value, negate = false) {
+    if (!proj.isProjection)
+        return null;
     if (!proj.table.isInvocation)
         return null;
     let arg = proj.args[0];
@@ -1117,7 +1161,7 @@ function actionReplaceParamWithStream(into, pname, projection) {
     if (projection === null)
         return null;
     if (!projection.isProjection || !projection.stream || projection.args.length !== 1)
-        throw new TypeError('???');
+        return null;
     const reduced = actionReplaceParamWith(into, pname, projection);
     if (reduced === null)
         return null;
@@ -1810,6 +1854,7 @@ module.exports = {
     // constants
     addUnit,
     makeDate,
+    makeMonthDateRange,
 
     // builtins
     notifyAction,
@@ -1847,6 +1892,7 @@ module.exports = {
     makeAndFilter,
     makeOrFilter,
     makeButFilter,
+    makeDateRangeFilter,
     makeAggregateFilter,
     makeAggregateFilterWithFilter,
     checkFilter,

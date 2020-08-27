@@ -102,9 +102,6 @@ either_filter = {
             return null;
         if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
             return null;
-        if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
-            v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
-            return null;
         let vtype = v1.getType();
         if (vtype.isBoolean) // "is equal to true or false" does not make sense
             return null;
@@ -118,9 +115,6 @@ either_filter = {
         if (!v1.getType().equals(v2.getType()))
             return null;
         if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
-            return null;
-        if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
-            v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
             return null;
         let vtype = v1.getType();
         if (vtype.isBoolean) // "is neither true nor false" does not make sense
@@ -136,9 +130,6 @@ range = {
         if (!v1.getType().equals(v2.getType()))
             return null;
         if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
-            return null;
-        if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
-            v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
             return null;
         return [v1, v2];
     };

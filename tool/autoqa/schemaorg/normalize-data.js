@@ -302,6 +302,9 @@ class Normalizer {
                 return undefined;
         }
 
+        if (Array.isArray(value))
+            value = value.filter(Boolean);
+
         if (expectedType.isArray && !Array.isArray(value)) {
             value = [value];
         } else if (!expectedType.isArray && Array.isArray(value)) {
@@ -310,6 +313,7 @@ class Normalizer {
                 return undefined;
             value = value[0];
         }
+
 
         if (expectedType.isArray) {
             const innerExpected = { isArray: false, type: expectedType.type };

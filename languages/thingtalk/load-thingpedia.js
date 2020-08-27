@@ -34,6 +34,7 @@ const {
     typeToStringSafe,
     makeFilter,
     makeAndFilter,
+    makeDateRangeFilter,
     isHumanEntity,
     interrogativePronoun,
     tokenizeExample
@@ -144,8 +145,10 @@ class ThingpediaLoader {
         this._allTypes.set(typestr, type);
 
         this._grammar.declareSymbol('out_param_' + typestr);
-        this._grammar.declareSymbol('placeholder_' + typestr);
+        if (type.isRecurrentTimeSpecification)
+            return null;
 
+        this._grammar.declareSymbol('placeholder_' + typestr);
         if (!this._grammar.hasSymbol('constant_' + typestr)) {
             if (!type.isEnum && !type.isEntity && !type.isArray)
                 throw new Error('Missing definition for type ' + typestr);
@@ -327,8 +330,11 @@ class ThingpediaLoader {
             if (cat === canonical['default'])
                 attributes.priority += 1;
 
-            for (let form of annotvalue)
-                 this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, '==', value, false)), attributes);
+            for (let form of annotvalue) {
+                this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, '==', value, false)), attributes);
+                this._grammar.addRule(cat + '_boolean_projection', [form], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+            }
+
         }
     }
 
@@ -397,23 +403,40 @@ class ThingpediaLoader {
 
         let vtype = ptype;
         let op = '==';
+
         // true if slot can use a form with "both", that is, "serves both chinese and italian"
-        // (this is false if the slot uses >= or <=, because "arrives by 7pm and 8pm" doesn't make sense
-        let canUseBothForm = true;
+        // this should be only allowed for operator 'contains', and it's disabled for turking mode
+        // FIXME: allow `=~` for long text (note: we turn == into =~ in MakeFilter)
+        let canUseBothForm = false;
 
         if (arg.annotations.slot_operator) {
             op = arg.annotations.slot_operator.toJS();
             assert(['==', '>=', '<=', 'contains'].includes(op));
-            if (op === '>=' || op === '<=')
-                canUseBothForm = false;
         } else {
             if (ptype.isArray) {
                 vtype = ptype.elem;
+                op = 'contains';
+            } else if (ptype.isRecurrentTimeSpecification) {
+                vtype = [Type.Date, Type.Time];
                 op = 'contains';
             } else if (pname === 'id') {
                 vtype = Type.String;
             }
         }
+
+        if (!this._options.flags.turking && op === 'contains')
+            canUseBothForm = true;
+
+        if (!Array.isArray(vtype))
+            vtype = [vtype];
+
+        for (let type of vtype)
+            this._recordOutputParamByType(functionName, pname, ptype, op, type, canonical, canUseBothForm);
+    }
+
+    _recordOutputParamByType(functionName, pname, ptype, op, vtype, canonical, canUseBothForm) {
+        const pvar = new Ast.Value.VarRef(pname);
+        const typestr = this._recordType(ptype);
         const vtypestr = this._recordType(vtype);
         if (vtypestr === null)
             return;
@@ -421,18 +444,21 @@ class ThingpediaLoader {
         const constant = new this._runtime.NonTerminal('constant_' + vtypestr);
         const corefconst = new this._runtime.NonTerminal('coref_constant');
         for (let cat in canonical) {
-            if (cat === 'default')
+            if (cat === 'default' || cat === 'projection_pronoun')
                 continue;
 
             let annotvalue = canonical[cat];
-            let isEnum = false, argMinMax = undefined;
+            let isEnum = false, argMinMax = undefined, isProjection = false;
             if (vtype.isEnum && cat.endsWith('_enum')) {
                 cat = cat.substring(0, cat.length - '_enum'.length);
                 isEnum = true;
             } else if (cat.endsWith('_argmin') || cat.endsWith('_argmax')) {
+                argMinMax = cat.endsWith('_argmin') ? 'asc' : 'desc';
                 // _argmin is the same length as _argmax
                 cat = cat.substring(0, cat.length - '_argmin'.length);
-                argMinMax = cat.endsWith('_argmin') ? 'asc' : 'desc';
+            } else if (cat.endsWith('_projection')) {
+                cat = cat.substring(0, cat.length - '_projection'.length);
+                isProjection = true;
             }
 
             if (cat in ANNOTATION_RENAME)
@@ -477,6 +503,48 @@ class ThingpediaLoader {
 
                 for (let form of annotvalue)
                     this._grammar.addRule(cat + '_argminmax', [form], this._runtime.simpleCombine(() => [pvar, argMinMax]), attributes);
+            } else if (isProjection) {
+                if (cat === 'base')
+                    continue;
+
+                // FIXME: if two params with the same name have different interrogative pronouns, this approach is problematic...
+                if (!(pname in this.projections))
+                    this.projections[pname] = {};
+                if (!(cat in this.projections[pname]))
+                    this.projections[pname][cat] = [];
+
+                for (let form of annotvalue) {
+                    // always have what question for projection if base available
+                    if (canonical.base_projection) {
+                        for (let base of canonical.base_projection) {
+                            this._addProjections(pname, 'what', cat, base, form);
+                            this._addProjections(pname, 'which', cat, base, form);
+                        }
+                    }
+
+                    // add non-what question when applicable
+                    // `base` is no longer need for non-what question, thus leave as empty string
+                    if (canonical.projection_pronoun) {
+                        for (let pronoun of canonical.projection_pronoun)
+                            this._addProjections(pname, pronoun, cat, '', form);
+
+                    } else {
+                        const pronounType = interrogativePronoun(ptype);
+                        if (pronounType !== 'what') {
+                            const pronouns = {
+                                'when': ['when', 'what time'],
+                                'where': ['where'],
+                                'who': ['who']
+                            };
+                            assert(pronounType in pronouns);
+                            for (let pronoun of pronouns[pronounType])
+                                this._addProjections(pname, pronoun, cat, '', form);
+                        }
+                    }
+
+
+                }
+
             } else {
                 if (!Array.isArray(annotvalue))
                     annotvalue = [annotvalue];
@@ -496,100 +564,59 @@ class ThingpediaLoader {
                             }
                         }
                     } else {
-                        if (cat === 'avp' && form.startsWith('# '))
-                            cat = 'reverse_verb';
-
-                        if (pname !== 'id' && ['avp', 'pvp', 'preposition', 'reverse_verb'].includes(cat)) {
-                            const pronounType = interrogativePronoun(ptype);
-
-                            // FIXME: if two params with the same name have different interrogative pronouns, this approach is problematic...
-                            if (!(pname in this.projections))
-                                this.projections[pname] = {};
-                            if (!(cat in this.projections[pname]))
-                                this.projections[pname][cat] = [];
-
-                            // always have what question for projection
-                            if (canonical.base) {
-                                for (let base of Array.isArray(canonical.base) ? canonical.base : [canonical.base])
-                                    this._addProjections(pname, 'what', cat, base, form);
-                            }
-
-                            // add non-what question when applicable
-                            // `base` is no longer need for non-what question, thus leave as empty string
-                            if (pronounType !== 'what')
-                                this._addProjections(pname, pronounType, cat, '', form);
-                        }
-
-                        // remove slash in the canonical form
-                        form = form.split('|').map((span) => span.trim()).join(' ');
-
                         let [before, after] = form.split('#');
                         before = (before || '').trim();
                         after = (after || '').trim();
 
-                        let expansion, corefexpansion, pairexpansion;
+                        let expansion, corefexpansion, pairexpansion, daterangeexpansion;
                         if (before && after) {
                             // "rated # stars"
                             expansion = [before, constant, after];
                             corefexpansion = [before, corefconst, after];
                             pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
+                            daterangeexpansion = [before, new this._runtime.NonTerminal('constant_date_range'), after];
                         } else if (before) {
                             // "named #"
                             expansion = [before, constant, ''];
                             corefexpansion = [before, corefconst, ''];
                             pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), ''];
+                            daterangeexpansion = [before, new this._runtime.NonTerminal('constant_date_range'), ''];
                         } else if (after) {
                             // "# -ly priced"
                             expansion = ['', constant, after];
                             corefexpansion = ['', corefconst, after];
                             pairexpansion = ['', new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
+                            daterangeexpansion = ['', new this._runtime.NonTerminal('constant_date_range'), after];
                         } else {
                             // "#" (as in "# restaurant")
                             expansion = ['', constant, ''];
                             corefexpansion = ['', corefconst, ''];
                             pairexpansion = ['', new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), ''];
+                            daterangeexpansion = ['', new this._runtime.NonTerminal('constant_date_range'), ''];
                         }
                         this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((_1, value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
                         this._grammar.addRule('coref_' + cat + '_filter', corefexpansion, this._runtime.simpleCombine((_1, value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
                         if (canUseBothForm)
                             this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values, _3) => makeAndFilter(this, pvar, op, values, false)), attributes);
+                        if (ptype.isDate)
+                            this._grammar.addRule(cat + '_filter', daterangeexpansion, this._runtime.simpleCombine((_1, values, _2) => makeDateRangeFilter(this, pvar, values)), attributes);
                     }
                 }
             }
         }
     }
 
-    _addProjections(pname, pronounType, posCategory, base, canonical) {
-        const pronouns = {
-            'what': ['what', 'which'],
-            'when': ['when', 'what time'],
-            'where': ['where'],
-            'who': ['who']
-        };
-        assert(pronounType in pronouns);
+    _addProjections(pname, pronoun, posCategory, base, canonical) {
+        if (canonical.includes('|')) {
+            const [verb, prep] = canonical.split('|').map((span) => span.trim());
+            this.projections[pname][posCategory].push([`${prep} ${pronoun}`, base, verb]);
 
-        // for pos other than reverse verb, # can only be at the end if exists
-        if (posCategory !== 'reverse_verb' && canonical.includes('#') && !canonical.endsWith('#'))
-            return;
-        const canonicalWithoutPlaceholder = canonical.replace('#', '').trim();
-
-        // if base is included in the form, skip
-        // e.g.,  "what award does xxx won" makes sense, but "what award does xx won award" does not
-        const tokens = canonicalWithoutPlaceholder.replace('|', ' ').split(/\s+/g);
-        if (base && tokens.includes(base))
-            return;
-
-        for (let pronoun of pronouns[pronounType]) {
-            if (canonicalWithoutPlaceholder.includes('|')) {
-                const [verb, prep] = canonicalWithoutPlaceholder.split('|').map((span) => span.trim());
-                this.projections[pname][posCategory].push([`${prep} ${pronoun}`, base, verb]);
-
-                // for when question, we can drop the prep entirely
-                if (pronounType === 'when')
-                    this.projections[pname][posCategory].push([pronoun, base, verb]);
-            }
-            this.projections[pname][posCategory].push([pronoun, base, tokens.join(' ')]);
+            // for when question, we can drop the prep entirely
+            if (pronoun === 'when' || pronoun === 'what time')
+                this.projections[pname][posCategory].push([pronoun, base, verb]);
         }
+        this.projections[pname][posCategory].push([pronoun, base, canonical.replace(/\|/g, ' ')]);
+
 
     }
 
@@ -924,7 +951,7 @@ class ThingpediaLoader {
             let typestr = typeToStringSafe(ttType);
             const { has_ner_support } = this._entities[entityType];
 
-            if (has_ner_support || this._idTypes.has(typestr)) {
+            if (has_ner_support) {
                 if (this._idTypes.has(typestr)) {
                     if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
                         console.log('Loaded entity ' + entityType + ' as id entity');

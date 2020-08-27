@@ -116,6 +116,16 @@ where_question = {
     ) => C.makeSingleFieldProjection('table', Type.Location, table, 'geo');
 }
 
+boolean_projection = {
+    'does' ('the' | '' | 'any') table:with_filtered_table 'have' p:npp_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p.name);
+    'does' ('the' | '' | 'any') table:with_filtered_table p:avp_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p.name);
+    'is' ('the' | '') table:with_filtered_table p:pvp_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p.name);
+    'is' ('the' | '') table:with_filtered_table p:preposition_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p.name);
+    'is' ('the' | '') table:with_filtered_table p:npi_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p.name);
+    'is' ('the' | '') table:with_filtered_table p:npv_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p.name);
+    'is' ('the' | '') table:with_filtered_table p:apv_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p.name);
+}
+
 for (let pname in _tpLoader.projections) {
     for (let cat in _tpLoader.projections[pname]) {
         if (cat === 'pvp' || cat === 'preposition') {

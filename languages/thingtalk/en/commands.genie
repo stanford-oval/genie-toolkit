@@ -85,18 +85,20 @@ forward_when_do_rule = {
     !turking ('monitor' | 'watch') proj:projection_Any ('and then' | 'then') action:thingpedia_action ('' | '.') if !complete => {
         if (!proj.schema.is_monitorable)
             return null;
-        if (proj.table.isAggregation)
-            return null;
-        if (proj.args[0] === 'picture_url')
-            return null;
-        let outParams = Object.keys(proj.table.schema.out);
         let stream;
-        if (outParams.length === 1 && _tpLoader.flags.turking)
-            return null;
-        if (outParams.length === 1)
-            stream = C.tableToStream(proj.table, null);
-        else
-            stream = C.tableToStream(proj.table, proj.args);
+        if (proj instanceof Ast.Table.Projection) {
+            if (proj.args && proj.args[0] === 'picture_url')
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            if (outParams.length === 1 && _tpLoader.flags.turking)
+                return null;
+            if (outParams.length === 1)
+                stream = C.tableToStream(proj.table, null);
+            else
+                stream = C.tableToStream(proj.table, proj.args);
+        } else {
+            stream = C.tableToStream(proj, null);
+        }
         if (!stream)
             return null;
         return new Ast.Statement.Rule(null, stream, [action]);
@@ -356,6 +358,18 @@ complete_question = {
         | ('what' | 'which') 'are' ('the' | '') table:two_clean_filter_table '?'
     ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
 
+
+    (
+
+          ('is' | 'are') 'there' ('any' | '') table:with_filtered_table '?'
+        | ('is' | 'are') 'there' ('any' | '') table:one_with_filter_table '?'
+        | ('is' | 'are') 'there' ('any' | '') table:one_which_filter_table '?'
+        | ('is' | 'are') 'there' ('any' | '') table:one_clean_filter_table '?'
+        | ('is' | 'are') 'there' ('any' | '') table:two_with_filter_table '?'
+        | ('is' | 'are') 'there' ('any' | '') table:two_which_filter_table '?'
+        | ('is' | 'are') 'there' ('any' | '') table:two_clean_filter_table '?'
+    ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
+
     // now => get join get => notify
     (
           ('what' | 'which') 'are' ('the' | '') table:with_filtered_table_join
@@ -407,7 +421,7 @@ projection_question = {
     | 'who is' proj:projection_Entity__tt__username '?'
     | 'who is' proj:projection_Entity__tt__email_address '?'
     ) => {
-        if (proj.schema.getArgType(proj.args[0]).isArray)
+        if (proj instanceof Ast.Table.Projection && proj.schema.getArgType(proj.args[0]).isArray)
             return null;
         return C.sayProjection(proj);
     };
@@ -416,7 +430,7 @@ projection_question = {
     | 'who are' proj:projection_Entity__tt__username '?'
     | 'who are' proj:projection_Entity__tt__email_address '?'
     ) => {
-        if (!proj.schema.getArgType(proj.args[0]).isArray)
+        if (proj instanceof Ast.Table.Projection && !proj.schema.getArgType(proj.args[0]).isArray)
             return null;
         return C.sayProjection(proj);
     };
@@ -429,6 +443,9 @@ projection_question = {
         C.sayProjection(C.makeSingleFieldProjection('table', Type.Location, table, 'geo'));
     !turking 'where' ('is' | 'are') ('' | 'the') table:with_filtered_table =>
         C.sayProjection(C.makeSingleFieldProjection('table', Type.Location, table, 'geo'));
+
+    // boolean questions
+    proj:boolean_projection '?' => C.sayProjection(proj);
 }
 
 explicit_when_condition = {
@@ -469,13 +486,15 @@ when_command = {
     !turking ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' proj:projection_Any => {
         if (!proj.schema.is_monitorable)
             return null;
-        if (proj.table.isAggregation)
-            return null;
-        let outParams = Object.keys(proj.table.schema.out);
-        if (outParams.length === 1 && _tpLoader.flags.turking)
-            return null;
-        // note that we intentionally don't use tableToStream here, because we don't want to introduce edge filters
-        return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, proj.table, null, proj.table.schema), [C.notifyAction()]);
+        if (proj instanceof Ast.Table.Projection) {
+            let outParams = Object.keys(proj.table.schema.out);
+            if (outParams.length === 1 && _tpLoader.flags.turking)
+                return null;
+            // note that we intentionally don't use tableToStream here, because we don't want to introduce edge filters
+            return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, proj.table, null, proj.table.schema), [C.notifyAction()]);
+        } else {
+            return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, proj, null, proj.schema), [C.notifyAction()]);
+        }
     };
     !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') stream:explicit_when_condition =>
         new Ast.Statement.Rule(null, stream, [C.notifyAction()]);
@@ -508,15 +527,19 @@ monitor_command = {
     !turking ('monitor' | 'watch') proj:projection_Any => {
         if (!proj.schema.is_monitorable)
             return null;
-        if (proj.table.isAggregation)
-            return null;
-        let stream = C.tableToStream(proj.table, proj.args);
+        let stream;
+        if (proj instanceof Ast.Table.Projection) {
+            let outParams = Object.keys(proj.table.schema.out);
+            if (outParams.length === 1 && _tpLoader.flags.turking)
+                return null;
+            stream = C.tableToStream(proj.table, proj.args);
+        } else {
+            stream = C.tableToStream(proj, null);
+        }
         if (!stream)
             return null;
-        let outParams = Object.keys(proj.table.schema.out);
-        if (outParams.length === 1 && _tpLoader.flags.turking)
-            return null;
         return new Ast.Statement.Rule(null, stream, [C.notifyAction()]);
+
     };
     ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' table:if_filtered_table => {
         let stream = C.tableToStream(table, null);

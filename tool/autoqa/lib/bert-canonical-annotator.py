@@ -102,7 +102,8 @@ def template_query(cat, query_canonical='', prefix='', value='', suffix=''):
             f"who {prefix} the {query_canonical} ?".split()
         ]
 
-    raise Exception('Invalid grammar category: ', cat)
+    # category that is not supported yet
+    return []
 
 
 class GPT2Ranker:

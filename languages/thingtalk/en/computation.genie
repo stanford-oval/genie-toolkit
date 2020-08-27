@@ -38,34 +38,6 @@ projection_Measure_m = {}
 compute_question = {}
 with_arg_min_max_table = {}
 
-// within distance
-one_within_filter_table = {
-    !turking {
-        !nofilter table:complete_table filter:within_filter
-        => C.makeWithinGeoDistanceExpression(table, filter.place, filter.distance);
-    }
-}
-
-two_within_filter_table = {
-    !turking {
-        !nofilter (
-              table:one_with_filter_table filter:within_filter
-            | table:one_which_filter_table filter:within_filter
-            | table:one_clean_filter_table filter:within_filter
-        ) => C.makeWithinGeoDistanceExpression(table, filter.place, filter.distance);
-    }
-}
-
-three_within_filter_table = {
-    !turking {
-        !nofilter (
-              table:two_with_filter_table filter:within_filter
-            | table:two_which_filter_table filter:within_filter
-            | table:two_clean_filter_table filter:within_filter
-        ) => C.makeWithinGeoDistanceExpression(table, filter.place, filter.distance);
-    }
-}
-
 projection_Measure_m = {
     !turking {
         ( 'the distance' ('of' | 'to') table:with_filtered_table ('from here' | '')
@@ -80,7 +52,7 @@ projection_Measure_m = {
 
         // these form sentences like "tell me how far X is", which is grammatical but
         // clunky, so we !turking them
-        !turking ( 'how' ('far' | 'near' | 'close') table:with_filtered_table 'is' ('from here' | '')
+        ( 'how' ('far' | 'near' | 'close') table:with_filtered_table 'is' ('from here' | '')
         | 'how' ('far' | 'near' | 'close') 'the' table:with_arg_min_max_table 'is' ('from here' | '')
         ) => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)
@@ -98,7 +70,6 @@ projection_Measure_m = {
             return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], Type.Measure('m'));
         };
 
-        !turking {
         ( 'how' ('far' | 'near' | 'close') 'from' place:constant_Location table:with_filtered_table 'is'
         | 'how' ('far' | 'near' | 'close') table:with_filtered_table 'is from' place:constant_Location
         | 'how' ('far' | 'near' | 'close') 'from' place:constant_Location 'the' table:with_arg_min_max_table 'is'
@@ -108,8 +79,11 @@ projection_Measure_m = {
                 return null;
             return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], Type.Measure('m'));
         };
-        }
+    }
+}
 
+projection_Number = {
+    !turking {
         ( 'the number of' p:out_param_Array__Any ('of' | 'in' | 'in the') table:with_filtered_table
         | 'the number of' p:out_param_Array__Any ('of' | 'in') 'the' table:with_arg_min_max_table ) => {
             if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)

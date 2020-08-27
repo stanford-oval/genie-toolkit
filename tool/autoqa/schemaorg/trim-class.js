@@ -27,6 +27,10 @@ const fs = require('fs');
 const util = require('util');
 
 const StreamUtils = require('../../../lib/utils/stream-utils');
+const {
+    WHITELISTED_PROPERTIES_BY_DOMAIN,
+    BLACKLISTED_PROPERTIES_BY_DOMAIN
+} = require('./manual-annotations');
 
 const DEFAULT_ENTITIES = [
     {"type":"tt:contact","name":"Contact Identity","is_well_known":1,"has_ner_support":0},
@@ -41,7 +45,8 @@ const DEFAULT_ENTITIES = [
     {"type":"tt:picture","name":"Picture","is_well_known":1,"has_ner_support":0},
     {"type":"tt:program","name":"Program","is_well_known":1,"has_ner_support":0},
     {"type":"tt:url","name":"URL","is_well_known":1,"has_ner_support":0},
-    {"type":"tt:username","name":"Username","is_well_known":1,"has_ner_support":0}
+    {"type":"tt:username","name":"Username","is_well_known":1,"has_ner_support":0},
+    {"type":"tt:iso_lang_code","name":"ISO Language Code","is_well_known":0,"has_ner_support":1}
 ];
 
 
@@ -56,11 +61,14 @@ function titleCase(str) {
 }
 
 class SchemaTrimmer {
-    constructor(classDef, data, entities) {
+    constructor(classDef, data, entities, domain) {
         this._classDef = classDef;
         this._className = classDef.name;
         this._data = data;
         this._entities = entities;
+
+        this._propertyWhitelist = domain ? WHITELISTED_PROPERTIES_BY_DOMAIN[domain] : null;
+        this._propertyBlacklist = domain ? BLACKLISTED_PROPERTIES_BY_DOMAIN[domain] : null;
     }
 
     get class() {
@@ -146,6 +154,12 @@ class SchemaTrimmer {
             if (!arg)
                 throw new Error(`Unexpected field ${key} in ${tabledef.name}, data is not normalized`);
             this._markArgumentHasData(arg, obj[key]);
+
+            for (let _extend of tabledef.extends) {
+                let parent = tabledef.class.queries[_extend];
+                if (parent.args.includes(key))
+                    this._markArgumentHasData(parent.getArgument(key), obj[key]);
+            }
         }
     }
 
@@ -162,7 +176,7 @@ class SchemaTrimmer {
         }
     }
 
-    _removeFieldsWithoutData(arg) {
+    _removeFieldsWithoutData(arg, prefix='') {
         let type = arg.type;
         while (type.isArray)
             type = type.elem;
@@ -170,14 +184,20 @@ class SchemaTrimmer {
         if (!type.isCompound)
             return;
 
+        prefix = prefix + `${arg.name}.`;
+
         for (let fieldname in type.fields) {
             const field = type.fields[fieldname];
-            if (!field.annotations['org_schema_has_data'] || !field.annotations['org_schema_has_data'].value) {
+            if (this._whiteListed(`${prefix}${fieldname}`))
+                continue;
+            if (!field.annotations['org_schema_has_data']
+                || !field.annotations['org_schema_has_data'].value
+                || this._blackListed(`${prefix}${fieldname}`)) {
                 delete type.fields[fieldname];
                 continue;
             }
 
-            this._removeFieldsWithoutData(field);
+            this._removeFieldsWithoutData(field, prefix);
         }
     }
 
@@ -194,11 +214,12 @@ class SchemaTrimmer {
             return;
         }
 
+        const hasName = !!tabledef.getImplementationAnnotation('org_schema_has_name');
         this._entities.push({
             type: this._className + ':' + tablename,
             name: titleCase(Array.isArray(tabledef.canonical) ? tabledef.canonical[0] : tabledef.canonical),
             is_well_known: false,
-            has_ner_support: tabledef.annotations['org_schema_has_name'] && tabledef.annotations['org_schema_has_name'].value
+            has_ner_support: hasName
         });
 
         let newArgs = [];
@@ -210,10 +231,21 @@ class SchemaTrimmer {
             if (argname.indexOf('.') >= 0)
                 continue;
             const arg = tabledef.getArgument(argname);
-            if (!(arg.annotations['org_schema_has_data'] && arg.annotations['org_schema_has_data'].value))
+
+            // set id to non-filterable for table without name (e.g., Review)
+            if (argname === 'id' && !hasName)
+                arg.impl_annotations.filterable = new Ast.Value.Boolean(false);
+
+            if (!this._whiteListed(argname)) {
+                if (!(arg.annotations['org_schema_has_data'] && arg.annotations['org_schema_has_data'].value))
+                    continue;
+            }
+
+            if (this._blackListed(argname))
                 continue;
 
             this._removeFieldsWithoutData(arg);
+
             newArgs.push(arg);
 
             if (argname === 'address')
@@ -223,7 +255,7 @@ class SchemaTrimmer {
         }
 
         if (tabledef.args.includes('geo') && hasAddress && !hasGeo) {
-            newArgs.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'geo', Type.Location, {
+            const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'geo', Type.Location, {
                 nl: {
                     canonical: { base:["location", "address"] }
                 },
@@ -231,7 +263,27 @@ class SchemaTrimmer {
                     org_schema_type: new Ast.Value.String('GeoCoordinates'),
                     org_schema_has_data: new Ast.Value.Boolean(false)
                 }
-            }));
+            });
+            newArgs.push(arg);
+            hasGeo = arg;
+        }
+
+        // remove streetAddress & addressLocality if we already have geo
+        if (hasAddress && hasGeo) {
+            delete hasAddress.type.fields['addressLocality'];
+            delete hasAddress.type.fields['streetAddress'];
+        }
+        if (tabledef.hasArgument('address') && tabledef.hasArgument('geo')) {
+            for (let _extend of tabledef.extends) {
+                if (_extend in this._classDef.queries) {
+                    const parent = this._classDef.queries[_extend];
+                    const address = parent.getArgument('address');
+                    if (address) {
+                        delete address.type.fields['addressLocality'];
+                        delete address.type.fields['streetAddress'];
+                    }
+                }
+            }
         }
 
         this._classDef.queries[tablename] = new Ast.FunctionDef(null, 'query', this._classDef,
@@ -251,7 +303,20 @@ class SchemaTrimmer {
             }
         }
 
-        this._classDef.entities = Array.from(usedEntities).map((name) => new Ast.EntityDef(null, name, {}));
+        this._classDef.entities = Array.from(usedEntities).map((name) => {
+            let hasNER = false;
+            if (name in this._classDef.queries)
+                hasNER = !!this._classDef.queries[name].getImplementationAnnotation('org_schema_has_name');
+            return new Ast.EntityDef(null, name, { impl : { has_ner: new Ast.Value.Boolean(hasNER) }});
+        });
+    }
+
+    _whiteListed(property) {
+        return this._propertyWhitelist && this._propertyWhitelist.includes(property);
+    }
+
+    _blackListed(property) {
+        return this._propertyBlacklist && this._propertyBlacklist.includes(property);
     }
 }
 
@@ -277,7 +342,10 @@ module.exports = {
             required: true,
             help: 'Path to JSON file with normalized WebQA data.'
         });
-
+        parser.add_argument('--domain', {
+            required: false,
+            help: 'The domain of current experiment, used for domain-specific manual overrides.'
+        });
         parser.add_argument('--debug', {
             action: 'store_true',
             help: 'Enable debugging.',
@@ -295,7 +363,7 @@ module.exports = {
         const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));
         const entities = DEFAULT_ENTITIES.slice();
 
-        const trimmer = new SchemaTrimmer(classDef, data, entities);
+        const trimmer = new SchemaTrimmer(classDef, data, entities, args.domain);
         trimmer.trim();
 
         args.output.end(trimmer.class.prettyprint());

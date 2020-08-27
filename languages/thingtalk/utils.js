@@ -53,15 +53,16 @@ function makeFilter(loader, pname, op, value, negate = false) {
     if (ptype.isEntity && ptype.type === 'tt:url')
         return null;
     if (op === 'contains') {
-        ptype = Type.Array(vtype);
+        if (loader.params.out.has(pname.name + '+' + Type.RecurrentTimeSpecification) && (vtype.isTime || vtype.isDate))
+            ptype = Type.RecurrentTimeSpecification;
+        else
+            ptype = Type.Array(vtype);
         if (vtype.isString)
             op = 'contains~';
     } else if (op === '==' && vtype.isString) {
         op = '=~';
     }
     if (!loader.params.out.has(pname.name + '+' + ptype) && pname.name !== 'id')
-        return null;
-    if (loader.flags.turking && value.isEnum)
         return null;
 
     let f = new Ast.BooleanExpression.Atom(null, pname.name, op, value);
@@ -83,6 +84,18 @@ function makeAndFilter(loader, param, op, values, negate=false) {
     if (negate)
         return new Ast.BooleanExpression.Not(null, f);
     return f;
+}
+
+function makeDateRangeFilter(loader, param, values) {
+    if (values.length !== 2)
+        return null;
+    const operands = [
+        makeFilter(loader, param, '>=', values[0]),
+        makeFilter(loader, param, '<=', values[1])
+    ];
+    if (operands.includes(null))
+        return null;
+    return new Ast.BooleanExpression.And(null, operands);
 }
 
 function isHumanEntity(type) {
@@ -114,8 +127,8 @@ function isTimeEntity(type) {
         return true;
     if (type.isTime)
         return true;
-
-    // FIXME: other types that can be asked by "when" question (e.g., opening hour)
+    if (type.isRecurrentTimeSpecification)
+        return true;
     return false;
 }
 
@@ -320,6 +333,7 @@ module.exports = {
     typeToStringSafe,
     makeFilter,
     makeAndFilter,
+    makeDateRangeFilter,
 
     isHumanEntity,
     isLocationEntity,

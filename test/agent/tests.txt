@@ -99,7 +99,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), price == enum(expensive) => notify;
 
-A: I see Evvia Estiatorio, NOLA Restaurant & Bar and Tamarine Restaurant. Would you like to learn more about either of them?
+A: I have Evvia Estiatorio, NOLA Restaurant & Bar and Tamarine Restaurant. Would you like to know more about them?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three ; now => ( @com.yelp.restaurant ) filter param:price == enum:expensive => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ] , param:price = enum:expensive , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] #[ count = 10 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"1vMgajRAI3lYwuCeGX58oQ","display":"Evvia Estiatorio"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/Q3lgbcNuRbdrITtLN5CQgQ/o.jpg","URL_0":"https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"greek","display":"Greek"},"NUMBER_0":4.5,"NUMBER_1":2393,"LOCATION_0":{"latitude":37.445077,"longitude":-122.163778,"display":null},"PHONE_NUMBER_0":"+16503260983"}
 A: >> expecting = command
 
@@ -123,15 +123,15 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The weather in Palo Alto, California is raining.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = 7 unit:mps , param:humidity = NUMBER_0 , param:cloudiness = 7 , param:fog = NUMBER_0 , param:status = enum:raining , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":18},"NUMBER_0":15,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
+A: Its temperature is 18 C.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = MEASURE_mps_0 , param:humidity = NUMBER_0 , param:cloudiness = 7 , param:fog = NUMBER_0 , param:status = enum:raining , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":18},"MEASURE_mps_0":{"unit":"mps","value":7},"NUMBER_0":15,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
 # what's the temperature?
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The temperature is 18 C
+A: Its temperature is 18 C
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => [ param:temperature ] of ( @org.thingpedia.weather.current param:location = LOCATION_0 ) => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":18}}
 A: >> expecting = null
 
@@ -148,8 +148,8 @@ A: >> expecting = location
 # let's use the location picker!
 U: \t bookkeeping(answer(new Location(37.442156, -122.1634471, "Palo Alto, California")));
 
-A: The weather in Palo Alto, California is raining.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = 7 unit:mps , param:humidity = NUMBER_0 , param:cloudiness = 7 , param:fog = NUMBER_0 , param:status = enum:raining , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":18},"NUMBER_0":15,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
+A: The temperature is 18 C
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = MEASURE_mps_0 , param:humidity = NUMBER_0 , param:cloudiness = 7 , param:fog = NUMBER_0 , param:status = enum:raining , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":18},"MEASURE_mps_0":{"unit":"mps","value":7},"NUMBER_0":15,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
 ====
@@ -158,7 +158,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), id =~ ("despacito"))[1] => @com.spotify.play_song(song=id);
 
-A: Alright, your request was completed successfully its app is str:ENTITY_com.spotify:device::36:.
+A: Alright, your request was completed successfully the app is str:ENTITY_com.spotify:device::36:
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => ( ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 ) [ 1 ] => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 on param:song = param:id #[ results = [ { param:song = GENERIC_ENTITY_com.spotify:song_0 , param:device = GENERIC_ENTITY_com.spotify:device_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":null},"QUOTED_STRING_0":"despacito","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:6habFhsOp2NvshLv26DqMb","display":"Despacito"},"GENERIC_ENTITY_com.spotify:device_0":{"value":"str:ENTITY_com.spotify:device::36:","display":null}}
 A: >> expecting = null
 
@@ -168,7 +168,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), contains(artists, null^^com.spotify:artist("ariana grande")))[1] => @com.spotify.play_song(song=id);
 
-A: Alright, your request was completed successfully its player is str:ENTITY_com.spotify:device::36:.
+A: Alright, your request was completed successfully
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => ( ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:artists contains GENERIC_ENTITY_com.spotify:artist_0 ) [ 1 ] => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 on param:song = param:id #[ results = [ { param:song = GENERIC_ENTITY_com.spotify:song_0 , param:device = GENERIC_ENTITY_com.spotify:device_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":null},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR","display":"Ariana Grande"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:6ocbgoVGwYJhOv1GgI9NsF","display":"7 rings"},"GENERIC_ENTITY_com.spotify:device_0":{"value":"str:ENTITY_com.spotify:device::36:","display":null}}
 A: >> expecting = null
 
@@ -178,6 +178,6 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), album == null^^com.spotify:album("folklore")) =>  @com.spotify.play_song(song=id);
 
-A: Alright, your request was completed successfully.
+A: Alright, your request was completed successfully
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:album == GENERIC_ENTITY_com.spotify:album_0 => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 on param:song = param:id #[ results = [ { param:song = GENERIC_ENTITY_com.spotify:song_0 , param:device = GENERIC_ENTITY_com.spotify:device_0 } ] ] #[ count = NUMBER_0 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":null},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:2fenSS68JI1h4Fo296JfGr","display":"folklore"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:4R2kfaDFhslZEMJqAFNpdd","display":"cardigan"},"GENERIC_ENTITY_com.spotify:device_0":{"value":"str:ENTITY_com.spotify:device::36:","display":null},"NUMBER_0":22}
 A: >> expecting = null

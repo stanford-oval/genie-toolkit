@@ -27,6 +27,8 @@ const Type = ThingTalk.Type;
 
 // import the combinator library
 const C = require('../ast_manip');
+const _tpLoader = require('../load-thingpedia');
+
 }
 
 constant_Number = {
@@ -44,26 +46,99 @@ constant_date_point = {
     'now'                 => C.makeDate(null, '+', null);
     'today'               => C.makeDate(new Ast.DateEdge('start_of', 'day'), '+', null);
     'yesterday'           => C.makeDate(new Ast.DateEdge('start_of', 'day'), '-', new Ast.Value.Measure(1, 'day'));
-    'this week'           => C.makeDate(new Ast.DateEdge('start_of', 'week'), '+', null);
 
     !turking {
-        'last week'           => C.makeDate(new Ast.DateEdge('start_of', 'week'), '-', new Ast.Value.Measure(1, 'week'));
-        'last month'          => C.makeDate(new Ast.DateEdge('end_of', 'mon'), '-', new Ast.Value.Measure(1, 'mon'));
-        'last year'           => C.makeDate(new Ast.DateEdge('end_of', 'year'), '-', new Ast.Value.Measure(1, 'year'));
-
         ?future_dates {
             'tomorrow'            => C.makeDate(new Ast.DateEdge('end_of', 'day'), '+', null);
             'the end of the day'  => C.makeDate(new Ast.DateEdge('end_of', 'day'), '+', null);
             'the end of the week' => C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', null);
-            'this month'          => C.makeDate(new Ast.DateEdge('start_of', 'mon'), '+', null);
-            'this year'           => C.makeDate(new Ast.DateEdge('start_of', 'year'), '+', null);
-            'next month'          => C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', null);
-            'next year'           => C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', null);
+            'the end of the month'=> C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', null);
+            'the end of the year' => C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', null);
         }
     }
 }
 
+constant_date_range = {
+    'this week'   => [C.makeDate(new Ast.DateEdge('start_of', 'week'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', null)];
+    'this month'  => [C.makeDate(new Ast.DateEdge('start_of', 'mon'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', null)];
+    'this year'   => [C.makeDate(new Ast.DateEdge('start_of', 'year'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', null)];
+
+    !turking {
+        'last week'  => [C.makeDate(new Ast.DateEdge('start_of', 'week'), '-', new Ast.Value.Measure(1, 'week')), C.makeDate(new Ast.DateEdge('start_of', 'week'), '+', null)];
+        'last month' => [C.makeDate(new Ast.DateEdge('start_of', 'mon'), '-', new Ast.Value.Measure(1, 'mon')), C.makeDate(new Ast.DateEdge('start_of', 'mon'), '+', null)];
+        'last year'  => [C.makeDate(new Ast.DateEdge('start_of', 'year'), '-', new Ast.Value.Measure(1, 'year')), C.makeDate(new Ast.DateEdge('start_of', 'year'), '+', null)];
+
+        ?future_dates {
+            'next week'  => [C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', new Ast.Value.Measure(1, 'week'))];
+            'next month' => [C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', new Ast.Value.Measure(1, 'mon'))];
+            'next year'  => [C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', new Ast.Value.Measure(1, 'year'))];
+        }
+
+        // year
+        year:constant_Number => [
+            C.makeDate(new Ast.DatePiece(year.value, null, null, null), '+', null),
+            C.makeDate(new Ast.DatePiece(year.value, null, null, null), '+', new Ast.Value.Measure(1, 'year'))
+        ];
+        year:constant_Number 's' => [
+            C.makeDate(new Ast.DatePiece(year.value, null, null, null), '+', null),
+            C.makeDate(new Ast.DatePiece(year.value, null, null, null), '+', new Ast.Value.Measure(10, 'year'))
+        ];
+    }
+
+    // months
+    ('jan' | 'january') => C.makeMonthDateRange(null, 1);
+    ('jan' | 'january') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 1);
+    ('feb' | 'february') => C.makeMonthDateRange(null, 2);
+    ('feb' | 'february') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 2);
+    ('mar' | 'march') => C.makeMonthDateRange(null, 3);
+    ('mar' | 'march') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 3);
+    ('apr' | 'april') => C.makeMonthDateRange(null, 4);
+    ('apr' | 'april') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 4);
+    'may' => C.makeMonthDateRange(null, 5);
+    'may of' year:constant_Number => C.makeMonthDateRange(year.value, 5);
+    ('jun' | 'june') => C.makeMonthDateRange(null, 6);
+    ('jun' | 'june') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 6);
+    ('jul' | 'july') => C.makeMonthDateRange(null, 7);
+    ('jul' | 'july') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 7);
+    ('aug' | 'august') => C.makeMonthDateRange(null, 8);
+    ('aug' | 'august') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 8);
+    ('sep' | 'sept' | 'september') => C.makeMonthDateRange(null, 9);
+    ('sep' | 'sept' | 'september') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 9);
+    ('oct' | 'october') => C.makeMonthDateRange(null, 10);
+    ('oct' | 'october') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 10);
+    ('nov' | 'november') => C.makeMonthDateRange(null, 11);
+    ('nov' | 'november') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 11);
+    ('dec' | 'december') => C.makeMonthDateRange(null, 12);
+    ('dec' | 'december') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 12);
+}
+
+
 constant_Date = {
+    constant_date_point;
+
+    // weekdays
+    ('mon' | 'monday') => C.makeDate(new Ast.WeekDayDate('monday', null), '+', null);
+    'last' ('mon' | 'monday') => C.makeDate(new Ast.WeekDayDate('monday', null), '-', new Ast.Value.Measure(1, 'week'));
+    'next' ('mon' | 'monday') => C.makeDate(new Ast.WeekDayDate('monday', null), '+', new Ast.Value.Measure(1, 'week'));
+    ('tue' | 'tuesday') => C.makeDate(new Ast.WeekDayDate('tuesday', null), '+', null);
+    'last' ('tue' | 'tuesday') => C.makeDate(new Ast.WeekDayDate('tuesday', null), '-', new Ast.Value.Measure(1, 'week'));
+    'next' ('tue' | 'tuesday') => C.makeDate(new Ast.WeekDayDate('tuesday', null), '+', new Ast.Value.Measure(1, 'week'));
+    ('wed' | 'wednesday') => C.makeDate(new Ast.WeekDayDate('wednesday', null), '+', null);
+    'last' ('wed' | 'wednesday') => C.makeDate(new Ast.WeekDayDate('wednesday', null), '-', new Ast.Value.Measure(1, 'week'));
+    'next' ('wed' | 'wednesday') => C.makeDate(new Ast.WeekDayDate('wednesday', null), '+', new Ast.Value.Measure(1, 'week'));
+    ('thu' | 'thursday') => C.makeDate(new Ast.WeekDayDate('thursday', null), '+', null);
+    'last' ('thu' | 'thursday') => C.makeDate(new Ast.WeekDayDate('thursday', null), '-', new Ast.Value.Measure(1, 'week'));
+    'next' ('thu' | 'thursday') => C.makeDate(new Ast.WeekDayDate('thursday', null), '+', new Ast.Value.Measure(1, 'week'));
+    ('fri' | 'friday') => C.makeDate(new Ast.WeekDayDate('friday', null), '+', null);
+    'last' ('fri' | 'friday') => C.makeDate(new Ast.WeekDayDate('friday', null), '-', new Ast.Value.Measure(1, 'week'));
+    'next' ('fri' | 'friday') => C.makeDate(new Ast.WeekDayDate('friday', null), '+', new Ast.Value.Measure(1, 'week'));
+    ('sat' | 'saturday') => C.makeDate(new Ast.WeekDayDate('saturday', null), '+', null);
+    'last' ('sat' | 'saturday') => C.makeDate(new Ast.WeekDayDate('saturday', null), '-', new Ast.Value.Measure(1, 'week'));
+    'next' ('sat' | 'saturday') => C.makeDate(new Ast.WeekDayDate('saturday', null), '+', new Ast.Value.Measure(1, 'week'));
+    ('sun' | 'sunday') => C.makeDate(new Ast.WeekDayDate('sunday', null), '+', null);
+    'last' ('sun' | 'sunday') => C.makeDate(new Ast.WeekDayDate('sunday', null), '-', new Ast.Value.Measure(1, 'week'));
+    'next' ('sun' | 'sunday') => C.makeDate(new Ast.WeekDayDate('sunday', null), '+', new Ast.Value.Measure(1, 'week'));
+
     !inference {
         !turking {
             duration:constant_Measure_ms 'ago'      => C.makeDate(null, '-', duration);
@@ -74,6 +149,26 @@ constant_Date = {
                 duration:constant_Measure_ms 'after' pt:constant_date_point  => C.makeDate(pt, '+', duration);
             }
         }
+    }
+}
+
+
+
+constant_Measure_ms = {
+    !inference {
+        !turking num:constant_Number 'ms' => C.addUnit('ms', num);
+        !turking num:constant_Number 'milliseconds' => C.addUnit('ms', num);
+        !turking num:constant_Number 's' => C.addUnit('s', num);
+        !turking num:constant_Number 'seconds' => C.addUnit('s', num);
+        num:constant_Number 'min' => C.addUnit('min', num);
+        num:constant_Number 'minutes' => C.addUnit('min', num);
+        num:constant_Number 'h' => C.addUnit('h', num);
+        num:constant_Number 'hours' => C.addUnit('h', num);
+        num:constant_Number 'days' => C.addUnit('day', num);
+        !turking num:constant_Number 'weeks' => C.addUnit('week', num);
+        !turking num:constant_Number 'months' => C.addUnit('mon', num);
+        !turking num:constant_Number 'years' => C.addUnit('year', num);
+
     }
 }
 

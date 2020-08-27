@@ -19,7 +19,6 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
 const Inflectors = require('en-inflectors').Inflectors;
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
@@ -43,7 +42,9 @@ const {
     NON_STRUCT_TYPES,
     PROPERTY_CANONICAL_OVERRIDE,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE,
+    MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN,
     MANUAL_TABLE_CANONICAL_OVERRIDE,
+    MANUAL_COUNTED_OBJECT_OVERRIDE,
     PROPERTY_FORCE_NOT_ARRAY,
     PROPERTY_FORCE_ARRAY,
     PROPERTY_TYPE_OVERRIDE,
@@ -56,8 +57,12 @@ const {
 const keepAnnotation = false;
 
 function getId(id) {
-    assert(id.startsWith('http://schema.org/'));
-    return id.substring('http://schema.org/'.length);
+    if (id.startsWith('http://schema.org/'))
+        id = id.substring('http://schema.org/'.length);
+    // add "_" prefix for id starts with a number
+    if (/^\d/.test(id))
+        id = '_' + id;
+    return id;
 }
 
 function getIncludes(includes) {
@@ -120,6 +125,7 @@ function recursiveAddStringValues(arg, fileId) {
 
 class SchemaProcessor {
     constructor(args) {
+        this._domain = args.domain;
         this._output = args.output;
         this._cache = args.cache_file;
         this._className = args.class_name;
@@ -223,6 +229,10 @@ class SchemaProcessor {
             return [best, Type.Number];
         }
 
+        // HACK (version 9.0 has Organization over Person for author)
+        if (propname === 'author')
+            best = 'Person';
+
         let tttype = this.typeToThingTalk(best, typeHierarchy, manualAnnotation);
         if (!tttype)
             return [undefined, undefined];
@@ -290,9 +300,11 @@ class SchemaProcessor {
                 annotation['max_number'] = new Ast.Value.Number(5);
             }
 
-            if (propertyname.startsWith('numberOf'))
+            if (this._manual && propertyname in MANUAL_COUNTED_OBJECT_OVERRIDE)
+                metadata.counted_object = MANUAL_COUNTED_OBJECT_OVERRIDE[propertyname];
+            else if (propertyname.startsWith('numberOf'))
                 metadata.counted_object = [ clean(propertyname.slice('numberOf'.length)) ];
-            if (propertyname.endsWith('Count'))
+            else if (propertyname.endsWith('Count'))
                 metadata.counted_object = [ this._langPack.pluralize(clean(propertyname.slice(0, -'Count'.length)))];
 
             if (PROPERTIES_NO_FILTER.includes(propertyname)) {
@@ -314,6 +326,22 @@ class SchemaProcessor {
         return Type.Compound(startingTypename, fields);
     }
 
+    loadPropertyCanonicalOverride(name) {
+        // 1. check for domain-specific manual property override
+        if (this._manual && this._domain && this._domain in MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN
+            && name in MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN[this._domain])
+            return MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN[this._domain][name];
+
+        // 2. check for global manual property override
+        if (this._manual && name in MANUAL_PROPERTY_CANONICAL_OVERRIDE)
+            return MANUAL_PROPERTY_CANONICAL_OVERRIDE[name];
+
+        // 3. check default property type override (which is applied even for baseline)
+        if (name in PROPERTY_CANONICAL_OVERRIDE)
+            return PROPERTY_CANONICAL_OVERRIDE[name];
+        return null;
+    }
+
     makeArgCanonical(name, ptype) {
         function cleanName(name) {
             name = clean(name);
@@ -322,13 +350,11 @@ class SchemaProcessor {
             return name;
         }
 
-        if (name in PROPERTY_CANONICAL_OVERRIDE)
-            return PROPERTY_CANONICAL_OVERRIDE[name];
-        if (this._manual && name in MANUAL_PROPERTY_CANONICAL_OVERRIDE)
-            return MANUAL_PROPERTY_CANONICAL_OVERRIDE[name];
+        let canonical = this.loadPropertyCanonicalOverride(name);
+        if (canonical)
+            return canonical;
 
-        let canonical = {};
-
+        canonical = {};
         const candidates = name in this._wikidata_labels ? this._wikidata_labels[name].labels : [cleanName(name)];
         for (let candidate of [...new Set(candidates)])
             this.addCanonical(canonical, candidate, ptype);
@@ -408,58 +434,62 @@ class SchemaProcessor {
                 if (BLACKLISTED_TYPES.has(getId(triple['@id'])))
                     continue;
 
-                if (triple['@type'].startsWith('http://schema.org/')) {
-                    // an enum declaration
-                    const enumtype = getId(triple['@type']);
-                    const enumvalue = getId(triple['@id']);
-                    ensureEnum(enumtype);
-                    enums[enumtype].push(enumvalue);
-                    continue;
-                }
+                if (!Array.isArray(triple['@type']))
+                    triple['@type'] = [triple['@type']];
 
-                switch (triple['@type']) {
-                case 'rdf:Property': {
-                    // ignore deprecated stuff
-                    if (triple['http://schema.org/supersededBy'])
+                for (let type of triple['@type']) {
+                    if (type.startsWith('http://schema.org/')) {
+                        // an enum declaration
+                        const enumtype = getId(type);
+                        const enumvalue = getId(triple['@id']);
+                        ensureEnum(enumtype);
+                        enums[enumtype].push(enumvalue);
                         continue;
-
-
-                    const domains = getIncludes(triple['http://schema.org/domainIncludes']);
-                    const ranges = getIncludes(triple['http://schema.org/rangeIncludes']);
-                    const name = getId(triple['@id']);
-                    const comment = triple['rdfs:comment'];
-
-                    if (BLACKLISTED_PROPERTIES.has(name))
-                        continue;
-
-                    for (let domain of domains) {
-                        if (domain in BUILTIN_TYPEMAP)
-                            continue;
-                        if (BLACKLISTED_TYPES.has(domain))
-                            continue;
-
-                        ensureType(domain);
-                        typeHierarchy[domain].properties[name] = {
-                            types: ranges,
-                            comment
-                        };
                     }
-                    break;
-                }
-                case 'rdfs:Class': {
-                    const name = getId(triple['@id']);
-                    const comment = triple['rdfs:comment'];
-                    const _extends = getIncludes(triple['rdfs:subClassOf'] || []);
-                    ensureType(name);
-                    typeHierarchy[name].extends = _extends.filter((ex) => !BLACKLISTED_TYPES.has(ex));
-                    if (typeHierarchy[name].extends.length === 0 && name !== 'Thing')
-                        typeHierarchy[name].extends = ['Thing'];
-                    typeHierarchy[name].comment = comment;
-                    break;
-                }
 
-                default:
-                    throw new Error(`don't know how to handle a triple of type ${triple['@type']}`); //'
+                    switch (type) {
+                    case 'rdf:Property': {
+                        // ignore deprecated stuff
+                        if (triple['http://schema.org/supersededBy'])
+                            continue;
+
+
+                        const domains = getIncludes(triple['http://schema.org/domainIncludes']);
+                        const ranges = getIncludes(triple['http://schema.org/rangeIncludes']);
+                        const name = getId(triple['@id']);
+                        const comment = triple['rdfs:comment'];
+
+                        if (BLACKLISTED_PROPERTIES.has(name))
+                            continue;
+
+                        for (let domain of domains) {
+                            if (domain in BUILTIN_TYPEMAP)
+                                continue;
+                            if (BLACKLISTED_TYPES.has(domain))
+                                continue;
+
+                            ensureType(domain);
+                            typeHierarchy[domain].properties[name] = {
+                                types: ranges,
+                                comment
+                            };
+                        }
+                        break;
+                    }
+                    case 'rdfs:Class': {
+                        const name = getId(triple['@id']);
+                        const comment = triple['rdfs:comment'];
+                        const _extends = getIncludes(triple['rdfs:subClassOf'] || []);
+                        ensureType(name);
+                        typeHierarchy[name].extends = _extends.filter((ex) => !BLACKLISTED_TYPES.has(ex));
+                        if (typeHierarchy[name].extends.length === 0 && name !== 'Thing')
+                            typeHierarchy[name].extends = ['Thing'];
+                        typeHierarchy[name].comment = comment;
+                        break;
+                    }
+                    default:
+                        throw new Error(`don't know how to handle a triple of type ${type}`); //'
+                    }
                 }
             } catch(e) {
                 console.error('Triple failed');
@@ -629,10 +659,24 @@ class SchemaProcessor {
                 if (PROPERTIES_NO_FILTER.includes(propertyname))
                     annotation['filterable'] = new Ast.Value.Boolean(false);
 
-                if (propertyname.startsWith('numberOf'))
+                if (this._manual && propertyname in MANUAL_COUNTED_OBJECT_OVERRIDE)
+                    metadata.counted_object = MANUAL_COUNTED_OBJECT_OVERRIDE[propertyname];
+                else if (propertyname.startsWith('numberOf'))
                     metadata.counted_object = [ clean(propertyname.slice('numberOf'.length)) ];
-                if (propertyname.endsWith('Count'))
+                else if (propertyname.endsWith('Count'))
                     metadata.counted_object = [ this._langPack.pluralize(clean(propertyname.slice(0, -'Count'.length)))];
+
+                let elemType = type;
+                while (elemType.isArray)
+                    elemType = elemType.elem;
+
+                if (elemType.isCompound) {
+                    for (let field in elemType.fields) {
+                        const canonicalOverride = this.loadPropertyCanonicalOverride(`${propertyname}.${field}`);
+                        if (canonicalOverride)
+                            elemType.fields[field].nl_annotations.canonical = canonicalOverride;
+                    }
+                }
 
                 const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, propertyname, type, {
                     nl: metadata,
@@ -721,8 +765,13 @@ module.exports = {
         });
         parser.add_argument('--url', {
             required: false,
-            default: 'https://schema.org/version/3.9/schema.jsonld',
+            // FIXME: replace it with a link with fixed version number 9.0 (couldn't find one currently)
+            default: 'https://schema.org/version/latest/schemaorg-current-http.jsonld',
             help: 'The schema.org URL to retrieve the definitions from.'
+        });
+        parser.add_argument('--domain', {
+            required: false,
+            help: 'The domain of current experiment, used for domain-specific manual overrides.'
         });
         parser.add_argument('--manual', {
             action: 'store_true',
