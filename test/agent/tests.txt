@@ -181,3 +181,37 @@ U: now => (@com.spotify.song(), album == null^^com.spotify:album("folklore")) =>
 A: Alright, your request was completed successfully.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:album == GENERIC_ENTITY_com.spotify:album_0 => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 on param:song = param:id #[ results = [ { param:song = GENERIC_ENTITY_com.spotify:song_0 , param:device = GENERIC_ENTITY_com.spotify:device_0 } ] ] #[ count = NUMBER_0 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:2fenSS68JI1h4Fo296JfGr","display":"folklore"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:4R2kfaDFhslZEMJqAFNpdd","display":"cardigan"},"GENERIC_ENTITY_com.spotify:device_0":{"value":"str:ENTITY_com.spotify:device::36:","display":null},"NUMBER_0":22}
 A: >> expecting = null
+
+====
+# 9-joke
+# tell me a joke
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @com.icanhazdadjoke.get() => notify;
+
+A: What do you call a troublesome Canadian high schooler? A poutine.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @com.icanhazdadjoke.get attribute:id = GENERIC_ENTITY_tt:device_id_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.icanhazdadjoke:id_0 , param:text = QUOTED_STRING_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.icanhazdadjoke-6","display":"Some Device 6"},"GENERIC_ENTITY_com.icanhazdadjoke:id_0":{"value":"A5ozsH6pWnb","display":null},"QUOTED_STRING_0":"What do you call a troublesome Canadian high schooler? A poutine"}
+A: >> expecting = null
+
+# another one
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @com.icanhazdadjoke.get() => notify;
+
+A: What is a witch's favorite subject in school? Spelling!
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @com.icanhazdadjoke.get attribute:id = GENERIC_ENTITY_tt:device_id_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.icanhazdadjoke:id_0 , param:text = QUOTED_STRING_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.icanhazdadjoke-6","display":"Some Device 6"},"GENERIC_ENTITY_com.icanhazdadjoke:id_0":{"value":"K6UKmykqrjb","display":null},"QUOTED_STRING_0":"What is a witch's favorite subject in school? Spelling!"}
+A: >> expecting = null
+
+# another one
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @com.icanhazdadjoke.get() => notify;
+
+A: What do you call a troublesome Canadian high schooler? A poutine.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @com.icanhazdadjoke.get attribute:id = GENERIC_ENTITY_tt:device_id_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.icanhazdadjoke:id_0 , param:text = QUOTED_STRING_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.icanhazdadjoke-6","display":"Some Device 6"},"GENERIC_ENTITY_com.icanhazdadjoke:id_0":{"value":"A5ozsH6pWnb","display":null},"QUOTED_STRING_0":"What do you call a troublesome Canadian high schooler? A poutine"}
+A: >> expecting = null
+
+# another one
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @com.icanhazdadjoke.get() => notify;
+
+A: Where did you learn to make ice cream? Sunday school.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @com.icanhazdadjoke.get attribute:id = GENERIC_ENTITY_tt:device_id_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.icanhazdadjoke:id_0 , param:text = QUOTED_STRING_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.icanhazdadjoke-6","display":"Some Device 6"},"GENERIC_ENTITY_com.icanhazdadjoke:id_0":{"value":"HJJY0LR7hyd","display":null},"QUOTED_STRING_0":"Where did you learn to make ice cream? Sunday school"}
+A: >> expecting = null
