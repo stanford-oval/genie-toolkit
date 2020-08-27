@@ -88,7 +88,7 @@ module.exports = {
         const newPrograms = new Set();
 
         let evaluationSize = 0;
-        const evaluationPrograms = {}; // counter of unique programs in evaluation set
+        const evaluationPrograms = new Map(); // counter of unique programs in evaluation set
         args.evaluation_set.setEncoding('utf8');
         const evaluation = await readAllLines([args.evaluation_set])
             .pipe(new DatasetParser({ preserveId: true, parseMultiplePrograms: true }));
