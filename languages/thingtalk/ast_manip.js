@@ -1161,7 +1161,7 @@ function actionReplaceParamWithStream(into, pname, projection) {
     if (projection === null)
         return null;
     if (!projection.isProjection || !projection.stream || projection.args.length !== 1)
-        throw new TypeError('???');
+        return null;
     const reduced = actionReplaceParamWith(into, pname, projection);
     if (reduced === null)
         return null;
