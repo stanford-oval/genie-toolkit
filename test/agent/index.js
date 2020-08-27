@@ -233,8 +233,7 @@ async function test(testRunner, dlg, i) {
         await roundtrip(testRunner, turn.user, turn.agent);
 }
 
-async function main(limit = Infinity) {
-
+async function main(onlyIds) {
     const testRunner = new TestRunner();
     const rng = testRunner.rng.makeRNG();
 
@@ -264,11 +263,14 @@ async function main(limit = Infinity) {
     await conversation.start();
 
     const TEST_CASES = await loadTestCases();
-    for (let i = 0; i < Math.min(limit, TEST_CASES.length); i++)
+    for (let i = 0; i < TEST_CASES.length; i++) {
+        if (onlyIds.length > 0 && !onlyIds.includes(TEST_CASES[i].id))
+            continue;
         await test(testRunner, TEST_CASES[i], i);
+    }
 
     console.log('Done');
     process.exit(0);
 }
 
-main(parseInt(process.argv[2]) || Infinity);
+main(process.argv.slice(2));

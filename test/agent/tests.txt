@@ -123,7 +123,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: Its temperature is 18 C.
+A: It is raining today in Palo Alto, California and the temperature is 18 C.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = MEASURE_mps_0 , param:humidity = NUMBER_0 , param:cloudiness = 7 , param:fog = NUMBER_0 , param:status = enum:raining , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":18},"MEASURE_mps_0":{"unit":"mps","value":7},"NUMBER_0":15,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
@@ -148,7 +148,7 @@ A: >> expecting = location
 # let's use the location picker!
 U: \t bookkeeping(answer(new Location(37.442156, -122.1634471, "Palo Alto, California")));
 
-A: Its temperature is 18 C.
+A: It is raining today in Palo Alto, California and the temperature is 18 C.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = MEASURE_mps_0 , param:humidity = NUMBER_0 , param:cloudiness = 7 , param:fog = NUMBER_0 , param:status = enum:raining , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":18},"MEASURE_mps_0":{"unit":"mps","value":7},"NUMBER_0":15,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
