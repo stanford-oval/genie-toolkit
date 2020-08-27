@@ -75,16 +75,20 @@ single_stream_projection_Entity__tt__picture = !nostream 'new' table:complete_ta
 
 the_out_param_Numeric = {
     'the' p:out_param_Numeric => p;
-    !turking {
-        'its' p:out_param_Numeric => p;
-        'their' p:out_param_Numeric => p;
+    !inference {
+        !turking {
+            'its' p:out_param_Numeric => p;
+            'their' p:out_param_Numeric => p;
+        }
     }
 }
 the_out_param_Array__Any = {
     'the' p:out_param_Array__Any => p;
-    !turking {
-        'its' p:out_param_Array__Any => p;
-        'their' p:out_param_Array__Any => p;
+    !inference {
+        !turking {
+            'its' p:out_param_Array__Any => p;
+            'their' p:out_param_Array__Any => p;
+        }
     }
 }
 

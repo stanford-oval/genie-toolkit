@@ -464,10 +464,10 @@ class @org.thingpedia.weather
                             #_[canonical="status"],
                             out icon: Entity(tt:picture)
                             #_[canonical="icon"])
-  #_[result=["the current weather in ${location} is ${status} . the temperature is ${temperature} and the humidity is ${humidity} % .",
+  #_[result=["it is ${status} today in ${location} and the temperature is ${temperature}",
+             "the current weather in ${location} is ${status} . the temperature is ${temperature} and the humidity is ${humidity} % .",
              "the current weather in ${location} is ${status}",
-             "the weather in ${location} is ${status}",
-             "it is ${status} today in ${location} and the temperature is ${temperature}"]]
+             "the weather in ${location} is ${status}"]]
   #_[canonical=["current weather", "weather", "weather outside"]]
   #_[confirmation="the current weather for $location"]
   #_[formatted=[{type="text",text="Current weather for ${location}: ${status}, temperature ${temperature:C} C, wind speed ${wind_speed:mps} m/s, humidity ${humidity}%, cloudiness ${cloudiness}%, fog ${fog}%."}]]
