@@ -197,7 +197,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.icanhazdadjoke.get() => notify;
 
 A: What is a witch's favorite subject in school? Spelling!
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @com.icanhazdadjoke.get attribute:id = GENERIC_ENTITY_tt:device_id_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.icanhazdadjoke:id_0 , param:text = QUOTED_STRING_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.icanhazdadjoke-6","display":"Some Device 6"},"GENERIC_ENTITY_com.icanhazdadjoke:id_0":{"value":"K6UKmykqrjb","display":null},"QUOTED_STRING_0":"What is a witch's favorite subject in school? Spelling!"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @com.icanhazdadjoke.get attribute:id = GENERIC_ENTITY_tt:device_id_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.icanhazdadjoke:id_0 , param:text = QUOTED_STRING_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.icanhazdadjoke-6","display":"Some Device 6"},"GENERIC_ENTITY_com.icanhazdadjoke:id_0":{"value":"K6UKmykqrjb","display":null},"QUOTED_STRING_0":"What is a witch's favorite subject in school? Spelling!   "}
 A: >> expecting = null
 
 # another one
@@ -213,5 +213,5 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.icanhazdadjoke.get() => notify;
 
 A: Why are fish so smart? Because they live in schools!
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @com.icanhazdadjoke.get attribute:id = GENERIC_ENTITY_tt:device_id_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.icanhazdadjoke:id_0 , param:text = QUOTED_STRING_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.icanhazdadjoke-6","display":"Some Device 6"},"GENERIC_ENTITY_com.icanhazdadjoke:id_0":{"value":"lGe2Tvskyd","display":null},"QUOTED_STRING_0":"Why are fish so smart? Because they live in schools!"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @com.icanhazdadjoke.get attribute:id = GENERIC_ENTITY_tt:device_id_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.icanhazdadjoke:id_0 , param:text = QUOTED_STRING_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.icanhazdadjoke-6","display":"Some Device 6"},"GENERIC_ENTITY_com.icanhazdadjoke:id_0":{"value":"lGe2Tvskyd","display":null},"QUOTED_STRING_0":"Why are fish so smart?\nBecause they live in schools!"}
 A: >> expecting = null
