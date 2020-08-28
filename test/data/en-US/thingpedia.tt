@@ -1128,7 +1128,7 @@ class @com.steampowered
   query get_steam_id(in req name: String #_[prompt="What is the Steam name? (Go to a Steam profile and enter the NAME from the URL https://steamcommunity.com/id/NAME)"] #_[canonical="name"],
                      out id: Entity(com.steampowered:user_id) #_[canonical="id"])
   #_[canonical="steam id"]
-  #_[confirmation="get steam ID of ${name}"]
+  #_[confirmation="get steam id of ${name}"]
   #_[formatted=[{type="text",text="Your Steam ID is ${id}"}]]
   #[confirm=false];
 }
