@@ -158,10 +158,10 @@ module.exports = {
             default: '',
             help: 'Collapse all examples of complexity greater or equal to this',
         });
-        parser.addArgument('--min-complexity', {
+        parser.add_argument('--min-complexity', {
             required: false,
             type: Number,
-            defaultValue: 0,
+            default: 0,
             help: 'Collapse all examples of complexity smaller or equal to this'
         });
     },

@@ -99,11 +99,11 @@ function readByLine(filename) {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('measure-training-set', {
-            addHelp: true,
+        const parser = subparsers.add_parser('measure-training-set', {
+            add_help: true,
             description: "Compute useful statistics about a training set."
         });
-        parser.addArgument('datadir', {
+        parser.add_argument('datadir', {
             help: 'Training set directory to measure; must contain synthetic.txt, user/train.tsv'
         });
     },
