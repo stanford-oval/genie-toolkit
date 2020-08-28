@@ -57,6 +57,7 @@ const subcommands = {
     'assistant': require('./assistant'),
 
     'dataset': require('./dataset'),
+    'subsample-thingpedia': require('./subsample-thingpedia'),
     'preprocess-string-dataset': require('./preprocess-string-dataset'),
 
     'schemaorg-process-schema': require('./autoqa/schemaorg/process-schema'),
