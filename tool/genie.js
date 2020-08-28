@@ -43,6 +43,7 @@ const subcommands = {
     'split-train-eval': require('./split-train-eval'),
     'typecheck': require('./typecheck'),
     'deduplicate': require('./deduplicate'),
+    'compute-training-coverage': require('./compute-training-coverage'),
 
     'train': require('./train'),
     'predict': require('./predict'),
