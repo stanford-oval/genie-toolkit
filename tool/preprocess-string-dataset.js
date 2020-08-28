@@ -104,7 +104,7 @@ module.exports = {
 
     async execute(args) {
         await StreamUtils.waitFinish(StreamUtils.chain(args.input_file, {})
-            .pipe(csvparse({ delimiter: '\t', relax_column_count: true }))
+            .pipe(csvparse({ delimiter: '\t', relax: true }))
             .pipe(new TokenizerStream(args))
             .pipe(csvstringify({ delimiter: '\t' }))
             .pipe(args.output));

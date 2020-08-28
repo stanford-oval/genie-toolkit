@@ -45,7 +45,7 @@ import './commands';
 import './stream_tables';
 
 $root = {
-    thingpedia_program if complete;
+    p:thingpedia_program if complete => C.adjustDefaultParameters(p);
 
     ?timer stmt:timer_rule [weight=0.2] => C.makeProgram(stmt);
     !nostream {

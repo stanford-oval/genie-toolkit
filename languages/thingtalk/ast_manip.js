@@ -569,7 +569,7 @@ function makeProgram(rule) {
         if (_loader.flags.nostream)
             return null;
     }
-    return new Ast.Program(null, [], [], [rule], null);
+    return adjustDefaultParameters(new Ast.Program(null, [], [], [rule], null));
 }
 
 function combineStreamCommand(stream, command) {
@@ -1839,6 +1839,23 @@ function getInvocation(historyItem) {
     return invocation;
 }
 
+function adjustDefaultParameters(stmt) {
+    stmt.visit(new class extends Ast.NodeVisitor {
+        visitInvocation(invocation) {
+            invocation.in_params = invocation.in_params.filter((ip) => {
+                const arg = invocation.schema.getArgument(ip.name);
+                assert(arg && arg.is_input);
+                const _default = arg.impl_annotations.default;
+                if (_default && ip.value.equals(_default))
+                    return false;
+                return true;
+            });
+            return false;
+        }
+    });
+    return stmt;
+}
+
 module.exports = {
     // helpers
     typeToStringSafe,
@@ -1850,6 +1867,7 @@ module.exports = {
     getFunctions,
     getInvocation,
     normalizeConfirmAnnotation,
+    adjustDefaultParameters,
 
     // constants
     addUnit,

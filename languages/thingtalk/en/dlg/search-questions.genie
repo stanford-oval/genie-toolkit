@@ -214,7 +214,9 @@ specific_dontcare_phrase = {
     ) => new Ast.BooleanExpression.DontCare(null, param.name);
 
     ('i do not care that it has' | 'it need not have' | 'i do not need') param:npp_filter => {
-        if (!param.value.isBoolean)
+        if (!(param instanceof Ast.BooleanExpression.Atom))
+            return null;
+        if (!param.value.isBoolean || param.value.value !== true)
             return null;
         return new Ast.BooleanExpression.DontCare(null, param.name);
     };

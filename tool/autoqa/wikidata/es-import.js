@@ -171,22 +171,22 @@ class ESBulkInserter extends stream.Writable {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('wikidata-es-import', {
-            addHelp: true,
+        const parser = subparsers.add_parser('wikidata-es-import', {
+            add_help: true,
             description: "Import a wikidata dump into ElasticSearch"
         });
-        parser.addArgument('--url', {
+        parser.add_argument('--url', {
             required: false,
-            defaultValue: 'https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.gz',
+            default: 'https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.gz',
             help: 'URL of the Wikidata dump to process (can be a file:// URL or a http(s):// URL).'
         });
-        parser.addArgument('--es-config', {
+        parser.add_argument('--es-config', {
             required: true,
             help: 'Path to a JSON file containing the ElasticSearch configuration (url, username, password).'
         });
-        parser.addArgument('--offset', {
+        parser.add_argument('--offset', {
             required: false,
-            defaultValue: 0,
+            default: 0,
             help: 'Skip this many entities from the dump (resume uploading).'
         });
     },

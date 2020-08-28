@@ -193,6 +193,14 @@ function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
             cloneTable = cloneTable.table;
         // there should be no projection of projection (will be optimized)
         assert(!cloneTable.isProjection);
+
+        // remove a compute table as well (top-level compute is a sort of projection)
+        if (cloneTable.isCompute)
+            cloneTable = cloneTable.table;
+
+        // still no projection here...
+        assert(!cloneTable.isProjection);
+
         cloneTable = new Ast.Table.Projection(null, cloneTable, newProjection,
             C.resolveProjection(newProjection, cloneTable.schema));
     } else {
@@ -210,6 +218,17 @@ function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
         if (oldProjection) {
             if (newFilter !== null)
                 newProjection = oldProjection.filter((pname) => !C.filterUsesParam(refinedFilter, pname));
+
+            // if we removed the projection of the compute field, remove the projection entirely
+            if (cloneTable.isCompute) {
+                assert(cloneTable.expression instanceof Ast.Value.Computation);
+                let field = cloneTable.expression.op;
+                if (!newProjection.includes(field))
+                    cloneTable = cloneTable.table;
+
+                // there should still be no projection of projection (will be optimized)
+                assert(!cloneTable.isProjection);
+            }
 
             // if the projection is now empty, we don't add
             // the projection will be empty if

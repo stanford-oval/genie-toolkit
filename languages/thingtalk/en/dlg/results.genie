@@ -94,7 +94,7 @@ direct_result_info_phrase = {
 }
 
 one_param_direct_result_info_phrase = {
-    ('the' | 'its') param:out_param_Any 'is' v:constant_Any => {
+    'the' param:out_param_Any 'is' v:constant_Any => {
         const vtype = v.getType();
         if (!_tpLoader.params.out.has(param.name + '+' + vtype))
             return null;

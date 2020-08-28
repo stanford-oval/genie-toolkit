@@ -135,6 +135,8 @@ const TEST_CASES = [
     ['i\'m happy, you\'re happy, and they\'re sad', 'i \'m happy , you \'re happy , and they \'re sad', 'i \'m happy , you \'re happy , and they \'re sad', {}],
 
     // numbers and measurements
+    ['more than zero', 'more than zero', 'more than zero', {}],
+    ['more than 0', 'more than 0', 'more than 0', {}],
     ['at least 3gb', 'at least 3 gb', 'at least 3 gb', {}],
     ['at least 25gb', 'at least 25 gb', 'at least NUMBER_0 gb', { NUMBER_0: 25 }],
     ['at least -3gb', 'at least -3 gb', 'at least -3 gb', {}],
@@ -482,6 +484,12 @@ const TEST_CASES = [
     'what \'s the rating of the review dated sooner than 2016-05-04 ?',
     'what \'s the rating of the review dated sooner than DATE_0 ?',
      { DATE_0: { year: 2016, month: 5, day: 4, hour: 0, minute: 0, second: 0, timezone: undefined } }],
+
+
+    // weird stuff that we shouldn't tokenize but we sometime do
+    ['str:QUOTED_STRING::0:',
+     'str : quoted _ string : : 0 :',
+     'str : quoted _ string : : 0 :', {}],
 ];
 
 const DETOKENIZER_TEST_CASES = [

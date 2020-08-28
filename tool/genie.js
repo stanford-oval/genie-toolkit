@@ -43,6 +43,7 @@ const subcommands = {
     'split-train-eval': require('./split-train-eval'),
     'typecheck': require('./typecheck'),
     'deduplicate': require('./deduplicate'),
+    'measure-training-set': require('./measure-training-set'),
     'compute-training-coverage': require('./compute-training-coverage'),
 
     'train': require('./train'),
@@ -57,6 +58,7 @@ const subcommands = {
     'assistant': require('./assistant'),
 
     'dataset': require('./dataset'),
+    'subsample-thingpedia': require('./subsample-thingpedia'),
     'preprocess-string-dataset': require('./preprocess-string-dataset'),
 
     'schemaorg-process-schema': require('./autoqa/schemaorg/process-schema'),

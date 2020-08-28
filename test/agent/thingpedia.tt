@@ -202,60 +202,6 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[confirm=false];
 */
 }
-class @com.spotify
-#_[name="Spotify"]
-#_[description="Play music on Spotify"]
-#_[canonical="spotify"]
-{
-
-  import loader from @org.thingpedia.v2();
-  import config from @org.thingpedia.config.none();
-
-  entity song #_[description="Songs on Spotify"];
-  entity artist #_[description="Artists in Spotify"];
-
-  list query song(out id: Entity(com.spotify:song) #[string_values="tt:song_name"]
-                  #[unique=true]
-                  #_[canonical={
-                    default="base",
-                    base=["name"],
-                    passive_verb=["named #", "called #"],
-                    property=["name #"]
-                  }],
-                  out artists: Array(Entity(com.spotify:artist)) #[string_values="tt:song_artist"]
-                  #_[canonical={
-                    default="preposition",
-                    base=["artist", "song writer"],
-                    property=["artist #", "song writer #"],
-                    preposition=["by #"],
-                    passive_verb=["written by #", "released by #", "produced by #"],
-                    verb = ["# wrote", "# released", "# produced"]
-                  }],
-                  out release_date : Date
-                  #_[canonical={
-                    default="preposition",
-                    base=["date", "release date"],
-                    property=["release date #"],
-                    preposition=["from #", "in #"],
-                    passive_verb=["released in #", "published in #"]
-                  }],
-                  out popularity: Number
-                  #[min_number=0]
-                  #[max_number=100]
-                  #_[canonical={
-                    default="base",
-                    base=["popularity", "average popularity"],
-                    passive_verb=["rated # popularity"],
-                    property=["# popularity"]
-                  }])
-  #_[canonical="song"]
-  #_[confirmation="songs on Spotify"]
-  #[minimal_projection=["id"]]
-  #_[formatted=[{type="text",text="${id} by ${artists}"}]]
-  #[doc="search for songs on Spotify"]
-  #[confirm=false];
-
-}
 class @com.twitter
 #_[name="Twitter"]
 #_[description="Connect your Mario with Twitter"]
@@ -518,10 +464,10 @@ class @org.thingpedia.weather
                             #_[canonical="status"],
                             out icon: Entity(tt:picture)
                             #_[canonical="icon"])
-  #_[result=["the current weather in ${location} is ${status} . the temperature is ${temperature} and the humidity is ${humidity} % .",
+  #_[result=["it is ${status} today in ${location} and the temperature is ${temperature}",
+             "the current weather in ${location} is ${status} . the temperature is ${temperature} and the humidity is ${humidity} % .",
              "the current weather in ${location} is ${status}",
-             "the weather in ${location} is ${status}",
-             "it is ${status} today in ${location} and the temperature is ${temperature}"]]
+             "the weather in ${location} is ${status}"]]
   #_[canonical=["current weather", "weather", "weather outside"]]
   #_[confirmation="the current weather for $location"]
   #_[formatted=[{type="text",text="Current weather for ${location}: ${status}, temperature ${temperature:C} C, wind speed ${wind_speed:mps} m/s, humidity ${humidity}%, cloudiness ${cloudiness}%, fog ${fog}%."}]]
@@ -987,6 +933,33 @@ class @com.spotify
     #_[confirmation_remote="set the repeat state"]
     #[doc="set the repeat state"]
     #[confirm=false];
+}
+class @com.icanhazdadjoke
+#_[thingpedia_name="Dad Jokes"]
+#_[thingpedia_description="Ask for a joke"]
+#_[canonical="dad jokes"]
+#[license="BSD-3-Clause"]
+#[license_gplcompatible=true]
+#[subcategory="service"]
+{
+  import loader from @org.thingpedia.generic_rest.v1();
+  import config from @org.thingpedia.config.none();
 
+  entity id #[has_ner=false];
 
+  query get(out id: Entity(com.icanhazdadjoke:id)
+            #[json_key="id"],
+            out text: String
+            #_[canonical={
+               base=["text", "content"],
+               verb=["say #"],
+               passive_verb=["saying #"],
+            }]
+            #[json_key="joke"])
+  #_[result=["${text}"]]
+  #_[canonical=["joke", "dad joke", "funny joke"]]
+  #_[confirmation="a dad joke"]
+  #_[formatted=[{type="text",text="${text}"}]]
+  #[doc="get a joke"]
+  #[url="https://icanhazdadjoke.com/"];
 }

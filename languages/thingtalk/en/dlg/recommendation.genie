@@ -100,7 +100,7 @@ proposal_info_action_pair = {
 }
 
 actionable_system_display_result_short = {
-    ctx:ctx_with_result info:thingpedia_result '.' if complete
+    ctx:ctx_with_result info:thingpedia_result '.' if complete [priority=10]
         => D.makeDisplayResult(ctx, info);
 }
 

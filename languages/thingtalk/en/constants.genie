@@ -36,9 +36,22 @@ constant_Number = {
     // syntax is ?flag to enable the rule (or group of rules) only if the flag is set, !flag to disable the
     // rule if the flag is set
 
-    !turking {
-    'zero' => new Ast.Value.Number(0);
-    'one'  => new Ast.Value.Number(1);
+    !inference {
+        !turking {
+        'zero' => new Ast.Value.Number(0);
+        'one'  => new Ast.Value.Number(1);
+        /*'two'  => new Ast.Value.Number(2);
+        'three'  => new Ast.Value.Number(3);
+        'four'  => new Ast.Value.Number(4);
+        'five'  => new Ast.Value.Number(5);
+        'six'  => new Ast.Value.Number(6);
+        'seven'  => new Ast.Value.Number(7);
+        'eight'  => new Ast.Value.Number(8);
+        'nine'  => new Ast.Value.Number(9);
+        'ten'  => new Ast.Value.Number(10);
+        'eleven'  => new Ast.Value.Number(11);
+        'twelve'  => new Ast.Value.Number(12);*/
+        }
     }
 }
 
@@ -112,10 +125,7 @@ constant_date_range = {
     ('dec' | 'december') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 12);
 }
 
-
-constant_Date = {
-    constant_date_point;
-
+constant_day_of_week = {
     // weekdays
     ('mon' | 'monday') => C.makeDate(new Ast.WeekDayDate('monday', null), '+', null);
     'last' ('mon' | 'monday') => C.makeDate(new Ast.WeekDayDate('monday', null), '-', new Ast.Value.Measure(1, 'week'));
@@ -138,8 +148,13 @@ constant_Date = {
     ('sun' | 'sunday') => C.makeDate(new Ast.WeekDayDate('sunday', null), '+', null);
     'last' ('sun' | 'sunday') => C.makeDate(new Ast.WeekDayDate('sunday', null), '-', new Ast.Value.Measure(1, 'week'));
     'next' ('sun' | 'sunday') => C.makeDate(new Ast.WeekDayDate('sunday', null), '+', new Ast.Value.Measure(1, 'week'));
+}
 
+constant_Date = {
     !inference {
+        constant_date_point;
+        constant_day_of_week;
+
         !turking {
             duration:constant_Measure_ms 'ago'      => C.makeDate(null, '-', duration);
             duration:constant_Measure_ms 'before' pt:constant_date_point => C.makeDate(pt, '-', duration);
@@ -267,10 +282,20 @@ constant_Measure_dBm = {
 }
 
 constant_Location = {
-    'here'                    => new Ast.Value.Location(new Ast.Location.Relative('current_location'));
-    !turking 'where i am now' => new Ast.Value.Location(new Ast.Location.Relative('current_location'));
-    'home'                    => new Ast.Value.Location(new Ast.Location.Relative('home'));
-    'work'                    => new Ast.Value.Location(new Ast.Location.Relative('work'));
+    !inference {
+        'here'                    => new Ast.Value.Location(new Ast.Location.Relative('current_location'));
+        !turking 'where i am now' => new Ast.Value.Location(new Ast.Location.Relative('current_location'));
+        'the area'                => new Ast.Value.Location(new Ast.Location.Relative('current_location'));
+        'the city'                => new Ast.Value.Location(new Ast.Location.Relative('current_location'));
+
+        'home'                    => new Ast.Value.Location(new Ast.Location.Relative('home'));
+        'my home'                 => new Ast.Value.Location(new Ast.Location.Relative('home'));
+        'my neighborhood'         => new Ast.Value.Location(new Ast.Location.Relative('home'));
+
+        'work'                    => new Ast.Value.Location(new Ast.Location.Relative('work'));
+        'my office'               => new Ast.Value.Location(new Ast.Location.Relative('work'));
+        'my workplace'            => new Ast.Value.Location(new Ast.Location.Relative('work'));
+    }
 }
 
 constant_pairs = {

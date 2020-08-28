@@ -548,7 +548,8 @@ class @com.youtube
 }
 class @org.thingpedia.weather
 #_[canonical="weather api"] {
-  monitorable query current(in req location: Location #_[prompt="What location do you want the current weather for?"] #_[canonical="location"],
+  monitorable query current(in opt location: Location #_[prompt="What location do you want the current weather for?"] #_[canonical="location"]
+                            #[default=$context.location.current_location],
                             out temperature: Measure(C) #_[canonical="temperature"],
                             out wind_speed: Measure(mps) #_[canonical="wind speed"],
                             out humidity: Number #_[canonical="humidity"],
@@ -1127,7 +1128,7 @@ class @com.steampowered
   query get_steam_id(in req name: String #_[prompt="What is the Steam name? (Go to a Steam profile and enter the NAME from the URL https://steamcommunity.com/id/NAME)"] #_[canonical="name"],
                      out id: Entity(com.steampowered:user_id) #_[canonical="id"])
   #_[canonical="steam id"]
-  #_[confirmation="get steam ID of ${name}"]
+  #_[confirmation="get steam id of ${name}"]
   #_[formatted=[{type="text",text="Your Steam ID is ${id}"}]]
   #[confirm=false];
 }
