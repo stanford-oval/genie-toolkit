@@ -80,7 +80,7 @@ module.exports = {
         for await (const line of training) {
             const normalized = await normalize(line.preprocessed, line.target_code, schemas);
             const requoted = Array.from(requoteProgram(normalized)).join(' ');
-            trainingPrograms[requoted] = (trainingPrograms[requoted] || 0) + 1;
+            trainingPrograms.set(requoted, (trainingPrograms.get(requoted) || 0) + 1);
             trainingSize += 1;
         }
 
@@ -99,7 +99,7 @@ module.exports = {
             for (let thingtalk of candidates) {
                 const normalized = await normalize(line.preprocessed, thingtalk, schemas);
                 requoted = Array.from(requoteProgram(normalized)).join(' ');
-                if (requoted in trainingPrograms) {
+                if (trainingPrograms.has(requoted)) {
                     covered = true;
                     break;
                 }
@@ -108,12 +108,12 @@ module.exports = {
                 newPrograms.add(requoted);
                 newCount += 1;
             }
-            evaluationPrograms[requoted] = (evaluationPrograms[requoted] || 0) + 1;
+            evaluationPrograms.set(requoted, (evaluationPrograms.get(requoted) || 0) + 1);
             evaluationSize += 1;
         }
 
-        console.log(`${Object.keys(trainingPrograms).length} unique programs in training set`);
-        console.log(`${Object.keys(evaluationPrograms).length} unique programs in evaluation set`);
+        console.log(`${trainingPrograms.size} unique programs in training set`);
+        console.log(`${evaluationPrograms.size} unique programs in evaluation set`);
         console.log(`${newPrograms.size} programs are not covered.`);
         const coverage = (newCount * 100 / evaluationSize).toFixed(2);
         console.log(`In total, ${coverage}% (${newCount} / ${evaluationSize}) evaluation examples are not covered.`);
@@ -121,8 +121,8 @@ module.exports = {
         console.log(`% in evaluation set\t% in training set\tprogram`);
         let sumPercentInTraining = 0;
         for (let program in evaluationPrograms) {
-            const percentInEvaluation = (evaluationPrograms[program] * 100 / evaluationSize);
-            const percentInTraining = ((trainingPrograms[program] || 0) * 100 / trainingSize);
+            const percentInEvaluation = (evaluationPrograms.get(program) * 100 / evaluationSize);
+            const percentInTraining = ((trainingPrograms.get(program) || 0) * 100 / trainingSize);
             sumPercentInTraining += percentInTraining;
             console.log(`${percentInEvaluation.toFixed(2)}%\t${percentInTraining.toFixed(2)}%\t${program}`);
         }
