@@ -44,6 +44,7 @@ const subcommands = {
     'typecheck': require('./typecheck'),
     'deduplicate': require('./deduplicate'),
     'measure-training-set': require('./measure-training-set'),
+    'compute-training-coverage': require('./compute-training-coverage'),
 
     'train': require('./train'),
     'predict': require('./predict'),
