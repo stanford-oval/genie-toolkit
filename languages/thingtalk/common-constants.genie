@@ -94,7 +94,7 @@ constant_Measure_dBm = {
 
 // this is used for equality filtering, so !turking anything that is weird when equality compared
 constant_Any = {
-    constant_String;
+    constant_String [repeat=true];
     constant_Entity__tt__picture;
     constant_Entity__tt__username;
     constant_Entity__tt__hashtag;

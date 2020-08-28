@@ -326,7 +326,10 @@ class ThingpediaLoader {
 
             if (cat in ANNOTATION_RENAME)
                 cat = ANNOTATION_RENAME[cat];
-            const attributes = { priority: ANNOTATION_PRIORITY[cat] };
+            const attributes = {
+                repeat: true,
+                priority: ANNOTATION_PRIORITY[cat]
+            };
             if (cat === canonical['default'])
                 attributes.priority += 1;
 
@@ -472,7 +475,10 @@ class ThingpediaLoader {
                     annotvalue = [];
             }
 
-            const attributes = { priority: ANNOTATION_PRIORITY[cat] };
+            const attributes = {
+                repeat: true,
+                priority: ANNOTATION_PRIORITY[cat]
+            };
             assert(Number.isFinite(attributes.priority), cat);
             if (cat === canonical['default'])
                 attributes.priority += 1;
