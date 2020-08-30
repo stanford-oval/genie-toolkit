@@ -226,7 +226,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     },
     'priceRange': {
         base: ['price range'],
-        adjective: ["#"],
+        adjective: ["#", "# -ly priced"],
     },
     'openingHours': {
         verb: ["opens at", "opens on"],
