@@ -162,7 +162,12 @@ module.exports = {
             required: false,
             type: Number,
             default: 0,
-            help: 'Collapse all examples of complexity smaller or equal to this'
+            help: 'Collapse all examples of complexity smaller or equal to this',
+        });
+        parser.add_argument('--oracle', {
+            action: 'store_true',
+            help: 'Indicates evaluation of an oracle model where ThingTalk code should be passed to the genienlp server',
+            default: false
         });
     },
 
@@ -181,7 +186,8 @@ module.exports = {
                 thingpediaClient: tpClient,
                 tokenized: args.tokenized,
                 debug: args.debug,
-                complexityMetric: args.complexity_metric
+                complexityMetric: args.complexity_metric,
+                oracle: args.oracle
             }))
             .pipe(new CollectSentenceStatistics({
                 minComplexity: args.min_complexity,
