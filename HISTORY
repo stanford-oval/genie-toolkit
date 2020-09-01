@@ -1,3 +1,48 @@
+0.7.0-beta.6
+============
+
+* The AutoQA/Schema2QA scripts were updated to match the version used in the
+  camera-ready version of the Schema2QA paper. This includes more manual
+  annotations for the Schema.org domains we experimented with [#282].
+* Added templates for imprecise dates and date ranges, such as "this monday"
+  or "the 90s" [#282].
+* Added templates for recurrent time specifications (used to express opening
+  hours) [#282].
+* Added templates for argmin/argmax questions in compound commands (e.g.
+  "play the most popular song") [#270].
+* Added a tool to import Wikidata into an ElasticSearch instance [#271].
+* Added a tool to measure the entropy of a training set, for intrinsic
+  evaluation of the synthesis process [#270].
+* Added a tool to measure how well a training set covers the evaluation set
+  [#247].
+* Added a tool to subsample a thingpedia.tt file [#270].
+* The manual-annotate-dialog tool can now be forced to append to the output
+  dataset, even when not editing [#270].
+* The evaluate-server script can now operate in "oracle" mode, in which the
+  target code is passed to genienlp [#283].
+* Added a new #[default] annotation, which provides the implied value of
+  an optional parameter. The synthesis ensures that parameters with the
+  implied value are not generated, but the value is added to the ThingTalk
+  code before execution (and thus can be a relative location or time) [#270].
+* Prepositions are now correctly postprocessed for relative times ("today",
+  "tomorrow") and locations ("here", "at home") [#270].
+* Templates were tuned and rebalanced to improve generation quality in
+  multidomain settings [#270].
+* Entity linking now correctly calls to the Thingpedia query for ID entities.
+  Also, the entity linking code has been made more robust [#264, #270, #276].
+* Generation of contractions ("'s", "'re", etc.) was expanded for user
+  utterances, and consolidated for agent utterances [#270].
+* ThingTalk normalization during evaluation was reimplemented is now
+  applied consistently both when evaluating sentence by sentence and when
+  evaluating dialogues [#270].
+* Pre-execution ThingTalk transformations (device choice, entity linking,
+  resolution of relative times and locations) are now applied consistently
+  during simulation and during execution [#270].
+* Misc bug fixes [#269, #270, #271, #281, #286].
+* Added tests [#275, #284]
+* Build fixes and dependency updates [#277, #279, #280]
+  and new handling
+
 0.7.0-beta.5
 ============
 
