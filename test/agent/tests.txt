@@ -251,3 +251,12 @@ U: now => @com.yelp.restaurant(), contains(cuisines, null^^com.yelp:restaurant_c
 A: Sorry, I cannot find any Yelp Cuisine matching “invalid”.
 A: >> context = null // {}
 A: >> expecting = null
+
+====
+# 13-invalid-command
+
+U: !! test command always failed !!
+
+A: Sorry, I did not understand that.
+A: >> context = null // {}
+A: >> expecting = null
