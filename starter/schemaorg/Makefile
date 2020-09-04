@@ -5,10 +5,10 @@ thingpedia_url = https://thingpedia.stanford.edu/thingpedia
 
 -include ./config.mk
 
-memsize := $(shell echo $$(($$(grep MemTotal /proc/meminfo | sed 's/[^0-9]//g')/1000-2500)))
+memsize := 15000
 genie = node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/tool/genie.js
 
-all_experiments = restaurants hotels linkedin recipes products books movies events music
+all_experiments = restaurants hotels people books movies music
 
 experiment ?= restaurants
 
@@ -24,14 +24,6 @@ people_class_name = org.schema.Person
 people_white_list = Person
 people_paraphrase =
 
-recipes_class_name = org.schema.Recipe
-recipes_white_list = Recipe,Review
-recipes_paraphrase =
-
-products_class_name = org.schema.Product
-products_white_list = Product
-products_paraphrase =
-
 books_class_name = org.schema.Book
 books_white_list = Book
 books_paraphrase =
@@ -40,19 +32,24 @@ movies_class_name = org.schema.Movie
 movies_white_list = Movie
 movies_paraphrase =
 
-events_class_name = org.schema.Event
-events_white_list = MusicEvent
-events_paraphrase =
-
 music_class_name = org.schema.Music
 music_white_list = MusicRecording
 music_paraphrase =
 
 eval_set ?= eval
 
-process_schemaorg_flags ?= --manual --wikidata-path ./wikidata-property-labels.json
-auto_annotate_flags ?= --algorithm bert,adj,bart --paraphraser-model ./models/paraphraser-bart
-auto_annotate_custom_flags ?=
+mode ?= default
+
+default_process_schemaorg_flags = --manual
+base_process_schemaorg_flags =
+auto_process_schemaorg_falgs =
+custom_process_schemaorg_falgs ?=
+
+default_annotate_flags =
+base_annotate_flags =
+auto_annotate_flags = --algorithm bert,adj,bart --paraphraser-model ./models/paraphraser-bart
+custom_annotate_flags ?=
+
 template_file ?= thingtalk/en/thingtalk.genie
 dataset_file ?= emptydataset.tt
 synthetic_flags ?= \
@@ -62,9 +59,10 @@ synthetic_flags ?= \
 	schema_org \
 	filter_join \
 	no_stream
-target_pruning_size ?= 1000
 generate_flags = $(foreach v,$(synthetic_flags),--set-flag $(v))
-evalflags ?=
+
+target_pruning_size ?= 500
+maxdepth ?= 8
 
 model ?= 1
 train_iterations ?= 100000
@@ -93,45 +91,42 @@ custom_train_nlu_flags ?=
 .PHONY: all train evaluate
 .SECONDARY:
 
-wikidata-property-labels.json:
-	$(genie) retrieve-wikidata-labels > $@
-
 models/paraphraser-bart:
 	mkdir models
 	wget --no-verbose https://almond-static.stanford.edu/test-data/paraphraser-bart.tar.xz
 	tar -C models -xvf paraphraser-bart.tar.xz
 
-$(experiment)/schema.org.tt: $(geniedir)/tool/autoqa/schemaorg/process-schema.js ./wikidata-property-labels.json
-	$(genie) schemaorg-process-schema -o $@ $(process_schemaorg_flags) --class-name $($(experiment)_class_name) --white-list $($(experiment)_white_list)
+%/schema.tt: $(geniedir)/tool/autoqa/schemaorg/process-schema.js
+	$(genie) schemaorg-process-schema -o $@ $($(mode)_process_schemaorg_flags) --domain $* --class-name $($(*)_class_name) --white-list $($(*)_white_list)
 
 emptydataset.tt:
 	echo 'dataset @empty {}' > $@
 
-$(experiment)/data.json : $(experiment)/schema.org.tt source-data/$(experiment)/*.json $(geniedir)/tool/autoqa/schemaorg/normalize-data.js
-	$(genie) schemaorg-normalize-data --data-output $@ --thingpedia $(experiment)/schema.org.tt source-data/$(experiment)/*.json --class-name $($(experiment)_class_name)
+%/data.json : %/schema.tt %/source-data.json $(geniedir)/tool/autoqa/schemaorg/normalize-data.js
+	$(genie) schemaorg-normalize-data --data-output $@ --thingpedia $*/schema.tt $*/source-data.json --class-name $($(*)_class_name)
 
-$(experiment)/schema.trimmed.tt : $(experiment)/schema.org.tt $(experiment)/data.json
-	$(genie) schemaorg-trim-class --thingpedia $(experiment)/schema.org.tt -o $@ --data ./$(experiment)/data.json --entities $(experiment)/entities.json
+%/schema.trimmed.tt : %/schema.tt %/data.json
+	$(genie) schemaorg-trim-class --thingpedia $*/schema.tt -o $@ --data ./$*/data.json --entities $*/entities.json --domain $*
 
-$(experiment)/constants.tsv: $(experiment)/parameter-datasets.tsv $(experiment)/schema.trimmed.tt
-	$(genie) sample-constants -o $@ --parameter-datasets $(experiment)/parameter-datasets.tsv --thingpedia $(experiment)/schema.trimmed.tt --devices $($(experiment)_class_name)
+%/constants.tsv: %/parameter-datasets.tsv %/schema.trimmed.tt
+	$(genie) sample-constants -o $@ --parameter-datasets $*/parameter-datasets.tsv --thingpedia $*/schema.trimmed.tt --devices $($(*)_class_name)
 	cat $(geniedir)/data/en-US/constants.tsv >> $@
 
-$(experiment)/schema.tt: $(experiment)/constants.tsv $(experiment)/schema.trimmed.tt $(experiment)/parameter-datasets.tsv models/paraphraser-bart
-	$(genie) auto-annotate -o $@.tmp --constants $(experiment)/constants.tsv --thingpedia $(experiment)/schema.trimmed.tt --functions $($(experiment)_white_list) $(auto_annotate_flags) $(auto_annotate_custom_flags) --parameter-datasets $(experiment)/parameter-datasets.tsv --dataset schemaorg
+%/manifest.tt: %/constants.tsv %/schema.trimmed.tt %/parameter-datasets.tsv models/paraphraser-bart
+	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/schema.trimmed.tt --functions $($(*)_white_list) $($(mode)_annotate_flags) --parameter-datasets $*/parameter-datasets.tsv --dataset schemaorg
 	mv $@.tmp $@
 
-$(experiment)/synthetic-d%.tsv: $(experiment)/schema.tt $(dataset_file) $(geniedir)/languages/thingtalk/en/*.genie
+multidomain/manifest.tt: $(addsuffix /manifest.tt,$(all_experiments))
+	cat $^ > $@
+
+%/synthetic.tsv: %/manifest.tt $(dataset_file) $(geniedir)/languages/thingtalk/en/*.genie
 	$(genie) generate \
 	  --template $(geniedir)/languages/$(template_file) \
-	  --thingpedia $(experiment)/schema.tt --entities $(experiment)/entities.json --dataset $(dataset_file) \
+	  --thingpedia $*/manifest.tt --entities $*/entities.json --dataset $(dataset_file) \
 	  --target-pruning-size $(target_pruning_size) \
-	  -o $@.tmp --no-debug $(generate_flags) --maxdepth $$(echo $* | cut -f1 -d'-') \
+	  -o $@.tmp --no-debug $(generate_flags) --maxdepth $(maxdepth) \
 	  --random-seed $@ --id-prefix $*:
 	mv $@.tmp $@
-
-$(experiment)/synthetic.tsv : $(foreach v,1 2 3,$(experiment)/synthetic-d6-$(v).tsv) $(experiment)/synthetic-d8.tsv
-	cat $^ > $@
 
 shared-parameter-datasets.tsv:
 	$(thingpedia_cli) --url $(thingpedia_url) --developer-key $(developer_key) --access-token invalid \
@@ -139,23 +134,26 @@ shared-parameter-datasets.tsv:
 	$(thingpedia_cli) --url $(thingpedia_url) --developer-key $(developer_key) --access-token invalid \
 	  download-string-values --manifest $@ --append-manifest -d shared-parameter-datasets
 
-$(experiment)/parameter-datasets.tsv : $(experiment)/schema.trimmed.tt $(experiment)/data.json shared-parameter-datasets.tsv
+%/parameter-datasets.tsv : %/schema.trimmed.tt %/data.json shared-parameter-datasets.tsv
 	sed 's|\tshared-parameter-datasets|\t../shared-parameter-datasets|g' shared-parameter-datasets.tsv > $@
-	$(genie) make-string-datasets --manifest $@.local -d $(experiment)/parameter-datasets --thingpedia $(experiment)/schema.trimmed.tt --data $(experiment)/data.json --class-name $($(experiment)_class_name) --dataset schemaorg
+	$(genie) make-string-datasets --manifest $@.local -d $*/parameter-datasets --thingpedia $*/schema.trimmed.tt --data $*/data.json --class-name $($(*)_class_name) --dataset schemaorg
 	cat $@.local >> $@
 	rm $@.local
 
-$(experiment)/augmented.tsv : $($(experiment)_paraphrase) $(experiment)/synthetic.tsv $(experiment)/parameter-datasets.tsv
-	$(genie) augment -o $@.tmp -l en-US --thingpedia $(experiment)/schema.tt --parameter-datasets $(experiment)/parameter-datasets.tsv \
+%/augmented.tsv : %/synthetic.tsv %/parameter-datasets.tsv
+	$(genie) augment -o $@.tmp -l en-US --thingpedia $*/manifest.tt --parameter-datasets $*/parameter-datasets.tsv \
 	  --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 60 --no-quote-paraphrasing-expand-factor 20 --quoted-fraction 0.0 \
-	  --debug $($(experiment)_paraphrase) $(experiment)/synthetic.tsv
+	  --debug $($(*)_paraphrase) $*/synthetic.tsv
 	mv $@.tmp $@
+
+multidomain/augmented.tsv: $(addsuffix /augmented.tsv,$(all_experiments))
+	cat $^ > $@
 
 datadir: $(experiment)/augmented.tsv $(experiment)/eval/annotated.tsv
 	mkdir -p $@
 	if test -s $(experiment)/eval/annotated.tsv ; then \
 	  cp $(experiment)/augmented.tsv $@/train.tsv ; \
-	  cut -f1-3 $(experiment)/eval/annotated.tsv $@/eval.tsv ; \
+	  cut -f1-3 $(experiment)/eval/annotated.tsv > $@/eval.tsv ; \
 	else \
 	  $(genie) split-train-eval --train $@/train.tsv --eval $@/eval.tsv \
 	    --eval-probability 0.1 --split-strategy sentence \
@@ -163,7 +161,7 @@ datadir: $(experiment)/augmented.tsv $(experiment)/eval/annotated.tsv
 	fi
 	touch $@
 
-train: datadir
+train:
 	mkdir -p $(experiment)/models/$(model)
 	-rm datadir/almond
 	ln -sf . datadir/almond
@@ -184,18 +182,13 @@ train: datadir
 	  $(train_nlu_flags) \
 	  $(custom_train_nlu_flags)
 
+evaluate: $(experiment)/$(eval_set)/annotated.tsv $(experiment)/manifest.tt
+	$(genie) evaluate-server --url "file://$(abspath $(experiment)/models/$(model))" --thingpedia $(experiment)/manifest.tt $(experiment)/$(eval_set)/annotated.tsv --debug --csv-prefix $(eval_set) --csv $(evalflags) --min-complexity 1 --max-complexity 3 -o $(experiment)/$(eval_set)/$(model).results.tmp | tee $(experiment)/$(eval_set)/$(model).debug
+	mv $(experiment)/$(eval_set)/$(model).results.tmp $(experiment)/$(eval_set)/$(model).results
+
 clean:
-	rm -rf bert-canonical-annotator-in.json bert-canonical-annotator-out.json gpt2-paraphraser-in.tsv gpt2-paraphraser-out.json synthetic-test.tsv
+	rm -rf datadir bert-canonical-annotator-in.json bert-canonical-annotator-out.json gpt2-paraphraser-in.tsv gpt2-paraphraser-out.json synthetic-test.tsv
+	rm -rf multidomain/manifest.tt multidomain/augmented.tsv
 	for exp in $(all_experiments) ; do \
-		rm -rf $$exp/synthetic* $$exp/data.json $$exp/entities.json $$exp/parameter-datasets* $$exp/schema.org.tt $$exp/schema.tt $$exp/schema.trimmed.tt $$exp/augmented.tsv $$exp/constants.tsv ; \
+		rm -rf $$exp/synthetic* $$exp/data.json $$exp/entities.json $$exp/parameter-datasets* $$exp/schema.tt $$exp/manifest.tt $$exp/schema.trimmed.tt $$exp/augmented.tsv $$exp/constants.tsv ; \
 	done
-
-$(experiment)/models/%/best.pth:
-	mkdir -p $(experiment)/models/
-	aws s3 sync --exclude '*/dataset/*' --exclude '*/cache/*' --exclude 'iteration_*.pth' --exclude '*_optim.pth' s3://geniehai/$(owner)/models/${project}/$(experiment)/$*/ $(experiment)/models/$*/
-
-$(experiment)/$(eval_set)/%.results: $(experiment)/models/%/best.pth $(experiment)/$(eval_set)/annotated.tsv $(experiment)/schema.tt
-	$(genie) evaluate-server --url "file://$(abspath $(dir $<))" --thingpedia $(experiment)/schema.tt $(experiment)/$(eval_set)/annotated.tsv --debug --csv-prefix $(eval_set) --csv $(evalflags) --max-complexity 3 -o $@.tmp | tee $(experiment)/$(eval_set)/$*.debug
-	mv $@.tmp $@
-
-
