@@ -70,6 +70,7 @@ module.exports = class MockThingpediaClient extends Tp.BaseClient {
     }
 
     async lookupEntity(entityType, entityDisplay) {
+        entityDisplay = entityDisplay.toLowerCase();
         if (entityType === 'tt:cryptocurrency_code') {
             if (entityDisplay === 'bitcoin') {
                 const array = [
@@ -108,6 +109,21 @@ module.exports = class MockThingpediaClient extends Tp.BaseClient {
             } else {
                 // unreachable test case
                 throw new Error('Invalid entity ' + entityDisplay);
+            }
+        } else if (entityType === 'com.yelp:restaurant_cuisine') {
+            if (entityDisplay === 'italian') {
+                return {
+                    data: [
+                        {"type":"com.yelp:restaurant_cuisine","value":"italian","canonical":"italian","name":"Italian"},
+                    ],
+                    meta: {"name":"Yelp Cuisine","has_ner_support":1,"is_well_known":0}
+                };
+            } else {
+                return {
+                    data: [
+                    ],
+                    meta: {"name":"Yelp Cuisine","has_ner_support":1,"is_well_known":0}
+                };
             }
         } else {
             return {
