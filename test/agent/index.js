@@ -200,7 +200,7 @@ async function loadTestCases() {
         .read();
 }
 
-async function expect(testRunner, expected) {
+function expect(testRunner, expected) {
     if (expected === null)
         return;
 
