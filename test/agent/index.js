@@ -200,6 +200,17 @@ async function loadTestCases() {
         .read();
 }
 
+function expect(testRunner, expected) {
+    if (expected === null)
+        return;
+
+    if (testRunner.buffer.trim() !== expected.trim()) {
+        console.error('Invalid reply: ' + testRunner.buffer.trim());
+        console.error('\nExpected: ' + expected.trim());
+        throw new Error('test failed');
+    }
+}
+
 async function roundtrip(testRunner, input, expected) {
     testRunner.nextTurn();
 
@@ -213,11 +224,7 @@ async function roundtrip(testRunner, input, expected) {
     else
         await conversation.handleCommand(input);
 
-    if (expected !== null && testRunner.buffer.trim() !== expected.trim()) {
-        console.error('Invalid reply: ' + testRunner.buffer.trim());
-        console.error('\nExpected: ' + expected.trim());
-        throw new Error('test failed');
-    }
+    expect(testRunner, expected);
 }
 
 async function test(testRunner, dlg, i) {
@@ -261,6 +268,13 @@ async function main(onlyIds) {
     await mockNLU(conversation);
     await conversation.addOutput(delegate);
     await conversation.start();
+
+    // test the welcome message (and the context at the start)
+    expect(testRunner, `
+Hi, how can I help you?
+>> context = null // {}
+>> expecting = null
+`);
 
     const TEST_CASES = await loadTestCases();
     for (let i = 0; i < TEST_CASES.length; i++) {

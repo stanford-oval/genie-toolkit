@@ -9,7 +9,7 @@
     - { code: ['now', '=>', '@invalid1.get', '=>', 'notify'], score: 'Infinity', }
     - { code: ['now', '=>', '@invalid1.get', '=>', 'notify'], score: 1, }
 -
-  utterance: '!! test command always nothing !!'
+  utterance: '!! test command always failed !!'
   candidates: []
 -
   utterance: 'get new york times'

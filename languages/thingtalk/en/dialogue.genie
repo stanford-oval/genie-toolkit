@@ -146,12 +146,21 @@ function context(state) {
 function answer(state, answer) {
     const ctx = S.getContextInfo(state);
     switch (state.dialogueAct) {
+    case 'sys_anything_else':
+        if (answer.isBoolean && answer.value === false)
+            return S.makeSimpleState(ctx, 'end', null);
+        return null;
     case 'sys_slot_fill':
         return D.impreciseSlotFillAnswer(ctx, answer);
     case 'sys_search_question':
         return D.impreciseSearchQuestionAnswer(ctx, answer);
     case 'sys_confirm_action':
-        // TODO
+        if (answer.isBoolean) {
+            if (answer.value)
+                return D.actionConfirmAcceptPhrase(ctx);
+            else
+                return D.actionConfirmRejectPhrase(ctx);
+        }
         return null;
     default:
         return null;
