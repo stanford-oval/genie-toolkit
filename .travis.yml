@@ -18,6 +18,7 @@ jobs:
       - travis_retry yarn
       script:
       - yarn lint
+      - yarn doc
       - TZ="America/Los_Angeles" yarn run nyc node ./test/unit
       after_success: yarn run coverage
     -
