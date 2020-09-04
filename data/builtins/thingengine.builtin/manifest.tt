@@ -41,6 +41,7 @@ class @org.thingpedia.builtin.thingengine.builtin
   #_[canonical=["my current location", "my current position", "my current geocoordinates"]]
   #_[confirmation="your location"]
   #_[formatted=[{type="text",text="Current Location: ${location}"}]]
+  #[minimal_projection=["location"]]
   #[poll_interval=0ms]
   #[doc="get last known GPS location"]
   #[confirm=false];
