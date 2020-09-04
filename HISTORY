@@ -1,3 +1,10 @@
+0.7.0-rc.1
+==========
+
+* Fixed bugs around hyphens and underscores in the tokenizer [#308].
+* Fixed several bugs in the dialogue agent runtime [#245, #278, #287, #288,
+  #289, #291, #298, #309].
+
 0.7.0-beta.6
 ============
 
