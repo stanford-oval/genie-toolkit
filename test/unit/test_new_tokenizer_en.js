@@ -38,7 +38,7 @@ const TEST_CASES = [
 
     // numbers and words together
     ['train tr0123', 'train tr0123', 'train tr0123', {}],
-    ['train tr-0123', 'train tr -123', 'train tr NUMBER_0', { NUMBER_0: -123 }],
+    ['train tr-0123', 'train tr- 123', 'train tr- NUMBER_0', { NUMBER_0: 123 }],
     ['abc123def', 'abc123def', 'abc123def', {}],
     ['5kW', '5 kw', '5 kw', {}],
     ['9gag', '9 gag', '9 gag', {}],
@@ -58,7 +58,6 @@ const TEST_CASES = [
     // placeholders (for Thingpedia)
     ['post ____ on Twitter', 'post ____ on twitter', 'post ____ on twitter', {}],
     ['post ____,____ on Twitter', 'post ____ , ____ on twitter', 'post ____ , ____ on twitter', {}],
-    ['post____on Twitter', 'post ____ on twitter', 'post ____ on twitter', {}],
 
     // abbreviations
     ['so e.g. this is a sentence, ie. something you type',
@@ -488,8 +487,19 @@ const TEST_CASES = [
 
     // weird stuff that we shouldn't tokenize but we sometime do
     ['str:QUOTED_STRING::0:',
-     'str : quoted _ string : : 0 :',
-     'str : quoted _ string : : 0 :', {}],
+     'str : quoted_string : : 0 :',
+     'str : quoted_string : : 0 :', {}],
+
+    // hyphens
+    ['in-n-out', 'in-n-out', 'in-n-out', {}],
+    ['state-of-the-art', 'state-of-the-art', 'state-of-the-art', {}],
+    ['top-10', 'top- 10', 'top- 10', {}],
+    ['top-10k', 'top- 10 k', 'top- 10 k', {}],
+
+    // underscore
+    ['user_name', 'user_name','user_name', {}],
+    ['user_name_0', 'user_name_0','user_name_0', {}],
+    ['_xx_88', '_xx_88','_xx_88', {}],
 ];
 
 const DETOKENIZER_TEST_CASES = [
