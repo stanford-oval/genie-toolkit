@@ -215,3 +215,19 @@ U: now => @com.icanhazdadjoke.get() => notify;
 A: What is a witch's favorite subject in school? Spelling!
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @com.icanhazdadjoke.get attribute:id = GENERIC_ENTITY_tt:device_id_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.icanhazdadjoke:id_0 , param:text = QUOTED_STRING_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.icanhazdadjoke-8","display":"Some Device 8"},"GENERIC_ENTITY_com.icanhazdadjoke:id_0":{"value":"K6UKmykqrjb","display":null},"QUOTED_STRING_0":"What is a witch's favorite subject in school? Spelling!   "}
 A: >> expecting = null
+
+====
+# 10-cancel
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @com.twitter.post();
+
+A: What do you want to tweet?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill param:status ; now => @com.twitter.post attribute:id = GENERIC_ENTITY_tt:device_id_0 ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"twitter-foo","display":"Twitter Account foo"}}
+A: >> expecting = raw_string
+
+U: \r bookkeeping special special:nevermind
+
+A: Sorry I couldn't help on that.
+A: >> context = null // {}
+A: >> expecting = null
