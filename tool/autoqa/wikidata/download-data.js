@@ -32,7 +32,9 @@ class Downloader {
         this._options = options;
         // metadata for each wikidata type
         this.meta = {};
-        // the normalized file
+        // normalized file for single-turn
+        this.output = [];
+        // normalized file for dialogue
         this.database_map = {};
         this.databases = {};
     }
@@ -41,7 +43,6 @@ class Downloader {
         const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
         assert(library.isLibrary && library.classes.length === 1);
         const classDef = library.classes[0];
-        this._classDef = classDef;
 
         for (let fn in classDef.queries) {
             const fndef = classDef.queries[fn];
@@ -154,7 +155,7 @@ class Downloader {
             data[field] = this._processField(fname, field, result);
         }
         this.databases[fname].push(data);
-
+        this.output.push(data);
     }
 
     async download() {
@@ -197,6 +198,12 @@ module.exports = {
             defaultValue: 10,
             help: 'Target size to download.'
         });
+        parser.addArgument('--dialogue', {
+            action: 'store_true',
+            required: false,
+            default: false,
+            help: 'Generate data for dialogue experiment or single-turn QA experiment.'
+        });
     },
 
     async execute(args) {
@@ -204,16 +211,22 @@ module.exports = {
         await downloader.init(args.thingpedia);
         await downloader.download();
 
-        const output = csvstringify({ header: false, delimiter: '\t' });
-        output.pipe(fs.createWriteStream(path.resolve(args.output_dir, 'database-map.tsv')));
-        for (let fn in downloader.database_map)
-            output.write(downloader.database_map[fn]);
-        output.end();
-        await StreamUtils.waitFinish(output);
+        if (args.dialogue) {
+            const output = csvstringify({header: false, delimiter: '\t'});
+            output.pipe(fs.createWriteStream(path.resolve(args.output_dir, 'database-map.tsv')));
+            for (let fn in downloader.database_map)
+                output.write(downloader.database_map[fn]);
+            output.end();
+            await StreamUtils.waitFinish(output);
 
-        for (let fn in downloader.databases) {
-            const output = fs.createWriteStream(path.resolve(args.output_dir, `${downloader.database_map[fn][1]}`));
-            output.end(JSON.stringify(downloader.databases[fn], undefined, 2));
+            for (let fn in downloader.databases) {
+                const output = fs.createWriteStream(path.resolve(args.output_dir, `${downloader.database_map[fn][1]}`));
+                output.end(JSON.stringify(downloader.databases[fn], undefined, 2));
+                await StreamUtils.waitFinish(output);
+            }
+        } else {
+            const output = fs.createWriteStream(path.resolve(args.output_dir, 'data.json'));
+            output.end(JSON.stringify(downloader.output, undefined, 2));
             await StreamUtils.waitFinish(output);
         }
     }
