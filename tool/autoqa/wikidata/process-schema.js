@@ -43,6 +43,25 @@ const {
     PROPERTY_TYPE_OVERRIDE
 } = require('./manual-annotations');
 
+async function retrieveProperties(domain, properties) {
+    let list = properties.includes('default') ? await getPropertyList(domain) : [];
+    for (let property of properties) {
+        if (property === 'none')
+            continue;
+        if (property === 'default')
+            continue;
+        if (property.startsWith('-')) {
+            property = property.slice(1);
+            let index = list.indexOf(property);
+            if (index > -1)
+                list.splice(index, 1);
+        } else if (!list.includes(property)) {
+            list.push(property);
+        }
+    }
+    return list;
+}
+
 class SchemaProcessor {
     constructor(domains, propertiesByDomain, requiredPropertiesByDomain, output, outputEntities) {
         this._domains = domains;
@@ -222,17 +241,24 @@ module.exports = {
         parser.addArgument('--required-properties', {
             nargs: '+',
             required: false,
-            help: 'the subset of properties that are required to be non-empty.'
+            help: 'the subset of properties that are required to be non-empty for all retrieved entities;\n' +
+                'use "none" to indicate no required property needed;\n' +
+                'use "default" to include properties included in P1963 (properties of this type);\n' +
+                'exclude a property by placing a minus sign before its id (no space)'
+
         });
     },
 
     async execute(args) {
         const domains = args.domains.split(',');
+
         const requiredPropertiesByDomain = {};
         if (args.required_properties) {
+            // if provided, property lists should match the number of domains
+            assert(Array.isArray(args.required_properties) && args.required_properties.length === domains.length);
             for (let i = 0; i < domains.length; i++) {
                 const domain = domains[i];
-                requiredPropertiesByDomain[domain] = args.required_properties[i].split(',');
+                requiredPropertiesByDomain[domain] = await retrieveProperties(domain, args.required_properties[i].split(','));
             }
         }
 
@@ -243,19 +269,7 @@ module.exports = {
             for (let i = 0; i < domains.length; i++) {
                 const domain = domains[i];
                 const properties = args.properties[i].split(',');
-                propertiesByDomain[domain] = properties.includes('default') ? await getPropertyList(domain) : [];
-                for (let property of properties) {
-                    if (property === 'default')
-                        continue;
-                    if (property.startsWith('-')) {
-                        property = property.slice(1);
-                        let index = propertiesByDomain[domain].indexOf(property);
-                        if (index > -1)
-                            propertiesByDomain[domain].splice(index, 1);
-                    } else if (!propertiesByDomain[domain].includes(property)) {
-                        propertiesByDomain[domain].push(property);
-                    }
-                }
+                propertiesByDomain[domain] = await retrieveProperties(domain, properties);
             }
         } else {
             for (let domain of domains)
