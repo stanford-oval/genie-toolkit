@@ -96,6 +96,8 @@ class SchemaProcessor {
                 return Type.Measure('C');
             if (units.includes('metre per second'))
                 return Type.Measure('mps');
+            if (units.includes('square metre'))
+                return Type.Measure('sqm');
             throw new TypeError('Unsupported measurement type with unit ' + units[0]);
         }
 
