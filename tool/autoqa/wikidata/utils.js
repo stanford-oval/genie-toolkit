@@ -217,12 +217,19 @@ async function getRangeConstraint(propertyId) {
         wd:${propertyId} p:P2302 ?statement .
         ?statement ps:P2302 wd:Q21510860 .
         ?statement pq:P2312 ?max .
-        ?statement pq:P2312 ?min .
+        ?statement pq:P2313 ?min .
         
     }`;
     const result = await wikidataQuery(query);
-    if (result.length > 0)
-        return { max: result.max.value, min: result.min.value };
+    if (result.length > 0) {
+        const range = {};
+        if (result[0].max)
+            range.max = result[0].max.value;
+        if (result[0].min)
+            range.min = result[0].min.value;
+        if (Object.keys(range).length > 0)
+            return range;
+    }
     return null;
 }
 
