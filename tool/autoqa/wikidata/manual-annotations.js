@@ -18,16 +18,42 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
+const ThingTalk = require('thingtalk');
+const Type = ThingTalk.Type;
+
+const PROPERTY_TYPE_OVERRIDE = {
+    'P735': Type.String,
+    'P734': Type.String,
+    'P1477': Type.String,
+    'P1449': Array(Type.String),
+    'P166': Array(Type.Entity('org.wikidata:award')),
+    'P106': Array(Type.Entity('org.wikidata:profession')),
+    'P26': Type.Entity('org.wikidata:human'), // spouse does not have "value type constraint" property
+    'P21': Type.Enum(['female', 'male'])
+};
+
+const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
+
+};
+
+const MANUAL_TABLE_CANONICAL_OVERRIDE = {
+
+};
+
+const PROPERTIES_NO_FILTER = [
+
+];
+
+const STRING_FILE_OVERRIDES = {
+};
+
 
 module.exports = {
-    cleanEnumValue(v) {
-        // replace dash with space
-        v = v.replace(/-/g, ' ');
-        // camelcase the value
-        v = v.replace(/(?:^|\s+|-)[A-Za-z]/g, (letter) => letter.trim().toUpperCase());
-        // add underscore prefix if value starts with number
-        if (/^\d.*/.test(v))
-            v = '_' + v;
-        return v;
-    }
+    MANUAL_PROPERTY_CANONICAL_OVERRIDE,
+    MANUAL_TABLE_CANONICAL_OVERRIDE,
+
+    PROPERTY_TYPE_OVERRIDE,
+    PROPERTIES_NO_FILTER,
+
+    STRING_FILE_OVERRIDES
 };

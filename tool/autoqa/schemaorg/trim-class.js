@@ -32,32 +32,12 @@ const {
     BLACKLISTED_PROPERTIES_BY_DOMAIN
 } = require('./manual-annotations');
 
-const DEFAULT_ENTITIES = [
-    {"type":"tt:contact","name":"Contact Identity","is_well_known":1,"has_ner_support":0},
-    {"type":"tt:contact_name","name":"Contact Name","is_well_known":1,"has_ner_support":0},
-    {"type":"tt:device","name":"Device Name","is_well_known":1,"has_ner_support":0},
-    {"type":"tt:email_address","name":"Email Address","is_well_known":1,"has_ner_support":0},
-    {"type":"tt:flow_token","name":"Flow Identifier","is_well_known":1,"has_ner_support":0},
-    {"type":"tt:function","name":"Function Name","is_well_known":1,"has_ner_support":0},
-    {"type":"tt:hashtag","name":"Hashtag","is_well_known":1,"has_ner_support":0},
-    {"type":"tt:path_name","name":"Unix Path","is_well_known":1,"has_ner_support":0},
-    {"type":"tt:phone_number","name":"Phone Number","is_well_known":1,"has_ner_support":0},
-    {"type":"tt:picture","name":"Picture","is_well_known":1,"has_ner_support":0},
-    {"type":"tt:program","name":"Program","is_well_known":1,"has_ner_support":0},
-    {"type":"tt:url","name":"URL","is_well_known":1,"has_ner_support":0},
-    {"type":"tt:username","name":"Username","is_well_known":1,"has_ner_support":0},
-    {"type":"tt:iso_lang_code","name":"ISO Language Code","is_well_known":0,"has_ner_support":1}
-];
-
+const { titleCase, DEFAULT_ENTITIES } = require('../lib/utils');
 
 async function loadClassDef(thingpedia) {
     const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
     assert(library.isLibrary && library.classes.length === 1);
     return library.classes[0];
-}
-
-function titleCase(str) {
-    return str.split(' ').map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
 }
 
 class SchemaTrimmer {
