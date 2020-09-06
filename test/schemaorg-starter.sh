@@ -22,7 +22,6 @@ cat > restaurants/eval/annotated.tsv <<EOF
 EOF
 
 # evaluate
-sed -i 's/restaurants_eval_models =/restaurants_eval_models = small/' Makefile
-make experiment=restaurants eval_set=eval evaluate
+make experiment=restaurants eval_set=eval model=small evaluate
 
 rm -fr $workdir
