@@ -89,6 +89,9 @@ if_filter = {
     p:out_param_Measure_m 'is' ('farther' | 'more distant' | 'longer') 'than' x:constant_Measure_m => C.makeFilter(p, '>=', x);
     p:out_param_Measure_m 'is' ('nearer' | 'closer' | 'shorter' | 'no longer' | 'no farther') 'than' x:constant_Measure_m  => C.makeFilter(p, '<=', x);
 
+    p:out_param_Measure_sqm 'is' ('larger' | 'bigger' | 'no smaller') 'than' x:constant_Measure_sqm => C.makeFilter(p, '>=', x);
+    p:out_param_Measure_sqm 'is' ('smaller' | 'no larger' | 'no bigger') 'than' x:constant_Measure_sqm  => C.makeFilter(p, '<=', x);
+
     p:out_param_Measure_mps 'is' ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
     p:out_param_Measure_mps 'is' ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);
 
@@ -141,6 +144,9 @@ edge_filter = {
 
     p:out_param_Measure_m ('is now' | 'becomes' | 'goes') ('farther' | 'more distant' | 'longer') 'than' x:constant_Measure_m => C.makeFilter(p, '>=', x);
     p:out_param_Measure_m ('is now' | 'becomes' | 'goes') ('nearer' | 'closer' | 'shorter') 'than' x:constant_Measure_m  => C.makeFilter(p, '<=', x);
+
+    p:out_param_Measure_sqm ('is now' | 'becomes' | 'goes') ('bigger' | 'larger') 'than' x:constant_Measure_sqm => C.makeFilter(p, '>=', x);
+    p:out_param_Measure_sqm ('is now' | 'becomes' | 'goes') 'smaller' 'than' x:constant_Measure_sqm  => C.makeFilter(p, '<=', x);
 
     p:out_param_Measure_mps ('is now' | 'becomes' | 'goes') ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
     p:out_param_Measure_mps ('is now' | 'becomes' | 'goes') ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);
@@ -258,6 +264,9 @@ with_filter = {
     p:out_param_Measure_m ('farther' | 'more distant' | 'longer') 'than' x:constant_Measure_m => C.makeFilter(p, '>=', x);
     p:out_param_Measure_m ('nearer' | 'closer' | 'shorter') 'than' x:constant_Measure_m  => C.makeFilter(p, '<=', x);
 
+    p:out_param_Measure_sqm ('larger' | 'bigger') 'than' x:constant_Measure_sqm => C.makeFilter(p, '>=', x);
+    p:out_param_Measure_sqm 'smaller' 'than' x:constant_Measure_sqm  => C.makeFilter(p, '<=', x);
+
     p:out_param_Measure_mps ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
     p:out_param_Measure_mps ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);
 
@@ -288,6 +297,9 @@ with_filter = {
 
     ('farther' | 'more distant' | 'longer') p:out_param_Measure_m 'than' x:constant_Measure_m => C.makeFilter(p, '>=', x);
     ('nearer' | 'closer' | 'shorter') p:out_param_Measure_m 'than' x:constant_Measure_m  => C.makeFilter(p, '<=', x);
+
+    ('bigger' | 'larger' ) p:out_param_Measure_sqm 'than' x:constant_Measure_sqm => C.makeFilter(p, '>=', x);
+    'smaller' p:out_param_Measure_sqm 'than' x:constant_Measure_sqm  => C.makeFilter(p, '<=', x);
 
     ('faster' | 'quicker' | 'speedier') p:out_param_Measure_mps 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
     ('slower' | 'more slowly') p:out_param_Measure_mps 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);

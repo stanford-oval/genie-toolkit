@@ -240,6 +240,16 @@ constant_Measure_m = {
     }
 }
 
+constant_Measure_sqm = {
+    !inference {
+        num:constant_Number 'square meters' => C.addUnit('sqm', num);
+        num:constant_Number 'square km' => C.addUnit('sqkm', num);
+        num:constant_Number 'square kilometers' => C.addUnit('sqkm', num);
+        num:constant_Number 'square ft' => C.addUnit('sqft', num);
+        num:constant_Number 'square feet' => C.addUnit('sqft', num);
+    }
+}
+
 constant_Measure_mps = {
     !inference {
         num:constant_Number 'mph' => C.addUnit('mph', num);
