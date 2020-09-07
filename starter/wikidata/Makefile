@@ -1,0 +1,163 @@
+geniedir = ../..
+developer_key =
+thingpedia_cli = thingpedia
+thingpedia_url = https://thingpedia.stanford.edu/thingpedia
+
+-include ./config.mk
+
+memsize := 15000
+genie = node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/tool/genie.js
+
+all_experiments = city
+
+experiment ?= city
+city_class = Q515
+city_properties ?= default
+city_required_properties ?= none
+
+eval_set ?= eval
+
+mode ?= default
+default_annotate_flags =
+base_annotate_flags =
+auto_annotate_flags = --algorithm bert,adj,bart --paraphraser-model ./models/paraphraser-bart
+custom_annotate_flags ?=
+
+template_file ?= thingtalk/en/thingtalk.genie
+dataset_file ?= emptydataset.tt
+synthetic_flags ?= \
+	projection_with_filter \
+	projection \
+	aggregation \
+	schema_org \
+	filter_join \
+	no_stream
+generate_flags = $(foreach v,$(synthetic_flags),--set-flag $(v))
+
+target_pruning_size ?= 500
+maxdepth ?= 8
+
+model ?= 1
+train_iterations ?= 100000
+train_save_every ?= 2000
+train_log_every ?= 100
+train_nlu_flags ?= \
+	--train_iterations=$(train_iterations) \
+	--dimension=768 \
+	--transformer_hidden=768 \
+	--transformer_layers=0 \
+	--rnn_layers=2 \
+	--seq2seq_encoder=Identity \
+	--rnn_zero_state=average \
+	--context_embeddings=bert-base-uncased@0 \
+	--question_embeddings=bert-base-uncased@1 \
+	--trainable_encoder_embeddings=0 \
+	--trainable_decoder_embeddings=25 \
+	--train_context_embeddings \
+	--train_context_embeddings_after=80000 \
+	--decoder_embeddings= \
+	--transformer_lr_multiply=0.5 \
+	--train_batch_tokens=4000 \
+	--val_batch_size=128
+custom_train_nlu_flags ?=
+
+.PHONY: all train evaluate
+.SECONDARY:
+
+models/paraphraser-bart:
+	mkdir models
+	wget --no-verbose https://almond-static.stanford.edu/test-data/paraphraser-bart.tar.xz
+	tar -C models -xvf paraphraser-bart.tar.xz
+
+%/wikidata.tt: $(geniedir)/tool/autoqa/wikidata/process-schema.js
+	mkdir -p $*/eval
+	touch $*/eval/annotated.tsv
+	$(genie) wikidata-process-schema -o $@ --entities $*/entities.json\
+	  --domains $($(*)_class) \
+	  --properties $($(*)_properties) \
+	  --required-properties $($(*)_required_properties)
+
+%/data.json : $(geniedir)/tool/autoqa/wikidata/download-data.js
+	$(genie) wikidata-download-data --output-dir $* --thingpedia $*/wikidata.tt --target-size 10
+
+emptydataset.tt:
+	echo 'dataset @empty {}' > $@
+
+shared-parameter-datasets.tsv:
+	$(thingpedia_cli) --url $(thingpedia_url) --developer-key $(developer_key) --access-token invalid \
+	  download-entity-values --manifest $@ --append-manifest -d shared-parameter-datasets
+	$(thingpedia_cli) --url $(thingpedia_url) --developer-key $(developer_key) --access-token invalid \
+	  download-string-values --manifest $@ --append-manifest -d shared-parameter-datasets
+
+%/parameter-datasets.tsv : %/wikidata.tt %/data.json shared-parameter-datasets.tsv
+	sed 's|\tshared-parameter-datasets|\t../shared-parameter-datasets|g' shared-parameter-datasets.tsv > $@
+	$(genie) make-string-datasets --manifest $@.local -d $*/parameter-datasets --thingpedia $*/wikidata.tt --data $*/data.json --class-name org.wikidata --dataset wikidata
+	cat $@.local >> $@
+	rm $@.local
+
+%/constants.tsv: %/parameter-datasets.tsv %/wikidata.tt
+	$(genie) sample-constants -o $@ --parameter-datasets $*/parameter-datasets.tsv --thingpedia $*/wikidata.tt --devices org.wikidata
+	cat $(geniedir)/data/en-US/constants.tsv >> $@
+
+%/manifest.tt: %/constants.tsv %/wikidata.tt %/parameter-datasets.tsv models/paraphraser-bart
+	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/wikidata.tt --functions $(experiment) $($(mode)_annotate_flags) --parameter-datasets $*/parameter-datasets.tsv --dataset wikidata
+	mv $@.tmp $@
+
+%/synthetic.tsv: %/manifest.tt $(dataset_file) $(geniedir)/languages/thingtalk/en/*.genie
+	$(genie) generate \
+	  --template $(geniedir)/languages/$(template_file) \
+	  --thingpedia $*/manifest.tt --entities $*/entities.json --dataset $(dataset_file) \
+	  --target-pruning-size $(target_pruning_size) \
+	  -o $@.tmp --no-debug $(generate_flags) --maxdepth $(maxdepth) \
+	  --random-seed $@ --id-prefix $*:
+	mv $@.tmp $@
+
+%/augmented.tsv : %/synthetic.tsv %/parameter-datasets.tsv
+	$(genie) augment -o $@.tmp -l en-US --thingpedia $*/manifest.tt --parameter-datasets $*/parameter-datasets.tsv \
+	  --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 60 --no-quote-paraphrasing-expand-factor 20 --quoted-fraction 0.0 \
+	  --debug $($(*)_paraphrase) $*/synthetic.tsv
+	mv $@.tmp $@
+
+datadir: $(experiment)/augmented.tsv
+	mkdir -p $@
+	if test -s $(experiment)/eval/annotated.tsv ; then \
+	  cp $(experiment)/augmented.tsv $@/train.tsv ; \
+	  cut -f1-3 $(experiment)/eval/annotated.tsv > $@/eval.tsv ; \
+	else \
+	  $(genie) split-train-eval --train $@/train.tsv --eval $@/eval.tsv \
+	    --eval-probability 0.1 --split-strategy sentence \
+	    --eval-on-synthetic $(experiment)/augmented.tsv ; \
+	  cp $@/eval.tsv $(experiment)/eval/annotated.tsv; \
+	fi
+	touch $@
+
+train:
+	mkdir -p $(experiment)/models/$(model)
+	-rm datadir/almond
+	ln -sf . datadir/almond
+	genienlp train \
+	  --no_commit \
+	  --data datadir \
+	  --embeddings .embeddings \
+	  --save $(experiment)/models/$(model) \
+	  --tensorboard_dir $(experiment)/models/$(model) \
+	  --cache datadir/.cache \
+	  --train_tasks almond \
+	  --preserve_case \
+	  --save_every $(train_save_every) \
+	  --log_every $(train_log_every) \
+	  --val_every $(train_save_every) \
+	  --exist_ok \
+	  --skip_cache \
+	  $(train_nlu_flags) \
+	  $(custom_train_nlu_flags)
+
+evaluate: $(experiment)/$(eval_set)/annotated.tsv $(experiment)/manifest.tt
+	$(genie) evaluate-server --url "file://$(abspath $(experiment)/models/$(model))" --thingpedia $(experiment)/manifest.tt $(experiment)/$(eval_set)/annotated.tsv --debug --csv-prefix $(eval_set) --csv $(evalflags) --min-complexity 1 --max-complexity 3 -o $(experiment)/$(eval_set)/$(model).results.tmp | tee $(experiment)/$(eval_set)/$(model).debug
+	mv $(experiment)/$(eval_set)/$(model).results.tmp $(experiment)/$(eval_set)/$(model).results
+
+clean:
+	rm -rf datadir bert-canonical-annotator-in.json bert-canonical-annotator-out.json gpt2-paraphraser-in.tsv gpt2-paraphraser-out.json
+	for exp in $(all_experiments) ; do \
+		rm -rf $$exp/synthetic* $$exp/data.json $$exp/entities.json $$exp/parameter-datasets* $$exp/wikidata.tt $$exp/manifest.tt $$exp/augmented.tsv $$exp/constants.tsv ; \
+	done
