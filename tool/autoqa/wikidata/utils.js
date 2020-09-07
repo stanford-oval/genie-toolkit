@@ -131,6 +131,22 @@ async function getPropertyLabel(propertyId) {
 }
 
 /**
+ * Get alternative labels of a given property
+ * @param {string} propertyId: the id of the property
+ * @returns {Promise<Array.string>}: the label of the property
+ */
+async function getPropertyAltLabels(propertyId) {
+    const query = `SELECT DISTINCT ?propAltLabel WHERE {
+         ?prop wikibase:directClaim wdt:${propertyId} .
+         SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+    }`;
+    const result = await wikidataQuery(query);
+    if (result.length > 0 && result[0].propAltLabel)
+        return result[0].propAltLabel.value.split(',');
+    return null;
+}
+
+/**
  * Get the label of a given item
  * @param {string} itemId: the id of the item
  * @returns {Promise<null|string>}: the label of the item
@@ -245,6 +261,7 @@ module.exports = {
     unitConverter,
     wikidataQuery,
     getPropertyLabel,
+    getPropertyAltLabels,
     getItemLabel,
     getPropertyList,
     getValueTypeConstraint,

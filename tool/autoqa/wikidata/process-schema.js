@@ -33,6 +33,7 @@ const {
     getPropertyList,
     getItemLabel,
     getPropertyLabel,
+    getPropertyAltLabels,
     getValueTypeConstraint,
     getOneOfConstraint,
     getAllowedUnits,
@@ -40,7 +41,9 @@ const {
 } = require('./utils');
 
 const {
-    PROPERTY_TYPE_OVERRIDE
+    PROPERTY_TYPE_OVERRIDE,
+    MANUAL_PROPERTY_CANONICAL_OVERRIDE,
+    MANUAL_TABLE_CANONICAL_OVERRIDE
 } = require('./manual-annotations');
 
 function argnameFromLabel(label) {
@@ -75,13 +78,15 @@ async function retrieveProperties(domain, properties) {
 }
 
 class SchemaProcessor {
-    constructor(domains, propertiesByDomain, requiredPropertiesByDomain, output, outputEntities) {
+    constructor(domains, propertiesByDomain, requiredPropertiesByDomain, output, outputEntities, manual, wikidataLabels) {
         this._domains = domains;
         this._propertiesByDomain = propertiesByDomain;
         this._requiredPropertiesByDomain = requiredPropertiesByDomain;
         this._output = output;
         this._outputEntities = outputEntities;
         this._entities = DEFAULT_ENTITIES.slice();
+        this._manual = manual;
+        this._wikidataLabels = wikidataLabels;
     }
 
     async _getType(domain, property) {
@@ -145,9 +150,21 @@ class SchemaProcessor {
 
     }
 
-    async _getCanonical(label, type) {
+    async _getArgCanonical(property, name, label, type) {
+        if (this._manual && name in MANUAL_PROPERTY_CANONICAL_OVERRIDE)
+            return MANUAL_PROPERTY_CANONICAL_OVERRIDE[name];
+
         const canonical = {};
         genBaseCanonical(canonical, label, type);
+
+        if (this._wikidataLabels) {
+            const altLabels = await getPropertyAltLabels(property);
+            if (altLabels) {
+                for (let label of altLabels)
+                    genBaseCanonical(canonical, label, type);
+            }
+        }
+
         return canonical;
     }
 
@@ -178,7 +195,7 @@ class SchemaProcessor {
                 const label = await getPropertyLabel(property);
                 const name = argnameFromLabel(label);
                 const annotations = {
-                    nl: { canonical: await this._getCanonical(label, type) },
+                    nl: { canonical: await this._getArgCanonical(property, name, label, type) },
                     impl: { wikidata_id: new Ast.Value.String(property) }
                 };
                 const elemType = getElementType(type);
@@ -254,6 +271,16 @@ module.exports = {
                 'use "default" to include properties included in P1963 (properties of this type);\n' +
                 'exclude a property by placing a minus sign before its id (no space)'
         });
+        parser.add_argument('--manual', {
+            action: 'store_true',
+            help: 'Enable manual annotations.',
+            default: false
+        });
+        parser.add_argument('--wikidata-labels', {
+            action: 'store_true',
+            help: 'Enable wikidata labels as annotations.',
+            default: false
+        });
         parser.addArgument('--required-properties', {
             nargs: '+',
             required: false,
@@ -291,7 +318,10 @@ module.exports = {
             for (let domain of domains)
                 propertiesByDomain[domain] = await getPropertyList(domain);
         }
-        const schemaProcessor = new SchemaProcessor(domains, propertiesByDomain, requiredPropertiesByDomain, args.output, args.entities);
+        const schemaProcessor = new SchemaProcessor(
+            domains, propertiesByDomain, requiredPropertiesByDomain, args.output, args.entities,
+            args.manual, args.wikidata_labels
+        );
         schemaProcessor.run();
     }
 };
