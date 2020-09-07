@@ -20,6 +20,7 @@
 "use strict";
 
 const fs = require('fs');
+const util = require('util');
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
@@ -37,7 +38,8 @@ const {
     getValueTypeConstraint,
     getOneOfConstraint,
     getAllowedUnits,
-    getRangeConstraint
+    getRangeConstraint,
+    getSchemaorgEquivalent
 } = require('./utils');
 
 const {
@@ -78,7 +80,7 @@ async function retrieveProperties(domain, properties) {
 }
 
 class SchemaProcessor {
-    constructor(domains, propertiesByDomain, requiredPropertiesByDomain, output, outputEntities, manual, wikidataLabels) {
+    constructor(domains, propertiesByDomain, requiredPropertiesByDomain, output, outputEntities, manual, wikidataLabels, schemaorgManifest) {
         this._domains = domains;
         this._propertiesByDomain = propertiesByDomain;
         this._requiredPropertiesByDomain = requiredPropertiesByDomain;
@@ -87,6 +89,8 @@ class SchemaProcessor {
         this._entities = DEFAULT_ENTITIES.slice();
         this._manual = manual;
         this._wikidataLabels = wikidataLabels;
+        this._schemaorgManifest = schemaorgManifest;
+        this._schemaorgProperties = {};
     }
 
     async _getType(domain, property) {
@@ -115,6 +119,8 @@ class SchemaProcessor {
                 return Type.Measure('mps');
             if (units.includes('square metre'))
                 return Type.Measure('sqm');
+            if (units.includes('percent'))
+                return Type.Number;
             throw new TypeError('Unsupported measurement type with unit ' + units[0]);
         }
 
@@ -144,6 +150,10 @@ class SchemaProcessor {
             if (types.some((type) => type.label === 'geographical object' || type.label === 'geographical location'))
                 return Type.Location;
         }
+
+        const schemaorgEquivalent = await getSchemaorgEquivalent(property);
+        if (schemaorgEquivalent && schemaorgEquivalent in this._schemaorgProperties)
+            return this._schemaorgProperties[schemaorgEquivalent];
 
         // majority or arrays of string so this may be better default.
         return Type.Array(Type.String);
@@ -176,6 +186,24 @@ class SchemaProcessor {
     async run() {
         const queries = {};
         const actions = {};
+
+        // load schema.org manifest if available
+        if (this._schemaorgManifest) {
+            const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(this._schemaorgManifest, { encoding: 'utf8' }));
+            assert(library.isLibrary && library.classes.length === 1);
+            const classDef = library.classes[0];
+
+            for (let fn in classDef.queries) {
+                const fndef = classDef.queries[fn];
+                for (let argname of fndef.args) {
+                    let key = argname;
+                    if (argname.includes('.'))
+                        key = argname.substring(argname.lastIndexOf('.') + 1);
+                    if (!(argname in this._schemaorgProperties))
+                        this._schemaorgProperties[key] = fndef.getArgType(argname);
+                }
+            }
+        }
 
         for (let domain of this._domains) {
             const domainLabel = await getItemLabel(domain);
@@ -281,6 +309,10 @@ module.exports = {
             help: 'Enable wikidata labels as annotations.',
             default: false
         });
+        parser.add_argument('--schemaorg-manifest', {
+            required: false,
+            help: 'Path to manifest.tt for schema.org; used for predict the type of wikidata properties'
+        });
         parser.addArgument('--required-properties', {
             nargs: '+',
             required: false,
@@ -320,7 +352,7 @@ module.exports = {
         }
         const schemaProcessor = new SchemaProcessor(
             domains, propertiesByDomain, requiredPropertiesByDomain, args.output, args.entities,
-            args.manual, args.wikidata_labels
+            args.manual, args.wikidata_labels, args.schemaorg_manifest
         );
         schemaProcessor.run();
     }

@@ -257,6 +257,23 @@ async function getRangeConstraint(propertyId) {
     return null;
 }
 
+/**
+ * Get the Schema.org equivalent given a wikidata property
+ * @param {string} propertyId: the id of a property
+ * @returns {Promise<string>}: name of the equivalent property in Schema.org
+ */
+async function getSchemaorgEquivalent(propertyId) {
+    const query = `SELECT ?property WHERE {
+        wd:${propertyId} wdt:P1628 ?property .
+    }`;
+    const result = await wikidataQuery(query);
+    for (let r of result) {
+        if (r.property.value.startsWith('https://schema.org/'))
+            return r.property.value.substring('https://schema.org/'.length);
+    }
+    return null;
+}
+
 module.exports = {
     unitConverter,
     wikidataQuery,
@@ -267,5 +284,6 @@ module.exports = {
     getValueTypeConstraint,
     getOneOfConstraint,
     getAllowedUnits,
-    getRangeConstraint
+    getRangeConstraint,
+    getSchemaorgEquivalent
 };
