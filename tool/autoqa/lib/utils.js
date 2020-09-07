@@ -27,6 +27,8 @@ function cleanEnumValue(v) {
     // add underscore prefix if value starts with number
     if (/^\d.*/.test(v))
         v = '_' + v;
+    // normalize accent
+    v = v.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     return v;
 }
 
