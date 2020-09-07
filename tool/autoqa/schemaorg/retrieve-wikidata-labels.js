@@ -57,7 +57,7 @@ module.exports = {
     initArgparse(subparsers) {
         subparsers.add_parser('retrieve-wikidata-labels', {
             add_help: true,
-            description: "Retrieve the labels of properties from wikidata."
+            description: "Retrieve the labels of schema.org properties from wikidata."
         });
     },
 

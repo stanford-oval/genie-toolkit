@@ -64,6 +64,7 @@ const subcommands = {
     'schemaorg-process-schema': require('./autoqa/schemaorg/process-schema'),
     'schemaorg-normalize-data': require('./autoqa/schemaorg/normalize-data'),
     'schemaorg-trim-class': require('./autoqa/schemaorg/trim-class'),
+    'schemaorg-retrieve-wikidata-labels': require('./autoqa/schemaorg/retrieve-wikidata-labels'),
 
     'sgd-process-schema': require('./autoqa/sgd/process-schema'),
     'sgd-normalize-data': require('./autoqa/sgd/normalize-data'),
@@ -74,7 +75,6 @@ const subcommands = {
 
     'auto-annotate': require('./autoqa/auto-annotate'),
     'make-string-datasets': require('./autoqa/make-string-datasets'),
-    'retrieve-wikidata-labels': require('./autoqa/retrieve-wikidata-labels'),
     'canonical-diffchecker': require('./canonical-diffchecker'),
 
     'auto-annotate-multiwoz': require('./auto-annotate-multiwoz'),
