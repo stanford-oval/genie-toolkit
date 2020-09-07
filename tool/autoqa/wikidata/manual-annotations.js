@@ -22,14 +22,14 @@ const ThingTalk = require('thingtalk');
 const Type = ThingTalk.Type;
 
 const PROPERTY_TYPE_OVERRIDE = {
-    'P735': Type.String,
-    'P734': Type.String,
-    'P1477': Type.String,
-    'P1449': Array(Type.String),
-    'P166': Array(Type.Entity('org.wikidata:award')),
-    'P106': Array(Type.Entity('org.wikidata:profession')),
-    'P26': Type.Entity('org.wikidata:human'), // spouse does not have "value type constraint" property
-    'P21': Type.Enum(['female', 'male'])
+    'given_name': Type.String,
+    'family_name': Type.String,
+    'birth_name': Type.String,
+    'nickname': Array(Type.String),
+    'award_received': Array(Type.Entity('org.wikidata:award')),
+    'occupation': Array(Type.Entity('org.wikidata:profession')),
+    'spouse': Type.Entity('org.wikidata:human'), // spouse does not have "value type constraint" property
+    'sex_or_gender': Type.Enum(['female', 'male'])
 };
 
 const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {

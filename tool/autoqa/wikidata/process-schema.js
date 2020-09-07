@@ -43,6 +43,12 @@ const {
     PROPERTY_TYPE_OVERRIDE
 } = require('./manual-annotations');
 
+function argnameFromLabel(label) {
+    return snakecase(label)
+        .replace(/'/g, '') // remove apostrophe
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // remove accent
+}
+
 async function retrieveProperties(domain, properties) {
     let list = properties.includes('default') ? await getPropertyList(domain) : [];
     for (let property of properties) {
@@ -164,15 +170,16 @@ class SchemaProcessor {
             for (let property of properties) {
                 const type = await this._getType(domain, property);
                 const label = await getPropertyLabel(property);
+                const name = argnameFromLabel(label);
                 const annotations = {
                     nl: { canonical: await this._getCanonical(label, type) },
-                    impl: {}
+                    impl: { wikidata_id: new Ast.Value.String(property) }
                 };
                 if (type.isString)
                     annotations.impl['string_values'] = new Ast.Value.String(`org.wikidata:${domainLabel}_${property}`);
                 if (type.isEntity && type.type.startsWith('org.wikidata:'))
                     this._addEntity(type.type, titleCase(label), true);
-                args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, property, type, annotations));
+                args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, name, type, annotations));
             }
             const qualifiers = { is_list: true, is_monitorable: false };
             const annotations = {

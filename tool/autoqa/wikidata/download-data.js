@@ -43,6 +43,7 @@ class Downloader {
         const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
         assert(library.isLibrary && library.classes.length === 1);
         const classDef = library.classes[0];
+        this._classDef = classDef;
 
         for (let fn in classDef.queries) {
             const fndef = classDef.queries[fn];
@@ -134,18 +135,19 @@ class Downloader {
         end up with exponential number of results.
          */
         for (let field of fields) {
+            const wikidataId = this._classDef.queries[fname].getArgument(field).getImplementationAnnotation('wikidata_id');
             let query;
             if (this.meta[fname].fields[field].type === 'tt:Measure') {
                 query = `SELECT ?value ?valueLabel ?unit ?unitLabel
                     WHERE {
-                        wd:${id} p:${field}/psv:${field}  
+                        wd:${id} p:${wikidataId}/psv:${wikidataId}  
                         [ wikibase:quantityAmount ?value ; wikibase:quantityUnit ?unit ] . 
                         SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
                     }`;
             } else {
                 query = `SELECT ?value ?valueLabel
                     WHERE {
-                        wd:${id} wdt:${field} ?value. 
+                        wd:${id} wdt:${wikidataId} ?value. 
                         SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
                     }`;
             }
