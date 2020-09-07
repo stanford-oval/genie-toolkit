@@ -33,7 +33,7 @@ class Downloader {
         // metadata for each wikidata type
         this.meta = {};
         // normalized file for single-turn
-        this.output = [];
+        this.output = {};
         // normalized file for dialogue
         this.database_map = {};
         this.databases = {};
@@ -122,10 +122,9 @@ class Downloader {
     async _downloadOne(fname, item) {
         const id = `${item.value.value.substring('http://www.wikidata.org/entity/'.length)}`;
         const data = {
-            'id': {
-                value: item.value.value,
-                display: await getItemLabel(id)
-            }
+            '@id': item.value.value,
+            'name':await getItemLabel(id),
+            '@type': fname
         };
 
         const fields = Object.keys(this.meta[fname].fields).filter((arg) => arg !== 'id');
@@ -157,12 +156,13 @@ class Downloader {
             data[field] = this._processField(fname, field, result);
         }
         this.databases[fname].push(data);
-        this.output.push(data);
+        this.output[fname][item.value.value] = data;
     }
 
     async download() {
         for (let fn in this.meta) {
             this.databases[fn] = [];
+            this.output[fn] = {};
             let items;
             const triples = [];
             for (let arg of this.meta[fn].required_fields)

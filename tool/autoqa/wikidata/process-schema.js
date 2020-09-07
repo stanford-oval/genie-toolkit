@@ -49,6 +49,12 @@ function argnameFromLabel(label) {
         .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // remove accent
 }
 
+function getElementType(type) {
+    if (type.isArray)
+        return getElementType(type.elem);
+    return type;
+}
+
 async function retrieveProperties(domain, properties) {
     let list = properties.includes('default') ? await getPropertyList(domain) : [];
     for (let property of properties) {
@@ -175,9 +181,10 @@ class SchemaProcessor {
                     nl: { canonical: await this._getCanonical(label, type) },
                     impl: { wikidata_id: new Ast.Value.String(property) }
                 };
-                if (type.isString)
-                    annotations.impl['string_values'] = new Ast.Value.String(`org.wikidata:${domainLabel}_${property}`);
-                if (type.isEntity && type.type.startsWith('org.wikidata:'))
+                const elemType = getElementType(type);
+                if (elemType.isString)
+                    annotations.impl['string_values'] = new Ast.Value.String(`org.wikidata:${domainLabel}_${name}`);
+                if (elemType.isEntity && elemType.type.startsWith('org.wikidata:'))
                     this._addEntity(type.type, titleCase(label), true);
                 args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, name, type, annotations));
             }
