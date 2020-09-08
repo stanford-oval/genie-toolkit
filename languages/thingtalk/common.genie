@@ -55,6 +55,7 @@ out_param_Numeric = {
     out_param_Measure_C;
     out_param_Measure_m;
     out_param_Measure_m2;
+    out_param_Measure_m3;
     out_param_Measure_mps;
 }
 
@@ -79,6 +80,7 @@ out_param_Measure_kg   = {}
 out_param_Measure_C    = {}
 out_param_Measure_m    = {}
 out_param_Measure_m2   = {}
+out_param_Measure_m3   = {}
 out_param_Measure_mps  = {}
 out_param_RecurrentTimeSpecification = {}
 
@@ -91,6 +93,7 @@ out_param_Array__Numeric = {
     out_param_Array__Measure_C;
     out_param_Array__Measure_m;
     out_param_Array__Measure_m2;
+    out_param_Array__Measure_m3;
     out_param_Array__Measure_mps;
 }
 
@@ -105,7 +108,8 @@ out_param_Array__Measure_byte = {}
 out_param_Array__Measure_kg   = {}
 out_param_Array__Measure_C    = {}
 out_param_Array__Measure_m    = {}
-out_param_Array__Measure_m2  = {}
+out_param_Array__Measure_m2   = {}
+out_param_Array__Measure_m3   = {}
 out_param_Array__Measure_mps  = {}
 out_param_Array__Compound = {}  // used for aggregate filter only
 

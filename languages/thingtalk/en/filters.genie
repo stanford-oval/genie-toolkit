@@ -92,6 +92,9 @@ if_filter = {
     p:out_param_Measure_m2 'is' ('larger' | 'bigger' | 'no smaller') 'than' x:constant_Measure_m2 => C.makeFilter(p, '>=', x);
     p:out_param_Measure_m2 'is' ('smaller' | 'no larger' | 'no bigger') 'than' x:constant_Measure_m2  => C.makeFilter(p, '<=', x);
 
+    p:out_param_Measure_m3 'is' ('larger' | 'bigger' | 'no smaller') 'than' x:constant_Measure_m3 => C.makeFilter(p, '>=', x);
+    p:out_param_Measure_m3 'is' ('smaller' | 'no larger' | 'no bigger') 'than' x:constant_Measure_m3  => C.makeFilter(p, '<=', x);
+
     p:out_param_Measure_mps 'is' ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
     p:out_param_Measure_mps 'is' ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);
 
@@ -147,6 +150,9 @@ edge_filter = {
 
     p:out_param_Measure_m2 ('is now' | 'becomes' | 'goes') ('bigger' | 'larger') 'than' x:constant_Measure_m2 => C.makeFilter(p, '>=', x);
     p:out_param_Measure_m2 ('is now' | 'becomes' | 'goes') 'smaller' 'than' x:constant_Measure_m2  => C.makeFilter(p, '<=', x);
+
+    p:out_param_Measure_m3 ('is now' | 'becomes' | 'goes') ('bigger' | 'larger') 'than' x:constant_Measure_m3 => C.makeFilter(p, '>=', x);
+    p:out_param_Measure_m3 ('is now' | 'becomes' | 'goes') 'smaller' 'than' x:constant_Measure_m3  => C.makeFilter(p, '<=', x);
 
     p:out_param_Measure_mps ('is now' | 'becomes' | 'goes') ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
     p:out_param_Measure_mps ('is now' | 'becomes' | 'goes') ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);
@@ -267,6 +273,9 @@ with_filter = {
     p:out_param_Measure_m2 ('larger' | 'bigger') 'than' x:constant_Measure_m2 => C.makeFilter(p, '>=', x);
     p:out_param_Measure_m2 'smaller' 'than' x:constant_Measure_m2  => C.makeFilter(p, '<=', x);
 
+    p:out_param_Measure_m3 ('larger' | 'bigger') 'than' x:constant_Measure_m3 => C.makeFilter(p, '>=', x);
+    p:out_param_Measure_m3 'smaller' 'than' x:constant_Measure_m3  => C.makeFilter(p, '<=', x);
+
     p:out_param_Measure_mps ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
     p:out_param_Measure_mps ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);
 
@@ -300,6 +309,9 @@ with_filter = {
 
     ('bigger' | 'larger' ) p:out_param_Measure_m2 'than' x:constant_Measure_m2 => C.makeFilter(p, '>=', x);
     'smaller' p:out_param_Measure_m2 'than' x:constant_Measure_m2  => C.makeFilter(p, '<=', x);
+
+    ('bigger' | 'larger' ) p:out_param_Measure_m3 'than' x:constant_Measure_m3 => C.makeFilter(p, '>=', x);
+    'smaller' p:out_param_Measure_m3 'than' x:constant_Measure_m3  => C.makeFilter(p, '<=', x);
 
     ('faster' | 'quicker' | 'speedier') p:out_param_Measure_mps 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
     ('slower' | 'more slowly') p:out_param_Measure_mps 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);
