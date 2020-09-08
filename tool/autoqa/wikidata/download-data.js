@@ -94,6 +94,15 @@ class Downloader {
             return parseFloat(label);
         }
 
+        // currency
+        if (expectedType.type === 'tt:Currency') {
+            const unit = unitConverter(value.unitLabel.value);
+            if (unit)
+                return { value: parseFloat(label), unit };
+            console.error(`Unknown currency ${value.unitLabel.value}.`);
+            return parseFloat(label);
+        }
+
         // numbers
         if (expectedType.type === 'tt:Number')
             return parseFloat(label);
@@ -137,7 +146,7 @@ class Downloader {
         for (let field of fields) {
             const wikidataId = this._classDef.queries[fname].getArgument(field).getImplementationAnnotation('wikidata_id');
             let query;
-            if (this.meta[fname].fields[field].type === 'tt:Measure') {
+            if (['tt:Measure', 'tt:Currency'].includes(this.meta[fname].fields[field].type)) {
                 query = `SELECT ?value ?valueLabel ?unit ?unitLabel
                     WHERE {
                         wd:${id} p:${wikidataId}/psv:${wikidataId}  

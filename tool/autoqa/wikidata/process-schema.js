@@ -132,7 +132,10 @@ class SchemaProcessor {
                 return Type.Measure('m3');
             if (units.includes('percent'))
                 return Type.Number;
-            throw new TypeError('Unsupported measurement type with unit ' + units[0]);
+            if (units.includes('United States dollar'))
+                return Type.Currency;
+            console.error(`Unknown measurement type with unit ${units.join(', ')} for ${property}`);
+            return Type.Number;
         }
 
         const range = await getRangeConstraint(property);

@@ -113,7 +113,21 @@ const WikidataUnitToTTUnit = {
     // decibel
     'decibel': 'dB',
     // decibel-milliwatts,
-    'dBm': 'dBm'
+    'dBm': 'dBm',
+
+    // currency
+    'United States dollar': 'usd',
+    'euro': 'eur',
+    'renminbi': 'cny',
+    'Iranian rial': 'irr',
+    'Hong Kong dollar': 'hkd',
+    'Japanese yen': 'jpy',
+    'South Korean won': 'krw',
+    'pound sterling': 'gbp',
+    'Indian rupee': 'inr',
+    'Canadian dollar': 'cad',
+    'Australian dollar': 'aud',
+    'Swiss franc': 'chf',
 };
 
 /**
