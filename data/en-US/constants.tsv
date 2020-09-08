@@ -65,6 +65,14 @@ Measure(m)	23km
 Measure(m)	50km
 Measure(m)	30mi
 Measure(m)	200mi
+Measure(m2)	1000ft2
+Measure(m2)	800m2
+Measure(m2)	23km2
+Measure(m2)	50mi2
+Measure(m3)	15m3
+Measure(m3)	800ft3
+Measure(m3)	3l
+Measure(m3)	11gal
 Measure(mps)	70kmph
 Measure(mps)	120kmph
 Measure(mps)	35mph
