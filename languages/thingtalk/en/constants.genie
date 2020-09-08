@@ -248,13 +248,13 @@ constant_Measure_m = {
     }
 }
 
-constant_Measure_sqm = {
+constant_Measure_m2 = {
     !inference {
-        num:constant_Number 'square meters' => C.addUnit('sqm', num);
-        num:constant_Number 'square km' => C.addUnit('sqkm', num);
-        num:constant_Number 'square kilometers' => C.addUnit('sqkm', num);
-        num:constant_Number 'square ft' => C.addUnit('sqft', num);
-        num:constant_Number 'square feet' => C.addUnit('sqft', num);
+        num:constant_Number 'square meters' => C.addUnit('m2', num);
+        num:constant_Number 'square km' => C.addUnit('km2', num);
+        num:constant_Number 'square kilometers' => C.addUnit('km2', num);
+        num:constant_Number 'square ft' => C.addUnit('ft2', num);
+        num:constant_Number 'square feet' => C.addUnit('ft2', num);
     }
 }
 
