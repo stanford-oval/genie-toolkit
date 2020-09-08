@@ -39,7 +39,8 @@ const {
     getOneOfConstraint,
     getAllowedUnits,
     getRangeConstraint,
-    getSchemaorgEquivalent
+    getSchemaorgEquivalent,
+    getClasses
 } = require('./utils');
 
 const {
@@ -100,6 +101,12 @@ class SchemaProcessor {
         const enumEntries = await getOneOfConstraint(property);
         if (enumEntries.length > 0)
             return Type.Enum(enumEntries.map(cleanEnumValue));
+
+        const classes = await getClasses(property);
+        if (classes.includes('Q18636219')) // Wikidata property with datatype 'time'
+            return Type.Date;
+        if (classes.includes('Q18616084')) // Wikidata property to indicate a language
+            return Type.Entity('tt:iso_lang_code');
 
         const label = await getPropertyLabel(property);
         if (label.startsWith('date of'))

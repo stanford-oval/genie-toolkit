@@ -29,7 +29,8 @@ const PROPERTY_TYPE_OVERRIDE = {
     'award_received': Array(Type.Entity('org.wikidata:award')),
     'occupation': Array(Type.Entity('org.wikidata:profession')),
     'spouse': Type.Entity('org.wikidata:human'), // spouse does not have "value type constraint" property
-    'sex_or_gender': Type.Enum(['female', 'male'])
+    'sex_or_gender': Type.Enum(['female', 'male']),
+    'twinned_administrative_body': Array(Type.Entity('org.wikidata:city'))
 };
 
 const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {

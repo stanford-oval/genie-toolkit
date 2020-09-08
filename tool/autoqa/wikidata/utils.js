@@ -274,6 +274,21 @@ async function getSchemaorgEquivalent(propertyId) {
     return null;
 }
 
+/**
+ * Get the class (instance of) of a given wikidata property or entity
+ * @param {string} id: the id of a property
+ * @returns {Promise<Array.string>}: list of classes
+ */
+async function getClasses(id) {
+    const query = `SELECT ?class WHERE {
+        wd:${id} wdt:P31 ?class .
+    }`;
+    const result = await wikidataQuery(query);
+    return result.map((r) => r.class.value.slice('http://www.wikidata.org/entity/'.length));
+}
+
+
+
 module.exports = {
     unitConverter,
     wikidataQuery,
@@ -285,5 +300,6 @@ module.exports = {
     getOneOfConstraint,
     getAllowedUnits,
     getRangeConstraint,
-    getSchemaorgEquivalent
+    getSchemaorgEquivalent,
+    getClasses
 };
