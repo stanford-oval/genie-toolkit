@@ -128,6 +128,8 @@ class SchemaProcessor {
                 return Type.Measure('mps');
             if (units.includes('square metre'))
                 return Type.Measure('m2');
+            if (units.includes('cubic metre'))
+                return Type.Measure('m3');
             if (units.includes('percent'))
                 return Type.Number;
             throw new TypeError('Unsupported measurement type with unit ' + units[0]);

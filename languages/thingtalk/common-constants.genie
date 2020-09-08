@@ -71,6 +71,9 @@ constant_Measure_m = {
 constant_Measure_m2 = {
     ?inference const(MEASURE_m2, Type.Measure('m2'));
 }
+constant_Measure_m3 = {
+    ?inference const(MEASURE_m3, Type.Measure('m3'));
+}
 constant_Measure_mps = {
     ?inference const(MEASURE_mps, Type.Measure('mps'));
 }
@@ -124,6 +127,7 @@ constant_Any = {
 
         constant_Measure_m;
         constant_Measure_m2;
+        constant_Measure_m3;
         constant_Measure_C;
         constant_Measure_kg;
         constant_Measure_Pa;
@@ -144,6 +148,7 @@ constant_Numeric = {
     constant_Measure_mps;
     constant_Measure_m;
     constant_Measure_m2;
+    constant_Measure_m3;
     constant_Measure_C;
     constant_Measure_kg;
     constant_Measure_Pa;

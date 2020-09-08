@@ -250,6 +250,28 @@ constant_Measure_m2 = {
     }
 }
 
+constant_Measure_m3 = {
+    !inference {
+        num:constant_Number 'cubic meters' => C.addUnit('m3', num);
+        num:constant_Number 'cubic km' => C.addUnit('km3', num);
+        num:constant_Number 'cubic kilometers' => C.addUnit('km3', num);
+        num:constant_Number 'cubic ft' => C.addUnit('ft3', num);
+        num:constant_Number 'cubic feet' => C.addUnit('ft3', num);
+        num:constant_Number 'liter' => C.addUnit('l', num);
+        num:constant_Number 'l' => C.addUnit('l', num);
+        num:constant_Number 'cl' => C.addUnit('cl', num);
+        num:constant_Number 'hl' => C.addUnit('hl', num);
+        num:constant_Number 'ml' => C.addUnit('ml', num);
+        num:constant_Number 'floz' => C.addUnit('floz', num);
+        num:constant_Number 'gallon' => C.addUnit('gal', num);
+        num:constant_Number 'quart' => C.addUnit('qt', num);
+        num:constant_Number 'pint' => C.addUnit('pint', num);
+        num:constant_Number 'cup' => C.addUnit('cup', num);
+        num:constant_Number 'teaspoon' => C.addUnit('tsp', num);
+        num:constant_Number 'tablespoon' => C.addUnit('tbsp', num);
+    }
+}
+
 constant_Measure_mps = {
     !inference {
         num:constant_Number 'mph' => C.addUnit('mph', num);

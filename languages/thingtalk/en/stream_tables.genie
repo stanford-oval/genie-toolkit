@@ -357,6 +357,9 @@ generic_argminmax = {
     ('largest' | 'biggest') p:out_param_Measure_m2 => [p, 'desc'];
     'smallest' p:out_param_Measure_m2 => [p, 'asc'];
 
+    ('largest' | 'biggest') p:out_param_Measure_m3 => [p, 'desc'];
+    'smallest' p:out_param_Measure_m3 => [p, 'asc'];
+
     ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => [p, 'desc'];
     ('slowest' | 'most slowly') p:out_param_Measure_mps => [p, 'asc'];
 

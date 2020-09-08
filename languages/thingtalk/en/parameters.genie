@@ -51,6 +51,7 @@ projection_Numeric = {
     projection_Measure_C;
     projection_Measure_m;
     projection_Measure_m2;
+    projection_Measure_m3;
     projection_Measure_mps;
     projection_Measure_Pa;
     projection_Measure_kcal;
@@ -264,6 +265,10 @@ placeholder_Measure_m    = {
 placeholder_Measure_m2    = {
     'some size' => new Ast.Value.Undefined(true);
     'a certain size' => new Ast.Value.Undefined(true);
+}
+placeholder_Measure_m3    = {
+    'some volume' => new Ast.Value.Undefined(true);
+    'a certain volume' => new Ast.Value.Undefined(true);
 }
 placeholder_Measure_mps  = {
     'some speed' => new Ast.Value.Undefined(true);
