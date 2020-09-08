@@ -24,7 +24,8 @@ const { cleanEnumValue } = require('../lib/utils');
 const {
     unitConverter,
     wikidataQuery,
-    getItemLabel
+    getItemLabel,
+    getEquivalent
 } = require('./utils');
 
 class Downloader {
@@ -167,16 +168,26 @@ class Downloader {
             const triples = [];
             for (let arg of this.meta[fn].required_fields)
                 triples.push(`wdt:${arg} ?${arg}`);
-            const query = `
-                SELECT DISTINCT ?value 
-                WHERE {
-                  ?value wdt:P31 wd:${this.meta[fn].subject}; ${triples.join('; ')} .
+            const subject = this.meta[fn].subject;
+            const equivalentClases = await getEquivalent(subject);
+            const classes = equivalentClases ? [this.meta[fn].subject, ...equivalentClases] : subject;
+            const visited = new Set();
+            for (let klass of classes) {
+                const query = `
+                    SELECT DISTINCT ?value 
+                    WHERE {
+                      ?value p:P31/ps:P31/wdt:P279* wd:${klass}; ${triples.join('; ')} .
+                    }
+                    LIMIT ${Math.ceil(this._options.target_size / classes.length)}
+                `;
+                items = await wikidataQuery(query);
+                for (let item of items) {
+                    if (!(item.value.value in visited)) {
+                        await this._downloadOne(fn, item);
+                        visited.add(item.value.value);
+                    }
                 }
-                LIMIT ${this._options.target_size}
-            `;
-            items = await wikidataQuery(query);
-            for (let item of items)
-                await this._downloadOne(fn, item);
+            }
         }
     }
 }
