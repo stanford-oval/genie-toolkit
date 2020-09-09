@@ -51,6 +51,7 @@ constant_Entity__tt__function = {}
 constant_Entity__tt__program  = {}
 constant_Entity__tt__device   = {}
 constant_Boolean = {}
+constant_RecurrentTimeSpecification = {}
 
 constant_Measure_ms = {
     ?inference const(MEASURE_ms, Type.Measure('ms'));
