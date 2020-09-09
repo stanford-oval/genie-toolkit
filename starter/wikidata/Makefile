@@ -8,18 +8,33 @@ thingpedia_url = https://thingpedia.stanford.edu/thingpedia
 memsize := 15000
 genie = node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/tool/genie.js
 
-all_experiments = city
-
+all_experiments = city university company
 experiment ?= city
+
 city_class = Q515
-city_properties ?= default
+city_properties ?= P571,P138,P30,P17,P1376,P131,P206,P625,P6,P1082,P2927,P2044,P421,P190,P47,P2046,P281,P856,P41,P1538,P18,P610,P150,P2936
 city_required_properties ?= none
+
+university_class = Q3918
+university_properties ?= default,-P3876,P154,P18,P571,P138,P112,P488,P2828,P1451,P2124,P463,P2196,P2936,P2769,P281,P355,P1830,P159,P1416
+university_required_properties ?= none
+
+company_class = Q783794
+company_properties ?= P154,P452,P571,P138,P112,P169,P1037,P1451,P17,P463,P2403,P2137,P2139,P2295,P3362,P740,P127,P749,P159,P1128,P166,P1056,P856,P1581,P414
+company_required_properties ?= P2139
 
 eval_set ?= eval
 
 mode ?= default
+default_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt
+base_process_schema_flags =
+manual_process_schema_flags = --manual
+auto_process_schema_flags =
+custom_process_schema_flags ?=
+
 default_annotate_flags =
 base_annotate_flags =
+manual_annotate_flags = --skip
 auto_annotate_flags = --algorithm bert,adj,bart --paraphraser-model ./models/paraphraser-bart
 custom_annotate_flags ?=
 
@@ -72,7 +87,7 @@ models/paraphraser-bart:
 %/wikidata.tt: $(geniedir)/tool/autoqa/wikidata/process-schema.js
 	mkdir -p $*/eval
 	touch $*/eval/annotated.tsv
-	$(genie) wikidata-process-schema -o $@ --entities $*/entities.json\
+	$(genie) wikidata-process-schema -o $@ --entities $*/entities.json $($(mode)_process_schema_flags)\
 	  --domains $($(*)_class) \
 	  --properties $($(*)_properties) \
 	  --required-properties $($(*)_required_properties)
