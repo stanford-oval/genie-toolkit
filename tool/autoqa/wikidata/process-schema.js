@@ -166,8 +166,16 @@ class SchemaProcessor {
         }
 
         const schemaorgEquivalent = await getSchemaorgEquivalent(property);
-        if (schemaorgEquivalent && schemaorgEquivalent in this._schemaorgProperties)
-            return this._schemaorgProperties[schemaorgEquivalent];
+        if (schemaorgEquivalent && schemaorgEquivalent in this._schemaorgProperties) {
+            const schemaorgType = this._schemaorgProperties[schemaorgEquivalent];
+            if (schemaorgType.isEntity && schemaorgType.type.startsWith('org.schema')) {
+                const entityType = schemaorgType.type.substring(schemaorgType.type.lastIndexOf(':') + 1).toLowerCase();
+                console.log(`${label} fallback to schema.org entity type ${schemaorgType}`);
+                return Type.Entity(`org.wikidata:${entityType}`);
+            }
+            if (!schemaorgType.isCompound)
+                return schemaorgType;
+        }
 
         // majority or arrays of string so this may be better default.
         return Type.Array(Type.String);
