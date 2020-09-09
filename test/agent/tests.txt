@@ -301,3 +301,13 @@ U: now => @com.yelp.restaurant(), contains(cuisines, "peruvian"^^com.yelp:restau
 A: Sorry, I cannot find any restaurant with those characteristics. Would you like another cuisines?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search_question param:cuisines ; now => ( @com.yelp.restaurant ) filter param:cuisines contains GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 => notify #[ results = [ ] ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"peruvian","display":"Peruvian"}}
 A: >> expecting = generic
+
+====
+# 17-empty-action-result
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @com.spotify.song(), contains(artists, "invalid"^^com.spotify:artist("Invalid")) => @com.spotify.play_song(song=id);
+
+A: Sorry, there are no song with those characteristics. Would you like a different artist?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search_question param:artists ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:artists contains GENERIC_ENTITY_com.spotify:artist_0 => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 on param:song = param:id #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"invalid","display":"Invalid"}}
+A: >> expecting = generic
