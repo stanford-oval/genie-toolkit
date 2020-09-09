@@ -690,16 +690,21 @@ function tagContextForAgent(ctx) {
                 // "what is the rating of Terun?"
                 // FIXME if we want to answer differently, we need to change this one
                 return ['ctx_single_result_search_command', 'ctx_complete_search_command'];
-            } else {
+            } else if (ctx.resultInfo.hasLargeResult) {
                 // "what's the food and price range of restaurants nearby?"
                 // we treat these the same as "find restaurants nearby", but we make sure
                 // that the necessary fields are computed
                 return ['ctx_search_command', 'ctx_complete_search_command'];
+            } else {
+                // "what's the food and price range of restaurants nearby?"
+                // we treat these the same as "find restaurants nearby", but we make sure
+                // that the necessary fields are computed
+                return ['ctx_complete_search_command'];
             }
         } else {
             if (ctx.resultInfo.hasSingleResult || ctx.resultInfoQuestion) // we can recommend
                 return ['ctx_single_result_search_command', 'ctx_complete_search_command'];
-            else if (ctx.state.dialogueAct !== 'ask_recommend') // we can refine
+            else if (ctx.resultInfo.hasLargeResult && ctx.state.dialogueAct !== 'ask_recommend') // we can refine
                 return ['ctx_search_command', 'ctx_complete_search_command'];
             else
                 return ['ctx_complete_search_command'];
