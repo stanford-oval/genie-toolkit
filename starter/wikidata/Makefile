@@ -23,7 +23,7 @@ company_class = Q783794
 company_properties ?= P154,P452,P571,P138,P112,P169,P1037,P1451,P17,P463,P2403,P2137,P2139,P2295,P3362,P740,P127,P749,P159,P1128,P166,P1056,P856,P1581,P414
 company_required_properties ?= P2139
 
-eval_set ?= eval
+eval_set ?= eval-synthetic
 
 mode ?= default
 default_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt
@@ -85,8 +85,8 @@ models/paraphraser-bart:
 	tar -C models -xvf paraphraser-bart.tar.xz
 
 %/wikidata.tt: $(geniedir)/tool/autoqa/wikidata/process-schema.js
-	mkdir -p $*/eval
-	touch $*/eval/annotated.tsv
+	mkdir -p $*/eval-synthetic
+	touch $*/eval-synthetic/annotated.tsv
 	$(genie) wikidata-process-schema -o $@ --entities $*/entities.json $($(mode)_process_schema_flags)\
 	  --domains $($(*)_class) \
 	  --properties $($(*)_properties) \
@@ -135,14 +135,14 @@ shared-parameter-datasets.tsv:
 
 datadir: $(experiment)/augmented.tsv
 	mkdir -p $@
-	if test -s $(experiment)/eval/annotated.tsv ; then \
-	  cp $(experiment)/augmented.tsv $@/train.tsv ; \
-	  cut -f1-3 $(experiment)/eval/annotated.tsv > $@/eval.tsv ; \
-	else \
+	if [ "$(eval_set)" = "eval-synthetic" ] ; then \
 	  $(genie) split-train-eval --train $@/train.tsv --eval $@/eval.tsv \
 	    --eval-probability 0.1 --split-strategy sentence \
 	    --eval-on-synthetic $(experiment)/augmented.tsv ; \
-	  cp $@/eval.tsv $(experiment)/eval/annotated.tsv; \
+	  cp $@/eval.tsv $(experiment)/${eval_set}/annotated.tsv; \
+	else \
+	  cp $(experiment)/augmented.tsv $@/train.tsv ; \
+	  cut -f1-3 $(experiment)/${eval_set}/annotated.tsv > $@/eval.tsv ; \
 	fi
 	touch $@
 
@@ -168,11 +168,11 @@ train:
 	  $(custom_train_nlu_flags)
 
 evaluate: $(experiment)/$(eval_set)/annotated.tsv $(experiment)/manifest.tt
-	$(genie) evaluate-server --url "file://$(abspath $(experiment)/models/$(model))" --thingpedia $(experiment)/manifest.tt $(experiment)/$(eval_set)/annotated.tsv --debug --csv-prefix $(eval_set) --csv $(evalflags) --min-complexity 1 --max-complexity 3 -o $(experiment)/$(eval_set)/$(model).results.tmp | tee $(experiment)/$(eval_set)/$(model).debug
+	$(genie) evaluate-server --url "file://$(abspath $(experiment)/models/$(model))" --thingpedia $(experiment)/manifest.tt $(experiment)/$(eval_set)/annotated.tsv --debug --csv-prefix $(eval_set) --csv --min-complexity 1 --max-complexity 3 -o $(experiment)/$(eval_set)/$(model).results.tmp | tee $(experiment)/$(eval_set)/$(model).debug
 	mv $(experiment)/$(eval_set)/$(model).results.tmp $(experiment)/$(eval_set)/$(model).results
 
 clean:
 	rm -rf datadir bert-canonical-annotator-in.json bert-canonical-annotator-out.json gpt2-paraphraser-in.tsv gpt2-paraphraser-out.json
 	for exp in $(all_experiments) ; do \
-		rm -rf $$exp/synthetic* $$exp/data.json $$exp/entities.json $$exp/parameter-datasets* $$exp/wikidata.tt $$exp/manifest.tt $$exp/augmented.tsv $$exp/constants.tsv ; \
+		rm -rf $$exp/synthetic* $$exp/data.json $$exp/entities.json $$exp/parameter-datasets* $$exp/wikidata.tt $$exp/manifest.tt $$exp/augmented.tsv $$exp/constants.tsv $$exp/*.tmp; \
 	done
