@@ -749,6 +749,9 @@ class ThingpediaLoader {
             if (this._options.debug >= this._runtime.LogLevel.INFO && preprocessed[0].startsWith(','))
                 console.log(`WARNING: template ${ex.id} starts with , but is not a query`);
 
+            if (this._options.flags.for_agent)
+                preprocessed = this._langPack.toAgentSideUtterance(preprocessed);
+
             const chunks = this._addPrimitiveTemplate(grammarCat, preprocessed, ex.value);
             rules.push({ category: grammarCat, expansion: chunks, example: ex });
 

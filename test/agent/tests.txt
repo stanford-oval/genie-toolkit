@@ -288,7 +288,7 @@ A: >> expecting = null
 # repeat this song
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.player_repeat(repeat=enum(track));
-A: Alright, I repeated this song.
+A: Alright, I repeated this song for you.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.spotify.player_repeat attribute:id = GENERIC_ENTITY_tt:device_id_0 param:repeat = enum:track #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"}}
 A: >> expecting = null
 
@@ -311,3 +311,12 @@ U: now => @com.spotify.song(), contains(artists, "invalid"^^com.spotify:artist("
 A: Sorry, there are no song with those characteristics. Would you like a different artist?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search_question param:artists ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:artists contains GENERIC_ENTITY_com.spotify:artist_0 => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 on param:song = param:id #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"invalid","display":"Invalid"}}
 A: >> expecting = generic
+
+====
+# 18-agent-phrase-with-my
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @com.spotify.player_shuffle(shuffle=enum(on));
+A: Alright, I shuffled your Spotify.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.spotify.player_shuffle attribute:id = GENERIC_ENTITY_tt:device_id_0 param:shuffle = enum:on #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"}}
+A: >> expecting = null
+

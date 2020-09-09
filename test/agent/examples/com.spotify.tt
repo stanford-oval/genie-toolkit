@@ -20,11 +20,11 @@ dataset @com.spotify language "en" {
     #[id=27924741]
     #[name=""];
 
-    action (p_state :Enum(on,off)) := @com.spotify.player_shuffle(shuffle=p_state)
+    /*action (p_state :Enum(on,off)) := @com.spotify.player_shuffle(shuffle=p_state)
     #_[utterances=["turn shuffle ${p_state}",
                    "turn ${p_state} shuffle"]]
     #[id=27924854]
-    #[name=""];
+    #[name=""];*/
 
     action := @com.spotify.player_shuffle(shuffle=enum(on))
     #_[utterances=["shuffle my spotify"]]
