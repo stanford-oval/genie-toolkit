@@ -131,18 +131,18 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The temperature is 18 C.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => [ param:temperature ] of ( @org.thingpedia.weather.current param:location = LOCATION_0 ) => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":18}}
+A: It is raining today in Palo Alto, California and the temperature is 18 C.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => [ param:temperature ] of ( @org.thingpedia.weather.current param:location = LOCATION_0 ) => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:status = enum:raining } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":18}}
 A: >> expecting = null
 
 ====
 # 5-weather-slot-fill
 # getting the weather again
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: now => @org.thingpedia.weather.current() => notify;
+U: now => @org.thingpedia.weather.current(location=$?) => notify;
 
 A: What location do you want the current weather for?
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill param:location ; now => @org.thingpedia.weather.current => notify ; // {}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill param:location ; now => @org.thingpedia.weather.current param:location = undefined => notify ; // {}
 A: >> expecting = location
 
 # let's use the location picker!

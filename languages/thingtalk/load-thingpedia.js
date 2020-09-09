@@ -200,7 +200,15 @@ class ThingpediaLoader {
             for (let form of prompt) {
                 if (form.endsWith('?'))
                     form = form.substring(0, form.length-1).trim();
-                this._grammar.addRule('thingpedia_slot_fill_question', [form], this._runtime.simpleCombine(() => pname));
+
+                // HACK: we should record the function name always, not just at inference time
+                if (this._options.flags.inference) {
+                    this._grammar.addRule('thingpedia_slot_fill_question', [form], this._runtime.simpleCombine(() => {
+                        return { functionName, name: pname };
+                    }));
+                } else {
+                    this._grammar.addRule('thingpedia_slot_fill_question', [form], this._runtime.simpleCombine(() => pname));
+                }
             }
         }
 
