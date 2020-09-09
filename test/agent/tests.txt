@@ -91,7 +91,7 @@ A: >> expecting = command
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [price] of @com.yelp.restaurant(), id == "vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant => notify;
 
-A: Ramen Nagi is a restaurant that are moderate . Would you like to learn more?
+A: Ramen Nagi is a restaurant that are moderate. Would you like to learn more?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => [ param:price ] of ( ( @com.yelp.restaurant ) filter param:id == GENERIC_ENTITY_com.yelp:restaurant_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:price = enum:moderate } ] ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":null}}
 A: >> expecting = command
 
@@ -99,7 +99,7 @@ A: >> expecting = command
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), price == enum(expensive) => notify;
 
-A: I have found Evvia Estiatorio and NOLA Restaurant & Bar. They're restaurant that are expensive .
+A: I have found Evvia Estiatorio and NOLA Restaurant & Bar. They're restaurant that are expensive.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two ; now => ( @com.yelp.restaurant ) filter param:price == enum:expensive => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ] , param:price = enum:expensive , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] #[ count = 10 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"1vMgajRAI3lYwuCeGX58oQ","display":"Evvia Estiatorio"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/Q3lgbcNuRbdrITtLN5CQgQ/o.jpg","URL_0":"https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"greek","display":"Greek"},"NUMBER_0":4.5,"NUMBER_1":2393,"LOCATION_0":{"latitude":37.445077,"longitude":-122.163778,"display":null},"PHONE_NUMBER_0":"+16503260983"}
 A: >> expecting = command
 
@@ -158,7 +158,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), id =~ ("despacito"))[1] => @com.spotify.play_song(song=id);
 
-A: Alright, I played Despacito on Spotify on str:ENTITY_com.spotify:device::36: .
+A: Alright, I played Despacito on Spotify on str:ENTITY_com.spotify:device::36:.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => ( ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 ) [ 1 ] => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 on param:song = param:id #[ results = [ { param:song = GENERIC_ENTITY_com.spotify:song_0 , param:device = GENERIC_ENTITY_com.spotify:device_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"despacito","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:6habFhsOp2NvshLv26DqMb","display":"Despacito"},"GENERIC_ENTITY_com.spotify:device_0":{"value":"str:ENTITY_com.spotify:device::36:","display":null}}
 A: >> expecting = null
 
@@ -168,7 +168,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), contains(artists, null^^com.spotify:artist("ariana grande")))[1] => @com.spotify.play_song(song=id);
 
-A: Alright, I played 7 rings on Spotify on str:ENTITY_com.spotify:device::36: .
+A: Alright, I played 7 rings on Spotify on str:ENTITY_com.spotify:device::36:.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => ( ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:artists contains GENERIC_ENTITY_com.spotify:artist_0 ) [ 1 ] => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 on param:song = param:id #[ results = [ { param:song = GENERIC_ENTITY_com.spotify:song_0 , param:device = GENERIC_ENTITY_com.spotify:device_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR","display":"Ariana Grande"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:6ocbgoVGwYJhOv1GgI9NsF","display":"7 rings"},"GENERIC_ENTITY_com.spotify:device_0":{"value":"str:ENTITY_com.spotify:device::36:","display":null}}
 A: >> expecting = null
 
@@ -238,7 +238,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), contains(cuisines, null^^com.yelp:restaurant_cuisine("italian")) => notify;
 
-A: I have found Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're restaurants in the Italian category which is moderate .
+A: I have found Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're restaurants in the Italian category which is moderate.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three ; now => ( @com.yelp.restaurant ) filter param:cuisines contains GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_2 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ] , param:price = enum:moderate , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] #[ count = 5 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"italian","display":"Italian"},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"OLa29RISTT2raUNPLo-9xw","display":"Patxi's Pizza"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/Jvow48SJ-SfCcxLt0a7uWg/o.jpg","URL_0":"https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"pizza","display":"Pizza"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_2":{"value":"salad","display":"Salad"},"NUMBER_0":3.5,"NUMBER_1":1700,"LOCATION_0":{"latitude":37.445153,"longitude":-122.163337,"display":null},"PHONE_NUMBER_0":"+16504739999"}
 A: >> expecting = command
 
@@ -267,7 +267,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), contains(cuisines, null^^com.yelp:restaurant_cuisine("italian")) => notify;
 
-A: I have found Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're restaurants in the Italian category which is moderate .
+A: I have found Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're restaurants in the Italian category which is moderate.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three ; now => ( @com.yelp.restaurant ) filter param:cuisines contains GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_2 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ] , param:price = enum:moderate , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] #[ count = 5 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"italian","display":"Italian"},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"OLa29RISTT2raUNPLo-9xw","display":"Patxi's Pizza"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/Jvow48SJ-SfCcxLt0a7uWg/o.jpg","URL_0":"https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"pizza","display":"Pizza"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_2":{"value":"salad","display":"Salad"},"NUMBER_0":3.5,"NUMBER_1":1700,"LOCATION_0":{"latitude":37.445153,"longitude":-122.163337,"display":null},"PHONE_NUMBER_0":"+16504739999"}
 A: >> expecting = command
 
