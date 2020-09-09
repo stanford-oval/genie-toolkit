@@ -102,6 +102,9 @@ models/paraphraser-bart:
 emptydataset.tt:
 	echo 'dataset @empty {}' > $@
 
+%/source-data.json:
+	wget --no-verbose https://almond-static.stanford.edu/test-data/schemaorg-source-data/$(*).json -O $*/source-data.json
+
 %/data.json : %/schema.tt %/source-data.json $(geniedir)/tool/autoqa/schemaorg/normalize-data.js
 	$(genie) schemaorg-normalize-data --data-output $@ --thingpedia $*/schema.tt $*/source-data.json --class-name $($(*)_class_name)
 

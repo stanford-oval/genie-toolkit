@@ -3,6 +3,7 @@ schema.jsonld
 emptydataset.tt
 config.mk
 
+source-data.json
 schema.tt
 schema.trimmed.tt
 manifest.tt
@@ -15,4 +16,5 @@ parameter-datasets.tsv
 shared-parameter-datasets/
 datadir/
 models/
+
 
