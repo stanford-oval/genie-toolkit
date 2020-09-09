@@ -173,8 +173,8 @@ class ThingpediaLoader {
 
         if (type.isArray)
             this._grammar.addRule('out_param_Array__Any', [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
-        else
-            this._grammar.addRule('out_param_Any', [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+
+        this._grammar.addRule('out_param_Any', [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
     }
 
     _recordInputParam(functionName, arg) {

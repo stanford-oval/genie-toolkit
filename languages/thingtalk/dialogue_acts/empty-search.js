@@ -58,6 +58,7 @@ function makeEmptySearchError(ctx, [base, question]) {
     if (base !== null && !C.isSameFunction(base.schema, ctx.currentFunctionSchema))
         return null;
 
+
     let type, state;
     if (question !== null) {
         if (!isGoodEmptySearchQuestion(ctx, question.name))

@@ -291,3 +291,13 @@ U: now => @com.spotify.player_repeat(repeat=enum(track));
 A: Alright, I repeated this song.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.spotify.player_repeat attribute:id = GENERIC_ENTITY_tt:device_id_0 param:repeat = enum:track #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-6","display":"Some Device 6"}}
 A: >> expecting = null
+
+====
+# 16-empty-search
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @com.yelp.restaurant(), contains(cuisines, "peruvian"^^com.yelp:restaurant_cuisine("Peruvian")) => notify;
+
+A: There are no restaurant with those characteristics. Would you like a different cuisines?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search_question param:cuisines ; now => ( @com.yelp.restaurant ) filter param:cuisines contains GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 => notify #[ results = [ ] ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"peruvian","display":"Peruvian"}}
+A: >> expecting = generic
