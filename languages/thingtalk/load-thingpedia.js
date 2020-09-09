@@ -283,6 +283,9 @@ class ThingpediaLoader {
                     this._grammar.addRule(cat + '_input_param', expansion, this._runtime.simpleCombine((_1, value, _2) => new Ast.InputParam(null, pname, value)), attributes);
                     this._grammar.addRule('coref_' + cat + '_input_param', corefexpansion, this._runtime.simpleCombine((_1, value, _2) => new Ast.InputParam(null, pname, value)), attributes);
                 }
+
+                if (this._options.flags.inference)
+                    break;
             }
         }
     }
@@ -336,6 +339,9 @@ class ThingpediaLoader {
             for (let form of annotvalue) {
                 this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, '==', value, false)), attributes);
                 this._grammar.addRule(cat + '_boolean_projection', [form], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+
+                if (this._options.flags.inference)
+                    break;
             }
 
         }
@@ -548,7 +554,8 @@ class ThingpediaLoader {
                         }
                     }
 
-
+                    if (this._options.flags.inference)
+                        break;
                 }
 
             } else {
@@ -607,6 +614,9 @@ class ThingpediaLoader {
                         if (ptype.isDate)
                             this._grammar.addRule(cat + '_filter', daterangeexpansion, this._runtime.simpleCombine((_1, values, _2) => makeDateRangeFilter(this, pvar, values)), attributes);
                     }
+
+                    if (this._options.flags.inference)
+                        break;
                 }
             }
         }
@@ -739,6 +749,9 @@ class ThingpediaLoader {
                 if (pastform)
                     this._addPrimitiveTemplate('thingpedia_action_past', pastform, ex.value);
             }
+
+            if (this._options.flags.inference)
+                break;
         }
         return rules;
     }

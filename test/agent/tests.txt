@@ -282,3 +282,12 @@ U: \r bookkeeping special special:no
 A: Alright, good bye!
 A: >> context = null // {}
 A: >> expecting = null
+
+====
+# 15-action-success-phrase
+# repeat this song
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @com.spotify.player_repeat(repeat=enum(track));
+A: Alright, I repeated this song.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.spotify.player_repeat attribute:id = GENERIC_ENTITY_tt:device_id_0 param:repeat = enum:track #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-6","display":"Some Device 6"}}
+A: >> expecting = null
