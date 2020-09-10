@@ -109,7 +109,7 @@ datadir: $(experiment)/augmented.tsv $(experiment)/eval/annotated.tsv
 	mkdir -p $@
 	if test -s $(experiment)/eval/annotated.tsv ; then \
 	  cp $(experiment)/augmented.tsv $@/train.tsv ; \
-	  cut -f1-3 $(experiment)/eval/annotated.tsv $@/eval.tsv ; \
+	  cut -f1-3 $(experiment)/eval/annotated.tsv > $@/eval.tsv ; \
 	else \
 	  $(genie) split-train-eval --train $@/train.tsv --eval $@/eval.tsv \
 	    --eval-probability 0.1 --split-strategy sentence \

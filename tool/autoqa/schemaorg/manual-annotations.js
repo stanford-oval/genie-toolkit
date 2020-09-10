@@ -607,6 +607,7 @@ const ENUM_VALUE_NORMALIZE = {
 const WHITELISTED_PROPERTIES_BY_DOMAIN = {
     'restaurants': ['acceptsReservations', 'starRating', 'starRating.ratingValue', 'openingHours', 'email', 'smokingAllowed', 'priceRange'],
     'hotels': ['petsAllowed', 'starRating', 'starRating.ratingValue', 'priceRange', 'email', 'faxNumber'],
+    'people': ['jobTitle', 'email', 'telephone', 'faxNumber', 'knowsLanguage', 'workLocation'],
     'linkedin': ['jobTitle', 'email', 'telephone', 'faxNumber', 'knowsLanguage', 'workLocation'],
     'books': ['abridged', 'datePublished'],
     'music': ['genre', 'datePublished', 'inLanguage', 'duration', 'numTracks']
