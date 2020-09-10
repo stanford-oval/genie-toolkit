@@ -122,7 +122,7 @@ The starter code includes evaluation data crowd sourced from Amazon MTruk for th
 make experiment=$(exp) model=$(model) evaluate
 ```
 
-If you obtain your own , you can add it to `$(experiment)/eval/annotated.tsv` for the dev set,
+If you obtain your own evaluation data, you can add it to `$(experiment)/eval/annotated.tsv` for the dev set,
 and `$(experiment)/test/annotated.tsv` for the test set. 
 Data added to the dev set will be also used during training for cross-validation.
 You can change the evaluation set
@@ -130,5 +130,4 @@ by setting `eval_set` to "eval" or "test" as:
 ```bash
 make experiment=$(exp) model=$(model) eval_set=$(eval-set) evaluate
 ```
-
 
