@@ -171,6 +171,14 @@ evaluate: $(experiment)/$(eval_set)/annotated.tsv $(experiment)/manifest.tt
 	$(genie) evaluate-server --url "file://$(abspath $(experiment)/models/$(model))" --thingpedia $(experiment)/manifest.tt $(experiment)/$(eval_set)/annotated.tsv --debug --csv-prefix $(eval_set) --csv --min-complexity 1 --max-complexity 3 -o $(experiment)/$(eval_set)/$(model).results.tmp | tee $(experiment)/$(eval_set)/$(model).debug
 	mv $(experiment)/$(eval_set)/$(model).results.tmp $(experiment)/$(eval_set)/$(model).results
 
+annotate: $(experiment)/manifest.tt
+	$(genie) manual-annotate \
+	  --server "file://$(abspath $(experiment)/models/$(model))" \
+	  --thingpedia $(experiment)/manifest.tt \
+	  --annotated $(experiment)/${eval_set}/annotated.tsv \
+	  --dropped $(experiment)/${eval_set}/dropped.tsv \
+	  $(experiment)/$(eval_set)/input.txt
+
 clean:
 	rm -rf datadir bert-canonical-annotator-in.json bert-canonical-annotator-out.json gpt2-paraphraser-in.tsv gpt2-paraphraser-out.json
 	for exp in $(all_experiments) ; do \
