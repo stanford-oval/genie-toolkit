@@ -8,20 +8,10 @@ The starter code requires`nodejs` (>=10.0) and `yarn` as a package manager.
 See [nodejs](https://nodejs.org/en/download/) and [yarn](https://classic.yarnpkg.com/en/docs/install/) for installation details. 
 You can check your installation by running `node --version` and `yarn --version`.
 
-In addition, you will need two libraries from OVAL: 
-[genie-toolkit](https://github.com/stanford-oval/genie-toolkit)
-and [thingpedia-cli](https://github.com/stanford-oval/thingpedia-cli).
-`genie-toolkit` provides you tools to process schema.org data, generate manifest, and synthesize data. 
-`thingpedia-cli` provides easy way to download data from and upload data to Thingpedia. 
-
-Run the following command to install them: 
+In addition, you will need [thingpedia-cli](https://github.com/stanford-oval/thingpedia-cli),
+which provides an easy way to download data from and upload data to Thingpedia. 
+Run the following command to install it: 
 ```bash
-# install genie-toolkit
-git clone https://github.com/stanford-oval/genie-toolkit.git
-cd genie-toolkit
-yarn
-
-# install thingpedia-cli 
 yarn global add thingpedia-cli
 ```
 
@@ -36,8 +26,12 @@ export PATH=~/.yarn/bin:$PATH
 
 ## Configuration
 
-Edit `Makefile` and set `geniedir` with the path to your "genie-toolkit"
-checkout. Set `developer_key` to your Thingpedia developer key.
+Edit `Makefile` and set `developer_key` to your Thingpedia developer key.
+A Thingpedia developer account is required to obtain the developer key. 
+[Register an Almond account](https://almond.stanford.edu/user/register) 
+and [sign up as a developer](https://almond.stanford.edu/user/request-developer), 
+then you can retrieve the developer key 
+from your [user profile](https://almond.stanford.edu/user/profile) page
 
 You can also create a file called 'config.mk' with your settings if you don't
 want to edit the Makefile directly.
@@ -66,7 +60,7 @@ Yelp, Hyatt, LinkedIn, IMDb, Last.fm, and Goodreads, respectively.
 
 
 ### Generate Manifest and Value Datasets
-Manifest.tt file contains the manifest of the Q\&A agent to build, including all the queries and properties 
+The manifest.tt file contains the manifest of the Q\&A agent to build, including all the queries and properties 
 available for each query. 
 Genie can automatically generate manifest.tt given crawled Schema.org metadata. 
 Use 
@@ -129,12 +123,12 @@ make experiment=$(exp) model=$(model) evaluate
 ```
 
 If you obtain your own , you can add it to `$(experiment)/eval/annotated.tsv` for the dev set,
-and `$(experiment)/test/annotated.tsv` for the test set.
-
-Finally, you can evaluate a specific with
-```
-make experiment=... eval_set=... evaluate
-```
-`eval_set` should be "eval" or "test".
-
+and `$(experiment)/test/annotated.tsv` for the test set. 
 Data added to the dev set will be also used during training for cross-validation.
+You can change the evaluation set
+by setting `eval_set` to "eval" or "test" as:
+```bash
+make experiment=$(exp) model=$(model) eval_set=$(eval-set) evaluate
+```
+
+
