@@ -16,7 +16,7 @@ city_properties ?= P571,P138,P30,P17,P1376,P131,P206,P625,P6,P1082,P2927,P2044,P
 city_required_properties ?= none
 
 university_class = Q3918
-university_properties ?= default,-P3876,P154,P18,P571,P138,P112,P488,P2828,P1451,P2124,P463,P2196,P2936,P2769,P281,P355,P1830,P159,P1416
+university_properties ?= P6375,P1449,P571,P17,P856,P131,P576,P154,P18,P571,P138,P112,P488,P2828,P1451,P2124,P463,P2196,P2936,P2769,P281,P355,P1830,P159,P1416
 university_required_properties ?= none
 
 company_class = Q783794
@@ -26,10 +26,10 @@ company_required_properties ?= P2139
 eval_set ?= eval-synthetic
 
 mode ?= default
-default_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt
-base_process_schema_flags =
-manual_process_schema_flags = --manual
-auto_process_schema_flags =
+default_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt --wikidata-labels
+base_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt
+manual_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt --wikidata-labels --manual
+auto_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt
 custom_process_schema_flags ?=
 
 default_annotate_flags =
