@@ -99,7 +99,7 @@ A: >> expecting = command
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), price == enum(expensive) => notify;
 
-A: I have found Evvia Estiatorio and NOLA Restaurant & Bar. They're restaurants that are expensive.
+A: I see Evvia Estiatorio and NOLA Restaurant & Bar. They're restaurants that are expensive.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two ; now => ( @com.yelp.restaurant ) filter param:price == enum:expensive => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ] , param:price = enum:expensive , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] #[ count = 10 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"1vMgajRAI3lYwuCeGX58oQ","display":"Evvia Estiatorio"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/Q3lgbcNuRbdrITtLN5CQgQ/o.jpg","URL_0":"https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"greek","display":"Greek"},"NUMBER_0":4.5,"NUMBER_1":2393,"LOCATION_0":{"latitude":37.445077,"longitude":-122.163778,"display":null},"PHONE_NUMBER_0":"+16503260983"}
 A: >> expecting = command
 
