@@ -111,7 +111,7 @@ module.exports = {
         });
         parser.add_argument('--single-device-expand-factor', {
             type: Number,
-            default: 5,
+            default: 1,
             metavar: 'FACTOR',
             help: 'Number of sentences to generate with "ask" or "tell" prefixes for single-device commands'
         });

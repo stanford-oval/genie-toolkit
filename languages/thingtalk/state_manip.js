@@ -154,7 +154,7 @@ class NextStatementInfo {
 }
 
 class ContextInfo {
-    constructor(state, currentFunctionSchema, resultInfo, previousDomainIdx, currentIdx,
+    constructor(state, currentTableSchema, currentFunctionSchema, resultInfo, previousDomainIdx, currentIdx,
         nextIdx, nextFunctionSchema, nextInfo, aux = null) {
         this.state = state;
 
@@ -166,6 +166,9 @@ class ContextInfo {
             this.currentFunctionSchema = currentFunctionSchema;
             this.currentFunction = currentFunctionSchema.class.name + ':' + currentFunctionSchema.name;
         }
+        assert(currentTableSchema === null || currentTableSchema instanceof Ast.FunctionDef);
+        this.currentTableSchema = currentTableSchema;
+
         this.resultInfo = resultInfo;
         this.isMultiDomain = previousDomainIdx !== null;
         this.previousDomainIdx = previousDomainIdx;
@@ -214,14 +217,18 @@ class ContextInfo {
 
     clone() {
         return new ContextInfo(this.state.clone(),
-            this.currentFunctionSchema, this.resultInfo, this.previousDomainIdx, this.currentIdx,
+            this.currentTableSchema,
+            this.currentFunctionSchema,
+            this.resultInfo,
+            this.previousDomainIdx, this.currentIdx,
             this.nextIdx, this.nextFunctionSchema, this.nextInfo,
             this.aux);
     }
 }
 
 function getContextInfo(state) {
-    let nextItemIdx = null, nextInfo = null, currentFunction = null, nextFunction = null, currentDevice = null, currentResultInfo = null,
+    let nextItemIdx = null, nextInfo = null, currentFunction = null, currentTableFunction = null,
+        nextFunction = null, currentDevice = null, currentResultInfo = null,
         previousDomainItemIdx = null, currentItemIdx = null;
     let proposedSkip = 0;
     for (let idx = 0; idx < state.history.length; idx ++) {
@@ -248,6 +255,10 @@ function getContextInfo(state) {
 
         currentDevice = device;
         currentFunction = functions[functions.length-1];
+        if (item.stmt.table) {
+            const tablefunctions = C.getFunctions(item.stmt.table);
+            currentTableFunction = tablefunctions[tablefunctions.length-1];
+        }
         currentItemIdx = idx;
         currentResultInfo = new ResultInfo(state, item);
     }
@@ -258,7 +269,7 @@ function getContextInfo(state) {
     if (previousDomainItemIdx !== null)
         assert(currentItemIdx !== null && previousDomainItemIdx <= currentItemIdx);
 
-    return new ContextInfo(state, currentFunction, currentResultInfo,
+    return new ContextInfo(state, currentTableFunction, currentFunction, currentResultInfo,
         previousDomainItemIdx, currentItemIdx, nextItemIdx, nextFunction, nextInfo);
 }
 
@@ -602,6 +613,11 @@ function setEndBit(reply, value) {
     return newReply;
 }
 
+function actionShouldHaveResult(ctx) {
+    const schema = ctx.currentFunctionSchema;
+    return Object.keys(schema.out).length > 0;
+}
+
 function tagContextForAgent(ctx) {
     switch (ctx.state.dialogueAct){
     case 'end':
@@ -643,8 +659,8 @@ function tagContextForAgent(ctx) {
         if (!ctx.resultInfo.isTable) {
             if (ctx.resultInfo.hasError)
                 return ['ctx_completed_action_error'];
-            else if (ctx.resultInfo.hasEmptyResult)
-                return ['ctx_completed_action_success'];
+            else if (ctx.resultInfo.hasEmptyResult && actionShouldHaveResult(ctx))
+                return ['ctx_empty_search_command'];
             else
                 return ['ctx_completed_action_success'];
         }
@@ -674,16 +690,21 @@ function tagContextForAgent(ctx) {
                 // "what is the rating of Terun?"
                 // FIXME if we want to answer differently, we need to change this one
                 return ['ctx_single_result_search_command', 'ctx_complete_search_command'];
-            } else {
+            } else if (ctx.resultInfo.hasLargeResult) {
                 // "what's the food and price range of restaurants nearby?"
                 // we treat these the same as "find restaurants nearby", but we make sure
                 // that the necessary fields are computed
                 return ['ctx_search_command', 'ctx_complete_search_command'];
+            } else {
+                // "what's the food and price range of restaurants nearby?"
+                // we treat these the same as "find restaurants nearby", but we make sure
+                // that the necessary fields are computed
+                return ['ctx_complete_search_command'];
             }
         } else {
             if (ctx.resultInfo.hasSingleResult || ctx.resultInfoQuestion) // we can recommend
                 return ['ctx_single_result_search_command', 'ctx_complete_search_command'];
-            else if (ctx.state.dialogueAct !== 'ask_recommend') // we can refine
+            else if (ctx.resultInfo.hasLargeResult && ctx.state.dialogueAct !== 'ask_recommend') // we can refine
                 return ['ctx_search_command', 'ctx_complete_search_command'];
             else
                 return ['ctx_complete_search_command'];

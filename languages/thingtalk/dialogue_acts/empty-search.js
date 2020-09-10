@@ -55,7 +55,7 @@ const {
  * @param question - a search question used in the reply
  */
 function makeEmptySearchError(ctx, [base, question]) {
-    if (base !== null && !C.isSameFunction(base.schema, ctx.currentFunctionSchema))
+    if (base !== null && !C.isSameFunction(base.schema, ctx.currentTableSchema))
         return null;
 
     let type, state;
@@ -63,7 +63,7 @@ function makeEmptySearchError(ctx, [base, question]) {
         if (!isGoodEmptySearchQuestion(ctx, question.name))
             return null;
 
-        const arg = ctx.currentFunctionSchema.getArgument(question.name);
+        const arg = ctx.currentTableSchema.getArgument(question.name);
         type = arg.type;
         state = makeSimpleState(ctx, 'sys_empty_search_question', question.name);
     } else {
@@ -101,7 +101,7 @@ function emptySearchChangePhraseCommon(ctx, newFilter) {
  */
 function preciseEmptySearchChangeRequest(ctx, phrase) {
     const [, param] = ctx.aux;
-    if (!C.isSameFunction(ctx.currentFunctionSchema, phrase.schema))
+    if (!C.isSameFunction(ctx.currentTableSchema, phrase.schema))
         return null;
     if (param !== null && !C.filterUsesParam(phrase.filter, param.name))
         return null;

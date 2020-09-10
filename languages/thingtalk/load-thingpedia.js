@@ -173,8 +173,8 @@ class ThingpediaLoader {
 
         if (type.isArray)
             this._grammar.addRule('out_param_Array__Any', [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
-        else
-            this._grammar.addRule('out_param_Any', [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+
+        this._grammar.addRule('out_param_Any', [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
     }
 
     _recordInputParam(functionName, arg) {
@@ -200,7 +200,15 @@ class ThingpediaLoader {
             for (let form of prompt) {
                 if (form.endsWith('?'))
                     form = form.substring(0, form.length-1).trim();
-                this._grammar.addRule('thingpedia_slot_fill_question', [form], this._runtime.simpleCombine(() => pname));
+
+                // HACK: we should record the function name always, not just at inference time
+                if (this._options.flags.inference) {
+                    this._grammar.addRule('thingpedia_slot_fill_question', [form], this._runtime.simpleCombine(() => {
+                        return { functionName, name: pname };
+                    }));
+                } else {
+                    this._grammar.addRule('thingpedia_slot_fill_question', [form], this._runtime.simpleCombine(() => pname));
+                }
             }
         }
 
@@ -283,6 +291,9 @@ class ThingpediaLoader {
                     this._grammar.addRule(cat + '_input_param', expansion, this._runtime.simpleCombine((_1, value, _2) => new Ast.InputParam(null, pname, value)), attributes);
                     this._grammar.addRule('coref_' + cat + '_input_param', corefexpansion, this._runtime.simpleCombine((_1, value, _2) => new Ast.InputParam(null, pname, value)), attributes);
                 }
+
+                if (this._options.flags.inference)
+                    break;
             }
         }
     }
@@ -336,6 +347,9 @@ class ThingpediaLoader {
             for (let form of annotvalue) {
                 this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, '==', value, false)), attributes);
                 this._grammar.addRule(cat + '_boolean_projection', [form], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+
+                if (this._options.flags.inference)
+                    break;
             }
 
         }
@@ -548,7 +562,8 @@ class ThingpediaLoader {
                         }
                     }
 
-
+                    if (this._options.flags.inference)
+                        break;
                 }
 
             } else {
@@ -607,6 +622,9 @@ class ThingpediaLoader {
                         if (ptype.isDate)
                             this._grammar.addRule(cat + '_filter', daterangeexpansion, this._runtime.simpleCombine((_1, values, _2) => makeDateRangeFilter(this, pvar, values)), attributes);
                     }
+
+                    if (this._options.flags.inference)
+                        break;
                 }
             }
         }
@@ -731,6 +749,9 @@ class ThingpediaLoader {
             if (this._options.debug >= this._runtime.LogLevel.INFO && preprocessed[0].startsWith(','))
                 console.log(`WARNING: template ${ex.id} starts with , but is not a query`);
 
+            if (this._options.flags.for_agent)
+                preprocessed = this._langPack.toAgentSideUtterance(preprocessed);
+
             const chunks = this._addPrimitiveTemplate(grammarCat, preprocessed, ex.value);
             rules.push({ category: grammarCat, expansion: chunks, example: ex });
 
@@ -739,6 +760,9 @@ class ThingpediaLoader {
                 if (pastform)
                     this._addPrimitiveTemplate('thingpedia_action_past', pastform, ex.value);
             }
+
+            if (this._options.flags.inference)
+                break;
         }
         return rules;
     }

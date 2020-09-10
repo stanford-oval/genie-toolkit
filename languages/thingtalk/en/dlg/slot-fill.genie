@@ -38,9 +38,23 @@
 }
 
 one_param_slot_fill_question = {
-    ( p:thingpedia_slot_fill_question '?' [priority=0.1]
-    | 'what' p:input_param prefer_question_phrase '?'
-    ) => [p];
+    !inference {
+        ( p:thingpedia_slot_fill_question '?' [priority=0.1]
+        | 'what' p:input_param prefer_question_phrase '?'
+        ) => [p];
+    }
+
+    ?inference {
+        'what' p:input_param prefer_question_phrase '?' => [p];
+
+        // HACK: at inference time, we add the function ID to the thingpedia_slot_fill_question
+        // value and check against the current context
+        ctx:ctx_incomplete_action_after_search p:thingpedia_slot_fill_question '?' [priority=0.1] => {
+            if (ctx.nextFunction !== p.functionName)
+                return null;
+            return [p.name];
+        };
+    }
 }
 
 two_param_slot_fill_question = {
@@ -56,7 +70,7 @@ two_param_slot_fill_question = {
 
 slot_fill_question = {
     one_param_slot_fill_question [priority=0.1];
-    two_param_slot_fill_question;
+    !inference two_param_slot_fill_question;
 }
 
 imprecise_slot_fill_answer_phrase = {

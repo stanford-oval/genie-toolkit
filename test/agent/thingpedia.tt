@@ -425,20 +425,83 @@ class @com.twitter
 }
 
 class @org.thingpedia.weather
-#_[name="Weather API"]
-#_[description="Weather forecasts and information provided by met.no"]
-#_[canonical="weather api"] {
+#_[thingpedia_name="Weather"]
+#_[thingpedia_description="Weather forecasts and information provided by met.no"]
+#[license="BSD-3-Clause"]
+#[license_gplcompatible=true]
+#[subcategory="service"]
+{
   import loader from @org.thingpedia.v2();
   import config from @org.thingpedia.config.none();
 
-  monitorable query current(in req location: Location
+  monitorable query sunrise(in opt location: Location
+                            #_[prompt="what location do you want sun time info for?"]
+                            #_[canonical={
+                              default="preposition",
+                              base=["location", "position", "place"],
+                              property=[],
+                              preposition=["in #", "at #", "around #", "for location #", "for #"]
+                            }]
+                            #[default=$context.location.current_location],
+                            in opt date: Date
+                            #_[canonical={
+                              default="preposition",
+                              default=["date"],
+                              preposition=["on #"]
+                            }],
+                            out sunrise_time: Time
+                            #_[canonical="sunrise time"],
+                            out sunset_time: Time
+                            #_[canonical="sunset time"])
+  #_[result=["in ${location} , the sun rises at ${sunrise_time} and sets at ${sunset_time}",
+             "on ${date} the sun rises at ${sunrise_time} and sets at ${sunset_time} in ${location}",
+             "on ${date} the sun rises at ${sunrise_time}",
+             "on ${date} the sun sets at ${sunset_time}"]]
+  #_[canonical=["sunrise and sunset time", "sunrise time", "sunset time"]]
+  #_[confirmation="the sunrise and sunset time for location $location"]
+  #_[formatted=[{type="text",text="Sun times on ${date:date} for ${location}: rises at ${sunrise_time}, sets at ${sunset_time}"}]]
+  #[minimal_projection=["sunrise_time", "sunset_time"]]
+  #[poll_interval=86400000ms]
+  #[doc="Information about sunrise and sunset"];
+
+  monitorable query moon(in opt location: Location
+                         #_[prompt="what location do you want moon time info for"]
+                         #_[canonical={
+                            default="preposition",
+                            base=["location", "position", "place"],
+                            property=[],
+                            preposition=["in #", "at #", "around #", "for location #", "for #"]
+                         }]
+                         #[default=$context.location.current_location],
+                         in opt date: Date
+                         #_[canonical={
+                            default="preposition",
+                            default=["date"],
+                            preposition=["on #"]
+                         }],
+                         out phase: Enum(new_moon,waxing_crescent,first_quarter,waxing_gibbous,full_moon,waning_gibbous,third_quarter,waning_crescent)
+                         #_[canonical=["phase", "moon phase"]]
+                         )
+  #_[result=["in ${location} the moon is ${phase}",
+             "in ${location} the moon phase is ${phase}",
+             "on ${date} the moon is ${phase} in ${location}",
+             "the moon is ${phase}"]]
+  #_[canonical=["moon phase", "phase of the moon"]]
+  #_[confirmation="the moon phase for $location"]
+  #_[formatted=[{type="text",text="Moon phase on ${date:date} for ${location}: ${phase}."}]]
+  #[poll_interval=86400000ms]
+  #[doc="Information about moon times and moon phase"]
+  #[confirm=false];
+
+  monitorable query current(in opt location: Location
                             #_[prompt="what location do you want the current weather for?"]
                             #_[canonical={
                               default="preposition",
                               base=["location", "position", "place"],
                               property=[],
                               preposition=["in #", "at #", "around #", "for location #", "for #"]
-                            }],
+                            }]
+                            #[default=$context.location.current_location],
                             out temperature: Measure(C)
                             #_[canonical="temperature"]
                             // from the coldest artic to the death valley, in one filter
@@ -464,10 +527,11 @@ class @org.thingpedia.weather
                             #_[canonical="status"],
                             out icon: Entity(tt:picture)
                             #_[canonical="icon"])
-  #_[result=["it is ${status} today in ${location} and the temperature is ${temperature}",
-             "the current weather in ${location} is ${status} . the temperature is ${temperature} and the humidity is ${humidity} % .",
+  #_[result=["the current weather in ${location} is ${status} . the temperature is ${temperature} and the humidity is ${humidity} % .",
              "the current weather in ${location} is ${status}",
-             "the weather in ${location} is ${status}"]]
+             "the weather in ${location} is ${status}",
+             "it is ${status} today in ${location} and the temperature is ${temperature}"]]
+  #[minimal_projection=["status"]]
   #_[canonical=["current weather", "weather", "weather outside"]]
   #_[confirmation="the current weather for $location"]
   #_[formatted=[{type="text",text="Current weather for ${location}: ${status}, temperature ${temperature:C} C, wind speed ${wind_speed:mps} m/s, humidity ${humidity}%, cloudiness ${cloudiness}%, fog ${fog}%."}]]
@@ -475,66 +539,6 @@ class @org.thingpedia.weather
   #[doc="Information about current weather"]
   #[confirm=false];
 
-  monitorable query sunrise(in req location: Location
-                            #_[prompt="what location do you want sun time info for?"]
-                            #_[canonical={
-                              default="preposition",
-                              base=["location", "position", "place"],
-                              property=[],
-                              preposition=["in #", "at #", "around #", "for location #", "for #"]
-                            }],
-                            in opt date: Date
-                            #_[canonical={
-                              default="preposition",
-                              default=["date"],
-                              preposition=["on #"]
-                            }],
-                            out sunrise_time: Time
-                            #_[canonical="sunrise time"],
-                            out sunset_time: Time
-                            #_[canonical="sunset time"],
-                            // TODO what to do of these?
-                            out sunset: Boolean
-                            #_[canonical="sunset"],
-                            out sunrisen: Boolean
-                            #_[canonical="sunrisen"])
-  #_[result=["in ${location} , the sun rises at ${sunrise_time} and sets at ${sunset_time}",
-             "on ${date} the sun rises at ${sunrise_time} and sets at ${sunset_time} in ${location}",
-             "on ${date} the sun rises at ${sunrise_time}",
-             "on ${date} the sun sets at ${sunset_time}"]]
-  #_[canonical=["sunrise and sunset time", "sunrise time", "sunset time"]]
-  #_[confirmation="the sunrise and sunset time for location $location"]
-  #_[formatted=[{type="text",text="Sun times on ${date:date} for ${location}: rises at ${sunrise_time}, sets at ${sunset_time}"}]]
-  #[poll_interval=86400000ms]
-  #[doc="Information about sunrise and sunset"];
-
-  monitorable query moon(in req location: Location
-                         #_[prompt="what location do you want moon time info for"]
-                         #_[canonical={
-                            default="preposition",
-                            base=["location", "position", "place"],
-                            property=[],
-                            preposition=["in #", "at #", "around #", "for location #", "for #"]
-                          }],
-                         in opt date: Date
-                         #_[canonical={
-                            default="preposition",
-                            default=["date"],
-                            preposition=["on #"]
-                         }],
-                         out phase: Enum(new_moon,waxing_crescent,first_quarter,waxing_gibbous,full_moon,waning_gibbous,third_quarter,waning_crescent)
-                         #_[canonical=["phase", "moon phase"]]
-                         )
-  #_[result=["in ${location} the moon is ${phase}",
-             "in ${location} the moon phase is ${phase}",
-             "on ${date} the moon is ${phase} in ${location}",
-             "the moon is ${phase}"]]
-  #_[canonical=["moon phase", "phase of the moon"]]
-  #_[confirmation="the moon phase for $location"]
-  #_[formatted=[{type="text",text="Moon phase on ${date:date} for ${location}: ${phase}."}]]
-  #[poll_interval=86400000ms]
-  #[doc="Information about moon times and moon phase"]
-  #[confirm=false];
 }
 
 class @com.yelp

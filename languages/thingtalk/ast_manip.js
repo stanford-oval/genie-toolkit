@@ -664,6 +664,8 @@ function checkAtomFilter(table, filter) {
     } else if (filter.operator === '=~') {
         if (!ptype.isEntity && !ptype.isString)
             return false;
+        if (ptype.isEntity && filter.name !== 'id')
+            return false;
         vtype = Type.String;
     }
 
