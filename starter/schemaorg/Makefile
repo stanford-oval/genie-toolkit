@@ -152,15 +152,19 @@ shared-parameter-datasets.tsv:
 multidomain/augmented.tsv: $(addsuffix /augmented.tsv,$(all_experiments))
 	cat $^ > $@
 
-datadir: $(experiment)/augmented.tsv $(experiment)/eval/annotated.tsv
+multidomain/${eval_set}/annotated.tsv: $(addsuffix /${eval_set}/annotated.tsv,$(all_experiments))
+	cat $^ > $@
+
+datadir: $(experiment)/augmented.tsv $(experiment)/${eval_set}/annotated.tsv
 	mkdir -p $@
-	if test -s $(experiment)/eval/annotated.tsv ; then \
+	if test -s $(experiment)/${eval_set}/annotated.tsv ; then \
 	  cp $(experiment)/augmented.tsv $@/train.tsv ; \
-	  cut -f1-3 $(experiment)/eval/annotated.tsv > $@/eval.tsv ; \
+	  cut -f1-3 $(experiment)/${eval_set}/annotated.tsv > $@/eval.tsv ; \
 	else \
 	  $(genie) split-train-eval --train $@/train.tsv --eval $@/eval.tsv \
 	    --eval-probability 0.1 --split-strategy sentence \
 	    --eval-on-synthetic $(experiment)/augmented.tsv ; \
+	    cp $@/eval.tsv $(experiment)/${eval_set}/annotated.tsv; \
 	fi
 	touch $@
 
