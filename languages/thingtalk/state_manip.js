@@ -58,7 +58,7 @@ const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
 
 const INITIAL_CONTEXT_INFO = {};
 
-const LARGE_RESULT_THRESHOLD = 10;
+const LARGE_RESULT_THRESHOLD = 50;
 function isLargeResultSet(result) {
     return result.more || result.count.isVarRef || result.count.value >= LARGE_RESULT_THRESHOLD;
 }
