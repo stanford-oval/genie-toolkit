@@ -463,3 +463,11 @@ U: \r bookkeeping special special:no
 A: Alright, bye!
 A: >> context = null // {}
 A: >> expecting = null
+
+====
+# 29-expected-spotify-error
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @com.spotify.play_song(song="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"));
+
+A: ...

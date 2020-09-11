@@ -771,6 +771,9 @@ class @com.spotify
                   // i would like to...
                   "listen to a song", "hear a song"]]
     #_[confirmation="play the song $song"]
+    #_[on_error={
+      no_active_device=["you must open the spotify app first", "no spotify player is active"]
+    }]
     #[confirm=enum(auto)];
 
     list query artist(out id: Entity(com.spotify:artist)
