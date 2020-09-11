@@ -102,6 +102,12 @@ one_param_direct_result_info_phrase = {
         bag.set(param.name, v);
         return bag;
     };
+
+    'the distance is' v:constant_Measure_m => {
+        const bag = new SlotBag(null);
+        bag.set('distance', v);
+        return bag;
+    };
 }
 
 two_param_direct_result_info_phrase = {

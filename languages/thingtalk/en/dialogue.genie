@@ -50,6 +50,7 @@ import './dlg/coref-actions';
 // keep this in alphabetical order
 import './dlg/action-confirm';
 import './dlg/action-results';
+import './dlg/aggregation-results';
 import './dlg/coref-questions';
 import './dlg/empty-search';
 import './dlg/initial-request';
@@ -69,6 +70,7 @@ context
     // these should be returned by S.getContextTags()
     ctx_multidomain,
     ctx_with_result,
+    ctx_with_table_result,
     ctx_with_action,
     ctx_without_action,
     ctx_with_result_and_action,
@@ -193,6 +195,11 @@ $agent = {
     // query results
     ctx:ctx_display_nonlist_result proposal:system_nonlist_result
         => D.makeDisplayResultReply(ctx, proposal);
+
+    // aggregation results
+    ( ctx:ctx_aggregation_question reply:count_aggregation_reply
+    | ctx:ctx_aggregation_question reply:other_aggregation_reply
+    ) => reply;
 
     // confirming an action
     action_confirm_phrase;

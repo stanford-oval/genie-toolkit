@@ -277,15 +277,22 @@ function isUserAskingResultQuestion(ctx) {
     // is the user asking a question about the result (or a specific element), or refining a search?
     // we say it's a question if the user is asking a projection question, and it's not the first turn,
     // and the projection was different at the previous turn
+    // we also treat it as a question for all compute questions because that simplifies
+    // writing the templates
 
     if (ctx.state.dialogueAct === 'action_question')
         return true;
     if (ctx.currentIdx === null)
         return false;
+
+    const currentTable = ctx.current.stmt.table;
+    if (!currentTable)
+        return false;
+    if (currentTable.isProjection && currentTable.table.isCompute)
+        return true;
+
     if (ctx.currentIdx === 0) {
-        if (!ctx.current.stmt.table)
-            return false;
-        const filterTable = C.findFilterTable(ctx.current.stmt.table);
+        const filterTable = C.findFilterTable(currentTable);
         if (!filterTable)
             return false;
         return C.filterUsesParam(filterTable.filter, 'id');
@@ -744,6 +751,9 @@ function getContextTags(ctx) {
 
     assert(ctx.results.length > 0);
     tags.push('ctx_with_result');
+    if (ctx.resultInfo.isTable)
+        tags.push('ctx_with_table_result');
+
     if (ctxCanHaveRelatedQuestion(ctx))
         tags.push('ctx_for_related_question');
     if (isUserAskingResultQuestion(ctx)) {
