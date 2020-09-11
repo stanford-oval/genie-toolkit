@@ -373,3 +373,11 @@ U: now => [distance] of compute distance(geo, $context.location.current_location
 A: The distance is 2004.1 m.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => [ param:distance ] of ( compute distance ( param:geo , LOCATION_0 ) of ( @com.yelp.restaurant ) ) => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:distance = MEASURE_m_0 } ] ] #[ count = NUMBER_0 ] #[ more = true ] ; // {"LOCATION_0":{"latitude":37.4275,"longitude":-122.1697,"display":null},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"MEASURE_m_0":{"unit":"m","value":2004.0661629148217},"NUMBER_0":50}
 A: >> expecting = null
+
+====
+# 24-error-500
+U: !! test command error 500 !!
+
+A: Sorry, there seems to be a problem with the Almond service at the moment. Please try again later.
+A: >> context = null // {}
+A: >> expecting = null
