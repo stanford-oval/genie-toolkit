@@ -470,4 +470,16 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.play_song(song="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"));
 
-A: ...
+A: Sorry, no Spotify player is active.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_error ; now => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 param:song = GENERIC_ENTITY_com.spotify:song_0 #[ results = [ ] ] #[ error = enum:no_active_device ] ; // {"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:4sPmO7WMQUAf45kwMOtONw","display":"Hello"},"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-6","display":"Some Device 6"}}
+A: >> expecting = null
+
+====
+# 30-unexpected-spotify-error
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @com.spotify.play_song(song="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:song("Hello"));
+
+A: Sorry, Some other error occurred.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_error ; now => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 param:song = GENERIC_ENTITY_com.spotify:song_0 #[ results = [ ] ] #[ error = QUOTED_STRING_0 ] ; // {"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:2zYzyRzz6pRmhPzyfMEC8s","display":"Hello"},"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-6","display":"Some Device 6"},"QUOTED_STRING_0":"Some other error occurred"}
+A: >> expecting = null
