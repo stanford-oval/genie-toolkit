@@ -35,6 +35,9 @@ const {
 
 
 function areQuestionsValidForContext(ctx, questions) {
+    if (ctx.resultInfo.isAggregation)
+        return null;
+
     const schema = ctx.currentFunctionSchema;
 
     // if the function only contains one parameter, do not generate projection for it
