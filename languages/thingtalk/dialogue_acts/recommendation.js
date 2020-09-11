@@ -53,7 +53,7 @@ function makeActionRecommendation(ctx, action) {
     const results = ctx.results;
     assert(results.length > 0);
     const currentTable = ctx.current.stmt.table;
-    if (currentTable.isSlice && currentTable.limit.value !== 1)
+    if (currentTable && currentTable.isSlice && currentTable.limit.value !== 1)
         return null;
 
     const topResult = results[0];
@@ -76,7 +76,7 @@ function makeRecommendation(ctx, name) {
     const results = ctx.results;
     assert(results.length > 0);
     const currentTable = ctx.current.stmt.table;
-    if (currentTable.isSlice && currentTable.limit.value !== 1)
+    if (currentTable && currentTable.isSlice && currentTable.limit.value !== 1)
         return null;
 
     const topResult = results[0];
@@ -92,7 +92,7 @@ function makeThingpediaRecommendation(ctx, info) {
     const results = ctx.results;
     assert(results.length > 0);
     const currentTable = ctx.current.stmt.table;
-    if (currentTable.isSlice && currentTable.limit.value !== 1)
+    if (currentTable && currentTable.isSlice && currentTable.limit.value !== 1)
         return null;
 
     const topResult = results[0];
