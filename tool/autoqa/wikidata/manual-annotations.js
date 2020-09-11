@@ -22,16 +22,36 @@ const ThingTalk = require('thingtalk');
 const Type = ThingTalk.Type;
 
 const PROPERTY_TYPE_OVERRIDE = {
-    'given_name': Type.String,
-    'family_name': Type.String,
-    'birth_name': Type.String,
-    'nickname': Array(Type.String),
-    'award_received': Array(Type.Entity('org.wikidata:award')),
-    'occupation': Array(Type.Entity('org.wikidata:profession')),
-    'spouse': Type.Entity('org.wikidata:human'), // spouse does not have "value type constraint" property
-    'sex_or_gender': Type.Enum(['female', 'male']),
-    'twinned_administrative_body': Array(Type.Entity('org.wikidata:city'))
+    'P166': Type.Array(Type.Entity('org.wikidata:award')), // award_received
+    'P106': Type.Array(Type.Entity('org.wikidata:occupation')), // occupation
+    'P26': Type.Entity('org.wikidata:human'), // spouse (it misses no "value type constraint" property)
+    'P21': Type.Enum(['female', 'male']),
+    'P17': Type.Entity('org.wikidata:country'), // country
+    'P2295': Type.Currency, // net profit (it misses no allowed unit property)
 };
+
+// properties that should have the same type as the subject
+const PROPERTY_TYPE_SAME_AS_SUBJECT = new Set([
+    'P190', // twinned_administrative_body
+    'P47' // shares_border_with
+]);
+
+const PROPERTY_FORCE_ARRAY = new Set([
+    'P1449', // nickname
+    'P206', // located_in_or_next_to_body_of_water
+    'P190', // twinned_administrative_body
+    'P47', // shares_border_with
+    'P112', // founded_by
+    'P488', // chair person
+    'P2828', // corporate_officer
+    'P452', // industry,
+    'P1056', // product_or_material_produced
+]);
+
+const PROPERTY_FORCE_NOT_ARRAY = new Set([
+
+]);
+
 
 const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
 
@@ -55,6 +75,9 @@ module.exports = {
 
     PROPERTY_TYPE_OVERRIDE,
     PROPERTIES_NO_FILTER,
+    PROPERTY_FORCE_ARRAY,
+    PROPERTY_FORCE_NOT_ARRAY,
+    PROPERTY_TYPE_SAME_AS_SUBJECT,
 
     STRING_FILE_OVERRIDES
 };

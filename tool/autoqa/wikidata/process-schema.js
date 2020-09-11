@@ -31,6 +31,7 @@ const { clean } = require('../../../lib/utils/misc-utils');
 const { cleanEnumValue, snakecase, titleCase, DEFAULT_ENTITIES } = require('../lib/utils');
 const genBaseCanonical = require('../lib/base-canonical-generator');
 const {
+    wikidataQuery,
     getPropertyList,
     getItemLabel,
     getPropertyLabel,
@@ -46,7 +47,9 @@ const {
 const {
     PROPERTY_TYPE_OVERRIDE,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE,
-    MANUAL_TABLE_CANONICAL_OVERRIDE
+    PROPERTY_FORCE_ARRAY,
+    PROPERTY_FORCE_NOT_ARRAY,
+    PROPERTY_TYPE_SAME_AS_SUBJECT
 } = require('./manual-annotations');
 
 function argnameFromLabel(label) {
@@ -96,9 +99,26 @@ class SchemaProcessor {
         this._schemaorgProperties = {};
     }
 
-    async _getType(domain, property) {
+    async _getType(domain, domainLabel, property, propertyLabel) {
         if (property in PROPERTY_TYPE_OVERRIDE)
             return PROPERTY_TYPE_OVERRIDE[property];
+
+        const elemType = await this._getElemType(domain, domainLabel, property, propertyLabel);
+        if (PROPERTY_FORCE_ARRAY.has(property))
+            return Type.Array(elemType);
+        if (PROPERTY_FORCE_NOT_ARRAY.has(property))
+            return elemType;
+
+        if (elemType.isEntity && elemType.type === 'tt:picture')
+            return Type.Array(elemType);
+
+        // TODO: decide if an property has an array type based on data
+        return elemType;
+    }
+
+    async _getElemType(domain, domainLabel, property, propertyLabel) {
+        if (PROPERTY_TYPE_SAME_AS_SUBJECT.has(property))
+            return Type.Entity(`org.wikidata:${domainLabel}`);
 
         const enumEntries = await getOneOfConstraint(property);
         if (enumEntries.length > 0)
@@ -110,8 +130,7 @@ class SchemaProcessor {
         if (classes.includes('Q18616084')) // Wikidata property to indicate a language
             return Type.Entity('tt:iso_lang_code');
 
-        const label = await getPropertyLabel(property);
-        if (label.startsWith('date of'))
+        if (propertyLabel.startsWith('date of'))
             return Type.Date;
 
         const units = await getAllowedUnits(property);
@@ -142,19 +161,18 @@ class SchemaProcessor {
         if (range)
             return Type.Number;
 
-        /**  FIXME: create better heuristic to determine if something is plural.
-            Most properties are actually Array(Type.String) so that may be a
-            better default.
-        */
-        const stringTypes = ['native language', 'medical condition', 'subreddit'];
-        if (label.startsWith('place of') || label.startsWith('manner of')
-            || label.startsWith('cause of') || stringTypes.includes(label))
+        if (propertyLabel.startsWith('manner of') || propertyLabel.startsWith('cause of'))
             return Type.String;
-        else if (label === 'image' || label === 'signature')
-            return Type.Entity(`tt:picture`);
+
+        const subpropertyOf = await wikidataQuery(`SELECT ?value WHERE { wd:${property} wdt:P1647 ?value. } `);
+        if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P18'))
+            return Type.Entity('tt:picture');
+        if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P2699'))
+            return Type.Entity('tt:url');
+        if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P276'))
+            return Type.Location;
 
         const types = await getValueTypeConstraint(property);
-        // FIXME: choose based on examples in domain when multiple types available
         if (types.length > 0) {
             // human type: Q5: human, Q215627: person
             if (types.some((type) => type.label === 'human' || type.label === 'person'))
@@ -165,26 +183,28 @@ class SchemaProcessor {
                 return Type.Location;
         }
 
+        // load equivalent schema.org type if available
         const schemaorgEquivalent = await getSchemaorgEquivalent(property);
         if (schemaorgEquivalent && schemaorgEquivalent in this._schemaorgProperties) {
             const schemaorgType = this._schemaorgProperties[schemaorgEquivalent];
-            if (schemaorgType.isEntity && schemaorgType.type.startsWith('org.schema')) {
-                const entityType = schemaorgType.type.substring(schemaorgType.type.lastIndexOf(':') + 1).toLowerCase();
-                console.log(`${label} fallback to schema.org entity type ${schemaorgType}`);
-                return Type.Entity(`org.wikidata:${entityType}`);
+            const schemaorgElemType = schemaorgType.isArray ? schemaorgType.elem : schemaorgType;
+            if (schemaorgElemType.isEntity && schemaorgElemType.type.startsWith('org.schema')) {
+                const entityType = schemaorgElemType.type.substring(schemaorgElemType.type.lastIndexOf(':') + 1).toLowerCase();
+                return schemaorgType.isArray ?
+                    Type.Array(Type.Entity(`org.wikidata:${entityType}`)) : Type.Entity(`org.wikidata:${entityType}`);
             }
             if (!schemaorgType.isCompound)
                 return schemaorgType;
         }
 
         // majority or arrays of string so this may be better default.
-        return Type.Array(Type.String);
+        return Type.String;
 
     }
 
-    async _getArgCanonical(property, name, label, type) {
-        if (this._manual && name in MANUAL_PROPERTY_CANONICAL_OVERRIDE)
-            return MANUAL_PROPERTY_CANONICAL_OVERRIDE[name];
+    async _getArgCanonical(property, label, type) {
+        if (this._manual && property in MANUAL_PROPERTY_CANONICAL_OVERRIDE)
+            return MANUAL_PROPERTY_CANONICAL_OVERRIDE[property];
 
         const canonical = {};
         genBaseCanonical(canonical, label, type);
@@ -241,11 +261,11 @@ class SchemaProcessor {
             ];
             this._addEntity(`org.wikidata:${snakecase(domainLabel)}`, titleCase(domainLabel), true);
             for (let property of properties) {
-                const type = await this._getType(domain, property);
                 const label = await getPropertyLabel(property);
                 const name = argnameFromLabel(label);
+                const type = await this._getType(domain, domainLabel, property, label);
                 const annotations = {
-                    nl: { canonical: await this._getArgCanonical(property, name, label, type) },
+                    nl: { canonical: await this._getArgCanonical(property, label, type) },
                     impl: { wikidata_id: new Ast.Value.String(property) }
                 };
                 const elemType = getElementType(type);
