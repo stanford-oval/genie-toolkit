@@ -263,7 +263,8 @@ class ThingpediaLoader {
 
             const attributes = { priority: ANNOTATION_PRIORITY[cat] };
             assert(Number.isFinite(attributes.priority), cat);
-            if (cat === canonical['default'])
+            if (cat === canonical['default'] ||
+                cat === ANNOTATION_RENAME[canonical['default']])
                 attributes.priority += 1;
 
             for (let form of annotvalue) {
@@ -341,7 +342,8 @@ class ThingpediaLoader {
                 repeat: true,
                 priority: ANNOTATION_PRIORITY[cat]
             };
-            if (cat === canonical['default'])
+            if (cat === canonical['default'] ||
+                cat === ANNOTATION_RENAME[canonical['default']])
                 attributes.priority += 1;
 
             for (let form of annotvalue) {
@@ -494,7 +496,8 @@ class ThingpediaLoader {
                 priority: ANNOTATION_PRIORITY[cat]
             };
             assert(Number.isFinite(attributes.priority), cat);
-            if (cat === canonical['default'])
+            if (cat === canonical['default'] ||
+                cat === ANNOTATION_RENAME[canonical['default']])
                 attributes.priority += 1;
 
             if (cat === 'npv') {
