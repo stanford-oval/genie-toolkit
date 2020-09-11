@@ -515,3 +515,14 @@ U: now => (sort popularity desc of @com.spotify.song())[1:3] => notify;
 A: I see ROCKSTAR (feat. Roddy Ricch) and Blinding Lights. Would you like to play either one on Spotify?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two ; now => ( sort param:popularity desc of ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) ) [ 1 : 3 ] => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:artists = [ GENERIC_ENTITY_com.spotify:artist_0 , GENERIC_ENTITY_com.spotify:artist_1 ] , param:album = GENERIC_ENTITY_com.spotify:album_0 , param:genres = [ QUOTED_STRING_0 , QUOTED_STRING_1 ] , param:release_date = DATE_0 , param:popularity = NUMBER_0 , param:energy = NUMBER_1 , param:danceability = NUMBER_2 } ] ] #[ count = 3 ] ; now => @com.spotify.play_song #[ confirm = enum:proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:7ytR5pFWmSjzHJIeQkgog4","display":"ROCKSTAR (feat. Roddy Ricch)"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:4r63FhuTkUYltbVAg5TQnk","display":"DaBaby"},"GENERIC_ENTITY_com.spotify:artist_1":{"value":"spotify:artist:757aE44tKEUQEqRuT6GnEB","display":"Roddy Ricch"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:623PL2MBg50Br5dLXC9E9e","display":"BLAME IT ON BABY"},"QUOTED_STRING_0":"north carolina hip hop","QUOTED_STRING_1":"rap","DATE_0":"2020-04-17T00:00:00.000Z","NUMBER_0":100,"NUMBER_1":69,"NUMBER_2":74}
 A: >> expecting = command
+
+====
+# 34-search-album
+
+# what is the release date of the album the wall
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => [release_date] of (@com.spotify.album(), id =~ "the wall") => notify;
+
+A: The Wall is an album from 11/29/1979. Would you like to learn more?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => [ param:release_date ] of ( ( @com.spotify.album attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:album_0 , param:release_date = DATE_0 } ] ] #[ count = 3 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"the wall","GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:5Dbax7G8SWrP9xyzkOvy2F","display":"The Wall"},"DATE_0":"1979-11-30T00:00:00.000Z"}
+A: >> expecting = command
