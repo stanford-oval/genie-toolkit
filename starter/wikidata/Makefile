@@ -92,9 +92,6 @@ models/paraphraser-bart:
 	  --properties $($(*)_properties) \
 	  --required-properties $($(*)_required_properties)
 
-%/data.json : $(geniedir)/tool/autoqa/wikidata/download-data.js
-	$(genie) wikidata-download-data --output-dir $* --thingpedia $*/wikidata.tt --target-size 10
-
 emptydataset.tt:
 	echo 'dataset @empty {}' > $@
 
@@ -104,9 +101,9 @@ shared-parameter-datasets.tsv:
 	$(thingpedia_cli) --url $(thingpedia_url) --developer-key $(developer_key) --access-token invalid \
 	  download-string-values --manifest $@ --append-manifest -d shared-parameter-datasets
 
-%/parameter-datasets.tsv : %/wikidata.tt %/data.json shared-parameter-datasets.tsv
+%/parameter-datasets.tsv : %/wikidata.tt shared-parameter-datasets.tsv
 	sed 's|\tshared-parameter-datasets|\t../shared-parameter-datasets|g' shared-parameter-datasets.tsv > $@
-	$(genie) make-string-datasets --manifest $@.local -d $*/parameter-datasets --thingpedia $*/wikidata.tt --data $*/data.json --class-name org.wikidata --dataset wikidata
+	$(genie) wikidata-make-string-datasets --manifest $@.local -d $*/parameter-datasets --thingpedia $*/wikidata.tt
 	cat $@.local >> $@
 	rm $@.local
 
@@ -182,5 +179,5 @@ annotate: $(experiment)/manifest.tt
 clean:
 	rm -rf datadir bert-canonical-annotator-in.json bert-canonical-annotator-out.json gpt2-paraphraser-in.tsv gpt2-paraphraser-out.json
 	for exp in $(all_experiments) ; do \
-		rm -rf $$exp/synthetic* $$exp/data.json $$exp/entities.json $$exp/parameter-datasets* $$exp/wikidata.tt $$exp/manifest.tt $$exp/augmented.tsv $$exp/constants.tsv $$exp/*.tmp; \
+		rm -rf $$exp/synthetic* $$exp/entities.json $$exp/parameter-datasets* $$exp/wikidata.tt $$exp/manifest.tt $$exp/augmented.tsv $$exp/constants.tsv $$exp/*.tmp; \
 	done
