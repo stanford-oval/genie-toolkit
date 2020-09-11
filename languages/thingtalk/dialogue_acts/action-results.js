@@ -128,7 +128,7 @@ function checkThingpediaErrorMessage(ctx, msg) {
     if (!C.isSameFunction(ctx.currentFunctionSchema, msg.bag.schema))
         return null;
     const error = ctx.error;
-    if (error.isEnum && error.value !== msg.code)
+    if (!error.isEnum || error.value !== msg.code)
         return null;
 
     const action = C.getInvocation(ctx.current);

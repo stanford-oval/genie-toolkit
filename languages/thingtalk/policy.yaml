@@ -33,7 +33,7 @@ dialogueActs:
     - sys_recommend_one
     - sys_recommend_two
     - sys_recommend_three
-    # agent displays the result of a non-list query
+    # agent displays the result of a non-list query (incl. aggregation)
     - sys_display_result
     # agent proposes a refined query
     - sys_propose_refined_query

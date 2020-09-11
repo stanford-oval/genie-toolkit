@@ -49,7 +49,7 @@ system_list_proposal = {
         return D.checkListProposal(name_list, info, true);
     };
 
-    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_list_proposal [priority=1]
+    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_list_proposal [priority=-1]
         => D.addActionToListProposal(name_list, action);
 }
 

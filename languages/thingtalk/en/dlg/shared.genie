@@ -38,9 +38,9 @@ the_base_noun_phrase = {
 }
 
 generic_excitement_phrase = {
-    'alright ,';
+    '' [priority=0.1];
 
-    '';
+    'alright ,';
     'great !';
     'awesome !';
     'sounds good !';

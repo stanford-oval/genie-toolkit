@@ -22,6 +22,7 @@
 Object.assign(module.exports,
     require('./action-confirm'),
     require('./action-results'),
+    require('./aggregation-results'),
     require('./coref-actions'),
     require('./coref-questions'),
     require('./empty-search'),

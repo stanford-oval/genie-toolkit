@@ -102,6 +102,12 @@ one_param_direct_result_info_phrase = {
         bag.set(param.name, v);
         return bag;
     };
+
+    'the distance is' v:constant_Measure_m => {
+        const bag = new SlotBag(null);
+        bag.set('distance', v);
+        return bag;
+    };
 }
 
 two_param_direct_result_info_phrase = {
@@ -144,7 +150,7 @@ one_with_info_phrase = {
 one_which_info_phrase = {
     table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
     table:base_slot_bag ('which' | 'that') filter:avp_filter => checkAndAddSlot(table, filter);
-    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:apv_filter => checkAndAddSlot(table, filter);
+    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:apv_filter [priority=-0.1] => checkAndAddSlot(table, filter);
     table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:npv_filter => checkAndAddSlot(table, filter);
 }
 
@@ -165,17 +171,17 @@ two_with_info_phrase = {
 two_which_info_phrase = {
     table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
     table:one_with_info_phrase ('which' | 'that') filter:avp_filter => checkAndAddSlot(table, filter);
-    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => checkAndAddSlot(table, filter);
+    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter [priority=-0.1] => checkAndAddSlot(table, filter);
     table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npv_filter => checkAndAddSlot(table, filter);
 
     table:one_which_info_phrase 'and' ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
     table:one_which_info_phrase 'and' filter:avp_filter => checkAndAddSlot(table, filter);
-    table:one_which_info_phrase 'and' ('is' | 'are') filter:apv_filter => checkAndAddSlot(table, filter);
+    table:one_which_info_phrase 'and' ('is' | 'are') filter:apv_filter [priority=-0.1] => checkAndAddSlot(table, filter);
     table:one_which_info_phrase 'and' ('is' | 'are') filter:npv_filter => checkAndAddSlot(table, filter);
 
     table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
     table:one_clean_info_phrase ('which' | 'that') filter:avp_filter => checkAndAddSlot(table, filter);
-    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter [priority=-0.1] => checkAndAddSlot(table, filter);
     table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npv_filter => checkAndAddSlot(table, filter);
 
     filter:apv_filter table:one_which_info_phrase => checkAndAddSlot(table, filter);
