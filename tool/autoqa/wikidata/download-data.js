@@ -178,8 +178,8 @@ class Downloader {
             for (let arg of this.meta[fn].required_fields)
                 triples.push(`wdt:${arg} ?${arg}`);
             const subject = this.meta[fn].subject;
-            const equivalentClases = await getEquivalent(subject);
-            const classes = equivalentClases ? [this.meta[fn].subject, ...equivalentClases] : subject;
+            const equivalentClasses = await getEquivalent(subject);
+            const classes = equivalentClasses ? [subject, ...equivalentClasses] : [subject];
             const visited = new Set();
             for (let klass of classes) {
                 const query = `
