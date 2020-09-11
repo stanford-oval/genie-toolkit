@@ -69,6 +69,9 @@ function checkListProposal(nameList, info, hasLearnMore) {
 
 function addActionToListProposal(nameList, action) {
     const { ctx, results } = nameList;
+    if (ctx.resultInfo.projection !== null)
+        return null;
+
     const resultType = results[0].value.id.getType();
     if (!C.hasArgumentOfType(action, resultType))
         return null;

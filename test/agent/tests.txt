@@ -493,3 +493,14 @@ U: now => [release_date] of (@com.spotify.song(), id =~ "Nice For What") => noti
 A: Nice For What is a song from 6/28/2018. Would you like to play it on Spotify?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => [ param:release_date ] of ( ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:release_date = DATE_0 } ] ] ; now => @com.spotify.play_song param:song = GENERIC_ENTITY_com.spotify:song_0 #[ confirm = enum:proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"Nice For What","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:3CA9pLiwRIGtUBiMjbZmRw","display":"Nice For What"},"DATE_0":"2018-06-29T00:00:00.000Z"}
 A: >> expecting = command
+
+====
+# 32-projection-must-be-shown
+# issue #338
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => [release_date] of (@com.spotify.song(), id =~ "hello") => notify;
+
+A: Hello? is a song from 5/24/2018. Would you like to play it on Spotify?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => [ param:release_date ] of ( ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:release_date = DATE_0 } ] ] #[ count = 10 ] ; now => @com.spotify.play_song param:song = GENERIC_ENTITY_com.spotify:song_0 #[ confirm = enum:proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"hello","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:7qwt4xUIqQWCu1DJf96g2k","display":"Hello?"},"DATE_0":"2018-05-25T00:00:00.000Z"}
+A: >> expecting = command
