@@ -429,7 +429,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), id =~ "Nice For What") => notify;
 
-A: Nice For What is a song by Drake in the Scorpion album. Would you like to play it on Spotify?
+A: Nice For What is a song by Drake in the album Scorpion. Would you like to play it on Spotify?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:artists = [ GENERIC_ENTITY_com.spotify:artist_0 ] , param:album = GENERIC_ENTITY_com.spotify:album_0 , param:genres = [ QUOTED_STRING_1 , QUOTED_STRING_2 , QUOTED_STRING_3 , QUOTED_STRING_4 , QUOTED_STRING_5 , QUOTED_STRING_6 ] , param:release_date = DATE_0 , param:popularity = NUMBER_0 , param:energy = NUMBER_1 , param:danceability = NUMBER_2 } ] ] ; now => @com.spotify.play_song param:song = GENERIC_ENTITY_com.spotify:song_0 #[ confirm = enum:proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"Nice For What","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:3CA9pLiwRIGtUBiMjbZmRw","display":"Nice For What"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:3TVXtAsR1Inumwj472S9r4","display":"Drake"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:1ATL5GLyefJaxhQzSPVrLX","display":"Scorpion"},"QUOTED_STRING_1":"canadian hip hop","QUOTED_STRING_2":"canadian pop","QUOTED_STRING_3":"hip hop","QUOTED_STRING_4":"pop rap","QUOTED_STRING_5":"rap","QUOTED_STRING_6":"toronto rap","DATE_0":"2018-06-29T00:00:00.000Z","NUMBER_0":79,"NUMBER_1":90,"NUMBER_2":58}
 A: >> expecting = command
 
@@ -446,7 +446,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), id =~ "Nice For What") => notify;
 
-A: Nice For What is a song by Drake in the Scorpion album. Would you like to play it on Spotify?
+A: Nice For What is a song by Drake in the album Scorpion. Would you like to play it on Spotify?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:artists = [ GENERIC_ENTITY_com.spotify:artist_0 ] , param:album = GENERIC_ENTITY_com.spotify:album_0 , param:genres = [ QUOTED_STRING_1 , QUOTED_STRING_2 , QUOTED_STRING_3 , QUOTED_STRING_4 , QUOTED_STRING_5 , QUOTED_STRING_6 ] , param:release_date = DATE_0 , param:popularity = NUMBER_0 , param:energy = NUMBER_1 , param:danceability = NUMBER_2 } ] ] ; now => @com.spotify.play_song param:song = GENERIC_ENTITY_com.spotify:song_0 #[ confirm = enum:proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"Nice For What","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:3CA9pLiwRIGtUBiMjbZmRw","display":"Nice For What"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:3TVXtAsR1Inumwj472S9r4","display":"Drake"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:1ATL5GLyefJaxhQzSPVrLX","display":"Scorpion"},"QUOTED_STRING_1":"canadian hip hop","QUOTED_STRING_2":"canadian pop","QUOTED_STRING_3":"hip hop","QUOTED_STRING_4":"pop rap","QUOTED_STRING_5":"rap","QUOTED_STRING_6":"toronto rap","DATE_0":"2018-06-29T00:00:00.000Z","NUMBER_0":79,"NUMBER_1":90,"NUMBER_2":58}
 A: >> expecting = command
 
@@ -471,7 +471,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.play_song(song="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"));
 
 A: Sorry, no Spotify player is active.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_error ; now => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 param:song = GENERIC_ENTITY_com.spotify:song_0 #[ results = [ ] ] #[ error = enum:no_active_device ] ; // {"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:4sPmO7WMQUAf45kwMOtONw","display":"Hello"},"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-6","display":"Some Device 6"}}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_error ; now => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 param:song = GENERIC_ENTITY_com.spotify:song_0 #[ results = [ ] ] #[ error = enum:no_active_device ] ; // {"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:4sPmO7WMQUAf45kwMOtONw","display":"Hello"},"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"}}
 A: >> expecting = null
 
 ====
@@ -481,5 +481,15 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.play_song(song="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:song("Hello"));
 
 A: Sorry, Some other error occurred.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_error ; now => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 param:song = GENERIC_ENTITY_com.spotify:song_0 #[ results = [ ] ] #[ error = QUOTED_STRING_0 ] ; // {"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:2zYzyRzz6pRmhPzyfMEC8s","display":"Hello"},"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-6","display":"Some Device 6"},"QUOTED_STRING_0":"Some other error occurred"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_error ; now => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 param:song = GENERIC_ENTITY_com.spotify:song_0 #[ results = [ ] ] #[ error = QUOTED_STRING_0 ] ; // {"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:2zYzyRzz6pRmhPzyfMEC8s","display":"Hello"},"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"Some other error occurred"}
 A: >> expecting = null
+
+====
+# 31-displaying-dates
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => [release_date] of (@com.spotify.song(), id =~ "Nice For What") => notify;
+
+A: Nice For What is a song from 6/28/2018. Would you like to play it on Spotify?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => [ param:release_date ] of ( ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:release_date = DATE_0 } ] ] ; now => @com.spotify.play_song param:song = GENERIC_ENTITY_com.spotify:song_0 #[ confirm = enum:proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"Nice For What","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:3CA9pLiwRIGtUBiMjbZmRw","display":"Nice For What"},"DATE_0":"2018-06-29T00:00:00.000Z"}
+A: >> expecting = command

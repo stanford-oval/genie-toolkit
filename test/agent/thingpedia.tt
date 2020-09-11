@@ -688,8 +688,8 @@ class @com.spotify
                       default="preposition",
                       base=["album"],
                       property=["album #"],
-                      preposition=["in the # album", "in the # lp", "in the # cd",
-                                   "in #", "part of #", "from the # album",
+                      preposition=["in the album #",
+                                   "in #", "part of #", "from the album #",
                                    "from #"],
                     }],
                     out genres: Array(String)
@@ -704,7 +704,7 @@ class @com.spotify
                     }],
                     out release_date : Date
                     #_[canonical={
-                      default="preposition",
+                      default="passive_verb",
                       base=["date", "release date", "release year", "release day"],
                       property=["release date #"],
                       adjective=["#"],
