@@ -12,16 +12,16 @@ all_experiments = city university company
 experiment ?= city
 
 city_class = Q515
-city_properties ?= P571,P138,P30,P17,P1376,P131,P206,P625,P6,P1082,P2927,P2044,P421,P190,P47,P2046,P281,P856,P41,P1538,P18,P610,P150,P2936
+city_properties ?= P571,P138,P30,P17,P1376,P131,P206,P625,P6,P1082,P2927,P2044,P421,P190,P47,P2046,P281,P856,P41,P1538,P18,P610,P2936
 city_required_properties ?= none
 
 university_class = Q3918
-university_properties ?= P6375,P1449,P571,P17,P856,P131,P576,P154,P18,P571,P138,P112,P488,P2828,P1451,P2124,P463,P2196,P2936,P2769,P281,P355,P1830,P159,P1416
+university_properties ?= P6375,P1449,P571,P17,P856,P131,P576,P154,P18,P571,P138,P112,P488,P2828,P1451,P2124,P463,P2196,P2936,P2769,P281,P355,P1830
 university_required_properties ?= none
 
 company_class = Q783794
 company_properties ?= P154,P452,P571,P138,P112,P169,P1037,P1451,P17,P463,P2403,P2137,P2139,P2295,P3362,P740,P127,P749,P159,P1128,P166,P1056,P856,P1581,P414
-company_required_properties ?= P2139
+company_required_properties ?= none
 
 eval_set ?= eval-synthetic
 
