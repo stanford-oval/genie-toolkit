@@ -147,11 +147,35 @@ function context(state) {
 // handle answers generated from the UI
 function answer(state, answer) {
     const ctx = S.getContextInfo(state);
+
+    // if the agent proposed something and the user says "yes", we accept the proposal
+    if (state.history[state.history.length-1].confirm === 'proposed' &&
+        answer.isBoolean && answer.value === true) {
+        const item = state.history[state.history.length-1].clone();
+        item.confirm = 'accepted';
+        return S.addNewItem(ctx, 'execute', null, 'accepted', item);
+    }
+
     switch (state.dialogueAct) {
     case 'sys_anything_else':
         if (answer.isBoolean && answer.value === false)
             return S.makeSimpleState(ctx, 'end', null);
         return null;
+    case 'sys_recommend_one':
+    case 'sys_recommend_two':
+    case 'sys_recommend_three':
+    case 'sys_recommend_four':
+        // "yes" to a recommendation (without a proposed action) is an answer to
+        // "would you like to learn more"
+        if (answer.isBoolean && answer.value === true)
+            return S.makeSimpleState(ctx, 'learn_more', null);
+        // fallthrough
+    case 'sys_display_result':
+        // "no" to a recommendation or display result is cancel
+        if (answer.isBoolean && answer.value === false)
+            return S.makeSimpleState(ctx, 'cancel', null);
+        return null;
+
     case 'sys_slot_fill':
         return D.impreciseSlotFillAnswer(ctx, answer);
     case 'sys_search_question':
