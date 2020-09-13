@@ -44,20 +44,26 @@ empty_search_error = {
     sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
     '.' => [base, null];
 
-    sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
-    '.' 'would you like' ('a different' | 'another') p:out_param_Any '?' [priority=1] => {
-        if (!base.schema.hasArgument(p.name))
-            return null;
-        if (p === 'id')
-            return null;
-        return [base, p];
-    };
+    !inference {
+        sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
+        '.' 'would you like' ('a different' | 'another') p:out_param_Any '?' [priority=1] => {
+            if (!base.schema.hasArgument(p.name))
+                return null;
+            if (p === 'id')
+                return null;
+            return [base, p];
+        };
 
-    sorry_preamble 'i cannot find any result for your search . would you like' ('a different' | 'another') p:out_param_Any '?' => {
-        if (p.name === 'id')
-            return null;
-        return [null, p];
-    };
+        sorry_preamble 'i cannot find any result for your search . would you like' ('a different' | 'another') p:out_param_Any '?' => {
+            if (p.name === 'id')
+                return null;
+            return [null, p];
+        };
+    }
+
+    ?inference {
+        sorry_preamble 'i cannot find any result for your search .' [priority=-1] => [null, null];
+    }
 }
 
 precise_empty_search_change_request = {
