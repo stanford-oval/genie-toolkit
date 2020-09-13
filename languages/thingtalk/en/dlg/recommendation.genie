@@ -94,9 +94,11 @@ proposal_info_action_pair = {
         return [info, action];
     };
 
-    'is a' info:result_info_phrase '.' learn_more_offer [weight=0.2] => {
-        return [info, null];
-    };
+    !inference {
+        'is a' info:result_info_phrase '.' learn_more_offer [weight=0.2] => {
+            return [info, null];
+        };
+    }
 }
 
 actionable_system_display_result_short = {

@@ -234,7 +234,7 @@ $agent = {
 
     // query refinement (through proposal or search question)
     !inference prop:system_generic_proposal => prop;
-    ctx:ctx_search_command questions:search_question
+    !inference ctx:ctx_search_command questions:search_question
         => D.makeSearchQuestion(ctx, questions);
 
     // slot filling of actions
