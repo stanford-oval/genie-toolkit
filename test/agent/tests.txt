@@ -19,7 +19,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.facebook.post(status="hello world") #[confirm=enum(confirmed)];
 
 A: I posted hello world on facebook.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.facebook.post attribute:id = GENERIC_ENTITY_tt:device_id_0 param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world","GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":"Some Device 6"}}
+A: >> context = null // {}
 A: >> expecting = null
 
 ====
@@ -43,7 +43,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.facebook.post(status="hello world") #[confirm=enum(confirmed)];
 
 A: I posted hello world on facebook.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.facebook.post attribute:id = GENERIC_ENTITY_tt:device_id_0 param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world","GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":"Some Device 6"}}
+A: >> context = null // {}
 A: >> expecting = null
 
 # U: Thank you, goodbye
@@ -74,7 +74,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.twitter.post(status="hello world") #[confirm=enum(confirmed)];
 
 A: I tweeted hello world.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.twitter.post attribute:id = GENERIC_ENTITY_tt:device_id_0 param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world","GENERIC_ENTITY_tt:device_id_0":{"value":"twitter-foo","display":"Twitter Account foo"}}
+A: >> context = null // {}
 A: >> expecting = null
 
 ====
@@ -159,7 +159,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), id =~ ("despacito"))[1] => @com.spotify.play_song(song=id);
 
 A: I played Despacito on Spotify on str:ENTITY_com.spotify:device::36:.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => ( ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 ) [ 1 ] => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 on param:song = param:id #[ results = [ { param:song = GENERIC_ENTITY_com.spotify:song_0 , param:device = GENERIC_ENTITY_com.spotify:device_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"despacito","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:6habFhsOp2NvshLv26DqMb","display":"Despacito"},"GENERIC_ENTITY_com.spotify:device_0":{"value":"str:ENTITY_com.spotify:device::36:","display":null}}
+A: >> context = null // {}
 A: >> expecting = null
 
 ====
@@ -169,7 +169,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), contains(artists, null^^com.spotify:artist("ariana grande")))[1] => @com.spotify.play_song(song=id);
 
 A: I played 7 rings on Spotify on str:ENTITY_com.spotify:device::36:.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => ( ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:artists contains GENERIC_ENTITY_com.spotify:artist_0 ) [ 1 ] => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 on param:song = param:id #[ results = [ { param:song = GENERIC_ENTITY_com.spotify:song_0 , param:device = GENERIC_ENTITY_com.spotify:device_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR","display":"Ariana Grande"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:6ocbgoVGwYJhOv1GgI9NsF","display":"7 rings"},"GENERIC_ENTITY_com.spotify:device_0":{"value":"str:ENTITY_com.spotify:device::36:","display":null}}
+A: >> context = null // {}
 A: >> expecting = null
 
 ====
@@ -179,7 +179,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), album == null^^com.spotify:album("folklore")) =>  @com.spotify.play_song(song=id);
 
 A: Your request was completed successfully.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:album == GENERIC_ENTITY_com.spotify:album_0 => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 on param:song = param:id #[ results = [ { param:song = GENERIC_ENTITY_com.spotify:song_0 , param:device = GENERIC_ENTITY_com.spotify:device_0 } ] ] #[ count = NUMBER_0 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:2fenSS68JI1h4Fo296JfGr","display":"folklore"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:4R2kfaDFhslZEMJqAFNpdd","display":"cardigan"},"GENERIC_ENTITY_com.spotify:device_0":{"value":"str:ENTITY_com.spotify:device::36:","display":null},"NUMBER_0":22}
+A: >> context = null // {}
 A: >> expecting = null
 
 ====
@@ -289,7 +289,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.player_repeat(repeat=enum(track));
 A: I repeated this song for you.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.spotify.player_repeat attribute:id = GENERIC_ENTITY_tt:device_id_0 param:repeat = enum:track #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"}}
+A: >> context = null // {}
 A: >> expecting = null
 
 ====
@@ -317,7 +317,7 @@ A: >> expecting = generic
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.player_shuffle(shuffle=enum(on));
 A: I shuffled your Spotify.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.spotify.player_shuffle attribute:id = GENERIC_ENTITY_tt:device_id_0 param:shuffle = enum:on #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"}}
+A: >> context = null // {}
 A: >> expecting = null
 
 ====
@@ -437,7 +437,7 @@ A: >> expecting = command
 U: \r bookkeeping special special:yes
 
 A: I played Nice For What on Spotify on str:ENTITY_com.spotify:device::15:.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:artists = [ GENERIC_ENTITY_com.spotify:artist_0 ] , param:album = GENERIC_ENTITY_com.spotify:album_0 , param:genres = [ QUOTED_STRING_1 , QUOTED_STRING_2 , QUOTED_STRING_3 , QUOTED_STRING_4 , QUOTED_STRING_5 , QUOTED_STRING_6 ] , param:release_date = DATE_0 , param:popularity = NUMBER_0 , param:energy = NUMBER_1 , param:danceability = NUMBER_2 } ] ] ; now => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 param:song = GENERIC_ENTITY_com.spotify:song_0 #[ results = [ { param:song = GENERIC_ENTITY_com.spotify:song_0 , param:device = GENERIC_ENTITY_com.spotify:device_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"Nice For What","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:3CA9pLiwRIGtUBiMjbZmRw","display":"Nice For What"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:3TVXtAsR1Inumwj472S9r4","display":"Drake"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:1ATL5GLyefJaxhQzSPVrLX","display":"Scorpion"},"QUOTED_STRING_1":"canadian hip hop","QUOTED_STRING_2":"canadian pop","QUOTED_STRING_3":"hip hop","QUOTED_STRING_4":"pop rap","QUOTED_STRING_5":"rap","QUOTED_STRING_6":"toronto rap","DATE_0":"2018-06-29T00:00:00.000Z","NUMBER_0":79,"NUMBER_1":90,"NUMBER_2":58,"GENERIC_ENTITY_com.spotify:device_0":{"value":"str:ENTITY_com.spotify:device::15:","display":null}}
+A: >> context = null // {}
 A: >> expecting = null
 
 ====
