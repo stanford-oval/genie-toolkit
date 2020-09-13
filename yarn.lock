@@ -2956,6 +2956,11 @@ thingtalk-units@^0.2.0:
   resolved "https://registry.yarnpkg.com/thingtalk-units/-/thingtalk-units-0.2.0.tgz#b14cd56d5a2178b24c81d42c7174c8d10f1110b9"
   integrity sha512-t2KE6EVVOxiD6qKREMxkB+sU0xb1elRWrxwyiJwA/a9LHurU5chZSGjkFdjDrtTypyfIV36yvhXQBQLrmwhFgQ==
 
+thingtalk-units@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/thingtalk-units/-/thingtalk-units-0.2.0.tgz#b14cd56d5a2178b24c81d42c7174c8d10f1110b9"
+  integrity sha512-t2KE6EVVOxiD6qKREMxkB+sU0xb1elRWrxwyiJwA/a9LHurU5chZSGjkFdjDrtTypyfIV36yvhXQBQLrmwhFgQ==
+
 thingtalk@~1.11.0-beta.2, thingtalk@~1.11.0-beta.4:
   version "1.11.0-rc.1"
   resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.11.0-rc.1.tgz#30761ed9abccbf57fdb71d62ad5a6073a37545d2"
