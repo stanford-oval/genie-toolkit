@@ -119,7 +119,7 @@ system_nonlist_result = {
     //proposal:actionable_system_display_result_short action:action_coref_recommendation
     //    => D.checkActionForDisplayResult(proposal, action);
 
-    proposal:actionable_system_display_result_short anything_else_phrase => {
+    ?anything_else proposal:actionable_system_display_result_short anything_else_phrase => {
         const clone = {};
         Object.assign(clone, proposal);
         clone.hasAnythingElse = true;

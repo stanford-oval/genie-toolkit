@@ -212,15 +212,22 @@ $agent = {
         ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null));
     }
 
-    ctx:ctx_cancel anything_else_phrase
-        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null));
+    ?anything_else {
+        ctx:ctx_cancel anything_else_phrase
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null));
 
-    ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
-        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null));
+        ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null));
+    }
+    !anything_else {
+        ( ctx:ctx_cancel 'alright ,' ('bye !' | 'good bye !')
+        | ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
+        ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null));
+    }
 
     // action results
     action_success_phrase;
-    action:action_success_phrase anything_else_phrase => S.setEndBit(action, false);
+    ?anything_else action:action_success_phrase anything_else_phrase => S.setEndBit(action, false);
     action_error_phrase;
 
     // query results
@@ -274,12 +281,14 @@ $user = {
     | ctx:ctx_sys_anything_else thanks_phrase ('goodbye !' | '') [weight=0.01]
     ) => S.makeSimpleState(ctx, 'end', null);
 
-    ( ctx:ctx_sys_anything_else stmt:initial_command
-    | ctx:ctx_sys_anything_else yes_please_phrase stmt:initial_command
-    ) => D.startNewRequest(ctx, stmt);
+    ?anything_else {
+        ( ctx:ctx_sys_anything_else stmt:initial_command
+        | ctx:ctx_sys_anything_else yes_please_phrase stmt:initial_command
+        ) => D.startNewRequest(ctx, stmt);
 
-    ctx:ctx_sys_anything_else yes_please_phrase
-        => S.makeSimpleState(ctx, 'reinit', null);
+        ctx:ctx_sys_anything_else yes_please_phrase
+            => S.makeSimpleState(ctx, 'reinit', null);
+    }
 
     // action confirmations
     ctx:ctx_sys_confirm_action accept_phrase [weight=0.9]
