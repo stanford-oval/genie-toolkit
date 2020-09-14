@@ -74,6 +74,7 @@ const subcommands = {
     'wikidata-download-data': require('./autoqa/wikidata/download-data'),
     'wikidata-label-retriever': require('./autoqa/wikidata/label-retriever'),
     'wikidata-make-string-datasets': require('./autoqa/wikidata/make-string-datasets'),
+    'wikidata-demo': require('./autoqa/wikidata/demo.js'),
 
     'auto-annotate': require('./autoqa/auto-annotate'),
     'make-string-datasets': require('./autoqa/make-string-datasets'),
