@@ -255,6 +255,14 @@ function positiveRecommendationReply(ctx, acceptedAction, name) {
     if (name !== null && !topResult.value.id.equals(name))
         return null;
 
+    // do not consider a phrase of the form "play X" to be "accepting the action by name"
+    // if the action auto-confirms, because the user is likely playing something else
+    if (acceptedAction && name) {
+        const confirm = C.normalizeConfirmAnnotation(acceptedAction.schema);
+        if (confirm === 'auto')
+            return null;
+    }
+
     const chainParam = findChainParam(topResult, acceptedAction);
     if (!chainParam)
         return null;
