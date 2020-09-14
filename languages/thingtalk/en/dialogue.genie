@@ -76,6 +76,7 @@ context
     ctx_with_result_and_action,
     ctx_with_result_question,
     ctx_with_result_noquestion,
+    ctx_with_result_argminmax,
     ctx_without_projection,
     ctx_for_related_question,
 

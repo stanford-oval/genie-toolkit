@@ -524,8 +524,11 @@ class ThingpediaLoader {
                 if (!Array.isArray(annotvalue))
                     annotvalue = [annotvalue];
 
-                for (let form of annotvalue)
+                for (let form of annotvalue) {
                     this._grammar.addRule(cat + '_argminmax', [form], this._runtime.simpleCombine(() => [pvar, argMinMax]), attributes);
+                    if (this._options.flags.inference)
+                        break;
+                }
             } else if (isProjection) {
                 if (cat === 'base')
                     continue;

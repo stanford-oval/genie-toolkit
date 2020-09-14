@@ -72,6 +72,18 @@ function makeActionRecommendation(ctx, action) {
     return null;
 }
 
+function makeArgMinMaxRecommendation(ctx, name, base, param, direction) {
+    if (!ctx.resultInfo.argMinMaxField)
+        return null;
+    if (!C.isSameFunction(base.schema, ctx.currentFunctionSchema))
+        return null;
+    if (direction !== ctx.resultInfo.argMinMaxField[1] ||
+        param.name !== ctx.resultInfo.argMinMaxField[0])
+        return null;
+
+    return makeRecommendation(ctx, name);
+}
+
 function makeRecommendation(ctx, name) {
     const results = ctx.results;
     assert(results.length > 0);
@@ -283,6 +295,7 @@ function repeatCommandReply(ctx) {
 
 module.exports = {
     makeActionRecommendation,
+    makeArgMinMaxRecommendation,
     makeRecommendation,
     makeThingpediaRecommendation,
     makeAnswerStyleRecommendation,
