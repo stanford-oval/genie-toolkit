@@ -27,20 +27,20 @@ const {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('wikidata-label-retriever', {
-            addHelp: true,
+        const parser = subparsers.add_parser('wikidata-label-retriever', {
+            add_help: true,
             description: "A script to retrieve Wikidata labels in batch"
         });
-        parser.addArgument('input', {
+        parser.add_argument('input', {
             help: 'a list of properties, split by comma (no space)'
         });
-        parser.addArgument('--format', {
+        parser.add_argument('--format', {
             required: false,
             choices: ['label-only', 'id-label', 'label-id'],
             default: 'label-only',
             help: 'the format of the final output'
         });
-        parser.addArgument('--delimiter', {
+        parser.add_argument('--delimiter', {
             required: false,
             default: ', ',
             help: 'the delimiter to separate the final output'

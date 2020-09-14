@@ -43,8 +43,8 @@ async function normalize(preprocessed, target_code, schemas) {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('compute-training-coverage', {
-            addHelp: true,
+        const parser = subparsers.add_parser('compute-training-coverage', {
+            add_help: true,
             description: "Given a evaluation set, compute the percent of programs appeared in training set"
         });
         parser.add_argument('--thingpedia', {
@@ -56,12 +56,12 @@ module.exports = {
             default: 'en-US',
             help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
         });
-        parser.addArgument('--training-set', {
+        parser.add_argument('--training-set', {
             required: true,
             type: fs.createReadStream,
             help: 'Path to the file containing the training data (in TSV format: id, utterance, thingtalk)'
         });
-        parser.addArgument('--evaluation-set', {
+        parser.add_argument('--evaluation-set', {
             required: true,
             type: fs.createReadStream,
             help: `Path to the file containing the evaluation data (in TSV format: id, utterance, thingtalk)`

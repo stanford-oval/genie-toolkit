@@ -203,24 +203,24 @@ class Downloader {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('wikidata-download-data', {
-            addHelp: true,
+        const parser = subparsers.add_parser('wikidata-download-data', {
+            add_help: true,
             description: "Download sample data from wikidata."
         });
-        parser.addArgument('--output-dir', {
+        parser.add_argument('--output-dir', {
             required: true,
             help: 'Path to the database map.'
         });
-        parser.addArgument('--thingpedia', {
+        parser.add_argument('--thingpedia', {
             required: true,
             help: 'Path to ThingTalk file containing class definitions.'
         });
-        parser.addArgument('--target-size', {
+        parser.add_argument('--target-size', {
             required: false,
-            defaultValue: 10,
+            default: 10,
             help: 'Target size to download.'
         });
-        parser.addArgument('--dialogue', {
+        parser.add_argument('--dialogue', {
             action: 'store_true',
             required: false,
             default: false,

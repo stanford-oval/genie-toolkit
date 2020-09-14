@@ -318,23 +318,23 @@ class SchemaProcessor {
 
 module.exports = {
     initArgparse(subparsers) {
-        const parser = subparsers.addParser('wikidata-process-schema', {
-            addHelp: true,
+        const parser = subparsers.add_parser('wikidata-process-schema', {
+            add_help: true,
             description: "Generate schema.tt given a list of domains. "
         });
         parser.add_argument('-o', '--output', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument('--entities', {
+        parser.add_argument('--entities', {
             required: true,
             type: fs.createWriteStream
         });
-        parser.addArgument('--domains', {
+        parser.add_argument('--domains', {
             required: true,
             help: 'domains (by item id) to include in the schema, split by comma (no space)'
         });
-        parser.addArgument('--properties', {
+        parser.add_argument('--properties', {
             nargs: '+',
             required: false,
             help: 'properties to include for each domain, properties are split by comma (no space);\n' +
@@ -355,7 +355,7 @@ module.exports = {
             required: false,
             help: 'Path to manifest.tt for schema.org; used for predict the type of wikidata properties'
         });
-        parser.addArgument('--required-properties', {
+        parser.add_argument('--required-properties', {
             nargs: '+',
             required: false,
             help: 'the subset of properties that are required to be non-empty for all retrieved entities;\n' +
