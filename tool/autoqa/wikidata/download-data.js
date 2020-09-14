@@ -182,10 +182,11 @@ class Downloader {
             const classes = equivalentClasses ? [subject, ...equivalentClasses] : [subject];
             const visited = new Set();
             for (let klass of classes) {
+                const predicate = klass === 'Q5' ? 'wdt:P31' : 'p:P31/ps:P31/wdt:P279*';
                 const query = `
                     SELECT DISTINCT ?value 
                     WHERE {
-                      ?value p:P31/ps:P31/wdt:P279* wd:${klass}; ${triples.join('; ')} .
+                      ?value ${predicate} wd:${klass}; ${triples.join('; ')} .
                     }
                     LIMIT ${Math.ceil(this._options.target_size / classes.length)}
                 `;

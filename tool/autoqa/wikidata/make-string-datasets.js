@@ -31,7 +31,8 @@ const StreamUtils = require('../../../lib/utils/stream-utils');
 
 const {
     wikidataQuery,
-    getEquivalent
+    getEquivalent,
+    getItemLabel
 } = require('./utils');
 
 function isString(type) {
@@ -80,17 +81,39 @@ class ParamDatasetGenerator {
     }
 
     async _downloadSubjectValues(fn, klass, filters, targetSize) {
-        const query = `
-            SELECT DISTINCT ?subject ?subjectLabel
-            WHERE {
-              ?subject p:P31/ps:P31/wdt:P279* wd:${klass}; ${filters.join('; ')}.
-              SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+        if (klass === 'Q5') {
+            const query = `
+                SELECT DISTINCT ?subject
+                WHERE {
+                  ?subject wdt:P31 wd:${klass}; ${filters.join('; ')}.
+                }
+                LIMIT ${targetSize}
+            `;
+            const results = await wikidataQuery(query);
+            for (let result of results) {
+                const value = result.subject.value;
+                const label = await getItemLabel(value.slice('http://www.wikidata.org/entity/'.length));
+                if (!label)
+                    continue;
+                this._getStringFile(fn, true).push({ name: label, value: value });
             }
-            LIMIT ${targetSize}
-        `;
-        const results = await wikidataQuery(query);
-        for (let result of results)
-            this._getStringFile(fn, true).push({ name: result.subjectLabel.value, value: result.subject.value });
+        } else {
+            const query = `
+                SELECT DISTINCT ?subject ?subjectLabel
+                WHERE {
+                  ?subject p:P31/ps:P31/wdt:P279* wd:${klass}; ${filters.join('; ')}.
+                  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+                }
+                LIMIT ${targetSize}
+            `;
+            const results = await wikidataQuery(query);
+            for (let result of results) {
+                if (!result.subjectLabel.value)
+                    continue;
+                this._getStringFile(fn, true).push({name: result.subjectLabel.value, value: result.subject.value});
+            }
+        }
+
     }
 
     async _downloadPropertyValues(fn, arg, klass, filters, targetSize) {
@@ -100,21 +123,50 @@ class ParamDatasetGenerator {
             return;
 
         const id = arg.getImplementationAnnotation('wikidata_id');
-        const query = `
-            SELECT DISTINCT ?value ?valueLabel
-            WHERE {
-              ?subject p:P31/ps:P31/wdt:P279* wd:${klass}; ${filters.join('; ')} .
-              ?subject wdt:${id} ?value.
-              SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+
+        if (klass === 'Q5') {
+            const query = `
+                SELECT DISTINCT ?value
+                WHERE {
+                  ?subject wdt:P31 wd:${klass}; ${filters.join('; ')}.
+                  ?subject wdt:${id} ?value.
+                }
+                LIMIT ${targetSize}
+            `;
+            const results = await wikidataQuery(query);
+            for (let result of results) {
+                const value = result.value.value;
+                let label;
+                if (value.startsWith('http://www.wikidata.org/entity/'))
+                    label = await getItemLabel(value.slice('http://www.wikidata.org/entity/'.length));
+                else
+                    label = value;
+                if (!label)
+                    continue;
+                if (isString(arg.type))
+                    this._addString(`${fn}_${arg.name}`, label);
+                else if (isWikidataEntity(arg.type))
+                    this._getStringFile(arg.type.type, true).push({ name: label, value: value });
             }
-            LIMIT ${targetSize}
-        `;
-        const results = await wikidataQuery(query);
-        for (let result of results) {
-            if (isString(arg.type))
-                this._addString(`${fn}_${arg.name}`, result.valueLabel.value);
-            else if (isWikidataEntity(arg.type))
-                this._getStringFile(arg.type.type, true).push({ name: result.valueLabel.value, value: result.value.value });
+        } else {
+            const query = `
+                SELECT DISTINCT ?value ?valueLabel
+                WHERE {
+                  ?subject p:P31/ps:P31/wdt:P279* wd:${klass}; ${filters.join('; ')}.
+                  ?subject wdt:${id} ?value.
+                  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+                }
+                LIMIT ${targetSize}
+            `;
+            const results = await wikidataQuery(query);
+            for (let result of results) {
+                if (!result.valueLabel.value)
+                    continue;
+                if (isString(arg.type))
+                    this._addString(`${fn}_${arg.name}`, result.valueLabel.value);
+                else if (isWikidataEntity(arg.type))
+                    this._getStringFile(arg.type.type, true).push({ name: result.valueLabel.value, value: result.value.value });
+            }
         }
     }
 
@@ -122,8 +174,8 @@ class ParamDatasetGenerator {
         for (let fn in this._classDef.queries) {
             const fndef = this._classDef.queries[fn];
             const klass = fndef.getImplementationAnnotation('wikidata_subject');
-            const equivalentClasses = await getEquivalent(klass);
-            const classes =  equivalentClasses ? [klass, ...equivalentClasses] : klass;
+            const equivalentClasses = klass === 'Q5' ? null : await getEquivalent(klass);
+            const classes =  equivalentClasses ? [klass, ...equivalentClasses] : [klass];
             const triples = [];
             for (let arg of fndef.getImplementationAnnotation('required_properties') || [])
                 triples.push(`wdt:${arg} ?${arg}`);
