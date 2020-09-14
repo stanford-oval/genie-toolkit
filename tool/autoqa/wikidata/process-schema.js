@@ -86,8 +86,10 @@ async function retrieveProperties(domain, properties) {
 }
 
 class SchemaProcessor {
-    constructor(domains, propertiesByDomain, requiredPropertiesByDomain, output, outputEntities, manual, wikidataLabels, schemaorgManifest) {
+    constructor(domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, output, outputEntities,
+                manual, wikidataLabels, schemaorgManifest) {
         this._domains = domains;
+        this._domainCanonicals = domainCanonicals;
         this._propertiesByDomain = propertiesByDomain;
         this._requiredPropertiesByDomain = requiredPropertiesByDomain;
         this._output = output;
@@ -249,6 +251,7 @@ class SchemaProcessor {
 
         for (let domain of this._domains) {
             const domainLabel = await getItemLabel(domain);
+            const fname = domain in this._domainCanonicals ? this._domainCanonicals[domain] : domainLabel;
             const properties = this._propertiesByDomain[domain];
             const args = [
                 new Ast.ArgumentDef(
@@ -287,7 +290,7 @@ class SchemaProcessor {
             }
 
             queries[domainLabel] = new Ast.FunctionDef(
-                null, 'query', null, domainLabel, null, qualifiers, args, annotations);
+                null, 'query', null, fname, null, qualifiers, args, annotations);
         }
 
         const imports = [
@@ -334,6 +337,11 @@ module.exports = {
             required: true,
             help: 'domains (by item id) to include in the schema, split by comma (no space)'
         });
+        parser.add_argument('--domain-canonicals', {
+            required: false,
+            help: 'the canonical form for the given domains, used as the query names, split by comma (no space);\n' +
+                'if absent, use Wikidata label by default.'
+        });
         parser.add_argument('--properties', {
             nargs: '+',
             required: false,
@@ -369,6 +377,15 @@ module.exports = {
     async execute(args) {
         const domains = args.domains.split(',');
 
+        const domainCanonicals = {};
+
+        if (args.domain_canonicals) {
+            const canonicals = args.domain_canonicals.split(',');
+            assert.strictEqual(canonicals.length, domains.length);
+            for (let i = 0; i < domains.length; i++)
+                domainCanonicals[domains[i]] = canonicals[i];
+        }
+
         const requiredPropertiesByDomain = {};
         if (args.required_properties) {
             // if provided, property lists should match the number of domains
@@ -393,7 +410,7 @@ module.exports = {
                 propertiesByDomain[domain] = await getPropertyList(domain);
         }
         const schemaProcessor = new SchemaProcessor(
-            domains, propertiesByDomain, requiredPropertiesByDomain, args.output, args.entities,
+            domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, args.output, args.entities,
             args.manual, args.wikidata_labels, args.schemaorg_manifest
         );
         schemaProcessor.run();
