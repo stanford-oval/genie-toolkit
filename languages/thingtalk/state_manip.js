@@ -637,6 +637,9 @@ function tagContextForAgent(ctx) {
         assert(ctx.state.history.length === 0, `expected empty history for greet`);
         return ['ctx_greet'];
 
+    case 'reinit':
+        return ['ctx_reinit'];
+
     case 'cancel':
         return ['ctx_cancel'];
 

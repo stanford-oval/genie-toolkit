@@ -4,6 +4,9 @@ dialogueActs:
   user:
     # user says hi!
     - greet
+    # user says they want to do something else (same as greet but without the
+    # "hi" part)
+    - reinit
     # user issues a ThingTalk program
     - execute
     # user wants to see the result of the previous program (in reply to a generic search question)

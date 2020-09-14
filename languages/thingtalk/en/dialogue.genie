@@ -79,9 +79,10 @@ context
     ctx_without_projection,
     ctx_for_related_question,
 
-    // result states (used to interpret user utterances)
+    // abstract result states (used to interpret user utterances)
     // these should be returned by S.tagContextForAgent()
     ctx_greet,
+    ctx_reinit,
     ctx_cancel,
     ctx_end,
     ctx_search_command,
@@ -158,8 +159,12 @@ function answer(state, answer) {
 
     switch (state.dialogueAct) {
     case 'sys_anything_else':
-        if (answer.isBoolean && answer.value === false)
-            return S.makeSimpleState(ctx, 'end', null);
+        if (answer.isBoolean) {
+            if (answer.value)
+                return S.makeSimpleState(ctx, 'reinit', null);
+            else
+                return S.makeSimpleState(ctx, 'end', null);
+        }
         return null;
     case 'sys_recommend_one':
     case 'sys_recommend_two':
@@ -197,11 +202,13 @@ $agent = {
     !inference {
         ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
         | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+        | ctx:ctx_reinit ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
         ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null));
     }
     ?inference {
         ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what can i do for you') '?'
         | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what can i do for you') '?'
+        | ctx:ctx_reinit ('how can i help you' | 'what can i do for you') '?'
         ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null));
     }
 
@@ -270,6 +277,9 @@ $user = {
     ( ctx:ctx_sys_anything_else stmt:initial_command
     | ctx:ctx_sys_anything_else yes_please_phrase stmt:initial_command
     ) => D.startNewRequest(ctx, stmt);
+
+    ctx:ctx_sys_anything_else yes_please_phrase
+        => S.makeSimpleState(ctx, 'reinit', null);
 
     // action confirmations
     ctx:ctx_sys_confirm_action accept_phrase [weight=0.9]
