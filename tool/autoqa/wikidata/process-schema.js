@@ -272,7 +272,7 @@ class SchemaProcessor {
                 if (elemType.isString)
                     annotations.impl['string_values'] = new Ast.Value.String(`org.wikidata:${domainLabel}_${name}`);
                 if (elemType.isEntity && elemType.type.startsWith('org.wikidata:'))
-                    this._addEntity(type.type, titleCase(label), true);
+                    this._addEntity(elemType.type, titleCase(label), true);
                 args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, name, type, annotations));
             }
             const qualifiers = { is_list: true, is_monitorable: false };
