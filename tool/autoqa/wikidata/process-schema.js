@@ -121,7 +121,7 @@ class SchemaProcessor {
 
     async _getElemType(domain, domainLabel, property, propertyLabel) {
         if (PROPERTY_TYPE_SAME_AS_SUBJECT.has(property))
-            return Type.Entity(`org.wikidata:${domainLabel}`);
+            return Type.Entity(`org.wikidata:${snakecase(domainLabel)}`);
 
         const enumEntries = await getOneOfConstraint(property);
         if (enumEntries.length > 0)
@@ -140,13 +140,13 @@ class SchemaProcessor {
         if (units.length > 0) {
             if (units.includes('kilogram'))
                 return Type.Measure('kg');
-            if (units.includes('metre'))
+            if (units.includes('metre') ||  units.includes('kilometre'))
                 return Type.Measure('m');
-            if (units.includes('second'))
+            if (units.includes('second') || units.includes('year'))
                 return Type.Measure('ms');
             if (units.includes('degree Celsius'))
                 return Type.Measure('C');
-            if (units.includes('metre per second'))
+            if (units.includes('metre per second') || units.includes('kilometre per second'))
                 return Type.Measure('mps');
             if (units.includes('square metre'))
                 return Type.Measure('m2');
@@ -274,7 +274,7 @@ class SchemaProcessor {
                 };
                 const elemType = getElementType(type);
                 if (elemType.isString)
-                    annotations.impl['string_values'] = new Ast.Value.String(`org.wikidata:${domainLabel}_${name}`);
+                    annotations.impl['string_values'] = new Ast.Value.String(`org.wikidata:${snakecase(domainLabel)}_${name}`);
                 if (elemType.isEntity && elemType.type.startsWith('org.wikidata:'))
                     this._addEntity(elemType.type, titleCase(label), true);
                 args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, name, type, annotations));

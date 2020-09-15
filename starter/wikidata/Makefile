@@ -21,7 +21,7 @@ country_required_properties ?= none
 
 star_class = Q523
 star_properties ?= P18,P361,P2067,P398,P397,P2583,P1102,P215,P1215,P1457,P2227,P2076,P2120,P2547,P2046,P2234,P7584,P59,P1096,P4296,P2216
-star_required_properties ?=
+star_required_properties ?= none
 
 university_class = Q3918
 university_properties ?= P6375,P1449,P571,P17,P856,P131,P576,P154,P18,P571,P138,P112,P488,P2828,P1451,P2124,P463,P2196,P2936,P2769,P281,P355,P1830
@@ -49,7 +49,7 @@ sports_team_required_properties ?= none
 
 tv_series_class = Q5398426
 tv_series_properties ?= P136,P170,P449,P495,P364,P58,P161,P162,P272,P750,P942,P840,P2047,P4312,P166,P1411,P674,P1113,P2437,P580,P582
-tv_series_required_properties ?=
+tv_series_required_properties ?= none
 
 eval_set ?= eval-synthetic
 
