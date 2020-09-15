@@ -95,6 +95,8 @@ class ParamDatasetGenerator {
                 const label = await getItemLabel(value.slice('http://www.wikidata.org/entity/'.length));
                 if (!label)
                     continue;
+                if (/Q[0-9]+/.test(label))
+                    continue;
                 this._getStringFile(fn, true).push({ name: label, value: value });
             }
         } else {
@@ -109,6 +111,8 @@ class ParamDatasetGenerator {
             const results = await wikidataQuery(query);
             for (let result of results) {
                 if (!result.subjectLabel.value)
+                    continue;
+                if (/Q[0-9]+/.test(result.subjectLabel.value))
                     continue;
                 this._getStringFile(fn, true).push({name: result.subjectLabel.value, value: result.subject.value});
             }
@@ -143,6 +147,8 @@ class ParamDatasetGenerator {
                     label = value;
                 if (!label)
                     continue;
+                if (/Q[0-9]+/.test(label))
+                    continue;
                 if (isString(arg.type))
                     this._addString(`${fn}_${arg.name}`, label);
                 else if (isWikidataEntity(arg.type))
@@ -161,6 +167,8 @@ class ParamDatasetGenerator {
             const results = await wikidataQuery(query);
             for (let result of results) {
                 if (!result.valueLabel.value)
+                    continue;
+                if (/Q[0-9]+/.test(result.valueLabel.value))
                     continue;
                 if (isString(arg.type))
                     this._addString(`${fn}_${arg.name}`, result.valueLabel.value);
