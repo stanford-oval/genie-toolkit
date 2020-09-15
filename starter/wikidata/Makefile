@@ -102,7 +102,7 @@ shared-parameter-datasets.tsv:
 	  download-string-values --manifest $@ --append-manifest -d shared-parameter-datasets
 
 %/parameter-datasets.tsv : %/wikidata.tt shared-parameter-datasets.tsv
-	sed 's|\tshared-parameter-datasets|\t../shared-parameter-datasets|g' shared-parameter-datasets.tsv > $@
+	sed 's|shared-parameter-datasets/|../shared-parameter-datasets/|g' shared-parameter-datasets.tsv > $@
 	$(genie) wikidata-make-string-datasets --manifest $@.local -d $*/parameter-datasets --thingpedia $*/wikidata.tt
 	cat $@.local >> $@
 	rm $@.local
