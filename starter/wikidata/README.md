@@ -73,6 +73,7 @@ as the annotations. They are categorized into different parts of speech using us
 Genie can also automatically generate natural language annotations using pretrained language models. 
 To enable that, run 
 ```bash
+make models/paraphraser-bart 
 make experiment=$(exp) mode=auto $(exp)/manifest.tt
 ```
 

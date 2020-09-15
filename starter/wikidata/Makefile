@@ -111,7 +111,7 @@ shared-parameter-datasets.tsv:
 	$(genie) sample-constants -o $@ --parameter-datasets $*/parameter-datasets.tsv --thingpedia $*/wikidata.tt --devices org.wikidata
 	cat $(geniedir)/data/en-US/constants.tsv >> $@
 
-%/manifest.tt: %/constants.tsv %/wikidata.tt %/parameter-datasets.tsv models/paraphraser-bart
+%/manifest.tt: %/constants.tsv %/wikidata.tt %/parameter-datasets.tsv
 	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/wikidata.tt --functions $(experiment) $($(mode)_annotate_flags) --parameter-datasets $*/parameter-datasets.tsv --dataset wikidata
 	mv $@.tmp $@
 
