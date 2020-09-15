@@ -57,6 +57,7 @@ function argnameFromLabel(label) {
         .replace(/'/g, '') // remove apostrophe
         .replace(/,/g, '') // remove comma
         .replace(/_\/_/g, '_or_') // replace slash by or
+        .replace('/[(|)]/g', '') // replace parentheses
         .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // remove accent
 }
 
