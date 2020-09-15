@@ -35,20 +35,10 @@ const {
     getItemLabel
 } = require('./utils');
 
-function isString(type) {
-    if (type.isString)
-        return true;
+function getElemType(type) {
     if (type.isArray)
-        return isString(type.elem);
-    return false;
-}
-
-function isWikidataEntity(type) {
-    if (type.isEntity && type.type.startsWith('org.wikidata:'))
-        return true;
-    if (type.isArray)
-        return isWikidataEntity(type.elem);
-    return false;
+        return getElemType(type.elem);
+    return type;
 }
 
 class ParamDatasetGenerator {
@@ -123,7 +113,8 @@ class ParamDatasetGenerator {
     async _downloadPropertyValues(fn, arg, klass, filters, targetSize) {
         if (arg.name === 'id')
             return ;
-        if (!isString(arg.type) && !isWikidataEntity(arg.type))
+        const elemType = getElemType(arg.type);
+        if (!elemType.isString && !(elemType.isEntity && elemType.type.startsWith('org.wikidata:')))
             return;
 
         const id = arg.getImplementationAnnotation('wikidata_id');
@@ -149,10 +140,10 @@ class ParamDatasetGenerator {
                     continue;
                 if (/Q[0-9]+/.test(label))
                     continue;
-                if (isString(arg.type))
+                if (elemType.isString)
                     this._addString(`${fn}_${arg.name}`, label);
-                else if (isWikidataEntity(arg.type))
-                    this._getStringFile(arg.type.type, true).push({ name: label, value: value });
+                else if (elemType.isEntity && elemType.type.startsWith('org.wikidata:'))
+                    this._getStringFile(elemType.type.slice('org.wikidata:'.length), true).push({ name: label, value: value });
             }
         } else {
             const query = `
@@ -170,10 +161,10 @@ class ParamDatasetGenerator {
                     continue;
                 if (/Q[0-9]+/.test(result.valueLabel.value))
                     continue;
-                if (isString(arg.type))
+                if (elemType.isString)
                     this._addString(`${fn}_${arg.name}`, result.valueLabel.value);
-                else if (isWikidataEntity(arg.type))
-                    this._getStringFile(arg.type.type, true).push({ name: result.valueLabel.value, value: result.value.value });
+                else if (elemType.isEntity && elemType.type.startsWith('org.wikidata:'))
+                    this._getStringFile(elemType.type.slice('org.wikidata:'.length), true).push({ name: result.valueLabel.value, value: result.value.value });
             }
         }
     }
