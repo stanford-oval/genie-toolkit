@@ -104,7 +104,7 @@ train_nlu_flags ?= \
 	--val_batch_size=128
 custom_train_nlu_flags ?=
 
-.PHONY: all train evaluate
+.PHONY: train evaluate annotate demo clean
 .SECONDARY:
 
 models/paraphraser-bart:
@@ -204,6 +204,11 @@ annotate: $(experiment)/manifest.tt
 	  --annotated $(experiment)/${eval_set}/annotated.tsv \
 	  --dropped $(experiment)/${eval_set}/dropped.tsv \
 	  $(experiment)/$(eval_set)/input.txt
+
+demo: $(experiment)/manifest.tt
+	$(genie) wikidata-demo \
+	  --manifest $(experiment)/manifest.tt \
+	  --model "file://$(abspath $(experiment)/models/$(model))"
 
 clean:
 	rm -rf datadir bert-canonical-annotator-in.json bert-canonical-annotator-out.json gpt2-paraphraser-in.tsv gpt2-paraphraser-out.json
