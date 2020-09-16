@@ -31,8 +31,14 @@ Run the following command to install it:
 ```bash
 git clone https://github.com/stanford-oval/genienlp
 cd  genienlp
-pip install --user -e .
-pip install tensorboard
+pip3 install --user -e .
+pip3 install --user tensorboard
+```
+Make sure python path is in our `PATH` environment. 
+For MacOS, it should be installed under `/Users/$(username)/Library/Python/$(python-version)/bin`,
+add it to your `PATH` by running:
+```bash
+export PATH="/Users/$(username)/Library/Python/$(python-version)/bin:$PATH"
 ```
 
 ## Configuration
