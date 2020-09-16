@@ -255,7 +255,7 @@ function makeAggregateFilter(param, aggregationOp, field, op, value) {
                 return null;
         }
         const agg = new Ast.Value.Computation(aggregationOp, [
-            param ? new Ast.Value.ArrayField(param, field.name) : param
+            field ? new Ast.Value.ArrayField(param, field.name) : param
         ], [Type.Array(vtype), vtype], vtype);
         return new Ast.BooleanExpression.Compute(null, agg, op, value);
     }
