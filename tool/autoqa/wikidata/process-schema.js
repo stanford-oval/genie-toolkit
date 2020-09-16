@@ -281,7 +281,7 @@ class SchemaProcessor {
             }
             const qualifiers = { is_list: true, is_monitorable: false };
             const annotations = {
-                nl: { canonical: clean(domainLabel), confirmation: clean(domainLabel) },
+                nl: { canonical: clean(fname), confirmation: clean(fname) },
                 impl: { wikidata_subject: new Ast.Value.String(domain) }
             };
             if (domain in this._requiredPropertiesByDomain) {
