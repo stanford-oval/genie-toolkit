@@ -251,8 +251,7 @@ class SchemaProcessor {
         }
 
         for (let domain of this._domains) {
-            const domainLabel = await getItemLabel(domain);
-            const fname = domain in this._domainCanonicals ? this._domainCanonicals[domain] : domainLabel;
+            const domainLabel = domain in this._domainCanonicals ? this._domainCanonicals[domain] : await getItemLabel(domain);
             const properties = this._propertiesByDomain[domain];
             const args = [
                 new Ast.ArgumentDef(
@@ -281,7 +280,7 @@ class SchemaProcessor {
             }
             const qualifiers = { is_list: true, is_monitorable: false };
             const annotations = {
-                nl: { canonical: clean(fname), confirmation: clean(fname) },
+                nl: { canonical: clean(domainLabel), confirmation: clean(domainLabel) },
                 impl: { wikidata_subject: new Ast.Value.String(domain) }
             };
             if (domain in this._requiredPropertiesByDomain) {
@@ -291,7 +290,7 @@ class SchemaProcessor {
             }
 
             queries[domainLabel] = new Ast.FunctionDef(
-                null, 'query', null, fname, null, qualifiers, args, annotations);
+                null, 'query', null, snakecase(domainLabel), null, qualifiers, args, annotations);
         }
 
         const imports = [
