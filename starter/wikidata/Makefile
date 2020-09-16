@@ -210,7 +210,7 @@ annotate: $(experiment)/manifest.tt
 	  --thingpedia $(experiment)/manifest.tt \
 	  --annotated $(experiment)/${eval_set}/annotated.tsv \
 	  --dropped $(experiment)/${eval_set}/dropped.tsv \
-	  --offset $(annotate_offset)
+	  --offset $(annotate_offset) \
 	  $(experiment)/$(eval_set)/input.txt
 
 demo: $(experiment)/manifest.tt
