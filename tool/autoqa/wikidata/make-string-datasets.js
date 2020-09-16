@@ -169,6 +169,32 @@ class ParamDatasetGenerator {
         }
     }
 
+    async _tryDownloadSubjectValues(fn, klass, triples, targetSize) {
+        while (targetSize > 100) {
+            try {
+                await this._downloadSubjectValues(fn, klass, triples, targetSize);
+                return;
+            } catch(e) {
+                if (e.code !== 500)
+                    throw e;
+                targetSize /= 2;
+            }
+        }
+    }
+
+    async _tryDownloadPropertyValues(fn, klass, triples, targetSize) {
+        while (targetSize > 100) {
+            try {
+                await this._downloadPropertyValues(fn, klass, triples, targetSize);
+                return;
+            } catch(e) {
+                if (e.code !== 500)
+                    throw e;
+                targetSize /= 2;
+            }
+        }
+    }
+
     async run() {
         for (let fn in this._classDef.queries) {
             const fndef = this._classDef.queries[fn];
@@ -179,9 +205,9 @@ class ParamDatasetGenerator {
             for (let arg of fndef.getImplementationAnnotation('required_properties') || [])
                 triples.push(`wdt:${arg} ?${arg}`);
             for (let klass of classes) {
-                await this._downloadSubjectValues(fn, klass, triples, Math.ceil(this._targetSize / classes.length));
+                await this._tryDownloadSubjectValues(fn, klass, triples, Math.ceil(this._targetSize / classes.length));
                 for (let arg of fndef.iterateArguments())
-                    await this._downloadPropertyValues(fn, arg, klass, triples, Math.ceil(this._targetSize / classes.length));
+                    await this._tryDownloadPropertyValues(fn, arg, klass, triples, Math.ceil(this._targetSize / classes.length));
             }
         }
     }
