@@ -65,6 +65,7 @@ base_annotate_flags =
 manual_annotate_flags = --skip
 auto_annotate_flags = --algorithm bert,adj,bart --paraphraser-model ./models/paraphraser-bart
 custom_annotate_flags ?=
+auto_dependencies = models/paraphraser-bart
 
 template_file ?= thingtalk/en/thingtalk.genie
 dataset_file ?= emptydataset.tt
@@ -104,6 +105,8 @@ train_nlu_flags ?= \
 	--val_batch_size=128
 custom_train_nlu_flags ?=
 
+annotate_offset ?= 1
+
 .PHONY: train evaluate annotate demo clean
 .SECONDARY:
 
@@ -140,7 +143,7 @@ shared-parameter-datasets.tsv:
 	$(genie) sample-constants -o $@ --parameter-datasets $*/parameter-datasets.tsv --thingpedia $*/wikidata.tt --devices org.wikidata
 	cat $(geniedir)/data/en-US/constants.tsv >> $@
 
-%/manifest.tt: %/constants.tsv %/wikidata.tt %/parameter-datasets.tsv
+%/manifest.tt: %/constants.tsv %/wikidata.tt %/parameter-datasets.tsv $($(mode)_dependencies)
 	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/wikidata.tt --functions $(experiment) $($(mode)_annotate_flags) --parameter-datasets $*/parameter-datasets.tsv --dataset wikidata
 	mv $@.tmp $@
 
@@ -203,6 +206,7 @@ annotate: $(experiment)/manifest.tt
 	  --thingpedia $(experiment)/manifest.tt \
 	  --annotated $(experiment)/${eval_set}/annotated.tsv \
 	  --dropped $(experiment)/${eval_set}/dropped.tsv \
+	  --offset $(annotate_offset)
 	  $(experiment)/$(eval_set)/input.txt
 
 demo: $(experiment)/manifest.tt
