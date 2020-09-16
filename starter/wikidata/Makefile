@@ -57,7 +57,7 @@ mode ?= default
 default_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt --wikidata-labels
 base_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt
 manual_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt --wikidata-labels --manual
-auto_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt
+auto_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt --wikidata-labels
 custom_process_schema_flags ?=
 
 default_annotate_flags =
@@ -65,7 +65,8 @@ base_annotate_flags =
 manual_annotate_flags = --skip
 auto_annotate_flags = --algorithm bert,adj,bart --paraphraser-model ./models/paraphraser-bart
 custom_annotate_flags ?=
-auto_dependencies = models/paraphraser-bart
+auto_auto_annotate_dependencies = models/paraphraser-bart
+manual_process_schema_dependencies = $(geniedir)/tool/autoqa/wikidata/manual-annotations.js
 
 template_file ?= thingtalk/en/thingtalk.genie
 dataset_file ?= emptydataset.tt
@@ -77,6 +78,7 @@ synthetic_flags ?= \
 	filter_join \
 	no_stream
 generate_flags = $(foreach v,$(synthetic_flags),--set-flag $(v))
+custom_generate_flags ?=
 
 target_pruning_size ?= 500
 maxdepth ?= 8
@@ -115,14 +117,15 @@ models/paraphraser-bart:
 	wget --no-verbose https://almond-static.stanford.edu/test-data/paraphraser-bart.tar.xz
 	tar -C models -xvf paraphraser-bart.tar.xz
 
-%/wikidata.tt: $(geniedir)/tool/autoqa/wikidata/process-schema.js
+%/wikidata.tt: $(geniedir)/tool/autoqa/wikidata/process-schema.js $($(mode)_process_schema_dependencies)
 	mkdir -p $*/eval-synthetic
 	touch $*/eval-synthetic/annotated.tsv
-	$(genie) wikidata-process-schema -o $@ --entities $*/entities.json $($(mode)_process_schema_flags)\
+	$(genie) wikidata-process-schema -o $@.tmp --entities $*/entities.json $($(mode)_process_schema_flags)\
 	  --domains $($(*)_class) \
 	  --domain-canonicals $(*) \
 	  --properties $($(*)_properties) \
 	  --required-properties $($(*)_required_properties)
+	mv $@.tmp $@
 
 emptydataset.tt:
 	echo 'dataset @empty {}' > $@
@@ -140,10 +143,11 @@ shared-parameter-datasets.tsv:
 	rm $@.local
 
 %/constants.tsv: %/parameter-datasets.tsv %/wikidata.tt
-	$(genie) sample-constants -o $@ --parameter-datasets $*/parameter-datasets.tsv --thingpedia $*/wikidata.tt --devices org.wikidata
-	cat $(geniedir)/data/en-US/constants.tsv >> $@
+	$(genie) sample-constants -o $@.tmp --parameter-datasets $*/parameter-datasets.tsv --thingpedia $*/wikidata.tt --devices org.wikidata
+	cat $(geniedir)/data/en-US/constants.tsv >> $@.tmp
+	mv $@.tmp $@
 
-%/manifest.tt: %/constants.tsv %/wikidata.tt %/parameter-datasets.tsv $($(mode)_dependencies)
+%/manifest.tt: %/constants.tsv %/wikidata.tt %/parameter-datasets.tsv $($(mode)_auto_annotate_dependencies)
 	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/wikidata.tt --functions $(experiment) $($(mode)_annotate_flags) --parameter-datasets $*/parameter-datasets.tsv --dataset wikidata
 	mv $@.tmp $@
 
@@ -152,7 +156,7 @@ shared-parameter-datasets.tsv:
 	  --template $(geniedir)/languages/$(template_file) \
 	  --thingpedia $*/manifest.tt --entities $*/entities.json --dataset $(dataset_file) \
 	  --target-pruning-size $(target_pruning_size) \
-	  -o $@.tmp --no-debug $(generate_flags) --maxdepth $(maxdepth) \
+	  -o $@.tmp --no-debug $(generate_flags) $(custom_generate_flags) --maxdepth $(maxdepth) \
 	  --random-seed $@ --id-prefix $*:
 	mv $@.tmp $@
 

@@ -66,7 +66,7 @@ on the command-line with `make experiment=...` instead of a bare `make`.
 A Thingpedia skill starts with a _manifest_ containing the signature of _queries_ (database schemas) and _actions_ (API calls that perform side-effects) in that skills. In this case, we're creating a Q&A skill, so we're only interested in queries. You can learn more about manifests for Thingpedia skills, and their syntax, in the [Thingpedia guide](https://wiki.almond.stanford.edu/thingpedia/guide/classes).
 
 Each query includes the _properties_ that can be asked for each query, their [ThingTalk type](https://wiki.almond.stanford.edu/thingtalk/reference), as well as natural language _annotations_ for each property. These annotations will be will be used to generate both the training data and the replies from the agent.
- A detailed introduction of how to annotate properties is provided in the [natural language chapter of the Thingpedia Guide](https://wiki.almond.stanford.edu/thingpedia/guide/natural-language). 
+ A detailed introduction of how to annotate properties is provided in the [natural language chapter of the Thingpedia Guide](https://wiki.almond.stanford.edu/thingpedia/guide/natural-language).
  
 The most important annotation is the _canonical form_, denoted with `#_[canonical]`, which indicates how the property is referred to in natural language, in the different part of speech. The full list of all the various parts of speech is provided in the [annotation reference](https://wiki.almond.stanford.edu/genie/annotations#canonical-forms).
 
@@ -109,11 +109,20 @@ The dataset consists of two files, `train.tsv` for training and `eval.tsv` for d
 
 If you are satisfied with the sentence you obtained, you can now generate the full dataset:
 ```bash
-rm -rf datadir
+rm -rf datadir $(exp)/synthetic.tsv
 make datadir
 ```
 Generating a dataset requires a few hours and about 16GB of RAM.
 (That is, you should run on a machine that has at least 18-20GB of RAM, so you leave enough for the OS and any other application you are running at the same time).
+The process shows a progress bar, but the time estimate is unreliable.
+
+For debugging, you can increase the verbosity with:
+```bash
+make custom_generate_flags="--debug $N" datadir
+```
+where `$N` is a number between 1 and 5 (1 or 2 are usually good choices).
+
+**Note**: if you use `make clean` instead of removing the dataset with `rm`, you will also remove manifest.tt. The manifest will be regenerated the next time you run the dataset, and it might be regenerated with the wrong options. You can pass `mode` to `make datadir` to ensure the manifest is always generated in the right way.
 
 If you are not satisfied with the dataset — for example, if the sentences are too ungrammatical, or if you cannot find a certain question — go to step 3.
 
@@ -121,11 +130,25 @@ If you are not satisfied with the dataset — for example, if the sentences are 
 Instead of relying on automatically generated annotations, you can also fine-tune natural language annotations.
 
 For Wikidata, you do so by updating `MANUAL_PROPERTY_CANONICAL_OVERRIDE` in 
-`tool/autoqa/wikidata/manual-annotations.js` in the Genie folder.
+`tool/autoqa/wikidata/manual-annotations.js` in the Genie folder. For example, to annotate the property date of birth (P569), write:
+```js
+const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
+    P569: {
+        base: ["date of birth", "birth date"],
+        passive_verb: ["born on #"],
+        adjective_argmin: ["oldest"],
+        adjective_argmax: ["youngest"],
+        projection_pronoun: ["when", "what day"],
+        verb_projection: ["born on"],
+    }
+};
+```
+Look at the existing automatically generated manifest for additional examples. The full list of properties and their ID is in [domains.md](domains.md).
+
+**Note**: adding a property to `MANUAL_PROPERTY_CANONICAL_OVERRIDE` will remove any automatically generated annotation. If you like some of existing annotations, make sure to copy them!
 
 To enable the manual annotations, run 
 ```bash
-make clean
 make mode=manual $(exp)/manifest.tt
 ```
 For properties that not specified in the `manual-annotations.js` file, Genie will keep the Wikidata labels and aliases as annotations. 
@@ -146,6 +169,12 @@ To run the full training, run the following command:
 make model=${model_id} eval_set=eval-synthetic train
 ```
 This takes about 5 hours on a single V100 GPU.
+
+If you want, you can also change the hyperparameters used for training with:
+```bash
+make model=${model_id} eval_set=eval-synthetic custom_train_nlu_flags="..." train
+```
+Set `custom_train_nlu_flags` to the `genienlp` command-line arguments you want to set. Use `genienlp train --help` to find the full list of available options. For example, to use 3 LSTM layers in the decoder instead of 2, use `custom_train_nlu_flags="--rnn_layers 3"`.
 
 ## Step 5. Evaluate on Synthetic Data
 The starter code will split the synthesized data into training set and a synthetic dev set.  You can evaluate on the synthetic dev set by running the following command: 
