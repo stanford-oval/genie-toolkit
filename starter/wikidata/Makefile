@@ -1,5 +1,6 @@
 geniedir = ../..
 developer_key =
+experiment ?= city
 thingpedia_cli = thingpedia
 thingpedia_url = https://thingpedia.stanford.edu/thingpedia
 
@@ -9,7 +10,6 @@ memsize := 15000
 genie = node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/tool/genie.js
 
 all_experiments = city country star university company people artist athlete sports_team tv_series
-experiment ?= city
 
 city_class = Q515
 city_properties ?= P571,P138,P30,P17,P1376,P131,P206,P625,P6,P1082,P2927,P2044,P421,P190,P47,P2046,P281,P856,P41,P1538,P18,P610,P2936

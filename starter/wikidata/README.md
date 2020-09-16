@@ -33,6 +33,8 @@ git clone https://github.com/stanford-oval/genienlp
 cd  genienlp
 pip3 install --user -e .
 pip3 install --user tensorboard
+cd ..
+
 ```
 Make sure python path is in our `PATH` environment. 
 For MacOS, it should be installed under `/Users/$(username)/Library/Python/$(python-version)/bin`,
@@ -44,22 +46,25 @@ export PATH="/Users/$(username)/Library/Python/$(python-version)/bin:$PATH"
 ## Configuration
 
 ### Set developer key
-Edit `Makefile` and set `developer_key` to your Thingpedia developer key
-(append it after `developer_key =`)
+Create a file called `config.mk`  and add the following line:
+```bash
+developer_key = 
+```
+Append your Thingpedia developer key after the `=` sign. 
 A Thingpedia developer account is required to obtain the developer key. 
 [Register an Almond account](https://almond.stanford.edu/user/register) 
 and [sign up as a developer](https://almond.stanford.edu/user/request-developer), 
 then you can retrieve the developer key 
 from your [user profile](https://almond.stanford.edu/user/profile) page
 
-You can also create a file called 'config.mk' with your developer key if you don't
-want to put it in the Makefile directly.
-
 ### Set experiment
-Change `experiment ?= city` in Makefile to the domain you wan to run. 
-An experiment is a specific set of domains in Schema.org ontology,
-with associated datasets and models.
-The starter code contains data for 10 domains: `city`, `country`, `star`, `university`, `company`,
+Add the following line to the `config.mk` file:
+```bash
+experiment =
+``` 
+`experiment` specifies a domain in Wikidata ontology. 
+Append the domain you want to experiment on after the `=` sign.
+The starter code contains for 10 domains: `city`, `country`, `star`, `university`, `company`,
 `people`, `artist`, `athlete`, `sports_team`, and `tv_series`.
 
 ## Step 1. Generate Skill Manifest and Parameter Value Sets
