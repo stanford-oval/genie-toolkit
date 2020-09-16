@@ -37,7 +37,7 @@ function camelcase(v) {
 }
 
 function snakecase(v) {
-    return v.replace(/ |-/g, '_').toLowerCase();
+    return v.replace(/[() _-]+/g, '_').toLowerCase();
 }
 
 function titleCase(str) {
