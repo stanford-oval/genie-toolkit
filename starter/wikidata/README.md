@@ -161,7 +161,7 @@ Under the same directory, you will find a file named `$(exp)/eval-synthetic/${mo
 ## Step 6. Evaluate on Real Data
 Evaluating on synthetic data is not very meaningful, because synthetic data is too easy, so the accuracy is artificially high. Instead, we will evaluate on real questions, written by a human and annotated manually with their ThingTalk code.
 
-To do so, you should have somebody (ideally, somebody else) write down some questions that can be answered using Wikidata property. One good way to do so is through crowdsourcing, by showing the list of properties to a worker and asking some questions. Save those questions in a file called `$(exp)/eval/input.txt`, one per line.
+To do so, you should have somebody (ideally, somebody else) write down some questions that can be answered using Wikidata property. One good way to do so is through crowdsourcing, by showing the list of properties to a worker and asking some questions. Save those questions in a file called `$(exp)/eval/input.txt`, one per line. The input.txt file must have the single word "utterance" on the first line (the header).
 
 After obtaining the questions, you can now annotate them with the corresponding ThingTalk code. Use:
 ```
