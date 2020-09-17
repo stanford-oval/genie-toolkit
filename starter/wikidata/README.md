@@ -220,7 +220,7 @@ To obtain the new accuracy.
 
 You can use the information in the error analysis to refine the annotations (Step 3), generate a new dataset (Step 2), and train a new model (Step 4). When you train the model, you can now pass `eval_set=eval` instead of `eval_set=eval-synthetic`. This way, during training the model will cross-validate on your real data, which will boost your accuracy by a few points for free. 
 
-### Step 7. Test Data.
+## Step 7. Test Data.
 
 In addition to the dev data, which you can use to improve the accuracy of the model, you should acquire a _test set_. The test set will give you a final accuracy number that you can for example report in a paper or benchmark. The test set should be as similar as possible to the dev set. **You should not look at the test set until you are done improving the model**.
 
