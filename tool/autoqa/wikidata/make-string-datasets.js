@@ -170,9 +170,9 @@ class ParamDatasetGenerator {
     }
 
     async _tryDownloadSubjectValues(fn, klass, triples, targetSize) {
-        while (targetSize > 100) {
+        while (targetSize > 30) {
             try {
-                await this._downloadSubjectValues(fn, klass, triples, targetSize);
+                await this._downloadSubjectValues(fn, klass, triples, Math.ceil(targetSize));
                 return;
             } catch(e) {
                 if (e.code !== 500)
@@ -183,9 +183,9 @@ class ParamDatasetGenerator {
     }
 
     async _tryDownloadPropertyValues(fn, arg, klass, triples, targetSize) {
-        while (targetSize > 100) {
+        while (targetSize > 30) {
             try {
-                await this._downloadPropertyValues(fn, arg, klass, triples, targetSize);
+                await this._downloadPropertyValues(fn, arg, klass, triples, Math.ceil(targetSize));
                 return;
             } catch(e) {
                 if (e.code !== 500)
