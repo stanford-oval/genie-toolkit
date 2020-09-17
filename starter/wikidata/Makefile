@@ -78,6 +78,8 @@ custom_annotate_flags ?=
 auto_auto_annotate_dependencies = models/paraphraser-bart
 manual_process_schema_dependencies = $(geniedir)/tool/autoqa/wikidata/manual-annotations.js
 
+load_predownloaded_parameter_sets = true
+
 template_file ?= thingtalk/en/thingtalk.genie
 dataset_file ?= emptydataset.tt
 synthetic_flags ?= \
@@ -147,10 +149,15 @@ shared-parameter-datasets.tsv:
 	  download-string-values --manifest $@ --append-manifest -d shared-parameter-datasets
 
 %/parameter-datasets.tsv : %/wikidata.tt shared-parameter-datasets.tsv
-	sed 's|shared-parameter-datasets/|../shared-parameter-datasets/|g' shared-parameter-datasets.tsv > $@
-	$(genie) wikidata-make-string-datasets --manifest $@.local -d $*/parameter-datasets --thingpedia $*/wikidata.tt
-	cat $@.local >> $@
-	rm $@.local
+	if [ "$(load_predownloaded_parameter_sets)" = "true" ] ; then \
+	  wget --no-verbose https://almond-static.stanford.edu/test-data/wikidata-parameter-datasets/$*.tar.xz ; \
+	  tar -C . -xvf $*.tar.xz ; \
+	else \
+	  sed 's|shared-parameter-datasets/|../shared-parameter-datasets/|g' shared-parameter-datasets.tsv > $@ ; \
+	  $(genie) wikidata-make-string-datasets --manifest $@.local -d $*/parameter-datasets --thingpedia $*/wikidata.tt; \
+	  cat $@.local >> $@; \
+	  rm $@.local; \
+	fi
 
 %/constants.tsv: %/parameter-datasets.tsv %/wikidata.tt
 	$(genie) sample-constants -o $@.tmp --parameter-datasets $*/parameter-datasets.tsv --thingpedia $*/wikidata.tt --devices org.wikidata
