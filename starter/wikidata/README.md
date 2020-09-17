@@ -198,7 +198,7 @@ make model=${model_id} eval_set=eval annotate
 ```
 to open an interactive tool that will help you annotate.
 
-The tool shows you the top candidates predicted by the trained model will be provided (usually just one, sometimes none). You can type in the number of the candidate to choose the correct one. If none of the candidate is correct, but some candidate is close to what we want, you can type in `e ${number}` (short for "edit"), which will allow you to modify the code based on the existing prediction. If the model failed to predict anything useful, you will need to type in the correct ThingTalk program from scratch. If you find a question cannot be represented in ThingTalk, type in `d ${comment}` (short for "dropped") to drop the sentence.
+The tool shows you the top candidates predicted by the trained model will be provided (usually just one, sometimes none). You can type in the number of the candidate to choose the correct one. If none of the candidate is correct, but some candidate is close to what we want, you can type in `e ${number}` (short for "edit"), which will allow you to modify the code based on the existing prediction. If the model failed to predict anything useful, you will need to type in the correct ThingTalk program from scratch. If you find a question cannot be represented in ThingTalk, type in `d ${comment}` (short for "dropped") to drop the sentence. You can learn more on how to write ThingTalk code from the [ThingTalk guide](https://wiki.almond.stanford.edu/en/thingtalk/guide).
 
 The annotated sentences will be stored in `$(exp)/eval/annotated.tsv`. This file has the same format as the training set: ID, sentence, code. Dropped sentences will be saved in `$(exp)/eval/dropped.tsv`.
 
