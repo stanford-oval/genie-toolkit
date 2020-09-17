@@ -57,7 +57,7 @@ experiment =
 `experiment` specifies a domain in Wikidata ontology. Append the domain you want to experiment on after the `=` sign.
 
 The starter code contains for 10 domains: `city`, `country`, `star`, `university`, `company`,
-`people`, `artist`, `athlete`, `sports_team`, and `tv_series`.
+`people`, `artist`, `athlete`, `sports-team`, and `tv-series`.
 
 Alternatively to setting in `config.mk`, you can also specify the experiment
 on the command-line with `make experiment=...` instead of a bare `make`.
