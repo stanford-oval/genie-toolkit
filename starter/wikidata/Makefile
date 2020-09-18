@@ -130,8 +130,6 @@ models/paraphraser-bart:
 	tar -C models -xvf paraphraser-bart.tar.xz
 
 %/wikidata.tt: $(geniedir)/tool/autoqa/wikidata/process-schema.js $($(mode)_process_schema_dependencies)
-	mkdir -p $*/eval-synthetic
-	touch $*/eval-synthetic/annotated.tsv
 	$(genie) wikidata-process-schema -o $@.tmp --entities $*/entities.json $($(mode)_process_schema_flags)\
 	  --domains $($(*)_class) \
 	  --domain-canonicals $($(*)_canonical) \
@@ -189,7 +187,8 @@ datadir: $(experiment)/augmented.tsv
 	  $(genie) split-train-eval --train $@/train.tsv --eval $@/eval.tsv \
 	    --eval-probability 0.1 --split-strategy sentence \
 	    --eval-on-synthetic $(experiment)/augmented.tsv ; \
-	  cp $@/eval.tsv $(experiment)/${eval_set}/annotated.tsv; \
+	  mkdir -p $(experiment)/eval-synthetic ; \
+	  cp $@/eval.tsv $(experiment)/eval-synthetic/annotated.tsv; \
 	else \
 	  cp $(experiment)/augmented.tsv $@/train.tsv ; \
 	  cut -f1-3 $(experiment)/${eval_set}/annotated.tsv > $@/eval.tsv ; \
@@ -216,6 +215,10 @@ train:
 	  --skip_cache \
 	  $(train_nlu_flags) \
 	  $(custom_train_nlu_flags)
+
+%/eval-synthetic/annotated.tsv:
+	mkdir -p $*/eval-synthetic
+	wget https://almond-static.stanford.edu/test-data/wikidata/$*/eval-synthetic.tsv -O $@
 
 evaluate: $(experiment)/$(eval_set)/annotated.tsv $(experiment)/manifest.tt
 	$(genie) evaluate-server --url "file://$(abspath $(experiment)/models/$(model))" --thingpedia $(experiment)/manifest.tt $(experiment)/$(eval_set)/annotated.tsv --debug --csv-prefix $(eval_set) --csv --min-complexity 1 --max-complexity 3 -o $(experiment)/$(eval_set)/$(model).results.tmp | tee $(experiment)/$(eval_set)/$(model).debug
