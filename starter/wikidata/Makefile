@@ -96,7 +96,7 @@ target_pruning_size ?= 500
 maxdepth ?= 8
 
 model ?= 1
-train_iterations ?= 100000
+train_iterations ?= 20000
 train_save_every ?= 2000
 train_log_every ?= 100
 train_nlu_flags ?= \
