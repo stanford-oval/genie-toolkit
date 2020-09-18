@@ -78,6 +78,8 @@ custom_annotate_flags ?=
 auto_auto_annotate_dependencies = models/paraphraser-bart
 manual_process_schema_dependencies = $(geniedir)/tool/autoqa/wikidata/manual-annotations.js
 
+load_predownloaded_parameter_sets = true
+
 template_file ?= thingtalk/en/thingtalk.genie
 dataset_file ?= emptydataset.tt
 synthetic_flags ?= \
@@ -94,9 +96,11 @@ target_pruning_size ?= 500
 maxdepth ?= 8
 
 model ?= 1
-train_iterations ?= 100000
+train_iterations ?= 20000
 train_save_every ?= 2000
 train_log_every ?= 100
+train_batch_tokens ?= 4000
+val_batch_size ?= 128
 train_nlu_flags ?= \
 	--train_iterations=$(train_iterations) \
 	--dimension=768 \
@@ -113,8 +117,8 @@ train_nlu_flags ?= \
 	--train_context_embeddings_after=80000 \
 	--decoder_embeddings= \
 	--transformer_lr_multiply=0.5 \
-	--train_batch_tokens=4000 \
-	--val_batch_size=128
+	--train_batch_tokens=$(train_batch_tokens) \
+	--val_batch_size=$(val_batch_size)
 custom_train_nlu_flags ?=
 
 annotate_offset ?= 1
@@ -128,8 +132,6 @@ models/paraphraser-bart:
 	tar -C models -xvf paraphraser-bart.tar.xz
 
 %/wikidata.tt: $(geniedir)/tool/autoqa/wikidata/process-schema.js $($(mode)_process_schema_dependencies)
-	mkdir -p $*/eval-synthetic
-	touch $*/eval-synthetic/annotated.tsv
 	$(genie) wikidata-process-schema -o $@.tmp --entities $*/entities.json $($(mode)_process_schema_flags)\
 	  --domains $($(*)_class) \
 	  --domain-canonicals $($(*)_canonical) \
@@ -147,10 +149,15 @@ shared-parameter-datasets.tsv:
 	  download-string-values --manifest $@ --append-manifest -d shared-parameter-datasets
 
 %/parameter-datasets.tsv : %/wikidata.tt shared-parameter-datasets.tsv
-	sed 's|shared-parameter-datasets/|../shared-parameter-datasets/|g' shared-parameter-datasets.tsv > $@
-	$(genie) wikidata-make-string-datasets --manifest $@.local -d $*/parameter-datasets --thingpedia $*/wikidata.tt
-	cat $@.local >> $@
-	rm $@.local
+	if [ "$(load_predownloaded_parameter_sets)" = "true" ] ; then \
+	  wget --no-verbose https://almond-static.stanford.edu/test-data/wikidata-parameter-datasets/$*.tar.xz ; \
+	  tar -C . -xvf $*.tar.xz ; \
+	else \
+	  sed 's|shared-parameter-datasets/|../shared-parameter-datasets/|g' shared-parameter-datasets.tsv > $@ ; \
+	  $(genie) wikidata-make-string-datasets --manifest $@.local -d $*/parameter-datasets --thingpedia $*/wikidata.tt; \
+	  cat $@.local >> $@; \
+	  rm $@.local; \
+	fi
 
 %/constants.tsv: %/parameter-datasets.tsv %/wikidata.tt
 	$(genie) sample-constants -o $@.tmp --parameter-datasets $*/parameter-datasets.tsv --thingpedia $*/wikidata.tt --devices org.wikidata
@@ -182,7 +189,8 @@ datadir: $(experiment)/augmented.tsv
 	  $(genie) split-train-eval --train $@/train.tsv --eval $@/eval.tsv \
 	    --eval-probability 0.1 --split-strategy sentence \
 	    --eval-on-synthetic $(experiment)/augmented.tsv ; \
-	  cp $@/eval.tsv $(experiment)/${eval_set}/annotated.tsv; \
+	  mkdir -p $(experiment)/eval-synthetic ; \
+	  cp $@/eval.tsv $(experiment)/eval-synthetic/annotated.tsv; \
 	else \
 	  cp $(experiment)/augmented.tsv $@/train.tsv ; \
 	  cut -f1-3 $(experiment)/${eval_set}/annotated.tsv > $@/eval.tsv ; \
@@ -209,6 +217,10 @@ train:
 	  --skip_cache \
 	  $(train_nlu_flags) \
 	  $(custom_train_nlu_flags)
+
+%/eval-synthetic/annotated.tsv:
+	mkdir -p $*/eval-synthetic
+	wget https://almond-static.stanford.edu/test-data/wikidata/$*/eval-synthetic.tsv -O $@
 
 evaluate: $(experiment)/$(eval_set)/annotated.tsv $(experiment)/manifest.tt
 	$(genie) evaluate-server --url "file://$(abspath $(experiment)/models/$(model))" --thingpedia $(experiment)/manifest.tt $(experiment)/$(eval_set)/annotated.tsv --debug --csv-prefix $(eval_set) --csv --min-complexity 1 --max-complexity 3 -o $(experiment)/$(eval_set)/$(model).results.tmp | tee $(experiment)/$(eval_set)/$(model).debug

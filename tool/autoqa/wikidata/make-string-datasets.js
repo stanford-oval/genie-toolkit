@@ -71,41 +71,23 @@ class ParamDatasetGenerator {
     }
 
     async _downloadSubjectValues(fn, klass, filters, targetSize) {
-        if (klass === 'Q5') {
-            const query = `
-                SELECT DISTINCT ?subject
-                WHERE {
-                  ?subject wdt:P31 wd:${klass}; ${filters.join('; ')}.
-                }
-                LIMIT ${targetSize}
-            `;
-            const results = await wikidataQuery(query);
-            for (let result of results) {
-                const value = result.subject.value;
-                const label = await getItemLabel(value.slice('http://www.wikidata.org/entity/'.length));
-                if (!label)
-                    continue;
-                if (/Q[0-9]+/.test(label))
-                    continue;
-                this._getStringFile(fn, true).push({ name: label, value: value });
+        const predicate = klass === 'Q5' ? 'wdt:P31' : 'p:P31/ps:P31/wdt:P279*';
+        const query = `
+            SELECT DISTINCT ?subject
+            WHERE {
+              ?subject ${predicate} wd:${klass}; ${filters.join('; ')}.
             }
-        } else {
-            const query = `
-                SELECT DISTINCT ?subject ?subjectLabel
-                WHERE {
-                  ?subject p:P31/ps:P31/wdt:P279* wd:${klass}; ${filters.join('; ')}.
-                  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-                }
-                LIMIT ${targetSize}
-            `;
-            const results = await wikidataQuery(query);
-            for (let result of results) {
-                if (!result.subjectLabel.value)
-                    continue;
-                if (/Q[0-9]+/.test(result.subjectLabel.value))
-                    continue;
-                this._getStringFile(fn, true).push({name: result.subjectLabel.value, value: result.subject.value});
-            }
+            LIMIT ${targetSize}
+        `;
+        const results = await wikidataQuery(query);
+        for (let result of results) {
+            const value = result.subject.value;
+            const label = await getItemLabel(value.slice('http://www.wikidata.org/entity/'.length));
+            if (!label)
+                continue;
+            if (/Q[0-9]+/.test(label))
+                continue;
+            this._getStringFile(fn, true).push({ name: label, value: value });
         }
 
     }
@@ -119,53 +101,31 @@ class ParamDatasetGenerator {
 
         const id = arg.getImplementationAnnotation('wikidata_id');
 
-        if (klass === 'Q5') {
-            const query = `
-                SELECT DISTINCT ?value
-                WHERE {
-                  ?subject wdt:P31 wd:${klass}; ${filters.join('; ')}.
-                  ?subject wdt:${id} ?value.
-                }
-                LIMIT ${targetSize}
-            `;
-            const results = await wikidataQuery(query);
-            for (let result of results) {
-                const value = result.value.value;
-                let label;
-                if (value.startsWith('http://www.wikidata.org/entity/'))
-                    label = await getItemLabel(value.slice('http://www.wikidata.org/entity/'.length));
-                else
-                    label = value;
-                if (!label)
-                    continue;
-                if (/Q[0-9]+/.test(label))
-                    continue;
-                if (elemType.isString)
-                    this._addString(`${fn}_${arg.name}`, label);
-                else if (elemType.isEntity && elemType.type.startsWith('org.wikidata:'))
-                    this._getStringFile(elemType.type.slice('org.wikidata:'.length), true).push({ name: label, value: value });
+        const predicate = klass === 'Q5' ? 'wdt:P31' : 'p:P31/ps:P31/wdt:P279*';
+        const query = `
+            SELECT DISTINCT ?value
+            WHERE {
+              ?subject ${predicate} wd:${klass}; ${filters.join('; ')}.
+              ?subject wdt:${id} ?value.
             }
-        } else {
-            const query = `
-                SELECT DISTINCT ?value ?valueLabel
-                WHERE {
-                  ?subject p:P31/ps:P31/wdt:P279* wd:${klass}; ${filters.join('; ')}.
-                  ?subject wdt:${id} ?value.
-                  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-                }
-                LIMIT ${targetSize}
-            `;
-            const results = await wikidataQuery(query);
-            for (let result of results) {
-                if (!result.valueLabel.value)
-                    continue;
-                if (/Q[0-9]+/.test(result.valueLabel.value))
-                    continue;
-                if (elemType.isString)
-                    this._addString(`${fn}_${arg.name}`, result.valueLabel.value);
-                else if (elemType.isEntity && elemType.type.startsWith('org.wikidata:'))
-                    this._getStringFile(elemType.type.slice('org.wikidata:'.length), true).push({ name: result.valueLabel.value, value: result.value.value });
-            }
+            LIMIT ${targetSize}
+        `;
+        const results = await wikidataQuery(query);
+        for (let result of results) {
+            const value = result.value.value;
+            let label;
+            if (value.startsWith('http://www.wikidata.org/entity/'))
+                label = await getItemLabel(value.slice('http://www.wikidata.org/entity/'.length));
+            else
+                label = value;
+            if (!label)
+                continue;
+            if (/Q[0-9]+/.test(label))
+                continue;
+            if (elemType.isString)
+                this._addString(`${fn}_${arg.name}`, label);
+            else if (elemType.isEntity && elemType.type.startsWith('org.wikidata:'))
+                this._getStringFile(elemType.type.slice('org.wikidata:'.length), true).push({ name: label, value: value });
         }
     }
 
