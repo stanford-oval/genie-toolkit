@@ -4,41 +4,6 @@ This directory contains the basic starter code to train a single-turn Q\&A seman
 
 By following the instructions in this starter code, you will create a [Thingpedia](https://wiki.almond.stanford.edu/thingpedia) skills that can answer questions over Wikidata. You will also create a natural language model to go along with that skill.
 
-## Installation
-Genie requires`nodejs` (>=10.0) and `yarn` as a package manager. See [nodejs](https://nodejs.org/en/download/) and [yarn](https://classic.yarnpkg.com/en/docs/install/) for installation details. Genie also needs [gettext](https://www.gnu.org/software/gettext/) and [wget](https://www.gnu.org/software/wget/).  For Mac users, you can install them by `brew install gettext wget`. You can check your installation by running `node --version`, `yarn --version`, `gettext --version`, and `wget --version`.
-
-In addition, you will need [thingpedia-cli](https://github.com/stanford-oval/thingpedia-cli), which provides an easy way to download data from and upload data to Thingpedia. Run the following command to install it: 
-```bash
-yarn global add thingpedia-cli
-```
-
-After installation, you should get a command called `thingpedia`. If you encounter `command not found`, make sure the Yarn global bin directory (usually `~/.yarn/bin`) is in your PATH. You can find the path with the command
-`yarn global bin`.
-
-```bash
-export PATH=~/.yarn/bin:$PATH
-```
-
-If you plan to run training yourself, you will also need the [genienlp]() library. Run the following command to install it:
-```bash
-git clone https://github.com/stanford-oval/genienlp
-cd  genienlp
-pip3 install --user -e .
-pip3 install --user tensorboard
-cd ..
-```
-
-Make sure the pip python path is in our `PATH` environment.
-In Linux, this is usually `~/.local/bin`. For MacOS, it should be installed under `/Users/$(username)/Library/Python/$(python-version)/bin`.
-Add it to your `PATH` by running:
-```bash
-# Linux:
-export PATH="$HOME/.local/bin:$PATH"
-# Mac:
-export PATH="/Users/$(username)/Library/Python/$(python-version)/bin:$PATH"
-```
-You can add that line in your `~/.bash_profile` (or `~/.profile`, depending on the distro) to make that change permanent.
-
 ## Configuration
 
 ### Set developer key
