@@ -206,7 +206,7 @@ make model=${model_id} eval_set=eval evaluate
 
 **Task**: The new model is trained on data that is more similar to the dev data, thanks to the annotations you wrote in Step 5. Is this reflected in the accuracy? 
 
-## Step 8. Test Data.
+## Step 8. Test Data
 
 In addition to the dev data, which you can use to improve the accuracy of the model, you should acquire a _test set_. The test set will give you a final accuracy number that you can for example report in a paper or benchmark. The test set should be as similar as possible to the dev set. **You should not look at the test set until you are done improving the model**.
 
