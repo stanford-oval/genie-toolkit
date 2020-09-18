@@ -45,18 +45,6 @@ By default, Genie uses the Wikidata labels and [aliases](https://www.wikidata.or
 
 **Task**: Look at the manifest now (in your favorite text editor). Each property is annotated with various ways to refer to it in natural language. Is that comprehensive? Can you think of other synonyms or other syntactic forms for each property? The more forms that are added to the manifest, the more robust will be the model to the different ways to phrase the same question.
 
-To improve the quality of automatically generated annotations, Gene can also make use of pretrained language models. To enable that, run 
-```bash
-# remove existing generated manifest
-make clean 
-# regenerate the manifest
-make mode=auto $(exp)/manifest.tt 
-```
-
-This step will automatically download the pretrained BERT and BART models, and run those models to generate many different natural language canonical forms for each property. You should notice that the created manifest uses much longer, and quite noisier, `#_[canonical]` annotations. You can learn more about the process of automatically generating canonical forms from [our paper](https://almond-static.stanford.edu/papers/autoqa-emnlp2020.pdf).
-
-**Task**: Look at the manifest after this step. Are there new annotations that were not present before? Are all annotations correct? Are some annotations still missing?
-
 ## Step 2. Download a Pretrained Model
 
 A pretrained model of each wikidata skill, trained on synthesized data created from the base annotations, is available for download from <https://almond-static.stanford.edu/test-data/wikidata/$(exp)/pretrained.tar.gz> (e.g. <https://almond-static.stanford.edu/test-data/wikidata/city/pretrained.tar.gz> for the "city" domain).
