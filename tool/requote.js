@@ -476,17 +476,26 @@ module.exports = {
             promises.push(StreamUtils.waitFinish(outputErrors.pipe(args.output_errors)));
         }
 
+        const allEqual = (arr) => arr.every((v) => v === arr[0]);
+
         readAllLines(args.input_file)
-            .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true }))
+            .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true}))
             .pipe(new Stream.Transform({
                 objectMode: true,
                 transform(ex, encoding, callback) {
                     try {
-                        const [newSentence, newProgram] =
-                            requoteSentence(ex.id, ex.context, ex.preprocessed, ex.target_code, args.mode,
-                                args.requote_numbers, args.handle_heuristics, args.param_locale);
-                        ex.preprocessed = newSentence;
-                        ex.target_code = newProgram;
+                        let requoted_programs = [];
+                        let requoted_sentences = [];
+                        for (const program of ex.target_code) {
+                            const [newSentence, newProgram] =
+                                requoteSentence(ex.id, ex.context, ex.preprocessed, program, args.mode,
+                                    args.requote_numbers, args.handle_heuristics, args.param_locale);
+                            requoted_programs.push(newProgram);
+                            requoted_sentences.push(newSentence);
+                        }
+                        assert(allEqual(requoted_sentences));
+                        ex.preprocessed = requoted_sentences[0];
+                        ex.target_code = requoted_programs;
                         ex.is_ok = true;
                         this.push(ex);
                         callback();
