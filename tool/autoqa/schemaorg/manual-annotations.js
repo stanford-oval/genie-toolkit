@@ -552,8 +552,6 @@ const PROPERTIES_NO_FILTER = [
 ];
 
 const PROPERTIES_DROP_WITH_GEO = [
-    'streetAddress', // street address and address locality should be handled by geo
-    'addressLocality'
 ];
 
 // HACK: certain structured types want to get the name & description property from Thing
