@@ -30,7 +30,8 @@ const StreamUtils = require('../../../lib/utils/stream-utils');
 const {
     WHITELISTED_PROPERTIES_BY_DOMAIN,
     BLACKLISTED_PROPERTIES_BY_DOMAIN,
-    PROPERTIES_DROP_WITH_GEO
+    PROPERTIES_DROP_WITH_GEO,
+    STRING_FILE_OVERRIDES
 } = require('./manual-annotations');
 
 const DEFAULT_ENTITIES = [
@@ -256,14 +257,18 @@ class SchemaTrimmer {
         }
 
         if (tabledef.args.includes('geo') && hasAddress && !hasGeo) {
+            const implAnnotations = {
+                org_schema_type: new Ast.Value.String('GeoCoordinates'),
+                org_schema_has_data: new Ast.Value.Boolean(false)
+            };
+            const stringfileId = `${this._className}:${tablename}_geo`;
+            if (stringfileId in STRING_FILE_OVERRIDES)
+                implAnnotations.string_values = new Ast.Value.String(STRING_FILE_OVERRIDES[stringfileId]);
             const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'geo', Type.Location, {
                 nl: {
                     canonical: { base:["location", "address"] }
                 },
-                impl: {
-                    org_schema_type: new Ast.Value.String('GeoCoordinates'),
-                    org_schema_has_data: new Ast.Value.Boolean(false)
-                }
+                impl: implAnnotations
             });
             newArgs.push(arg);
             hasGeo = arg;
