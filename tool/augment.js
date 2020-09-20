@@ -198,7 +198,7 @@ module.exports = {
         delete args.input_file;
         delete args.output;
         inputFile
-            .pipe(new DatasetParser({ contextual: args.contextual, overrideFlags: args.override_flags }))
+            .pipe(new DatasetParser({ contextual: args.contextual, overrideFlags: args.override_flags, parseMultiplePrograms:true }))
             .pipe(counter)
             .pipe(await parallelize(args.parallelize, require.resolve('./workers/augment-worker'), args))
             .pipe(new DatasetStringifier())
