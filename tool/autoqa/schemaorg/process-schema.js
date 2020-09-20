@@ -104,7 +104,7 @@ function recursiveAddStringValues(arg, fileId) {
     if (fileId in PROPERTIES_NO_FILTER)
         return;
 
-    if (type.isEntity && STRING_FILE_OVERRIDES[fileId]) {
+    if ((type.isEntity || type.isLocation) && STRING_FILE_OVERRIDES[fileId]) {
         arg.annotations['string_values'] = new Ast.Value.String(STRING_FILE_OVERRIDES[fileId]);
         return;
     }
