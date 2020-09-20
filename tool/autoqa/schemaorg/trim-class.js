@@ -29,7 +29,8 @@ const util = require('util');
 const StreamUtils = require('../../../lib/utils/stream-utils');
 const {
     WHITELISTED_PROPERTIES_BY_DOMAIN,
-    BLACKLISTED_PROPERTIES_BY_DOMAIN
+    BLACKLISTED_PROPERTIES_BY_DOMAIN,
+    PROPERTIES_DROP_WITH_GEO
 } = require('./manual-annotations');
 
 const DEFAULT_ENTITIES = [
@@ -270,8 +271,8 @@ class SchemaTrimmer {
 
         // remove streetAddress & addressLocality if we already have geo
         if (hasAddress && hasGeo) {
-            delete hasAddress.type.fields['addressLocality'];
-            delete hasAddress.type.fields['streetAddress'];
+            for (let field of PROPERTIES_DROP_WITH_GEO)
+                delete hasAddress.type.fields[field];
         }
         if (tabledef.hasArgument('address') && tabledef.hasArgument('geo')) {
             for (let _extend of tabledef.extends) {
@@ -279,8 +280,8 @@ class SchemaTrimmer {
                     const parent = this._classDef.queries[_extend];
                     const address = parent.getArgument('address');
                     if (address) {
-                        delete address.type.fields['addressLocality'];
-                        delete address.type.fields['streetAddress'];
+                        for (let field of PROPERTIES_DROP_WITH_GEO)
+                            delete address.type.fields[field];
                     }
                 }
             }
