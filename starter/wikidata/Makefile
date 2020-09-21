@@ -132,6 +132,7 @@ models/paraphraser-bart:
 	tar -C models -xvf paraphraser-bart.tar.xz
 
 %/wikidata.tt: $(geniedir)/tool/autoqa/wikidata/process-schema.js $($(mode)_process_schema_dependencies)
+	mkdir -p $(dir $@)
 	$(genie) wikidata-process-schema -o $@.tmp --entities $*/entities.json $($(mode)_process_schema_flags)\
 	  --domains $($(*)_class) \
 	  --domain-canonicals $($(*)_canonical) \
