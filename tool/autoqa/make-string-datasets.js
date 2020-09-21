@@ -210,12 +210,14 @@ class ParamDatasetGenerator {
                 for (let i = 0; i < strings.length; i++) {
                     const value = strings[i];
                     const weight = weights[i];
-                    const tokens = tokenized[i].tokens;
+                    let tokens = tokenized[i].tokens;
 
-                    // if some tokens are uppercase, they are entities, like NUMBER_0,
-                    // in which case we ignore this value
+                    function isNotCapital(token) {
+                        return !/^[A-Z]/.test(token);
+                    }
+
                     if (tokens.length === 0 || tokens.some((tok) => /^[A-Z]/.test(tok)))
-                        continue;
+                        tokens = tokens.filter(isNotCapital);
 
                     const tokenizedString = tokens.join(' ');
                     if (this._maxValueLength >= 0 && tokenizedString.length > this._maxValueLength)
