@@ -180,6 +180,9 @@ class AnnotationExtractor {
             this.newCanonicals[arg] = {};
 
         const canonical = this.newCanonicals[arg];
+        // In case of boolean parameter, values field is empty, skip for now
+        if (!values)
+            return;
         let value = values.find((v) => origin.includes(v));
         if (!value) {
             // base canonical, do nothing
