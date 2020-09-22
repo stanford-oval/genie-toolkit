@@ -122,6 +122,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
 };
 ```
 Look at the existing automatically generated manifest for additional examples. The full list of properties and their ID is in [domains.md](domains.md).
+The full list of all the various parts of speech is provided in the [annotation reference](https://wiki.almond.stanford.edu/genie/annotations#canonical-forms).
 
 **Note**: adding a property to `MANUAL_PROPERTY_CANONICAL_OVERRIDE` will remove any automatically generated annotation. If you like some of existing annotations, make sure to copy them!
 
