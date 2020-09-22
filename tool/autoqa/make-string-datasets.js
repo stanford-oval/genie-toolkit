@@ -208,9 +208,12 @@ class ParamDatasetGenerator {
                 const tokenized = this._tokenizeAll(strings);
 
                 for (let i = 0; i < strings.length; i++) {
-                    const value = strings[i];
+                    let value = strings[i];
                     const weight = weights[i];
                     let tokens = tokenized[i].tokens;
+
+                    // clean up value
+                    value = value.replace('\n', ' ');
 
                     function isNotCapital(token) {
                         return !/^[A-Z]/.test(token);
@@ -223,7 +226,15 @@ class ParamDatasetGenerator {
                     if (this._maxValueLength >= 0 && tokenizedString.length > this._maxValueLength)
                         continue;
 
-                    output.write([value, tokenizedString, weight]);
+                    let spans = [tokenizedString];
+                    // if string contains several cuisines break them apart
+                    if (fileId.endsWith('servesCuisine'))
+                        spans = tokenizedString.split(/[,;]/);
+
+                    for (let span of spans) {
+                        if (/\S/.test(span))
+                            output.write([value, span.trim(), weight]);
+                    }
                 }
 
                 output.end();
