@@ -411,7 +411,6 @@ function requoteSentence(id, context, sentence, program, mode, requote_numbers, 
 
 
 
-
 module.exports = {
     initArgparse(subparsers) {
         const parser = subparsers.add_parser('requote', {
@@ -493,7 +492,7 @@ module.exports = {
                             requoted_programs.push(newProgram);
                             requoted_sentences.push(newSentence);
                         }
-                        assert(allEqual(requoted_sentences));
+                        // assert(allEqual(requoted_sentences));
                         ex.preprocessed = requoted_sentences[0];
                         ex.target_code = requoted_programs;
                         ex.is_ok = true;
