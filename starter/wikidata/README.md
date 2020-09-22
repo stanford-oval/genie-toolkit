@@ -116,7 +116,6 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         passive_verb: ["born on #"],
         adjective_argmin: ["oldest"],
         adjective_argmax: ["youngest"],
-        projection_pronoun: ["when", "what day"],
         verb_projection: ["born on"],
     }
 };
