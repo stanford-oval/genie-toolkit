@@ -235,6 +235,7 @@ class AutoCanonicalGenerator {
                     console.log(`Bart annotator took ${time} seconds to run.`);
                 }
             }
+            this._addProjectionCanonicals();
         }
 
         return this.class;
@@ -312,6 +313,41 @@ class AutoCanonicalGenerator {
                         if (base.endsWith('or') || base.endsWith('er'))
                             canonicals.reverse_verb.push(base.slice(0, -2) + 'ed');
                         canonicals.reverse_verb.push(base);
+                    }
+                }
+            }
+        }
+    }
+
+    _addProjectionCanonicals() {
+        for (let fname of this.functions) {
+            let func = this.class.queries[fname] || this.class.actions[fname];
+            for (let arg of func.iterateArguments()) {
+                if (this.annotatedProperties.includes(arg.name) || arg.name === 'id')
+                    continue;
+
+                let canonicals = arg.metadata.canonical;
+                if (!canonicals)
+                    continue;
+                if (typeof canonicals === 'string' || Array.isArray(canonicals))
+                    continue;
+
+                for (let cat in canonicals) {
+                    if (['default', 'adjective', 'implicit_identity', 'property'].includes(cat))
+                        continue;
+                    if (cat.endsWith('_true') || cat.endsWith('_false'))
+                        continue;
+                    if (cat === 'passive_verb' || cat === 'verb') {
+                        canonicals[cat + '_projection'] = canonicals[cat].map((c) => {
+                            let tokens = c.split(' ');
+                            if (tokens.length === 1)
+                                return c;
+                            if (['IN', 'TO', 'PR'].includes(this._langPack.posTag(tokens)[tokens.length - 1]))
+                                return [...tokens.slice(0, -1), '|', tokens[tokens.length - 1]].join(' ');
+                            return c;
+                        });
+                    } else {
+                        canonicals[cat + '_projection'] = canonicals[cat];
                     }
                 }
             }
