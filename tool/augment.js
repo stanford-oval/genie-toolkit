@@ -151,8 +151,8 @@ module.exports = {
             default: false
         });
         parser.add_argument('--sampling-type', {
-            choices: ['default', 'random'],
-            help: 'Random strategy assigns random weights to parameters instead of reading from file',
+            choices: ['default', 'random', 'uniform'],
+            help: 'Random/ Uniform strategy assigns random/ uniform weights to parameters instead of reading from file',
             default: false
         });
         parser.add_argument('--num-attempts', {
