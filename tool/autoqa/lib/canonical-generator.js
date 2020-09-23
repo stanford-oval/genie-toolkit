@@ -335,6 +335,8 @@ class AutoCanonicalGenerator {
                 for (let cat in canonicals) {
                     if (['default', 'adjective', 'implicit_identity', 'property'].includes(cat))
                         continue;
+                    if (cat.endsWith('_projection'))
+                        continue;
                     if (cat.endsWith('_true') || cat.endsWith('_false'))
                         continue;
                     if (cat === 'passive_verb' || cat === 'verb') {
