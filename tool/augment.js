@@ -155,6 +155,12 @@ module.exports = {
             help: 'Random/ Uniform strategy assigns random/ uniform weights to parameters instead of reading from file',
             default: false
         });
+        parser.add_argument('--subset-param-set', {
+            required: false,
+            type: String,
+            default: '0.0-1.0',
+            help: `Only use a subset of parameter dataset for augmentation in the range {beg}-{end}`
+        });
         parser.add_argument('--num-attempts', {
             type: Number,
             default: 10000,

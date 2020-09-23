@@ -79,7 +79,7 @@ async function main() {
         paraphrasingExpandFactor: 30,
         noQuoteExpandFactor: 10,
         singleDeviceExpandFactor: 1,
-
+        subsetParamSet:'0-1',
         locale: 'en-US',
         paramLocale: 'en',
         rng,

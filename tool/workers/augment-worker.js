@@ -51,6 +51,7 @@ module.exports = async function worker(args, shard) {
         cleanParameters: args.clean_parameters,
         requotable: args.requotable,
         samplingType: args.sampling_type,
+        subsetParamSet: args.subset_param_set.split('-'),
         numAttempts: args.num_attempts
     });
 };
