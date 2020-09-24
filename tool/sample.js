@@ -139,7 +139,7 @@ class ContextSourceLoader extends Stream.Writable {
             // collapse NUMBER_ followed by unit into measure or duration
             if (type === 'NUMBER' && i < code.length-1 && code[i+1].startsWith('unit:')) {
                 const unit = code[i+1].substring('unit:'.length);
-                const baseunit = ThingTalk.Type.Measure(unit).unit;
+                const baseunit = new ThingTalk.Type.Measure(unit).unit;
                 if (baseunit === 'ms')
                     type = 'DURATION';
                 else

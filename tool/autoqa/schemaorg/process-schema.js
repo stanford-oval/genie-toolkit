@@ -149,13 +149,13 @@ class SchemaProcessor {
             return BUILTIN_TYPEMAP[typename];
 
         if (typeHierarchy[typename].isItemList)
-            return Type.Array(this.typeToThingTalk(typeHierarchy[typename].itemType, typeHierarchy, manualAnnotation));
+            return new Type.Array(this.typeToThingTalk(typeHierarchy[typename].itemType, typeHierarchy, manualAnnotation));
         if (typeHierarchy[typename].isEnum && typeHierarchy[typename].enum.length > 0)
-            return Type.Enum(typeHierarchy[typename].enum);
+            return new Type.Enum(typeHierarchy[typename].enum);
         if (typeHierarchy[typename].representAsStruct)
             return this.makeCompoundType(typename, typeHierarchy[typename], typeHierarchy, manualAnnotation);
 
-        return Type.Entity(this._prefix + typename);
+        return new Type.Entity(this._prefix + typename);
     }
 
     getBestPropertyType(propname, property, typeHierarchy, manualAnnotation) {
@@ -223,7 +223,7 @@ class SchemaProcessor {
             if (/number/i.test(propname) || /level/i.test(propname) || /quantity/i.test(propname))
                 return [best, Type.Number];
             if (/duration/i.test(propname))
-                return [best, Type.Measure('ms')];
+                return [best, new Type.Measure('ms')];
 
             console.error(`Cannot guess the correct type of ${propname} of type QuantitativeValue, assuming Number`);
             return [best, Type.Number];
@@ -245,7 +245,7 @@ class SchemaProcessor {
             isArray = false;
 
         if (isArray)
-            tttype = Type.Array(tttype);
+            tttype = new Type.Array(tttype);
         return [best, tttype];
     }
 
@@ -323,7 +323,7 @@ class SchemaProcessor {
         if (!anyfield)
             throw new Error(`Struct type ${startingTypename} has no fields`);
 
-        return Type.Compound(startingTypename, fields);
+        return new Type.Compound(startingTypename, fields);
     }
 
     loadPropertyCanonicalOverride(name) {
@@ -613,7 +613,7 @@ class SchemaProcessor {
                 continue;
 
             const args = [
-                new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'id', Type.Entity(this._prefix + typename), {
+                new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'id', new Type.Entity(this._prefix + typename), {
                     nl: { canonical: { base: ['name'], passive_verb: ['called', 'named'] } },
                     impl: {
                         'unique': new Ast.Value.Boolean(true),

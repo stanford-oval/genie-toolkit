@@ -114,7 +114,7 @@ class ThingpediaLoader {
         this._recordType(Type.Currency);
         this._recordType(Type.Number);
         for (let unit of Units.BaseUnits)
-            this._recordType(Type.Measure(unit));
+            this._recordType(new Type.Measure(unit));
 
         await this._loadMetadata();
     }
@@ -983,7 +983,7 @@ class ThingpediaLoader {
 
     _addEntityConstants() {
         for (let entityType in this._entities) {
-            const ttType = Type.Entity(entityType);
+            const ttType = new Type.Entity(entityType);
             let typestr = typeToStringSafe(ttType);
             const { has_ner_support } = this._entities[entityType];
 
