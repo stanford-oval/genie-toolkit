@@ -245,7 +245,7 @@ class Trainer extends events.EventEmitter {
         console.log(`Sentence #${this._serial+1} (${this._id}): ${utterance}`);
         if (this._comment)
             console.log(`(previously dropped as "${this._comment}")`);
-        for (var i = 0; i < 3 && i < this._candidates.length; i++)
+        for (let i = 0; i < 3 && i < this._candidates.length; i++)
             console.log(`${i+1}) ${this._candidates[i].prettyprint()}`);
         this._rl.setPrompt('$ ');
         this._rl.prompt();

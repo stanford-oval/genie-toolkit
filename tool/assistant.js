@@ -131,7 +131,7 @@ class CommandLineHandler {
                 for (let app of this._engine.apps.getAllApps())
                     this._engine.apps.removeApp(app);
             } else {
-                var app = this._engine.apps.getApp(param);
+                let app = this._engine.apps.getApp(param);
                 if (!app)
                     console.log('No app with ID ' + param);
                 else

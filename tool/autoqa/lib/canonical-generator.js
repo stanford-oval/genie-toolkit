@@ -218,7 +218,7 @@ class AutoCanonicalGenerator {
                     await output(`./bert-canonical-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
                     const time = Math.round((new Date() - startTime) / 1000);
                     console.log(`Bert annotator took ${time} seconds to run.`);
-                } catch (e) {
+                } catch(e) {
                      await output(`./bert-canonical-annotator-out.json`, stdout);
                 }
             }

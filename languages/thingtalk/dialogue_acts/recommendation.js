@@ -185,7 +185,7 @@ function combineDisplayResult(proposal, newInfo) {
     const results = ctx.results;
     assert(results.length > 0);
     const topResult = results[0];
-    assert (isInfoPhraseCompatibleWithResult(topResult, newInfo));
+    assert(isInfoPhraseCompatibleWithResult(topResult, newInfo));
 
     newInfo = SlotBag.merge(oldInfo, newInfo);
     if (newInfo === null)
